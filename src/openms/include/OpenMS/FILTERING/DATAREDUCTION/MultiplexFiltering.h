@@ -105,6 +105,14 @@ namespace OpenMS
         std::vector<FilterResult> filter();
         
         private:
+        /// structure for debug output
+        struct DebugPoint
+        {
+            double rt;
+            double mz;
+            double flag;
+        };
+
         /**
          * @brief position and blacklist filter
          * 
@@ -161,6 +169,11 @@ namespace OpenMS
          * @brief blacklist peaks
          */
         void blacklistPeaks(PeakPattern pattern, int spectrum, std::vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
+        
+        /**
+         * @brief write debug output
+         */
+        void writeDebug(int pattern, bool rejected, std::vector<DebugPoint> points);
         
         /**
          * @brief returns the index of a peak at m/z

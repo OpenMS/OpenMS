@@ -129,8 +129,8 @@ namespace OpenMS
             FilterResult result;
             
             // m/z position passing all filters (is rejected by a particular filter)
-            vector<vector<double> > debug_filtered;
-            vector<vector<double> > debug_rejected;
+            vector<DebugPoint> debug_rejected;
+            vector<DebugPoint> debug_filtered;
             
             // iterate over spectra
             MSExperiment<Peak1D>::Iterator it_rt_profile;
@@ -187,11 +187,11 @@ namespace OpenMS
                     {
                         if (debug_)
                         {
-                            vector<double> rt_mz_flag;
-                            rt_mz_flag.push_back(rt_picked);
-                            rt_mz_flag.push_back(peak_position[peak]);
-                            rt_mz_flag.push_back(1);    // filter 1 failed
-                            debug_rejected.push_back(rt_mz_flag);
+                            DebugPoint data_point;
+                            data_point.rt = rt_picked;
+                            data_point.mz = peak_position[peak];
+                            data_point.flag = 1;    // filter 1 failed
+                            debug_rejected.push_back(data_point);
                         }
                         //continue;
                     }
@@ -205,14 +205,17 @@ namespace OpenMS
                     {
                         if (debug_)
                         {
-                            vector<double> rt_mz_flag;
-                            rt_mz_flag.push_back(rt_picked);
-                            rt_mz_flag.push_back(peak_position[peak]);
-                            rt_mz_flag.push_back(2);    // filter 2 failed
-                            debug_rejected.push_back(rt_mz_flag);
+                            DebugPoint data_point;
+                            data_point.rt = rt_picked;
+                            data_point.mz = peak_position[peak];
+                            data_point.flag = 2;    // filter 2 failed
+                            debug_rejected.push_back(data_point);
                         }
                         //continue;
                     }
+                    
+                    // just for debugging
+                    continue;
                      
                     // Arrangement of peaks looks promising. Now scan through the spline fitted data.
                     vector<FilterResultRaw> results_raw;    // raw data points of this peak that will pass the remaining filters
@@ -231,12 +234,12 @@ namespace OpenMS
                         {
                             if (debug_)
                             {
-                                vector<double> rt_mz_flag;
-                                rt_mz_flag.push_back(rt_picked);
-                                rt_mz_flag.push_back(mz);
-                                rt_mz_flag.push_back(3);    // filter 3 failed
-                                debug_rejected.push_back(rt_mz_flag);
-                            }
+                                DebugPoint data_point;
+                                data_point.rt = rt_picked;
+                                data_point.mz = mz;
+                                data_point.flag = 3;    // filter 3 failed
+                                debug_rejected.push_back(data_point);
+                           }
                             //continue;
                         }
                          
@@ -250,12 +253,12 @@ namespace OpenMS
                         {
                             if (debug_)
                             {
-                                vector<double> rt_mz_flag;
-                                rt_mz_flag.push_back(rt_picked);
-                                rt_mz_flag.push_back(mz);
-                                rt_mz_flag.push_back(4);    // filter 4 failed
-                                debug_rejected.push_back(rt_mz_flag);
-                            }
+                                DebugPoint data_point;
+                                data_point.rt = rt_picked;
+                                data_point.mz = mz;
+                                data_point.flag = 4;    // filter 4 failed
+                                debug_rejected.push_back(data_point);
+                           }
                             //continue;
                         }
                         
@@ -270,11 +273,11 @@ namespace OpenMS
                         {
                             if (debug_)
                             {
-                                vector<double> rt_mz_flag;
-                                rt_mz_flag.push_back(rt_picked);
-                                rt_mz_flag.push_back(mz);
-                                rt_mz_flag.push_back(5);    // filter 5 failed
-                                debug_rejected.push_back(rt_mz_flag);
+                                DebugPoint data_point;
+                                data_point.rt = rt_picked;
+                                data_point.mz = mz;
+                                data_point.flag = 5;    // filter 5 failed
+                                debug_rejected.push_back(data_point);
                             }
                             //continue;
                         }
@@ -288,12 +291,12 @@ namespace OpenMS
                         {
                             if (debug_)
                             {
-                                vector<double> rt_mz_flag;
-                                rt_mz_flag.push_back(rt_picked);
-                                rt_mz_flag.push_back(mz);
-                                rt_mz_flag.push_back(6);    // filter 6 failed
-                                debug_rejected.push_back(rt_mz_flag);
-                            }
+                                DebugPoint data_point;
+                                data_point.rt = rt_picked;
+                                data_point.mz = mz;
+                                data_point.flag = 6;    // filter 6 failed
+                                debug_rejected.push_back(data_point);
+                           }
                             //continue;
                         }
  
@@ -302,11 +305,11 @@ namespace OpenMS
                          */
                         if (debug_)
                         {
-                            vector<double> rt_mz_flag;
-                            rt_mz_flag.push_back(rt_picked);
-                            rt_mz_flag.push_back(mz);
-                            rt_mz_flag.push_back(intensities_actual[1]);    // all filters passed
-                            debug_rejected.push_back(rt_mz_flag);
+                            DebugPoint data_point;
+                            data_point.rt = rt_picked;
+                            data_point.mz = mz;
+                            data_point.flag = intensities_actual[1];    // all filters passed
+                            debug_filtered.push_back(data_point);
                         }
                         
                         // add raw data point to list that passed all filters
@@ -340,6 +343,13 @@ namespace OpenMS
             
             // add results of this pattern to list
             filter_results.push_back(result);
+            
+            // write debug output
+            if (debug_)
+            {
+                writeDebug(pattern, true, debug_rejected);
+                writeDebug(pattern, false, debug_filtered);
+            }
         }
         
         return filter_results;
@@ -589,6 +599,57 @@ namespace OpenMS
                 
             }
        }
+    }
+    
+    void MultiplexFiltering::writeDebug(int pattern, bool rejected, vector<DebugPoint> points)
+    {
+        MSExperiment<Peak1D> expDebug;
+        
+        cout << "number of points = " << points.size() << "\n";
+        
+        /*Int spectrumID = 0;
+        MSExperiment<Peak1D> expSpline;
+        std::vector<double> rtSpline;
+        std::vector<std::vector<double> > mzSpline;
+        std::vector<std::vector<double> > intensitySpline;	
+        for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
+        {
+            ++spectrumID;
+            double rt = it->getRT();
+            std::vector<double> mzVector;
+            std::vector<double> intensityVector;
+            // iterate over data points in spectrum (mz)
+            for (MSSpectrum<Peak1D>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+            {
+                double mzSpec = it2->getMZ();
+                double intensitySpec = it2->getIntensity();
+                mzVector.push_back(mzSpec);
+                intensityVector.push_back(intensitySpec);
+            }
+            
+            //cout << "RT = " << rt << "\n";
+            
+            // construct spline
+            SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector,0.1);
+            SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
+    
+            // fill new experiment
+            MSSpectrum<Peak1D> specNew;
+            specNew.setRT(rt);
+            specNew.setMSLevel(1);
+            specNew.setNativeID(String("spline-interpolated=") + spectrumID);
+            for (double mz = (*spectrumNew).getMzMin(); mz < (*spectrumNew).getMzMax(); mz = nav.getNextMz(mz))
+            {
+                Peak1D peak;
+                peak.setMZ(mz);
+                peak.setIntensity(nav.eval(mz));
+                specNew.push_back(peak);
+            }			
+            expSpline.addSpectrum(specNew);
+        }
+        MzMLFile fileSpline;
+        fileSpline.store("spline.mzML", expSpline);*/
+
     }
     
     int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)
