@@ -52,14 +52,14 @@ MascotGenericFile* ptr = 0;
 MascotGenericFile* nullPointer = 0;
 START_SECTION(MascotGenericFile())
 {
-	ptr = new MascotGenericFile();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new MascotGenericFile();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(virtual ~MascotGenericFile())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -77,24 +77,24 @@ END_SECTION
 
 START_SECTION((void store(std::ostream &os, const String &filename, const PeakMap &experiment)))
 {
-	PeakMap exp;
-	ptr->load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), exp);
-	
+  PeakMap exp;
+  ptr->load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), exp);
+  
   // handling of modifications:
   Param params = ptr->getParameters();
   params.setValue("fixed_modifications", ListUtils::create<String>("Carbamidomethyl (C),Phospho (S)"));
   params.setValue("variable_modifications", ListUtils::create<String>("Oxidation (M),Deamidated (N),Deamidated (Q)"));
   ptr->setParameters(params);
 
-	stringstream ss;
-	ptr->store(ss, "test", exp);
+  stringstream ss;
+  ptr->store(ss, "test", exp);
 
-	vector<String> strings;
-	strings.push_back("BEGIN IONS\n"
+  vector<String> strings;
+  strings.push_back("BEGIN IONS\n"
                     "TITLE=1998_25.379_index=0_test\n" // different from input!
                     "PEPMASS=1998\n"
                     "RTINSECONDS=25.379");
-	strings.push_back("1 1\n"
+  strings.push_back("1 1\n"
                     "2 4\n"
                     "3 9\n"
                     "4 16\n"
@@ -109,11 +109,11 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
   strings.push_back("IT_MODS=Deamidated (NQ)");
   strings.push_back("IT_MODS=Oxidation (M)");
 
-	String mgf_file(ss.str());
-	for (Size i = 0; i < strings.size(); ++i)
-	{
-		TEST_EQUAL(mgf_file.hasSubstring(strings[i]), true)
-	}
+  String mgf_file(ss.str());
+  for (Size i = 0; i < strings.size(); ++i)
+  {
+    TEST_EQUAL(mgf_file.hasSubstring(strings[i]), true)
+  }
 
   ptr->setParameters(ptr->getDefaults()); // reset parameters
 }
@@ -122,19 +122,19 @@ END_SECTION
 START_SECTION((void store(const String &filename, const PeakMap &experiment)))
 {
   String tmp_name("MascotGenericFile_1.tmp");
-	NEW_TMP_FILE(tmp_name)
-	PeakMap exp;
+  NEW_TMP_FILE(tmp_name)
+  PeakMap exp;
   ptr->load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), exp);
 
 
-	ptr->store(tmp_name, exp);
+  ptr->store(tmp_name, exp);
 
-	PeakMap exp2;
-	ptr->load(tmp_name, exp2);
-	TEST_EQUAL(exp.size() == exp2.size(), true)
-	TEST_EQUAL(exp.begin()->size() == exp2.begin()->size(), true)
-	TEST_REAL_SIMILAR(exp.begin()->getRT(), exp2.begin()->getRT())
-	TEST_REAL_SIMILAR(exp.begin()->getPrecursors().begin()->getMZ(), exp2.begin()->getPrecursors().begin()->getMZ())
+  PeakMap exp2;
+  ptr->load(tmp_name, exp2);
+  TEST_EQUAL(exp.size() == exp2.size(), true)
+  TEST_EQUAL(exp.begin()->size() == exp2.begin()->size(), true)
+  TEST_REAL_SIMILAR(exp.begin()->getRT(), exp2.begin()->getRT())
+  TEST_REAL_SIMILAR(exp.begin()->getPrecursors().begin()->getMZ(), exp2.begin()->getPrecursors().begin()->getMZ())
 }
 END_SECTION
 
@@ -142,6 +142,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-
