@@ -604,51 +604,34 @@ namespace OpenMS
     void MultiplexFiltering::writeDebug(int pattern, bool rejected, vector<DebugPoint> points)
     {
         MSExperiment<Peak1D> expDebug;
+        MSSpectrum<Peak1D> specDebug;        
         
-        cout << "number of points = " << points.size() << "\n";
-        
-        /*Int spectrumID = 0;
-        MSExperiment<Peak1D> expSpline;
-        std::vector<double> rtSpline;
-        std::vector<std::vector<double> > mzSpline;
-        std::vector<std::vector<double> > intensitySpline;	
-        for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
+        double rt = -1000;
+        for (vector<DebugPoint>::iterator it = points.begin(); it != points.end(); ++it)
         {
-            ++spectrumID;
-            double rt = it->getRT();
-            std::vector<double> mzVector;
-            std::vector<double> intensityVector;
-            // iterate over data points in spectrum (mz)
-            for (MSSpectrum<Peak1D>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+            if ((*it).rt > rt)
             {
-                double mzSpec = it2->getMZ();
-                double intensitySpec = it2->getIntensity();
-                mzVector.push_back(mzSpec);
-                intensityVector.push_back(intensitySpec);
+                if (rt>-1000)
+                {
+                    expDebug.addSpectrum(specDebug);
+                }
+                
+                rt = (*it).rt;
+                specDebug.clear(true);
+                specDebug.setRT(rt);
+                specDebug.setMSLevel(1);
+                specDebug.setNativeID(String("spectrum with debug output"));
             }
             
-            //cout << "RT = " << rt << "\n";
+            Peak1D peak;
+            peak.setMZ((*it).mz);
+            peak.setIntensity((*it).flag);
+            specDebug.push_back(peak);
             
-            // construct spline
-            SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector,0.1);
-            SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
-    
-            // fill new experiment
-            MSSpectrum<Peak1D> specNew;
-            specNew.setRT(rt);
-            specNew.setMSLevel(1);
-            specNew.setNativeID(String("spline-interpolated=") + spectrumID);
-            for (double mz = (*spectrumNew).getMzMin(); mz < (*spectrumNew).getMzMax(); mz = nav.getNextMz(mz))
-            {
-                Peak1D peak;
-                peak.setMZ(mz);
-                peak.setIntensity(nav.eval(mz));
-                specNew.push_back(peak);
-            }			
-            expSpline.addSpectrum(specNew);
         }
+            
         MzMLFile fileSpline;
-        fileSpline.store("spline.mzML", expSpline);*/
+        fileSpline.store("debug.mzML", expDebug);
 
     }
     
