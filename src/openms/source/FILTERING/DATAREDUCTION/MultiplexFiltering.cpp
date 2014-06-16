@@ -104,9 +104,9 @@ namespace OpenMS
                 // blacklist
                 BlackListEntry entry;
                 entry.black = false;
-                entry.black_exception_mass_shift_index = 0;
-                entry.black_exception_charge = 0;
-                entry.black_exception_mz_position = 0;
+                entry.black_exception_mass_shift_index = -1;
+                entry.black_exception_charge = -1;
+                entry.black_exception_mz_position = -1;
                 blacklist_spec.push_back(entry);
             }
             registry_.push_back(registry_spec);
@@ -121,9 +121,10 @@ namespace OpenMS
         vector<FilterResult> filter_results;
         
         // loop over patterns
-        for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
+        //for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
+        for (int pattern = (int) patterns_.size()-1 ; pattern >= 0; --pattern)    // reverse pattern order (just for debugging)
         {
-            cout << "peak pattern " << pattern << "\n";
+            cout << "peak pattern " << pattern << "      charge = " << patterns_[pattern].getCharge() << "  mass shift = " << patterns_[pattern].getMassShiftAt(1) << "\n";            
             
             // data structure storing peaks which pass all filters
             FilterResult result;
@@ -146,9 +147,8 @@ namespace OpenMS
                 }
 
                 int spectrum = it_rt_profile - exp_profile_.begin();    // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
-                //double rt_profile = it_rt_profile->getRT();
                 double rt_picked = it_rt_picked->getRT();
-                //cout << "    RT (profile) = " << rt_profile << "    RT (picked) = " << rt_picked << "\n";
+                //cout << "RT = " << rt_picked << "    spectrum = " << spectrum << "\n";
                 
                 // spline fit profile data
                 SplineSpectrum spline(*it_rt_profile);
@@ -183,6 +183,10 @@ namespace OpenMS
                     vector<double> mz_shifts_actual;    // actual m/z shifts (differ slightly from expected m/z shifts)
                     vector<int> mz_shifts_actual_indices;    // peak indices in the spectrum corresponding to the actual m/z shifts
                     int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
+                    /*if (peaks_found_in_all_peptides > 0)
+                    {
+                        cout << "peaks found in all peptides = " << peaks_found_in_all_peptides << "\n";
+                    }*/
                     if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
                     {
                         if (debug_)
@@ -193,10 +197,13 @@ namespace OpenMS
                             data_point.flag = 1;    // filter 1 failed
                             debug_rejected.push_back(data_point);
                         }
-                        //continue;
+                        continue;
                     }
                    
-                    /**
+                    // just for debugging
+                    continue;
+                     
+                   /**
                      * Filter (2): blunt intensity filter
                      * Are the mono-isotopic peak intensities of all peptides above the cutoff?
                      */
@@ -214,9 +221,6 @@ namespace OpenMS
                         //continue;
                     }
                     
-                    // just for debugging
-                    continue;
-                     
                     // Arrangement of peaks looks promising. Now scan through the spline fitted data.
                     vector<FilterResultRaw> results_raw;    // raw data points of this peak that will pass the remaining filters
                     bool blacklisted = false;    // Has this peak already been blacklisted?
@@ -360,6 +364,15 @@ namespace OpenMS
     
     int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices)
     {
+        // for debug
+        bool now = pattern.getCharge()==2 && pattern.getMassShiftAt(1)>16 && spectrum==169;
+        bool rightnow1 = now && peak == 1414;    // 16Da 2+ pair
+        bool rightnow2 = now && peak == 1419;    // 16Da 2+ pair
+        if (rightnow1 || rightnow2)
+        {
+            cout << "m/z = " << peak_position[peak] << "    peak = " << peak << "\n";
+        }
+        
         // Try to find peaks at the expected m/z positions
         // loop over expected m/z shifts of a peak pattern
         for (unsigned mz_position = 0; mz_position < pattern.getMzShiftCount(); ++mz_position)
@@ -373,6 +386,10 @@ namespace OpenMS
             }
             
             int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMzShiftAt(mz_position), scaling);
+            if (rightnow1 || rightnow2)
+            {
+                cout << "m/z position = " << mz_position << "    m/z shift = " << pattern.getMzShiftAt(mz_position) << "    index = " << index << "\n";
+            }
             
             if (index != -1)
             {
@@ -625,7 +642,7 @@ namespace OpenMS
                 specDebug.clear(true);
                 specDebug.setRT(rt);
                 specDebug.setMSLevel(1);
-                specDebug.setNativeID(String(spec_id));
+                specDebug.setNativeID(String("spectrum = ") + spec_id);
             }
             
             Peak1D peak;
@@ -700,7 +717,7 @@ namespace OpenMS
                 if (mz >= mz_min && mz <= mz_max)
                 {
                     valid_index.push_back(i);
-                    valid_deviation.push_back(std::abs(mz - peak_position[i]) / mz * 1000000);
+                    valid_deviation.push_back(abs(mz - peak_position[i]) / mz * 1000000);
                 }
                 if (mz < peak_position[i])
                 {
@@ -728,7 +745,7 @@ namespace OpenMS
                 if (mz >= mz_min && mz <= mz_max)
                 {
                     valid_index.push_back(i);
-                    valid_deviation.push_back(std::abs(mz - peak_position[i]) / mz * 1000000);
+                    valid_deviation.push_back(abs(mz - peak_position[i]) / mz * 1000000);
                 }
                 if (mz > peak_position[i])
                 {
@@ -744,7 +761,7 @@ namespace OpenMS
         else
         {
             // find best index
-            int best_index = -1;
+            int best_index = valid_index[0];
             double best_deviation = valid_deviation[0];
             for (unsigned i = 1; i < valid_index.size(); ++i)
             {
