@@ -263,12 +263,12 @@ namespace OpenMS
         /**
          * @brief peptide similarity
          */
-        bool peptide_similarity_;
+        double peptide_similarity_;
         
         /**
          * @brief averagine similarity
          */
-        bool averagine_similarity_;
+        double averagine_similarity_;
         
         /**
          * @brief debug mode

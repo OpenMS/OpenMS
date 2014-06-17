@@ -207,7 +207,6 @@ namespace OpenMS
                     bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices);
                     if (bluntVeto)
                     {
-                        cout << "BLUNT. " << intensity_cutoff_ << "\n";
                         if (debug_)
                         {
                             DebugPoint data_point;
@@ -218,9 +217,6 @@ namespace OpenMS
                         }
                         continue;
                     }
-                    
-                    // just for debugging
-                    continue;
                      
                     // Arrangement of peaks looks promising. Now scan through the spline fitted data.
                     vector<FilterResultRaw> results_raw;    // raw data points of this peak that will pass the remaining filters
@@ -235,6 +231,7 @@ namespace OpenMS
                          */
                         vector<double> intensities_actual;    // spline interpolated intensities @ m/z + actual m/z shift
                         int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
+                        //cout << peaks_found_in_all_peptides_spline << "\n";
                         if (peaks_found_in_all_peptides_spline < peaks_per_peptide_min_)
                         {
                             if (debug_)
@@ -244,10 +241,10 @@ namespace OpenMS
                                 data_point.mz = mz;
                                 data_point.flag = 3;    // filter 3 failed
                                 debug_rejected.push_back(data_point);
-                           }
-                            //continue;
+                            }
+                            continue;
                         }
-                         
+                    
                         /**
                          * Filter (4): zeroth peak filter
                          * There should not be a significant peak to the left of the mono-isotopic
@@ -263,8 +260,8 @@ namespace OpenMS
                                 data_point.mz = mz;
                                 data_point.flag = 4;    // filter 4 failed
                                 debug_rejected.push_back(data_point);
-                           }
-                            //continue;
+                            }
+                            continue;
                         }
                         
                         /**
@@ -284,8 +281,13 @@ namespace OpenMS
                                 data_point.flag = 5;    // filter 5 failed
                                 debug_rejected.push_back(data_point);
                             }
-                            //continue;
+                            continue;
                         }
+
+                        cout << "Ever get here?\n";
+                        
+                        // just for debugging
+                        continue;                       
                          
                         /**
                          * Filter (6): averagine similarity filter
@@ -483,7 +485,6 @@ namespace OpenMS
         {
             int peak_index = mz_shifts_actual_indices[peptide * (peaks_per_peptide_max_ + 1) +1];
             MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin() + peak_index;
-            cout << it_mz->getIntensity() << " " << intensity_cutoff_ << "\n";
             if (it_mz->getIntensity() < intensity_cutoff_)
             {
                 return true;
@@ -492,7 +493,7 @@ namespace OpenMS
         return false;
     }
     
-    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz)
+    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz)
     {
         // calculate intensities
         for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
@@ -546,13 +547,14 @@ namespace OpenMS
     
     bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2)
     {
-        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        for (int peptide = 1; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
             for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
             {
                 isotope_pattern_1.push_back(intensities_actual[isotope + 1]);
                 isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
             }
+            cout << "peptide similarity = " << getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) << "   " << peptide_similarity_ << "\n";
             if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
             {
                 return true;
