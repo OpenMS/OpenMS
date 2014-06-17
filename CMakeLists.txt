@@ -72,12 +72,32 @@ option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 
 #------------------------------------------------------------------------------
+# Extend module path with our modules
+# (create an empty list if CMAKE_MODULE_PATH does not exist)
+if(NOT CMAKE_MODULE_PATH)
+	set(CMAKE_MODULE_PATH)
+endif()
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+
+
+#------------------------------------------------------------------------------
 # OpenMS Version Information
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "1")
 set(OPENMS_PACKAGE_VERSION_MINOR "12")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
+
+#------------------------------------------------------------------------------
+# retrieve detailed informations on the working copy (git)
+include(GetGitRevisionDescription)
+get_git_head_revision(OPENMS_GIT_REFSPEC OPENMS_GIT_SHA1)
+git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
+
+message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
+message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
+message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
 
 # add some informations used when building packages
 include(cmake/package_definitions.cmake)
@@ -190,13 +210,6 @@ foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
     set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
   endif()
 endforeach()
-
-#------------------------------------------------------------------------------
-# (create an empty list if CMAKE_MODULE_PATH does not exist)
-if(NOT CMAKE_MODULE_PATH)
-  set(CMAKE_MODULE_PATH)
-endif()
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 #------------------------------------------------------------------------------
 # lib naming when building with msvc
