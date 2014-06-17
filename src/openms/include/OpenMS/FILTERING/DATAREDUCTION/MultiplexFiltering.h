@@ -248,7 +248,7 @@ namespace OpenMS
         /**
          * @brief intensity cutoff
          */
-        bool intensity_cutoff_;
+        double intensity_cutoff_;
 
         /**
          * @brief m/z shift tolerance

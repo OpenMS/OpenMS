@@ -200,9 +200,6 @@ namespace OpenMS
                         continue;
                     }
                    
-                    // just for debugging
-                    continue;
-                     
                    /**
                      * Filter (2): blunt intensity filter
                      * Are the mono-isotopic peak intensities of all peptides above the cutoff?
@@ -210,6 +207,7 @@ namespace OpenMS
                     bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices);
                     if (bluntVeto)
                     {
+                        cout << "BLUNT. " << intensity_cutoff_ << "\n";
                         if (debug_)
                         {
                             DebugPoint data_point;
@@ -218,9 +216,12 @@ namespace OpenMS
                             data_point.flag = 2;    // filter 2 failed
                             debug_rejected.push_back(data_point);
                         }
-                        //continue;
+                        continue;
                     }
                     
+                    // just for debugging
+                    continue;
+                     
                     // Arrangement of peaks looks promising. Now scan through the spline fitted data.
                     vector<FilterResultRaw> results_raw;    // raw data points of this peak that will pass the remaining filters
                     bool blacklisted = false;    // Has this peak already been blacklisted?
@@ -365,13 +366,13 @@ namespace OpenMS
     int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices)
     {
         // for debug
-        bool now = pattern.getCharge()==2 && pattern.getMassShiftAt(1)>16 && spectrum==169;
+        /*bool now = pattern.getCharge()==2 && pattern.getMassShiftAt(1)>16 && spectrum==169;
         bool rightnow1 = now && peak == 1414;    // 16Da 2+ pair
         bool rightnow2 = now && peak == 1419;    // 16Da 2+ pair
         if (rightnow1 || rightnow2)
         {
             cout << "m/z = " << peak_position[peak] << "    peak = " << peak << "\n";
-        }
+        }*/
         
         // Try to find peaks at the expected m/z positions
         // loop over expected m/z shifts of a peak pattern
@@ -386,10 +387,10 @@ namespace OpenMS
             }
             
             int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMzShiftAt(mz_position), scaling);
-            if (rightnow1 || rightnow2)
+            /*if (rightnow1 || rightnow2)
             {
                 cout << "m/z position = " << mz_position << "    m/z shift = " << pattern.getMzShiftAt(mz_position) << "    index = " << index << "\n";
-            }
+            }*/
             
             if (index != -1)
             {
@@ -482,6 +483,7 @@ namespace OpenMS
         {
             int peak_index = mz_shifts_actual_indices[peptide * (peaks_per_peptide_max_ + 1) +1];
             MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin() + peak_index;
+            cout << it_mz->getIntensity() << " " << intensity_cutoff_ << "\n";
             if (it_mz->getIntensity() < intensity_cutoff_)
             {
                 return true;
