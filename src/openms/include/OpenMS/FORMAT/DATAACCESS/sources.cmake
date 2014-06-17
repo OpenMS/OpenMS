@@ -6,6 +6,7 @@ set(sources_list_h
 MSDataWritingConsumer.h
 MSDataTransformingConsumer.h
 MSDataCachedConsumer.h
+MSDataChainingConsumer.h
 NoopMSDataConsumer.h
 SwathFileConsumer.h
 )
