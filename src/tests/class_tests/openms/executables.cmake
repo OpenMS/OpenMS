@@ -211,6 +211,7 @@ set(format_executables_list
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
+  MSDataChainingConsumer_test
 )
 
 set(math_executables_list
