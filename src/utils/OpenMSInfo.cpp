@@ -223,7 +223,8 @@ int main(int /*argc*/, const char ** /*argv*/)
   cout << "==================" << "\n";
   cout << "Version      : " << VersionInfo::getVersion() << "\n";
   cout << "Build time   : " << VersionInfo::getTime() << "\n";
-  cout << "SVN revision : " << VersionInfo::getRevision() << "\n";
+  cout << "Git sha1     : " << VersionInfo::getRevision() << "\n";
+  cout << "Git branch   : " << VersionInfo::getBranch() << "\n";
   cout << "\n";
   cout << "Installation information:" << "\n";
   cout << "==================" << "\n";
