@@ -121,8 +121,8 @@ namespace OpenMS
         vector<FilterResult> filter_results;
         
         // loop over patterns
-        //for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
-        for (int pattern = (int) patterns_.size()-1 ; pattern >= 0; --pattern)    // reverse pattern order (just for debugging)
+        for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
+        //for (int pattern = (int) patterns_.size()-1 ; pattern >= 0; --pattern)    // reverse pattern order (just for debugging)
         {
             cout << "peak pattern " << pattern << "      charge = " << patterns_[pattern].getCharge() << "  mass shift = " << patterns_[pattern].getMassShiftAt(1) << "\n";            
             
@@ -284,11 +284,6 @@ namespace OpenMS
                             continue;
                         }
 
-                        cout << "Ever get here?\n";
-                        
-                        // just for debugging
-                        continue;                       
-                         
                         /**
                          * Filter (6): averagine similarity filter
                          * Does each individual isotope pattern resemble a peptide?
@@ -303,10 +298,10 @@ namespace OpenMS
                                 data_point.mz = mz;
                                 data_point.flag = 6;    // filter 6 failed
                                 debug_rejected.push_back(data_point);
-                           }
-                            //continue;
+                            }
+                            continue;
                         }
- 
+                         
                         /**
                          * All filters passed.
                          */
@@ -554,7 +549,6 @@ namespace OpenMS
                 isotope_pattern_1.push_back(intensities_actual[isotope + 1]);
                 isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
             }
-            cout << "peptide similarity = " << getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) << "   " << peptide_similarity_ << "\n";
             if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
             {
                 return true;
