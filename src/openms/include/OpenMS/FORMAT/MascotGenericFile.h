@@ -70,8 +70,11 @@ public:
     /// constructor
     MascotGenericFile();
 
-    /// constructor
+    /// destructor
     virtual ~MascotGenericFile();
+
+    /// docu in base class
+    virtual void updateMembers_();
 
     /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution
     void store(const String& filename, const PeakMap& experiment);

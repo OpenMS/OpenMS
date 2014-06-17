@@ -72,9 +72,10 @@ namespace OpenMS
     defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "Variable modifications given as UniMod definitions.");
     defaults_.setValidStrings("variable_modifications", all_mods);
 
-    // list from Mascot 2.4; there's also "Phospho (STY)", but that can be 
-    // represented using "Phospho (ST)" and "Phospho (Y)":
+    // special modifications, see "updateMembers_" method below:
     defaults_.setValue("special_modifications", "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)", "Modifications with specificity groups that are used by Mascot and have to be treated specially", ListUtils::create<String>("advanced"));
+    // list from Mascot 2.4; there's also "Phospho (STY)", but that can be 
+    // represented using "Phospho (ST)" and "Phospho (Y)"
 
     defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
     defaults_.setValidStrings("mass_type", ListUtils::create<String>("monoisotopic,average"));
@@ -99,7 +100,14 @@ namespace OpenMS
     defaults_.insert("internal:", p);
 
     defaultsToParam_();
+  }
 
+  MascotGenericFile::~MascotGenericFile()
+  {
+  }
+
+  void MascotGenericFile::updateMembers_()
+  {
     // special cases for specificity groups: OpenMS uses e.g. "Deamidated (N)"
     // and "Deamidated (Q)", but Mascot only understands "Deamidated (NQ)"
     String special_mods = param_.getValue("special_modifications");
@@ -114,12 +122,7 @@ namespace OpenMS
       {
         mod_group_map_[mod + " (" + String(*res_it) + ")"] = *mod_it;
       }
-    }
-  }
-
-  MascotGenericFile::~MascotGenericFile()
-  {
-
+    }    
   }
 
   void MascotGenericFile::store(const String& filename, const PeakMap& experiment)
