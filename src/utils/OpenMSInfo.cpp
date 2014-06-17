@@ -102,31 +102,49 @@ namespace OpenMS
       {
       case QSysInfo::MV_10_2:
       {
-        info.os_version = "10.2";
+        info.os_version = "10.2 (Jaguar)";
         break;
       }
 
       case QSysInfo::MV_10_3:
       {
-        info.os_version = "10.3";
+        info.os_version = "10.3 (Panther)";
         break;
       }
 
       case QSysInfo::MV_10_4:
       {
-        info.os_version = "10.4";
+        info.os_version = "10.4 (Tiger)";
         break;
       }
 
       case QSysInfo::MV_10_5:
       {
-        info.os_version = "10.5";
+        info.os_version = "10.5 (Leopard)";
         break;
       }
 
       case QSysInfo::MV_10_6:
       {
-        info.os_version = "10.6";
+        info.os_version = "10.6 (Snow Leopard)";
+        break;
+      }
+
+      case QSysInfo::MV_10_7:
+      {
+        info.os_version = "10.7 (Lion)";
+        break;
+      }
+
+      case QSysInfo::MV_10_8:
+      {
+        info.os_version = "10.8 (Mountain Lion)";
+        break;
+      }
+
+      case QSysInfo::MV_10_9:
+      {
+        info.os_version = "10.9 (Mavericks)";
         break;
       }
 
