@@ -85,11 +85,11 @@ namespace OpenMS
                 PeakReference reference;
                 if (index > 0)
                 {
-                    reference.index_in_last_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 1.0);
+                    reference.index_in_previous_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 1.0);
                 }
                 else
                 {
-                    reference.index_in_last_spectrum = -1;
+                    reference.index_in_previous_spectrum = -1;
                 }
                 if (index + 1 < (int) exp_picked_.size())
                 {
@@ -596,7 +596,7 @@ namespace OpenMS
                 }
                 
                 // blacklist peaks in previous spectrum
-                peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_last_spectrum;
+                peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_previous_spectrum;
                 if (peak_index != -1 && !blacklist_[spectrum-1][peak_index].black)
                 {
                     blacklist_[spectrum-1][peak_index].black = true;

@@ -63,14 +63,27 @@ namespace OpenMS
     class OPENMS_DLLAPI MultiplexFiltering
     {        
         public:
-        /// structure for peak position in neighbouring spectra
+        /**
+         * @brief structure for peak position in neighbouring spectra
+         * 
+         * Each peak can be annotated with a peak reference. The reference
+         * contains the indices of peaks with same m/z in the previous and
+         * next spectrum. If none is present -1.
+         * 
+         * @see blacklistPeaks
+         */
         struct PeakReference
         {
-            int index_in_last_spectrum;
+            int index_in_previous_spectrum;
             int index_in_next_spectrum;
         };
 
-        /// structure for peak blacklisting
+        /**
+         * @brief structure for peak blacklisting
+         * 
+         * Each peak can be blacklisted. It will not pass the blacklist filter
+         * unless it is of the correct charge and position in the pattern.
+         */
         struct BlackListEntry
         {
             bool black;
@@ -100,12 +113,18 @@ namespace OpenMS
         
         /**
          * @brief filter for patterns
-         * (generates a filter result for each pattern)
+         * (generates a filter result for each of the patterns)
          */
         std::vector<FilterResult> filter();
         
         private:
-        /// structure for debug output
+        /**
+         * @brief structure for debug output
+         * 
+         * Position of a peak or raw datapoint that does not or does pass
+         * a filter. The flag contains the number of the filter that failed
+         * or the intensity at that position repectively.
+         */
         struct DebugPoint
         {
             double rt;
@@ -116,51 +135,87 @@ namespace OpenMS
         /**
          * @brief position and blacklist filter
          * 
-         * @param pattern
+         * Checks if there are peaks at positions corresponding to the pattern
+         * and that these peaks are not blacklisted.
+         * 
+         * @param pattern    pattern of isotopic peaks to be searched for
          * @param spectrum    index of the spectrum in exp_picked_ and boundaries_
-         * @param peak_position
-         * @param peak
-         * @param mz_shifts_actual
-         * @param mz_shifts_actual_indices
+         * @param peak_position    m/z positions of the peaks in spectrum
+         * @param peak    index of the peak in peak_position
+         * @param mz_shifts_actual    output for actual m/z shifts seen in the spectrum (will differ slightly from expected m/z shifts in pattern)
+         * @param mz_shifts_actual_indices    output for indices of peaks corresponding to the pattern
+         * 
+         * @return number of isotopic peaks seen for each peptide
          */
         int positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices);
         
         /**
          * @brief mono-isotopic peak intensity filter
          * 
-         * @param pattern
+         * Quick check if the intensities of the mono-isotopic peaks are
+         * above the intensity cutoff.
+         * 
+         * @param pattern    pattern of isotopic peaks to be searched for
          * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-         * @param mz_shifts_actual_indices
+         * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
+         * 
+         * @return true if all intensities above threshold
          */
         bool monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<int> & mz_shifts_actual_indices);
         
         /**
          * @brief non-local intensity filter
          * 
-         * @param pattern
-         * @param mz_shifts_actual
-         * @param mz_shifts_actual_indices
-         * @param intensities_actual
-         * @param peaks_found_in_all_peptides
-         * @param mz
+         * Checks if the intensities at the pattern positions are above the intensity cutoff.
+         * We check not only at m/z but at all pattern positions i.e. non-locally.
+         * 
+         * @param pattern    pattern of isotopic peaks to be searched for
+         * @param mz_shifts_actual    actual m/z shifts seen in the spectrum (will differ slightly from expected m/z shifts in pattern)
+         * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
+         * @param nav    navigator for moving on the spline-interpolated spectrum
+         * @param intensities_actual    output for the spline-interpolated intensities at the actual m/z shift positions
+         * @param peaks_found_in_all_peptides    number of isotopic peaks seen for each peptide (peaks)
+         * @param mz    reference m/z position of the pattern (mono-isotopic peak of the lightest peptide)
+         * 
+         * @return number of isotopic peaks seen for each peptide (profile)
          */
         int nonLocalIntensityFilter(PeakPattern pattern, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz);
         
         /**
          * @brief zeroth peak veto filter
          * 
-         * @param pattern
-         * @param intensities_actual
+         * The mono-isotopic peak is the first peak of each peptide. A peak one m/z shift to the left (e.g. 0.5Th for 2+) 
+         * is called zeroth peak. High-intensity zeroth peaks indicate incorrect pattern matches. A different pattern is
+         * likely to be a better fit.
+         * 
+         * @param pattern    pattern of isotopic peaks to be searched for
+         * @param intensities_actual    spline-interpolated intensities at the actual m/z shift positions
+         * 
+         * @return true if there are high-intensity zeroth peaks
          */
         bool zerothPeakVetoFilter(PeakPattern pattern, std::vector<double> & intensities_actual);
         
         /**
          * @brief peptide similarity filter
+         * 
+         * The algorithm takes only MS1 spectra into account i.e. we have no knowledge of the peptide sequences.
+         * But we do know that peptides in a pair should have the same sequence and hence the same isotopic distributions.
+         * The filter checks the similarity of the lightest peptide with all of the other peptides of the pattern.
+         * (In high-complexity samples two peptides can have the correct mass shift by chance. Such accidental pairs
+         * show different isotopic distributions and are therefore filtered out.)
+         * 
+         * @param pattern    pattern of isotopic peaks to be searched for
+         * @param intensities_actual    spline-interpolated intensities at the actual m/z shift positions
+         * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
+         * 
+         * @return true if peptide isotope patterns are similar
          */
         bool peptideSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> isotope_pattern_1, std::vector<double> isotope_pattern_2);
         
         /**
          * @brief averagine similarity filter
+         * 
+         * @return true if 
          */
         bool averagineSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz);
         
