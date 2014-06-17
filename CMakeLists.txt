@@ -95,9 +95,15 @@ get_git_head_revision(OPENMS_GIT_REFSPEC OPENMS_GIT_SHA1)
 git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
 
 message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
-message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
-message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
+if(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
+	set(OPENMS_GIT_SHORT_SHA1 "exported")
+	set(OPENMS_GIT_SHORT_REFSPEC "exported")
+else()
+	# everything found, print some status information
+	message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
+	message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
+	message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
+endif()
 
 # add some informations used when building packages
 include(cmake/package_definitions.cmake)
