@@ -50,30 +50,30 @@ namespace OpenMS
 	{		
 	}
     
-    void FilterResult::addFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<FilterResultRaw> raw_data_points)
+    void FilterResult::addFilterResultPeak(double mz, double rt, vector<double> mz_shifts, std::vector<double> intensities, vector<FilterResultRaw> raw_data_points)
     {
         FilterResultPeak * peak = new FilterResultPeak(mz, rt, mz_shifts, intensities, raw_data_points);
         result_.push_back(*peak);
     }
     
-    FilterResultPeak FilterResult::getFilterResultPeak(int i)
+    FilterResultPeak FilterResult::getFilterResultPeak(int i) const
     {
         return result_[i];
     }
     
-    FilterResultRaw FilterResult::getFilterResultRaw(int i, int j)
+    FilterResultRaw FilterResult::getFilterResultRaw(int i, int j) const
     {
         return result_[i].getFilterResultRaw(j);
     }
     
-    double FilterResult::getMz(int i)
+    double FilterResult::getMz(int i) const
     {
         return result_[i].getMz();
     }
     
-    std::vector<double> FilterResult::getMz()
+    vector<double> FilterResult::getMz() const
     {
-        std::vector<double> mz;
+        vector<double> mz;
         for (unsigned i = 0; i < result_.size(); ++i)
         {
             mz.push_back(result_[i].getMz());
@@ -81,14 +81,14 @@ namespace OpenMS
         return mz;
     }
     
-    double FilterResult::getRt(int i)
+    double FilterResult::getRt(int i) const
     {
         return result_[i].getRt();
     }
     
-    std::vector<double> FilterResult::getRt()
+    vector<double> FilterResult::getRt() const
     {
-        std::vector<double> rt;
+        vector<double> rt;
         for (unsigned i = 0; i < result_.size(); ++i)
         {
             rt.push_back(result_[i].getRt());
@@ -96,7 +96,7 @@ namespace OpenMS
         return rt;
     }
     
-    int FilterResult::size()
+    int FilterResult::size() const
     {
         return result_.size();
     }

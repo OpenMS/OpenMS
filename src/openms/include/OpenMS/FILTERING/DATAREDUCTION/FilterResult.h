@@ -53,12 +53,6 @@ namespace OpenMS
      */
     class OPENMS_DLLAPI FilterResult
     {
-
-        /**
-         * @brief peaks which passed the peak pattern filter
-         */
-        std::vector<FilterResultPeak> result_;
-
         public:
         /**
          * @brief constructor
@@ -73,38 +67,44 @@ namespace OpenMS
         /**
          * @brief returns a single peak from the results
          */
-        FilterResultPeak getFilterResultPeak(int i);
+        FilterResultPeak getFilterResultPeak(int i) const;
         
         /**
          * @brief returns a single raw data point from peak i in the result
          */
-        FilterResultRaw getFilterResultRaw(int i, int j);
+        FilterResultRaw getFilterResultRaw(int i, int j) const;
         
         /**
          * @brief returns m/z of a single peak
          */
-        double getMz(int i);
+        double getMz(int i) const;
         
         /**
          * @brief returns m/z positions of all peaks
          */
-        std::vector<double> getMz();
+        std::vector<double> getMz() const;
         
         /**
          * @brief returns RT of a single peak
          */
-        double getRt(int i);
+        double getRt(int i) const;
         
         /**
          * @brief returns RT of all peaks
          */
-        std::vector<double> getRt();
+        std::vector<double> getRt() const;
         
         /**
          * @brief returns number of peaks in the result
          */
-        int size();
+        int size() const;
         
+        private:
+        /**
+         * @brief peaks which passed the peak pattern filter
+         */
+        std::vector<FilterResultPeak> result_;
+
    };
   
 }

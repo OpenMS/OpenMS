@@ -100,7 +100,7 @@ namespace OpenMS
          /**
          * @brief returns a single raw data point belonging to the peak
          */
-         FilterResultRaw getFilterResultRaw(int i);
+         FilterResultRaw getFilterResultRaw(int i) const;
          
          private:
         /**

@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	FilterResultPeak::FilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<FilterResultRaw> raw_data_points)
+	FilterResultPeak::FilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, vector<double> intensities, vector<FilterResultRaw> raw_data_points)
     : mz_(mz), rt_(rt), mz_shifts_(mz_shifts), intensities_(intensities), raw_data_points_(raw_data_points)
 	{		
 	}
@@ -66,7 +66,7 @@ namespace OpenMS
         return mz_shifts_[i];
     }
     
-    std::vector<double> FilterResultPeak::getMzShifts() const
+    vector<double> FilterResultPeak::getMzShifts() const
     {
         return mz_shifts_;
     }
@@ -76,7 +76,7 @@ namespace OpenMS
         return intensities_[i];
     }
     
-    std::vector<double> FilterResultPeak::getIntensities() const
+    vector<double> FilterResultPeak::getIntensities() const
     {
         return intensities_;
     }
@@ -86,7 +86,7 @@ namespace OpenMS
         return raw_data_points_.size();
     }
     
-    FilterResultRaw FilterResultPeak::getFilterResultRaw(int i)
+    FilterResultRaw FilterResultPeak::getFilterResultRaw(int i) const
     {
         return raw_data_points_[i];
     }
