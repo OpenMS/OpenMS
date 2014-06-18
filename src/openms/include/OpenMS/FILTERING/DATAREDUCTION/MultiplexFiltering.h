@@ -119,6 +119,8 @@ namespace OpenMS
          * (generates a filter result for each of the patterns)
          * 
          * @throw Exception::IllegalArgument if number of peaks and number of peak boundaries differ
+         * 
+         * @see PeakPattern, FilterResult
          */
         std::vector<FilterResult> filter();
         
@@ -152,7 +154,7 @@ namespace OpenMS
          * 
          * @return number of isotopic peaks seen for each peptide
          */
-        int positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices);
+        int positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices) const;
         
         /**
          * @brief mono-isotopic peak intensity filter
@@ -166,7 +168,7 @@ namespace OpenMS
          * 
          * @return true if all intensities above threshold
          */
-        bool monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices);
+        bool monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices) const;
         
         /**
          * @brief non-local intensity filter
@@ -184,7 +186,7 @@ namespace OpenMS
          * 
          * @return number of isotopic peaks seen for each peptide (profile)
          */
-        int nonLocalIntensityFilter(PeakPattern pattern, const std::vector<double> & mz_shifts_actual, const std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz);
+        int nonLocalIntensityFilter(PeakPattern pattern, const std::vector<double> & mz_shifts_actual, const std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz) const;
         
         /**
          * @brief zeroth peak veto filter
@@ -252,7 +254,7 @@ namespace OpenMS
          * @param rejected    Rejected by one of the filters or passed all filters?
          * @param points    data points for debug output
          */
-        void writeDebug(int pattern, bool rejected, std::vector<DebugPoint> points);
+        void writeDebug(int pattern, bool rejected, std::vector<DebugPoint> points) const;
         
         /**
          * @brief returns the index of a peak at m/z
@@ -264,7 +266,7 @@ namespace OpenMS
          * 
          * @return index of the peak in spectrum
          */
-        int getPeakIndex(int spectrum_index, double mz, double scaling);
+        int getPeakIndex(int spectrum_index, double mz, double scaling) const;
         
         /**
          * @brief returns the index of a peak at m/z
@@ -277,7 +279,7 @@ namespace OpenMS
          * 
          * @return index of the peak in spectrum
          */
-        int getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling);
+        int getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling) const;
         
         /**
          * @brief returns similarity of two isotope patterns

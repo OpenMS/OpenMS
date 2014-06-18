@@ -360,7 +360,7 @@ namespace OpenMS
         return filter_results;
     }
     
-    int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices)
+    int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices) const
     {
         // Try to find peaks at the expected m/z positions
         // loop over expected m/z shifts of a peak pattern
@@ -459,13 +459,13 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices)
+    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices) const
     {
-        MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin() + spectrum_index;
+        MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
         for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
             int peak_index = mz_shifts_actual_indices[peptide * (peaks_per_peptide_max_ + 1) +1];
-            MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin() + peak_index;
+            MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin() + peak_index;
             if (it_mz->getIntensity() < intensity_cutoff_)
             {
                 return true;
@@ -474,7 +474,7 @@ namespace OpenMS
         return false;
     }
     
-    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, const vector<double> & mz_shifts_actual, const vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz)
+    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, const vector<double> & mz_shifts_actual, const vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz) const
     {
         // calculate intensities
         for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
@@ -605,7 +605,7 @@ namespace OpenMS
        }
     }
     
-    void MultiplexFiltering::writeDebug(int pattern, bool rejected, vector<DebugPoint> points)
+    void MultiplexFiltering::writeDebug(int pattern, bool rejected, vector<DebugPoint> points) const
     {
         MSExperiment<Peak1D> expDebug;
         MSSpectrum<Peak1D> specDebug;        
@@ -651,12 +651,12 @@ namespace OpenMS
 
     }
     
-    int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)
+    int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling) const
     {
-        MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin() + spectrum_index;
+        MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
         vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries = boundaries_.begin() + spectrum_index;
         
-        MSSpectrum<Peak1D>::Iterator it_mz;
+        MSSpectrum<Peak1D>::ConstIterator it_mz;
         vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
         for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
             it_mz < it_rt->end(), it_mz_boundaries < it_rt_boundaries->end();
@@ -676,7 +676,7 @@ namespace OpenMS
         return -1;
     }
     
-    int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling)
+    int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling) const
     {
         vector<int> valid_index;    // indices of valid peaks that lie within the ppm range of the expected peak
         vector<double> valid_deviation;    // ppm deviations between expected and (valid) actual peaks
