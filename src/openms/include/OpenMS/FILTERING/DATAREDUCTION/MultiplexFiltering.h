@@ -166,7 +166,7 @@ namespace OpenMS
          * 
          * @return true if all intensities above threshold
          */
-        bool monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<int> & mz_shifts_actual_indices);
+        bool monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices);
         
         /**
          * @brief non-local intensity filter
@@ -184,7 +184,7 @@ namespace OpenMS
          * 
          * @return number of isotopic peaks seen for each peptide (profile)
          */
-        int nonLocalIntensityFilter(PeakPattern pattern, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz);
+        int nonLocalIntensityFilter(PeakPattern pattern, const std::vector<double> & mz_shifts_actual, const std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz);
         
         /**
          * @brief zeroth peak veto filter
@@ -198,7 +198,7 @@ namespace OpenMS
          * 
          * @return true if there are high-intensity zeroth peaks
          */
-        bool zerothPeakVetoFilter(PeakPattern pattern, std::vector<double> & intensities_actual);
+        bool zerothPeakVetoFilter(PeakPattern pattern, const std::vector<double> & intensities_actual);
         
         /**
          * @brief peptide similarity filter
@@ -215,7 +215,7 @@ namespace OpenMS
          * 
          * @return true if peptide isotope patterns are similar
          */
-        bool peptideSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> isotope_pattern_1, std::vector<double> isotope_pattern_2);
+        bool peptideSimilarityFilter(PeakPattern pattern, const std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> isotope_pattern_1, std::vector<double> isotope_pattern_2);
         
         /**
          * @brief averagine similarity filter
@@ -230,7 +230,7 @@ namespace OpenMS
          * 
          * @return true if isotope distribution looks like an average peptide
          */
-        bool averagineSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz);
+        bool averagineSimilarityFilter(PeakPattern pattern, const std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz);
         
         /**
          * @brief blacklist peaks
@@ -241,7 +241,7 @@ namespace OpenMS
          * @param spectrum    index of the spectrum in exp_picked_ and boundaries_
          * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
          */
-        void blacklistPeaks(PeakPattern pattern, int spectrum, std::vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
+        void blacklistPeaks(PeakPattern pattern, int spectrum, const std::vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
         
         /**
          * @brief write debug output

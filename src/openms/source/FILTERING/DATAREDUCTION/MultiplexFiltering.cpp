@@ -473,7 +473,7 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<int> & mz_shifts_actual_indices)
+    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices)
     {
         MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin() + spectrum_index;
         for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
@@ -488,7 +488,7 @@ namespace OpenMS
         return false;
     }
     
-    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz)
+    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, const vector<double> & mz_shifts_actual, const vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz)
     {
         // calculate intensities
         for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
@@ -524,7 +524,7 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, vector<double> & intensities_actual)
+    bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, const vector<double> & intensities_actual)
     {
         for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
@@ -540,7 +540,7 @@ namespace OpenMS
         return false;
     }
     
-    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2)
+    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2)
     {
         for (int peptide = 1; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
@@ -558,7 +558,7 @@ namespace OpenMS
         return true;
     }
     
-    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz)
+    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz)
     {
         for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
@@ -576,7 +576,7 @@ namespace OpenMS
         return true;
     }
     
-    void MultiplexFiltering::blacklistPeaks(PeakPattern pattern, int spectrum, vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
+    void MultiplexFiltering::blacklistPeaks(PeakPattern pattern, int spectrum, const vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
     {
         for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
