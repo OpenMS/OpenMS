@@ -215,17 +215,37 @@ namespace OpenMS
         /**
          * @brief averagine similarity filter
          * 
-         * @return true if 
+         * Checks similarity of the isotopic distribution with the expected averagine distribution.
+         * Does the isotope distribution look like a peptide?
+         * 
+         * @param pattern    pattern of isotopic peaks to be searched for
+         * @param intensities_actual    spline-interpolated intensities at the actual m/z shift positions
+         * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
+         * @param mz    m/z at which the averagine distribution is calculated
+         * 
+         * @return true if isotope distribution looks like an average peptide
          */
         bool averagineSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz);
         
         /**
          * @brief blacklist peaks
+         * 
+         * If a datapoint passes all filters, the corresponding peak in this and the two neighbouring spectra is blacklisted.
+         * 
+         * @param pattern    pattern of isotopic peaks to be searched for
+         * @param spectrum    index of the spectrum in exp_picked_ and boundaries_
+         * @param peaks_found_in_all_peptides_spline    number of isotopic peaks seen for each peptide (profile)
          */
         void blacklistPeaks(PeakPattern pattern, int spectrum, std::vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
         
         /**
          * @brief write debug output
+         * 
+         * Debug data written to file.
+         * 
+         * @param pattern    index in list of patterns
+         * @param rejected    Rejected by one of the filters or passed all filters?
+         * @param points    data points for debug output
          */
         void writeDebug(int pattern, bool rejected, std::vector<DebugPoint> points);
         
@@ -234,8 +254,10 @@ namespace OpenMS
          * (for initialisation of peak registry)
          * 
          * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-         * @param mz
-         * @param scaling
+         * @param mz    m/z position of the peak
+         * @param scaling    rescaling of the peak boundaries
+         * 
+         * @return index of the peak in spectrum
          */
         int getPeakIndex(int spectrum_index, double mz, double scaling);
         
@@ -243,10 +265,12 @@ namespace OpenMS
          * @brief returns the index of a peak at m/z
          * (finds not only a valid peak, i.e. within certain m/z deviation, but the best of the valid peaks)
          * 
-         * @param peak_position
-         * @param start
-         * @param mz
-         * @param scaling
+         * @param peak_position    m/z position of the peaks
+         * @param start    index in peak_position for starting the search
+         * @param mz    m/z position of the peak
+         * @param scaling    rescaling of limits
+         * 
+         * @return index of the peak in spectrum
          */
         int getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling);
         
@@ -256,14 +280,18 @@ namespace OpenMS
          * 
          * @param pattern1   isotope pattern 1
          * @param pattern2   isotope pattern 2
+         * 
+         * @return similarity (+1 best, -1 worst)
          */
         double getPatternSimilarity(std::vector<double> pattern1, std::vector<double> pattern2);
         
         /**
          * @brief returns similarity of an isotope pattern and an averagine pattern at mass m
          * 
-         * @param pattern1   isotope pattern 1
-         * @param m    mass
+         * @param pattern   isotope pattern
+         * @param m    mass at which the averagine distribution is calculated
+         * 
+         * @return similarity (+1 best, -1 worst)
          */
         double getAveragineSimilarity(std::vector<double> pattern, double m);
         

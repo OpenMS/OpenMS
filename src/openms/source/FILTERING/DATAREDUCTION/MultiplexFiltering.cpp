@@ -250,8 +250,8 @@ namespace OpenMS
                          * There should not be a significant peak to the left of the mono-isotopic
                          * (i.e. first) peak.
                          */
-                        bool zero_peak_veto = zerothPeakVetoFilter(patterns_[pattern], intensities_actual);
-                        if (zero_peak_veto)
+                        bool zero_peak = zerothPeakVetoFilter(patterns_[pattern], intensities_actual);
+                        if (zero_peak)
                         {
                             if (debug_)
                             {
@@ -270,8 +270,8 @@ namespace OpenMS
                          */
                         vector<double> isotope_pattern_1;
                         vector<double> isotope_pattern_2;
-                        bool peptide_similarity_veto = peptideSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, isotope_pattern_1, isotope_pattern_2);
-                        if (peptide_similarity_veto)
+                        bool peptide_similarity = peptideSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, isotope_pattern_1, isotope_pattern_2);
+                        if (!peptide_similarity)
                         {
                             if (debug_)
                             {
@@ -288,8 +288,8 @@ namespace OpenMS
                          * Filter (6): averagine similarity filter
                          * Does each individual isotope pattern resemble a peptide?
                          */
-                        bool averagine_similarity_veto = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
-                        if (averagine_similarity_veto)
+                        bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
+                        if (!averagine_similarity)
                         {
                             if (debug_)
                             {
@@ -551,11 +551,11 @@ namespace OpenMS
             }
             if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
             {
-                return true;
+                return false;
             }
         }
         
-        return false;
+        return true;
     }
     
     bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz)
@@ -569,11 +569,11 @@ namespace OpenMS
             }
             if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < averagine_similarity_)
             {
-                return true;
+                return false;
             }
         }
         
-        return false;
+        return true;
     }
     
     void MultiplexFiltering::blacklistPeaks(PeakPattern pattern, int spectrum, vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
