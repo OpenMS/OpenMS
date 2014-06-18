@@ -108,12 +108,17 @@ namespace OpenMS
          * @param peptide_similarity
          * @param averagine_similarity
          * @param debug    debug mode
+         * 
+         * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
+         * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
         MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool debug);
         
         /**
          * @brief filter for patterns
          * (generates a filter result for each of the patterns)
+         * 
+         * @throw Exception::IllegalArgument if number of peaks and number of peak boundaries differ
          */
         std::vector<FilterResult> filter();
         
