@@ -198,7 +198,7 @@ namespace OpenMS
          * 
          * @return true if there are high-intensity zeroth peaks
          */
-        bool zerothPeakVetoFilter(PeakPattern pattern, const std::vector<double> & intensities_actual);
+        bool zerothPeakVetoFilter(PeakPattern pattern, const std::vector<double> & intensities_actual) const;
         
         /**
          * @brief peptide similarity filter
@@ -215,7 +215,7 @@ namespace OpenMS
          * 
          * @return true if peptide isotope patterns are similar
          */
-        bool peptideSimilarityFilter(PeakPattern pattern, const std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> isotope_pattern_1, std::vector<double> isotope_pattern_2);
+        bool peptideSimilarityFilter(PeakPattern pattern, const std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> isotope_pattern_1, std::vector<double> isotope_pattern_2) const;
         
         /**
          * @brief averagine similarity filter
@@ -230,7 +230,7 @@ namespace OpenMS
          * 
          * @return true if isotope distribution looks like an average peptide
          */
-        bool averagineSimilarityFilter(PeakPattern pattern, const std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz);
+        bool averagineSimilarityFilter(PeakPattern pattern, const std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const;
         
         /**
          * @brief blacklist peaks
@@ -288,7 +288,7 @@ namespace OpenMS
          * 
          * @return similarity (+1 best, -1 worst)
          */
-        double getPatternSimilarity(std::vector<double> pattern1, std::vector<double> pattern2);
+        double getPatternSimilarity(std::vector<double> pattern1, std::vector<double> pattern2) const;
         
         /**
          * @brief returns similarity of an isotope pattern and an averagine pattern at mass m
@@ -298,7 +298,7 @@ namespace OpenMS
          * 
          * @return similarity (+1 best, -1 worst)
          */
-        double getAveragineSimilarity(std::vector<double> pattern, double m);
+        double getAveragineSimilarity(std::vector<double> pattern, double m) const;
         
         /**
          * @brief profile and centroided experimental data

@@ -362,15 +362,6 @@ namespace OpenMS
     
     int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices)
     {
-        // for debug
-        /*bool now = pattern.getCharge()==2 && pattern.getMassShiftAt(1)>16 && spectrum==169;
-        bool rightnow1 = now && peak == 1414;    // 16Da 2+ pair
-        bool rightnow2 = now && peak == 1419;    // 16Da 2+ pair
-        if (rightnow1 || rightnow2)
-        {
-            cout << "m/z = " << peak_position[peak] << "    peak = " << peak << "\n";
-        }*/
-        
         // Try to find peaks at the expected m/z positions
         // loop over expected m/z shifts of a peak pattern
         for (unsigned mz_position = 0; mz_position < pattern.getMzShiftCount(); ++mz_position)
@@ -383,12 +374,7 @@ namespace OpenMS
                 scaling = 2;
             }
             
-            int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMzShiftAt(mz_position), scaling);
-            /*if (rightnow1 || rightnow2)
-            {
-                cout << "m/z position = " << mz_position << "    m/z shift = " << pattern.getMzShiftAt(mz_position) << "    index = " << index << "\n";
-            }*/
-            
+            int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMzShiftAt(mz_position), scaling);            
             if (index != -1)
             {
                 mz_shifts_actual.push_back(peak_position[index] - peak_position[peak]);
@@ -508,7 +494,7 @@ namespace OpenMS
         for (int isotope = 0; isotope < peaks_found_in_all_peptides; ++isotope)
         {
             bool seen_in_all_peptides = true;
-            for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+            for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
             {
                 if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1] < intensity_cutoff_)
                 {
@@ -524,9 +510,9 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, const vector<double> & intensities_actual)
+    bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, const vector<double> & intensities_actual) const
     {
-        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
             // scaling factor for the zeroth peak intensity
             // (The zeroth peak is problematic if its intensity exceeds zero_scaling * intensity of mono-isotopic peak.)
@@ -540,9 +526,9 @@ namespace OpenMS
         return false;
     }
     
-    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2)
+    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2) const
     {
-        for (int peptide = 1; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        for (unsigned peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
         {
             for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
             {
@@ -558,7 +544,7 @@ namespace OpenMS
         return true;
     }
     
-    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz)
+    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
     {
         for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
@@ -774,7 +760,7 @@ namespace OpenMS
         }
     }
     
-    double MultiplexFiltering::getPatternSimilarity(vector<double> pattern1, vector<double> pattern2)
+    double MultiplexFiltering::getPatternSimilarity(vector<double> pattern1, vector<double> pattern2) const
     {
         if (pattern1.empty() || pattern2.empty())
         {
@@ -784,7 +770,7 @@ namespace OpenMS
         return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
     }
     
-    double MultiplexFiltering::getAveragineSimilarity(vector<double> pattern, double m)
+    double MultiplexFiltering::getAveragineSimilarity(vector<double> pattern, double m) const
     {
         // construct averagine distribution
         IsotopeDistribution distribution;
