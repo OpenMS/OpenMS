@@ -50,27 +50,27 @@ namespace OpenMS
 	{		
 	}
     
-    double FilterResultRaw::getMz()
+    double FilterResultRaw::getMz() const
     {
         return mz_;
     }
     
-    double FilterResultRaw::getMzShiftAt(int i)
+    double FilterResultRaw::getMzShiftAt(int i) const
     {
         return mz_shifts_[i];
     }
     
-    std::vector<double> FilterResultRaw::getMzShifts()
+    std::vector<double> FilterResultRaw::getMzShifts() const
     {
         return mz_shifts_;
     }
     
-    double FilterResultRaw::getIntensityAt(int i)
+    double FilterResultRaw::getIntensityAt(int i) const
     {
         return intensities_[i];
     }
     
-    std::vector<double> FilterResultRaw::getIntensities()
+    std::vector<double> FilterResultRaw::getIntensities() const
     {
         return intensities_;
     }

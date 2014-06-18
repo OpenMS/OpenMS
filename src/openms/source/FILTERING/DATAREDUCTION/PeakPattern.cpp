@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	PeakPattern::PeakPattern(int c, int ppp, std::vector<double> ms, int msi)
+	PeakPattern::PeakPattern(int c, int ppp, vector<double> ms, int msi)
     : charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
 	{				
         // generate m/z shifts

@@ -56,6 +56,53 @@ namespace OpenMS
      */
     class OPENMS_DLLAPI FilterResultPeak
     {
+        public:
+        /**
+         * @brief constructor
+         */
+        FilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<FilterResultRaw> rawDataPoints);
+
+         /**
+         * @brief returns m/z of the peak
+         */
+         double getMz() const;
+         
+         /**
+         * @brief returns RT of the peak
+         */
+         double getRt() const;
+         
+         /**
+         * @brief returns m/z shift at position i
+         */
+        double getMzShiftAt(int i) const;
+
+        /**
+         * @brief returns m/z shifts
+         */
+        std::vector<double> getMzShifts() const;
+
+        /**
+         * @brief returns intensity at position i
+         */
+        double getIntensityAt(int i) const;
+        
+        /**
+         * @brief returns intensities
+         */
+        std::vector<double> getIntensities() const;
+        
+        /**
+         * @brief returns the numer of raw data points belonging to the peak
+         */
+         int size() const;
+         
+         /**
+         * @brief returns a single raw data point belonging to the peak
+         */
+         FilterResultRaw getFilterResultRaw(int i);
+         
+         private:
         /**
          * @brief position of the peak
          */
@@ -77,51 +124,6 @@ namespace OpenMS
          */
         std::vector<FilterResultRaw> raw_data_points_;
  
-        public:
-        /**
-         * @brief constructor
-         */
-        FilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<FilterResultRaw> rawDataPoints);
-
-         /**
-         * @brief returns m/z of the peak
-         */
-         double getMz();
-         
-         /**
-         * @brief returns RT of the peak
-         */
-         double getRt();
-         
-         /**
-         * @brief returns m/z shift at position i
-         */
-        double getMzShiftAt(int i);
-
-        /**
-         * @brief returns m/z shifts
-         */
-        std::vector<double> getmz_shifts();
-
-        /**
-         * @brief returns intensity at position i
-         */
-        double getIntensityAt(int i);
-        
-        /**
-         * @brief returns intensities
-         */
-        std::vector<double> getIntensities();
-        
-        /**
-         * @brief returns the numer of raw data points belonging to the peak
-         */
-         int size();
-         
-         /**
-         * @brief returns a single raw data point belonging to the peak
-         */
-         FilterResultRaw getFilterResultRaw(int i);
   };
   
 }

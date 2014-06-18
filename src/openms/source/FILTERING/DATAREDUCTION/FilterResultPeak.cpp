@@ -51,37 +51,37 @@ namespace OpenMS
 	{		
 	}
     
-    double FilterResultPeak::getMz()
+    double FilterResultPeak::getMz() const
     {
         return mz_;
     }
     
-    double FilterResultPeak::getRt()
+    double FilterResultPeak::getRt() const
     {
         return rt_;
     }
     
-    double FilterResultPeak::getMzShiftAt(int i)
+    double FilterResultPeak::getMzShiftAt(int i) const
     {
         return mz_shifts_[i];
     }
     
-    std::vector<double> FilterResultPeak::getmz_shifts()
+    std::vector<double> FilterResultPeak::getMzShifts() const
     {
         return mz_shifts_;
     }
     
-    double FilterResultPeak::getIntensityAt(int i)
+    double FilterResultPeak::getIntensityAt(int i) const
     {
         return intensities_[i];
     }
     
-    std::vector<double> FilterResultPeak::getIntensities()
+    std::vector<double> FilterResultPeak::getIntensities() const
     {
         return intensities_;
     }
     
-    int FilterResultPeak::size()
+    int FilterResultPeak::size() const
     {
         return raw_data_points_.size();
     }

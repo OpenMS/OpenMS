@@ -55,6 +55,38 @@ namespace OpenMS
      */
     class OPENMS_DLLAPI FilterResultRaw
     {
+        public:
+        /**
+         * @brief constructor
+         */
+        FilterResultRaw(double mz, std::vector<double> mzShifts, std::vector<double> intensities);
+        
+        /**
+         * @brief returns m/z position
+         */
+        double getMz() const;
+
+        /**
+         * @brief returns m/z shift at position i
+         */
+        double getMzShiftAt(int i) const;
+
+        /**
+         * @brief returns m/z shifts
+         */
+        std::vector<double> getMzShifts() const;
+
+        /**
+         * @brief returns intensity at position i
+         */
+        double getIntensityAt(int i) const;
+        
+        /**
+         * @brief returns intensities
+         */
+        std::vector<double> getIntensities() const;
+        
+        private:
         /**
          * @brief m/z of the raw data point
          * (RT stored in FilterResultPeak)
@@ -70,37 +102,6 @@ namespace OpenMS
          * @brief intensities at mz_ + mzShifts_
          */
         std::vector<double> intensities_;
-
-        public:
-        /**
-         * @brief constructor
-         */
-        FilterResultRaw(double mz, std::vector<double> mzShifts, std::vector<double> intensities);
-        
-        /**
-         * @brief returns m/z position
-         */
-        double getMz();
-
-        /**
-         * @brief returns m/z shift at position i
-         */
-        double getMzShiftAt(int i);
-
-        /**
-         * @brief returns m/z shifts
-         */
-        std::vector<double> getMzShifts();
-
-        /**
-         * @brief returns intensity at position i
-         */
-        double getIntensityAt(int i);
-        
-        /**
-         * @brief returns intensities
-         */
-        std::vector<double> getIntensities();
 
    };
   
