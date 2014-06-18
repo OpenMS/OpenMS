@@ -53,6 +53,53 @@ namespace OpenMS
      */
     class OPENMS_DLLAPI PeakPattern
     {
+        public:
+       /**
+         * @brief constructor
+         */
+        PeakPattern(int c, int ppp, std::vector<double> ms, int msi);
+        
+       /**
+         * @brief returns charge
+         */
+        int getCharge() const;
+         
+        /**
+         * @brief returns peaks per peptide
+         */
+        int getPeaksPerPeptide() const;
+        
+        /**
+         * @brief returns mass shifts
+         */
+        std::vector<double> getMassShifts() const;
+        
+        /**
+         * @brief returns mass shift index
+         */
+        int getMassShiftIndex() const;
+        
+        /**
+         * @brief returns number of mass shifts
+         */
+        unsigned getMassShiftCount() const;
+       
+       /**
+         * @brief returns mass shift at position i
+         */
+        double getMassShiftAt(int i) const;
+        
+       /**
+         * @brief returns m/z shift at position i
+         */
+        double getMzShiftAt(int i) const;
+        
+       /**
+         * @brief returns number of m/z shifts
+         */
+        unsigned getMzShiftCount() const;
+        
+        private:
         /**
          * @brief m/z shifts between isotopic peaks
          * (number of mzSfifts_ = peaks_per_peptide_ * number of mass_shifts_)
@@ -79,52 +126,6 @@ namespace OpenMS
          * @brief index in mass shift list
          */
         int mass_shift_index_;
-
-        public:
-       /**
-         * @brief constructor
-         */
-        PeakPattern( int c, int ppp, std::vector<double> ms, int msi);
-        
-       /**
-         * @brief returns charge
-         */
-        int getCharge();
-         
-        /**
-         * @brief returns peaks per peptide
-         */
-        int getPeaksPerPeptide();
-        
-        /**
-         * @brief returns mass shifts
-         */
-        std::vector<double> getMassShifts();
-        
-        /**
-         * @brief returns mass shift index
-         */
-        int getMassShiftIndex();
-        
-        /**
-         * @brief returns number of mass shifts
-         */
-        unsigned getMassShiftCount();
-       
-       /**
-         * @brief returns mass shift at position i
-         */
-        double getMassShiftAt(int i);
-        
-       /**
-         * @brief returns m/z shift at position i
-         */
-        double getMzShiftAt(int i);
-        
-       /**
-         * @brief returns number of m/z shifts
-         */
-        unsigned getMzShiftCount();
         
    };
   

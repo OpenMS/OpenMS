@@ -59,42 +59,42 @@ namespace OpenMS
         }
 	}
     
-    int PeakPattern::getCharge()
+    int PeakPattern::getCharge() const
     {
         return charge_;
     }
     
-    int PeakPattern::getPeaksPerPeptide()
+    int PeakPattern::getPeaksPerPeptide() const
     {
         return peaks_per_peptide_;
     }
 
-    std::vector<double> PeakPattern::getMassShifts()
+    std::vector<double> PeakPattern::getMassShifts() const
     {
         return mass_shifts_;
     }
 
-    int PeakPattern::getMassShiftIndex()
+    int PeakPattern::getMassShiftIndex() const
     {
         return mass_shift_index_;
     }
 
-    unsigned PeakPattern::getMassShiftCount()
+    unsigned PeakPattern::getMassShiftCount() const
     {
         return mass_shifts_.size();
     }
 
-    double PeakPattern::getMassShiftAt(int i)
+    double PeakPattern::getMassShiftAt(int i) const
     {
         return mass_shifts_[i];
     }
 
-    double PeakPattern::getMzShiftAt(int i)
+    double PeakPattern::getMzShiftAt(int i) const
     {
         return mz_shifts_[i];
     }
 
-    unsigned PeakPattern::getMzShiftCount()
+    unsigned PeakPattern::getMzShiftCount() const
     {
         return mz_shifts_.size();
     }
