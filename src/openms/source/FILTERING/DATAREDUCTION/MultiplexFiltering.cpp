@@ -122,14 +122,13 @@ namespace OpenMS
         
         // loop over patterns
         for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
-        //for (int pattern = (int) patterns_.size()-1 ; pattern >= 0; --pattern)    // reverse pattern order (just for debugging)
         {
             cout << "peak pattern " << pattern << "      charge = " << patterns_[pattern].getCharge() << "  mass shift = " << patterns_[pattern].getMassShiftAt(1) << "\n";            
             
             // data structure storing peaks which pass all filters
             FilterResult result;
             
-            // m/z position passing all filters (is rejected by a particular filter)
+            // m/z position is rejected by a particular filter (or passing all of them)
             vector<DebugPoint> debug_rejected;
             vector<DebugPoint> debug_filtered;
             
@@ -148,7 +147,6 @@ namespace OpenMS
 
                 int spectrum = it_rt_profile - exp_profile_.begin();    // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
                 double rt_picked = it_rt_picked->getRT();
-                //cout << "RT = " << rt_picked << "    spectrum = " << spectrum << "\n";
                 
                 // spline fit profile data
                 SplineSpectrum spline(*it_rt_profile);
@@ -169,7 +167,6 @@ namespace OpenMS
                     peak_min.push_back((*it_mz_boundary).mz_min);
                     peak_max.push_back((*it_mz_boundary).mz_max);
                     peak_intensity.push_back(it_mz->getIntensity());
-                    //cout << "m/z = " << it_mz->getMZ() << "  [" << (*it_mz_boundary).mz_min << ", " << (*it_mz_boundary).mz_max << "]\n";
                 }
                 
                 // iterate over peaks in spectrum (mz)
@@ -183,10 +180,6 @@ namespace OpenMS
                     vector<double> mz_shifts_actual;    // actual m/z shifts (differ slightly from expected m/z shifts)
                     vector<int> mz_shifts_actual_indices;    // peak indices in the spectrum corresponding to the actual m/z shifts
                     int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
-                    /*if (peaks_found_in_all_peptides > 0)
-                    {
-                        cout << "peaks found in all peptides = " << peaks_found_in_all_peptides << "\n";
-                    }*/
                     if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
                     {
                         if (debug_)
@@ -217,21 +210,18 @@ namespace OpenMS
                         }
                         continue;
                     }
-                     
+                    
                     // Arrangement of peaks looks promising. Now scan through the spline fitted data.
                     vector<FilterResultRaw> results_raw;    // raw data points of this peak that will pass the remaining filters
                     bool blacklisted = false;    // Has this peak already been blacklisted?
                     for (double mz = peak_min[peak]; mz < peak_max[peak]; mz = nav.getNextMz(mz))
                     {
-                        //cout << "m/z = " << mz << "\n";
-                        
                         /**
                          * Filter (3): non-local intensity filter
                          * Are the spline interpolated intensities at m/z above the threshold?
                          */
                         vector<double> intensities_actual;    // spline interpolated intensities @ m/z + actual m/z shift
                         int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
-                        //cout << peaks_found_in_all_peptides_spline << "\n";
                         if (peaks_found_in_all_peptides_spline < peaks_per_peptide_min_)
                         {
                             if (debug_)
@@ -250,7 +240,7 @@ namespace OpenMS
                          * There should not be a significant peak to the left of the mono-isotopic
                          * (i.e. first) peak.
                          */
-                        bool zero_peak = zerothPeakVetoFilter(patterns_[pattern], intensities_actual);
+                        bool zero_peak = zerothPeakFilter(patterns_[pattern], intensities_actual);
                         if (zero_peak)
                         {
                             if (debug_)
@@ -392,13 +382,13 @@ namespace OpenMS
         // i.e. the isotopic peak of one peptide lies to the right of the mono-isotopic peak of the next one
         for (unsigned peptide = 0; peptide < pattern.getMassShiftCount() - 1; ++peptide)
         {
-            double mzShiftNextPeptide = mz_shifts_actual[(peptide + 1) * (peaks_per_peptide_max_ + 1) + 1];    // m/z shift of the mono-isotopic peak of the following peptide
-            if (mzShiftNextPeptide > 0)
+            double mz_shift_next_peptide = mz_shifts_actual[(peptide + 1) * (peaks_per_peptide_max_ + 1) + 1];    // m/z shift of the mono-isotopic peak of the following peptide
+            if (mz_shift_next_peptide > 0)
             {
                 for (int isotope = 0; isotope < peaks_per_peptide_max_; ++isotope)
                 {
                     int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1;    // index in m/z shift list
-                    if (mz_shifts_actual[mz_position] >= mzShiftNextPeptide)
+                    if (mz_shifts_actual[mz_position] >= mz_shift_next_peptide)
                     {
                         mz_shifts_actual[mz_position] = -1000;
                         mz_shifts_actual_indices[mz_position] = -1;
@@ -459,10 +449,10 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices) const
+    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const vector<int> & mz_shifts_actual_indices) const
     {
         MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
-        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
             int peak_index = mz_shifts_actual_indices[peptide * (peaks_per_peptide_max_ + 1) +1];
             MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin() + peak_index;
@@ -510,7 +500,7 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, const vector<double> & intensities_actual) const
+    bool MultiplexFiltering::zerothPeakFilter(PeakPattern pattern, const vector<double> & intensities_actual) const
     {
         for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
@@ -546,7 +536,7 @@ namespace OpenMS
     
     bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
     {
-        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
             vector<double> isotope_pattern;
             for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
@@ -564,7 +554,7 @@ namespace OpenMS
     
     void MultiplexFiltering::blacklistPeaks(PeakPattern pattern, int spectrum, const vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
     {
-        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
             for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
             {
@@ -612,7 +602,7 @@ namespace OpenMS
         
         double rt = -1000;
         int spec_id = 0;
-        for (vector<DebugPoint>::iterator it = points.begin(); it != points.end(); ++it)
+        for (vector<DebugPoint>::const_iterator it = points.begin(); it != points.end(); ++it)
         {
             if ((*it).rt > rt)
             {

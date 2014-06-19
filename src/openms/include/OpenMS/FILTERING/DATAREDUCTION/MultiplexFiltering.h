@@ -189,7 +189,7 @@ namespace OpenMS
         int nonLocalIntensityFilter(PeakPattern pattern, const std::vector<double> & mz_shifts_actual, const std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz) const;
         
         /**
-         * @brief zeroth peak veto filter
+         * @brief zeroth peak filter
          * 
          * The mono-isotopic peak is the first peak of each peptide. A peak one m/z shift to the left (e.g. 0.5Th for 2+) 
          * is called zeroth peak. High-intensity zeroth peaks indicate incorrect pattern matches. A different pattern is
@@ -200,7 +200,7 @@ namespace OpenMS
          * 
          * @return true if there are high-intensity zeroth peaks
          */
-        bool zerothPeakVetoFilter(PeakPattern pattern, const std::vector<double> & intensities_actual) const;
+        bool zerothPeakFilter(PeakPattern pattern, const std::vector<double> & intensities_actual) const;
         
         /**
          * @brief peptide similarity filter
