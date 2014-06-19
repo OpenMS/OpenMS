@@ -259,6 +259,7 @@ MassTraceDetection_test
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
+  PeakPattern_test
   SILACPattern_test
   SILACPoint_test
   SplinePackage_test
