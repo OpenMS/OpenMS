@@ -64,11 +64,16 @@ namespace OpenMS
 
   const Residue* ResidueDB::getResidue(const String& name) const
   {
-    if (residue_names_.has(name))
+    if (residue_names_.find(name) != residue_names_.end())
     {
-      return residue_names_[name];
+      return residue_names_.at(name);
     }
     return 0;
+  }
+
+  const Residue * ResidueDB::getResidue(const unsigned char & one_letter_code) const
+  {
+    return residue_by_one_letter_code_[one_letter_code];
   }
 
   Size ResidueDB::getNumberOfResidues() const
@@ -127,6 +132,7 @@ namespace OpenMS
       for (vector<String>::const_iterator it = names.begin(); it != names.end(); ++it)
       {
         residue_names_[*it] = r;
+        residue_by_one_letter_code_[(unsigned char)(*it)[0]] = r;
       }
       residues_.insert(r);
       const_residues_.insert(r);
@@ -162,7 +168,7 @@ namespace OpenMS
 
   bool ResidueDB::hasResidue(const String& res_name) const
   {
-    if (residue_names_.has(res_name))
+    if (residue_names_.find(res_name) != residue_names_.end())
     {
       return true;
     }
@@ -244,6 +250,7 @@ namespace OpenMS
     {
       delete *it;
     }
+
     residues_.clear();
     residue_names_.clear();
     const_residues_.clear();
@@ -406,6 +413,12 @@ namespace OpenMS
 
   void ResidueDB::buildResidueNames_()
   {
+    // initialize lookup table to null pointer
+    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
+    {
+      residue_by_one_letter_code_[i] = 0;
+    }
+
     set<Residue*>::iterator it;
     for (it = residues_.begin(); it != residues_.end(); ++it)
     {
@@ -417,6 +430,8 @@ namespace OpenMS
       if ((*it)->getOneLetterCode() != "")
       {
         residue_names_[(*it)->getOneLetterCode()] = *it;
+        const unsigned char l = (*it)->getOneLetterCode()[0];
+        residue_by_one_letter_code_[l] = *it;
       }
       if ((*it)->getShortName() != "")
       {
@@ -445,7 +460,7 @@ namespace OpenMS
     // search if the mod already exists
     String res_name(residue->getName());
 
-    if (!residue_names_.has(res_name))
+    if (residue_names_.find(res_name) == residue_names_.end())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Residue with name "
                                                                                        + res_name + " was not registered in residue DB, register first!").c_str());
