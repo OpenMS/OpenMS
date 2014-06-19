@@ -123,8 +123,6 @@ namespace OpenMS
         // loop over patterns
         for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
         {
-            cout << "peak pattern " << pattern << "      charge = " << patterns_[pattern].getCharge() << "  mass shift = " << patterns_[pattern].getMassShiftAt(1) << "\n";            
-            
             // data structure storing peaks which pass all filters
             FilterResult result;
             
