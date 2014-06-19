@@ -102,7 +102,15 @@ END_SECTION
 MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
 
 START_SECTION(std::vector<FilterResult> filter())
-    //std::vector<FilterResult> filter_results = filtering.filter();
+    std::vector<FilterResult> results = filtering.filter();
+    TEST_EQUAL(results[0].size(), 0);
+    TEST_EQUAL(results[1].size(), 0);
+    TEST_EQUAL(results[2].size(), 0);
+    TEST_EQUAL(results[3].size(), 0);
+    TEST_EQUAL(results[4].size(), 4);
+    TEST_EQUAL(results[5].size(), 3);
+    TEST_EQUAL(results[6].size(), 2);
+    TEST_EQUAL(results[7].size(), 0);
 END_SECTION
 
 END_TEST
