@@ -256,6 +256,7 @@ set(filtering_executables_list
   MarkerMower_test
   MassTraceDetection_test
   MorphologicalFilter_test
+  MultiplexFiltering_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
