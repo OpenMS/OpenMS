@@ -238,6 +238,7 @@ set(filtering_executables_list
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FilterFunctor_test
+  FilterResultPeak_test
   FilterResultRaw_test
   GaussFilter_test
   GaussFilterAlgorithm_test
