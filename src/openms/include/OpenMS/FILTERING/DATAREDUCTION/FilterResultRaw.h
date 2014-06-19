@@ -59,7 +59,7 @@ namespace OpenMS
         /**
          * @brief constructor
          */
-        FilterResultRaw(double mz, std::vector<double> mzShifts, std::vector<double> intensities);
+        FilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities);
         
         /**
          * @brief returns m/z position
