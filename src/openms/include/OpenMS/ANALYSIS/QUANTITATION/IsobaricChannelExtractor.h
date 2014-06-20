@@ -145,6 +145,9 @@ private:
     /// Max. allowed deviation between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.
     double max_precursor_isotope_deviation_;
 
+    /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following ms1 scan.
+    bool interpolate_precursor_purity_;
+    
     /// add channel information to the map after it has been filled
     void registerChannelsInOutputMap_(ConsensusMap& consensus_map);
 
