@@ -70,8 +70,11 @@ public:
     /// constructor
     MascotGenericFile();
 
-    /// constructor
+    /// destructor
     virtual ~MascotGenericFile();
+
+    /// docu in base class
+    virtual void updateMembers_();
 
     /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution
     void store(const String& filename, const PeakMap& experiment);
@@ -130,10 +133,17 @@ public:
 
 protected:
 
+    /// mapping of modifications with specificity groups, that have to be treated specially (e.g. "Deamidated (NQ)")
+    std::map<String, String> mod_group_map_;
+
     /// writes a parameter header
     void writeParameterHeader_(const String& name, std::ostream& os);
 
-    /// writes the full header
+    /// write a list of (fixed or variable) modifications
+    void writeModifications_(const std::vector<String>& mods, std::ostream& os,
+                             bool variable_mods = false);
+
+     /// writes the full header
     void writeHeader_(std::ostream& os);
 
     /// writes the spectrum
