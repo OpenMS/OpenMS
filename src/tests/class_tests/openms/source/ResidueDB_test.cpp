@@ -65,6 +65,10 @@ START_SECTION((const Residue* getResidue(const String &name) const))
   TEST_EQUAL(ptr->getResidue("C")->getOneLetterCode(), "C")
 END_SECTION
 
+START_SECTION((const Residue* getResidue(const unsigned char & one_letter_code) const))
+  TEST_EQUAL(ptr->getResidue('C')->getOneLetterCode(), "C")
+END_SECTION
+
 START_SECTION((bool hasResidue(const String &name) const))
   TEST_EQUAL(ptr->hasResidue("BLUBB"), false)
 	TEST_EQUAL(ptr->hasResidue("LYS"), true)

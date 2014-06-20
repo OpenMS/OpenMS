@@ -46,8 +46,7 @@ namespace OpenMS
 {
 
   MascotGenericFile::MascotGenericFile() :
-    ProgressLogger(),
-    DefaultParamHandler("MascotGenericFile")
+    ProgressLogger(), DefaultParamHandler("MascotGenericFile"), mod_group_map_()
   {
     defaults_.setValue("database", "MSDB", "Name of the sequence database");
     defaults_.setValue("search_type", "MIS", "Name of the search type for the query", ListUtils::create<String>("advanced"));
@@ -72,6 +71,11 @@ namespace OpenMS
     defaults_.setValidStrings("fixed_modifications", all_mods);
     defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "Variable modifications given as UniMod definitions.");
     defaults_.setValidStrings("variable_modifications", all_mods);
+
+    // special modifications, see "updateMembers_" method below:
+    defaults_.setValue("special_modifications", "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)", "Modifications with specificity groups that are used by Mascot and have to be treated specially", ListUtils::create<String>("advanced"));
+    // list from Mascot 2.4; there's also "Phospho (STY)", but that can be 
+    // represented using "Phospho (ST)" and "Phospho (Y)"
 
     defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
     defaults_.setValidStrings("mass_type", ListUtils::create<String>("monoisotopic,average"));
@@ -100,7 +104,25 @@ namespace OpenMS
 
   MascotGenericFile::~MascotGenericFile()
   {
+  }
 
+  void MascotGenericFile::updateMembers_()
+  {
+    // special cases for specificity groups: OpenMS uses e.g. "Deamidated (N)"
+    // and "Deamidated (Q)", but Mascot only understands "Deamidated (NQ)"
+    String special_mods = param_.getValue("special_modifications");
+    vector<String> mod_groups = ListUtils::create<String>(special_mods);
+    for (StringList::const_iterator mod_it = mod_groups.begin(); 
+         mod_it != mod_groups.end(); ++mod_it)
+    {
+      String mod = mod_it->prefix(' ');
+      String residues = mod_it->suffix('(').prefix(')');
+      for (String::const_iterator res_it = residues.begin(); 
+           res_it != residues.end(); ++res_it)
+      {
+        mod_group_map_[mod + " (" + String(*res_it) + ")"] = *mod_it;
+      }
+    }    
   }
 
   void MascotGenericFile::store(const String& filename, const PeakMap& experiment)
@@ -131,6 +153,33 @@ namespace OpenMS
     else
     {
       os << name << "=";
+    }
+  }
+
+  void MascotGenericFile::writeModifications_(const vector<String>& mods,
+                                              ostream& os, bool variable_mods)
+  {
+    String tag = variable_mods ? "IT_MODS" : "MODS";
+    // @TODO: remove handling of special cases when a general solution for
+    // specificity groups in UniMod is implemented (ticket #387)
+    set<String> filtered_mods;
+    for (StringList::const_iterator it = mods.begin(); it != mods.end(); ++it)
+    {
+      map<String, String>::iterator pos = mod_group_map_.find(*it);
+      if (pos == mod_group_map_.end())
+      {
+        filtered_mods.insert(*it);
+      }
+      else
+      {
+        filtered_mods.insert(pos->second);
+      }
+    }
+    for (set<String>::const_iterator it = filtered_mods.begin(); 
+         it != filtered_mods.end(); ++it)
+    {
+      writeParameterHeader_(tag, os);
+      os << *it << "\n";
     }
   }
 
@@ -198,38 +247,13 @@ namespace OpenMS
     writeParameterHeader_("MASS", os);
     os << param_.getValue("mass_type") << "\n";
 
-    // @TODO remove "Deamidated (NQ)" special cases below when a general
-    // solution for specificity groups in UniMod is implemented (ticket #387) 
-
     //fixed modifications
-    StringList fixed_mods = param_.getValue("fixed_modifications");
-    for (StringList::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
-    {
-      if ((*it == "Deamidated (N)") || (*it == "Deamidated (Q)")) continue;
-      writeParameterHeader_("MODS", os);
-      os << *it << "\n";
-    }
-    if (ListUtils::contains(fixed_mods, "Deamidated (N)") ||
-        ListUtils::contains(fixed_mods, "Deamidated (Q)"))
-    {
-      writeParameterHeader_("MODS", os);
-      os << "Deamidated (NQ)" << "\n";
-    }
+    vector<String> fixed_mods = param_.getValue("fixed_modifications");
+    writeModifications_(fixed_mods, os);
 
     //variable modifications
-    StringList var_mods = param_.getValue("variable_modifications");
-    for (StringList::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
-    {
-      if ((*it == "Deamidated (N)") || (*it == "Deamidated (Q)")) continue;
-      writeParameterHeader_("IT_MODS", os);
-      os << *it << "\n";
-    }
-    if (ListUtils::contains(var_mods, "Deamidated (N)") ||
-        ListUtils::contains(var_mods, "Deamidated (Q)"))
-    {
-      writeParameterHeader_("IT_MODS", os);
-      os << "Deamidated (NQ)" << "\n";
-    }
+    vector<String> var_mods = param_.getValue("variable_modifications");
+    writeModifications_(var_mods, os, true);
 
     //instrument
     writeParameterHeader_("INSTRUMENT", os);
