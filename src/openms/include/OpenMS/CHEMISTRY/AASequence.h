@@ -516,22 +516,35 @@ namespace OpenMS
     //@}
 
     /** 
-      @brief create AASequence object by parsing a String
+      @brief create AASequence object by parsing an OpenMS string
+      @param s Input string
+      @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const String & s);
+    static AASequence fromString(const String& s, 
+                                 bool permissive = true);
 
     /** 
-      @brief create AASequence object by parsing a const char *
+      @brief create AASequence object by parsing a C string (character array)
+      @param s Input string
+      @param permissive If set, skip spaces and replace stop codon symbols ("*", "#", "+") by "X" (unknown amino acid) during parsing
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const char * s);
+    static AASequence fromString(const char* s, 
+                                 bool permissive = true);
 
   protected:
 
     std::vector<const Residue *> peptide_;
 
-    static void parseString_(AASequence & aas, const String & peptide);
+    static String::ConstIterator parseModRoundBrackets_(
+      const String::ConstIterator str_it, const String& str, AASequence& aas);
+
+    static String::ConstIterator parseModSquareBrackets_(
+      const String::ConstIterator str_it, const String& str, AASequence& aas);
+
+    static void parseString_(const String& peptide, AASequence& aas,
+                             bool permissive = true);
 
     const ResidueModification * n_term_mod_;
 

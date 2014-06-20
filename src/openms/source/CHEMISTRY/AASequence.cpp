@@ -39,11 +39,13 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <algorithm>
-
-#include <iostream>
+#include <cmath> // for "pow"
+#include <iterator> // for "distance"
 #include <sstream>
 
 using namespace std;
@@ -151,7 +153,8 @@ namespace OpenMS
       if (peptide_.size() == 1)
       {
         ef += peptide_[0]->getFormula(type);
-      } else
+      }
+      else
       {
         for (Size i = 0; i != peptide_.size(); ++i)
         {
@@ -208,7 +211,7 @@ namespace OpenMS
     {
       if (it->getOneLetterCode() == "")
       {
-        tag_offset += it->getMonoWeight();
+        tag_offset += it->getAverageWeight(Residue::Internal);
       }
     }
     return tag_offset + getFormula(type, charge).getAverageWeight();
@@ -222,7 +225,7 @@ namespace OpenMS
     {
       if (it->getOneLetterCode() == "")
       {
-        tag_offset += it->getMonoWeight();
+        tag_offset += it->getMonoWeight(Residue::Internal);
       }
     }
 
@@ -617,342 +620,202 @@ namespace OpenMS
     return os;
   }
 
-  void AASequence::parseString_(AASequence& aas, const String& pep)
+
+  String::ConstIterator AASequence::parseModRoundBrackets_(
+    const String::ConstIterator str_it, const String& str, AASequence& aas)
+  {
+    OPENMS_PRECONDITION(*str_it == '(', "Modification must start with '('.");
+    String::ConstIterator mod_start = str_it;
+    String::ConstIterator mod_end = ++mod_start;
+    Size open_brackets = 1;
+    while (mod_end != str.end())
+    {
+      if (*mod_end == ')') --open_brackets;
+      else if (*mod_end == '(') ++open_brackets;
+      if (!open_brackets) break;
+      ++mod_end;
+    }
+    string mod(mod_start, mod_end);
+    if (mod_end == str.end())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str, "Cannot convert string to peptide modification: missing ')'");
+    }
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+    if (aas.peptide_.empty()) // start of peptide -> N-terminal mod.
+    {
+      aas.n_term_mod_ = &(mod_db->getTerminalModification(
+                            mod, ResidueModification::N_TERM));
+      return mod_end;
+    }
+    if (distance(mod_end, str.end()) == 1) // end of peptide -> C-terminal mod.?
+    {
+      try
+      {
+        const ResidueModification* term_mod = 
+          &(mod_db->getTerminalModification(mod, ResidueModification::C_TERM));
+        aas.c_term_mod_ = term_mod;
+        return mod_end;
+      }
+      catch (Exception::ElementNotFound& /* e */)
+      { // just do nothing, the mod is presumably a non-terminal one
+      }
+    }
+    aas.peptide_.back() = ResidueDB::getInstance()->
+      getModifiedResidue(aas.peptide_.back(), mod);
+    // @TODO: if mod isn't found, "InvalidValue" is raised - catch it here?
+    return mod_end;
+  }
+
+  String::ConstIterator AASequence::parseModSquareBrackets_(
+    const String::ConstIterator str_it, const String& str, AASequence& aas)
+  {
+    OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
+    String::ConstIterator mod_start = str_it;
+    String::ConstIterator mod_end = ++mod_start;
+    while ((mod_end != str.end()) && (*mod_end != ']')) ++mod_end;
+    string mod(mod_start, mod_end);
+    if (mod_end == str.end())
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str, "Cannot convert string to peptide modification: missing ']'");
+    }
+
+    double mass = String(mod).toDouble();
+    size_t decimal_pos = mod.find('.');
+    bool integer_mass = decimal_pos == string::npos;
+    double tolerance = 0.5; // for integer mass values
+    if (!integer_mass) // float mass values -> adapt tol. to decimal precision
+    {
+      size_t n_decimals = mod.size() - decimal_pos - 2;
+      tolerance = pow(10.0, -int(n_decimals));
+    }
+    bool delta_mass = (mod[0] == '+') || (mod[0] == '-');
+    ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+    const Residue* residue = 0;
+    if (!aas.peptide_.empty())
+    {
+      // internal modification (why not potentially C-terminal?):
+      residue = aas.peptide_.back();
+      if (delta_mass && (residue->getMonoWeight() <= 0.0)) // not allowed
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str, "Using a mass difference to specify a modification on a residue of unknown mass is not supported in '" + residue->getOneLetterCode() + "[" + mod +  "]'");
+      }
+      if (integer_mass) // use first modification that matches approximately
+      {
+        vector<String> res_mods;
+        if (!delta_mass) // compute delta mass based on residue mass
+        {
+          // we expect that delta mass is relative to the full mass of the
+          // residue, not its "internal" mass in the peptide (loss of H2O)!
+          mass -= residue->getMonoWeight(Residue::Internal);
+          delta_mass = true; // in case we need to create a new residue below
+        }
+        mod_db->getModificationsByDiffMonoMass(
+          res_mods, residue->getOneLetterCode(), mass, tolerance);
+        if (!res_mods.empty())
+        {
+          const ResidueModification* res_mod = &(mod_db->
+                                                 getModification(res_mods[0]));
+          aas.peptide_.back() = ResidueDB::getInstance()->
+            getModifiedResidue(residue, res_mod->getId());
+          return mod_end;
+        }
+      }
+      else // float mass -> use best-matching modification
+      {
+        const ResidueModification* res_mod;
+        if (delta_mass)
+        {
+          res_mod = mod_db->getBestModificationsByDiffMonoMass(
+            residue->getOneLetterCode(), mass, tolerance);
+        }
+        else // absolute mass
+        {
+          res_mod = mod_db->getBestModificationsByMonoMass(
+            residue->getOneLetterCode(), mass, tolerance);
+        }
+        if (res_mod)
+        {
+          aas.peptide_.back() = ResidueDB::getInstance()->
+            getModifiedResidue(residue, res_mod->getId());
+          return mod_end;
+        }
+      }
+      LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" + 
+        residue->getOneLetterCode() + "' - adding it to the database" << endl;
+    }
+    // at beginning of peptide:
+    else if (delta_mass) // N-terminal mod can only be specified by delta mass
+    { 
+      vector<String> term_mods;
+      mod_db->getTerminalModificationsByDiffMonoMass(
+        term_mods, mass, tolerance, ResidueModification::N_TERM);
+      if (!term_mods.empty())
+      {
+        aas.n_term_mod_ = &(mod_db->getTerminalModification(
+                              term_mods[0], ResidueModification::N_TERM));
+        return mod_end;
+      }
+      LOG_WARN << "Warning: unknown N-terminal modification '" + mod + "' - adding it to the database" << endl;
+    }
+    // create new modification:
+    Residue new_res;
+    new_res.setName(mod);
+    if (residue && delta_mass)
+    {
+      new_res.setMonoWeight(mass + residue->getMonoWeight());
+      new_res.setAverageWeight(mass + 
+                               residue->getAverageWeight());
+    }
+    else
+    { // mass value is for an internal residue, but methods expect full residue:
+      new_res.setMonoWeight(mass + Residue::getInternalToFullMonoWeight());
+      new_res.setAverageWeight(mass + 
+                               Residue::getInternalToFullAverageWeight());
+    }
+    ResidueDB::getInstance()->addResidue(new_res);
+    aas.peptide_.back() = ResidueDB::getInstance()->getResidue(mod);
+    return mod_end;
+  }
+
+  void AASequence::parseString_(const String& pep, AASequence& aas, 
+                                bool permissive)
   {
     aas.peptide_.clear();
     String peptide(pep);
     peptide.trim();
+    if (peptide.empty()) return;
 
-    if (peptide.empty())
+    static ResidueDB* rdb = ResidueDB::getInstance();
+    for (String::ConstIterator str_it = peptide.begin(); 
+         str_it != peptide.end(); ++str_it)
     {
-      return;
-    }
-
-    // split the peptide in its residues
-    vector<String> split;
-    Size pos(0);
-    bool mod_open(false);
-
-    if (peptide[0] == '(')
-    {
-      mod_open = true;
-    }
-    Size num_brackets(0);
-    const Size& size_peptide = peptide.size();
-    for (Size i = 1; i < size_peptide; ++i)
-    {
-      if (isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open)
+      const Residue* r = rdb->getResidue(*str_it); // "isalpha" check not needed
+      if (r)
       {
-        split.push_back(peptide.substr(pos, i - pos));
-        pos = i;
+        aas.peptide_.push_back(r);
       }
-      switch (peptide[i])
+      else if (*str_it == '(')
       {
-        case '(':
-          if (mod_open)
-          {
-            ++num_brackets;
-            continue;
-          }
-          mod_open = true;
-          break;
-        case ')':
-          if (num_brackets != 0)
-          {
-            --num_brackets;
-            continue;
-          }
-          mod_open = false;
-          break;
-        case '[':
-          if (mod_open)
-          {
-            ++num_brackets;
-            continue;
-          }
-          mod_open = true;
-          break;
-        case ']':
-          if (num_brackets != 0)
-          {
-            --num_brackets;
-            continue;
-          }
-          mod_open = false;
-          break;
-        default:
-          break;
+        str_it = parseModRoundBrackets_(str_it, peptide, aas);
       }
-    }
-
-    // push_back last residue
-    split.push_back(peptide.substr(pos, peptide.size() - pos));
-
-    if (!split.empty() && !split[0].empty() && split[0][0] == '(')
-    {
-      String mod = split[0];
-      mod.trim();
-      mod.erase(mod.begin());
-      mod.erase(mod.end() - 1);
-      aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
-
-      split.erase(split.begin());
-    }
-
-    if (split.empty())
-    {
-      return;
-    }
-
-    // test the last split if there is a C-terminal modification
-    const String c_term = *(split.end() - 1);
-    Size c_term_mods = count(c_term.begin(), c_term.end(), '(');
-    if (c_term_mods > 0)
-    {
-      // now we have found a potential C-term modification
-      String mod;
-
-      // we need to parse here since K(Label:18O(2)) .. will not be found
-      // correctly by prefix/suffix search
-      Size brackets = 0;
-      // we start at (end - 1) to skip trailing ')'
-      for (String::ConstReverseIterator rIt = (c_term.rbegin() + 1); rIt != c_term.rend(); ++rIt)
+      else if (*str_it == '[')
       {
-        if (*rIt == '(' && brackets == 0)
-        {
-          break; // we reached beginning of mod
-        } else if (*rIt == ')')
-        {
-          ++brackets;
-        } else if (*rIt == '(')
-        {
-          --brackets;
+        str_it = parseModSquareBrackets_(str_it, peptide, aas);
+      }
+      else
+      {
+        if (permissive && ((*str_it == '*') || (*str_it == '#') || 
+                           (*str_it == '+')))
+        { // stop codons
+          aas.peptide_.push_back(rdb->getResidue('X'));
         }
-
-        mod = *rIt + mod;
-      }
-
-      try
-      {
-        const ResidueModification * potential_mod = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::C_TERM);
-        aas.c_term_mod_ = potential_mod;
-        split[split.size() - 1] = c_term.substr(0, c_term.size() - mod.size() - 2);
-      }
-      catch (Exception::ElementNotFound & /* e */)
-      {
-        // just do nothing the mod is presumably a non-terminal one
-      }
-    }
-
-    // parse the residues
-    for (Size i = 0; i != split.size(); ++i)
-    {
-      const String& res = split[i];
-      String name, modstr, tag;
-      for (Size j = 0; j != res.size(); ++j)
-      {
-        if (isalpha(res[j]))
-        {
-          name += res[j];
-        } else
-        {
-          if (res[j] == '(')
-          {
-            if (res[res.size() - 1] != ')')
-            {
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Missing ')'!");
-            }
-
-            for (Size k = j + 1; k < res.size() - 1; ++k)             // skip last ')'
-            {
-              modstr += res[k];
-            }
-            break;
-          } else
-          {
-            if (res[j] == '[')
-            {
-              for (Size k = j + 1; res[k] != ']'; ++k)
-              {
-                if (k == res.size())
-                {
-                  throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Missing ']'!");
-                }
-                tag += res[k];
-              }
-              break;
-            } else
-            {
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Residue '" + res + "' unknown at position " + String(j) + ", residue # " + String(i) + " !");
-            }
-          }
+        else if (permissive && (*str_it == ' '))
+        { // skip, i.e. do nothing here
         }
-      }
-
-      // Retrieve the underlying residue
-      const Residue * res_ptr = ResidueDB::getInstance()->getResidue(name);
-
-      if (res_ptr == 0 && tag.empty() && modstr.empty())
-      {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
-      }
-
-      if (!modstr.empty() && i > 0)
-      {
-        if (res_ptr == 0)
+        else
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
-        }
-        aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, modstr));
-      } else if (!modstr.empty() && i == 0)
-      {
-        if (res_ptr == 0)
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
-        }
-        std::set<const ResidueModification *> mod_candidates;
-        ModificationsDB::getInstance()->searchModifications(mod_candidates, res_ptr->getOneLetterCode(), modstr, ResidueModification::ANYWHERE);
-        if (!mod_candidates.empty())
-        {
-          aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, modstr));
-        } else
-        {
-          ModificationsDB::getInstance()->searchTerminalModifications(mod_candidates, modstr, ResidueModification::N_TERM);
-          if (!mod_candidates.empty())
-          {
-            aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(modstr, ResidueModification::N_TERM);
-            aas.peptide_.push_back(res_ptr);
-          }
-        }
-      } else if (!tag.empty())
-      {
-        bool is_NTerm = (res_ptr == 0) && name.empty() ? true : false;
-
-        if (tag.hasPrefix("+") || tag.hasPrefix("-"))
-        {
-          // delta mass
-          double delta_mass = tag.toDouble();
-          const Residue* result = NULL;
-
-          if (tag.hasSubstring("."))
-          {
-            // signed float tag [+123.456] -> look for an exact match
-            if (is_NTerm)
-            {
-              vector<String> mods;
-              ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, delta_mass, 1.0, ResidueModification::N_TERM);
-              if (!mods.empty())
-              {
-                aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mods[0], ResidueModification::N_TERM);
-                continue;
-              }
-            } else
-            {
-              if (res_ptr == 0)
-              {
-                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
-              }
-              const ResidueModification * this_mod = ModificationsDB::getInstance()->getBestModificationsByDiffMonoMass(res_ptr->getOneLetterCode(), delta_mass, 1.0);
-              if (this_mod != NULL)
-              {
-                result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, this_mod->getId());
-              }
-            }
-          } else
-          {
-            // signed integer tag [+123] -> look for the first match (usually this is what is intended)
-            if (is_NTerm)
-            {
-              vector<String> mods;
-              ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, delta_mass, 0.5, ResidueModification::N_TERM);
-              if (!mods.empty())
-              {
-                aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mods[0], ResidueModification::N_TERM);
-                continue;
-              }
-            } else
-            {
-              std::vector< String > mods;
-              if (res_ptr == 0)
-              {
-                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
-              }
-              ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), delta_mass, 0.5);
-              if (!mods.empty())
-              {
-                const ResidueModification * this_mod = &ModificationsDB::getInstance()->getModification(mods[0]);
-                result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, this_mod->getId());
-              }
-            }
-          }
-
-          // using an amino acid with zero weight and a differential modification on that cannot lead to a valid result!
-          if (res_ptr && res_ptr->getMonoWeight() <= 0.0)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Having a difference modification on an unspecified residue (" + name + "[" + tag +  "]) will probably not produce a correct mass.");
-          }
-
-          if (result == NULL)
-          {
-            std::cout <<  "Warning: unknown modification " << tag << " on residue "
-              << name << ": will add to the database." << std::endl;
-            Residue new_res(tag, String(""), String(""), EmpiricalFormula(""));
-            if (is_NTerm)
-            {
-              new_res.setMonoWeight(delta_mass);
-              new_res.setAverageWeight(delta_mass);
-            } else
-            {
-              new_res.setMonoWeight(delta_mass + res_ptr->getMonoWeight());
-              new_res.setAverageWeight(delta_mass + res_ptr->getAverageWeight());
-            }
-            ResidueDB::getInstance()->addResidue(new_res);
-            result = ResidueDB::getInstance()->getResidue(tag);
-          }
-          aas.peptide_.push_back(result);
-        } else  // absolute (unsigned) mass tags []
-        {
-          double mass = tag.toDouble();
-          const Residue* result = NULL;
-
-          if (tag.hasSubstring("."))
-          {
-            // we have a float, look for an exact match
-            const ResidueModification * this_mod = ModificationsDB::getInstance()->getBestModificationsByMonoMass(res_ptr->getOneLetterCode(), mass, 1.0);
-            if (this_mod)
-              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, this_mod->getId());
-          } else
-          {
-            // we have an integer, look for the first match (usually this is what is intended)
-            std::vector< String > mods;
-            double res_deltamass = mass - (res_ptr->getMonoWeight() - res_ptr->getInternalToFullMonoWeight());
-            ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), res_deltamass, 0.5);
-            if (!mods.empty())
-            {
-              const ResidueModification * this_mod = &ModificationsDB::getInstance()->getModification(mods[0]);
-              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, this_mod->getId());
-            }
-          }
-
-          if (result == NULL || res_ptr->getMonoWeight() <= 0.0)
-          {
-            // using an amino acid with zero weight should lead to an accurate mass representation of the AA (and not try to guess something)... !
-            std::cout <<  "Warning: unknown modification " << tag << " on residue " << name << ": will add to the database." << std::endl;
-            Residue new_res(tag, String(""), String(""), EmpiricalFormula(""));
-            new_res.setMonoWeight(mass);
-            new_res.setAverageWeight(mass);
-            ResidueDB::getInstance()->addResidue(new_res);
-            result = ResidueDB::getInstance()->getResidue(tag);
-          }
-          aas.peptide_.push_back(result);
-        }
-      } else
-      {
-        // mod and tag are both empty
-        aas.peptide_.push_back(res_ptr);
-        if (aas.peptide_.size() < i)
-        {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Mod and tag are both empty.");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string to amino acid sequence: unexpected character '" + String(*str_it) + "'");
         }
       }
     }
@@ -1027,17 +890,17 @@ namespace OpenMS
     return c_term_mod_ != 0;
   }
 
-  AASequence AASequence::fromString(const String & s)
+  AASequence AASequence::fromString(const String& s, bool permissive)
   {
     AASequence aas;
-    parseString_(aas, s);
+    parseString_(s, aas, permissive);
     return aas;
   }
 
-  AASequence AASequence::fromString(const char * s)
+  AASequence AASequence::fromString(const char* s, bool permissive)
   {
     AASequence aas;
-    parseString_(aas, String(s));
+    parseString_(String(s), aas, permissive);
     return aas;
   }
 }
