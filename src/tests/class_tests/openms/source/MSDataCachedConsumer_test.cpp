@@ -77,8 +77,6 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
   cached_consumer->setExpectedSize(2,0);
   cached_consumer->consumeSpectrum(exp.getSpectrum(0));
   cached_consumer->consumeSpectrum(exp.getSpectrum(1));
-  // We can only consume 2 spectra
-  TEST_EXCEPTION(Exception::IllegalArgument, cached_consumer->consumeSpectrum(exp.getSpectrum(0)) )
   delete cached_consumer;
 
   // Check whether it was written to disk correctly...
@@ -122,8 +120,6 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 
   cached_consumer->setExpectedSize(0,1);
   cached_consumer->consumeChromatogram(exp.getChromatogram(0));
-  // We can only consume 1 chromatogram
-  TEST_EXCEPTION(Exception::IllegalArgument, cached_consumer->consumeChromatogram(exp.getChromatogram(0)) )
   delete cached_consumer;
 
   // Check whether it was written to disk correctly...
@@ -195,6 +191,26 @@ END_SECTION
 
 START_SECTION((void setExpectedSize(Size expectedSpectra, Size expectedChromatograms)))
   NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION([EXTRA] test empty file)
+{
+  // try an empty file
+  std::string tmp_filename;
+  NEW_TMP_FILE(tmp_filename);
+  MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, false);
+  delete cached_consumer;
+
+  // Check whether it was written to disk correctly...
+  {
+    // Create the index from the given file
+    CachedmzML cache;
+    cache.createMemdumpIndex(tmp_filename);
+    std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
+    TEST_EQUAL(cache.getSpectraIndex().size(), 0)
+    TEST_EQUAL(cache.getChromatogramIndex().size(), 0)
+  }
+}
 END_SECTION
 
 START_SECTION((void setExperimentalSettings(const ExperimentalSettings&)))
