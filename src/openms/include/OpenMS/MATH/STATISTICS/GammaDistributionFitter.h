@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Stephan Aiche $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_MATH_STATISTICS_GAMMADISTRIBUTIONFITTER_H
@@ -50,13 +50,14 @@ namespace OpenMS
 
       This class fits a Gamma distribution to a number of data points.
       The results as well as the initial guess are specified using the struct
-          GammaDistributionFitResult.
+      GammaDistributionFitResult.
+     
+      @note We actually fit a slightly customized version of the gamma distribution
+      that is 0.0 if the parameters b or p are <= 0.0. With this modification we 
+      can still use an unconstrained optimization algorithm.
 
-      The formula with the fitted parameters can be transformed into a
-      gnuplot formula using getGnuplotFormula() after fitting.
-
-          @ingroup Math
-      */
+      @ingroup Math
+    */
     class OPENMS_DLLAPI GammaDistributionFitter
     {
 public:
@@ -85,7 +86,7 @@ public:
       virtual ~GammaDistributionFitter();
 
       /// sets the gamma distribution start parameters b and p for the fitting
-      void setInitialParameters(const GammaDistributionFitResult & result);
+      void setInitialParameters(const GammaDistributionFitResult& result);
 
       /**
           @brief Fits a gamma distribution to the given data points
@@ -94,7 +95,7 @@ public:
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
-      GammaDistributionFitResult fit(const std::vector<DPosition<2> > & points);
+      GammaDistributionFitResult fit(const std::vector<DPosition<2> >& points);
 
 protected:
 
@@ -102,9 +103,9 @@ protected:
 
 private:
       /// Copy constructor (not implemented to prevent usage)
-      GammaDistributionFitter(const GammaDistributionFitter & rhs);
+      GammaDistributionFitter(const GammaDistributionFitter& rhs);
       /// assignment operator (not implemented to prevent usage)
-      GammaDistributionFitter & operator=(const GammaDistributionFitter & rhs);
+      GammaDistributionFitter& operator=(const GammaDistributionFitter& rhs);
     };
   }
 }
