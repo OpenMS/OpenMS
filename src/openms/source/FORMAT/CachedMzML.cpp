@@ -104,7 +104,7 @@ namespace OpenMS
 
     ifs.seekg(0, ifs.end); // set file pointer to end
     ifs.seekg(ifs.tellg(), ifs.beg); // set file pointer to end, in forward direction
-    ifs.seekg(- sizeof(exp_size) - sizeof(chrom_size), ifs.cur); // move two fields to the left, start reading
+    ifs.seekg(- static_cast<int>(sizeof(exp_size) + sizeof(chrom_size)), ifs.cur); // move two fields to the left, start reading
     ifs.read((char*)&exp_size, sizeof(exp_size));
     ifs.read((char*)&chrom_size, sizeof(chrom_size));
     ifs.seekg(sizeof(file_identifier), ifs.beg); // set file pointer to beginning (after identifier), start reading
@@ -173,7 +173,7 @@ namespace OpenMS
 
     ifs.seekg(0, ifs.end); // set file pointer to end
     ifs.seekg(ifs.tellg(), ifs.beg); // set file pointer to end, in forward direction
-    ifs.seekg(- sizeof(exp_size) - sizeof(chrom_size), ifs.cur); // move two fields to the left, start reading
+    ifs.seekg(- static_cast<int>(sizeof(exp_size) + sizeof(chrom_size)), ifs.cur); // move two fields to the left, start reading
     ifs.read((char*)&exp_size, sizeof(exp_size));
     ifs.read((char*)&chrom_size, sizeof(chrom_size));
     ifs.seekg(sizeof(file_identifier), ifs.beg); // set file pointer to beginning (after identifier), start reading
