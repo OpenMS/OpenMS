@@ -1699,6 +1699,8 @@ class TOPPMetaProSIP : public TOPPBase
 
       registerDoubleOption_("correlation_threshold", "<tol>", 0.7, "Correlation threshold for reporting a RIA", false);
 
+      registerDoubleOption_("xic_threshold", "<tol>", 0.7, "Minimum correlation to mono-isotopic peak for retaining a higher isotopic peak. If featureXML from reference file is used it should be disabled (set to -1) as no mono-isotopic peak is expected to be present.", false);
+
       registerDoubleOption_("decomposition_threshold", "<tol>", 0.7, "Minimum R² of decomposition that must be achieved for a peptide to be reported.", false);
 
       registerDoubleOption_("weight_merge_window", "<tol>", 5.0, "Decomposition coefficients within +- this rate window will be combined", false);
@@ -2551,6 +2553,8 @@ class TOPPMetaProSIP : public TOPPBase
 
       double correlation_threshold = getDoubleOption_("correlation_threshold");
 
+      double xic_threshold = getDoubleOption_("xic_threshold");
+
       double min_correlation_distance_to_averagine = getDoubleOption_("min_correlation_distance_to_averagine");
 
       String tmp_path = File::getTempDirectory();
@@ -2837,7 +2841,7 @@ class TOPPMetaProSIP : public TOPPBase
         }
 
         // collect 13C / 15N peaks
-        vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, correlation_threshold);
+        vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
         double TIC = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0.0);
 
         // no Peaks collected
