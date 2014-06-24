@@ -1313,28 +1313,59 @@ class MetaProSIPDecomposition
       Element * e2 = const_cast<Element *>(e1);
 
 
-      EmpiricalFormula e = peptide.getFormula();
-      Size MAXISOTOPES = (Size)e.getNumberOf("Carbon");
+      EmpiricalFormula peptide_ef = peptide.getFormula();
+      Size MAXISOTOPES = (Size)peptide_ef.getNumberOf("Carbon");
 
-      // calculate isotope distribution for a given peptide and varying incoperation rates
-      // modification of isotope distribution in static ElementDB
-      for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
+      // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
+      AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
+      EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
+      UInt max_labeling_carbon = (UInt)unmodified_peptide_ef.getNumberOf("Carbon"); // max. number of atoms that can be labeled
+      EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef;  // difference formula for modifications (note that it can contain positive/negative numbers)
+
+      if (modifications_ef.getNumberOf("Carbon") > 0)  // modification adds additional (unlabeled) carbon atoms
       {
-        double a = abundance / 100.0;
-        IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
-        container.push_back(make_pair(12, 1.0 - a));
-        container.push_back(make_pair(13, a));
-        isotopes.set(container);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide.getFormula(Residue::Full, 0).getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
-        container = dist.getContainer();
-        vector<double> intensities;
-        for (Size i = 0; i != container.size(); ++i)
+        IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
+        for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_carbon)
         {
-          intensities.push_back(container[i].second);
+          double a = abundance / 100.0;
+          IsotopeDistribution isotopes;
+          std::vector<std::pair<Size, double> > container;
+          container.push_back(make_pair(12, 1.0 - a));
+          container.push_back(make_pair(13, a));
+          isotopes.set(container);
+          e2->setIsotopeDistribution(isotopes);
+          IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
+          dist += modification_dist;  // convole with modification distribution (which follows the natural distribution)
+          container = dist.getContainer();
+          vector<double> intensities;
+          for (Size i = 0; i != container.size(); ++i)
+          {
+            intensities.push_back(container[i].second);
+          }
+          ret.push_back(make_pair(abundance, intensities));
         }
-        ret.push_back(make_pair(abundance, intensities));
+      } else
+      {
+        // calculate isotope distribution for a given peptide and varying incoperation rates
+        // modification of isotope distribution in static ElementDB
+        for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
+        {
+          double a = abundance / 100.0;
+          IsotopeDistribution isotopes;
+          std::vector<std::pair<Size, double> > container;
+          container.push_back(make_pair(12, 1.0 - a));
+          container.push_back(make_pair(13, a));
+          isotopes.set(container);
+          e2->setIsotopeDistribution(isotopes);
+          IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
+          container = dist.getContainer();
+          vector<double> intensities;
+          for (Size i = 0; i != container.size(); ++i)
+          {
+            intensities.push_back(container[i].second);
+          }
+          ret.push_back(make_pair(abundance, intensities));
+        }
       }
 
       // reset to natural occurance
@@ -1347,6 +1378,23 @@ class MetaProSIPDecomposition
       return ret;
     }
 
+    static Size getNumberOfLabelingElements(bool use_N15, const AASequence& peptide)
+    {
+      Size n_labeling_elements;
+      AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
+      EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
+
+      if (use_N15)
+      {
+        n_labeling_elements = (UInt)unmodified_peptide_ef.getNumberOf("Nitrogen");
+      } else
+      {
+        n_labeling_elements = (UInt)unmodified_peptide_ef.getNumberOf("Carbon");
+      } 
+
+      return n_labeling_elements;
+    }
+
     ///> Given a peptide sequence calculate the theoretical isotopic patterns given all incorporations rate (15C Version)
     ///> extend isotopic patterns by additional_isotopes to collect other element higher isotopes at 100% incorporation
     static IsotopePatterns calculateIsotopePatternsFor15NRange(const AASequence& peptide, Size additional_isotopes = 5)
@@ -1356,32 +1404,61 @@ class MetaProSIPDecomposition
       const Element * e1 = ElementDB::getInstance()->getElement("Nitrogen");
       Element * e2 = const_cast<Element *>(e1);
 
-      //   const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
+      EmpiricalFormula peptide_ef = peptide.getFormula();
+      UInt MAXISOTOPES = (UInt)peptide_ef.getNumberOf("Nitrogen");
 
-      EmpiricalFormula e = peptide.getFormula();
-      UInt MAXISOTOPES = (UInt)e.getNumberOf("Nitrogen");
+      // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
+      AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
+      EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
+      UInt max_labeling_nitrogens = (UInt)unmodified_peptide_ef.getNumberOf("Nitrogen"); // max. number of nitrogen atoms that can be labeled
+      EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef;  // difference formula for modifications (note that it can contain positive/negative numbers)
 
-      // calculate isotope distribution for a given peptide and varying incoperation rates
-      // modification of isotope distribution in static ElementDB
-      for (double abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
+      if (modifications_ef.getNumberOf("Nitrogen") > 0)  // modification adds additional (unlabeled) nitrogen atoms
       {
-        double a = abundance / 100.0;
-        IsotopeDistribution isotopes;
-        std::vector<std::pair<Size, double> > container;
-        container.push_back(make_pair(14, 1.0 - a));
-        container.push_back(make_pair(15, a));
-        isotopes.set(container);
-        e2->setIsotopeDistribution(isotopes);
-        IsotopeDistribution dist = peptide.getFormula(Residue::Full, 0).getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
-        container = dist.getContainer();
-        vector<double> intensities;
-        for (Size i = 0; i != container.size(); ++i)
+        IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
+        for (double abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_nitrogens)
         {
-          intensities.push_back(container[i].second);
+          double a = abundance / 100.0;
+          IsotopeDistribution isotopes;
+          std::vector<std::pair<Size, double> > container;
+          container.push_back(make_pair(14, 1.0 - a));
+          container.push_back(make_pair(15, a));
+          isotopes.set(container);
+          e2->setIsotopeDistribution(isotopes);
+          IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
+          dist += modification_dist;  // calculate convolution with isotope distribution of modification(s)
+          container = dist.getContainer();
+          vector<double> intensities;
+          for (Size i = 0; i != container.size(); ++i)
+          {
+            intensities.push_back(container[i].second);
+          }
+          ret.push_back(make_pair(abundance, intensities));
         }
-        ret.push_back(make_pair(abundance, intensities));
       }
-
+      else
+      {
+        // calculate isotope distribution for a given peptide and varying incoperation rates
+        // modification of isotope distribution in static ElementDB
+        for (double abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
+        {
+          double a = abundance / 100.0;
+          IsotopeDistribution isotopes;
+          std::vector<std::pair<Size, double> > container;
+          container.push_back(make_pair(14, 1.0 - a));
+          container.push_back(make_pair(15, a));
+          isotopes.set(container);
+          e2->setIsotopeDistribution(isotopes);
+          IsotopeDistribution dist = peptide_ef.getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
+          container = dist.getContainer();
+          vector<double> intensities;
+          for (Size i = 0; i != container.size(); ++i)
+          {
+            intensities.push_back(container[i].second);
+          }
+          ret.push_back(make_pair(abundance, intensities));
+        }
+      }
       // reset to natural occurance
       IsotopeDistribution isotopes;
       std::vector<std::pair<Size, double> > container;
@@ -1751,7 +1828,7 @@ class TOPPMetaProSIP : public TOPPBase
     {
       if (std::distance(pattern_begin, pattern_end) != std::distance(intensities_begin, intensities_end))
       {
-        LOG_ERROR << "Error: size of pattern and collected intensities don't match!" << endl;
+        LOG_ERROR << "Error: size of pattern and collected intensities don't match!: (pattern " << std::distance(pattern_begin, pattern_end) << ") (intensities " << std::distance(intensities_begin, intensities_end) << ")" << endl;
       }
 
       if (pattern_begin == pattern_end)
@@ -2549,7 +2626,7 @@ class TOPPMetaProSIP : public TOPPBase
       bool use_unassigned_ids = getFlag_("use_unassigned_ids");
       bool use_averagine_ids = getFlag_("use_averagine_ids");
 
-      String debug_patterns_name = getStringOption_("debug_patterns_name");
+      //String debug_patterns_name = getStringOption_("debug_patterns_name");
 
       double correlation_threshold = getDoubleOption_("correlation_threshold");
 
@@ -2832,7 +2909,7 @@ class TOPPMetaProSIP : public TOPPBase
         Size element_count;
         if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
         {
-          element_count = use_N15 ? e.getNumberOf("Nitrogen") : e.getNumberOf("Carbon");
+          element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(use_N15, feature_hit_aaseq); 
         }
         else // if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
         {
@@ -3006,11 +3083,13 @@ class TOPPMetaProSIP : public TOPPBase
       }
 
       // plot debug spectra
+      /*
       if (!debug_patterns_name.empty())
       {
         MzMLFile mtest;
         mtest.store(debug_patterns_name, debug_exp);
       }
+      */
 
       // quality report
       if (!qc_output_directory.empty() && R_is_working)
