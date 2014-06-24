@@ -73,14 +73,6 @@
 	- <b>STL:</b> Generic Programming and the STL, Effective STL, The C++ Standard Library
 	- <b>Qt:</b> C++ GUI Programming with Qt 4
 
-	@section general_search Class search engine
-
-	You can search for Classes in the %OpenMS documentation using the class search engine
-	that can be found at http://www.openms.de/documentation/ .
-
-	The search engine can e.g. be used to
-	- find all classes matching a keyword.
-	- find the exact include path, when you know the class name only.
 */
 
 //####################################### STRUCTURE #######################################
@@ -89,7 +81,7 @@
 
 @page tutorial_structure Structure of %OpenMS
 
-The following	image shows the overall structure of %OpenMS:
+The following image shows the overall structure of %OpenMS:
 
 @image html Structure.png "Overall design of OpenMS."
 @image latex Structure.png "Overall design of OpenMS." width=14cm
