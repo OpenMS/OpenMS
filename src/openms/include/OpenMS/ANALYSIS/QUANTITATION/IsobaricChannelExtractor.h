@@ -184,6 +184,8 @@ private:
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
     double computeSingleScanPrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::SpectrumType& precursor_spec) const;
+    
+    double computeSingleScanPrecursorPurity2_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::SpectrumType& precursor_spec) const;
 
 protected:
     /// implemented for DefaultParamHandler
