@@ -829,25 +829,6 @@ namespace OpenMS
     }
   }
 
-  inline bool AASequence::parseUnmodifiedString_(AASequence& aas, const String& peptide)
-  {
-    static ResidueDB* rdb = ResidueDB::getInstance();
-    aas.peptide_.reserve(peptide.size());
-    for (string::const_iterator sit = peptide.begin(); sit != peptide.end(); ++sit)
-    {
-      const Residue* r = rdb->getResidue(*sit);
-      if (r)
-      {
-        aas.peptide_.push_back(r);
-      }
-      else
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-
   void AASequence::getAAFrequencies(Map<String, Size>& frequency_table) const
   {
     frequency_table.clear();

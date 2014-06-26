@@ -512,9 +512,12 @@ protected:
     static AASequence fromString(const char* s, 
                                  bool permissive = true);
 
+  protected:
     std::vector<const Residue*> peptide_;
 
-    static void parseString_(AASequence& aas, const String& peptide);
+    const ResidueModification* n_term_mod_;
+
+    const ResidueModification* c_term_mod_;
 
     static String::ConstIterator parseModRoundBrackets_(
       const String::ConstIterator str_it, const String& str, AASequence& aas);
@@ -524,10 +527,6 @@ protected:
 
     static void parseString_(const String& peptide, AASequence& aas,
                              bool permissive = true);
-
-    const ResidueModification* n_term_mod_;
-
-    const ResidueModification* c_term_mod_;
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AASequence& peptide);
