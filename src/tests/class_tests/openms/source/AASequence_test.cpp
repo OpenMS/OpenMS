@@ -229,10 +229,6 @@ START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full
   TOLERANCE_ABSOLUTE(0.01)
   TEST_REAL_SIMILAR(seq.getAverageWeight(), double(1018.08088))
   TEST_REAL_SIMILAR(seq.getAverageWeight(Residue::YIon, 1), double(1019.09))
-
-  AASequence seq1 = AASequence::fromUnmodifiedString("DFPIANGER");
-  TEST_REAL_SIMILAR(seq1.getAverageWeight(), double(1018.08088))
-  TEST_REAL_SIMILAR(seq1.getAverageWeight(Residue::YIon, 1), double(1019.09))
 END_SECTION
 
 START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
@@ -240,10 +236,6 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
   TOLERANCE_ABSOLUTE(0.01)
   TEST_REAL_SIMILAR(seq.getMonoWeight(), double(1017.48796))
   TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, 1), double(1018.5))
-
-  AASequence seq1 = AASequence::fromUnmodifiedString("DFPIANGER");
-  TEST_REAL_SIMILAR(seq1.getMonoWeight(), double(1017.48796))
-  TEST_REAL_SIMILAR(seq1.getMonoWeight(Residue::YIon, 1), double(1018.5))
 
   // test N-term modification
   AASequence seq2 = AASequence::fromString("(NIC)DFPIANGER");
