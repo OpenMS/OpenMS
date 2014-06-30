@@ -83,12 +83,12 @@ namespace OpenMS
             /**
             * @brief constructor
             */
-            PeakWidthEstimator(int a);
+            PeakWidthEstimator(double mz_min, double mz_max, std::vector<double> x, std::vector<double> y);
         
             /**
             * @brief returns a
             */
-            int getA() const;
+            double getPeakWidth(double mz) const;
         
             private:        
             /// hide default Ctor
@@ -97,7 +97,10 @@ namespace OpenMS
             /**
             * @brief a
             */
-            int a_;
+            double mz_min_;
+            double mz_max_;
+            
+            CubicSpline2d spline_;
         
         };
 
@@ -106,7 +109,6 @@ namespace OpenMS
          * @brief x
          */
         double x_;
-        
    };
   
 }

@@ -58,7 +58,7 @@ namespace OpenMS
 
 	MultiplexClustering::MultiplexClustering(std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double x)
     : x_(x)
-	{		
+	{	
 	}
     
     void MultiplexClustering::cluster()
@@ -66,14 +66,25 @@ namespace OpenMS
         x_ = 5;
     }
     
-    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(int a)
-    : a_(a)
+    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(double mz_min, double mz_max, std::vector<double> x, std::vector<double> y)
+    : mz_min_(mz_min), mz_max_(mz_max), spline_(x,y)
     {
     }
     
-    int MultiplexClustering::PeakWidthEstimator::getA() const
+    double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz) const
     {
-        return a_;
+        if (mz < mz_min_)
+        {
+            return spline_.eval(mz_min_);
+        }
+        else if (mz > mz_max_)
+        {
+            return spline_.eval(mz_max_);
+        }
+        else
+        {
+            return spline_.eval(mz);
+        }
     }
     
 }
