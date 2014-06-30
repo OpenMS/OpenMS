@@ -72,8 +72,7 @@ namespace OpenMS
         x_ = 5;
     }
     
-    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<double> x, int quantiles)
-    : spline_(x,x)
+    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, int quantiles)
     {
         if (exp_picked.size() != boundaries.size())
         {
@@ -113,24 +112,22 @@ namespace OpenMS
         mz_min_ = mz_quantiles.front();
         mz_max_ = mz_quantiles.back();
         
-        CubicSpline2d spline2(mz_quantiles, peak_width_quantiles);
-        spline_ = spline2;
-        
+        spline_ = new CubicSpline2d(mz_quantiles, peak_width_quantiles);
     }
     
     double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz) const
     {
         if (mz < mz_min_)
         {
-            return spline_.eval(mz_min_);
+            return (*spline_).eval(mz_min_);
         }
         else if (mz > mz_max_)
         {
-            return spline_.eval(mz_max_);
+            return (*spline_).eval(mz_max_);
         }
         else
         {
-            return spline_.eval(mz);
+            return (*spline_).eval(mz);
         }
     }
     

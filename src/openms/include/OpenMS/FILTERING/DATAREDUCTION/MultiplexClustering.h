@@ -91,7 +91,7 @@ namespace OpenMS
             * 
             * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
             */
-            PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<double> x, int quantiles);
+            PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, int quantiles);
         
             /**
             * @brief returns a
@@ -111,7 +111,7 @@ namespace OpenMS
             /**
              * @brief spline for peak width interpolation
              */
-            CubicSpline2d spline_;
+            CubicSpline2d* spline_;
         
         };
 
