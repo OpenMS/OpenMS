@@ -66,8 +66,10 @@ namespace OpenMS
         public:
         /**
          * @brief constructor
+         * 
+         * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double x);
+        MultiplexClustering(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double x);
         
         /**
          * @brief cluster
@@ -76,14 +78,20 @@ namespace OpenMS
         
         /**
          * @brief rough estimation of the peak width at m/z
+         * 
+         * We assume that small m/z correspond to small peak widths. In particular
+         * that the x-quantile in the m/z distribution corresponds to the
+         * x-quantile in the peak width distribution with x = 5%, 10%, 15% ...
          */
         class OPENMS_DLLAPI PeakWidthEstimator
         {
             public:
             /**
             * @brief constructor
+            * 
+            * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
             */
-            PeakWidthEstimator(double mz_min, double mz_max, std::vector<double> x, std::vector<double> y);
+            PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<double> x, int quantiles);
         
             /**
             * @brief returns a
@@ -95,11 +103,14 @@ namespace OpenMS
             PeakWidthEstimator();
         
             /**
-            * @brief a
+            * @brief m/z range of peak width interpolation
             */
             double mz_min_;
             double mz_max_;
             
+            /**
+             * @brief spline for peak width interpolation
+             */
             CubicSpline2d spline_;
         
         };

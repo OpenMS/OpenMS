@@ -56,9 +56,15 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexClustering::MultiplexClustering(std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double x)
+	MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double x)
     : x_(x)
-	{	
+	{
+        
+        if (exp_picked.size() != boundaries.size())
+        {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
+        }
+        
 	}
     
     void MultiplexClustering::cluster()
@@ -66,9 +72,50 @@ namespace OpenMS
         x_ = 5;
     }
     
-    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(double mz_min, double mz_max, std::vector<double> x, std::vector<double> y)
-    : mz_min_(mz_min), mz_max_(mz_max), spline_(x,y)
+    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<double> x, int quantiles)
+    : spline_(x,x)
     {
+        if (exp_picked.size() != boundaries.size())
+        {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
+        }
+
+        std::vector<double> mz;
+        std::vector<double> peak_width;
+
+        MSExperiment<Peak1D>::Iterator it_rt;
+        vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
+        for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
+            it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();
+            ++it_rt, ++it_rt_boundaries)
+        {
+            MSSpectrum<Peak1D>::Iterator it_mz;
+            vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
+            for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
+                 it_mz < it_rt->end(), it_mz_boundary < it_rt_boundaries->end();
+                 ++it_mz, ++it_mz_boundary)
+            {
+                mz.push_back(it_mz->getMZ());
+                peak_width.push_back((*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min);
+            }
+        }
+        std::sort(mz.begin(), mz.end());
+        std::sort(peak_width.begin(), peak_width.end());
+        
+        std::vector<double> mz_quantiles;
+        std::vector<double> peak_width_quantiles;
+        for (int i = 1; i < quantiles; ++i)
+        {
+            mz_quantiles.push_back(mz[(int) mz.size() * i / quantiles]);
+            peak_width_quantiles.push_back(peak_width[(int) peak_width.size() * i / quantiles]);
+        }
+        
+        mz_min_ = mz_quantiles.front();
+        mz_max_ = mz_quantiles.back();
+        
+        CubicSpline2d spline2(mz_quantiles, peak_width_quantiles);
+        spline_ = spline2;
+        
     }
     
     double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz) const
