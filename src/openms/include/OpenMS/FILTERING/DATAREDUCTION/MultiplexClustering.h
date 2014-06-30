@@ -70,10 +70,12 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum_);
+        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug);
         
         /**
          * @brief cluster filter results
+         * 
+         * @return cluster results (cluster ID, cluster details including list of filter result IDs belonging to the cluster)
          */
         std::vector<std::map<int,Cluster> > cluster(std::vector<FilterResult> filter_results);
         
@@ -95,7 +97,7 @@ namespace OpenMS
             PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, int quantiles);
         
             /**
-            * @brief returns a
+            * @brief returns the estimated peak width at m/z
             */
             double getPeakWidth(double mz) const;
         
@@ -118,6 +120,19 @@ namespace OpenMS
 
         private:
         /**
+         * @brief structure for debug output
+         * 
+         * Position of a filter result data point
+         * and the number of the cluster it belongs to.
+         */
+        struct DebugPoint
+        {
+            double rt;
+            double mz;
+            double cluster;
+        };
+
+        /**
          * @brief grid spacing for clustering
          */
         std::vector<double> grid_spacing_mz_;
@@ -137,6 +152,11 @@ namespace OpenMS
          * @brief minimum retention time
          */
         double rt_minimum_;
+        
+        /**
+         * @brief debug mode
+         */
+        bool debug_;
    };
   
 }

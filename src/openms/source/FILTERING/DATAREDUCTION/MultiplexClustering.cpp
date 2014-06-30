@@ -58,8 +58,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum)
-    : rt_typical_(rt_typical), rt_minimum_(rt_minimum)
+	MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug)
+    : rt_typical_(rt_typical), rt_minimum_(rt_minimum), debug_(debug)
 	{
         if (exp_picked.size() != boundaries.size())
         {
@@ -117,9 +117,30 @@ namespace OpenMS
             clustering.extendClustersY();
             clustering.removeSmallClustersY(rt_minimum_);
             cluster_results.push_back(clustering.getResults());
+            
+            // debug output
+            vector<DebugPoint> debug_clustered;
+            if (debug_)
+            {
+                std::map<int,Cluster> cluster_result = clustering.getResults();
+                FilterResult filter_result = filter_results[i];
+                
+                int cluster_id = 0;
+                for(std::map<int,Cluster>::iterator it = cluster_result.begin(); it != cluster_result.end(); ++it) {
+                    std::vector<int> points = (it->second).getPoints();
+                    for (std::vector<int>::iterator it2 = points.begin(); it2 != points.end(); ++it2)
+                    {
+                        DebugPoint data_point;
+                        data_point.rt = filter_result.getRt(*it2);
+                        data_point.mz = filter_result.getMz(*it2);
+                        data_point.cluster = cluster_id;
+                        debug_clustered.push_back(data_point);
+                    }
+                    ++cluster_id;
+                }
+            }
+
         }
-        
-        // TO DO: debug output
         
         return cluster_results;
     }
