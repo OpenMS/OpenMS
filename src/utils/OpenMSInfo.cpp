@@ -41,6 +41,10 @@
 #include <QSysInfo>
 #include <QDir>
 
+#if defined(Q_WS_MAC)
+  #include <CoreServices/CoreServices.h>
+#endif
+
 #include <iostream>
 
 using namespace OpenMS;
@@ -97,44 +101,15 @@ namespace OpenMS
 
 // check if we can use QSysInfo
 #if defined(Q_WS_MAC)
-      // identify
-      switch (QSysInfo::MacintoshVersion)
-      {
-      case QSysInfo::MV_10_2:
-      {
-        info.os_version = "10.2";
-        break;
-      }
 
-      case QSysInfo::MV_10_3:
-      {
-        info.os_version = "10.3";
-        break;
-      }
-
-      case QSysInfo::MV_10_4:
-      {
-        info.os_version = "10.4";
-        break;
-      }
-
-      case QSysInfo::MV_10_5:
-      {
-        info.os_version = "10.5";
-        break;
-      }
-
-      case QSysInfo::MV_10_6:
-      {
-        info.os_version = "10.6";
-        break;
-      }
-
-      default:
-      {
-        info.os_version = "unsupported";
-      }
-      }
+      // query gestalt for detailed osx version information
+      // NOTE: Gestalt will be deprecated at some point in the future where we
+      //       have to look for a better solution
+      SInt32 majorVersion,minorVersion,bugFixVersion;
+      Gestalt(gestaltSystemVersionMajor, &majorVersion);
+      Gestalt(gestaltSystemVersionMinor, &minorVersion);
+      Gestalt(gestaltSystemVersionBugFix, &bugFixVersion);
+      info.os_version = String(majorVersion) + "." + String(minorVersion) + String(".") + String(bugFixVersion);
 
       // identify architecture
       if (QSysInfo::WordSize == 32)
@@ -223,7 +198,8 @@ int main(int /*argc*/, const char ** /*argv*/)
   cout << "==================" << "\n";
   cout << "Version      : " << VersionInfo::getVersion() << "\n";
   cout << "Build time   : " << VersionInfo::getTime() << "\n";
-  cout << "SVN revision : " << VersionInfo::getRevision() << "\n";
+  cout << "Git sha1     : " << VersionInfo::getRevision() << "\n";
+  cout << "Git branch   : " << VersionInfo::getBranch() << "\n";
   cout << "\n";
   cout << "Installation information:" << "\n";
   cout << "==================" << "\n";
