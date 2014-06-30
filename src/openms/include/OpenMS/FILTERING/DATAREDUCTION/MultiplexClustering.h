@@ -36,12 +36,13 @@
 #define OPENMS_FILTERING_DATAREDUCTION_MULTIPLEXCLUSTERING_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
+#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
 
 #include <vector>
 #include <algorithm>
@@ -69,12 +70,12 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical);
+        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum_);
         
         /**
-         * @brief cluster
+         * @brief cluster filter results
          */
-        void cluster();
+        std::vector<std::map<int,Cluster> > cluster(std::vector<FilterResult> filter_results);
         
         /**
          * @brief rough estimation of the peak width at m/z
@@ -126,6 +127,16 @@ namespace OpenMS
          * @brief y scaling for clustering
          */
         double rt_scaling_;
+        
+        /**
+         * @brief typical retention time
+         */
+        double rt_typical_;
+        
+        /**
+         * @brief minimum retention time
+         */
+        double rt_minimum_;
    };
   
 }

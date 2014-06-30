@@ -46,6 +46,8 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexClustering.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/LocalClustering.h>
 
 #include <vector>
 #include <algorithm>
@@ -56,7 +58,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical)
+	MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum)
+    : rt_typical_(rt_typical), rt_minimum_(rt_minimum)
 	{
         if (exp_picked.size() != boundaries.size())
         {
@@ -98,12 +101,27 @@ namespace OpenMS
         }
         std::sort(mz.begin(), mz.end());
         // RT scaling = peak width at the median of the m/z distribuation / RT threshold
-        rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical;
+        rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical_;
         
 	}
     
-    void MultiplexClustering::cluster()
+    std::vector<std::map<int,Cluster> > MultiplexClustering::cluster(std::vector<FilterResult> filter_results)
     {
+        std::vector<std::map<int,Cluster> > cluster_results;
+        
+        // loop over patterns i.e. cluster each of the corresponding filter results
+        for (unsigned i = 0; i < filter_results.size(); ++i)
+        {
+            LocalClustering clustering(filter_results[i].getMz(), filter_results[i].getRt(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
+            clustering.cluster();
+            clustering.extendClustersY();
+            clustering.removeSmallClustersY(rt_minimum_);
+            cluster_results.push_back(clustering.getResults());
+        }
+        
+        // TO DO: debug output
+        
+        return cluster_results;
     }
     
     MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, int quantiles)
