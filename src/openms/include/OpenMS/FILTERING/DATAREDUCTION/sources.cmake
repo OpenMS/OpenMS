@@ -11,6 +11,7 @@ FilterResultPeak.h
 FilterResultRaw.h
 IsotopeDistributionCache.h
 MassTraceDetection.h
+MultiplexClustering.h
 MultiplexFiltering.h
 PeakPattern.h
 SplinePackage.h
