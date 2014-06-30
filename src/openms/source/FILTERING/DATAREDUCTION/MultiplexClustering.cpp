@@ -70,23 +70,35 @@ namespace OpenMS
         double rt_max = exp_profile.getMax().getY();
         
         // generate hash grid spacing
-        std::vector<double> grid_spacing_mz;
-        std::vector<double> grid_spacing_rt;
-        
         PeakWidthEstimator estimator(exp_picked, boundaries, 40);
         for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 10)
         {
             // We assume that the jitter of the peak centres are less than 1/10 of the peak width.
             // The factor 1/10 ensures that two neighbouring peaks at the same RT cannot be in the same cluster. 
-            grid_spacing_mz.push_back(mz);
+            grid_spacing_mz_.push_back(mz);
         }
-        grid_spacing_mz.push_back(mz_max);
+        grid_spacing_mz_.push_back(mz_max);
         
         for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
         {
-            grid_spacing_rt.push_back(rt);
+            grid_spacing_rt_.push_back(rt);
         }
-        grid_spacing_rt.push_back(rt_max);
+        grid_spacing_rt_.push_back(rt_max);
+        
+        // determine RT scaling
+        std::vector<double> mz;
+        MSExperiment<Peak1D>::Iterator it_rt;
+        for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
+        {
+            MSSpectrum<Peak1D>::Iterator it_mz;
+            for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+            {
+                mz.push_back(it_mz->getMZ());
+             }
+        }
+        std::sort(mz.begin(), mz.end());
+        // RT scaling = peak width at the median of the m/z distribuation / RT threshold
+        rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical;
         
 	}
     

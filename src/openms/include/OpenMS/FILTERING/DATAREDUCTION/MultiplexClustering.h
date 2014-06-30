@@ -117,8 +117,15 @@ namespace OpenMS
 
         private:
         /**
-         * @brief x
+         * @brief grid spacing for clustering
          */
+        std::vector<double> grid_spacing_mz_;
+        std::vector<double> grid_spacing_rt_;
+        
+        /**
+         * @brief y scaling for clustering
+         */
+        double rt_scaling_;
    };
   
 }
