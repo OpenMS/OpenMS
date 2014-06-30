@@ -56,20 +56,42 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double x)
-    : x_(x)
+	MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical)
 	{
-        
         if (exp_picked.size() != boundaries.size())
         {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
         }
         
+        // ranges of the experiment
+        double mz_min = exp_profile.getMin().getX();
+        double mz_max = exp_profile.getMax().getX();
+        double rt_min = exp_profile.getMin().getY();
+        double rt_max = exp_profile.getMax().getY();
+        
+        // generate hash grid spacing
+        std::vector<double> grid_spacing_mz;
+        std::vector<double> grid_spacing_rt;
+        
+        PeakWidthEstimator estimator(exp_picked, boundaries, 40);
+        for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 10)
+        {
+            // We assume that the jitter of the peak centres are less than 1/10 of the peak width.
+            // The factor 1/10 ensures that two neighbouring peaks at the same RT cannot be in the same cluster. 
+            grid_spacing_mz.push_back(mz);
+        }
+        grid_spacing_mz.push_back(mz_max);
+        
+        for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
+        {
+            grid_spacing_rt.push_back(rt);
+        }
+        grid_spacing_rt.push_back(rt_max);
+        
 	}
     
     void MultiplexClustering::cluster()
     {
-        x_ = 5;
     }
     
     MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, int quantiles)
