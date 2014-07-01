@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
@@ -114,8 +116,8 @@ namespace OpenMS
         {
             LocalClustering clustering(filter_results[i].getMz(), filter_results[i].getRt(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
             clustering.cluster();
-            clustering.extendClustersY();
-            clustering.removeSmallClustersY(rt_minimum_);
+            //clustering.extendClustersY();
+            //clustering.removeSmallClustersY(rt_minimum_);
             cluster_results.push_back(clustering.getResults());
             
             // debug output
@@ -139,6 +141,8 @@ namespace OpenMS
                     ++cluster_id;
                 }
             }
+            std::cout << "    debug size = " << debug_clustered.size() << "\n";
+            writeDebug(debug_clustered, i);
 
         }
         
@@ -204,44 +208,57 @@ namespace OpenMS
         }
     }
     
-    void MultiplexClustering::writeDebug(vector<DebugPoint> points) const
+    void MultiplexClustering::writeDebug(vector<DebugPoint> points, int pattern) const
     {
-        MSExperiment<Peak1D> expDebug;
-        MSSpectrum<Peak1D> specDebug;        
-        
-        /*double rt = -1000;
-        int spec_id = 0;
-        for (vector<DebugPoint>::const_iterator it = points.begin(); it != points.end(); ++it)
+        // fill consensus map
+        ConsensusMap map;
+        for (std::vector<DebugPoint>::const_iterator it = points.begin(); it != points.end(); ++it)
         {
-            if ((*it).rt > rt)
-            {
-                if (rt>-1000)
-                {
-                    expDebug.addSpectrum(specDebug);
-                    ++spec_id;
-                }
-                
-                rt = (*it).rt;
-                specDebug.clear(true);
-                specDebug.setRT(rt);
-                specDebug.setMSLevel(1);
-                specDebug.setNativeID(String("spectrum = ") + spec_id);
-            }
+            ConsensusFeature consensus;
+            consensus.setRT((*it).rt);
+            consensus.setMZ((*it).mz);
+            consensus.setIntensity((*it).cluster);
+            consensus.setCharge(1);    // dummy
+            std::cout << "colour = " << getColour((*it).cluster) << "\n";
+            consensus.setMetaValue("color", getColour((*it).cluster));
+            consensus.setMetaValue("Cluster ID", (*it).cluster);
             
-            Peak1D peak;
-            peak.setMZ((*it).mz);
-            peak.setIntensity((*it).flag);
-            specDebug.push_back(peak);
+            FeatureHandle feature;
+            feature.setRT((*it).rt);
+            feature.setMZ((*it).mz);
+            feature.setUniqueId((*it).cluster);
+            consensus.insert(feature);
             
+            map.getFileDescriptions()[0].size++;
+            map.push_back(consensus);
         }
-            
-        MzMLFile fileSpline;
-        String file_name = "debug_clustered_";
-        file_name = file_name + pattern + ".mzML";
-        fileSpline.store(file_name, expDebug);*/
+        
+        ConsensusMap::FileDescription & desc = map.getFileDescriptions()[0];
+        desc.filename = "debug";
+        desc.label = "Cluster";
+        
+        map.sortByPosition();
+        map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        map.setExperimentType("multiplex");
 
+        // write consensus file
+        ConsensusXMLFile file;
+        String file_name = "debug_clustered_";
+        file_name = file_name + pattern + ".consensusXML";
+        file.store(file_name, map);
     }
     
-
+    String MultiplexClustering::getColour(int c) const
+    {
+        // 15 HTML colors
+        static const String colours[] =
+        {
+          "#00FFFF", "#000000", "#0000FF", "#FF00FF", "#008000",
+          "#808080", "#00FF00", "#800000", "#000080", "#808000",
+          "#800080", "#FF0000", "#C0C0C0", "#008080", "#FFFF00",
+        };
+        
+        return colours[c % 15];
+    }
     
 }
