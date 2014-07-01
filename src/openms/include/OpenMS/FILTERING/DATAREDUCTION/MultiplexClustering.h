@@ -55,7 +55,7 @@ namespace OpenMS
      * 
      * The multiplex filtering algorithm identified regions in the picked and
      * profile data that correspond to peptide features. This clustering algorithm
-     * takes these filter results as input and groups data points belong to
+     * takes these filter results as input and groups data points that belong to
      * the same peptide features. It makes use of the general purpose hierarchical
      * clustering implementation LocalClustering. 
      * 
@@ -68,14 +68,24 @@ namespace OpenMS
         /**
          * @brief constructor
          * 
+         * @param exp_profile    experimental data in profile mode
+         * @param exp_picked    experimental data in centroid mode
+         * @param boundaries    peak boundaries for exp_picked
+         * @param rt_typical    elution time of a characteristic peptide in the sample
+         * @param rt_minimum    shortest elution time i.e. all peptides appearing for a shorter time are being ignored
+         * @param debug    debug mode
+         * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
         MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug);
         
         /**
          * @brief cluster filter results
+         * Data points are grouped into clusteres. Each cluster contains data about one peptide multiplet.
          * 
-         * @return cluster results (cluster ID, cluster details including list of filter result IDs belonging to the cluster)
+         * @param filter_results    data points relevant for peptide multiplets i.e. output from multiplex filtering
+         * 
+         * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
         std::vector<std::map<int,Cluster> > cluster(std::vector<FilterResult> filter_results);
         
@@ -91,6 +101,10 @@ namespace OpenMS
             public:
             /**
             * @brief constructor
+            * 
+            * @param exp_picked    experimental data in centroid mode
+            * @param boundaries    peak boundaries for exp_picked
+            * @param quantiles    number of quantiles at which peak width function is interpolated
             * 
             * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
             */
@@ -123,7 +137,7 @@ namespace OpenMS
          * @brief structure for debug output
          * 
          * Position of a filter result data point
-         * and the number of the cluster it belongs to.
+         * and ID of the cluster it belongs to.
          */
         struct DebugPoint
         {
@@ -157,7 +171,7 @@ namespace OpenMS
         std::vector<double> grid_spacing_rt_;
         
         /**
-         * @brief y scaling for clustering
+         * @brief scaling in y-direction for clustering
          */
         double rt_scaling_;
         
