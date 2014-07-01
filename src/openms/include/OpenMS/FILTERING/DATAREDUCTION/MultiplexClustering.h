@@ -138,8 +138,17 @@ namespace OpenMS
          * Debug data written to file.
          * 
          * @param points    data points for debug output
+         * @param pattern    pattern ID
          */
-        void writeDebug(std::vector<DebugPoint> points) const;
+        void writeDebug(std::vector<DebugPoint> points, int pattern) const;
+
+        /**
+         * @brief returns a colour for ID
+         * 
+         * @param c    integer ID
+         * @return string for one of 15 colours
+         */
+        String getColour(int c) const;
 
         /**
          * @brief grid spacing for clustering
