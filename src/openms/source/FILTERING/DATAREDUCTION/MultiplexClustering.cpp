@@ -204,4 +204,44 @@ namespace OpenMS
         }
     }
     
+    void MultiplexClustering::writeDebug(vector<DebugPoint> points) const
+    {
+        MSExperiment<Peak1D> expDebug;
+        MSSpectrum<Peak1D> specDebug;        
+        
+        /*double rt = -1000;
+        int spec_id = 0;
+        for (vector<DebugPoint>::const_iterator it = points.begin(); it != points.end(); ++it)
+        {
+            if ((*it).rt > rt)
+            {
+                if (rt>-1000)
+                {
+                    expDebug.addSpectrum(specDebug);
+                    ++spec_id;
+                }
+                
+                rt = (*it).rt;
+                specDebug.clear(true);
+                specDebug.setRT(rt);
+                specDebug.setMSLevel(1);
+                specDebug.setNativeID(String("spectrum = ") + spec_id);
+            }
+            
+            Peak1D peak;
+            peak.setMZ((*it).mz);
+            peak.setIntensity((*it).flag);
+            specDebug.push_back(peak);
+            
+        }
+            
+        MzMLFile fileSpline;
+        String file_name = "debug_clustered_";
+        file_name = file_name + pattern + ".mzML";
+        fileSpline.store(file_name, expDebug);*/
+
+    }
+    
+
+    
 }

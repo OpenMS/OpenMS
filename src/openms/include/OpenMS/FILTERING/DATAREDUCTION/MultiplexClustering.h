@@ -131,6 +131,15 @@ namespace OpenMS
             double mz;
             double cluster;
         };
+        
+        /**
+         * @brief write debug output
+         * 
+         * Debug data written to file.
+         * 
+         * @param points    data points for debug output
+         */
+        void writeDebug(std::vector<DebugPoint> points) const;
 
         /**
          * @brief grid spacing for clustering

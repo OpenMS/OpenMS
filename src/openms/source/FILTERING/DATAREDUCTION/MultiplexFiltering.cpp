@@ -624,7 +624,7 @@ namespace OpenMS
             
         }
             
-        MzMLFile fileSpline;
+        MzMLFile file;
         String file_name;
         if (rejected)
         {
@@ -635,7 +635,7 @@ namespace OpenMS
             file_name = "debug_passed_";
         }
         file_name = file_name + pattern + ".mzML";
-        fileSpline.store(file_name, expDebug);
+        file.store(file_name, expDebug);
 
     }
     
