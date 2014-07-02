@@ -1161,12 +1161,7 @@ public:
 
           // now the split at comma is save
           ss.split(",", fields);
-          /*
-          for (Size i = 0; i != fields.size(); ++i)
-          {
-        std::cout << "Modification list field[" + String(i) + "]=" << fields[i] << std::endl;
-      }
-          */
+
           for (Size i = 0; i != fields.size(); ++i)
           {
             fields[i].substitute(((char)007), ','); // resubstitute comma after split
@@ -1342,7 +1337,7 @@ protected:
   {
     MzTabParameter name;
     MzTabParameter source;
-    MzTabParameter analyzer;
+    std::map<Size, MzTabParameter> analyzer;
     MzTabParameter detector;
   };
 
@@ -1383,7 +1378,10 @@ protected:
     MzTabString title;
     MzTabString description;
 
-    std::map<Size, MzTabParameter> search_engine_score;
+    std::map<Size, MzTabParameter> protein_search_engine_score;
+    std::map<Size, MzTabParameter> peptide_search_engine_score;
+    std::map<Size, MzTabParameter> psm_search_engine_score;
+    std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
 
     std::map<Size, MzTabParameterList> sample_processing;
 
@@ -1538,7 +1536,7 @@ protected:
     MzTabParameterList search_engine; // Search engine(s) identifying the small molecule.
     std::map<Size, MzTabDouble> best_search_engine_score; // Search engine(s) identifications score(s).
     std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
-    MzTabModificationList modifications; // Modifications identified on the small molecule.
+    MzTabString modifications; // Modifications identified on the small molecule.
     std::map<Size, MzTabDouble> smallmolecule_abundance_assay;
     std::map<Size, MzTabDouble> smallmolecule_abundance_study_variable;
     std::map<Size, MzTabDouble> smallmolecule_abundance_stdev_study_variable;

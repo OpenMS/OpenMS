@@ -7,10 +7,12 @@ MTD	mzTab-ID	PRIDE_1234
 MTD	description	Quantification of a subset of two B-cell lymphoma cell lines using the Super SILAC approach measured as single shots in three replicates
 MTD	sample_processing[1]	[sep, sep:00142, enzyme digestion, ]|[MS, MS:1001251, Trypsin, ]
 MTD	sample_processing[2]	[sep, sep:00211, reversed-phase chromatography, ]
-MTD	search_engine_score[1]	[MS, MS:1002338, Andromeda:score, ]
+MTD	protein_search_engine_score[1]	[MS, MS:1002338, Andromeda:score, ]
+MTD	peptide_search_engine_score[1]	[MS, MS:1002338, Andromeda:score, ]
+MTD	psm_search_engine_score[1]	[MS, MS:1002338, Andromeda:score, ]
 MTD	instrument[1]-name	[MS, MS:1000449, LTQ Orbitrap, ]
 MTD	instrument[1]-source	[MS, MS:1000073, electrospray ionization, ]
-MTD	instrument[1]-analyzer	[MS, MS:1000484, orbitrap, ]
+MTD	instrument[1]-analyzer[1]	[MS, MS:1000484, orbitrap, ]
 MTD	instrument[1]-detector	[MS, MS:1000348, focal plane collector, ]
 MTD	software[1]	[MS, MS:1001583, MaxQuant, 1.4.1.14]
 MTD	software[1]-setting[1]	MS/MS tol. (FTMS)=20 ppm
