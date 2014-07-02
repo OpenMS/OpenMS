@@ -350,6 +350,7 @@ void LocalClustering::removeSmallClustersY(double threshold_y)
 
 std::map<int, Cluster> LocalClustering::getResults() const
 {
+    std::cout << "clusters_final size = " << clusters_final_.size() << "\n";
     return clusters_final_;
 }
 

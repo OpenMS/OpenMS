@@ -69,10 +69,15 @@ namespace OpenMS
         }
         
         // ranges of the experiment
-        double mz_min = exp_profile.getMin().getX();
-        double mz_max = exp_profile.getMax().getX();
-        double rt_min = exp_profile.getMin().getY();
-        double rt_max = exp_profile.getMax().getY();
+        double mz_min = exp_profile.getMin().getY();
+        double mz_max = exp_profile.getMax().getY();
+        double rt_min = exp_profile.getMin().getX();
+        double rt_max = exp_profile.getMax().getX();
+        
+        std::cout << "    m/z min = " << mz_min << "\n";
+        std::cout << "    m/z max = " << mz_max << "\n";
+        std::cout << "    RT min = " << rt_min << "\n";
+        std::cout << "    RT max = " << rt_max << "\n";
         
         // generate hash grid spacing
         PeakWidthEstimator estimator(exp_picked, boundaries, 40);
@@ -115,7 +120,7 @@ namespace OpenMS
         for (unsigned i = 0; i < filter_results.size(); ++i)
         {
             LocalClustering clustering(filter_results[i].getMz(), filter_results[i].getRt(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
-            clustering.cluster();
+            //clustering.cluster();
             //clustering.extendClustersY();
             //clustering.removeSmallClustersY(rt_minimum_);
             cluster_results.push_back(clustering.getResults());
@@ -140,9 +145,9 @@ namespace OpenMS
                     }
                     ++cluster_id;
                 }
+                std::cout << "    debug size = " << debug_clustered.size() << "\n";
+                writeDebug(debug_clustered, i);
             }
-            std::cout << "    debug size = " << debug_clustered.size() << "\n";
-            writeDebug(debug_clustered, i);
 
         }
         
@@ -219,7 +224,6 @@ namespace OpenMS
             consensus.setMZ((*it).mz);
             consensus.setIntensity((*it).cluster);
             consensus.setCharge(1);    // dummy
-            std::cout << "colour = " << getColour((*it).cluster) << "\n";
             consensus.setMetaValue("color", getColour((*it).cluster));
             consensus.setMetaValue("Cluster ID", (*it).cluster);
             
