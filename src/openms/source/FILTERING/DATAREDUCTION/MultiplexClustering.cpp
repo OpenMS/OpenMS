@@ -80,9 +80,11 @@ namespace OpenMS
         std::cout << "    RT max = " << rt_max << "\n";
         
         // generate hash grid spacing
-        PeakWidthEstimator estimator(exp_picked, boundaries, 40);
-        for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 10)
+        PeakWidthEstimator estimator(exp_picked, boundaries, 100);
+        //for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 10)
+        for (double mz = mz_min; mz < mz_max; mz = mz + 0.04)
         {
+            //std::cout << "m/z = " << mz << "\n";
             // We assume that the jitter of the peak centres are less than 1/10 of the peak width.
             // The factor 1/10 ensures that two neighbouring peaks at the same RT cannot be in the same cluster. 
             grid_spacing_mz_.push_back(mz);
@@ -91,6 +93,7 @@ namespace OpenMS
         
         for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
         {
+            //std::cout << "RT = " << rt << "\n";
             grid_spacing_rt_.push_back(rt);
         }
         grid_spacing_rt_.push_back(rt_max);
@@ -178,18 +181,29 @@ namespace OpenMS
             {
                 mz.push_back(it_mz->getMZ());
                 peak_width.push_back((*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min);
+                std::cout << "RT = " << it_rt->getRT() << "  m/z = " << it_mz->getMZ() << "  delta m/z = " << (*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min << "  m/z min = " << (*it_mz_boundary).mz_min << "  m/z max = " << (*it_mz_boundary).mz_max << "\n";
             }
         }
         std::sort(mz.begin(), mz.end());
         std::sort(peak_width.begin(), peak_width.end());
         
+        std::cout << "number peaks = " << mz.size() << "\n";
+        std::cout << "number peak widths = " << peak_width.size() << "\n";
+        
         std::vector<double> mz_quantiles;
         std::vector<double> peak_width_quantiles;
-        for (int i = 1; i < quantiles; ++i)
+        for (int i = 0; i <= quantiles; ++i)
         {
             mz_quantiles.push_back(mz[(int) mz.size() * i / quantiles]);
             peak_width_quantiles.push_back(peak_width[(int) peak_width.size() * i / quantiles]);
         }
+        
+        // debug start
+        for (int j = 0; j < (int) mz_quantiles.size(); ++j)
+        {
+            std::cout << mz_quantiles[j] << " -> " << peak_width_quantiles[j] << "\n";
+        }
+        // debug end        
         
         mz_min_ = mz_quantiles.front();
         mz_max_ = mz_quantiles.back();

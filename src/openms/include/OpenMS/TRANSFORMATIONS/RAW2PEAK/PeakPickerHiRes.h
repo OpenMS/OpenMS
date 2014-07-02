@@ -245,7 +245,7 @@ public:
           k = 2;
           
           Size missing_right(0);
-          Size right_boundary(i+1);    // index of the left boundary for the spline interpolation
+          Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
           
           while ((i + k) < input.size()
                 && (missing_right < 2)
@@ -273,9 +273,18 @@ public:
             ++k;
           }
 
-          //skip if the minimal number of 3 points for fitting is not reached
+          // skip if the minimal number of 3 points for fitting is not reached
           if(peak_raw_data.size() < 4)
             continue;
+            
+          // debug start
+          for (std::map<double,double>::iterator it = peak_raw_data.begin(); it != peak_raw_data.end(); ++it)
+          {
+              std::cout << it->second << "  ";
+          }
+          std::cout << "\n";
+          std::cout << "\n";
+          // debug end
 
           CubicSpline2d peak_spline (peak_raw_data);
 
@@ -319,7 +328,7 @@ public:
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval( max_peak_mz );
 
-          // save picked pick into output spectrum
+          // save picked peak into output spectrum
           PeakType peak;
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
