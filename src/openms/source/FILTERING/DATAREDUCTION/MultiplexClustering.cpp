@@ -181,6 +181,7 @@ namespace OpenMS
             {
                 mz.push_back(it_mz->getMZ());
                 peak_width.push_back((*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min);
+                // debug output
                 std::cout << "RT = " << it_rt->getRT() << "  m/z = " << it_mz->getMZ() << "  delta m/z = " << (*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min << "  m/z min = " << (*it_mz_boundary).mz_min << "  m/z max = " << (*it_mz_boundary).mz_max << "\n";
             }
         }
