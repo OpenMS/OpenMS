@@ -47,7 +47,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexClustering.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
 #include <OpenMS/COMPARISON/CLUSTERING/LocalClustering.h>
 
@@ -84,7 +84,7 @@ namespace OpenMS
         //for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 10)
         for (double mz = mz_min; mz < mz_max; mz = mz + 0.04)
         {
-            //std::cout << "m/z = " << mz << "\n";
+            //std::cout << "M/Z = " << mz << "\n";
             // We assume that the jitter of the peak centres are less than 1/10 of the peak width.
             // The factor 1/10 ensures that two neighbouring peaks at the same RT cannot be in the same cluster. 
             grid_spacing_mz_.push_back(mz);
@@ -164,9 +164,7 @@ namespace OpenMS
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
         }
 
-        std::vector<double> mz;
-        std::vector<double> peak_width;
-
+        std::map<double,double> mz_peak_width;
         MSExperiment<Peak1D>::Iterator it_rt;
         vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
         for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
@@ -179,40 +177,37 @@ namespace OpenMS
                  it_mz < it_rt->end(), it_mz_boundary < it_rt_boundaries->end();
                  ++it_mz, ++it_mz_boundary)
             {
-                mz.push_back(it_mz->getMZ());
-                peak_width.push_back((*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min);
+                mz_peak_width[it_mz->getMZ()] = (*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min;
             }
         }
-        std::sort(mz.begin(), mz.end());
-        std::sort(peak_width.begin(), peak_width.end());
-        
-        std::vector<double> mz_quantiles;
-        std::vector<double> peak_width_quantiles;
-        for (int i = 0; i <= quantiles; ++i)
+
+        std::vector<double> mz;
+        std::vector<double> peak_width;
+        for (std::map<double, double>::iterator it = mz_peak_width.begin(); it != mz_peak_width.end(); ++it)
         {
-            mz_quantiles.push_back(mz[(int) mz.size() * i / quantiles]);
-            peak_width_quantiles.push_back(peak_width[(int) peak_width.size() * i / quantiles]);
+            mz.push_back(it->first);
+            peak_width.push_back(it->second);
         }
         
-        mz_min_ = mz_quantiles.front();
-        mz_max_ = mz_quantiles.back();
-        
-        spline_ = new CubicSpline2d(mz_quantiles, peak_width_quantiles);
+        Math::LinearRegression linreg;
+        linreg.computeRegression(0.95, mz.begin(), mz.end(), peak_width.begin());
+        slope_ = linreg.getSlope();
+        intercept_ = linreg.getIntercept();
     }
     
     double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz) const
     {
         if (mz < mz_min_)
         {
-            return (*spline_).eval(mz_min_);
+            return (slope_ * mz_min_ + intercept_);
         }
         else if (mz > mz_max_)
         {
-            return (*spline_).eval(mz_max_);
+            return (slope_ * mz_max_ + intercept_);
         }
         else
         {
-            return (*spline_).eval(mz);
+            return (slope_ * mz + intercept_);
         }
     }
     

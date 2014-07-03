@@ -126,9 +126,10 @@ namespace OpenMS
             double mz_max_;
             
             /**
-             * @brief spline for peak width interpolation
+             * @brief slope and intercept for peak width interpolation
              */
-            CubicSpline2d* spline_;
+            double slope_;
+            double intercept_;
         
         };
 

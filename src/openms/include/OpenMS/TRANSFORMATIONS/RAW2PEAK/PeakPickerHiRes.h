@@ -213,7 +213,7 @@ public:
           Size missing_left(0);
           Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
 
-          while ( k <= i //prevent underflow
+          while ( k <= i    //prevent underflow
                 && (i - k + 1) > 0
                 && (missing_left < 2)
                 && !previous_zero_left
@@ -226,7 +226,8 @@ public:
             {
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
-            
+
+
             if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
@@ -273,14 +274,14 @@ public:
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
               ++missing_right;
             }
-            
+
             previous_zero_right = (input[i + k].getIntensity() == 0);
 
             right_boundary = i + k;
             ++k;
           }
 
-          // skip if the minimal number of 3 points for fitting is not reached
+          //skip if the minimal number of 3 points for fitting is not reached
           if(peak_raw_data.size() < 4)
             continue;
 
@@ -326,7 +327,7 @@ public:
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval( max_peak_mz );
 
-          // save picked peak into output spectrum
+          // save picked pick into output spectrum
           PeakType peak;
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
