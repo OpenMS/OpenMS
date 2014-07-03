@@ -181,15 +181,10 @@ namespace OpenMS
             {
                 mz.push_back(it_mz->getMZ());
                 peak_width.push_back((*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min);
-                // debug output
-                std::cout << "RT = " << it_rt->getRT() << "  m/z = " << it_mz->getMZ() << "  delta m/z = " << (*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min << "  m/z min = " << (*it_mz_boundary).mz_min << "  m/z max = " << (*it_mz_boundary).mz_max << "\n";
             }
         }
         std::sort(mz.begin(), mz.end());
         std::sort(peak_width.begin(), peak_width.end());
-        
-        std::cout << "number peaks = " << mz.size() << "\n";
-        std::cout << "number peak widths = " << peak_width.size() << "\n";
         
         std::vector<double> mz_quantiles;
         std::vector<double> peak_width_quantiles;
@@ -198,13 +193,6 @@ namespace OpenMS
             mz_quantiles.push_back(mz[(int) mz.size() * i / quantiles]);
             peak_width_quantiles.push_back(peak_width[(int) peak_width.size() * i / quantiles]);
         }
-        
-        // debug start
-        for (int j = 0; j < (int) mz_quantiles.size(); ++j)
-        {
-            std::cout << mz_quantiles[j] << " -> " << peak_width_quantiles[j] << "\n";
-        }
-        // debug end        
         
         mz_min_ = mz_quantiles.front();
         mz_max_ = mz_quantiles.back();
