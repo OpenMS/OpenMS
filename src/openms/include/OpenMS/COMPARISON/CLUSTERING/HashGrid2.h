@@ -126,6 +126,13 @@ class OPENMS_DLLAPI HashGrid2
     */
     bool isNonEmptyCell(CellIndex cell_index) const;
 
+    /**
+    * @brief returns number of grid cells occupied by one or more clusters
+    * 
+    * @return number of non-empty cells
+    */
+    int getCellCount() const;
+
     private:
     /**
     * @brief spacing of the grid in x and y direction

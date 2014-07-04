@@ -116,4 +116,9 @@ bool HashGrid2::isNonEmptyCell(CellIndex cell_index) const
     return cells_.find(cell_index) != cells_.end();
 }
 
+int HashGrid2::getCellCount() const
+{
+    return cells_.size();
+}
+
 }

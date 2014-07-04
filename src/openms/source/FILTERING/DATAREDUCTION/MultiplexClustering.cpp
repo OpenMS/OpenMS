@@ -74,11 +74,6 @@ namespace OpenMS
         double rt_min = exp_profile.getMin().getX();
         double rt_max = exp_profile.getMax().getX();
         
-        std::cout << "    m/z min = " << mz_min << "\n";
-        std::cout << "    m/z max = " << mz_max << "\n";
-        std::cout << "    RT min = " << rt_min << "\n";
-        std::cout << "    RT max = " << rt_max << "\n";
-        
         // generate hash grid spacing
         PeakWidthEstimator estimator(exp_picked, boundaries);
         for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 5)
@@ -91,7 +86,6 @@ namespace OpenMS
         
         for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
         {
-            std::cout << "RT = " << rt << "\n";
             grid_spacing_rt_.push_back(rt);
         }
         grid_spacing_rt_.push_back(rt_max);
@@ -109,8 +103,7 @@ namespace OpenMS
         }
         std::sort(mz.begin(), mz.end());
         // RT scaling = peak width at the median of the m/z distribuation / RT threshold
-        //rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical_;
-        rt_scaling_ = 0.7;
+        rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical_;
         
 	}
     
@@ -122,7 +115,7 @@ namespace OpenMS
         for (unsigned i = 0; i < filter_results.size(); ++i)
         {
             LocalClustering clustering(filter_results[i].getMz(), filter_results[i].getRt(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
-            //clustering.cluster();
+            clustering.cluster();
             //clustering.extendClustersY();
             //clustering.removeSmallClustersY(rt_minimum_);
             cluster_results.push_back(clustering.getResults());
@@ -147,7 +140,6 @@ namespace OpenMS
                     }
                     ++cluster_id;
                 }
-                std::cout << "    debug size = " << debug_clustered.size() << "\n";
                 writeDebug(debug_clustered, i);
             }
 
