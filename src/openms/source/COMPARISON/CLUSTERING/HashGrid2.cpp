@@ -41,7 +41,7 @@ namespace OpenMS
 {
     
 HashGrid2::HashGrid2(std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
-:grid_spacing_x_(grid_spacing_x), grid_spacing_y_(grid_spacing_y), range_x_(*grid_spacing_x.begin(),*grid_spacing_x.end()), range_y_(*grid_spacing_y.begin(),*grid_spacing_y.end())
+:grid_spacing_x_(grid_spacing_x), grid_spacing_y_(grid_spacing_y), range_x_(grid_spacing_x.front(),grid_spacing_x.back()), range_y_(grid_spacing_y.front(),grid_spacing_y.back())
 {
 }
 
