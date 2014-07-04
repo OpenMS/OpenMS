@@ -82,9 +82,7 @@ namespace OpenMS
         // generate hash grid spacing
         PeakWidthEstimator estimator(exp_picked, boundaries);
         for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 5)
-        //for (double mz = mz_min; mz < mz_max; mz = mz + 0.01)
         {
-            std::cout << "m/z = " << mz << "\n";
             // We assume that the jitter of the peak centres are less than 1/5 of the peak width.
             // The factor 1/5 ensures that two neighbouring peaks at the same RT cannot be in the same cluster. 
             grid_spacing_mz_.push_back(mz);
@@ -93,7 +91,7 @@ namespace OpenMS
         
         for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
         {
-            //std::cout << "RT = " << rt << "\n";
+            std::cout << "RT = " << rt << "\n";
             grid_spacing_rt_.push_back(rt);
         }
         grid_spacing_rt_.push_back(rt_max);
@@ -200,18 +198,27 @@ namespace OpenMS
     
     double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz)
     {
+        double width;
+        
         if (mz < mz_min_)
         {
-            return slope_ * mz_min_ + intercept_;
+            width = slope_ * mz_min_ + intercept_;
         }
         else if (mz > mz_max_)
         {
-            return slope_ * mz_max_ + intercept_;
+            width = slope_ * mz_max_ + intercept_;
         }
         else
         {
-            return slope_ * mz + intercept_;
+            width = slope_ * mz + intercept_;
         }
+        
+        if (width < 0)
+        {
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Estimated peak width is negative.","");
+        }
+
+        return width;
     }
     
     void MultiplexClustering::writeDebug(vector<DebugPoint> points, int pattern) const

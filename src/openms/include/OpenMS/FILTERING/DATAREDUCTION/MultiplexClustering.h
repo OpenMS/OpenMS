@@ -111,6 +111,8 @@ namespace OpenMS
         
             /**
             * @brief returns the estimated peak width at m/z
+            * 
+            * @throw Exception::InvalidValue if the peak width estimation returns a negative value.
             */
             double getPeakWidth(double mz);
         
