@@ -80,13 +80,13 @@ namespace OpenMS
         std::cout << "    RT max = " << rt_max << "\n";
         
         // generate hash grid spacing
-        PeakWidthEstimator estimator(exp_picked, boundaries, 100);
-        //for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 10)
-        for (double mz = mz_min; mz < mz_max; mz = mz + 0.04)
+        PeakWidthEstimator estimator(exp_picked, boundaries);
+        for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 5)
+        //for (double mz = mz_min; mz < mz_max; mz = mz + 0.01)
         {
-            //std::cout << "M/Z = " << mz << "\n";
-            // We assume that the jitter of the peak centres are less than 1/10 of the peak width.
-            // The factor 1/10 ensures that two neighbouring peaks at the same RT cannot be in the same cluster. 
+            std::cout << "m/z = " << mz << "\n";
+            // We assume that the jitter of the peak centres are less than 1/5 of the peak width.
+            // The factor 1/5 ensures that two neighbouring peaks at the same RT cannot be in the same cluster. 
             grid_spacing_mz_.push_back(mz);
         }
         grid_spacing_mz_.push_back(mz_max);
@@ -111,7 +111,8 @@ namespace OpenMS
         }
         std::sort(mz.begin(), mz.end());
         // RT scaling = peak width at the median of the m/z distribuation / RT threshold
-        rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical_;
+        //rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical_;
+        rt_scaling_ = 0.7;
         
 	}
     
@@ -157,7 +158,7 @@ namespace OpenMS
         return cluster_results;
     }
     
-    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, int quantiles)
+    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries)
     {
         if (exp_picked.size() != boundaries.size())
         {
@@ -188,6 +189,8 @@ namespace OpenMS
             mz.push_back(it->first);
             peak_width.push_back(it->second);
         }
+        mz_min_ = mz.front();
+        mz_max_ = mz.back();
         
         Math::LinearRegression linreg;
         linreg.computeRegression(0.95, mz.begin(), mz.end(), peak_width.begin());
@@ -195,19 +198,19 @@ namespace OpenMS
         intercept_ = linreg.getIntercept();
     }
     
-    double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz) const
+    double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz)
     {
         if (mz < mz_min_)
         {
-            return (slope_ * mz_min_ + intercept_);
+            return slope_ * mz_min_ + intercept_;
         }
         else if (mz > mz_max_)
         {
-            return (slope_ * mz_max_ + intercept_);
+            return slope_ * mz_max_ + intercept_;
         }
         else
         {
-            return (slope_ * mz + intercept_);
+            return slope_ * mz + intercept_;
         }
     }
     

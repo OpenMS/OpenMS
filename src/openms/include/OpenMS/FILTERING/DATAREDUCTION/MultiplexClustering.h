@@ -104,16 +104,15 @@ namespace OpenMS
             * 
             * @param exp_picked    experimental data in centroid mode
             * @param boundaries    peak boundaries for exp_picked
-            * @param quantiles    number of quantiles at which peak width function is interpolated
             * 
             * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
             */
-            PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, int quantiles);
+            PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries);
         
             /**
             * @brief returns the estimated peak width at m/z
             */
-            double getPeakWidth(double mz) const;
+            double getPeakWidth(double mz);
         
             private:        
             /// hide default Ctor
