@@ -65,7 +65,7 @@ void LocalClustering::init(std::vector<double> data_x, std::vector<double> data_
     // fill the grid with points to be clustered (initially each cluster contains a single point)
     for (unsigned i = 0; i < data_x.size(); ++i)
     {
-        std::cout << "i = " << i << "    cell count = " << grid_.getCellCount() << "\n";
+        //std::cout << "i = " << i << "    cell count = " << grid_.getCellCount() << "\n";
         
         Point position(data_x[i],data_y[i]);
         Rectangle box(position,position);
@@ -80,10 +80,10 @@ void LocalClustering::init(std::vector<double> data_x, std::vector<double> data_
         clusters_.insert(std::make_pair(i,cluster));
         
         // register on hash grid
-        std::cout << "(x,y) = (" << position.getX() << ", " << position.getY() << ")    (i,j) = (" << grid_.getIndex(position).first << ", " << grid_.getIndex(position).second << ")\n";
+        //std::cout << "(x,y) = (" << position.getX() << ", " << position.getY() << ")    (i,j) = (" << grid_.getIndex(position).first << ", " << grid_.getIndex(position).second << ")\n";
         grid_.addCluster(grid_.getIndex(position), i);
     }
-    std::cout << "\n";
+    //std::cout << "\n";
     
     // fill list of minimum distances
     std::map<int, Cluster>::iterator iterator = clusters_.begin();
@@ -356,7 +356,7 @@ void LocalClustering::removeSmallClustersY(double threshold_y)
 
 std::map<int, Cluster> LocalClustering::getResults() const
 {
-    std::cout << "number of final clusters = " << clusters_final_.size() << "\n";
+    //std::cout << "number of final clusters = " << clusters_final_.size() << "\n";
     return clusters_final_;
 }
 
