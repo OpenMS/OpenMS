@@ -198,7 +198,7 @@ false);
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids))
+START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, bool peptideprophet_analyzed))
 {
 	PepXMLFile file;
 	vector<ProteinIdentification> proteins;
@@ -208,7 +208,8 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
 
 	String cm_file_out;
 	NEW_TMP_FILE(cm_file_out);
-	file.store(cm_file_out, proteins, peptides);
+	bool peptideprophet_analyzed=false;
+	file.store(cm_file_out, proteins, peptides, peptideprophet_analyzed);
 
 	FuzzyStringComparator fsc;
 	fsc.setWhitelist (ListUtils::create<String>("base_name"));
