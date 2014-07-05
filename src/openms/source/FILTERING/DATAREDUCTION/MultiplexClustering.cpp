@@ -254,15 +254,23 @@ namespace OpenMS
     
     String MultiplexClustering::getColour(int c) const
     {
-        // 15 HTML colors
+        // 35 + 15 HTML colors
         static const String colours[] =
         {
+          "#FAEBD7", "#7FFFD4", "#FFE4C4", "#8A2BE2", "#A52A2A",
+          "#DEB887", "#5F9EA0", "#7FFF00", "#D2691E", "#FF7F50",
+          "#6495ED", "#DC143C", "#00008B", "#008B8B", "#B8860B",
+          "#A9A9A9", "#006400", "#BDB76B", "#8B008B", "#556B2F",
+          "#FF8C00", "#8B0000", "#E9967A", "#8FBC8F", "#483D8B",
+          "#2F4F4F", "#00CED1", "#9400D3", "#FF1493", "#B22222",
+          "#FFD700", "#DAA520", "#008000", "#ADFF2F", "#C71585",
+            
           "#00FFFF", "#000000", "#0000FF", "#FF00FF", "#008000",
           "#808080", "#00FF00", "#800000", "#000080", "#808000",
           "#800080", "#FF0000", "#C0C0C0", "#008080", "#FFFF00",
         };
         
-        return colours[c % 15];
+        return colours[c % 50];
     }
     
 }
