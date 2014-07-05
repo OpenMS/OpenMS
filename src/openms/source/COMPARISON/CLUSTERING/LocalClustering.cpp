@@ -115,7 +115,7 @@ void LocalClustering::cluster()
     // combine clusters until all have been moved to the final list
     while (clusters_.size() > 0)
     {
-        //std::cout << "cluster size = " << clusters_.size() << "\n";
+        std::cout << "cluster size = " << clusters_.size() << "\n";
         
         MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
         MinimumDistance smallest_distance(*smallest_distance_it);
@@ -142,7 +142,7 @@ void LocalClustering::cluster()
         new_box.enlarge(box2.minPosition());
         new_box.enlarge(box2.maxPosition());
         
-        // Properties A of both clusters should now be the same. The merge veto has been checked
+        // Properties A of both clusters should by now be the same. The merge veto has been checked
         // when a new entry to the minimum distance list was added, @see findNearestNeighbour.
         if (cluster1.getPropertyA() != cluster2.getPropertyA())
         {
@@ -175,11 +175,6 @@ void LocalClustering::cluster()
         // update minimum distance list
         std::vector<int> clusters_to_be_updated;
         clusters_to_be_updated.push_back(cluster_index1);    // index of the new cluster
-        
-        for (MultisetIterator it = distances_.begin(); it != distances_.end(); ++it)
-        {
-            MinimumDistance distance(*it);
-        }
         
         MultisetIterator it = distances_.begin();
         while (it != distances_.end())
