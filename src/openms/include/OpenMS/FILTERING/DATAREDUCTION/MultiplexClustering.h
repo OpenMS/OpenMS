@@ -92,9 +92,10 @@ namespace OpenMS
         /**
          * @brief rough estimation of the peak width at m/z
          * 
-         * We assume that small m/z correspond to small peak widths. In particular
-         * that the x-quantile in the m/z distribution corresponds to the
-         * x-quantile in the peak width distribution with x = 5%, 10%, 15% ...
+         * Based on the peaks of the dataset (peak position & width), the typical peak width is estimated for arbitrary m/z.
+         * The peak width is assumed to be a linear funtion of m/z.
+         * 
+         * TO DO: Use Lowess instead of Linear Regression.
          */
         class OPENMS_DLLAPI PeakWidthEstimator
         {
@@ -117,7 +118,7 @@ namespace OpenMS
             double getPeakWidth(double mz);
         
             private:        
-            /// hide default Ctor
+            /// hide default constructor
             PeakWidthEstimator();
         
             /**
@@ -162,7 +163,7 @@ namespace OpenMS
          * @brief returns a colour for ID
          * 
          * @param c    integer ID
-         * @return string for one of 15 colours
+         * @return string for one of 50 colours
          */
         String getColour(int c) const;
 
