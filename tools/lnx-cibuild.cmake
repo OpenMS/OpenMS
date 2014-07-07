@@ -1,5 +1,9 @@
 # define build name&co for easier identification on cdassh
 set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_REPO_SLUG}-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
+# add style to build name if requested
+if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "On")
+  set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-coding-style")
+endif()
 set(CTEST_SITE "travis-ci-build-server")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/_build")
@@ -13,7 +17,8 @@ BOOST_USE_STATIC=Off
 CMAKE_BUILD_TYPE=Release
 ENABLE_TUTORIALS=Off
 ENABLE_GCC_WERROR=On
-ENABLE_UNITYBUILD=Off"
+ENABLE_UNITYBUILD=Off
+ENABLE_STYLE_TESTING=$ENV{ENABLE_STYLE_TESTING}"
 )
 
 # create cache
