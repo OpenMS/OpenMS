@@ -252,7 +252,7 @@ namespace OpenMS
         iapexScan += thisArea * (*I).second.getApexScan();
         iz += thisArea * (*I).second.getCHRG();
 
-        I++;
+        ++I;
       }
 
       TR /= totArea;
@@ -333,7 +333,7 @@ namespace OpenMS
     multimap<double, MS2Fragment>::iterator I = F;
     if (I != MS2FragmentPeaks.begin())
     {
-      I--;
+      --I;
     }
 
     while (SuperHirnUtil::compareMassValuesAtPPMLevel(I->second.getFragmentMz(), mass,
@@ -347,7 +347,7 @@ namespace OpenMS
       }
 
       // next:
-      I--;
+      --I;
     }
 
     // scan upper mass tolerance:
@@ -360,7 +360,7 @@ namespace OpenMS
       {
 
         candidates.insert(make_pair(fabs(I->second.getFragmentMz() - mass), I));
-        I++;
+        ++I;
         if (I == MS2FragmentPeaks.end())
         {
           break;
@@ -436,7 +436,7 @@ namespace OpenMS
     av += fabs(getStartTR() - frag->getStartTR());
     return av;
 
-    return corMS2 / corSpec;
+    // return corMS2 / corSpec;
   }
 
 

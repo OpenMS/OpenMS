@@ -412,12 +412,12 @@ namespace OpenMS
               if (tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
               {
                 //use SEQAN similarity scoring
-                typedef::seqan::String<::seqan::AminoAcid> TSequence;
+                typedef::seqan::String< ::seqan::AminoAcid > TSequence;
                 TSequence seq1 = tt->getSequence().toUnmodifiedString().c_str();
                 TSequence seq2 = hit->getSequence().toUnmodifiedString().c_str();
 /////////////////////////introduce scoring with PAM30MS
                 typedef int TValue;
-                typedef::seqan::Score<TValue, ::seqan::ScoreMatrix<::seqan::AminoAcid, ::seqan::Default> > TScoringScheme;
+                typedef ::seqan::Score<TValue, ::seqan::ScoreMatrix< ::seqan::AminoAcid, ::seqan::Default> > TScoringScheme;
                 TScoringScheme pam30msScoring(-penalty, -penalty);
                 ::seqan::setDefaultScoreMatrix(pam30msScoring, ::seqan::PAM30MS());
 /////////////////////////introduce scoring with PAM30MS

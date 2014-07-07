@@ -92,7 +92,7 @@ namespace OpenMS
 
     double rmse(0.0);
 
-    if (smooth_ints.size() > 0)
+    if (!smooth_ints.empty())
     {
       rmse = std::sqrt(squared_sum / smooth_ints.size());
     }
@@ -102,12 +102,12 @@ namespace OpenMS
 
   double ElutionPeakDetection::computeMassTraceSNR(const MassTrace& tr)
   {
-    double noise_area(1.0), signal_area(0.0), snr(0.0);
+    double snr(0.0);
 
     if (tr.getSize() > 0)
     {
-      noise_area = computeMassTraceNoise(tr) * tr.getTraceLength();
-      signal_area = tr.computePeakArea();
+      double noise_area = computeMassTraceNoise(tr) * tr.getTraceLength();
+      double signal_area = tr.computePeakArea();
 
       snr = signal_area / noise_area;
     }
