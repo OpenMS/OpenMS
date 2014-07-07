@@ -49,7 +49,10 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 # travis-ci handles this for us
 ctest_start     (Continuous)
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE _configure_ret)
+# we only build when we do non-style testing
+if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "Off")
 ctest_build     (BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+endif()
 ctest_test      (BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
 ctest_submit()
 
