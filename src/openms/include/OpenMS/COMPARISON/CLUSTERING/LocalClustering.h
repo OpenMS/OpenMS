@@ -143,7 +143,7 @@ class OPENMS_DLLAPI LocalClustering
         /**
         * @brief constructor
         */
-        MinimumDistance(int cluster_index, int nearest_neighbour_index, double distance);
+        MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance);
     
         /**
         * @brief returns cluster index

@@ -362,7 +362,7 @@ std::map<int, Cluster> LocalClustering::getResults() const
     return clusters_final_;
 }
 
-LocalClustering::MinimumDistance::MinimumDistance(int cluster_index, int nearest_neighbour_index, double distance)
+LocalClustering::MinimumDistance::MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance)
 :cluster_index_(cluster_index), nearest_neighbour_index_(nearest_neighbour_index), distance_(distance)
 {
 }
