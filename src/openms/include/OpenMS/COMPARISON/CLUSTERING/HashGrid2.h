@@ -86,7 +86,7 @@ class OPENMS_DLLAPI HashGrid2
     * @param cell_index    cell index (i,j) on the hash grid
     * @param cluster_index    index of the cluster in the cluster list
     */
-    void addCluster(CellIndex cell_index, int cluster_index);
+    void addCluster(const CellIndex &cell_index, const int &cluster_index);
     
     /**
     * @brief removes a cluster from this hash grid cell
@@ -95,7 +95,7 @@ class OPENMS_DLLAPI HashGrid2
     * @param cell_index    cell index (i,j) on the hash grid
     * @param cluster_index    index of the cluster in the cluster list
     */
-    void removeCluster(CellIndex cell_index, int cluster_index);
+    void removeCluster(const CellIndex &cell_index, const int &cluster_index);
 
     /**
     * @brief removes all clusters from this hash grid (and hence all cells)
@@ -108,7 +108,7 @@ class OPENMS_DLLAPI HashGrid2
     * @param cell_index    cell index (i,j) on the hash grid
     * @return list of cluster indices (from the list of clusters) which are centred in this cell
     */
-    std::list<int> getClusters(CellIndex cell_index) const;
+    std::list<int> getClusters(const CellIndex &cell_index) const;
 
     /**
     * @brief returns grid cell index (i,j) for the positions (x,y)
@@ -116,7 +116,7 @@ class OPENMS_DLLAPI HashGrid2
     * @param position    coordinates (x,y) on the grid
     * @return cell index (i,j) of the cell in which (x,y) lies
     */
-    CellIndex getIndex(Point position) const;
+    CellIndex getIndex(const Point &position) const;
 
     /**
     * @brief checks if there are clusters at this cell index
@@ -127,7 +127,7 @@ class OPENMS_DLLAPI HashGrid2
     * @throw Exception::IllegalArgument if the coordinates (x,y) lie outside the grid.
     * @throw Exception::InvalidValue if one of the two indices is negative.
     */
-    bool isNonEmptyCell(CellIndex cell_index) const;
+    bool isNonEmptyCell(const CellIndex &cell_index) const;
 
     /**
     * @brief returns number of grid cells occupied by one or more clusters

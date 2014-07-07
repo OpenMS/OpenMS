@@ -55,7 +55,7 @@ std::vector<double> HashGrid2::getGridSpacingY() const
     return grid_spacing_y_;
 }
 
-void HashGrid2::addCluster(CellIndex cell_index, int cluster_index)
+void HashGrid2::addCluster(const CellIndex &cell_index, const int &cluster_index)
 {
     if (cells_.find(cell_index) == cells_.end())
     {
@@ -71,7 +71,7 @@ void HashGrid2::addCluster(CellIndex cell_index, int cluster_index)
     }
 }
 
-void HashGrid2::removeCluster(CellIndex cell_index, int cluster_index)
+void HashGrid2::removeCluster(const CellIndex &cell_index, const int &cluster_index)
 {
     if (cells_.find(cell_index) != cells_.end())
     {
@@ -88,12 +88,12 @@ void HashGrid2::removeAllClusters()
     cells_.clear();
 }
 
-std::list<int> HashGrid2::getClusters(CellIndex cell_index) const
+std::list<int> HashGrid2::getClusters(const CellIndex &cell_index) const
 {
     return cells_.find(cell_index)->second;
 }
 
-HashGrid2::CellIndex HashGrid2::getIndex(Point position) const
+HashGrid2::CellIndex HashGrid2::getIndex(const Point &position) const
 {
     if (position.getX() < range_x_.first || position.getX() > range_x_.second || position.getY() < range_y_.first || position.getY() > range_y_.second)
     {
@@ -123,7 +123,7 @@ HashGrid2::CellIndex HashGrid2::getIndex(Point position) const
     return HashGrid2::CellIndex (i,j);
 }
 
-bool HashGrid2::isNonEmptyCell(CellIndex cell_index) const
+bool HashGrid2::isNonEmptyCell(const CellIndex &cell_index) const
 {
     return cells_.find(cell_index) != cells_.end();
 }
