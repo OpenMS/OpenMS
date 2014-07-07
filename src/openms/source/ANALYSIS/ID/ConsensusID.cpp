@@ -58,7 +58,7 @@ namespace seqan
       VALUE_SIZE = ValueSize<AminoAcid>::VALUE,
       TAB_SIZE = VALUE_SIZE * VALUE_SIZE
     };
-    static inline int const * getData()
+    static inline int const* getData()
     {
       // DEFINE the PAM30MS matrix from Habermann et al. MCP. 2004.
       static int const _data[TAB_SIZE] =
@@ -121,7 +121,7 @@ namespace seqan
     }
 
   };
-}  // namespace seqan
+} // namespace seqan
 
 using namespace std;
 
@@ -157,7 +157,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void ConsensusID::apply(vector<PeptideIdentification> & ids)
+  void ConsensusID::apply(vector<PeptideIdentification>& ids)
   {
     //Abort if no IDs present
     if (ids.empty())
@@ -194,7 +194,7 @@ namespace OpenMS
     ids[0].assignRanks();
 
 #ifdef DEBUG_ID_CONSENSUS
-    const vector<PeptideHit> & hits2 = ids[0].getHits();
+    const vector<PeptideHit>& hits2 = ids[0].getHits();
     for (Size i = 0; i < hits2.size(); ++i)
     {
       cout << "  " << hits2[i].getSequence() << " " << hits2[i].getScore() << endl;
@@ -202,7 +202,7 @@ namespace OpenMS
 #endif
   }
 
-  void ConsensusID::ranked_(vector<PeptideIdentification> & ids)
+  void ConsensusID::ranked_(vector<PeptideIdentification>& ids)
   {
     map<AASequence, double> scores;
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
@@ -269,8 +269,7 @@ namespace OpenMS
 
   }
 
-
-  void ConsensusID::average_(vector<PeptideIdentification> & ids)
+  void ConsensusID::average_(vector<PeptideIdentification>& ids)
   {
     map<AASequence, double> scores;
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
@@ -303,7 +302,7 @@ namespace OpenMS
       UInt hit_count = 1;
       for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
       {
-        if (scores.find(hit->getSequence()) == scores.end())                            //.end zeigt auf ein Element nach dem letzten
+        if (scores.find(hit->getSequence()) == scores.end()) //.end zeigt auf ein Element nach dem letzten
         {
 #ifdef DEBUG_ID_CONSENSUS
           cout << " - New hit: " << hit->getSequence() << " " << hit->getScore() << endl;
@@ -353,7 +352,7 @@ namespace OpenMS
 
 //////////////////////////////////////////PEPMatrix
 
-  void ConsensusID::PEPMatrix_(vector<PeptideIdentification> & ids)
+  void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
   {
     Map<AASequence, vector<double> > scores;
 
@@ -383,7 +382,7 @@ namespace OpenMS
       {
         cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
       }
-       
+
       //make sure that the ranks are present
       id->assignRanks();
 
@@ -408,17 +407,17 @@ namespace OpenMS
             // find the same or most similar peptide sequence in lists from other search engines
             for (vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
             {
-              if (! (hit->getMetaValue("scoring") != t->getMetaValue("scoring"))) exit(1);
+              if (!(hit->getMetaValue("scoring") != t->getMetaValue("scoring"))) exit(1);
 
               if (tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
               {
                 //use SEQAN similarity scoring
-                typedef::seqan::String< ::seqan::AminoAcid > TSequence;
+                typedef::seqan::String<::seqan::AminoAcid> TSequence;
                 TSequence seq1 = tt->getSequence().toUnmodifiedString().c_str();
                 TSequence seq2 = hit->getSequence().toUnmodifiedString().c_str();
 /////////////////////////introduce scoring with PAM30MS
                 typedef int TValue;
-                typedef::seqan::Score<TValue, ::seqan::ScoreMatrix< ::seqan::AminoAcid, ::seqan::Default> > TScoringScheme;
+                typedef::seqan::Score<TValue, ::seqan::ScoreMatrix<::seqan::AminoAcid, ::seqan::Default> > TScoringScheme;
                 TScoringScheme pam30msScoring(-penalty, -penalty);
                 ::seqan::setDefaultScoreMatrix(pam30msScoring, ::seqan::PAM30MS());
 /////////////////////////introduce scoring with PAM30MS
@@ -440,7 +439,7 @@ namespace OpenMS
                 vector<double> temp;
                 temp.push_back(globalAlignment(self1, pam30msScoring, ::seqan::NeedlemanWunsch()));
                 temp.push_back(globalAlignment(self2, pam30msScoring, ::seqan::NeedlemanWunsch()));
-                
+
                 double c = (double)globalAlignment(align, pam30msScoring, ::seqan::NeedlemanWunsch());
                 double b = *(min_element(temp.begin(), temp.end()));
                 c /= b;
@@ -513,7 +512,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////PEPIons
 
-  void ConsensusID::PEPIons_(vector<PeptideIdentification> & ids)
+  void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
   {
     Map<AASequence, vector<double> > scores;
 
@@ -677,7 +676,7 @@ namespace OpenMS
   }
 
 //////////////////////////////////////////////////////////////////////////////////Minimum
-  void ConsensusID::Minimum_(vector<PeptideIdentification> & ids)
+  void ConsensusID::Minimum_(vector<PeptideIdentification>& ids)
   {
     Map<AASequence, double> scores;
 
@@ -736,9 +735,9 @@ namespace OpenMS
 #endif
 
   }
-  
+
   /* this is not used by anyone ... delete?? */
-  void ConsensusID::mapIdentifications_(vector<PeptideIdentification> & sorted_ids, const vector<PeptideIdentification> & ids)
+  void ConsensusID::mapIdentifications_(vector<PeptideIdentification>& sorted_ids, const vector<PeptideIdentification>& ids)
   {
     double mz_delta = 0.01;
     double rt_delta = 0.01;
@@ -749,8 +748,8 @@ namespace OpenMS
       PeptideIdentification new_ids;
       for (vector<PeptideIdentification>::const_iterator it2 = it1 + 1; it2 != ids.end(); ++it2)
       {
-		    double rt2(it2->getRT());
-		    double mz2(it2->getMZ());
+        double rt2(it2->getRT());
+        double mz2(it2->getMZ());
         if (fabs(rt1 - rt2) < rt_delta && fabs(mz1 - mz2) < mz_delta)
         {
           if (new_ids.empty())

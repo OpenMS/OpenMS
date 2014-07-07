@@ -75,14 +75,17 @@ namespace OpenMS
     {
       // not implemented
     }
+
     void QcMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
       //not implemented
     }
+
     void QcMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       //not implemented
     }
+
     void QcMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const String& accession, const String& name, const String& value, const xercesc::Attributes& /* attributes */, const String& /* cv_ref */, const String& /* unit_accession */)
     {
       //Abort on unknown terms
@@ -97,7 +100,7 @@ namespace OpenMS
       }
       else
       {
-        const ControlledVocabulary::CVTerm & term = cv_.getTerm(accession);
+        const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
         //obsolete CV terms
         if (term.obsolete)
         {
@@ -145,7 +148,7 @@ namespace OpenMS
               {
                 value.toInt();
               }
-              catch (Exception::ConversionError &)
+              catch (Exception::ConversionError&)
               {
                 warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
                 return;
@@ -158,7 +161,7 @@ namespace OpenMS
               {
                 value.toDouble();
               }
-              catch (Exception::ConversionError &)
+              catch (Exception::ConversionError&)
               {
                 warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
                 return;
@@ -172,7 +175,7 @@ namespace OpenMS
                 DateTime tmp;
                 tmp.set(value);
               }
-              catch (Exception::ParseError &)
+              catch (Exception::ParseError&)
               {
                 warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
                 return;
@@ -373,6 +376,7 @@ namespace OpenMS
 
       case 2:
         break; //no tool yet
+
       case 3:
         break; //why SIZE_OF_QUANT_TYPES anyway?
       }
@@ -418,7 +422,7 @@ namespace OpenMS
         }
         if (dit->getSoftware().getName() == "ITRAQAnalyzer")
         {
-          softwarelist_tag +="\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
+          softwarelist_tag += "\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
         }
         softwarelist_tag += "\t\t</Software>\n";
         ++order_d;
@@ -486,10 +490,13 @@ namespace OpenMS
         }
         ratio_xml += "\t</RatioList>\n";
         break;
+
       case 1:
         break; //TODO for SILACAnalyzer to produce some ratios
+
       case 2:
         break; //no tool yet
+
       case 3:
         break; //why SIZE_OF_QUANT_TYPES anyway?
       }
@@ -633,7 +640,7 @@ namespace OpenMS
       std::vector<Real> fin, fwi /*, fqu */;
       std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
       std::vector<std::vector<Real> > f2i;
-      String /* ratio_xml,  */peptide_xml, feature_xml = "";
+      String /* ratio_xml,  */ peptide_xml, feature_xml = "";
       feature_xml += "\t<FeatureList id=\"featurelist1\" rawFilesGroup_ref=\"rfg_" + glob_rfgr + "\">\n"; //TODO make registerExperiment also register the consensusmaps (and featuremaps) - keep the grouping with ids
       for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
       {
@@ -680,6 +687,7 @@ namespace OpenMS
 
           case 2:
             break; //no tool yet
+
           case 3:
             break; //why SIZE_OF_QUANT_TYPES anyway?
           }
@@ -731,6 +739,7 @@ namespace OpenMS
 
       case 2:
         break; //no tool yet
+
       case 3:
         break; //why SIZE_OF_QUANT_TYPES anyway?
       }
@@ -743,7 +752,7 @@ namespace OpenMS
         {
         case 0: // ms1label - iterate consensusmap?
         {
-          peptide_xml += String("\t<PeptideConsensusList  finalResult=\"true\" id=\"") + String("m_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n");                   //URGENT TODO evidenceref
+          peptide_xml += String("\t<PeptideConsensusList  finalResult=\"true\" id=\"") + String("m_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n"); //URGENT TODO evidenceref
           for (Size i = 0; i < cid[k].size(); ++i)
           {
             peptide_xml += String("\t\t<PeptideConsensus id=\"") + String("c_") + String(cid[k][i].front()) + String("\" charge=\"") + String((*cmsq_).getConsensusMaps()[k][i].getCharge()) + String("\">\n");
@@ -811,7 +820,7 @@ namespace OpenMS
               ass_refs += String("a_") + String(cmsq_->getAssays()[j].uid_) + String(" ");
             }
             ass_refs.trim();
-            peptide_xml += String("\t<PeptideConsensusList  finalResult=\"false\" id=\"m_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n");                     //URGENT TODO evidenceref
+            peptide_xml += String("\t<PeptideConsensusList  finalResult=\"false\" id=\"m_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n"); //URGENT TODO evidenceref
             for (Size i = 0; i < fid.size(); ++i)
             {
               if (!cmsq_->getConsensusMaps()[k][i].getPeptideIdentifications().empty())
@@ -830,6 +839,7 @@ namespace OpenMS
 
         case 2:
           break; //no tool yet
+
         case 3:
           break; //why SIZE_OF_QUANT_TYPES anyway?
         }
@@ -898,7 +908,7 @@ namespace OpenMS
         {
           s += "xsd:double";
         }
-        else         //string or lists are converted to string
+        else //string or lists are converted to string
         {
           s += "xsd:string";
         }

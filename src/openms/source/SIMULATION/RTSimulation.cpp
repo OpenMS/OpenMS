@@ -259,7 +259,7 @@ namespace OpenMS
         predicted_retention_times[i] = features[i].getMetaValue("rt");
       }
       // add variation
-      boost::normal_distribution<SimCoordinateType> ndist (rt_offset,rt_ft_stddev);
+      boost::normal_distribution<SimCoordinateType> ndist(rt_offset, rt_ft_stddev);
       SimCoordinateType rt_error = ndist(rnd_gen_->getTechnicalRng());
       predicted_retention_times[i] = predicted_retention_times[i] * rt_scale + rt_error;
       //overwrite RT [no randomization] (if given by user)
@@ -285,23 +285,23 @@ namespace OpenMS
 
       // determine shape parameters for EGH
       double variance = egh_variance_location_;
-      if(egh_variance_scale_ != 0)
+      if (egh_variance_scale_ != 0)
       {
-        boost::cauchy_distribution<double> cdist (0,egh_variance_scale_);
-        variance += cdist( rnd_gen_->getTechnicalRng() );
+        boost::cauchy_distribution<double> cdist(0, egh_variance_scale_);
+        variance += cdist(rnd_gen_->getTechnicalRng());
       }
       double tau = egh_tau_location_;
-      if(egh_tau_scale_ != 0)
+      if (egh_tau_scale_ != 0)
       {
-        boost::cauchy_distribution<double> cdist (0,egh_tau_scale_);
-        tau += cdist( rnd_gen_->getTechnicalRng() );
+        boost::cauchy_distribution<double> cdist(0, egh_tau_scale_);
+        tau += cdist(rnd_gen_->getTechnicalRng());
       }
 
       // resample variance if it is below 0
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
       Size retry_variance_sampling = 0;
-      boost::cauchy_distribution<double> cdistVar (0.0, egh_variance_scale_);
+      boost::cauchy_distribution<double> cdistVar(0.0, egh_variance_scale_);
       while ((variance <= 0 || (fabs(variance - egh_variance_location_) > 10 * egh_variance_scale_)) && retry_variance_sampling < 9)
       {
         variance = egh_variance_location_ + cdistVar(rnd_gen_->getTechnicalRng());
@@ -318,7 +318,7 @@ namespace OpenMS
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
       Size retry_tau_sampling = 0;
-      boost::cauchy_distribution<double> cdistTau (0.0, egh_tau_scale_);
+      boost::cauchy_distribution<double> cdistTau(0.0, egh_tau_scale_);
       while (fabs(tau - egh_tau_location_) > 10 * egh_tau_scale_  && retry_tau_sampling < 9)
       {
         tau = egh_tau_location_ + cdistTau(rnd_gen_->getTechnicalRng());
@@ -584,7 +584,7 @@ namespace OpenMS
   void RTSimulation::predictContaminantsRT(FeatureMapSim& contaminants)
   {
     // iterate of feature map
-    boost::uniform_real<SimCoordinateType> udist (0,total_gradient_time_);
+    boost::uniform_real<SimCoordinateType> udist(0, total_gradient_time_);
     for (Size i = 0; i < contaminants.size(); ++i)
     {
 
@@ -664,7 +664,7 @@ namespace OpenMS
     {
       // initialize the previous value on position 0
       previous = (double) experiment[0].getMetaValue("distortion");
-      boost::uniform_real<double> udist (1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01);// distortion gets worse round by round
+      boost::uniform_real<double> udist(1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01); // distortion gets worse round by round
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
       LOG_WARN << "d <- c(" << previous << ", ";
       vector<double> tmp;

@@ -62,7 +62,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification> & ids)
+  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids)
   {
     bool q_value = param_.getValue("q_value").toBool();
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -300,7 +300,7 @@ namespace OpenMS
             if (hit.metaValueExists("target_decoy"))
             {
               String meta_value = (String)hit.getMetaValue("target_decoy");
-              if(meta_value == "decoy" && !add_decoy_peptides)
+              if (meta_value == "decoy" && !add_decoy_peptides)
               {
                 continue;
               }
@@ -342,7 +342,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification> & fwd_ids, vector<PeptideIdentification> & rev_ids)
+  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& fwd_ids, vector<PeptideIdentification>& rev_ids)
   {
     if (fwd_ids.empty() || rev_ids.empty())
     {
@@ -430,7 +430,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::apply(vector<ProteinIdentification> & ids)
+  void FalseDiscoveryRate::apply(vector<ProteinIdentification>& ids)
   {
     if (ids.empty())
     {
@@ -487,7 +487,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::apply(vector<ProteinIdentification> & fwd_ids, vector<ProteinIdentification> & rev_ids)
+  void FalseDiscoveryRate::apply(vector<ProteinIdentification>& fwd_ids, vector<ProteinIdentification>& rev_ids)
   {
     if (fwd_ids.empty() || rev_ids.empty())
     {
@@ -541,7 +541,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::calculateFDRs_(Map<double, double> & score_to_fdr, vector<double> & target_scores, vector<double> & decoy_scores, bool q_value, bool higher_score_better)
+  void FalseDiscoveryRate::calculateFDRs_(Map<double, double>& score_to_fdr, vector<double>& target_scores, vector<double>& decoy_scores, bool q_value, bool higher_score_better)
   {
     Size number_of_target_scores = target_scores.size();
     // sort the scores

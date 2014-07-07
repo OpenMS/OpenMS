@@ -113,7 +113,7 @@ namespace OpenMS
   {
     /**@brief Initialize SomeStatistics from data.
     */
-    SomeStatistics & operator()(vector<double> & data)
+    SomeStatistics& operator()(vector<double>& data)
     {
       count = data.size();
       // Sanity check: avoid core dump if no data points present.
@@ -136,16 +136,16 @@ namespace OpenMS
   };
 
   /// Write SomeStatistics to a stream.
-  static ostream & operator<<(ostream & os, const SomeStatistics & rhs)
+  static ostream& operator<<(ostream& os, const SomeStatistics& rhs)
   {
     return os << "  num. of values: " << rhs.count << "\n"
-           << "  mean:           " << rhs.mean << "\n"
-           << "  minimum:        " << rhs.min << "\n"
-           << "  lower quartile: " << rhs.lowerq << "\n"
-           << "  median:         " << rhs.median << "\n"
-           << "  upper quartile: " << rhs.upperq << "\n"
-           << "  maximum:        " << rhs.max << "\n"
-           << "  variance:       " << rhs.variance << "\n";
+              << "  mean:           " << rhs.mean << "\n"
+              << "  minimum:        " << rhs.min << "\n"
+              << "  lower quartile: " << rhs.lowerq << "\n"
+              << "  median:         " << rhs.median << "\n"
+              << "  upper quartile: " << rhs.upperq << "\n"
+              << "  maximum:        " << rhs.max << "\n"
+              << "  variance:       " << rhs.variance << "\n";
   }
 
 }
@@ -170,7 +170,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("txt"));
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
-    setValidFormats_("out_tsv", ListUtils::create<String>("csv")); 
+    setValidFormats_("out_tsv", ListUtils::create<String>("csv"));
     registerFlag_("m", "Show meta information about the whole experiment");
     registerFlag_("p", "Shows data processing information");
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");
@@ -181,7 +181,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesHumanReadable_(Map map, ostream & os)
+  void writeRangesHumanReadable_(Map map, ostream& os)
   {
     os << "Ranges:" << "\n"
        << "  retention time: " << String::number(map.getMin()[Peak2D::RT], 2) << " .. " << String::number(map.getMax()[Peak2D::RT], 2) << "\n"
@@ -191,7 +191,7 @@ protected:
   }
 
   template <class Map>
-  void writeRangesMachineReadable_(Map map, ostream & os)
+  void writeRangesMachineReadable_(Map map, ostream& os)
   {
     os << "retention time (min)" << "\t" << String::number(map.getMin()[Peak2D::RT], 2) << "\n"
        << "retention time (max)" << "\t" << String::number(map.getMax()[Peak2D::RT], 2) << "\n"
@@ -201,7 +201,7 @@ protected:
        << "intensity (max)" << "\t" << String::number(map.getMaxInt(), 2) << "\n";
   }
 
-  ExitCodes outputTo_(ostream & os, ostream & os_tsv)
+  ExitCodes outputTo_(ostream& os, ostream& os_tsv)
   {
     //-------------------------------------------------------------
     // Parameter handling
@@ -373,8 +373,8 @@ protected:
           OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
         }
 
-        std::cout << "Found a valid indexedmzML XML File with " << 
-          ifile.getNrSpectra() << " spectra and " << 
+        std::cout << "Found a valid indexedmzML XML File with " <<
+          ifile.getNrSpectra() << " spectra and " <<
           ifile.getNrChromatograms() << " chromatograms." << std::endl << std::endl;
       }
       else
@@ -388,10 +388,10 @@ protected:
     // Content statistics
     //-------------------------------------------------------------
     Map<String, int> meta_names;
-    if (in_type == FileTypes::FEATUREXML)     //features
+    if (in_type == FileTypes::FEATUREXML) //features
     {
       FeatureXMLFile ff;
-      ff.getOptions().setLoadConvexHull(false);  // CH's currently not needed here
+      ff.getOptions().setLoadConvexHull(false); // CH's currently not needed here
       ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
       ff.load(in, feat);
       feat.updateRanges();
@@ -417,7 +417,7 @@ protected:
         os << "  charge " << it->first << ": " << it->second << "\n";
       }
     }
-    else if (in_type == FileTypes::CONSENSUSXML)     //consensus features
+    else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
       ConsensusXMLFile().load(in, cons);
       cons.updateRanges();
@@ -440,7 +440,7 @@ protected:
 
 
       // file descriptions
-      const ConsensusMap::FileDescriptions & descs = cons.getFileDescriptions();
+      const ConsensusMap::FileDescriptions& descs = cons.getFileDescriptions();
       if (!descs.empty())
       {
         os << "File descriptions:" << "\n";
@@ -454,7 +454,7 @@ protected:
         os << "\n";
       }
     }
-    else if (in_type == FileTypes::IDXML)     //identifications
+    else if (in_type == FileTypes::IDXML) //identifications
     {
       UInt spectrum_count(0);
       Size peptide_hit_count(0);
@@ -464,15 +464,15 @@ protected:
       set<String> proteins;
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
-	  
-	  size_t mem1, mem2;
- 	  SysInfo::getProcessMemoryConsumption(mem1);
-	  
+
+      size_t mem1, mem2;
+      SysInfo::getProcessMemoryConsumption(mem1);
+
       // reading input
       IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
 
-	  SysInfo::getProcessMemoryConsumption(mem2);
-	  std::cout << "\n\nMem Usage while loading: " << (mem2-mem1)/1024 << " MB" << std::endl;
+      SysInfo::getProcessMemoryConsumption(mem2);
+      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
 
       // export metadata to second output stream
       os_tsv << "database" << "\t" << id_data.proteins[0].getSearchParameters().db << "\n"
@@ -487,13 +487,13 @@ protected:
         {
           ++spectrum_count;
           peptide_hit_count += id_data.peptides[i].getHits().size();
-          const vector<PeptideHit> & temp_hits = id_data.peptides[i].getHits();
+          const vector<PeptideHit>& temp_hits = id_data.peptides[i].getHits();
           // collect stats about modifications from TOP HIT!
           if (temp_hits[0].getSequence().isModified())
           {
             ++modified_peptide_count;
             AASequence aa = temp_hits[0].getSequence();
-            for (Size ia=0; ia<aa.size(); ++ia)
+            for (Size ia = 0; ia < aa.size(); ++ia)
             {
               if (aa[ia].isModified()) ++mod_counts[aa[ia].getModification()];
             }
@@ -508,7 +508,7 @@ protected:
       {
         ++runs_count;
         protein_hit_count += id_data.proteins[i].getHits().size();
-        const vector<ProteinHit> & temp_hits = id_data.proteins[i].getHits();
+        const vector<ProteinHit>& temp_hits = id_data.proteins[i].getHits();
         for (Size j = 0; j < temp_hits.size(); ++j)
         {
           proteins.insert(temp_hits[j].getAccession());
@@ -523,12 +523,12 @@ protected:
       os << "\n";
       os << "  spectra:                    " << spectrum_count << "\n";
       os << "  peptide hits:               " << peptide_hit_count << "\n";
-      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count>0 ? String(" (") + (modified_peptide_count*100.0 / spectrum_count) + "%)" : "") << "\n";
+      os << "  modified top-hits:          " << modified_peptide_count << "/" << spectrum_count << (spectrum_count > 0 ? String(" (") + (modified_peptide_count * 100.0 / spectrum_count) + "%)" : "") << "\n";
       os << "  non-redundant peptide hits: " << peptides.size() << "\n";
       os << "  (only hits that differ in sequence and/ or modifications)" << "\n";
-      for (Map<String, int>::ConstIterator it=mod_counts.begin(); it!=mod_counts.end(); ++it)
+      for (Map<String, int>::ConstIterator it = mod_counts.begin(); it != mod_counts.end(); ++it)
       {
-        if (it!=mod_counts.begin()) os << ", "; else os << "  Modifications (top-hits only): ";
+        if (it != mod_counts.begin()) os << ", "; else os << "  Modifications (top-hits only): ";
         os << it->first << "(" << it->second << ")";
       }
 
@@ -541,12 +541,12 @@ protected:
     {
       os << "\nFor pepXML files, only validation against the XML schema is implemented at this point." << "\n";
     }
-    else     //peaks
+    else //peaks
     {
 
       size_t mem1, mem2;
       SysInfo::getProcessMemoryConsumption(mem1);
-      
+
       if (!fh.loadExperiment(in, exp, in_type, log_type_))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
@@ -556,7 +556,7 @@ protected:
 
       // report memory consumption
       SysInfo::getProcessMemoryConsumption(mem2);
-      std::cout << "\n\nMem Usage while loading: " << (mem2-mem1)/1024 << " MB" << std::endl;
+      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
 
       //check if the meta data indicates that this is peak data
       UInt meta_type = SpectrumSettings::UNKNOWN;
@@ -883,15 +883,15 @@ protected:
          << "-- Meta information --" << "\n"
          << "\n";
 
-      if (in_type == FileTypes::FEATUREXML)       //features
+      if (in_type == FileTypes::FEATUREXML) //features
       {
         os << "Document ID: " << feat.getIdentifier() << "\n" << "\n";
       }
-      else if (in_type == FileTypes::CONSENSUSXML)       //consensus features
+      else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
         os << "Document ID: " << cons.getIdentifier() << "\n" << "\n";
       }
-      else if (in_type == FileTypes::IDXML)       //identifications
+      else if (in_type == FileTypes::IDXML) //identifications
       {
         os << "Document ID: " << id_data.identifier << "\n" << "\n";
       }
@@ -899,7 +899,7 @@ protected:
       {
         // TODO
       }
-      else       //peaks
+      else //peaks
       {
 
         os << "Document ID:        " << exp.getIdentifier() << "\n"
@@ -979,15 +979,15 @@ protected:
 
       //get data processing info
       vector<DataProcessing> dp;
-      if (in_type == FileTypes::FEATUREXML)       //features
+      if (in_type == FileTypes::FEATUREXML) //features
       {
         dp = feat.getDataProcessing();
       }
-      else if (in_type == FileTypes::CONSENSUSXML)       //consensus features
+      else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
         dp = cons.getDataProcessing();
       }
-      else if (in_type == FileTypes::IDXML)       //identifications
+      else if (in_type == FileTypes::IDXML) //identifications
       {
 
       }
@@ -995,7 +995,7 @@ protected:
       {
         // TODO
       }
-      else       //peaks
+      else //peaks
       {
         if (!exp.empty())
         {
@@ -1039,7 +1039,7 @@ protected:
          << "\n";
       OpenMS::SomeStatistics some_statistics;
 
-      if (in_type == FileTypes::FEATUREXML)       //features
+      if (in_type == FileTypes::FEATUREXML) //features
       {
         Size size = feat.size();
 
@@ -1076,7 +1076,7 @@ protected:
         os << "Qualities in mass-to-charge dimension:" << "\n" << some_statistics(mz_qualities) << "\n";
 
       }
-      else if (in_type == FileTypes::CONSENSUSXML)       //consensus features
+      else if (in_type == FileTypes::CONSENSUSXML) //consensus features
       {
         Size size = cons.size();
 
@@ -1144,7 +1144,7 @@ protected:
             rt_aad /= cm_iter->size();
             mz_aad /= cm_iter->size();
             it_aad /= cm_iter->size();
-          }           // otherwise rt_aad etc. are 0 anyway
+          } // otherwise rt_aad etc. are 0 anyway
           rt_aad_by_cfs.push_back(rt_aad);
           mz_aad_by_cfs.push_back(mz_aad);
           it_aad_by_cfs.push_back(it_aad);
@@ -1172,7 +1172,7 @@ protected:
         os << "Average relative intensity error within consensus features (\"max{(element / center), (center / element)}\", weight 1 per consensus features):" << "\n" << some_statistics(it_aad_by_cfs) << "\n";
 
       }
-      else if (in_type == FileTypes::IDXML)       //identifications
+      else if (in_type == FileTypes::IDXML) //identifications
       {
         //TODO
       }
@@ -1180,7 +1180,7 @@ protected:
       {
         // TODO
       }
-      else       //peaks
+      else //peaks
       {
         //copy intensities of  MS-level 1 peaks
         exp.updateRanges(1);
@@ -1241,7 +1241,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String out = getStringOption_("out");
     String out_tsv = getStringOption_("out_tsv");
@@ -1282,7 +1282,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFileInfo tool;
   return tool.main(argc, argv);

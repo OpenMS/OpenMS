@@ -51,7 +51,7 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  Spectrum1DWidget::Spectrum1DWidget(const Param & preferences, QWidget * parent) :
+  Spectrum1DWidget::Spectrum1DWidget(const Param& preferences, QWidget* parent) :
     SpectrumWidget(preferences, parent)
   {
     //set the label mode for the axes  - side effect
@@ -78,8 +78,8 @@ namespace OpenMS
 
   void Spectrum1DWidget::recalculateAxes_()
   {
-    AxisWidget * mz_axis;
-    AxisWidget * it_axis;
+    AxisWidget* mz_axis;
+    AxisWidget* it_axis;
 
     //determine axes
     if (canvas()->isMzToXAxis())
@@ -165,11 +165,11 @@ namespace OpenMS
     return tmp;
   }
 
-  Histogram<> Spectrum1DWidget::createMetaDistribution_(const String & name) const
+  Histogram<> Spectrum1DWidget::createMetaDistribution_(const String& name) const
   {
     Histogram<> tmp;
     //float arrays
-    const ExperimentType::SpectrumType::FloatDataArrays & f_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getFloatDataArrays();
+    const ExperimentType::SpectrumType::FloatDataArrays& f_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getFloatDataArrays();
     for (ExperimentType::SpectrumType::FloatDataArrays::const_iterator it = f_arrays.begin(); it != f_arrays.end(); ++it)
     {
       if (it->getName() == name)
@@ -195,7 +195,7 @@ namespace OpenMS
       }
     }
     //integer arrays
-    const ExperimentType::SpectrumType::IntegerDataArrays & i_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getIntegerDataArrays();
+    const ExperimentType::SpectrumType::IntegerDataArrays& i_arrays = (*canvas_->getCurrentLayer().getPeakData())[0].getIntegerDataArrays();
     for (ExperimentType::SpectrumType::IntegerDataArrays::const_iterator it = i_arrays.begin(); it != i_arrays.end(); ++it)
     {
       if (it->getName() == name)
@@ -237,8 +237,8 @@ namespace OpenMS
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange();
-      SpectrumCanvas::AreaType area (goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
-      if(goto_dialog.clip_checkbox->checkState() == Qt::Checked)
+      SpectrumCanvas::AreaType area(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
+      if (goto_dialog.clip_checkbox->checkState() == Qt::Checked)
         correctAreaToObeyMinMaxRanges_(area);
       canvas()->setVisibleArea(area);
     }
@@ -268,7 +268,7 @@ namespace OpenMS
       grid_->removeWidget(canvas());
       grid_->removeWidget(x_axis_);
       grid_->removeWidget(x_scrollbar_);
-      grid_->addWidget(canvas(), 0, 2, 3, 1);       // rowspan = 3
+      grid_->addWidget(canvas(), 0, 2, 3, 1); // rowspan = 3
       grid_->addWidget(x_axis_, 3, 2);
       grid_->addWidget(x_scrollbar_, 4, 2);
       flipped_y_axis_->show();
@@ -287,7 +287,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum1DWidget::performAlignment(Size layer_index_1, Size layer_index_2, const Param & param)
+  void Spectrum1DWidget::performAlignment(Size layer_index_1, Size layer_index_2, const Param& param)
   {
     spacer_->changeSize(0, 10);
     grid_->removeWidget(y_axis_);
@@ -344,7 +344,7 @@ namespace OpenMS
 
       painter.save();
       painter.translate(QPoint(canvas_->pos()));
-      dynamic_cast<Spectrum1DCanvas *>(canvas_)->paint(&painter, new QPaintEvent(canvas_->contentsRect()));
+      dynamic_cast<Spectrum1DCanvas*>(canvas_)->paint(&painter, new QPaintEvent(canvas_->contentsRect()));
       painter.restore();
 
       painter.save();
@@ -356,7 +356,7 @@ namespace OpenMS
       x_scrollbar_->setVisible(x_visible);
       y_scrollbar_->setVisible(y_visible);
     }
-    else   // raster graphics formats
+    else // raster graphics formats
     {
       QPixmap pixmap = QPixmap::grabWidget(this);
       x_scrollbar_->setVisible(x_visible);

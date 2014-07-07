@@ -126,7 +126,7 @@ public:
 
 protected:
   static const Int max_peptide_mass_units = 2;
-  static const Size max_dtas_per_run = 1000;       // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
+  static const Size max_dtas_per_run = 1000; // sequest has a problem when there are too many dtas, so they have to be splitted, 1000 seemed to work very good
   Size dtas;
 
   void registerOptionsAndFlags_()
@@ -148,7 +148,7 @@ protected:
 
     // TODO: if this get rewritten at some point you can use 'registerInputFile_()' to have the user
     // specify the location of 'sequest.exe' (or similar). In this case also use "skipexists as a tag argument
-    // e.g.	registerInputFile_("xtandem_executable", "<file>", "", "X!Tandem executable of the installtation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
+    // e.g. registerInputFile_("xtandem_executable", "<file>", "", "X!Tandem executable of the installtation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     // to avoid TOPPBase throwing an error when sequest.exe is not found in the current directory, but can be found in $PATH
 
     registerStringOption_("sequest_computer", "<name>", "", "the name of the computer in the network that hosts Sequest\n"
@@ -255,7 +255,7 @@ protected:
     registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
   }
 
-  bool isWinFormat(const string & name)
+  bool isWinFormat(const string& name)
   {
     // check for the directory and the backslash afterwards
     if (name.length() > 1)
@@ -278,7 +278,7 @@ protected:
     return false;
   }
 
-  bool correctNetworkPath(String & network_path, Size backslashes = 2)
+  bool correctNetworkPath(String& network_path, Size backslashes = 2)
   {
     String::size_type pos(0);
     while ((pos < network_path.length()) && (network_path[pos] == '\\')) ++pos;
@@ -286,17 +286,17 @@ protected:
     else network_path.erase(0, pos - backslashes);
     if (network_path.length() < backslashes + 1) return false;
 
-    if (network_path[network_path.length() - 1] != '\\') network_path.append("\\");           // if it doesn't end with a slash, append one
+    if (network_path[network_path.length() - 1] != '\\') network_path.append("\\"); // if it doesn't end with a slash, append one
     return true;
   }
 
   Size
   MSExperiment2DTAs(
-    MSExperiment<Peak1D> & msexperiment,
-    const String & common_name,
-    const vector<Int> & charges,
-    map<String, double> & outfile_names_and_precursor_retention_times,
-    vector<String> & dta_filenames,
+    MSExperiment<Peak1D>& msexperiment,
+    const String& common_name,
+    const vector<Int>& charges,
+    map<String, double>& outfile_names_and_precursor_retention_times,
+    vector<String>& dta_filenames,
     bool make_dtas = true)
   {
     DTAFile dtafile;
@@ -345,7 +345,7 @@ protected:
     return msms_spectra;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // (1) variables
@@ -378,7 +378,7 @@ protected:
       basename;
 
     bool
-    sequest_in(false),
+      sequest_in(false),
     sequest_out(false),
     keep_out_files(false),
     keep_dta_files(false),
@@ -392,13 +392,13 @@ protected:
 
 
     Size
-    msms_spectra_in_file(0),
+      msms_spectra_in_file(0),
     msms_spectra_altogether(0);
 
     vector<Int> charges;
 
     double
-    Real_buffer(0.0),
+      Real_buffer(0.0),
     Real_buffer2(0.0),
     p_value(1.0);
 
@@ -514,12 +514,12 @@ protected:
         else
         {
           substrings_it->split('>', substrings2);
-          if (substrings2.size() < 2)                 // only one number, no range
+          if (substrings2.size() < 2) // only one number, no range
           {
             if ((*substrings_it)[substrings_it->length() - 1] == '-') charges.push_back(-1 * substrings_it->toInt());
             else charges.push_back(substrings_it->toInt());
           }
-          else               // range of charge states
+          else // range of charge states
           {
             if (substrings2.size() > 2)
             {
@@ -573,12 +573,12 @@ protected:
     }
     else
     {
-      if (sequest_in)             // if sequest_in is set, in are the spectra
+      if (sequest_in) // if sequest_in is set, in are the spectra
       {
         string_buffer.split(',', spectra);
         out_directory = temp_data_directory;
       }
-      else           // if only sequest_out is set, in is the out_directory
+      else // if only sequest_out is set, in is the out_directory
       {
         out_directory = string_buffer;
         out_directory = File::absolutePath(out_directory);
@@ -846,7 +846,7 @@ protected:
           writeLog_("Illegal maximum protein mass/ tolerance (< 0). Aborting!");
           return ILLEGAL_PARAMETERS;
         }
-        else if (Real_buffer2 < Real_buffer && Real_buffer2 > 100)                // the second value has either got to be a mass (greater than the first one), or a probability
+        else if (Real_buffer2 < Real_buffer && Real_buffer2 > 100) // the second value has either got to be a mass (greater than the first one), or a probability
         {
           writeLog_("Illegal tolerance (not in [0, 100]). Aborting!");
           return ILLEGAL_PARAMETERS;
@@ -1041,7 +1041,7 @@ protected:
     if (exit_code == EXECUTION_OK)
     {
       // check the Mz files, get the names for the dtas and check whether they do no already exist
-      bool make_dtas = (sequest_out && !sequest_in) ? false : true;             // if only sequest_out is set, just get the retention times
+      bool make_dtas = (sequest_out && !sequest_in) ? false : true; // if only sequest_out is set, just get the retention times
       // creating the dta files
       if (make_dtas) writeLog_("creating dta files");
       // first get the dta names
@@ -1115,7 +1115,7 @@ protected:
       if (sequest_in && sequest_out)
       {
         // creating a batch file for windows (command doesn't accept commands that are longer than 256 chars)
-        String sequest_screen_output;             // direct the screen-output to a file
+        String sequest_screen_output; // direct the screen-output to a file
         do
         {
           sequest_screen_output = String::random(10);
@@ -1163,7 +1163,7 @@ protected:
           string_buffer.clear();
           for (Size i = 0; i <= (Size) (dtas / max_dtas_per_run); ++i)
           {
-            ifstream sequest_log(string(temp_data_directory + "sequest.log" + String(i)).c_str());                 // write sequest log to logfile
+            ifstream sequest_log(string(temp_data_directory + "sequest.log" + String(i)).c_str()); // write sequest log to logfile
             if (!sequest_log)
             {
               no_log = true;
@@ -1174,7 +1174,7 @@ protected:
               sequest_log.seekg(0, ios::end);
               streampos length = sequest_log.tellg();
               sequest_log.seekg(0, ios::beg);
-              char * buffer = new char[length];
+              char* buffer = new char[length];
               sequest_log.read(buffer, length);
               sequest_log.close();
               sequest_log.clear();
@@ -1305,7 +1305,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSequestAdapter tool;
 
