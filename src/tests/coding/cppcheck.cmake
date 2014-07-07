@@ -36,6 +36,7 @@ include(CppcheckTargets)
 
 ## we use only source files for cppcheck
 set(SOURCE_FILE_REGEX "\\.cpp$")
+set(DO_NOT_TEST_THESE_FILES_REGEX "(/(moc|ui)_|/MSNumpress.cpp)")
 
 # --------------------------------------------------------------------------
 # add_cpp_check_tests : This macro generates cppcheck tests for files in the
@@ -52,13 +53,15 @@ macro(add_cpp_check_tests _directory)
   # add tests
   foreach(_file_to_test ${_source_files})
     string( REGEX MATCH ${SOURCE_FILE_REGEX} _is_source_file ${_file_to_test} )
-    if(_is_source_file)
+    string( REGEX MATCH ${DO_NOT_TEST_THESE_FILES_REGEX} _do_not_test ${_file_to_test} )
+
+    if(_is_source_file AND NOT _do_not_test)
       set(_test_name "src/${_directory}/${_file_to_test}")
       add_cppcheck_sources(${_test_name}
                            ${OPENMS_HOST_DIRECTORY}/src/${_directory}/${_file_to_test}
                            STYLE
                            FAIL_ON_WARNINGS)
-    endif(_is_source_file)
+    endif()
   endforeach()
 endmacro()
 
