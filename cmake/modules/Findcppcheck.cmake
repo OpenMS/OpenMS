@@ -75,6 +75,7 @@ if(CPPCHECK_EXECUTABLE)
 	execute_process(COMMAND
 		"${CPPCHECK_EXECUTABLE}"
 		"--style"
+		"--performance"
 		"--quiet"
 		"${_cppcheckdummyfile}"
 		RESULT_VARIABLE
@@ -86,6 +87,7 @@ if(CPPCHECK_EXECUTABLE)
 		set(CPPCHECK_UNUSEDFUNC_ARG "--enable=unusedFunctions")
 		set(CPPCHECK_POSSIBLEERROR_ARG "--enable=possibleError")
 		set(CPPCHECK_STYLE_ARG "--enable=style")
+		set(CPPCHECK_PERFORMANCE_ARG "--enable=performance")
 		set(CPPCHECK_QUIET_ARG "--quiet")
 		set(CPPCHECK_INCLUDEPATH_ARG "-I")
 		if(MSVC)
@@ -108,6 +110,7 @@ if(CPPCHECK_EXECUTABLE)
 		set(CPPCHECK_UNUSEDFUNC_ARG "--unused-functions")
 		set(CPPCHECK_POSSIBLEERROR_ARG "--all")
 		set(CPPCHECK_STYLE_ARG "--style")
+		set(CPPCHECK_PERFORMANCE_ARG "--performance")
 		set(CPPCHECK_QUIET_ARG "--quiet")
 		set(CPPCHECK_INCLUDEPATH_ARG "-I")
 		set(CPPCHECK_FAIL_REGULAR_EXPRESSION "error:")
@@ -122,7 +125,7 @@ if(CPPCHECK_EXECUTABLE)
 endif()
 
 set(CPPCHECK_ALL
-	"${CPPCHECK_EXECUTABLE} ${CPPCHECK_POSSIBLEERROR_ARG} ${CPPCHECK_UNUSEDFUNC_ARG} ${CPPCHECK_STYLE_ARG} ${CPPCHECK_QUIET_ARG} ${CPPCHECK_INCLUDEPATH_ARG} some/include/path")
+	"${CPPCHECK_EXECUTABLE} ${CPPCHECK_POSSIBLEERROR_ARG} ${CPPCHECK_UNUSEDFUNC_ARG} ${CPPCHECK_STYLE_ARG} ${CPPCHECK_QUIET_ARG} ${CPPCHECK_INCLUDEPATH_ARG} ${CPPCHECK_PERFORMANCE_ARG} some/include/path")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(cppcheck
@@ -132,6 +135,7 @@ find_package_handle_standard_args(cppcheck
 	CPPCHECK_POSSIBLEERROR_ARG
 	CPPCHECK_UNUSEDFUNC_ARG
 	CPPCHECK_STYLE_ARG
+	CPPCHECK_PERFORMANCE_ARG
 	CPPCHECK_INCLUDEPATH_ARG
 	CPPCHECK_QUIET_ARG)
 

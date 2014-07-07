@@ -60,6 +60,7 @@ macro(add_cpp_check_tests _directory)
       add_cppcheck_sources(${_test_name}
                            ${OPENMS_HOST_DIRECTORY}/src/${_directory}/${_file_to_test}
                            STYLE
+                           PERFORMANCE
                            FAIL_ON_WARNINGS)
     endif()
   endforeach()

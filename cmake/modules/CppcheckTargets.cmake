@@ -59,6 +59,12 @@ function(add_cppcheck_sources _targetname)
 			list(REMOVE_AT _input ${_poss_err})
 		endif()
 
+		list(FIND _input PERFORMANCE _performance)
+		if("${_performance}" GREATER "-1")
+			list(APPEND _cppcheck_args ${CPPCHECK_PERFORMANCE_ARG})
+			list(REMOVE_AT _input ${_performance})
+		endif()
+
 		list(FIND _input FAIL_ON_WARNINGS _fail_on_warn)
 		if("${_fail_on_warn}" GREATER "-1")
 			list(APPEND
@@ -211,4 +217,3 @@ function(add_cppcheck _name)
 	endif()
 
 endfunction()
-
