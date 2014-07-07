@@ -132,7 +132,7 @@ namespace OpenSwath
       // subtract the mean and divide by the standard deviation
       double mean = std::accumulate(data.begin(), data.end(), 0.0) / (double) data.size();
       double sqsum = 0;
-      for (std::vector<double>::iterator it = data.begin(); it != data.end(); it++)
+      for (std::vector<double>::iterator it = data.begin(); it != data.end(); ++it)
       {
         sqsum += (*it - mean) * (*it - mean);
       }
@@ -153,7 +153,7 @@ namespace OpenSwath
       standardize_data(data1);
       standardize_data(data2);
       std::map<int, double> result = calculateCrossCorrelation(data1, data2, maxdelay, lag);
-      for (std::map<int, double>::iterator it = result.begin(); it != result.end(); it++)
+      for (std::map<int, double>::iterator it = result.begin(); it != result.end(); ++it)
       {
         it->second = it->second / data1.size();
       }
@@ -168,11 +168,10 @@ namespace OpenSwath
       XCorrArrayType result;
       int datasize = boost::numeric_cast<int>(data1.size());
       int i, j, delay;
-      double sxy;
 
       for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag)
       {
-        sxy = 0;
+        double sxy = 0;
         for (i = 0; i < datasize; i++)
         {
           j = i + delay;
@@ -206,12 +205,12 @@ namespace OpenSwath
       {
         double sqsum1 = 0;
         double sqsum2 = 0;
-        for (std::vector<double>::iterator it = data1.begin(); it != data1.end(); it++)
+        for (std::vector<double>::iterator it = data1.begin(); it != data1.end(); ++it)
         {
           sqsum1 += (*it - mean1) * (*it - mean1);
         }
 
-        for (std::vector<double>::iterator it = data2.begin(); it != data2.end(); it++)
+        for (std::vector<double>::iterator it = data2.begin(); it != data2.end(); ++it)
         {
           sqsum2 += (*it - mean2) * (*it - mean2);
         }

@@ -862,7 +862,7 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
 
             local_traces.push_back(&input_mtraces[i]);
 
-            double diff_mz(0.0), diff_rt(0.0);
+            double diff_mz(0.0);
             Size ext_idx(i + 1);
 
             // std::cout << "__" << input_mtraces[i].getLabel() << " " << input_mtraces[i].getCentroidMZ() << " " << input_mtraces[i].getCentroidRT() << std::endl;
@@ -871,7 +871,7 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
             {
                 // update diff_mz and diff_rt
                 diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
-                diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
+                double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
 
                 if (diff_mz <= local_mz_range_ && diff_rt <= local_rt_range_)
                 {

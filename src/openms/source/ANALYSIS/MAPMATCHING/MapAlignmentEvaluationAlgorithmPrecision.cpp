@@ -75,7 +75,6 @@ namespace OpenMS
     Size gt_i_subtend_tool_j = 0;       //size of the intersection of the actual cons. feat. of the tool with the c.f. of GT
 
     double precision = 0;       //holds the output
-    double fraction = 0;        //intermediate step: the fraction
     double sum = 0;         //intermediate step: the sum
 
     //loop over all consensus features of the ground truth
@@ -124,7 +123,7 @@ namespace OpenMS
     }
     for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k)
     {
-      fraction = 0;
+      double fraction = 0;        //intermediate step: the fraction
 
       if (gt_subtend_tilde_tool[k] != 0)
       {

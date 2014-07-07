@@ -251,7 +251,7 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "\nadd row " << std::endl;
 #endif
-      model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"), 
+      model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"),
       LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
 
 #ifdef DEBUG_OPS
@@ -1493,13 +1493,14 @@ namespace OpenMS
       {
         if (find(accs.begin(), accs.end(), protein_accs[pa]) == accs.end())
           continue;
-        double weight = 1.;
+
         Int row = model_->getRowIndex((String("PROT_COV_") + protein_accs[pa]).c_str());
 #ifdef DEBUG_OPS
         std::cout << protein_accs[pa] << " index " << row << " " << model_->getElement(row, index) << std::endl;
 #endif
         if (model_->getElement(row, index) != 0.)
         {
+          const double weight = 1.;
           //                            std::cout << "getElement("<<protein_accs[pa]<<","<<index<<")="
           //                                                << cmodel_->getElement(row,index) << "\t";
           if (fabs(pep_score * weight - 1.) < 0.000001)

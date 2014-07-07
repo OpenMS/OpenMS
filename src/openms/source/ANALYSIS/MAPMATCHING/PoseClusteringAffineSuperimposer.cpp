@@ -534,13 +534,11 @@ namespace OpenMS
       const Size data_size = scaling_hash_1.getData().size();
       Size data_range_begin = 0;
       Size data_range_end = data_size;
-      double mean;
-      double stdev;
       for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
       {
         statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
-        mean = statistics.mean() + data_range_begin;
-        stdev = sqrt(statistics.variance());
+        double mean = statistics.mean() + data_range_begin;
+        double stdev = sqrt(statistics.variance());
         data_range_begin = floor(std::max<double>(mean - scaling_cutoff_stdev_multiplier * stdev, 0));
         data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
         const double log_outside_mean = scaling_hash_1.index2key(mean);
@@ -901,13 +899,11 @@ namespace OpenMS
         const Size data_size = rt_low_hash_.getData().size();
         Size data_range_begin = 0;
         Size data_range_end = data_size;
-        double mean;
-        double stdev;
         for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
-          mean = statistics.mean() + data_range_begin;
-          stdev = sqrt(statistics.variance());
+          double mean = statistics.mean() + data_range_begin;
+          double stdev = sqrt(statistics.variance());
           data_range_begin = floor(std::max<double>(mean - scaling_cutoff_stdev_multiplier * stdev, 0));
           data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
           const double outside_mean = rt_low_hash_.index2key(mean);
@@ -932,13 +928,11 @@ namespace OpenMS
         const Size data_size = rt_high_hash_.getData().size();
         Size data_range_begin = 0;
         Size data_range_end = data_size;
-        double mean;
-        double stdev;
         for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
-          mean = statistics.mean() + data_range_begin;
-          stdev = sqrt(statistics.variance());
+          double mean = statistics.mean() + data_range_begin;
+          double stdev = sqrt(statistics.variance());
           data_range_begin = floor(std::max<double>(mean - scaling_cutoff_stdev_multiplier * stdev - 1, 0));
           data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 2, data_size));
           const double outside_mean = rt_high_hash_.index2key(mean);

@@ -107,7 +107,6 @@ namespace OpenMS
 
   double PeakIntensityPredictor::map_(const vector<double> & data)
   {
-    double c_x = 0.0;
     double sum_g_i, g_i;
     Matrix<double> code = llm_.getCodebooks();
     vector<double> wout = llm_.getVectorWout();
@@ -131,7 +130,7 @@ namespace OpenMS
     //linear mapping
     for (Size i = 0; i < code.rows(); i++)
     {
-      c_x = 0.0;
+      double c_x = 0.0;
       for (Size c = 0; c < code.cols(); c++)
       {
         c_x += (A.getValue(i, c) * (data[c] - code.getValue(i, c)));

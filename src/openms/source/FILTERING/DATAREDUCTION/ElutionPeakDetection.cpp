@@ -119,12 +119,12 @@ namespace OpenMS
 
   double ElutionPeakDetection::computeApexSNR(const MassTrace& tr)
   {
-    double snr(0.0);
     double noise_level(computeMassTraceNoise(tr));
-    double smoothed_apex_int(tr.getMaxIntensity(true));
 
+    double snr = 0;
     if (noise_level > 0.0)
     {
+      double smoothed_apex_int(tr.getMaxIntensity(true));
       snr = smoothed_apex_int / noise_level;
     }
 
@@ -380,7 +380,7 @@ namespace OpenMS
   void ElutionPeakDetection::detectElutionPeaks_(MassTrace& mt, std::vector<MassTrace>& single_mtraces)
   {
     //smooth data
-    std::vector<double> smoothed_data;
+    //std::vector<double> smoothed_data;
     // Size win_size = mt.getFWHMScansNum();
     double scan_time(mt.getScanTime());
     Size win_size = std::ceil(chrom_fwhm_ / scan_time);
@@ -653,7 +653,9 @@ namespace OpenMS
     MSSpectrum<PeakType>::iterator iter = spectrum.begin();
     std::vector<double> smoothed_intensities;
     for (; iter != spectrum.end(); ++iter)
+    {
       smoothed_intensities.push_back(iter->getIntensity());
+    }
     mt.setSmoothedIntensities(smoothed_intensities);
     //alternative end
 

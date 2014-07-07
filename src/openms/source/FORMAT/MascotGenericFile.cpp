@@ -74,7 +74,7 @@ namespace OpenMS
 
     // special modifications, see "updateMembers_" method below:
     defaults_.setValue("special_modifications", "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)", "Modifications with specificity groups that are used by Mascot and have to be treated specially", ListUtils::create<String>("advanced"));
-    // list from Mascot 2.4; there's also "Phospho (STY)", but that can be 
+    // list from Mascot 2.4; there's also "Phospho (STY)", but that can be
     // represented using "Phospho (ST)" and "Phospho (Y)"
 
     defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
@@ -112,17 +112,17 @@ namespace OpenMS
     // and "Deamidated (Q)", but Mascot only understands "Deamidated (NQ)"
     String special_mods = param_.getValue("special_modifications");
     vector<String> mod_groups = ListUtils::create<String>(special_mods);
-    for (StringList::const_iterator mod_it = mod_groups.begin(); 
+    for (StringList::const_iterator mod_it = mod_groups.begin();
          mod_it != mod_groups.end(); ++mod_it)
     {
       String mod = mod_it->prefix(' ');
       String residues = mod_it->suffix('(').prefix(')');
-      for (String::const_iterator res_it = residues.begin(); 
+      for (String::const_iterator res_it = residues.begin();
            res_it != residues.end(); ++res_it)
       {
         mod_group_map_[mod + " (" + String(*res_it) + ")"] = *mod_it;
       }
-    }    
+    }
   }
 
   void MascotGenericFile::store(const String& filename, const PeakMap& experiment)
@@ -175,7 +175,7 @@ namespace OpenMS
         filtered_mods.insert(pos->second);
       }
     }
-    for (set<String>::const_iterator it = filtered_mods.begin(); 
+    for (set<String>::const_iterator it = filtered_mods.begin();
          it != filtered_mods.end(); ++it)
     {
       writeParameterHeader_(tag, os);
@@ -312,12 +312,11 @@ namespace OpenMS
       os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
       os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
 
-      bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
-
       int charge(precursor.getCharge());
 
       if (charge != 0)
       {
+        bool skip_spectrum_charges(param_.getValue("skip_spectrum_charges").toBool());
         if (!skip_spectrum_charges)
         {
           os << "CHARGE=" << charge << "\n";

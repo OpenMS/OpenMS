@@ -567,10 +567,10 @@ namespace OpenMS
     }
 
     Size j = 0;
-    double minimal_fdr = 1.;
 
     if (q_value)
     {
+      double minimal_fdr = 1.;
       for (Size i = 0; i != target_scores.size(); ++i)
       {
         if (decoy_scores.empty())

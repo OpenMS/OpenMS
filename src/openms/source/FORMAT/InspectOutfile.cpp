@@ -355,7 +355,7 @@ namespace OpenMS
     /// @todo replace this by general FastA implementation? (Martin)
     accession.clear();
     accession_type.clear();
-    pair<String, String> p;
+
     // if it's a FASTA line
     if (line.hasPrefix(">"))
       line.erase(0, 1);
@@ -603,7 +603,6 @@ namespace OpenMS
     char * index_record = new char[record_length_];    // to copy one record from the index file
     Size database_pos(0), snd_database_pos(0);     // their sizes HAVE TO BE 4 bytes
     stringbuf sequence;
-    streampos index_pos(0);
 
     for (vector<Size>::const_iterator wr_i = wanted_records.begin(); wr_i != wanted_records.end(); ++wr_i)
     {
@@ -632,10 +631,9 @@ namespace OpenMS
       // check if we have to reverse the database_pos part (which is saved in little endian)
       if (OPENMS_IS_BIG_ENDIAN)
       {
-        char tmp;
         for (Size i = 0; i < trie_db_pos_length_ / 2; i++)
         {
-          tmp = index_record[db_pos_length_ + i];
+          char tmp = index_record[db_pos_length_ + i];
           index_record[db_pos_length_ + i] = index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
           index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i] = tmp;
         }
@@ -656,10 +654,9 @@ namespace OpenMS
       // fixing the above "suboptimal" code
       if (OPENMS_IS_BIG_ENDIAN)
       {
-        char tmp;
         for (Size i = 0; i < trie_db_pos_length_ / 2; i++)
         {
-          tmp = index_record[db_pos_length_ + i];
+          char tmp = index_record[db_pos_length_ + i];
           index_record[db_pos_length_ + i] = index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
           index_record[db_pos_length_ + trie_db_pos_length_ - 1 - i] = tmp;
         }
@@ -783,10 +780,9 @@ namespace OpenMS
             memcpy(record, &source_database_pos, db_pos_length_);             // source database position
             if (OPENMS_IS_BIG_ENDIAN)
             {
-              char tmp;
               for (Size i = 0; i < db_pos_length_ / 2; i++)
               {
-                tmp = record[i];
+                char tmp = record[i];
                 record[i] = record[db_pos_length_ - 1 - i];
                 record[db_pos_length_ - 1 - i] = tmp;
               }
@@ -799,10 +795,9 @@ namespace OpenMS
             // fix the above "suboptimal" code
             if (OPENMS_IS_BIG_ENDIAN)
             {
-              char tmp;
               for (Size i = 0; i < trie_db_pos_length_ / 2; i++)
               {
-                tmp = record[db_pos_length_ + i];
+                char tmp = record[db_pos_length_ + i];
                 record[db_pos_length_ + i] = record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
                 record[db_pos_length_ + trie_db_pos_length_ - 1 - i] = tmp;
               }
@@ -876,10 +871,9 @@ namespace OpenMS
       memcpy(record, &source_database_pos, db_pos_length_);       // source database position
       if (OPENMS_IS_BIG_ENDIAN)
       {
-        char tmp;
         for (Size i = 0; i < db_pos_length_ / 2; i++)
         {
-          tmp = record[i];
+          char tmp = record[i];
           record[i] = record[db_pos_length_ - 1 - i];
           record[db_pos_length_ - 1 - i] = tmp;
         }
@@ -890,10 +884,9 @@ namespace OpenMS
       // fix the above "suboptimal" code
       if (OPENMS_IS_BIG_ENDIAN)
       {
-        char tmp;
         for (Size i = 0; i < trie_db_pos_length_ / 2; i++)
         {
-          tmp = record[db_pos_length_ + i];
+          char tmp = record[db_pos_length_ + i];
           record[db_pos_length_ + i] = record[db_pos_length_ + trie_db_pos_length_ - 1 - i];
           record[db_pos_length_ + trie_db_pos_length_ - 1 - i] = tmp;
         }
