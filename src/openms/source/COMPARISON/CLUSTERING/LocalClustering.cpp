@@ -65,7 +65,6 @@ void LocalClustering::init(const std::vector<double> &data_x, const std::vector<
     // fill the grid with points to be clustered (initially each cluster contains a single point)
     for (unsigned i = 0; i < data_x.size(); ++i)
     {
-        //std::cout << "i = " << i << "    cell count = " << grid_.getCellCount() << "\n";
         
         Point position(data_x[i],data_y[i]);
         Rectangle box(position,position);
@@ -80,10 +79,8 @@ void LocalClustering::init(const std::vector<double> &data_x, const std::vector<
         clusters_.insert(std::make_pair(i,cluster));
         
         // register on hash grid
-        //std::cout << "(x,y) = (" << position.getX() << ", " << position.getY() << ")    (i,j) = (" << grid_.getIndex(position).first << ", " << grid_.getIndex(position).second << ")\n";
         grid_.addCluster(grid_.getIndex(position), i);
     }
-    //std::cout << "\n";
     
     // fill list of minimum distances
     std::map<int, Cluster>::iterator iterator = clusters_.begin();
@@ -115,7 +112,6 @@ void LocalClustering::cluster()
     // combine clusters until all have been moved to the final list
     while (clusters_.size() > 0)
     {
-        //std::cout << "size of cluster list = " << clusters_.size() << "\n";
         
         MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
         MinimumDistance smallest_distance(*smallest_distance_it);
@@ -221,8 +217,6 @@ void LocalClustering::extendClustersY()
     grid_spacing_y_new.push_back(grid_spacing_y.front());
     grid_spacing_y_new.push_back(grid_spacing_y.back());
     HashGrid2 grid_x_only(grid_spacing_x, grid_spacing_y_new);
-    
-    std::cout << "size x = " << grid_spacing_x.size() << "    size y = " << grid_spacing_y_new.size() << "\n";
     
     // register final clusters on the new hash grid
     for (std::map<int, Cluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
