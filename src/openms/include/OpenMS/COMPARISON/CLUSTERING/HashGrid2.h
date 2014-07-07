@@ -68,7 +68,7 @@ class OPENMS_DLLAPI HashGrid2
      *
      * @note Vectors are assumed to be sorted.
      */
-    HashGrid2(std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y);
+    HashGrid2(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y);
     
     /**
     * @brief returns grid spacing in x direction

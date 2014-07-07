@@ -40,7 +40,7 @@
 namespace OpenMS
 {
     
-HashGrid2::HashGrid2(std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
+HashGrid2::HashGrid2(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y)
 :grid_spacing_x_(grid_spacing_x), grid_spacing_y_(grid_spacing_y), range_x_(grid_spacing_x.front(),grid_spacing_x.back()), range_y_(grid_spacing_y.front(),grid_spacing_y.back())
 {
 }
@@ -113,7 +113,7 @@ HashGrid2::CellIndex HashGrid2::getIndex(Point position) const
         j = std::lower_bound(grid_spacing_y_.begin(), grid_spacing_y_.end(), position.getY(), std::less_equal< double >()) - grid_spacing_y_.begin();
     }
     
-    std::cout << "in getIndex():    (x,y) = (" << position.getX() << "," << position.getY() <<")    (i,j) = (" << i << "," << j << ")\n"; 
+    //std::cout << "in getIndex():    (x,y) = (" << position.getX() << "," << position.getY() <<")    (i,j) = (" << i << "," << j << ")\n"; 
     
     if (i < 0 || j < 0)
     {

@@ -88,7 +88,7 @@ class OPENMS_DLLAPI LocalClustering
      * @param grid_spacing_y    grid spacing in y-direction
      * @param scaling_y    scaling in y-direction
      */
-    LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<int> properties_A, std::vector<int> properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y);
+    LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y);
 
     /**
      * @brief initialises all data structures

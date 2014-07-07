@@ -47,7 +47,7 @@
 namespace OpenMS
 {
     
-LocalClustering::LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<int> properties_A, std::vector<int> properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y)
+LocalClustering::LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y)
 : grid_(grid_spacing_x,grid_spacing_y), scaling_y_(scaling_y)
 {
     init(data_x, data_y, properties_A, properties_B);
