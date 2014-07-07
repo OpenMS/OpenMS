@@ -72,6 +72,7 @@ endmacro()
 # create tests for all files in the individual file groups
 add_cpplint_tests("openswathalgo")
 add_cpplint_tests("openms")
+add_cpplint_tests("superhirn")
 add_cpplint_tests("openms_gui")
 add_cpplint_tests("topp")
 add_cpplint_tests("utils")

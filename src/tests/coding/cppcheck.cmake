@@ -68,6 +68,7 @@ set(CPPCHECK_INCLUDEPATH_ARG ${OPENMS_GUI_INCLUDE_DIRS})
 # --------------------------------------------------------------------------
 add_cpp_check_tests("openswathalgo")
 add_cpp_check_tests("openms")
+add_cpp_check_tests("superhirn")
 add_cpp_check_tests("openms_gui")
 add_cpp_check_tests("topp")
 add_cpp_check_tests("utils")
