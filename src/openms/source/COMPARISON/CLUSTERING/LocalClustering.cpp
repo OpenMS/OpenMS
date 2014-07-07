@@ -115,8 +115,6 @@ void LocalClustering::cluster()
     // combine clusters until all have been moved to the final list
     while (clusters_.size() > 0)
     {
-        std::cout << "cluster size = " << clusters_.size() << "\n";
-        
         MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
         MinimumDistance smallest_distance(*smallest_distance_it);
         distances_.erase(smallest_distance_it);
@@ -213,6 +211,8 @@ void LocalClustering::cluster()
 
 void LocalClustering::extendClustersY()
 {
+    std::cout << "Extending clusters in y-direction.\n";
+    
     // construct new grid (grid only in x-direction, single cell in y-direction)
     std::vector<double> grid_spacing_x = grid_.getGridSpacingX();
     std::vector<double> grid_spacing_y = grid_.getGridSpacingY();
@@ -221,12 +221,17 @@ void LocalClustering::extendClustersY()
     grid_spacing_y_new.push_back(grid_spacing_y.back());
     HashGrid2 grid_x_only(grid_spacing_x, grid_spacing_y_new);
     
+    std::cout << "size x = " << grid_spacing_x.size() << "    size y = " << grid_spacing_y_new.size() << "\n";
+    
     // register final clusters on the new hash grid
     for (std::map<int, Cluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
     {
         int cluster_index = it->first;
         Cluster cluster = it->second;
         grid_x_only.addCluster(grid_x_only.getIndex(cluster.getCentre()), cluster_index);
+        
+        std::cout << "    cell index = " << grid_x_only.getIndex(cluster.getCentre()).first << "  " << grid_x_only.getIndex(cluster.getCentre()).second << "\n";
+        std::cout << "    cell non-empty = " << grid_x_only.isNonEmptyCell(grid_x_only.getIndex(cluster.getCentre())) << "\n";
     }
     
     // scan through x on the grid
@@ -235,6 +240,8 @@ void LocalClustering::extendClustersY()
         CellIndex grid_index(cell,0);
         if (grid_x_only.isNonEmptyCell(grid_index))
         {
+            std::cout << "    non-empty cell = " << cell << "\n";
+        
             std::list<int> cluster_indices = grid_x_only.getClusters(grid_index);    // indices of clusters in this x-range
             if (cluster_indices.size() > 1)
             {

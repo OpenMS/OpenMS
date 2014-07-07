@@ -95,17 +95,29 @@ std::list<int> HashGrid2::getClusters(CellIndex cell_index) const
 
 HashGrid2::CellIndex HashGrid2::getIndex(Point position) const
 {
+    if (position.getX() < range_x_.first || position.getX() > range_x_.second || position.getY() < range_y_.first || position.getY() > range_y_.second)
+    {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"This (x,y) position is outside the range of the grid.");
+    }
+    
     int i = -1;
     int j = -1;
     
     if (range_x_.first <= position.getX() && position.getX() <= range_x_.second)
     {
-        i = std::lower_bound(grid_spacing_x_.begin(), grid_spacing_x_.end(), position.getX()) - grid_spacing_x_.begin();
+        i = std::lower_bound(grid_spacing_x_.begin(), grid_spacing_x_.end(), position.getX(), std::less_equal< double >()) - grid_spacing_x_.begin();
     }
     
     if (range_y_.first <= position.getY() && position.getY() <= range_y_.second)
     {
-        j = std::lower_bound(grid_spacing_y_.begin(), grid_spacing_y_.end(), position.getY()) - grid_spacing_y_.begin();
+        j = std::lower_bound(grid_spacing_y_.begin(), grid_spacing_y_.end(), position.getY(), std::less_equal< double >()) - grid_spacing_y_.begin();
+    }
+    
+    std::cout << "in getIndex():    (x,y) = (" << position.getX() << "," << position.getY() <<")    (i,j) = (" << i << "," << j << ")\n"; 
+    
+    if (i < 0 || j < 0)
+    {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Cell index is negative.","");
     }
     
     return HashGrid2::CellIndex (i,j);

@@ -123,6 +123,9 @@ class OPENMS_DLLAPI HashGrid2
     * 
     * @param cell_index    cell index (i,j) on the hash grid
     * @return true if there are clusters in this cell
+    * 
+    * @throw Exception::IllegalArgument if the coordinates (x,y) lie outside the grid.
+    * @throw Exception::InvalidValue if one of the two indices is negative.
     */
     bool isNonEmptyCell(CellIndex cell_index) const;
 
