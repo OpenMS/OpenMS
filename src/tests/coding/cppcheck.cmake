@@ -53,7 +53,8 @@ macro(add_cpp_check_tests _directory)
   foreach(_file_to_test ${_source_files})
     string( REGEX MATCH ${SOURCE_FILE_REGEX} _is_source_file ${_file_to_test} )
     if(_is_source_file)
-      add_cppcheck_sources(${_file_to_test}
+      set(_test_name "src/${_directory}/${_file_to_test}")
+      add_cppcheck_sources(${_test_name}
                            ${OPENMS_HOST_DIRECTORY}/src/${_directory}/${_file_to_test}
                            STYLE
                            FAIL_ON_WARNINGS)
