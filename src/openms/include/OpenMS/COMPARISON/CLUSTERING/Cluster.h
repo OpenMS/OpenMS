@@ -68,12 +68,12 @@ class OPENMS_DLLAPI Cluster
     /**
      * @brief initialises all data structures
      */
-    Cluster(Point centre, Rectangle bounding_box, std::vector<int> point_indices, int property_A, std::vector<int> properties_B);
+    Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B);
 
     /**
      * @brief initialises all data structures
      */
-    Cluster(Point centre, Rectangle bounding_box, std::vector<int> point_indices);
+    Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices);
 
     /**
      * @brief returns cluster centre
