@@ -416,19 +416,19 @@ namespace OpenMS
   double MS2ConsensusSpectrum::getLCElutionPeakSimilarity(MS2Fragment * frag)
   {
 
-    double startTR = frag->getStartTR();
-    if (startTR > getStartTR())
-    {
-      startTR = getStartTR();
-    }
+    //double startTR = frag->getStartTR();
+    //if (startTR > getStartTR())
+    //{
+    //  startTR = getStartTR();
+    //}
 
-    double totLCSpec = getEndTR() - startTR;
-    double startLCSpec = getTR() - startTR;
-    double corSpec = startLCSpec / totLCSpec;
+    //double totLCSpec = getEndTR() - startTR;
+    //double startLCSpec = getTR() - startTR;
+    //double corSpec = startLCSpec / totLCSpec;
 
-    double totLCMS2 = frag->getEndTR() - startTR;
-    double startLCMS2 = frag->getTR() - startTR;
-    double corMS2 = startLCMS2 / totLCMS2;
+    //double totLCMS2 = frag->getEndTR() - startTR;
+    //double startLCMS2 = frag->getTR() - startTR;
+    //double corMS2 = startLCMS2 / totLCMS2;
 
     ///////////
     double av = fabs(getEndTR() - frag->getEndTR());

@@ -240,11 +240,9 @@ protected:
     inspect_out(false),
     blind_only(false),
     blind(false),
-    no_tmp_dbs(false),
     monoisotopic(false);
 
     double p_value_threshold(1.0);
-    double cutoff_p_value(1.0);
 
     char separator = '/';
 
@@ -487,7 +485,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      no_tmp_dbs = getFlag_("no_tmp_dbs");
+      bool no_tmp_dbs = getFlag_("no_tmp_dbs");
 
       // blind - running inspect in blind mode after running a normal mode to minimize the database
       blind = getFlag_("blind:blind");
@@ -664,7 +662,7 @@ protected:
 
     if (blind && inspect_in)
     {
-      cutoff_p_value = getDoubleOption_("blind:p_value_blind");
+      double cutoff_p_value = getDoubleOption_("blind:p_value_blind");
       if ((cutoff_p_value < 0) || (cutoff_p_value > 1))
       {
         writeLog_("Illegal p-value for blind search. Aborting!");
@@ -677,7 +675,6 @@ protected:
     //-------------------------------------------------------------
     // checking accessability of files
 
-    bool existed(false);
     Size file_tag(0);
 
     for (map<String, Size>::const_iterator files_it = files.begin(); files_it != files.end(); ++files_it)
@@ -699,7 +696,7 @@ protected:
         break;
       }
 
-      existed = File::exists(string_buffer);
+      bool existed = File::exists(string_buffer);
       if ((file_tag & writable) && !File::writable(string_buffer))
       {
         exit_code = CANNOT_WRITE_OUTPUT_FILE;

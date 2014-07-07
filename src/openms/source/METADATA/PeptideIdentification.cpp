@@ -310,11 +310,9 @@ namespace OpenMS
 
   void PeptideIdentification::getNonReferencingHits(const std::vector<String>& accessions, std::vector<PeptideHit>& peptide_hits) const
   {
-    bool found = false;
-
     for (Size i = 0; i < hits_.size(); ++i)
     {
-      found = false;
+      bool found = false;
       vector<String>::const_iterator it = hits_[i].getProteinAccessions().begin();
       while (it != hits_[i].getProteinAccessions().end())
       {

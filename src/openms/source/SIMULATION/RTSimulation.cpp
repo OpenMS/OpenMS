@@ -658,12 +658,10 @@ namespace OpenMS
     // how often do we move over the distortions
     const UInt filter_iterations = param_.getValue("column_condition:distortion");
 
-    double previous, current, next;
-
     for (UInt fi = 0; fi < filter_iterations; ++fi)
     {
       // initialize the previous value on position 0
-      previous = (double) experiment[0].getMetaValue("distortion");
+      double previous = (double) experiment[0].getMetaValue("distortion");
       boost::uniform_real<double> udist(1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01); // distortion gets worse round by round
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
       LOG_WARN << "d <- c(" << previous << ", ";
@@ -671,8 +669,8 @@ namespace OpenMS
 #endif
       for (Size scan = 1; scan < experiment.size() - 1; ++scan)
       {
-        current = (double) experiment[scan].getMetaValue("distortion");
-        next = (double) experiment[scan + 1].getMetaValue("distortion");
+        double current = (double) experiment[scan].getMetaValue("distortion");
+        double next = (double) experiment[scan + 1].getMetaValue("distortion");
 
         double smoothed = (previous + current + next) / 3.0;
         smoothed *= udist(rnd_gen_->getTechnicalRng());
