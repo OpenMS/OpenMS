@@ -60,9 +60,14 @@ sudo apt-get install -qq \
                      --no-install-recommends doxygen \
                      graphviz
 
-# install cppcheck if we want to perform style tests
+# build custom cppcheck if we want to perform style tests
 if [ $ENABLE_STYLE_TESTING == "On" ]; then
-  sudo apt-get install -qq cppcheck
+  sudo apt-get install -qq libpcre3-dev
+  git clone git://github.com/danmar/cppcheck.git
+  pushd cppcheck
+  git checkout 1.65
+  CXX=clang++ make SRCDIR=build CFGDIR=`pwd`/cfg HAVE_RULES=yes -j4
+  popd
 else
   # regular builds .. get the search engine executables
   svn checkout http://svn.code.sf.net/p/open-ms/code/THIRDPARTY/SEARCHENGINES/Linux/64bit/ _searchengines
