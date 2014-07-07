@@ -115,6 +115,8 @@ void LocalClustering::cluster()
     // combine clusters until all have been moved to the final list
     while (clusters_.size() > 0)
     {
+        //std::cout << "size of cluster list = " << clusters_.size() << "\n";
+        
         MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
         MinimumDistance smallest_distance(*smallest_distance_it);
         distances_.erase(smallest_distance_it);
@@ -200,13 +202,12 @@ void LocalClustering::cluster()
             if (findNearestNeighbour(clusters_.find(*cluster_index)->second,*cluster_index))
             {
                 Cluster c = clusters_.find(*cluster_index)->second;
-                grid_.removeCluster(std::make_pair(c.getCentre().getX(),c.getCentre().getY()), *cluster_index);    // remove from grid
+                grid_.removeCluster(grid_.getIndex(c.getCentre()), *cluster_index);    // remove from grid
                 clusters_.erase(clusters_.find(*cluster_index));    // remove from cluster list
            }
         }
                  
     }
-    
 }
 
 void LocalClustering::extendClustersY()
