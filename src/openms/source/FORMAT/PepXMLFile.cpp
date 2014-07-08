@@ -470,6 +470,7 @@ namespace OpenMS
       }
     }
 
+    analysis_summary_ = false;
     wrong_experiment_ = false;
     // without experiment name, don't care about these two:
     seen_experiment_ = exp_name_.empty();
@@ -554,10 +555,16 @@ namespace OpenMS
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
     }
-    else if (wrong_experiment_)
+    else if (element == "analysis_summary") // parent: "msms_pipeline_analysis"
+    {
+      // this element can contain "search summary" elements, which we only
+      // expect as subelements of "msms_run_summary", so skip the whole thing
+      analysis_summary_ = true;
+    }
+    else if (wrong_experiment_ || analysis_summary_)
     {
       // do nothing here (this case exists to prevent parsing of elements for
-      // experiments we're not interested in)
+      // experiments we're not interested in or for analysis summaries)
     }
     // now, elements occurring more frequently are generally closer to the top
     else if (element == "search_score") // parent: "search_hit"
@@ -991,9 +998,14 @@ namespace OpenMS
 
     // cout << "End: " << element << "\n";
 
-    if (wrong_experiment_)
+    if (element == "analysis_summary")
     {
-      // do nothing here (skip all elements that belong to the wrong experiment)
+      analysis_summary_ = false;
+    }
+    else if (wrong_experiment_ || analysis_summary_)
+    {
+      // do nothing here (skip all elements that belong to the wrong experiment
+      // or to an analysis summary)
     }
     else if (element == "search_hit")
     {

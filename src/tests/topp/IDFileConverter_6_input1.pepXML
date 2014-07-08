@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <msms_pipeline_analysis xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd" date="2013-06-24T09:49:04Z" summary_xml="F025589.xml">
+<analysis_summary analysis="my analysis" time="2013-06-23T12:34:56.789-04:00" version="">
+<summary>
+<search_summary>this can contain
+all kinds of text
+</search_summary>
+</summary>
+</analysis_summary>
 <msms_run_summary base_name="" raw_data_type="" raw_data="">
 <sample_enzyme name="Trypsin" description="" fidelity="specific" independent="0">
 <specificity sense="C" min_spacing="1" cut="KR" no_cut="P"/>

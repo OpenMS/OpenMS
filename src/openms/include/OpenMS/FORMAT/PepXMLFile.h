@@ -201,6 +201,9 @@ private:
     /// Hydrogen data (for mass types)
     Element hydrogen_;
 
+    /// Are we currently in an "analysis_summary" element (should be skipped)?
+    bool analysis_summary_;
+
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
     bool wrong_experiment_;
 
