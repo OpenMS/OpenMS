@@ -62,6 +62,9 @@ if(CPPCHECK_EXECUTABLE)
 	get_filename_component(_cppcheckmoddir ${CMAKE_CURRENT_LIST_FILE} PATH)
 	set(_cppcheckdummyfile "${_cppcheckmoddir}/Findcppcheck.cpp")
 
+	# add inline suppression argument
+	set(CPPCHECK_INLINE_SUPPRESSION_ARG "--inline-suppr")
+
 	# Check for the two types of command line arguments by just trying them
 	execute_process(COMMAND
 		"${CPPCHECK_EXECUTABLE}"
@@ -136,6 +139,7 @@ find_package_handle_standard_args(cppcheck
 	CPPCHECK_UNUSEDFUNC_ARG
 	CPPCHECK_STYLE_ARG
 	CPPCHECK_PERFORMANCE_ARG
+	CPPCHECK_INLINE_SUPPRESSION_ARG
 	CPPCHECK_INCLUDEPATH_ARG
 	CPPCHECK_QUIET_ARG)
 

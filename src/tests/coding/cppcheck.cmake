@@ -61,6 +61,7 @@ macro(add_cpp_check_tests _directory)
                            ${OPENMS_HOST_DIRECTORY}/src/${_directory}/${_file_to_test}
                            STYLE
                            PERFORMANCE
+                           INLINE_SUPPRESSION
                            FAIL_ON_WARNINGS)
     endif()
   endforeach()

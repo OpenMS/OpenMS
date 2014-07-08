@@ -65,6 +65,12 @@ function(add_cppcheck_sources _targetname)
 			list(REMOVE_AT _input ${_performance})
 		endif()
 
+		list(FIND _input INLINE_SUPPRESSION _inline_suppr)
+		if("${_inline_suppr}" GREATER "-1")
+			list(APPEND _cppcheck_args ${CPPCHECK_INLINE_SUPPRESSION_ARG})
+			list(REMOVE_AT _input ${_inline_suppr})
+		endif()
+
 		list(FIND _input FAIL_ON_WARNINGS _fail_on_warn)
 		if("${_fail_on_warn}" GREATER "-1")
 			list(APPEND
@@ -157,6 +163,18 @@ function(add_cppcheck _name)
 		list(FIND ARGN POSSIBLE_ERROR _poss_err)
 		if("${_poss_err}" GREATER "-1")
 			list(APPEND _cppcheck_args ${CPPCHECK_POSSIBLEERROR_ARG})
+		endif()
+
+		list(FIND _input PERFORMANCE _performance)
+		if("${_performance}" GREATER "-1")
+			list(APPEND _cppcheck_args ${CPPCHECK_PERFORMANCE_ARG})
+			list(REMOVE_AT _input ${_performance})
+		endif()
+
+		list(FIND _input INLINE_SUPPRESSION _inline_suppr)
+		if("${_inline_suppr}" GREATER "-1")
+			list(APPEND _cppcheck_args ${CPPCHECK_INLINE_SUPPRESSION_ARG})
+			list(REMOVE_AT _input ${_inline_suppr})
 		endif()
 
 		list(FIND _input FAIL_ON_WARNINGS _fail_on_warn)
