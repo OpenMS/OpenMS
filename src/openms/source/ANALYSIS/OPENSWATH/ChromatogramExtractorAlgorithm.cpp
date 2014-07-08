@@ -71,7 +71,8 @@ namespace OpenMS
     // advance the mz / int iterator until we hit the m/z value of the next transition
     while (mz_it != mz_end && (*mz_it) < mz)
     {
-      mz_it++; int_it++;
+      mz_it++; 
+      int_it++;
     }
 
     // walk right and left and add to our intensity
@@ -81,7 +82,8 @@ namespace OpenMS
     // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
     if (mz_it == mz_end)
     {
-      mz_walker--; int_walker--;
+      --mz_walker; 
+      --int_walker;
     }
 
     // add the current peak if it is between right and left
@@ -95,23 +97,27 @@ namespace OpenMS
     int_walker = int_it;
     if (mz_it != mz_start)
     {
-      mz_walker--;
-      int_walker--;
+      --mz_walker;
+      --int_walker;
     }
     while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
     {
-      integrated_intensity += (*int_walker); mz_walker--; int_walker--;
+      integrated_intensity += (*int_walker); 
+      --mz_walker; 
+      --int_walker;
     }
     mz_walker  = mz_it;
     int_walker = int_it;
     if (mz_it != mz_end)
     {
-      mz_walker++;
-      int_walker++;
+      ++mz_walker;
+      ++int_walker;
     }
     while (mz_walker != mz_end && (*mz_walker) > left && (*mz_walker) < right)
     {
-      integrated_intensity += (*int_walker); mz_walker++; int_walker++;
+      integrated_intensity += (*int_walker); 
+      ++mz_walker; 
+      ++int_walker;
     }
   }
 

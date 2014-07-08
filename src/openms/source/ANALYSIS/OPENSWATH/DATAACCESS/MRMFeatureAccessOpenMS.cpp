@@ -46,7 +46,7 @@ namespace OpenMS
   {
     std::vector<String> ids;
     mrmfeature.getFeatureIDs(ids);
-    for (std::vector<String>::iterator it = ids.begin(); it != ids.end(); it++)
+    for (std::vector<String>::iterator it = ids.begin(); it != ids.end(); ++it)
     {
       boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getFeature(*it)));
       features_[*it] = ptr;
@@ -66,7 +66,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); it++)
+    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); ++it)
     {
       rt.push_back(it->getX());
     }
@@ -76,7 +76,7 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); it++)
+    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); ++it)
     {
       intens.push_back(it->getY());
     }

@@ -284,14 +284,10 @@ namespace OpenMS
 
   double Residue::getPiValue() const
   {
-    double temp1 = 0.0;
-    double temp2 = 0.0;
-    double temp3 = 0.0;
     double pi = 0;
-
-    temp1 = getPka();
-    temp2 = getPkb();
-    temp3 = getPkc();
+    double temp1 = getPka();
+    double temp2 = getPkb();
+    double temp3 = getPkc();
 
     if (temp3 >= 0 && temp3 < temp1)
     {

@@ -285,14 +285,14 @@ protected:
 #endif
         {
           for (FeatureMap<Feature>::iterator feature_it = featureFile.begin();
-               feature_it != featureFile.end(); feature_it++)
+               feature_it != featureFile.end(); ++feature_it)
           {
             out_featureFile.push_back(*feature_it);
           }
           for (std::vector<ProteinIdentification>::iterator protid_it =
                  featureFile.getProteinIdentifications().begin();
                protid_it != featureFile.getProteinIdentifications().end();
-               protid_it++)
+               ++protid_it)
           {
             out_featureFile.getProteinIdentifications().push_back(*protid_it);
           }

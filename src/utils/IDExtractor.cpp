@@ -113,14 +113,9 @@ protected:
     vector<PeptideHit> temp_peptide_hits;
     vector<ProteinHit> temp_protein_hits;
     vector<ProteinHit> chosen_protein_hits;
-    String inputfile_name = "";
-    String outputfile_name = "";
-    Size number_of_peptides = 0;
-    Size number_of_rand_invokations = 0;
     map<String, vector<PeptideIdentification> > identifiers;
     PeptideIdentification temp_identification;
     vector<String> chosen_ids;
-    bool best_hits = false;
     vector<pair<double, PeptideIdentification> > identifications_with_scores;
     vector<pair<double, PeptideIdentification> >::iterator it = identifications_with_scores.begin();
     vector<PeptideIdentification> temp_identifications;
@@ -130,11 +125,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    inputfile_name = getStringOption_("in");
-    outputfile_name = getStringOption_("out");
-    number_of_peptides = getIntOption_("number_of_peptides");
-    number_of_rand_invokations = getIntOption_("number_of_rand_invokations");
-    best_hits = getFlag_("best_hits");
+    String inputfile_name = getStringOption_("in");
+    String outputfile_name = getStringOption_("out");
+    Size number_of_peptides = getIntOption_("number_of_peptides");
+    Size number_of_rand_invokations = getIntOption_("number_of_rand_invokations");
+    bool best_hits = getFlag_("best_hits");
 
     //-------------------------------------------------------------
     // reading input

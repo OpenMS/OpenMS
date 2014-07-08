@@ -114,7 +114,7 @@ namespace OpenMS
 // ------------------------------------------------------------------------------
 
       thefeatures.push_back(f);
-      p++;
+      ++p;
     }
 
     return thefeatures;
