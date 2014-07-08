@@ -114,13 +114,11 @@ namespace OpenMS
         // loop over patterns i.e. cluster each of the corresponding filter results
         for (unsigned i = 0; i < filter_results.size(); ++i)
         {
-            std::cout << "i = " << i << "\n";
-            
+            std::cout << "Start default clustering.\n";
             LocalClustering clustering(filter_results[i].getMz(), filter_results[i].getRt(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
-            std::cout << "   before cluster()\n";
             clustering.cluster();
-            std::cout << "   after cluster()\n";
-            //clustering.extendClustersY();
+            std::cout << "End default clustering.\n";
+            clustering.extendClustersY();
             //clustering.removeSmallClustersY(rt_minimum_);
             cluster_results.push_back(clustering.getResults());
             

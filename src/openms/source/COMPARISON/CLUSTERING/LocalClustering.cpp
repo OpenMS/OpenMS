@@ -208,6 +208,8 @@ void LocalClustering::cluster()
 
 void LocalClustering::extendClustersY()
 {
+    std::cout << "\n";
+    std::cout << "\n";
     std::cout << "Extending clusters in y-direction.\n";
     
     // construct new grid (grid only in x-direction, single cell in y-direction)
@@ -224,15 +226,15 @@ void LocalClustering::extendClustersY()
         int cluster_index = it->first;
         Cluster cluster = it->second;
         grid_x_only.addCluster(grid_x_only.getIndex(cluster.getCentre()), cluster_index);
-        
-        std::cout << "    cell index = " << grid_x_only.getIndex(cluster.getCentre()).first << "  " << grid_x_only.getIndex(cluster.getCentre()).second << "\n";
-        std::cout << "    cell non-empty = " << grid_x_only.isNonEmptyCell(grid_x_only.getIndex(cluster.getCentre())) << "\n";
     }
     
+    std::cout << "number of non-empty cells on new grid: " << grid_x_only.getCellCount() << "\n";
+    
     // scan through x on the grid
+    std::cout << "Start scanning through x.\n";
     for (unsigned cell = 0; cell < grid_spacing_x.size(); ++cell)
     {
-        CellIndex grid_index(cell,0);
+        CellIndex grid_index(cell,1);
         if (grid_x_only.isNonEmptyCell(grid_index))
         {
             std::cout << "    non-empty cell = " << cell << "\n";
@@ -249,6 +251,12 @@ void LocalClustering::extendClustersY()
                     index_list.insert(std::make_pair(clusters_final_.find(*it)->second,*it));
                 }
                 cluster_list.sort();
+                
+                // debug output
+                for (std::map<Cluster,int>::iterator it = index_list.begin(); it != index_list.end(); ++it)
+                {
+                    std::cout << "RT = " << it->first.getCentre().getY() << "\n";
+                }
                 
                 // Now check if two adjacent clusters c1 and c2 can be merged.
                 std::list<Cluster>::iterator c1 = cluster_list.begin();
@@ -309,7 +317,7 @@ void LocalClustering::extendClustersY()
                         
                         // update final cluster list
                         clusters_final_.erase(clusters_final_.find(index_list.find(*c1)->second));
-                        clusters_final_.erase(clusters_final_.find(index_list.find(*c2)->second));
+                        clusters_final_.erase(clusters_final_.find(index_list.find(*c2)->second));    // crash here
                         clusters_final_.insert(std::make_pair(index_list.find(*c1)->second, new_cluster));
                         
                         // update hash grid
@@ -321,17 +329,15 @@ void LocalClustering::extendClustersY()
                         grid_x_only.removeCluster(cell_for_cluster2, index_list.find(*c2)->second);
                         grid_x_only.addCluster(cell_for_new_cluster, index_list.find(*c1)->second);
                     }
-                    else
-                    {
-                        ++c1;
-                        ++c2;
-                    }
+                    ++c1;
+                    ++c2;
 
                 } 
             }
         }
     }
-        
+    std::cout << "End scanning through x.\n";
+     
 }
 
 void LocalClustering::removeSmallClustersY(double threshold_y)
@@ -353,7 +359,6 @@ void LocalClustering::removeSmallClustersY(double threshold_y)
 
 std::map<int, Cluster> LocalClustering::getResults() const
 {
-    //std::cout << "number of final clusters = " << clusters_final_.size() << "\n";
     return clusters_final_;
 }
 
