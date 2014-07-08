@@ -208,9 +208,6 @@ void LocalClustering::cluster()
 
 void LocalClustering::extendClustersY()
 {
-    std::cout << "\n";
-    std::cout << "\n";
-    std::cout << "Extending clusters in y-direction.\n";
     
     // construct new grid (grid only in x-direction, single cell in y-direction)
     std::vector<double> grid_spacing_x = grid_.getGridSpacingX();
@@ -228,17 +225,13 @@ void LocalClustering::extendClustersY()
         grid_x_only.addCluster(grid_x_only.getIndex(cluster.getCentre()), cluster_index);
     }
     
-    std::cout << "number of non-empty cells on new grid: " << grid_x_only.getCellCount() << "\n";
     
     // scan through x on the grid
-    std::cout << "Start scanning through x.\n";
     for (unsigned cell = 0; cell < grid_spacing_x.size(); ++cell)
     {
         CellIndex grid_index(cell,1);
         if (grid_x_only.isNonEmptyCell(grid_index))
         {
-            std::cout << "    non-empty cell = " << cell << "\n";
-        
             std::list<int> cluster_indices = grid_x_only.getClusters(grid_index);    // indices of clusters in this x-range
             if (cluster_indices.size() > 1)
             {
@@ -251,12 +244,6 @@ void LocalClustering::extendClustersY()
                     index_list.insert(std::make_pair(clusters_final_.find(*it)->second,*it));
                 }
                 cluster_list.sort();
-                
-                // debug output
-                for (std::map<Cluster,int>::iterator it = index_list.begin(); it != index_list.end(); ++it)
-                {
-                    std::cout << "RT = " << it->first.getCentre().getY() << "\n";
-                }
                 
                 // Now check if two adjacent clusters c1 and c2 can be merged.
                 std::list<Cluster>::iterator c1 = cluster_list.begin();
@@ -281,17 +268,21 @@ void LocalClustering::extendClustersY()
                     double y_range1 = box1y_max - box1y_min;
                     double y_range2 = box2y_max - box2y_min;
                     double y_gap = box1y_min - box2y_max;
-                   
+                                       
+                    // Is there an overlap of the two clusters in x?
+                    bool overlap = (box1x_min <= box2x_max && box1x_min >= box2x_min) || (box1x_max >= box2x_min && box1x_max <= box2x_max);
+
                     // Is the x-centre of one cluster in the x-range of the other?
-                    bool centre_in_range1 = (box2x_min <= centre1x && centre1x <= box2x_max);
-                    bool centre_in_range2 = (box1x_min <= centre2x && centre2x <= box1x_max);
+                    //bool centre_in_range1 = (box2x_min <= centre1x && centre1x <= box2x_max);
+                    //bool centre_in_range2 = (box1x_min <= centre2x && centre2x <= box1x_max);
                         
                     // Is the y-gap between the two clusters smaller than 1/s of their average y-range?
-                    double s = 6;    // scaling factor
-                    bool clusters_close = (y_gap * s <= (y_range1 - y_range2)/2);
+                    //double s = 6;    // scaling factor
+                    //bool clusters_close = (y_gap * s <= (y_range1 - y_range2)/2);
                        
                     // Shall we merge the two adjacent clusters?
-                    if ((centre_in_range1 || centre_in_range2) && clusters_close)
+                    //if ((centre_in_range1 || centre_in_range2) && clusters_close)
+                    if (overlap)
                     {
                         std::vector<int> points1 = (*c1).getPoints();
                         std::vector<int> points2 = (*c2).getPoints();
@@ -331,12 +322,10 @@ void LocalClustering::extendClustersY()
                     }
                     ++c1;
                     ++c2;
-
                 } 
             }
         }
     }
-    std::cout << "End scanning through x.\n";
      
 }
 
