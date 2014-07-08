@@ -193,17 +193,10 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     stringstream file_content;
 
-    float
-    dyn_n_term_mod(0.0),
-    dyn_c_term_mod(0.0),
-    stat_n_term_mod(0.0),
-    stat_c_term_mod(0.0),
-    stat_n_term_prot_mod(0.0),
-    stat_c_term_prot_mod(0.0);
+    float dyn_n_term_mod(0.0), dyn_c_term_mod(0.0), stat_n_term_mod(0.0), stat_c_term_mod(0.0), stat_n_term_prot_mod(0.0), stat_c_term_prot_mod(0.0);
 
     map<char, float> stat_mods, dyn_mods;
     map<char, float> * mods_p = NULL;
-    dyn_n_term_mod = dyn_c_term_mod = stat_n_term_mod = stat_c_term_mod = stat_n_term_prot_mod = stat_c_term_prot_mod = .0;
 
     // compute the masses for the amino acids, divided into fixed and optional modifications
     float mass(0.0);

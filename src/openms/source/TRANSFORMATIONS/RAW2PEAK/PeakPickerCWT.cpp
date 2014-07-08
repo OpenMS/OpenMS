@@ -916,7 +916,6 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "Number of peaks: " << peaks << std::endl;
 #endif
-    charge = 2;
     OptimizePeakDeconvolution::Data data;
     // one peak needn't be deconvoluted
     if (peaks > 1 && charge > 0)
@@ -1079,11 +1078,8 @@ namespace OpenMS
                                        ContinuousWaveletTransformNumIntegration & wt,
                                        double peak_bound_cwt)
   {
-    double noise_level = 0.;
-    double noise_level_cwt = 0.;
-
-    noise_level = peak_bound_;
-    noise_level_cwt = peak_bound_cwt;
+    double noise_level = peak_bound_;
+    double noise_level_cwt = peak_bound_cwt;
 
 #ifdef DEBUG_DECONV
     std::cout << "noise_level = " << noise_level << ";\tnoise_level_cwt = " << noise_level_cwt << ";\n";

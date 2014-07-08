@@ -114,7 +114,7 @@ namespace OpenSwath
 
       XCorrArrayType::iterator max_it = array.begin();
       double max = array.begin()->second;
-      for (XCorrArrayType::iterator it = array.begin(); it != array.end(); it++)
+      for (XCorrArrayType::iterator it = array.begin(); it != array.end(); ++it)
       {
         if (it->second > max)
         {
@@ -172,7 +172,7 @@ namespace OpenSwath
       for (delay = -maxdelay; delay <= maxdelay; delay = delay + lag)
       {
         double sxy = 0;
-        for (i = 0; i < datasize; i++)
+        for (i = 0; i < datasize; ++i)
         {
           j = i + delay;
           if (j < 0 || j >= datasize)

@@ -115,7 +115,7 @@ namespace OpenMS
         {
           processMZFeatureVector(&(M->second));
         }
-        M++;
+        ++M;
       }
 
       // remove the merged features:
@@ -123,7 +123,7 @@ namespace OpenMS
       while (I != idsToRemove.end())
       {
         lcmsMap->remove_feature_by_ID(*I);
-        I++;
+        ++I;
       }
 
       mzClusters.clear();
@@ -173,7 +173,7 @@ namespace OpenMS
       }
       else if (F == mzClusters.end())
       {
-        F--;
+        --F;
         // check below:
         if (compareMZFeatureBeloning(fea, (*F->second.begin())))
         {
@@ -195,7 +195,7 @@ namespace OpenMS
           found = true;
           F->second.push_back(fea);
         }
-        F--;
+        --F;
         // check below:
         if (compareMZFeatureBeloning(fea, (*F->second.begin())))
         {
@@ -212,7 +212,7 @@ namespace OpenMS
 
       }
 
-      I++;
+      ++I;
     }
 
   }
@@ -273,9 +273,9 @@ namespace OpenMS
 
         // find features to merge:
         vector<SHFeature *>::iterator F = SEARCHER;
-        F++;
+        ++F;
         F = findFeaturesToMerge(loc, F, mapF);
-        SEARCHER++;
+        ++SEARCHER;
       }
     }
   }
@@ -385,7 +385,7 @@ namespace OpenMS
     while (LC != mergeLC->getLCelutionSignalsEnd())
     {
       targetLC->addMS1elutionSignal(&(LC->second));
-      LC++;
+      ++LC;
     }
 
     // possible extra info:
@@ -421,7 +421,7 @@ namespace OpenMS
       {
         maxIntens = (*LC).second.intensity;
       }
-      LC++;
+      ++LC;
     }
 
     // get the MS peak above noise to copmute:
@@ -438,9 +438,9 @@ namespace OpenMS
       {
         computeMap.push_back(&(LC->second));
       }
-      LC++;
+      ++LC;
     }
-    LC--;
+    --LC;
     in->set_scan_end((*LC).second.scan);
     in->set_retention_time_END((*LC).second.TR);
 
@@ -459,7 +459,7 @@ namespace OpenMS
 
       start_TR = (*P)->TR;
       start_int = (*P)->intensity;
-      P++;
+      ++P;
       // go through all peaks in the LC elution profile:
       while (P != computeMap.end())
       {
@@ -481,7 +481,7 @@ namespace OpenMS
           start_int = end_int;
         }
 
-        P++;
+        ++P;
       }
 
       // if contained only one peak!

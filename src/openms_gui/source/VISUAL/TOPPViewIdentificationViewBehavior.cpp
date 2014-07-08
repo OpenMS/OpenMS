@@ -96,9 +96,8 @@ namespace OpenMS
       {
         Size best_i_index = 0;
         Size best_j_index = 0;
-        bool is_higher_score_better = false;
         Size best_score = pi[0].getHits()[0].getScore();
-        is_higher_score_better = pi[0].isHigherScoreBetter();
+        bool is_higher_score_better = pi[0].isHigherScoreBetter();
 
         // determine best scoring hit
         for (Size i = 0; i != pi.size(); ++i)
@@ -148,9 +147,8 @@ namespace OpenMS
         {
           Size best_i_index = 0;
           Size best_j_index = 0;
-          bool is_higher_score_better = false;
           Size best_score = pi[0].getHits()[0].getScore();
-          is_higher_score_better = pi[0].isHigherScoreBetter();
+          bool is_higher_score_better = pi[0].isHigherScoreBetter();
 
           // determine best scoring hit
           for (Size i = 0; i != pi.size(); ++i)

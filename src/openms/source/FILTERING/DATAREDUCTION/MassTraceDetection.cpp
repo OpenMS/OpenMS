@@ -129,31 +129,20 @@ void MassTraceDetection::run(MSExperiment<Peak1D>::ConstAreaIterator & begin, MS
 
 void updateMeanEstimate(const double & x_t, double & mean_t, Size t)
 {
-    double tmp(mean_t);
-
-    tmp = mean_t + (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
-
-    mean_t = tmp;
+    mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
 }
 
 void updateSDEstimate(const double & x_t, const double & mean_t, double & sd_t, Size t)
 {
-    double tmp(sd_t);
     double i(t);
-
-
-    tmp = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
-
-    sd_t = tmp;
+    sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
     // std::cerr << "func:  " << tmp << " " << i << std::endl;
 }
 
 void updateWeightedSDEstimate(PeakType p, const double & mean_t1, double & sd_t, double & last_weights_sum)
 {
-    double denom(0.0), weights_sum(0.0);
-
-    denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
-    weights_sum = last_weights_sum + p.getIntensity();
+    double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
+    double weights_sum = last_weights_sum + p.getIntensity();
 
     double tmp_sd = std::sqrt(denom / weights_sum);
 
@@ -167,14 +156,11 @@ void updateWeightedSDEstimate(PeakType p, const double & mean_t1, double & sd_t,
 
 void updateWeightedSDEstimateRobust(PeakType p, const double & mean_t1, double & sd_t, double & last_weights_sum)
 {
-    double denom(0.0), denom1(0.0), denom2(0.0), weights_sum(0.0);
 
-    denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
-    denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
-
-    denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
-    weights_sum = last_weights_sum + p.getIntensity();
-
+    double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
+    double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
+    double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
+    double weights_sum = last_weights_sum + p.getIntensity();
     double tmp_sd = denom / std::sqrt(weights_sum);
 
     if (tmp_sd > std::numeric_limits<double>::epsilon())
