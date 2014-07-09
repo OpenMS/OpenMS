@@ -23,6 +23,7 @@ set(datastructures_executables_list
   CVMappings_test
   CVReference_test
   ChargePair_test
+  Cluster_test
   Compomer_test
   ConvexHull2D_test
   DBoundingBox_test
