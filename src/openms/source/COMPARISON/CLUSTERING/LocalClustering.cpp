@@ -65,7 +65,6 @@ void LocalClustering::init(const std::vector<double> &data_x, const std::vector<
     // fill the grid with points to be clustered (initially each cluster contains a single point)
     for (unsigned i = 0; i < data_x.size(); ++i)
     {
-        
         Point position(data_x[i],data_y[i]);
         Rectangle box(position,position);
         
