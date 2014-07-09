@@ -35,70 +35,80 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
 
 using namespace OpenMS;
 
-START_TEST(PeakPattern, "$Id$")
+START_TEST(MultiplexFilterResult, "$Id$")
 
-std::vector<double> mass_shifts;
-mass_shifts.push_back(0);
-mass_shifts.push_back(6.031817);
+std::vector<double> mz_shifts;
+mz_shifts.push_back(0);
+mz_shifts.push_back(0.501677);
+mz_shifts.push_back(3.01591);
+mz_shifts.push_back(3.51759);
 
-PeakPattern* nullPointer = 0;
-PeakPattern* ptr;
+std::vector<double> intensities;
+intensities.push_back(1789.0714);
+intensities.push_back(1492.1012);
+intensities.push_back(333.1105);
+intensities.push_back(325.0520);
 
-START_SECTION(PeakPattern(int c, int ppp, std::vector<double> ms, int msi))
-    PeakPattern pattern(2, 4, mass_shifts, 3);
-    TEST_EQUAL(pattern.getCharge(), 2);
-    ptr = new PeakPattern(2, 4, mass_shifts, 3);
+std::vector<MultiplexFilterResultRaw> results_raw;
+MultiplexFilterResultRaw result1_raw(816.6, mz_shifts, intensities);
+results_raw.push_back(result1_raw);
+MultiplexFilterResultRaw result2_raw(817.1, mz_shifts, intensities);
+results_raw.push_back(result2_raw);
+MultiplexFilterResultRaw result3_raw(817.2, mz_shifts, intensities);
+results_raw.push_back(result3_raw);
+
+MultiplexFilterResult* nullPointer = 0;
+MultiplexFilterResult* ptr;
+
+START_SECTION(MultiplexFilterResult())
+    MultiplexFilterResult result;
+    result.addFilterResultPeak(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
+    TEST_EQUAL(result.getMz(0), 817.0411);
+    ptr = new MultiplexFilterResult();
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-PeakPattern pattern(2, 4, mass_shifts, 3);
+MultiplexFilterResult result;
+result.addFilterResultPeak(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
 
-START_SECTION(int getCharge() const)
-  TEST_EQUAL(pattern.getCharge(), 2);
+START_SECTION(addFilterResultPeak(double mz, double rt, std::vector<double> mzShifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> result))
+  result.addFilterResultPeak(818.0411, 1694.1121, mz_shifts, intensities, results_raw);
+  TEST_EQUAL(result.getMz(1), 818.0411);
 END_SECTION
 
-START_SECTION(int getPeaksPerPeptide() const)
-  TEST_EQUAL(pattern.getPeaksPerPeptide(), 4);
+START_SECTION(MultiplexFilterResultPeak getFilterResultPeak(int i) const)
+  TEST_EQUAL(result.getFilterResultPeak(0).getMz(), 817.0411);
 END_SECTION
 
-START_SECTION(std::vector<double> getMassShifts() const)
-  TEST_EQUAL(pattern.getMassShifts()[0], 0);
-  TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
+START_SECTION(MultiplexFilterResultRaw getFilterResultRaw(int i, int j) const)
+  TEST_EQUAL(result.getFilterResultRaw(0,1).getMz(), 817.1);
 END_SECTION
 
-START_SECTION(int getMassShiftIndex() const)
-  TEST_EQUAL(pattern.getMassShiftIndex(), 3);
+START_SECTION(double getMz(int i) const)
+  TEST_EQUAL(result.getMz(0), 817.0411);
 END_SECTION
 
-START_SECTION(unsigned getMassShiftCount() const)
-  TEST_EQUAL(pattern.getMassShiftCount(), 2);
+START_SECTION(std::vector<double> getMz() const)
+  TEST_EQUAL(result.getMz()[0], 817.0411);
 END_SECTION
 
-START_SECTION(double getMassShiftAt(int i) const)
-  TEST_EQUAL(pattern.getMassShiftAt(0), 0);
-  TEST_EQUAL(pattern.getMassShiftAt(1), 6.031817);
+START_SECTION(double getRt(int i) const)
+  TEST_EQUAL(result.getRt(0), 1694.1121);
 END_SECTION
 
-START_SECTION(double getMzShiftAt(int i) const)
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(0), -0.501677);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(1), 0);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(2), 0.501677);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(3), 1.00335);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(4), 1.50503);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(5), 2.51423);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(6), 3.01591);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(7), 3.51759);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(8), 4.01926);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(9), 4.52094);
+START_SECTION(std::vector<double> getRt() const)
+  TEST_EQUAL(result.getRt()[0], 1694.1121);
 END_SECTION
 
-START_SECTION(unsigned getMzShiftCount() const)
-  TEST_EQUAL(pattern.getMzShiftCount(), 10);
+START_SECTION(int size() const)
+  TEST_EQUAL(result.size(), 2);
 END_SECTION
 
 END_TEST

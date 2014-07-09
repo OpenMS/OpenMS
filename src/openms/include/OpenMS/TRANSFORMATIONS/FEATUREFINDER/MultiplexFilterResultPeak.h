@@ -32,12 +32,11 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_FILTERRESULTPEAK_H
-#define OPENMS_FILTERING_DATAREDUCTION_FILTERRESULTPEAK_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERRESULTPEAK_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERRESULTPEAK_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 
 #include <vector>
 #include <algorithm>
@@ -52,15 +51,15 @@ namespace OpenMS
      * peak pattern in the centroided data. The actual m/z shifts seen in the filter
      * result might differ from the theoretical shifts listed in the peak pattern.
      * 
-     * @see PeakPattern
+     * @see MultiplexPeakPattern
      */
-    class OPENMS_DLLAPI FilterResultPeak
+    class OPENMS_DLLAPI MultiplexFilterResultPeak
     {
         public:
         /**
          * @brief constructor
          */
-        FilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<FilterResultRaw> rawDataPoints);
+        MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> rawDataPoints);
 
          /**
          * @brief returns m/z of the peak
@@ -100,7 +99,7 @@ namespace OpenMS
          /**
          * @brief returns a single raw data point belonging to the peak
          */
-         FilterResultRaw getFilterResultRaw(int i) const;
+         MultiplexFilterResultRaw getFilterResultRaw(int i) const;
          
          private:
         /**
@@ -122,10 +121,10 @@ namespace OpenMS
         /**
          * @brief (optional) raw data points corresponding to the peak
          */
-        std::vector<FilterResultRaw> raw_data_points_;
+        std::vector<MultiplexFilterResultRaw> raw_data_points_;
  
   };
   
 }
 
-#endif /* FILTERRESULTPEAK_H_ */
+#endif /* MULTIPLEXFILTERRESULTPEAK_H */

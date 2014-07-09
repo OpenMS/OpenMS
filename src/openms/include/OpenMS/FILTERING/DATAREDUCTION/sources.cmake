@@ -6,13 +6,8 @@ set(sources_list_h
 DataFilters.h
 ElutionPeakDetection.h
 FeatureFindingMetabo.h
-FilterResult.h
-FilterResultPeak.h
-FilterResultRaw.h
 IsotopeDistributionCache.h
 MassTraceDetection.h
-MultiplexFiltering.h
-PeakPattern.h
 SplinePackage.h
 SplineSpectrum.h
 )

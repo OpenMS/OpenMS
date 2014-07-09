@@ -35,14 +35,13 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
@@ -55,7 +54,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool debug)
+	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool debug)
     : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), debug_(debug)
 	{		
         if (exp_profile_.size() != exp_picked_.size())
@@ -115,16 +114,16 @@ namespace OpenMS
        
 	}
     
-    vector<FilterResult> MultiplexFiltering::filter()
+    vector<MultiplexFilterResult> MultiplexFiltering::filter()
     {
         // list of filter results for each peak pattern
-        vector<FilterResult> filter_results;
+        vector<MultiplexFilterResult> filter_results;
         
         // loop over patterns
         for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
         {
             // data structure storing peaks which pass all filters
-            FilterResult result;
+            MultiplexFilterResult result;
             
             // m/z position is rejected by a particular filter (or passing all of them)
             vector<DebugPoint> debug_rejected;
@@ -210,7 +209,7 @@ namespace OpenMS
                     }
                     
                     // Arrangement of peaks looks promising. Now scan through the spline fitted data.
-                    vector<FilterResultRaw> results_raw;    // raw data points of this peak that will pass the remaining filters
+                    vector<MultiplexFilterResultRaw> results_raw;    // raw data points of this peak that will pass the remaining filters
                     bool blacklisted = false;    // Has this peak already been blacklisted?
                     for (double mz = peak_min[peak]; mz < peak_max[peak]; mz = nav.getNextMz(mz))
                     {
@@ -303,7 +302,7 @@ namespace OpenMS
                         }
                         
                         // add raw data point to list that passed all filters
-                        FilterResultRaw result_raw (mz, mz_shifts_actual, intensities_actual);
+                        MultiplexFilterResultRaw result_raw (mz, mz_shifts_actual, intensities_actual);
                         results_raw.push_back(result_raw);
                         
                         // blacklist peaks in the current spectrum and the two neighbouring ones
@@ -348,7 +347,7 @@ namespace OpenMS
         return filter_results;
     }
     
-    int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices) const
+    int MultiplexFiltering::positionsAndBlacklistFilter(MultiplexPeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices) const
     {
         // Try to find peaks at the expected m/z positions
         // loop over expected m/z shifts of a peak pattern
@@ -447,7 +446,7 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, const vector<int> & mz_shifts_actual_indices) const
+    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const vector<int> & mz_shifts_actual_indices) const
     {
         MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
         for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
@@ -462,7 +461,7 @@ namespace OpenMS
         return false;
     }
     
-    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, const vector<double> & mz_shifts_actual, const vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz) const
+    int MultiplexFiltering::nonLocalIntensityFilter(MultiplexPeakPattern pattern, const vector<double> & mz_shifts_actual, const vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz) const
     {
         // calculate intensities
         for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
@@ -498,7 +497,7 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::zerothPeakFilter(PeakPattern pattern, const vector<double> & intensities_actual) const
+    bool MultiplexFiltering::zerothPeakFilter(MultiplexPeakPattern pattern, const vector<double> & intensities_actual) const
     {
         for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
@@ -514,7 +513,7 @@ namespace OpenMS
         return false;
     }
     
-    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2) const
+    bool MultiplexFiltering::peptideSimilarityFilter(MultiplexPeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2) const
     {
         for (unsigned peptide = 1; peptide < pattern.getMassShiftCount(); ++peptide)
         {
@@ -532,7 +531,7 @@ namespace OpenMS
         return true;
     }
     
-    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
+    bool MultiplexFiltering::averagineSimilarityFilter(MultiplexPeakPattern pattern, const vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
     {
         for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
@@ -550,7 +549,7 @@ namespace OpenMS
         return true;
     }
     
-    void MultiplexFiltering::blacklistPeaks(PeakPattern pattern, int spectrum, const vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
+    void MultiplexFiltering::blacklistPeaks(MultiplexPeakPattern pattern, int spectrum, const vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
     {
         for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {

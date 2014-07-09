@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 
 #include <vector>
 #include <algorithm>
@@ -45,58 +45,34 @@ using namespace std;
 namespace OpenMS
 {
 
-	PeakPattern::PeakPattern(int c, int ppp, vector<double> ms, int msi)
-    : charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
-	{				
-        // generate m/z shifts
-        for (unsigned i = 0; i < mass_shifts_.size(); ++i)
-        {
-            for (int j = -1; j < peaks_per_peptide_; ++j)
-            {
-                // j=-1 shift corresponds to the zeroth peak
-                mz_shifts_.push_back((mass_shifts_[i] + j * Constants::C13C12_MASSDIFF_U)/charge_);
-            }
-        }
+	MultiplexFilterResultRaw::MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities)
+    : mz_(mz), mz_shifts_(mz_shifts), intensities_(intensities)
+	{		
 	}
     
-    int PeakPattern::getCharge() const
+    double MultiplexFilterResultRaw::getMz() const
     {
-        return charge_;
+        return mz_;
     }
     
-    int PeakPattern::getPeaksPerPeptide() const
-    {
-        return peaks_per_peptide_;
-    }
-
-    std::vector<double> PeakPattern::getMassShifts() const
-    {
-        return mass_shifts_;
-    }
-
-    int PeakPattern::getMassShiftIndex() const
-    {
-        return mass_shift_index_;
-    }
-
-    unsigned PeakPattern::getMassShiftCount() const
-    {
-        return mass_shifts_.size();
-    }
-
-    double PeakPattern::getMassShiftAt(int i) const
-    {
-        return mass_shifts_[i];
-    }
-
-    double PeakPattern::getMzShiftAt(int i) const
+    double MultiplexFilterResultRaw::getMzShiftAt(int i) const
     {
         return mz_shifts_[i];
     }
-
-    unsigned PeakPattern::getMzShiftCount() const
+    
+    std::vector<double> MultiplexFilterResultRaw::getMzShifts() const
     {
-        return mz_shifts_.size();
+        return mz_shifts_;
     }
-
+    
+    double MultiplexFilterResultRaw::getIntensityAt(int i) const
+    {
+        return intensities_[i];
+    }
+    
+    std::vector<double> MultiplexFilterResultRaw::getIntensities() const
+    {
+        return intensities_;
+    }
+    
 }

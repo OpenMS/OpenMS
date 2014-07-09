@@ -32,10 +32,12 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_PEAKPATTERN_H
-#define OPENMS_FILTERING_DATAREDUCTION_PEAKPATTERN_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERRESULT_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERRESULT_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 
 #include <vector>
 #include <algorithm>
@@ -44,91 +46,67 @@
 namespace OpenMS
 {
     /**
-     * @brief data structure for pattern of isotopic peaks
+     * @brief data structure storing all peaks (and optionally their raw data points)
+     * corresponding to one specific peak pattern
      * 
-     * Groups of peptides appear as characteristic patterns of isotopic peaks
-     * in MS1 spectra. For example, for an Arg6 labeled SILAC peptide pair
-     * of charge 2+ with three isotopic peaks we expect peaks
-     * at relative m/z shifts of 0, 0.5, 1, 3, 3.5 and 4 Th.
+     * @see MultiplexPeakPattern
      */
-    class OPENMS_DLLAPI PeakPattern
+    class OPENMS_DLLAPI MultiplexFilterResult
     {
         public:
-       /**
+        /**
          * @brief constructor
          */
-        PeakPattern(int c, int ppp, std::vector<double> ms, int msi);
-        
-       /**
-         * @brief returns charge
-         */
-        int getCharge() const;
-         
-        /**
-         * @brief returns peaks per peptide
-         */
-        int getPeaksPerPeptide() const;
+        MultiplexFilterResult();
         
         /**
-         * @brief returns mass shifts
+         * @brief adds a single peak to the results
          */
-        std::vector<double> getMassShifts() const;
+        void addFilterResultPeak(double mz, double rt, std::vector<double> mzShifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> result);
         
         /**
-         * @brief returns mass shift index
+         * @brief returns a single peak from the results
          */
-        int getMassShiftIndex() const;
+        MultiplexFilterResultPeak getFilterResultPeak(int i) const;
         
         /**
-         * @brief returns number of mass shifts
+         * @brief returns a single raw data point from peak i in the result
          */
-        unsigned getMassShiftCount() const;
-       
-       /**
-         * @brief returns mass shift at position i
-         */
-        double getMassShiftAt(int i) const;
+        MultiplexFilterResultRaw getFilterResultRaw(int i, int j) const;
         
-       /**
-         * @brief returns m/z shift at position i
+        /**
+         * @brief returns m/z of a single peak
          */
-        double getMzShiftAt(int i) const;
+        double getMz(int i) const;
         
-       /**
-         * @brief returns number of m/z shifts
+        /**
+         * @brief returns m/z positions of all peaks
          */
-        unsigned getMzShiftCount() const;
+        std::vector<double> getMz() const;
+        
+        /**
+         * @brief returns RT of a single peak
+         */
+        double getRt(int i) const;
+        
+        /**
+         * @brief returns RT of all peaks
+         */
+        std::vector<double> getRt() const;
+        
+        /**
+         * @brief returns number of peaks in the result
+         */
+        int size() const;
         
         private:
         /**
-         * @brief m/z shifts between isotopic peaks
-         * (number of mzSfifts_ = peaks_per_peptide_ * number of mass_shifts_)
+         * @brief peaks which passed the peak pattern filter
          */
-        std::vector<double> mz_shifts_;
- 
-        /**
-         * @brief charge
-         */
-        int charge_;
+        std::vector<MultiplexFilterResultPeak> result_;
 
-        /**
-         * @brief number of isotopic peaks in each peptide
-         */
-        int peaks_per_peptide_;
-       
-        /**
-         * @brief mass shifts between peptides
-         * (including zero mass shift for first peptide)
-         */
-        std::vector<double> mass_shifts_;
-
-        /**
-         * @brief index in mass shift list
-         */
-        int mass_shift_index_;
-        
    };
   
 }
 
-#endif /* PEAKPATTERN_H_ */
+#endif /* MULTIPLEXFILTERRESULT_H_ */

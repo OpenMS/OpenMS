@@ -34,8 +34,8 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
 
 #include <vector>
 #include <algorithm>
@@ -46,59 +46,49 @@ using namespace std;
 namespace OpenMS
 {
 
-	FilterResult::FilterResult()
+	MultiplexFilterResultPeak::MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, vector<double> intensities, vector<MultiplexFilterResultRaw> raw_data_points)
+    : mz_(mz), rt_(rt), mz_shifts_(mz_shifts), intensities_(intensities), raw_data_points_(raw_data_points)
 	{		
 	}
     
-    void FilterResult::addFilterResultPeak(double mz, double rt, vector<double> mz_shifts, std::vector<double> intensities, vector<FilterResultRaw> raw_data_points)
+    double MultiplexFilterResultPeak::getMz() const
     {
-        FilterResultPeak * peak = new FilterResultPeak(mz, rt, mz_shifts, intensities, raw_data_points);
-        result_.push_back(*peak);
+        return mz_;
     }
     
-    FilterResultPeak FilterResult::getFilterResultPeak(int i) const
+    double MultiplexFilterResultPeak::getRt() const
     {
-        return result_[i];
+        return rt_;
     }
     
-    FilterResultRaw FilterResult::getFilterResultRaw(int i, int j) const
+    double MultiplexFilterResultPeak::getMzShiftAt(int i) const
     {
-        return result_[i].getFilterResultRaw(j);
+        return mz_shifts_[i];
     }
     
-    double FilterResult::getMz(int i) const
+    vector<double> MultiplexFilterResultPeak::getMzShifts() const
     {
-        return result_[i].getMz();
+        return mz_shifts_;
     }
     
-    vector<double> FilterResult::getMz() const
+    double MultiplexFilterResultPeak::getIntensityAt(int i) const
     {
-        vector<double> mz;
-        for (unsigned i = 0; i < result_.size(); ++i)
-        {
-            mz.push_back(result_[i].getMz());
-        }
-        return mz;
+        return intensities_[i];
     }
     
-    double FilterResult::getRt(int i) const
+    vector<double> MultiplexFilterResultPeak::getIntensities() const
     {
-        return result_[i].getRt();
+        return intensities_;
     }
     
-    vector<double> FilterResult::getRt() const
+    int MultiplexFilterResultPeak::size() const
     {
-        vector<double> rt;
-        for (unsigned i = 0; i < result_.size(); ++i)
-        {
-            rt.push_back(result_[i].getRt());
-        }
-        return rt;
+        return raw_data_points_.size();
     }
     
-    int FilterResult::size() const
+    MultiplexFilterResultRaw MultiplexFilterResultPeak::getFilterResultRaw(int i) const
     {
-        return result_.size();
+        return raw_data_points_[i];
     }
     
 }

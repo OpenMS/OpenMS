@@ -32,47 +32,79 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERRESULTRAW_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERRESULTRAW_H
+
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
 
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
+    /**
+     * @brief data structure storing a single raw data point that passed all filters
+     * 
+     * Each raw filter result corresponds to a successful search for a particular
+     * peak pattern in the spline interpolated raw data. The actual m/z shifts seen
+     * in the filter result might differ from the theoretical shifts listed in the
+     * peak pattern.
+     * 
+     * @see MultiplexPeakPattern
+     */
+    class OPENMS_DLLAPI MultiplexFilterResultRaw
+    {
+        public:
+        /**
+         * @brief constructor
+         */
+        MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities);
+        
+        /**
+         * @brief returns m/z position
+         */
+        double getMz() const;
 
-	FilterResultRaw::FilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities)
-    : mz_(mz), mz_shifts_(mz_shifts), intensities_(intensities)
-	{		
-	}
-    
-    double FilterResultRaw::getMz() const
-    {
-        return mz_;
-    }
-    
-    double FilterResultRaw::getMzShiftAt(int i) const
-    {
-        return mz_shifts_[i];
-    }
-    
-    std::vector<double> FilterResultRaw::getMzShifts() const
-    {
-        return mz_shifts_;
-    }
-    
-    double FilterResultRaw::getIntensityAt(int i) const
-    {
-        return intensities_[i];
-    }
-    
-    std::vector<double> FilterResultRaw::getIntensities() const
-    {
-        return intensities_;
-    }
-    
+        /**
+         * @brief returns m/z shift at position i
+         */
+        double getMzShiftAt(int i) const;
+
+        /**
+         * @brief returns m/z shifts
+         */
+        std::vector<double> getMzShifts() const;
+
+        /**
+         * @brief returns intensity at position i
+         */
+        double getIntensityAt(int i) const;
+        
+        /**
+         * @brief returns intensities
+         */
+        std::vector<double> getIntensities() const;
+        
+        private:
+        /**
+         * @brief m/z of the raw data point
+         * (RT stored in MultiplexFilterResultPeak)
+         */
+        double mz_;
+        
+        /**
+         * @brief m/z shifts at which the filtering found corresponding intensities
+         */
+        std::vector<double> mz_shifts_;
+
+        /**
+         * @brief intensities at mz_ + mzShifts_
+         */
+        std::vector<double> intensities_;
+
+   };
+  
 }
+
+#endif /* MULTIPLEXFILTERRESULTRAW_H_ */

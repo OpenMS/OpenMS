@@ -35,12 +35,12 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
 
 using namespace OpenMS;
 
-START_TEST(FilterResultPeak, "$Id$")
+START_TEST(MultiplexFilterResultPeak, "$Id$")
 
 std::vector<double> mz_shifts;
 mz_shifts.push_back(0);
@@ -54,26 +54,26 @@ intensities.push_back(1492.1012);
 intensities.push_back(333.1105);
 intensities.push_back(325.0520);
 
-std::vector<FilterResultRaw> results_raw;
-FilterResultRaw result1_raw(816.6, mz_shifts, intensities);
+std::vector<MultiplexFilterResultRaw> results_raw;
+MultiplexFilterResultRaw result1_raw(816.6, mz_shifts, intensities);
 results_raw.push_back(result1_raw);
-FilterResultRaw result2_raw(817.1, mz_shifts, intensities);
+MultiplexFilterResultRaw result2_raw(817.1, mz_shifts, intensities);
 results_raw.push_back(result2_raw);
-FilterResultRaw result3_raw(817.2, mz_shifts, intensities);
+MultiplexFilterResultRaw result3_raw(817.2, mz_shifts, intensities);
 results_raw.push_back(result3_raw);
 
-FilterResultPeak* nullPointer = 0;
-FilterResultPeak* ptr;
+MultiplexFilterResultPeak* nullPointer = 0;
+MultiplexFilterResultPeak* ptr;
 
-START_SECTION(FilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<FilterResultRaw> rawDataPoints))
-    FilterResultPeak result(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
+START_SECTION(MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> rawDataPoints))
+    MultiplexFilterResultPeak result(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
     TEST_EQUAL(result.getMz(), 817.0411);
-    ptr = new FilterResultPeak(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
+    ptr = new MultiplexFilterResultPeak(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-FilterResultPeak result(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
+MultiplexFilterResultPeak result(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
 
 START_SECTION(double getMz() const)
   TEST_EQUAL(result.getMz(), 817.0411);
@@ -115,7 +115,7 @@ START_SECTION(int size() const)
   TEST_EQUAL(result.size(), 3);
 END_SECTION
 
-START_SECTION(FilterResultRaw getFilterResultRaw(int i) const)
+START_SECTION(MultiplexFilterResultRaw getFilterResultRaw(int i) const)
   TEST_EQUAL(result.getFilterResultRaw(0).getMz(), 816.6);
   TEST_EQUAL(result.getFilterResultRaw(1).getMz(), 817.1);
   TEST_EQUAL(result.getFilterResultRaw(2).getMz(), 817.2);
