@@ -37,6 +37,7 @@ set(datastructures_executables_list
   DistanceMatrix_test
   GridFeature_test
   HashGrid_test
+  HashGrid2_test
   ListUtils_test
   ListUtilsIO_test
   LPWrapper_test
