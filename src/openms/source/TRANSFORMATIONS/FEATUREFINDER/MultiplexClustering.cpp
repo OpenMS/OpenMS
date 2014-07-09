@@ -115,8 +115,8 @@ namespace OpenMS
         {
             LocalClustering clustering(filter_results[i].getMz(), filter_results[i].getRt(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
             clustering.cluster();
-            clustering.extendClustersY();
-            //clustering.removeSmallClustersY(rt_minimum_);
+            //clustering.extendClustersY();
+            clustering.removeSmallClustersY(rt_minimum_);
             cluster_results.push_back(clustering.getResults());
             
             // debug output
