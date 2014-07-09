@@ -34,6 +34,7 @@ LevMarqFitter1D.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 ModelFitter.cpp
+MultiplexClustering.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp

@@ -37,7 +37,6 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
@@ -45,7 +44,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexClustering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
