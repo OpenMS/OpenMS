@@ -65,7 +65,22 @@ namespace OpenMS
         
         if (exp_picked_.size() != boundaries_.size())
         {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
+            int s1 = exp_picked_.size();
+            int s2 = boundaries_.size();
+            std::stringstream out1;
+            std::stringstream out2;
+            out1 << s1;
+            out2 << s2;
+            std::string S1 = out1.str();
+            std::string S2 = out1.str();
+
+            std::string out = "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra. (";
+            out.append(S1);
+            out.append(" != ");
+            out.append(S2);
+            out.append(")");
+            
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, out);
         }
         
         // fill peak registry and initialise blacklist
