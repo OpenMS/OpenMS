@@ -86,8 +86,8 @@ public:
     /// structure for peak boundaries
     struct PeakBoundary
     {
-        double mzMin;
-        double mzMax;
+        double mz_min;
+        double mz_max;
     };
 
     /**
@@ -378,19 +378,19 @@ public:
               // Peak boundaries are where the (possible) shoulders start.
               if (ls==0)
               {
-                  peak_boundary.mzMin = input[left_boundary].getMZ();
+                  peak_boundary.mz_min = input[left_boundary].getMZ();
               }
               else
               {
-                  peak_boundary.mzMin = (peak_raw_data_mz[ls]+peak_raw_data_mz[ls+1])/2;
+                  peak_boundary.mz_min = (peak_raw_data_mz[ls]+peak_raw_data_mz[ls+1])/2;
               }
               if (rs==0)
               {
-                  peak_boundary.mzMax = input[right_boundary].getMZ();
+                  peak_boundary.mz_max = input[right_boundary].getMZ();
               }
               else
               {
-                  peak_boundary.mzMax = (peak_raw_data_mz[rs]+peak_raw_data_mz[rs-1])/2;
+                  peak_boundary.mz_max = (peak_raw_data_mz[rs]+peak_raw_data_mz[rs-1])/2;
               }
               boundaries.push_back(peak_boundary);
               
@@ -412,8 +412,8 @@ public:
                   peak.setIntensity(peak_raw_data_int[ls]);
                   output.push_back(peak);
                   
-                  peak_boundary.mzMin = input[left_boundary].getMZ();
-                  peak_boundary.mzMax = (peak_raw_data_mz[ls]+peak_raw_data_mz[ls+1])/2;
+                  peak_boundary.mz_min = input[left_boundary].getMZ();
+                  peak_boundary.mz_max = (peak_raw_data_mz[ls]+peak_raw_data_mz[ls+1])/2;
                   boundaries.push_back(peak_boundary);
               }
 
@@ -435,8 +435,8 @@ public:
                   peak.setIntensity(peak_raw_data_int[rs]);
                   output.push_back(peak);
                   
-                  peak_boundary.mzMin = (peak_raw_data_mz[rs]+peak_raw_data_mz[rs-1])/2;
-                  peak_boundary.mzMax = input[right_boundary].getMZ();
+                  peak_boundary.mz_min = (peak_raw_data_mz[rs]+peak_raw_data_mz[rs-1])/2;
+                  peak_boundary.mz_max = input[right_boundary].getMZ();
                   boundaries.push_back(peak_boundary);
               }
 
@@ -450,8 +450,8 @@ public:
               peak.setMZ(max_peak_mz);
               peak.setIntensity(max_peak_int);
               output.push_back(peak);
-              peak_boundary.mzMin = input[left_boundary].getMZ();
-              peak_boundary.mzMax = input[right_boundary].getMZ();
+              peak_boundary.mz_min = input[left_boundary].getMZ();
+              peak_boundary.mz_max = input[right_boundary].getMZ();
               boundaries.push_back(peak_boundary);
          }
 
