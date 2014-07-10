@@ -163,7 +163,7 @@ namespace OpenMS
     // Create all MRM transition groups from the individual transitions.
     mapExperimentToTransitionList(input, transition_exp, transition_group_map, trafo, rt_extraction_window_);
     int counter = 0;
-    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
+    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
       if (trgroup_it->second.getChromatograms().size() > 0) {counter++; }
     }
@@ -175,7 +175,7 @@ namespace OpenMS
     // Go through all transition groups: first create consensus features, then score them
     Size progress = 0;
     startProgress(0, transition_group_map.size(), "picking peaks");
-    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
+    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
 
       setProgress(++progress);
@@ -244,7 +244,7 @@ namespace OpenMS
 
     // Go through all peak groups (found MRM features) and score them
     for (std::vector<MRMFeature>::iterator mrmfeature = transition_group.getFeaturesMuteable().begin();
-         mrmfeature != transition_group.getFeaturesMuteable().end(); mrmfeature++)
+         mrmfeature != transition_group.getFeaturesMuteable().end(); ++mrmfeature)
     {
       OpenSwath::IMRMFeature* imrmfeature;
       imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
@@ -376,7 +376,7 @@ namespace OpenMS
       mrmfeature->setMetaValue("PrecursorMZ", transition_group.getTransitions()[0].getPrecursorMZ());
       mrmfeature->setSubordinates(mrmfeature->getFeatures()); // add all the subfeatures as subordinates
       double total_intensity = 0, total_peak_apices = 0;
-      for (std::vector<Feature>::iterator sub_it = mrmfeature->getSubordinates().begin(); sub_it != mrmfeature->getSubordinates().end(); sub_it++)
+      for (std::vector<Feature>::iterator sub_it = mrmfeature->getSubordinates().begin(); sub_it != mrmfeature->getSubordinates().end(); ++sub_it)
       {
         if (!write_convex_hull_) {sub_it->getConvexHulls().clear(); }
         sub_it->ensureUniqueId();
@@ -475,7 +475,6 @@ namespace OpenMS
       // Note that we inverted the transformation in the beginning because
       // we want to transform from normalized to real RTs here and not the
       // other way round.
-      rt_max = rt_min = 0;
       expected_rt = PeptideRefMap_[transition->getPeptideRef()]->rt;
       double de_normalized_experimental_rt = trafo.apply(expected_rt);
       rt_max = de_normalized_experimental_rt + rt_extraction_window;
@@ -524,7 +523,7 @@ namespace OpenMS
     endProgress();
 
     // The assumption is that for each transition that is in the TargetedExperiment we have exactly one chromatogram
-    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
+    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
       if (trgroup_it->second.getChromatograms().size() > 0 && (trgroup_it->second.getChromatograms().size() != trgroup_it->second.getTransitions().size()))
       {

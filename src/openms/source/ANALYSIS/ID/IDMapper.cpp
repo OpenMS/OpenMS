@@ -62,7 +62,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IDMapper::IDMapper(const IDMapper & cp) :
+  IDMapper::IDMapper(const IDMapper& cp) :
     DefaultParamHandler(cp),
     rt_tolerance_(cp.rt_tolerance_),
     mz_tolerance_(cp.mz_tolerance_),
@@ -72,7 +72,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  IDMapper & IDMapper::operator=(const IDMapper & rhs)
+  IDMapper& IDMapper::operator=(const IDMapper& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -95,7 +95,7 @@ namespace OpenMS
     ignore_charge_ = param_.getValue("ignore_charge") == "true";
   }
 
-  void IDMapper::annotate(ConsensusMap & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, bool measure_from_subelements)
+  void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements)
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);
@@ -126,7 +126,7 @@ namespace OpenMS
       for (Size cm_index = 0; cm_index < map.size(); ++cm_index)
       {
         // if set to TRUE, we leave the i_mz-loop as we added the whole ID with all hits
-        bool was_added = false;       // was current pep-m/z matched?!
+        bool was_added = false; // was current pep-m/z matched?!
 
         // iterate over m/z values of pepIds
         for (Size i_mz = 0; i_mz < mz_values.size(); ++i_mz)
@@ -147,7 +147,7 @@ namespace OpenMS
             {
               current_charges.push_back(charges[i_mz]);
             }
-            current_charges.push_back(0);             // "not specified" always matches
+            current_charges.push_back(0); // "not specified" always matches
           }
 
           //check if we compare distance from centroid or subelements
@@ -175,7 +175,7 @@ namespace OpenMS
                   ++assigned[i];
                   mapping[cm_index].insert(i);
                 }
-                break;                 // we added this peptide already.. no need to check other handles
+                break; // we added this peptide already.. no need to check other handles
               }
             }
             // continue to here
@@ -184,12 +184,12 @@ namespace OpenMS
           if (was_added)
             break;
 
-        }         // m/z values to check
+        } // m/z values to check
 
         // break to here
 
-      }       // features
-    }     // Identifications
+      } // features
+    } // Identifications
 
 
     Size matches_none(0);
@@ -249,32 +249,32 @@ namespace OpenMS
     throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
   }
 
-  void IDMapper::checkHits_(const std::vector<PeptideIdentification> & ids) const
+  void IDMapper::checkHits_(const std::vector<PeptideIdentification>& ids) const
   {
     for (Size i = 0; i < ids.size(); ++i)
     {
-	    if (!ids[i].hasRT())
+      if (!ids[i].hasRT())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'RT' information missing for peptide identification!");
       }
-	    if (!ids[i].hasMZ())
+      if (!ids[i].hasMZ())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'MZ' information missing for peptide identification!");
       }
     }
   }
 
-  void IDMapper::getIDDetails_(const PeptideIdentification & id, double & rt_pep, DoubleList & mz_values, IntList & charges, bool use_avg_mass) const
+  void IDMapper::getIDDetails_(const PeptideIdentification& id, double& rt_pep, DoubleList& mz_values, IntList& charges, bool use_avg_mass) const
   {
     mz_values.clear();
     charges.clear();
 
-	  rt_pep = id.getRT();
+    rt_pep = id.getRT();
 
     // collect m/z values of pepId
     if (param_.getValue("mz_reference") == "precursor") // use precursor m/z of pepId
     {
-	    mz_values.push_back(id.getMZ());
+      mz_values.push_back(id.getMZ());
     }
 
     for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin();
@@ -286,15 +286,15 @@ namespace OpenMS
       if (param_.getValue("mz_reference") == "peptide") // use mass of each pepHit (assuming H+ adducts)
       {
         double mass = use_avg_mass ?
-                          hit_it->getSequence().getAverageWeight(Residue::Full, charge) :
-                          hit_it->getSequence().getMonoWeight(Residue::Full, charge);
+                      hit_it->getSequence().getAverageWeight(Residue::Full, charge) :
+                      hit_it->getSequence().getMonoWeight(Residue::Full, charge);
 
-        mz_values.push_back( mass / (double) charge);
+        mz_values.push_back(mass / (double) charge);
       }
     }
   }
 
-  void IDMapper::increaseBoundingBox_(DBoundingBox<2> & box)
+  void IDMapper::increaseBoundingBox_(DBoundingBox<2>& box)
   {
     DPosition<2> sub_min(rt_tolerance_,
                          getAbsoluteMZTolerance_(box.minPosition().getY())),
@@ -304,7 +304,7 @@ namespace OpenMS
     box.setMax(box.maxPosition() + add_max);
   }
 
-  bool IDMapper::checkMassType_(const vector<DataProcessing> & processing) const
+  bool IDMapper::checkMassType_(const vector<DataProcessing>& processing) const
   {
     bool use_avg_mass = false;
     String before;
@@ -316,7 +316,7 @@ namespace OpenMS
         String reported_mz = proc_it->
                              getMetaValue("parameter: algorithm:feature:reported_mz");
         if (reported_mz.empty())
-          continue;                                // parameter info not available
+          continue; // parameter info not available
         if (!before.empty() && (reported_mz != before))
         {
           LOG_WARN << "The m/z values reported for features in the input seem to be of different types (e.g. monoisotopic/average). They will all be compared against monoisotopic peptide masses, but the mapping results may not be meaningful in the end." << endl;

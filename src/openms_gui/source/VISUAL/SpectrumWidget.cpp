@@ -50,7 +50,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  SpectrumWidget::SpectrumWidget(const Param & /*preferences*/, QWidget * parent) :
+  SpectrumWidget::SpectrumWidget(const Param& /*preferences*/, QWidget* parent) :
     QWidget(parent),
     canvas_(0)
   {
@@ -59,13 +59,13 @@ namespace OpenMS
     grid_->setSpacing(0);
     grid_->setMargin(1);
 
-    setMinimumSize(250, 250);    //Canvas (200) + AxisWidget (30) + ScrollBar (20)
+    setMinimumSize(250, 250); //Canvas (200) + AxisWidget (30) + ScrollBar (20)
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
     setAcceptDrops(true);
   }
 
-  void SpectrumWidget::setCanvas_(SpectrumCanvas * canvas, UInt row, UInt col)
+  void SpectrumWidget::setCanvas_(SpectrumCanvas* canvas, UInt row, UInt col)
   {
     canvas_ = canvas;
     setFocusProxy(canvas_);
@@ -106,13 +106,13 @@ namespace OpenMS
 
   void SpectrumWidget::correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area)
   {
-    if(area.maxX() > canvas()->getDataRange().maxX())
+    if (area.maxX() > canvas()->getDataRange().maxX())
       area.setMaxX(canvas()->getDataRange().maxX());
-    if(area.minX() < canvas()->getDataRange().minX())
+    if (area.minX() < canvas()->getDataRange().minX())
       area.setMinX(canvas()->getDataRange().minX());
-    if(area.maxY() > canvas()->getDataRange().maxY())
+    if (area.maxY() > canvas()->getDataRange().maxY())
       area.setMaxY(canvas()->getDataRange().maxY());
-    if(area.minY() < canvas()->getDataRange().minY())
+    if (area.minY() < canvas()->getDataRange().minY())
       area.setMinY(canvas()->getDataRange().minY());
   }
 
@@ -168,7 +168,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumWidget::showMetaDistribution(const String & name)
+  void SpectrumWidget::showMetaDistribution(const String& name)
   {
     Histogram<> dist = createMetaDistribution_(name);
     HistogramDialog dw(dist);
@@ -256,15 +256,15 @@ namespace OpenMS
 
   void SpectrumWidget::updateHScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-	if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
+    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
     {
       x_scrollbar_->hide();
     }
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-	  int local_min = min(f_min, disp_min);
-	  int local_max = max(f_max, disp_max);
+      int local_min = min(f_min, disp_min);
+      int local_max = max(f_max, disp_max);
       x_scrollbar_->blockSignals(true);
       x_scrollbar_->show();
       x_scrollbar_->setMinimum(static_cast<int>(local_min));
@@ -277,15 +277,15 @@ namespace OpenMS
 
   void SpectrumWidget::updateVScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-	if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
+    if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
     {
       y_scrollbar_->hide();
     }
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-	  int local_min = min(f_min, disp_min);
-	  int local_max = max(f_max, disp_max);
+      int local_min = min(f_min, disp_min);
+      int local_max = max(f_max, disp_max);
       y_scrollbar_->blockSignals(true);
       y_scrollbar_->show();
       y_scrollbar_->setMinimum(static_cast<int>(local_min));
@@ -301,12 +301,12 @@ namespace OpenMS
     showLegend(!isLegendShown());
   }
 
-  void SpectrumWidget::closeEvent(QCloseEvent * e)
+  void SpectrumWidget::closeEvent(QCloseEvent* e)
   {
     for (UInt l = 0; l < canvas()->getLayerCount(); ++l)
     {
       //modified => ask if it should be saved
-      const LayerData & layer = canvas()->getLayer(l);
+      const LayerData& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
         QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.name +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
@@ -320,7 +320,7 @@ namespace OpenMS
     e->accept();
   }
 
-  void SpectrumWidget::dragEnterEvent(QDragEnterEvent * event)
+  void SpectrumWidget::dragEnterEvent(QDragEnterEvent* event)
   {
     if (event->mimeData()->hasUrls())
     {
@@ -328,7 +328,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumWidget::dragMoveEvent(QDragMoveEvent * event)
+  void SpectrumWidget::dragMoveEvent(QDragMoveEvent* event)
   {
     if (event->mimeData()->hasUrls())
     {
@@ -336,7 +336,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumWidget::dropEvent(QDropEvent * event)
+  void SpectrumWidget::dropEvent(QDropEvent* event)
   {
     emit dropReceived(event->mimeData(), event->source(), window_id_);
     event->acceptProposedAction();

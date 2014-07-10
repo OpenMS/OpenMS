@@ -499,10 +499,10 @@ namespace OpenMS
       }
 
       // parse peptide section
-      std::vector<double> peptide_abundance_sub; // Peptide abundance in the subsample;
-      std::vector<double> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
-      std::vector<double> peptide_abundance_std_error_sub; // Peptide abundance standard error.
-      std::vector<MzTabOptionalColumnEntry> pep_opt_; // Optional columns must start with opt_.
+      //std::vector<double> peptide_abundance_sub; // Peptide abundance in the subsample;
+      //std::vector<double> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
+      //std::vector<double> peptide_abundance_std_error_sub; // Peptide abundance standard error.
+      //std::vector<MzTabOptionalColumnEntry> pep_opt_; // Optional columns must start with opt_.
 
       if (prefix == "PEP")
       {
@@ -574,11 +574,11 @@ namespace OpenMS
       }
 
       // parse small molecule section
-      MzTabModificationList modifications; // Modifications identified on the small molecule.
-      std::vector<MzTabDouble>  smallmolecule_abundance_sub; // Abundance in the subsample;
-      std::vector<MzTabDouble> smallmolecule_abundance_stdev_sub; // Standard deviation of the abundance.
-      std::vector<MzTabDouble> smallmolecule_abundance_std_error_sub; // Standard errpr of the abundance.
-      std::vector<MzTabOptionalColumnEntry> small_opt_; // Optional columns must start with opt_.
+//      MzTabModificationList modifications; // Modifications identified on the small molecule.
+//      std::vector<MzTabDouble>  smallmolecule_abundance_sub; // Abundance in the subsample;
+//      std::vector<MzTabDouble> smallmolecule_abundance_stdev_sub; // Standard deviation of the abundance.
+//      std::vector<MzTabDouble> smallmolecule_abundance_std_error_sub; // Standard errpr of the abundance.
+//      std::vector<MzTabOptionalColumnEntry> small_opt_; // Optional columns must start with opt_.
 
       if (prefix == "SML")
       {

@@ -61,10 +61,10 @@ namespace OpenMS
     int inputs() const { return m_inputs; }
     int values() const { return m_values; }
 
-    OPDFunctor(unsigned dimensions, unsigned numDataPoints, const OptimizePeakDeconvolution::Data* data)
-    : m_inputs(dimensions), m_values(numDataPoints), m_data(data){ }
+    OPDFunctor(unsigned dimensions, unsigned numDataPoints, const OptimizePeakDeconvolution::Data* data) :
+      m_inputs(dimensions), m_values(numDataPoints), m_data(data){}
 
-    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+    int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
     {
       //TODO: holding the parameters to be optimized and additional values in the same vector is
       //      most likely not the best idea. should be split in two vectors.
@@ -149,7 +149,7 @@ namespace OpenMS
 
         if (p_height <  1)
         {
-          penalty += 100000 * penalty_intensity * pow(fabs(p_height - old_height), 2);
+          penalty += 100000* penalty_intensity* pow(fabs(p_height - old_height), 2);
 
         }
         if (p_width_l < 0)
@@ -166,15 +166,16 @@ namespace OpenMS
           penalty += 10000 * pow(fabs(p_width_r - old_width_r), 2);
         if (fabs(old_position - p_position) > 0.1)
         {
-          penalty += 10000 * penalty_pos * pow(fabs(old_position - p_position), 2);
+          penalty += 10000* penalty_pos* pow(fabs(old_position - p_position), 2);
         }
       }
-      fvec(fvec.size()-1) = penalty;
+      fvec(fvec.size() - 1) = penalty;
 
       return 0;
     }
+
     // compute Jacobian matrix for the different parameters
-    int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+    int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
     {
       // For the conventions on x and params c.f. the commentary in residual()
       //
@@ -182,9 +183,9 @@ namespace OpenMS
       // Note: Jacobian is expected as follows:
       //                    - each row corresponds to one data point
       //                    - each column corresponds to one parameter
-      const std::vector<double> & positions = m_data->positions;
-      const std::vector<PeakShape> & peaks = m_data->peaks;
-      const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
+      const std::vector<double>& positions = m_data->positions;
+      const std::vector<PeakShape>& peaks = m_data->peaks;
+      const OptimizationFunctions::PenaltyFactorsIntensity& penalties = m_data->penalties;
       Int charge = m_data->charge;
 
       double leftwidth = x(0);
@@ -213,17 +214,17 @@ namespace OpenMS
             double denom_inv = 1. / (1. + pow(p_width * diff, 2));
 
             double ddl_left
-                = (current_position <= p_position) ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+              = (current_position <= p_position) ? -2* p_height* pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
             double ddl_right
-                = (current_position  > p_position) ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+              = (current_position  > p_position) ? -2* p_height* pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
             // left and right width are the same for all peaks,
             // the sums of the derivations over all peaks are stored in the first two columns
             J(current_point, 0) = J(current_point, 0) + ddl_left;
             J(current_point, 1) = J(current_point, 1) + ddl_right;
 
-            double ddx0    = 2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
+            double ddx0    = 2* p_height* pow(p_width, 2) * diff * pow(denom_inv, 2);
 
             // partial derivation with respect to intensity
             J(current_point, 2 + 2 * current_peak) = denom_inv;
@@ -231,7 +232,7 @@ namespace OpenMS
             // partial derivation with respect to the mz-position
             J(current_point, 2 + 2 * current_peak + 1) = ddx0;
           }
-          else// It's a Sech - Peak
+          else // It's a Sech - Peak
           {
             double diff      = current_position - p_position;
             double denom_inv = 1. / cosh(p_width * diff);
@@ -242,16 +243,16 @@ namespace OpenMS
 
 
             double ddl_left  = (current_position <= p_position)
-                                   ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
-                                     0;
+                               ? -2* p_height* sinh_term* diff* pow(denom_inv, 3) :
+                               0;
             double ddl_right = (current_position  > p_position)
-                                   ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
-                                     0;
+                               ? -2* p_height* sinh_term* diff* pow(denom_inv, 3) :
+                               0;
 
             J(current_point, 0) = J(current_point, 0) + ddl_left;
             J(current_point, 1) = J(current_point, 1) + ddl_right;
 
-            double ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
+            double ddx0      = 2* p_height* p_width* sinh_term* pow(denom_inv, 3);
 
             J(current_point, 2 + 2 * current_peak) = pow(denom_inv, 2);
             J(current_point, 2 + 2 * current_peak + 1) = ddx0;
@@ -281,7 +282,7 @@ namespace OpenMS
 
           }
         }
-        std::cout << "Eigen penalty_p "<<penalty_p<<std::endl;
+        std::cout << "Eigen penalty_p " << penalty_p << std::endl;
         double p_width_left = x(0);
         double p_width_right = x(1);
         double p_height = x(2 + 2 * current_peak);
@@ -319,10 +320,10 @@ namespace OpenMS
         J(positions.size(), 1) = 100 * penalty_r;
         J(positions.size(), 2 + 2 * current_peak + 1) = 100 * penalty_p;
       }
-      for(int i=0; i<J.rows(); ++i)
+      for (int i = 0; i < J.rows(); ++i)
       {
-        for(int j=0; j<J.cols(); ++j)
-          std::cout << J(i,j) << " ";
+        for (int j = 0; j < J.cols(); ++j)
+          std::cout << J(i, j) << " ";
         std::cout << std::endl;
       }
       std::cout << std::endl;
@@ -367,7 +368,7 @@ namespace OpenMS
 
   }
 
-  bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape> & peaks, Data & data)
+  bool OptimizePeakDeconvolution::optimize(std::vector<PeakShape>& peaks, Data& data)
   {
 
     if (peaks.empty())
@@ -401,7 +402,7 @@ namespace OpenMS
     double min(std::numeric_limits<double>::max());
     Int bestCharge = 0;
     Size bestNumPeaks = 0;
-    Eigen::VectorXd bestResult (2 + 2 * data.peaks.size());
+    Eigen::VectorXd bestResult(2 + 2 * data.peaks.size());
     bestResult.setZero();
 
     // try three different charge states : charge-1, charge, charge +1
@@ -418,7 +419,7 @@ namespace OpenMS
     {
 
       setNumberOfPeaks_(data, temp_shapes, chargeState);
-      Eigen::VectorXd x_init (2 + 2 * data.peaks.size());
+      Eigen::VectorXd x_init(2 + 2 * data.peaks.size());
       for (Size i = 0; i < data.peaks.size(); i++)
       {
         x_init(2 + 2 * i) = data.peaks[i].height;
@@ -449,8 +450,8 @@ namespace OpenMS
       data.penalties = penalties_;
       data.charge = chargeState;
       unsigned numDataPoints = std::max(data.positions.size() + 1, 2 + 2 * data.peaks.size());
-      OPDFunctor functor (2, numDataPoints, &data);
-      Eigen::LevenbergMarquardt<OPDFunctor> lmSolver (functor);
+      OPDFunctor functor(2, numDataPoints, &data);
+      Eigen::LevenbergMarquardt<OPDFunctor> lmSolver(functor);
       Eigen::LevenbergMarquardt<OPDFunctor>::Parameters config;
       config.maxfev = (Int)param_.getValue("max_iteration");
       lmSolver.parameters = config;
@@ -461,7 +462,7 @@ namespace OpenMS
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-OptimizePeakDeconvolution", "Could not fit the curve to the data: Error " + String(status));
+        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-OptimizePeakDeconvolution", "Could not fit the curve to the data: Error " + String(status));
       }
       double chi = lmSolver.fnorm;
       if ((chargeState == firstChargeState) || (chi < min))
@@ -473,65 +474,65 @@ namespace OpenMS
         bestNumPeaks = data.peaks.size();
       }
     }
-     global_peak_number += bestNumPeaks;
-     // iterate over all peaks and store the optimized values in peaks
-     if (bestNumPeaks > 0)
-     {
-       peaks.resize(bestNumPeaks);
-       for (Size current_peak = 0; current_peak < bestNumPeaks; current_peak++)
-       {
+    global_peak_number += bestNumPeaks;
+    // iterate over all peaks and store the optimized values in peaks
+    if (bestNumPeaks > 0)
+    {
+      peaks.resize(bestNumPeaks);
+      for (Size current_peak = 0; current_peak < bestNumPeaks; current_peak++)
+      {
 
-         // Store the current parameters for this peak
+        // Store the current parameters for this peak
 
-         peaks[current_peak].left_width  = bestResult(0);
-         peaks[current_peak].right_width = bestResult(1);
+        peaks[current_peak].left_width  = bestResult(0);
+        peaks[current_peak].right_width = bestResult(1);
 
-         peaks[current_peak].height = bestResult(2 + 2 * current_peak);
-         peaks[current_peak].mz_position = bestResult(2 + 2 * current_peak + 1);
+        peaks[current_peak].height = bestResult(2 + 2 * current_peak);
+        peaks[current_peak].mz_position = bestResult(2 + 2 * current_peak + 1);
 
 
 
-         // compute the area
-         // is it a Lorentz or a Sech - Peak?
-         if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
-         {
-           PeakShape p = peaks[current_peak];
-           double x_left_endpoint = p.mz_position + 1 / p.left_width * sqrt(p.height / 1 - 1);
-           double x_right_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
- #ifdef DEBUG_DECONV
-           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
-           std::cout << "p.height" << p.height << std::endl;
- #endif
-           double area_left = -p.height / p.left_width * atan(p.left_width * (x_left_endpoint - p.mz_position));
-           double area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_right_endpoint));
-           peaks[current_peak].area = area_left + area_right;
+        // compute the area
+        // is it a Lorentz or a Sech - Peak?
+        if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
+        {
+          PeakShape p = peaks[current_peak];
+          double x_left_endpoint = p.mz_position + 1 / p.left_width * sqrt(p.height / 1 - 1);
+          double x_right_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
+#ifdef DEBUG_DECONV
+          std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
+          std::cout << "p.height" << p.height << std::endl;
+#endif
+          double area_left = -p.height / p.left_width * atan(p.left_width * (x_left_endpoint - p.mz_position));
+          double area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_right_endpoint));
+          peaks[current_peak].area = area_left + area_right;
 
-         }
-         else                  //It's a Sech - Peak
-         {
-           PeakShape p = peaks[current_peak];
-           double x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-           double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
- #ifdef DEBUG_DECONV
-           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
-           std::cout << "p.height" << p.height << std::endl;
- #endif
-           double area_left = -p.height / p.left_width * (sinh(p.left_width * (p.mz_position - x_left_endpoint))
-                                                              / cosh(p.left_width * (p.mz_position - x_left_endpoint)));
-           double area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_right_endpoint))
-                                                                / cosh(p.right_width * (p.mz_position - x_right_endpoint)));
-           peaks[current_peak].area = area_left + area_right;
+        }
+        else                   //It's a Sech - Peak
+        {
+          PeakShape p = peaks[current_peak];
+          double x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
+          double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+#ifdef DEBUG_DECONV
+          std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
+          std::cout << "p.height" << p.height << std::endl;
+#endif
+          double area_left = -p.height / p.left_width * (sinh(p.left_width * (p.mz_position - x_left_endpoint))
+                                                         / cosh(p.left_width * (p.mz_position - x_left_endpoint)));
+          double area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_right_endpoint))
+                                                           / cosh(p.right_width * (p.mz_position - x_right_endpoint)));
+          peaks[current_peak].area = area_left + area_right;
 
-         }
+        }
 
-       }
-     }
-     charge_ = bestCharge;
+      }
+    }
+    charge_ = bestCharge;
 
-     return true;
+    return true;
   }
 
-  Size OptimizePeakDeconvolution::getNumberOfPeaks_(Int charge, std::vector<PeakShape> & temp_shapes, Data & data)
+  Size OptimizePeakDeconvolution::getNumberOfPeaks_(Int charge, std::vector<PeakShape>& temp_shapes, Data& data)
   {
     double dist = dist_ / charge;
 
@@ -559,7 +560,7 @@ namespace OpenMS
 
   }
 
-  void OptimizePeakDeconvolution::setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge)
+  void OptimizePeakDeconvolution::setNumberOfPeaks_(Data& data, const std::vector<PeakShape>& temp_shapes, Int charge)
   {
     double dist = dist_ / charge;
 

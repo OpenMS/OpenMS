@@ -706,7 +706,7 @@ namespace OpenMS
     {
       // add char to buffer
       buffer.push_back(c_peek);
-      c_peek = input_line.line_.get();
+      input_line.line_.get();
       // get next char
       c_peek = input_line.line_.peek();
 

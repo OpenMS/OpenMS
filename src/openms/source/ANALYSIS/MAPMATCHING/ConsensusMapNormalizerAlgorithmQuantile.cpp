@@ -50,7 +50,7 @@ namespace OpenMS
 
   }
 
-  void ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(ConsensusMap & map)
+  void ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(ConsensusMap& map)
   {
     //extract feature intensities
     vector<vector<double> > feature_ints;
@@ -104,18 +104,18 @@ namespace OpenMS
       //comes sorted, so we transfer the values in feature_ints[i] into pairs that store
       //the value and the index in feature_ints[i]. than we sort the vector of pair and as
       //a result store the indexes of feature_ints[i] in a sorted order in sort_indices.
-      std::vector< std::pair<double, UInt> > sort_pairs;
-      sort_pairs.reserve( feature_ints[i].size() );
-      for(Size j=0; j<feature_ints[i].size(); ++j)
+      std::vector<std::pair<double, UInt> > sort_pairs;
+      sort_pairs.reserve(feature_ints[i].size());
+      for (Size j = 0; j < feature_ints[i].size(); ++j)
       {
-        sort_pairs.push_back( std::make_pair(feature_ints[i][j], j) );
+        sort_pairs.push_back(std::make_pair(feature_ints[i][j], j));
       }
       std::sort(sort_pairs.begin(), sort_pairs.end());
       vector<Size> sort_indices(sort_pairs.size());
-      for(Size j=0; j<sort_pairs.size(); ++j)
-	  {
-    	  sort_indices.push_back( sort_pairs.at(j).second );
-	  }
+      for (Size j = 0; j < sort_pairs.size(); ++j)
+      {
+        sort_indices.push_back(sort_pairs.at(j).second);
+      }
       Size k = 0;
       for (Size j = 0; j < sort_indices.size(); ++j)
       {
@@ -128,7 +128,7 @@ namespace OpenMS
     setNormalizedIntensityValues(feature_ints, map);
   }
 
-  void ConsensusMapNormalizerAlgorithmQuantile::resample(const vector<double> & data_in, vector<double> & data_out, UInt n_resampling_points)
+  void ConsensusMapNormalizerAlgorithmQuantile::resample(const vector<double>& data_in, vector<double>& data_out, UInt n_resampling_points)
   {
     data_out.clear();
     data_out.resize(n_resampling_points);
@@ -159,7 +159,7 @@ namespace OpenMS
     }
   }
 
-  void ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(const ConsensusMap & map, vector<vector<double> > & out_intensities)
+  void ConsensusMapNormalizerAlgorithmQuantile::extractIntensityVectors(const ConsensusMap& map, vector<vector<double> >& out_intensities)
   {
     //reserve space for out_intensities (unequal vector lengths, 0-features omitted)
     Size number_of_maps = map.getFileDescriptions().size();
@@ -181,7 +181,7 @@ namespace OpenMS
     }
   }
 
-  void ConsensusMapNormalizerAlgorithmQuantile::setNormalizedIntensityValues(const vector<vector<double> > & feature_ints, ConsensusMap & map)
+  void ConsensusMapNormalizerAlgorithmQuantile::setNormalizedIntensityValues(const vector<vector<double> >& feature_ints, ConsensusMap& map)
   {
     //assumes the input map and feature_ints are in the same order as in the beginning,
     //although feature_ints has normalized values now (but the same ranks as before)

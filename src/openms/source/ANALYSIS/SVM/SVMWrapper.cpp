@@ -1884,15 +1884,13 @@ namespace OpenMS
                                               const vector<pair<double, double> >& points)
   {
     Size counter = 0;
-    double lower_bound = 0.;
-    double upper_bound = 0.;
 
     for (vector<pair<double, double> >::const_iterator it = points.begin();
          it != points.end();
          ++it)
     {
-      upper_bound = intercept + it->first * slope;
-      lower_bound = -intercept + it->first * (1 / slope);
+      double upper_bound = intercept + it->first * slope;
+      double lower_bound = -intercept + it->first * (1 / slope);
 
       if (it->second >= lower_bound
          && it->first <= upper_bound)

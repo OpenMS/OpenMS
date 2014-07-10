@@ -110,14 +110,14 @@ namespace OpenMS
       unsigned N = points.size();
       std::vector<double> X; X.reserve(N);
       std::vector<double> Y; Y.reserve(N);
-      for(unsigned i=0; i<N; ++i)
+      for (unsigned i = 0; i < N; ++i)
       {
         X.push_back(points.at(i).X());
         Y.push_back(points.at(i).Y());
       }
       // Variance and Covariances
       double var_X = Math::variance(X.begin(), X.end());
-      double var_Y = Math::variance(Y.begin(),Y.end());
+      double var_Y = Math::variance(Y.begin(), Y.end());
       double cov_XY = Math::covariance(X.begin(), X.end(), Y.begin(), Y.end());
 
       // Mean of abscissa and ordinate values
@@ -152,7 +152,7 @@ namespace OpenMS
       x_intercept_ = -(intercept_ / slope_);
 
       double P = 1 - (1 - confidence_interval_P) / 2;
-      boost::math::students_t tdist (N - 2);
+      boost::math::students_t tdist(N - 2);
       t_star_ = boost::math::quantile(tdist, P);
 
       //Compute the asymmetric 95% confidence intervall of around the X-intercept

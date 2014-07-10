@@ -87,7 +87,7 @@ namespace OpenMS
   {
 
     for (MRMFeature::PGScoresType::const_iterator score = scores.begin();
-         score != scores.end(); score++)
+         score != scores.end(); ++score)
     {
       addScore(score->first, score->second);
     }
@@ -117,7 +117,7 @@ namespace OpenMS
 
   void MRMFeature::getFeatureIDs(std::vector<String> & result) const
   {
-    for (std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); it++ )
+    for (std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); ++it)
     {
       result.push_back(it->first);
     }

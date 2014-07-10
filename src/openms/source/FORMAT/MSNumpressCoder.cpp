@@ -52,16 +52,14 @@ namespace OpenMS
     Size dataSize = in.size();
 
     // using MSNumpress, from johan.teleman@immun.lth.se
-    size_t byteCount = 0;
-    std::vector<unsigned char> compressed;
     std::vector<unsigned char> numpressed;
-    std::vector<float> data32;
-    std::vector<double> data64endianized;
 
     double fixedPoint  = config.numpressFixedPoint;
 
     try
     {
+      size_t byteCount = 0;
+
       // 1. Resize the data
       switch (config.np_compression)
       {
@@ -230,7 +228,6 @@ namespace OpenMS
     if (in_size == 0) return;
 
     size_t byteCount = in_size;
-    size_t initialSize;
 
 #ifdef NUMPRESS_DEBUG
     std::cout << "decodeNP_: array input with length " << in_size << std::endl;
@@ -242,6 +239,8 @@ namespace OpenMS
 
     try
     {
+      size_t initialSize;
+
       switch (config.np_compression)
       {
       case LINEAR:

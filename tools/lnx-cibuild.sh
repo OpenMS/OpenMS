@@ -23,6 +23,11 @@ export PATH=${SOURCE_DIRECTORY}/_searchengines/MyriMatch:$PATH
 export PATH=${SOURCE_DIRECTORY}/_searchengines/OMSSA:$PATH
 export PATH=${SOURCE_DIRECTORY}/_searchengines/XTandem:$PATH
 
+# if we perform style tests, add cppcheck to path
+if [ $ENABLE_STYLE_TESTING == "On" ]; then
+  export PATH=${SOURCE_DIRECTORY}/cppcheck:$PATH
+fi
+
 ctest -V -S tools/lnx-cibuild.cmake
 
 # we indicate build failures if ctest experienced any errors
