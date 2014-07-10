@@ -561,6 +561,9 @@ namespace OpenMS
           filtered_peptide_identifications.push_back(peptide_identifications[i]);
           filtered_peptide_identifications.back().setHits(filtered_pep_hits);
         }
+      } else  // peptide is from another run, let it pass the filter‏
+      {
+        filtered_peptide_identifications.push_back(peptide_identifications[i]);
       }
     }
 
