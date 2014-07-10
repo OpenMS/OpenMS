@@ -102,16 +102,6 @@ class OPENMS_DLLAPI LocalClustering
     LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y);
 
     /**
-     * @brief initialises all data structures
-     * 
-     * @param data_x    x-coordinates of points to be clustered
-     * @param data_y    y-coordinates of points to be clustered
-     * @param properties_A    property A of points (same in each cluster)
-     * @param properties_B    property B of points (different in each cluster)
-     */
-    void init(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B);
-
-    /**
      * @brief performs the hierarchical clustering
      * (merges clusters until their dimension exceeds that of  cell)
      */
@@ -216,6 +206,16 @@ class OPENMS_DLLAPI LocalClustering
     */
     double scaling_y_;
  
+    /**
+     * @brief initialises all data structures
+     * 
+     * @param data_x    x-coordinates of points to be clustered
+     * @param data_y    y-coordinates of points to be clustered
+     * @param properties_A    property A of points (same in each cluster)
+     * @param properties_B    property B of points (different in each cluster)
+     */
+    void init(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B);
+
     /**
     * @brief set of indices referencing the points in the cluster
     */

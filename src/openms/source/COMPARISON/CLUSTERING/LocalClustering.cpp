@@ -60,49 +60,6 @@ LocalClustering::LocalClustering(const std::vector<double> &data_x, const std::v
     init(data_x, data_y, minusOnes(data_x.size()), minusOnes(data_x.size()));
 }
 
-void LocalClustering::init(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B)
-{
-    // fill the grid with points to be clustered (initially each cluster contains a single point)
-    for (unsigned i = 0; i < data_x.size(); ++i)
-    {
-        Point position(data_x[i],data_y[i]);
-        Rectangle box(position,position);
-        
-        std::vector<int> pi;    // point indicies
-        pi.push_back(i);
-        std::vector<int> pb;    // properties B
-        pb.push_back(properties_B[i]);
-        
-        // add to cluster list
-        Cluster cluster(position, box, pi, properties_A[i], pb);
-        clusters_.insert(std::make_pair(i,cluster));
-        
-        // register on hash grid
-        grid_.addCluster(grid_.getIndex(position), i);
-    }
-    
-    // fill list of minimum distances
-    std::map<int, Cluster>::iterator iterator = clusters_.begin();
-    while (iterator != clusters_.end())
-    {
-        int cluster_index = iterator->first;
-        Cluster cluster = iterator->second;
-        
-        if (findNearestNeighbour(cluster, cluster_index))
-        {
-            // remove from grid
-            grid_.removeCluster(grid_.getIndex(cluster.getCentre()), cluster_index);
-            // remove from cluster list
-            clusters_.erase(iterator++);
-        }
-        else
-        {
-            ++iterator;
-        }
-    }
-    
-}
-
 void LocalClustering::cluster()
 {
     MinimumDistance zero_distance(-1, -1, 0);
@@ -378,6 +335,49 @@ bool LocalClustering::MinimumDistance::operator>(MinimumDistance other) const
 bool LocalClustering::MinimumDistance::operator==(MinimumDistance other) const
 {
     return distance_ == other.distance_;
+}
+
+void LocalClustering::init(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B)
+{
+    // fill the grid with points to be clustered (initially each cluster contains a single point)
+    for (unsigned i = 0; i < data_x.size(); ++i)
+    {
+        Point position(data_x[i],data_y[i]);
+        Rectangle box(position,position);
+        
+        std::vector<int> pi;    // point indicies
+        pi.push_back(i);
+        std::vector<int> pb;    // properties B
+        pb.push_back(properties_B[i]);
+        
+        // add to cluster list
+        Cluster cluster(position, box, pi, properties_A[i], pb);
+        clusters_.insert(std::make_pair(i,cluster));
+        
+        // register on hash grid
+        grid_.addCluster(grid_.getIndex(position), i);
+    }
+    
+    // fill list of minimum distances
+    std::map<int, Cluster>::iterator iterator = clusters_.begin();
+    while (iterator != clusters_.end())
+    {
+        int cluster_index = iterator->first;
+        Cluster cluster = iterator->second;
+        
+        if (findNearestNeighbour(cluster, cluster_index))
+        {
+            // remove from grid
+            grid_.removeCluster(grid_.getIndex(cluster.getCentre()), cluster_index);
+            // remove from cluster list
+            clusters_.erase(iterator++);
+        }
+        else
+        {
+            ++iterator;
+        }
+    }
+    
 }
 
 std::vector<int> LocalClustering::minusOnes(int l)

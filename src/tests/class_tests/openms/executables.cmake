@@ -40,6 +40,7 @@ set(datastructures_executables_list
   HashGrid2_test
   ListUtils_test
   ListUtilsIO_test
+  LocalClustering_test
   LPWrapper_test
   Map_test
   MassExplainer_test
