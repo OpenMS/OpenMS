@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Erhan Kenar $
+// $Maintainer: Erhan Kenar, Lars Nilse $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHIRES_H
@@ -86,8 +86,8 @@ public:
     /// structure for peak boundaries
     struct PeakBoundary
     {
-        double mz_min;
-        double mz_max;
+        double mzMin;
+        double mzMax;
     };
 
     /**
@@ -102,7 +102,7 @@ public:
     void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output) const
     {
         std::vector<PeakBoundary> boundaries;
-        pick(input, output, boundaries);
+        pick(input, output, boundaries, false);
     }
 
     /**
@@ -113,9 +113,10 @@ public:
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      * @param boundaries  boundaries of the picked peaks
+     * @param detectShoulds  optional flag for the detection of peak shoulders (extrema in first derivative)
      */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const
+    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries, bool detect_shoulders) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
@@ -187,17 +188,21 @@ public:
           }
 
           //checking signal-to-noise?
-          if (std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
+          if ((i > 1
+              && std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
               && left_neighbor_int < input[i - 2].getIntensity()
-              && act_snt_l2 >= signal_to_noise_
-              && (i + 2) < input.size()
+              && act_snt_l2 >= signal_to_noise_)
+             &&
+              ((i + 2) < input.size()
               && std::fabs(input[i + 2].getMZ() - right_neighbor_mz) < spacing_difference_ * min_spacing
               && right_neighbor_int < input[i + 2].getIntensity()
               && act_snt_r2 >= signal_to_noise_)
+              )
           {
             ++i;
             continue;
           }
+
 
           std::map<double, double> peak_raw_data;
 
@@ -209,14 +214,12 @@ public:
           // to the left
           Size k = 2;
 
-          bool previous_zero_left(false);    // no need to extend peak if previous intensity was zero
           Size missing_left(0);
           Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
 
-          while ( k <= i    //prevent underflow
+          while ( k <= i//prevent underflow
                 && (i - k + 1) > 0
                 && (missing_left < 2)
-                && !previous_zero_left
                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
 
@@ -238,8 +241,6 @@ public:
               ++missing_left;
             }
 
-            previous_zero_left = (input[i - k].getIntensity() == 0);
-
             left_boundary = i - k;
             ++k;
 
@@ -248,13 +249,11 @@ public:
           // to the right
           k = 2;
           
-          bool previous_zero_right(false);    // no need to extend peak if previous intensity was zero
           Size missing_right(0);
-          Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
+          Size right_boundary(i+1);    // index of the left boundary for the spline interpolation
           
           while ((i + k) < input.size()
                 && (missing_right < 2)
-                && !previous_zero_right
                 && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
           {
 
@@ -274,8 +273,6 @@ public:
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
               ++missing_right;
             }
-
-            previous_zero_right = (input[i + k].getIntensity() == 0);
 
             right_boundary = i + k;
             ++k;
@@ -327,15 +324,136 @@ public:
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval( max_peak_mz );
 
-          // save picked pick into output spectrum
-          PeakType peak;
-          PeakBoundary peak_boundary;
-          peak.setMZ(max_peak_mz);
-          peak.setIntensity(max_peak_int);
-          peak_boundary.mz_min = input[left_boundary].getMZ();
-          peak_boundary.mz_max = input[right_boundary].getMZ();
-          output.push_back(peak);
-          boundaries.push_back(peak_boundary);
+          if (detect_shoulders)
+          {
+              std::vector<double> peak_raw_data_mz;
+              std::vector<double> peak_raw_data_int;
+              for (std::map< double, double, std::less< double > >::const_iterator iter = peak_raw_data.begin(); iter != peak_raw_data.end(); ++iter)
+              {
+                peak_raw_data_mz.push_back(iter->first);
+                peak_raw_data_int.push_back(iter->second);
+              }
+              
+              int j(0);
+              while (peak_raw_data_mz[j] < max_peak_mz)
+              {
+                  ++j;
+              }
+              
+              // Is there a shoulder, i.e. a maximum in the first derivative, to the right?
+              int rs(0);
+              for (int l = j+1; l < (int) peak_raw_data_mz.size()-1 -1; ++l)    // Do not trust shoulders close to the borders, hence -1.
+              {
+                  double left = peak_spline.derivatives(peak_raw_data_mz[l-1], 1);
+                  double centre = peak_spline.derivatives(peak_raw_data_mz[l], 1);
+                  double right = peak_spline.derivatives(peak_raw_data_mz[l+1], 1);
+                  if (left < centre && centre > right)
+                  {
+                      rs = l;
+                      break;    // We consider only shoulders right next to the peak maximum. Multiple shoulders on one side are ignored.
+                  }
+              }
+
+              // Is there a shoulder, i.e. a minimum in the first derivative, to the left?
+              int ls(0);
+              for (int l = j-1; l > 0; --l)    // Do not trust shoulders close to the borders, hence >0.
+              {
+                  double left = peak_spline.derivatives(peak_raw_data_mz[l-1], 1);
+                  double centre = peak_spline.derivatives(peak_raw_data_mz[l], 1);
+                  double right = peak_spline.derivatives(peak_raw_data_mz[l+1], 1);
+                  if (left > centre && centre < right)
+                  {
+                      ls = l;
+                      break;    // We consider only shoulders right next to the peak maximum. Multiple shoulders on one side are ignored.
+                  }
+              }
+
+              PeakType peak;
+              PeakBoundary peak_boundary;
+
+              // add central peak to results
+              peak.setMZ(max_peak_mz);
+              peak.setIntensity(max_peak_int);
+              output.push_back(peak);
+              // Peak boundaries are where the (possible) shoulders start.
+              if (ls==0)
+              {
+                  peak_boundary.mzMin = input[left_boundary].getMZ();
+              }
+              else
+              {
+                  peak_boundary.mzMin = (peak_raw_data_mz[ls]+peak_raw_data_mz[ls+1])/2;
+              }
+              if (rs==0)
+              {
+                  peak_boundary.mzMax = input[right_boundary].getMZ();
+              }
+              else
+              {
+                  peak_boundary.mzMax = (peak_raw_data_mz[rs]+peak_raw_data_mz[rs-1])/2;
+              }
+              boundaries.push_back(peak_boundary);
+              
+              // add left peak to results
+              if (ls!=0)
+              {
+                  // m/z centre of the shoulder is the intensity-weighted average of the m/z
+                  double mz(0);
+                  double summed_intensities(0);
+                  for (int s=0; s<=ls; ++s)
+                  {
+                      mz += peak_raw_data_mz[s]*peak_raw_data_int[s];
+                      summed_intensities += peak_raw_data_int[s];
+                  }
+                  //peak.setMZ(mz/summed_intensities);
+                  // intensity of the shoulder is the spline interpolation at the m/z centre
+                  //peak.setIntensity(std::max(0.0,peak_spline.eval(mz/summed_intensities)));
+                  peak.setMZ(peak_raw_data_mz[ls]);
+                  peak.setIntensity(peak_raw_data_int[ls]);
+                  output.push_back(peak);
+                  
+                  peak_boundary.mzMin = input[left_boundary].getMZ();
+                  peak_boundary.mzMax = (peak_raw_data_mz[ls]+peak_raw_data_mz[ls+1])/2;
+                  boundaries.push_back(peak_boundary);
+              }
+
+              // add right peak to results
+              if (rs!=0)
+              {
+                  // m/z centre of the shoulder is the intensity-weighted average of the m/z
+                  double mz(0);
+                  double summed_intensities(0);
+                  for (int s = rs; s < (int) peak_raw_data_mz.size(); ++s)
+                  {
+                      mz += peak_raw_data_mz[s]*peak_raw_data_int[s];
+                      summed_intensities += peak_raw_data_int[s];
+                  }
+                  //peak.setMZ(mz/summed_intensities);
+                  // intensity of the shoulder is the spline interpolation at the m/z centre
+                  //peak.setIntensity(std::max(0.0,peak_spline.eval(mz/summed_intensities)));
+                  peak.setMZ(peak_raw_data_mz[rs]);
+                  peak.setIntensity(peak_raw_data_int[rs]);
+                  output.push_back(peak);
+                  
+                  peak_boundary.mzMin = (peak_raw_data_mz[rs]+peak_raw_data_mz[rs-1])/2;
+                  peak_boundary.mzMax = input[right_boundary].getMZ();
+                  boundaries.push_back(peak_boundary);
+              }
+
+          }
+          else
+          {
+              // save picked pick into output spectrum
+              PeakType peak;
+              PeakBoundary peak_boundary;
+              
+              peak.setMZ(max_peak_mz);
+              peak.setIntensity(max_peak_int);
+              output.push_back(peak);
+              peak_boundary.mzMin = input[left_boundary].getMZ();
+              peak_boundary.mzMax = input[right_boundary].getMZ();
+              boundaries.push_back(peak_boundary);
+         }
 
           // jump over raw data points that have been considered already
           i = i + k - 1;
@@ -356,7 +474,7 @@ public:
     void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output) const
     {
         std::vector<PeakBoundary> boundaries;
-        pick(input, output, boundaries);
+        pick(input, output, boundaries, false);
     }
     
     /**
@@ -366,9 +484,10 @@ public:
      * @param input  input chromatogram in profile mode
      * @param output  output chromatogram with picked peaks
      * @param boundaries  boundaries of the picked peaks
+     * @param detectShoulds  optional flag for the detection of peak shoulders (extrema in first derivative)
      */
     template <typename PeakType>
-    void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output, std::vector<PeakBoundary> & boundaries) const
+    void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output, std::vector<PeakBoundary> & boundaries, bool shoulders) const
     {
       // copy meta data of the input chromatogram
       output.clear(true);
@@ -382,7 +501,7 @@ public:
       {
         input_spectrum.push_back(*it);
       }
-      pick(input_spectrum, output_spectrum, boundaries);
+      pick(input_spectrum, output_spectrum, boundaries, shoulders);
       for (typename MSSpectrum<PeakType>::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
       {
         output.push_back(*it);
@@ -415,6 +534,7 @@ public:
      * @param output  output map with picked peaks
      * @param boundaries_spec  boundaries of the picked peaks in spectra
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
+     * @param detectShoulds  optional flag for the detection of peak shoulders (extrema in first derivative)
      */
     template <typename PeakType, typename ChromatogramPeakT>
     void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output, std::vector<std::vector<PeakBoundary> > & boundaries_spec, std::vector<std::vector<PeakBoundary> > & boundaries_chrom) const
@@ -429,6 +549,7 @@ public:
       output.resize(input.size());
 
       bool ms1_only = param_.getValue("ms1_only").toBool();
+      bool detect_shoulders = param_.getValue("detect_shoulders").toBool();
       Size progress = 0;
 
       startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
@@ -441,7 +562,7 @@ public:
         else
         {
           std::vector<PeakBoundary> boundaries_s;    // peak boundaries of a single spectrum
-          pick(input[scan_idx], output[scan_idx], boundaries_s);
+          pick(input[scan_idx], output[scan_idx], boundaries_s, detect_shoulders);
           boundaries_spec.push_back(boundaries_s);
         }
         setProgress(++progress);
@@ -450,7 +571,7 @@ public:
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;
         std::vector<PeakBoundary> boundaries_c;    // peak boundaries of a single chromatogram
-        pick(input.getChromatograms()[i], chromatogram, boundaries_c);
+        pick(input.getChromatograms()[i], chromatogram, boundaries_c, detect_shoulders);
         output.addChromatogram(chromatogram);
         boundaries_chrom.push_back(boundaries_c);
         setProgress(++progress);
