@@ -128,7 +128,7 @@ class SimpleSearchEngine
       setValidFormats_("out", ListUtils::create<String>("idXML"));
 
       // mass tolerance
-      registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance", false);
+      registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
 
       StringList precursor_mass_tolerance_unit_valid_strings;
       precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
@@ -506,7 +506,6 @@ class SimpleSearchEngine
 #pragma omp parallel for
 #endif
       for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
-      //for (vector<FASTAFile::FASTAEntry>::const_iterator fasta_it = fasta_db.begin(); fasta_it != fasta_db.end(); ++fasta_it)
       {
         progresslogger.setProgress((SignedSize)fasta_index);  
         vector<AASequence> current_digest;
@@ -557,12 +556,12 @@ class SimpleSearchEngine
 
           if (precursor_mass_tolerance_unit_ppm)  // ppm
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - current_peptide_mass * precursor_mass_tolerance * 1e-6);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + current_peptide_mass * precursor_mass_tolerance * 1e-6);
+            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
+            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
           } else  // Dalton
           {
-            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - precursor_mass_tolerance);
-            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + precursor_mass_tolerance);
+            low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * precursor_mass_tolerance);
+            up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * precursor_mass_tolerance);
           }
 
           if (low_it == up_it) continue; // no matching precursor in data
