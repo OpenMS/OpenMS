@@ -114,7 +114,7 @@ class OPENMS_DLLAPI LocalClustering
     void extendClustersY();
     
     /**
-     * @brief removes clusters with bounding boxe dimension in y-direction below certain threshold
+     * @brief removes clusters with bounding box dimension in y-direction below certain threshold
      * @param threshold_y    minimal dimension of the cluster bounding box
      */
     void removeSmallClustersY(double threshold_y);
