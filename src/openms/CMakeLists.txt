@@ -75,7 +75,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
                           ${GSL_LIBRARIES}
                           ${GSL_CBLAS_LIBRARIES}
-                          ${DEP_LIBSVM_LIBRARY}
+                          ${LIBSVM_LIBRARIES}
                           ${XercesC_LIBRARY}
                           ${Boost_LIBRARIES}
                           ${WM5_LIBRARIES}

@@ -77,18 +77,11 @@ find_package(SEQAN 1.4.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # libsvm
-if (WIN32) ## find manually on Windows, as find_package() does not know about debug lib
-	OPENMS_CHECKLIB(LIBSVM_LIBRARY "libsvm;svm" "libsvmd;svmd;libsvm;svm" "libSVM")
-endif()
-find_package(libSVM 2.91) ## will not overwrite LIBSVM_LIBRARY if defined already
+find_package(LIBSVM 2.91 REQUIRED) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)
-	message(STATUS "Found LibSVM version " ${LIBSVM_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MINOR ${LIBSVM_MINOR_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION ${LIBSVM_VERSION})
-	set(DEP_LIBSVM_LIBRARY ${LIBSVM_LIBRARY} ${LIBSVM_LIBRARIES}) # combine for consistent use later
-else()
-	message(FATAL_ERROR "LibSVM not found!")
 endif()
 
 #------------------------------------------------------------------------------
@@ -111,40 +104,22 @@ endif()
 # GLPK
 find_package(GLPK REQUIRED)
 if (GLPK_FOUND)
-	message(STATUS "Found GLPK version " ${GLPK_VERSION_STRING})
 	set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
 	set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
 	set(CF_OPENMS_GLPK_VERSION ${GLPK_VERSION_STRING})
-else()
-	message(FATAL_ERROR "GLPK not found!")
 endif()
 
 #------------------------------------------------------------------------------
 # zlib
 find_package(ZLIB REQUIRED)
-if (ZLIB_FOUND)
-  message(STATUS "Found zlib version ${ZLIB_VERSION_STRING}")
-else()
-  message(FATAL_ERROR "zlib not found!")
-endif()
 
 #------------------------------------------------------------------------------
 # bzip2
 find_package(BZip2 REQUIRED)
-if (BZIP2_FOUND)
-  message(STATUS "Found bzip2 version ${BZIP2_VERSION_STRING}")
-else()
-  message(FATAL_ERROR "bzip2 not found!")
-endif()
 
 #------------------------------------------------------------------------------
 # Find eigen3
 find_package(Eigen3 3.1.0 REQUIRED)
-if (EIGEN3_FOUND)
-  message(STATUS "Found eigen3 version ${EIGEN3_VERSION}")
-else()
-  message(FATAL_ERROR "eigen3 not found!")
-endif()
 
 #------------------------------------------------------------------------------
 # Find geometric tools - wildmagick 5
