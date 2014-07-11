@@ -127,9 +127,6 @@ set(WM5_FIND_REQUIRED_COMPONENTS WM5_WM5CORE WM5_WM5MATHEMATICS )
 find_package(WM5 REQUIRED)
 if (WM5_FOUND)
   add_definitions(${WM5_DEFINITIONS})
-  message(STATUS "Found WM5")
-else()
-  message(FATAL_ERROR "WM5 not found!")
 endif()
 
 #------------------------------------------------------------------------------
