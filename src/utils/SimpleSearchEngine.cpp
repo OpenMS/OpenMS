@@ -127,14 +127,18 @@ class SimpleSearchEngine
       registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance", false);
 
       StringList precursor_mass_tolerance_unit_valid_strings;
-      precursor_mass_tolerance_unit_valid_strings << "ppm" << "Da";
+      precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
+      precursor_mass_tolerance_unit_valid_strings.push_back("Da");
+
       registerStringOption_("precursor_mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
       setValidStrings_("precursor_mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
 
       registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
 
       StringList fragment_mass_tolerance_unit_valid_strings;
-      fragment_mass_tolerance_unit_valid_strings << "ppm" << "Da";
+      fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
+      fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+
       registerStringOption_("fragment_mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
       setValidStrings_("fragment_mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
 
@@ -175,7 +179,7 @@ class SimpleSearchEngine
 
     // spectrum must not contain 0 intensity peaks and must be sorted by m/z
     template <typename SpectrumType>
-    void deisotopeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, DoubleReal fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 2, Size max_isopeaks = 10)
+    void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 2, Size max_isopeaks = 10, bool make_single_charged = true)
     {
       if (in.empty())
       {
@@ -184,26 +188,30 @@ class SimpleSearchEngine
 
       SpectrumType old_spectrum = in;
 
-      // determine charge charge seeds and extend them
+      // determine charge seeds and extend them
       vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
       vector<Int> features(old_spectrum.size(), -1);
       Int feature_number = 0;
 
       for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
       {
-        DoubleReal current_mz = old_spectrum[current_peak].getPosition()[0];
+        double current_mz = old_spectrum[current_peak].getPosition()[0];
 
         for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
         {
+          // try to extend isotopes from mono-isotopic peak
+          // if extension larger then min_isopeaks possible:
+          //   - save charge q in mono_isotopic_peak[]
+          //   - annotate all isotopic peaks with feature number
           if (features[current_peak] == -1) // only process peaks which have no assigned feature number
           {
             bool has_min_isopeaks = true;
             vector<Size> extensions;
             for (Size i = 0; i < max_isopeaks; ++i)
             {
-              DoubleReal expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
+              double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
               Size p = old_spectrum.findNearest(expected_mz);
-              DoubleReal tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
+              double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
               if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
               {
                 if (i < min_isopeaks)
@@ -249,17 +257,38 @@ class SimpleSearchEngine
       in.clear(false);
       for (Size i = 0; i != old_spectrum.size(); ++i)
       {
+        Int z = mono_isotopic_peak[i];
         if (keep_only_deisotoped)
         {
-          if (mono_isotopic_peak[i] != 0)
+          if (z == 0)
           {
-            in.push_back(old_spectrum[i]);
+            continue;
           }
-        } else  // deisotoped and unassigned
-        {
-          if (mono_isotopic_peak[i] != 0 || features[i] < 0)
+ 
+          // if already single charged or no decharging selected keep peak as it is
+          if (!make_single_charged)
           {
             in.push_back(old_spectrum[i]);
+          } else
+          {
+            Peak1D p = old_spectrum[i];
+            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+            in.push_back(p);
+          }
+        } else
+        {
+          // keep only monoisotopic peaks (z != 0) of deisotoped patterns and unassigned peaks (no feature id)
+          if (z != 0 || features[i] < 0)
+          {
+            if (!make_single_charged)
+            {
+              in.push_back(old_spectrum[i]);
+            } else
+            {
+              Peak1D p = old_spectrum[i];
+              p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+              in.push_back(p);
+            }
           }
         }
       }
@@ -289,7 +318,7 @@ class SimpleSearchEngine
       in.sortByPosition();
     }
 
-    DoubleReal logfactorial(UInt x)
+    double logfactorial(UInt x)
     {
       UInt y;
 
@@ -297,7 +326,7 @@ class SimpleSearchEngine
         return 1;
       else
       {
-        DoubleReal z = 0;
+        double z = 0;
         for (y = 2; y<=x; y++)
         {
           z = log(y)+z;
@@ -307,21 +336,21 @@ class SimpleSearchEngine
       }
     }
 
-    DoubleReal computeHyperScore(DoubleReal fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const MSSpectrum<Peak1D>& exp_spectrum, const MSSpectrum<RichPeak1D>& theo_spectrum)
+    double computeHyperScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const MSSpectrum<Peak1D>& exp_spectrum, const MSSpectrum<RichPeak1D>& theo_spectrum)
     {
-      DoubleReal dot_product = 0.0;
+      double dot_product = 0.0;
       UInt y_ion_count = 0;
       UInt b_ion_count = 0;
 
       for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
       {
-        const DoubleReal& theo_mz = theo_peak_it->getMZ();
+        const double& theo_mz = theo_peak_it->getMZ();
 
-        DoubleReal max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+        double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
         // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
         Size index = exp_spectrum.findNearest(theo_mz);
-        DoubleReal exp_mz = exp_spectrum[index].getMZ();
+        double exp_mz = exp_spectrum[index].getMZ();
 
         // found peak match
         if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
@@ -355,8 +384,8 @@ class SimpleSearchEngine
       String in_db = getStringOption_("database");
       String out_idxml = getStringOption_("out");
 
-      DoubleReal precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-      DoubleReal fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+      double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+      double fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
 
       bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor_mass_tolerance_unit") == "ppm");
       bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment_mass_tolerance_unit") == "ppm");
@@ -402,7 +431,7 @@ class SimpleSearchEngine
       exp.sortSpectra(true);
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
-        deisotopeMSSpectrum(*it, 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 2, 10);
+        deisotopeAndSingleChargeMSSpectrum(*it, 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 2, 10);
       }
 
       if (getIntOption_("debug") >= 1)
@@ -426,7 +455,7 @@ class SimpleSearchEngine
 
 
       // build multimap of precursor mass to scan index
-      multimap<DoubleReal, Size> multimap_mass_2_scan_index;
+      multimap<double, Size> multimap_mass_2_scan_index;
       for (PeakMap::ConstIterator s_it = exp.begin(); s_it != exp.end(); ++s_it)
       {
         int scan_index = s_it - exp.begin();
@@ -435,8 +464,8 @@ class SimpleSearchEngine
         if (precursor.size() == 1 && s_it->size() > 5)  // there should only one precursor and MS2 should contain at least 5 peaks
         {
           int precursor_charge = precursor[0].getCharge();
-          DoubleReal precursor_mz = precursor[0].getMZ();
-          DoubleReal precursor_mass = (DoubleReal) precursor_charge * precursor_mz - (DoubleReal) precursor_charge * Constants::PROTON_MASS_U;
+          double precursor_mz = precursor[0].getMZ();
+          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
           multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
         }
       }
@@ -467,7 +496,7 @@ class SimpleSearchEngine
       for (vector<FASTAFile::FASTAEntry>::const_iterator fasta_it = fasta_db.begin(); fasta_it != fasta_db.end(); ++fasta_it)
       {
         vector<AASequence> current_digest;
-        digestor.digest(AASequence(fasta_it->sequence), current_digest);
+        digestor.digest(AASequence::fromUnmodifiedString(fasta_it->sequence), current_digest);
         // c++ STL pattern for deleting entries from vector based on predicate evaluation
         current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), HasInvalidPeptideLengthPredicate_), current_digest.end());
         // make unique
@@ -497,11 +526,11 @@ class SimpleSearchEngine
         for (vector<AASequence>::const_iterator mod_peps_it = all_modified_peptides.begin(); mod_peps_it != all_modified_peptides.end(); ++mod_peps_it)
         {
           const AASequence& candidate = *mod_peps_it;
-          DoubleReal current_peptide_mass = candidate.getMonoWeight();
+          double current_peptide_mass = candidate.getMonoWeight();
 
           // determine MS2 precursors that match to the current peptide mass
-          multimap<DoubleReal, Size>::const_iterator low_it;
-          multimap<DoubleReal, Size>::const_iterator up_it;
+          multimap<double, Size>::const_iterator low_it;
+          multimap<double, Size>::const_iterator up_it;
 
           if (precursor_mass_tolerance_unit_ppm)  // ppm
           {
@@ -530,7 +559,7 @@ class SimpleSearchEngine
             const Size& scan_index = low_it->second;
             const MSSpectrum<Peak1D>& exp_spectrum = exp[scan_index];
 
-            DoubleReal score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+            double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
             // no hit
             if (score < 1e-16)
