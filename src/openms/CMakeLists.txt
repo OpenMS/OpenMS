@@ -117,7 +117,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${WM5_INCLUDE_DIRS}
                                      ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
                                      ${CRAWDAD_INCLUDE_DIRS}
-                                     ${XercesC_INCLUDE_DIR}
+                                     ${XercesC_INCLUDE_DIRS}
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${APPLE_EXTRA_LIBS}
                                   ${QT_LIBRARIES}

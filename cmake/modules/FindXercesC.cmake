@@ -47,7 +47,7 @@ set(_XercesC_INCLUDE_TARGET "xercesc/util/XercesVersion.hpp")
 
 # Find Xerce-C include path
 find_path(
-    XercesC_INCLUDE_DIR
+    XercesC_INCLUDE_DIRS
     PATHS ${_XercesC_PATHS}
     NAMES ${_XercesC_INCLUDE_TARGET}
 )
@@ -62,8 +62,8 @@ if (NOT XercesC_LIBRARIES)
 endif ()
 
 # identify xerces version
-if (XercesC_INCLUDE_DIR AND EXISTS "${XercesC_INCLUDE_DIR}/${_XercesC_INCLUDE_TARGET}")
-  file(STRINGS "${XercesC_INCLUDE_DIR}/${_XercesC_INCLUDE_TARGET}" _XercesC_H REGEX "^#define XERCES_VERSION_.* [0-9]+")
+if (XercesC_INCLUDE_DIRS AND EXISTS "${XercesC_INCLUDE_DIRS}/${_XercesC_INCLUDE_TARGET}")
+  file(STRINGS "${XercesC_INCLUDE_DIRS}/${_XercesC_INCLUDE_TARGET}" _XercesC_H REGEX "^#define XERCES_VERSION_.* [0-9]+")
   #define XERCES_VERSION_MAJOR 3
   string(REGEX REPLACE ".*\#define XERCES_VERSION_MAJOR ([0-9]+).*" "\\1" XercesC_VERSION_MAJOR "${_XercesC_H}")
   #define XERCES_VERSION_MINOR 1
@@ -78,5 +78,5 @@ endif ()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(XercesC
-                                  REQUIRED_VARS XercesC_LIBRARIES XercesC_INCLUDE_DIR
+                                  REQUIRED_VARS XercesC_LIBRARIES XercesC_INCLUDE_DIRS
                                   VERSION_VAR XercesC_VERSION_STRING)
