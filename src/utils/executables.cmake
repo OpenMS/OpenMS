@@ -45,8 +45,7 @@ SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
 XMLValidator
-#SimpleSearchEngine
-#RNPxlSearch
+RNPxlSearch
 )
 
 if(NOT DISABLE_OPENSWATH)
