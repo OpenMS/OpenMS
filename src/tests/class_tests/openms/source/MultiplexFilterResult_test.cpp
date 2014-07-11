@@ -69,7 +69,7 @@ MultiplexFilterResult* ptr;
 START_SECTION(MultiplexFilterResult())
     MultiplexFilterResult result;
     result.addFilterResultPeak(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
-    TEST_EQUAL(result.getMz(0), 817.0411);
+    TEST_EQUAL(result.getMZ(0), 817.0411);
     ptr = new MultiplexFilterResult();
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -80,31 +80,31 @@ result.addFilterResultPeak(817.0411, 1694.1121, mz_shifts, intensities, results_
 
 START_SECTION(addFilterResultPeak(double mz, double rt, std::vector<double> mzShifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> result))
   result.addFilterResultPeak(818.0411, 1694.1121, mz_shifts, intensities, results_raw);
-  TEST_EQUAL(result.getMz(1), 818.0411);
+  TEST_EQUAL(result.getMZ(1), 818.0411);
 END_SECTION
 
 START_SECTION(MultiplexFilterResultPeak getFilterResultPeak(int i) const)
-  TEST_EQUAL(result.getFilterResultPeak(0).getMz(), 817.0411);
+  TEST_EQUAL(result.getFilterResultPeak(0).getMZ(), 817.0411);
 END_SECTION
 
 START_SECTION(MultiplexFilterResultRaw getFilterResultRaw(int i, int j) const)
-  TEST_EQUAL(result.getFilterResultRaw(0,1).getMz(), 817.1);
+  TEST_EQUAL(result.getFilterResultRaw(0,1).getMZ(), 817.1);
 END_SECTION
 
-START_SECTION(double getMz(int i) const)
-  TEST_EQUAL(result.getMz(0), 817.0411);
+START_SECTION(double getMZ(int i) const)
+  TEST_EQUAL(result.getMZ(0), 817.0411);
 END_SECTION
 
-START_SECTION(std::vector<double> getMz() const)
-  TEST_EQUAL(result.getMz()[0], 817.0411);
+START_SECTION(std::vector<double> getMZ() const)
+  TEST_EQUAL(result.getMZ()[0], 817.0411);
 END_SECTION
 
-START_SECTION(double getRt(int i) const)
-  TEST_EQUAL(result.getRt(0), 1694.1121);
+START_SECTION(double getRT(int i) const)
+  TEST_EQUAL(result.getRT(0), 1694.1121);
 END_SECTION
 
-START_SECTION(std::vector<double> getRt() const)
-  TEST_EQUAL(result.getRt()[0], 1694.1121);
+START_SECTION(std::vector<double> getRT() const)
+  TEST_EQUAL(result.getRT()[0], 1694.1121);
 END_SECTION
 
 START_SECTION(int size() const)

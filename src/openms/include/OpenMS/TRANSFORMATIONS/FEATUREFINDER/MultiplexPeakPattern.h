@@ -92,12 +92,12 @@ namespace OpenMS
        /**
          * @brief returns m/z shift at position i
          */
-        double getMzShiftAt(int i) const;
+        double getMZShiftAt(int i) const;
         
        /**
          * @brief returns number of m/z shifts
          */
-        unsigned getMzShiftCount() const;
+        unsigned getMZShiftCount() const;
         
         private:
         /**

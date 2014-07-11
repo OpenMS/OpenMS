@@ -64,22 +64,22 @@ namespace OpenMS
          /**
          * @brief returns m/z of the peak
          */
-         double getMz() const;
+         double getMZ() const;
          
          /**
          * @brief returns RT of the peak
          */
-         double getRt() const;
+         double getRT() const;
          
          /**
          * @brief returns m/z shift at position i
          */
-        double getMzShiftAt(int i) const;
+        double getMZShiftAt(int i) const;
 
         /**
          * @brief returns m/z shifts
          */
-        std::vector<double> getMzShifts() const;
+        std::vector<double> getMZShifts() const;
 
         /**
          * @brief returns intensity at position i

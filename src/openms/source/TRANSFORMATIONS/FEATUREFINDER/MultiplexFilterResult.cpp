@@ -66,32 +66,32 @@ namespace OpenMS
         return result_[i].getFilterResultRaw(j);
     }
     
-    double MultiplexFilterResult::getMz(int i) const
+    double MultiplexFilterResult::getMZ(int i) const
     {
-        return result_[i].getMz();
+        return result_[i].getMZ();
     }
     
-    vector<double> MultiplexFilterResult::getMz() const
+    vector<double> MultiplexFilterResult::getMZ() const
     {
         vector<double> mz;
         for (unsigned i = 0; i < result_.size(); ++i)
         {
-            mz.push_back(result_[i].getMz());
+            mz.push_back(result_[i].getMZ());
         }
         return mz;
     }
     
-    double MultiplexFilterResult::getRt(int i) const
+    double MultiplexFilterResult::getRT(int i) const
     {
-        return result_[i].getRt();
+        return result_[i].getRT();
     }
     
-    vector<double> MultiplexFilterResult::getRt() const
+    vector<double> MultiplexFilterResult::getRT() const
     {
         vector<double> rt;
         for (unsigned i = 0; i < result_.size(); ++i)
         {
-            rt.push_back(result_[i].getRt());
+            rt.push_back(result_[i].getRT());
         }
         return rt;
     }

@@ -89,12 +89,12 @@ namespace OpenMS
         return mass_shifts_[i];
     }
 
-    double MultiplexPeakPattern::getMzShiftAt(int i) const
+    double MultiplexPeakPattern::getMZShiftAt(int i) const
     {
         return mz_shifts_[i];
     }
 
-    unsigned MultiplexPeakPattern::getMzShiftCount() const
+    unsigned MultiplexPeakPattern::getMZShiftCount() const
     {
         return mz_shifts_.size();
     }

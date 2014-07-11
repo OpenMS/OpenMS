@@ -51,22 +51,22 @@ namespace OpenMS
 	{		
 	}
     
-    double MultiplexFilterResultPeak::getMz() const
+    double MultiplexFilterResultPeak::getMZ() const
     {
         return mz_;
     }
     
-    double MultiplexFilterResultPeak::getRt() const
+    double MultiplexFilterResultPeak::getRT() const
     {
         return rt_;
     }
     
-    double MultiplexFilterResultPeak::getMzShiftAt(int i) const
+    double MultiplexFilterResultPeak::getMZShiftAt(int i) const
     {
         return mz_shifts_[i];
     }
     
-    vector<double> MultiplexFilterResultPeak::getMzShifts() const
+    vector<double> MultiplexFilterResultPeak::getMZShifts() const
     {
         return mz_shifts_;
     }

@@ -77,22 +77,22 @@ namespace OpenMS
         /**
          * @brief returns m/z of a single peak
          */
-        double getMz(int i) const;
+        double getMZ(int i) const;
         
         /**
          * @brief returns m/z positions of all peaks
          */
-        std::vector<double> getMz() const;
+        std::vector<double> getMZ() const;
         
         /**
          * @brief returns RT of a single peak
          */
-        double getRt(int i) const;
+        double getRT(int i) const;
         
         /**
          * @brief returns RT of all peaks
          */
-        std::vector<double> getRt() const;
+        std::vector<double> getRT() const;
         
         /**
          * @brief returns number of peaks in the result

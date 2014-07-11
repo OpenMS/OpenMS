@@ -351,7 +351,7 @@ namespace OpenMS
     {
         // Try to find peaks at the expected m/z positions
         // loop over expected m/z shifts of a peak pattern
-        for (unsigned mz_position = 0; mz_position < pattern.getMzShiftCount(); ++mz_position)
+        for (unsigned mz_position = 0; mz_position < pattern.getMZShiftCount(); ++mz_position)
         {
             double scaling = 1;
             if (mz_position % (peaks_per_peptide_max_ + 1) == 0)
@@ -361,7 +361,7 @@ namespace OpenMS
                 scaling = 2;
             }
             
-            int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMzShiftAt(mz_position), scaling);            
+            int index = getPeakIndex(peak_position, peak, peak_position[peak] + pattern.getMZShiftAt(mz_position), scaling);            
             if (index != -1)
             {
                 mz_shifts_actual.push_back(peak_position[index] - peak_position[peak]);

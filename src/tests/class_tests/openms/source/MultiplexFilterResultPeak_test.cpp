@@ -67,7 +67,7 @@ MultiplexFilterResultPeak* ptr;
 
 START_SECTION(MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> rawDataPoints))
     MultiplexFilterResultPeak result(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
-    TEST_EQUAL(result.getMz(), 817.0411);
+    TEST_EQUAL(result.getMZ(), 817.0411);
     ptr = new MultiplexFilterResultPeak(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
@@ -75,26 +75,26 @@ END_SECTION
 
 MultiplexFilterResultPeak result(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
 
-START_SECTION(double getMz() const)
-  TEST_EQUAL(result.getMz(), 817.0411);
+START_SECTION(double getMZ() const)
+  TEST_EQUAL(result.getMZ(), 817.0411);
 END_SECTION
 
-START_SECTION(double getRt() const)
-  TEST_EQUAL(result.getRt(), 1694.1121);
+START_SECTION(double getRT() const)
+  TEST_EQUAL(result.getRT(), 1694.1121);
 END_SECTION
 
-START_SECTION(double getMzShiftAt(int i) const)
-  TEST_EQUAL(result.getMzShiftAt(0), 0);
-  TEST_EQUAL(result.getMzShiftAt(1), 0.501677);
-  TEST_EQUAL(result.getMzShiftAt(2), 3.01591);
-  TEST_EQUAL(result.getMzShiftAt(3), 3.51759);
+START_SECTION(double getMZShiftAt(int i) const)
+  TEST_EQUAL(result.getMZShiftAt(0), 0);
+  TEST_EQUAL(result.getMZShiftAt(1), 0.501677);
+  TEST_EQUAL(result.getMZShiftAt(2), 3.01591);
+  TEST_EQUAL(result.getMZShiftAt(3), 3.51759);
 END_SECTION
 
-START_SECTION(std::vector<double> getMzShifts() const)
-  TEST_EQUAL(result.getMzShifts()[0], 0);
-  TEST_EQUAL(result.getMzShifts()[1], 0.501677);
-  TEST_EQUAL(result.getMzShifts()[2], 3.01591);
-  TEST_EQUAL(result.getMzShifts()[3], 3.51759);
+START_SECTION(std::vector<double> getMZShifts() const)
+  TEST_EQUAL(result.getMZShifts()[0], 0);
+  TEST_EQUAL(result.getMZShifts()[1], 0.501677);
+  TEST_EQUAL(result.getMZShifts()[2], 3.01591);
+  TEST_EQUAL(result.getMZShifts()[3], 3.51759);
 END_SECTION
 
 START_SECTION(double getIntensityAt(int i) const)
@@ -116,9 +116,9 @@ START_SECTION(int size() const)
 END_SECTION
 
 START_SECTION(MultiplexFilterResultRaw getFilterResultRaw(int i) const)
-  TEST_EQUAL(result.getFilterResultRaw(0).getMz(), 816.6);
-  TEST_EQUAL(result.getFilterResultRaw(1).getMz(), 817.1);
-  TEST_EQUAL(result.getFilterResultRaw(2).getMz(), 817.2);
+  TEST_EQUAL(result.getFilterResultRaw(0).getMZ(), 816.6);
+  TEST_EQUAL(result.getFilterResultRaw(1).getMZ(), 817.1);
+  TEST_EQUAL(result.getFilterResultRaw(2).getMZ(), 817.2);
 END_SECTION
 
 END_TEST

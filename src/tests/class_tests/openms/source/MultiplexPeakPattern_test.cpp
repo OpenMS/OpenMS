@@ -84,21 +84,21 @@ START_SECTION(double getMassShiftAt(int i) const)
   TEST_EQUAL(pattern.getMassShiftAt(1), 6.031817);
 END_SECTION
 
-START_SECTION(double getMzShiftAt(int i) const)
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(0), -0.501677);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(1), 0);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(2), 0.501677);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(3), 1.00335);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(4), 1.50503);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(5), 2.51423);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(6), 3.01591);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(7), 3.51759);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(8), 4.01926);
-  TEST_REAL_SIMILAR(pattern.getMzShiftAt(9), 4.52094);
+START_SECTION(double getMZShiftAt(int i) const)
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(0), -0.501677);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(1), 0);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(2), 0.501677);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(3), 1.00335);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(4), 1.50503);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(5), 2.51423);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(6), 3.01591);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(7), 3.51759);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(8), 4.01926);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(9), 4.52094);
 END_SECTION
 
-START_SECTION(unsigned getMzShiftCount() const)
-  TEST_EQUAL(pattern.getMzShiftCount(), 10);
+START_SECTION(unsigned getMZShiftCount() const)
+  TEST_EQUAL(pattern.getMZShiftCount(), 10);
 END_SECTION
 
 END_TEST

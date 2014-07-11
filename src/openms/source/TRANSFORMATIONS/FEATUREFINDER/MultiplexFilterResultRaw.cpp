@@ -50,17 +50,17 @@ namespace OpenMS
 	{		
 	}
     
-    double MultiplexFilterResultRaw::getMz() const
+    double MultiplexFilterResultRaw::getMZ() const
     {
         return mz_;
     }
     
-    double MultiplexFilterResultRaw::getMzShiftAt(int i) const
+    double MultiplexFilterResultRaw::getMZShiftAt(int i) const
     {
         return mz_shifts_[i];
     }
     
-    std::vector<double> MultiplexFilterResultRaw::getMzShifts() const
+    std::vector<double> MultiplexFilterResultRaw::getMZShifts() const
     {
         return mz_shifts_;
     }
