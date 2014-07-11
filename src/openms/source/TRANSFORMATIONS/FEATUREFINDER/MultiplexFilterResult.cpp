@@ -52,8 +52,8 @@ namespace OpenMS
     
     void MultiplexFilterResult::addFilterResultPeak(double mz, double rt, vector<double> mz_shifts, std::vector<double> intensities, vector<MultiplexFilterResultRaw> raw_data_points)
     {
-        MultiplexFilterResultPeak * peak = new MultiplexFilterResultPeak(mz, rt, mz_shifts, intensities, raw_data_points);
-        result_.push_back(*peak);
+        MultiplexFilterResultPeak peak(mz, rt, mz_shifts, intensities, raw_data_points);
+        result_.push_back(peak);
     }
     
     MultiplexFilterResultPeak MultiplexFilterResult::getFilterResultPeak(int i) const
