@@ -121,7 +121,40 @@ namespace OpenMS
 
   bool AASequence::operator<(const AASequence& rhs) const
   {
-    return toString() < rhs.toString();
+    // check size
+    if (peptide_.size() != rhs.peptide_.size())
+    {
+      return (peptide_.size() < rhs.peptide_.size());
+    }
+
+    ConstIterator a = begin();
+    ConstIterator b = rhs.begin();
+    
+    // check one letter codes
+    for (; a != end(); ++a, ++b)
+    {
+      if (a->getOneLetterCode() != b->getOneLetterCode())
+      {
+        return (a->getOneLetterCode() < b->getOneLetterCode());
+      } 
+      else if (a->getModification() != b->getModification())
+      {
+        return (a->getModification() < b->getModification());
+      }
+    }
+
+    // finally check terminal mods
+    if (n_term_mod_ != rhs.n_term_mod_)
+    {
+      return (n_term_mod_ < rhs.n_term_mod_);
+    }
+
+    if (c_term_mod_ != rhs.c_term_mod_)
+    {
+      return (c_term_mod_ < rhs.c_term_mod_);
+    }
+
+    return false;
   }
 
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const

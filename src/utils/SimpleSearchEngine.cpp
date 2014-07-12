@@ -493,14 +493,13 @@ class SimpleSearchEngine
       digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
       digestor.setMissedCleavages(missed_cleavages);
 
-      cout << "digesting database, apply modifications and score peptides against spectra... " << endl;
       vector<ResidueModification> fixedMods = getModifications_(fixedModNames);
       vector<ResidueModification> varMods = getModifications_(varModNames);
       Size max_variable_mods_per_peptide = getIntOption_("peptide_max_var_mods");
 
-      boost::unordered_set<Size> cached_peptides;
+      progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "digesting database...");
 
-      progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "scoring peptides...");
+      vector<AASequence> sequences(fasta_db.size());
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -515,38 +514,45 @@ class SimpleSearchEngine
 
          // c++ STL pattern for deleting entries from vector based on predicate evaluation
         current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), HasInvalidPeptideLengthPredicate_), current_digest.end());
-        // make unique
-        set<AASequence> tmp(current_digest.begin(), current_digest.end());
-
-        // look up if peptide has already been searched
-        for (set<AASequence>::iterator set_it = tmp.begin(); set_it != tmp.end(); )  // note that this is the STL pattern for deleting while iterating a set so don't change operator order
-        {
-          Size string_hash = boost::hash<std::string>()(set_it->toUnmodifiedString());
 
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-          {
-            if (cached_peptides.find(string_hash) != cached_peptides.end())
-            {
-              tmp.erase(set_it++);
-            } else
-            {
-              ++set_it;
-              cached_peptides.insert(string_hash);  // ok to add already here as s is unique for this digested protein
-            }
-          }
-        }
+        sequences.insert(sequences.end(), current_digest.begin(), current_digest.end());
+      }
+      progresslogger.endProgress();  
+
+      progresslogger.startProgress(0, 1, "Make unique...");
+      progresslogger.setProgress(0);  
+      {
+        // make unique
+        set<AASequence> tmp(sequences.begin(), sequences.end());
 
         // assign unprocessed peptides
-        current_digest.assign(tmp.begin(), tmp.end());
+        sequences.assign(tmp.begin(), tmp.end());
+      }
+      progresslogger.setProgress(1);  
+      progresslogger.endProgress();  
 
-        vector<AASequence> all_modified_peptides;
-        ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), current_digest.begin(), current_digest.end());
-        ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), current_digest.begin(), current_digest.end(), max_variable_mods_per_peptide, all_modified_peptides);
+      progresslogger.startProgress(0, 1, "Applying fixed modifications...");
+      progresslogger.setProgress(0);  
+      ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), sequences.begin(), sequences.end());
+      progresslogger.setProgress(1);  
+      progresslogger.endProgress();  
+
+      vector<AASequence> all_modified_peptides;
+
+      progresslogger.startProgress(0, 1, "Applying variable modifications...");
+      progresslogger.setProgress(0);  
+      ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), sequences.begin(), sequences.end(), max_variable_mods_per_peptide, all_modified_peptides);
+      progresslogger.setProgress(1);  
+      progresslogger.endProgress();  
+
+      progresslogger.startProgress(0, all_modified_peptides.size(), "scoring peptides...");
 
         for (vector<AASequence>::const_iterator mod_peps_it = all_modified_peptides.begin(); mod_peps_it != all_modified_peptides.end(); ++mod_peps_it)
         {
+          progresslogger.setProgress((SignedSize)(mod_peps_it - all_modified_peptides.begin()));  
           const AASequence& candidate = *mod_peps_it;
           double current_peptide_mass = candidate.getMonoWeight();
 
@@ -593,13 +599,9 @@ class SimpleSearchEngine
             hit.setSequence(candidate);
             hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
             hit.setScore(score);
-#ifdef _OPENMP
-#pragma omp critical
-#endif
             peptide_hits[scan_index].push_back(hit);
           }
         }
-      }
 
       progresslogger.endProgress();  
 
