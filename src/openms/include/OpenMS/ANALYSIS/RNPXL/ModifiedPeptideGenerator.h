@@ -53,7 +53,7 @@ namespace OpenMS
 
   protected:
     // Recursively generate all combinatoric placements at compatible sites
-    static void recurseAndGenerateVariableModifiedPeptides_(const std::vector<int>& subset_indices, const std::map<int, std::vector<ResidueModification> >& map_compatibility, int depth, AASequence current_peptide, std::vector<AASequence>& modified_peptides);
+    static void recurseAndGenerateVariableModifiedPeptides_(const std::vector<int>& subset_indices, const std::map<int, std::vector<ResidueModification> >& map_compatibility, int depth, const AASequence& current_peptide, std::vector<AASequence>& modified_peptides);
 
     // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification  
     static void applyAtMostOneVariableModification_(const std::vector<ResidueModification>::const_iterator& var_mods_begin, const std::vector<ResidueModification>::const_iterator& var_mods_end, std::vector<AASequence>::iterator digested_peptides_begin, std::vector<AASequence>::iterator digested_peptides_end, std::vector<AASequence>& all_modified_peptides, bool keep_unmodified=true);
