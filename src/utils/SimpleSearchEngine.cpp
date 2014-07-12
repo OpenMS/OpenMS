@@ -185,7 +185,7 @@ protected:
 
   // spectrum must not contain 0 intensity peaks and must be sorted by m/z
   template <typename SpectrumType>
-  void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 2, Size max_isopeaks = 10, bool make_single_charged = true)
+  void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
   {
     if (in.empty())
     {
@@ -286,8 +286,15 @@ protected:
       }
       else
       {
-        // keep only monoisotopic peaks (z != 0) of deisotoped patterns and unassigned peaks (no feature id)
-        if (z != 0 || features[i] < 0)
+        // keep all unassigned peaks
+        if (features[i] < 0)
+        {
+          in.push_back(old_spectrum[i]);
+          continue;
+        }
+
+        // convert mono-isotopic peak with charge assigned by deisotoping
+        if (z != 0)
         {
           if (!make_single_charged)
           {
@@ -445,7 +452,7 @@ protected:
     exp.sortSpectra(true);
     for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
     {
-      deisotopeAndSingleChargeMSSpectrum(*it, 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 2, 10);
+      deisotopeAndSingleChargeMSSpectrum(*it, 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 10, true);
     }
 
     if (getIntOption_("debug") >= 1)
