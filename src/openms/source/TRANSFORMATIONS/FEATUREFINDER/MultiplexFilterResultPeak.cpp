@@ -46,39 +46,39 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFilterResultPeak::MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, vector<double> intensities, vector<MultiplexFilterResultRaw> raw_data_points)
-    : mz_(mz), rt_(rt), mz_shifts_(mz_shifts), intensities_(intensities), raw_data_points_(raw_data_points)
-	{		
-	}
-    
-    double MultiplexFilterResultPeak::getMZ() const
-    {
-        return mz_;
-    }
-    
-    double MultiplexFilterResultPeak::getRT() const
-    {
-        return rt_;
-    }
-    
-    vector<double> MultiplexFilterResultPeak::getMZShifts() const
-    {
-        return mz_shifts_;
-    }
-    
-    vector<double> MultiplexFilterResultPeak::getIntensities() const
-    {
-        return intensities_;
-    }
-    
-    int MultiplexFilterResultPeak::size() const
-    {
-        return raw_data_points_.size();
-    }
-    
-    MultiplexFilterResultRaw MultiplexFilterResultPeak::getFilterResultRaw(int i) const
-    {
-        return raw_data_points_[i];
-    }
-    
+  MultiplexFilterResultPeak::MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, vector<double> intensities, vector<MultiplexFilterResultRaw> raw_data_points) :
+    mz_(mz), rt_(rt), mz_shifts_(mz_shifts), intensities_(intensities), raw_data_points_(raw_data_points)
+  {
+  }
+
+  double MultiplexFilterResultPeak::getMZ() const
+  {
+    return mz_;
+  }
+
+  double MultiplexFilterResultPeak::getRT() const
+  {
+    return rt_;
+  }
+
+  vector<double> MultiplexFilterResultPeak::getMZShifts() const
+  {
+    return mz_shifts_;
+  }
+
+  vector<double> MultiplexFilterResultPeak::getIntensities() const
+  {
+    return intensities_;
+  }
+
+  int MultiplexFilterResultPeak::size() const
+  {
+    return raw_data_points_.size();
+  }
+
+  MultiplexFilterResultRaw MultiplexFilterResultPeak::getFilterResultRaw(int i) const
+  {
+    return raw_data_points_[i];
+  }
+
 }

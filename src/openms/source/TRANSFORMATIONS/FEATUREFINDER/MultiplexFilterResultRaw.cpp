@@ -45,24 +45,24 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFilterResultRaw::MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities)
-    : mz_(mz), mz_shifts_(mz_shifts), intensities_(intensities)
-	{		
-	}
-    
-    double MultiplexFilterResultRaw::getMZ() const
-    {
-        return mz_;
-    }
-    
-    std::vector<double> MultiplexFilterResultRaw::getMZShifts() const
-    {
-        return mz_shifts_;
-    }
-    
-    std::vector<double> MultiplexFilterResultRaw::getIntensities() const
-    {
-        return intensities_;
-    }
-    
+  MultiplexFilterResultRaw::MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities) :
+    mz_(mz), mz_shifts_(mz_shifts), intensities_(intensities)
+  {
+  }
+
+  double MultiplexFilterResultRaw::getMZ() const
+  {
+    return mz_;
+  }
+
+  std::vector<double> MultiplexFilterResultRaw::getMZShifts() const
+  {
+    return mz_shifts_;
+  }
+
+  std::vector<double> MultiplexFilterResultRaw::getIntensities() const
+  {
+    return intensities_;
+  }
+
 }

@@ -45,58 +45,58 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexPeakPattern::MultiplexPeakPattern(int c, int ppp, vector<double> ms, int msi)
-    : charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
-	{				
-        // generate m/z shifts
-        for (unsigned i = 0; i < mass_shifts_.size(); ++i)
-        {
-            for (int j = -1; j < peaks_per_peptide_; ++j)
-            {
-                // j=-1 shift corresponds to the zeroth peak
-                mz_shifts_.push_back((mass_shifts_[i] + j * Constants::C13C12_MASSDIFF_U)/charge_);
-            }
-        }
-	}
-    
-    int MultiplexPeakPattern::getCharge() const
+  MultiplexPeakPattern::MultiplexPeakPattern(int c, int ppp, vector<double> ms, int msi) :
+    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+  {
+    // generate m/z shifts
+    for (unsigned i = 0; i < mass_shifts_.size(); ++i)
     {
-        return charge_;
+      for (int j = -1; j < peaks_per_peptide_; ++j)
+      {
+        // j=-1 shift corresponds to the zeroth peak
+        mz_shifts_.push_back((mass_shifts_[i] + j * Constants::C13C12_MASSDIFF_U) / charge_);
+      }
     }
-    
-    int MultiplexPeakPattern::getPeaksPerPeptide() const
-    {
-        return peaks_per_peptide_;
-    }
+  }
 
-    std::vector<double> MultiplexPeakPattern::getMassShifts() const
-    {
-        return mass_shifts_;
-    }
+  int MultiplexPeakPattern::getCharge() const
+  {
+    return charge_;
+  }
 
-    int MultiplexPeakPattern::getMassShiftIndex() const
-    {
-        return mass_shift_index_;
-    }
+  int MultiplexPeakPattern::getPeaksPerPeptide() const
+  {
+    return peaks_per_peptide_;
+  }
 
-    unsigned MultiplexPeakPattern::getMassShiftCount() const
-    {
-        return mass_shifts_.size();
-    }
+  std::vector<double> MultiplexPeakPattern::getMassShifts() const
+  {
+    return mass_shifts_;
+  }
 
-    double MultiplexPeakPattern::getMassShiftAt(int i) const
-    {
-        return mass_shifts_[i];
-    }
+  int MultiplexPeakPattern::getMassShiftIndex() const
+  {
+    return mass_shift_index_;
+  }
 
-    double MultiplexPeakPattern::getMZShiftAt(int i) const
-    {
-        return mz_shifts_[i];
-    }
+  unsigned MultiplexPeakPattern::getMassShiftCount() const
+  {
+    return mass_shifts_.size();
+  }
 
-    unsigned MultiplexPeakPattern::getMZShiftCount() const
-    {
-        return mz_shifts_.size();
-    }
+  double MultiplexPeakPattern::getMassShiftAt(int i) const
+  {
+    return mass_shifts_[i];
+  }
+
+  double MultiplexPeakPattern::getMZShiftAt(int i) const
+  {
+    return mz_shifts_[i];
+  }
+
+  unsigned MultiplexPeakPattern::getMZShiftCount() const
+  {
+    return mz_shifts_.size();
+  }
 
 }
