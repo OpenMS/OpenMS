@@ -607,7 +607,10 @@ set_tests_properties("TOPP_IDFilter_7_out1" PROPERTIES DEPENDS "TOPP_IDFilter_7"
 add_test("TOPP_IDFilter_8" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_8_input.idXML -out IDFilter_8_output.tmp -precursor:rt 200:350 -precursor:mz 999:1000)
 add_test("TOPP_IDFilter_8_out1" ${DIFF} -in1 IDFilter_8_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_8_output.idXML )
 set_tests_properties("TOPP_IDFilter_8_out1" PROPERTIES DEPENDS "TOPP_IDFilter_8")
-
+# check for issue 887 regression (multiple runs)
+add_test("TOPP_IDFilter_9" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_9_input.idXML -out IDFilter_9_output.tmp -score:pep 0.05)
+add_test("TOPP_IDFilter_9_out1" ${DIFF} -in1 IDFilter_9_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_9_output.idXML )
+set_tests_properties("TOPP_IDFilter_9_out1" PROPERTIES DEPENDS "TOPP_IDFilter_9")
 
 #------------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
