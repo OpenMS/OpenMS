@@ -51,6 +51,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace boost::math;
 
 namespace OpenMS
 {
@@ -370,7 +371,7 @@ namespace OpenMS
             }
             else
             {
-                mz_shifts_actual.push_back(-1000);
+                mz_shifts_actual.push_back(std::numeric_limits<double>::quiet_NaN());
                 mz_shifts_actual_indices.push_back(-1);
             }
 
@@ -381,14 +382,14 @@ namespace OpenMS
         for (unsigned peptide = 0; peptide < pattern.getMassShiftCount() - 1; ++peptide)
         {
             double mz_shift_next_peptide = mz_shifts_actual[(peptide + 1) * (peaks_per_peptide_max_ + 1) + 1];    // m/z shift of the mono-isotopic peak of the following peptide
-            if (mz_shift_next_peptide > 0)
+            if (!(boost::math::isnan)(mz_shift_next_peptide))
             {
                 for (int isotope = 0; isotope < peaks_per_peptide_max_; ++isotope)
                 {
                     int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1;    // index in m/z shift list
                     if (mz_shifts_actual[mz_position] >= mz_shift_next_peptide)
                     {
-                        mz_shifts_actual[mz_position] = -1000;
+                        mz_shifts_actual[mz_position] = std::numeric_limits<double>::quiet_NaN();
                         mz_shifts_actual_indices[mz_position] = -1;
                     }
                 }
@@ -412,7 +413,7 @@ namespace OpenMS
                         blacklist_[spectrum][peak_index].black_exception_mz_position == mz_position;
                     if (black && !black_exception)
                     {
-                        mz_shifts_actual[mz_position] = -1000;
+                        mz_shifts_actual[mz_position] = std::numeric_limits<double>::quiet_NaN();
                         mz_shifts_actual_indices[mz_position] = -1;
                     }
                 }
@@ -438,7 +439,7 @@ namespace OpenMS
                 // delete all higher isotopic peaks
                 if (missing_peaks_ && missing_peak_seen)
                 {
-                    mz_shifts_actual[mz_position] = -1000;
+                    mz_shifts_actual[mz_position] = std::numeric_limits<double>::quiet_NaN();
                     mz_shifts_actual_indices[mz_position] = -1;
                 }
             }
@@ -473,7 +474,7 @@ namespace OpenMS
             }
             else
             {
-                intensities_actual.push_back(-1000.0);
+                intensities_actual.push_back(std::numeric_limits<double>::quiet_NaN());
             }
         }
         
@@ -598,13 +599,13 @@ namespace OpenMS
         MSExperiment<Peak1D> expDebug;
         MSSpectrum<Peak1D> specDebug;        
         
-        double rt = -1000;
+        double rt = std::numeric_limits<double>::quiet_NaN();
         int spec_id = 0;
         for (vector<Peak2D>::const_iterator it = points.begin(); it != points.end(); ++it)
         {
             if ((*it).getRT() > rt)
             {
-                if (rt>-1000)
+                if (!(boost::math::isnan)(rt))
                 {
                     expDebug.addSpectrum(specDebug);
                     ++spec_id;
@@ -752,7 +753,7 @@ namespace OpenMS
     {
         if (pattern1.empty() || pattern2.empty())
         {
-            return -1000.0;
+            return std::numeric_limits<double>::quiet_NaN();
         }
         
         return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
