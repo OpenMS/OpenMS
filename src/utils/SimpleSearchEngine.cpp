@@ -66,16 +66,24 @@
 #include <map>
 #include <algorithm>
 
-#include <boost/unordered_set.hpp>
-#include <boost/functional/hash.hpp>
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
+#ifdef _OPENMP
+  #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)
+#else
+  #define IF_MASTERTHREAD
+#endif
+
+#ifdef _OPENMP
+  #define NUMBER_OF_THREADS (omp_get_num_threads())
+#else
+  #define NUMBER_OF_THREADS (1)
+#endif
+
 using namespace OpenMS;
 using namespace std;
-using namespace boost::unordered;
 
 /*
   TODO:
@@ -440,7 +448,7 @@ protected:
     f.load(in_mzml, exp);
     exp.sortSpectra(true);
 
-    cout << "filtering spectra ... " << endl;
+    progresslogger.startProgress(0, 1, "Filtering spectra...");
     // filter MS2 map
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
@@ -473,7 +481,7 @@ protected:
     NLargest nlargest_filter = NLargest(400);
     nlargest_filter.filterPeakMap(exp);
     exp.sortSpectra(true);
-
+    progresslogger.endProgress();
 
     // build multimap of precursor mass to scan index
     multimap<double, Size> multimap_mass_2_scan_index;
@@ -496,13 +504,13 @@ protected:
     vector<PeptideIdentification> peptide_ids;
     vector<vector<PeptideHit> > peptide_hits(exp.size(), vector<PeptideHit>());
 
-    // load database from FASTA file
-    cout << "loading database ... " << endl;
+    progresslogger.startProgress(0, 1, "Load database from FASTA file...");
     FASTAFile fastaFile;
     vector<FASTAFile::FASTAEntry> fasta_db;
     fastaFile.load(in_db, fasta_db);
+    progresslogger.endProgress();
 
-    // digest database
+    progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Digesting database...");
     const Size missed_cleavages = getIntOption_("missed_cleavages");
     EnzymaticDigestion digestor;
     digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
@@ -512,8 +520,6 @@ protected:
     vector<ResidueModification> varMods = getModifications_(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("peptide_max_var_mods");
 
-    progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "digesting database...");
-
     vector<AASequence> sequences(fasta_db.size());
 
 #ifdef _OPENMP
@@ -521,10 +527,14 @@ protected:
 #endif
     for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
     {
-      progresslogger.setProgress((SignedSize)fasta_index);
+      IF_MASTERTHREAD
+      {
+        progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
+      }
+
       vector<AASequence> current_digest;
 
-      const AASequence& seq = AASequence::fromUnmodifiedString(fasta_db[fasta_index].sequence);
+      const AASequence& seq = AASequence::fromString(fasta_db[fasta_index].sequence);
       digestor.digest(seq, current_digest);
 
       // c++ STL pattern for deleting entries from vector based on predicate evaluation
@@ -537,25 +547,19 @@ protected:
     }
     progresslogger.endProgress();
 
-    progresslogger.startProgress(0, 1, "Make unique...");
-    progresslogger.setProgress(0);
+    progresslogger.startProgress(0, 1, "Ensuring uniqueness of peptide models...");
     sort(sequences.begin(), sequences.end());
     sequences.erase(unique(sequences.begin(), sequences.end()), sequences.end());
-    progresslogger.setProgress(1);
     progresslogger.endProgress();
 
     progresslogger.startProgress(0, 1, "Applying fixed modifications...");
-    progresslogger.setProgress(0);
     ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), sequences.begin(), sequences.end());
-    progresslogger.setProgress(1);
     progresslogger.endProgress();
 
     vector<AASequence> all_modified_peptides;
 
     progresslogger.startProgress(0, 1, "Applying variable modifications...");
-    progresslogger.setProgress(0);
     ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), sequences.begin(), sequences.end(), max_variable_mods_per_peptide, all_modified_peptides);
-    progresslogger.setProgress(1);
     progresslogger.endProgress();
 
     progresslogger.startProgress(0, all_modified_peptides.size(), "scoring peptides...");
@@ -563,9 +567,13 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-    for (SignedSize mod_pep_idx = 0; mod_pep_idx < all_modified_peptides.size(); ++mod_pep_idx)
+    for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
     {
-      progresslogger.setProgress(mod_pep_idx);
+      IF_MASTERTHREAD
+      {
+        progresslogger.setProgress(mod_pep_idx * NUMBER_OF_THREADS);
+      }
+
       const AASequence& candidate = all_modified_peptides[mod_pep_idx];
       double current_peptide_mass = candidate.getMonoWeight();
 
@@ -621,6 +629,7 @@ protected:
 
     progresslogger.endProgress();
 
+    progresslogger.startProgress(0, 1, "Post-processing PSMs...");
     // make peptide hits unique as we did not check if a sequence+mods has been searched before (Note: duplicates only exist if no ranks have been assigned)
     for (vector<vector<PeptideHit> >::iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
     {
@@ -630,7 +639,6 @@ protected:
         pit->assign(unique_peptide_hits.begin(), unique_peptide_hits.end());
       }
     }
-
 
     for (vector<vector<PeptideHit> >::const_iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
     {
@@ -666,6 +674,8 @@ protected:
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("SimpleSearchEngine");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+
+    progresslogger.endProgress();
 
     // write ProteinIdentifications and PeptideIdentifications to IdXML
     IdXMLFile().store(out_idxml, protein_ids, peptide_ids);

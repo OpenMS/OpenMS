@@ -129,14 +129,14 @@ namespace OpenMS
 
     ConstIterator a = begin();
     ConstIterator b = rhs.begin();
-    
+
     // check one letter codes
     for (; a != end(); ++a, ++b)
     {
       if (a->getOneLetterCode() != b->getOneLetterCode())
       {
         return (a->getOneLetterCode() < b->getOneLetterCode());
-      } 
+      }
       else if (a->getModification() != b->getModification())
       {
         return (a->getModification() < b->getModification());
@@ -144,14 +144,31 @@ namespace OpenMS
     }
 
     // finally check terminal mods
-    if (n_term_mod_ != rhs.n_term_mod_)
+    // no mod is lesser than any other mod
+    if (n_term_mod_ && !rhs.n_term_mod_)
     {
-      return (n_term_mod_ < rhs.n_term_mod_);
+      return false;
+    }
+    else if (!n_term_mod_ && rhs.n_term_mod_)
+    {
+      return true;
+    }
+    else if (n_term_mod_ && rhs.n_term_mod_)
+    {
+      return (n_term_mod_->getId() < rhs.n_term_mod_->getId());
     }
 
-    if (c_term_mod_ != rhs.c_term_mod_)
+    if (c_term_mod_ && !rhs.c_term_mod_)
     {
-      return (c_term_mod_ < rhs.c_term_mod_);
+      return false;
+    }
+    else if (!c_term_mod_ && rhs.c_term_mod_)
+    {
+      return true;
+    }
+    else if (c_term_mod_ && rhs.c_term_mod_)
+    {
+      return (c_term_mod_->getId() < rhs.c_term_mod_->getId());
     }
 
     return false;
@@ -542,7 +559,7 @@ namespace OpenMS
 
   bool AASequence::operator==(const AASequence& peptide) const
   {
-    if (size() != peptide.size())
+    if (peptide_.size() != peptide.peptide_.size())
     {
       return false;
     }
@@ -550,6 +567,10 @@ namespace OpenMS
     for (Size i = 0; i != size(); ++i)
     {
       if (peptide_[i] != peptide.peptide_[i])
+      {
+        return false;
+      }
+      else if (peptide_.at(i)->getModification() != peptide.peptide_.at(i)->getModification())  // if AA sequence equal, check if modificatiosn (if available) are equal
       {
         return false;
       }
@@ -692,7 +713,7 @@ namespace OpenMS
     {
       try
       {
-        const ResidueModification* term_mod = 
+        const ResidueModification* term_mod =
           &(mod_db->getTerminalModification(mod, ResidueModification::C_TERM));
         aas.c_term_mod_ = term_mod;
         return mod_end;
@@ -782,12 +803,12 @@ namespace OpenMS
           return mod_end;
         }
       }
-      LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" + 
+      LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
         residue->getOneLetterCode() + "' - adding it to the database" << endl;
     }
     // at beginning of peptide:
     else if (delta_mass) // N-terminal mod can only be specified by delta mass
-    { 
+    {
       vector<String> term_mods;
       mod_db->getTerminalModificationsByDiffMonoMass(
         term_mods, mass, tolerance, ResidueModification::N_TERM);
@@ -805,13 +826,13 @@ namespace OpenMS
     if (residue && delta_mass)
     {
       new_res.setMonoWeight(mass + residue->getMonoWeight());
-      new_res.setAverageWeight(mass + 
+      new_res.setAverageWeight(mass +
                                residue->getAverageWeight());
     }
     else
     { // mass value is for an internal residue, but methods expect full residue:
       new_res.setMonoWeight(mass + Residue::getInternalToFullMonoWeight());
-      new_res.setAverageWeight(mass + 
+      new_res.setAverageWeight(mass +
                                Residue::getInternalToFullAverageWeight());
     }
     ResidueDB::getInstance()->addResidue(new_res);
@@ -819,7 +840,7 @@ namespace OpenMS
     return mod_end;
   }
 
-  void AASequence::parseString_(const String& pep, AASequence& aas, 
+  void AASequence::parseString_(const String& pep, AASequence& aas,
                                 bool permissive)
   {
     aas.peptide_.clear();
@@ -828,7 +849,7 @@ namespace OpenMS
     if (peptide.empty()) return;
 
     static ResidueDB* rdb = ResidueDB::getInstance();
-    for (String::ConstIterator str_it = peptide.begin(); 
+    for (String::ConstIterator str_it = peptide.begin();
          str_it != peptide.end(); ++str_it)
     {
       const Residue* r = rdb->getResidue(*str_it); // "isalpha" check not needed
@@ -846,7 +867,7 @@ namespace OpenMS
       }
       else
       {
-        if (permissive && ((*str_it == '*') || (*str_it == '#') || 
+        if (permissive && ((*str_it == '*') || (*str_it == '#') ||
                            (*str_it == '+')))
         { // stop codons
           aas.peptide_.push_back(rdb->getResidue('X'));

@@ -84,7 +84,7 @@ namespace OpenMS
   }
 
   // static
-  void ModifiedPeptideGenerator::applyVariableModifications(const vector<ResidueModification>::const_iterator& var_mods_begin, const vector<ResidueModification>::const_iterator& var_mods_end, vector<AASequence>::iterator digested_peptides_begin, vector<AASequence>::iterator digested_peptides_end, Size max_variable_mods_per_peptide, vector<AASequence>& all_modified_peptides, bool keep_unmodified)
+  void ModifiedPeptideGenerator::applyVariableModifications(const vector<ResidueModification>::const_iterator& var_mods_begin, const vector<ResidueModification>::const_iterator& var_mods_end, vector<AASequence>::const_iterator digested_peptides_begin, vector<AASequence>::const_iterator digested_peptides_end, Size max_variable_mods_per_peptide, vector<AASequence>& all_modified_peptides, bool keep_unmodified)
   {
     // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
     if (var_mods_begin == var_mods_end || max_variable_mods_per_peptide == 0)
@@ -102,7 +102,7 @@ namespace OpenMS
     {
       applyAtMostOneVariableModification_(var_mods_begin, var_mods_end, digested_peptides_begin, digested_peptides_end, all_modified_peptides, keep_unmodified);
       return;
-    } 
+    }
 
     const int N_TERM_MODIFICATION_INDEX = -1; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
     const int C_TERM_MODIFICATION_INDEX = -2; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
@@ -254,7 +254,7 @@ namespace OpenMS
   }
 
   // static
-  void ModifiedPeptideGenerator::applyAtMostOneVariableModification_(const vector<ResidueModification>::const_iterator& var_mods_begin, const vector<ResidueModification>::const_iterator& var_mods_end, vector<AASequence>::iterator digested_peptides_begin, vector<AASequence>::iterator digested_peptides_end, vector<AASequence>& all_modified_peptides, bool keep_unmodified)
+  void ModifiedPeptideGenerator::applyAtMostOneVariableModification_(const vector<ResidueModification>::const_iterator& var_mods_begin, const vector<ResidueModification>::const_iterator& var_mods_end, vector<AASequence>::const_iterator digested_peptides_begin, vector<AASequence>::const_iterator digested_peptides_end, vector<AASequence>& all_modified_peptides, bool keep_unmodified)
   {
     for (vector<AASequence>::const_iterator peptide_it = digested_peptides_begin; peptide_it != digested_peptides_end; ++peptide_it)
     {
@@ -263,7 +263,7 @@ namespace OpenMS
       {
         all_modified_peptides.push_back(peptide_seq);
       }
- 
+
       // we want the same behavior as for the slower function... we would need a reverse iterator here that AASequence doesn't provide
       for (AASequence::ConstIterator residue_it = peptide_seq.end() - 1; residue_it != peptide_seq.begin() - 1; --residue_it)
       {

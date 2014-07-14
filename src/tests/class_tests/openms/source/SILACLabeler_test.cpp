@@ -232,35 +232,35 @@ START_SECTION((void postDigestHook(FeatureMapSimVector & )))
   ABORT_IF(feature_maps[0].size() != 12)
   
   
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
 
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:2H(4))")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6))")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 80)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR")
+
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6))")
+
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
+
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 180)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
+
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
   
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
+  TEST_EQUAL(feature_maps[0][7].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:2H(4))")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][8].getIntensity(), 115)
+  TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR")
-
-  TEST_EQUAL(feature_maps[0][6].getIntensity(), 180)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
-
-  TEST_EQUAL(feature_maps[0][7].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6))")
-
-  TEST_EQUAL(feature_maps[0][8].getIntensity(), 110)
-  TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR(Label:13C(6))")
-
-  TEST_EQUAL(feature_maps[0][9].getIntensity(), 115)
-  TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR")
+  TEST_EQUAL(feature_maps[0][9].getIntensity(), 110)
+  TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR(Label:13C(6))")
 
   TEST_EQUAL(feature_maps[0][10].getIntensity(), 225)
   TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNCNCNAAAA")
