@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
@@ -126,8 +127,8 @@ namespace OpenMS
             MultiplexFilterResult result;
             
             // m/z position is rejected by a particular filter (or passing all of them)
-            vector<DebugPoint> debug_rejected;
-            vector<DebugPoint> debug_filtered;
+            vector<Peak2D> debug_rejected;
+            vector<Peak2D> debug_filtered;
             
             // iterate over spectra
             MSExperiment<Peak1D>::Iterator it_rt_profile;
@@ -181,10 +182,10 @@ namespace OpenMS
                     {
                         if (debug_)
                         {
-                            DebugPoint data_point;
-                            data_point.rt = rt_picked;
-                            data_point.mz = peak_position[peak];
-                            data_point.flag = 1;    // filter 1 failed
+                            Peak2D data_point;
+                            data_point.setRT(rt_picked);
+                            data_point.setMZ(peak_position[peak]);
+                            data_point.setIntensity(1);    // filter 1 failed
                             debug_rejected.push_back(data_point);
                         }
                         continue;
@@ -199,10 +200,10 @@ namespace OpenMS
                     {
                         if (debug_)
                         {
-                            DebugPoint data_point;
-                            data_point.rt = rt_picked;
-                            data_point.mz = peak_position[peak];
-                            data_point.flag = 2;    // filter 2 failed
+                            Peak2D data_point;
+                            data_point.setRT(rt_picked);
+                            data_point.setMZ(peak_position[peak]);
+                            data_point.setIntensity(2);    // filter 2 failed
                             debug_rejected.push_back(data_point);
                         }
                         continue;
@@ -223,10 +224,10 @@ namespace OpenMS
                         {
                             if (debug_)
                             {
-                                DebugPoint data_point;
-                                data_point.rt = rt_picked;
-                                data_point.mz = mz;
-                                data_point.flag = 3;    // filter 3 failed
+                                Peak2D data_point;
+                                data_point.setRT(rt_picked);
+                                data_point.setMZ(peak_position[peak]);
+                                data_point.setIntensity(3);    // filter 3 failed
                                 debug_rejected.push_back(data_point);
                             }
                             continue;
@@ -242,10 +243,10 @@ namespace OpenMS
                         {
                             if (debug_)
                             {
-                                DebugPoint data_point;
-                                data_point.rt = rt_picked;
-                                data_point.mz = mz;
-                                data_point.flag = 4;    // filter 4 failed
+                                Peak2D data_point;
+                                data_point.setRT(rt_picked);
+                                data_point.setMZ(peak_position[peak]);
+                                data_point.setIntensity(4);    // filter 4 failed
                                 debug_rejected.push_back(data_point);
                             }
                             continue;
@@ -262,10 +263,10 @@ namespace OpenMS
                         {
                             if (debug_)
                             {
-                                DebugPoint data_point;
-                                data_point.rt = rt_picked;
-                                data_point.mz = mz;
-                                data_point.flag = 5;    // filter 5 failed
+                                Peak2D data_point;
+                                data_point.setRT(rt_picked);
+                                data_point.setMZ(peak_position[peak]);
+                                data_point.setIntensity(5);    // filter 5 failed
                                 debug_rejected.push_back(data_point);
                             }
                             continue;
@@ -280,10 +281,10 @@ namespace OpenMS
                         {
                             if (debug_)
                             {
-                                DebugPoint data_point;
-                                data_point.rt = rt_picked;
-                                data_point.mz = mz;
-                                data_point.flag = 6;    // filter 6 failed
+                                Peak2D data_point;
+                                data_point.setRT(rt_picked);
+                                data_point.setMZ(peak_position[peak]);
+                                data_point.setIntensity(6);    // filter 6 failed
                                 debug_rejected.push_back(data_point);
                             }
                             continue;
@@ -294,10 +295,10 @@ namespace OpenMS
                          */
                         if (debug_)
                         {
-                            DebugPoint data_point;
-                            data_point.rt = rt_picked;
-                            data_point.mz = mz;
-                            data_point.flag = intensities_actual[1];    // all filters passed
+                            Peak2D data_point;
+                            data_point.setRT(rt_picked);
+                            data_point.setMZ(mz);
+                            data_point.setIntensity(intensities_actual[1]);    // all filters passed
                             debug_filtered.push_back(data_point);
                         }
                         
@@ -592,16 +593,16 @@ namespace OpenMS
        }
     }
     
-    void MultiplexFiltering::writeDebug(int pattern, bool rejected, vector<DebugPoint> points) const
+    void MultiplexFiltering::writeDebug(int pattern, bool rejected, vector<Peak2D> points) const
     {
         MSExperiment<Peak1D> expDebug;
         MSSpectrum<Peak1D> specDebug;        
         
         double rt = -1000;
         int spec_id = 0;
-        for (vector<DebugPoint>::const_iterator it = points.begin(); it != points.end(); ++it)
+        for (vector<Peak2D>::const_iterator it = points.begin(); it != points.end(); ++it)
         {
-            if ((*it).rt > rt)
+            if ((*it).getRT() > rt)
             {
                 if (rt>-1000)
                 {
@@ -609,7 +610,7 @@ namespace OpenMS
                     ++spec_id;
                 }
                 
-                rt = (*it).rt;
+                rt = (*it).getRT();
                 specDebug.clear(true);
                 specDebug.setRT(rt);
                 specDebug.setMSLevel(1);
@@ -617,8 +618,8 @@ namespace OpenMS
             }
             
             Peak1D peak;
-            peak.setMZ((*it).mz);
-            peak.setIntensity((*it).flag);
+            peak.setMZ((*it).getMZ());
+            peak.setIntensity((*it).getIntensity());
             specDebug.push_back(peak);
             
         }

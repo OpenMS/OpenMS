@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERING_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
@@ -125,20 +126,6 @@ namespace OpenMS
         std::vector<MultiplexFilterResult> filter();
         
         private:
-        /**
-         * @brief structure for debug output
-         * 
-         * Position of a peak or raw datapoint that does not or does pass
-         * a filter. The flag contains the number of the filter that failed
-         * or the intensity at that position repectively.
-         */
-        struct DebugPoint
-        {
-            double rt;
-            double mz;
-            double flag;
-        };
-
         /**
          * @brief position and blacklist filter
          * 
@@ -254,7 +241,7 @@ namespace OpenMS
          * @param rejected    Rejected by one of the filters or passed all filters?
          * @param points    data points for debug output
          */
-        void writeDebug(int pattern, bool rejected, std::vector<DebugPoint> points) const;
+        void writeDebug(int pattern, bool rejected, std::vector<Peak2D> points) const;
         
         /**
          * @brief returns the index of a peak at m/z
