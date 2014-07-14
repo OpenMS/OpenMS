@@ -61,19 +61,9 @@ namespace OpenMS
         return rt_;
     }
     
-    double MultiplexFilterResultPeak::getMZShiftAt(int i) const
-    {
-        return mz_shifts_[i];
-    }
-    
     vector<double> MultiplexFilterResultPeak::getMZShifts() const
     {
         return mz_shifts_;
-    }
-    
-    double MultiplexFilterResultPeak::getIntensityAt(int i) const
-    {
-        return intensities_[i];
     }
     
     vector<double> MultiplexFilterResultPeak::getIntensities() const

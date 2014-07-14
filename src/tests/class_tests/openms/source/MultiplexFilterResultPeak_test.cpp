@@ -83,25 +83,11 @@ START_SECTION(double getRT() const)
   TEST_EQUAL(result.getRT(), 1694.1121);
 END_SECTION
 
-START_SECTION(double getMZShiftAt(int i) const)
-  TEST_EQUAL(result.getMZShiftAt(0), 0);
-  TEST_EQUAL(result.getMZShiftAt(1), 0.501677);
-  TEST_EQUAL(result.getMZShiftAt(2), 3.01591);
-  TEST_EQUAL(result.getMZShiftAt(3), 3.51759);
-END_SECTION
-
 START_SECTION(std::vector<double> getMZShifts() const)
   TEST_EQUAL(result.getMZShifts()[0], 0);
   TEST_EQUAL(result.getMZShifts()[1], 0.501677);
   TEST_EQUAL(result.getMZShifts()[2], 3.01591);
   TEST_EQUAL(result.getMZShifts()[3], 3.51759);
-END_SECTION
-
-START_SECTION(double getIntensityAt(int i) const)
-  TEST_EQUAL(result.getIntensityAt(0), 1789.0714);
-  TEST_EQUAL(result.getIntensityAt(1), 1492.1012);
-  TEST_EQUAL(result.getIntensityAt(2), 333.1105);
-  TEST_EQUAL(result.getIntensityAt(3), 325.0520);
 END_SECTION
 
 START_SECTION(std::vector<double> getIntensities() const)
