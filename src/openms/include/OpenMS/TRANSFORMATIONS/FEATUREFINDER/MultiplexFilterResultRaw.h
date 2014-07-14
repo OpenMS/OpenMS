@@ -67,20 +67,10 @@ namespace OpenMS
         double getMZ() const;
 
         /**
-         * @brief returns m/z shift at position i
-         */
-        double getMZShiftAt(int i) const;
-
-        /**
          * @brief returns m/z shifts
          */
         std::vector<double> getMZShifts() const;
 
-        /**
-         * @brief returns intensity at position i
-         */
-        double getIntensityAt(int i) const;
-        
         /**
          * @brief returns intensities
          */
