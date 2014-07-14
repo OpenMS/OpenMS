@@ -603,7 +603,7 @@ namespace OpenMS
         int spec_id = 0;
         for (vector<Peak2D>::const_iterator it = points.begin(); it != points.end(); ++it)
         {
-            if ((*it).getRT() > rt)
+            if ((boost::math::isnan)(rt) || (*it).getRT() > rt)
             {
                 if (!(boost::math::isnan)(rt))
                 {
