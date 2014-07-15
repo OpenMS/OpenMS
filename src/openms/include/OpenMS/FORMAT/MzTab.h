@@ -158,6 +158,17 @@ namespace OpenMS
     public MzTabNullNaNAndInfAbleBase
   {
     public:
+      MzTabDouble()
+        : value_(0.0)
+      {
+
+      }
+
+      explicit MzTabDouble(const double v)
+      {
+        set(v);
+      }
+
       void set(const double& value)
       {
         state_ = MZTAB_CELLSTATE_DEFAULT;
@@ -454,6 +465,17 @@ protected:
     public MzTabNullAbleBase
   {
 public:
+    MzTabBoolean()
+      :value_(false)
+    {
+
+    }
+
+    explicit MzTabBoolean(bool v)
+    {
+      set(v);
+    }
+
     virtual ~MzTabBoolean() {}
 
     void set(const bool& value)
@@ -518,7 +540,18 @@ protected:
   class MzTabString :
     public MzTabNullAbleInterface
   {
-public:
+    public:
+
+    MzTabString()
+      :value_()
+    {
+    }
+
+    explicit MzTabString(const String& s)
+    {
+      set(s);
+    }
+
     virtual ~MzTabString() {}
 
     void set(const String& value)
@@ -919,7 +952,7 @@ public:
 
     bool isNull() const
     {
-      return pos_param_pairs_.empty() && mod_or_subst_identifier_.isNull();
+      return pos_param_pairs_.empty() && mod_identifier_.isNull();
     }
 
     void setNull(bool b)
@@ -927,30 +960,30 @@ public:
       if (b)
       {
         pos_param_pairs_.clear();
-        mod_or_subst_identifier_.setNull(true);
+        mod_identifier_.setNull(true);
       }
     }
 
     // set (potentially ambiguous) position(s) with associated parameter (might be null if not set)
-    void setPositionsAndParameters(const std::vector<std::pair<Int, MzTabParameter> >& ppp)
+    void setPositionsAndParameters(const std::vector<std::pair<Size, MzTabParameter> >& ppp)
     {
       pos_param_pairs_ = ppp;
     }
 
-    std::vector<std::pair<Int, MzTabParameter> > getPositionsAndParameters() const
+    std::vector<std::pair<Size, MzTabParameter> > getPositionsAndParameters() const
     {
       return pos_param_pairs_;
     }
 
-    void setModOrSubstIdentifier(const MzTabString& mod_id)
+    void setModificationIdentifier(const MzTabString& mod_id)
     {
-      mod_or_subst_identifier_ = mod_id;
+      mod_identifier_ = mod_id;
     }
 
     MzTabString getModOrSubstIdentifier() const
     {
       assert(!isNull());
-      return mod_or_subst_identifier_;
+      return mod_identifier_;
     }
 
     String toCellString() const
@@ -981,7 +1014,7 @@ public:
         }
 
         // quick sanity check
-        if (mod_or_subst_identifier_.isNull())
+        if (mod_identifier_.isNull())
         {
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Modification or Substitution identifier MUST NOT be null or empty in MzTabModification"));
         }
@@ -990,11 +1023,11 @@ public:
         // only add '-' if we have position information
         if (!pos_param_string.empty())
         {
-          res = pos_param_string + "-" + mod_or_subst_identifier_.toCellString();
+          res = pos_param_string + "-" + mod_identifier_.toCellString();
         }
         else
         {
-          res = mod_or_subst_identifier_.toCellString();
+          res = mod_identifier_.toCellString();
         }
         return res;
       }
@@ -1012,7 +1045,7 @@ public:
       {
         if (!lower.hasSubstring("-")) // no positions? simply use s as mod identifier
         {
-          mod_or_subst_identifier_.set(String(s).trim());
+          mod_identifier_.set(String(s).trim());
         }
         else
         {
@@ -1025,7 +1058,7 @@ public:
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can't convert to MzTabModification from '") + s);
           }
-          mod_or_subst_identifier_.fromCellString(fields[1].trim());
+          mod_identifier_.fromCellString(fields[1].trim());
 
           std::vector<String> position_fields;
           fields[0].split("|", position_fields);
@@ -1054,8 +1087,8 @@ public:
     }
 
 protected:
-    std::vector<std::pair<Int, MzTabParameter> > pos_param_pairs_;
-    MzTabString mod_or_subst_identifier_;
+    std::vector<std::pair<Size, MzTabParameter> > pos_param_pairs_;
+    MzTabString mod_identifier_;
   };
 
   class MzTabModificationList :

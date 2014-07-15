@@ -2490,17 +2490,30 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   {
     Size assays = peptide_section[0].peptide_abundance_assay.size();
     Size study_variables = peptide_section[0].peptide_abundance_study_variable.size();
-    Size search_ms_runs;
+    Size search_ms_runs = 0;
     if (complete)
     {
       // all ms_runs mandatory
       search_ms_runs = ms_runs;
-    } else // only user provided ones are reported
+    } else // only report all scores if user provided at least one
     {
-      search_ms_runs = mz_tab.getPeptideSectionRows()[0].search_engine_score_ms_run.size();
+      const MzTabPeptideSectionRows psr = mz_tab.getPeptideSectionRows();
+      bool has_ms_run_level_scores = false;
+      for (Size i = 0; i != psr.size(); ++i)
+      {
+        if (!psr[i].search_engine_score_ms_run.empty())
+        {
+          has_ms_run_level_scores = true;
+        }
+      }
+
+      if (has_ms_run_level_scores)
+      {
+        search_ms_runs = ms_runs;
+      }
     }
     Size n_search_engine_score = peptide_section[0].search_engine_score_ms_run.size();
-    Size n_best_search_engine_score = mz_tab.getMetaData().peptide_search_engine_score .size();
+    Size n_best_search_engine_score = mz_tab.getMetaData().peptide_search_engine_score.size();
     out.push_back(generateMzTabPeptideHeader_(search_ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getPeptideOptionalColumnNames()));
     generateMzTabPeptideSection_(mz_tab.getPeptideSectionRows(), out);
   }
