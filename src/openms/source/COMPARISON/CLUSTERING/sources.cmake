@@ -4,14 +4,14 @@ set(directory source/COMPARISON/CLUSTERING)
 ### list all filenames of the directory here
 set(sources_list
 AverageLinkage.cpp
-Cluster.cpp
 ClusterAnalyzer.cpp
 ClusterFunctor.cpp
 ClusterHierarchical.cpp
 CompleteLinkage.cpp
 EuclideanSimilarity.cpp
 HashGrid2.cpp
-LocalClustering.cpp
+MultiplexCluster.cpp
+MultiplexLocalClustering.cpp
 SingleLinkage.cpp
 SILACClustering.cpp
 )

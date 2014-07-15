@@ -42,7 +42,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 
 #include <vector>
 #include <algorithm>
@@ -87,7 +87,7 @@ namespace OpenMS
          * 
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
-        std::vector<std::map<int,Cluster> > cluster(std::vector<FilterResult> filter_results);
+        std::vector<std::map<int,MultiplexCluster> > cluster(std::vector<FilterResult> filter_results);
         
         /**
          * @brief rough estimation of the peak width at m/z

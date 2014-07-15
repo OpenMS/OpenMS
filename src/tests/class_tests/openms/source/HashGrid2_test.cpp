@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HashGrid2.h>
 
 #include <limits>

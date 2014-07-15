@@ -44,15 +44,15 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
-#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTER_H
-#define OPENMS_COMPARISON_CLUSTERING_CLUSTER_H
+#ifndef OPENMS_COMPARISON_CLUSTERING_MULTIPLEXCLUSTER_H
+#define OPENMS_COMPARISON_CLUSTERING_MULTIPLEXCLUSTER_H
 
 namespace OpenMS
 {
 /**
 * @brief basic data structure for clustering
 */
-class OPENMS_DLLAPI Cluster
+class OPENMS_DLLAPI MultiplexCluster
 {
     public:
     /**
@@ -68,12 +68,12 @@ class OPENMS_DLLAPI Cluster
     /**
      * @brief initialises all data structures
      */
-    Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B);
+    MultiplexCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B);
 
     /**
      * @brief initialises all data structures
      */
-    Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices);
+    MultiplexCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices);
 
     /**
      * @brief returns cluster centre
@@ -103,9 +103,9 @@ class OPENMS_DLLAPI Cluster
     /**
      * @brief operators for comparisons
      */
-    bool operator<(Cluster other) const;
-    bool operator>(Cluster other) const;
-    bool operator==(Cluster other) const;
+    bool operator<(MultiplexCluster other) const;
+    bool operator>(MultiplexCluster other) const;
+    bool operator==(MultiplexCluster other) const;
     
     private:
     /**
@@ -139,4 +139,4 @@ class OPENMS_DLLAPI Cluster
 
 }
 
-#endif /* OPENMS_COMPARISON_CLUSTERING_CLUSTER_H */
+#endif /* OPENMS_COMPARISON_CLUSTERING_MULTIPLEXCLUSTER_H */

@@ -43,10 +43,10 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/COMPARISON/CLUSTERING/HashGrid2.h>
-#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 
-#ifndef OPENMS_COMPARISON_CLUSTERING_LOCALCLUSTERING_H
-#define OPENMS_COMPARISON_CLUSTERING_LOCALCLUSTERING_H
+#ifndef OPENMS_COMPARISON_CLUSTERING_MULTIPLEXLOCALCLUSTERING_H
+#define OPENMS_COMPARISON_CLUSTERING_MULTIPLEXLOCALCLUSTERING_H
 
 using std::vector;
 
@@ -67,14 +67,14 @@ namespace OpenMS
 * In each cluster all properties A need to be the same,
 * all properties B different.
 */
-class OPENMS_DLLAPI LocalClustering
+class OPENMS_DLLAPI MultiplexLocalClustering
 {
     public:
     /**
     * @brief cluster centre, cluster bounding box, hash grid index
     */
-    typedef Cluster::Point Point;    // DPosition<2>
-    typedef Cluster::Rectangle Rectangle;    // DBoundingBox<2>
+    typedef MultiplexCluster::Point Point;    // DPosition<2>
+    typedef MultiplexCluster::Rectangle Rectangle;    // DBoundingBox<2>
     typedef HashGrid2::CellIndex CellIndex;    // std::pair<int,int>
 
     /**
@@ -88,7 +88,7 @@ class OPENMS_DLLAPI LocalClustering
      * @param grid_spacing_y    grid spacing in y-direction
      * @param scaling_y    scaling in y-direction
      */
-    LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y);
+    MultiplexLocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y);
 
     /**
      * @brief initialises all data structures
@@ -99,7 +99,7 @@ class OPENMS_DLLAPI LocalClustering
      * @param grid_spacing_y    grid spacing in y-direction
      * @param scaling_y    scaling in y-direction
      */
-    LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y);
+    MultiplexLocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y);
 
     /**
      * @brief performs the hierarchical clustering
@@ -122,7 +122,7 @@ class OPENMS_DLLAPI LocalClustering
     /**
      * @brief returns final results (mapping of cluster indices to clusters)
      */
-    std::map<int, Cluster> getResults() const;
+    std::map<int, MultiplexCluster> getResults() const;
 
     /**
     * @brief basic data structure for distances between clusters
@@ -185,13 +185,13 @@ class OPENMS_DLLAPI LocalClustering
     * @brief list of clusters
     * maps cluster indices to clusters
     */
-    std::map<int, Cluster> clusters_;
+    std::map<int, MultiplexCluster> clusters_;
 
     /**
     * @brief list of final clusters
     * i.e. clusters that are no longer merged
     */
-    std::map<int, Cluster> clusters_final_;
+    std::map<int, MultiplexCluster> clusters_final_;
 
     /**
     * @brief list of minimum distances
@@ -241,7 +241,7 @@ class OPENMS_DLLAPI LocalClustering
     * true -> clusters can be merged
     * false -> clusters cannot be merged
     */
-    bool mergeVeto(Cluster c1, Cluster c2) const;
+    bool mergeVeto(MultiplexCluster c1, MultiplexCluster c2) const;
     
     /**
     * @brief determines the nearest neighbour for each cluster
@@ -256,10 +256,10 @@ class OPENMS_DLLAPI LocalClustering
     * 
     * @param Should the cluster be removed from the cluster list? 
     */
-    bool findNearestNeighbour(Cluster cluster, int cluster_index);
+    bool findNearestNeighbour(MultiplexCluster cluster, int cluster_index);
 
 };
 
 }
 
-#endif /* OPENMS_COMPARISON_CLUSTERING_LOCALCLUSTERING_H */
+#endif /* OPENMS_COMPARISON_CLUSTERING_MULTIPLEXLOCALCLUSTERING_H */

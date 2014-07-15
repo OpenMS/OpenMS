@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <vector>
 #include <algorithm>
@@ -42,52 +42,52 @@
 namespace OpenMS
 {
 
-Cluster::Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B)
+MultiplexCluster::MultiplexCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B)
 : centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(property_A), properties_B_(properties_B)
 {
 }
 
-Cluster::Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices)
+MultiplexCluster::MultiplexCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices)
 : centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(-1), properties_B_(point_indices.size(),-1)
 {
 }
 
-Cluster::Point Cluster::getCentre() const
+MultiplexCluster::Point MultiplexCluster::getCentre() const
 {
     return centre_;
 }
 
-Cluster::Rectangle Cluster::getBoundingBox() const
+MultiplexCluster::Rectangle MultiplexCluster::getBoundingBox() const
 {
     return bounding_box_;
 }
 
-std::vector<int> Cluster::getPoints() const
+std::vector<int> MultiplexCluster::getPoints() const
 {
     return point_indices_;
 }
 
-int Cluster::getPropertyA() const
+int MultiplexCluster::getPropertyA() const
 {
     return property_A_;
 }
 
-std::vector<int> Cluster::getPropertiesB() const
+std::vector<int> MultiplexCluster::getPropertiesB() const
 {
     return properties_B_;
 }
 
-bool Cluster::operator<(Cluster other) const
+bool MultiplexCluster::operator<(MultiplexCluster other) const
 {
     return centre_.getY() < other.centre_.getY();
 }
 
-bool Cluster::operator>(Cluster other) const
+bool MultiplexCluster::operator>(MultiplexCluster other) const
 {
     return centre_.getY() > other.centre_.getY();
 }
 
-bool Cluster::operator==(Cluster other) const
+bool MultiplexCluster::operator==(MultiplexCluster other) const
 {
     return centre_.getY() == other.centre_.getY();
 }

@@ -34,8 +34,8 @@
 //
 
 #include <OpenMS/COMPARISON/CLUSTERING/HashGrid2.h>
-#include <OpenMS/COMPARISON/CLUSTERING/LocalClustering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexLocalClustering.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <vector>
@@ -47,13 +47,13 @@
 namespace OpenMS
 {
     
-LocalClustering::LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y)
+MultiplexLocalClustering::MultiplexLocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y)
 : grid_(grid_spacing_x,grid_spacing_y), scaling_y_(scaling_y)
 {
     init(data_x, data_y, properties_A, properties_B);
 }
 
-LocalClustering::LocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y)
+MultiplexLocalClustering::MultiplexLocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y)
 : grid_(grid_spacing_x,grid_spacing_y), scaling_y_(scaling_y)
 {
     // set properties A and B to -1, i.e. ignore properties when clustering
@@ -62,7 +62,7 @@ LocalClustering::LocalClustering(const std::vector<double> &data_x, const std::v
     init(data_x, data_y, properties_A, properties_B);
 }
 
-void LocalClustering::cluster()
+void MultiplexLocalClustering::cluster()
 {
     MinimumDistance zero_distance(-1, -1, 0);
     typedef std::multiset<MinimumDistance, std::less<vector<MinimumDistance>::value_type> >::iterator MultisetIterator;
@@ -78,8 +78,8 @@ void LocalClustering::cluster()
         int cluster_index2 = smallest_distance.getNearestNeighbourIndex();
         
         // update cluster list
-        Cluster cluster1 = clusters_.find(cluster_index1)->second;
-        Cluster cluster2 = clusters_.find(cluster_index2)->second;
+        MultiplexCluster cluster1 = clusters_.find(cluster_index1)->second;
+        MultiplexCluster cluster2 = clusters_.find(cluster_index2)->second;
         std::vector<int> points1 = cluster1.getPoints();
         std::vector<int> points2 = cluster2.getPoints();
         std::vector<int> new_points;
@@ -111,7 +111,7 @@ void LocalClustering::cluster()
         new_B.insert(new_B.end(), B1.begin(), B1.end());
         new_B.insert(new_B.end(), B2.begin(), B2.end());
         
-        Cluster new_cluster(DPosition<2>(new_x,new_y), new_box, new_points, new_A, new_B);
+        MultiplexCluster new_cluster(DPosition<2>(new_x,new_y), new_box, new_points, new_A, new_B);
         
         clusters_.erase(clusters_.find(cluster_index1));
         clusters_.erase(clusters_.find(cluster_index2));
@@ -155,7 +155,7 @@ void LocalClustering::cluster()
         {
             if (findNearestNeighbour(clusters_.find(*cluster_index)->second,*cluster_index))
             {
-                Cluster c = clusters_.find(*cluster_index)->second;
+                MultiplexCluster c = clusters_.find(*cluster_index)->second;
                 grid_.removeCluster(grid_.getIndex(c.getCentre()), *cluster_index);    // remove from grid
                 clusters_.erase(clusters_.find(*cluster_index));    // remove from cluster list
            }
@@ -164,7 +164,7 @@ void LocalClustering::cluster()
     }
 }
 
-void LocalClustering::extendClustersY()
+void MultiplexLocalClustering::extendClustersY()
 {
     
     // construct new grid (grid only in x-direction, single cell in y-direction)
@@ -176,10 +176,10 @@ void LocalClustering::extendClustersY()
     HashGrid2 grid_x_only(grid_spacing_x, grid_spacing_y_new);
     
     // register final clusters on the new hash grid
-    for (std::map<int, Cluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
+    for (std::map<int, MultiplexCluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
     {
         int cluster_index = it->first;
-        Cluster cluster = it->second;
+        MultiplexCluster cluster = it->second;
         grid_x_only.addCluster(grid_x_only.getIndex(cluster.getCentre()), cluster_index);
     }
     
@@ -194,8 +194,8 @@ void LocalClustering::extendClustersY()
             if (cluster_indices.size() > 1)
             {
                 // First, order the clusters in ascending y.
-                std::list<Cluster> cluster_list;    // list to order clusters in y
-                std::map<Cluster,int> index_list;    // allows us to keep track of cluster indices after sorting
+                std::list<MultiplexCluster> cluster_list;    // list to order clusters in y
+                std::map<MultiplexCluster,int> index_list;    // allows us to keep track of cluster indices after sorting
                 for (std::list<int>::iterator it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
                 {
                     cluster_list.push_back(clusters_final_.find(*it)->second);
@@ -204,8 +204,8 @@ void LocalClustering::extendClustersY()
                 cluster_list.sort();
                 
                 // Now check if two adjacent clusters c1 and c2 can be merged.
-                std::list<Cluster>::iterator c1 = cluster_list.begin();
-                std::list<Cluster>::iterator c2 = cluster_list.begin();
+                std::list<MultiplexCluster>::iterator c1 = cluster_list.begin();
+                std::list<MultiplexCluster>::iterator c2 = cluster_list.begin();
                 ++c1;
                 while (c1 != cluster_list.end())
                 {
@@ -262,7 +262,7 @@ void LocalClustering::extendClustersY()
                         Point position_max(max_x,max_y);
                         Rectangle new_bounding_box(position_min,position_max);
                         
-                        Cluster new_cluster(new_centre, new_bounding_box, new_points);
+                        MultiplexCluster new_cluster(new_centre, new_bounding_box, new_points);
                         
                         // update final cluster list
                         clusters_final_.erase(clusters_final_.find(index_list.find(*c1)->second));
@@ -287,9 +287,9 @@ void LocalClustering::extendClustersY()
      
 }
 
-void LocalClustering::removeSmallClustersY(double threshold_y)
+void MultiplexLocalClustering::removeSmallClustersY(double threshold_y)
 {
-    std::map<int, Cluster>::iterator it = clusters_final_.begin();
+    std::map<int, MultiplexCluster>::iterator it = clusters_final_.begin();
     while (it != clusters_final_.end())
     {
         Rectangle box = it->second.getBoundingBox();
@@ -304,42 +304,42 @@ void LocalClustering::removeSmallClustersY(double threshold_y)
     }    
 }
 
-std::map<int, Cluster> LocalClustering::getResults() const
+std::map<int, MultiplexCluster> MultiplexLocalClustering::getResults() const
 {
     return clusters_final_;
 }
 
-LocalClustering::MinimumDistance::MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance)
+MultiplexLocalClustering::MinimumDistance::MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance)
 :cluster_index_(cluster_index), nearest_neighbour_index_(nearest_neighbour_index), distance_(distance)
 {
 }
 
-int LocalClustering::MinimumDistance::getClusterIndex() const
+int MultiplexLocalClustering::MinimumDistance::getClusterIndex() const
 {
     return cluster_index_;
 }
 
-int LocalClustering::MinimumDistance::getNearestNeighbourIndex() const
+int MultiplexLocalClustering::MinimumDistance::getNearestNeighbourIndex() const
 {
     return  nearest_neighbour_index_;
 }
 
-bool LocalClustering::MinimumDistance::operator<(MinimumDistance other) const
+bool MultiplexLocalClustering::MinimumDistance::operator<(MinimumDistance other) const
 {
     return distance_ < other.distance_;
 }
 
-bool LocalClustering::MinimumDistance::operator>(MinimumDistance other) const
+bool MultiplexLocalClustering::MinimumDistance::operator>(MinimumDistance other) const
 {
     return distance_ > other.distance_;
 }
 
-bool LocalClustering::MinimumDistance::operator==(MinimumDistance other) const
+bool MultiplexLocalClustering::MinimumDistance::operator==(MinimumDistance other) const
 {
     return distance_ == other.distance_;
 }
 
-void LocalClustering::init(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B)
+void MultiplexLocalClustering::init(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B)
 {
     // fill the grid with points to be clustered (initially each cluster contains a single point)
     for (unsigned i = 0; i < data_x.size(); ++i)
@@ -353,7 +353,7 @@ void LocalClustering::init(const std::vector<double> &data_x, const std::vector<
         pb.push_back(properties_B[i]);
         
         // add to cluster list
-        Cluster cluster(position, box, pi, properties_A[i], pb);
+        MultiplexCluster cluster(position, box, pi, properties_A[i], pb);
         clusters_.insert(std::make_pair(i,cluster));
         
         // register on hash grid
@@ -361,11 +361,11 @@ void LocalClustering::init(const std::vector<double> &data_x, const std::vector<
     }
     
     // fill list of minimum distances
-    std::map<int, Cluster>::iterator iterator = clusters_.begin();
+    std::map<int, MultiplexCluster>::iterator iterator = clusters_.begin();
     while (iterator != clusters_.end())
     {
         int cluster_index = iterator->first;
-        Cluster cluster = iterator->second;
+        MultiplexCluster cluster = iterator->second;
         
         if (findNearestNeighbour(cluster, cluster_index))
         {
@@ -382,12 +382,12 @@ void LocalClustering::init(const std::vector<double> &data_x, const std::vector<
     
 }
 
-double LocalClustering::clusterDistance(Point c1, Point c2, double scaling) const
+double MultiplexLocalClustering::clusterDistance(Point c1, Point c2, double scaling) const
 {
     return sqrt((c1.getX() - c2.getX())*(c1.getX() - c2.getX()) + scaling * scaling * (c1.getY() - c2.getY())*(c1.getY() - c2.getY()));
 }
 
-bool LocalClustering::mergeVeto(Cluster c1, Cluster c2) const
+bool MultiplexLocalClustering::mergeVeto(MultiplexCluster c1, MultiplexCluster c2) const
 {
     int A1 = c1.getPropertyA();
     int A2 = c2.getPropertyA();
@@ -413,7 +413,7 @@ bool LocalClustering::mergeVeto(Cluster c1, Cluster c2) const
     return (vetoA || vetoB);
 }
 
-bool LocalClustering::findNearestNeighbour(Cluster cluster, int cluster_index)
+bool MultiplexLocalClustering::findNearestNeighbour(MultiplexCluster cluster, int cluster_index)
 {
     Point centre = cluster.getCentre();
     CellIndex cell_index = grid_.getIndex(centre);
@@ -435,7 +435,7 @@ bool LocalClustering::findNearestNeighbour(Cluster cluster, int cluster_index)
                 for (std::list<int>::const_iterator cluster_index2 = cluster_indices.begin(); cluster_index2 != cluster_indices.end(); ++cluster_index2) {
                     if (*cluster_index2 != cluster_index)
                     {
-                        Cluster cluster2 = clusters_.find(*cluster_index2)->second;
+                        MultiplexCluster cluster2 = clusters_.find(*cluster_index2)->second;
                         Point centre2 = cluster2.getCentre();
                         double distance = clusterDistance(centre, centre2, scaling_y_);
                         bool veto = mergeVeto(cluster, cluster2);    // If clusters cannot be merged anyhow, they are no nearest neighbours.

@@ -35,16 +35,16 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/Cluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 using namespace OpenMS;
 
-START_TEST(Cluster, "$Id$")
+START_TEST(MultiplexCluster, "$Id$")
 
-Cluster::Point position(4.5, 5.5);
-Cluster::Rectangle box(position,position);
+MultiplexCluster::Point position(4.5, 5.5);
+MultiplexCluster::Rectangle box(position,position);
 std::vector<int> points;
 points.push_back(1);
 points.push_back(6);
@@ -55,26 +55,26 @@ propB.push_back(1);
 propB.push_back(2);
 propB.push_back(3);
 
-Cluster* nullPointer = 0;
-Cluster* ptr;
+MultiplexCluster* nullPointer = 0;
+MultiplexCluster* ptr;
 
-START_SECTION(Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B))
-    Cluster cluster(position, box, points, propA, propB);
+START_SECTION(MultiplexCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B))
+    MultiplexCluster cluster(position, box, points, propA, propB);
     TEST_EQUAL(cluster.getCentre().getX(), 4.5);
-    ptr = new Cluster(position, box, points, propA, propB);
+    ptr = new MultiplexCluster(position, box, points, propA, propB);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-START_SECTION(Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices))
-    Cluster cluster(position, box, points);
+START_SECTION(MultiplexCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices))
+    MultiplexCluster cluster(position, box, points);
     TEST_EQUAL(cluster.getCentre().getX(), 4.5);
-    ptr = new Cluster(position, box, points);
+    ptr = new MultiplexCluster(position, box, points);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-Cluster cluster(position, box, points, propA, propB);
+MultiplexCluster cluster(position, box, points, propA, propB);
 
 START_SECTION(Point getCentre() const)
     TEST_EQUAL(cluster.getCentre().getX(), 4.5);
@@ -100,20 +100,20 @@ START_SECTION(std::vector<int> getPropertiesB() const)
     TEST_EQUAL(cluster.getPropertiesB()[2], 3);
 END_SECTION
 
-Cluster::Point position1(4.5, 5.5);
-Cluster::Point position2(4.5, 6.5);
-Cluster cluster1(position1, box, points, propA, propB);
-Cluster cluster2(position2, box, points, propA, propB);
+MultiplexCluster::Point position1(4.5, 5.5);
+MultiplexCluster::Point position2(4.5, 6.5);
+MultiplexCluster cluster1(position1, box, points, propA, propB);
+MultiplexCluster cluster2(position2, box, points, propA, propB);
 
-START_SECTION(bool operator<(Cluster other) const)
+START_SECTION(bool operator<(MultiplexCluster other) const)
     TEST_EQUAL(cluster1 < cluster2, true);
 END_SECTION
 
-START_SECTION(bool operator>(Cluster other) const)
+START_SECTION(bool operator>(MultiplexCluster other) const)
     TEST_EQUAL(cluster2 > cluster1, true);
 END_SECTION
 
-START_SECTION(bool operator==(Cluster other) const)
+START_SECTION(bool operator==(MultiplexCluster other) const)
     TEST_EQUAL(cluster1 == cluster1, true);
 END_SECTION
 
