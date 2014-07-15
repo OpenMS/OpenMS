@@ -57,7 +57,9 @@ LocalClustering::LocalClustering(const std::vector<double> &data_x, const std::v
 : grid_(grid_spacing_x,grid_spacing_y), scaling_y_(scaling_y)
 {
     // set properties A and B to -1, i.e. ignore properties when clustering
-    init(data_x, data_y, minusOnes(data_x.size()), minusOnes(data_x.size()));
+    std::vector<int> properties_A(data_x.size(),-1);
+    std::vector<int> properties_B(data_x.size(),-1);
+    init(data_x, data_y, properties_A, properties_B);
 }
 
 void LocalClustering::cluster()
@@ -378,17 +380,6 @@ void LocalClustering::init(const std::vector<double> &data_x, const std::vector<
         }
     }
     
-}
-
-std::vector<int> LocalClustering::minusOnes(int l)
-{
-    std::vector<int> v;
-    for (int i=0; i<l; ++i)
-    {
-        v.push_back(-1);
-    }
-    
-    return v;
 }
 
 double LocalClustering::clusterDistance(Point c1, Point c2, double scaling) const

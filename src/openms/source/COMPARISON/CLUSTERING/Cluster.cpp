@@ -48,9 +48,8 @@ Cluster::Cluster(const Point &centre, const Rectangle &bounding_box, const std::
 }
 
 Cluster::Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices)
-: centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(-1)
+: centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(-1), properties_B_(point_indices.size(),-1)
 {
-    properties_B_ = minusOnes(point_indices.size());
 }
 
 Cluster::Point Cluster::getCentre() const
@@ -76,17 +75,6 @@ int Cluster::getPropertyA() const
 std::vector<int> Cluster::getPropertiesB() const
 {
     return properties_B_;
-}
-
-std::vector<int> Cluster::minusOnes(int l)
-{
-    std::vector<int> v;
-    for (int i=0; i<l; ++i)
-    {
-        v.push_back(-1);
-    }
-    
-    return v;
 }
 
 bool Cluster::operator<(Cluster other) const

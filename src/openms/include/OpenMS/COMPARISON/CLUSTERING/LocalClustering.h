@@ -217,11 +217,6 @@ class OPENMS_DLLAPI LocalClustering
     void init(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B);
 
     /**
-    * @brief set of indices referencing the points in the cluster
-    */
-    std::vector<int> minusOnes(int l);
-
-    /**
     * @brief returns the distance between centres of two clusters
     * 
     * @param c1    centre of cluster 1

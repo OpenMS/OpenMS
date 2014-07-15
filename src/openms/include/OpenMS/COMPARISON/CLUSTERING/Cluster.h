@@ -135,11 +135,6 @@ class OPENMS_DLLAPI Cluster
     int property_A_;
     std::vector<int> properties_B_;
     
-    /**
-    * @brief set of indices referencing the points in the cluster
-    */
-    std::vector<int> minusOnes(int l);
-
 };
 
 }
