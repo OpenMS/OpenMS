@@ -196,11 +196,10 @@ namespace OpenMS
     }
     else if (value.valueType() == DataValue::DOUBLE_LIST)
     {
-      double dou_value;
       DoubleList ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
-        dou_value = ls_value[i];
+        double dou_value = ls_value[i];
         if ((min_float != -std::numeric_limits<double>::max() && dou_value < min_float) || (max_float != std::numeric_limits<double>::max() && dou_value > max_float))
         {
           message = String("Invalid double parameter value '") + dou_value + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
@@ -644,11 +643,8 @@ namespace OpenMS
         String real_pathname = pathname.chop(1); //remove ':' at the end
         if (real_pathname != "")
         {
-          String description_old = "";
-          String description_new = "";
-
-          description_old = getSectionDescription(prefix + real_pathname);
-          description_new = defaults.getSectionDescription(real_pathname);
+          String description_old = getSectionDescription(prefix + real_pathname);
+          String description_new = defaults.getSectionDescription(real_pathname);
           if (description_old == "")
           {
             //cerr << "## Setting description of " << prefix+real_pathname << " to"<< endl;
@@ -1284,11 +1280,8 @@ namespace OpenMS
         String real_pathname = pathname.chop(1); //remove ':' at the end
         if (real_pathname != "")
         {
-          String description_old = "";
-          String description_new = "";
-
-          description_old = getSectionDescription(prefix + real_pathname);
-          description_new = toMerge.getSectionDescription(real_pathname);
+          String description_old = getSectionDescription(prefix + real_pathname);
+          String description_new = toMerge.getSectionDescription(real_pathname);
           if (description_old == "")
           {
             setSectionDescription(real_pathname, description_new);

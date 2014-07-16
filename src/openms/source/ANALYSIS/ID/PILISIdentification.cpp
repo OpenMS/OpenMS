@@ -456,7 +456,6 @@ delete sequence_db_;
         {
           if (mod_split[i][j] == '@')
           {
-            double mass_diff(mod_split[i].substr(0, j).toFloat());
             if (j != mod_split[i].size() - 2)
             {
               throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "modification in wrong format", "weight@one_letter_code");
@@ -465,6 +464,7 @@ delete sequence_db_;
 
             if (aa_weight_.has(res))
             {
+              double mass_diff(mod_split[i].substr(0, j).toFloat());
               //cerr << res << " " << mass_diff << endl;
               aa_weight_[res] += mass_diff;
             }

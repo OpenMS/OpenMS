@@ -141,7 +141,7 @@ namespace OpenMS
         this->addMS2Fragment(frag);
       }
 
-      P++;
+      ++P;
     }
   }
 

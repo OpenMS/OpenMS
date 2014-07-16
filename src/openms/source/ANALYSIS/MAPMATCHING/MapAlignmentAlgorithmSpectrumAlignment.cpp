@@ -245,8 +245,7 @@ namespace OpenMS
             {
               try
               {
-                double s = -999.0;
-                s   =   scoreCalculation_(i, j, xbegin, ybegin, pattern, aligned, buffermatrix, column_row_orientation);
+                double s = scoreCalculation_(i, j, xbegin, ybegin, pattern, aligned, buffermatrix, column_row_orientation);
                 if (debug_)
                 {
                   std::vector<float> ltemp;

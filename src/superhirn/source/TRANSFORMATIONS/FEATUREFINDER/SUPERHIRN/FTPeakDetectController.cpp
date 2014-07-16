@@ -213,7 +213,7 @@ namespace OpenMS
       // add the LC peak for conversion to a feature structure
       // and to insert into the current LC-MS run
       add_raw_peak_to_LC_MS_run((*P));
-      P++;
+      ++P;
     }
 
     // order the run again:

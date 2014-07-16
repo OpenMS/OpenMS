@@ -73,7 +73,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void InclusionExclusionList::mergeOverlappingWindows_(WindowList & list) const
+  void InclusionExclusionList::mergeOverlappingWindows_(WindowList& list) const
   {
     bool rt_in_seconds = (param_.getValue("RT:unit") == "seconds");
 
@@ -86,7 +86,7 @@ namespace OpenMS
 
       WindowDistance_ llc(double(param_.getValue("merge:rt_tol")) * min_to_s_factor, double(param_.getValue("merge:mz_tol")), mz_as_ppm);
       SingleLinkage sl;
-      DistanceMatrix<float> dist;       // will be filled
+      DistanceMatrix<float> dist; // will be filled
       ClusterHierarchical ch;
 
       //ch.setThreshold(0.99);
@@ -102,7 +102,7 @@ namespace OpenMS
     for (Size ii = 0; ii < tree.size(); ++ii)
     {
       if (tree[ii].distance >= 1)
-        tree[ii].distance = -1;                               // manually set to disconnect, as SingleLinkage does not support it
+        tree[ii].distance = -1; // manually set to disconnect, as SingleLinkage does not support it
       if (tree[ii].distance != -1)
         ++node_count;
     }
@@ -116,7 +116,7 @@ namespace OpenMS
     for (Size i_outer = 0; i_outer < clusters.size(); ++i_outer)
     {
       // for each cluster: create one new entry
-      IEWindow w_new = list[clusters[i_outer][0]];   // init with 0th element
+      IEWindow w_new = list[clusters[i_outer][0]]; // init with 0th element
       // add all other elements
       for (Size i_inner = 1; i_inner < clusters[i_outer].size(); ++i_inner)
       {
@@ -128,7 +128,7 @@ namespace OpenMS
       w_new.MZ_ /= clusters[i_outer].size(); // average m/z value
       list_new.push_back(w_new);
 
-      ++cluster_sizes[clusters[i_outer].size()];   // for stats
+      ++cluster_sizes[clusters[i_outer].size()]; // for stats
     }
 
     LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
@@ -153,9 +153,9 @@ namespace OpenMS
 
 //   }
 
-  void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry> & fasta_entries,
-                                            const String & out_path,
-                                            const IntList & charges,
+  void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                                            const String& out_path,
+                                            const IntList& charges,
                                             const String rt_model_path)
   {
     WindowList result;
@@ -237,8 +237,8 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeTargets(const FeatureMap<> & map,
-                                            const String & out_path)
+  void InclusionExclusionList::writeTargets(const FeatureMap<>& map,
+                                            const String& out_path)
   {
     WindowList result;
 
@@ -263,9 +263,9 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeTargets(const std::vector<PeptideIdentification> & pep_ids,
-                                            const String & out_path,
-                                            const IntList & charges)
+  void InclusionExclusionList::writeTargets(const std::vector<PeptideIdentification>& pep_ids,
+                                            const String& out_path,
+                                            const IntList& charges)
   {
     WindowList result;
 
@@ -283,11 +283,11 @@ namespace OpenMS
       {
         throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, pep_id_iter->getHits().size());
       }
-	      if (!pep_id_iter->hasRT())
+      if (!pep_id_iter->hasRT())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide identification contains no RT information.");
       }
-	    double rt = pep_id_iter->getRT();
+      double rt = pep_id_iter->getRT();
 
       double rt_start = std::max(0.0, relative_rt ? (rt - rt * rel_rt_window_size) : rt - abs_rt_window_size);
       double rt_stop =                relative_rt ? (rt + rt * rel_rt_window_size) : rt + abs_rt_window_size;
@@ -331,8 +331,8 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeToFile_(const String & out_path,
-                                            const WindowList & windows) const
+  void InclusionExclusionList::writeToFile_(const String& out_path,
+                                            const WindowList& windows) const
   {
 
     std::ofstream outs(out_path.c_str());

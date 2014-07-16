@@ -119,7 +119,7 @@ namespace OpenMS
       f << "average";
     }
     f << "\" out_data_type=\"\" out_data=\"\" search_id=\"1\">" << "\n";
-    f << "\t\t<search_database local_path=\""<< search_params.db << "\" type=\"AA\"/>" << "\n";
+    f << "\t\t<search_database local_path=\"" << search_params.db << "\" type=\"AA\"/>" << "\n";
 
 
     // register modifications
@@ -160,7 +160,7 @@ namespace OpenMS
     for (set<String>::const_iterator it = aa_mods.begin();
          it != aa_mods.end(); ++it)
     {
-      const ResidueModification & mod = ModificationsDB::getInstance()->getModification(*it);
+      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
 
       // compute mass of modified residue
       EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod.getOrigin())->getFormula(Residue::Internal);
@@ -176,8 +176,8 @@ namespace OpenMS
 
     for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
     {
-      const ResidueModification & mod = ModificationsDB::getInstance()->
-                                        getModification(*it);
+      const ResidueModification& mod = ModificationsDB::getInstance()->
+                                       getModification(*it);
       f << "      "
         << "<terminal_modification terminus=\"n\" massdiff=\""
         << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
@@ -187,7 +187,7 @@ namespace OpenMS
 
     for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
     {
-      const ResidueModification & mod = ModificationsDB::getInstance()->getModification(*it);
+      const ResidueModification& mod = ModificationsDB::getInstance()->getModification(*it);
       f << "      "
         << "<terminal_modification terminus=\"c\" massdiff=\""
         << precisionWrapper(mod.getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod.getMonoMass())
@@ -223,15 +223,15 @@ namespace OpenMS
           scan_index = count;
         }
 
-        f << "\t\t<spectrum_query spectrum=\""<< count << "\""
+        f << "\t\t<spectrum_query spectrum=\"" << count << "\""
           << " start_scan=\"" << scan_index << "\""
           << " end_scan=\"" << scan_index << "\""
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
           << " assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\"";
 
-		    if (it->hasRT())
+        if (it->hasRT())
         {
-		      f << " retention_time_sec=\"" << it->getRT() << "\" ";
+          f << " retention_time_sec=\"" << it->getRT() << "\" ";
         }
 
         f << ">\n";
@@ -248,16 +248,16 @@ namespace OpenMS
 
           if (seq.hasNTerminalModification())
           {
-            const ResidueModification & mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
+            const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
             f << " mod_nterm_mass=\"" <<
-            precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
+              precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
-            const ResidueModification & mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
+            const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
             f << "mod_cterm_mass=\"" <<
-            precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
+              precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           f << ">" << "\n";
@@ -266,11 +266,11 @@ namespace OpenMS
           {
             if (seq[i].isModified())
             {
-              const ResidueModification & mod = ModificationsDB::getInstance()->getModification(seq[i].getOneLetterCode(), seq[i].getModification(), ResidueModification::ANYWHERE);
+              const ResidueModification& mod = ModificationsDB::getInstance()->getModification(seq[i].getOneLetterCode(), seq[i].getModification(), ResidueModification::ANYWHERE);
               // the modification position is 1-based
               f << "         <mod_aminoacid_mass position=\"" << (i + 1)
                 << "\" mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
+                precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
             }
           }
 
@@ -279,23 +279,22 @@ namespace OpenMS
         }
 
         f << "          <analysis_result analysis=\"peptideprophet\">" << "\n";
-        f << "\t\t\t<peptideprophet_result probability=\""<< h.getScore()
+        f << "\t\t\t<peptideprophet_result probability=\"" << h.getScore()
           << "\" all_ntt_prob=\"(" << h.getScore() << "," << h.getScore()
           << "," << h.getScore() << ")\">" << "\n";
-        f << "\t\t\t</peptideprophet_result>"<< "\n";
-        f << "\t\t\t</analysis_result>"<< "\n";
-        f << "\t\t\t</search_hit>"<< "\n";
-        f << "\t\t</search_result>"<< "\n";
-        f << "\t\t</spectrum_query>"<< "\n";
+        f << "\t\t\t</peptideprophet_result>" << "\n";
+        f << "\t\t\t</analysis_result>" << "\n";
+        f << "\t\t\t</search_hit>" << "\n";
+        f << "\t\t</search_result>" << "\n";
+        f << "\t\t</spectrum_query>" << "\n";
       }
     }
 
-    f << "\t</msms_run_summary>"<< "\n";
+    f << "\t</msms_run_summary>" << "\n";
     f << "</msms_pipeline_analysis>" << "\n";
 
     f.close();
   }
-
 
   void PepXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
   {
@@ -308,7 +307,6 @@ namespace OpenMS
     // "terminal_modification" elements)
     if (!mods.empty()) modification_description = mods[0];
   }
-
 
   void PepXMLFile::makeScanMap_()
   {
@@ -343,8 +341,7 @@ namespace OpenMS
     }
   }
 
-
-  void PepXMLFile::readRTMZCharge_(const xercesc::Attributes & attributes)
+  void PepXMLFile::readRTMZCharge_(const xercesc::Attributes& attributes)
   {
     double mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
     charge_ = attributeAsInt_(attributes, "assumed_charge");
@@ -353,7 +350,7 @@ namespace OpenMS
 
     bool rt_present = optionalAttributeAsDouble_(rt_, attributes, "retention_time_sec");
 
-    if (!rt_present || use_precursor_data_)     // get RT from experiment
+    if (!rt_present || use_precursor_data_) // get RT from experiment
     {
       if (!experiment_)
       {
@@ -367,7 +364,7 @@ namespace OpenMS
       {
         String spectrum = attributeAsString_(attributes, "spectrum");
         boost::regex re(Internal::MascotXMLHandler::primary_scan_regex,
-                        boost::regex::perl|boost::regex::icase);
+                        boost::regex::perl | boost::regex::icase);
         boost::smatch match;
         if (boost::regex_search(spectrum, match, re))
         {
@@ -376,7 +373,7 @@ namespace OpenMS
       }
 
       if (!scan_map_.empty()) scan = scan_map_[scan];
-      const MSSpectrum<> & spec = (*experiment_)[scan];
+      const MSSpectrum<>& spec = (*experiment_)[scan];
       bool success = false;
       if (spec.getMSLevel() == 2)
       {
@@ -423,7 +420,6 @@ namespace OpenMS
     }
   }
 
-
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
                         const String& experiment_name)
@@ -431,7 +427,6 @@ namespace OpenMS
     MSExperiment<> exp;
     load(filename, proteins, peptides, experiment_name, exp, false);
   }
-
 
   void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
@@ -517,7 +512,7 @@ namespace OpenMS
 
   /*
     NOTE: numbering schemes for multiple searches
-    =============================================
+    ---------------------------------------------
 
     pepXML can contain search results for multiple files and for multiple
     searches of those files. We have seen two different variants (both seem to
@@ -553,13 +548,12 @@ namespace OpenMS
     means that for variant 2 of the numbering, the "search_id" number may be
     higher than the number of elements in the vector! However, in this case we
     know that the last - and only - element should be the correct one.
-   */
+  */
 
-
-  void PepXMLFile::startElement(const XMLCh * const /*uri*/,
-                                const XMLCh * const /*local_name*/,
-                                const XMLCh * const qname,
-                                const xercesc::Attributes & attributes)
+  void PepXMLFile::startElement(const XMLCh* const /*uri*/,
+                                const XMLCh* const /*local_name*/,
+                                const XMLCh* const qname,
+                                const xercesc::Attributes& attributes)
   {
     String element = sm_.convert(qname);
 
@@ -716,7 +710,7 @@ namespace OpenMS
     {
       // Has N-Term Modification
       double mod_nterm_mass;
-      if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass"))  // this specifies a terminal modification
+      if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass")) // this specifies a terminal modification
       {
         // lookup the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
@@ -741,7 +735,7 @@ namespace OpenMS
 
       // Has C-Term Modification
       double mod_cterm_mass;
-      if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass"))  // this specifies a terminal modification
+      if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass")) // this specifies a terminal modification
       {
         // lookup the modification in the search_summary by mass
         for (vector<AminoAcidModification>::const_iterator it = variable_modifications_.begin(); it != variable_modifications_.end(); ++it)
@@ -1044,10 +1038,9 @@ namespace OpenMS
     }
   }
 
-
-  void PepXMLFile::endElement(const XMLCh * const /*uri*/,
-                              const XMLCh * const /*local_name*/,
-                              const XMLCh * const qname)
+  void PepXMLFile::endElement(const XMLCh* const /*uri*/,
+                              const XMLCh* const /*local_name*/,
+                              const XMLCh* const qname)
   {
     String element = sm_.convert(qname);
 

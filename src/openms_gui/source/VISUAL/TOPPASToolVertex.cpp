@@ -629,9 +629,9 @@ namespace OpenMS
         if (store_to_ini)
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
-		      {
+          {
             param_tmp.setValue(param_name, StringListUtils::fromQStringList(output_files));
-		      }
+          }
           else
           {
             if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
@@ -676,10 +676,10 @@ namespace OpenMS
 
       // enqueue process
       if (round == 0)
-	    {
+      {
         LOG_DEBUG << "\nEnqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"\n" << std::endl;
-	    }
-	    toolScheduledSlot();
+      }
+      toolScheduledSlot();
       ts->enqueueProcess(TOPPASScene::TOPPProcess(p, File::findExecutable(name_).toQString(), args, this));
     }
 
@@ -847,13 +847,13 @@ namespace OpenMS
     //          only iff a recycling node gives the most input files we use its names
     int max_size_index = -1;
     int max_size = -1;
-    for (int use_recycling=0; use_recycling < 2; ++use_recycling)
+    for (int use_recycling = 0; use_recycling < 2; ++use_recycling)
     {
       for (RoundPackageConstIt it  = pkg[0].begin();
            it != pkg[0].end();
            ++it)
       {
-        if (use_recycling==0 && (it->second.edge->getSourceVertex()->isRecyclingEnabled()))
+        if (use_recycling == 0 && (it->second.edge->getSourceVertex()->isRecyclingEnabled()))
         { // first test all input nodes with disabled recycling
           continue;
         }
@@ -872,7 +872,7 @@ namespace OpenMS
       }
     }
 
-	// now we construct output filenames for this node
+    // now we construct output filenames for this node
     // use names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
     std::vector<QStringList> per_round_basenames;
     for (Size i = 0; i < pkg.size(); ++i)
@@ -880,7 +880,7 @@ namespace OpenMS
       per_round_basenames.push_back(pkg[i].find(max_size_index)->second.filenames);
     }
 
-	// maybe we find something more unique, e.g. last base directory if all filenames are equal
+    // maybe we find something more unique, e.g. last base directory if all filenames are equal
     smartFileNames_(per_round_basenames);
 
     // clear output file list
@@ -891,7 +891,7 @@ namespace OpenMS
     QVector<IOInfo> out_params;
     getOutputParameters(out_params);
     // output names for each outgoing edge
-	for (int i = 0; i < out_params.size(); ++i)
+    for (int i = 0; i < out_params.size(); ++i)
     {
       // search for an out edge for this parameter (not required to exist)
       bool found(false);
@@ -912,7 +912,7 @@ namespace OpenMS
         continue;
       }
 
-	  // create common path of output files
+      // create common path of output files
       QString path = ts->getTempDir()
                      + QDir::separator()
                      + getOutputDir().toQString()
@@ -920,16 +920,16 @@ namespace OpenMS
                      + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
                      + QDir::separator();
       if (path.length() > 150)
-	  {
+      {
         LOG_WARN << "Warning: the temporary path '" << String(path) << "' used in TOPPAS has many characters.\n"
                  << "         TOPPAS might not be able to write files properly.\n";
-	  }
+      }
 
       VertexRoundPackage vrp;
       vrp.edge = edge_out;
       for (Size r = 0; r < per_round_basenames.size(); ++r)
       {
-	    // store edge for this param for all rounds
+        // store edge for this param for all rounds
         output_files_[r][param_index] = vrp; // index by index of source-out param
         QString fn = path;
 
@@ -953,10 +953,10 @@ namespace OpenMS
             QRegExp rx("_tmp\\d+$"); // remove "_tmp<number>" if its a suffix
             int tmp_index = rx.indexIn(fn);
             if (tmp_index != -1)
-			{
+            {
               fn = fn.left(tmp_index);
-			}
-			fn = fn.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
+            }
+            fn = fn.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
             fn += "_tmp" + QString::number(uid_++);
             fn = QDir::toNativeSeparators(fn);
             output_files_[r][param_index].filenames.push_back(fn);
@@ -982,8 +982,8 @@ namespace OpenMS
       passes_constraints = true;
       for (Size i = 1; i < filenames.size(); ++i)
       {
-        if ( (filenames[i].size() > 1)  // one file per round AND unique filename
-             || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
+        if ((filenames[i].size() > 1) // one file per round AND unique filename
+           || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
         {
           passes_constraints = false;
           break;
@@ -1000,17 +1000,17 @@ namespace OpenMS
         //std::cout << "PATH: " << p << "\n";
         String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
         //std::cout << "INTER: " << tmp << "\n";
-        if (tmp.size() <= 2 || tmp.has(':')) continue;  // too small to be reliable; might even be 'c:'
+        if (tmp.size() <= 2 || tmp.has(':')) continue; // too small to be reliable; might even be 'c:'
         filenames[i][0] = tmp.toQString();
         //std::cout << "  -->: " << filenames[i][0] << "\n";
       }
-	  return; // we do not want the next special case on top of this...
+      return; // we do not want the next special case on top of this...
     }
 
     // possibilities for more good naming schemes...
     // special case #2 ...
 
-	return;
+    return;
   }
 
   void TOPPASToolVertex::forwardTOPPOutput()

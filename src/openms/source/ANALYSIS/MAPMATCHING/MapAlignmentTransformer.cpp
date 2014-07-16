@@ -45,8 +45,8 @@ using std::vector;
 
 namespace OpenMS
 {
-  void MapAlignmentTransformer::transformPeakMaps(vector<MSExperiment<> > & maps,
-                                                  const vector<TransformationDescription> & given_trafos)
+  void MapAlignmentTransformer::transformPeakMaps(vector<MSExperiment<> >& maps,
+                                                  const vector<TransformationDescription>& given_trafos)
   {
     typedef vector<MSExperiment<> >::iterator TMapIterator;
     typedef vector<TransformationDescription>::const_iterator TTrafoIterator;
@@ -74,8 +74,8 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::transformSinglePeakMap(MSExperiment<> & msexp,
-                                                       const TransformationDescription & trafo)
+  void MapAlignmentTransformer::transformSinglePeakMap(MSExperiment<>& msexp,
+                                                       const TransformationDescription& trafo)
   {
     msexp.clearRanges();
 
@@ -104,8 +104,8 @@ namespace OpenMS
     msexp.updateRanges();
   }
 
-  void MapAlignmentTransformer::transformFeatureMaps(vector<FeatureMap<> > & maps,
-                                                     const vector<TransformationDescription> & given_trafos)
+  void MapAlignmentTransformer::transformFeatureMaps(vector<FeatureMap<> >& maps,
+                                                     const vector<TransformationDescription>& given_trafos)
   {
     typedef vector<FeatureMap<> >::iterator TFeatureMapsIterator;
     typedef vector<TransformationDescription>::const_iterator TTrafoIterator;
@@ -133,8 +133,8 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::transformSingleFeatureMap(FeatureMap<> & fmap,
-                                                          const TransformationDescription & trafo)
+  void MapAlignmentTransformer::transformSingleFeatureMap(FeatureMap<>& fmap,
+                                                          const TransformationDescription& trafo)
   {
     for (vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end(); ++fmit)
     {
@@ -149,8 +149,8 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::applyToBaseFeature_(BaseFeature & feature,
-                                                    const TransformationDescription & trafo)
+  void MapAlignmentTransformer::applyToBaseFeature_(BaseFeature& feature,
+                                                    const TransformationDescription& trafo)
   {
     // transform feature position:
     double rt = feature.getRT();
@@ -164,13 +164,13 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::applyToFeature_(Feature & feature,
-                                                const TransformationDescription & trafo)
+  void MapAlignmentTransformer::applyToFeature_(Feature& feature,
+                                                const TransformationDescription& trafo)
   {
     applyToBaseFeature_(feature, trafo);
 
     // loop over all convex hulls
-    vector<ConvexHull2D> & convex_hulls = feature.getConvexHulls();
+    vector<ConvexHull2D>& convex_hulls = feature.getConvexHulls();
     for (vector<ConvexHull2D>::iterator chiter = convex_hulls.begin();
          chiter != convex_hulls.end(); ++chiter)
     {
@@ -197,8 +197,8 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::transformConsensusMaps(vector<ConsensusMap> & maps,
-                                                       const vector<TransformationDescription> & given_trafos)
+  void MapAlignmentTransformer::transformConsensusMaps(vector<ConsensusMap>& maps,
+                                                       const vector<TransformationDescription>& given_trafos)
   {
     typedef vector<ConsensusMap>::iterator TMapIterator;
     typedef vector<TransformationDescription>::const_iterator TTrafoIterator;
@@ -226,8 +226,8 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::transformSingleConsensusMap(ConsensusMap & cmap,
-                                                            const TransformationDescription & trafo)
+  void MapAlignmentTransformer::transformSingleConsensusMap(ConsensusMap& cmap,
+                                                            const TransformationDescription& trafo)
   {
     for (ConsensusMap::Iterator cmit = cmap.begin(); cmit != cmap.end();
          ++cmit)
@@ -243,8 +243,8 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::transformPeptideIdentifications(vector<vector<PeptideIdentification> > & maps,
-                                                                const vector<TransformationDescription> & given_trafos)
+  void MapAlignmentTransformer::transformPeptideIdentifications(vector<vector<PeptideIdentification> >& maps,
+                                                                const vector<TransformationDescription>& given_trafos)
   {
     typedef vector<vector<PeptideIdentification> >::iterator TPeptideIdentificationsIterator;
     typedef vector<TransformationDescription>::const_iterator TTrafoIterator;
@@ -272,22 +272,22 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentTransformer::transformSinglePeptideIdentification(vector<PeptideIdentification> & pepids,
-                                                                     const TransformationDescription & trafo)
+  void MapAlignmentTransformer::transformSinglePeptideIdentification(vector<PeptideIdentification>& pepids,
+                                                                     const TransformationDescription& trafo)
   {
     for (UInt pepid_index = 0; pepid_index < pepids.size(); ++pepid_index)
     {
-      PeptideIdentification & pepid = pepids[pepid_index];
+      PeptideIdentification& pepid = pepids[pepid_index];
       if (pepid.hasRT())
       {
-		    pepid.setRT(trafo.apply(pepid.getRT()));
+        pepid.setRT(trafo.apply(pepid.getRT()));
       }
     }
 
   }
 
-  void MapAlignmentTransformer::applyToConsensusFeature_(ConsensusFeature & feature,
-                                                         const TransformationDescription & trafo)
+  void MapAlignmentTransformer::applyToConsensusFeature_(ConsensusFeature& feature,
+                                                         const TransformationDescription& trafo)
   {
     typedef ConsensusFeature::HandleSetType::const_iterator TConstHandleSetIterator;
 

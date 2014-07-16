@@ -254,7 +254,7 @@ namespace OpenMS
     picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
     picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
     picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
-    for (std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); it++)
+    for (std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); ++it)
     {
       ChromatogramPeak p;
       p.setRT(chromatogram[it->peak_rt_idx].getRT());

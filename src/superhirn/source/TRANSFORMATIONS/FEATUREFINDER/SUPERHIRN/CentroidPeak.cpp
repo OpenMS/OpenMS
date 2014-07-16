@@ -280,7 +280,7 @@ namespace OpenMS
       while (I != isotopicPeaks_.end())
       {
         printf("%0.4f(%0.0f[%0.0f]) ", (*I).getMass(), (*I).getFittedIntensity(), (*I).getOrgIntensity());
-        I++;
+        ++I;
       }
       printf("\n");
     }
