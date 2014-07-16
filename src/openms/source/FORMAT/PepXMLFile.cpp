@@ -465,6 +465,7 @@ namespace OpenMS
       }
     }
 
+    analysis_summary_ = false;
     wrong_experiment_ = false;
     // without experiment name, don't care about these two:
     seen_experiment_ = exp_name_.empty();
@@ -478,13 +479,14 @@ namespace OpenMS
     }
 
     // clean up duplicate ProteinHits in ProteinIdentifications:
-    // (can't use "sort" and "unique" because no "op<" defined for PeptideHit)
+    // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {
       set<String> accessions;
       // modeled after "remove_if" in STL header "algorithm":
-      vector<ProteinHit>::iterator first = prot_it->getHits().begin(), result = first;
+      vector<ProteinHit>::iterator first = prot_it->getHits().begin();
+      vector<ProteinHit>::iterator result = first;
       for (; first != prot_it->getHits().end(); ++first)
       {
         String accession = first->getAccession();
@@ -506,6 +508,47 @@ namespace OpenMS
     experiment_ = 0;
     scan_map_.clear();
   }
+
+
+  /*
+    NOTE: numbering schemes for multiple searches
+    ---------------------------------------------
+
+    pepXML can contain search results for multiple files and for multiple
+    searches of those files. We have seen two different variants (both seem to
+    be valid pepXML):
+
+    1. One "msms_run_summary" per searched file, containing multiple
+    "search_summary" elements (for each search); counting starts at "1" in each
+    "msms_run_summary"; produced e.g. by the TPP:
+
+    <msms_run_summary basename="File1">
+      <search_summary search_engine="A" search_id="1">
+      <search_summary search_engine="B" search_id="2">
+    ...
+    <msms_run_summary basename="File2">
+      <search_summary search_engine="A" search_id="1">
+      <search_summary search_engine="B" search_id="2">
+    ...
+
+    2. One "msms_run_summary" per search of a file, containing one
+    "search_summary" element; counting is sequential across "msms_run_summary"
+    sections; produced e.g. by ProteomeDiscoverer:
+
+    <msms_run_summary basename="File1">
+      <search_summary search_engine="A" search_id="1">
+    ...
+    <msms_run_summary basename="File1">
+      <search_summary search_engine="B" search_id="2">
+    ...
+
+    The "search_id" numbers are necessary to associate search hits with the
+    correct search runs. In the parser, we keep track of the search runs per
+    "msms_run_summary" in the "current_proteins_" vector. Importantly, this
+    means that for variant 2 of the numbering, the "search_id" number may be
+    higher than the number of elements in the vector! However, in this case we
+    know that the last - and only - element should be the correct one.
+  */
 
   void PepXMLFile::startElement(const XMLCh* const /*uri*/,
                                 const XMLCh* const /*local_name*/,
@@ -548,10 +591,16 @@ namespace OpenMS
       current_proteins_.clear();
       current_proteins_.push_back(--proteins_->end());
     }
-    else if (wrong_experiment_)
+    else if (element == "analysis_summary") // parent: "msms_pipeline_analysis"
+    {
+      // this element can contain "search summary" elements, which we only
+      // expect as subelements of "msms_run_summary", so skip the whole thing
+      analysis_summary_ = true;
+    }
+    else if (wrong_experiment_ || analysis_summary_)
     {
       // do nothing here (this case exists to prevent parsing of elements for
-      // experiments we're not interested in)
+      // experiments we're not interested in or for analysis summaries)
     }
     // now, elements occurring more frequently are generally closer to the top
     else if (element == "search_score") // parent: "search_hit"
@@ -612,7 +661,10 @@ namespace OpenMS
       peptide_hit_.addProteinAccession(protein);
       ProteinHit hit;
       hit.setAccession(protein);
-      current_proteins_[search_id_ - 1]->insertHit(hit);
+      // depending on the numbering scheme used in the pepXML, "search_id_"
+      // may appear to be "out of bounds" - see NOTE above:
+      current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
+        insertHit(hit);
     }
     else if (element == "search_result") // parent: "spectrum_query"
     { // creates a new PeptideIdentification
@@ -621,9 +673,13 @@ namespace OpenMS
       current_peptide_.setMZ(mz_);
       current_peptide_.setBaseName(current_base_name_);
 
-      search_id_ = 1; // references "search_summary"
+      search_id_ = 1; // default if attr. is missing (ref. to "search_summary")
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
-      current_peptide_.setIdentifier(current_proteins_[search_id_ - 1]->getIdentifier());
+      // depending on the numbering scheme used in the pepXML, "search_id_"
+      // may appear to be "out of bounds" - see NOTE above:
+      current_peptide_.setIdentifier(
+        current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
+        getIdentifier());
     }
     else if (element == "spectrum_query") // parent: "msms_run_summary"
     {
@@ -650,7 +706,6 @@ namespace OpenMS
       current_peptide_.setScoreType("InterProphet probability");
       current_peptide_.setHigherScoreBetter(true);
     }
-    ////NEW
     else if (element == "modification_info") // parent: "search_hit" (in "search result")
     {
       // Has N-Term Modification
@@ -703,14 +758,16 @@ namespace OpenMS
         }
       }
     }
-    ////NEW_END
     else if (element == "alternative_protein") // parent: "search_hit"
     {
       String protein = attributeAsString_(attributes, "protein");
       peptide_hit_.addProteinAccession(protein);
       ProteinHit hit;
       hit.setAccession(protein);
-      current_proteins_[search_id_ - 1]->insertHit(hit);
+      // depending on the numbering scheme used in the pepXML, "search_id_"
+      // may appear to be "out of bounds" - see NOTE above:
+      current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
+        insertHit(hit);
     }
     else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
     {
@@ -728,7 +785,7 @@ namespace OpenMS
       }
       else
       {
-        error(LOAD, String("Cannot find modification '") + String(modification_mass) + " " + String(origin) + "' at position " + String(modification_position));
+        error(LOAD, String("Cannot find modification '") + String(modification_mass) + "' of residue " + String(origin) + " at position " + String(modification_position) + " in '" + current_sequence_ + "'");
       }
     }
     else if (element == "aminoacid_modification") // parent: "search_summary"
@@ -922,9 +979,9 @@ namespace OpenMS
       search_id_ = 1;
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       vector<ProteinIdentification>::iterator prot_it;
-      if (search_id_ == 1) // ProteinIdent. was already created for "msms_run_summary" -> add to it
-      {
-        prot_it = current_proteins_.front();
+      if (search_id_ <= proteins_->size())
+      { // ProteinIdent. was already created for "msms_run_summary" -> add to it
+        prot_it = current_proteins_.back();
       }
       else // create a new ProteinIdentification
       {
@@ -953,13 +1010,18 @@ namespace OpenMS
       else
         enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
 
-      ProteinIdentification::SearchParameters params = current_proteins_.front()->getSearchParameters();
+      ProteinIdentification::SearchParameters params = 
+        current_proteins_.front()->getSearchParameters();
       params.enzyme = enzyme_;
       current_proteins_.front()->setSearchParameters(params);
     }
     else if (element == "search_database") // parent: "search_summary"
     {
       params_.db = attributeAsString_(attributes, "local_path");
+      if (params_.db.empty())
+      {
+        optionalAttributeAsString_(params_.db, attributes, "database_name");
+      }
     }
     else if (element == "msms_pipeline_analysis") // root
     {
@@ -984,9 +1046,14 @@ namespace OpenMS
 
     // cout << "End: " << element << "\n";
 
-    if (wrong_experiment_)
+    if (element == "analysis_summary")
     {
-      // do nothing here (skip all elements that belong to the wrong experiment)
+      analysis_summary_ = false;
+    }
+    else if (wrong_experiment_ || analysis_summary_)
+    {
+      // do nothing here (skip all elements that belong to the wrong experiment
+      // or to an analysis summary)
     }
     else if (element == "search_hit")
     {
