@@ -176,7 +176,7 @@ namespace OpenMS
     {
 
       P->second.TR += factor;
-      P++;
+      ++P;
     }
 
   }

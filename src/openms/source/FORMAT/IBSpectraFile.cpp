@@ -174,7 +174,7 @@ namespace OpenMS
 
     return header;
   }
-  
+
   String IBSpectraFile::getModifString_(const AASequence& sequence)
   {
     String modif = sequence.getNTerminalModification();
@@ -184,7 +184,7 @@ namespace OpenMS
     {
       modif += ":" + aa_it->getModification();
     }
-    if(sequence.getCTerminalModification() != "")
+    if (sequence.getCTerminalModification() != "")
     {
       modif += ":" + sequence.getCTerminalModification();
     }

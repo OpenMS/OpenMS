@@ -159,7 +159,7 @@ namespace OpenMS
 #endif
       }
     }
-    global_peak_number += data.peaks.size();
+    //global_peak_number += data.peaks.size();
 
   }
 

@@ -56,7 +56,7 @@ namespace OpenMS
   {
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-    for (MSSpectrum<>::const_iterator it = spectrum.begin(); it != spectrum.end(); it++)
+    for (MSSpectrum<>::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
     {
       mz_array->data.push_back(it->getMZ());
       intensity_array->data.push_back(it->getIntensity());

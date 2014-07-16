@@ -92,6 +92,11 @@ namespace OpenMS
   /// A little helper class to gather (and dump) some statistics from a vector<double>.
   struct SomeStatistics
   {
+    SomeStatistics()
+      :mean(0), variance(0), min(0), lowerq(0), median(0), upperq(0), max(0)
+    {
+    }
+
     /**@brief Initialize SomeStatistics from data.
     */
     SomeStatistics& operator()(vector<double>& data)

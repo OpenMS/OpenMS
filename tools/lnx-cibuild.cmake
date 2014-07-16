@@ -1,5 +1,9 @@
 # define build name&co for easier identification on cdassh
 set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_REPO_SLUG}-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
+# add style to build name if requested
+if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "On")
+  set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-coding-style")
+endif()
 set(CTEST_SITE "travis-ci-build-server")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/_build")
@@ -13,7 +17,8 @@ BOOST_USE_STATIC=Off
 CMAKE_BUILD_TYPE=Release
 ENABLE_TUTORIALS=Off
 ENABLE_GCC_WERROR=On
-ENABLE_UNITYBUILD=Off"
+ENABLE_UNITYBUILD=Off
+ENABLE_STYLE_TESTING=$ENV{ENABLE_STYLE_TESTING}"
 )
 
 # create cache
@@ -44,7 +49,12 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 # travis-ci handles this for us
 ctest_start     (Continuous)
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE _configure_ret)
-ctest_build     (BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+# we only build when we do non-style testing
+if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "Off")
+	ctest_build     (BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+else()
+	set(_build_errors 0)
+endif()
 ctest_test      (BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
 ctest_submit()
 

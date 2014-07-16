@@ -124,7 +124,7 @@ namespace OpenMS
       }
       else if (F != rawIsotopes_.begin())
       {
-        F--;
+        --F;
         if (SuperHirnUtil::compareMassValuesAtPPMLevel(mz, (*F).first, SuperHirnParameters::instance()->getMzTolPpm()))
         {
           (*F).second.first.push_back(mz);
@@ -157,7 +157,7 @@ namespace OpenMS
     {
       // condens a isotope peak trace:
       condensIsotopePattern(&(*I).second);
-      I++;
+      ++I;
     }
 
   }
@@ -180,7 +180,7 @@ namespace OpenMS
       while (START != in->end())
       {
         AVERAGE += (*START);
-        START++;
+        ++START;
       }
       AVERAGE /= double(in->size());
 
@@ -188,7 +188,7 @@ namespace OpenMS
       while (START != in->end())
       {
         STDEV += ((AVERAGE - (*START)) * (AVERAGE - (*START)));
-        START++;
+        ++START;
       }
       STDEV /= double(in->size());
       STDEV = sqrt(STDEV);

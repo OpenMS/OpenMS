@@ -54,9 +54,6 @@ namespace OpenMS
 
   void FileWatcher::monitorFileChanged_(const QString & name)
   {
-    //static timer counter
-    static int timer_id = 0;
-
     //cout << "File changed: " << String(name) << endl;
     //Look up if there is already a timer for this file
     QTimer * timer = 0;
@@ -73,6 +70,8 @@ namespace OpenMS
     //timer does not exist => create and start a new one
     if (!timer)
     {
+      //static timer counter
+      static int timer_id = 0;
       //cout << " - no timer found => creating a new one with name: ";
       timer = new QTimer(this);
       timer->setInterval((int)(1000.0 * delay_in_seconds_));

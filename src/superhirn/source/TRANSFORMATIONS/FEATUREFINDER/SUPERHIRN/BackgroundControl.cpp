@@ -143,7 +143,7 @@ namespace OpenMS
 
     if (F != mzMap->begin())
     {
-      F--;
+      --F;
       double delta = fabs(mz - F->first);
       if (delta <= constraint)
       {
@@ -178,7 +178,7 @@ namespace OpenMS
 
     if (F != intensityBinMap.begin())
     {
-      F--;
+      --F;
 
       double delta = fabs(Tr - F->first);
       if (delta <= constraint)
@@ -222,10 +222,10 @@ namespace OpenMS
       {
 
         P2->second.processIntensities();
-        P2++;
+        ++P2;
       }
 
-      P1++;
+      ++P1;
     }
   }
 

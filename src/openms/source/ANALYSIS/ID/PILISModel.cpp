@@ -537,7 +537,7 @@ namespace OpenMS
 
       UInt max_fragment_charge_training = param_.getValue("max_fragment_charge_training");
       Map<int, double> sum_a, sum_b, sum_y;
-      double sum_a_ints(0.0), sum_b_ints(0.0), sum_y_ints(0.0);
+
       for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
       {
         sum_a[z] = 0;
@@ -598,9 +598,11 @@ namespace OpenMS
           sum_y[z] += y_ion_losses_cd_.train(in_spec, suffix, suf_weight, z, pep_weight);
         }
 
+        /*
         sum_a_ints += sum_a[z];
         sum_b_ints += sum_b[z];
         sum_y_ints += sum_y[z];
+        */
       }
 
       // end state is always needed
