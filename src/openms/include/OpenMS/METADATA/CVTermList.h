@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
+// $Authors: Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_METADATA_CVTERMLIST_H
@@ -82,6 +82,9 @@ public:
 
     /// replaces all cv terms with a map (can be obtained via getCVTerms)
     void replaceCVTerms(const Map<String, std::vector<CVTerm> > & cv_term_map);
+
+    /// merges the given map into the member map, no duplicate checking
+    void consumeCVTerms(const Map<String, std::vector<CVTerm> > & cv_term_map);
 
     /// returns the accession string of the term
     const Map<String, std::vector<CVTerm> > & getCVTerms() const;
