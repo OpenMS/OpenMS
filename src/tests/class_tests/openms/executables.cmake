@@ -235,8 +235,8 @@ set(filtering_executables_list
   ComplementFilter_test
   ComplementMarker_test
   DataFilters_test
-ElutionPeakDetection_test
-FeatureFindingMetabo_test
+  ElutionPeakDetection_test
+  FeatureFindingMetabo_test
   FilterFunctor_test
   GaussFilter_test
   GaussFilterAlgorithm_test
@@ -251,8 +251,13 @@ FeatureFindingMetabo_test
   LinearResamplerAlign_test
   LowessSmoothing_test
   MarkerMower_test
-MassTraceDetection_test
+  MassTraceDetection_test
   MorphologicalFilter_test
+  MultiplexFiltering_test
+  MultiplexFilterResult_test
+  MultiplexFilterResultPeak_test
+  MultiplexFilterResultRaw_test
+  MultiplexPeakPattern_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
