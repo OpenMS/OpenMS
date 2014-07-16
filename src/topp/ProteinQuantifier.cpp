@@ -319,7 +319,7 @@ public:
 
   TOPPProteinQuantifier() :
     TOPPBase("ProteinQuantifier", "Compute peptide and protein abundances"),
-    algo_params_(), proteins_(), peptides_(), files_(), 
+    algo_params_(), proteins_(), peptides_(), files_(),
     spectral_counting_(false) {}
 
 protected:
@@ -664,7 +664,7 @@ protected:
     // algo_params_.update(getParam_());
     quantifier.setParameters(algo_params_);
 
-    vector<DataProcessing> processing;
+    //vector<DataProcessing> processing;
     FileTypes::Type in_type = FileHandler::getType(in);
 
     if (in_type == FileTypes::FEATUREXML)
@@ -692,7 +692,7 @@ protected:
         files_[i].filename = proteins[i].getIdentifier();
       }
       // ProteinProphet results in the idXML?
-      if (protxml.empty() && (proteins.size() == 1) && 
+      if (protxml.empty() && (proteins.size() == 1) &&
           (!proteins[0].getHits().empty()))
       {
         proteins_ = proteins[0];

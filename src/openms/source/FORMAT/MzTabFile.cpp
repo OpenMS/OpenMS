@@ -106,24 +106,6 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   map<String, Size> psm_custom_opt_columns;
   map<String, Size> smallmolecule_custom_opt_columns;
 
-  // mandatory meta values / columns check
-  bool has_mzTab_version = false;
-  bool has_mzTab_mode = false;
-  bool has_mzTab_type = false;
-  bool has_description = false;
-  Size count_protein_search_engine_score = 0;
-  Size count_peptide_search_engine_score = 0;
-  Size count_psm_search_engine_score = 0;
-  Size count_smallmolecule_search_engine_score = 0;
-  /*
-  Size count_fixed_mod = 0;
-  Size count_variable_mod = 0;
-  bool has_software = false;
-  */
-  bool has_protein_quantification_unit = false;
-  bool has_peptide_quantification_unit = false;
-  bool has_small_molecule_quantification_unit = false;
-  bool has_assay_ms_run_ref = false;
   Size count_study_variable_assay_refs = 0;
   Size count_study_variable_description = 0;
   Size count_ms_run_location = 0;
@@ -252,6 +234,23 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Error parsing MzTab line: " + String(s) + ". Did you forget to use tabulator as separator?");
     }
 
+    bool has_mzTab_version = false;
+    bool has_mzTab_mode = false;
+    bool has_mzTab_type = false;
+    bool has_description = false;
+    Size count_protein_search_engine_score = 0;
+    Size count_peptide_search_engine_score = 0;
+    Size count_psm_search_engine_score = 0;
+    Size count_smallmolecule_search_engine_score = 0;
+    Size count_fixed_mod = 0;
+    Size count_variable_mod = 0;
+    bool has_software = false;
+
+    bool has_protein_quantification_unit = false;
+    bool has_peptide_quantification_unit = false;
+    bool has_small_molecule_quantification_unit = false;
+    bool has_assay_ms_run_ref = false;
+
     // parse metadata section
     if (section == "MTD")
     {
@@ -264,17 +263,17 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         mz_tab_metadata.mz_tab_version.fromCellString(cells[2]);
         has_mzTab_version = true;
       }
-      if (cells[1].hasPrefix("mzTab-mode"))
+      else if (cells[1].hasPrefix("mzTab-mode"))
       {
         mz_tab_metadata.mz_tab_mode.fromCellString(cells[2]);
         has_mzTab_mode = true;
       }
-      if (cells[1].hasPrefix("mzTab-type"))
+      else if (cells[1].hasPrefix("mzTab-type"))
       {
         mz_tab_metadata.mz_tab_type.fromCellString(cells[2]);
         has_mzTab_type = true;
       }
-      if (cells[1].hasPrefix("mzTab-ID"))
+      else if (cells[1].hasPrefix("mzTab-ID"))
       {
         mz_tab_metadata.mz_tab_id.fromCellString(cells[2]);
       }
@@ -831,19 +830,19 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         }
       }
 
-      if (protein_num_psms_ms_run_indices.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
+      if (protein_num_psms_ms_run_indices.empty() && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
           && mz_tab_metadata.mz_tab_type.toCellString() == "Identification")
       {
         cout << "Error: mandatory protein num_psms_ms_run column(s) missing" << endl;
       }
 
-      if (protein_num_peptides_distinct_ms_run_indices.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
+      if (protein_num_peptides_distinct_ms_run_indices.empty() && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
           && mz_tab_metadata.mz_tab_type.toCellString() == "Identification")
       {
         cout << "Error: mandatory protein num_peptides_distinct_ms_run column(s) missing" << endl;
       }
 
-      if (protein_num_peptides_unique_ms_run_indices.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
+      if (protein_num_peptides_unique_ms_run_indices.empty() && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
           && mz_tab_metadata.mz_tab_type.toCellString() == "Identification")
       {
         cout << "Error: mandatory protein num_peptides_unique_ms_run column(s) missing" << endl;
@@ -864,23 +863,23 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         cout << "Error: mandatory protein coverage column missing" << endl;
       }
 
-      if (protein_abundance_assay_indices.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
+      if (protein_abundance_assay_indices.empty()&& mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
           && mz_tab_metadata.mz_tab_type.toCellString() == "Quantification")
       {
         cout << "Error: mandatory protein protein_abundance_assay column(s) missing" << endl;
       }
 
-      if (protein_abundance_study_variable_to_column_indices.size() == 0 && mz_tab_metadata.mz_tab_type.toCellString() == "Quantification")
+      if (protein_abundance_study_variable_to_column_indices.empty() && mz_tab_metadata.mz_tab_type.toCellString() == "Quantification")
       {
         cout << "Error: mandatory protein_abundance_study_variable column(s) missing" << endl;
       }
 
-      if (protein_abundance_stdev_study_variable_to_column_indices.size() == 0 && mz_tab_metadata.mz_tab_type.toCellString() == "Quantification")
+      if (protein_abundance_stdev_study_variable_to_column_indices.empty() && mz_tab_metadata.mz_tab_type.toCellString() == "Quantification")
       {
         cout << "Error: mandatory protein_abundance_stdev_study_variable column(s) missing" << endl;
       }
 
-      if (protein_abundance_std_error_study_variable_to_column_indices.size() == 0 && mz_tab_metadata.mz_tab_type.toCellString() == "Quantification")
+      if (protein_abundance_std_error_study_variable_to_column_indices.empty() && mz_tab_metadata.mz_tab_type.toCellString() == "Quantification")
       {
         cout << "Error: mandatory protein_abundance_stderr_study_variable column(s) missing" << endl;
       }
@@ -1428,6 +1427,15 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       continue;
     }
   }
+
+
+  Size count_psm_search_engine_score = 0;
+  Size count_smallmolecule_search_engine_score = 0;
+  Size count_fixed_mod = 0;
+  Size count_variable_mod = 0;
+
+  hasMandatoryMetaDataKeys_(has_mzTab_version, has_mzTab_mode, has_mzTab_type, has_description, has_software, has_protein_quantification_unit, has_peptide_quantification_unit, has_small_molecule_quantification_unit, has_assay_ms_run_ref);
+
   mz_tab.setMetaData(mz_tab_metadata);
   mz_tab.setProteinSectionRows(mz_tab_protein_section_data);
   mz_tab.setPeptideSectionRows(mz_tab_peptide_section_data);

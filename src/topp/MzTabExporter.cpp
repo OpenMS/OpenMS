@@ -97,8 +97,10 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-      registerInputFile_("in", "<file>", "", "Input file annotated by ProteinQuantifier");
-      setValidFormats_("in", ListUtils::create<String>("idXML,featureXML"));
+      registerInputFile_("in_feature", "<file>", "", "FeatureXMLs used to generate the mzTab file.");
+      setValidFormats_("in_feature", ListUtils::create<String>("featureXML"));
+      registerInputFile_("in_id", "<file>", "", "Identifications used to generate the mzTab file.");
+      setValidFormats_("in_id", ListUtils::create<String>("idXML"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("csv"));
     }
@@ -106,28 +108,21 @@ protected:
     ExitCodes main_(int, const char **)
     {
       // parameter handling
-      String in = getStringOption_("in");
+      String in_feature = getStringOption_("in_feature");
+      String in_id = getStringOption_("in_id");
       String out = getStringOption_("out");
 
-      // input file type
-      FileTypes::Type in_type = FileHandler::getType(in);
-      writeDebug_(String("Input file type: ") + FileTypes::typeToName(in_type), 2);
-
-      if (in_type == FileTypes::UNKNOWN)
+      if (!in_feature.empty())
       {
-        writeLog_("Error: Could not determine input file type!");
-        return PARSE_ERROR;
-      }
+        MzTab mztab;
+        MzTabMetaData meta_data;
+        // For featureXML we export a "Summary Quantification". This means we don't need to report feature quantification values at the assay level
+        // but only at the (single) study variable variable level.
 
-      MzTab mztab;
-      MzTabMetaData meta_data;
-
-      if (in_type == FileTypes::FEATUREXML)
-      {
         // load featureXML
         FeatureMap<> feature_map;
         FeatureXMLFile f;
-        f.load(in, feature_map);
+        f.load(in_feature, feature_map);
 
         // compute protein coverage
         vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
@@ -162,7 +157,7 @@ protected:
         MzTabMSRunMetaData ms_run;
         ms_run.location = MzTabString("null"); // TODO: file origin of ms run (e.g. mzML) not stored in featureXML so far
         meta_data.ms_run[1] = ms_run;
-        meta_data.uri[1] = MzTabString(in);
+        meta_data.uri[1] = MzTabString(in_feature);
         meta_data.psm_search_engine_score[1] = MzTabParameter();  // TODO: we currently only support psm search engine scores annotated to the identification run
         meta_data.peptide_search_engine_score[1] = MzTabParameter();
         MzTabModificationMetaData meta_fixed_mod;
@@ -212,7 +207,6 @@ protected:
           rt_window.set(window);
           row.retention_time_window = rt_window;
           row.charge = MzTabDouble(f.getCharge());
-          row.peptide_abundance_assay[1] =  MzTabDouble(f.getIntensity());
           row.peptide_abundance_stdev_study_variable[1];
           row.peptide_abundance_std_error_study_variable[1];
           row.peptide_abundance_study_variable[1] = MzTabDouble(f.getIntensity());
@@ -318,20 +312,25 @@ protected:
           rows.push_back(row);
         }
         mztab.setPeptideSectionRows(rows);
+        MzTabFile().store(out, mztab);
       }
 
-      if (in_type == FileTypes::IDXML)
+      if (!in_id.empty())
       {
+        MzTab mztab;
+        // mandatory meta values
+        meta_data.mz_tab_type = MzTabString("Identification");
+        meta_data.mz_tab_mode = MzTabString("Summary");
+        meta_data.description = MzTabString("Export from idXML");
+
         String document_id;
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
-        IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        IdXMLFile().load(in_id, prot_ids, pep_ids, document_id);
 
-        // mztab.store(out, prot_ids, pep_ids, in, document_id); // TODO  implement
-
+        MzTabFile().store(out, mztab);
       }
 
-      MzTabFile().store(out, mztab);
       return EXECUTION_OK;
     }
 
