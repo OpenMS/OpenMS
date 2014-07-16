@@ -158,7 +158,8 @@ namespace OpenMS
       {
          char* message = xercesc::XMLString::transcode( e.getMessage() );
 
-         cerr << "XML toolkit teardown error: " << message << endl;
+         cerr << "XML ttolkit teardown error: " << message << endl;
+
          XMLString::release( &message );
       }
     }
@@ -442,7 +443,6 @@ namespace OpenMS
       }
     }
 
-
     std::pair<CVTermList, std::map<String,DataValue> > MzIdentMLDOMHandler::parseParamGroup_(DOMNodeList * paramGroup)
     {
       CVTermList ret_cv;
@@ -508,6 +508,7 @@ namespace OpenMS
         String type = XMLString::transcode(param->getAttribute(XMLString::transcode("type")));
         DataValue dv;
         dv.setUnit(unitAcc+":"+unitName);
+
         if ( type == "xsd:float" || type == "xsd:double")
         {
           dv = value.toDouble();
@@ -530,8 +531,10 @@ namespace OpenMS
         return std::make_pair(name,dv);
       }
       else
+      {
         std::cout << "derp!" << std::endl;
         throw invalid_argument("no user param here");
+      }
     }
 
     void MzIdentMLDOMHandler::parseAnalysisSoftwareList_(DOMNodeList * analysisSoftwareElements)
@@ -820,6 +823,7 @@ namespace OpenMS
                 {
                   String id = XMLString::transcode(enzy->getAttribute(XMLString::transcode("id")));
                   String name = XMLString::transcode(enzy->getAttribute(XMLString::transcode("name")));
+
                   int missedCleavages = -1;
                   try
                   {
@@ -844,6 +848,7 @@ namespace OpenMS
                   }
 
                   String enzymename = "UNKNOWN";
+
                   DOMElement* sub = enzy->getFirstElementChild();
                   if ( sub )
                   {
@@ -863,15 +868,15 @@ namespace OpenMS
                       {
                           std::pair<String,DataValue> param;
                           std::cout << "derp?" << std::endl;
-                         try{
-                        param = parseUserParam_(pren->getFirstElementChild());
-                          }
+			  try
+			  {
+                            param = parseUserParam_(pren->getFirstElementChild());
+			  }
                           catch (...)
                           {
                             std::cerr << "derp in progress" << std::endl;
                           }
-
-                        enzymename = param.second.toString();
+                          enzymename = param.second.toString();
                       }
                     }
                   }
@@ -1092,7 +1097,6 @@ namespace OpenMS
       {
         hit.setMetaValue(up->first, up->second);
       }
-      //
       spectrum_identification.insertHit(hit);
       spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
 
@@ -1299,7 +1303,6 @@ namespace OpenMS
             {
               std::cerr << "another derp in progress" << std::endl;
             }
-
             //double monoisotopicMassDelta = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
 //            std::cout << "index: " << index << std::endl;
             DOMElement* cvp = element_sib->getFirstElementChild();
@@ -1640,6 +1643,5 @@ namespace OpenMS
 
       return sp;
     }
-
   }   //namespace Internal
 } // namespace OpenMS
