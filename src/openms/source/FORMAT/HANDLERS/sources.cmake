@@ -9,6 +9,7 @@ set(sources_list
 	MascotXMLHandler.cpp
 	MzDataHandler.cpp
 	MzIdentMLHandler.cpp
+	MzIdentMLDOMHandler.cpp
 	MzQuantMLHandler.cpp
 	MzMLHandler.cpp
   MzMLHandlerHelper.cpp
