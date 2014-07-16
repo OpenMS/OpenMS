@@ -19,6 +19,7 @@ UnimodXMLHandler.h
 XMLHandler.h
 XTandemInfileXMLHandler.h
 MzIdentMLHandler.h
+MzIdentMLDOMHandler.h
 MzQuantMLHandler.h
 TraMLHandler.h
 )
