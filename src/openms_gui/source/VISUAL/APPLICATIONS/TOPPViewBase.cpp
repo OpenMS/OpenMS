@@ -1490,6 +1490,8 @@ namespace OpenMS
             {
               views_tabwidget_->setCurrentIndex(0); // switch to scan tab for 2D widget
             }
+            // cppcheck produces a false positive warning here -> ignore
+            // cppcheck-suppress multiCondition
             else if (dynamic_cast<Spectrum1DWidget*>(w))
             {
               views_tabwidget_->setCurrentIndex(1); // switch to identification tab for 1D widget

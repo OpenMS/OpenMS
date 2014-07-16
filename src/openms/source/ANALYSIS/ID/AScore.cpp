@@ -137,7 +137,7 @@ namespace OpenMS
           if (i < real_window.size())
             windows_with_all_peak_depths[current_window].push_back(real_window[i]);
         }
-        begin_window = ++end_window;
+        begin_window = end_window + 1;
         end_window = real_spectrum.MZBegin((current_window + 1) * 100);
       }
     }

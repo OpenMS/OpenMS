@@ -140,7 +140,7 @@ protected:
     /// Check that all assays have a corresponding chromatogram
     bool allAssaysHaveChromatograms()
     {
-      for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); assay_it++)
+      for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
       {
         for (Size i = 0; i < assay_it->second.size(); i++)
         {
@@ -204,7 +204,7 @@ protected:
     }
 
     // Iterating over all the assays
-    for (MRMGroupMapper::AssayMapT::iterator assay_it = m.assay_map.begin(); assay_it != m.assay_map.end(); assay_it++)
+    for (MRMGroupMapper::AssayMapT::iterator assay_it = m.assay_map.begin(); assay_it != m.assay_map.end(); ++assay_it)
     {
       String id = assay_it->first;
 

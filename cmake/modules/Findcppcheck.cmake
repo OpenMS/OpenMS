@@ -62,6 +62,9 @@ if(CPPCHECK_EXECUTABLE)
 	get_filename_component(_cppcheckmoddir ${CMAKE_CURRENT_LIST_FILE} PATH)
 	set(_cppcheckdummyfile "${_cppcheckmoddir}/Findcppcheck.cpp")
 
+	# add inline suppression argument
+	set(CPPCHECK_INLINE_SUPPRESSION_ARG "--inline-suppr")
+
 	# Check for the two types of command line arguments by just trying them
 	execute_process(COMMAND
 		"${CPPCHECK_EXECUTABLE}"
@@ -75,6 +78,7 @@ if(CPPCHECK_EXECUTABLE)
 	execute_process(COMMAND
 		"${CPPCHECK_EXECUTABLE}"
 		"--style"
+		"--performance"
 		"--quiet"
 		"${_cppcheckdummyfile}"
 		RESULT_VARIABLE
@@ -86,16 +90,17 @@ if(CPPCHECK_EXECUTABLE)
 		set(CPPCHECK_UNUSEDFUNC_ARG "--enable=unusedFunctions")
 		set(CPPCHECK_POSSIBLEERROR_ARG "--enable=possibleError")
 		set(CPPCHECK_STYLE_ARG "--enable=style")
+		set(CPPCHECK_PERFORMANCE_ARG "--enable=performance")
 		set(CPPCHECK_QUIET_ARG "--quiet")
 		set(CPPCHECK_INCLUDEPATH_ARG "-I")
 		if(MSVC)
 			set(CPPCHECK_TEMPLATE_ARG --template vs)
 			set(CPPCHECK_FAIL_REGULAR_EXPRESSION "[(]error[)]")
-			set(CPPCHECK_WARN_REGULAR_EXPRESSION "[(]style[)]")
+			set(CPPCHECK_WARN_REGULAR_EXPRESSION "[(]style[)]" "[(]performace[)]")
 		elseif(CMAKE_COMPILER_IS_GNUCXX)
 			set(CPPCHECK_TEMPLATE_ARG --template gcc)
 			set(CPPCHECK_FAIL_REGULAR_EXPRESSION " error: ")
-			set(CPPCHECK_WARN_REGULAR_EXPRESSION " style: ")
+			set(CPPCHECK_WARN_REGULAR_EXPRESSION " style: " " performance: ")
 		else()
 			message(STATUS
 				"Warning: FindCppcheck doesn't know how to format error messages for your compiler!")
@@ -108,10 +113,11 @@ if(CPPCHECK_EXECUTABLE)
 		set(CPPCHECK_UNUSEDFUNC_ARG "--unused-functions")
 		set(CPPCHECK_POSSIBLEERROR_ARG "--all")
 		set(CPPCHECK_STYLE_ARG "--style")
+		set(CPPCHECK_PERFORMANCE_ARG "--performance")
 		set(CPPCHECK_QUIET_ARG "--quiet")
 		set(CPPCHECK_INCLUDEPATH_ARG "-I")
 		set(CPPCHECK_FAIL_REGULAR_EXPRESSION "error:")
-		set(CPPCHECK_WARN_REGULAR_EXPRESSION "[(]style[)]")
+		set(CPPCHECK_WARN_REGULAR_EXPRESSION "[(]style[)]" "[(]performance[)]")
 	else()
 		# No idea - some other issue must be getting in the way
 		message(STATUS
@@ -122,7 +128,7 @@ if(CPPCHECK_EXECUTABLE)
 endif()
 
 set(CPPCHECK_ALL
-	"${CPPCHECK_EXECUTABLE} ${CPPCHECK_POSSIBLEERROR_ARG} ${CPPCHECK_UNUSEDFUNC_ARG} ${CPPCHECK_STYLE_ARG} ${CPPCHECK_QUIET_ARG} ${CPPCHECK_INCLUDEPATH_ARG} some/include/path")
+	"${CPPCHECK_EXECUTABLE} ${CPPCHECK_POSSIBLEERROR_ARG} ${CPPCHECK_UNUSEDFUNC_ARG} ${CPPCHECK_STYLE_ARG} ${CPPCHECK_QUIET_ARG} ${CPPCHECK_INCLUDEPATH_ARG} ${CPPCHECK_PERFORMANCE_ARG} some/include/path")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(cppcheck
@@ -132,6 +138,8 @@ find_package_handle_standard_args(cppcheck
 	CPPCHECK_POSSIBLEERROR_ARG
 	CPPCHECK_UNUSEDFUNC_ARG
 	CPPCHECK_STYLE_ARG
+	CPPCHECK_PERFORMANCE_ARG
+	CPPCHECK_INLINE_SUPPRESSION_ARG
 	CPPCHECK_INCLUDEPATH_ARG
 	CPPCHECK_QUIET_ARG)
 

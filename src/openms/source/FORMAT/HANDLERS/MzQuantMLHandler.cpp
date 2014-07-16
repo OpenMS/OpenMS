@@ -118,15 +118,16 @@ namespace OpenMS
         parent_parent_tag = *(open_tags_.end() - 3);
       }
 
-      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-      static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
-      static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+       static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 
       if (tag_ == "cvParam")
       {
+        static const XMLCh* s_unit_accession = xercesc::XMLString::transcode("unitAccession");
+        static const XMLCh* s_cv_ref = xercesc::XMLString::transcode("cvRef");
+        static const XMLCh* s_accession = xercesc::XMLString::transcode("accession");
+
         String value, unit_accession, cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
@@ -1036,7 +1037,8 @@ namespace OpenMS
 
       // ---Features and QuantLayers---
       std::vector<UInt64> fid;
-      std::vector<float> fin, fwi, fqu;
+      std::vector<float> fin;
+      std::vector<float> fwi;
       std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
       std::vector<std::vector<float> > f2i;
       String peptide_xml, feature_xml = "";
@@ -1324,8 +1326,8 @@ namespace OpenMS
 
       std::vector<UInt64> fid;
       std::vector<float> fin, fwi, fqu;
-      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
-      std::vector<std::vector<float> > f2i;
+//      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref) TODO renoved unused variables
+//      std::vector<std::vector<float> > f2i;
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());
 
