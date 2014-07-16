@@ -45,7 +45,7 @@ using namespace OpenMS;
 using namespace std;
 
 //uncomment if the reference files should be re-written
-//(only do this if you are sure that the PeamPickerHiRes is working correctly)
+//(only do this if you are sure that the PeakPickerHiRes is working correctly)
 //#define WRITE_REF_FILES
 
 START_TEST(PeakPickerHiRes, "$Id$")

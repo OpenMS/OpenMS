@@ -209,12 +209,14 @@ public:
           // to the left
           Size k = 2;
 
+          bool previous_zero_left(false);    // no need to extend peak if previous intensity was zero
           Size missing_left(0);
           Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
 
-          while ( k <= i//prevent underflow
+          while ( k <= i    //prevent underflow
                 && (i - k + 1) > 0
                 && (missing_left < 2)
+                && !previous_zero_left
                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
 
@@ -236,6 +238,8 @@ public:
               ++missing_left;
             }
 
+            previous_zero_left = (input[i - k].getIntensity() == 0);
+
             left_boundary = i - k;
             ++k;
 
@@ -244,11 +248,13 @@ public:
           // to the right
           k = 2;
           
+          bool previous_zero_right(false);    // no need to extend peak if previous intensity was zero
           Size missing_right(0);
-          Size right_boundary(i+1);    // index of the left boundary for the spline interpolation
+          Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
           
           while ((i + k) < input.size()
                 && (missing_right < 2)
+                && !previous_zero_right
                 && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
           {
 
@@ -268,6 +274,8 @@ public:
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
               ++missing_right;
             }
+
+            previous_zero_right = (input[i + k].getIntensity() == 0);
 
             right_boundary = i + k;
             ++k;
