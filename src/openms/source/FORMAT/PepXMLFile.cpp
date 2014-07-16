@@ -484,7 +484,7 @@ namespace OpenMS
     }
 
     // clean up duplicate ProteinHits in ProteinIdentifications:
-    // (can't use "sort" and "unique" because no "op<" defined for PeptideHit)
+    // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {
@@ -513,6 +513,47 @@ namespace OpenMS
     experiment_ = 0;
     scan_map_.clear();
   }
+
+
+  /*
+    NOTE: numbering schemes for multiple searches
+    =============================================
+
+    pepXML can contain search results for multiple files and for multiple
+    searches of those files. We have seen two different variants (both seem to
+    be valid pepXML):
+
+    1. One "msms_run_summary" per searched file, containing multiple
+    "search_summary" elements (for each search); counting starts at "1" in each
+    "msms_run_summary"; produced e.g. by the TPP:
+
+    <msms_run_summary basename="File1">
+      <search_summary search_engine="A" search_id="1">
+      <search_summary search_engine="B" search_id="2">
+    ...
+    <msms_run_summary basename="File2">
+      <search_summary search_engine="A" search_id="1">
+      <search_summary search_engine="B" search_id="2">
+    ...
+
+    2. One "msms_run_summary" per search of a file, containing one
+    "search_summary" element; counting is sequential across "msms_run_summary"
+    sections; produced e.g. by ProteomeDiscoverer:
+
+    <msms_run_summary basename="File1">
+      <search_summary search_engine="A" search_id="1">
+    ...
+    <msms_run_summary basename="File1">
+      <search_summary search_engine="B" search_id="2">
+    ...
+
+    The "search_id" numbers are necessary to associate search hits with the
+    correct search runs. In the parser, we keep track of the search runs per
+    "msms_run_summary" in the "current_proteins_" vector. Importantly, this
+    means that for variant 2 of the numbering, the "search_id" number may be
+    higher than the number of elements in the vector! However, in this case we
+    know that the last - and only - element should be the correct one.
+   */
 
 
   void PepXMLFile::startElement(const XMLCh * const /*uri*/,
@@ -611,7 +652,7 @@ namespace OpenMS
       }
     }
     else if (element == "search_hit") // parent: "search_result"
-    {     // creates a new PeptideHit
+    { // creates a new PeptideHit
       current_sequence_ = attributeAsString_(attributes, "peptide");
       current_modifications_.clear();
       peptide_hit_ = PeptideHit();
@@ -626,11 +667,13 @@ namespace OpenMS
       peptide_hit_.addProteinAccession(protein);
       ProteinHit hit;
       hit.setAccession(protein);
+      // depending on the numbering scheme used in the pepXML, "search_id_"
+      // may appear to be "out of bounds" - see NOTE above:
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
         insertHit(hit);
     }
     else if (element == "search_result") // parent: "spectrum_query"
-    {     // creates a new PeptideIdentification
+    { // creates a new PeptideIdentification
       current_peptide_ = PeptideIdentification();
       current_peptide_.setRT(rt_);
       current_peptide_.setMZ(mz_);
@@ -638,6 +681,8 @@ namespace OpenMS
 
       search_id_ = 1; // default if attr. is missing (ref. to "search_summary")
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
+      // depending on the numbering scheme used in the pepXML, "search_id_"
+      // may appear to be "out of bounds" - see NOTE above:
       current_peptide_.setIdentifier(
         current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
         getIdentifier());
@@ -667,7 +712,6 @@ namespace OpenMS
       current_peptide_.setScoreType("InterProphet probability");
       current_peptide_.setHigherScoreBetter(true);
     }
-    ////NEW
     else if (element == "modification_info") // parent: "search_hit" (in "search result")
     {
       // Has N-Term Modification
@@ -720,13 +764,14 @@ namespace OpenMS
         }
       }
     }
-    ////NEW_END
     else if (element == "alternative_protein") // parent: "search_hit"
     {
       String protein = attributeAsString_(attributes, "protein");
       peptide_hit_.addProteinAccession(protein);
       ProteinHit hit;
       hit.setAccession(protein);
+      // depending on the numbering scheme used in the pepXML, "search_id_"
+      // may appear to be "out of bounds" - see NOTE above:
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
         insertHit(hit);
     }
