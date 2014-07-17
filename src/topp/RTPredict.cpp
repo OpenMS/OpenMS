@@ -558,13 +558,13 @@ protected:
             double rt =  identifications[i].getHits().front().getMetaValue("predicted_RT");
 
             identifications[i].setRT(rt);
-			identifications[i].setMZ(mz);
+            identifications[i].setMZ(mz);
           }
 
           identifications[i].setHits(temp_peptide_hits);
         }
       }
-      else           // separation prediction
+      else // separation prediction
       {
         vector<PeptideHit> hits_positive;
         vector<PeptideHit> hits_negative;
@@ -607,7 +607,7 @@ protected:
 
           temp_identification.setMZ(identifications[i].getMZ());
           temp_identification.setRT(identifications[i].getRT());
-         
+
           temp_identification = identifications[i];
           temp_identification.setHits(hits_positive);
           identifications_positive.push_back(temp_identification);

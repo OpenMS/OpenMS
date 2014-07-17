@@ -909,14 +909,13 @@ namespace OpenMS
 
 
     Int charge = 2;
-    std::vector<double> peak_values, old_peak_values;
+    std::vector<double> peak_values;
     std::vector<PeakShape> peaks_DC;
     Int peaks = getNumberOfPeaks_(shape.getLeftEndpoint(), shape.getRightEndpoint(), peak_values, 1, resolution, wtDC, peak_bound_cwt);
 
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "Number of peaks: " << peaks << std::endl;
 #endif
-    charge = 2;
     OptimizePeakDeconvolution::Data data;
     // one peak needn't be deconvoluted
     if (peaks > 1 && charge > 0)
@@ -972,8 +971,8 @@ namespace OpenMS
                 << "peaks\n";
 #endif
 
-      std::vector<PeakShape> peaks_DC2 = peaks_DC;
-      OptimizePeakDeconvolution::Data data2 = data;
+      //std::vector<PeakShape> peaks_DC2 = peaks_DC;
+      //OptimizePeakDeconvolution::Data data2 = data;
       opt.optimize(peaks_DC, data);
       for (Int i = 0; i < peaks; ++i)
       {
@@ -1079,11 +1078,8 @@ namespace OpenMS
                                        ContinuousWaveletTransformNumIntegration & wt,
                                        double peak_bound_cwt)
   {
-    double noise_level = 0.;
-    double noise_level_cwt = 0.;
-
-    noise_level = peak_bound_;
-    noise_level_cwt = peak_bound_cwt;
+    double noise_level = peak_bound_;
+    double noise_level_cwt = peak_bound_cwt;
 
 #ifdef DEBUG_DECONV
     std::cout << "noise_level = " << noise_level << ";\tnoise_level_cwt = " << noise_level_cwt << ";\n";
@@ -1106,7 +1102,7 @@ namespace OpenMS
     Int i = 0, max_pos;
     Int k = 0;
 
-    std::vector<double>::iterator checker;
+    //std::vector<double>::iterator checker;
     while (wt.getSignal()[start + 1].getMZ() <= first->getMZ())
       ++start;
     //k=i;
@@ -1328,7 +1324,7 @@ namespace OpenMS
 #endif
 
     // vector of peak endpoint positions
-    std::vector<double> peak_endpoints;
+    // std::vector<double> peak_endpoints;
 
     // copy the raw data into a std::vector<Peak1D>
     MSSpectrum<> raw_peak_array;

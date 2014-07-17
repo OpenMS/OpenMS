@@ -32,81 +32,53 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_FILTERRESULT_H
-#define OPENMS_FILTERING_DATAREDUCTION_FILTERRESULT_H
-
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
 
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
+using namespace std;
+
 namespace OpenMS
 {
-    /**
-     * @brief data structure storing all peaks (and optionally their raw data points)
-     * corresponding to one specific peak pattern
-     * 
-     * @see PeakPattern
-     */
-    class OPENMS_DLLAPI FilterResult
-    {
-        public:
-        /**
-         * @brief constructor
-         */
-        FilterResult();
-        
-        /**
-         * @brief adds a single peak to the results
-         */
-        void addFilterResultPeak(double mz, double rt, std::vector<double> mzShifts, std::vector<double> intensities, std::vector<FilterResultRaw> result);
-        
-        /**
-         * @brief returns a single peak from the results
-         */
-        FilterResultPeak getFilterResultPeak(int i) const;
-        
-        /**
-         * @brief returns a single raw data point from peak i in the result
-         */
-        FilterResultRaw getFilterResultRaw(int i, int j) const;
-        
-        /**
-         * @brief returns m/z of a single peak
-         */
-        double getMz(int i) const;
-        
-        /**
-         * @brief returns m/z positions of all peaks
-         */
-        std::vector<double> getMz() const;
-        
-        /**
-         * @brief returns RT of a single peak
-         */
-        double getRt(int i) const;
-        
-        /**
-         * @brief returns RT of all peaks
-         */
-        std::vector<double> getRt() const;
-        
-        /**
-         * @brief returns number of peaks in the result
-         */
-        int size() const;
-        
-        private:
-        /**
-         * @brief peaks which passed the peak pattern filter
-         */
-        std::vector<FilterResultPeak> result_;
 
-   };
-  
+  MultiplexFilterResultPeak::MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, vector<double> intensities, vector<MultiplexFilterResultRaw> raw_data_points) :
+    mz_(mz), rt_(rt), mz_shifts_(mz_shifts), intensities_(intensities), raw_data_points_(raw_data_points)
+  {
+  }
+
+  double MultiplexFilterResultPeak::getMZ() const
+  {
+    return mz_;
+  }
+
+  double MultiplexFilterResultPeak::getRT() const
+  {
+    return rt_;
+  }
+
+  vector<double> MultiplexFilterResultPeak::getMZShifts() const
+  {
+    return mz_shifts_;
+  }
+
+  vector<double> MultiplexFilterResultPeak::getIntensities() const
+  {
+    return intensities_;
+  }
+
+  int MultiplexFilterResultPeak::size() const
+  {
+    return raw_data_points_.size();
+  }
+
+  MultiplexFilterResultRaw MultiplexFilterResultPeak::getFilterResultRaw(int i) const
+  {
+    return raw_data_points_[i];
+  }
+
 }
-
-#endif /* FILTERRESULT_H_ */

@@ -81,7 +81,6 @@ RTModel
 RTPredict
 Resampler
 SeedListGenerator
-#SequestAdapter
 SpecLibSearcher
 SpectraFilterWindowMower
 SpectraFilterThresholdMower

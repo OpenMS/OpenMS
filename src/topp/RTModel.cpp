@@ -674,7 +674,7 @@ protected:
     if (!separation_prediction && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
       map<AASequence, double>::iterator it = redundant_modified_peptides.begin();
-      double temp_variance = 0;
+
       double temp_median = 0;
       double temp_mean = 0;
       vector<double> temp_values;
@@ -683,7 +683,7 @@ protected:
       while (it != redundant_modified_peptides.end())
       {
         temp_values.clear();
-        temp_variance = 0;
+        double temp_variance = 0;
 
         it_pair = redundant_modified_peptides.equal_range(it->first);
         for (it = it_pair.first; it != it_pair.second; ++it)
@@ -734,7 +734,6 @@ protected:
     if (!separation_prediction && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
     {
       map<String, double>::iterator it = redundant_peptides.begin();
-      double temp_variance = 0;
       double temp_median = 0;
       double temp_mean = 0;
       vector<double> temp_values;
@@ -743,7 +742,7 @@ protected:
       while (it != redundant_peptides.end())
       {
         temp_values.clear();
-        temp_variance = 0;
+        double temp_variance = 0;
 
         it_pair = redundant_peptides.equal_range(it->first);
         for (it = it_pair.first; it != it_pair.second; ++it)

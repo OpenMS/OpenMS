@@ -241,9 +241,6 @@ set(filtering_executables_list
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
   FilterFunctor_test
-  FilterResult_test
-  FilterResultPeak_test
-  FilterResultRaw_test
   GaussFilter_test
   GaussFilterAlgorithm_test
   GoodDiffFilter_test
@@ -261,13 +258,16 @@ set(filtering_executables_list
   MorphologicalFilter_test
   MultiplexClustering_test
   MultiplexFiltering_test
+  MultiplexFilterResult_test
+  MultiplexFilterResultPeak_test
+  MultiplexFilterResultRaw_test
+  MultiplexPeakPattern_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
-  PeakPattern_test
   SILACPattern_test
   SILACPoint_test
   SplinePackage_test

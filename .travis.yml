@@ -7,4 +7,10 @@ before_script:
    ./tools/lnx-cibuild.before.sh
 script:
   ./tools/lnx-cibuild.sh
-
+env:
+  - ENABLE_STYLE_TESTING=On
+  - ENABLE_STYLE_TESTING=Off
+matrix:
+  exclude:
+    - env: ENABLE_STYLE_TESTING=On
+      compiler: clang

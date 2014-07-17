@@ -574,7 +574,7 @@ namespace OpenMS
 
       // find best feature, compute pairs of iRT and real RT
       std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map);
-      for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); it++)
+      for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); ++it)
       {
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       }
@@ -804,7 +804,7 @@ namespace OpenMS
   {
 
   public:
-    
+
     /**
      * @brief Annotate a Swath map using a Swath window file specifying the individual windows
      *
@@ -822,8 +822,8 @@ namespace OpenMS
       std::vector<double> swath_prec_lower_, swath_prec_upper_;
       readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
 
-      // Sort the windows by the start of the lower window 
-      if (doSort) 
+      // Sort the windows by the start of the lower window
+      if (doSort)
         {std::sort(swath_maps.begin(), swath_maps.end(), SortSwathMapByLower);}
 
       Size i = 0, j = 0;
@@ -836,15 +836,15 @@ namespace OpenMS
         }
         if (j >= swath_prec_lower_.size() )
         {
-          std::cerr << "Trying to access annotation for SWATH map " << j << 
-            " but there are only " << swath_prec_lower_.size() << " windows in the" << 
+          std::cerr << "Trying to access annotation for SWATH map " << j <<
+            " but there are only " << swath_prec_lower_.size() << " windows in the" <<
             " swath_windows_file. Please check your input." << std::endl;
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
               "The number of SWATH maps read from the raw data and from the annotation file do not match.");
         }
 
-        std::cout << "Re-annotate from file: SWATH " << 
-          swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " << 
+        std::cout << "Re-annotate from file: SWATH " <<
+          swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " <<
           swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
 
         swath_maps[i].lower = swath_prec_lower_[j];
@@ -854,9 +854,9 @@ namespace OpenMS
 
       if (j != swath_prec_upper_.size() )
       {
-        std::cerr << "The number of SWATH maps read from the raw data (" << 
+        std::cerr << "The number of SWATH maps read from the raw data (" <<
           j << ") and from the annotation file (" << swath_prec_upper_.size() << ") do not match." << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             "The number of SWATH maps read from the raw data and from the annotation file do not match.");
       }
     }
@@ -1173,13 +1173,13 @@ protected:
     //tr_file input file type
     FileHandler fh_tr_type;
     FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
-    
+
     if (tr_type == FileTypes::UNKNOWN)
     {
       tr_type = fh_tr_type.getType(tr_file);
       writeDebug_(String("Input file type: ") + FileTypes::typeToName(tr_type), 2);
     }
-    
+
     if (tr_type == FileTypes::UNKNOWN)
     {
       writeLog_("Error: Could not determine input file type!");
@@ -1246,8 +1246,8 @@ protected:
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
-      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower 
-        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra() 
+      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower
+        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
 
     ///////////////////////////////////
@@ -1280,11 +1280,10 @@ protected:
     // Set up chrom.mzML output
     ///////////////////////////////////
     MSDataWritingConsumer * chromConsumer;
-    int expected_chromatograms = 0;
     if (!out_chrom.empty())
     {
       chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
-      expected_chromatograms = transition_exp.transitions.size();
+      int expected_chromatograms = transition_exp.transitions.size();
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
@@ -1327,4 +1326,3 @@ int main(int argc, const char ** argv)
 }
 
 /// @endcond
-

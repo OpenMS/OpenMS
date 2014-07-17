@@ -438,12 +438,12 @@ namespace OpenMS
     }
 
     for (Map<String, MRMDecoy::TransitionVectorType>::iterator m = TransitionsMap.begin();
-         m != TransitionsMap.end(); m++)
+         m != TransitionsMap.end(); ++m)
     {
       if (m->second.size() >= (Size)min_transitions)
       {
         std::vector<double> LibraryIntensity;
-        for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); tr_it++)
+        for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
         {
           ReactionMonitoringTransition tr = *tr_it;
           LibraryIntensity.push_back(boost::lexical_cast<double>(tr.getLibraryIntensity()));
@@ -459,7 +459,7 @@ namespace OpenMS
           LibraryIntensity.erase(start_delete, LibraryIntensity.end() );
         }
 
-        for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); tr_it++)
+        for (MRMDecoy::TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
         {
           ReactionMonitoringTransition tr = *tr_it;
           if (std::find( LibraryIntensity.begin(), LibraryIntensity.end(),
@@ -478,7 +478,7 @@ namespace OpenMS
       if (TransitionsMap.find(peptide.id) != TransitionsMap.end())
       {
         peptides.push_back(peptide);
-        for (Size j = 0; j < peptide.protein_refs.size(); j++)
+        for (Size j = 0; j < peptide.protein_refs.size(); ++j)
         {
           ProteinList.push_back(peptide.protein_refs[j]);
         }
@@ -573,7 +573,7 @@ namespace OpenMS
     Size progress = 0;
     startProgress(0, exp.getTransitions().size(), "Creating decoys");
     for (MRMDecoy::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
-         pep_it != peptide_trans_map.end(); pep_it++)
+         pep_it != peptide_trans_map.end(); ++pep_it)
     {
       String peptide_ref = pep_it->first;
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
@@ -641,7 +641,7 @@ namespace OpenMS
     if (exclude_similar)
     {
       MRMDecoy::TransitionVectorType filtered_decoy_transitions;
-      for ( MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); tr_it++)
+      for ( MRMDecoy::TransitionVectorType::iterator tr_it = decoy_transitions.begin(); tr_it != decoy_transitions.end(); ++tr_it)
       {
         if (std::find(exclusion_peptides.begin(), exclusion_peptides.end(), tr_it->getPeptideRef())==exclusion_peptides.end())
         {
@@ -679,7 +679,7 @@ namespace OpenMS
       Size progress = 0;
       startProgress(0, exp.getTransitions().size(), "Correcting masses (theoretical)");
       for (MRMDecoy::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
-           pep_it != peptide_trans_map.end(); pep_it++)
+           pep_it != peptide_trans_map.end(); ++pep_it)
       {
         const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(pep_it->first);
         OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);

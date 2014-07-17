@@ -35,67 +35,70 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 
 using namespace OpenMS;
 
-START_TEST(FilterResultRaw, "$Id$")
+START_TEST(MultiplexPeakPattern, "$Id$")
 
-std::vector<double> mz_shifts;
-mz_shifts.push_back(0);
-mz_shifts.push_back(0.501677);
-mz_shifts.push_back(3.01591);
-mz_shifts.push_back(3.51759);
+std::vector<double> mass_shifts;
+mass_shifts.push_back(0);
+mass_shifts.push_back(6.031817);
 
-std::vector<double> intensities;
-intensities.push_back(1789.0714);
-intensities.push_back(1492.1012);
-intensities.push_back(333.1105);
-intensities.push_back(325.0520);
+MultiplexPeakPattern* nullPointer = 0;
+MultiplexPeakPattern* ptr;
 
-FilterResultRaw* nullPointer = 0;
-FilterResultRaw* ptr;
-
-START_SECTION(FilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities))
-    FilterResultRaw result(817.0411, mz_shifts, intensities);
-    TEST_EQUAL(result.getMz(), 817.0411);
-    ptr = new FilterResultRaw(817.0411, mz_shifts, intensities);
+START_SECTION(MultiplexPeakPattern(int c, int ppp, std::vector<double> ms, int msi))
+    MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
+    TEST_EQUAL(pattern.getCharge(), 2);
+    ptr = new MultiplexPeakPattern(2, 4, mass_shifts, 3);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-FilterResultRaw result(817.0411, mz_shifts, intensities);
+MultiplexPeakPattern pattern(2, 4, mass_shifts, 3);
 
-START_SECTION(double getMz() const)
-  TEST_EQUAL(result.getMz(), 817.0411);
+START_SECTION(int getCharge() const)
+  TEST_EQUAL(pattern.getCharge(), 2);
 END_SECTION
 
-START_SECTION(double getMzShiftAt(int i) const)
-  TEST_EQUAL(result.getMzShiftAt(0), 0);
-  TEST_EQUAL(result.getMzShiftAt(1), 0.501677);
-  TEST_EQUAL(result.getMzShiftAt(2), 3.01591);
-  TEST_EQUAL(result.getMzShiftAt(3), 3.51759);
+START_SECTION(int getPeaksPerPeptide() const)
+  TEST_EQUAL(pattern.getPeaksPerPeptide(), 4);
 END_SECTION
 
-START_SECTION(std::vector<double> getMzShifts() const)
-  TEST_EQUAL(result.getMzShifts()[0], 0);
-  TEST_EQUAL(result.getMzShifts()[1], 0.501677);
-  TEST_EQUAL(result.getMzShifts()[2], 3.01591);
-  TEST_EQUAL(result.getMzShifts()[3], 3.51759);
+START_SECTION(std::vector<double> getMassShifts() const)
+  TEST_EQUAL(pattern.getMassShifts()[0], 0);
+  TEST_EQUAL(pattern.getMassShifts()[1], 6.031817);
 END_SECTION
 
-START_SECTION(double getIntensityAt(int i) const)
-  TEST_EQUAL(result.getIntensityAt(0), 1789.0714);
-  TEST_EQUAL(result.getIntensityAt(1), 1492.1012);
-  TEST_EQUAL(result.getIntensityAt(2), 333.1105);
-  TEST_EQUAL(result.getIntensityAt(3), 325.0520);
+START_SECTION(int getMassShiftIndex() const)
+  TEST_EQUAL(pattern.getMassShiftIndex(), 3);
 END_SECTION
 
-START_SECTION(std::vector<double> getIntensities() const)
-  TEST_EQUAL(result.getIntensities()[0], 1789.0714);
-  TEST_EQUAL(result.getIntensities()[1], 1492.1012);
-  TEST_EQUAL(result.getIntensities()[2], 333.1105);
-  TEST_EQUAL(result.getIntensities()[3], 325.0520);
+START_SECTION(unsigned getMassShiftCount() const)
+  TEST_EQUAL(pattern.getMassShiftCount(), 2);
+END_SECTION
+
+START_SECTION(double getMassShiftAt(int i) const)
+  TEST_EQUAL(pattern.getMassShiftAt(0), 0);
+  TEST_EQUAL(pattern.getMassShiftAt(1), 6.031817);
+END_SECTION
+
+START_SECTION(double getMZShiftAt(int i) const)
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(0), -0.501677);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(1), 0);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(2), 0.501677);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(3), 1.00335);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(4), 1.50503);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(5), 2.51423);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(6), 3.01591);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(7), 3.51759);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(8), 4.01926);
+  TEST_REAL_SIMILAR(pattern.getMZShiftAt(9), 4.52094);
+END_SECTION
+
+START_SECTION(unsigned getMZShiftCount() const)
+  TEST_EQUAL(pattern.getMZShiftCount(), 10);
 END_SECTION
 
 END_TEST

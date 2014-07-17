@@ -137,7 +137,7 @@ protected:
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -192,7 +192,7 @@ protected:
     {
       RichPeakMap::iterator s;
       vector<PeptideIdentification>::iterator i;
-      ModificationsDB * mdb = ModificationsDB::getInstance();
+      ModificationsDB* mdb = ModificationsDB::getInstance();
       for (s = library.begin(), i = ids.begin(); s < library.end(); ++s, ++i)
       {
         double precursor_MZ = (*s).getPrecursors()[0].getMZ();
@@ -203,13 +203,13 @@ protected:
         PeakSpectrum librar;
         bool variable_modifications_ok = true;
         bool fixed_modifications_ok = true;
-        const AASequence & aaseq = i->getHits()[0].getSequence();
+        const AASequence& aaseq = i->getHits()[0].getSequence();
         //variable fixed modifications
         if (!fixed_modifications.empty())
         {
           for (Size i = 0; i < aaseq.size(); ++i)
           {
-            const   Residue & mod  = aaseq.getResidue(i);
+            const   Residue& mod  = aaseq.getResidue(i);
             for (Size s = 0; s < fixed_modifications.size(); ++s)
             {
               if (mod.getOneLetterCode() == mdb->getModification(fixed_modifications[s]).getOrigin() && fixed_modifications[s] != mod.getModification())
@@ -227,7 +227,7 @@ protected:
           {
             if (aaseq.isModified(i))
             {
-              const   Residue & mod  = aaseq.getResidue(i);
+              const   Residue& mod  = aaseq.getResidue(i);
               for (Size s = 0; s < variable_modifications.size(); ++s)
               {
                 if (mod.getOneLetterCode() == mdb->getModification(variable_modifications[s]).getOrigin() && variable_modifications[s] != mod.getModification())
@@ -241,7 +241,7 @@ protected:
         }
         if (variable_modifications_ok && fixed_modifications_ok)
         {
-          PeptideIdentification & translocate_pid = *i;
+          PeptideIdentification& translocate_pid = *i;
           librar.getPeptideIdentifications().push_back(translocate_pid);
           librar.setPrecursors(s->getPrecursors());
           //library entry transformation
@@ -250,7 +250,7 @@ protected:
             Peak1D peak;
             if ((*s)[l].getIntensity() >  remove_peaks_below_threshold)
             {
-              const String & info = (*s)[l].getMetaValue("MSPPeakInfo");
+              const String& info = (*s)[l].getMetaValue("MSPPeakInfo");
               if (info[0] == '?')
               {
                 peak.setIntensity(sqrt(0.2 * (*s)[l].getIntensity()));
@@ -281,7 +281,7 @@ protected:
     time_t end_build_time = time(NULL);
     cout << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
     //compare function
-    PeakSpectrumCompareFunctor * comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
+    PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -377,27 +377,27 @@ protected:
             found = MSLibrary.find(mz);
             if (found != MSLibrary.end())
             {
-              vector<PeakSpectrum> & library = found->second;
+              vector<PeakSpectrum>& library = found->second;
               for (Size i = 0; i < library.size(); ++i)
               {
                 float this_MZ  = library[i].getPrecursors()[0].getMZ() * precursor_mass_multiplier;
                 if (this_MZ >= min_MZ && max_MZ >= this_MZ && ((charge_one == true && library[i].getPeptideIdentifications()[0].getHits()[0].getCharge() == 1) || charge_one == false))
                 {
                   PeptideHit hit = library[i].getPeptideIdentifications()[0].getHits()[0];
-                  PeakSpectrum & librar = library[i];
+                  PeakSpectrum& librar = library[i];
                   //Special treatment for SpectraST score as it computes a score based on the whole library
                   if (compare_function == "SpectraSTSimilarityScore")
                   {
-                    SpectraSTSimilarityScore * sp = static_cast<SpectraSTSimilarityScore *>(comparor);
+                    SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
                     BinnedSpectrum quer_bin = sp->transform(quer);
                     BinnedSpectrum librar_bin = sp->transform(librar);
-                    score = (*sp)(quer, librar);                           //(*sp)(quer_bin,librar_bin);
+                    score = (* sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
                     double dot_bias = sp->dot_bias(quer_bin, librar_bin, score);
                     hit.setMetaValue("DOTBIAS", dot_bias);
                   }
                   else
                   {
-                    score = (*comparor)(quer, librar);
+                    score = (* comparor)(quer, librar);
                   }
 
                   DataValue RT(library[i].getRT());
@@ -420,7 +420,7 @@ protected:
           {
             vector<PeptideHit> final_hits;
             final_hits.resize(pid.getHits().size());
-            SpectraSTSimilarityScore * sp = static_cast<SpectraSTSimilarityScore *>(comparor);
+            SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
             Size runner_up = 1;
             for (; runner_up < pid.getHits().size(); ++runner_up)
             {
@@ -441,8 +441,8 @@ protected:
             }
             pid.setHits(final_hits);
             pid.sort();
-			      pid.setMZ(query[j].getPrecursors()[0].getMZ());
-			      pid.setRT(query_MZ);
+            pid.setMZ(query[j].getPrecursors()[0].getMZ());
+            pid.setRT(query_MZ);
           }
         }
         if (top_hits != -1 && (UInt)top_hits < pid.getHits().size())
@@ -476,7 +476,7 @@ protected:
 
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSpecLibSearcher tool;
   return tool.main(argc, argv);

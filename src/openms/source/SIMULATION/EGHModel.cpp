@@ -115,7 +115,6 @@ namespace OpenMS
     CoordinateType pos = min_;
 
     // EGH computation
-    pos = min_;
     for (UInt i = 0; pos < max_; ++i)
     {
       pos = min_ + i * interpolation_step_;

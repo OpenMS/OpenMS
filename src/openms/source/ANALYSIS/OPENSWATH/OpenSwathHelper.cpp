@@ -144,7 +144,7 @@ namespace OpenMS
   {
     std::map<std::string, double> result;
     for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-        trgroup_it != transition_group_map.end(); trgroup_it++)
+        trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
       // we need at least one feature to find the best one
       OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;

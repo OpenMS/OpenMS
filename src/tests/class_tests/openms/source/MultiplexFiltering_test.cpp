@@ -35,10 +35,10 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 
 using namespace OpenMS;
 
@@ -74,7 +74,7 @@ bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 bool debug = false;
 
 // construct list of peak patterns
-std::vector<PeakPattern> patterns;
+std::vector<MultiplexPeakPattern> patterns;
 std::vector<double> shifts1;
 shifts1.push_back(0);
 shifts1.push_back(8.0443702794);
@@ -83,16 +83,16 @@ shifts2.push_back(0);
 shifts2.push_back(2*8.0443702794);
 for (int c = charge_max; c >= charge_min; --c)
 {
-    PeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
+    MultiplexPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
     patterns.push_back(pattern1);
-    PeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
+    MultiplexPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
     patterns.push_back(pattern2);
 } 
 
 MultiplexFiltering* nullPointer = 0;
 MultiplexFiltering* ptr;
 
-START_SECTION(MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool debug))
+START_SECTION(MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool debug))
     MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
     ptr = new MultiplexFiltering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
     TEST_NOT_EQUAL(ptr, nullPointer);
@@ -101,8 +101,8 @@ END_SECTION
 
 MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
 
-START_SECTION(std::vector<FilterResult> filter())
-    std::vector<FilterResult> results = filtering.filter();
+START_SECTION(std::vector<MultiplexFilterResult> filter())
+    std::vector<MultiplexFilterResult> results = filtering.filter();
     TEST_EQUAL(results[0].size(), 0);
     TEST_EQUAL(results[1].size(), 0);
     TEST_EQUAL(results[2].size(), 0);

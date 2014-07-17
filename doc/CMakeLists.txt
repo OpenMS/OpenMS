@@ -160,24 +160,37 @@ if (DOXYGEN_FOUND)
 	add_dependencies(doc_param_internal doc_progs)
 
   #------------------------------------------------------------------------------
-  # doc target
+  # doc(_html) generation code reused in two independent targets
+  set(_DOC_HTML_CODE
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation"
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMAND ${CMAKE_COMMAND} -E remove_directory html
+    COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
+    COMMAND ${CMAKE_COMMAND} -E echo "You can now open 'doc/index.html' in a web browser."
+    COMMAND ${CMAKE_COMMAND} -E echo ""
+    COMMENT "Build the doxygen documentation"
+  )
+
+  # regular doc target executed to generate full documentation
   add_custom_target(doc ${_DOC_ALL}
-                    COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                    COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation"
-                    COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMAND ${CMAKE_COMMAND} -E remove_directory html
-                    COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR} "${DOXYGEN_EXECUTABLE}" doxygen/Doxyfile
-                    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/index.html index.html
-                    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doxygen/common/style_ini.css html/style_ini.css
-                    COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-                    COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created."
-                    COMMAND ${CMAKE_COMMAND} -E echo "You can now open 'doc/index.html' in a web browser."
-                    COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMENT "Build the doxygen documentation"
+                    ${_DOC_HTML_CODE}
+                    DEPENDS doc_param_internal
                     VERBATIM)
-  add_dependencies(doc doc_param_internal)
+
+  # doc_html_only to generate only the doxygen documentation (e.g., when writing new documentation)
+  add_custom_target(doc_class_only
+                    ${_DOC_HTML_CODE}
+                    COMMAND ${CMAKE_COMMAND} -E echo "NOTE: The algorithm/TOPP parameter documentation was not generated/updated."
+                    COMMAND ${CMAKE_COMMAND} -E echo "      You will only see updates to the class documetation/doxygen files."
+                    COMMAND ${CMAKE_COMMAND} -E echo "      To build the full documentation execute the doc target."
+                    VERBATIM)
 
   #------------------------------------------------------------------------------
   # doc_internal target

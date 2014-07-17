@@ -279,7 +279,7 @@ protected:
         {
           // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
           extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, 0.0, extract_MS1);
-          for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); it++)
+          for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
           {
             it->rt_start = trafo_inverse.apply(it->rt_start) - rt_extraction_window / 2.0;
             it->rt_end = trafo_inverse.apply(it->rt_end) + rt_extraction_window / 2.0;

@@ -35,12 +35,11 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 
 using namespace OpenMS;
 
-START_TEST(FilterResultPeak, "$Id$")
+START_TEST(MultiplexFilterResultRaw, "$Id$")
 
 std::vector<double> mz_shifts;
 mz_shifts.push_back(0);
@@ -54,54 +53,28 @@ intensities.push_back(1492.1012);
 intensities.push_back(333.1105);
 intensities.push_back(325.0520);
 
-std::vector<FilterResultRaw> results_raw;
-FilterResultRaw result1_raw(816.6, mz_shifts, intensities);
-results_raw.push_back(result1_raw);
-FilterResultRaw result2_raw(817.1, mz_shifts, intensities);
-results_raw.push_back(result2_raw);
-FilterResultRaw result3_raw(817.2, mz_shifts, intensities);
-results_raw.push_back(result3_raw);
+MultiplexFilterResultRaw* nullPointer = 0;
+MultiplexFilterResultRaw* ptr;
 
-FilterResultPeak* nullPointer = 0;
-FilterResultPeak* ptr;
-
-START_SECTION(FilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<FilterResultRaw> rawDataPoints))
-    FilterResultPeak result(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
-    TEST_EQUAL(result.getMz(), 817.0411);
-    ptr = new FilterResultPeak(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
+START_SECTION(MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities))
+    MultiplexFilterResultRaw result(817.0411, mz_shifts, intensities);
+    TEST_EQUAL(result.getMZ(), 817.0411);
+    ptr = new MultiplexFilterResultRaw(817.0411, mz_shifts, intensities);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-FilterResultPeak result(817.0411, 1694.1121, mz_shifts, intensities, results_raw);
+MultiplexFilterResultRaw result(817.0411, mz_shifts, intensities);
 
-START_SECTION(double getMz() const)
-  TEST_EQUAL(result.getMz(), 817.0411);
+START_SECTION(double getMZ() const)
+  TEST_EQUAL(result.getMZ(), 817.0411);
 END_SECTION
 
-START_SECTION(double getRt() const)
-  TEST_EQUAL(result.getRt(), 1694.1121);
-END_SECTION
-
-START_SECTION(double getMzShiftAt(int i) const)
-  TEST_EQUAL(result.getMzShiftAt(0), 0);
-  TEST_EQUAL(result.getMzShiftAt(1), 0.501677);
-  TEST_EQUAL(result.getMzShiftAt(2), 3.01591);
-  TEST_EQUAL(result.getMzShiftAt(3), 3.51759);
-END_SECTION
-
-START_SECTION(std::vector<double> getMzShifts() const)
-  TEST_EQUAL(result.getMzShifts()[0], 0);
-  TEST_EQUAL(result.getMzShifts()[1], 0.501677);
-  TEST_EQUAL(result.getMzShifts()[2], 3.01591);
-  TEST_EQUAL(result.getMzShifts()[3], 3.51759);
-END_SECTION
-
-START_SECTION(double getIntensityAt(int i) const)
-  TEST_EQUAL(result.getIntensityAt(0), 1789.0714);
-  TEST_EQUAL(result.getIntensityAt(1), 1492.1012);
-  TEST_EQUAL(result.getIntensityAt(2), 333.1105);
-  TEST_EQUAL(result.getIntensityAt(3), 325.0520);
+START_SECTION(std::vector<double> getMZShifts() const)
+  TEST_EQUAL(result.getMZShifts()[0], 0);
+  TEST_EQUAL(result.getMZShifts()[1], 0.501677);
+  TEST_EQUAL(result.getMZShifts()[2], 3.01591);
+  TEST_EQUAL(result.getMZShifts()[3], 3.51759);
 END_SECTION
 
 START_SECTION(std::vector<double> getIntensities() const)
@@ -109,16 +82,6 @@ START_SECTION(std::vector<double> getIntensities() const)
   TEST_EQUAL(result.getIntensities()[1], 1492.1012);
   TEST_EQUAL(result.getIntensities()[2], 333.1105);
   TEST_EQUAL(result.getIntensities()[3], 325.0520);
-END_SECTION
-
-START_SECTION(int size() const)
-  TEST_EQUAL(result.size(), 3);
-END_SECTION
-
-START_SECTION(FilterResultRaw getFilterResultRaw(int i) const)
-  TEST_EQUAL(result.getFilterResultRaw(0).getMz(), 816.6);
-  TEST_EQUAL(result.getFilterResultRaw(1).getMz(), 817.1);
-  TEST_EQUAL(result.getFilterResultRaw(2).getMz(), 817.2);
 END_SECTION
 
 END_TEST

@@ -177,7 +177,7 @@ namespace OpenMS
         // free resources and re-throw
         delete[] buffer;
         f.close();
-        throw e;
+        throw;
       }
     }
     else

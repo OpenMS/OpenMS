@@ -32,71 +32,69 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERRESULTRAW_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERRESULTRAW_H
+
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 
 #include <vector>
 #include <algorithm>
 #include <iostream>
 
-using namespace std;
-
 namespace OpenMS
 {
-
-	PeakPattern::PeakPattern(int c, int ppp, vector<double> ms, int msi)
-    : charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
-	{				
-        // generate m/z shifts
-        for (unsigned i = 0; i < mass_shifts_.size(); ++i)
-        {
-            for (int j = -1; j < peaks_per_peptide_; ++j)
-            {
-                // j=-1 shift corresponds to the zeroth peak
-                mz_shifts_.push_back((mass_shifts_[i] + j * Constants::C13C12_MASSDIFF_U)/charge_);
-            }
-        }
-	}
-    
-    int PeakPattern::getCharge() const
+    /**
+     * @brief data structure storing a single raw data point that passed all filters
+     * 
+     * Each raw filter result corresponds to a successful search for a particular
+     * peak pattern in the spline interpolated raw data. The actual m/z shifts seen
+     * in the filter result might differ from the theoretical shifts listed in the
+     * peak pattern.
+     * 
+     * @see MultiplexPeakPattern
+     */
+    class OPENMS_DLLAPI MultiplexFilterResultRaw
     {
-        return charge_;
-    }
-    
-    int PeakPattern::getPeaksPerPeptide() const
-    {
-        return peaks_per_peptide_;
-    }
+        public:
+        /**
+         * @brief constructor
+         */
+        MultiplexFilterResultRaw(double mz, std::vector<double> mz_shifts, std::vector<double> intensities);
+        
+        /**
+         * @brief returns m/z position
+         */
+        double getMZ() const;
 
-    std::vector<double> PeakPattern::getMassShifts() const
-    {
-        return mass_shifts_;
-    }
+        /**
+         * @brief returns m/z shifts
+         */
+        std::vector<double> getMZShifts() const;
 
-    int PeakPattern::getMassShiftIndex() const
-    {
-        return mass_shift_index_;
-    }
+        /**
+         * @brief returns intensities
+         */
+        std::vector<double> getIntensities() const;
+        
+        private:
+        /**
+         * @brief m/z of the raw data point
+         * (RT stored in MultiplexFilterResultPeak)
+         */
+        double mz_;
+        
+        /**
+         * @brief m/z shifts at which the filtering found corresponding intensities
+         */
+        std::vector<double> mz_shifts_;
 
-    unsigned PeakPattern::getMassShiftCount() const
-    {
-        return mass_shifts_.size();
-    }
+        /**
+         * @brief intensities at mz_ + mzShifts_
+         */
+        std::vector<double> intensities_;
 
-    double PeakPattern::getMassShiftAt(int i) const
-    {
-        return mass_shifts_[i];
-    }
-
-    double PeakPattern::getMzShiftAt(int i) const
-    {
-        return mz_shifts_[i];
-    }
-
-    unsigned PeakPattern::getMzShiftCount() const
-    {
-        return mz_shifts_.size();
-    }
-
+   };
+  
 }
+
+#endif /* MULTIPLEXFILTERRESULTRAW_H_ */

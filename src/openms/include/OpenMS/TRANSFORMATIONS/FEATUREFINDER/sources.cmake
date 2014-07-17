@@ -39,7 +39,15 @@ LevMarqFitter1D.h
 MaxLikeliFitter1D.h
 ModelDescription.h
 ModelFitter.h
+<<<<<<< HEAD
 MultiplexClustering.h
+=======
+MultiplexFiltering.h
+MultiplexFilterResult.h
+MultiplexFilterResultPeak.h
+MultiplexFilterResultRaw.h
+MultiplexPeakPattern.h
+>>>>>>> upstream/develop
 PeakWidthEstimator.h
 ProductModel.h
 SeedListGenerator.h

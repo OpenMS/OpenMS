@@ -45,7 +45,7 @@
 
 namespace OpenMS
 {
-  void PeakWidthEstimator::estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<double, double, double> > & fwhms)
+  void PeakWidthEstimator::estimateSpectrumFWHM(const MSSpectrum<Peak1D>& input, std::set<boost::tuple<double, double, double> >& fwhms)
   {
     PeakPickerHiRes picker;
 
@@ -86,7 +86,7 @@ namespace OpenMS
       MSSpectrum<Peak1D>::ConstIterator end_window = input.MZBegin(picked[i].getMZ() + half_window_size);
 
       typedef std::pair<double, double> MzIntPair; //mz-intensity pair
-      std::vector< MzIntPair > values;
+      std::vector<MzIntPair> values;
 
       // Add peak maximum
       values.push_back(MzIntPair(mz, intensity));
@@ -96,15 +96,15 @@ namespace OpenMS
         values.push_back(MzIntPair(begin_window->getMZ(), begin_window->getIntensity()));
       }
       int true_data_points = 0;
-      std::vector< MzIntPair >::const_iterator iter;
-      for(iter = values.begin(); iter != values.end(); ++iter)
+      std::vector<MzIntPair>::const_iterator iter;
+      for (iter = values.begin(); iter != values.end(); ++iter)
       {
         double mz = iter->first;
-        if(mz > std::numeric_limits<double>::epsilon())//null-point
+        if (mz > std::numeric_limits<double>::epsilon()) //null-point
           ++true_data_points;
       }
       //abort if we have less than 4 data points for spline fitting
-      if(true_data_points < 4)
+      if (true_data_points < 4)
         continue;
 
       // Make sure we have some zeroes
@@ -114,19 +114,19 @@ namespace OpenMS
       values.push_back(MzIntPair(mz + 0.3, 0));
 
       //make sure the data points are sorted by mz values
-      std::sort( values.begin(), values.end() );
+      std::sort(values.begin(), values.end());
 
       //TODO: heavy code-duplication! Compare PeakPickerHiRes
       //convert into GeomTools Matrix structure
       std::vector<double> X;
       std::vector<double> Y;
-      std::vector< std::pair<double, double> >::const_iterator it;
+      std::vector<std::pair<double, double> >::const_iterator it;
       for (it = values.begin(); it != values.end(); ++it)
       {
-        X.push_back( it->first );//mz
-        Y.push_back( it->second );//intensity
+        X.push_back(it->first); //mz
+        Y.push_back(it->second); //intensity
       }
-      Wm5::IntpAkimaNonuniform1<double> peak_spline (values.size(), &X.front(), &Y.front());
+      Wm5::IntpAkimaNonuniform1<double> peak_spline(values.size(), &X.front(), &Y.front());
 
       // search for half intensity to the left
       double MZ_THRESHOLD = 0.00000001;
@@ -142,7 +142,7 @@ namespace OpenMS
       do
       {
         mid = (left + right) / 2.0;
-        double mid_int = peak_spline( mid );
+        double mid_int = peak_spline(mid);
 
         // found half maximum
         if (std::fabs(mid_int - half_maximum) < INTENSITY_THRESHOLD)
@@ -150,7 +150,7 @@ namespace OpenMS
           break;
         }
 
-        if (mid_int < half_maximum)   // mid < half maximum ?
+        if (mid_int < half_maximum) // mid < half maximum ?
         {
           left = mid;
         }
@@ -171,7 +171,7 @@ namespace OpenMS
       do
       {
         mid = (left + right) / 2.0;
-        double mid_int = peak_spline( mid );
+        double mid_int = peak_spline(mid);
 
         // found half maximum
         if (std::fabs(mid_int - half_maximum) < INTENSITY_THRESHOLD)
@@ -179,7 +179,7 @@ namespace OpenMS
           break;
         }
 
-        if (mid_int > half_maximum)   // mid < half maximum ?
+        if (mid_int > half_maximum) // mid < half maximum ?
         {
           left = mid;
         }
@@ -210,7 +210,7 @@ namespace OpenMS
     }
   }
 
-  PeakWidthEstimator::Result PeakWidthEstimator::estimateFWHM(const MSExperiment<Peak1D> & input)
+  PeakWidthEstimator::Result PeakWidthEstimator::estimateFWHM(const MSExperiment<Peak1D>& input)
   {
     MSExperiment<Peak1D> exp;
 
