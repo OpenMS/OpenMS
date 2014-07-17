@@ -64,17 +64,17 @@ picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 // set parameters
 int charge_min = 1;
 int charge_max = 4;
-int peaks_per_peptide_min = 3;
+//int peaks_per_peptide_min = 3;
 int peaks_per_peptide_max = 6;
-bool missing_peaks = false;
-double intensity_cutoff = 10.0;
-double peptide_similarity = 0.8;
-double averagine_similarity = 0.75;
-double mz_tolerance = 40;
-bool mz_tolerance_unit = true;    // ppm (true), Da (false)
-double rt_typical = 90;
-double rt_minimum = 5;
-bool debug = false;
+//bool missing_peaks = false;
+//double intensity_cutoff = 10.0;
+//double peptide_similarity = 0.8;
+//double averagine_similarity = 0.75;
+//double mz_tolerance = 40;
+//bool mz_tolerance_unit = true;    // ppm (true), Da (false)
+//double rt_typical = 90;
+//double rt_minimum = 5;
+//bool debug = false;
 
 // construct list of peak patterns
 std::vector<MultiplexPeakPattern> patterns;
