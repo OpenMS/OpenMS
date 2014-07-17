@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche, Frederic Lehnert, Fabian Kriegel $
@@ -229,26 +229,26 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0].size(), 12)
   ABORT_IF(feature_maps[0].size() != 12)
 
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
 
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CNAR")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))LDR")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))LDR")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CNAR")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 110)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))VNAAAAAAR")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 180)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAAAAK")
 
-  TEST_EQUAL(feature_maps[0][6].getIntensity(), 180)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 110)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))VNAAAAAAR")
 
   TEST_EQUAL(feature_maps[0][7].getIntensity(), 225)
   TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNCNCNAAAA")
@@ -265,7 +265,7 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0][11].getIntensity(), 115)
   TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL)VNAAAAAAR")
 
-  
+
   //************3 Channel Protein Labeler********************
   createTestFeatureMapSimVector_(feature_maps, true);
 
@@ -283,35 +283,35 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0].size(), 16)
   ABORT_IF(feature_maps[0].size() != 16)
 
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 30)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 190)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
 
-  TEST_EQUAL(feature_maps[0][7].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 70)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))LDR")
 
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 130)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))CNAR")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 130)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))CNAR")
+
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 280)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
 
   TEST_EQUAL(feature_maps[0][8].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CNAR")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 70)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))LDR")
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 310)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
+
+  TEST_EQUAL(feature_maps[0][7].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAAAAK")
+
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 30)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))AAAAAAAK")
+
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 80)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))YCYCY")
 
   TEST_EQUAL(feature_maps[0][9].getIntensity(), 120)
   TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))LDR")
-
-  TEST_EQUAL(feature_maps[0][6].getIntensity(), 310)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
-
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 280)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
-
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 190)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
-
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))YCYCY")
 
   TEST_EQUAL(feature_maps[0][10].getIntensity(), 110)
   TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))VNAAAAAAR")
@@ -330,7 +330,6 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 
   TEST_EQUAL(feature_maps[0][15].getIntensity(), 115)
   TEST_EQUAL(feature_maps[0][15].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL)VNAAAAAAR")
-
 
 //*******************************Peptide-Labeling*******************************************
 
@@ -353,23 +352,23 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0].size(), 15)
   ABORT_IF(feature_maps[0].size() != 15)
 
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAA")
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CEL")
 
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))LDR")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CEL")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CNAR")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CNAR")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAA")
 
   TEST_EQUAL(feature_maps[0][4].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CNCNCN")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))LDR")
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAAAAK")
 
   TEST_EQUAL(feature_maps[0][6].getIntensity(), 110)
   TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))VNAAAAAAR")
@@ -414,44 +413,44 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0].size(), 22)
   ABORT_IF(feature_maps[0].size() != 22)
 
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 30)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))AAAAA")
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 70)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))CEL")
+
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 70)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))LDR")
+
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 130)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))CNAR")
+
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 30)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))AAAAA")
+
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 80)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))YCYCY")
+
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 130)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))CNCNCN")
+
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 30)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))AAAAAAAK")
 
   TEST_EQUAL(feature_maps[0][7].getIntensity(), 50)
   TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAA")
 
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 30)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))AAAAAAAK")
-
   TEST_EQUAL(feature_maps[0][8].getIntensity(), 50)
   TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))AAAAAAAK")
-
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 70)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))CEL")
 
   TEST_EQUAL(feature_maps[0][9].getIntensity(), 120)
   TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CEL")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 130)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))CNAR")
-
   TEST_EQUAL(feature_maps[0][10].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CNAR")
-
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 130)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))CNCNCN")
 
   TEST_EQUAL(feature_maps[0][11].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))CNCNCN")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 70)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))LDR")
-
   TEST_EQUAL(feature_maps[0][12].getIntensity(), 120)
   TEST_EQUAL(feature_maps[0][12].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))LDR")
-
-  TEST_EQUAL(feature_maps[0][6].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:13C(6))YCYCY")
 
   TEST_EQUAL(feature_maps[0][13].getIntensity(), 110)
   TEST_EQUAL(feature_maps[0][13].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "(ICPL:2H(4))VNAAAAAAR")

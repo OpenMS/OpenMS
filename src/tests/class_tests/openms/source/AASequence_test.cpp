@@ -78,7 +78,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq.hasNTerminalModification(),false);
   TEST_EQUAL(seq.hasCTerminalModification(),false);
   TEST_EQUAL(seq.getResidue((SignedSize)4).getModification(),"")
-  
+
   AASequence seq2;
   seq2 = AASequence::fromString("CNARCKNCNCNARCDRE");
   TEST_EQUAL(seq, seq2);
@@ -161,8 +161,8 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   AASequence seq18 = AASequence::fromString("PEP T*I#D+E", true);
   TEST_EQUAL(seq18.size(), 10);
   TEST_EQUAL(seq18.toString(), "PEPTXIXDXE");
-  
-  TEST_EXCEPTION(Exception::ParseError, 
+
+  TEST_EXCEPTION(Exception::ParseError,
                  AASequence::fromString("PEP T*I#D+E", false));
 }
 END_SECTION
@@ -567,6 +567,21 @@ START_SECTION(bool operator<(const AASequence &rhs) const)
   TEST_EQUAL(seq1 < seq2, false)
   AASequence seq3 = AASequence::fromString("DFPIANGFR");
   TEST_EQUAL(seq3 < seq1, false)
+
+  // shorter residue sequence is smaller than longer one
+  TEST_EQUAL(AASequence::fromString("PPP") < AASequence::fromString("AAAA"), true)
+  TEST_EQUAL(AASequence::fromString("PM(Oxidation)P") < AASequence::fromString("AAAA"), true)
+
+  // modified is larger than unmodified
+  TEST_EQUAL(AASequence::fromString("MMM") < AASequence::fromString("MM(Oxidation)M"), true)
+  TEST_EQUAL(AASequence::fromString("ARRR") < AASequence::fromString("ARRR(Label:13C(6))"), true)
+  TEST_EQUAL(AASequence::fromString("CNR") < AASequence::fromString("(ICPL:2H(4))CNR"), true)
+  TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))CNAR") < AASequence::fromString("(ICPL:13C(6))YCYCY"), true)
+
+  // alphabetic order
+  TEST_EQUAL(AASequence::fromString("AAA") < AASequence::fromString("AAM"), true)
+  TEST_EQUAL(AASequence::fromString("AAM") < AASequence::fromString("AMA"), true)
+  TEST_EQUAL(AASequence::fromString("AMA") < AASequence::fromString("MAA"), true)
 END_SECTION
 
 START_SECTION(bool operator!=(const AASequence& rhs) const)
@@ -575,12 +590,17 @@ START_SECTION(bool operator!=(const AASequence& rhs) const)
   TEST_EQUAL(seq2 != AASequence::fromString("DFPIANGER"), false)
   TEST_EQUAL(seq1 != AASequence::fromString("(MOD:00051)DFPIANGER"), false)
 
+  // test C-terminal mods
   AASequence seq3 = AASequence::fromString("DFPIANGER(MOD:00177)");
   AASequence seq4 = AASequence::fromString("DFPIANGER(Amidated)");
   TEST_EQUAL(seq3 != AASequence::fromString("DFPIANGER"), true)
   TEST_EQUAL(seq3 != AASequence::fromString("DFPIANGER(MOD:00177)"), false)
   TEST_EQUAL(seq4 != AASequence::fromString("DFPIANGER(Amidated)"), false)
   TEST_EQUAL(seq4 != AASequence::fromString("DFPIANGER"), true)
+
+  // test inner mods
+  TEST_EQUAL(AASequence::fromString("DFPMIANGER") != AASequence::fromString("DFPM(Oxidation)IANGER"), true)
+  TEST_EQUAL(AASequence::fromString("DFPM(Oxidation)IANGER") == AASequence::fromString("DFPM(Oxidation)IANGER"), true)
 
   AASequence seq5 = AASequence::fromString("DFBIANGER");
   TEST_EQUAL(seq5 != AASequence::fromString("DFPIANGER"), true)
