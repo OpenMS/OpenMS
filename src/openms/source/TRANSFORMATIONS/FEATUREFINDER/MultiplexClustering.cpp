@@ -37,10 +37,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-//#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
-//#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFilterResultRaw.h>
-//#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFilterResultPeak.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>

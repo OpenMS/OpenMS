@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-//#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>

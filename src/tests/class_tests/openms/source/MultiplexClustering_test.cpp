@@ -35,10 +35,10 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 
 using namespace OpenMS;
