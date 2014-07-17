@@ -37,13 +37,13 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexPeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFilterResultRaw.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFilterResultPeak.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -106,14 +106,14 @@ namespace OpenMS
         
 	}
     
-    std::vector<std::map<int,MultiplexCluster> > MultiplexClustering::cluster(std::vector<FilterResult> filter_results)
+    std::vector<std::map<int,MultiplexCluster> > MultiplexClustering::cluster(std::vector<MultiplexFilterResult> filter_results)
     {
         std::vector<std::map<int,MultiplexCluster> > cluster_results;
         
         // loop over patterns i.e. cluster each of the corresponding filter results
         for (unsigned i = 0; i < filter_results.size(); ++i)
         {
-            MultiplexLocalClustering clustering(filter_results[i].getMz(), filter_results[i].getRt(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
+            MultiplexLocalClustering clustering(filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
             clustering.cluster();
             //clustering.extendClustersY();
             clustering.removeSmallClustersY(rt_minimum_);
@@ -124,7 +124,7 @@ namespace OpenMS
             if (debug_)
             {
                 std::map<int,MultiplexCluster> cluster_result = clustering.getResults();
-                FilterResult filter_result = filter_results[i];
+                MultiplexFilterResult filter_result = filter_results[i];
                 
                 int cluster_id = 0;
                 for(std::map<int,MultiplexCluster>::iterator it = cluster_result.begin(); it != cluster_result.end(); ++it) {
@@ -132,8 +132,8 @@ namespace OpenMS
                     for (std::vector<int>::iterator it2 = points.begin(); it2 != points.end(); ++it2)
                     {
                         DebugPoint data_point;
-                        data_point.rt = filter_result.getRt(*it2);
-                        data_point.mz = filter_result.getMz(*it2);
+                        data_point.rt = filter_result.getRT(*it2);
+                        data_point.mz = filter_result.getMZ(*it2);
                         data_point.cluster = cluster_id;
                         debug_clustered.push_back(data_point);
                     }

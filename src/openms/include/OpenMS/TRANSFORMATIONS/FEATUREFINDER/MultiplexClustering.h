@@ -38,10 +38,10 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 
 #include <vector>
@@ -87,7 +87,7 @@ namespace OpenMS
          * 
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
-        std::vector<std::map<int,MultiplexCluster> > cluster(std::vector<FilterResult> filter_results);
+        std::vector<std::map<int,MultiplexCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
         
         /**
          * @brief rough estimation of the peak width at m/z
