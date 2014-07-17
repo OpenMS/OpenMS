@@ -125,19 +125,20 @@ namespace OpenMS
     }
   }
 
-  void MascotGenericFile::store(const String& filename, const PeakMap& experiment)
+  void MascotGenericFile::store(const String& filename, const PeakMap& experiment, bool compact)
   {
     if (!File::writable(filename))
     {
       throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
     ofstream os(filename.c_str());
-    store(os, filename, experiment);
+    store(os, filename, experiment, compact);
     os.close();
   }
 
-  void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment)
+  void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment, bool compact)
   {
+    store_compact_ = compact;
     if (param_.getValue("internal:content") != "peaklist_only")
       writeHeader_(os);
     if (param_.getValue("internal:content") != "header_only")
@@ -308,9 +309,18 @@ namespace OpenMS
     {
       os << "\n";
       os << "BEGIN IONS\n";
-      os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << "_" << spec.getNativeID() << "_" << filename << "\n";
-      os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
-      os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
+      if (!store_compact_)
+      {
+        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << "_" << spec.getNativeID() << "_" << filename << "\n";
+        os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
+        os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
+      }
+      else
+      {
+        os << fixed << "TITLE=" << setprecision(6) << mz << "_" << setprecision(3) << rt << "_" << spec.getNativeID() << "_" << filename << "\n";
+        os << "PEPMASS=" << setprecision(6) << mz << "\n";
+        os << "RTINSECONDS=" << setprecision(3) << rt << "\n";
+      }
 
       int charge(precursor.getCharge());
 
@@ -325,9 +335,21 @@ namespace OpenMS
 
       os << "\n";
 
-      for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
+      if (!store_compact_)
       {
-        os << precisionWrapper(it->getMZ()) << " " << precisionWrapper(it->getIntensity()) << "\n";
+        for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
+        {
+          os << precisionWrapper(it->getMZ()) << " " << precisionWrapper(it->getIntensity()) << "\n";
+        }
+      }
+      else
+      {
+        for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
+        {
+          PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
+          if (intensity == 0.0) continue; // skip zero-intensity peaks
+          os << setprecision(6) << it->getMZ() << " " << setprecision(3) << intensity << "\n";
+        }
       }
       os << "END IONS\n";
     }
