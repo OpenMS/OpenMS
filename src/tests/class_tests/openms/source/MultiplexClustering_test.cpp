@@ -77,7 +77,7 @@ double rt_minimum = 5;
 bool debug = false;
 
 // construct list of peak patterns
-std::vector<PeakPattern> patterns;
+std::vector<MultiplexPeakPattern> patterns;
 std::vector<double> shifts1;
 shifts1.push_back(0);
 shifts1.push_back(8.0443702794);
@@ -86,15 +86,15 @@ shifts2.push_back(0);
 shifts2.push_back(2*8.0443702794);
 for (int c = charge_max; c >= charge_min; --c)
 {
-    PeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
+    MultiplexPeakPattern pattern1(c, peaks_per_peptide_max, shifts1, 0);
     patterns.push_back(pattern1);
-    PeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
+    MultiplexPeakPattern pattern2(c, peaks_per_peptide_max, shifts2, 1);
     patterns.push_back(pattern2);
 } 
 
 /*MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
 // The above line throws the following exception:
-// 243: Error: Caught unexpected OpenMS exception of type 'Exception' thrown in line 83 of file '/home/lars/Code/git/OpenMS/src/openms/source/FILTERING/DATAREDUCTION/MultiplexFiltering.cpp' in function 'OpenMS::MultiplexFiltering::MultiplexFiltering(OpenMS::MSExperiment<OpenMS::Peak1D>, OpenMS::MSExperiment<OpenMS::Peak1D>, std::vector<std::vector<OpenMS::PeakPickerHiRes::PeakBoundary> >, std::vector<OpenMS::PeakPattern>, int, int, bool, double, double, bool, double, double, bool)' - Message: Centroided data and the corresponding list of peak boundaries do not contain same number of spectra. (72 != 72)
+// 243: Error: Caught unexpected OpenMS exception of type 'Exception' thrown in line 83 of file '/home/lars/Code/git/OpenMS/src/openms/source/FILTERING/DATAREDUCTION/MultiplexFiltering.cpp' in function 'OpenMS::MultiplexFiltering::MultiplexFiltering(OpenMS::MSExperiment<OpenMS::Peak1D>, OpenMS::MSExperiment<OpenMS::Peak1D>, std::vector<std::vector<OpenMS::PeakPickerHiRes::PeakBoundary> >, std::vector<OpenMS::MultiplexPeakPattern>, int, int, bool, double, double, bool, double, double, bool)' - Message: Centroided data and the corresponding list of peak boundaries do not contain same number of spectra. (72 != 72)
 // But 72 == 72! Why the exception?
 std::vector<FilterResult> filter_results = filtering.filter();
 

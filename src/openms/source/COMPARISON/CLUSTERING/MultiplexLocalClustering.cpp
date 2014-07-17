@@ -223,9 +223,9 @@ void MultiplexLocalClustering::extendClustersY()
                     double box2y_min = (*c2).getBoundingBox().minY();
                     double box2y_max = (*c2).getBoundingBox().maxY();
                     
-                    double y_range1 = box1y_max - box1y_min;
-                    double y_range2 = box2y_max - box2y_min;
-                    double y_gap = box1y_min - box2y_max;
+                    //double y_range1 = box1y_max - box1y_min;
+                    //double y_range2 = box2y_max - box2y_min;
+                    //double y_gap = box1y_min - box2y_max;
                                        
                     // Is there an overlap of the two clusters in x?
                     bool overlap = (box1x_min <= box2x_max && box1x_min >= box2x_min) || (box1x_max >= box2x_min && box1x_max <= box2x_max);
