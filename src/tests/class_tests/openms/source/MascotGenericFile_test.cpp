@@ -75,7 +75,7 @@ START_SECTION((template < typename MapType > void load(const String &filename, M
 }
 END_SECTION
 
-START_SECTION((void store(std::ostream &os, const String &filename, const PeakMap &experiment)))
+START_SECTION((void store(std::ostream &os, const String &filename, const PeakMap &experiment, bool compact = false)))
 {
   PeakMap exp;
   ptr->load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), exp);
@@ -119,7 +119,7 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
 }
 END_SECTION
 
-START_SECTION((void store(const String &filename, const PeakMap &experiment)))
+START_SECTION((void store(const String &filename, const PeakMap &experiment, bool compact = false)))
 {
   String tmp_name("MascotGenericFile_1.tmp");
   NEW_TMP_FILE(tmp_name)
