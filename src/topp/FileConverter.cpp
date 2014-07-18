@@ -79,7 +79,7 @@ using namespace std;
   supports traceability of analysis steps.)
 
   Many different format conversions are supported, and some may be more useful than others. Depending on the
-  file formats involved, information can be lost during conversion, e.g. when converting	featureXML to mzData.
+  file formats involved, information can be lost during conversion, e.g. when converting featureXML to mzData.
   In such cases a warning is shown.
 
   The input and output file types are determined from	the file extensions or from the first few lines of the
@@ -136,7 +136,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
     
-    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique id post-processing for output data.\n none keeps current ids even if invalid.\n ensure keeps current ids but reassigns invalid ones.\n reassign assigns new unique ids.", false);
+    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
@@ -146,6 +146,7 @@ protected:
     registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
+    registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -317,7 +318,7 @@ protected:
                                                  FORMAT_CONVERSION));
       MascotGenericFile f;
       f.setLogType(log_type_);
-      f.store(out, exp);
+      f.store(out, exp, getFlag_("MGF_compact"));
     }
     else if (out_type == FileTypes::FEATUREXML)
     {
