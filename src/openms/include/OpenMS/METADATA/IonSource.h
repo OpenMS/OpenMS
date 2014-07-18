@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-      @brief Description of a ion source (part of a MS Instrument)
+      @brief Description of an ion source (part of a MS Instrument)
 
       @ingroup Metadata
   */
