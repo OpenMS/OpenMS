@@ -134,11 +134,6 @@ endif()
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
 
-if(MSVC)
-	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
-	link_directories(${CONTRIB_LIB_DIR})
-endif()
-
 #except for the contrib libs, prefer shared libraries
 if(NOT MSVC AND NOT APPLE)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".so;.a")

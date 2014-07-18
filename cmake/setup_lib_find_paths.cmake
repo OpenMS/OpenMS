@@ -38,26 +38,16 @@
 # actual libraries are found in the CMake files of the individual componenents.
 #------------------------------------------------------------------------------
 
+#------------------------------------------------------------------------------
+# emit warning if CMAKE_FIND_ROOT_PATH is used instead of CMAKE_PREFIX_PATH
 if(NOT "${CMAKE_FIND_ROOT_PATH}" STREQUAL "" AND "${CMAKE_PREFIX_PATH}" STREQUAL "")
   set(CMAKE_PREFIX_PATH "${CMAKE_FIND_ROOT_PATH}")
-  message(STATUS "Please switch to CMAKE_PREFIX_PATH CMAKE_FIND_ROOT_PATH ")
+  message(STATUS "Please use CMAKE_PREFIX_PATH instead of CMAKE_FIND_ROOT_PATH ")
 endif()
 
+#------------------------------------------------------------------------------
+# add contrib location of source package <source>/contrib
 list(APPEND CMAKE_PREFIX_PATH ${OPENMS_HOST_DIRECTORY}/contrib/)
-# TODO: remove as soon as all libraries where switched to proper find modules
-set(CONTRIB_INCLUDE_DIR "" CACHE INTERNAL "contrib include dir")
-set(CONTRIB_LIB_DIR "" CACHE INTERNAL "contrib lib dir")
-foreach(CONTRIB_PATH ${CMAKE_PREFIX_PATH})
-  list(APPEND CONTRIB_INCLUDE_DIR "${CONTRIB_PATH}/include/")
-  list(APPEND CONTRIB_LIB_DIR "${CONTRIB_PATH}/lib/")
-endforeach()
-
-message(STATUS "===========================================================================")
-message(STATUS "CMake prefix path: ${CMAKE_PREFIX_PATH}")
-message(STATUS "Contrib search directories:  ${CONTRIB_DIR}")
-message(STATUS "Contrib library directories: ${CONTRIB_LIB_DIR}")
-message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
-message(STATUS "===========================================================================")
 
 #------------------------------------------------------------------------------
 # Ensure Qt includes it's libs as SYSTEM
