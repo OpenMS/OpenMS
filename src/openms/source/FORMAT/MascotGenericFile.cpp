@@ -333,8 +333,6 @@ namespace OpenMS
         }
       }
 
-      os << "\n";
-
       if (!store_compact_)
       {
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
