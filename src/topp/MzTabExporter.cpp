@@ -97,9 +97,9 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-      registerInputFile_("in_feature", "<file>", "", "FeatureXMLs used to generate the mzTab file.");
+      registerInputFile_("in_feature", "<file>", "", "FeatureXMLs used to generate the mzTab file.", false);
       setValidFormats_("in_feature", ListUtils::create<String>("featureXML"));
-      registerInputFile_("in_id", "<file>", "", "Identifications used to generate the mzTab file.");
+      registerInputFile_("in_id", "<file>", "", "Identifications used to generate the mzTab file.", false);
       setValidFormats_("in_id", ListUtils::create<String>("idXML"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
       setValidFormats_("out", ListUtils::create<String>("csv"));
@@ -213,6 +213,11 @@ protected:
           row.best_search_engine_score[1] = MzTabDouble();
           row.search_engine_score_ms_run[1][1] = MzTabDouble();
 
+          // create opt_ column for peptide sequence containing modification
+          MzTabOptionalColumnEntry opt_global_modified_sequence;
+          opt_global_modified_sequence.first = String("opt_global_modified_sequence");
+          row.opt_.push_back(opt_global_modified_sequence);
+
           // create opt_ columns for feature (peptide) user values
           for (set<String>::const_iterator mit = feature_user_value_keys.begin(); mit != feature_user_value_keys.end(); ++mit)
           {
@@ -274,7 +279,11 @@ protected:
               if (aas.isModified(ai))
               {
                 MzTabModification mod;
-                MzTabString unimod_accession = MzTabString(aas[ai].getModification());
+                String mod_name = aas[ai].getModification();
+                ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+                // MzTab standard is to just report Unimod accession.
+                MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
                 mod.setModificationIdentifier(unimod_accession);
                 vector<std::pair<Size, MzTabParameter> > pos;
                 pos.push_back(make_pair(ai + 1, MzTabParameter()));
@@ -292,6 +301,17 @@ protected:
           row.best_search_engine_score[1] = MzTabDouble(best_ph.getScore());
           row.search_engine_score_ms_run[1][1] = MzTabDouble(best_ph.getScore());
 
+          // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
+          for (Size i = 0; i != row.opt_.size(); ++i)
+          {
+            MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+            if (opt_entry.first == String("opt_global_modified_sequence"))
+            {
+              opt_entry.second = MzTabString(aas.toString());
+            }
+          }
+
           // fill opt_ column of psm
           vector<String> ph_keys;
           best_ph.getKeys(ph_keys);
@@ -299,7 +319,7 @@ protected:
           {
             const String& key = ph_keys[k];
 
-            // find matching entry in opt_
+            // find matching entry in opt_ (TODO: speed this up)
             for (Size i = 0; i != row.opt_.size(); ++i)
             {
               MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
@@ -331,6 +351,7 @@ protected:
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in_id, prot_ids, pep_ids, document_id);
 
+        //TODO: psm export
         MzTabFile().store(out, mztab);
       }
 
