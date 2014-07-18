@@ -317,9 +317,9 @@ namespace OpenMS
       }
       else
       {
-        os << fixed << "TITLE=" << setprecision(6) << mz << "_" << setprecision(3) << rt << "_" << spec.getNativeID() << "_" << filename << "\n";
-        os << "PEPMASS=" << setprecision(6) << mz << "\n";
-        os << "RTINSECONDS=" << setprecision(3) << rt << "\n";
+        os << "TITLE=" << setprecision(8) << mz << "_" << setprecision(6) << rt << "_" << spec.getNativeID() << "_" << filename << "\n";
+        os << "PEPMASS=" << setprecision(8) << mz << "\n";
+        os << "RTINSECONDS=" << setprecision(6) << rt << "\n";
       }
 
       int charge(precursor.getCharge());
@@ -348,7 +348,7 @@ namespace OpenMS
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
           if (intensity == 0.0) continue; // skip zero-intensity peaks
-          os << setprecision(6) << it->getMZ() << " " << setprecision(3) << intensity << "\n";
+          os << setprecision(8) << it->getMZ() << " " << setprecision(6) << intensity << "\n";
         }
       }
       os << "END IONS\n";
