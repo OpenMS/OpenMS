@@ -198,7 +198,7 @@ false);
 }
 END_SECTION
 
-START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, bool peptideprophet_analyzed = false))
+START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file="", const String& mz_name="", bool peptideprophet_analyzed = false))
 {
 	// PepXMLFile file; // shadow
 	vector<ProteinIdentification> proteins;
@@ -209,20 +209,20 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
     // Test PeptideProphet-analyzed pepxml.
 	String cm_file_out;
 	NEW_TMP_FILE(cm_file_out);
-	PepXMLFile().store(cm_file_out, proteins, peptides, true);
+	PepXMLFile().store(cm_file_out, proteins, peptides, "", "test", true);
 
 	FuzzyStringComparator fsc;
-	fsc.setWhitelist (ListUtils::create<String>("base_name, local_path, <spectrum_query "));
+	//fsc.setWhitelist (ListUtils::create<String>("base_name, local_path, <spectrum_query "));
 	String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out.pepxml");
 	TEST_EQUAL(fsc.compareFiles (cm_file_out.c_str(), filename_out.c_str()), true)
 	
 	// Test raw_pepxml storage.
     String cm_file_out_1;
 	NEW_TMP_FILE(cm_file_out_1);
-	PepXMLFile().store(cm_file_out_1, proteins, peptides, false);
+	PepXMLFile().store(cm_file_out_1, proteins, peptides, "", "test", false);
 	
 	FuzzyStringComparator fsc_1;
-	fsc_1.setWhitelist(ListUtils::create<String>("base_name, local_path, <spectrum_query "));
+	//fsc_1.setWhitelist(ListUtils::create<String>("base_name, local_path, <spectrum_query "));
 	String filename_out_1 = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_1.pepxml");
 	TEST_EQUAL(fsc_1.compareFiles (cm_file_out_1.c_str(), filename_out_1.c_str()), true)
 }

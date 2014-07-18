@@ -148,7 +148,7 @@ protected:
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
-    registerFlag_("peptideprophet_analyzed", "Set this flag if converting into pepXML that is the output of PeptideProphet. The default is false which will convert ID file into raw_pepXML that only contains search engine results.",false);
+    registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.",false);
     registerStringOption_("scan_regex", "<expression>", "", "[mascotXML only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
   }
 
@@ -371,7 +371,9 @@ protected:
     if (out_type == FileTypes::PEPXML)
     {
       bool peptideprophet_analyzed = getFlag_("peptideprophet_analyzed");
-      PepXMLFile().store(out, protein_identifications, peptide_identifications, peptideprophet_analyzed);
+      String mz_file = getStringOption_("mz_file");
+      String mz_name = getStringOption_("mz_name");
+      PepXMLFile().store(out, protein_identifications, peptide_identifications, mz_file, mz_name, peptideprophet_analyzed);
     }
     else if (out_type == FileTypes::IDXML)
     {

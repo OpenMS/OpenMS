@@ -156,8 +156,8 @@ namespace OpenMS
     if (tag_ == "domain")
     {
       PeptideHit hit;
-      hit.metaRegistry().registerName("E-Value", "E-Value of Hit");
-      hit.metaRegistry().registerName("RT_index", "Scan index of Hit");
+      hit.metaRegistry().registerName("E-Value", "E-Value of hit");
+      hit.metaRegistry().registerName("RT_index", "Scan index of hit");
       // get hyperscore
       double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
       hit.setScore(hyperscore);
