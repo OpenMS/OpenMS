@@ -274,7 +274,8 @@ protected:
               if (aas.isModified(ai))
               {
                 MzTabModification mod;
-                mod.setModificationIdentifier(MzTabString(aas[ai].getModification()));
+                MzTabString unimod_accession = MzTabString(aas[ai].getModification());
+                mod.setModificationIdentifier(unimod_accession);
                 vector<std::pair<Size, MzTabParameter> > pos;
                 pos.push_back(make_pair(ai + 1, MzTabParameter()));
                 mod.setPositionsAndParameters(pos);
@@ -318,6 +319,8 @@ protected:
       if (!in_id.empty())
       {
         MzTab mztab;
+        MzTabMetaData meta_data;
+
         // mandatory meta values
         meta_data.mz_tab_type = MzTabString("Identification");
         meta_data.mz_tab_mode = MzTabString("Summary");

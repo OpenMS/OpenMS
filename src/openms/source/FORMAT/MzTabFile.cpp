@@ -204,6 +204,19 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   map<Size, Size> smallmolecule_abundance_stdev_study_variable_indices;
   map<Size, Size> smallmolecule_abundance_std_error_study_variable_indices;
 
+  // potentially mandatory meta values (depending on mzTab type, mode and sections that are present)
+  set<String> mandatory_meta_values;
+
+  // mzTab sections present in the file. Influences mandatoryness of meta-values.
+  set<String> sections_present;
+
+  Size count_protein_search_engine_score = 0;
+  Size count_peptide_search_engine_score = 0;
+  Size count_psm_search_engine_score = 0;
+  Size count_smallmolecule_search_engine_score = 0;
+  Size count_fixed_mod = 0;
+  Size count_variable_mod = 0;
+
   Size line_number = 0;
   for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit, ++line_number)
   {
@@ -234,26 +247,10 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Error parsing MzTab line: " + String(s) + ". Did you forget to use tabulator as separator?");
     }
 
-    bool has_mzTab_version = false;
-    bool has_mzTab_mode = false;
-    bool has_mzTab_type = false;
-    bool has_description = false;
-    Size count_protein_search_engine_score = 0;
-    Size count_peptide_search_engine_score = 0;
-    Size count_psm_search_engine_score = 0;
-    Size count_smallmolecule_search_engine_score = 0;
-    Size count_fixed_mod = 0;
-    Size count_variable_mod = 0;
-    bool has_software = false;
-
-    bool has_protein_quantification_unit = false;
-    bool has_peptide_quantification_unit = false;
-    bool has_small_molecule_quantification_unit = false;
-    bool has_assay_ms_run_ref = false;
-
     // parse metadata section
     if (section == "MTD")
     {
+      sections_present.insert("MTD");
       StringList meta_key_fields; // the "-" separated fields of the metavalue key
       cells[1].split("-", meta_key_fields);
       String meta_key = meta_key_fields[0];
@@ -261,17 +258,17 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       if (cells[1].hasPrefix("mzTab-version"))
       {
         mz_tab_metadata.mz_tab_version.fromCellString(cells[2]);
-        has_mzTab_version = true;
+        mandatory_meta_values.insert("mzTab-version");
       }
       else if (cells[1].hasPrefix("mzTab-mode"))
       {
         mz_tab_metadata.mz_tab_mode.fromCellString(cells[2]);
-        has_mzTab_mode = true;
+        mandatory_meta_values.insert("mzTab-mode");
       }
       else if (cells[1].hasPrefix("mzTab-type"))
       {
         mz_tab_metadata.mz_tab_type.fromCellString(cells[2]);
-        has_mzTab_type = true;
+        mandatory_meta_values.insert("mzTab-type");
       }
       else if (cells[1].hasPrefix("mzTab-ID"))
       {
@@ -284,7 +281,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       else if (meta_key == "description")
       {
         mz_tab_metadata.description.set(cells[2]);
-        has_description = true;
+        mandatory_meta_values.insert("description");
       }
       else if (meta_key.hasPrefix("sample_processing["))
       {
@@ -465,21 +462,21 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.protein_quantification_unit = p;
-        has_protein_quantification_unit = true;
+        mandatory_meta_values.insert("protein-quantification_unit");
       }
       else if (meta_key == "peptide" && meta_key_fields[1] == "quantification_unit")
       {
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.peptide_quantification_unit = p;
-        has_peptide_quantification_unit = true;
+        mandatory_meta_values.insert("peptide-quantification_unit");
       }
       else if (meta_key == "small_molecule" && meta_key_fields[1] == "quantification_unit")
       {
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.small_molecule_quantification_unit = p;
-        has_small_molecule_quantification_unit = true;
+        mandatory_meta_values.insert("small_molecule-quantification_unit");
       }
       else if (meta_key.hasPrefix("ms_run[") && meta_key_fields[1] == "format")
       {
@@ -627,7 +624,6 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         MzTabString p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.assay[n].ms_run_ref = p;
-        has_assay_ms_run_ref = true;
       } else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "assay_refs")
       {
         Int n = meta_key_fields[0].substitute("study_variable[", "").substitute("]","").trim().toInt();
@@ -779,6 +775,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     // parse protein section
     if (section == "PRT")
     {
+      sections_present.insert("PRT");
       // check if all mandatory columns are present
       if (protein_accession_index == 0)
       {
@@ -1059,6 +1056,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     // parse peptide section
     if (section == "PEP")
     {
+      sections_present.insert("PRT");
       MzTabPeptideSectionRow row;
       row.sequence.fromCellString(cells[peptide_sequence_index]);
       row.accession.fromCellString(cells[peptide_accession_index]);
@@ -1353,6 +1351,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     // parse small molecule section
     if (section == "SML")
     {
+      sections_present.insert("SML");
       MzTabSmallMoleculeSectionRow row;
       row.identifier.fromCellString(cells[smallmolecule_identifier_index]);
       row.chemical_formula.fromCellString(cells[smallmolecule_chemical_formula_index]);
@@ -1428,13 +1427,8 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
   }
 
-
-  Size count_psm_search_engine_score = 0;
-  Size count_smallmolecule_search_engine_score = 0;
-  Size count_fixed_mod = 0;
-  Size count_variable_mod = 0;
-
-  hasMandatoryMetaDataKeys_(has_mzTab_version, has_mzTab_mode, has_mzTab_type, has_description, has_software, has_protein_quantification_unit, has_peptide_quantification_unit, has_small_molecule_quantification_unit, has_assay_ms_run_ref);
+  // TODO: check mandatoryness
+  //hasMandatoryMetaDataKeys_(mandatory_meta_values, sections_present, mz_tab_metadata);
 
   mz_tab.setMetaData(mz_tab_metadata);
   mz_tab.setProteinSectionRows(mz_tab_protein_section_data);
@@ -2489,7 +2483,7 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
       num_peptides_unique_ms_run = protein_section[0].num_peptides_unique_ms_run.size();
     }
     Size n_search_engine_score = protein_section[0].search_engine_score_ms_run.size();
-    Size n_best_search_engine_score = mz_tab.getMetaData().protein_search_engine_score .size();
+    Size n_best_search_engine_score = mz_tab.getMetaData().protein_search_engine_score.size();
     out.push_back(generateMzTabProteinHeader_(ms_runs, n_best_search_engine_score, n_search_engine_score, num_psms_ms_runs, num_peptides_distinct_ms_runs, num_peptides_unique_ms_run, assays, study_variables, mz_tab.getProteinOptionalColumnNames()));
     generateMzTabProteinSection_(protein_section, out);
   }
@@ -2544,12 +2538,12 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
       search_ms_runs = ms_runs;
     } else // only user provided ones are reported
     {
-      search_ms_runs = mz_tab.getPeptideSectionRows()[0].search_engine_score_ms_run.size();
+      search_ms_runs = smallmolecule_section[0].search_engine_score_ms_run.size();
     }
     Size n_search_engine_score = smallmolecule_section[0].search_engine_score_ms_run.size();
     Size n_best_search_engine_score = mz_tab.getMetaData().smallmolecule_search_engine_score.size();
     out.push_back(generateMzTabSmallMoleculeHeader_(ms_runs, n_best_search_engine_score, n_search_engine_score, assays, study_variables, mz_tab.getSmallMoleculeOptionalColumnNames()));
-    generateMzTabSmallMoleculeSection_(mz_tab.getSmallMoleculeSectionRows(), out);
+    generateMzTabSmallMoleculeSection_(smallmolecule_section, out);
   }
 
   // insert comment (might provide critical cues for human reader) and empty lines
