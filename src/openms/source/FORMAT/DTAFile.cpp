@@ -39,7 +39,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  DTAFile::DTAFile()
+  DTAFile::DTAFile() :
+      default_ms_level_(2) // set default to MS2
   {
   }
 
