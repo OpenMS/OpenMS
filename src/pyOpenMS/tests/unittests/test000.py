@@ -193,7 +193,7 @@ def testAASequence():
     aas += aas
 
     aas.__doc__
-    aas = pyopenms.AASequence.fromString(b"DFPIANGER")
+    aas = pyopenms.AASequence.fromString(b"DFPIANGER", True)
     assert aas.getCTerminalModification() == b""
     assert aas.getNTerminalModification() == b""
     aas.setCTerminalModification(b"")
@@ -3154,7 +3154,7 @@ def testPeptideHit():
     assert ph == ph
     assert not ph != ph
 
-    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A"))
+    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
     _testMetaInfoInterface(ph)
     ph.addProteinAccession(b"A")
     assert ph.getProteinAccessions() == [b"A"]
@@ -3167,7 +3167,7 @@ def testPeptideHit():
     assert ph.getScore() == 2.0
     ph.setRank(30)
     assert ph.getRank() == 30
-    ph.setSequence(pyopenms.AASequence.fromString(b"AAA"))
+    ph.setSequence(pyopenms.AASequence.fromString(b"AAA", True))
     assert ph.getSequence().toString() == b"AAA"
 
     ph.setAABefore(b'B')
@@ -3219,7 +3219,7 @@ def testPeptideIdentification():
     assert pi == pi
     assert not pi != pi
 
-    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A"))
+    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
     pi.insertHit(ph)
     phx, = pi.getHits()
     assert phx == ph
