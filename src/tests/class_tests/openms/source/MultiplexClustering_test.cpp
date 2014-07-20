@@ -64,17 +64,17 @@ picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 // set parameters
 int charge_min = 1;
 int charge_max = 4;
-//int peaks_per_peptide_min = 3;
+int peaks_per_peptide_min = 3;
 int peaks_per_peptide_max = 6;
-//bool missing_peaks = false;
-//double intensity_cutoff = 10.0;
-//double peptide_similarity = 0.8;
-//double averagine_similarity = 0.75;
-//double mz_tolerance = 40;
-//bool mz_tolerance_unit = true;    // ppm (true), Da (false)
-//double rt_typical = 90;
-//double rt_minimum = 5;
-//bool debug = false;
+bool missing_peaks = false;
+double intensity_cutoff = 10.0;
+double peptide_similarity = 0.8;
+double averagine_similarity = 0.75;
+double mz_tolerance = 40;
+bool mz_tolerance_unit = true;    // ppm (true), Da (false)
+double rt_typical = 90;
+double rt_minimum = 5;
+bool debug = false;
 
 // construct list of peak patterns
 std::vector<MultiplexPeakPattern> patterns;
@@ -92,21 +92,18 @@ for (int c = charge_max; c >= charge_min; --c)
     patterns.push_back(pattern2);
 } 
 
-/*MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
-// The above line throws the following exception:
-// 243: Error: Caught unexpected OpenMS exception of type 'Exception' thrown in line 83 of file '/home/lars/Code/git/OpenMS/src/openms/source/FILTERING/DATAREDUCTION/MultiplexFiltering.cpp' in function 'OpenMS::MultiplexFiltering::MultiplexFiltering(OpenMS::MSExperiment<OpenMS::Peak1D>, OpenMS::MSExperiment<OpenMS::Peak1D>, std::vector<std::vector<OpenMS::PeakPickerHiRes::PeakBoundary> >, std::vector<OpenMS::MultiplexPeakPattern>, int, int, bool, double, double, bool, double, double, bool)' - Message: Centroided data and the corresponding list of peak boundaries do not contain same number of spectra. (72 != 72)
-// But 72 == 72! Why the exception?
-std::vector<FilterResult> filter_results = filtering.filter();
+MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
+std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 
 MultiplexClustering* nullPointer = 0;
 MultiplexClustering* ptr;
 
 START_SECTION(MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug))
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
-    std::vector<std::map<int,Cluster> > cluster_results = clustering.cluster(filter_results);
+    //std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
     ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
-END_SECTION*/
+END_SECTION
 
 END_TEST

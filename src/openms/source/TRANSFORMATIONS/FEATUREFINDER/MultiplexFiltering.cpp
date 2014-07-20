@@ -152,7 +152,7 @@ namespace OpenMS
 
         int spectrum = it_rt_profile - exp_profile_.begin();            // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
         double rt_picked = it_rt_picked->getRT();
-
+        
         // spline fit profile data
         SplineSpectrum spline(*it_rt_profile);
         SplineSpectrum::Navigator nav = spline.getNavigator();
