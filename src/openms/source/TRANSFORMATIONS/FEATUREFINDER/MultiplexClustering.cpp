@@ -65,12 +65,12 @@ namespace OpenMS
     }
 
     // ranges of the experiment
-    double mz_min = exp_profile.getMin().getY();
-    double mz_max = exp_profile.getMax().getY();
-    double rt_min = exp_profile.getMin().getX();
-    double rt_max = exp_profile.getMax().getX();
-
-    // generate hash grid spacing
+    double mz_min = exp_profile.getMinMZ();
+    double mz_max = exp_profile.getMaxMZ();
+    double rt_min = exp_profile.getMinRT();
+    double rt_max = exp_profile.getMaxRT();
+    
+    // generate grid spacing
     PeakWidthEstimator estimator(exp_picked, boundaries);
     for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 5)
     {
