@@ -48,10 +48,7 @@ START_TEST(MultiplexFiltering, "$Id$")
 // read data
 MSExperiment<Peak1D> exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexClustering.mzML"), exp);
-
-std::cout << "experiment m/z min 1 = " << exp.getDataRange().minX() << "\n";    // 1.79769e+308 but expected 467.22
-std::cout << "experiment m/z min 2 = " << exp.getMin()[Peak2D::MZ] << "\n";    // 1.79769e+308 but expected 467.22
-std::cout << "experiment size = " << exp.size() << "\n";    // 20 as expected
+exp.updateRanges();
 
 // pick data
 PeakPickerHiRes picker;
@@ -104,8 +101,7 @@ MultiplexClustering* ptr;
 
 START_SECTION(MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug))
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
-    //std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
-    // above leads to exception due to incorrect ranges
+    std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
     ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;

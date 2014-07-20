@@ -47,6 +47,7 @@ START_TEST(MultiplexFiltering, "$Id$")
 // read data
 MSExperiment<Peak1D> exp;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexFiltering.mzML"), exp);
+exp.updateRanges();
 
 // pick data
 PeakPickerHiRes picker;
