@@ -81,6 +81,7 @@ using namespace std;
         - extract spectra of a certain MS level
         - filter by signal-to-noise estimation
         - filter by scan mode of the spectra
+        - filter by scan polarity of the spectra
     - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
     - featureXML
         - filter by feature charge
@@ -242,35 +243,35 @@ protected:
   {
     String formats("mzML,featureXML,consensusXML");
 
-    registerInputFile_("in", "<file>", "", "input file ");
+    registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>(formats));
 
-    registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", ListUtils::create<String>(formats));
 
-    registerOutputFile_("out", "<file>", "", "output file");
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>(formats));
 
-    registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
-    registerStringOption_("rt", "[min]:[max]", ":", "retention time range to extract", false);
+    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
     registerStringOption_("pc_mz", "[min]:[max]", ":", "MSn (n>=2) precursor filtering according to their m/z value. Do not use this flag in conjunction with 'mz', unless you want to actually remove peaks in spectra (see 'mz'). RT filtering is covered by 'rt' and compatible with this flag.", false);
-    registerStringOption_("int", "[min]:[max]", ":", "intensity range to extract", false);
+    registerStringOption_("int", "[min]:[max]", ":", "Intensity range to extract", false);
 
-    registerFlag_("sort", "sorts the output according to RT and m/z.");
+    registerFlag_("sort", "Sorts the output according to RT and m/z.");
 
     registerTOPPSubsection_("peak_options", "Peak data options");
-    registerDoubleOption_("peak_options:sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
+    registerDoubleOption_("peak_options:sn", "<s/n ratio>", 0, "Write peaks with S/N > 'sn' values only", false);
     registerIntList_("peak_options:rm_pc_charge", "i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
     registerIntList_("peak_options:level", "i j ...", ListUtils::create<Int>("1,2,3"), "MS levels to extract", false);
-    registerFlag_("peak_options:sort_peaks", "sorts the peaks according to m/z.");
-    registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
-    registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file.");
-    registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision.", false);
+    registerFlag_("peak_options:sort_peaks", "Sorts the peaks according to m/z");
+    registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
+    registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
+    registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
-    registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision.", false);
+    registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:int_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
     setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
@@ -283,35 +284,46 @@ protected:
     setValidStrings_("peak_options:numpress:intensity", ListUtils::create<String>("none,linear,pic,slof"));
     registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic)", false);
 
-    registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties.");
+    registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
 
-    registerStringOption_("spectra:remove_mode", "<mode>", "", "Remove scans by scan mode\n", false);
+    registerStringOption_("spectra:remove_mode", "<mode>", "", "Remove scans by scan mode", false);
     StringList mode_list;
     for (Size i = 0; i < InstrumentSettings::SIZE_OF_SCANMODE; ++i)
     {
       mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
     }
     setValidStrings_("spectra:remove_mode", mode_list);
+    
     addEmptyLine_();
-    registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method\n", false);
+    registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
     StringList activation_list;
     for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
     {
       activation_list.push_back(Precursor::NamesOfActivationMethod[i]);
     }
     setValidStrings_("spectra:remove_activation", activation_list);
-    registerStringOption_("spectra:remove_collision_energy", "[min]:[max]", ":", "Remove MSn scans with a collision energy in the given interval.", false);
-    registerStringOption_("spectra:remove_isolation_window_width", "[min]:[max]", ":", "Remove MSn scans whichs isolation window width is in the given interval.", false);
+    registerStringOption_("spectra:remove_collision_energy", "[min]:[max]", ":", "Remove MSn scans with a collision energy in the given interval", false);
+    registerStringOption_("spectra:remove_isolation_window_width", "[min]:[max]", ":", "Remove MSn scans whose isolation window width is in the given interval", false);
 
     addEmptyLine_();
     registerFlag_("spectra:select_zoom", "Select zoom (enhanced resolution) scans");
     registerStringOption_("spectra:select_mode", "<mode>", "", "Selects scans by scan mode\n", false);
     setValidStrings_("spectra:select_mode", mode_list);
-    registerStringOption_("spectra:select_activation", "<activation>", "", "Select MSn scans where any of its precursors features a certain activation method\n", false);
+    registerStringOption_("spectra:select_activation", "<activation>", "", "Retain MSn scans where any of its precursors features a certain activation method", false);
     setValidStrings_("spectra:select_activation", activation_list);
-    registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval.", false);
-    registerStringOption_("spectra:select_isolation_window_width", "[min]:[max]", ":", "Select MSn scans whichs isolation window width is in the given interval.", false);
+    registerStringOption_("spectra:select_collision_energy", "[min]:[max]", ":", "Select MSn scans with a collision energy in the given interval", false);
+    registerStringOption_("spectra:select_isolation_window_width", "[min]:[max]", ":", "Select MSn scans whose isolation window width is in the given interval", false);
+
+    addEmptyLine_();
+    registerStringOption_("spectra:select_polarity", "<polarity>", "", "Retain MSn scans with a certain scan polarity", false);
+    StringList polarity_list;
+    for (Size i = 0; i < IonSource::SIZE_OF_POLARITY; ++i)
+    {
+      polarity_list.push_back(IonSource::NamesOfPolarity[i]);
+    }
+    setValidStrings_("spectra:select_polarity", polarity_list);
+
 
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Feature data options");
@@ -319,21 +331,21 @@ protected:
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Consensus feature data options");
-    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "maps to be extracted from a consensus", false);
-    registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map').");
+    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Maps to be extracted from a consensus", false);
+    registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map')");
 
     // black and white listing
-    registerTOPPSubsection_("consensus:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features.");
-    registerStringOption_("consensus:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept.", false, false);
+    registerTOPPSubsection_("consensus:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features");
+    registerStringOption_("consensus:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept", false, false);
     setValidStrings_("consensus:blackorwhitelist:blacklist", ListUtils::create<String>("false,true"));
 
     registerInputFile_("consensus:blackorwhitelist:file", "<file>", "", "Input file containing consensus features whose corresponding MS2 spectra should be removed from the mzML file!\n"
                        "Matching tolerances are taken from 'consensus:blackorwhitelist:rt' and 'consensus:blackorwhitelist:mz' options.\n"
                        "If consensus:blackorwhitelist:maps is specified, only these will be used.\n", false);
     setValidFormats_("consensus:blackorwhitelist:file", ListUtils::create<String>("consensusXML"));
-    registerIntList_("consensus:blackorwhitelist:maps", "i j ...", ListUtils::create<Int>(""), "maps used for black/white list filtering.", false);
+    registerIntList_("consensus:blackorwhitelist:maps", "i j ...", ListUtils::create<Int>(""), "Maps used for black/white list filtering", false);
 
-    registerDoubleOption_("consensus:blackorwhitelist:rt", "tolerance", 60.0, "retention tolerance [s] for precursor to consensus feature position", false);
+    registerDoubleOption_("consensus:blackorwhitelist:rt", "tolerance", 60.0, "Retention tolerance [s] for precursor to consensus feature position", false);
     registerDoubleOption_("consensus:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] for precursor to consensus feature position", false);
     registerStringOption_("consensus:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
 
@@ -344,24 +356,24 @@ protected:
 
     addEmptyLine_();
     registerTOPPSubsection_("f_and_c", "Feature & Consensus data options");
-    registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "charge range to extract", false);
-    registerStringOption_("f_and_c:size", "[min]:[max]", ":", "size range to extract", false);
+    registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
+    registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
 
     addEmptyLine_();
-    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist.");
-    registerFlag_("id:remove_clashes", "remove features with id clashes (different sequences mapped to one feature)", true);
+    registerTOPPSubsection_("id", "ID options. The Priority of the id-flags is: remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist");
+    registerFlag_("id:remove_clashes", "Remove features with id clashes (different sequences mapped to one feature)", true);
     registerFlag_("id:keep_best_score_id", "in case of multiple peptide identifications, keep only the id with best score");
     registerStringList_("id:sequences_whitelist", "<sequence>", StringList(), "keep only features with white listed sequences, e.g. LYSNLVER or the modification (Oxidation)", false);
     registerStringList_("id:accessions_whitelist", "<accessions>", StringList(), "keep only features with white listed accessions, e.g. sp|P02662|CASA1_BOVIN", false);
-    registerFlag_("id:remove_annotated_features", "remove features with annotations");
-    registerFlag_("id:remove_unannotated_features", "remove features without annotations");
-    registerFlag_("id:remove_unassigned_ids", "remove unassigned peptide identifications");
+    registerFlag_("id:remove_annotated_features", "Remove features with annotations");
+    registerFlag_("id:remove_unannotated_features", "Remove features without annotations");
+    registerFlag_("id:remove_unassigned_ids", "Remove unassigned peptide identifications");
     registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS2 identifications whose corresponding MS2 spectra should be removed from the mzML file!\n"
                        "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
                        "This tool will require all IDs to be matched to an MS2 spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
     setValidFormats_("id:blacklist", ListUtils::create<String>("idXML"));
-    registerDoubleOption_("id:rt", "tolerance", 0.1, "retention tolerance [s] for precursor to id position", false);
+    registerDoubleOption_("id:rt", "tolerance", 0.1, "Retention tolerance [s] for precursor to id position", false);
     registerDoubleOption_("id:mz", "tolerance", 0.001, "m/z tolerance [Th] for precursor to id position", false);
     setMinFloat_("id:rt", 0);
     setMinFloat_("id:mz", 0);
@@ -692,6 +704,20 @@ protected:
           if (Precursor::NamesOfActivationMethod[i] == select_activation)
           {
             exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(select_activation), true)), exp.end());
+          }
+        }
+      }
+
+      //select by scan polarity
+      String select_polarity = getStringOption_("spectra:select_polarity");
+      if (!select_polarity.empty())
+      {
+        writeDebug_("Selecting polarity: " + select_polarity, 3);
+        for (Size i = 0; i < IonSource::SIZE_OF_POLARITY; ++i)
+        {
+          if (IonSource::NamesOfPolarity[i] == select_polarity)
+          {
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanPolarity<MapType::SpectrumType>((IonSource::Polarity)i, true)), exp.end());
           }
         }
       }

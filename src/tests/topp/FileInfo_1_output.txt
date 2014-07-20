@@ -15,9 +15,9 @@ Ranges:
   mass-to-charge: 261.30 .. 783.50
   intensity:      3672.00 .. 272411.00
 
-MS levels: 1
+MS levels: 2
 Number of spectra per MS level:
-  level 1: 1
+  level 2: 1
 
 
 

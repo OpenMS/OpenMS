@@ -1198,13 +1198,13 @@ namespace OpenMS
     {
       throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    String message = "'" + name + "'";
-    if (p.valid_strings.size() > 0)
-    {
-      message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
-    }
     if (p.required && (getParam_(name).isEmpty() || getParam_(name) == ""))
     {
+      String message = "'" + name + "'";
+      if (p.valid_strings.size() > 0)
+      {
+        message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
+      }
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, message);
     }
     String tmp = getParamAsString_(name, p.default_value);

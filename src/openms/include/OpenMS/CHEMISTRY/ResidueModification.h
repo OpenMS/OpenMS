@@ -54,6 +54,13 @@ namespace OpenMS
           be applied to. A residue modification can be represented by its UniMod name
           identifier, e.g. "Oxidation (M)" or "Oxidation". This is a unique key which
           only occurs once in an OpenMS instance stored in the ModificationsDB.
+
+          Example: methionine sulfoxide formation by oxidation of methionine
+
+          getFullId()           = "Oxidation (M)"
+          getId()               = "Oxidation"
+          getFullName()         = "Oxidation or Hydoxylation"
+          getUniModAccession()  = "UniMod:312"
   */
   class OPENMS_DLLAPI ResidueModification
   {
