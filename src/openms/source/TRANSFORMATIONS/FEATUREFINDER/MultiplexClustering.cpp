@@ -56,217 +56,218 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug)
-    : rt_typical_(rt_typical), rt_minimum_(rt_minimum), debug_(debug)
-	{
-        if (exp_picked.size() != boundaries.size())
-        {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
-        }
-        
-        // ranges of the experiment
-        double mz_min = exp_profile.getMin().getY();
-        double mz_max = exp_profile.getMax().getY();
-        double rt_min = exp_profile.getMin().getX();
-        double rt_max = exp_profile.getMax().getX();
-        
-        // generate hash grid spacing
-        PeakWidthEstimator estimator(exp_picked, boundaries);
-        for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 5)
-        {
-            // We assume that the jitter of the peak centres are less than 1/5 of the peak width.
-            // The factor 1/5 ensures that two neighbouring peaks at the same RT cannot be in the same cluster. 
-            grid_spacing_mz_.push_back(mz);
-        }
-        grid_spacing_mz_.push_back(mz_max);
-        
-        for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
-        {
-            grid_spacing_rt_.push_back(rt);
-        }
-        grid_spacing_rt_.push_back(rt_max);
-        
-        // determine RT scaling
-        std::vector<double> mz;
-        MSExperiment<Peak1D>::Iterator it_rt;
-        for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
-        {
-            MSSpectrum<Peak1D>::Iterator it_mz;
-            for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
-            {
-                mz.push_back(it_mz->getMZ());
-             }
-        }
-        std::sort(mz.begin(), mz.end());
-        // RT scaling = peak width at the median of the m/z distribuation / RT threshold
-        rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical_;
-        
-	}
-    
-    std::vector<std::map<int,MultiplexCluster> > MultiplexClustering::cluster(std::vector<MultiplexFilterResult> filter_results)
+  MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug) :
+    rt_typical_(rt_typical), rt_minimum_(rt_minimum), debug_(debug)
+  {
+    if (exp_picked.size() != boundaries.size())
     {
-        std::vector<std::map<int,MultiplexCluster> > cluster_results;
-        
-        // loop over patterns i.e. cluster each of the corresponding filter results
-        for (unsigned i = 0; i < filter_results.size(); ++i)
-        {
-            MultiplexLocalClustering clustering(filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
-            clustering.cluster();
-            //clustering.extendClustersY();
-            clustering.removeSmallClustersY(rt_minimum_);
-            cluster_results.push_back(clustering.getResults());
-            
-            // debug output
-            vector<DebugPoint> debug_clustered;
-            if (debug_)
-            {
-                std::map<int,MultiplexCluster> cluster_result = clustering.getResults();
-                MultiplexFilterResult filter_result = filter_results[i];
-                
-                int cluster_id = 0;
-                for(std::map<int,MultiplexCluster>::iterator it = cluster_result.begin(); it != cluster_result.end(); ++it) {
-                    std::vector<int> points = (it->second).getPoints();
-                    for (std::vector<int>::iterator it2 = points.begin(); it2 != points.end(); ++it2)
-                    {
-                        DebugPoint data_point;
-                        data_point.rt = filter_result.getRT(*it2);
-                        data_point.mz = filter_result.getMZ(*it2);
-                        data_point.cluster = cluster_id;
-                        debug_clustered.push_back(data_point);
-                    }
-                    ++cluster_id;
-                }
-                writeDebug(debug_clustered, i);
-            }
-
-        }
-        
-        return cluster_results;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
     }
-    
-    MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries)
+
+    // ranges of the experiment
+    double mz_min = exp_profile.getMin().getY();
+    double mz_max = exp_profile.getMax().getY();
+    double rt_min = exp_profile.getMin().getX();
+    double rt_max = exp_profile.getMax().getX();
+
+    // generate hash grid spacing
+    PeakWidthEstimator estimator(exp_picked, boundaries);
+    for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 5)
     {
-        if (exp_picked.size() != boundaries.size())
-        {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
-        }
-
-        std::map<double,double> mz_peak_width;
-        MSExperiment<Peak1D>::Iterator it_rt;
-        vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-        for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
-            it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();
-            ++it_rt, ++it_rt_boundaries)
-        {
-            MSSpectrum<Peak1D>::Iterator it_mz;
-            vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
-            for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
-                 it_mz < it_rt->end(), it_mz_boundary < it_rt_boundaries->end();
-                 ++it_mz, ++it_mz_boundary)
-            {
-                mz_peak_width[it_mz->getMZ()] = (*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min;
-            }
-        }
-
-        std::vector<double> mz;
-        std::vector<double> peak_width;
-        for (std::map<double, double>::iterator it = mz_peak_width.begin(); it != mz_peak_width.end(); ++it)
-        {
-            mz.push_back(it->first);
-            peak_width.push_back(it->second);
-        }
-        mz_min_ = mz.front();
-        mz_max_ = mz.back();
-        
-        Math::LinearRegression linreg;
-        linreg.computeRegression(0.95, mz.begin(), mz.end(), peak_width.begin());
-        slope_ = linreg.getSlope();
-        intercept_ = linreg.getIntercept();
+      // We assume that the jitter of the peak centres are less than 1/5 of the peak width.
+      // The factor 1/5 ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
+      grid_spacing_mz_.push_back(mz);
     }
-    
-    double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz)
+    grid_spacing_mz_.push_back(mz_max);
+
+    for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
     {
-        double width;
-        
-        if (mz < mz_min_)
-        {
-            width = slope_ * mz_min_ + intercept_;
-        }
-        else if (mz > mz_max_)
-        {
-            width = slope_ * mz_max_ + intercept_;
-        }
-        else
-        {
-            width = slope_ * mz + intercept_;
-        }
-        
-        if (width < 0)
-        {
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Estimated peak width is negative.","");
-        }
+      grid_spacing_rt_.push_back(rt);
+    }
+    grid_spacing_rt_.push_back(rt_max);
 
-        return width;
-    }
-    
-    void MultiplexClustering::writeDebug(vector<DebugPoint> points, int pattern) const
+    // determine RT scaling
+    std::vector<double> mz;
+    MSExperiment<Peak1D>::Iterator it_rt;
+    for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
     {
-        // fill consensus map
-        ConsensusMap map;
-        for (std::vector<DebugPoint>::const_iterator it = points.begin(); it != points.end(); ++it)
-        {
-            ConsensusFeature consensus;
-            consensus.setRT((*it).rt);
-            consensus.setMZ((*it).mz);
-            consensus.setIntensity((*it).cluster);
-            consensus.setCharge(1);    // dummy
-            consensus.setMetaValue("color", getColour((*it).cluster));
-            consensus.setMetaValue("Cluster ID", (*it).cluster);
-            
-            FeatureHandle feature;
-            feature.setRT((*it).rt);
-            feature.setMZ((*it).mz);
-            feature.setUniqueId((*it).cluster);
-            consensus.insert(feature);
-            
-            map.getFileDescriptions()[0].size++;
-            map.push_back(consensus);
-        }
-        
-        ConsensusMap::FileDescription & desc = map.getFileDescriptions()[0];
-        desc.filename = "debug";
-        desc.label = "Cluster";
-        
-        map.sortByPosition();
-        map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-        map.setExperimentType("multiplex");
+      MSSpectrum<Peak1D>::Iterator it_mz;
+      for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      {
+        mz.push_back(it_mz->getMZ());
+      }
+    }
+    std::sort(mz.begin(), mz.end());
+    // RT scaling = peak width at the median of the m/z distribuation / RT threshold
+    rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical_;
 
-        // write consensus file
-        ConsensusXMLFile file;
-        String file_name = "debug_clustered_";
-        file_name = file_name + pattern + ".consensusXML";
-        file.store(file_name, map);
-    }
-    
-    String MultiplexClustering::getColour(int c) const
+  }
+
+  std::vector<std::map<int, MultiplexCluster> > MultiplexClustering::cluster(std::vector<MultiplexFilterResult> filter_results)
+  {
+    std::vector<std::map<int, MultiplexCluster> > cluster_results;
+
+    // loop over patterns i.e. cluster each of the corresponding filter results
+    for (unsigned i = 0; i < filter_results.size(); ++i)
     {
-        // 35 + 15 HTML colors
-        static const String colours[] =
+      MultiplexLocalClustering clustering(filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
+      clustering.cluster();
+      //clustering.extendClustersY();
+      clustering.removeSmallClustersY(rt_minimum_);
+      cluster_results.push_back(clustering.getResults());
+
+      // debug output
+      vector<DebugPoint> debug_clustered;
+      if (debug_)
+      {
+        std::map<int, MultiplexCluster> cluster_result = clustering.getResults();
+        MultiplexFilterResult filter_result = filter_results[i];
+
+        int cluster_id = 0;
+        for (std::map<int, MultiplexCluster>::iterator it = cluster_result.begin(); it != cluster_result.end(); ++it)
         {
-          "#FAEBD7", "#7FFFD4", "#FFE4C4", "#8A2BE2", "#A52A2A",
-          "#DEB887", "#5F9EA0", "#7FFF00", "#D2691E", "#FF7F50",
-          "#6495ED", "#DC143C", "#00008B", "#008B8B", "#B8860B",
-          "#A9A9A9", "#006400", "#BDB76B", "#8B008B", "#556B2F",
-          "#FF8C00", "#8B0000", "#E9967A", "#8FBC8F", "#483D8B",
-          "#2F4F4F", "#00CED1", "#9400D3", "#FF1493", "#B22222",
-          "#FFD700", "#DAA520", "#008000", "#ADFF2F", "#C71585",
-            
-          "#00FFFF", "#000000", "#0000FF", "#FF00FF", "#008000",
-          "#808080", "#00FF00", "#800000", "#000080", "#808000",
-          "#800080", "#FF0000", "#C0C0C0", "#008080", "#FFFF00",
-        };
-        
-        return colours[c % 50];
+          std::vector<int> points = (it->second).getPoints();
+          for (std::vector<int>::iterator it2 = points.begin(); it2 != points.end(); ++it2)
+          {
+            DebugPoint data_point;
+            data_point.rt = filter_result.getRT(*it2);
+            data_point.mz = filter_result.getMZ(*it2);
+            data_point.cluster = cluster_id;
+            debug_clustered.push_back(data_point);
+          }
+          ++cluster_id;
+        }
+        writeDebug(debug_clustered, i);
+      }
+
     }
-    
+
+    return cluster_results;
+  }
+
+  MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries)
+  {
+    if (exp_picked.size() != boundaries.size())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
+    }
+
+    std::map<double, double> mz_peak_width;
+    MSExperiment<Peak1D>::Iterator it_rt;
+    vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
+    for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
+         it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();
+         ++it_rt, ++it_rt_boundaries)
+    {
+      MSSpectrum<Peak1D>::Iterator it_mz;
+      vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
+      for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
+           it_mz < it_rt->end(), it_mz_boundary < it_rt_boundaries->end();
+           ++it_mz, ++it_mz_boundary)
+      {
+        mz_peak_width[it_mz->getMZ()] = (*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min;
+      }
+    }
+
+    std::vector<double> mz;
+    std::vector<double> peak_width;
+    for (std::map<double, double>::iterator it = mz_peak_width.begin(); it != mz_peak_width.end(); ++it)
+    {
+      mz.push_back(it->first);
+      peak_width.push_back(it->second);
+    }
+    mz_min_ = mz.front();
+    mz_max_ = mz.back();
+
+    Math::LinearRegression linreg;
+    linreg.computeRegression(0.95, mz.begin(), mz.end(), peak_width.begin());
+    slope_ = linreg.getSlope();
+    intercept_ = linreg.getIntercept();
+  }
+
+  double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz)
+  {
+    double width;
+
+    if (mz < mz_min_)
+    {
+      width = slope_ * mz_min_ + intercept_;
+    }
+    else if (mz > mz_max_)
+    {
+      width = slope_ * mz_max_ + intercept_;
+    }
+    else
+    {
+      width = slope_ * mz + intercept_;
+    }
+
+    if (width < 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Estimated peak width is negative.", "");
+    }
+
+    return width;
+  }
+
+  void MultiplexClustering::writeDebug(vector<DebugPoint> points, int pattern) const
+  {
+    // fill consensus map
+    ConsensusMap map;
+    for (std::vector<DebugPoint>::const_iterator it = points.begin(); it != points.end(); ++it)
+    {
+      ConsensusFeature consensus;
+      consensus.setRT((*it).rt);
+      consensus.setMZ((*it).mz);
+      consensus.setIntensity((*it).cluster);
+      consensus.setCharge(1);          // dummy
+      consensus.setMetaValue("color", getColour((*it).cluster));
+      consensus.setMetaValue("Cluster ID", (*it).cluster);
+
+      FeatureHandle feature;
+      feature.setRT((*it).rt);
+      feature.setMZ((*it).mz);
+      feature.setUniqueId((*it).cluster);
+      consensus.insert(feature);
+
+      map.getFileDescriptions()[0].size++;
+      map.push_back(consensus);
+    }
+
+    ConsensusMap::FileDescription& desc = map.getFileDescriptions()[0];
+    desc.filename = "debug";
+    desc.label = "Cluster";
+
+    map.sortByPosition();
+    map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+    map.setExperimentType("multiplex");
+
+    // write consensus file
+    ConsensusXMLFile file;
+    String file_name = "debug_clustered_";
+    file_name = file_name + pattern + ".consensusXML";
+    file.store(file_name, map);
+  }
+
+  String MultiplexClustering::getColour(int c) const
+  {
+    // 35 + 15 HTML colors
+    static const String colours[] =
+    {
+      "#FAEBD7", "#7FFFD4", "#FFE4C4", "#8A2BE2", "#A52A2A",
+      "#DEB887", "#5F9EA0", "#7FFF00", "#D2691E", "#FF7F50",
+      "#6495ED", "#DC143C", "#00008B", "#008B8B", "#B8860B",
+      "#A9A9A9", "#006400", "#BDB76B", "#8B008B", "#556B2F",
+      "#FF8C00", "#8B0000", "#E9967A", "#8FBC8F", "#483D8B",
+      "#2F4F4F", "#00CED1", "#9400D3", "#FF1493", "#B22222",
+      "#FFD700", "#DAA520", "#008000", "#ADFF2F", "#C71585",
+
+      "#00FFFF", "#000000", "#0000FF", "#FF00FF", "#008000",
+      "#808080", "#00FF00", "#800000", "#000080", "#808000",
+      "#800080", "#FF0000", "#C0C0C0", "#008080", "#FFFF00",
+    };
+
+    return colours[c % 50];
+  }
+
 }
