@@ -42,7 +42,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/COMPARISON/CLUSTERING/HashGrid2.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 
 #ifndef OPENMS_COMPARISON_CLUSTERING_MULTIPLEXLOCALCLUSTERING_H
@@ -71,11 +71,11 @@ class OPENMS_DLLAPI MultiplexLocalClustering
 {
     public:
     /**
-    * @brief cluster centre, cluster bounding box, hash grid index
+    * @brief cluster centre, cluster bounding box, grid index
     */
     typedef MultiplexCluster::Point Point;    // DPosition<2>
     typedef MultiplexCluster::Rectangle Rectangle;    // DBoundingBox<2>
-    typedef HashGrid2::CellIndex CellIndex;    // std::pair<int,int>
+    typedef MultiplexGrid::CellIndex CellIndex;    // std::pair<int,int>
 
     /**
      * @brief initialises all data structures
@@ -176,10 +176,10 @@ class OPENMS_DLLAPI MultiplexLocalClustering
 
     private:
     /**
-    * @brief hash grid on which the position of the clusters are registered
+    * @brief grid on which the position of the clusters are registered
     * used in cluster method
     */
-    HashGrid2 grid_;
+    MultiplexGrid grid_;
 
     /**
     * @brief list of clusters

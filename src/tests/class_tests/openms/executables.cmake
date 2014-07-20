@@ -36,7 +36,6 @@ set(datastructures_executables_list
   DistanceMatrix_test
   GridFeature_test
   HashGrid_test
-  HashGrid2_test
   ListUtils_test
   ListUtilsIO_test
   LPWrapper_test
@@ -44,6 +43,7 @@ set(datastructures_executables_list
   MassExplainer_test
   Matrix_test
   MultiplexCluster_test
+  MultiplexGrid_test
   MultiplexLocalClustering_test
   Param_test
   QTCluster_test

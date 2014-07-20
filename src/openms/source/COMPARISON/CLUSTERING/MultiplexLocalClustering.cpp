@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/HashGrid2.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexLocalClustering.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
@@ -117,7 +117,7 @@ void MultiplexLocalClustering::cluster()
         clusters_.erase(clusters_.find(cluster_index2));
         clusters_.insert(std::make_pair(cluster_index1, new_cluster));
         
-        // update hash grid
+        // update grid
         CellIndex cell_for_cluster1 = grid_.getIndex(cluster1.getCentre());
         CellIndex cell_for_cluster2 = grid_.getIndex(cluster2.getCentre());
         CellIndex cell_for_new_cluster = grid_.getIndex(DPosition<2>(new_x,new_y));
@@ -173,9 +173,9 @@ void MultiplexLocalClustering::extendClustersY()
     std::vector<double> grid_spacing_y_new;
     grid_spacing_y_new.push_back(grid_spacing_y.front());
     grid_spacing_y_new.push_back(grid_spacing_y.back());
-    HashGrid2 grid_x_only(grid_spacing_x, grid_spacing_y_new);
+    MultiplexGrid grid_x_only(grid_spacing_x, grid_spacing_y_new);
     
-    // register final clusters on the new hash grid
+    // register final clusters on the new grid
     for (std::map<int, MultiplexCluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
     {
         int cluster_index = it->first;
@@ -269,7 +269,7 @@ void MultiplexLocalClustering::extendClustersY()
                         clusters_final_.erase(clusters_final_.find(index_list.find(*c2)->second));    // crash here
                         clusters_final_.insert(std::make_pair(index_list.find(*c1)->second, new_cluster));
                         
-                        // update hash grid
+                        // update grid
                         CellIndex cell_for_cluster1 = grid_x_only.getIndex((*c1).getCentre());
                         CellIndex cell_for_cluster2 = grid_x_only.getIndex((*c2).getCentre());
                         CellIndex cell_for_new_cluster = grid_x_only.getIndex(new_centre);
@@ -356,7 +356,7 @@ void MultiplexLocalClustering::init(const std::vector<double> &data_x, const std
         MultiplexCluster cluster(position, box, pi, properties_A[i], pb);
         clusters_.insert(std::make_pair(i,cluster));
         
-        // register on hash grid
+        // register on grid
         grid_.addCluster(grid_.getIndex(position), i);
     }
     

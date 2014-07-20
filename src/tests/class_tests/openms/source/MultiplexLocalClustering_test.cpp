@@ -36,7 +36,6 @@
 #include <OpenMS/test_config.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexLocalClustering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/HashGrid2.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 

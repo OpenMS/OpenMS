@@ -9,8 +9,8 @@ ClusterFunctor.cpp
 ClusterHierarchical.cpp
 CompleteLinkage.cpp
 EuclideanSimilarity.cpp
-HashGrid2.cpp
 MultiplexCluster.cpp
+MultiplexGrid.cpp
 MultiplexLocalClustering.cpp
 SingleLinkage.cpp
 SILACClustering.cpp

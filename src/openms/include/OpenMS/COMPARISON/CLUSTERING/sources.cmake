@@ -10,9 +10,9 @@ ClusterHierarchical.h
 CompleteLinkage.h
 EuclideanSimilarity.h
 HashGrid.h
-HashGrid2.h
 HierarchicalClustering.h
 MultiplexCluster.h
+MultiplexGrid.h
 MultiplexLocalClustering.h
 SingleLinkage.h
 SILACClustering.h
