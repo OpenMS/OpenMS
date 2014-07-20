@@ -107,4 +107,18 @@ START_SECTION(MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment
     delete ptr;
 END_SECTION
 
+MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
+
+START_SECTION(std::vector<std::map<int MultiplexCluster> > cluster(std::vector<MultiplexFilterResult> filter_results))
+    std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
+    TEST_EQUAL(cluster_results[0].size(), 0);
+    TEST_EQUAL(cluster_results[1].size(), 0);
+    TEST_EQUAL(cluster_results[2].size(), 0);
+    TEST_EQUAL(cluster_results[3].size(), 0);
+    TEST_EQUAL(cluster_results[4].size(), 2);
+    TEST_EQUAL(cluster_results[5].size(), 0);
+    TEST_EQUAL(cluster_results[6].size(), 0);
+    TEST_EQUAL(cluster_results[7].size(), 0);
+END_SECTION
+
 END_TEST
