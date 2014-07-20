@@ -159,6 +159,26 @@ public:
       /// Returns the last error description
       String errorString();
 
+      /**
+        @brief Escapes a string and returns the escaped string
+
+        Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
+        need to be escaped. Parsing those escaped strings from file again is automatically done by Xerces.
+        Escaped characters are: & < > " ' 
+      */
+      static String writeXMLEscape(const String& to_escape)
+      {
+        String _copy = to_escape;
+        // has() is cheap, so check before calling substitute(), since substitute() will usually happen rarely
+        if (_copy.has('&')) _copy.substitute("&","&amp;");
+        if (_copy.has('>')) _copy.substitute(">","&gt;");
+        if (_copy.has('"')) _copy.substitute("\"","&quot;");
+        if (_copy.has('<')) _copy.substitute("<","&lt;");
+        if (_copy.has('\'')) _copy.substitute("'","&apos;");
+
+        return _copy;
+      }
+
 protected:
       /// Error message of the last error
       mutable String error_message_;
@@ -180,7 +200,7 @@ protected:
       std::vector<String> open_tags_;
 
       /// Returns if two xerces strings are equal
-      inline bool equal_(const XMLCh * a, const XMLCh * b)
+      inline bool equal_(const XMLCh * a, const XMLCh * b) const
       {
         return xercesc::XMLString::compareString(a, b) == 0;
       }
