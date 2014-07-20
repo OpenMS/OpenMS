@@ -3,10 +3,13 @@ from Types cimport *
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>" namespace "OpenMS":
     
     cdef cppclass SplinePackage "OpenMS::SplinePackage":
-        SplinePackage() nogil except +
+
+        SplinePackage(libcpp_vector[double] mz, libcpp_vector[double] intensity, double scaling) nogil except +
         SplinePackage(SplinePackage) nogil except + #wrap-ignore
-        double mzMin_
-        double mzMax_
-	double mzStepWidth_
-	Spline2d<double> spline_
+
+        double getMzMin() nogil except +
+        double getMzMax() nogil except +
+        double getMzStepWidth() nogil except +
+        bool isInPackage(double mz) nogil except +
+        double eval(double mz) nogil except +
 
