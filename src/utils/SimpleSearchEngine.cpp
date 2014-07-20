@@ -66,6 +66,8 @@
 #include <map>
 #include <algorithm>
 
+#include <boost/unordered_set.hpp>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -520,7 +522,7 @@ protected:
     vector<ResidueModification> varMods = getModifications_(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("peptide_max_var_mods");
 
-    vector<AASequence> sequences(fasta_db.size());
+    boost::unordered_set<Size> processed_petides_hash;
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -540,93 +542,84 @@ protected:
       // c++ STL pattern for deleting entries from vector based on predicate evaluation
       current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), HasInvalidPeptideLengthPredicate_), current_digest.end());
 
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-      sequences.insert(sequences.end(), current_digest.begin(), current_digest.end());
-    }
-    progresslogger.endProgress();
-
-    progresslogger.startProgress(0, 1, "Ensuring uniqueness of peptide models...");
-    sort(sequences.begin(), sequences.end());
-    sequences.erase(unique(sequences.begin(), sequences.end()), sequences.end());
-    progresslogger.endProgress();
-
-    progresslogger.startProgress(0, 1, "Applying fixed modifications...");
-    ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), sequences.begin(), sequences.end());
-    progresslogger.endProgress();
-
-    vector<AASequence> all_modified_peptides;
-
-    progresslogger.startProgress(0, 1, "Applying variable modifications...");
-    ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), sequences.begin(), sequences.end(), max_variable_mods_per_peptide, all_modified_peptides);
-    progresslogger.endProgress();
-
-    progresslogger.startProgress(0, all_modified_peptides.size(), "scoring peptides...");
-
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-    for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
-    {
-      IF_MASTERTHREAD
+      for (vector<AASequence>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
-        progresslogger.setProgress(mod_pep_idx * NUMBER_OF_THREADS);
-      }
-
-      const AASequence& candidate = all_modified_peptides[mod_pep_idx];
-      double current_peptide_mass = candidate.getMonoWeight();
-
-      // determine MS2 precursors that match to the current peptide mass
-      multimap<double, Size>::const_iterator low_it;
-      multimap<double, Size>::const_iterator up_it;
-
-      if (precursor_mass_tolerance_unit_ppm)      // ppm
-      {
-        low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
-        up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
-      }
-      else        // Dalton
-      {
-        low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * precursor_mass_tolerance);
-        up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * precursor_mass_tolerance);
-      }
-
-      if (low_it == up_it) continue;     // no matching precursor in data
-
-      //create theoretical spectrum
-      MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
-
-      //add peaks for b and y ions with charge 1
-      spectrum_generator.getSpectrum(theo_spectrum, candidate, 1);
-
-      //sort by mz
-      theo_spectrum.sortByPosition();
-
-      for (; low_it != up_it; ++low_it)
-      {
-        const Size& scan_index = low_it->second;
-        const MSSpectrum<Peak1D>& exp_spectrum = exp[scan_index];
-
-        double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
-
-        // no hit
-        if (score < 1e-16)
+        Size string_hash = boost::hash<std::string>()(cit->toUnmodifiedString());
+        if (processed_petides_hash.find(string_hash) != processed_petides_hash.end())
         {
+          // peptide already processed so skip it
           continue;
-        }
-
-        PeptideHit hit;
-        hit.setSequence(candidate);
-        hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
-        hit.setScore(score);
+        } 
+        else
+        {
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-        peptide_hits[scan_index].push_back(hit);
+          processed_petides_hash.insert(string_hash);  // ok to add already here as s is unique for this digested protein
+
+          ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), *cit);
+          vector<AASequence> all_modified_peptides;
+          ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), *cit, max_variable_mods_per_peptide, all_modified_peptides);
+          for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
+          {
+            const AASequence& candidate = all_modified_peptides[mod_pep_idx];
+            double current_peptide_mass = candidate.getMonoWeight();
+
+            // determine MS2 precursors that match to the current peptide mass
+            multimap<double, Size>::const_iterator low_it;
+            multimap<double, Size>::const_iterator up_it;
+
+            if (precursor_mass_tolerance_unit_ppm)      // ppm
+            {
+              low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
+              up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
+            }
+            else        // Dalton
+            {
+              low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * precursor_mass_tolerance);
+              up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * precursor_mass_tolerance);
+            }
+
+            if (low_it == up_it) 
+            {
+              continue;     // no matching precursor in data
+            }
+
+            //create theoretical spectrum
+            MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
+
+            //add peaks for b and y ions with charge 1
+            spectrum_generator.getSpectrum(theo_spectrum, candidate, 1);
+
+            //sort by mz
+            theo_spectrum.sortByPosition();
+
+            for (; low_it != up_it; ++low_it)
+            {
+              const Size& scan_index = low_it->second;
+              const MSSpectrum<Peak1D>& exp_spectrum = exp[scan_index];
+
+              double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+
+              // no hit
+              if (score < 1e-16)
+              {
+                continue;
+              }
+
+              PeptideHit hit;
+              hit.setSequence(candidate);
+              hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
+              hit.setScore(score);
+#ifdef _OPENMP
+#pragma omp critical
+#endif
+              peptide_hits[scan_index].push_back(hit);
+            }
+          }
+        }
       }
     }
-
     progresslogger.endProgress();
 
     progresslogger.startProgress(0, 1, "Post-processing PSMs...");
