@@ -984,6 +984,7 @@ PyOpenMSChecker:
     - OpenMS::IsZoomSpectrum
     - OpenMS::IsEmptySpectrum
     - OpenMS::InRTRange
+    - OpenMS::HasScanPolarity
     - OpenMS::HasMetaValue
     - OpenMS::IsInCollisionEnergyRange
     - OpenMS::IsInIsolationWindowSizeRange
