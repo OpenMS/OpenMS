@@ -1326,6 +1326,21 @@ private:
           os << writeXMLEscape ( (String)spec.getMetaValue("filter string") );
         }
 
+        // base peak mz (used by some programs like MAVEN), according to xsd:
+        // "m/z of the base peak (most intense peak)"
+        os << "\" basePeakMz=\"";
+        double basePeakInt = 0;
+        double basePeakMz = 0;
+        for (Size j = 0; j < spec.size(); j++)
+        {
+          if (spec[j].getIntensity() > basePeakInt)
+          {
+            basePeakInt = spec[j].getIntensity();
+            basePeakMz = spec[j].getMZ();
+          }
+        }
+        os << basePeakMz;
+
         // retention time
         os << "\" retentionTime=\"";
         if (spec.getRT() < 0)
