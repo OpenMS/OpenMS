@@ -91,8 +91,8 @@
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
   - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
-  - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc.) and determines their relative abundance.
   - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
+  - @subpage TOPP_FeatureFinderMultiplex - Identifies peptide multiplets (pairs, triplets etc.) and determines their relative abundance.
   - @subpage TOPP_IsobaricAnalyzer - Extracts and normalizes TMT and iTRAQ information from a MS experiment.
   - @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps

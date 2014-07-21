@@ -152,7 +152,7 @@ using namespace boost::math;
   - <i>labels</i> - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
   - <i>charge</i> - Range of charge states in the sample, i.e. min charge : max charge.
   - <i>missed_cleavages</i> - Maximum number of missed cleavages.
-  - <i>peaks_per_peptide</i> - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
+  - <i>isotopes_per_peptide</i> - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
 
  Parameters in section <i>labels:</i>
  This section contains a list of all isotopic labels currently available for analysis of SILAC data with FeatureFinderMultiplex.
@@ -300,7 +300,7 @@ public:
       defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("peaks_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
+      defaults.setValue("isotopes_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
     }
 
 
@@ -319,7 +319,7 @@ public:
       defaults.setValue("peptide_similarity", 0.7, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
       defaults.setMinFloat("peptide_similarity", 0.0);
       defaults.setMaxFloat("peptide_similarity", 1.0);
-      defaults.setValue("averagine_similarity", 0.6, "The isotopic pattern of a peptide should resemble ");
+      defaults.setValue("averagine_similarity", 0.6, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
       defaults.setMinFloat("averagine_similarity", 0.0);
       defaults.setMaxFloat("averagine_similarity", 1.0);
     }
@@ -356,7 +356,7 @@ public:
       swap(charge_min, charge_max);
 
     // get selected peaks range
-    String isotopes_per_peptide_string = getParam_().getValue("sample:peaks_per_peptide");
+    String isotopes_per_peptide_string = getParam_().getValue("sample:isotopes_per_peptide");
     double isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp;
     parseRange_(isotopes_per_peptide_string, isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp);
     isotopes_per_peptide_min = isotopes_per_peptide_min_temp;
@@ -703,8 +703,8 @@ public:
     std::cout << "    Starting filtering.\n";
     int charge_min = 1;
     int charge_max = 4;
-    int peaks_per_peptide_min = 3;
-    int peaks_per_peptide_max = 6;
+    int isotopes_per_peptide_min = 3;
+    int isotopes_per_peptide_max = 6;
     bool missing_peaks = false;
     double intensity_cutoff = 10.0;
     double peptide_similarity = 0.8;
@@ -714,9 +714,9 @@ public:
     bool debug = true;
     
 	std::vector<MassPattern> masses = generateMassPatterns_();
-	std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min, charge_max, peaks_per_peptide_max, masses);
+	std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min, charge_max, isotopes_per_peptide_max, masses);
     //std::cout << "    number of peak patterns = " << patterns.size() << "\n";
-    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
+    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
     std::vector<MultiplexFilterResult> filter_results = filtering.filter();
     
 	// ---------------------------
