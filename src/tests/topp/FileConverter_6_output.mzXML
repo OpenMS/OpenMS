@@ -28,7 +28,7 @@
 			<software type="processing" name="FileConverter" version="version_string" completionTime="1999-12-31T23:59:59"/>
 			<processingOperation name="parameter: mode" value="test_mode"/>
 		</dataProcessing>
-		<scan num="1" msLevel="1" peaksCount="15" polarity="+" scanType="Full" retentionTime="PT5.1S" startMz="400" endMz="1800">
+		<scan num="1" msLevel="1" peaksCount="15" polarity="+" scanType="Full" filterLine="+ c NSI Full ms [ 400.00-1800.00]" retentionTime="PT5.1S" startMz="400" endMz="1800">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
 			<nameValue name="maldi_spot_id" value="M0"/>
 			<nameValue name="lowest observed m/z" value="400.39"/>
@@ -52,7 +52,7 @@
 			<nameValue name="dwell time" value="123.45"/>
 			<nameValue name="mzname" value="mzarray1"/>
 			<nameValue name="itname" value="itarray1"/>
-			<scan num="2" msLevel="2" peaksCount="10" polarity="+" scanType="Full" retentionTime="PT5.2S" startMz="100" endMz="500">
+			<scan num="2" msLevel="2" peaksCount="10" polarity="+" scanType="Full" filterLine="+ c d Full ms2  445.35@cid35.00 [ 110.00-905.00]" retentionTime="PT5.2S" startMz="100" endMz="500">
 				<precursorMz precursorIntensity="120053" precursorCharge="2" windowWideness="14.43">5.5555</precursorMz>
 				<precursorMz precursorIntensity="0" windowWideness="34.43">15.55</precursorMz>
 				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEGgAABAAAAAQZAAAECAAABBgAAAQMAAAEFgAABBAAAAQUAAAEEgAABBIAAAQUAAAEEAAABBYAAAQMAAAEGAAABAgAAAQZAAAEAAAAA=</peaks>
@@ -70,7 +70,7 @@
 				<nameValue name="itname" value="itarray2"/>
 			</scan>
 		</scan>
-		<scan num="3" msLevel="1" peaksCount="15" polarity="+" scanType="Full" retentionTime="PT5.3S" startMz="400" endMz="1800">
+		<scan num="3" msLevel="1" peaksCount="15" polarity="+" scanType="Full" filterLine="+ c NSI Full ms [ 400.00-1800.00]" retentionTime="PT5.3S" startMz="400" endMz="1800">
 			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">AAAAAEFwAAA/gAAAQWAAAEAAAABBUAAAQEAAAEFAAABAgAAAQTAAAECgAABBIAAAQMAAAEEQAABA4AAAQQAAAEEAAABA4AAAQRAAAEDAAABBIAAAQKAAAEEwAABAgAAAQUAAAEBAAABBUAAAQAAAAEFgAAA/gAAA</peaks>
 			<nameValue name="maldi_spot_id" value="M2"/>
 			<nameValue name="lowest observed m/z" value="400.39"/>
