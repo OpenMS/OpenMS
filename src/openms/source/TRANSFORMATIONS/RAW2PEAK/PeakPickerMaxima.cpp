@@ -133,6 +133,8 @@ namespace OpenMS
         // to the left
         size_t k = 2;
 
+        bool previous_zero_left(false);    // no need to extend peak if previous intensity was zero
+        bool previous_zero_right(false);   // no need to extend peak if previous intensity was zero
         size_t missing_left(0);
         size_t missing_right(0);
 
@@ -142,6 +144,7 @@ namespace OpenMS
         while (k <= i // prevent underflow
               && (i - k + 1) > 0
               && (missing_left < 2)
+              && !previous_zero_left
               && int_array[i - k] <= boundary_int)
         {
           double act_snt_lk = 0.0;
@@ -161,6 +164,8 @@ namespace OpenMS
             boundary_int = int_array[i - k];
             ++missing_left;
           }
+
+          previous_zero_left = (std::fabs(int_array[i - k]) < std::numeric_limits<double>::epsilon());
           ++k;
         }
         candidate.left_boundary = i - k + 1;
@@ -171,6 +176,7 @@ namespace OpenMS
         boundary_int = right_neighbor_int;
         while ((i + k) < mz_array.size()
               && (missing_right < 2)
+              && !previous_zero_right
               && int_array[i + k] <= boundary_int)
         {
           double act_snt_rk = 0.0;
@@ -190,9 +196,12 @@ namespace OpenMS
             boundary_int = int_array[i + k];
             ++missing_right;
           }
+
+          previous_zero_right = (std::fabs(int_array[i + k]) < std::numeric_limits<double>::epsilon());
           ++k;
         }
         candidate.right_boundary = i + k - 1;
+
         // jump over raw data points that have been considered already
         i = i + k - 1;
         pc.push_back(candidate);
