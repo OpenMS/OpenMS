@@ -74,8 +74,8 @@
 #include <locale>
 #include <iomanip>
 
-using namespace OpenMS;
 using namespace std;
+using namespace OpenMS;
 using namespace boost::math;
 
 //-------------------------------------------------------------
@@ -142,11 +142,11 @@ using namespace boost::math;
 
   Parameters in section <i>algorithm:</i>
   - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
-  - <i>rt_threshold</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
+  - <i>rt_typical</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
   - <i>rt_min</i> - Lower bound for the retentions time [s].
   - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a SILAC pattern.
-  - <i>intensity_correlation</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
-  - <i>model_deviation</i> - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
+  - <i>peptide_similarity</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
+  - <i>averagine_similarity</i> - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
 
   Parameters in section <i>sample:</i>
   - <i>labels</i> - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
@@ -189,11 +189,11 @@ private:
   UInt isotopes_per_peptide_max;
 
   // section "algorithm"
-  double rt_threshold;
+  double rt_typical;
   double rt_min;
   double intensity_cutoff;
-  double intensity_correlation;
-  double model_deviation;
+  double peptide_similarity;
+  double averagine_similarity;
   bool allow_missing_peaks;
 
   //typedef SILACClustering Clustering;
@@ -310,17 +310,18 @@ public:
 
     if (section == "algorithm")
     {
-      defaults.setValue("rt_threshold", 30.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
-      defaults.setMinFloat("rt_threshold", 0.0);
-      defaults.setValue("rt_min", 0.0, "Lower bound for the retention time [s].");
+      defaults.setValue("rt_typical", 90.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
+      defaults.setMinFloat("rt_typical", 0.0);
+      defaults.setValue("rt_min", 5.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
       defaults.setMinFloat("rt_min", 0.0);
-      defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks in a SILAC pattern.");
+      defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
       defaults.setMinFloat("intensity_cutoff", 0.0);
-      defaults.setValue("intensity_correlation", 0.7, "Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.");
-      defaults.setMinFloat("intensity_correlation", 0.0);
-      defaults.setMaxFloat("intensity_correlation", 1.0);
-      defaults.setValue("model_deviation", 3.0, "Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).");
-      defaults.setMinFloat("model_deviation", 1.0);
+      defaults.setValue("peptide_similarity", 0.7, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
+      defaults.setMinFloat("peptide_similarity", 0.0);
+      defaults.setMaxFloat("peptide_similarity", 1.0);
+      defaults.setValue("averagine_similarity", 0.6, "The isotopic pattern of a peptide should resemble ");
+      defaults.setMinFloat("averagine_similarity", 0.0);
+      defaults.setMaxFloat("averagine_similarity", 1.0);
     }
 
     return defaults;
@@ -372,11 +373,11 @@ public:
     // section algorithm
     //--------------------------------------------------
 
-    rt_threshold = getParam_().getValue("algorithm:rt_threshold");
+    rt_typical = getParam_().getValue("algorithm:rt_typical");
     rt_min = getParam_().getValue("algorithm:rt_min");
     intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
-    intensity_correlation = getParam_().getValue("algorithm:intensity_correlation");
-    model_deviation = getParam_().getValue("algorithm:model_deviation");
+    peptide_similarity = getParam_().getValue("algorithm:peptide_similarity");
+    averagine_similarity = getParam_().getValue("algorithm:averagine_similarity");
     allow_missing_peaks = getFlag_("algorithm:allow_missing_peaks");
   }
 
@@ -597,11 +598,11 @@ public:
       isotopes_per_peptide_min,
       isotopes_per_peptide_max,
       // section "algorithm"
-      rt_threshold,
+      rt_typical,
       rt_min,
       intensity_cutoff,
-      intensity_correlation,
-      model_deviation,
+      peptide_similarity,
+      averagine_similarity,
       allow_missing_peaks,
       // labels
       label_identifiers);*/
