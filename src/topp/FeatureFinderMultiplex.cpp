@@ -176,8 +176,6 @@ private:
   String out_features;
   String out_mzq;
 
-  String out_filters;
-  String in_filters;
   String out_debug;
 
   // section "algorithm"
@@ -225,12 +223,6 @@ public:
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
     setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
 
-    // create optional parameter for additional output file (.consensusXML) to store filter results
-    registerOutputFile_("out_filters", "<file>", "", "Optional output file containing all points that passed the filters as txt. Suitable as input for \'in_filters\' to perform clustering without preceding filtering process.", false, true);
-    setValidFormats_("out_filters", ListUtils::create<String>("consensusXML"));
-    // create optional parameter for additional input file (.consensusXML) to load filter results
-    registerInputFile_("in_filters", "<file>", "", "Optional input file containing all points that passed the filters as txt. Use output from \'out_filters\' to perform clustering only.", false, true);
-    setValidFormats_("in_filters", ListUtils::create<String>("consensusXML"));
     registerStringOption_("out_debug", "<filebase>", "", "Filename base for debug output.", false, true);
 
     // create section "labels" for adjusting masses of labels
@@ -382,10 +374,6 @@ public:
     out_features = getStringOption_("out_features");
     out_mzq = getStringOption_("out_mzq");
 
-    // get name of additional filters output file (.consensusXML)
-    out_filters = getStringOption_("out_filters");
-    // get name of additional filters input file (.consensusXML)
-    in_filters = getStringOption_("in_filters");
     out_debug = getStringOption_("out_debug");
   }
   
