@@ -187,24 +187,19 @@ private:
   UInt isotopes_per_peptide_max;
   double rt_typical;
   double rt_min;
+  double mz_tolerance;
+  bool mz_unit;
   double intensity_cutoff;
   double peptide_similarity;
   double averagine_similarity;
-  bool allow_missing_peaks;
-
-  //typedef SILACClustering Clustering;
 
 public:
   TOPPFeatureFinderMultiplex() :
-    TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true), allow_missing_peaks(true)
+  TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true)
   {
   }
   
   typedef std::vector<double> MassPattern;    // list of mass shifts
-
-  //--------------------------------------------------
-  // set structure of ini file
-  //--------------------------------------------------
 
   void registerOptionsAndFlags_()
   {
@@ -248,6 +243,12 @@ public:
       defaults.setMinFloat("rt_typical", 0.0);
       defaults.setValue("rt_min", 5.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
       defaults.setMinFloat("rt_min", 0.0);
+      
+      /*defaults.setValue("mz_tolerance", 10, "m/z tolerance for peak pattern search");
+      defaults.setMinFloat("mz_tolerance", 0.0);
+      defaults.setValue("mz_unit", "ppm", "Unit of the 'mz_tolerance' parameter");
+      defaults.setValidStrings("mz_unit", ListUtils::create<String>("Da,ppm"));*/
+      
       defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
       defaults.setMinFloat("intensity_cutoff", 0.0);
       defaults.setValue("peptide_similarity", 0.7, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
@@ -336,11 +337,19 @@ public:
 
     rt_typical = getParam_().getValue("algorithm:rt_typical");
     rt_min = getParam_().getValue("algorithm:rt_min");
+    /*mz_tolerance = getParam_().getValue("algorithm:mz_tolerance");
+    if (getParam_().getValue("algorithm:mz_unit") == "Da")
+    {
+        mz_unit == true;
+    }
+    else
+    {
+        mz_unit == false;
+    }*/
     intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
     peptide_similarity = getParam_().getValue("algorithm:peptide_similarity");
     averagine_similarity = getParam_().getValue("algorithm:averagine_similarity");
-    
-    allow_missing_peaks = getFlag_("algorithm:allow_missing_peaks");
+
   }
 
   void handleParameters_labels(map<String, double> & label_identifiers)
