@@ -172,11 +172,8 @@ private:
   // input and output files
   String in;
   String out;
-  String out_clusters;
   String out_features;
   String out_mzq;
-
-  String out_debug;
 
   // section "algorithm"
   String selected_labels;
@@ -192,6 +189,7 @@ private:
   double intensity_cutoff;
   double peptide_similarity;
   double averagine_similarity;
+  String debug_dir_;
 
 public:
   TOPPFeatureFinderMultiplex() :
@@ -203,30 +201,17 @@ public:
 
   void registerOptionsAndFlags_()
   {
-    // create parameter for input file (.mzML)
     registerInputFile_("in", "<file>", "", "Raw LC-MS data to be analyzed. (Profile data required. Will not work with centroided data!)");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    // create parameter for output file (.consensusXML)
     registerOutputFile_("out", "<file>", "", "Set of all identified peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false);
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
-    // create optional parameter for additional clusters output file (.featureXML)
-    registerOutputFile_("out_clusters", "<file>", "", "Optional debug output containing data points passing all filters, hence belonging to a SILAC pattern. Points of the same colour correspond to the mono-isotopic peak of the lightest peptide in a pattern.", false, true);
-    setValidFormats_("out_clusters", ListUtils::create<String>("consensusXML"));
-    // create optional parameter for additional clusters output file (.featureXML)
     registerOutputFile_("out_features", "<file>", "", "Optional output file containing the individual peptide features in \'out\'.", false, true);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
     setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
 
-    registerStringOption_("out_debug", "<filebase>", "", "Filename base for debug output.", false, true);
-
-    // create section "labels" for adjusting masses of labels
-    registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
-    // create section "algorithm" for adjusting algorithm parameters
     registerSubsection_("algorithm", "Parameters for the algorithm.");
-
-    // create flag for missing peaks
-    registerFlag_("algorithm:allow_missing_peaks", "Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Should such peptides be included in the analysis?", true);
+    registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
   }
 
   // create prameters for sections (set default values and restrictions)
@@ -296,6 +281,17 @@ public:
     return defaults;
   }
 
+  void handleParameters_()
+  {
+    in = getStringOption_("in");
+    out = getStringOption_("out");
+    out_features = getStringOption_("out_features");
+    out_mzq = getStringOption_("out_mzq");
+    
+    debug_dir_ = getParam_().getValue("debug_dir");
+  }
+
+
   void handleParameters_algorithm_()
   {
     // get selected labels
@@ -360,20 +356,6 @@ public:
     label_identifiers.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
     label_identifiers.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
 
-  }
-
-  void handleParameters_()
-  {
-    // get input file (.mzML)
-    in = getStringOption_("in");
-    // get name of output file (.consensusXML)
-    out = getStringOption_("out");
-    // get name of additional clusters output file (.consensusXML)
-    out_clusters = getStringOption_("out_clusters");
-    out_features = getStringOption_("out_features");
-    out_mzq = getStringOption_("out_mzq");
-
-    out_debug = getStringOption_("out_debug");
   }
   
 	// generate list of mass patterns
