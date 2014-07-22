@@ -243,9 +243,9 @@ public:
       defaults.setMinFloat("rt_typical", 0.0);
       defaults.setValue("rt_min", 5.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
       defaults.setMinFloat("rt_min", 0.0);
-      defaults.setValue("mz_tolerance", 6.0, "m/z tolerance for search of peak patterns");
+      defaults.setValue("mz_tolerance", 6.0, "m/z tolerance for search of peak patterns.");
       defaults.setMinFloat("mz_tolerance", 0.0);
-      defaults.setValue("mz_unit", "ppm", "Unit of the 'mz_tolerance' parameter");
+      defaults.setValue("mz_unit", "ppm", "Unit of the 'mz_tolerance' parameter.");
       defaults.setValidStrings("mz_unit", ListUtils::create<String>("Da,ppm"));
       defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
       defaults.setMinFloat("intensity_cutoff", 0.0);
@@ -297,15 +297,8 @@ public:
 
   void handleParameters_algorithm()
   {
-    //--------------------------------------------------
-    // section algorithm
-    //--------------------------------------------------
-
     // get selected labels
     selected_labels = getParam_().getValue("algorithm:labels");
-
-    // get selected missed_cleavages
-    missed_cleavages = getParam_().getValue("algorithm:missed_cleavages");
 
     // get selected charge range
     String charge_string = getParam_().getValue("algorithm:charge");
@@ -313,8 +306,6 @@ public:
     parseRange_(charge_string, charge_min_temp, charge_max_temp);
     charge_min = charge_min_temp;
     charge_max = charge_max_temp;
-
-    // check if charge_min is smaller than charge max, if not swap
     if (charge_min > charge_max)
     {
       swap(charge_min, charge_max);
@@ -326,6 +317,10 @@ public:
     parseRange_(isotopes_per_peptide_string, isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp);
     isotopes_per_peptide_min = isotopes_per_peptide_min_temp;
     isotopes_per_peptide_max = isotopes_per_peptide_max_temp;
+    if (isotopes_per_peptide_min > isotopes_per_peptide_max)
+    {
+      swap(isotopes_per_peptide_min, isotopes_per_peptide_max);
+    }
 
     //check if isotopes_per_peptide_min is smaller than isotopes_per_peptide_max, if not swap
     if (isotopes_per_peptide_min > isotopes_per_peptide_max)
@@ -340,6 +335,9 @@ public:
     intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
     peptide_similarity = getParam_().getValue("algorithm:peptide_similarity");
     averagine_similarity = getParam_().getValue("algorithm:averagine_similarity");
+
+    // get selected missed_cleavages
+    missed_cleavages = getParam_().getValue("algorithm:missed_cleavages");
 
   }
 
