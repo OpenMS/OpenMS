@@ -232,10 +232,14 @@ START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full
 END_SECTION
 
 START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
-  AASequence seq = AASequence::fromString("DFPIANGER");
-  TOLERANCE_ABSOLUTE(0.01)
-  TEST_REAL_SIMILAR(seq.getMonoWeight(), double(1017.48796))
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, 1), double(1018.5))
+  TOLERANCE_ABSOLUTE(1e-6)
+  TOLERANCE_RELATIVE(1.0 + 1e-6)
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(), double(1017.48796))
+
+  // test if direct calculation and calculation via empirical formula yield the same result
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(Residue::YIon, 1), AASequence::fromString("DFPIANGER").getFormula(Residue::YIon, 1).getMonoWeight())
+
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(Residue::YIon, 1), double(1018.4952))
 
   // test N-term modification
   AASequence seq2 = AASequence::fromString("(NIC)DFPIANGER");
@@ -247,13 +251,15 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 
   // test heavy modification
   AASequence seq3 = AASequence::fromString("(dNIC)DFPIANGER");
-  TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1126.536019));
+  TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1017.48796) + double(109.048119));
 
   // test old OpenMS dNIC definition
   AASequence seq3a = AASequence::fromString("(MOD:09999)DFPIANGER");
   TEST_EQUAL(seq3 == seq3a, true)
 
+  TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 
+  TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 END_SECTION
 
 START_SECTION(const Residue& operator[](SignedSize index) const)
@@ -656,10 +662,15 @@ START_SECTION([EXTRA] Tag in peptides)
   TEST_EQUAL(aa6.isModified(), false) // TODO unclear what the correct answer should be
 
   // Test negative mods / losses
-  AASequence aa_loss = AASequence::fromString("PEPTM[-30]IDE");
-  TEST_REAL_SIMILAR(aa_loss.getMonoWeight(), 900.40049)
-  TEST_EQUAL(aa_loss.size(), 8)
-  TEST_EQUAL(aa_loss.isModified(), true)
+  // test without loss
+  TEST_REAL_SIMILAR(AASequence::fromString("PEPTMIDE").getMonoWeight(), 930.4004)
+  // test with losses
+  // known loss from unimod: Homoserine (should actually only happen at c-term but we allow it)
+  TEST_REAL_SIMILAR(AASequence::fromString("PEPTM[-30]IDE").getMonoWeight(), 930.4004 - 29.992806)
+  // new loss from unimod: Homoserine (should actually only happen at c-term but we allow it)
+  TEST_REAL_SIMILAR(AASequence::fromString("PEPTM[-30.4004]IDE").getMonoWeight(), 900.0)
+  TEST_EQUAL(AASequence::fromString("PEPTM[-30]IDE").size(), 8)
+  TEST_EQUAL(AASequence::fromString("PEPTM[-30]IDE").isModified(), true)
 }
 END_SECTION
 

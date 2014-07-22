@@ -92,7 +92,8 @@ using namespace std;
         {
           continue;
         }
-   - move predicate member functions to class
+
+   - make hyperscore scoring linear
    - single and multiple neutral loss spectra creation
 */
 
