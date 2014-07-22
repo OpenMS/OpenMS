@@ -43,6 +43,13 @@ namespace OpenMS
   /**
     @brief Consumer class that passes all operations on to a set of consumers
 
+    This consumer allows to chain multiple data consumers and applying them in
+    a pre-specified order. This can be useful if a certain operation on a
+    dataset needs to be performed but some pre-processing (data reduction etc)
+    or post-processing (writing to disk, caching on disk). The different
+    processing steps can be added to the chaining consumer(in the correct
+    order) without knowledge of the specific pre/post processing steps.
+
   */
   class OPENMS_DLLAPI MSDataChainingConsumer :
     public Interfaces::IMSDataConsumer< MSExperiment<> >
@@ -76,8 +83,8 @@ namespace OpenMS
     /**
      * @brief Append a consumer to the chain of consumers to be executed
      *
-     * @note This does not transfers ownership - it is your responsibility to
-     * delete the pointer to consumer afterwards.
+     * @note This does not transfers ownership - it is the callers
+     * responsibility to delete the pointer to consumer afterwards.
      *
      */
     void appendConsumer(IMSDataConsumer<> * consumer)
@@ -85,6 +92,12 @@ namespace OpenMS
       consumers_.push_back(consumer);
     }
 
+    /**
+     * @brief Set experimental settings for all consumers
+     *
+     * Will set the experimental settings for all chained consumers
+     *
+     */
     void setExperimentalSettings(const ExperimentalSettings & settings)
     {
       for (Size i = 0; i < consumers_.size(); i++)
@@ -93,6 +106,12 @@ namespace OpenMS
       }
     }
 
+    /**
+     * @brief Set expected size for all consumers
+     *
+     * Will set the expected size for all chained consumers
+     *
+     */
     void setExpectedSize(Size s_size, Size c_size) 
     {
       for (Size i = 0; i < consumers_.size(); i++)
@@ -101,6 +120,10 @@ namespace OpenMS
       }
     }
 
+    /**
+     * @brief Call all consumers in the specified order for the given spectrum
+     *
+     */
     void consumeSpectrum(SpectrumType & s)
     {
       for (Size i = 0; i < consumers_.size(); i++)
@@ -109,6 +132,10 @@ namespace OpenMS
       }
     }
 
+    /**
+     * @brief Call all consumers in the specified order for the given chromatogram
+     *
+     */
     void consumeChromatogram(ChromatogramType & c)
     {
       for (Size i = 0; i < consumers_.size(); i++)
@@ -118,6 +145,7 @@ namespace OpenMS
     }
 
   };
+
 } //end namespace OpenMS
 
 #endif
