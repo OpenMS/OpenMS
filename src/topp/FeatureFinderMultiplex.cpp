@@ -257,6 +257,7 @@ public:
       defaults.setMaxFloat("averagine_similarity", 1.0);
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
       defaults.setMinInt("missed_cleavages", 0);
+      defaults.setValue("debug_dir", "", "Absolute path to directory for debug output.", ListUtils::create<String>("advanced"));
     }
 
     if (section == "labels")
@@ -272,22 +273,22 @@ public:
       defaults.setMinFloat("Lys6", 0.0);
       defaults.setValue("Lys8", 8.0141988132, "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Lys8", 0.0);
-      defaults.setValue("Dimethyl28", 28.031300, "Dimethyl  |  H(4) C(2)  |  unimod #36", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl28", 0.0);
-      defaults.setValue("Dimethyl32", 32.056407, "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl32", 0.0);
-      defaults.setValue("Dimethyl34", 34.063117, "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl34", 0.0);
-      defaults.setValue("Dimethyl36", 36.075670, "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Dimethyl36", 0.0);
-      defaults.setValue("ICPL105", 105.021464, "ICPL  |  H(3) C(6) N O  |  unimod #365", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL105", 0.0);
-      defaults.setValue("ICPL109", 109.046571, "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL109", 0.0);
-      defaults.setValue("ICPL111", 111.041593, "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL111", 0.0);
-      defaults.setValue("ICPL115", 115.066700, "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("ICPL115", 0.0);
+      defaults.setValue("Dimethyl0", 28.031300, "Dimethyl  |  H(4) C(2)  |  unimod #36", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Dimethyl0", 0.0);
+      defaults.setValue("Dimethyl4", 32.056407, "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Dimethyl4", 0.0);
+      defaults.setValue("Dimethyl6", 34.063117, "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Dimethyl6", 0.0);
+      defaults.setValue("Dimethyl8", 36.075670, "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Dimethyl8", 0.0);
+      defaults.setValue("ICPL0", 105.021464, "ICPL  |  H(3) C(6) N O  |  unimod #365", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("ICPL0", 0.0);
+      defaults.setValue("ICPL4", 109.046571, "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("ICPL4", 0.0);
+      defaults.setValue("ICPL6", 111.041593, "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("ICPL6", 0.0);
+      defaults.setValue("ICPL10", 115.066700, "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("ICPL10", 0.0);
       //defaults.setValue("18O", 2.004246, "Label:18O(1)  |  O(-1) 18O  |  unimod #258", ListUtils::create<String>("advanced"));
       //defaults.setMinFloat("18O", 0.0);
     }
@@ -295,7 +296,7 @@ public:
     return defaults;
   }
 
-  void handleParameters_algorithm()
+  void handleParameters_algorithm_()
   {
     // get selected labels
     selected_labels = getParam_().getValue("algorithm:labels");
@@ -341,7 +342,7 @@ public:
 
   }
 
-  void handleParameters_labels(map<String, double> & label_identifiers)
+  void handleParameters_labels_(map<String, double> & label_identifiers)
   {
 
     // create map of pairs (label as string, mass shift as double)
@@ -350,18 +351,18 @@ public:
     label_identifiers.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
     label_identifiers.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
     label_identifiers.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
-    label_identifiers.insert(make_pair("Dimethyl28", getParam_().getValue("labels:Dimethyl28")));
-    label_identifiers.insert(make_pair("Dimethyl32", getParam_().getValue("labels:Dimethyl32")));
-    label_identifiers.insert(make_pair("Dimethyl34", getParam_().getValue("labels:Dimethyl34")));
-    label_identifiers.insert(make_pair("Dimethyl36", getParam_().getValue("labels:Dimethyl36")));
-    label_identifiers.insert(make_pair("ICPL105", getParam_().getValue("labels:ICPL105")));
-    label_identifiers.insert(make_pair("ICPL109", getParam_().getValue("labels:ICPL109")));
-    label_identifiers.insert(make_pair("ICPL111", getParam_().getValue("labels:ICPL111")));
-    label_identifiers.insert(make_pair("ICPL115", getParam_().getValue("labels:ICPL115")));
+    label_identifiers.insert(make_pair("Dimethyl0", getParam_().getValue("labels:Dimethyl0")));
+    label_identifiers.insert(make_pair("Dimethyl4", getParam_().getValue("labels:Dimethyl4")));
+    label_identifiers.insert(make_pair("Dimethyl6", getParam_().getValue("labels:Dimethyl6")));
+    label_identifiers.insert(make_pair("Dimethyl8", getParam_().getValue("labels:Dimethyl8")));
+    label_identifiers.insert(make_pair("ICPL0", getParam_().getValue("labels:ICPL0")));
+    label_identifiers.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
+    label_identifiers.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
+    label_identifiers.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
 
   }
 
-  void handleParameters()
+  void handleParameters_()
   {
     // get input file (.mzML)
     in = getStringOption_("in");
@@ -425,10 +426,10 @@ public:
     vector<Clustering *> cluster_data;*/
 
     // parameter handling
-    handleParameters_algorithm();
-    map<String, double> label_identifiers;   // list defining the mass shifts of each label (e.g. "Arg6" => 6.0201290268)
-    handleParameters_labels(label_identifiers);
-    handleParameters();
+    handleParameters_algorithm_();
+    map<String, double> label_identifiers;   // mapping of labels to mass shifts (e.g. "Arg6" => 6.0201290268)
+    handleParameters_labels_(label_identifiers);
+    handleParameters_();
 
     if (selected_labels.empty() && !out.empty()) // incompatible parameters
     {
