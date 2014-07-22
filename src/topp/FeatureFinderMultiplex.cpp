@@ -188,7 +188,7 @@ private:
   double rt_typical;
   double rt_min;
   double mz_tolerance;
-  bool mz_unit;
+  bool mz_unit;    // ppm (true), Da (false)
   double intensity_cutoff;
   double peptide_similarity;
   double averagine_similarity;
@@ -236,19 +236,17 @@ public:
 
     if (section == "algorithm")
     {
-      defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder (in this case, 'out_features' must be used for output instead of 'out').");
+      defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [][Lys8,Arg10] describes a mixtures of two samples. One of them unlabelled, the second one labelled with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'.");
       defaults.setValue("charge", "1:4", "Range of charge states in the sample, i.e. min charge : max charge.");
-      defaults.setValue("isotopes_per_peptide", "3:5", "Range of peaks per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ");
+      defaults.setValue("isotopes_per_peptide", "3:6", "Range of isotopes per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
       defaults.setValue("rt_typical", 90.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
       defaults.setMinFloat("rt_typical", 0.0);
       defaults.setValue("rt_min", 5.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
       defaults.setMinFloat("rt_min", 0.0);
-      
-      /*defaults.setValue("mz_tolerance", 10, "m/z tolerance for peak pattern search");
+      defaults.setValue("mz_tolerance", 6.0, "m/z tolerance for search of peak patterns");
       defaults.setMinFloat("mz_tolerance", 0.0);
       defaults.setValue("mz_unit", "ppm", "Unit of the 'mz_tolerance' parameter");
-      defaults.setValidStrings("mz_unit", ListUtils::create<String>("Da,ppm"));*/
-      
+      defaults.setValidStrings("mz_unit", ListUtils::create<String>("Da,ppm"));
       defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
       defaults.setMinFloat("intensity_cutoff", 0.0);
       defaults.setValue("peptide_similarity", 0.7, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
@@ -337,15 +335,8 @@ public:
 
     rt_typical = getParam_().getValue("algorithm:rt_typical");
     rt_min = getParam_().getValue("algorithm:rt_min");
-    /*mz_tolerance = getParam_().getValue("algorithm:mz_tolerance");
-    if (getParam_().getValue("algorithm:mz_unit") == "Da")
-    {
-        mz_unit == true;
-    }
-    else
-    {
-        mz_unit == false;
-    }*/
+    mz_tolerance = getParam_().getValue("algorithm:mz_tolerance");
+    mz_unit = (getParam_().getValue("algorithm:mz_unit") == "ppm");
     intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
     peptide_similarity = getParam_().getValue("algorithm:peptide_similarity");
     averagine_similarity = getParam_().getValue("algorithm:averagine_similarity");
@@ -427,102 +418,6 @@ public:
 		return list;
 	}
     
-    // remove unnecessary zeros from MS1 spectra (zeros with two neighbouring zeros)
-    MSExperiment<Peak1D> removeZeros(MSExperiment<Peak1D> exp)
-    {
-        MSExperiment<Peak1D> expNew;
-        
-        for (MSExperiment<Peak1D>::Iterator itRt = exp.begin(); itRt != exp.end(); ++itRt)
-        {
-            MSSpectrum<Peak1D> specNew;
-            specNew.setRT(itRt->getRT());
-            
-            std::vector<double> mz;
-            std::vector<double> intensity;
-            
-            for (MSSpectrum<Peak1D>::Iterator itMz = itRt->begin(); itMz != itRt->end(); ++itMz)
-            {
-                mz.push_back(itMz->getMZ());
-                intensity.push_back(itMz->getIntensity());
-            }
-           
-            std::vector<double> mz_slim;
-            std::vector<double> intensity_slim;
-            if (intensity[0]!=0 || intensity[1]!=0)
-            {
-                mz_slim.push_back(mz[0]);
-                intensity_slim.push_back(intensity[0]);
-            }
-            bool last_intensity_zero = (intensity[0] == 0);
-            bool current_intensity_zero = (intensity[0] == 0);
-            bool next_intensity_zero = (intensity[1] == 0);
-            for (unsigned i = 1; i<mz.size() - 1; ++i)
-            {
-                last_intensity_zero = current_intensity_zero;
-                current_intensity_zero = next_intensity_zero;
-                next_intensity_zero = (intensity[i+1] == 0);
-                if (!last_intensity_zero || !current_intensity_zero || !next_intensity_zero)
-                {
-                    mz_slim.push_back(mz[i]);
-                    intensity_slim.push_back(intensity[i]);
-                }
-            }
-            if (intensity[mz.size()-1]!=0 || intensity[mz.size()-2]!=0)
-            {
-                mz_slim.push_back(mz[mz.size()-1]);
-                intensity_slim.push_back(intensity[mz.size()-1]);
-            }
-            
-            for (unsigned j=0; j<mz_slim.size(); ++j)
-            {
-                Peak1D peakNew;
-                peakNew.setMZ(mz_slim[j]);
-                peakNew.setIntensity(intensity_slim[j]);
-                specNew.push_back(peakNew);
-            }
-           
-            expNew.addSpectrum(specNew);
-        }
-        
-        return expNew;
-    }
-    
-    // convert experiment to rich experiment
-    /*MSExperiment<RichPeak1D> generateRichExperiment_(MSExperiment<Peak1D> exp)
-    {
-        MSExperiment<RichPeak1D> expRich;
-        
-        static_cast<ExperimentalSettings &>(expRich) = exp;
-        expRich.resize(exp.size());
-
-        // loop over spectra
-        for (MSExperiment<Peak1D>::Iterator itRt = exp.begin(); itRt != exp.end(); ++itRt)
-        {
-            double rt = itRt->getRT();
-            MSSpectrum<RichPeak1D> specNew;
-            specNew.setRT(rt);
-                
-            // iterate over data points in spectrum (mz)
-            for (MSSpectrum<Peak1D>::Iterator itMz = itRt->begin(); itMz != itRt->end(); ++itMz)
-            {
-                double mz = itMz->getMZ();
-                double intensity = itMz->getIntensity();
-                
-                RichPeak1D peakNew;
-                peakNew.setMZ(mz);
-                peakNew.setIntensity(intensity);
-                specNew.push_back(peakNew);
-            }                
-            expRich.addSpectrum(specNew);
-        }
-        
-        return expRich;
-    }*/
-
-
-  //--------------------------------------------------
-  // filtering
-  //--------------------------------------------------
 
   ExitCodes main_(int, const char **)
   {
@@ -531,9 +426,7 @@ public:
     MSQuantifications msq;
     vector<Clustering *> cluster_data;*/
 
-    // 
-    // Parameter handling
-    // 
+    // parameter handling
     handleParameters_algorithm();
     map<String, double> label_identifiers;   // list defining the mass shifts of each label (e.g. "Arg6" => 6.0201290268)
     handleParameters_labels(label_identifiers);
