@@ -148,7 +148,7 @@ using namespace boost::math;
   - <i>peptide_similarity</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
   - <i>averagine_similarity</i> - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
 
-  Parameters in section <i>sample:</i>
+  Parameters in section <i>algorithm:</i>
   - <i>labels</i> - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
   - <i>charge</i> - Range of charge states in the sample, i.e. min charge : max charge.
   - <i>missed_cleavages</i> - Maximum number of missed cleavages.
@@ -180,15 +180,13 @@ private:
   String in_filters;
   String out_debug;
 
-  // section "sample"
+  // section "algorithm"
   String selected_labels;
   UInt charge_min;
   UInt charge_max;
   Int missed_cleavages;
   UInt isotopes_per_peptide_min;
   UInt isotopes_per_peptide_max;
-
-  // section "algorithm"
   double rt_typical;
   double rt_min;
   double intensity_cutoff;
@@ -237,8 +235,6 @@ public:
 
     // create section "labels" for adjusting masses of labels
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
-    // create section "sample" for adjusting sample parameters
-    registerSubsection_("sample", "Parameters describing the sample and its labels.");
     // create section "algorithm" for adjusting algorithm parameters
     registerSubsection_("algorithm", "Parameters for the algorithm.");
 
@@ -251,12 +247,11 @@ public:
   {
     Param defaults;
 
-    //--------------------------------------------------
-    // section algorithm
-    //--------------------------------------------------
-
     if (section == "algorithm")
     {
+      defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder (in this case, 'out_features' must be used for output instead of 'out').");
+      defaults.setValue("charge", "1:4", "Range of charge states in the sample, i.e. min charge : max charge.");
+      defaults.setValue("isotopes_per_peptide", "3:5", "Range of peaks per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ");
       defaults.setValue("rt_typical", 90.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
       defaults.setMinFloat("rt_typical", 0.0);
       defaults.setValue("rt_min", 5.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
@@ -269,53 +264,38 @@ public:
       defaults.setValue("averagine_similarity", 0.6, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
       defaults.setMinFloat("averagine_similarity", 0.0);
       defaults.setMaxFloat("averagine_similarity", 1.0);
-    }
-
-    //--------------------------------------------------
-    // section sample
-    //--------------------------------------------------
-
-    if (section == "sample")
-    {
-      defaults.setValue("labels", "[Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder (in this case, 'out_features' must be used for output instead of 'out').");
-      defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
-      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages.");
+      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("isotopes_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
     }
-
-    //--------------------------------------------------
-    // section labels
-    //--------------------------------------------------
 
     if (section == "labels")
     {
-      // create labels that can be chosen in section "sample/labels"
-      defaults.setValue("Arg6", 6.0201290268, "Label:13C(6) | C(-6) 13C(6) | unimod #188", ListUtils::create<String>("advanced"));
+      // create labels that can be chosen in section "algorithm/labels"
+      defaults.setValue("Arg6", 6.0201290268, "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Arg6", 0.0);
-      defaults.setValue("Arg10", 10.008268600, "Label:13C(6)15N(4) | C(-6) 13C(6) N(-4) 15N(4) | unimod #267", ListUtils::create<String>("advanced"));
+      defaults.setValue("Arg10", 10.008268600, "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Arg10", 0.0);
-      defaults.setValue("Lys4", 4.0251069836, "Label:2H(4) | H(-4) 2H(4) | unimod #481", ListUtils::create<String>("advanced"));
+      defaults.setValue("Lys4", 4.0251069836, "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Lys4", 0.0);
-      defaults.setValue("Lys6", 6.0201290268, "Label:13C(6) | C(-6) 13C(6) | unimod #188", ListUtils::create<String>("advanced"));
+      defaults.setValue("Lys6", 6.0201290268, "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Lys6", 0.0);
-      defaults.setValue("Lys8", 8.0141988132, "Label:13C(6)15N(2) | C(-6) 13C(6) N(-2) 15N(2) | unimod #259", ListUtils::create<String>("advanced"));
+      defaults.setValue("Lys8", 8.0141988132, "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Lys8", 0.0);
-      defaults.setValue("Dimethyl28", 28.031300, "Dimethyl | H(4) C(2) | unimod #36", ListUtils::create<String>("advanced"));
+      defaults.setValue("Dimethyl28", 28.031300, "Dimethyl  |  H(4) C(2)  |  unimod #36", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Dimethyl28", 0.0);
-      defaults.setValue("Dimethyl32", 32.056407, "Dimethyl:2H(4) | 2H(4) C(2) | unimod #199", ListUtils::create<String>("advanced"));
+      defaults.setValue("Dimethyl32", 32.056407, "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Dimethyl32", 0.0);
-      defaults.setValue("Dimethyl34", 34.063117, "Dimethyl:2H(4)13C(2) | 2H(4) 13C(2) | unimod #510", ListUtils::create<String>("advanced"));
+      defaults.setValue("Dimethyl34", 34.063117, "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Dimethyl34", 0.0);
-      defaults.setValue("Dimethyl36", 36.075670, "Dimethyl:2H(6)13C(2) | H(-2) 2H(6) 13C(2) | unimod #330", ListUtils::create<String>("advanced"));
+      defaults.setValue("Dimethyl36", 36.075670, "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Dimethyl36", 0.0);
-      defaults.setValue("ICPL105", 105.021464, "ICPL | H(3) C(6) N O | unimod #365", ListUtils::create<String>("advanced"));
+      defaults.setValue("ICPL105", 105.021464, "ICPL  |  H(3) C(6) N O  |  unimod #365", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("ICPL105", 0.0);
-      defaults.setValue("ICPL109", 109.046571, "ICPL:2H(4) | H(-1) 2H(4) C(6) N O | unimod #687", ListUtils::create<String>("advanced"));
+      defaults.setValue("ICPL109", 109.046571, "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("ICPL109", 0.0);
-      defaults.setValue("ICPL111", 111.041593, "ICPL:13C(6) | H(3) 13C(6) N O | unimod #364", ListUtils::create<String>("advanced"));
+      defaults.setValue("ICPL111", 111.041593, "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("ICPL111", 0.0);
-      defaults.setValue("ICPL115", 115.066700, "ICPL:13C(6)2H(4) | H(-1) 2H(4) 13C(6) N O | unimod #866", ListUtils::create<String>("advanced"));
+      defaults.setValue("ICPL115", 115.066700, "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("ICPL115", 0.0);
       //defaults.setValue("18O", 2.004246, "Label:18O(1)  |  O(-1) 18O  |  unimod #258", ListUtils::create<String>("advanced"));
       //defaults.setMinFloat("18O", 0.0);
@@ -324,25 +304,20 @@ public:
     return defaults;
   }
 
-  //--------------------------------------------------
-  // handle parameters (read in and format given parameters)
-  //--------------------------------------------------
-
-  void handleParameters_sample()
+  void handleParameters_algorithm()
   {
-
     //--------------------------------------------------
-    // section sample
+    // section algorithm
     //--------------------------------------------------
 
     // get selected labels
-    selected_labels = getParam_().getValue("sample:labels");
+    selected_labels = getParam_().getValue("algorithm:labels");
 
     // get selected missed_cleavages
-    missed_cleavages = getParam_().getValue("sample:missed_cleavages");
+    missed_cleavages = getParam_().getValue("algorithm:missed_cleavages");
 
     // get selected charge range
-    String charge_string = getParam_().getValue("sample:charge");
+    String charge_string = getParam_().getValue("algorithm:charge");
     double charge_min_temp, charge_max_temp;
     parseRange_(charge_string, charge_min_temp, charge_max_temp);
     charge_min = charge_min_temp;
@@ -350,10 +325,12 @@ public:
 
     // check if charge_min is smaller than charge max, if not swap
     if (charge_min > charge_max)
+    {
       swap(charge_min, charge_max);
+    }
 
-    // get selected peaks range
-    String isotopes_per_peptide_string = getParam_().getValue("sample:isotopes_per_peptide");
+    // get isotopes per peptide range
+    String isotopes_per_peptide_string = getParam_().getValue("algorithm:isotopes_per_peptide");
     double isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp;
     parseRange_(isotopes_per_peptide_string, isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp);
     isotopes_per_peptide_min = isotopes_per_peptide_min_temp;
@@ -361,29 +338,21 @@ public:
 
     //check if isotopes_per_peptide_min is smaller than isotopes_per_peptide_max, if not swap
     if (isotopes_per_peptide_min > isotopes_per_peptide_max)
+    {
       swap(isotopes_per_peptide_min, isotopes_per_peptide_max);
-  }
-
-  void handleParameters_algorithm()
-  {
-    //--------------------------------------------------
-    // section algorithm
-    //--------------------------------------------------
+    }
 
     rt_typical = getParam_().getValue("algorithm:rt_typical");
     rt_min = getParam_().getValue("algorithm:rt_min");
     intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
     peptide_similarity = getParam_().getValue("algorithm:peptide_similarity");
     averagine_similarity = getParam_().getValue("algorithm:averagine_similarity");
+    
     allow_missing_peaks = getFlag_("algorithm:allow_missing_peaks");
   }
 
   void handleParameters_labels(map<String, double> & label_identifiers)
   {
-
-    //--------------------------------------------------
-    // section labels
-    //--------------------------------------------------
 
     // create map of pairs (label as string, mass shift as double)
     label_identifiers.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
@@ -391,15 +360,14 @@ public:
     label_identifiers.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
     label_identifiers.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
     label_identifiers.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
-    label_identifiers.insert(make_pair("Methyl4", getParam_().getValue("labels:Methyl4")));
-    label_identifiers.insert(make_pair("Methyl8", getParam_().getValue("labels:Methyl8")));
-    label_identifiers.insert(make_pair("Methyl12", getParam_().getValue("labels:Methyl12")));
-    label_identifiers.insert(make_pair("Methyl16", getParam_().getValue("labels:Methyl16")));
-    label_identifiers.insert(make_pair("Methyl24", getParam_().getValue("labels:Methyl24")));
-    label_identifiers.insert(make_pair("Methyl32", getParam_().getValue("labels:Methyl32")));
-    label_identifiers.insert(make_pair("dICPL4", getParam_().getValue("labels:dICPL4")));
-    label_identifiers.insert(make_pair("dICPL6", getParam_().getValue("labels:dICPL6")));
-    label_identifiers.insert(make_pair("dICPL10", getParam_().getValue("labels:dICPL10")));
+    label_identifiers.insert(make_pair("Dimethyl28", getParam_().getValue("labels:Dimethyl28")));
+    label_identifiers.insert(make_pair("Dimethyl32", getParam_().getValue("labels:Dimethyl32")));
+    label_identifiers.insert(make_pair("Dimethyl34", getParam_().getValue("labels:Dimethyl34")));
+    label_identifiers.insert(make_pair("Dimethyl36", getParam_().getValue("labels:Dimethyl36")));
+    label_identifiers.insert(make_pair("ICPL105", getParam_().getValue("labels:ICPL105")));
+    label_identifiers.insert(make_pair("ICPL109", getParam_().getValue("labels:ICPL109")));
+    label_identifiers.insert(make_pair("ICPL111", getParam_().getValue("labels:ICPL111")));
+    label_identifiers.insert(make_pair("ICPL115", getParam_().getValue("labels:ICPL115")));
 
   }
 
@@ -569,9 +537,8 @@ public:
     // 
     // Parameter handling
     // 
-    map<String, double> label_identifiers;   // list defining the mass shifts of each label (e.g. "Arg6" => 6.0201290268)
-    handleParameters_sample();
     handleParameters_algorithm();
+    map<String, double> label_identifiers;   // list defining the mass shifts of each label (e.g. "Arg6" => 6.0201290268)
     handleParameters_labels(label_identifiers);
     handleParameters();
 
