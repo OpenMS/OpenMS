@@ -251,59 +251,6 @@ public:
   {
     Param defaults;
 
-
-    //--------------------------------------------------
-    // section labels
-    //--------------------------------------------------
-
-    if (section == "labels")
-    {
-      // create labels that can be chosen in section "sample/labels"
-      defaults.setValue("Arg6", 6.0201290268, "Arg6 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Arg6", 0.0);
-      defaults.setValue("Arg10", 10.008268600, "Arg10 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Arg10", 0.0);
-      defaults.setValue("Lys4", 4.0251069836, "Lys4 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys4", 0.0);
-      defaults.setValue("Lys6", 6.0201290268, "Lys6 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys6", 0.0);
-      defaults.setValue("Lys8", 8.0141988132, "Lys8 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Lys8", 0.0);
-      defaults.setValue("dICPL4", 4.025107, "mass difference between isotope-coded protein labels ICPL 4 and ICPL 0", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("dICPL4", 0.0);
-      defaults.setValue("dICPL6", 6.020129, "mass difference between isotope-coded protein labels ICPL 6 and ICPL 0", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("dICPL6", 0.0);
-      defaults.setValue("dICPL10", 10.045236, "mass difference between isotope-coded protein labels ICPL 10 and ICPL 0", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("dICPL10", 0.0);
-      defaults.setValue("Methyl4", 4.0202, "Methyl4 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Methyl4", 0.0);
-      defaults.setValue("Methyl8", 8.0202, "Methyl8 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Methyl8", 0.0);
-      defaults.setValue("Methyl12", 12.0202, "Methyl12 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Methyl12", 0.0);
-      defaults.setValue("Methyl16", 16.0202, "Methyl16 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Methyl16", 0.0);
-      defaults.setValue("Methyl24", 24.0202, "Methyl24 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Methyl24", 0.0);
-      defaults.setValue("Methyl32", 32.0202, "Methyl32 mass shift", ListUtils::create<String>("advanced"));
-      defaults.setMinFloat("Methyl32", 0.0);
-    }
-
-
-    //--------------------------------------------------
-    // section sample
-    //--------------------------------------------------
-
-    if (section == "sample")
-    {
-      defaults.setValue("labels", "[Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder (in this case, 'out_features' must be used for output instead of 'out').");
-      defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
-      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages.");
-      defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("isotopes_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
-    }
-
-
     //--------------------------------------------------
     // section algorithm
     //--------------------------------------------------
@@ -322,6 +269,56 @@ public:
       defaults.setValue("averagine_similarity", 0.6, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
       defaults.setMinFloat("averagine_similarity", 0.0);
       defaults.setMaxFloat("averagine_similarity", 1.0);
+    }
+
+    //--------------------------------------------------
+    // section sample
+    //--------------------------------------------------
+
+    if (section == "sample")
+    {
+      defaults.setValue("labels", "[Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder (in this case, 'out_features' must be used for output instead of 'out').");
+      defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
+      defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages.");
+      defaults.setMinInt("missed_cleavages", 0);
+      defaults.setValue("isotopes_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
+    }
+
+    //--------------------------------------------------
+    // section labels
+    //--------------------------------------------------
+
+    if (section == "labels")
+    {
+      // create labels that can be chosen in section "sample/labels"
+      defaults.setValue("Arg6", 6.0201290268, "Label:13C(6) | C(-6) 13C(6) | unimod #188", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Arg6", 0.0);
+      defaults.setValue("Arg10", 10.008268600, "Label:13C(6)15N(4) | C(-6) 13C(6) N(-4) 15N(4) | unimod #267", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Arg10", 0.0);
+      defaults.setValue("Lys4", 4.0251069836, "Label:2H(4) | H(-4) 2H(4) | unimod #481", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Lys4", 0.0);
+      defaults.setValue("Lys6", 6.0201290268, "Label:13C(6) | C(-6) 13C(6) | unimod #188", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Lys6", 0.0);
+      defaults.setValue("Lys8", 8.0141988132, "Label:13C(6)15N(2) | C(-6) 13C(6) N(-2) 15N(2) | unimod #259", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Lys8", 0.0);
+      defaults.setValue("Dimethyl28", 28.031300, "Dimethyl | H(4) C(2) | unimod #36", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Dimethyl28", 0.0);
+      defaults.setValue("Dimethyl32", 32.056407, "Dimethyl:2H(4) | 2H(4) C(2) | unimod #199", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Dimethyl32", 0.0);
+      defaults.setValue("Dimethyl34", 34.063117, "Dimethyl:2H(4)13C(2) | 2H(4) 13C(2) | unimod #510", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Dimethyl34", 0.0);
+      defaults.setValue("Dimethyl36", 36.075670, "Dimethyl:2H(6)13C(2) | H(-2) 2H(6) 13C(2) | unimod #330", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("Dimethyl36", 0.0);
+      defaults.setValue("ICPL105", 105.021464, "ICPL | H(3) C(6) N O | unimod #365", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("ICPL105", 0.0);
+      defaults.setValue("ICPL109", 109.046571, "ICPL:2H(4) | H(-1) 2H(4) C(6) N O | unimod #687", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("ICPL109", 0.0);
+      defaults.setValue("ICPL111", 111.041593, "ICPL:13C(6) | H(3) 13C(6) N O | unimod #364", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("ICPL111", 0.0);
+      defaults.setValue("ICPL115", 115.066700, "ICPL:13C(6)2H(4) | H(-1) 2H(4) 13C(6) N O | unimod #866", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("ICPL115", 0.0);
+      //defaults.setValue("18O", 2.004246, "Label:18O(1)  |  O(-1) 18O  |  unimod #258", ListUtils::create<String>("advanced"));
+      //defaults.setMinFloat("18O", 0.0);
     }
 
     return defaults;
