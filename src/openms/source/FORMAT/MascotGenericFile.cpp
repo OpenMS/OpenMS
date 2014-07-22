@@ -141,11 +141,15 @@ namespace OpenMS
 
   void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment, bool compact)
   {
+    const streamsize precision = os.precision(); // may get changed, so back-up
+    
     store_compact_ = compact;
     if (param_.getValue("internal:content") != "peaklist_only")
       writeHeader_(os);
     if (param_.getValue("internal:content") != "header_only")
       writeMSExperiment_(os, filename, experiment);
+
+    os.precision(precision); // reset precision
   }
 
   void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
