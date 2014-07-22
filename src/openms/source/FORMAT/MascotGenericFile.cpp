@@ -40,6 +40,9 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#define HIGH_PRECISION 8
+#define LOW_PRECISION 6
+
 using namespace std;
 
 namespace OpenMS
@@ -294,16 +297,19 @@ namespace OpenMS
     }
     if (spec.size() >= 10000)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as MGF has more than 10.000 peaks which is"
-                                                                             " the maximum upper limit. Only centroided data is allowed. This is most likely raw data.",
-                                    String(spec.size()));
+      throw Exception::InvalidValue(
+        __FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as "
+        "MGF has more than 10.000 peaks, which is the maximum upper limit. "
+        "Only centroided data is allowed. This is most likely raw data.", 
+        String(spec.size()));
     }
     double mz(precursor.getMZ()), rt(spec.getRT());
 
     if (mz == 0)
     {
       //retention time
-      cout << "No precursor m/z information for spectrum with rt: " << rt << " present, skipping spectrum!\n";
+      cout << "No precursor m/z information for spectrum with rt " << rt 
+           << " present, skipping spectrum!\n";
     }
     else
     {
@@ -311,15 +317,18 @@ namespace OpenMS
       os << "BEGIN IONS\n";
       if (!store_compact_)
       {
-        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << "_" << spec.getNativeID() << "_" << filename << "\n";
+        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) 
+           << "_" << spec.getNativeID() << "_" << filename << "\n";
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
       }
       else
       {
-        os << "TITLE=" << setprecision(8) << mz << "_" << setprecision(6) << rt << "_" << spec.getNativeID() << "_" << filename << "\n";
-        os << "PEPMASS=" << setprecision(8) << mz << "\n";
-        os << "RTINSECONDS=" << setprecision(6) << rt << "\n";
+        os << "TITLE=" << setprecision(HIGH_PRECISION) << mz << "_" 
+           << setprecision(LOW_PRECISION) << rt << "_" 
+           << spec.getNativeID() << "_" << filename << "\n";
+        os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
+        os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
       }
 
       int charge(precursor.getCharge());
@@ -337,7 +346,8 @@ namespace OpenMS
       {
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
         {
-          os << precisionWrapper(it->getMZ()) << " " << precisionWrapper(it->getIntensity()) << "\n";
+          os << precisionWrapper(it->getMZ()) << " " 
+             << precisionWrapper(it->getIntensity()) << "\n";
         }
       }
       else
@@ -346,7 +356,8 @@ namespace OpenMS
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
           if (intensity == 0.0) continue; // skip zero-intensity peaks
-          os << setprecision(8) << it->getMZ() << " " << setprecision(6) << intensity << "\n";
+          os << setprecision(HIGH_PRECISION) << it->getMZ() << " " 
+             << setprecision(LOW_PRECISION) << intensity << "\n";
         }
       }
       os << "END IONS\n";
