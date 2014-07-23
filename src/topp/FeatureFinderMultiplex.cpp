@@ -177,7 +177,7 @@ private:
   String out_debug;
 
   // section "algorithm"
-  String selected_labels;
+  String labels;
   unsigned charge_min;
   unsigned charge_max;
   unsigned missed_cleavages;
@@ -212,7 +212,7 @@ public:
     registerStringOption_("out_debug", "<out_dir>", "", "Directory for debug output.", false, true);
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
-    registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
+    registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");
   }
 
   // create prameters for sections (set default values and restrictions)
@@ -294,7 +294,7 @@ public:
   void handleParameters_algorithm_()
   {
     // get selected labels
-    selected_labels = getParam_().getValue("algorithm:labels");
+    labels = getParam_().getValue("algorithm:labels");
 
     // get selected charge range
     String charge_string = getParam_().getValue("algorithm:charge");
@@ -357,6 +357,30 @@ public:
 	// generate list of mass patterns
 	std::vector<MassPattern> generateMassPatterns_()
 	{
+        // decide whether SILAC, Dimethyl or ICPL labelling
+        std::cout << "    labels = " << labels << "\n";
+        
+        
+        bool labelling_SILAC = ((labels.find("Arg")!=std::string::npos) || (labels.find("Lys")!=std::string::npos));
+        bool labelling_Dimethyl = (labels.find("Dimethyl")!=std::string::npos);
+        bool labelling_ICPL = (labels.find("ICPL")!=std::string::npos);
+        
+        bool SILAC = (labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL);
+        bool Dimethyl = (!labelling_SILAC && labelling_Dimethyl && !labelling_ICPL);
+        bool ICPL = (!labelling_SILAC && !labelling_Dimethyl && labelling_ICPL);
+        
+        if (!(SILAC || Dimethyl || ICPL))
+        {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
+        }        
+        
+        if (labelling_SILAC) std::cout << "SILAC\n";
+        if (labelling_Dimethyl) std::cout << "Dimethyl\n";
+        if (labelling_ICPL) std::cout << "ICPL\n";
+        
+        
+        
+        // OLD CODE
 		std::vector<MassPattern> list;
 	  
 		MassPattern pattern1;
@@ -409,7 +433,7 @@ public:
     handleParameters_algorithm_();
     handleParameters_labels_(label_massshift);
 
-    if (selected_labels.empty() && !out.empty()) // incompatible parameters
+    if (labels.empty() && !out.empty()) // incompatible parameters
     {
       writeLog_("Error: The 'out' parameter cannot be used without a label (parameter 'sample:labels'). Use 'out_features' instead.");
       return ILLEGAL_PARAMETERS;
@@ -422,7 +446,7 @@ public:
     analyzer.setLogType(log_type_);
     analyzer.initialize(
       // section "sample"
-      selected_labels,
+      labels,
       charge_min,
       charge_max,
       missed_cleavages,
@@ -466,7 +490,7 @@ public:
 
     /*if (out_mzq != "")
     {
-      vector<vector<String> > SILAClabels = analyzer.getSILAClabels(); // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
+      vector<vector<String> > SILAClabels = analyzer.getSILAClabels(); // list of SILAC labels, e.g. labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
 
       std::vector<std::vector<std::pair<String, DoubleReal> > > labels;
       //add none label
