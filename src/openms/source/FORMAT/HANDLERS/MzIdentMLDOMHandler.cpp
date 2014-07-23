@@ -1121,7 +1121,7 @@ namespace OpenMS
         si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setAccession(db.accession);
       }
 
-      //due to redundand references this is not needed!
+//due to redundand references this is not needed!
 //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
 //      while ( child )
 //      {
