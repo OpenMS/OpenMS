@@ -32,7 +32,6 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-//OpenMS includes
 #include <OpenMS/config.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -51,13 +50,8 @@
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
-#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexLocalClustering.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
@@ -353,22 +347,23 @@ public:
     label_massshift.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
     label_massshift.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
   }
-  
+    
 	// generate list of mass patterns
 	std::vector<MassPattern> generateMassPatterns_()
 	{
-        // SILAC, Dimethyl or ICPL labelling ??
-        std::cout << "    labels = " << labels << "\n";
+        // SILAC, Dimethyl, ICPL or none labelling ??
         
         bool labelling_SILAC = ((labels.find("Arg")!=std::string::npos) || (labels.find("Lys")!=std::string::npos));
         bool labelling_Dimethyl = (labels.find("Dimethyl")!=std::string::npos);
         bool labelling_ICPL = (labels.find("ICPL")!=std::string::npos);
+        bool labelling_none = labels.empty() || (labels=="[]") || (labels=="()") || (labels=="{}");
         
-        bool SILAC = (labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL);
-        bool Dimethyl = (!labelling_SILAC && labelling_Dimethyl && !labelling_ICPL);
-        bool ICPL = (!labelling_SILAC && !labelling_Dimethyl && labelling_ICPL);
+        bool SILAC = (labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL && !labelling_none);
+        bool Dimethyl = (!labelling_SILAC && labelling_Dimethyl && !labelling_ICPL && !labelling_none);
+        bool ICPL = (!labelling_SILAC && !labelling_Dimethyl && labelling_ICPL && !labelling_none);
+        bool none = (!labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL && labelling_none);
         
-        if (!(SILAC || Dimethyl || ICPL))
+        if (!(SILAC || Dimethyl || ICPL || none))
         {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
         }    
@@ -381,9 +376,9 @@ public:
         {
           if (!temp_samples[i].empty())
           {
-            vector<String> temp_labels;
-            boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: "));   // various separators allowed to separate labels
-            samples_labels.push_back(temp_labels);
+              vector<String> temp_labels;
+              boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: "));   // various separators allowed to separate labels
+              samples_labels.push_back(temp_labels);
           }
         }
 
@@ -391,7 +386,7 @@ public:
         cout << "\n";
         for (unsigned i = 0; i < samples_labels.size(); ++i)
         {
-          cout << "label " << (i + 1) << ":   ";
+          cout << "sample " << (i + 1) << ":   ";
           for (unsigned j = 0; j < samples_labels[i].size(); ++j)
           {
             cout << samples_labels[i][j] << " ";
@@ -399,26 +394,50 @@ public:
           cout << "\n";
         }
         cout << "\n";
-
         
+        // check if the labels are included in advanced section "labels"
+        String all_labels= "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10";
+        for (unsigned i = 0; i < samples_labels.size(); i++)
+        {
+          for (unsigned j = 0; j < samples_labels[i].size(); ++j)
+          {
+            if (all_labels.find(samples_labels[i][j])==std::string::npos)
+            {
+              std::stringstream stream;
+              stream << "The label " << samples_labels[i][j] << " is unknown.";
+              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+            }
+          }
+        }
         
-        
-        
-        
+        // generate mass shift list
+        std::vector<MassPattern> list;
         if (SILAC)
         {
             // SILAC
             std::cout << "SILAC\n";
+            
+            // We assume the first sample is unlabelled, even if the "[]" has been forgotten.
         }
         else if (Dimethyl)
         {
             // Dimethyl
-            std::cout << "Dimethyl\n";
+            for (unsigned i = 0; i < samples_labels.size(); i++)
+            {
+                MassPattern temp;
+                //temp.pushBack(25);
+            }
         }
         else if (ICPL)
         {
             // ICPL
-            std::cout << "ICPL\n";
+        }
+        else
+        {
+            // none (singlet detection)
+            MassPattern temp;
+            temp.push_back(0);
+            list.push_back(temp);
         }
         
         
@@ -427,7 +446,7 @@ public:
         
         
         // OLD CODE
-		std::vector<MassPattern> list;
+		std::vector<MassPattern> list2;
 	  
 		MassPattern pattern1;
 		pattern1.push_back(0);
@@ -437,10 +456,10 @@ public:
 		pattern2.push_back(0);
 		pattern2.push_back(2*8.0443702794);
 	  
-		list.push_back(pattern1);
-		list.push_back(pattern2);
+		list2.push_back(pattern1);
+		list2.push_back(pattern2);
 	  
-		return list;
+		return list2;
 	}
   
 	// generate list of mass shifts
