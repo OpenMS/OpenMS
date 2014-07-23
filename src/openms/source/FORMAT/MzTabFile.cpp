@@ -214,8 +214,6 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   Size count_peptide_search_engine_score = 0;
   Size count_psm_search_engine_score = 0;
   Size count_smallmolecule_search_engine_score = 0;
-  Size count_fixed_mod = 0;
-  Size count_variable_mod = 0;
 
   Size line_number = 0;
   for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit, ++line_number)

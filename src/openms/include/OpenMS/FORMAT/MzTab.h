@@ -133,11 +133,6 @@ class MzTabNullNaNAndInfAbleBase :
       return state_ == MZTAB_CELLSTATE_NULL;
     }
 
-    bool isNull() const
-    {
-      return state_ == MZTAB_CELLSTATE_NULL;
-    }
-
     void setNull(bool b)
     {
       state_ = b ? MZTAB_CELLSTATE_NULL : MZTAB_CELLSTATE_DEFAULT;
