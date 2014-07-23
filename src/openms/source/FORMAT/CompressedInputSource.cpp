@@ -99,14 +99,7 @@ namespace OpenMS
   {
     if (head_.size() < 2)
     {
-      head_[0] = header[0];
-      head_[1] = header[1];
-    }
-    else
-    {
-      // TODO clang complains this is unreachable
-      head_[0] = '\0';
-      head_[1] = '\0';
+      head_ = "\0\0";
     }
     //
     //  If the path is relative, then complete it according to the current
