@@ -483,12 +483,10 @@ namespace OpenMS
     {
       return *this;
     }
+
     AASequence seq;
     seq.n_term_mod_ = n_term_mod_;
-    for (Size i = 0; i < index; ++i)
-    {
-      seq.peptide_.push_back(peptide_[i]);
-    }
+    seq.peptide_.insert(seq.peptide_.end(), peptide_.begin(), peptide_.begin() + index);
     return seq;
   }
 
@@ -498,16 +496,15 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
     }
+
     if (index == size())
     {
       return *this;
     }
+
     AASequence seq;
     seq.c_term_mod_ = c_term_mod_;
-    for (Size i = size() - index; i != size(); ++i)
-    {
-      seq.peptide_.push_back(peptide_[i]);
-    }
+    seq.peptide_.insert(seq.peptide_.end(), peptide_.begin() + (size() - index), peptide_.end());
     return seq;
   }
 
@@ -521,15 +518,15 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index + num, size());
     }
+
     AASequence seq;
     if (index == 0)
       seq.n_term_mod_ = n_term_mod_;
     if (index + num == this->size())
       seq.c_term_mod_ = c_term_mod_;
-    for (Size i = index; i != index + num; ++i)
-    {
-      seq.peptide_.push_back(peptide_[i]);
-    }
+
+    seq.peptide_.insert(seq.peptide_.end(), peptide_.begin() + index, peptide_.begin() + index + num);
+
     return seq;
   }
 
