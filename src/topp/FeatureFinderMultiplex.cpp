@@ -357,9 +357,8 @@ public:
 	// generate list of mass patterns
 	std::vector<MassPattern> generateMassPatterns_()
 	{
-        // decide whether SILAC, Dimethyl or ICPL labelling
+        // SILAC, Dimethyl or ICPL labelling ??
         std::cout << "    labels = " << labels << "\n";
-        
         
         bool labelling_SILAC = ((labels.find("Arg")!=std::string::npos) || (labels.find("Lys")!=std::string::npos));
         bool labelling_Dimethyl = (labels.find("Dimethyl")!=std::string::npos);
@@ -372,11 +371,58 @@ public:
         if (!(SILAC || Dimethyl || ICPL))
         {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
-        }        
+        }    
         
-        if (labelling_SILAC) std::cout << "SILAC\n";
-        if (labelling_Dimethyl) std::cout << "Dimethyl\n";
-        if (labelling_ICPL) std::cout << "ICPL\n";
+        // split labels string
+        std::vector<std::vector<String> > samples_labels;    // list of samples containing lists of corresponding labels
+        std::vector<String> temp_samples;
+        boost::split(temp_samples, labels, boost::is_any_of("[](){}"));   // any bracket allowed to separate samples
+        for (unsigned i = 0; i < temp_samples.size(); ++i)
+        {
+          if (!temp_samples[i].empty())
+          {
+            vector<String> temp_labels;
+            boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: "));   // various separators allowed to separate labels
+            samples_labels.push_back(temp_labels);
+          }
+        }
+
+        // debug output labels
+        cout << "\n";
+        for (unsigned i = 0; i < samples_labels.size(); ++i)
+        {
+          cout << "label " << (i + 1) << ":   ";
+          for (unsigned j = 0; j < samples_labels[i].size(); ++j)
+          {
+            cout << samples_labels[i][j] << " ";
+          }
+          cout << "\n";
+        }
+        cout << "\n";
+
+        
+        
+        
+        
+        
+        if (SILAC)
+        {
+            // SILAC
+            std::cout << "SILAC\n";
+        }
+        else if (Dimethyl)
+        {
+            // Dimethyl
+            std::cout << "Dimethyl\n";
+        }
+        else if (ICPL)
+        {
+            // ICPL
+            std::cout << "ICPL\n";
+        }
+        
+        
+        
         
         
         
