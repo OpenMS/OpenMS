@@ -174,14 +174,15 @@ private:
   String out;
   String out_features;
   String out_mzq;
+  String out_debug;
 
   // section "algorithm"
   String selected_labels;
-  UInt charge_min;
-  UInt charge_max;
-  Int missed_cleavages;
-  UInt isotopes_per_peptide_min;
-  UInt isotopes_per_peptide_max;
+  unsigned charge_min;
+  unsigned charge_max;
+  unsigned missed_cleavages;
+  unsigned isotopes_per_peptide_min;
+  unsigned isotopes_per_peptide_max;
   double rt_typical;
   double rt_min;
   double mz_tolerance;
@@ -189,7 +190,6 @@ private:
   double intensity_cutoff;
   double peptide_similarity;
   double averagine_similarity;
-  String debug_dir_;
 
 public:
   TOPPFeatureFinderMultiplex() :
@@ -209,6 +209,7 @@ public:
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
     setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
+    registerStringOption_("out_debug", "<out_dir>", "", "Directory for debug output.", false, true);
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
     registerSubsection_("labels", "Isotopic labels that can be specified in section \'sample\'.");
@@ -287,10 +288,8 @@ public:
     out = getStringOption_("out");
     out_features = getStringOption_("out_features");
     out_mzq = getStringOption_("out_mzq");
-    
-    debug_dir_ = getParam_().getValue("debug_dir");
+    out_debug = getStringOption_("out_debug");
   }
-
 
   void handleParameters_algorithm_()
   {
@@ -335,27 +334,24 @@ public:
 
     // get selected missed_cleavages
     missed_cleavages = getParam_().getValue("algorithm:missed_cleavages");
-
   }
 
-  void handleParameters_labels_(map<String, double> & label_identifiers)
+  void handleParameters_labels_(map<String, double> & label_massshift)
   {
-
     // create map of pairs (label as string, mass shift as double)
-    label_identifiers.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
-    label_identifiers.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
-    label_identifiers.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
-    label_identifiers.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
-    label_identifiers.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
-    label_identifiers.insert(make_pair("Dimethyl0", getParam_().getValue("labels:Dimethyl0")));
-    label_identifiers.insert(make_pair("Dimethyl4", getParam_().getValue("labels:Dimethyl4")));
-    label_identifiers.insert(make_pair("Dimethyl6", getParam_().getValue("labels:Dimethyl6")));
-    label_identifiers.insert(make_pair("Dimethyl8", getParam_().getValue("labels:Dimethyl8")));
-    label_identifiers.insert(make_pair("ICPL0", getParam_().getValue("labels:ICPL0")));
-    label_identifiers.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
-    label_identifiers.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
-    label_identifiers.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
-
+    label_massshift.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
+    label_massshift.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
+    label_massshift.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
+    label_massshift.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
+    label_massshift.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
+    label_massshift.insert(make_pair("Dimethyl0", getParam_().getValue("labels:Dimethyl0")));
+    label_massshift.insert(make_pair("Dimethyl4", getParam_().getValue("labels:Dimethyl4")));
+    label_massshift.insert(make_pair("Dimethyl6", getParam_().getValue("labels:Dimethyl6")));
+    label_massshift.insert(make_pair("Dimethyl8", getParam_().getValue("labels:Dimethyl8")));
+    label_massshift.insert(make_pair("ICPL0", getParam_().getValue("labels:ICPL0")));
+    label_massshift.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
+    label_massshift.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
+    label_massshift.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
   }
   
 	// generate list of mass patterns
@@ -408,10 +404,10 @@ public:
     vector<Clustering *> cluster_data;*/
 
     // parameter handling
-    handleParameters_algorithm_();
-    map<String, double> label_identifiers;   // mapping of labels to mass shifts (e.g. "Arg6" => 6.0201290268)
-    handleParameters_labels_(label_identifiers);
+    map<String, double> label_massshift;   // mapping of labels to mass shifts (e.g. "Arg6" --> 6.0201290268)
     handleParameters_();
+    handleParameters_algorithm_();
+    handleParameters_labels_(label_massshift);
 
     if (selected_labels.empty() && !out.empty()) // incompatible parameters
     {
@@ -440,7 +436,7 @@ public:
       averagine_similarity,
       allow_missing_peaks,
       // labels
-      label_identifiers);*/
+      label_massshift);*/
  
     //--------------------------------------------------
     // loading input from .mzML
@@ -480,7 +476,7 @@ public:
         std::vector<std::pair<String, DoubleReal> > one_label;
         for (UInt j = 0; j < SILAClabels[i].size(); ++j)
         {
-          one_label.push_back(*(label_identifiers.find(SILAClabels[i][j])));              // this dereferencing would break if all SILAClabels would not have been checked before!
+          one_label.push_back(*(label_massshift.find(SILAClabels[i][j])));              // this dereferencing would break if all SILAClabels would not have been checked before!
         }
         labels.push_back(one_label);
       }
