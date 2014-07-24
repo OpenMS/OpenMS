@@ -184,6 +184,7 @@ private:
   double intensity_cutoff;
   double peptide_similarity;
   double averagine_similarity;
+  bool knock_out;
   
   // section "labels"
   map<String,double> label_massshift;
@@ -209,7 +210,8 @@ public:
     registerStringOption_("out_debug", "<out_dir>", "", "Directory for debug output.", false, true);
 
     registerSubsection_("algorithm", "Parameters for the algorithm.");
-    registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");
+    registerSubsection_("labels", "Isotopic labels that can be specified in section \'algorithm:labels\'.");    
+    
   }
 
   // create prameters for sections (set default values and restrictions)
@@ -240,7 +242,8 @@ public:
       defaults.setMaxFloat("averagine_similarity", 1.0);
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("debug_dir", "", "Absolute path to directory for debug output.", ListUtils::create<String>("advanced"));
+      defaults.setValue("knock_out", "true", "Is it likely that knock-outs are present?", ListUtils::create<String>("advanced"));
+      defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
     }
 
     if (section == "labels")
@@ -286,6 +289,7 @@ public:
     out_features = getStringOption_("out_features");
     out_mzq = getStringOption_("out_mzq");
     out_debug = getStringOption_("out_debug");
+    knock_out = getFlag_("knock_out");
   }
 
   void handleParameters_algorithm_()
@@ -331,6 +335,8 @@ public:
 
     // get selected missed_cleavages
     missed_cleavages = getParam_().getValue("algorithm:missed_cleavages");
+    
+    knock_out = (getParam_().getValue("algorithm:knock_out") == "true");
   }
 
   void handleParameters_labels_()
@@ -425,8 +431,6 @@ public:
                 {
                     if (ArgPerPeptide + LysPerPeptide <= missed_cleavages + 1)
                     {
-                        std::cout << "Arg per peptide = " << ArgPerPeptide << "    Lys per peptide = " << LysPerPeptide << "\n";
-                        
                         MassPattern temp;
                         temp.push_back(0);
                         for (unsigned i = 0; i < samples_labels.size(); i++)
@@ -510,11 +514,12 @@ public:
         }
         
         // generate multiplets due to knock-outs (e.g. for a triplet experiment generate the doublets and singlets that might be present)
-        
-        
-        
-        
-        
+        unsigned n = list[0].size();    // n=2 for doublets, n=3 for triplets ...
+        std::cout << "n = " << n << "\n";
+        /*for (unsigned i = 0; i < list.size(); ++i)
+        {
+            
+        }*/
         
         // OLD CODE
 		std::vector<MassPattern> list2;
