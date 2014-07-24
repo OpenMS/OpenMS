@@ -352,10 +352,6 @@ protected:
         XTandemXMLFile().load(in, protein_id, peptide_identifications);
         protein_id.setSearchEngineVersion("");
         protein_id.setSearchEngine("XTandem");
-        DateTime date; // XTandemXMLFile doesn't store the original experiment time.
-        date.setDate("2014-07-22");
-        date.setTime("12:27:50");
-        protein_id.setDateTime(date);
         protein_identifications.push_back(protein_id);
         String exp_name = getStringOption_("mz_file");
         if (!exp_name.empty())
