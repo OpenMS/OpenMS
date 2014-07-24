@@ -184,6 +184,9 @@ private:
   double intensity_cutoff;
   double peptide_similarity;
   double averagine_similarity;
+  
+  // section "labels"
+  map<String,double> label_massshift;
 
 public:
   TOPPFeatureFinderMultiplex() :
@@ -216,7 +219,7 @@ public:
 
     if (section == "algorithm")
     {
-      defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [][Lys8,Arg10] describes a mixtures of two samples. One of them unlabelled, the second one labelled with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'.");
+      defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
       defaults.setValue("charge", "1:4", "Range of charge states in the sample, i.e. min charge : max charge.");
       defaults.setValue("isotopes_per_peptide", "3:6", "Range of isotopes per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
       defaults.setValue("rt_typical", 90.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
@@ -330,7 +333,7 @@ public:
     missed_cleavages = getParam_().getValue("algorithm:missed_cleavages");
   }
 
-  void handleParameters_labels_(map<String, double> & label_massshift)
+  void handleParameters_labels_()
   {
     // create map of pairs (label as string, mass shift as double)
     label_massshift.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
@@ -351,7 +354,7 @@ public:
 	// generate list of mass patterns
 	std::vector<MassPattern> generateMassPatterns_()
 	{
-        // SILAC, Dimethyl, ICPL or none labelling ??
+        // SILAC, Dimethyl, ICPL or no labelling ??
         
         bool labelling_SILAC = ((labels.find("Arg")!=std::string::npos) || (labels.find("Lys")!=std::string::npos));
         bool labelling_Dimethyl = (labels.find("Dimethyl")!=std::string::npos);
@@ -393,7 +396,6 @@ public:
           }
           cout << "\n";
         }
-        cout << "\n";
         
         // check if the labels are included in advanced section "labels"
         String all_labels= "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10";
@@ -415,22 +417,76 @@ public:
         if (SILAC)
         {
             // SILAC
-            std::cout << "SILAC\n";
+            // We assume the first sample to be unlabelled. Even if the "[]" for the first sample in the label string has not been specified.
             
-            // We assume the first sample is unlabelled, even if the "[]" has been forgotten.
+            for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= missed_cleavages + 1; ArgPerPeptide++)
+            {
+                for (unsigned LysPerPeptide = 0; LysPerPeptide <= missed_cleavages + 1; LysPerPeptide++)
+                {
+                    if (ArgPerPeptide + LysPerPeptide <= missed_cleavages + 1)
+                    {
+                        std::cout << "Arg per peptide = " << ArgPerPeptide << "    Lys per peptide = " << LysPerPeptide << "\n";
+                        
+                        MassPattern temp;
+                        temp.push_back(0);
+                        for (unsigned i = 0; i < samples_labels.size(); i++)
+                        {
+                            double mass_shift = 0;
+                            // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There + Lys8There == 0) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
+                            bool goAhead_Lys = false;
+                            bool goAhead_Arg = false;
+                            
+                            for (unsigned j = 0; j < samples_labels[i].size(); ++j)
+                            {
+                                int Arg6There = 0;    // Is Arg6 in the SILAC label?
+                                int Arg10There = 0;
+                                int Lys4There = 0;
+                                int Lys6There = 0;
+                                int Lys8There = 0;
+                                
+                                if (samples_labels[i][j].find("Arg6")!=std::string::npos) Arg6There = 1;
+                                if (samples_labels[i][j].find("Arg10")!=std::string::npos) Arg10There = 1;
+                                if (samples_labels[i][j].find("Lys4")!=std::string::npos) Lys4There = 1;
+                                if (samples_labels[i][j].find("Lys6")!=std::string::npos) Lys6There = 1;
+                                if (samples_labels[i][j].find("Lys8")!=std::string::npos) Lys8There = 1;
+                                
+                                mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_massshift["Arg6"] + Arg10There * label_massshift["Arg10"]) + LysPerPeptide * (Lys4There * label_massshift["Lys4"] + Lys6There * label_massshift["Lys6"] + Lys8There * label_massshift["Lys8"]);
+
+                                // check that Arg (or Lys) is in the peptide and label
+                                goAhead_Arg = goAhead_Arg || !((ArgPerPeptide != 0 && Arg6There + Arg10There == 0));
+                                goAhead_Lys = goAhead_Lys || !((LysPerPeptide != 0 && Lys4There + Lys6There + Lys8There == 0));
+                            }
+                            
+                            if (goAhead_Arg && goAhead_Lys && (mass_shift!=0))
+                            {
+                                temp.push_back(mass_shift);
+                            }
+                        }
+                        
+                        if (temp.size()>1)
+                        {
+                            list.push_back(temp);
+                        }                        
+                    }
+                }
+            }
+            
         }
-        else if (Dimethyl)
+        else if (Dimethyl || ICPL)
         {
-            // Dimethyl
-            for (unsigned i = 0; i < samples_labels.size(); i++)
+            // Dimethyl or ICPL
+            // We assume each sample to be labelled only once.
+            
+            for (unsigned mc = 0; mc <= missed_cleavages; ++mc)
             {
                 MassPattern temp;
-                //temp.pushBack(25);
+                for (unsigned i = 0; i < samples_labels.size(); i++)
+                {
+                    temp.push_back((mc+1)*(label_massshift[samples_labels[i][0]] - label_massshift[samples_labels[0][0]]));
+                }
+                list.push_back(temp);
             }
-        }
-        else if (ICPL)
-        {
-            // ICPL
+            
         }
         else
         {
@@ -439,6 +495,21 @@ public:
             temp.push_back(0);
             list.push_back(temp);
         }
+        
+        // debug output mass shifts
+        cout << "\n";
+        for (unsigned i = 0; i < list.size(); ++i)
+        {
+            std::cout << "mass shift " << (i+1) << ":    ";
+            MassPattern temp = list[i];
+            for (unsigned j = 0; j < temp.size(); ++j)
+            {
+                std::cout << temp[j] << "  ";
+            }
+            std::cout << "\n";
+        }
+        
+        // generate multiplets due to knock-outs (e.g. for a triplet experiment generate the doublets and singlets that might be present)
         
         
         
@@ -493,16 +564,15 @@ public:
     vector<Clustering *> cluster_data;*/
 
     // parameter handling
-    map<String, double> label_massshift;   // mapping of labels to mass shifts (e.g. "Arg6" --> 6.0201290268)
     handleParameters_();
+    handleParameters_labels_();
     handleParameters_algorithm_();
-    handleParameters_labels_(label_massshift);
 
-    if (labels.empty() && !out.empty()) // incompatible parameters
+    /*if (labels.empty() && !out.empty()) // incompatible parameters
     {
       writeLog_("Error: The 'out' parameter cannot be used without a label (parameter 'sample:labels'). Use 'out_features' instead.");
       return ILLEGAL_PARAMETERS;
-    }
+    }*/
 
     // 
     // Initializing the SILACAnalzer with our parameters
