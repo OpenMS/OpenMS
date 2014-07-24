@@ -289,7 +289,6 @@ public:
     out_features = getStringOption_("out_features");
     out_mzq = getStringOption_("out_mzq");
     out_debug = getStringOption_("out_debug");
-    knock_out = getFlag_("knock_out");
   }
 
   void handleParameters_algorithm_()
@@ -513,13 +512,101 @@ public:
             std::cout << "\n";
         }
         
-        // generate multiplets due to knock-outs (e.g. for a triplet experiment generate the doublets and singlets that might be present)
+        // generate all mass shifts that can occur due to the absence of one or multiple peptides 
+        // (e.g. for a triplet experiment generate the doublets and singlets that might be present)
         unsigned n = list[0].size();    // n=2 for doublets, n=3 for triplets ...
-        std::cout << "n = " << n << "\n";
-        /*for (unsigned i = 0; i < list.size(); ++i)
+        if (knock_out && n==4)
         {
-            
-        }*/
+             unsigned m = list.size();
+             for (unsigned i = 0; i < m; ++i)
+             {
+                 MassPattern triplet1(1,0);
+                 triplet1.push_back(list[i][2]-list[i][1]);
+                 triplet1.push_back(list[i][3]-list[i][1]);
+                 list.push_back(triplet1);
+                 
+                 MassPattern triplet2(1,0);
+                 triplet2.push_back(list[i][2]-list[i][0]);
+                 triplet2.push_back(list[i][3]-list[i][0]);
+                 list.push_back(triplet2);
+                 
+                 MassPattern triplet3(1,0);
+                 triplet3.push_back(list[i][1]-list[i][0]);
+                 triplet3.push_back(list[i][2]-list[i][0]);
+                 list.push_back(triplet3);
+                 
+    
+                 MassPattern doublet1(1,0);
+                 doublet1.push_back(list[i][1]);
+                 list.push_back(doublet1);
+                 
+                 MassPattern doublet2(1,0);
+                 doublet2.push_back(list[i][2]);
+                 list.push_back(doublet2);
+                 
+                 MassPattern doublet3(1,0);
+                 doublet3.push_back(list[i][3]);
+                 list.push_back(doublet3);
+                 
+                 MassPattern doublet4(1,0);
+                 doublet4.push_back(list[i][2] - list[i][1]);
+                 list.push_back(doublet4);
+                 
+                 MassPattern doublet5(1,0);
+                 doublet5.push_back(list[i][3]-list[i][1]);
+                 list.push_back(doublet5);
+                 
+                 MassPattern doublet6(1,0);
+                 doublet6.push_back(list[i][3] - list[i][2]);
+                 list.push_back(doublet6);
+             }
+             
+             MassPattern singlet(1,0);
+             list.push_back(singlet);
+        }
+        else if (knock_out && n==3)
+        {
+             unsigned m = list.size();
+             for (unsigned i = 0; i < m; ++i)
+             {
+                 MassPattern doublet1(1,0);
+                 doublet1.push_back(list[i][1]);
+                 list.push_back(doublet1);
+                 
+                 MassPattern doublet2(1,0);
+                 doublet2.push_back(list[i][2]-list[i][1]);
+                 list.push_back(doublet2);
+                 
+                 MassPattern doublet3(1,0);
+                 doublet3.push_back(list[i][2]);
+                 list.push_back(doublet3);
+             }
+             
+             MassPattern singlet(1,0);
+             list.push_back(singlet);
+        }
+        else if (knock_out && n==2)
+        {
+             MassPattern singlet(1,0);
+             list.push_back(singlet);
+        }
+        
+        // debug output mass shifts
+        cout << "\n";
+        for (unsigned i = 0; i < list.size(); ++i)
+        {
+            std::cout << "mass shift (revisited) " << (i+1) << ":    ";
+            MassPattern temp = list[i];
+            for (unsigned j = 0; j < temp.size(); ++j)
+            {
+                std::cout << temp[j] << "  ";
+            }
+            std::cout << "\n";
+        }
+        
+        
+        
+        
         
         // OLD CODE
 		std::vector<MassPattern> list2;
