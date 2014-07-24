@@ -499,19 +499,6 @@ public:
             list.push_back(temp);
         }
         
-        // debug output mass shifts
-        cout << "\n";
-        for (unsigned i = 0; i < list.size(); ++i)
-        {
-            std::cout << "mass shift " << (i+1) << ":    ";
-            MassPattern temp = list[i];
-            for (unsigned j = 0; j < temp.size(); ++j)
-            {
-                std::cout << temp[j] << "  ";
-            }
-            std::cout << "\n";
-        }
-        
         // generate all mass shifts that can occur due to the absence of one or multiple peptides 
         // (e.g. for a triplet experiment generate the doublets and singlets that might be present)
         unsigned n = list[0].size();    // n=2 for doublets, n=3 for triplets ...
@@ -595,7 +582,7 @@ public:
         cout << "\n";
         for (unsigned i = 0; i < list.size(); ++i)
         {
-            std::cout << "mass shift (revisited) " << (i+1) << ":    ";
+            std::cout << "mass shift" << (i+1) << ":    ";
             MassPattern temp = list[i];
             for (unsigned j = 0; j < temp.size(); ++j)
             {
@@ -604,25 +591,7 @@ public:
             std::cout << "\n";
         }
         
-        
-        
-        
-        
-        // OLD CODE
-		std::vector<MassPattern> list2;
-	  
-		MassPattern pattern1;
-		pattern1.push_back(0);
-		pattern1.push_back(8.0443702794);
-	  
-		MassPattern pattern2;
-		pattern2.push_back(0);
-		pattern2.push_back(2*8.0443702794);
-	  
-		list2.push_back(pattern1);
-		list2.push_back(pattern2);
-	  
-		return list2;
+		return list;
 	}
   
 	// generate list of mass shifts
