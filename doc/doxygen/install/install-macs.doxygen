@@ -174,7 +174,7 @@ mkdir ~/openms-development/openms_build
 
 @code
 cd <path_to_OpenMS_build>
-cmake -D CMAKE_FIND_ROOT_PATH=<path_to_contrib_build> <path_to_OpenMS>
+cmake -D CMAKE_PREFIX_PATH=<path_to_contrib_build> <path_to_OpenMS>
 @endcode
 
   You can set CMake variables using the <code>-D VARIABLE=VALUE</code> option.
@@ -193,19 +193,19 @@ ccmake ~/openms-development/openms_build
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
     <tr>
-      <td valign="top">\c CMAKE_FIND_ROOT_PATH</td>
+      <td valign="top">\c CMAKE_PREFIX_PATH</td>
       <td>Additional search path for the contrib libraries.
           If not set the the location is assumed to be
           <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.
           If you want to use libraries installed via homebrew or macports you
           need to provide the corresponding paths
 
-          <code>-D CMAKE_FIND_ROOT_PATH=/usr/local</code> for homebrew
-          <code>-D CMAKE_FIND_ROOT_PATH=/opt/local</code> for macports
+          <code>-D CMAKE_PREFIX_PATH=/usr/local</code> for homebrew
+          <code>-D CMAKE_PREFIX_PATH=/opt/local</code> for macports
 
           Please keep in mind that macports does not provide all libraries so
           you need to provide also the path to your self-build contrib.
-          <code>-D CMAKE_FIND_ROOT_PATH="/opt/local;~/openms-development/contrib-build"</code>
+          <code>-D CMAKE_PREFIX_PATH="/opt/local;~/openms-development/contrib-build"</code>
       </td>
     </tr>
     <tr>

@@ -29,7 +29,7 @@ set(WM5_LIBS Wm5Core Wm5Mathematics)
 
 #------------------------------------------------------------------------------
 # find WM5 include path
-find_path(_WM5_INCLUDE_DIR
+find_path(WM5_INCLUDE_DIR
           NAMES
             Wm5Core.h
           HINTS
@@ -39,50 +39,42 @@ find_path(_WM5_INCLUDE_DIR
 
 #------------------------------------------------------------------------------
 # find the relevant WM5 libraries
-set(_WM5_LIBRARIES "")
+set(WM5_LIBRARIES "")
 set(_ALL_WM5_LIBS_FOUND TRUE)
 
 # find all components
 foreach(_lib ${WM5_LIBS})
-	string(TOUPPER WM5_${_lib} _WM5LIB)
+  if(NOT ${_lib}_LIBRARIES)
+    string(TOUPPER WM5_${_lib} _WM5LIB)
 
-  find_library(${_WM5LIB}_LIBRARY_RELEASE
-    ${_lib}
-    HINTS ${WM5_DIR}/lib
-  )
+    find_library(${_WM5LIB}_LIBRARY_RELEASE
+      ${_lib}
+      HINTS ${WM5_DIR}/lib
+    )
 
-  find_library(${_WM5LIB}_LIBRARY_DEBUG
-    ${_lib}d
-    HINTS ${WM5_DIR}/lib
-  )
+    find_library(${_WM5LIB}_LIBRARY_DEBUG
+      ${_lib}d
+      HINTS ${WM5_DIR}/lib
+    )
 
-  # select debug or release depending on current config
-  include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
-  select_library_configurations(${_WM5LIB})
+    # select debug or release depending on current config
+    include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
+    select_library_configurations(${_WM5LIB})
 
-  if(${_WM5LIB}_LIBRARY)
-    message(STATUS "Found ${_lib}: ${${_WM5LIB}_LIBRARY}")
-  else(${_WM5LIB}_LIBRARY)
-    message(STATUS "WARNING: ${_lib} was not found!")
-    set(_ALL_WM5_LIBS_FOUND FALSE)
-  endif(${_WM5LIB}_LIBRARY)
+    if(${_WM5LIB}_LIBRARY)
+      message(STATUS "Found ${_lib}: ${${_WM5LIB}_LIBRARY}")
+    else(${_WM5LIB}_LIBRARY)
+      message(STATUS "WARNING: ${_lib} was not found!")
+      set(_ALL_WM5_LIBS_FOUND FALSE)
+    endif(${_WM5LIB}_LIBRARY)
 
-  set(_WM5_LIBRARIES ${_WM5_LIBRARIES} ${${_WM5LIB}_LIBRARY})
+    set(WM5_LIBRARIES ${WM5_LIBRARIES} ${${_WM5LIB}_LIBRARY})
+  endif()
 endforeach(_lib ${WM5_LIBS})
 
 #------------------------------------------------------------------------------
-# mark as found if we have a found the include path and all libraries
-if(_WM5_INCLUDE_DIR AND _ALL_WM5_LIBS_FOUND)
-  # we assume we found the correct version
-  set(WM5_PROPER_VERSION_FOUND TRUE)
-  set(WM5_FOUND TRUE)
-else()
-  set(WM5_FOUND FALSE)
-endif()
-
-#------------------------------------------------------------------------------
 # check if we have a static Wm5 lib
-if(MSVC)
+if(MSVC AND WM5_LIBRARIES AND NOT DEFINED WM5_IS_STATIC)
 	# we try the optimized version of WM5_CORE to win32 path
 	list(GET WM5_WM5CORE_LIBRARY 1 _wm5_opt_core)
 	file(TO_NATIVE_PATH "${_wm5_opt_core}" _native_wm5_opt_core)
@@ -127,41 +119,26 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# print warning/error if NOT FIND_QUIETLY and NOT found
-if(NOT WM5_FOUND AND NOT WM5_FIND_QUIETLY)
-  if(WM5_FIND_REQUIRED)
-    message(FATAL_ERROR "WM5 required but wasn't found completely.")
-  else(WM5_FIND_REQUIRED)
-    message(STATUS "WARNING: WM5 was not found.")
-  endif(WM5_FIND_REQUIRED)
-endif(NOT WM5_FOUND AND NOT WM5_FIND_QUIETLY)
-
-#------------------------------------------------------------------------------
 # add definitions for dll linking on windows
-set(_WM5_DEFINITIONS "")
+set(WM5_DEFINITIONS "")
 if(MSVC AND NOT WM5_IS_STATIC)
-  set(_WM5_DEFINITIONS "/D WM5_CORE_DLL_IMPORT /D WM5_MATHEMATICS_DLL_IMPORT")
+  set(WM5_DEFINITIONS "/D WM5_CORE_DLL_IMPORT /D WM5_MATHEMATICS_DLL_IMPORT")
 endif()
+
+set(WM5_INCLUDE_DIRS ${WM5_INCLUDE_DIR})
 
 #------------------------------------------------------------------------------
 # handle standard args
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(WM5
                                   DEFAULT_MSG
-                                  _WM5_INCLUDE_DIR
-                                  _WM5_LIBRARIES
-                                  WM5_PROPER_VERSION_FOUND)
-
-#------------------------------------------------------------------------------
-# export found libraries
-if(WM5_FOUND)
-  set(WM5_INCLUDE_DIRS ${_WM5_INCLUDE_DIR})
-  set(WM5_LIBRARIES ${_WM5_LIBRARIES})
-  set(WM5_DEFINITIONS ${_WM5_DEFINITIONS})
-endif(WM5_FOUND)
+                                  WM5_INCLUDE_DIR WM5_LIBRARIES _ALL_WM5_LIBS_FOUND)
 
 #------------------------------------------------------------------------------
 # hide internal entries
 mark_as_advanced(_WM5_LIBRARIES
                  _WM5_INCLUDE_DIR
-                 _WM5_DEFINITIONS)
+                 _WM5_DEFINITIONS
+                 Wm5Core_LIBRARIES
+                 Wm5Mathematics_LIBRARIES
+                 WM5_IS_STATIC)
