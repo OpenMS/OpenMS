@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <QtGui/QTextDocument>
 #include <iostream>
 
 // #define MASCOTREMOTEQUERY_DEBUG
@@ -494,7 +495,9 @@ namespace OpenMS
     QByteArray new_bytes = http_->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "Response of query: " << "\n";
-    cerr << QString(new_bytes.constData()).toStdString() << "\n";
+    QTextDocument doc;
+    doc.setHtml(new_bytes.constData());
+    cerr << doc.toPlainText().toStdString() << "\n";
 #endif
 
     if (QString(new_bytes).trimmed().size() == 0 && !(http_->lastResponse().isValid() && http_->lastResponse().statusCode() == 303))
@@ -531,6 +534,7 @@ namespace OpenMS
       QRegExp rx("file=(.+/\\d+/\\w+\\.dat)");
       rx.setMinimal(true);
       rx.indexIn(response);
+      search_number_ = getSearchNumberFromFilePath_(rx.cap(1));
 
       QString results_path("");
       results_path.append(server_path_.toQString());
@@ -626,6 +630,11 @@ namespace OpenMS
     return error_message_;
   }
 
+  const Int& MascotRemoteQuery::getSearchNumber() const
+  {
+    return search_number_;
+  }
+
   void MascotRemoteQuery::updateMembers_()
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -701,4 +710,16 @@ namespace OpenMS
          << "<<<< Header to " << what << " (end)." << endl;
   }
 
+  Int MascotRemoteQuery::getSearchNumberFromFilePath_(const String& path)
+  {
+    Int search_number = 0;
+    int pos = path.find_last_of("/\\");
+    String tmp = path.substr(pos + 1);
+    pos = tmp.find_last_of(".");
+    tmp = tmp.substr(1, pos - 1);
+   
+    istringstream ss(tmp);
+    ss >> search_number;
+    return search_number;
+  }
 }
