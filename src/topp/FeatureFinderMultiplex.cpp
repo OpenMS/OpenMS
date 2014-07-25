@@ -169,22 +169,23 @@ private:
   String out_features;
   String out_mzq;
   String out_debug;
+  bool debug_;
 
   // section "algorithm"
   String labels;
-  unsigned charge_min;
-  unsigned charge_max;
-  unsigned missed_cleavages;
-  unsigned isotopes_per_peptide_min;
-  unsigned isotopes_per_peptide_max;
-  double rt_typical;
-  double rt_min;
-  double mz_tolerance;
-  bool mz_unit;    // ppm (true), Da (false)
-  double intensity_cutoff;
-  double peptide_similarity;
-  double averagine_similarity;
-  bool knock_out;
+  unsigned charge_min_;
+  unsigned charge_max_;
+  unsigned missed_cleavages_;
+  unsigned isotopes_per_peptide_min_;
+  unsigned isotopes_per_peptide_max_;
+  double rt_typical_;
+  double rt_min_;
+  double mz_tolerance_;
+  bool mz_unit_;    // ppm (true), Da (false)
+  double intensity_cutoff_;
+  double peptide_similarity_;
+  double averagine_similarity_;
+  bool knock_out_;
   
   // section "labels"
   map<String,double> label_massshift;
@@ -282,16 +283,17 @@ public:
     return defaults;
   }
 
-  void handleParameters_()
+  void getParameters_in_out_()
   {
     in = getStringOption_("in");
     out = getStringOption_("out");
     out_features = getStringOption_("out_features");
     out_mzq = getStringOption_("out_mzq");
     out_debug = getStringOption_("out_debug");
+    debug_ = !out_debug.empty();
   }
 
-  void handleParameters_algorithm_()
+  void getParameters_algorithm_()
   {
     // get selected labels
     labels = getParam_().getValue("algorithm:labels");
@@ -300,45 +302,36 @@ public:
     String charge_string = getParam_().getValue("algorithm:charge");
     double charge_min_temp, charge_max_temp;
     parseRange_(charge_string, charge_min_temp, charge_max_temp);
-    charge_min = charge_min_temp;
-    charge_max = charge_max_temp;
-    if (charge_min > charge_max)
+    charge_min_ = charge_min_temp;
+    charge_max_ = charge_max_temp;
+    if (charge_min_ > charge_max_)
     {
-      swap(charge_min, charge_max);
+      swap(charge_min_, charge_max_);
     }
 
     // get isotopes per peptide range
     String isotopes_per_peptide_string = getParam_().getValue("algorithm:isotopes_per_peptide");
     double isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp;
     parseRange_(isotopes_per_peptide_string, isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp);
-    isotopes_per_peptide_min = isotopes_per_peptide_min_temp;
-    isotopes_per_peptide_max = isotopes_per_peptide_max_temp;
-    if (isotopes_per_peptide_min > isotopes_per_peptide_max)
+    isotopes_per_peptide_min_ = isotopes_per_peptide_min_temp;
+    isotopes_per_peptide_max_ = isotopes_per_peptide_max_temp;
+    if (isotopes_per_peptide_min_ > isotopes_per_peptide_max_)
     {
-      swap(isotopes_per_peptide_min, isotopes_per_peptide_max);
+      swap(isotopes_per_peptide_min_, isotopes_per_peptide_max_);
     }
 
-    //check if isotopes_per_peptide_min is smaller than isotopes_per_peptide_max, if not swap
-    if (isotopes_per_peptide_min > isotopes_per_peptide_max)
-    {
-      swap(isotopes_per_peptide_min, isotopes_per_peptide_max);
-    }
-
-    rt_typical = getParam_().getValue("algorithm:rt_typical");
-    rt_min = getParam_().getValue("algorithm:rt_min");
-    mz_tolerance = getParam_().getValue("algorithm:mz_tolerance");
-    mz_unit = (getParam_().getValue("algorithm:mz_unit") == "ppm");
-    intensity_cutoff = getParam_().getValue("algorithm:intensity_cutoff");
-    peptide_similarity = getParam_().getValue("algorithm:peptide_similarity");
-    averagine_similarity = getParam_().getValue("algorithm:averagine_similarity");
-
-    // get selected missed_cleavages
-    missed_cleavages = getParam_().getValue("algorithm:missed_cleavages");
-    
-    knock_out = (getParam_().getValue("algorithm:knock_out") == "true");
+    rt_typical_ = getParam_().getValue("algorithm:rt_typical");
+    rt_min_ = getParam_().getValue("algorithm:rt_min");
+    mz_tolerance_ = getParam_().getValue("algorithm:mz_tolerance");
+    mz_unit_ = (getParam_().getValue("algorithm:mz_unit") == "ppm");
+    intensity_cutoff_ = getParam_().getValue("algorithm:intensity_cutoff");
+    peptide_similarity_ = getParam_().getValue("algorithm:peptide_similarity");
+    averagine_similarity_ = getParam_().getValue("algorithm:averagine_similarity");
+    missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
+    knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
   }
 
-  void handleParameters_labels_()
+  void getParameters_labels_()
   {
     // create map of pairs (label as string, mass shift as double)
     label_massshift.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
@@ -424,11 +417,11 @@ public:
             // SILAC
             // We assume the first sample to be unlabelled. Even if the "[]" for the first sample in the label string has not been specified.
             
-            for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= missed_cleavages + 1; ArgPerPeptide++)
+            for (unsigned ArgPerPeptide = 0; ArgPerPeptide <= missed_cleavages_ + 1; ArgPerPeptide++)
             {
-                for (unsigned LysPerPeptide = 0; LysPerPeptide <= missed_cleavages + 1; LysPerPeptide++)
+                for (unsigned LysPerPeptide = 0; LysPerPeptide <= missed_cleavages_ + 1; LysPerPeptide++)
                 {
-                    if (ArgPerPeptide + LysPerPeptide <= missed_cleavages + 1)
+                    if (ArgPerPeptide + LysPerPeptide <= missed_cleavages_ + 1)
                     {
                         MassPattern temp;
                         temp.push_back(0);
@@ -480,7 +473,7 @@ public:
             // Dimethyl or ICPL
             // We assume each sample to be labelled only once.
             
-            for (unsigned mc = 0; mc <= missed_cleavages; ++mc)
+            for (unsigned mc = 0; mc <= missed_cleavages_; ++mc)
             {
                 MassPattern temp;
                 for (unsigned i = 0; i < samples_labels.size(); i++)
@@ -502,7 +495,7 @@ public:
         // generate all mass shifts that can occur due to the absence of one or multiple peptides 
         // (e.g. for a triplet experiment generate the doublets and singlets that might be present)
         unsigned n = list[0].size();    // n=2 for doublets, n=3 for triplets ...
-        if (knock_out && n==4)
+        if (knock_out_ && n==4)
         {
              unsigned m = list.size();
              for (unsigned i = 0; i < m; ++i)
@@ -551,7 +544,7 @@ public:
              MassPattern singlet(1,0);
              list.push_back(singlet);
         }
-        else if (knock_out && n==3)
+        else if (knock_out_ && n==3)
         {
              unsigned m = list.size();
              for (unsigned i = 0; i < m; ++i)
@@ -572,7 +565,7 @@ public:
              MassPattern singlet(1,0);
              list.push_back(singlet);
         }
-        else if (knock_out && n==2)
+        else if (knock_out_ && n==2)
         {
              MassPattern singlet(1,0);
              list.push_back(singlet);
@@ -619,15 +612,85 @@ public:
 
   ExitCodes main_(int, const char **)
   {
+      
+    /**
+     * handle parameters
+     */
+    getParameters_in_out_();
+    getParameters_labels_();
+    getParameters_algorithm_();
+
+    /**
+     * load input
+     */
+    MzMLFile file;
+    MSExperiment<Peak1D> exp;
+
+    // only read MS1 spectra ...
+    /*
+    std::vector<int> levels;
+    levels.push_back(1);
+    file.getOptions().setMSLevels(levels);
+    */
+    
+    LOG_DEBUG << "Loading input..." << endl;
+    file.setLogType(log_type_);
+    file.load(in, exp);
+
+    // update m/z and RT ranges
+    exp.updateRanges();
+
+    // extract level 1 spectra
+    exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(ListUtils::create<Int>("1"), true)), exp.end());
+
+    // sort according to RT and MZ
+    exp.sortSpectra();
+
+    /**
+     * pick peaks
+     */
+	PeakPickerHiRes picker;
+	Param param = picker.getParameters();
+    param.setValue("ms1_only", DataValue("true"));
+    param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
+    picker.setParameters(param);
+        
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;    // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;    // peak boundaries for chromatograms
+
+	MSExperiment<Peak1D> exp_picked;
+    picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);	
+
+    /**
+     * filter for peak patterns
+     */
+    std::cout << "    Starting Filtering.\n";
+    bool missing_peaks_ = false;
+	std::vector<MassPattern> masses = generateMassPatterns_();
+	std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
+    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, debug_);
+    std::vector<MultiplexFilterResult> filter_results = filtering.filter();
+     
+    /**
+     * cluster filter results
+     */
+    std::cout << "    Starting Clustering.\n";
+    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, debug_);
+    std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
+
+
+
+
+
+
+
+
+
+
     // data to be passed through the algorithm
     /*vector<vector<SILACPattern> > data;
     MSQuantifications msq;
     vector<Clustering *> cluster_data;*/
-
-    // parameter handling
-    handleParameters_();
-    handleParameters_labels_();
-    handleParameters_algorithm_();
 
     /*if (labels.empty() && !out.empty()) // incompatible parameters
     {
@@ -657,32 +720,6 @@ public:
       allow_missing_peaks,
       // labels
       label_massshift);*/
- 
-    //--------------------------------------------------
-    // loading input from .mzML
-    //--------------------------------------------------
-
-    MzMLFile file;
-    MSExperiment<Peak1D> exp;
-
-    // only read MS1 spectra ...
-    /*
-    std::vector<int> levels;
-    levels.push_back(1);
-    file.getOptions().setMSLevels(levels);
-    */
-    LOG_DEBUG << "Loading input..." << endl;
-    file.setLogType(log_type_);
-    file.load(in, exp);
-
-    // set size of input map
-    exp.updateRanges();
-
-    // extract level 1 spectra
-    exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(ListUtils::create<Int>("1"), true)), exp.end());
-
-    // sort according to RT and MZ
-    exp.sortSpectra();
 
     /*if (out_mzq != "")
     {
@@ -706,17 +743,10 @@ public:
     MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
     msq.setAnalysisSummaryQuantType(quant_type);    //add analysis_summary_
 	*/
-
-
-
-
 	
 	// ---------------------------
 	// testing new data structures
 	// ---------------------------
-    
-	std::cout << "\n\n";
-	std::cout << "*** starting tests ***\n";
     
     // testing size types    
     /*double nonNaN = 100;
@@ -731,19 +761,6 @@ public:
 	// testing peak picking
 	// ---------------------------
     
-    std::cout << "    Starting peak picking.\n";
-	PeakPickerHiRes picker;
-	Param param = picker.getParameters();
-    param.setValue("ms1_only", DataValue("true"));
-    param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
-    picker.setParameters(param);
-        
-    std::vector<PeakPickerHiRes::PeakBoundary> boundaries;
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
-
-	MSExperiment<Peak1D> exp_picked;
-    picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);	
 	//MzMLFile file_picked;
 	//file_picked.store("picked.mzML", exp_picked);
 	
@@ -751,42 +768,9 @@ public:
 	// testing filtering
 	// ---------------------------	
 	
-    std::cout << "    Starting filtering.\n";
-    int charge_min = 1;
-    int charge_max = 4;
-    int isotopes_per_peptide_min = 3;
-    int isotopes_per_peptide_max = 6;
-    bool missing_peaks = false;
-    double intensity_cutoff = 10.0;
-    double peptide_similarity = 0.8;
-    double averagine_similarity = 0.75;
-    double mz_tolerance = 40;
-    bool mz_tolerance_unit = true;    // ppm (true), Da (false)
-    bool debug = true;
-    
-	std::vector<MassPattern> masses = generateMassPatterns_();
-	std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min, charge_max, isotopes_per_peptide_max, masses);
-    //std::cout << "    number of peak patterns = " << patterns.size() << "\n";
-    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
-    std::vector<MultiplexFilterResult> filter_results = filtering.filter();
-    
 	// ---------------------------
 	// testing clustering
 	// ---------------------------	
-        
-    std::cout << "    Starting clustering.\n";
-    double rt_typical = 90;
-    double rt_minimum = 5;
-    
-    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
-    std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
-	    
- 	std::cout << "*** ending tests ***\n";
- 	std::cout << "\n\n";
-
-
-
-
 
     //--------------------------------------------------
     // estimate peak width
