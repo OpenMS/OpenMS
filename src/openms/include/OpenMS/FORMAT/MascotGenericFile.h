@@ -76,11 +76,13 @@ public:
     /// docu in base class
     virtual void updateMembers_();
 
-    /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution
-    void store(const String& filename, const PeakMap& experiment);
+    /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
+    void store(const String& filename, const PeakMap& experiment, 
+               bool compact = false);
 
-    /// store the experiment data in a MascotGenericFile; the output is written to the given stream, the filename will be noted in the file
-    void store(std::ostream& os, const String& filename, const PeakMap& experiment);
+    /// store the experiment data in a MascotGenericFile; the output is written to the given stream, the filename will be noted in the file (optionally a compact format is used: no zero-intensity peaks, limited number of decimal places)
+    void store(std::ostream& os, const String& filename, 
+               const PeakMap& experiment, bool compact = false);
 
     /**
       @brief loads a Mascot Generic File into a PeakMap
@@ -132,6 +134,9 @@ public:
     std::pair<String, String> getHTTPPeakListEnclosure(const String& filename) const;
 
 protected:
+
+    /// use a compact format for storing (no zero-intensity peaks, limited number of decimal places)?
+    bool store_compact_;
 
     /// mapping of modifications with specificity groups, that have to be treated specially (e.g. "Deamidated (NQ)")
     std::map<String, String> mod_group_map_;

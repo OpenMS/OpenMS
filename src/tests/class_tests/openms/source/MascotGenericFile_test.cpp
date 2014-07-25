@@ -75,7 +75,7 @@ START_SECTION((template < typename MapType > void load(const String &filename, M
 }
 END_SECTION
 
-START_SECTION((void store(std::ostream &os, const String &filename, const PeakMap &experiment)))
+START_SECTION((void store(std::ostream &os, const String &filename, const PeakMap &experiment, bool compact = false)))
 {
   PeakMap exp;
   ptr->load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), exp);
@@ -116,10 +116,39 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
   }
 
   ptr->setParameters(ptr->getDefaults()); // reset parameters
+
+  // test compact format:
+  MSSpectrum<> spec;
+  spec.setNativeID("ident");
+  spec.setMSLevel(2);
+  spec.setRT(234.5678901);
+  Precursor prec;
+  prec.setMZ(901.2345678);
+  spec.getPrecursors().push_back(prec);
+  Peak1D peak;
+  peak.setMZ(567.8901234);
+  peak.setIntensity(0.0);
+  spec.push_back(peak); // intensity zero -> not present in output
+  peak.setMZ(890.1234567);
+  peak.setIntensity(2345.678901);
+  spec.push_back(peak);
+  exp.clear(true);
+  exp.addSpectrum(spec);
+
+  ss.str("");
+  ptr->store(ss, "test", exp, true);
+  mgf_file = ss.str();
+  String content = ("BEGIN IONS\n"
+                    "TITLE=901.23457_234.568_ident_test\n"
+                    "PEPMASS=901.23457\n"
+                    "RTINSECONDS=234.568\n"
+                    "890.12346 2345.68\n"
+                    "END IONS");
+  TEST_EQUAL(mgf_file.hasSubstring(content), true);
 }
 END_SECTION
 
-START_SECTION((void store(const String &filename, const PeakMap &experiment)))
+START_SECTION((void store(const String &filename, const PeakMap &experiment, bool compact = false)))
 {
   String tmp_name("MascotGenericFile_1.tmp");
   NEW_TMP_FILE(tmp_name)
