@@ -609,6 +609,13 @@ public:
 		return list;
 	}
     
+    void writeOutput_(std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results)
+    {
+        // data structures for final results
+        std::vector<double> peptide_RT;
+        
+    }
+    
 
   ExitCodes main_(int, const char **)
   {
@@ -678,6 +685,10 @@ public:
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, debug_);
     std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
 
+    /**
+     * write to output
+     */
+    writeOutput_(filter_results, cluster_results);
 
 
 
