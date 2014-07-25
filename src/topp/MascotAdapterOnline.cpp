@@ -239,6 +239,8 @@ protected:
     mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
     mascot_tmp_file.close();
 
+    int search_number = mascot_query->getSearchNumber();
+
     // clean up
     delete mascot_query;
 
@@ -252,6 +254,7 @@ protected:
     // read the response
     MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
     writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
+    prot_id.setMetaValue("SearchNumber", search_number);
 
     // for debugging errors relating to unexpected response files
     if (this->debug_level_ >= 100)
