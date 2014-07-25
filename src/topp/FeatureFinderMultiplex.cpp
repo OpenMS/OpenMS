@@ -59,6 +59,8 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
+#include<QDir>
+
 //std includes
 #include <cmath>
 #include <vector>
@@ -583,6 +585,7 @@ public:
             }
             std::cout << "\n";
         }
+        std::cout << "\n";
         
 		return list;
 	}
@@ -671,24 +674,51 @@ public:
     /**
      * filter for peak patterns
      */
-    std::cout << "    Starting Filtering.\n";
     bool missing_peaks_ = false;
 	std::vector<MassPattern> masses = generateMassPatterns_();
 	std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
-    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, debug_);
+    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug);
     std::vector<MultiplexFilterResult> filter_results = filtering.filter();
      
     /**
      * cluster filter results
      */
-    std::cout << "    Starting Clustering.\n";
-    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, debug_);
+    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, out_debug);
     std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
 
     /**
      * write to output
      */
-    writeOutput_(filter_results, cluster_results);
+    
+    // try creating directory
+    /*std::cout << "\n";
+    std::cout << "debug output directory = " << out_debug << "\n";
+    bool dir_ok  = (out_debug.trim().length() > 0);
+    if (dir_ok)
+    {
+        std::cout << "Hello.\n";
+        // create output directory (if not already present)
+        QDir dir(out_debug.toQString());
+        if (!dir.cdUp())
+        {
+            std::cout << "Could not navigate to directory for debug output '" << String(dir.dirName()) << "'.\n";
+            LOG_ERROR << "Could not navigate to directory for debug output '" << String(dir.dirName()) << "'.\n";
+            //return false;
+        }
+        if (!dir.exists() && !dir.mkpath("."))
+        {
+            std::cout << "Could not create directory for debug output '" << String(dir.dirName()) << "'.\n";
+            LOG_ERROR << "Could not create directory for debug output '" << String(dir.dirName()) << "'.\n";
+            //return false;
+        }
+        
+        if (dir.exists())
+        {
+            std::cout << "Directory exists.\n";
+        }
+    }*/
+     
+    //writeOutput_(filter_results, cluster_results);
 
 
 

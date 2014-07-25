@@ -51,13 +51,15 @@
 #include <algorithm>
 #include <iostream>
 
+#include<QDir>
+
 using namespace std;
 
 namespace OpenMS
 {
 
-  MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug) :
-    rt_typical_(rt_typical), rt_minimum_(rt_minimum), debug_(debug)
+  MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug) :
+    rt_typical_(rt_typical), rt_minimum_(rt_minimum), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
   {
     if (exp_picked.size() != boundaries.size())
     {
@@ -245,7 +247,20 @@ namespace OpenMS
     // write consensus file
     ConsensusXMLFile file;
     String file_name = "debug_clustered_";
-    file_name = file_name + pattern + ".consensusXML";
+    QDir dir(out_debug_.toQString());
+    if (!dir.cdUp())
+    {
+        std::stringstream stream;
+        stream << "Could not navigate to directory for debug output '" << String(dir.dirName()) << "'.";
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+    }
+    if (!dir.exists() && !dir.mkpath("."))
+    {
+        std::stringstream stream;
+        stream << "Could not create directory for debug output '" << String(dir.dirName()) << "'.";
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+    }
+    file_name = out_debug_ + "/" + file_name + pattern + ".consensusXML";    // Correct way of writing to absolute path?
     file.store(file_name, map);
   }
 
