@@ -143,7 +143,7 @@ protected:
       void parseSpectrumIdentificationProtocolElements_( xercesc::DOMNodeList * spectrumIdentificationProtocolElements);
       void parseInputElements_( xercesc::DOMNodeList * inputElements);
       void parseSpectrumIdentificationResultElements_( xercesc::DOMNodeList * spectrumIdentificationResultElements);
-      void parseSpectrumIdentificationItemElement_(xercesc::DOMElement * spectrumIdentificationItemElement, PeptideIdentification &spectrum_identification);
+      void parseSpectrumIdentificationItemElement_(xercesc::DOMElement * spectrumIdentificationItemElement, PeptideIdentification &spectrum_identification, String& spectrumIdentificationList_ref);
       void parseProteinDetectionHypothesisElement_( xercesc::DOMElement * proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement * proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
       void parseProteinDetectionListElements_( xercesc::DOMNodeList * proteinDetectionListElements);
@@ -227,6 +227,7 @@ private:
       std::map<String, String> p_pv_map_; //mapping PeptideEvidence to Peptide
       std::map<String, DBSequence> db_sq_map_; //holding DBSequence
       std::map<String, SpectrumIdentification> si_map_; //holding the reference connections of db, hits, spectra - SpectrumIdentification will be the new IdentificationRuns
+      std::map<String, ProteinIdentification*> si_pro_map_; //Proteinidentification for each SI list
       std::map<String, SpectrumIdentificationProtocol> sp_map_; //holding DBSequence
       std::map<String, String > input_source_; //holding sourcefiles location
       std::map<String, String > input_spectra_data_; //holding spectradata files location
