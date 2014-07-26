@@ -612,10 +612,40 @@ public:
 		return list;
 	}
     
-    void writeOutput_(std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results)
+    void writeOutput_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results)
     {
         // data structures for final results
-        std::vector<double> peptide_RT;
+        std::vector<std::vector<double> > peptide_RT;
+        std::vector<std::vector<double> > peptide_MZ;
+        std::vector<std::vector<double> > peptide_intensity;
+        std::vector<std::vector<int> > peptide_charge;
+
+        // loop over peak patterns
+        for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
+        {
+            std::cout << "pattern " << pattern << " contains " << cluster_results[pattern].size() << " clusters.\n";
+            
+            // loop over clusters
+            for (std::map<int,MultiplexCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
+            {
+                int a = cluster_it->first;
+                MultiplexCluster cluster = cluster_it->second;
+                std::vector<int> points = cluster.getPoints();
+                
+                std::cout << "  cluster " << a << " contains " << points.size() << " points.\n";
+                
+                // loop over points in cluster
+                for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
+                {
+                    int index = (*point_it);
+                    double RT = filter_results[pattern].getRT(index);
+                    
+                    std::cout << "    index = " << index << "  RT = " << RT << "\n";
+                }
+                
+            }
+                        
+        }
         
     }
     
@@ -689,36 +719,10 @@ public:
     /**
      * write to output
      */
-    
-    // try creating directory
-    /*std::cout << "\n";
-    std::cout << "debug output directory = " << out_debug << "\n";
-    bool dir_ok  = (out_debug.trim().length() > 0);
-    if (dir_ok)
-    {
-        std::cout << "Hello.\n";
-        // create output directory (if not already present)
-        QDir dir(out_debug.toQString());
-        if (!dir.cdUp())
-        {
-            std::cout << "Could not navigate to directory for debug output '" << String(dir.dirName()) << "'.\n";
-            LOG_ERROR << "Could not navigate to directory for debug output '" << String(dir.dirName()) << "'.\n";
-            //return false;
-        }
-        if (!dir.exists() && !dir.mkpath("."))
-        {
-            std::cout << "Could not create directory for debug output '" << String(dir.dirName()) << "'.\n";
-            LOG_ERROR << "Could not create directory for debug output '" << String(dir.dirName()) << "'.\n";
-            //return false;
-        }
-        
-        if (dir.exists())
-        {
-            std::cout << "Directory exists.\n";
-        }
-    }*/
-     
-    //writeOutput_(filter_results, cluster_results);
+    writeOutput_(patterns, filter_results, cluster_results);
+    std::cout << "\n";
+
+
 
 
 
