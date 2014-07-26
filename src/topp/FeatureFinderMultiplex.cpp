@@ -638,21 +638,42 @@ public:
             {
                 ConsensusFeature consensus;
                 
-                int a = cluster_it->first;
+                // sums for each peptide of the multiplets
+                std::vector<double> umMzIntensities(6, 0);
+                
                 MultiplexCluster cluster = cluster_it->second;
                 std::vector<int> points = cluster.getPoints();
-                
-                std::cout << "  cluster " << a << " contains " << points.size() << " points.\n";
+                std::cout << "  The cluster contains " << points.size() << " points.\n";
                 
                 // loop over points in cluster
                 for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
                 {
                     int index = (*point_it);
                     double RT = filter_results[pattern].getRT(index);
-                    
                     std::cout << "    index = " << index << "  RT = " << RT << "\n";
+                    
+                    MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
+                    // iterate over profile data
+                    for (int i = 0; i < result_peak.size(); ++i)
+                    {
+                        MultiplexFilterResultRaw result_raw = result_peak.getFilterResultRaw(i);
+                        
+                        // loop over isotopic peaks in peptide
+                        for (int peak = 0; peak < isotopes_per_peptide_max_; ++peak)
+                        {
+                            // loop over peptides
+                            for (int peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
+                            {
+                                int d = 9;
+                            }
+                            
+                        }
+                        
+                    }
+                    
                 }
                 
+                //map.push_back(consensus);
             }
                         
         }
