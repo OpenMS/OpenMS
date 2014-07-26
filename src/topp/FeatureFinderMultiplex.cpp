@@ -612,7 +612,15 @@ public:
 		return list;
 	}
     
-    void writeOutput_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results)
+    /**
+     * @brief generates consensus map containing all peptide multiplets
+     * 
+     * @param patterns
+     * @param filter_results
+     * @param cluster_results
+     * @param map
+     */
+     void generateConsensusMap_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results, ConsensusMap &map)
     {
         // data structures for final results
         std::vector<std::vector<double> > peptide_RT;
@@ -628,6 +636,8 @@ public:
             // loop over clusters
             for (std::map<int,MultiplexCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
             {
+                ConsensusFeature consensus;
+                
                 int a = cluster_it->first;
                 MultiplexCluster cluster = cluster_it->second;
                 std::vector<int> points = cluster.getPoints();
@@ -646,6 +656,38 @@ public:
             }
                         
         }
+        
+        
+        
+        
+        ConsensusFeature consensus2;
+        consensus2.setMZ(800.9);
+        consensus2.setRT(1500.6);
+        consensus2.setIntensity(10000);
+        consensus2.setCharge(3);
+        consensus2.setQuality(1);
+        
+        // attach feature to consensus
+        FeatureHandle feature2;
+
+        feature2.setMZ(800.9);
+        feature2.setRT(1500.6);
+        feature2.setIntensity(10000);
+        feature2.setCharge(3);
+        feature2.setMapIndex(0);
+        map.getFileDescriptions()[0].size++;
+        consensus2.insert(feature2);
+        
+        feature2.setMZ(810.9);
+        feature2.setRT(1500.6);
+        feature2.setIntensity(10000);
+        feature2.setCharge(3);
+        feature2.setMapIndex(1);
+        map.getFileDescriptions()[1].size++;
+        consensus2.insert(feature2);
+
+        // add consensus to consensus map
+        map.push_back(consensus2);
         
     }
     
@@ -719,13 +761,11 @@ public:
     /**
      * write to output
      */
-    writeOutput_(patterns, filter_results, cluster_results);
-    std::cout << "\n";
-
-
-
-
-
+    
+    ConsensusMap map;     
+    generateConsensusMap_(patterns, filter_results, cluster_results, map);
+    
+    std::cout << "The map contains " << map.size() << " consensuses.\n";
 
 
 
