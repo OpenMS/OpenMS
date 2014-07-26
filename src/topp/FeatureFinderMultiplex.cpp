@@ -689,6 +689,13 @@ public:
                 consensus.setCharge(patterns[pattern].getCharge());
                 consensus.setQuality(1);
                 
+                FeatureHandle feature;
+                feature.setMZ(sum_intensity_mz/sum_intensity);
+                feature.setRT(sum_intensity_rt/sum_intensity);
+                feature.setUniqueId(cluster_it->first);
+                consensus.insert(feature);
+                map.getFileDescriptions()[0].size++;
+                
                 map.push_back(consensus);
             }
                         
