@@ -1616,7 +1616,6 @@ namespace OpenMS
     ProteinIdentification::SearchParameters MzIdentMLDOMHandler::findSearchParameters_(std::pair<CVTermList,std::map<String,DataValue> > as_params)
     {
       ProteinIdentification::SearchParameters sp = ProteinIdentification::SearchParameters();
-
       for (Map< String, std::vector< CVTerm > >::ConstIterator cvs = as_params.first.getCVTerms().begin(); cvs != as_params.first.getCVTerms().end(); ++cvs)
       {
         for (std::vector< CVTerm >::const_iterator cvit = cvs->second.begin(); cvit != cvs->second.end(); ++cvit)
@@ -1632,7 +1631,6 @@ namespace OpenMS
           sp.setMetaValue(cvs->first, cvit->getValue());
         }
       }
-
       for (std::map<String,DataValue>::const_iterator upit = as_params.second.begin(); upit != as_params.second.end(); ++upit)
       {
 //            String sp.charges:
@@ -1640,7 +1638,6 @@ namespace OpenMS
 //            <userParam value="3" name="MaxCharge"/>
         sp.setMetaValue(upit->first,upit->second);
       }
-
       return sp;
     }
   }   //namespace Internal
