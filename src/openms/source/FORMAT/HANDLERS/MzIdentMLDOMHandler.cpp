@@ -778,6 +778,9 @@ namespace OpenMS
           String name = XMLString::transcode(element_res->getAttribute(XMLString::transcode("name")));
           String spectra_data_ref = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectraData_ref")));
           String spectrumID = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectrumID")));
+          std::vector< String > substrings;
+          spectrumID.split(" ", substrings);
+          String scannr = substrings.back().reverse().chop(5);
 
           std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(element_res->getChildNodes());
 
@@ -802,7 +805,7 @@ namespace OpenMS
 //          Origin stored in the MetaInfoInterface using the names 'MZ' and 'RT'
 //          'real' origin in MetaInfoInterface 'spectrumID' as NativeID
           pep_id_->back().setIdentifier(search_engine_); // TODO @mths: set name/date of search
-
+          pep_id_->back().setMetaValue("scannumber", scannr);
 
         }
       }
