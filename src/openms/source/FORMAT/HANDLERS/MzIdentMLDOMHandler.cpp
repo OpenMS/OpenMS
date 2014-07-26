@@ -102,7 +102,6 @@ namespace OpenMS
       TAG_CV = XMLString::transcode("cvParam");
       ATTR_name = XMLString::transcode("option_a");
 
-
     }
 
     MzIdentMLDOMHandler::MzIdentMLDOMHandler(std::vector<ProteinIdentification> & pro_id, std::vector<PeptideIdentification> & pep_id, const String & filename, const String & version, const ProgressLogger & logger) :
@@ -219,7 +218,17 @@ namespace OpenMS
 
           // 1. AnalysisSampleCollection ??? contact stuff
 
-          // 2. SequenceCollection nodes {0,1} DBSequenceElement {1,unbounded} Peptide {0,unbounded} PeptideEvidence {0,unbounded}
+          // 2. SpectrumIdentification  {1,unbounded} ! identification runs
+          DOMNodeList * spectrumIdentificationElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentification"));
+          if( !spectrumIdentificationElements ) throw(std::runtime_error( "No SpectrumIdentification nodes" ));
+          parseSpectrumIdentificationElements_(spectrumIdentificationElements);
+
+          // 3. AnalysisProtocolCollection {1,1} SpectrumIdentificationProtocol  {1,unbounded} ! identification run parameters
+          DOMNodeList * spectrumIdentificationProtocolElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentificationProtocol"));
+          if( !spectrumIdentificationProtocolElements ) throw(std::runtime_error( "No SpectrumIdentificationProtocol nodes" ));
+          parseSpectrumIdentificationProtocolElements_(spectrumIdentificationProtocolElements);
+
+          // 4. SequenceCollection nodes {0,1} DBSequenceElement {1,unbounded} Peptide {0,unbounded} PeptideEvidence {0,unbounded}
           DOMNodeList * dbSequenceElements = xmlDoc->getElementsByTagName(XMLString::transcode("DBSequence"));
           if( !dbSequenceElements ) throw(std::runtime_error( "No SequenceCollection/DBSequence nodes" ));
           parseDBSequenceElements_(dbSequenceElements);
@@ -232,16 +241,6 @@ namespace OpenMS
           if( !peptideEvidenceElements ) throw(std::runtime_error( "No SequenceCollection/PeptideEvidence nodes" ));
           parsePeptideEvidenceElements_(peptideEvidenceElements);
 //          mzid_parser_.resetDocumentPool(); //segfault prone: do not use!
-
-          // 3. ? SpectrumIdentification  {1,unbounded}
-          DOMNodeList * spectrumIdentificationElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentification"));
-          if( !spectrumIdentificationElements ) throw(std::runtime_error( "No SpectrumIdentification nodes" ));
-          parseSpectrumIdentificationElements_(spectrumIdentificationElements);
-
-          // 4. AnalysisProtocolCollection {1,1} SpectrumIdentificationProtocol  {1,unbounded}
-          DOMNodeList * spectrumIdentificationProtocolElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentificationProtocol"));
-          if( !spectrumIdentificationProtocolElements ) throw(std::runtime_error( "No SpectrumIdentificationProtocol nodes" ));
-          parseSpectrumIdentificationProtocolElements_(spectrumIdentificationProtocolElements);
 
           // 5. DataCollection {1,1}
           DOMNodeList * spectraDataElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectraData"));
@@ -509,6 +508,7 @@ namespace OpenMS
           pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post}));
           p_pv_map_.insert(std::make_pair(peptide_ref,id));
           pv_db_map_.insert(std::make_pair(id,dBSequence_ref));
+
         }
       }
       //std::cout << "PeptideEvidences found: " << count << std::endl;
@@ -548,6 +548,10 @@ namespace OpenMS
           }
 
           si_map_.insert(std::make_pair(id,SpectrumIdentification{spectra_data_ref, searchDatabase_ref, spectrumIdentificationProtocol_ref, spectrumIdentificationList_ref}));
+
+          pro_id_->push_back(ProteinIdentification());
+          si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
+
         }
       }
       //std::cout << "SpectrumIdentification found: " << count << std::endl;
@@ -684,6 +688,18 @@ namespace OpenMS
             //      <Masstable> omitted for now, not reflectable by our member structures
           }
           sp_map_.insert(std::make_pair(id,SpectrumIdentificationProtocol{searchtype,enzyme,param_cv,param_up,modparam,p_tol,f_tol,tcv,tup}));
+
+          for (Map< String, SpectrumIdentification >::ConstIterator si_it = si_map_.begin(); si_it != si_map_.end(); ++si_it)
+          {
+            if (si_it->second.spectrum_identification_protocol_ref == id)
+            {
+              // TODO @mths get these from AnalysisSoftware!
+              si_pro_map_[si_it->first]->setSearchEngine(search_engine_);
+              si_pro_map_[si_it->first]->setSearchEngineVersion(search_engine_version_);
+              si_pro_map_[si_it->first]->setIdentifier(search_engine_); // TODO @mths: name/date of search
+              // TODO @mths set SearchParameters 	search_parameters_
+            }
+          }
         }
       }
       //std::cout << "SpectrumIdentificationProtocol found: " << count << std::endl;
@@ -768,12 +784,16 @@ namespace OpenMS
           pep_id_->push_back(PeptideIdentification());
           //fill pep_id_->back() with content
 
+          //butt ugly!
+          DOMElement* parent = dynamic_cast< xercesc::DOMElement* >( element_res->getParentNode() );
+          String sil = XMLString::transcode(parent->getAttribute(XMLString::transcode("id")));
+
           DOMElement* child = element_res->getFirstElementChild();
           while ( child )
           {
             if ((std::string)XMLString::transcode(child->getTagName()) == "SpectrumIdentificationItem")
             {
-              parseSpectrumIdentificationItemElement_(child, pep_id_->back());
+              parseSpectrumIdentificationItemElement_(child, pep_id_->back(),sil);
             }
             child = child->getNextElementSibling();
           }
@@ -790,7 +810,7 @@ namespace OpenMS
       //std::cout << "example: " << pep_id_->back().getHits().size() << std::endl;
     }
 
-    void MzIdentMLDOMHandler::parseSpectrumIdentificationItemElement_(DOMElement * spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification)
+    void MzIdentMLDOMHandler::parseSpectrumIdentificationItemElement_(DOMElement * spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref)
     {
       String id = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("id")));
       String name = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("name")));
@@ -822,8 +842,6 @@ namespace OpenMS
       String& pev = p_pv_map_[peptide_ref];
       String& dpv = pv_db_map_[pev];
 
-      DBSequence& db = db_sq_map_[dpv];
-
       PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
       for (Map< String, std::vector< CVTerm > >::ConstIterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
       {
@@ -845,7 +863,17 @@ namespace OpenMS
         spectrum_identification.getHits().back().setAABefore(pv.pre);
         spectrum_identification.getHits().back().setAAAfter(pv.post);
       }
-      spectrum_identification.getHits().back().addProteinAccession(db.accession);
+
+      DBSequence& db = db_sq_map_[dpv];
+      spectrum_identification.getHits().back().addProteinAccession(db.accession);    
+
+      if (si_pro_map_[spectrumIdentificationList_ref]->findHit(db.accession)
+          != si_pro_map_[spectrumIdentificationList_ref]->getHits().end())
+      { // butt ugly!
+        si_pro_map_[spectrumIdentificationList_ref]->insertHit(ProteinHit());
+        si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setSequence(db.sequence);
+        si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setAccession(db.accession);
+      }
 
       //due to redundand references this is not needed!
 //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
@@ -883,8 +911,8 @@ namespace OpenMS
           String id = XMLString::transcode(element_pr->getAttribute(XMLString::transcode("id")));
           std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(current_pr->getChildNodes());
 
+          // TODO @mths : this needs to be a ProteinIdentification for the ProteinDetectionListElement which is not mandatory and used in downstream analysis ProteinInference etc.
           pro_id_->push_back(ProteinIdentification());
-
           pro_id_->back().setSearchEngine(search_engine_);
           pro_id_->back().setSearchEngineVersion(search_engine_version_);
           pro_id_->back().setIdentifier(search_engine_); // TODO @mths: name/date of search
@@ -1009,8 +1037,7 @@ namespace OpenMS
 //        std::cout << " as_subst: " << as << std::endl;
       }
       //3. Modifications
-      AASequence aas;
-      aas.fromString(as);
+      AASequence aas = AASequence::fromString(as);
       for( XMLSize_t c = 0; c < node_count; ++c )
       {
         DOMNode * current_sib = peptideSiblings->item(c);
