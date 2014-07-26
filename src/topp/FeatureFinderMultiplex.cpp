@@ -50,6 +50,10 @@
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzQuantMLFile.h>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -615,10 +619,10 @@ public:
     /**
      * @brief generates consensus map containing all peptide multiplets
      * 
-     * @param patterns
-     * @param filter_results
-     * @param cluster_results
-     * @param map
+     * @param patterns    patterns of isotopic peaks we have been searching for
+     * @param filter_results    filter results for each of the patterns
+     * @param cluster_results    clusters of filter results
+     * @param map    consensus map with peptide multiplets (to be filled)
      */
      void generateConsensusMap_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results, ConsensusMap &map)
     {
@@ -638,8 +642,10 @@ public:
             {
                 ConsensusFeature consensus;
                 
-                // sums for each peptide of the multiplets
-                std::vector<double> umMzIntensities(6, 0);
+                // The position (m/z, RT) of the consensus is the centre-of-mass of the mass trace of the lightest peptide.
+                double sum_intensity_mz = 0;
+                double sum_intensity_rt = 0;
+                double sum_intensity = 0;
                 
                 MultiplexCluster cluster = cluster_it->second;
                 std::vector<int> points = cluster.getPoints();
@@ -653,6 +659,10 @@ public:
                     std::cout << "    index = " << index << "  RT = " << RT << "\n";
                     
                     MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
+                    sum_intensity_mz += result_peak.getMZ() * result_peak.getIntensities()[1];
+                    sum_intensity_rt += result_peak.getRT() * result_peak.getIntensities()[1];
+                    sum_intensity  += result_peak.getIntensities()[1];    // TO DO: Check if [0] or [1].
+                    
                     // iterate over profile data
                     for (int i = 0; i < result_peak.size(); ++i)
                     {
@@ -673,7 +683,13 @@ public:
                     
                 }
                 
-                //map.push_back(consensus);
+                consensus.setMZ(sum_intensity_mz/sum_intensity);
+                consensus.setRT(sum_intensity_rt/sum_intensity);
+                consensus.setIntensity(sum_intensity);
+                consensus.setCharge(patterns[pattern].getCharge());
+                consensus.setQuality(1);
+                
+                map.push_back(consensus);
             }
                         
         }
@@ -681,7 +697,7 @@ public:
         
         
         
-        ConsensusFeature consensus2;
+        /*ConsensusFeature consensus2;
         consensus2.setMZ(800.9);
         consensus2.setRT(1500.6);
         consensus2.setIntensity(10000);
@@ -708,10 +724,25 @@ public:
         consensus2.insert(feature2);
 
         // add consensus to consensus map
-        map.push_back(consensus2);
+        map.push_back(consensus2);*/
         
     }
     
+    /**
+     * @brief Write consensus map to consensusXML file.
+     * 
+     * @param filename    name of consensusXML file
+     * @param map    consensus map for output
+     */
+    void writeConsensusMap_(const String & filename, ConsensusMap &map) const
+    {
+        map.sortByPosition();
+        map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        map.setExperimentType("silac");    // TO DO: adjust for SILAC, Dimethyl, ICPL etc.
+        
+        ConsensusXMLFile file;
+        file.store(filename, map);
+    }
 
   ExitCodes main_(int, const char **)
   {
@@ -782,9 +813,9 @@ public:
     /**
      * write to output
      */
-    
     ConsensusMap map;     
     generateConsensusMap_(patterns, filter_results, cluster_results, map);
+    writeConsensusMap_(out, map);
     
     std::cout << "The map contains " << map.size() << " consensuses.\n";
 
