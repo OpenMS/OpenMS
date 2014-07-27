@@ -665,7 +665,19 @@ public:
         }
         
         // correct intensities for ratios
-        // TO DO.
+        std::vector<double> corrected_intensities;
+        if (profile_intensities.size() == 2)
+        {
+            double xd = (intensities[0] + ratios[1]*intensities[1])/(1+ratios[1]*ratios[1]);
+            double yd = ratios[1] * xd;
+            std::cout << "x = " << intensities[0] << "  y = " << intensities[1] << "  y/x = " << intensities[1]/intensities[0] << "  ratio = " << ratios[1] << "  x' = " << xd << "  y' = " << yd << "  new ratio = " << yd/xd << "\n";  
+        }
+        /*else if ()
+        {
+        }
+        else
+        {
+        }*/
         
         return intensities;
     }
