@@ -642,10 +642,17 @@ public:
             {
                 ConsensusFeature consensus;
                 
-                // The position (m/z, RT) of the consensus is the centre-of-mass of the mass trace of the lightest peptide.
-                double sum_intensity_mz = 0;
-                double sum_intensity_rt = 0;
-                double sum_intensity = 0;
+                // The position (m/z, RT) of the peptide features is the centre-of-mass of the mass trace of the lightest isotope.
+                // The centre-of-mass is the intensity-weighted average of the peak positions.
+                std::vector<double> sum_intensity_mz;
+                std::vector<double> sum_intensity_rt;
+                std::vector<double> sum_intensity;
+                for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
+                {
+                    sum_intensity_mz.push_back(0);
+                    sum_intensity_rt.push_back(0);
+                    sum_intensity.push_back(0);
+                }
                 
                 MultiplexCluster cluster = cluster_it->second;
                 std::vector<int> points = cluster.getPoints();
@@ -659,9 +666,13 @@ public:
                     std::cout << "    index = " << index << "  RT = " << RT << "\n";
                     
                     MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
-                    sum_intensity_mz += result_peak.getMZ() * result_peak.getIntensities()[1];
-                    sum_intensity_rt += result_peak.getRT() * result_peak.getIntensities()[1];
-                    sum_intensity  += result_peak.getIntensities()[1];    // TO DO: Check if [0] or [1].
+                    
+                    for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
+                    {
+                        sum_intensity_mz[peptide] += (result_peak.getMZ() + result_peak.getMZShifts()[(isotopes_per_peptide_max_ +1)*peptide + 1]) * result_peak.getIntensities()[(isotopes_per_peptide_max_ +1)*peptide + 1];
+                        sum_intensity_rt[peptide] += result_peak.getRT() * result_peak.getIntensities()[(isotopes_per_peptide_max_ +1)*peptide + 1];
+                        sum_intensity[peptide]  += result_peak.getIntensities()[(isotopes_per_peptide_max_ +1)*peptide + 1];
+                    }
                     
                     // iterate over profile data
                     for (int i = 0; i < result_peak.size(); ++i)
@@ -669,10 +680,10 @@ public:
                         MultiplexFilterResultRaw result_raw = result_peak.getFilterResultRaw(i);
                         
                         // loop over isotopic peaks in peptide
-                        for (int peak = 0; peak < isotopes_per_peptide_max_; ++peak)
+                        for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
                         {
                             // loop over peptides
-                            for (int peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
+                            for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
                             {
                                 int d = 9;
                             }
@@ -683,55 +694,30 @@ public:
                     
                 }
                 
-                consensus.setMZ(sum_intensity_mz/sum_intensity);
-                consensus.setRT(sum_intensity_rt/sum_intensity);
-                consensus.setIntensity(sum_intensity);
+                // fill map with consensuses and its features
+                consensus.setMZ(sum_intensity_mz[0]/sum_intensity[0]);
+                consensus.setRT(sum_intensity_rt[0]/sum_intensity[0]);
+                consensus.setIntensity(sum_intensity[0]);
                 consensus.setCharge(patterns[pattern].getCharge());
                 consensus.setQuality(1);
                 
-                FeatureHandle feature;
-                feature.setMZ(sum_intensity_mz/sum_intensity);
-                feature.setRT(sum_intensity_rt/sum_intensity);
-                feature.setUniqueId(cluster_it->first);
-                consensus.insert(feature);
-                map.getFileDescriptions()[0].size++;
+                for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
+                //for (unsigned peptide = 0; peptide < 1; ++peptide)
+                {
+                    FeatureHandle feature;
+                    feature.setMZ(sum_intensity_mz[peptide]/sum_intensity[peptide]);
+                    feature.setRT(sum_intensity_rt[peptide]/sum_intensity[peptide]);
+                    feature.setIntensity(sum_intensity[peptide]);
+                    feature.setMapIndex(peptide);
+                    //feature.setUniqueId(&UniqueIdInterface::setUniqueId);    // TO DO: Do we need to set unique ID?
+                    map.getFileDescriptions()[peptide].size++;
+                    consensus.insert(feature);
+                }
                 
                 map.push_back(consensus);
             }
                         
         }
-        
-        
-        
-        
-        /*ConsensusFeature consensus2;
-        consensus2.setMZ(800.9);
-        consensus2.setRT(1500.6);
-        consensus2.setIntensity(10000);
-        consensus2.setCharge(3);
-        consensus2.setQuality(1);
-        
-        // attach feature to consensus
-        FeatureHandle feature2;
-
-        feature2.setMZ(800.9);
-        feature2.setRT(1500.6);
-        feature2.setIntensity(10000);
-        feature2.setCharge(3);
-        feature2.setMapIndex(0);
-        map.getFileDescriptions()[0].size++;
-        consensus2.insert(feature2);
-        
-        feature2.setMZ(810.9);
-        feature2.setRT(1500.6);
-        feature2.setIntensity(10000);
-        feature2.setCharge(3);
-        feature2.setMapIndex(1);
-        map.getFileDescriptions()[1].size++;
-        consensus2.insert(feature2);
-
-        // add consensus to consensus map
-        map.push_back(consensus2);*/
         
     }
     
@@ -745,7 +731,11 @@ public:
     {
         map.sortByPosition();
         map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-        map.setExperimentType("silac");    // TO DO: adjust for SILAC, Dimethyl, ICPL etc.
+        map.setExperimentType("multiplex");    // TO DO: adjust for SILAC, Dimethyl, ICPL etc.
+        
+        ConsensusMap::FileDescription& desc = map.getFileDescriptions()[0];
+        desc.filename = filename;
+        desc.label = "multiplex";
         
         ConsensusXMLFile file;
         file.store(filename, map);
