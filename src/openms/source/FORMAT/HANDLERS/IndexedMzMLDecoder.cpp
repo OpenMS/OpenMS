@@ -50,7 +50,7 @@
 namespace OpenMS
 {
 
-  namespace StringUtils
+  namespace IndexedMzMLUtils
   {
     std::streampos stringToStreampos(std::string s)
     {
@@ -169,7 +169,7 @@ namespace OpenMS
     {
       try
       {
-        indexoffset = OpenMS::StringUtils::stringToStreampos(thismatch);
+        indexoffset = OpenMS::IndexedMzMLUtils::stringToStreampos(thismatch);
       }
       catch (Exception::ConversionError& e)
       {
@@ -258,7 +258,7 @@ namespace OpenMS
             char* name = xercesc::XMLString::transcode(currentElement->getAttribute(idref_tag));
             char* offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
-            std::streampos thisOffset = OpenMS::StringUtils::stringToStreampos( String(offset) );
+            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(offset) );
             result.push_back(std::make_pair(std::string(name), thisOffset));
 
             xercesc::XMLString::release(&name);
