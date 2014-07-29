@@ -342,7 +342,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
             // try to go downwards in RT
             if (((trace_down_idx > 0) && toggle_down))
             {
-                try
+                if (!work_exp[trace_down_idx - 1].empty())
                 {
                     Size next_down_peak_idx = work_exp[trace_down_idx - 1].findNearest(centroid_mz);
                     double next_down_peak_mz = work_exp[trace_down_idx - 1][next_down_peak_idx].getMZ();
@@ -398,10 +398,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
 
                 }
-                catch (...)
-                {
-                    // std::cerr << "findNearest() ran into troubles..." << std::endl;
-                }
                 --trace_down_idx;
                 ++down_scan_counter;
 
@@ -435,7 +431,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
             if (((trace_up_idx < work_exp.size() - 1) && toggle_up))
             {
-                try
+                if (!work_exp[trace_up_idx + 1].empty())
                 {
                     Size next_up_peak_idx = work_exp[trace_up_idx + 1].findNearest(centroid_mz);
                     double next_up_peak_mz = work_exp[trace_up_idx + 1][next_up_peak_idx].getMZ();
@@ -482,10 +478,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                         ++conseq_missed_peak_up;
                     }
 
-                }
-                catch (...)
-                {
-                    //  std::cerr << "findNearest() ran into troubles..." << std::endl;
                 }
 
                 ++trace_up_idx;
