@@ -129,9 +129,12 @@ public:
     /// equality operator
     bool operator==(const BinnedSpectrum & rhs) const
     {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       return MSSpectrum<>::operator==(rhs) &&
              rhs.getBinSize() == this->bin_size_ &&
              rhs.getBinSpread() == this->bin_spread_;
+#pragma clang diagnostic pop
     }
 
     /// inequality operator

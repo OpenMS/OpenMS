@@ -45,6 +45,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   add_definitions(-Wall -Wextra 
     -fvisibility=hidden
     -Wno-non-virtual-dtor 
+    -Wno-unknown-pragmas
     -Wno-long-long 
     -Wno-unknown-pragmas
     -Wno-unused-function
@@ -107,15 +108,27 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   # add clang specifc warning levels
   add_definitions(-Weverything)
   # .. and disable some of the harmless ones
-  add_definitions(-Wno-long-long
+  add_definitions(
                   -Wno-sign-conversion
+                  # These are warnings of low severity, which are disabled
+                  # for now until we are down to a reasonable size of warnings.
+                  -Wno-long-long
                   -Wno-padded
                   -Wno-global-constructors
                   -Wno-exit-time-destructors
                   -Wno-weak-vtables
-                  -Wfloat-equal
                   -Wno-documentation-unknown-command
-                  -Wno-documentation)
+                  -Wno-undef
+                  -Wno-documentation
+                  -Wno-source-uses-openmp
+                  # These are warnings of moderate severity, which are disabled
+                  # for now until we are down to a reasonable size of warnings.
+                  -Wno-conversion
+                  -Wno-float-equal
+                  -Wno-switch-enum
+                  -Wno-missing-prototypes
+                  -Wno-missing-variable-declarations
+                  )
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
@@ -137,3 +150,4 @@ if (CXX_WARN_CONVERSION)
 	endif()
 endif()
 message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
+
