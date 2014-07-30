@@ -94,6 +94,11 @@ START_SECTION(double eval(double x))
   // inside spline range
   TEST_REAL_SIMILAR(sp1.eval(486.794), 2270517.50463);
   TEST_REAL_SIMILAR(sp2.eval(486.794), 2270517.50463);
+  // at the input nodes
+  TEST_REAL_SIMILAR(sp1.eval(486.784), 0.0);
+  TEST_REAL_SIMILAR(sp1.eval(486.790), 620386.5);
+  TEST_REAL_SIMILAR(sp2.eval(486.808), 59152.21);
+  TEST_REAL_SIMILAR(sp2.eval(486.811), 0.0);
 END_SECTION
 
 START_SECTION(double derivatives(double x, unsigned order))
