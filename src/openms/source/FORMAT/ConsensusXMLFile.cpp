@@ -51,20 +51,20 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions &
+  PeakFileOptions&
   ConsensusXMLFile::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions &
+  const PeakFileOptions&
   ConsensusXMLFile::getOptions() const
   {
     return options_;
   }
 
   void
-  ConsensusXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  ConsensusXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
     open_tags_.pop_back();
@@ -118,12 +118,12 @@ namespace OpenMS
   }
 
   void
-  ConsensusXMLFile::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+  ConsensusXMLFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
   {
   }
 
   void
-  ConsensusXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  ConsensusXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     String tag = sm_.convert(qname);
     String parent_tag;
@@ -250,7 +250,7 @@ namespace OpenMS
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
-        file_version = "1.0";  //default version is 1.0
+        file_version = "1.0"; //default version is 1.0
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -495,7 +495,7 @@ namespace OpenMS
       }
 
       //parse optional protein ids to determine accessions
-      const XMLCh * refs = attributes.getValue(sm_.convert("protein_refs"));
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
       if (refs != 0)
       {
         String accession_string = sm_.convert(refs);
@@ -576,7 +576,7 @@ namespace OpenMS
     {
       consensus_map.updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition & e)
+    catch (Exception::Postcondition& e)
     {
       LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
       throw;
@@ -599,7 +599,7 @@ namespace OpenMS
       String xslt_file = File::find("XSL/ConsensusXML.xsl");
       os << "<?xml-stylesheet type=\"text/xsl\" href=\"file:///" << xslt_file << "\"?>\n";
     }
-    catch (Exception::FileNotFound &)
+    catch (Exception::FileNotFound&)
     {
     }
 
@@ -620,7 +620,7 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-    << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("userParam", os, consensus_map, 1);
@@ -629,7 +629,7 @@ namespace OpenMS
     // write data processing
     for (Size i = 0; i < consensus_map.getDataProcessing().size(); ++i)
     {
-      const DataProcessing & processing = consensus_map.getDataProcessing()[i];
+      const DataProcessing& processing = consensus_map.getDataProcessing()[i];
       os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
       os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
       for (set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it != processing.getProcessingActions().end(); ++it)
@@ -647,7 +647,7 @@ namespace OpenMS
     for (UInt i = 0; i < consensus_map.getProteinIdentifications().size(); ++i)
     {
       setProgress(++progress_);
-      const ProteinIdentification & current_prot_id = consensus_map.getProteinIdentifications()[i];
+      const ProteinIdentification& current_prot_id = consensus_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
       identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
@@ -656,7 +656,7 @@ namespace OpenMS
       os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters & search_param = current_prot_id.getSearchParameters();
+      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
       os << "\t\t<SearchParameters " << "db=\"" << search_param.db << "\" " << "db_version=\"" << search_param.db_version << "\" " << "taxonomy=\""
          << search_param.taxonomy << "\" ";
       if (search_param.mass_type == ProteinIdentification::MONOISOTOPIC)
@@ -748,7 +748,7 @@ namespace OpenMS
     }
 
     //file descriptions
-    const ConsensusMap::FileDescriptions & description_vector = consensus_map.getFileDescriptions();
+    const ConsensusMap::FileDescriptions& description_vector = consensus_map.getFileDescriptions();
     os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
     for (ConsensusMap::FileDescriptions::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it)
     {
@@ -772,7 +772,7 @@ namespace OpenMS
     {
       setProgress(++progress_);
       // write a consensusElement
-      const ConsensusFeature & elem = consensus_map[i];
+      const ConsensusFeature& elem = consensus_map[i];
       os << "\t\t<consensusElement id=\"e_" << elem.getUniqueId() << "\" quality=\"" << precisionWrapper(elem.getQuality()) << "\"";
       if (elem.getCharge() != 0)
       {
@@ -801,9 +801,9 @@ namespace OpenMS
       os << "\t\t\t</groupedElementList>\n";
 
       // write PeptideIdentification
-      for (UInt i = 0; i < elem.getPeptideIdentifications().size(); ++i)
+      for (UInt j = 0; j < elem.getPeptideIdentifications().size(); ++j)
       {
-        writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[i], "PeptideIdentification", 3);
+        writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[j], "PeptideIdentification", 3);
       }
 
       writeUserParam_("userParam", os, elem, 3);
@@ -820,7 +820,7 @@ namespace OpenMS
   }
 
   void
-  ConsensusXMLFile::load(const String & filename, ConsensusMap & map)
+  ConsensusXMLFile::load(const String& filename, ConsensusMap& map)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -834,7 +834,7 @@ namespace OpenMS
 
     parse_(filename, this);
 
-    if (!map.isMapConsistent(&LOG_WARN))  // a warning is printed to LOG_WARN during isMapConsistent()
+    if (!map.isMapConsistent(&LOG_WARN)) // a warning is printed to LOG_WARN during isMapConsistent()
     {
       // don't throw exception for now, since this would prevent us from reading old files...
       // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. Please fix the file!");
@@ -861,7 +861,7 @@ namespace OpenMS
   }
 
   void
-  ConsensusXMLFile::writePeptideIdentification_(const String & filename, std::ostream & os, const PeptideIdentification & id, const String & tag_name,
+  ConsensusXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name,
                                                 UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');
@@ -878,9 +878,9 @@ namespace OpenMS
     os << "higher_score_better=\"" << (id.isHigherScoreBetter() ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
-	  if (id.hasMZ())
+    if (id.hasMZ())
     {
-	    os << "MZ=\"" << id.getMZ() << "\" ";
+      os << "MZ=\"" << id.getMZ() << "\" ";
     }
     // rt
     if (id.hasRT())
@@ -936,9 +936,9 @@ namespace OpenMS
       os << indent << "\t</PeptideHit>\n";
     }
 
-	  // do not write "spectrum_reference" since it is written as attribute already
-	  MetaInfoInterface tmp = id;
-	  tmp.removeMetaValue("spectrum_reference");
+    // do not write "spectrum_reference" since it is written as attribute already
+    MetaInfoInterface tmp = id;
+    tmp.removeMetaValue("spectrum_reference");
     writeUserParam_("userParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }

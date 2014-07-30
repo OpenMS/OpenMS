@@ -115,8 +115,6 @@ protected:
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
-    String inputfile_name = "";
-    String database_name = "";
     vector<FASTAFile::FASTAEntry> proteins;
     vector<double> statistics;
     vector<Size> counts;
@@ -132,8 +130,8 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    inputfile_name = getStringOption_("in_peptides");
-    database_name = getStringOption_("in_database");
+    String inputfile_name = getStringOption_("in_peptides");
+    String database_name = getStringOption_("in_database");
 
     //-------------------------------------------------------------
     // reading input

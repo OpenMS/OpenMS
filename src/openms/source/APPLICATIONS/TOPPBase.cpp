@@ -771,7 +771,7 @@ namespace OpenMS
     {
       throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Parameter '" + full_name + "' marked as both input and output file");
     }
-    enum ParameterInformation::ParameterTypes type;
+    enum ParameterInformation::ParameterTypes type = ParameterInformation::NONE;
     switch (entry.value.valueType())
     {
     case DataValue::STRING_VALUE:
@@ -1198,13 +1198,13 @@ namespace OpenMS
     {
       throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    String message = "'" + name + "'";
-    if (p.valid_strings.size() > 0)
-    {
-      message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
-    }
     if (p.required && (getParam_(name).isEmpty() || getParam_(name) == ""))
     {
+      String message = "'" + name + "'";
+      if (p.valid_strings.size() > 0)
+      {
+        message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
+      }
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, message);
     }
     String tmp = getParamAsString_(name, p.default_value);
@@ -1482,10 +1482,10 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    double tmp;
+
     for (DoubleList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
     {
-      tmp = *it;
+      double tmp = *it;
       writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
       //check if in valid range
@@ -1901,8 +1901,9 @@ namespace OpenMS
       {
         low = tmp.toDouble();
       }
-      tmp = "";
+
       tmp = text.suffix(':');
+
       if (tmp != "")
       {
         high = tmp.toDouble();
@@ -1911,7 +1912,7 @@ namespace OpenMS
     catch (Exception::ConversionError&)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                       "Could not convert string '" + text + 
+                                       "Could not convert string '" + text +
                                        "' to a range of floating point values");
     }
   }
@@ -1925,8 +1926,9 @@ namespace OpenMS
       {
         low = tmp.toInt();
       }
-      tmp = "";
+
       tmp = text.suffix(':');
+
       if (tmp != "")
       {
         high = tmp.toInt();
@@ -1935,7 +1937,7 @@ namespace OpenMS
     catch (Exception::ConversionError&)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                       "Could not convert string '" + text + 
+                                       "Could not convert string '" + text +
                                        "' to a range of integer values");
     }
   }
@@ -1943,8 +1945,6 @@ namespace OpenMS
   Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
   {
     throw NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-
-    return Param();
   }
 
   Param TOPPBase::getDefaultParameters_() const
@@ -2265,7 +2265,7 @@ namespace OpenMS
         docurl = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/UTILS_" + tool_name_.toQString() + ".html";
         category = ToolHandler::getCategory(tool_name_).toQString();
       }
-      
+
       // morph to ctd format
       QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
       lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");

@@ -235,8 +235,8 @@ set(filtering_executables_list
   ComplementFilter_test
   ComplementMarker_test
   DataFilters_test
-ElutionPeakDetection_test
-FeatureFindingMetabo_test
+  ElutionPeakDetection_test
+  FeatureFindingMetabo_test
   FilterFunctor_test
   GaussFilter_test
   GaussFilterAlgorithm_test
@@ -251,8 +251,13 @@ FeatureFindingMetabo_test
   LinearResamplerAlign_test
   LowessSmoothing_test
   MarkerMower_test
-MassTraceDetection_test
+  MassTraceDetection_test
   MorphologicalFilter_test
+  MultiplexFiltering_test
+  MultiplexFilterResult_test
+  MultiplexFilterResultPeak_test
+  MultiplexFilterResultRaw_test
+  MultiplexPeakPattern_test
   NLargest_test
   NeutralLossDiffFilter_test
   NeutralLossMarker_test
@@ -261,10 +266,13 @@ MassTraceDetection_test
   PeakMarker_test
   SILACPattern_test
   SILACPoint_test
+  SplinePackage_test
+  SplineSpectrum_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
   SignalToNoiseEstimatorMedian_test
+  SignalToNoiseEstimatorMedianRapid_test
   SignalToNoiseEstimator_test
   SqrtMower_test
   TICFilter_test
@@ -470,6 +478,7 @@ set(transformations_executables_list
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
+  PeakPickerMaxima_test
 PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test

@@ -44,6 +44,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
 // Files
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -571,10 +573,16 @@ namespace OpenMS
       featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, empty_trafo, swath_ptr, transition_group_map);
 
       // find best feature, compute pairs of iRT and real RT
-      simple_find_best_feature(transition_group_map, pairs, PeptideRTMap);
+      std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map);
+      for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); ++it)
+      {
+        pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
+      }
 
+      // remove outliers
       std::vector<std::pair<double, double> > pairs_corrected;
-      pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage, false);
+      bool chauvenet = false;
+      pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage, chauvenet, "iter_jackknife");
 
       // store transformation, using a linear model as default
       TransformationDescription trafo_out;
@@ -586,39 +594,6 @@ namespace OpenMS
 
       this->endProgress();
       return trafo_out;
-    }
-
-    /// Simple method to find the best feature among a set of features (for the RT-normalization peptides)
-    // TODO shared code!! -> OpenSwathRTNormalizer...
-    void simple_find_best_feature(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
-        std::vector<std::pair<double, double> > & pairs, std::map<OpenMS::String, double> PeptideRTMap)
-    {
-      for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-          trgroup_it != transition_group_map.end(); ++trgroup_it)
-      {
-        // we need at least one feature to find the best one
-        OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
-        if (transition_group->getFeatures().size() == 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "RT normalization: did not find any features for group " + transition_group->getTransitionGroupID());
-        }
-
-        // Find the feature with the highest score
-        double bestRT = -1;
-        double highest_score = -1000;
-        for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-             mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
-        {
-          if (mrmfeature->getOverallQuality() > highest_score)
-          {
-            bestRT = mrmfeature->getRT();
-            highest_score = mrmfeature->getOverallQuality();
-          }
-        }
-        String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-        pairs.push_back(std::make_pair(bestRT, PeptideRTMap[pepref]));
-      }
     }
 
     /// Helper function to score a set of chromatograms
@@ -636,7 +611,6 @@ namespace OpenMS
       typedef OpenSwath::LightTransition TransitionType;
       // a transition group holds the MSSpectra with the Chromatogram peaks from above
       typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType;
-      typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
       // this is the type in which we store the chromatograms for this analysis
       typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
 
@@ -830,7 +804,7 @@ namespace OpenMS
   {
 
   public:
-    
+
     /**
      * @brief Annotate a Swath map using a Swath window file specifying the individual windows
      *
@@ -848,8 +822,8 @@ namespace OpenMS
       std::vector<double> swath_prec_lower_, swath_prec_upper_;
       readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
 
-      // Sort the windows by the start of the lower window 
-      if (doSort) 
+      // Sort the windows by the start of the lower window
+      if (doSort)
         {std::sort(swath_maps.begin(), swath_maps.end(), SortSwathMapByLower);}
 
       Size i = 0, j = 0;
@@ -862,15 +836,15 @@ namespace OpenMS
         }
         if (j >= swath_prec_lower_.size() )
         {
-          std::cerr << "Trying to access annotation for SWATH map " << j << 
-            " but there are only " << swath_prec_lower_.size() << " windows in the" << 
+          std::cerr << "Trying to access annotation for SWATH map " << j <<
+            " but there are only " << swath_prec_lower_.size() << " windows in the" <<
             " swath_windows_file. Please check your input." << std::endl;
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
               "The number of SWATH maps read from the raw data and from the annotation file do not match.");
         }
 
-        std::cout << "Re-annotate from file: SWATH " << 
-          swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " << 
+        std::cout << "Re-annotate from file: SWATH " <<
+          swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " <<
           swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
 
         swath_maps[i].lower = swath_prec_lower_[j];
@@ -880,9 +854,9 @@ namespace OpenMS
 
       if (j != swath_prec_upper_.size() )
       {
-        std::cerr << "The number of SWATH maps read from the raw data (" << 
+        std::cerr << "The number of SWATH maps read from the raw data (" <<
           j << ") and from the annotation file (" << swath_prec_upper_.size() << ") do not match." << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             "The number of SWATH maps read from the raw data and from the annotation file do not match.");
       }
     }
@@ -1011,8 +985,10 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML' or 'csv')");
-    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv' or 'csv')");
+    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,csv"));
+    registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,csv"));
 
     // one of the following two needs to be set
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
@@ -1194,6 +1170,22 @@ protected:
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
 
+    //tr_file input file type
+    FileHandler fh_tr_type;
+    FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
+
+    if (tr_type == FileTypes::UNKNOWN)
+    {
+      tr_type = fh_tr_type.getType(tr_file);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(tr_type), 2);
+    }
+
+    if (tr_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine input file type!");
+      return PARSE_ERROR;
+    }
+
     String out = getStringOption_("out_features");
     String out_tsv = getStringOption_("out_tsv");
 
@@ -1254,8 +1246,8 @@ protected:
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
-      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower 
-        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra() 
+      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower
+        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
 
     ///////////////////////////////////
@@ -1280,7 +1272,7 @@ protected:
     }
     else
     {
-      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), transition_exp);
+      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
     }
     progresslogger.endProgress();
 
@@ -1288,11 +1280,10 @@ protected:
     // Set up chrom.mzML output
     ///////////////////////////////////
     MSDataWritingConsumer * chromConsumer;
-    int expected_chromatograms = 0;
     if (!out_chrom.empty())
     {
       chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
-      expected_chromatograms = transition_exp.transitions.size();
+      int expected_chromatograms = transition_exp.transitions.size();
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
@@ -1335,4 +1326,3 @@ int main(int argc, const char ** argv)
 }
 
 /// @endcond
-

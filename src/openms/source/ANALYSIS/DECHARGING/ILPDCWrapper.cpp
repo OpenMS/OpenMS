@@ -340,7 +340,6 @@ namespace OpenMS
 
     //------------------------------------objective function-----------------------------------------------
     // find maximal objective value
-    double score = 0;
     double score_min = 10e10f, score_max = -10e10f;
 
     // fill in objective values
@@ -351,7 +350,7 @@ namespace OpenMS
 
       // log scores are good for addition in ILP - but they are < 0, thus not suitable for maximizing
       // ... so we just add normal probabilities...
-      score = exp(getLogScore_(pairs[i], fm));
+      double score = exp(getLogScore_(pairs[i], fm));
       pairs[i].setEdgeScore(score * pairs[i].getEdgeScore()); // multiply with preset score
       namebuf.str("");
       namebuf << "x#" << i;

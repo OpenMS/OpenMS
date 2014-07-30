@@ -381,7 +381,7 @@ namespace OpenMS
     while (p != feature_list.end())
     {
       (*p).set_spectrum_ID(get_spectrum_ID());
-      p++;
+      ++p;
     }
   }
 
@@ -410,7 +410,6 @@ namespace OpenMS
       IN->set_feature_ID((int) feature_list.size());
     }
     feature_list.push_back(*IN);
-    IN = NULL;
   }
 
   void LCMS::remove_feature(int i)
@@ -478,7 +477,7 @@ namespace OpenMS
         ID += (int) raw_spec_names.size();
       }
       raw_spec_names.insert(make_pair(ID, (*p).second));
-      p++;
+      ++p;
     }
   }
 
@@ -491,7 +490,7 @@ namespace OpenMS
     {
       if ((*P).get_MS2_info())
         count++;
-      P++;
+      ++P;
     }
     return count;
   }
@@ -504,8 +503,8 @@ namespace OpenMS
     while (P != get_feature_list_end())
     {
       if ((*P).get_MS2_info(PepProb_T))
-        count++;
-      P++;
+        ++count;
+      ++P;
     }
     return count;
   }

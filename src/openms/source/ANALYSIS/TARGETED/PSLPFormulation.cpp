@@ -251,7 +251,7 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "\nadd row " << std::endl;
 #endif
-      model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"), 
+      model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"),
       LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
 
 #ifdef DEBUG_OPS
@@ -1351,7 +1351,6 @@ namespace OpenMS
     double min_rt_weight = param_.getValue("thresholds:min_rt_weight");
     double mz_tolerance = param_.getValue("mz_tolerance");
     double log_weight = param_.getValue("combined_ilp:k3");
-    const bool use_detectability = true; //param_.getValue("use_detectability") == "true" ? true : false;
 #ifdef DEBUG_OPS
     std::cout << "k3: " << log_weight << std::endl;
     std::cout << "parsed all parameters" << std::endl;
@@ -1413,13 +1412,7 @@ namespace OpenMS
                       ++f_v_idx;
                       continue;
                     }
-                    double dt;
-                    if (use_detectability)
-                    {
-                      dt = map_iter->second[p];
-                    }
-                    else
-                      dt = 1.;
+                    double dt = map_iter->second[p];
                     // weight is detectability * rt_weight
                     double weight = dt * rt_weight;
                     double obj = model_->getObjective(f_v_idx);
@@ -1475,7 +1468,6 @@ namespace OpenMS
     double min_rt_weight = param_.getValue("thresholds:min_rt_weight");
     double min_pred_pep_weight = param_.getValue("thresholds:min_pred_pep_prob");
     double mz_tolerance = param_.getValue("mz_tolerance");
-    const bool use_detectability = true; //param_.getValue("use_detectability") == "true" ? true : false;
     double min_protein_probability = param_.getValue("thresholds:min_protein_probability");
     double k1 =  param_.getValue("combined_ilp:k1");
 #ifdef DEBUG_OPS
@@ -1501,13 +1493,14 @@ namespace OpenMS
       {
         if (find(accs.begin(), accs.end(), protein_accs[pa]) == accs.end())
           continue;
-        double weight = 1.;
+
         Int row = model_->getRowIndex((String("PROT_COV_") + protein_accs[pa]).c_str());
 #ifdef DEBUG_OPS
         std::cout << protein_accs[pa] << " index " << row << " " << model_->getElement(row, index) << std::endl;
 #endif
         if (model_->getElement(row, index) != 0.)
         {
+          const double weight = 1.;
           //                            std::cout << "getElement("<<protein_accs[pa]<<","<<index<<")="
           //                                                << cmodel_->getElement(row,index) << "\t";
           if (fabs(pep_score * weight - 1.) < 0.000001)
@@ -1717,16 +1710,7 @@ namespace OpenMS
                             if (!found_index)
                             {
                               // weight is detectability * rt_weight
-                              double dt;
-                              if (use_detectability)
-                              {
-                                dt = map_iter->second[p];
-                              }
-                              else
-                              {
-                                dt = 1.;
-                              }
-
+                              double dt = map_iter->second[p];
                               double weight = dt * rt_weight;
 #ifdef DEBUG_OPS
                               std::cout << dt << " * " << rt_weight

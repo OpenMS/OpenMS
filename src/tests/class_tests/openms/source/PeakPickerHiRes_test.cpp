@@ -45,7 +45,7 @@ using namespace OpenMS;
 using namespace std;
 
 //uncomment if the reference files should be re-written
-//(only do this if you are sure that the PeamPickerHiRes is working correctly)
+//(only do this if you are sure that the PeakPickerHiRes is working correctly)
 //#define WRITE_REF_FILES
 
 START_TEST(PeakPickerHiRes, "$Id$")
@@ -119,7 +119,39 @@ START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakTy
 
 END_SECTION
 
+START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output, std::vector<PeakBoundary> & boundaries) const ))
+  MSSpectrum<Peak1D> tmp_spec;
+  std::vector<PeakPickerHiRes::PeakBoundary> tmp_boundaries;
+  pp_hires.pick(input[0], tmp_spec, tmp_boundaries);
+#ifdef WRITE_REF_FILES
+  MSExperiment<> tmp_exp = input;
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+  {
+    pp_hires.pick(input[scan_idx],tmp_spec);
+    tmp_exp[scan_idx] = tmp_spec;
+  }
+  MzMLFile().store("./PeakPickerHiRes_orbitrap_sn1_out.mzML", tmp_exp);
+#endif
+
+  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+  {
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+  }
+  
+  TEST_REAL_SIMILAR(tmp_boundaries[25].mz_min, 359.728698730469)
+  TEST_REAL_SIMILAR(tmp_boundaries[25].mz_max, 359.736419677734)
+  TEST_REAL_SIMILAR(tmp_boundaries[26].mz_min, 360.155609130859)
+  TEST_REAL_SIMILAR(tmp_boundaries[26].mz_max, 360.173675537109)
+
+END_SECTION
+
 START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
+    // does the same as pick method for spectra
+    NOT_TESTABLE
+END_SECTION
+
+START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output, std::vector<std::vector<PeakBoundary> > & boundaries_spec, std::vector<std::vector<PeakBoundary> > & boundaries_chrom)))
     // does the same as pick method for spectra
     NOT_TESTABLE
 END_SECTION

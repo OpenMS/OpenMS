@@ -440,23 +440,23 @@ namespace OpenMS
     }
     bool svg = (suffix.compare("svg", Qt::CaseInsensitive) == 0);
 
-    QSize items_bounding_rect = spec_1d_->size();
-    qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
-    bool w_larger_than_h = wh_proportion > 1;
-    qreal x2, y2;
+    // QSize items_bounding_rect = spec_1d_->size();
+    // qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
+    // bool w_larger_than_h = wh_proportion > 1;
 
-    qreal small_edge_length = svg ? 500 : 4000;
+    // qreal small_edge_length = svg ? 500 : 4000;
 
-    if (w_larger_than_h)
-    {
-      x2 = wh_proportion * small_edge_length;
-      y2 = small_edge_length;
-    }
-    else
-    {
-      x2 = small_edge_length;
-      y2 = (1.0 / wh_proportion) * small_edge_length;
-    }
+    // qreal x2, y2;
+    // if (w_larger_than_h)
+    // {
+    //   x2 = wh_proportion * small_edge_length;
+    //   y2 = small_edge_length;
+    // }
+    // else
+    // {
+    //   x2 = small_edge_length;
+    //   y2 = (1.0 / wh_proportion) * small_edge_length;
+    // }
     
     double h = param_.getValue("image:height");
     double w = param_.getValue("image:width");
@@ -532,7 +532,7 @@ namespace OpenMS
     QString text = QString("<BR>"
                            "<FONT size=+3>IDEvaluation</font><BR>"
                            "<BR>"
-                           "Version: %1<BR>"
+                           "Version: %1%2<BR>"
                            "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
                            "BSD 3-Clause Licence (BSD-new)<BR>"
@@ -544,8 +544,9 @@ namespace OpenMS
                            "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
                            "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
-                           ).arg(VersionInfo::getVersion().toQString());
-    QLabel* text_label = new QLabel(text, dlg);
+                           ).arg(VersionInfo::getVersion().toQString()
+                           ).arg( // if we have a revision, embed it also into the shown version number
+                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    QLabel* text_label = new QLabel(text, dlg);
     grid->addWidget(text_label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 
     //execute
@@ -595,7 +596,7 @@ namespace OpenMS
     e->ignore();
   }
 
-  void IDEvaluationBase::closeEvent(QCloseEvent* event)
+  void IDEvaluationBase::closeEvent(QCloseEvent* /* event */)
   {
     //ws_->closeAllWindows();
     //event->accept();

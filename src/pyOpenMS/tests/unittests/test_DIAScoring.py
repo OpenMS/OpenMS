@@ -30,7 +30,7 @@ class TestDIAScoring(unittest.TestCase):
 
           diascoring = pyopenms.DIAScoring()
           diascoring.set_dia_parameters(0.05, False, 30, 50, 4, 4) #; // here we use a large enough window so that none of our peaks falls out
-          a = pyopenms.AASequence(b"SYVAWDR")
+          a = pyopenms.AASequence.fromString(b"SYVAWDR", True)
 
           bseries_score = 0.0
           yseries_score = 0.0

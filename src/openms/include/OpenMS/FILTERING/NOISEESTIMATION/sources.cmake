@@ -6,6 +6,7 @@ set(sources_list_h
 SignalToNoiseEstimator.h
 SignalToNoiseEstimatorMeanIterative.h
 SignalToNoiseEstimatorMedian.h
+SignalToNoiseEstimatorMedianRapid.h
 )
 
 ### add path to the filenames

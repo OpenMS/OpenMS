@@ -69,7 +69,7 @@ namespace OpenMS
       std::vector<FileMapping> pre_moves;
       std::vector<FileMapping> post_moves;
 
-      MappingParam & operator=(const MappingParam & rhs);
+      OPENMS_DLLAPI MappingParam & operator=(const MappingParam & rhs);
 
     };
 

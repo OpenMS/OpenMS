@@ -1053,9 +1053,8 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::parseAdductString_(const String& addstr, std::vector<String>& components)
+  void AccurateMassSearchEngine::parseAdductString_(const String& /* addstr */, std::vector<String>& /* components */)
   {
-
   }
 
   void AccurateMassSearchEngine::computeNeutralMassFromAdduct_(const double& adduct_mass, const String& adduct_string, double& neutral_mass, Int& charge_value)
@@ -1261,13 +1260,12 @@ namespace OpenMS
       }
     }
 
-
-    // correct for electron masses
-    double electrons_mass_diff(charge_value * Constants::ELECTRON_MASS_U);
-
-    // std::cout << "electron mass: " << Constants::ELECTRON_MASS_U << " " << Constants::ELECTRON_MASS << " " << electrons_mass_diff << std::endl;
     if (!is_intrinsic)
     {
+      // correct for electron masses
+      double electrons_mass_diff(charge_value * Constants::ELECTRON_MASS_U);
+      // std::cout << "electron mass: " << Constants::ELECTRON_MASS_U << " " << Constants::ELECTRON_MASS << " " << electrons_mass_diff << std::endl;
+
       neutral_mass += electrons_mass_diff;
     }
     // divide by stoichiometry factor

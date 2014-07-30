@@ -261,6 +261,9 @@ set_tests_properties("TOPP_FileConverter_3_out1" PROPERTIES DEPENDS "TOPP_FileCo
 add_test("TOPP_FileConverter_4" ${TOPP_BIN_PATH}/FileConverter -test  -in ${DATA_DIR_TOPP}/FileConverter_4_input.mzXML -out FileConverter_4.tmp -out_type mzML)
 add_test("TOPP_FileConverter_4_out1" ${DIFF} -whitelist "location=" -in1 FileConverter_4.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_4_output.mzML )
 set_tests_properties("TOPP_FileConverter_4_out1" PROPERTIES DEPENDS "TOPP_FileConverter_4")
+add_test("TOPP_FileConverter_5" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_5_input.mzML -out FileConverter_5.tmp -out_type mzXML)
+add_test("TOPP_FileConverter_5_out1" ${DIFF} -in1 FileConverter_5.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_5_output.mzXML )
+set_tests_properties("TOPP_FileConverter_5_out1" PROPERTIES DEPENDS "TOPP_FileConverter_5")
 add_test("TOPP_FileConverter_6" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_6_input.mzML -out FileConverter_6.tmp -out_type mzXML)
 add_test("TOPP_FileConverter_6_out1" ${DIFF} -in1 FileConverter_6.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_6_output.mzXML )
 set_tests_properties("TOPP_FileConverter_6_out1" PROPERTIES DEPENDS "TOPP_FileConverter_6")
@@ -441,6 +444,16 @@ set_tests_properties("TOPP_FileFilter_38_out" PROPERTIES DEPENDS "TOPP_FileFilte
 add_test("TOPP_FileFilter_39" ${TOPP_BIN_PATH}/FileFilter -in ${DATA_DIR_TOPP}/FileFilter_39_input_corrupt.mzML -out FileFilter_39.tmp -test)
 set_tests_properties("TOPP_FileFilter_39" PROPERTIES WILL_FAIL 1) ## this mzML has a corrupt numpress encoded string and should fail
 
+add_test("TOPP_FileFilter_40" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_40_input.mzML -out FileFilter_40.tmp -spectra:select_polarity positive -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_40_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_40.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_40_output.mzML)
+set_tests_properties("TOPP_FileFilter_40_out1" PROPERTIES DEPENDS "TOPP_FileFilter_40")
+add_test("TOPP_FileFilter_41" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_40_input.mzML -out FileFilter_41.tmp -spectra:select_polarity negative -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_41_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_41.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_41_output.mzML)
+set_tests_properties("TOPP_FileFilter_41_out1" PROPERTIES DEPENDS "TOPP_FileFilter_41")
+add_test("TOPP_FileFilter_42" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_40_input.mzML -out FileFilter_42.tmp -spectra:select_polarity "" -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_42_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_42.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_42_output.mzML)
+set_tests_properties("TOPP_FileFilter_42_out1" PROPERTIES DEPENDS "TOPP_FileFilter_42")
+
 #------------------------------------------------------------------------------
 # FileInfo tests
 add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.dta -in_type dta -no_progress -out FileInfo_1.tmp)
@@ -607,7 +620,10 @@ set_tests_properties("TOPP_IDFilter_7_out1" PROPERTIES DEPENDS "TOPP_IDFilter_7"
 add_test("TOPP_IDFilter_8" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_8_input.idXML -out IDFilter_8_output.tmp -precursor:rt 200:350 -precursor:mz 999:1000)
 add_test("TOPP_IDFilter_8_out1" ${DIFF} -in1 IDFilter_8_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_8_output.idXML )
 set_tests_properties("TOPP_IDFilter_8_out1" PROPERTIES DEPENDS "TOPP_IDFilter_8")
-
+# check for issue 887 regression (multiple runs)
+add_test("TOPP_IDFilter_9" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_9_input.idXML -out IDFilter_9_output.tmp -score:pep 0.05)
+add_test("TOPP_IDFilter_9_out1" ${DIFF} -in1 IDFilter_9_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_9_output.idXML )
+set_tests_properties("TOPP_IDFilter_9_out1" PROPERTIES DEPENDS "TOPP_IDFilter_9")
 
 #------------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
@@ -738,6 +754,9 @@ OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods -te
   add_test("TOPP_ConvertTSVToTraML_test_3" ${TOPP_BIN_PATH}/ConvertTSVToTraML -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_2_input.csv -out ConvertTSVToTraML_3_output.TraML.tmp -algorithm:retentionTimeInterpretation seconds)
   add_test("TOPP_ConvertTSVToTraML_test_3_out1" ${DIFF} -in1 ConvertTSVToTraML_3_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_3_output.TraML)
   set_tests_properties("TOPP_ConvertTSVToTraML_test_3_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_3")
+  add_test("TOPP_ConvertTSVToTraML_test_4" ${TOPP_BIN_PATH}/ConvertTSVToTraML -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_4_input.mrm -out ConvertTSVToTraML_4_output.TraML.tmp)
+  add_test("TOPP_ConvertTSVToTraML_test_4_out1" ${DIFF} -in1 ConvertTSVToTraML_4_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_4_output.TraML)
+  set_tests_properties("TOPP_ConvertTSVToTraML_test_4_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_4")
 
   add_test("TOPP_ConvertTraMLToTSV_test_1" ${TOPP_BIN_PATH}/ConvertTraMLToTSV -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_output.TraML -out ConvertTraMLToTSV_output.tsv.tmp)
   add_test("TOPP_ConvertTraMLToTSV_test_1_out1" ${DIFF} -in1 ConvertTraMLToTSV_output.tsv.tmp -in2 ${DATA_DIR_TOPP}/ConvertTraMLToTSV_output.csv)
@@ -789,6 +808,14 @@ OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods -te
   add_test("TOPP_OpenSwathRTNormalizer_test_1" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_1_output.trafoXML.tmp -test)
   add_test("TOPP_OpenSwathRTNormalizer_test_1_out1" ${DIFF} -in1 OpenSwathRTNormalizer_1_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_output.trafoXML)
   set_tests_properties("TOPP_OpenSwathRTNormalizer_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_1")
+  add_test("TOPP_OpenSwathRTNormalizer_test_2" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_1_output.trafoXML.tmp -test -estimateBestPeptides -peptideEstimation:NrRTBins 30 -peptideEstimation:MinBinsFilled 30)
+  set_tests_properties("TOPP_OpenSwathRTNormalizer_test_2" PROPERTIES WILL_FAIL 1) ## will not reach bin coverage
+  add_test("TOPP_OpenSwathRTNormalizer_test_3" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_3_output.trafoXML.tmp -test -estimateBestPeptides -peptideEstimation:NrRTBins 3 -peptideEstimation:MinBinsFilled 3)
+  add_test("TOPP_OpenSwathRTNormalizer_test_3_out1" ${DIFF} -in1 OpenSwathRTNormalizer_3_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_3_output.trafoXML)
+  set_tests_properties("TOPP_OpenSwathRTNormalizer_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_3")
+  add_test("TOPP_OpenSwathRTNormalizer_test_4" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_4_output.trafoXML.tmp -test -outlierDetection:outlierMethod iter_residual)
+  add_test("TOPP_OpenSwathRTNormalizer_test_4_out1" ${DIFF} -in1 OpenSwathRTNormalizer_4_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_4_output.trafoXML)
+  set_tests_properties("TOPP_OpenSwathRTNormalizer_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_4")
 
   add_test("TOPP_OpenSwathConfidenceScoring_1" ${TOPP_BIN_PATH}/OpenSwathConfidenceScoring -test -in ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.featureXML -lib ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.TraML -trafo ${DATA_DIR_TOPP}/OpenSwathConfidenceScoring_1_input.trafoXML -transitions 2 -decoys 1 -out OpenSwathConfidenceScoring_1_output.tmp)
   add_test("TOPP_OpenSwathConfidenceScoring_1_out1" ${DIFF} -in1 OpenSwathConfidenceScoring_1_output.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathConfidenceScoring_1_output.featureXML)
@@ -1155,12 +1182,15 @@ set_tests_properties("TOPP_IDRipper_3_out2" PROPERTIES DEPENDS "TOPP_IDRipper_3"
 add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_1_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_1_output.tmp)
 add_test("TOPP_ConsensusID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_1_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_1_output.idXML )
 set_tests_properties("TOPP_ConsensusID_1_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_1")
-add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_2_parameters.ini -out ConsensusID_2_output.tmp -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML)
+add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_2_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML -out ConsensusID_2_output.tmp)
 add_test("TOPP_ConsensusID_2_out1" ${DIFF} -whitelist "IdentificationRun id" -in1 ConsensusID_2_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_2_output.featureXML )
 set_tests_properties("TOPP_ConsensusID_2_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_2")
-add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_3_parameters.ini -out ConsensusID_3_output.tmp -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML)
+add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_3_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML -out ConsensusID_3_output.tmp)
 add_test("TOPP_ConsensusID_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun id" -in1 ConsensusID_3_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_3_output.consensusXML )
 set_tests_properties("TOPP_ConsensusID_3_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_3")
+add_test("TOPP_ConsensusID_4" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_4_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_4_input.idXML -out ConsensusID_4_output.tmp)
+add_test("TOPP_ConsensusID_4_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_4_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_4_output.idXML )
+set_tests_properties("TOPP_ConsensusID_4_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_4")
 
 #------------------------------------------------------------------------------
 # PrecursorIonSelector tests

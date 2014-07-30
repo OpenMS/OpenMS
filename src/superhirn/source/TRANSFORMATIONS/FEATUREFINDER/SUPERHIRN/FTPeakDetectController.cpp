@@ -213,7 +213,7 @@ namespace OpenMS
       // add the LC peak for conversion to a feature structure
       // and to insert into the current LC-MS run
       add_raw_peak_to_LC_MS_run((*P));
-      P++;
+      ++P;
     }
 
     // order the run again:
@@ -270,7 +270,6 @@ namespace OpenMS
     SHFeature * fakeMS1 = new SHFeature(in);
     lcms_->add_feature(fakeMS1);
     delete fakeMS1;
-    fakeMS1 = NULL;
     in = NULL;
   }
 
@@ -332,7 +331,7 @@ namespace OpenMS
 
       // add it to the LC_MS run:
       lcms_->add_feature(TMP);
-      TMP = NULL;
+      delete TMP;
 
     }
     PEAK = NULL;

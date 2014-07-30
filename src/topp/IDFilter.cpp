@@ -292,7 +292,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    bool precursor_missing = getFlag_("precursor:allow_missing");
+    // bool precursor_missing = getFlag_("precursor:allow_missing");
     bool best_strict = getFlag_("best:strict");
     UInt min_length = getIntOption_("min_length");
     UInt max_length = getIntOption_("max_length");
@@ -352,24 +352,24 @@ protected:
 
     std::set<String> applied_filters;
 
-	  // Filtering peptide identification according to set criteria
-	  if ((rt_high < double_max) || (rt_low > -double_max))
-	  {
-		  std::vector<PeptideIdentification> tmp;
-		  applied_filters.insert("Filtering by precursor RT ...\n");
-		  filter.filterIdentificationsByRT(identifications, rt_low, rt_high, tmp);
-		  identifications.swap(tmp);
-	  }
+    // Filtering peptide identification according to set criteria
+    if ((rt_high < double_max) || (rt_low > -double_max))
+    {
+      std::vector<PeptideIdentification> tmp;
+      applied_filters.insert("Filtering by precursor RT ...\n");
+      filter.filterIdentificationsByRT(identifications, rt_low, rt_high, tmp);
+      identifications.swap(tmp);
+    }
 
-	  if ((mz_high < double_max) || (mz_low > -double_max))
-	  {
-		  std::vector<PeptideIdentification> tmp;
-		  applied_filters.insert("Filtering by precursor MZ ...\n");
-		  filter.filterIdentificationsByMZ(identifications, mz_low, mz_high, tmp);
-		  identifications.swap(tmp);
-	  }
-		
-	  // Filtering peptide identification according to set criteria
+    if ((mz_high < double_max) || (mz_low > -double_max))
+    {
+      std::vector<PeptideIdentification> tmp;
+      applied_filters.insert("Filtering by precursor MZ ...\n");
+      filter.filterIdentificationsByMZ(identifications, mz_low, mz_high, tmp);
+      identifications.swap(tmp);
+    }
+
+    // Filtering peptide identification according to set criteria
     for (Size i = 0; i < identifications.size(); i++)
     {
       if (unique_per_protein)
@@ -565,7 +565,7 @@ protected:
 
         // remove non-existant protein references from peptides (and optionally: remove peptides with no proteins)
         filter.removeUnreferencedPeptideHits(filtered_protein_identification, filtered_peptide_identifications, delete_unreferenced_peptide_hits);
-        
+
         // might have empty proteinHits
         filtered_protein_identifications.push_back(filtered_protein_identification);
       }
@@ -585,7 +585,7 @@ protected:
     // some stats
     LOG_INFO << "Peptide identifications remaining: " << filtered_peptide_identifications.size() << " / " << identifications.size() << "\n";
     LOG_INFO << "Protein identifications remaining: ";
-    if (filtered_protein_identifications.size() == 0)  LOG_INFO << "0 / 0";
+    if (filtered_protein_identifications.size() == 0) LOG_INFO << "0 / 0";
     else LOG_INFO << filtered_protein_identifications[0].getHits().size() << " / " << protein_identifications[0].getHits().size();
     LOG_INFO << std::endl;
     //-------------------------------------------------------------

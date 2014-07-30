@@ -63,10 +63,8 @@ namespace OpenMS
     Size chrom_size = exp.getChromatograms().size();
     int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
     ofs.write((char*)&file_identifier, sizeof(file_identifier));
-    ofs.write((char*)&exp_size, sizeof(exp_size));
-    ofs.write((char*)&chrom_size, sizeof(chrom_size));
 
-    startProgress(0, exp.size() + exp.getChromatograms().size(), "storing binary spectra");
+    startProgress(0, exp.size() + exp.getChromatograms().size(), "storing binary data");
     for (Size i = 0; i < exp.size(); i++)
     {
       setProgress(i);
@@ -79,6 +77,8 @@ namespace OpenMS
       writeChromatogram_(exp.getChromatograms()[i], ofs);
     }
 
+    ofs.write((char*)&exp_size, sizeof(exp_size));
+    ofs.write((char*)&chrom_size, sizeof(chrom_size));
     ofs.close();
     endProgress();
   }
@@ -99,14 +99,18 @@ namespace OpenMS
     if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-          "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
+        "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 
+    ifs.seekg(0, ifs.end); // set file pointer to end
+    ifs.seekg(ifs.tellg(), ifs.beg); // set file pointer to end, in forward direction
+    ifs.seekg(- static_cast<int>(sizeof(exp_size) + sizeof(chrom_size)), ifs.cur); // move two fields to the left, start reading
     ifs.read((char*)&exp_size, sizeof(exp_size));
     ifs.read((char*)&chrom_size, sizeof(chrom_size));
+    ifs.seekg(sizeof(file_identifier), ifs.beg); // set file pointer to beginning (after identifier), start reading
 
     exp_reading.reserve(exp_size);
-    startProgress(0, exp_size + chrom_size, "reading binary spectra");
+    startProgress(0, exp_size + chrom_size, "reading binary data");
     for (Size i = 0; i < exp_size; i++)
     {
       setProgress(i);
@@ -166,8 +170,14 @@ namespace OpenMS
     // For spectra and chromatograms go through file, read the size of the
     // spectrum/chromatogram and record the starting index of the element, then
     // skip ahead to the next spectrum/chromatogram.
+
+    ifs.seekg(0, ifs.end); // set file pointer to end
+    ifs.seekg(ifs.tellg(), ifs.beg); // set file pointer to end, in forward direction
+    ifs.seekg(- static_cast<int>(sizeof(exp_size) + sizeof(chrom_size)), ifs.cur); // move two fields to the left, start reading
     ifs.read((char*)&exp_size, sizeof(exp_size));
     ifs.read((char*)&chrom_size, sizeof(chrom_size));
+    ifs.seekg(sizeof(file_identifier), ifs.beg); // set file pointer to beginning (after identifier), start reading
+
     startProgress(0, exp_size + chrom_size, "Creating index for binary spectra");
     for (Size i = 0; i < exp_size; i++)
     {
@@ -183,10 +193,10 @@ namespace OpenMS
     {
       setProgress(i);
 
-      Size chrom_size;
+      Size ch_size;
       chrom_index_.push_back(ifs.tellg());
-      ifs.read((char*)&chrom_size, sizeof(chrom_size));
-      ifs.seekg(chrom_offset + (sizeof(DatumSingleton)) * 2 * (chrom_size), ifs.cur);
+      ifs.read((char*)&ch_size, sizeof(ch_size));
+      ifs.seekg(chrom_offset + (sizeof(DatumSingleton)) * 2 * (ch_size), ifs.cur);
     }
 
     ifs.close();
@@ -220,12 +230,12 @@ namespace OpenMS
       {
         exp[i].getDataProcessing().push_back(dp);
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms();
-      for (Size i=0; i<chromatograms.size(); ++i)
+      std::vector<MSChromatogram<ChromatogramPeak> > l_chromatograms = exp.getChromatograms();
+      for (Size i=0; i<l_chromatograms.size(); ++i)
       {
-        chromatograms[i].getDataProcessing().push_back(dp);
+        l_chromatograms[i].getDataProcessing().push_back(dp);
       }
-      exp.setChromatograms(chromatograms);
+      exp.setChromatograms(l_chromatograms);
     }
 
     // store the meta data using the regular MzMLFile
@@ -241,8 +251,12 @@ namespace OpenMS
 
     data1.resize(spec_size);
     data2.resize(spec_size);
-    ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
-    ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+
+    if (spec_size > 0)
+    {
+      ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
+      ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+    }
   }
 
   void CachedmzML::readChromatogram_(Datavector& data1, Datavector& data2, std::ifstream& ifs) const
@@ -251,8 +265,12 @@ namespace OpenMS
     ifs.read((char*)&spec_size, sizeof(spec_size));
     data1.resize(spec_size);
     data2.resize(spec_size);
-    ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
-    ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+
+    if (spec_size > 0)
+    {
+      ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
+      ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+    }
   }
 
   void CachedmzML::readSpectrum_(SpectrumType& spectrum, std::ifstream& ifs) const
@@ -303,6 +321,13 @@ namespace OpenMS
     dbl_field_ = spectrum.getRT();
     ofs.write((char*)&dbl_field_, sizeof(dbl_field_));
 
+    // Catch empty spectrum: we do not write any data and since the "size" we
+    // just wrote is zero, no data will be read
+    if (spectrum.empty())
+    {
+      return;
+    }
+
     Datavector mz_data;
     Datavector int_data;
     for (Size j = 0; j < spectrum.size(); j++)
@@ -310,6 +335,7 @@ namespace OpenMS
       mz_data.push_back(spectrum[j].getMZ());
       int_data.push_back(spectrum[j].getIntensity());
     }
+
     ofs.write((char*)&mz_data.front(), mz_data.size() * sizeof(mz_data.front()));
     ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
   }
@@ -318,6 +344,14 @@ namespace OpenMS
   {
     Size exp_size = chromatogram.size();
     ofs.write((char*)&exp_size, sizeof(exp_size));
+
+    // Catch empty chromatogram: we do not write any data and since the "size" we
+    // just wrote is zero, no data will be read
+    if (chromatogram.empty())
+    {
+      return;
+    }
+
     Datavector rt_data;
     Datavector int_data;
     for (Size j = 0; j < chromatogram.size(); j++)

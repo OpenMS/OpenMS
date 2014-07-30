@@ -67,7 +67,7 @@ intensity.push_back(59152.21);
 intensity.push_back(0.0);
 
 std::map<double,double> map;
-for (int i=0; i<mz.size(); ++i)
+for (Size i=0; i<mz.size(); ++i)
 {
     map.insert(std::pair<double,double>(mz[i], intensity[i]));
 }
@@ -98,15 +98,15 @@ END_SECTION
 
 START_SECTION(double derivatives(double x, unsigned order))
   // near border of spline range
-  TEST_REAL_SIMILAR(sp1.derivatives(486.785,1), 35203124.2107165);
-  TEST_REAL_SIMILAR(sp1.derivatives(486.785,2), 2044741557.1305177);
-  TEST_REAL_SIMILAR(sp2.derivatives(486.785,1), 35203124.2107165);
-  TEST_REAL_SIMILAR(sp2.derivatives(486.785,2), 2044741557.1305177);
+  TEST_REAL_SIMILAR(sp1.derivatives(486.785,1), 39292607.3251133)
+  TEST_REAL_SIMILAR(sp1.derivatives(486.785,2), 12268449342.7831);
+  TEST_REAL_SIMILAR(sp2.derivatives(486.785,1), 39292607.3251133);
+  TEST_REAL_SIMILAR(sp2.derivatives(486.785,2), 12268449342.7831);
   // inside spline range
-  TEST_REAL_SIMILAR(sp1.derivatives(486.794,1), 569127384.64354789);
-  TEST_REAL_SIMILAR(sp1.derivatives(486.794,2), 45836833597.227844);
-  TEST_REAL_SIMILAR(sp2.derivatives(486.794,1), 569127384.64354789);
-  TEST_REAL_SIMILAR(sp2.derivatives(486.794,2), 45836833597.227844);
+  TEST_REAL_SIMILAR(sp1.derivatives(486.794,1), 594354391.618931);
+  TEST_REAL_SIMILAR(sp1.derivatives(486.794,2), 9234360709.46161);
+  TEST_REAL_SIMILAR(sp2.derivatives(486.794,1), 594354391.618931);
+  TEST_REAL_SIMILAR(sp2.derivatives(486.794,2), 9234360709.46161);
 END_SECTION
 
 END_TEST

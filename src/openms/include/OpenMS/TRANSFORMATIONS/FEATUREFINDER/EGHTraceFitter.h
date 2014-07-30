@@ -66,9 +66,12 @@ public:
     class EGHTraceFunctor : public TraceFitter<PeakType>::GenericFunctor
     {
     public:
+
       EGHTraceFunctor(int dimensions,
           const typename TraceFitter<PeakType>::ModelData* data)
       : TraceFitter<PeakType>::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
+
+      virtual ~EGHTraceFunctor() {}
 
       int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
       {
@@ -110,6 +113,7 @@ public:
         }
         return 0;
       }
+
       // compute Jacobian matrix for the different parameters
       int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
       {
@@ -173,6 +177,7 @@ public:
         }
         return 0;
       }
+
     protected:
       const typename TraceFitter<PeakType>::ModelData* m_data;
     };

@@ -7,7 +7,6 @@ from String cimport *
 from MSExperiment cimport *
 from PeptideIdentification cimport *
 from FileHandler cimport *
-from FileTypes cimport *
 
 cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
     

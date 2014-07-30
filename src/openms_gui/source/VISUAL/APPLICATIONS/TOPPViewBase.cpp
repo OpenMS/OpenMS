@@ -1490,6 +1490,8 @@ namespace OpenMS
             {
               views_tabwidget_->setCurrentIndex(0); // switch to scan tab for 2D widget
             }
+            // cppcheck produces a false positive warning here -> ignore
+            // cppcheck-suppress multiCondition
             else if (dynamic_cast<Spectrum1DWidget*>(w))
             {
               views_tabwidget_->setCurrentIndex(1); // switch to identification tab for 1D widget
@@ -3426,7 +3428,7 @@ namespace OpenMS
     QString text = QString("<BR>"
                            "<FONT size=+3>TOPPView</font><BR>"
                            "<BR>"
-                           "Version: %1<BR>"
+                           "Version: %1%2<BR>"
                            "<BR>"
                            "OpenMS and TOPP is free software available under the<BR>"
                            "BSD 3-Clause Licence (BSD-new)<BR>"
@@ -3438,8 +3440,10 @@ namespace OpenMS
                            "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
                            "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
-                           ).arg(VersionInfo::getVersion().toQString());
-    label = new QLabel(text, dlg);
+                           ).arg(VersionInfo::getVersion().toQString()
+                           ).arg( // if we have a revision, embed it also into the shown version number
+                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    label = new QLabel(text, dlg);
+
     grid->addWidget(label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 
     //close button

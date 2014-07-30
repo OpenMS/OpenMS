@@ -53,7 +53,7 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  Spectrum2DWidget::Spectrum2DWidget(const Param & preferences, QWidget * parent) :
+  Spectrum2DWidget::Spectrum2DWidget(const Param& preferences, QWidget* parent) :
     SpectrumWidget(preferences, parent)
   {
     setCanvas_(new Spectrum2DCanvas(preferences, this), 1, 2);
@@ -110,9 +110,9 @@ namespace OpenMS
     projection_box_ = new QGroupBox("Projections", this);
     projection_box_->hide();
     grid_->addWidget(projection_box_, 0, 3);
-    QGridLayout * box_grid = new QGridLayout(projection_box_);
+    QGridLayout* box_grid = new QGridLayout(projection_box_);
 
-    QLabel * label = new QLabel("Peaks: ");
+    QLabel* label = new QLabel("Peaks: ");
     box_grid->addWidget(label, 0, 0);
     projection_peaks_ = new QLabel("");
     box_grid->addWidget(projection_peaks_, 0, 1);
@@ -129,7 +129,7 @@ namespace OpenMS
 
     box_grid->setRowStretch(3, 2);
 
-    QPushButton * button = new QPushButton("Update", projection_box_);
+    QPushButton* button = new QPushButton("Update", projection_box_);
     connect(button, SIGNAL(clicked()), canvas(), SLOT(updateProjections()));
     box_grid->addWidget(button, 4, 0);
 
@@ -217,7 +217,7 @@ namespace OpenMS
     return tmp;
   }
 
-  Histogram<> Spectrum2DWidget::createMetaDistribution_(const String & name) const
+  Histogram<> Spectrum2DWidget::createMetaDistribution_(const String& name) const
   {
     Histogram<> tmp;
 
@@ -295,7 +295,7 @@ namespace OpenMS
         }
       }
     }
-    else     //Features
+    else //Features
     {
       //determine min and max
       float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
@@ -350,7 +350,7 @@ namespace OpenMS
 
   void Spectrum2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
   {
-    projection_horz_->canvas()->mzToXAxis(true);     // determines the orientation of the data
+    projection_horz_->canvas()->mzToXAxis(true); // determines the orientation of the data
     projection_horz_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
     projection_horz_->showLegend(false);
 
@@ -367,7 +367,7 @@ namespace OpenMS
 
   void Spectrum2DWidget::verticalProjection(ExperimentSharedPtrType exp)
   {
-    projection_vert_->canvas()->mzToXAxis(false);     // determines the orientation of the data
+    projection_vert_->canvas()->mzToXAxis(false); // determines the orientation of the data
     projection_vert_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
     projection_vert_->showLegend(false);
     Spectrum1DCanvas::DrawModes mode = projection_vert_->canvas()->getDrawMode();
@@ -381,12 +381,12 @@ namespace OpenMS
     projection_vert_->show();
   }
 
-  const Spectrum1DWidget * Spectrum2DWidget::getHorizontalProjection() const
+  const Spectrum1DWidget* Spectrum2DWidget::getHorizontalProjection() const
   {
     return projection_horz_;
   }
 
-  const Spectrum1DWidget * Spectrum2DWidget::getVerticalProjection() const
+  const Spectrum1DWidget* Spectrum2DWidget::getVerticalProjection() const
   {
     return projection_vert_;
   }
@@ -395,7 +395,7 @@ namespace OpenMS
   {
     Spectrum2DGoToDialog goto_dialog(this);
     //set range
-    const DRange<2> & area = canvas()->getVisibleArea();
+    const DRange<2>& area = canvas()->getVisibleArea();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
     goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     // feature numbers only for consensus&feature maps
@@ -406,8 +406,8 @@ namespace OpenMS
       if (goto_dialog.showRange())
       {
         goto_dialog.fixRange();
-        SpectrumCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        if(goto_dialog.clip_checkbox->checkState() == Qt::Checked)
+        SpectrumCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
+        if (goto_dialog.clip_checkbox->checkState() == Qt::Checked)
           correctAreaToObeyMinMaxRanges_(area);
         canvas()->setVisibleArea(area);
       }
@@ -418,7 +418,7 @@ namespace OpenMS
         UniqueIdInterface uid;
         uid.setUniqueId(feature_id);
 
-        Size feature_index;
+        Size feature_index(-1); // TODO : not use -1
         if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
           feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
         else if (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
@@ -445,7 +445,7 @@ namespace OpenMS
         //display feature with a margin
         if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
         {
-          const FeatureMapType & map = *canvas()->getCurrentLayer().getFeatureMap();
+          const FeatureMapType& map = *canvas()->getCurrentLayer().getFeatureMap();
           DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
           double rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0]) * 0.5;
           double mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1]) * 2;
@@ -454,7 +454,7 @@ namespace OpenMS
         }
         else // Consensus Feature
         {
-          const ConsensusFeature & cf = (*canvas()->getCurrentLayer().getConsensusMap())[feature_index];
+          const ConsensusFeature& cf = (*canvas()->getCurrentLayer().getConsensusMap())[feature_index];
           double rt_margin = 30;
           double mz_margin = 5;
           SpectrumCanvas::AreaType narea(cf.getMZ() - mz_margin, cf.getRT() - rt_margin, cf.getMZ() + mz_margin, cf.getRT() + rt_margin);

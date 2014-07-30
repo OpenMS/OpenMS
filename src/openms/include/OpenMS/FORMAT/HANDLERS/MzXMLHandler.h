@@ -253,7 +253,6 @@ protected:
       void doPopulateSpectraWithData_(SpectrumData & spectrum_data)
       {
         typedef typename SpectrumType::PeakType PeakType;
-        Base64 decoder_;
 
         //std::cout << "reading scan" << "\n";
         if (spectrum_data.char_rest_ == "") // no peaks
@@ -401,6 +400,7 @@ private:
       static const XMLCh* s_peakscount_;
       static const XMLCh* s_polarity_;
       static const XMLCh* s_scantype_;
+      static const XMLCh* s_filterline_;
       static const XMLCh* s_retentiontime_;
       static const XMLCh* s_startmz_;
       static const XMLCh* s_endmz_;
@@ -441,6 +441,7 @@ private:
           s_peakscount_ = xercesc::XMLString::transcode("peaksCount");
           s_polarity_ = xercesc::XMLString::transcode("polarity");
           s_scantype_ = xercesc::XMLString::transcode("scanType");
+          s_filterline_ = xercesc::XMLString::transcode("filterLine");
           s_retentiontime_ = xercesc::XMLString::transcode("retentionTime");
           s_startmz_ = xercesc::XMLString::transcode("startMz");
           s_endmz_ = xercesc::XMLString::transcode("endMz");
@@ -505,6 +506,8 @@ private:
     const XMLCh * MzXMLHandler<MapType>::s_polarity_ = 0;
     template <typename MapType>
     const XMLCh * MzXMLHandler<MapType>::s_scantype_ = 0;
+    template <typename MapType>
+    const XMLCh * MzXMLHandler<MapType>::s_filterline_ = 0;
     template <typename MapType>
     const XMLCh * MzXMLHandler<MapType>::s_retentiontime_ = 0;
     template <typename MapType>
@@ -728,6 +731,14 @@ private:
         String polarity = "any";
         optionalAttributeAsString_(polarity, attributes, s_polarity_);
         spectrum_data_.back().spectrum.getInstrumentSettings().setPolarity((IonSource::Polarity) cvStringToEnum_(0, polarity, "polarity"));
+
+        // Filter string (see CV term MS:1000512 in mzML)
+        String filterLine = "";
+        optionalAttributeAsString_(filterLine, attributes, s_filterline_);
+        if (!filterLine.empty())
+        {
+          spectrum_data_.back().spectrum.setMetaValue("filter string", filterLine);
+        }
 
         String type = "";
         optionalAttributeAsString_(type, attributes, s_scantype_);
@@ -1308,6 +1319,29 @@ private:
           warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[spec.getInstrumentSettings().getScanMode()] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
 
+        // filter line
+        if (spec.metaValueExists("filter string") )
+        {
+          os << "\" filterLine=\"";
+          os << writeXMLEscape ( (String)spec.getMetaValue("filter string") );
+        }
+
+        // base peak mz (used by some programs like MAVEN), according to xsd:
+        // "m/z of the base peak (most intense peak)"
+        os << "\" basePeakMz=\"";
+        double basePeakInt = 0;
+        double basePeakMz = 0;
+        for (Size j = 0; j < spec.size(); j++)
+        {
+          if (spec[j].getIntensity() > basePeakInt)
+          {
+            basePeakInt = spec[j].getIntensity();
+            basePeakMz = spec[j].getMZ();
+          }
+        }
+        os << basePeakMz;
+
+        // retention time
         os << "\" retentionTime=\"";
         if (spec.getRT() < 0)
           os << "-";
@@ -1320,6 +1354,8 @@ private:
         {
           warning(STORE, "The MzXML format can store only one scan window for each scan. Only the first one is stored!");
         }
+
+        // end of "scan" attributes
         os << ">\n";
 
 

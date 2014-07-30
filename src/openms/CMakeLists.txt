@@ -72,11 +72,11 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so, except Qt
-set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
+set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${GSL_LIBRARIES}
                           ${GSL_CBLAS_LIBRARIES}
-                          ${DEP_LIBSVM_LIBRARY}
-                          ${CONTRIB_XERCESC}
+                          ${LIBSVM_LIBRARIES}
+                          ${XercesC_LIBRARY}
                           ${Boost_LIBRARIES}
                           ${WM5_LIBRARIES}
                           ${BZIP2_LIBRARIES}
@@ -117,7 +117,8 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${WM5_INCLUDE_DIRS}
                                      ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
                                      ${CRAWDAD_INCLUDE_DIRS}
-                                     ${CONTRIB_INCLUDE_DIR}
+                                     ${XercesC_INCLUDE_DIRS}
+                                     ${COIN_INCLUDE_DIRS}
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${APPLE_EXTRA_LIBS}
                                   ${QT_LIBRARIES}

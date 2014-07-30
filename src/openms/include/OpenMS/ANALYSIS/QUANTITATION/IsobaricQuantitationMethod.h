@@ -72,11 +72,11 @@ public:
       Peak2D::CoordinateType center;
 
       /// C'tor
-      IsobaricChannelInformation(const Int name, const Int id, const String& description, const Peak2D::CoordinateType& center) :
-        name(name),
-        id(id),
-        description(description),
-        center(center)
+      IsobaricChannelInformation(const Int local_name, const Int local_id, const String& local_description, const Peak2D::CoordinateType& local_center) :
+        name(local_name),
+        id(local_id),
+        description(local_description),
+        center(local_center)
       {
       }
 

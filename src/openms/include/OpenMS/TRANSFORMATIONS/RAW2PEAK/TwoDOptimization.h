@@ -617,13 +617,12 @@ protected:
       x_init.setZero();
 
       std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = twoD_data.matching_peaks.begin();
-      double av_mz = 0, av_lw = 0, av_rw = 0, avr_height = 0, height;
       Int peak_counter = 0;
       Int diff_peak_counter = 0;
       // go through the matching peaks
       for (; m_peaks_it != twoD_data.matching_peaks.end(); ++m_peaks_it)
       {
-        av_mz = 0, av_lw = 0, av_rw = 0, avr_height = 0;
+        double av_mz = 0, av_lw = 0, av_rw = 0, avr_height = 0, height;
         std::vector<PeakIndex>::iterator iter_iter = (m_peaks_it)->second.begin();
         for (; iter_iter != m_peaks_it->second.end(); ++iter_iter)
         {

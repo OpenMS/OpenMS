@@ -70,6 +70,8 @@ public:
       GenericFunctor(int dimensions, int num_data_points)
       : m_inputs(dimensions), m_values(num_data_points) {}
 
+      virtual ~GenericFunctor() {}
+
       virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) = 0;
       // compute Jacobian matrix for the different parameters
       virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) = 0;
@@ -78,7 +80,7 @@ public:
       const int m_inputs, m_values;
     };
 
-    /// default constructor.
+    /// default constructor
     TraceFitter() :
       DefaultParamHandler("TraceFitter")
     {

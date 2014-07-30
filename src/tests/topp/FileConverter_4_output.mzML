@@ -13,7 +13,7 @@
 		</fileContent>
 		<sourceFileList count="1">
 			<sourceFile id="sf_ru_0" name="FileConverter_4_input.mzXML" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="be7f20d880b84b22b47267097d43bd07d64e4b87" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="bfb52b34f2482567ddf4474117ca70c09d96bea1" />
 				<cvParam cvRef="MS" accession="MS:1000566" name="ISB mzXML file" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
@@ -124,6 +124,7 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
+				<userParam name="filter string" type="xsd:string" value="lorem & &quot;impsum&quot; <> "/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>

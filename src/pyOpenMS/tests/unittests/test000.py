@@ -40,50 +40,30 @@ def _testMetaInfoInterface(what):
 
     keys = []
     what.getKeys(keys)
-    keys = [0]
-    what.getKeys(keys)
-    assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
-    assert what.getMetaValue(keys[0]) == 42
-    keys = [b""]
-    what.getKeys(keys)
     assert len(keys) and all(isinstance(k, bytes) for k in keys)
-
     assert what.getMetaValue(keys[0]) == 42
+    keys = []
+    what.getKeysAsIntegers(keys)
+    assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
 
     assert what.metaValueExists(b"key")
     what.removeMetaValue(b"key")
 
     what.setMetaValue(1024, 42)
+    assert what.getMetaValue(1024) == 42
 
     keys = []
     what.getKeys(keys)
-    keys = [0]
-    what.getKeys(keys)
+    assert what.getMetaValue(keys[0]) == 42
+    keys = []
+    what.getKeysAsIntegers(keys)
     assert len(keys) and all(isinstance(k, (long, int)) for k in keys)
-    assert what.getMetaValue(keys[0]) == 42
-    keys = [b""]
-    what.getKeys(keys)
-    assert len(keys) and all(isinstance(k, bytes) for k in keys)
-
-    assert what.getMetaValue(keys[0]) == 42
-
-    what.setMetaValue(b"key", 42)
-    what.setMetaValue(b"key2", 42)
-
-    assert what.metaValueExists(b"key")
-    what.removeMetaValue(b"key")
-    keys = []
-    what.getKeys(keys)
-    assert len(keys) == 1
-    what.removeMetaValue(b"key2")
-    keys = []
-    what.getKeys(keys)
-    assert len(keys) == 0
-
 
     what.clearMetaInfo()
     keys = []
     what.getKeys(keys)
+    assert len(keys) == 0
+    what.getKeysAsIntegers(keys)
     assert len(keys) == 0
 
 
@@ -204,7 +184,6 @@ def testAASequence():
      AASequence.setCTerminalModification
      AASequence.setModification
      AASequence.setNTerminalModification
-     AASequence.setStringSequence
      AASequence.toString
      AASequence.toUnmodifiedString
     """
@@ -214,14 +193,13 @@ def testAASequence():
     aas += aas
 
     aas.__doc__
-    aas = pyopenms.AASequence(b"DFPIANGER")
+    aas = pyopenms.AASequence.fromString(b"DFPIANGER", True)
     assert aas.getCTerminalModification() == b""
     assert aas.getNTerminalModification() == b""
     aas.setCTerminalModification(b"")
     aas.setNTerminalModification(b"")
-    aas.setStringSequence(b"")
-    assert aas.toString() == b""
-    assert aas.toUnmodifiedString() == b""
+    assert aas.toString() == b"DFPIANGER"
+    assert aas.toUnmodifiedString() == b"DFPIANGER"
 
 @report
 def testElement():
@@ -904,6 +882,8 @@ def testDataValue():
     assert not a.isEmpty()
     assert a.toStringList() == [b"1.0"]
     assert a.valueType() == pyopenms.DataType.STRING_LIST
+
+    assert pyopenms.MSSpectrum().getMetaValue("nonexisingkey") is None
 
 @report
 def testAdduct():
@@ -3174,7 +3154,7 @@ def testPeptideHit():
     assert ph == ph
     assert not ph != ph
 
-    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence(b"A"))
+    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
     _testMetaInfoInterface(ph)
     ph.addProteinAccession(b"A")
     assert ph.getProteinAccessions() == [b"A"]
@@ -3187,7 +3167,7 @@ def testPeptideHit():
     assert ph.getScore() == 2.0
     ph.setRank(30)
     assert ph.getRank() == 30
-    ph.setSequence(pyopenms.AASequence(b"AAA"))
+    ph.setSequence(pyopenms.AASequence.fromString(b"AAA", True))
     assert ph.getSequence().toString() == b"AAA"
 
     ph.setAABefore(b'B')
@@ -3239,7 +3219,7 @@ def testPeptideIdentification():
     assert pi == pi
     assert not pi != pi
 
-    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence(b"A"))
+    ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
     pi.insertHit(ph)
     phx, = pi.getHits()
     assert phx == ph

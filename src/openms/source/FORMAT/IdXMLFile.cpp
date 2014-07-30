@@ -57,13 +57,14 @@ namespace OpenMS
   {
   }
 
-  void IdXMLFile::load(const String & filename, vector<ProteinIdentification> & protein_ids, vector<PeptideIdentification> & peptide_ids)
+  void IdXMLFile::load(const String& filename, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids)
   {
     String document_id;
     load(filename, protein_ids, peptide_ids, document_id);
   }
 
-  void IdXMLFile::load(const String & filename, vector<ProteinIdentification> & protein_ids, vector<PeptideIdentification> & peptide_ids, String & document_id)
+  void IdXMLFile::load(const String& filename, vector<ProteinIdentification>& protein_ids,
+                       vector<PeptideIdentification>& peptide_ids, String& document_id)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -83,7 +84,7 @@ namespace OpenMS
     last_meta_ = 0;
     parameters_.clear();
     param_ = ProteinIdentification::SearchParameters();
-    String id_ = "";
+    id_ = "";
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();
@@ -91,7 +92,7 @@ namespace OpenMS
     proteinid_to_accession_.clear();
   }
 
-  void IdXMLFile::store(String filename, const vector<ProteinIdentification> & protein_ids, const vector<PeptideIdentification> & peptide_ids, const String & document_id)
+  void IdXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids, const String& document_id)
   {
     //open stream
     std::ofstream os(filename.c_str());
@@ -283,16 +284,16 @@ namespace OpenMS
         os << "significance_threshold=\"" << peptide_ids[l].getSignificanceThreshold() << "\" ";
         // mz
         if (peptide_ids[l].hasMZ())
-		    {
-			    os << "MZ=\"" << peptide_ids[l].getMZ() << "\" ";
-		    }
-		    // rt
-		    if (peptide_ids[l].hasRT())
-		    {
-			    os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
-		    }
-	    	// spectrum_reference
-		    DataValue dv = peptide_ids[l].getMetaValue("spectrum_reference");
+        {
+          os << "MZ=\"" << peptide_ids[l].getMZ() << "\" ";
+        }
+        // rt
+        if (peptide_ids[l].hasRT())
+        {
+          os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
+        }
+        // spectrum_reference
+        DataValue dv = peptide_ids[l].getMetaValue("spectrum_reference");
         if (dv != DataValue::EMPTY)
         {
           os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
@@ -332,8 +333,8 @@ namespace OpenMS
           os << "\t\t\t</PeptideHit>\n";
         }
 
-		    // do not write "spectrum_reference" since it is written as attribute already
-		    MetaInfoInterface tmp = peptide_ids[l];
+        // do not write "spectrum_reference" since it is written as attribute already
+        MetaInfoInterface tmp = peptide_ids[l];
         tmp.removeMetaValue("spectrum_reference");
         writeUserParam_("UserParam", os, tmp, 3);
         os << "\t\t</PeptideIdentification>\n";
@@ -342,7 +343,7 @@ namespace OpenMS
       os << "\t</IdentificationRun>\n";
 
       // on more than one protein Ids (=runs) there must be wrong mappings and the message would be useless. However, a single run should not have wrong mappings!
-      if (count_wrong_id && protein_ids.size()==1) LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl;
+      if (count_wrong_id && protein_ids.size() == 1) LOG_WARN << "Omitted writing of " << count_wrong_id << " peptide identifications due to wrong protein mapping." << std::endl;
       if (count_empty) LOG_WARN << "Omitted writing of " << count_empty << " peptide identifications due to empty hits." << std::endl;
     }
 
@@ -373,7 +374,7 @@ namespace OpenMS
     last_meta_ = 0;
     parameters_.clear();
     param_ = ProteinIdentification::SearchParameters();
-    String id_ = "";
+    id_ = "";
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();
@@ -381,7 +382,7 @@ namespace OpenMS
     proteinid_to_accession_.clear();
   }
 
-  void IdXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void IdXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     String tag = sm_.convert(qname);
 
@@ -394,7 +395,7 @@ namespace OpenMS
 
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
-        file_version = "1.0";                         //default version is 1.0
+        file_version = "1.0"; //default version is 1.0
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -540,7 +541,7 @@ namespace OpenMS
       if (!prot_id_in_run_)
       {
         prot_ids_->push_back(prot_id_);
-        prot_id_in_run_ = true;         // set to true, cause we have created one; will be reset for next run
+        prot_id_in_run_ = true; // set to true, cause we have created one; will be reset for next run
       }
 
       //set identifier
@@ -606,7 +607,7 @@ namespace OpenMS
       }
 
       //parse optional protein ids to determine accessions
-      const XMLCh * refs = attributes.getValue(sm_.convert("protein_refs"));
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
       if (refs != 0)
       {
         String accession_string = sm_.convert(refs);
@@ -663,7 +664,7 @@ namespace OpenMS
     }
   }
 
-  void IdXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void IdXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
 
@@ -702,7 +703,7 @@ namespace OpenMS
     else if (tag == "IdentificationRun")
     {
       if (prot_ids_->size() == 0)
-        prot_ids_->push_back(prot_id_);                         // add empty <ProteinIdentification> if there was none so far (thats where the IdentificationRun parameters are stored)
+        prot_ids_->push_back(prot_id_); // add empty <ProteinIdentification> if there was none so far (thats where the IdentificationRun parameters are stored)
       prot_id_ = ProteinIdentification();
       last_meta_ = 0;
       prot_id_in_run_ = false;
@@ -727,8 +728,8 @@ namespace OpenMS
   }
 
   void IdXMLFile::addProteinGroups_(
-    MetaInfoInterface & meta, const vector<ProteinIdentification::ProteinGroup> &
-    groups, const String & group_name, const map<String, UInt> & accession_to_id)
+    MetaInfoInterface& meta, const vector<ProteinIdentification::ProteinGroup>&
+    groups, const String& group_name, const map<String, UInt>& accession_to_id)
   {
     for (Size g = 0; g < groups.size(); ++g)
     {
@@ -758,8 +759,8 @@ namespace OpenMS
     }
   }
 
-  void IdXMLFile::getProteinGroups_(vector<ProteinIdentification::ProteinGroup> &
-                                    groups, const String & group_name)
+  void IdXMLFile::getProteinGroups_(vector<ProteinIdentification::ProteinGroup>&
+                                    groups, const String& group_name)
   {
     groups.clear();
     Size g_id = 0;

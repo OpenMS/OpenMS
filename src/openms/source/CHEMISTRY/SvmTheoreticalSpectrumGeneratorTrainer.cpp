@@ -393,34 +393,26 @@ namespace OpenMS
 
       if (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
       {
-        double p_start = 0.;
-        double p_step_size = 0.;
-        double p_stop = 0.;
-
-        p_start = (double)param_.getValue("svm:svr:p_start");
-        p_step_size = (double)param_.getValue("svm:svr:p_step_size");
+        double p_start = (double)param_.getValue("svm:svr:p_start");
+        double p_step_size = (double)param_.getValue("svm:svr:p_step_size");
         if (!additive_cv && p_step_size <= 1)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of p <= 1 and additive_cv is false. Aborting!");
         }
-        p_stop = (double)param_.getValue("svm:svr:p_stop");
+        double p_stop = (double)param_.getValue("svm:svr:p_stop");
 
         start_values_reg.insert(make_pair(SVMWrapper::P, p_start));
         step_sizes_reg.insert(make_pair(SVMWrapper::P, p_step_size));
         end_values_reg.insert(make_pair(SVMWrapper::P, p_stop));
       }
 
-      double c_start = 0.;
-      double c_step_size = 0.;
-      double c_stop = 0.;
-
-      c_start = (double)param_.getValue("svm:svr:c_start");
-      c_step_size = (double)param_.getValue("svm:svr:c_step_size");
+      double c_start = (double)param_.getValue("svm:svr:c_start");
+      double c_step_size = (double)param_.getValue("svm:svr:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
-      c_stop = (double)param_.getValue("svm:svr:c_stop");
+      double c_stop = (double)param_.getValue("svm:svr:c_stop");
 
       start_values_reg.insert(make_pair(SVMWrapper::C, c_start));
       step_sizes_reg.insert(make_pair(SVMWrapper::C, c_step_size));
@@ -428,17 +420,13 @@ namespace OpenMS
 
       if ((wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
       {
-        double nu_start = 0.;
-        double nu_step_size = 0.;
-        double nu_stop = 0.;
-
-        nu_start = (double)param_.getValue("svm:svr:nu_start");
-        nu_step_size = (double)param_.getValue("svm:svr:nu_step_size");
+        double nu_start = (double)param_.getValue("svm:svr:nu_start");
+        double nu_step_size = (double)param_.getValue("svm:svr:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
-        nu_stop = (double)param_.getValue("svm:svr:nu_stop");
+        double nu_stop = (double)param_.getValue("svm:svr:nu_stop");
 
         start_values_reg.insert(make_pair(SVMWrapper::NU, nu_start));
         step_sizes_reg.insert(make_pair(SVMWrapper::NU, nu_step_size));
@@ -464,34 +452,26 @@ namespace OpenMS
 
       if (wrap_class.getIntParameter(SVMWrapper::KERNEL_TYPE) == POLY)
       {
-        UInt degree_start = 0;
-        UInt degree_step_size = 0;
-        UInt degree_stop = 0;
-
-        degree_start = (Int)param_.getValue("svm:svc:degree_start");
-        degree_step_size = (Int)param_.getValue("svm:svc:degree_step_size");
+        UInt degree_start = (Int)param_.getValue("svm:svc:degree_start");
+        UInt degree_step_size = (Int)param_.getValue("svm:svc:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of degree <= 1 and additive_cv is false. Aborting!");
         }
-        degree_stop = (Int)param_.getValue("svm:svc:degree_stop");
+        UInt degree_stop = (Int)param_.getValue("svm:svc:degree_stop");
 
         start_values_class.insert(make_pair(SVMWrapper::DEGREE, degree_start));
         step_sizes_class.insert(make_pair(SVMWrapper::DEGREE, degree_step_size));
         end_values_class.insert(make_pair(SVMWrapper::DEGREE, degree_stop));
       }
 
-      double c_start = 0.;
-      double c_step_size = 0.;
-      double c_stop = 0.;
-
-      c_start = (double)param_.getValue("svm:svc:c_start");
-      c_step_size = (double)param_.getValue("svm:svc:c_step_size");
+      double c_start = (double)param_.getValue("svm:svc:c_start");
+      double c_step_size = (double)param_.getValue("svm:svc:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
-      c_stop = (double)param_.getValue("svm:svc:c_stop");
+      double c_stop = (double)param_.getValue("svm:svc:c_stop");
 
       start_values_class.insert(make_pair(SVMWrapper::C, c_start));
       step_sizes_class.insert(make_pair(SVMWrapper::C, c_step_size));
@@ -499,17 +479,13 @@ namespace OpenMS
 
       if ((wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
       {
-        double nu_start = 0.;
-        double  nu_step_size = 0.;
-        double nu_stop = 0.;
-
-        nu_start = (double)param_.getValue("svm:svc:nu_start");
-        nu_step_size = (double)param_.getValue("svm:svc:nu_step_size");
+        double nu_start = (double)param_.getValue("svm:svc:nu_start");
+        double nu_step_size = (double)param_.getValue("svm:svc:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
-        nu_stop = (double)param_.getValue("svm:svc:nu_stop");
+        double nu_stop = (double)param_.getValue("svm:svc:nu_stop");
 
         start_values_class.insert(make_pair(SVMWrapper::NU, nu_start));
         step_sizes_class.insert(make_pair(SVMWrapper::NU, nu_step_size));
@@ -544,7 +520,7 @@ namespace OpenMS
       {
         is_spectrum_usable[index] = false;
         --usable_spectra;
-        std::cerr << "skipping spectrum " << index << " due to parent mass missmatch" << std::endl;
+        std::cerr << "skipping spectrum " << index << " due to parent mass mismatch" << std::endl;
       }
       else if (precursor_charge != empirical_charge)
       {
@@ -554,7 +530,7 @@ namespace OpenMS
       }
     }
 
-    //only required for generatrion of descriptors
+    //only required for generation of descriptors
     SvmTheoreticalSpectrumGenerator spec_gen;
 
     //Amino acid sequences used for obtaining prefix and suffix mass
@@ -588,7 +564,7 @@ namespace OpenMS
         continue;
       }
 
-      Size precursor_charge = map_it->getPrecursors()[0].getCharge();
+      Size local_precursor_charge = map_it->getPrecursors()[0].getCharge();
       PeakSpectrum input_spec_norm(*map_it);
 
       normalizeIntensity(input_spec_norm);
@@ -643,7 +619,7 @@ namespace OpenMS
           }
 
           DescriptorSet descriptors;
-          spec_gen.generateDescriptorSet_(annotations[spec_index], frag_pos - 1, ion_types[type_nr], precursor_charge, descriptors);
+          spec_gen.generateDescriptorSet_(annotations[spec_index], frag_pos - 1, ion_types[type_nr], local_precursor_charge, descriptors);
 
           training_input[type_nr].push_back(descriptors);
           training_output[type_nr].push_back(observed_peak_intensity);
@@ -1078,7 +1054,7 @@ namespace OpenMS
     std::map<std::pair<IonType, Size>, std::vector<std::vector<double> > > joint_counts;
     std::map<std::pair<IonType, Size>, std::vector<double> > background_counts;
 
-    //count joint appearences of primary and secondary peaks
+    //count joint appearances of primary and secondary peaks
     for (Size i = 0; i < ion_types.size(); ++i)
     {
       const IonType & type = ion_types[i];

@@ -49,7 +49,13 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors either not of the same size or empty.");
     }
 
-    init(x, y);
+    // assert spectrum is sorted
+    if (std::adjacent_find(x.begin(), x.end(), std::greater<double>()) != x.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x vector is not sorted.");
+    }
+
+    init_(x, y);
   }
 
   CubicSpline2d::CubicSpline2d(const std::map<double, double>& m)
@@ -69,10 +75,10 @@ namespace OpenMS
       y.push_back(map_it->second);
     }
 
-    init(x, y);
+    init_(x, y);
   }
 
-  double CubicSpline2d::eval(double x)
+  double CubicSpline2d::eval(double x) const
   {
     if (x < x_[0] || x > x_[x_.size() - 1])
     {
@@ -85,16 +91,16 @@ namespace OpenMS
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
   }
 
-  double CubicSpline2d::derivatives(double x, unsigned order)
+  double CubicSpline2d::derivatives(double x, unsigned order) const
   {
     if (x < x_[0] || x > x_[x_.size() - 1])
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
     }
 
-    if (order != 1 && order != 2)
+    if (order != 1 && order != 2 && order != 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Only first and second derivative defined on cubic spline");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Only first, second and third derivative defined on cubic spline");
     }
 
     int i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin() - 1;
@@ -102,15 +108,19 @@ namespace OpenMS
 
     if (order == 1)
     {
-      return (d_[i] * xx + c_[i]) * xx + b_[i];
+      return b_[i] + 2 * c_[i] * xx + 3 * d_[i] * xx * xx;
+    }
+    else if (order == 2)
+    {
+      return 2 * c_[i] + 6 * d_[i] * xx;
     }
     else
     {
-      return d_[i] * xx + c_[i];
+      return 6 * d_[i];
     }
   }
 
-  void CubicSpline2d::init(const std::vector<double>& x, const std::vector<double>& y)
+  void CubicSpline2d::init_(const std::vector<double>& x, const std::vector<double>& y)
   {
     const size_t n = x.size() - 1;
 

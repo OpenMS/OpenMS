@@ -129,31 +129,20 @@ void MassTraceDetection::run(MSExperiment<Peak1D>::ConstAreaIterator & begin, MS
 
 void updateMeanEstimate(const double & x_t, double & mean_t, Size t)
 {
-    double tmp(mean_t);
-
-    tmp = mean_t + (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
-
-    mean_t = tmp;
+    mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
 }
 
 void updateSDEstimate(const double & x_t, const double & mean_t, double & sd_t, Size t)
 {
-    double tmp(sd_t);
     double i(t);
-
-
-    tmp = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
-
-    sd_t = tmp;
+    sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
     // std::cerr << "func:  " << tmp << " " << i << std::endl;
 }
 
 void updateWeightedSDEstimate(PeakType p, const double & mean_t1, double & sd_t, double & last_weights_sum)
 {
-    double denom(0.0), weights_sum(0.0);
-
-    denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
-    weights_sum = last_weights_sum + p.getIntensity();
+    double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
+    double weights_sum = last_weights_sum + p.getIntensity();
 
     double tmp_sd = std::sqrt(denom / weights_sum);
 
@@ -167,14 +156,11 @@ void updateWeightedSDEstimate(PeakType p, const double & mean_t1, double & sd_t,
 
 void updateWeightedSDEstimateRobust(PeakType p, const double & mean_t1, double & sd_t, double & last_weights_sum)
 {
-    double denom(0.0), denom1(0.0), denom2(0.0), weights_sum(0.0);
 
-    denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
-    denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
-
-    denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
-    weights_sum = last_weights_sum + p.getIntensity();
-
+    double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
+    double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
+    double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
+    double weights_sum = last_weights_sum + p.getIntensity();
     double tmp_sd = denom / std::sqrt(weights_sum);
 
     if (tmp_sd > std::numeric_limits<double>::epsilon())
@@ -185,7 +171,7 @@ void updateWeightedSDEstimateRobust(PeakType p, const double & mean_t1, double &
     last_weights_sum = weights_sum;
 }
 
-void computeWeightedSDEstimate(std::list<PeakType> tmp, const double & mean_t, double & sd_t, const double & lower_sd_bound)
+void computeWeightedSDEstimate(std::list<PeakType> tmp, const double & mean_t, double & sd_t, const double & /* lower_sd_bound */)
 {
     double denom(0.0), weights_sum(0.0);
 
@@ -287,7 +273,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
     }
 
 
-    Size min_flank_scans(3);
+    // Size min_flank_scans(3);
 
     // discard last spectrum's offset
     spec_offsets.pop_back();
@@ -344,7 +330,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
         // double outlier_ratio(0.3);
 
-        double ftl_mean(centroid_mz), ftl_sd((centroid_mz / 1000000) * mass_error_ppm_);
+        // double ftl_mean(centroid_mz);
+        double ftl_sd((centroid_mz / 1000000) * mass_error_ppm_);
         double intensity_so_far(apex_peak.getIntensity());
 
         while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size() - 1) && toggle_up))
@@ -355,7 +342,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
             // try to go downwards in RT
             if (((trace_down_idx > 0) && toggle_down))
             {
-                try
+                if (!work_exp[trace_down_idx - 1].empty())
                 {
                     Size next_down_peak_idx = work_exp[trace_down_idx - 1].findNearest(centroid_mz);
                     double next_down_peak_mz = work_exp[trace_down_idx - 1][next_down_peak_idx].getMZ();
@@ -371,11 +358,11 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
                     //                  std::cout << "down: " << centroid_mz << " "<<  ftl_sd << std::endl;
 
-                    Size left_next_idx = work_exp[trace_down_idx - 1].findNearest(left_bound);
-                    Size right_next_idx = work_exp[trace_down_idx - 1].findNearest(right_bound);
+                    // Size left_next_idx = work_exp[trace_down_idx - 1].findNearest(left_bound);
+                    // Size right_next_idx = work_exp[trace_down_idx - 1].findNearest(right_bound);
 
-                    double left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
-                    double right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
+                    // double left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
+                    // double right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
 
                     // std::cout << "next: " << next_down_peak_mz << std::endl;
 
@@ -411,10 +398,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
 
                 }
-                catch (...)
-                {
-                    // std::cerr << "findNearest() ran into troubles..." << std::endl;
-                }
                 --trace_down_idx;
                 ++down_scan_counter;
 
@@ -448,7 +431,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
             if (((trace_up_idx < work_exp.size() - 1) && toggle_up))
             {
-                try
+                if (!work_exp[trace_up_idx + 1].empty())
                 {
                     Size next_up_peak_idx = work_exp[trace_up_idx + 1].findNearest(centroid_mz);
                     double next_up_peak_mz = work_exp[trace_up_idx + 1][next_up_peak_idx].getMZ();
@@ -495,10 +478,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                         ++conseq_missed_peak_up;
                     }
 
-                }
-                catch (...)
-                {
-                    //  std::cerr << "findNearest() ran into troubles..." << std::endl;
                 }
 
                 ++trace_up_idx;

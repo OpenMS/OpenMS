@@ -81,7 +81,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    double getValue(double rt) const
+    double getValue(double /* rt */) const
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }

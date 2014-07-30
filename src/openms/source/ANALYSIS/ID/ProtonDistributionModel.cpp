@@ -675,12 +675,11 @@ namespace OpenMS
             Int r_ij(abs((Int)i - (Int)(fixed_site)));
             q += exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R * T) -500);
 
-            double gb_i_sc(0);
             if (i != peptide.size())
             {
               if (peptide[i].getSideChainBasicity() != 0)
               {
-                gb_i_sc = peptide[i].getSideChainBasicity();
+                double gb_i_sc = peptide[i].getSideChainBasicity();
                 q += exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500);
               }
             }
@@ -771,12 +770,11 @@ namespace OpenMS
               sum_E_c_term += add_E;
             }
 
-            double gb_i_sc(0);
             if (i != peptide.size())
             {
               if (peptide[i].getSideChainBasicity() != 0)
               {
-                gb_i_sc = peptide[i].getSideChainBasicity();
+                double gb_i_sc = peptide[i].getSideChainBasicity();
                 double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
                 sc_charge_[i] += prob;
 
@@ -797,10 +795,9 @@ namespace OpenMS
             if (i != peptide.size())
             {
               // SC position
-              double gb_i_sc(0);
               if (peptide[i].getSideChainBasicity() != 0)
               {
-                gb_i_sc = peptide[i].getSideChainBasicity();
+                double gb_i_sc = peptide[i].getSideChainBasicity();
                 double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION) * 1000 / (Constants::R * T) -500) / q;
                 sc_charge_[i] += prob;
 
@@ -836,10 +833,9 @@ namespace OpenMS
 
           if (i != fixed_site && i != peptide.size())
           {
-            double gb_i_sc(0);
             if (peptide[i].getSideChainBasicity() != 0)
             {
-              gb_i_sc = peptide[i].getSideChainBasicity();
+              double gb_i_sc = peptide[i].getSideChainBasicity();
               double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500) / q;
               sc_charge_[i] += prob;
 
@@ -954,7 +950,7 @@ namespace OpenMS
             //cerr << "1.\t" << -(-gb_i - gb_j + COULOMB_REPULSION/r_ij) * 1000/(Constants::R * T) << endl;
             ++count;
 
-            double gb_i_sc(0), gb_j_sc(0);
+            double gb_i_sc(0);
             if (i != peptide.size())
             {
               // side chain of proton 1
@@ -967,13 +963,14 @@ namespace OpenMS
                 ++count;
               }
             }
+
             if (j != peptide.size())
             {
               // side chain of proton 2
               if (/*gb_sc_.has(peptide[j].getOneLetterCode())*/ peptide[j].getSideChainBasicity() != 0)
               {
                 //gb_j_sc = gb_sc_[peptide[j].getOneLetterCode()];
-                gb_j_sc = peptide[j].getSideChainBasicity();
+                double gb_j_sc = peptide[j].getSideChainBasicity();
                 q += exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500);
                 //cerr << "3.\t" << -(-gb_i - gb_j_sc + COULOMB_REPULSION/(r_ij + 1)) * 1000 /(Constants::R * T) - 500 << endl;
                 ++count;
@@ -1102,7 +1099,7 @@ namespace OpenMS
             bb_charge_[j] += prob;
 
             // side chains
-            double gb_i_sc(0), gb_j_sc(0);
+            double gb_i_sc(0);
             if (i != peptide.size())
             {
               if (/*gb_sc_.has(peptide[i].getOneLetterCode())*/ peptide[i].getSideChainBasicity() != 0)
@@ -1120,7 +1117,7 @@ namespace OpenMS
               if (/*gb_sc_.has(peptide[j].getOneLetterCode())*/ peptide[j].getSideChainBasicity() != 0)
               {
                 //gb_j_sc = gb_sc_[peptide[j].getOneLetterCode()];
-                gb_j_sc = peptide[j].getSideChainBasicity();
+                double gb_j_sc = peptide[j].getSideChainBasicity();
                 double prob = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
                 bb_charge_[i] += prob;
                 sc_charge_[j] += prob;
@@ -1536,16 +1533,15 @@ namespace OpenMS
                                                             FragmentationType type)
   {
 
-    double n_term_kapp(0), c_term_kapp(0);
     if (charge == 1)
     {
       if (type == ChargeDirected || type == ChargeRemote)
       {
         // get the K_app of N and C-terminal fragment respectively
         calculateProtonDistribution_(n_term_ion, 1, n_term_type);
-        n_term_kapp = E_;
+        double n_term_kapp = E_;
         calculateProtonDistribution_(c_term_ion, 1, Residue::YIon);
-        c_term_kapp = E_;
+        double c_term_kapp = E_;
 
         // calc the ratio
         n_term1 = n_term_kapp / (n_term_kapp + c_term_kapp);
@@ -1847,7 +1843,6 @@ namespace OpenMS
         //cerr << position << " " << left_gb << " " << right_gb << endl;
       }
     }
-    return;
   }
 
 } // namespace OpenMS

@@ -95,7 +95,7 @@ protected:
     registerStringOption_("level", "i[,j]...", "1,2,3", "MS levels to extract", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -130,7 +130,7 @@ protected:
 
       //levels
       tmp = level;
-      if (level.has(','))           //several levels given
+      if (level.has(',')) //several levels given
       {
         vector<String> tmp2;
         level.split(',', tmp2);
@@ -139,7 +139,7 @@ protected:
           levels.push_back(it->toInt());
         }
       }
-      else           //one level given
+      else //one level given
       {
         levels.push_back(level.toInt());
       }
@@ -152,7 +152,7 @@ protected:
       }
       writeDebug_(tmp3, 1);
     }
-    catch (Exception::ConversionError & /*e*/)
+    catch (Exception::ConversionError& /*e*/)
     {
       writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
       printUsage_();
@@ -180,7 +180,7 @@ protected:
       // check for MS-level
       if (std::find(levels.begin(), levels.end(), it->getMSLevel()) == levels.end())
       {
-	      continue;
+        continue;
       }
 
       // store spectra
@@ -205,11 +205,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDTAExtractor tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

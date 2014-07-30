@@ -62,7 +62,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification> & ids)
+  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& ids)
   {
     bool q_value = param_.getValue("q_value").toBool();
     bool use_all_hits = param_.getValue("use_all_hits").toBool();
@@ -159,13 +159,13 @@ namespace OpenMS
             }
 
             String target_decoy(it->getHits()[i].getMetaValue("target_decoy"));
-            if (target_decoy == "target")
+            if (target_decoy == "target" || target_decoy == "target+decoy")
             {
               target_scores.push_back(it->getHits()[i].getScore());
             }
             else
             {
-              if (target_decoy == "decoy" || target_decoy == "target+decoy")
+              if (target_decoy == "decoy")
               {
                 decoy_scores.push_back(it->getHits()[i].getScore());
               }
@@ -251,7 +251,7 @@ namespace OpenMS
               }
 
               String target_decoy(hits[i].getMetaValue("target_decoy"));
-              if (target_decoy == "target")
+              if (target_decoy == "target" || target_decoy == "target+decoy")
               {
                 // if it is a target hit, there are now decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
@@ -261,7 +261,7 @@ namespace OpenMS
               }
               else
               {
-                if (target_decoy != "decoy" && target_decoy != "target+decoy")
+                if (target_decoy != "decoy")
                 {
                   LOG_FATAL_ERROR << "Unknown value of meta value 'target_decoy': '" << target_decoy << "'!" << endl;
                 }
@@ -300,7 +300,7 @@ namespace OpenMS
             if (hit.metaValueExists("target_decoy"))
             {
               String meta_value = (String)hit.getMetaValue("target_decoy");
-              if ((meta_value == "decoy" || meta_value == "target+decoy") && !add_decoy_peptides)
+              if (meta_value == "decoy" && !add_decoy_peptides)
               {
                 continue;
               }
@@ -342,7 +342,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::apply(vector<PeptideIdentification> & fwd_ids, vector<PeptideIdentification> & rev_ids)
+  void FalseDiscoveryRate::apply(vector<PeptideIdentification>& fwd_ids, vector<PeptideIdentification>& rev_ids)
   {
     if (fwd_ids.empty() || rev_ids.empty())
     {
@@ -430,7 +430,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::apply(vector<ProteinIdentification> & ids)
+  void FalseDiscoveryRate::apply(vector<ProteinIdentification>& ids)
   {
     if (ids.empty())
     {
@@ -487,7 +487,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::apply(vector<ProteinIdentification> & fwd_ids, vector<ProteinIdentification> & rev_ids)
+  void FalseDiscoveryRate::apply(vector<ProteinIdentification>& fwd_ids, vector<ProteinIdentification>& rev_ids)
   {
     if (fwd_ids.empty() || rev_ids.empty())
     {
@@ -541,7 +541,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::calculateFDRs_(Map<double, double> & score_to_fdr, vector<double> & target_scores, vector<double> & decoy_scores, bool q_value, bool higher_score_better)
+  void FalseDiscoveryRate::calculateFDRs_(Map<double, double>& score_to_fdr, vector<double>& target_scores, vector<double>& decoy_scores, bool q_value, bool higher_score_better)
   {
     Size number_of_target_scores = target_scores.size();
     // sort the scores
@@ -567,10 +567,10 @@ namespace OpenMS
     }
 
     Size j = 0;
-    double minimal_fdr = 1.;
 
     if (q_value)
     {
+      double minimal_fdr = 1.;
       for (Size i = 0; i != target_scores.size(); ++i)
       {
         if (decoy_scores.empty())

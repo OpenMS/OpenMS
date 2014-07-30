@@ -223,7 +223,7 @@ protected:
     else if (reference_rt_ == "score")
     {
       rts.resize(1);
-      double best_score = 0.0;
+      double best_score = 0.0; // to avoid compiler warning (real init below)
       for (ChargeMap::mapped_type::const_iterator pi_it =
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)

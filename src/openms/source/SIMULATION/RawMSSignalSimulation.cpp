@@ -655,7 +655,7 @@ namespace OpenMS
     }
 
     std::vector<SimCoordinateType>::const_iterator it_grid = lower_bound(grid_.begin(), grid_.end(), mz_start);
-    boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
+    boost::normal_distribution<double> ndist (mz_error_mean_, mz_error_stddev_);
     for (; it_grid != grid_.end() && (*it_grid) < mz_end; ++it_grid)
     {
       point.setMZ(*it_grid);
@@ -665,7 +665,7 @@ namespace OpenMS
         continue;
 
       // add Gaussian distributed m/z error
-      double mz_err = udist(rnd_gen_->getTechnicalRng());
+      double mz_err = ndist(rnd_gen_->getTechnicalRng());
       point.setMZ(fabs(point.getMZ() + mz_err));
 
       intensity_sum += point.getIntensity();
@@ -696,7 +696,9 @@ namespace OpenMS
 
     SimIntensityType intensity_sum(0.0);
 
-    Int end_scan  = std::numeric_limits<Int>::min();
+#ifdef OPENMS_ASSERTIONS
+    Int end_scan = std::numeric_limits<Int>::min(); // only used in Debug build
+#endif
 
     IsotopeModel* isomodel = static_cast<IsotopeModel*>(pm.getModel(1));
     IsotopeDistribution iso_dist = isomodel->getIsotopeDistribution();
@@ -752,10 +754,10 @@ namespace OpenMS
           {
 #pragma omp critical(generate_random_number_for_thread)
             {
-              boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
+              boost::normal_distribution<double> ndist (mz_error_mean_, mz_error_stddev_);
               for (Size i = 0; i < THREADED_RANDOM_NUMBER_POOL_SIZE_; ++i)
               {
-                threaded_random_numbers_[CURRENT_THREAD][i] = udist(rnd_gen_->getTechnicalRng());
+                threaded_random_numbers_[CURRENT_THREAD][i] = ndist(rnd_gen_->getTechnicalRng());
               }
             }
           }
@@ -771,8 +773,8 @@ namespace OpenMS
         const double mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
 #else
         // we can use the normal Gaussian ran-gen if we do not use OPENMP
-        boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
-        const double mz_err = udist(rnd_gen_->getTechnicalRng());
+        boost::normal_distribution<double> ndist (mz_error_mean_, mz_error_stddev_);
+        const double mz_err = ndist(rnd_gen_->getTechnicalRng());
 #endif
         point.setMZ(std::fabs(point.getMZ() + mz_err));
         exp_iter->push_back(point);
@@ -780,7 +782,9 @@ namespace OpenMS
         intensity_sum += point.getIntensity();
       }
       //update last scan affected
+#ifdef OPENMS_ASSERTIONS
       end_scan = exp_iter - experiment.begin();
+#endif
     }
 
     OPENMS_POSTCONDITION(end_scan != std::numeric_limits<Int>::min(), "RawMSSignalSimulation::samplePeptideModel2D_(): setting RT bounds failed!");

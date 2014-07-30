@@ -43,6 +43,9 @@
 #include <algorithm>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+
 namespace OpenMS
 {
   /**
@@ -66,6 +69,7 @@ namespace OpenMS
   class MzTabNullAbleInterface
   {
 public:
+    virtual ~MzTabNullAbleInterface() {}
     virtual bool isNull() const = 0;
     virtual void setNull(bool b) = 0;
     virtual String toCellString() const = 0;
@@ -77,6 +81,7 @@ public:
     public MzTabNullAbleInterface
   {
 public:
+    virtual ~MzTabNullNaNAndInfAbleInterface() {}
     virtual bool isNaN() const = 0;
     virtual void setNaN() = 0;
     virtual bool isInf() const = 0;
@@ -92,6 +97,8 @@ public:
       null_(true)
     {
     }
+
+    virtual ~MzTabNullAbleBase() {}
 
     bool isNull() const
     {
@@ -116,6 +123,8 @@ public:
       state_(MZTAB_CELLSTATE_NULL)
     {
     }
+
+    virtual ~MzTabNullNaNAndInfAbleBase() {}
 
     bool isNull() const
     {
@@ -155,6 +164,9 @@ protected:
     public MzTabNullNaNAndInfAbleBase
   {
 public:
+
+    virtual ~MzTabDouble() {}
+
     void set(const double& value)
     {
       state_ = MZTAB_CELLSTATE_DEFAULT;
@@ -170,7 +182,6 @@ public:
       else
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
-        return 0;
       }
     }
 
@@ -226,6 +237,8 @@ public:
     MzTabDoubleList()
     {
     }
+
+    virtual ~MzTabDoubleList() {}
 
     bool isNull() const
     {
@@ -301,6 +314,9 @@ protected:
     public MzTabNullNaNAndInfAbleBase
   {
 public:
+
+    virtual ~MzTabInteger() {}
+
     void set(const Int& value)
     {
       state_ = MZTAB_CELLSTATE_DEFAULT;
@@ -316,7 +332,6 @@ public:
       else
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
-        return 0;
       }
     }
 
@@ -369,6 +384,8 @@ protected:
     public MzTabNullAbleBase
   {
 public:
+    virtual ~MzTabBoolean() {}
+
     void set(const bool& value)
     {
       setNull(false);
@@ -432,6 +449,8 @@ protected:
     public MzTabNullAbleInterface
   {
 public:
+    virtual ~MzTabString() {}
+
     void set(const String& value)
     {
       String lower = value;
@@ -489,6 +508,9 @@ protected:
     public MzTabNullAbleInterface
   {
 public:
+
+    virtual ~MzTabParameter() {}
+
     bool isNull() const
     {
       return CV_label_.empty() && accession_.empty() && name_.empty() && value_.empty();
@@ -648,6 +670,9 @@ protected:
     public MzTabNullAbleInterface
   {
 public:
+
+    virtual ~MzTabParameterList() {}
+
     bool isNull() const
     {
       return parameters_.empty();
@@ -734,6 +759,8 @@ public:
     {
     }
 
+    virtual ~MzTabStringList() {}
+
     // needed for e.g. ambiguity_members and GO accessions as these use ',' as separator while the others use '|'
     void setSeparator(char sep)
     {
@@ -816,6 +843,8 @@ protected:
     public MzTabNullAbleInterface
   {
 public:
+
+    virtual ~MzTabModification() {}
 
     bool isNull() const
     {
@@ -962,6 +991,8 @@ protected:
     public MzTabNullAbleBase
   {
 public:
+    virtual ~MzTabModificationList() {}
+
     bool isNull() const
     {
       return entries_.empty();
@@ -1099,6 +1130,8 @@ public:
       ms_file_(0)
     {
     }
+
+    virtual ~MzTabSpectraRef() {}
 
     bool isNull() const
     {
@@ -1469,5 +1502,7 @@ protected:
   };
 
 } // namespace OpenMS
+
+#pragma clang diagnostic pop
 
 #endif // OPENMS_FORMAT_MZTAB_H

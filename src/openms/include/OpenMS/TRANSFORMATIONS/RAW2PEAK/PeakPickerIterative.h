@@ -59,6 +59,7 @@ namespace OpenMS
     float mz;
   };
 
+  bool sort_peaks_by_intensity(const PeakCandidate& a, const PeakCandidate& b); // prototype
   bool sort_peaks_by_intensity(const PeakCandidate& a, const PeakCandidate& b)
   {
     return a.peak_apex_intensity > b.peak_apex_intensity;

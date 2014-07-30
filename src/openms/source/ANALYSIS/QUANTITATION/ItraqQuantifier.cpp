@@ -106,14 +106,14 @@ namespace OpenMS
 
     return *this;
   }
-  
+
   bool ItraqQuantifier::isIdentityCorrectionMatrix_(const Matrix<double>& channel_frequency) const
   {
     // check if we have an identity matrix
     bool isIdentity = true;
     for (Size i = 0; i < channel_frequency.cols(); ++i)
     {
-      if (channel_frequency.getValue(i,i) != 1.0)
+      if (channel_frequency.getValue(i, i) != 1.0)
       {
         isIdentity = false;
         break;
@@ -147,21 +147,21 @@ namespace OpenMS
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: The given isotope correction matrix is an identity matrix leading to no correction. Please provide a valid isotope_correction matrix as it was provided with the iTRAQ/TMT kit!");
       }
-      
+
 #ifdef ITRAQ_DEBUG
       std::cout << "channel_frequency matrix: \n" << channel_frequency << "\n" << std::endl;
 #endif
 
       // ISOTOPE CORRECTION: this solves the system naively via matrix inversion
-      EigenMatrixXdPtr m ( convertOpenMSMatrix2EigenMatrixXd( channel_frequency ) );
-      Eigen::FullPivLU<Eigen::MatrixXd> ludecomp (*m);
+      EigenMatrixXdPtr m(convertOpenMSMatrix2EigenMatrixXd(channel_frequency));
+      Eigen::FullPivLU<Eigen::MatrixXd> ludecomp(*m);
       Eigen::VectorXd b;
       b.resize(CHANNEL_COUNT[itraq_type_]);
       b.setZero();
-      std::vector<double> x (CHANNEL_COUNT[itraq_type_], 0);
+      std::vector<double> vec_x(CHANNEL_COUNT[itraq_type_], 0);
 
 
-      if(!ludecomp.isInvertible())
+      if (!ludecomp.isInvertible())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
       }
@@ -198,9 +198,9 @@ namespace OpenMS
         }
 
         // solve
-        Eigen::MatrixXd x = ludecomp.solve( b );
+        Eigen::MatrixXd matrix_x = ludecomp.solve(b);
         // check if a solutioon exists
-        if (! ((*m) * x).isApprox(b))
+        if (!((*m) * matrix_x).isApprox(b))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
         }
@@ -216,14 +216,14 @@ namespace OpenMS
         // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
         for (Size index = 0; index < (Size)CHANNEL_COUNT[itraq_type_]; ++index)
         {
-          if (x(index) < 0.0)
+          if (matrix_x(index) < 0.0)
           {
             ++s_negative;
           }
-          else if (std::fabs(m_x(index, 0) - x(index)) > 0.000001)
+          else if (std::fabs(m_x(index, 0) - matrix_x(index)) > 0.000001)
           {
             ++s_different_count;
-            s_different_intensity += std::fabs(m_x(index, 0) - x(index));
+            s_different_intensity += std::fabs(m_x(index, 0) - matrix_x(index));
           }
         }
 
@@ -403,12 +403,12 @@ namespace OpenMS
               {
                 //so leave it out completely (there is no information to be gained)
               }
-              else                  // x/0 is 'inf' but std::sort() has problems with that
+              else // x/0 is 'inf' but std::sort() has problems with that
               {
                 peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(std::numeric_limits<double>::max());
               }
             }
-            else             // everything seems fine
+            else // everything seems fine
             {
               peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
             }
@@ -506,7 +506,7 @@ namespace OpenMS
             {
               hd.setIntensity(1);
             }
-            else          // divide current intensity by normalization factor (which was stored at position 0)
+            else // divide current intensity by normalization factor (which was stored at position 0)
             {
               hd.setIntensity(hd.getIntensity() / peptide_ratios[map_to_vectorindex[it_elements->getMapIndex()]][0]);
             }

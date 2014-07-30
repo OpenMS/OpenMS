@@ -267,7 +267,7 @@ namespace OpenMS
       try
       {
         seq = AASequence::fromString(value.trim());
-      } catch (Exception::ParseError &e)
+      } catch (Exception::ParseError &/* e */)
       {
         actual_peptide_hit_.setSequence(AASequence());
         tag_ = "";

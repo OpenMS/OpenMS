@@ -127,7 +127,8 @@ public:
         scan_count(0),
         chromatogram_count(0),
         skip_chromatogram_(false),
-        skip_spectrum_(false) /* ,
+        skip_spectrum_(false),
+        rt_set_(false) /* ,
                 validator_(mapping_, cv_) */
       {
         cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
@@ -163,7 +164,8 @@ public:
         scan_count(0),
         chromatogram_count(0),
         skip_chromatogram_(false),
-        skip_spectrum_(false) /* ,
+        skip_spectrum_(false),
+        rt_set_(false) /* ,
                 validator_(mapping_, cv_) */
       {
         cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
@@ -933,6 +935,9 @@ protected:
       bool skip_chromatogram_;
       bool skip_spectrum_;
 
+      // Remeber whether the RT of the spectrum was set or not
+      bool rt_set_;
+
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
       CVMappings mapping_;
@@ -1450,7 +1455,7 @@ protected:
       {
 
         // catch errors stemming from confusion about elution time and scan time
-        if (spec_.getRT() == -1.0 && spec_.metaValueExists("elution time (seconds)"))
+        if (!rt_set_ && spec_.metaValueExists("elution time (seconds)"))
         {
           spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
         }
@@ -1480,6 +1485,7 @@ protected:
         }
 
         skip_spectrum_ = false;
+        rt_set_ = false;
         if (options_.getSizeOnly()) {skip_spectrum_ = true;}
         logger_.setProgress(++scan_count);
         data_.clear();
@@ -2221,10 +2227,12 @@ protected:
           if (unit_accession == "UO:0000031") //minutes
           {
             spec_.setRT(60.0 * value.toDouble());
+            rt_set_ = true;
           }
           else //seconds
           {
             spec_.setRT(value.toDouble());
+            rt_set_ = true;
           }
           if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
           {
@@ -3773,7 +3781,10 @@ protected:
       //activation
       //--------------------------------------------------------------------------------------------
       os << "\t\t\t\t\t\t<activation>\n";
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       if (precursor.getActivationEnergy() != 0)
+#pragma clang diagnostic pop
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
       }
@@ -5000,12 +5011,12 @@ protected:
           if (j == 0 && spec.getInstrumentSettings().getScanWindows().size() != 0)
           {
             os << "\t\t\t\t\t\t<scanWindowList count=\"" << spec.getInstrumentSettings().getScanWindows().size() << "\">\n";
-            for (Size j = 0; j < spec.getInstrumentSettings().getScanWindows().size(); ++j)
+            for (Size k = 0; k < spec.getInstrumentSettings().getScanWindows().size(); ++k)
             {
               os << "\t\t\t\t\t\t\t<scanWindow>\n";
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[j].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
-              writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[j], 8, "/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow/cvParam/@accession", validator);
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000501\" name=\"scan window lower limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[k].begin << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+              os << "\t\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000500\" name=\"scan window upper limit\" value=\"" << spec.getInstrumentSettings().getScanWindows()[k].end << "\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+              writeUserParam_(os, spec.getInstrumentSettings().getScanWindows()[k], 8, "/mzML/run/spectrumList/spectrum/scanList/scan/scanWindowList/scanWindow/cvParam/@accession", validator);
               os << "\t\t\t\t\t\t\t</scanWindow>\n";
             }
             os << "\t\t\t\t\t\t</scanWindowList>\n";

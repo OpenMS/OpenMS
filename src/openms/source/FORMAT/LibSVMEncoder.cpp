@@ -188,13 +188,11 @@ namespace OpenMS
   {
     vector<svm_node *> vectors;
     vector<pair<Int, double> > encoded_vector;
-    svm_node * libsvm_vector;
 
     for (Size i = 0; i < sequences.size(); i++)
     {
-
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
-      libsvm_vector = encodeLibSVMVector(encoded_vector);
+      svm_node * libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
 
@@ -208,14 +206,13 @@ namespace OpenMS
   {
     vector<svm_node *> vectors;
     vector<pair<Int, double> > encoded_vector;
-    svm_node * libsvm_vector;
 
     for (Size i = 0; i < sequences.size(); i++)
     {
 
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
       encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), ((double) sequences[i].length()) / maximum_sequence_length));
-      libsvm_vector = encodeLibSVMVector(encoded_vector);
+      svm_node * libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
 
@@ -228,7 +225,6 @@ namespace OpenMS
   {
     vector<svm_node *> vectors;
     vector<pair<Int, double> > encoded_vector;
-    svm_node * libsvm_vector;
 
     for (Size i = 0; i < sequences.size(); i++)
     {
@@ -236,7 +232,7 @@ namespace OpenMS
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
       encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), (double) sequences[i].length()));
       encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 2), AASequence::fromString(sequences[i]).getAverageWeight()));
-      libsvm_vector = encodeLibSVMVector(encoded_vector);
+      svm_node * libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
 
@@ -537,12 +533,11 @@ namespace OpenMS
   {
     vector<svm_node *> vectors;
     vector<pair<Int, double> > encoded_vector;
-    svm_node * libsvm_vector;
 
     for (Size i = 0; i < sequences.size(); i++)
     {
       encodeOligoBorders(sequences[i], k_mer_length, allowed_characters, border_length, encoded_vector, strict, unpaired, length_encoding);
-      libsvm_vector = encodeLibSVMVector(encoded_vector);
+      svm_node * libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
 
@@ -611,16 +606,13 @@ namespace OpenMS
                                   vector<pair<Int, double> > & values,
                                   bool is_right_border)
   {
-    double                              oligo_value = 0.;
-    double                          factor      = 1.;
-    double                                          factor_simple = 0.;
-    map<String, UInt>               residue_values;
-    UInt                                                        counter     = 0;
-    Size                                                        number_of_residues = allowed_characters.size();
-    Size                                                        sequence_length = sequence.size();
-    bool                            sequence_ok = true;
+    map<String, UInt> residue_values;
+    UInt counter = 0;
+    Size number_of_residues = allowed_characters.size();
+    Size sequence_length = sequence.size();
+    bool sequence_ok = true;
     ModificationsDB * modifications = ModificationsDB::getInstance();
-    Size                                                        number_of_modifications = modifications->getNumberOfModifications();
+    Size number_of_modifications = modifications->getNumberOfModifications();
 
     // checking if sequence contains illegal characters
     for (Size i = 0; i < sequence.size(); ++i)
@@ -633,7 +625,9 @@ namespace OpenMS
 
     if (sequence_ok && k_mer_length <= sequence_length)
     {
-      factor_simple = double(number_of_residues * (number_of_modifications + 1));
+      double oligo_value = 0.;
+      double factor_simple = double(number_of_residues * (number_of_modifications + 1));
+      double factor = 1.;
 
       values.resize(sequence_length - k_mer_length + 1, pair<Int, double>());
       for (Size i = 0; i < number_of_residues; ++i)

@@ -245,26 +245,25 @@ namespace OpenMS
             {
               try
               {
-                double s = -999.0;
-                s   =   scoreCalculation_(i, j, xbegin, ybegin, pattern, aligned, buffermatrix, column_row_orientation);
+                double s = scoreCalculation_(i, j, xbegin, ybegin, pattern, aligned, buffermatrix, column_row_orientation);
                 if (debug_)
                 {
-                  std::vector<float> temp;
+                  std::vector<float> ltemp;
                   if (!column_row_orientation)
                   {
-                    temp.push_back((float)i + xbegin - 1);
-                    temp.push_back((float)j + ybegin - 1);
-                    temp.push_back(s);
-                    temp.push_back(0);
-                    debugscorematrix_.push_back(temp);
+                    ltemp.push_back((float)i + xbegin - 1);
+                    ltemp.push_back((float)j + ybegin - 1);
+                    ltemp.push_back(s);
+                    ltemp.push_back(0);
+                    debugscorematrix_.push_back(ltemp);
                   }
                   else
                   {
-                    temp.push_back((float)j + xbegin - 1);
-                    temp.push_back((float)i + ybegin - 1);
-                    temp.push_back(s);
-                    temp.push_back(0);
-                    debugscorematrix_.push_back(temp);
+                    ltemp.push_back((float)j + xbegin - 1);
+                    ltemp.push_back((float)i + ybegin - 1);
+                    ltemp.push_back(s);
+                    ltemp.push_back(0);
+                    debugscorematrix_.push_back(ltemp);
                   }
                 }
                 float mv = -999.0;
@@ -392,22 +391,23 @@ namespace OpenMS
           j = j - 1;
       }
     }
-    for (Size i = 0; i < xvar.size(); ++i)
+
+    for (Size k = 0; k < xvar.size(); ++k)
     {
       if (xcoordinate.size() > 0)
       {
-        if (xvar[xvar.size() - 1 - i] != xcoordinate[xcoordinate.size() - 1])
+        if (xvar[xvar.size() - 1 - k] != xcoordinate[xcoordinate.size() - 1])
         {
-          xcoordinate.push_back(xvar[xvar.size() - 1 - i]);
-          ycoordinate.push_back(yvar[yvar.size() - 1 - i]);
-          xcoordinatepattern.push_back(xxvar[xxvar.size() - 1 - i]);
+          xcoordinate.push_back(xvar[xvar.size() - 1 - k]);
+          ycoordinate.push_back(yvar[yvar.size() - 1 - k]);
+          xcoordinatepattern.push_back(xxvar[xxvar.size() - 1 - k]);
         }
       }
       else
       {
-        xcoordinate.push_back(xvar[xvar.size() - 1 - i]);
-        ycoordinate.push_back(yvar[yvar.size() - 1 - i]);
-        xcoordinatepattern.push_back(xxvar[xxvar.size() - 1 - i]);
+        xcoordinate.push_back(xvar[xvar.size() - 1 - k]);
+        ycoordinate.push_back(yvar[yvar.size() - 1 - k]);
+        xcoordinatepattern.push_back(xxvar[xxvar.size() - 1 - k]);
       }
     }
     //std::cout<< xcoordinate.size()<< std::endl;

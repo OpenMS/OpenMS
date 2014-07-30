@@ -46,18 +46,13 @@ using namespace xercesc;
 namespace OpenMS
 {
 
-  CompressedInputSource::CompressedInputSource(const String & file_path, const char * header, MemoryManager * const manager) :
-    xercesc::InputSource(manager)
+  CompressedInputSource::CompressedInputSource(const String & file_path, const String & header, MemoryManager * const manager) :
+    xercesc::InputSource(manager),
+    head_(header)
   {
-    if (sizeof(header) / sizeof(char)  > 1)
+    if (head_.size() < 2)
     {
-      head_[0] = header[0];
-      head_[1] = header[1];
-    }
-    else
-    {
-      head_[0] = '\0';
-      head_[1] = '\0';
+      head_ = "\0\0";
     }
     //
     //  If the path is relative, then complete it according to the current
@@ -98,21 +93,16 @@ namespace OpenMS
     }
   }
 
-  CompressedInputSource::CompressedInputSource(const XMLCh * const file, const char * header, MemoryManager * const manager) :
-    xercesc::InputSource(manager)
+  CompressedInputSource::CompressedInputSource(const XMLCh * const file, const String & header, MemoryManager * const manager) :
+    xercesc::InputSource(manager),
+    head_(header)
   {
-    if (sizeof(header) / sizeof(char) > 1)
+    if (head_.size() < 2)
     {
-      head_[0] = header[0];
-      head_[1] = header[1];
-    }
-    else
-    {
-      head_[0] = '\0';
-      head_[1] = '\0';
+      head_ = "\0\0";
     }
     //
-    //  If the path is relative, then complete it acording to the current
+    //  If the path is relative, then complete it according to the current
     //  working directory rules of the current platform. Else, just take
     //  it as is.
     //

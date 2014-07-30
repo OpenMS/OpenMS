@@ -62,7 +62,7 @@ namespace OpenMS
       generator.addPeaks(rich_spec, a, Residue::YIon, charge);
 
       for (RichPeakSpectrum::iterator it = rich_spec.begin();
-           it != rich_spec.end(); it++)
+           it != rich_spec.end(); ++it)
       {
         if (it->getMetaValue("IonName").toString()[0] == 'y')
         {
@@ -90,7 +90,7 @@ namespace OpenMS
       generator.addPeaks(rich_spec, a, Residue::YIon, charge);
       generator.addPrecursorPeaks(rich_spec, a, charge);
       for (RichPeakSpectrum::iterator it = rich_spec.begin();
-           it != rich_spec.end(); it++)
+           it != rich_spec.end(); ++it)
       {
         masses.push_back(it->getMZ());
       }
@@ -101,7 +101,6 @@ namespace OpenMS
                                          int nr_isotopes, double mannmass)
     {
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
-      typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern IsotopePattern;
       // create the theoretical distribution
       IsotopeDistribution d;
       TheoreticalIsotopePattern isotopes;

@@ -114,13 +114,13 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AABGS9ADdkAAALMMHzF2QAAAPyaRM3ZAAACBVRxBdkAAAA+QEFF2QAAAPF/NVHZAAADM09pkdkAAAFwqdXB2QAAAw5aognZAAACWV0LUdkAAAGGwpDN3QAAAiB8NNXdAAAAjoxpFd0AAAAHSu1N3QAAAOjGPYXdAAAAOYMljd0AAAE2z06J3QAAAwRnhsndAAAAsnIO0d0A=</binary>
+						<binary>AAAyTdADdkAAAFkNHzF2QAAATSSRM3ZAAACBVRxBdkAAAAGSEFF2QAAAPF/NVHZAAAAk09pkdkAAAAwpdXB2QAAAGZaognZAAADyWkLUdkAAAK+vpDN3QAAAOCANNXdAAAC/oRpFd0AAAAHSu1N3QAAAVjOPYXdAAAAOYMljd0AAAOGx06J3QAAALRvhsndAAACkooO0d0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="104">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>gcrHRLQRkkaFOh1FViqBRc12+kQr1QhH5pXvRdSYtkSXP4JFUJCLROyJWUXTAD9G5rUQRR3giEcyKYRFpfo7RgjnK0bD+OtE/XPcRA==</binary>
+						<binary>EMvHRMYQkkZXNR1F3i6BRflN+kRT1QhHDZvvRSqZtkTZPYJFA5KLRHaKWUW5AT9G37UQRYTeiEdjKYRFLPs7Rg/rK0Yi2utEQGDcRA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -140,13 +140,13 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AACxrR4xdkAAALeikDN2QAAAP8EcQXZAAABNHhJRdkAAAJQPzVR2QAAALNbaZHZAAABc4qeCdkAAAH7EQtR2QAAATdukM3dAAACVIw01d0AAAGnGGkV3QAAAqri7U3dAAADxJ45hd0AAAI1GyWN3QAAAAcDTondAAACn7+Gyd0AAAHx8grR3QA==</binary>
+						<binary>AACxrR4xdkAAAF2jkDN2QAAAi8IcQXZAAAABHRJRdkAAAJQPzVR2QAAAhNXaZHZAAAAE46eCdkAAAH7EQtR2QAAAm9qkM3dAAABHJA01d0AAAAXFGkV3QAAA9re7U3dAAADxJ45hd0AAAClFyWN3QAAAlb7TondAAABd8OGyd0AAAOx9grR3QA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="92">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>lBSWRigkZUVZAWxFApMoRZ3JXUd4xy5GDVCsRdzcKEWOG6lFyiaoRoCzaEWN+cRHJu88RdgQhkY5a2NGVt8ORXRiSEU=</binary>
+						<binary>RRGWRvokZUW6AGxFUpAoRZfJXUewxy5GrlKsRSu+KEU+HKlFzSqoRsOxaEU++8RH2e48Rf8PhkY7a2NGw94ORclgSEU=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -166,13 +166,13 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AACq9NADdkAAAGsPHzF2QAAAtz2RM3ZAAACVSB1BdkAAALQ+EVF2QAAAL0nNVHZAAAB0htpkdkAAAMX3dHB2QAAAbH2ognZAAAA4YaQzd0AAAGhFDTV3QAAACIwZRXdAAAAR17tTd0AAAJ59j2F3QAAATknJY3dAAABNQtSid0AAALGHV7F3QAAAQ2zisndAAADkzIO0d0A=</binary>
+						<binary>AABC7tADdkAAALcQHzF2QAAAXT6RM3ZAAACVSB1BdkAAAFw/EVF2QAAAL0nNVHZAAAAch9pkdkAAAMP5dHB2QAAAxHyognZAAACIYKQzd0AAALhEDTV3QAAACIwZRXdAAADD17tTd0AAAG6Aj2F3QAAAAkrJY3dAAABNQtSid0AAANmEV7F3QAAAQ2zisndAAAAEyoO0d0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="104">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>U1Y2RM5rd0aEJwZFa3JpRa1f4EQNQ6xG2mGDRby1p0Ra9S9FgPrsRM2WEEapxMhE3WIgR6vDC0WGX9pFmPfzRVqRYkTdH29E5LglRA==</binary>
+						<binary>k102ROdtd0amJwZFa3FpRS1G4ESKR6xG9GSDRfedp0T69i9FbwTtRIGXEEadpshEG2ggR+28C0VTY9pFaQL0RbJpYkST/m5EL74lRA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>

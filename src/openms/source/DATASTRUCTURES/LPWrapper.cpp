@@ -621,7 +621,13 @@ namespace OpenMS
 #endif
   }
 
-  Int LPWrapper::solve(SolverParam& solver_param, const Size /* verbose_level */)
+  Int LPWrapper::solve(SolverParam& solver_param, const Size 
+#if COINOR_SOLVER == 1
+    verbose_level
+#else
+    /* verbose_level */
+#endif
+    )
   {
     LOG_INFO << "Using solver '" << (solver_ == LPWrapper::SOLVER_GLPK ? "glpk" : "coinor") << "' ...\n";
     if (solver_ == LPWrapper::SOLVER_GLPK)

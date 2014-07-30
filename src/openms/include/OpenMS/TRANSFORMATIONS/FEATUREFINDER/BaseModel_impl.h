@@ -50,13 +50,13 @@ namespace OpenMS
 {
 
   template <>
-  void BaseModel<2>::registerChildren()
+  OPENMS_DLLAPI void BaseModel<2>::registerChildren()
   {
     Factory<BaseModel<2> >::registerProduct(ProductModel<2>::getProductName(), &ProductModel<2>::create);
   }
 
   template <>
-  void BaseModel<1>::registerChildren()
+  OPENMS_DLLAPI void BaseModel<1>::registerChildren()
   {
 
     Factory<BaseModel<1> >::registerProduct(GaussModel::getProductName(), &GaussModel::create);

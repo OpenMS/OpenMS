@@ -123,7 +123,7 @@ namespace seqan
 
   struct FoundProteinFunctor
   {
-  public:
+public:
     typedef OpenMS::Map<OpenMS::Size, std::set<OpenMS::Size> > MapType;
 
     /// peptide index --> protein indices
@@ -135,11 +135,11 @@ namespace seqan
     /// number of rejected hits (not passing addHit())
     OpenMS::Size filter_rejected;
 
-  private:
+private:
     EnzymaticDigestion enzyme_;
 
-  public:
-    FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
+public:
+    explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
       pep_to_prot(),
       filter_passed(0),
       filter_rejected(0),
@@ -165,7 +165,7 @@ namespace seqan
           // the protein sequence (will change for every Occurrence -- hitting multiple proteins)
           const OpenMS::String tmp_prot(begin(indexText(container(iter_prot))[getSeqNo(prot_occ)]), end(indexText(container(iter_prot))[getSeqNo(prot_occ)]));
           // check if hit is valid and add (if valid)
-          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot, getSeqOffset(prot_occ) );
+          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot, getSeqOffset(prot_occ));
         }
       }
     }
@@ -261,8 +261,8 @@ namespace seqan
     524288, //19 Val Valine
     12, //20 Aspartic Acid, Asparagine
     96, //21 Glutamic Acid, Glutamine
-    -1, //22 Unknown (matches ALL)
-    -1, //23 Terminator (dummy)
+    static_cast<unsigned>(-1), //22 Unknown (matches ALL)
+    static_cast<unsigned>(-1), //23 Terminator (dummy)
   };
 
 
@@ -520,7 +520,7 @@ protected:
       for (Size i = 0; i != proteins.size(); ++i)
       {
         // build Prot DB
-        seqan::appendValue(prot_DB, proteins[i].sequence.substitute("*","").c_str());
+        seqan::appendValue(prot_DB, proteins[i].sequence.substitute("*", "").c_str());
 
         // consistency check
         String acc = proteins[i].identifier;
@@ -541,7 +541,7 @@ protected:
         vector<PeptideHit> hits = it1->getHits();
         for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
         {
-          appendValue(pep_DB, it2->getSequence().toUnmodifiedString().substitute("*","").c_str());
+          appendValue(pep_DB, it2->getSequence().toUnmodifiedString().substitute("*", "").c_str());
         }
       }
 
