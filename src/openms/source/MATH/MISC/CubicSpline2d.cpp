@@ -85,13 +85,14 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
     }
 
+    // determine index of closest node left of (or exactly at) x
     unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
     if (x_[i] > x)
     {
         --i;
     }
+    
     double xx = x - x_[i];
-
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
   }
 
@@ -107,13 +108,14 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Only first, second and third derivative defined on cubic spline");
     }
 
+    // determine index of closest node left of (or exactly at) x
     unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
     if (x_[i] > x)
     {
         --i;
     }
+    
     double xx = x - x_[i];
-
     if (order == 1)
     {
       return b_[i] + 2 * c_[i] * xx + 3 * d_[i] * xx * xx;
