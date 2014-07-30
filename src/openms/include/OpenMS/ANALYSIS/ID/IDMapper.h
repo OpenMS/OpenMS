@@ -126,22 +126,31 @@ public:
       {
         identifications_precursors.insert(std::make_pair(peptide_ids[i].getRT(), i));
       }
+      // note that mappings are sorted by key via multimap (we rely on that down below)
 
       // calculate the actual mapping
       std::multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
       std::multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
       Size matches(0);
+      // to achieve O(n) complexity we now move along the spectra
+      // and for each spectrum we look at the peptide id's with the allowed RT range
+      // once we finish a spectrum, we simply move back in the peptide id window a little to get from the 
+      // right end of the old interval to the left end of the new interval
       while (experiment_iterator != experiment_precursors.end())
       {
         // maybe we hit end() of IDs during the last scan .. go back to a real value
-        if (identifications_iterator == identifications_precursors.end()) --identifications_iterator;
+        if (identifications_iterator == identifications_precursors.end()) 
+        {
+          --identifications_iterator; // this is valid, since we have at least one peptide ID
+        }
 
-        // testing whether the retention times are within the precision threshold
+        // go to left border of RT interval
         while (identifications_iterator != identifications_precursors.begin() &&
-               (experiment_iterator->first - identifications_iterator->first) < rt_tolerance_)
-        {  // go to left border of RT interval
+               (experiment_iterator->first - identifications_iterator->first) < rt_tolerance_) // do NOT use fabs() here, since we want the LEFT border
+        {  
           --identifications_iterator;
         }
+        // ... we might have stepped too far left
         if (identifications_iterator != identifications_precursors.end() && ((experiment_iterator->first - identifications_iterator->first) > rt_tolerance_))
         {
           ++identifications_iterator; // get into interval again (we can potentially be at end() afterwards)
@@ -154,7 +163,7 @@ public:
 
         // run through RT interval
         while (identifications_iterator != identifications_precursors.end() &&
-              (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_)
+              (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definetely within left border, and wait until exceeding the right
         {
           // testing whether the m/z fits
           if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
@@ -170,6 +179,7 @@ public:
           }
           ++identifications_iterator;
         }
+        // we are the right border now (or likely even beyond)
         ++experiment_iterator;
       }
 
