@@ -69,6 +69,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	if (NOT OPENMS_64BIT_ARCHITECTURE AND ${GNUCXX_MAJOR_VERSION} MATCHES "4" AND ${GNUCXX_MINOR_VERSION} MATCHES "3")
 		add_definitions(-march=i486)
 	endif()
+  
 elseif (MSVC)
 	# do not use add_definitions
 	# add definitions also lands in stuff like RC_DEFINITION which tend to fail if you use
@@ -87,6 +88,9 @@ elseif (MSVC)
 	## disable warning: "decorated name length exceeded, name was truncated"
 	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4503")
 
+  ## disable warning: "unknown pragma" (occurs thousands of times for, e.g. '#pragma clang diagnostic ignored "-Wfloat-equal"')
+	set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} /wd4068")
+  
 	## don't warn about unchecked std::copy()
 	add_definitions(/D_SCL_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_WARNINGS /D_CRT_SECURE_NO_DEPRECATE)
 
@@ -96,16 +100,17 @@ elseif (MSVC)
 	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
-	## use multiple Cores (if available)
+	## use multiple CPU cores (if available)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 
   if (NOT OPENMS_64BIT_ARCHITECTURE)
     ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
   endif()
+  
 elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
-  # add clang specifc warning levels
+  # add clang specific warning levels
   add_definitions(-Weverything)
   # .. and disable some of the harmless ones
   add_definitions(

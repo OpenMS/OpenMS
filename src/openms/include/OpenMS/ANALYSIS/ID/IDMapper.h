@@ -51,15 +51,15 @@ namespace OpenMS
   /**
     @brief Annotates an MSExperiment, FeatureMap or ConsensusMap with peptide identifications
 
-      ProteinIdentifications are assigned to the whole map.
+    ProteinIdentifications are assigned to the whole map.
 
-      The retention time and mass-to-charge ratio of the PeptideIdentification have to be given in the MetaInfoInterface as the values "MZ" and "RT".
+    The retention time and mass-to-charge ratio of the PeptideIdentification as the respective "MZ" and "RT" members.
 
-      m/z-matching on peptide side can be done either with the precursor m/z value of the peptide identification or with the theoretical masses of the peptide hits (see "mz_reference" parameter).
+    m/z-matching on peptide side can be done either with the precursor m/z value of the peptide identification or with the theoretical masses of the peptide hits (see "mz_reference" parameter).
 
-      See the documentation of the individual @p annotate methods for more in-depth information.
+    See the documentation of the individual @p annotate methods for more in-depth information.
 
-      @htmlinclude OpenMS_IDMapper.parameters
+    @htmlinclude OpenMS_IDMapper.parameters
 
   */
   class OPENMS_DLLAPI IDMapper :
@@ -82,19 +82,20 @@ public:
 
       The identifications stored in a PeptideIdentification instance can be added to the
       corresponding spectrum.
+      Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries.
 
       @param map MSExperiment to receive the identifications
       @param ids PeptideIdentification for the MSExperiment
       @param protein_ids ProteinIdentification for the MSExperiment
       @param clear_ids Reset peptide and protein identifications of each scan before annotating
-      @param mapMS1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
+      @param mapMS1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
-      @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.
+      @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
 */
     template <typename PeakType>
-    void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
+    void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
     {
-      checkHits_(ids);
+      checkHits_(peptide_ids);
 
       if (clear_ids)
       { // start with empty IDs
@@ -106,6 +107,8 @@ public:
         std::vector<ProteinIdentification> empty_prot_ids;
         map.setProteinIdentifications(empty_prot_ids);
       }
+
+      if (peptide_ids.empty()) return;
 
       // append protein identifications
       map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
@@ -119,69 +122,124 @@ public:
 
       // store mapping of identification RT to index
       std::multimap<double, Size> identifications_precursors;
-      for (Size i = 0; i < ids.size(); i++)
+      for (Size i = 0; i < peptide_ids.size(); i++)
       {
-        identifications_precursors.insert(std::make_pair(ids[i].getRT(), i));
+        identifications_precursors.insert(std::make_pair(peptide_ids[i].getRT(), i));
       }
 
       // calculate the actual mapping
-      std::multimap<double, Size>::iterator experiment_iterator = experiment_precursors.begin();
-      std::multimap<double, Size>::iterator identifications_iterator = identifications_precursors.begin();
+      std::multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
+      std::multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
       Size matches(0);
-      while (experiment_iterator != experiment_precursors.end() && identifications_iterator != identifications_precursors.end())
+      while (experiment_iterator != experiment_precursors.end())
       {
-        while (identifications_iterator != identifications_precursors.end())
+        // maybe we hit end() of IDs during the last scan .. go back to a real value
+        if (identifications_iterator == identifications_precursors.end()) --identifications_iterator;
+
+        // testing whether the retention times are within the precision threshold
+        while (identifications_iterator != identifications_precursors.begin() &&
+               (experiment_iterator->first - identifications_iterator->first) < rt_tolerance_)
+        {  // go to left border of RT interval
+          --identifications_iterator;
+        }
+        if (identifications_iterator != identifications_precursors.end() && ((experiment_iterator->first - identifications_iterator->first) > rt_tolerance_))
         {
-          // testing whether the retention times are within the precision threshold
-          if (fabs(experiment_iterator->first - identifications_iterator->first) < rt_tolerance_)
+          ++identifications_iterator; // get into interval again (we can potentially be at end() afterwards)
+        }
+
+        if (identifications_iterator == identifications_precursors.end())
+        { // no more ID's, so we don't have any chance of matching the next spectra
+          break; // ... do NOT put this block below, since hitting the end of ID's for one spec, still allows to match stuff in the next (when going to left border)
+        }
+
+        // run through RT interval
+        while (identifications_iterator != identifications_precursors.end() &&
+              (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_)
+        {
+          // testing whether the m/z fits
+          if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
           {
-            // testing whether the m/z fits
-            if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
+            if (mapMS1 || (fabs(peptide_ids[identifications_iterator->second].getMZ() - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
             {
-              if (mapMS1 || (fabs(ids[identifications_iterator->second].getMZ() - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
+              if (!(peptide_ids[identifications_iterator->second].empty()))
               {
-                if (!(ids[identifications_iterator->second].empty()))
-                {
-                  map[experiment_iterator->second].getPeptideIdentifications().push_back(ids[identifications_iterator->second]);
-                  ++matches;
-                }
+                map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
+                ++matches;
               }
             }
           }
           ++identifications_iterator;
         }
-        identifications_iterator = identifications_precursors.begin();
         ++experiment_iterator;
       }
 
       // some statistics output
-      LOG_INFO << "Unassigned peptides: " << ids.size() - matches << "\n"
+      LOG_INFO << "Unassigned peptides: " << peptide_ids.size() - matches << "\n"
                << "Peptides assigned to a precursor: " << matches << std::endl;
 
     }
 
     /**
-        @brief Mapping method for feature maps
+      @brief Mapping method for peak maps
 
-        If @em all features have at least one convex hull, peptide positions are matched against the bounding boxes of the convex hulls by default. If not, the positions of the feature centroids are used. The respective coordinates of the centroids are also used for matching (in place of the corresponding ranges from the bounding boxes) if @p use_centroid_rt or @p use_centroid_mz are true.
+      Add peptide identifications stored in a feature map to their
+      corresponding spectrum.
 
-        In any case, tolerance in RT and m/z dimension is applied according to the global parameters @p rt_tolerance and @p mz_tolerance. Tolerance is understood as "plus or minus x", so the matching range is actually increased by twice the tolerance value.
+      This function converts the feature map to a vector of peptide identifications (all peptide IDs from each feature are taken)
+      and calls the respective annotate() function.
+      RT and m/z are taken from the peptides, or (if missing) from the feature itself.
+
+      @param map MSExperiment to receive the identifications
+      @param fmap FeatureMap with PeptideIdentifications for the MSExperiment
+      @param clear_ids Reset peptide and protein identifications of each scan before annotating
+      @param mapMS1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
+
+*/
+    template <typename PeakType>
+    void annotate(MSExperiment<PeakType>& map, FeatureMap<> fmap, const bool clear_ids = false, const bool mapMS1 = false)
+    {
+      const std::vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
+      std::vector<PeptideIdentification> peptide_ids;
+
+      for (FeatureMap<>::const_iterator it = fmap.begin(); it != fmap.end(); ++it)
+      {
+        const std::vector<PeptideIdentification>& pi = it->getPeptideIdentifications();
+        for (std::vector<PeptideIdentification>::const_iterator itp = pi.begin(); itp != pi.end(); ++itp)
+        {
+          peptide_ids.push_back(*itp);
+          // if pepID has no m/z or RT, use the values of the feature
+          if (!itp->hasMZ()) peptide_ids.back().setMZ(it->getMZ());
+          if (!itp->hasRT()) peptide_ids.back().setRT(it->getRT());
+        }
+
+      }
+      annotate(map, peptide_ids, protein_ids, clear_ids, mapMS1);
+    }
+
+
+    /**
+      @brief Mapping method for feature maps
+
+      If @em all features have at least one convex hull, peptide positions are matched against the bounding boxes of the convex hulls by default. If not, the positions of the feature centroids are used. The respective coordinates of the centroids are also used for matching (in place of the corresponding ranges from the bounding boxes) if @p use_centroid_rt or @p use_centroid_mz are true.
+
+      In any case, tolerance in RT and m/z dimension is applied according to the global parameters @p rt_tolerance and @p mz_tolerance. Tolerance is understood as "plus or minus x", so the matching range is actually increased by twice the tolerance value.
 
       If several features (incl. tolerance) overlap the position of a peptide identification, the identification is annotated to all of them.
 
-        @param map FeatureMap to receive the identifications
+      @param map FeatureMap to receive the identifications
       @param ids PeptideIdentification for the ConsensusFeatures
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param use_centroid_rt Whether to use the RT value of feature centroids even if convex hulls are present
       @param use_centroid_mz Whether to use the m/z value of feature centroids even if convex hulls are present
 
-        @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain "MZ" and "RT"
+      @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
+
     */
     template <typename FeatureType>
     void annotate(FeatureMap<FeatureType> & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false)
     {
       // std::cout << "Starting annotation..." << std::endl;
-      checkHits_(ids);
+      checkHits_(ids); // check RT and m/z are present
 
       // append protein identifications
       map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
@@ -212,8 +270,8 @@ public:
 
       // calculate feature bounding boxes only once:
       std::vector<DBoundingBox<2> > boxes;
-      double min_rt = std::numeric_limits<double>::max(),
-                 max_rt = -std::numeric_limits<double>::max();
+      double min_rt = std::numeric_limits<double>::max();
+      double max_rt = -std::numeric_limits<double>::max();
       // std::cout << "Precomputing bounding boxes..." << std::endl;
       boxes.reserve(map.size());
       for (typename FeatureMap<FeatureType>::Iterator f_it = map.begin();
@@ -393,13 +451,13 @@ public:
 protected:
     void updateMembers_();
 
-    ///Allowed RT deviation
+    /// Allowed RT deviation
     double rt_tolerance_;
-    ///Allowed m/z deviation
+    /// Allowed m/z deviation
     double mz_tolerance_;
-    ///Measure used for m/z
+    /// Measure used for m/z
     Measure measure_;
-    ///Ignore charge states during matching?
+    /// Ignore charge states during matching?
     bool ignore_charge_;
 
     /// compute absolute Da tolerance, for a given m/z,
