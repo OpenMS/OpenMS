@@ -171,7 +171,7 @@ namespace OpenMS
       {
         indexoffset = OpenMS::IndexedMzMLUtils::stringToStreampos(thismatch);
       }
-      catch (Exception::ConversionError& e)
+      catch (Exception::ConversionError& /*e*/)
       {
         std::cerr << "Corrupted / unreadable value in <indexListOffset> : " << thismatch << std::endl;
         // free resources and re-throw
@@ -183,7 +183,7 @@ namespace OpenMS
     else
     {
       std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last " <<
-        buffersize << " bytes. Maybe this is not a indexedmzML." << std::endl;
+      buffersize << " bytes. Maybe this is not a indexedMzML." << std::endl;
       std::cerr << buffer << std::endl;
     }
 
