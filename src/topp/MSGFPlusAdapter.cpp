@@ -215,6 +215,38 @@ protected:
     }
     return seq;
   }
+
+  String modifyNTermAASpecificSequence (String seq) {
+    String swap = "";
+    string modifiedSequence(seq);
+    vector<pair<String, char> > massShiftList;
+
+    massShiftList.push_back(make_pair("-18.011", 'E'));
+    massShiftList.push_back(make_pair("-17.027", 'Q'));
+
+    for (vector<pair<String, char> >::const_iterator iter = massShiftList.begin(); iter != massShiftList.end(); iter++)
+    {
+      string modMassShift(iter->first);
+      char aa = iter->second;
+      size_t found = modifiedSequence.find(modMassShift);
+
+      if (found != string::npos)
+      {
+        String tmp = modifiedSequence.substr(0, found + modMassShift.length() + 1);
+        size_t foundAA  = tmp.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+        if ((foundAA > found) && (tmp[foundAA] == iter->second)) // no AA at the begin
+        {
+          if (found > 0)
+          {
+            swap = modifiedSequence.substr(0, found);
+          }          
+          return swap += *tmp.rbegin() + modMassShift + modifiedSequence.substr(found + modMassShift.length() + 1);
+        }
+      }
+    }
+    return  modifiedSequence;
+  }
 	
   // Method to replace the mass representation of modifications.
   // Modifications in the tsv file has the form M+15.999 e.g.
@@ -475,7 +507,7 @@ protected:
         scanNumber = elements[2].toInt();
       }
       
-      sequence = AASequence::fromString(modifySequence(fixDecimalSeparator(cutSequence(elements[8]))));
+      sequence = AASequence::fromString(modifySequence(modifyNTermAASpecificSequence(fixDecimalSeparator(cutSequence(elements[8])))));
       vector<PeptideHit> p_hits;
       String prot_accession = elements[9];
 
