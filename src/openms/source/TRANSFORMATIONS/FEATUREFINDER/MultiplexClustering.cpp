@@ -111,6 +111,8 @@ namespace OpenMS
     // loop over patterns i.e. cluster each of the corresponding filter results
     for (unsigned i = 0; i < filter_results.size(); ++i)
     {
+      EuclideanDistance distance(rt_scaling_);
+        
       MultiplexLocalClustering clustering(filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
       clustering.cluster();
       //clustering.extendClustersY();
