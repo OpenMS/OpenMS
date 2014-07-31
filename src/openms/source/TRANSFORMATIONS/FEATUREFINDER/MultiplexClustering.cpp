@@ -72,10 +72,11 @@ namespace OpenMS
     
     // generate grid spacing
     PeakWidthEstimator estimator(exp_picked, boundaries);
-    for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 5)
+    // We assume that the jitter of the peak centres are less than scaling times the peak width.
+    // This factor ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
+    double scaling = 1/5;
+    for (double mz = mz_min; mz < mz_max; mz = mz + scaling * estimator.getPeakWidth(mz))
     {
-      // We assume that the jitter of the peak centres are less than 1/5 of the peak width.
-      // The factor 1/5 ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
       grid_spacing_mz_.push_back(mz);
     }
     grid_spacing_mz_.push_back(mz_max);
