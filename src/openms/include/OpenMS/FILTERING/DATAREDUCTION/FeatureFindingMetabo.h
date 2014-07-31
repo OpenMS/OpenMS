@@ -174,9 +174,6 @@ public:
         {
             throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
         }
-
-        // iso_pattern_[0]->updateWeightedMeanRT();
-
         return iso_pattern_[0]->getCentroidRT();
     }
 
@@ -186,15 +183,13 @@ public:
         {
             return 0.0;
         }
-
-        return iso_pattern_[0]->getFWHM();
+        return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
     }
 
     /// addMassTrace
     void addMassTrace(MassTrace &);
     double getMonoisotopicFeatureIntensity(bool);
     double getSummedFeatureIntensity(bool);
-
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;
