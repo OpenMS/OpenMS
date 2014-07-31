@@ -225,7 +225,7 @@ namespace OpenMS
   
   double MultiplexClustering::EuclideanDistance::operator()(Point p1, Point p2)
   {
-      sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
+      return sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
   }
 
   void MultiplexClustering::writeDebug(vector<DebugPoint> points, int pattern) const
