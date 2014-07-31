@@ -65,6 +65,11 @@ namespace OpenMS
     {        
         public:
         /**
+         * @brief cluster centre, cluster bounding box, grid index
+         */
+        typedef MultiplexCluster::Point Point;    // DPosition<2>
+
+        /**
          * @brief constructor
          * 
          * @param exp_profile    experimental data in profile mode
@@ -132,6 +137,38 @@ namespace OpenMS
             double slope_;
             double intercept_;
         
+        };
+        
+        /**
+         * @brief Euclidean distance for clustering
+         */
+        class OPENMS_DLLAPI EuclideanDistance
+        {
+            public:
+            /**
+            * @brief constructor
+            * 
+            * @param rt_scaling    scaling of RT coordinates before calculating Euclidean distance 
+            */
+            EuclideanDistance(double rt_scaling);
+       
+            /**
+             * @brief constructor
+             */
+            EuclideanDistance();
+            
+            /**
+             * @brief returns Euclidean distance
+             * 
+             * @param p1    first point in the (m/z,RT) plane
+             * @param p2    second point in the (m/z,RT) plane
+             * @return distance
+             */
+            double operator()(Point p1, Point p2);
+     
+            private:
+            double rt_scaling_;
+            
         };
 
         private:

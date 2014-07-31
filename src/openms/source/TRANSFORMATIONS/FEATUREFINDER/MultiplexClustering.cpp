@@ -74,7 +74,7 @@ namespace OpenMS
     PeakWidthEstimator estimator(exp_picked, boundaries);
     // We assume that the jitter of the peak centres are less than scaling times the peak width.
     // This factor ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
-    double scaling = 1/5;
+    double scaling = 1.0/5.0;
     for (double mz = mz_min; mz < mz_max; mz = mz + scaling * estimator.getPeakWidth(mz))
     {
       grid_spacing_mz_.push_back(mz);
@@ -209,6 +209,21 @@ namespace OpenMS
     }
 
     return width;
+  }
+
+  MultiplexClustering::EuclideanDistance::EuclideanDistance(double rt_scaling)
+  : rt_scaling_(rt_scaling)
+  {
+  }
+  
+  MultiplexClustering::EuclideanDistance::EuclideanDistance()
+  : rt_scaling_(1)
+  {
+  }
+  
+  double MultiplexClustering::EuclideanDistance::operator()(Point p1, Point p2)
+  {
+      sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
   }
 
   void MultiplexClustering::writeDebug(vector<DebugPoint> points, int pattern) const
