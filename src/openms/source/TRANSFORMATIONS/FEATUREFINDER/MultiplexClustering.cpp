@@ -46,6 +46,7 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexLocalClustering.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridClustering.h>
 
 #include <vector>
 #include <algorithm>
@@ -63,6 +64,11 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
     }
+    
+    // DEBUG START
+    EuclideanDistance metric(0.1);
+    GridClustering<EuclideanDistance> clustering_debug(metric);
+    // DEBUG END
 
     // ranges of the experiment
     double mz_min = exp_profile.getMinMZ();
@@ -111,7 +117,6 @@ namespace OpenMS
     // loop over patterns i.e. cluster each of the corresponding filter results
     for (unsigned i = 0; i < filter_results.size(); ++i)
     {
-      EuclideanDistance distance(rt_scaling_);
         
       MultiplexLocalClustering clustering(filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
       clustering.cluster();
