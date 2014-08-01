@@ -86,7 +86,7 @@ using namespace std;
   By default the tool will fail, if an unmatched peptide occurs, i.e. the database does not contain the corresponding protein.
   You can force the tool to return successfully in this case by using the flag 'allow_unmatched'.
 
-  Some search engines (such as Mascot) will replace ambiguous AA's ('B', 'Z', and 'X') in the protein database with unambiguous AA' in the reported peptides, e.g., exchange 'X' with 'H'.
+  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g., exchange 'X' with 'H'.
   This will cause this peptide not to be found by exactly matching its sequence to the database. However, we can recover these cases by using tolerant search (done automatically).
 
   Two search modes are available:
@@ -94,18 +94,18 @@ using namespace std;
              If at least one protein hit is found, no tolerant search is used for this peptide.
              If no protein for this peptide can be found, tolerant matching is automatically used for this peptide.
     - tolerant:
-             Allow ambiguous AA's in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
-             This mode might yield more protein hits for some peptides (those that contain ambiguous AAs).
+             Allow ambiguous amino acids in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
+             This mode might yield more protein hits for some peptides (those that contain ambiguous amino acids).
 
-  No matter if exact or tolerant search is used, we require ambiguous AA's in peptide sequence to match exactly in the protein DB (i.e., 'X' in peptide only matches 'X' in database).
-  The exact mode is much faster (about x10) and consumes less memory (about x2.5), but might fail to report a few protein hits with ambiguous AAs for some peptides. Usually these proteins are putative, however.
+  No matter if exact or tolerant search is used, we require ambiguous amino acids in peptide sequence to match exactly in the protein DB (i.e., 'X' in peptide only matches 'X' in database).
+  The exact mode is much faster (about x10) and consumes less memory (about x2.5), but might fail to report a few protein hits with ambiguous amino acids for some peptides. Usually these proteins are putative, however.
   The exact mode also supports usage of multiple threads (use @ -threads option) to speed up computation even further, at the cost of some memory. This is only for the exact search though (Aho Corasick). If tolerant searching
   needs to be done for unassigned peptides, the latter will consume the major time portion.
 
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
   By default, we demand that the peptide is fully tryptic (since the enzyme parameter is set to "trypsin" and specificity is "full").
   So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
-  We make one exception for peptides which start at the second AA of the protein where the first AA of the protein is methionin (M), which is usually cleaved off in vivo, e.g.,
+  We make one exception for peptides which start at the second amino acid of the protein where the first amino acid of the protein is methionin (M), which is usually cleaved off in vivo, e.g.,
   the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
 
   You can relax the requirements further by chosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) or <tt>none</tt> (essentially allowing all hits, no matter their context).
@@ -123,7 +123,7 @@ namespace seqan
 
   struct FoundProteinFunctor
   {
-public:
+  public:
     typedef OpenMS::Map<OpenMS::Size, std::set<OpenMS::Size> > MapType;
 
     /// peptide index --> protein indices
@@ -135,15 +135,12 @@ public:
     /// number of rejected hits (not passing addHit())
     OpenMS::Size filter_rejected;
 
-private:
+  private:
     EnzymaticDigestion enzyme_;
 
-public:
+  public:
     explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
-      pep_to_prot(),
-      filter_passed(0),
-      filter_rejected(0),
-      enzyme_(enzyme)
+      pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
     {
     }
 
@@ -151,7 +148,8 @@ public:
     void operator()(const TIter1& iter_pep, const TIter2& iter_prot)
     {
       // the peptide sequence (will not change)
-      const OpenMS::String tmp_pep(begin(representative(iter_pep)), end(representative(iter_pep)));
+      const OpenMS::String tmp_pep(begin(representative(iter_pep)), 
+                                   end(representative(iter_pep)));
 
       // remember mapping of proteins to peptides and vice versa
       const OpenMS::Size count_occ = countOccurrences(iter_pep);
@@ -162,24 +160,32 @@ public:
         for (OpenMS::Size i_prot = 0; i_prot < count_occ_prot; ++i_prot)
         {
           const seqan::Pair<int> prot_occ = getOccurrences(iter_prot)[i_prot];
-          // the protein sequence (will change for every Occurrence -- hitting multiple proteins)
-          const OpenMS::String tmp_prot(begin(indexText(container(iter_prot))[getSeqNo(prot_occ)]), end(indexText(container(iter_prot))[getSeqNo(prot_occ)]));
+          // the protein sequence (will change for every Occurrence -- hitting
+          // multiple proteins)
+          const OpenMS::String tmp_prot(
+            begin(indexText(container(iter_prot))[getSeqNo(prot_occ)]), 
+            end(indexText(container(iter_prot))[getSeqNo(prot_occ)]));
           // check if hit is valid and add (if valid)
-          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot, getSeqOffset(prot_occ));
+          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot, 
+                 getSeqOffset(prot_occ));
         }
       }
     }
 
-    void addHit(OpenMS::Size idx_pep, OpenMS::Size idx_prot, const OpenMS::String& seq_pep, const OpenMS::String& protein, OpenMS::Size position)
+    void addHit(OpenMS::Size idx_pep, OpenMS::Size idx_prot,
+                const OpenMS::String& seq_pep, const OpenMS::String& protein, 
+                OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(AASequence::fromString(protein), position, seq_pep.length()))
+      if (enzyme_.isValidProduct(AASequence::fromString(protein), position, 
+                                 seq_pep.length()))
       {
         pep_to_prot[idx_pep].insert(idx_prot);
         ++filter_passed;
       }
       else
       {
-        //LOG_WARN << "Peptide " << seq_pep << " is not a valid hit to protein " << protein << " @ " << position << std::endl;
+        // LOG_WARN << "Peptide " << seq_pep << " is not a valid hit to protein "
+        //          << protein << " at position " << position << std::endl;
         ++filter_rejected;
       }
     }
@@ -188,21 +194,25 @@ public:
     {
       if (pep_to_prot.size() != rhs.pep_to_prot.size())
       {
-        LOG_ERROR << "Size " << pep_to_prot.size() << " " << rhs.pep_to_prot.size() << std::endl;
+        LOG_ERROR << "Size " << pep_to_prot.size() << " " 
+                  << rhs.pep_to_prot.size() << std::endl;
         return false;
       }
 
-      MapType::const_iterator it1 = pep_to_prot.begin(), it2 = rhs.pep_to_prot.begin();
+      MapType::const_iterator it1 = pep_to_prot.begin();
+      MapType::const_iterator it2 = rhs.pep_to_prot.begin();
       while (it1 != pep_to_prot.end())
       {
         if (it1->first != it2->first)
         {
-          LOG_ERROR << "Index of " << it1->first << " " << it2->first << std::endl;
+          LOG_ERROR << "Index of " << it1->first << " " << it2->first 
+                    << std::endl;
           return false;
         }
         if (it1->second.size() != it2->second.size())
         {
-          LOG_ERROR << "Size of " << it1->first << " " << it1->second.size() << "--" << it2->second.size() << std::endl;
+          LOG_ERROR << "Size of " << it1->first << " " << it1->second.size() 
+                    << "--" << it2->second.size() << std::endl;
           return false;
         }
         if (!equal(it1->second.begin(), it1->second.end(), it2->second.begin()))
@@ -239,57 +249,46 @@ public:
   template <typename T>
   unsigned const EquivalenceClassAA_<T>::VALUE[24] =
   {
-    1, // 0 Ala Alanine
-    2, // 1 Arg Arginine
-    4, // 2 Asn Asparagine
-    8, // 3 Asp Aspartic Acid
-    16, // 4 Cys Cystine
-    32, // 5 Gln Glutamine
-    64, // 6 Glu Glutamic Acid
-    128, // 7 Gly Glycine
-    256, // 8 His Histidine
-    512, // 9 Ile Isoleucine
-    1024, //10 Leu Leucine
-    2048, //11 Lys Lysine
-    4096, //12 Met Methionine
-    8192, //13 Phe Phenylalanine
-    16384, //14 Pro Proline
-    32768, //15 Ser Serine
-    65536, //16 Thr Threonine
-    131072, //17 Trp Tryptophan
-    262144, //18 Tyr Tyrosine
-    524288, //19 Val Valine
-    12, //20 Aspartic Acid, Asparagine
-    96, //21 Glutamic Acid, Glutamine
+    1, // 0 Ala Alanine (A)
+    2, // 1 Arg Arginine (R)
+    4, // 2 Asn Asparagine (N)
+    8, // 3 Asp Aspartic Acid (D)
+    16, // 4 Cys Cystine (C)
+    32, // 5 Gln Glutamine (Q)
+    64, // 6 Glu Glutamic Acid (E)
+    128, // 7 Gly Glycine (G)
+    256, // 8 His Histidine (H)
+    512, // 9 Ile Isoleucine (I)
+    1024, // 10 Leu Leucine (L)
+    2048, // 11 Lys Lysine (K)
+    4096, // 12 Met Methionine (M)
+    8192, // 13 Phe Phenylalanine (F)
+    16384, // 14 Pro Proline (P)
+    32768, // 15 Ser Serine (S)
+    65536, // 16 Thr Threonine (T)
+    131072, // 17 Trp Tryptophan (W)
+    262144, // 18 Tyr Tyrosine (Y)
+    524288, // 19 Val Valine (V)
+    12, // 20 Aspartic Acid, Asparagine (B)
+    96, // 21 Glutamic Acid, Glutamine (Z)
     static_cast<unsigned>(-1), //22 Unknown (matches ALL)
     static_cast<unsigned>(-1), //23 Terminator (dummy)
   };
 
 
-  template <
-    bool enumerateA,
-    bool enumerateB,
-    typename TOnFoundFunctor,
-    typename TTreeIteratorA,
-    typename TIterPosA,
-    typename TTreeIteratorB,
-    typename TIterPosB,
-    typename TErrors>
-  inline void
-  _approximateAminoAcidTreeSearch(
-    TOnFoundFunctor& onFoundFunctor,
-    TTreeIteratorA    iterA,
-    TIterPosA     iterPosA,
-    TTreeIteratorB    iterB_,
-    TIterPosB     iterPosB,
-    TErrors           errorsLeft,
-    TErrors     classErrorsLeft)
+  template <bool enumerateA, bool enumerateB, typename TOnFoundFunctor,
+            typename TTreeIteratorA, typename TIterPosA, 
+            typename TTreeIteratorB, typename TIterPosB, typename TErrors>
+  inline void _approximateAminoAcidTreeSearch(TOnFoundFunctor& onFoundFunctor,
+                                              TTreeIteratorA iterA, 
+                                              TIterPosA iterPosA, 
+                                              TTreeIteratorB iterB_, 
+                                              TIterPosB iterPosB, 
+                                              TErrors errorsLeft, 
+                                              TErrors classErrorsLeft)
   {
-    if (enumerateA && !goDown(iterA))
-      return;
-
-    if (enumerateB && !goDown(iterB_))
-      return;
+    if (enumerateA && !goDown(iterA)) return;
+    if (enumerateB && !goDown(iterB_)) return;
 
     do
     {
@@ -308,13 +307,17 @@ public:
             if (isLeaf(iterA))
             {
               onFoundFunctor(iterA, iterB);
-              break;
             }
-
-            if (ipB == repLength(iterB) && !isLeaf(iterB))
-              _approximateAminoAcidTreeSearch<true, true>(onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+            else if (ipB == repLength(iterB) && !isLeaf(iterB))
+            {
+              _approximateAminoAcidTreeSearch<true, true>(
+                onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+            }
             else
-              _approximateAminoAcidTreeSearch<true, false>(onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+            {
+              _approximateAminoAcidTreeSearch<true, false>(
+                onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+            }
             break;
           }
           else
@@ -322,44 +325,41 @@ public:
             if (ipB == repLength(iterB))
             {
               if (!isLeaf(iterB))
-                _approximateAminoAcidTreeSearch<false, true>(onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+              {
+                _approximateAminoAcidTreeSearch<false, true>(
+                  onFoundFunctor, iterA, ipA, iterB, ipB, e, ec);
+              }
               break;
             }
           }
 
-          if (_charComparator(representative(iterA)[ipA],
+          if (_charComparator(representative(iterA)[ipA], 
                               representative(iterB)[ipB],
                               EquivalenceClassAA_<char>::VALUE))
           {
-            // matched (including character classes) - look at ambiguous AA in PROTEIN tree (peptide tree is not considered!)
+            // matched (including character classes) - look at ambiguous AA in
+            // PROTEIN tree (peptide tree is not considered!)
             const char x_prot = representative(iterB)[ipB];
-            if (x_prot == 'X' ||
-                x_prot == 'B' ||
-                x_prot == 'Z')
+            if ((x_prot == 'X') || (x_prot == 'B') || (x_prot == 'Z'))
             {
-              if (ec == 0)
-                break;
+              if (ec == 0) break;
               --ec;
             }
 
-            // dealing with 'X' in peptide sequence: only match exactly 'X' in proteinDB, not just any representative of 'X' (this is how X!Tandem would report results)
+            // dealing with 'X' in peptide sequence: only match exactly 'X' in
+            // proteinDB, not just any representative of 'X' (this is how X!
+            // Tandem would report results)
             const char x_pep = representative(iterA)[ipA];
-            if (x_pep == 'X' ||
-                x_pep == 'B' ||
-                x_pep == 'Z')
+            if ((x_pep == 'X') || (x_pep == 'B') || (x_pep == 'Z'))
             {
-              if (x_pep != x_prot)
-                break;
+              if (x_pep != x_prot) break;
             }
-
           }
           else
           {
-            if (e == 0)
-              break;
+            if (e == 0) break;
             --e;
           }
-
 
           ++ipA;
           ++ipB;
@@ -370,13 +370,9 @@ public:
     while (enumerateA && goRight(iterA));
   }
 
-  template <
-    typename TEquivalenceTable>
-  inline bool
-  _charComparator(
-    AminoAcid charA,
-    AminoAcid charB,
-    TEquivalenceTable equivalence)
+  template <typename TEquivalenceTable>
+  inline bool _charComparator(AminoAcid charA, AminoAcid charB, 
+                              TEquivalenceTable equivalence)
   {
     const unsigned a_index = ordValue(charA);
     const unsigned b_index = ordValue(charB);
@@ -394,7 +390,8 @@ class TOPPPeptideIndexer :
 {
 public:
   TOPPPeptideIndexer() :
-    TOPPBase("PeptideIndexer", "Refreshes the protein references for all peptide hits.")
+    TOPPBase("PeptideIndexer", 
+             "Refreshes the protein references for all peptide hits.")
   {
   }
 
