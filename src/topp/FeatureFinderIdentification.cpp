@@ -147,6 +147,8 @@ protected:
     setMinFloat_("detect:peak_width", 0.0);
     registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('filtered' mode only); relative to the square root of the measured intensity", false);
     setMinFloat_("detect:tolerance", 0.0);
+    registerDoubleOption_("detect:max_gap", "<value>", 0.5, "Maximum gap (region without matching isotope peaks) length beyond which a feature won't be extended further ('filtered' mode only); relative to 'peak_width'; '0' to disable", false, true);
+    setMinFloat_("detect:max_gap", 0.0);
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
     StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
@@ -162,7 +164,6 @@ protected:
     setMinFloat_("model:check:width", 0.0);
     registerDoubleOption_("model:check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
     setMinFloat_("model:check:asymmetry", 0.0);
-
   }
 
 
@@ -184,6 +185,7 @@ protected:
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   String reference_rt_; // value of "reference_rt" parameter
   double rt_tolerance_; // half the RT window width
+  double max_gap_; // max. length (RT) of a gap in a feature
 
 
   // add transitions for a peptide ion to the library:
@@ -379,6 +381,7 @@ protected:
   }
 
 
+  // detect features in extracted ion chromatograms (XICs):
   void detectFeatures_(const PeakMap& chrom_data, FeatureMap<>& features,
                        double peak_width)
   {
@@ -471,9 +474,12 @@ protected:
   }
 
 
+  // find closest maximum/minimum in the XIC, to the left/right of the start;
+  // optionally only go up to a certain fraction of the start intensity,
+  // optionally don't extend past a given gap length (in RT):
   pair<Size, double> findNextExtremum_(const MSChromatogram<>& data, Size start,
-                                       bool go_right=false, 
-                                       bool find_min=false, double fraction=0.0)
+                                       bool go_right=false, bool find_min=false,
+                                       double fraction=0.0, double max_gap=0.0)
   {
     Int stop, step, index;
     if (go_right)
@@ -487,25 +493,30 @@ protected:
       step = -1;
     }
 
-    double previous = data[start].getIntensity();
-    double threshold = fraction * previous;
+    double previous_int = data[start].getIntensity();
+    double previous_rt = data[start].getRT();
+    double threshold = fraction * previous_int;
     Int min_max = find_min ? -1 : 1; // multiply by -1 to change "<" to ">"
     for (index = start + step; index * step <= stop; index += step)
     {
-      double current = data[index].getIntensity();
-      if ((min_max * current < min_max * previous) || 
-          ((fraction > 0.0) && (min_max * current < min_max * threshold)))
+      double current_int = data[index].getIntensity();
+      double current_rt = data[index].getRT();
+      if ((min_max * current_int < min_max * previous_int) || 
+          ((fraction > 0.0) && (min_max * current_int < min_max * threshold)) ||
+          ((max_gap > 0.0) && (fabs(previous_rt - current_rt) > max_gap)))
       {
         index -= step; // went a step too far, go back
         break;
       }
-      previous = current;
+      previous_int = current_int;
+      previous_rt = current_rt;
     }
     if (index * step > stop) index -= step;
-    return make_pair(Size(index), previous);
+    return make_pair(Size(index), previous_int);
   }
 
 
+  // detect a feature corresponding to one identified peptide in XICs:
   void detectFeature_(const String& peptide_ref, 
                       const ChromatogramPtrs& chrom_ptrs, Feature& feature, 
                       const vector<double>& theo_intensities, 
@@ -655,8 +666,8 @@ protected:
 
       // find nearest apex(es) of smoothed elution profile:
       pair<Size, double> left_apex = findNextExtremum_(smoothed, max_index);
-      pair<Size, double>  right_apex = findNextExtremum_(smoothed, max_index,
-                                                         true);
+      pair<Size, double> right_apex = findNextExtremum_(smoothed, max_index,
+                                                        true);
       pair<Size, double> apex = ((left_apex.second > right_apex.second) ? 
                                  left_apex : right_apex);
       LOG_DEBUG << "apex: " << apex.first << ", RT "
@@ -744,6 +755,7 @@ protected:
   }
 
 
+  // fit models of elution profiles to all features:
   void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true)
   {
     // assumptions:
@@ -1082,8 +1094,8 @@ protected:
     LOG_INFO << "Model fitting: " << model_successes << " successes, " 
              << model_failures << " failures" << endl;
 
-    if (impute)
-    { // impute results for cases where the model fit failed:
+    if (impute) // impute results for cases where the model fit failed
+    {
       TransformationModelLinear lm(quant_values, Param());
       double slope, intercept;
       lm.getParameters(slope, intercept);
@@ -1119,6 +1131,7 @@ protected:
     String detection_mode = getStringOption_("detect:mode");
     bool filtered_detection = detection_mode == "filtered";
     double peak_width = getDoubleOption_("detect:peak_width");
+    max_gap_ = getDoubleOption_("detect:max_gap") * peak_width;
     String elution_model = getStringOption_("model:type");
 
     //-------------------------------------------------------------
