@@ -964,7 +964,7 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
             f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(use_smoothed_intensities_));
         }
 
-        f.setWidth(feat_hypos[hypo_idx].getFWHM(true));
+        f.setWidth(feat_hypos[hypo_idx].getFWHM(use_smoothed_intensities_));
         f.setCharge(feat_hypos[hypo_idx].getCharge());
         f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
 

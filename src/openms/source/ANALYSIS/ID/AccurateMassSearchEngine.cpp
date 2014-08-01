@@ -572,17 +572,17 @@ namespace OpenMS
                                                                ++it_row)
     {
       PeptideHit hit;
-      hit.setMetaValue("IDs", it_row->getMatchingHMDBids());
+      hit.setMetaValue("identifier", it_row->getMatchingHMDBids());
       StringList names;
       for (Size i = 0; i < it_row->getMatchingHMDBids().size(); ++i)
       {
         names.push_back(hmdb_properties_mapping_[it_row->getMatchingHMDBids()[i]][0]);
       }
-      hit.setMetaValue("name", names);
-      hit.setMetaValue("q", it_row->getCharge());
-      hit.setMetaValue("adduct", it_row->getFoundAdduct());
-      hit.setMetaValue("sumformula", it_row->getFormulaString());
-      hit.setMetaValue("ppm", it_row->getErrorPPM());
+      hit.setMetaValue("description", names);
+      hit.setMetaValue("charge", it_row->getCharge());
+      hit.setMetaValue("modifications", it_row->getFoundAdduct());
+      hit.setMetaValue("chemical_formula", it_row->getFormulaString());
+      hit.setMetaValue("ppm_error", it_row->getErrorPPM());
       f.getPeptideIdentifications().back().insertHit(hit);
     }
   }
