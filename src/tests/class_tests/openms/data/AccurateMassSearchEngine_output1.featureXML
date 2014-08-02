@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.6" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="1999-12-31T23:59:59" search_engine="AccurateMassSearchResult" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2014-08-01T21:34:24" search_engine="AccurateMassSearchResult" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -69,52 +69,52 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB39534]"/>
-					<userParam type="stringList" name="name" value="[Panaxydol chlorohydrin]"/>
-					<userParam type="int" name="q" value="0"/>
-					<userParam type="string" name="adduct" value="M+H+Na;2+"/>
-					<userParam type="string" name="sumformula" value="C17H25ClO2"/>
-					<userParam type="float" name="ppm" value="-2.68045265071093"/>
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[HMDB39534]"/>
+					<userParam type="stringList" name="description" value="[Panaxydol chlorohydrin]"/>
+					<userParam type="string" name="modifications" value="M+H+Na;2+"/>
+					<userParam type="string" name="chemical_formula" value="C17H25ClO2"/>
+					<userParam type="float" name="ppm_error" value="-2.68045265071093"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB28803,HMDB28971,HMDB28987,HMDB29155]"/>
-					<userParam type="stringList" name="name" value="[Glutaminyl-Methionine,Methionyl-Glutamine,Methionyl-Gamma-glutamate,Gamma-glutamyl-Methionine]"/>
-					<userParam type="int" name="q" value="0"/>
-					<userParam type="string" name="adduct" value="M+CH3CN+2H;2+"/>
-					<userParam type="string" name="sumformula" value="C10H19N3O4S"/>
-					<userParam type="float" name="ppm" value="-2.59003643663402"/>
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[HMDB28803,HMDB28971,HMDB28987,HMDB29155]"/>
+					<userParam type="stringList" name="description" value="[Glutaminyl-Methionine,Methionyl-Glutamine,Methionyl-Gamma-glutamate,Gamma-glutamyl-Methionine]"/>
+					<userParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
+					<userParam type="string" name="chemical_formula" value="C10H19N3O4S"/>
+					<userParam type="float" name="ppm_error" value="-2.59003643663402"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB33355,HMDB34110]"/>
-					<userParam type="stringList" name="name" value="[Dehydroaporheine,Murrayacine]"/>
-					<userParam type="int" name="q" value="0"/>
-					<userParam type="string" name="adduct" value="M+CH3CN+2H;2+"/>
-					<userParam type="string" name="sumformula" value="C18H15NO2"/>
-					<userParam type="float" name="ppm" value="-4.94264214026128"/>
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[HMDB33355,HMDB34110]"/>
+					<userParam type="stringList" name="description" value="[Dehydroaporheine,Murrayacine]"/>
+					<userParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
+					<userParam type="string" name="chemical_formula" value="C18H15NO2"/>
+					<userParam type="float" name="ppm_error" value="-4.94264214026128"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB28982,HMDB29045]"/>
-					<userParam type="stringList" name="name" value="[Methionyl-Serine,Serinyl-Methionine]"/>
-					<userParam type="int" name="q" value="0"/>
-					<userParam type="string" name="adduct" value="M+2CH3CN+2H;2+"/>
-					<userParam type="string" name="sumformula" value="C8H16N2O4S"/>
-					<userParam type="float" name="ppm" value="-3.04011223650013"/>
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[HMDB28982,HMDB29045]"/>
+					<userParam type="stringList" name="description" value="[Methionyl-Serine,Serinyl-Methionine]"/>
+					<userParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
+					<userParam type="string" name="chemical_formula" value="C8H16N2O4S"/>
+					<userParam type="float" name="ppm_error" value="-3.04011223650013"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB01190]"/>
-					<userParam type="stringList" name="name" value="[Indoleacetaldehyde]"/>
-					<userParam type="int" name="q" value="0"/>
-					<userParam type="string" name="adduct" value="M+H;1+"/>
-					<userParam type="string" name="sumformula" value="C10H9NO"/>
-					<userParam type="float" name="ppm" value="-4.30525877039142"/>
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[HMDB01190]"/>
+					<userParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
+					<userParam type="string" name="modifications" value="M+H;1+"/>
+					<userParam type="string" name="chemical_formula" value="C10H9NO"/>
+					<userParam type="float" name="ppm_error" value="-4.30525877039142"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB15400]"/>
-					<userParam type="stringList" name="name" value="[Hydralazine]"/>
-					<userParam type="int" name="q" value="0"/>
-					<userParam type="string" name="adduct" value="M;1+"/>
-					<userParam type="string" name="sumformula" value="C8H8N4"/>
-					<userParam type="float" name="ppm" value="0.682575394067964"/>
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[HMDB15400]"/>
+					<userParam type="stringList" name="description" value="[Hydralazine]"/>
+					<userParam type="string" name="modifications" value="M;1+"/>
+					<userParam type="string" name="chemical_formula" value="C8H8N4"/>
+					<userParam type="float" name="ppm_error" value="0.682575394067964"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T141"/>
@@ -408,20 +408,20 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB01190]"/>
-					<userParam type="stringList" name="name" value="[Indoleacetaldehyde]"/>
-					<userParam type="int" name="q" value="1"/>
-					<userParam type="string" name="adduct" value="M+H;1+"/>
-					<userParam type="string" name="sumformula" value="C10H9NO"/>
-					<userParam type="float" name="ppm" value="-4.22656729101524"/>
+					<userParam type="int" name="charge" value="1"/>
+					<userParam type="stringList" name="identifier" value="[HMDB01190]"/>
+					<userParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
+					<userParam type="string" name="modifications" value="M+H;1+"/>
+					<userParam type="string" name="chemical_formula" value="C10H9NO"/>
+					<userParam type="float" name="ppm_error" value="-4.22656729101524"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB15400]"/>
-					<userParam type="stringList" name="name" value="[Hydralazine]"/>
-					<userParam type="int" name="q" value="1"/>
-					<userParam type="string" name="adduct" value="M;1+"/>
-					<userParam type="string" name="sumformula" value="C8H8N4"/>
-					<userParam type="float" name="ppm" value="0.760771315118182"/>
+					<userParam type="int" name="charge" value="1"/>
+					<userParam type="stringList" name="identifier" value="[HMDB15400]"/>
+					<userParam type="stringList" name="description" value="[Hydralazine]"/>
+					<userParam type="string" name="modifications" value="M;1+"/>
+					<userParam type="string" name="chemical_formula" value="C8H8N4"/>
+					<userParam type="float" name="ppm_error" value="0.760771315118182"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T10_T33_T94"/>
@@ -703,12 +703,12 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB13305,HMDB15654]"/>
-					<userParam type="stringList" name="name" value="[Propionylcholine,Methacholine]"/>
-					<userParam type="int" name="q" value="1"/>
-					<userParam type="string" name="adduct" value="M;1+"/>
-					<userParam type="string" name="sumformula" value="C8H18NO2"/>
-					<userParam type="float" name="ppm" value="4.47553552766251"/>
+					<userParam type="int" name="charge" value="1"/>
+					<userParam type="stringList" name="identifier" value="[HMDB13305,HMDB15654]"/>
+					<userParam type="stringList" name="description" value="[Propionylcholine,Methacholine]"/>
+					<userParam type="string" name="modifications" value="M;1+"/>
+					<userParam type="string" name="chemical_formula" value="C8H18NO2"/>
+					<userParam type="float" name="ppm_error" value="4.47553552766251"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T43_T106_T170"/>
@@ -1104,12 +1104,12 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB32394,HMDB36073,HMDB41009]"/>
-					<userParam type="stringList" name="name" value="[6-Methylcoumarin,Viburtinal,7-Methyl-2-benzofurancarboxaldehyde]"/>
-					<userParam type="int" name="q" value="1"/>
-					<userParam type="string" name="adduct" value="M+H;1+"/>
-					<userParam type="string" name="sumformula" value="C10H8O2"/>
-					<userParam type="float" name="ppm" value="3.28496615634438"/>
+					<userParam type="int" name="charge" value="1"/>
+					<userParam type="stringList" name="identifier" value="[HMDB32394,HMDB36073,HMDB41009]"/>
+					<userParam type="stringList" name="description" value="[6-Methylcoumarin,Viburtinal,7-Methyl-2-benzofurancarboxaldehyde]"/>
+					<userParam type="string" name="modifications" value="M+H;1+"/>
+					<userParam type="string" name="chemical_formula" value="C10H8O2"/>
+					<userParam type="float" name="ppm_error" value="3.28496615634438"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T4_T13_T49"/>
@@ -2501,12 +2501,12 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB14564,HMDB15202]"/>
-					<userParam type="stringList" name="name" value="[Promazine,Promethazine]"/>
-					<userParam type="int" name="q" value="0"/>
-					<userParam type="string" name="adduct" value="M+2Na;2+"/>
-					<userParam type="string" name="sumformula" value="C17H20N2S"/>
-					<userParam type="float" name="ppm" value="-2.41984173140684"/>
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[HMDB14564,HMDB15202]"/>
+					<userParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
+					<userParam type="string" name="modifications" value="M+2Na;2+"/>
+					<userParam type="string" name="chemical_formula" value="C17H20N2S"/>
+					<userParam type="float" name="ppm_error" value="-2.41984173140684"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T59"/>
@@ -2574,12 +2574,12 @@
 			</convexhull>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
-					<userParam type="stringList" name="IDs" value="[HMDB14564,HMDB15202]"/>
-					<userParam type="stringList" name="name" value="[Promazine,Promethazine]"/>
-					<userParam type="int" name="q" value="0"/>
-					<userParam type="string" name="adduct" value="M+2Na;2+"/>
-					<userParam type="string" name="sumformula" value="C17H20N2S"/>
-					<userParam type="float" name="ppm" value="4.08900225421709"/>
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[HMDB14564,HMDB15202]"/>
+					<userParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
+					<userParam type="string" name="modifications" value="M+2Na;2+"/>
+					<userParam type="string" name="chemical_formula" value="C17H20N2S"/>
+					<userParam type="float" name="ppm_error" value="4.08900225421709"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T121"/>

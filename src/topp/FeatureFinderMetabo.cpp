@@ -262,11 +262,11 @@ protected:
     ffmet.setParameters(ffm_param);
     ffmet.run(m_traces_final, feat_map);
 
-    int trace_count(0);
+    Size trace_count(0);
     for (Size i = 0; i < feat_map.size(); ++i)
     {
       OPENMS_PRECONDITION(feat_map[i].metaValueExists("num_of_masstraces"), "MetaValue 'num_of_masstraces' missing from FFMetabo output!");
-      trace_count += (int) feat_map[i].getMetaValue("num_of_masstraces");
+      trace_count += (Size) feat_map[i].getMetaValue("num_of_masstraces");
     }
 
     LOG_INFO << "-- FF-Metabo stats --\n"
