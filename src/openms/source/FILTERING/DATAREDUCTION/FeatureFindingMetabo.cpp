@@ -823,6 +823,8 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
 
 void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap<>& output_featmap)
 {
+    if (input_mtraces.empty()) return;
+
     // mass traces must be sorted by their centroid MZ
     std::sort(input_mtraces.begin(), input_mtraces.end(), CmpMassTraceByMZ());
 
@@ -850,157 +852,142 @@ void FeatureFindingMetabo::run(std::vector<MassTrace>& input_mtraces, FeatureMap
         total_intensity_ += input_mtraces[i].getIntensity(use_smoothed_intensities_);
     }
 
-    if (input_mtraces.size() > 0)
+    for (Size i = 0; i < input_mtraces.size(); ++i)
     {
-        for (Size i = 0; i < input_mtraces.size(); ++i)
+        this->setProgress(i);
+        std::vector<MassTrace*> local_traces;
+
+        double ref_trace_mz(input_mtraces[i].getCentroidMZ());
+        double ref_trace_rt(input_mtraces[i].getCentroidRT());
+
+        local_traces.push_back(&input_mtraces[i]);
+
+        double diff_mz(0.0);
+        Size ext_idx(i + 1);
+
+        // std::cout << "__" << input_mtraces[i].getLabel() << " " << input_mtraces[i].getCentroidMZ() << " " << input_mtraces[i].getCentroidRT() << std::endl;
+
+        while (diff_mz <= local_mz_range_ && ext_idx < input_mtraces.size())
         {
-            this->setProgress(i);
-            std::vector<MassTrace*> local_traces;
+            // update diff_mz and diff_rt
+            diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
+            double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
 
-            double ref_trace_mz(input_mtraces[i].getCentroidMZ());
-            double ref_trace_rt(input_mtraces[i].getCentroidRT());
-
-            local_traces.push_back(&input_mtraces[i]);
-
-            double diff_mz(0.0);
-            Size ext_idx(i + 1);
-
-            // std::cout << "__" << input_mtraces[i].getLabel() << " " << input_mtraces[i].getCentroidMZ() << " " << input_mtraces[i].getCentroidRT() << std::endl;
-
-            while (diff_mz <= local_mz_range_ && ext_idx < input_mtraces.size())
+            if (diff_mz <= local_mz_range_ && diff_rt <= local_rt_range_)
             {
-                // update diff_mz and diff_rt
-                diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
-                double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
-
-                if (diff_mz <= local_mz_range_ && diff_rt <= local_rt_range_)
-                {
-                    // std::cout << " accepted!" << std::endl;
-                    local_traces.push_back(&input_mtraces[ext_idx]);
-                }
-
-                ++ext_idx;
+                // std::cout << " accepted!" << std::endl;
+                local_traces.push_back(&input_mtraces[ext_idx]);
             }
 
-            findLocalFeatures_(local_traces, feat_hypos);
+            ++ext_idx;
         }
-        this->endProgress();
 
-        // sort feature candidates by their score
-        std::sort(feat_hypos.begin(), feat_hypos.end(), CmpHypothesesByScore());
+        findLocalFeatures_(local_traces, feat_hypos);
+    }
+    this->endProgress();
 
-        std::map<String, bool> trace_excl_map;
+    // sort feature candidates by their score
+    std::sort(feat_hypos.begin(), feat_hypos.end(), CmpHypothesesByScore());
 
-        // std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
+    std::map<String, bool> trace_excl_map;
 
-        // output all hypotheses:
-        //        for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
-        //        {
-        //            bool legal;
+    // std::cout << "size of hypotheses: " << feat_hypos.size() << std::endl;
+
+    // output all hypotheses:
+    //        for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++ hypo_idx)
+    //        {
+    //            bool legal;
+
+    //            if (feat_hypos[hypo_idx].getSize() > 1)
+    //            {
+    //                legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
+    //            }
+
+
+    //            // std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
+    //        }
+
+
+
+    // accept all hypothesis in order of their scores
+    // unless a trace has already been used
+    for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
+    {
+        // std::cout << "score now: " <<  feat_hypos[hypo_idx].getScore() << std::endl;
+        std::vector<String> labels(feat_hypos[hypo_idx].getLabels());
+        bool trace_coll = false; // trace collision?
+        for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
+        {
+            if (trace_excl_map.find(labels[lab_idx]) != trace_excl_map.end())
+            {
+                trace_coll = true;
+                break;
+            }
+        }
 
         //            if (feat_hypos[hypo_idx].getSize() > 1)
         //            {
-        //                legal = isLegalIsotopePattern_(feat_hypos[hypo_idx]);
+        //                std::cout << "check for collision: " << trace_coll << " " << feat_hypos[hypo_idx].getLabel() << " " << isLegalIsotopePattern_(feat_hypos[hypo_idx]) << " " << feat_hypos[hypo_idx].getScore() << std::endl;
         //            }
 
+        if (trace_coll) continue;
 
-        //            // std::cout << feat_hypos[hypo_idx].getLabel() << " ch: " << feat_hypos[hypo_idx].getCharge() << " score: " << feat_hypos[hypo_idx].getScore() << " legal: " << legal << std::endl;
-        //        }
-
-
-
-
-        for (Size hypo_idx = 0; hypo_idx < feat_hypos.size(); ++hypo_idx)
+        bool pass_isotope_filter = true;
+        if (feat_hypos[hypo_idx].getSize() > 1)
         {
-
-            // std::cout << "score now: " <<  feat_hypos[hypo_idx].getScore() << std::endl;
-            std::vector<String> labels(feat_hypos[hypo_idx].getLabels());
-
-            bool trace_coll = false;
-
-            for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
+            if (!disable_isotope_filtering_)
             {
-                if (trace_excl_map.find(labels[lab_idx]) != trace_excl_map.end())
+                if (isotope_model_ == "metabolites")
                 {
-                    // if (trace_excl_map[labels[lab_idx]])
-                    trace_coll = true;
+                    pass_isotope_filter = isLegalIsotopePattern2_(feat_hypos[hypo_idx]);
+                }
+                else if (isotope_model_ == "peptides")
+                {
+                    pass_isotope_filter = true;
                 }
             }
+            // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
+        }
 
-            //            if (feat_hypos[hypo_idx].getSize() > 1)
-            //            {
-            //                std::cout << "check for collision: " << trace_coll << " " << feat_hypos[hypo_idx].getLabel() << " " << isLegalIsotopePattern_(feat_hypos[hypo_idx]) << " " << feat_hypos[hypo_idx].getScore() << std::endl;
-            //            }
+        if (!pass_isotope_filter) continue;
 
-            if (!trace_coll)
-            {
-                bool result = true;
+        Feature f;
+        f.setRT(feat_hypos[hypo_idx].getCentroidRT());
+        f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
 
-                if (feat_hypos[hypo_idx].getSize() > 1)
-                {
-                    //double mono_int(feat_hypos[hypo_idx].getAllIntensities()[0]);
+        if (report_summed_ints_)
+        {
+            f.setIntensity(feat_hypos[hypo_idx].getSummedFeatureIntensity(use_smoothed_intensities_));
+        }
+        else
+        {
+            f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(use_smoothed_intensities_));
+        }
 
-                    if (!disable_isotope_filtering_)
-                    {
-                        if (isotope_model_ == "metabolites")
-                        {
-                            result = isLegalIsotopePattern2_(feat_hypos[hypo_idx]);
-                        }
-                        else if (isotope_model_ == "peptides")
-                        {
-                            result = true;
-                        }
-                    }
+        f.setWidth(feat_hypos[hypo_idx].getFWHM(use_smoothed_intensities_));
+        f.setCharge(feat_hypos[hypo_idx].getCharge());
+        f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
 
-                    // std::cout << "\nlegal iso? " << feat_hypos[hypo_idx].getLabel() << " score: " << feat_hypos[hypo_idx].getScore() << " " << result << std::endl;
-                }
+        // store isotope intensities
+        std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
 
-                if (result)
-                {
-                    Feature f;
-                    f.setRT(feat_hypos[hypo_idx].getCentroidRT());
-                    f.setMZ(feat_hypos[hypo_idx].getCentroidMZ());
+        f.setMetaValue("num_of_masstraces", all_ints.size());
 
-                    if (report_summed_ints_)
-                    {
-                        f.setIntensity(feat_hypos[hypo_idx].getSummedFeatureIntensity(use_smoothed_intensities_));
-                    }
-                    else
-                    {
-                        f.setIntensity(feat_hypos[hypo_idx].getMonoisotopicFeatureIntensity(use_smoothed_intensities_));
-                    }
-
-                    f.setWidth(feat_hypos[hypo_idx].getFWHM(true));
-                    f.setCharge(feat_hypos[hypo_idx].getCharge());
-                    f.setMetaValue(3, feat_hypos[hypo_idx].getLabel());
-
-                    // store isotope intensities
-                    std::vector<double> all_ints(feat_hypos[hypo_idx].getAllIntensities(use_smoothed_intensities_));
-
-                    f.setMetaValue("num_of_masstraces", all_ints.size());
-
-                    for (Size int_idx = 0; int_idx < all_ints.size(); ++int_idx)
-                    {
-                        std::stringstream read_in;
-                        read_in << int_idx;
-                        String identifier(read_in.str());
-
-                        f.setMetaValue("masstrace_intensity_" + identifier, all_ints[int_idx]);
-                    }
+        for (Size int_idx = 0; int_idx < all_ints.size(); ++int_idx)
+        {
+            f.setMetaValue("masstrace_intensity_" + String(int_idx), all_ints[int_idx]);
+        }
 
 
-                    f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
-                    f.setOverallQuality(feat_hypos[hypo_idx].getScore());
+        f.setConvexHulls(feat_hypos[hypo_idx].getConvexHulls());
+        f.setOverallQuality(feat_hypos[hypo_idx].getScore());
 
-                    output_featmap.push_back(f);
+        output_featmap.push_back(f);
 
-                    for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
-                    {
-                        trace_excl_map[labels[lab_idx]] = true;
-                    }
-                }
-
-            }
+        // add used traces to exclusion map
+        for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
+        {
+            trace_excl_map[labels[lab_idx]] = true;
         }
     }
 

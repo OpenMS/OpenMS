@@ -509,6 +509,9 @@ namespace OpenMS
 
   bool FuzzyStringComparator::compareStreams(std::istream& input_1, std::istream& input_2)
   {
+    // reset 'sucess' state to true, in case its currently false due to a prior call (reporting depends on it)
+    const_cast<bool&>(is_status_success_) = true;
+
     std::string line_str_1;
     std::string line_str_2;
 
@@ -556,7 +559,7 @@ namespace OpenMS
 
     if (input_1_name_ == input_2_name_)
     {
-      *log_dest_ << "Error: first and second input file have the same name.  That's cheating!\n";
+      *log_dest_ << "Error: first and second input file have the same name. That's cheating!\n";
       return false;
     }
 
