@@ -12,6 +12,7 @@ EuclideanSimilarity.cpp
 MultiplexCluster.cpp
 MultiplexGrid.cpp
 SingleLinkage.cpp
+SILACClustering.cpp
 )
 
 ### add path to the filenames
