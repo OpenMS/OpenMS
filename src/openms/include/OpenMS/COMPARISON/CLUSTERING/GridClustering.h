@@ -549,11 +549,12 @@ class OPENMS_DLLAPI GridClustering
         bool vetoA = !(A1 == A2);
         
         // Will the merged cluster have different properties B?
-        std::vector<int> B;
+        // (Hence the intersection of properties B of cluster 1 and cluster 2 should be empty.)
+        std::vector<int> B_intersection;
         sort(B1.begin(), B1.end());
         sort(B2.begin(), B2.end());
-        set_intersection(B1.begin(),B1.end(),B2.begin(),B2.end(),back_inserter(B));
-        bool vetoB = !B.empty();
+        set_intersection(B1.begin(),B1.end(),B2.begin(),B2.end(),back_inserter(B_intersection));
+        bool vetoB = !B_intersection.empty();
         
         return (vetoA || vetoB);
     }
