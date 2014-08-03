@@ -302,7 +302,6 @@ set(comparison_executables_list
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
   SingleLinkage_test
-  SILACClustering_test
   SpectraSTSimilarityScore_test
   SpectrumAlignmentScore_test
   SpectrumAlignment_test

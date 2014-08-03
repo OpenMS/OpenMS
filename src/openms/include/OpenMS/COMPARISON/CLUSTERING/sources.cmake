@@ -15,7 +15,6 @@ HierarchicalClustering.h
 MultiplexCluster.h
 MultiplexGrid.h
 SingleLinkage.h
-SILACClustering.h
 )
 
 ### add path to the filenames
