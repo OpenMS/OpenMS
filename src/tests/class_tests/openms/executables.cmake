@@ -34,6 +34,7 @@ set(datastructures_executables_list
   Date_test
   DefaultParamHandler_test
   DistanceMatrix_test
+  GridClustering_test
   GridFeature_test
   HashGrid_test
   ListUtils_test
@@ -44,7 +45,6 @@ set(datastructures_executables_list
   Matrix_test
   MultiplexCluster_test
   MultiplexGrid_test
-  MultiplexLocalClustering_test
   Param_test
   QTCluster_test
   RangeManager_test
