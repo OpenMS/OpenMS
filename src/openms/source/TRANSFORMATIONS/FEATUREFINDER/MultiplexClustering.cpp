@@ -65,11 +65,6 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
     }
     
-    // DEBUG START
-    EuclideanDistance metric(0.1);
-    GridClustering<EuclideanDistance> clustering_debug(metric);
-    // DEBUG END
-
     // ranges of the experiment
     double mz_min = exp_profile.getMinMZ();
     double mz_max = exp_profile.getMaxMZ();
@@ -118,6 +113,10 @@ namespace OpenMS
     for (unsigned i = 0; i < filter_results.size(); ++i)
     {
         
+      // DEBUG START
+      GridClustering<MultiplexDistance> clustering_debug(MultiplexDistance(0.1), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
+      // DEBUG END
+
       MultiplexLocalClustering clustering(filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
       clustering.cluster();
       //clustering.extendClustersY();
@@ -218,17 +217,17 @@ namespace OpenMS
     return width;
   }
 
-  MultiplexClustering::EuclideanDistance::EuclideanDistance(double rt_scaling)
+  MultiplexClustering::MultiplexDistance::MultiplexDistance(double rt_scaling)
   : rt_scaling_(rt_scaling)
   {
   }
   
-  MultiplexClustering::EuclideanDistance::EuclideanDistance()
+  MultiplexClustering::MultiplexDistance::MultiplexDistance()
   : rt_scaling_(1)
   {
   }
   
-  double MultiplexClustering::EuclideanDistance::operator()(Point p1, Point p2)
+  double MultiplexClustering::MultiplexDistance::operator()(Point p1, Point p2)
   {
       return sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
   }

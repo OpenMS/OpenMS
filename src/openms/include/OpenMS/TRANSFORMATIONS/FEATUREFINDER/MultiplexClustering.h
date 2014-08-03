@@ -140,9 +140,9 @@ namespace OpenMS
         };
         
         /**
-         * @brief Euclidean distance for clustering
+         * @brief scaled Euclidean distance for clustering
          */
-        class OPENMS_DLLAPI EuclideanDistance
+        class OPENMS_DLLAPI MultiplexDistance
         {
             public:
             /**
@@ -150,12 +150,12 @@ namespace OpenMS
             * 
             * @param rt_scaling    scaling of RT coordinates before calculating Euclidean distance 
             */
-            EuclideanDistance(double rt_scaling);
+            MultiplexDistance(double rt_scaling);
        
             /**
              * @brief constructor
              */
-            EuclideanDistance();
+            MultiplexDistance();
             
             /**
              * @brief returns Euclidean distance
