@@ -268,8 +268,6 @@ set(filtering_executables_list
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
-  SILACPattern_test
-  SILACPoint_test
   SplinePackage_test
   SplineSpectrum_test
   SavitzkyGolayFilter_test
