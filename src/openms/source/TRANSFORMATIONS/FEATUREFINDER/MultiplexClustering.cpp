@@ -45,7 +45,6 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexLocalClustering.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridClustering.h>
 
 #include <vector>
@@ -73,9 +72,9 @@ namespace OpenMS
     
     // generate grid spacing
     PeakWidthEstimator estimator(exp_picked, boundaries);
-    // We assume that the jitter of the peak centres are less than scaling times the peak width.
+    // We assume that the jitter of the peak centres are less than <scaling> times the peak width.
     // This factor ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
-    double scaling = 1.0/5.0;
+    double scaling = 0.2;
     for (double mz = mz_min; mz < mz_max; mz = mz + scaling * estimator.getPeakWidth(mz))
     {
       grid_spacing_mz_.push_back(mz);
@@ -113,11 +112,7 @@ namespace OpenMS
     for (unsigned i = 0; i < filter_results.size(); ++i)
     {
         
-      // DEBUG START
-      GridClustering<MultiplexDistance> clustering_debug(MultiplexDistance(0.1), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
-      // DEBUG END
-
-      MultiplexLocalClustering clustering(filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
+      GridClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
       clustering.cluster();
       //clustering.extendClustersY();
       clustering.removeSmallClustersY(rt_minimum_);
