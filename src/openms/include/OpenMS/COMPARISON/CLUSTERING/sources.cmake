@@ -11,7 +11,6 @@ CompleteLinkage.h
 EuclideanSimilarity.h
 GridClustering.h
 HashGrid.h
-HierarchicalClustering.h
 MultiplexCluster.h
 MultiplexGrid.h
 SingleLinkage.h

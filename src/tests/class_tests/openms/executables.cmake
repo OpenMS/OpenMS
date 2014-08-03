@@ -298,7 +298,6 @@ set(comparison_executables_list
   ClusterHierarchical_test
   CompleteLinkage_test
   EuclideanSimilarity_test
-  HierarchicalClustering_test
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
   SingleLinkage_test
