@@ -40,15 +40,15 @@
 #include <algorithm>
 #include <iostream>
 
-//#include <OpenMS/KERNEL/StandardTypes.h>
-//#include <OpenMS/DATASTRUCTURES/DRange.h>
-//#include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
-//#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
+#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 
 #ifndef OPENMS_COMPARISON_CLUSTERING_GRIDCLUSTERING_H
 #define OPENMS_COMPARISON_CLUSTERING_GRIDCLUSTERING_H
 
-using std::vector;
+//using std::vector;
 
 namespace OpenMS
 {
@@ -138,7 +138,7 @@ class OPENMS_DLLAPI GridClustering
     
         /**
          * @brief operators for comparisons
-         * (for priority queue)
+         * (for multiset)
          */
         bool operator<(MinimumDistance other) const
         {
@@ -202,7 +202,9 @@ class OPENMS_DLLAPI GridClustering
     * @brief list of minimum distances
     * stores the smallest of the distances in the head
     */
-    //std::multiset<MinimumDistance, std::less<vector<MinimumDistance>::value_type> > distances_;
+    //std::vector<MinimumDistance> dist;
+    std::multiset<double, std::less<vector<double>::value_type> > distances_;
+    //std::multiset<MinimumDistance, std::less<std::vector<MinimumDistance>::value_type> > distances_;
     
     /**
      * @brief initialises all data structures
