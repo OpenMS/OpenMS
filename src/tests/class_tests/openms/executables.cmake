@@ -36,7 +36,6 @@ set(datastructures_executables_list
   DistanceMatrix_test
   GridClustering_test
   GridFeature_test
-  HashGrid_test
   ListUtils_test
   ListUtilsIO_test
   LPWrapper_test
@@ -298,11 +297,9 @@ set(comparison_executables_list
   ClusterHierarchical_test
   CompleteLinkage_test
   EuclideanSimilarity_test
-  HierarchicalClustering_test
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
   SingleLinkage_test
-  SILACClustering_test
   SpectraSTSimilarityScore_test
   SpectrumAlignmentScore_test
   SpectrumAlignment_test
