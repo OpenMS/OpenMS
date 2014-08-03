@@ -53,6 +53,74 @@
 namespace OpenMS
 {
 /**
+ * @brief basic data structure for distances between clusters
+ */
+class OPENMS_DLLAPI MinimumDistance
+{
+    public:
+    /**
+    * @brief constructor
+    */
+    MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance)
+    :cluster_index_(cluster_index), nearest_neighbour_index_(nearest_neighbour_index), distance_(distance)
+    {
+    }
+
+    /**
+    * @brief returns cluster index
+    */
+    int getClusterIndex() const
+    {
+        return cluster_index_;
+    }
+    
+    /**
+    * @brief returns index of nearest cluster
+    */
+    int getNearestNeighbourIndex() const
+    {
+        return  nearest_neighbour_index_;
+    }
+
+    /**
+     * @brief operators for comparisons
+     * (for multiset)
+     */
+    bool operator<(MinimumDistance other) const
+    {
+        return distance_ < other.distance_;
+    }
+    bool operator>(MinimumDistance other) const
+    {
+        return distance_ > other.distance_;
+    }
+    bool operator==(MinimumDistance other) const
+    {
+        return distance_ == other.distance_;
+    }
+
+    private:        
+    /// hide default constructor
+    MinimumDistance();
+
+    /**
+    * @brief index in the cluster list
+    */
+    int cluster_index_;
+
+    /**
+    * @brief index of the nearest neighbour of the above cluster
+    */
+    int nearest_neighbour_index_;
+
+    /**
+    * @brief distance between cluster and its nearest neighbour
+    */
+    double distance_;
+   
+};
+
+/**
 * @brief 2D hierarchical clustering implementation
 * optimized for large datasets containing many small clusters
 * i.e. dimensions of clusters << dimension of entire dataset
@@ -91,6 +159,7 @@ class OPENMS_DLLAPI GridClustering
     GridClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
     : metric_(metric), grid_(grid_spacing_x,grid_spacing_y)
     {
+        init(data_x, data_y, properties_A, properties_B);
     }
     
     /**
@@ -104,76 +173,274 @@ class OPENMS_DLLAPI GridClustering
     GridClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
     : metric_(metric), grid_(grid_spacing_x,grid_spacing_y)
     {
+        // set properties A and B to -1, i.e. ignore properties when clustering
+        std::vector<int> properties_A(data_x.size(),-1);
+        std::vector<int> properties_B(data_x.size(),-1);
+        init(data_x, data_y, properties_A, properties_B);
     }
     
     /**
-     * @brief basic data structure for distances between clusters
+     * @brief performs the hierarchical clustering
+     * (merges clusters until their dimension exceeds that of  cell)
      */
-    class OPENMS_DLLAPI MinimumDistance
+    void cluster()
     {
-        public:
-        /**
-        * @brief constructor
-        */
-        MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance)
-        :cluster_index_(cluster_index), nearest_neighbour_index_(nearest_neighbour_index), distance_(distance)
+        MinimumDistance zero_distance(-1, -1, 0);
+        typedef std::multiset<MinimumDistance, std::less<vector<MinimumDistance>::value_type> >::iterator MultisetIterator;
+        
+        // combine clusters until all have been moved to the final list
+        while (clusters_.size() > 0)
         {
+            
+            MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
+            MinimumDistance smallest_distance(*smallest_distance_it);
+            distances_.erase(smallest_distance_it);
+            int cluster_index1 = smallest_distance.getClusterIndex();
+            int cluster_index2 = smallest_distance.getNearestNeighbourIndex();
+            
+            // update cluster list
+            MultiplexCluster cluster1 = clusters_.find(cluster_index1)->second;
+            MultiplexCluster cluster2 = clusters_.find(cluster_index2)->second;
+            std::vector<int> points1 = cluster1.getPoints();
+            std::vector<int> points2 = cluster2.getPoints();
+            std::vector<int> new_points;
+            new_points.reserve(points1.size() + points2.size());
+            new_points.insert(new_points.end(), points1.begin(), points1.end());
+            new_points.insert(new_points.end(), points2.begin(), points2.end());
+            
+            double new_x = (cluster1.getCentre().getX() * points1.size() + cluster2.getCentre().getX() * points2.size()) / (points1.size() + points2.size());
+            double new_y = (cluster1.getCentre().getY() * points1.size() + cluster2.getCentre().getY() * points2.size()) / (points1.size() + points2.size());
+        
+            Rectangle box1 = cluster1.getBoundingBox();
+            Rectangle box2 = cluster2.getBoundingBox();
+            Rectangle new_box(box1);
+            new_box.enlarge(box2.minPosition());
+            new_box.enlarge(box2.maxPosition());
+            
+            // Properties A of both clusters should by now be the same. The merge veto has been checked
+            // when a new entry to the minimum distance list was added, @see findNearestNeighbour.
+            if (cluster1.getPropertyA() != cluster2.getPropertyA())
+            {
+                throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Property A of both clusters not the same. ", "A");
+            }
+            int new_A = cluster1.getPropertyA();
+            
+            std::vector<int> B1 = cluster1.getPropertiesB();
+            std::vector<int> B2 = cluster2.getPropertiesB();
+            std::vector<int> new_B;
+            new_B.reserve(B1.size() + B2.size());
+            new_B.insert(new_B.end(), B1.begin(), B1.end());
+            new_B.insert(new_B.end(), B2.begin(), B2.end());
+            
+            MultiplexCluster new_cluster(DPosition<2>(new_x,new_y), new_box, new_points, new_A, new_B);
+            
+            clusters_.erase(clusters_.find(cluster_index1));
+            clusters_.erase(clusters_.find(cluster_index2));
+            clusters_.insert(std::make_pair(cluster_index1, new_cluster));
+            
+            // update grid
+            CellIndex cell_for_cluster1 = grid_.getIndex(cluster1.getCentre());
+            CellIndex cell_for_cluster2 = grid_.getIndex(cluster2.getCentre());
+            CellIndex cell_for_new_cluster = grid_.getIndex(DPosition<2>(new_x,new_y));
+            
+            grid_.removeCluster(cell_for_cluster1, cluster_index1);
+            grid_.removeCluster(cell_for_cluster2, cluster_index2);
+            grid_.addCluster(cell_for_new_cluster, cluster_index1);
+        
+            // update minimum distance list
+            std::vector<int> clusters_to_be_updated;
+            clusters_to_be_updated.push_back(cluster_index1);    // index of the new cluster
+            
+            MultisetIterator it = distances_.begin();
+            while (it != distances_.end())
+            {
+                MinimumDistance distance(*it);
+                if (distance.getClusterIndex() == cluster_index2)
+                {
+                    // distance.getClusterIndex() == cluster_index1 should never happen since this entry has already been erased.
+                    // Cluster 2 no longer exists. Hence only remove the entry from the list of minimum distances.
+                    distances_.erase(it++);
+                }
+                else if (distance.getNearestNeighbourIndex() == cluster_index1 || distance.getNearestNeighbourIndex() == cluster_index2)
+                {
+                    clusters_to_be_updated.push_back(distance.getClusterIndex());
+                    distances_.erase(it++);
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+            
+            for (std::vector<int>::const_iterator cluster_index = clusters_to_be_updated.begin(); cluster_index != clusters_to_be_updated.end(); ++cluster_index)
+            {
+                if (findNearestNeighbour(clusters_.find(*cluster_index)->second,*cluster_index))
+                {
+                    MultiplexCluster c = clusters_.find(*cluster_index)->second;
+                    grid_.removeCluster(grid_.getIndex(c.getCentre()), *cluster_index);    // remove from grid
+                    clusters_.erase(clusters_.find(*cluster_index));    // remove from cluster list
+               }
+            }
+                     
         }
-    
-        /**
-        * @brief returns cluster index
-        */
-        int getClusterIndex() const
+    }
+
+    /**
+     * @brief extends clusters in y-direction if possible
+     * (merges clusters further in y-direction, i.e. clusters can now span multiple cells)
+     */
+    void extendClustersY()
+    {
+        
+        // construct new grid (grid only in x-direction, single cell in y-direction)
+        std::vector<double> grid_spacing_x = grid_.getGridSpacingX();
+        std::vector<double> grid_spacing_y = grid_.getGridSpacingY();
+        std::vector<double> grid_spacing_y_new;
+        grid_spacing_y_new.push_back(grid_spacing_y.front());
+        grid_spacing_y_new.push_back(grid_spacing_y.back());
+        MultiplexGrid grid_x_only(grid_spacing_x, grid_spacing_y_new);
+        
+        // register final clusters on the new grid
+        for (std::map<int, MultiplexCluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
         {
-            return cluster_index_;
+            int cluster_index = it->first;
+            MultiplexCluster cluster = it->second;
+            grid_x_only.addCluster(grid_x_only.getIndex(cluster.getCentre()), cluster_index);
         }
         
-        /**
-        * @brief returns index of nearest cluster
-        */
-        int getNearestNeighbourIndex() const
+        
+        // scan through x on the grid
+        for (unsigned cell = 0; cell < grid_spacing_x.size(); ++cell)
         {
-            return  nearest_neighbour_index_;
-        }
+            CellIndex grid_index(cell,1);
+            if (grid_x_only.isNonEmptyCell(grid_index))
+            {
+                std::list<int> cluster_indices = grid_x_only.getClusters(grid_index);    // indices of clusters in this x-range
+                if (cluster_indices.size() > 1)
+                {
+                    // First, order the clusters in ascending y.
+                    std::list<MultiplexCluster> cluster_list;    // list to order clusters in y
+                    std::map<MultiplexCluster,int> index_list;    // allows us to keep track of cluster indices after sorting
+                    for (std::list<int>::iterator it = cluster_indices.begin(); it != cluster_indices.end(); ++it)
+                    {
+                        cluster_list.push_back(clusters_final_.find(*it)->second);
+                        index_list.insert(std::make_pair(clusters_final_.find(*it)->second,*it));
+                    }
+                    cluster_list.sort();
+                    
+                    // Now check if two adjacent clusters c1 and c2 can be merged.
+                    std::list<MultiplexCluster>::iterator c1 = cluster_list.begin();
+                    std::list<MultiplexCluster>::iterator c2 = cluster_list.begin();
+                    ++c1;
+                    while (c1 != cluster_list.end())
+                    {
+                        double centre1x = (*c1).getCentre().getX();
+                        double centre1y = (*c1).getCentre().getY();
+                        double centre2x = (*c2).getCentre().getX();
+                        double centre2y = (*c2).getCentre().getY();
+                        
+                        double box1x_min = (*c1).getBoundingBox().minX();
+                        double box1x_max = (*c1).getBoundingBox().maxX();
+                        double box1y_min = (*c1).getBoundingBox().minY();
+                        double box1y_max = (*c1).getBoundingBox().maxY();
+                        double box2x_min = (*c2).getBoundingBox().minX();
+                        double box2x_max = (*c2).getBoundingBox().maxX();
+                        double box2y_min = (*c2).getBoundingBox().minY();
+                        double box2y_max = (*c2).getBoundingBox().maxY();
+                        
+                        //double y_range1 = box1y_max - box1y_min;
+                        //double y_range2 = box2y_max - box2y_min;
+                        //double y_gap = box1y_min - box2y_max;
+                                           
+                        // Is there an overlap of the two clusters in x?
+                        bool overlap = (box1x_min <= box2x_max && box1x_min >= box2x_min) || (box1x_max >= box2x_min && box1x_max <= box2x_max);
     
-        /**
-         * @brief operators for comparisons
-         * (for multiset)
-         */
-        bool operator<(MinimumDistance other) const
-        {
-            return distance_ < other.distance_;
+                        // Is the x-centre of one cluster in the x-range of the other?
+                        //bool centre_in_range1 = (box2x_min <= centre1x && centre1x <= box2x_max);
+                        //bool centre_in_range2 = (box1x_min <= centre2x && centre2x <= box1x_max);
+                            
+                        // Is the y-gap between the two clusters smaller than 1/s of their average y-range?
+                        //double s = 6;    // scaling factor
+                        //bool clusters_close = (y_gap * s <= (y_range1 - y_range2)/2);
+                           
+                        // Shall we merge the two adjacent clusters?
+                        //if ((centre_in_range1 || centre_in_range2) && clusters_close)
+                        if (overlap)
+                        {
+                            std::vector<int> points1 = (*c1).getPoints();
+                            std::vector<int> points2 = (*c2).getPoints();
+                            std::vector<int> new_points;
+                            new_points.reserve(points1.size() + points2.size());
+                            new_points.insert(new_points.end(), points1.begin(), points1.end());
+                            new_points.insert(new_points.end(), points2.begin(), points2.end());
+                            
+                            double new_x = (centre1x * points1.size() + centre2x * points2.size()) / (points1.size() + points2.size());
+                            double new_y = (centre1y * points1.size() + centre2y * points2.size()) / (points1.size() + points2.size());
+                            
+                            double min_x = std::min(box1x_min, box2x_min); 
+                            double min_y = std::min(box1y_min, box2y_min); 
+                            double max_x = std::max(box1x_max, box2x_max); 
+                            double max_y = std::max(box1y_max, box2y_max);
+                            
+                            Point new_centre(new_x, new_y);
+                            Point position_min(min_x,min_y);
+                            Point position_max(max_x,max_y);
+                            Rectangle new_bounding_box(position_min,position_max);
+                            
+                            MultiplexCluster new_cluster(new_centre, new_bounding_box, new_points);
+                            
+                            // update final cluster list
+                            clusters_final_.erase(clusters_final_.find(index_list.find(*c1)->second));
+                            clusters_final_.erase(clusters_final_.find(index_list.find(*c2)->second));
+                            clusters_final_.insert(std::make_pair(index_list.find(*c1)->second, new_cluster));
+                            
+                            // update grid
+                            CellIndex cell_for_cluster1 = grid_x_only.getIndex((*c1).getCentre());
+                            CellIndex cell_for_cluster2 = grid_x_only.getIndex((*c2).getCentre());
+                            CellIndex cell_for_new_cluster = grid_x_only.getIndex(new_centre);
+                            
+                            grid_x_only.removeCluster(cell_for_cluster1, index_list.find(*c1)->second);
+                            grid_x_only.removeCluster(cell_for_cluster2, index_list.find(*c2)->second);
+                            grid_x_only.addCluster(cell_for_new_cluster, index_list.find(*c1)->second);
+                        }
+                        ++c1;
+                        ++c2;
+                    } 
+                }
+            }
         }
-        bool operator>(MinimumDistance other) const
-        {
-            return distance_ > other.distance_;
-        }
-        bool operator==(MinimumDistance other) const
-        {
-            return distance_ == other.distance_;
-        }
+         
+    }
 
-        private:        
-        /// hide default constructor
-        MinimumDistance();
-    
-        /**
-        * @brief index in the cluster list
-        */
-        int cluster_index_;
-    
-        /**
-        * @brief index of the nearest neighbour of the above cluster
-        */
-        int nearest_neighbour_index_;
-    
-        /**
-        * @brief distance between cluster and its nearest neighbour
-        */
-        double distance_;
-       
-    };
-    
+    /**
+     * @brief removes clusters with bounding box dimension in y-direction below certain threshold
+     * @param threshold_y    minimal dimension of the cluster bounding box
+     */
+    void removeSmallClustersY(double threshold_y)
+    {
+        std::map<int, MultiplexCluster>::iterator it = clusters_final_.begin();
+        while (it != clusters_final_.end())
+        {
+            Rectangle box = it->second.getBoundingBox();
+            if (box.maxY() - box.minY() < threshold_y)
+            {
+                clusters_final_.erase(it++);
+            }
+            else
+            {
+                ++it;
+            }
+        }    
+    }    
+
+    /**
+     * @brief returns final results (mapping of cluster indices to clusters)
+     */
+    std::map<int, MultiplexCluster> getResults() const
+    {
+        return clusters_final_;
+    }
+
     private:
     /**
      * @brief metric for measuring the distance between points in the 2D plane
@@ -202,9 +469,7 @@ class OPENMS_DLLAPI GridClustering
     * @brief list of minimum distances
     * stores the smallest of the distances in the head
     */
-    //std::vector<MinimumDistance> dist;
-    std::multiset<double, std::less<vector<double>::value_type> > distances_;
-    //std::multiset<MinimumDistance, std::less<std::vector<MinimumDistance>::value_type> > distances_;
+    std::multiset<MinimumDistance, std::less<std::vector<MinimumDistance>::value_type> > distances_;
     
     /**
      * @brief initialises all data structures
@@ -353,7 +618,7 @@ class OPENMS_DLLAPI GridClustering
         }
         
         // add to the list of minimal distances
-        //distances_.insert(MinimumDistance(cluster_index, nearest_neighbour, min_dist));
+        distances_.insert(MinimumDistance(cluster_index, nearest_neighbour, min_dist));
         return false;
     }
 
