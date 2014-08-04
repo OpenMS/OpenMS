@@ -381,6 +381,7 @@ protected:
     parameters += " -maxCharge " + String(getIntOption_("max_precursor_charge"));
     parameters += " -n " + String(getIntOption_("matches_per_spec"));
     parameters += " -addFeatures " + String(getIntOption_("add_features"));
+    parameters += " -thread " + String(getIntOption_("threads"));
 
     String modfile_name = getStringOption_("mod");
     if(modfile_name != "") 
