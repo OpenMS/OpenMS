@@ -108,21 +108,21 @@ namespace OpenMS
     // Neutral losses of all ion series
     static const EmpiricalFormula neutralloss_h2o("H2O"); // -18 H2O loss
     static const EmpiricalFormula neutralloss_nh3("NH3"); // -17 NH3 loss
-    
+
     static const EmpiricalFormula neutralloss_h2oh2o("H2OH2O"); // -36 2 * H2O loss
     static const EmpiricalFormula neutralloss_nh3nh3("NH3NH3"); // -34 2 * NH3 loss
     static const EmpiricalFormula neutralloss_h2onh3("H2ONH3"); // -35 H2O & NH3 loss
-    
+
     // Neutral loss (oxidation) of methionine only
     static const EmpiricalFormula neutralloss_ch4so("CH4SO"); // -64 CH4SO loss
-    
+
     // Neutral losses (phospho) of serine and threonine only
     static const EmpiricalFormula neutralloss_hpo3("HPO3"); // -80 HPO3 loss
     static const EmpiricalFormula neutralloss_hpo3h2o("HPO3H2O"); // -98 HPO3 loss
-    
+
     // Neutral loss of asparagine and glutamine only
     static const EmpiricalFormula neutralloss_ch3no("CH3NO"); // -45 CH3NO loss
-    
+
     // Neutral losses of y-ions only
     static const EmpiricalFormula neutralloss_co2("CO2"); // -44 CO2 loss
     static const EmpiricalFormula neutralloss_hccoh("HCOOH"); // -46 HCOOH loss
@@ -182,19 +182,19 @@ namespace OpenMS
         if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
-        { 
+        {
           yionseries_loss["y" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
         }
         if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
-        { 
+        {
           yionseries_loss["y" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
         }
         if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
-        { 
+        {
           yionseries_loss["y" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
           yionseries_loss["y" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;
         }
@@ -264,7 +264,7 @@ namespace OpenMS
     boost::uniform_int<> uni_dist;
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
 
-    typedef std::vector<std::pair<std::string::size_type, std::string> > IndexType; 
+    typedef std::vector<std::pair<std::string::size_type, std::string> > IndexType;
     IndexType idx = MRMDecoy::find_all_tryptic(peptide.sequence);
     std::string aa[] =
     {
@@ -275,7 +275,7 @@ namespace OpenMS
 
     int attempts = 0;
     // loop: copy the original peptide, attempt to shuffle it and check whether difference is large enough
-    while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold && 
+    while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold &&
         attempts < max_attempts)
     {
       shuffled = peptide;
@@ -293,7 +293,19 @@ namespace OpenMS
       }
 
       // shuffle the peptide index (without the K/P/R which we leave in place)
-      std::random_shuffle(peptide_index.begin(), peptide_index.end(), pseudoRNG);
+      // one could also use std::random_shuffle here but then the code becomes
+      // untestable since the implementation of std::random_shuffle differs
+      // between libc++ (llvm/mac-osx) and libstdc++ (gcc) and VS
+      // see also https://code.google.com/p/chromium/issues/detail?id=358564
+      // the actual code here for the shuffling is based on the implementation of
+      // std::random_shuffle in libstdc++
+      if (peptide_index.begin() != peptide_index.end())
+      {
+        for (std::vector<Size>::iterator pI_it = peptide_index.begin() + 1; pI_it != peptide_index.end(); ++pI_it)
+        {
+          std::iter_swap(pI_it, peptide_index.begin() + pseudoRNG( (pI_it - peptide_index.begin() ) + 1 ) );
+        }
+      }
 
       // re-insert the missing K/P/R at the appropriate places
       for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
@@ -449,7 +461,7 @@ namespace OpenMS
           LibraryIntensity.push_back(boost::lexical_cast<double>(tr.getLibraryIntensity()));
         }
 
-        // sort by intensity, reverse and delete all elements after max_transitions 
+        // sort by intensity, reverse and delete all elements after max_transitions
         sort(LibraryIntensity.begin(), LibraryIntensity.end());
         reverse(LibraryIntensity.begin(), LibraryIntensity.end());
         if ((Size)max_transitions < LibraryIntensity.size() )
@@ -502,8 +514,8 @@ namespace OpenMS
   }
 
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
-                                String method, String decoy_tag, double identity_threshold, int max_attempts, 
-                                double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, 
+                                String method, String decoy_tag, double identity_threshold, int max_attempts,
+                                double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar,
                                 double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift,
                                 bool enable_losses, bool remove_unannotated)  {
     MRMDecoy::PeptideVectorType peptides;
@@ -548,7 +560,7 @@ namespace OpenMS
       if (MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) > identity_threshold)
       {
         if (!exclude_similar)
-        { 
+        {
           std::cout << "Target sequence: " << original_sequence << " Decoy sequence: " << peptide.sequence  << " Sequence identity: " << MRMDecoy::AASequenceIdentity(original_sequence, peptide.sequence) << " Identity threshold: " << identity_threshold << std::endl;
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AA Sequences are too similar. Either decrease identity_threshold and increase max_attempts for the shuffle method or set flag exclude_similar.");
         }
@@ -654,7 +666,7 @@ namespace OpenMS
       }
       dec.setTransitions(filtered_decoy_transitions);
     }
-    else 
+    else
     {
       dec.setTransitions(decoy_transitions);
     }
@@ -690,13 +702,13 @@ namespace OpenMS
           setProgress(++progress);
           const ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
-          // determine the current annotation for the target ion 
+          // determine the current annotation for the target ion
           std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses);
           if (targetion.second == -1)
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and an appropriate mz_threshold was chosen and enable losses if necessary.");
           }
-          // correct the masses of the input experiment 
+          // correct the masses of the input experiment
           {
             ReactionMonitoringTransition transition = *(pep_it->second[i]); // copy the transition
             if (targetion.second > 0)
