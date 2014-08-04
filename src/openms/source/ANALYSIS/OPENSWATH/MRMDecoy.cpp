@@ -303,6 +303,9 @@ namespace OpenMS
       {
         for (std::vector<Size>::iterator pI_it = peptide_index.begin() + 1; pI_it != peptide_index.end(); ++pI_it)
         {
+          // swap current position with element random element form vector
+          // swapping positions are random in range [0, current_position + 1)
+          // which can be at most [0, n) 
           std::iter_swap(pI_it, peptide_index.begin() + pseudoRNG( (pI_it - peptide_index.begin() ) + 1 ) );
         }
       }
