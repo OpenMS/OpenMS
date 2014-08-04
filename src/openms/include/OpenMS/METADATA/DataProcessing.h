@@ -39,6 +39,7 @@
 #include <OpenMS/METADATA/Software.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
+#include <QtCore/QMetaType>
 #include <set>
 
 namespace OpenMS
@@ -116,6 +117,11 @@ public:
     /// sets the time of completion taking a DateTime object
     void setCompletionTime(const DateTime & completion_time);
 
+    /// In-stream operator to serialize DataProcessing instance
+    friend OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, DataProcessing& dataProcessing);
+    /// Out-stream operator to serialize DataProcessing instance
+    friend OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const DataProcessing& dataProcessing);
+
 protected:
 
     Software software_;
@@ -123,5 +129,7 @@ protected:
     DateTime completion_time_;
   };
 } // namespace OpenMS
+
+Q_DECLARE_METATYPE(OpenMS::DataProcessing)
 
 #endif // OPENMS_METADATA_DATAPROCESSING_H

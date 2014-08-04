@@ -152,4 +152,18 @@ namespace OpenMS
     processing_actions_ = processing_actions;
   }
 
+  OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, DataProcessing& dataProcessing)
+  {
+      in >> dataProcessing.software_;
+
+      return in;
+  }
+
+  OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const DataProcessing& dataProcessing)
+  {
+      out << dataProcessing.software_;
+
+      return out;
+  }
+
 }
