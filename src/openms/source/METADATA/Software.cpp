@@ -111,6 +111,10 @@ namespace OpenMS
     in >> temp;
     software.version_ = String(temp);
 
+    MetaInfoInterface metaInfo;
+    in >> metaInfo;
+    dynamic_cast<MetaInfoInterface&>(software) = metaInfo;
+
     return in;
   }
 
@@ -118,6 +122,7 @@ namespace OpenMS
   {
     out << software.name_.toQString();
     out << software.version_.toQString();
+    out << static_cast<MetaInfoInterface>(software);
 
     return out;
   }
