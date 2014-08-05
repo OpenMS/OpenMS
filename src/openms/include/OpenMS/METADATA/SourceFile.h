@@ -35,6 +35,8 @@
 #ifndef OPENMS_METADATA_SOURCEFILE_H
 #define OPENMS_METADATA_SOURCEFILE_H
 
+#include <QtCore/QMetaType>
+
 #include <OpenMS/METADATA/CVTermList.h>
 
 namespace OpenMS
@@ -105,6 +107,11 @@ public:
     /// Sets the native ID type of the spectra
     void setNativeIDType(const String& type);
 
+    /// In-stream operator to serialize SourceFile instance
+    friend OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, SourceFile& sourceFile);
+    /// Out-stream operator to serialize SourceFile instance
+    friend OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const SourceFile& sourceFile);
+
 protected:
     String name_of_file_;
     String path_to_file_;
@@ -114,6 +121,9 @@ protected:
     ChecksumType checksum_type_;
     String native_id_type_;
   };
+
 } // namespace OpenMS
+
+Q_DECLARE_METATYPE(OpenMS::SourceFile)
 
 #endif // OPENMS_METADATA_SOURCEFILE_H

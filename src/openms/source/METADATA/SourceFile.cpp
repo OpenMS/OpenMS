@@ -171,4 +171,49 @@ namespace OpenMS
     native_id_type_ = type;
   }
 
+  OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, SourceFile& sourceFile)
+  {
+    QString tempQString;
+
+    in >> tempQString;
+    sourceFile.name_of_file_ = tempQString;
+
+    in >> tempQString;
+    sourceFile.path_to_file_ = tempQString;
+
+    in >> sourceFile.file_size_;
+
+    in >> tempQString;
+    sourceFile.file_type_ = tempQString;
+
+    in >> tempQString;
+    sourceFile.checksum_ = tempQString;
+
+    in >> (int&) sourceFile.checksum_type_;
+
+    in >> tempQString;
+    sourceFile.native_id_type_ = tempQString;
+
+    MetaInfoInterface metaInfo;
+    in >> metaInfo;
+    dynamic_cast<MetaInfoInterface&>(sourceFile) = metaInfo;
+
+    return in;
+  }
+
+  OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const SourceFile& sourceFile)
+  {
+    out << sourceFile.name_of_file_.toQString();
+    out << sourceFile.path_to_file_.toQString();
+    out << sourceFile.file_size_;
+    out << sourceFile.file_type_.toQString();
+    out << sourceFile.checksum_.toQString();
+    out << sourceFile.checksum_type_;
+    out << sourceFile.native_id_type_.toQString();
+
+    out << static_cast<MetaInfoInterface>(sourceFile);
+
+    return out;
+  }
+
 }
