@@ -45,7 +45,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridClustering.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
 
 #include <vector>
 #include <algorithm>
@@ -112,7 +112,7 @@ namespace OpenMS
     for (unsigned i = 0; i < filter_results.size(); ++i)
     {
         
-      GridClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
+      GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
       clustering.cluster();
       //clustering.extendClustersY();
       clustering.removeSmallClustersY(rt_minimum_);

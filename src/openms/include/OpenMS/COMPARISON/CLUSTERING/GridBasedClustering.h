@@ -45,8 +45,8 @@
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
 #include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
 
-#ifndef OPENMS_COMPARISON_CLUSTERING_GRIDCLUSTERING_H
-#define OPENMS_COMPARISON_CLUSTERING_GRIDCLUSTERING_H
+#ifndef OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
+#define OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
 
 namespace OpenMS
 {
@@ -134,7 +134,7 @@ class OPENMS_DLLAPI MinimumDistance
 * all properties B different.
 */
 template <typename Metric>
-class OPENMS_DLLAPI GridClustering
+class OPENMS_DLLAPI GridBasedClustering
 {
     public:
     /**
@@ -154,7 +154,7 @@ class OPENMS_DLLAPI GridClustering
      * @param grid_spacing_x    grid spacing in x-direction
      * @param grid_spacing_y    grid spacing in y-direction
      */
-    GridClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
+    GridBasedClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
     : metric_(metric), grid_(grid_spacing_x,grid_spacing_y)
     {
         init(data_x, data_y, properties_A, properties_B);
@@ -168,7 +168,7 @@ class OPENMS_DLLAPI GridClustering
      * @param grid_spacing_x    grid spacing in x-direction
      * @param grid_spacing_y    grid spacing in y-direction
      */
-    GridClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
+    GridBasedClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
     : metric_(metric), grid_(grid_spacing_x,grid_spacing_y)
     {
         // set properties A and B to -1, i.e. ignore properties when clustering
@@ -624,4 +624,4 @@ class OPENMS_DLLAPI GridClustering
 };
 
 }
-#endif /* OPENMS_COMPARISON_CLUSTERING_GRIDCLUSTERING_H */
+#endif /* OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H */
