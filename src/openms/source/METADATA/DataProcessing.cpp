@@ -34,6 +34,7 @@
 
 #include <OpenMS/METADATA/DataProcessing.h>
 
+#include <QtCore/QDateTime>
 
 using namespace std;
 
@@ -154,16 +155,48 @@ namespace OpenMS
 
   OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, DataProcessing& dataProcessing)
   {
-      in >> dataProcessing.software_;
+    in >> dataProcessing.software_;
 
-      return in;
+    // read in processing_actions_
+    QList<int> actionsList;
+    in >> actionsList;
+    std::set<DataProcessing::ProcessingAction> actions;
+    for (int i = 0; i < actionsList.size(); i++)
+    {
+        DataProcessing::ProcessingAction type = static_cast<DataProcessing::ProcessingAction>(actionsList.at(i));
+        actions.insert(type);
+    }
+    dataProcessing.processing_actions_ = actions;
+
+    // read in completion_time_
+    QDateTime dt;
+    in >> dt;
+    dataProcessing.completion_time_ = DateTime(dt);
+
+    MetaInfoInterface metaInfo;
+    in >> metaInfo;
+    dynamic_cast<MetaInfoInterface&>(dataProcessing) = metaInfo;
+
+    return in;
   }
 
   OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const DataProcessing& dataProcessing)
   {
-      out << dataProcessing.software_;
+    out << dataProcessing.software_;
 
-      return out;
+    // write out processing_actions_
+    QList<int> actions;
+    set<DataProcessing::ProcessingAction>::const_iterator iter;
+    for (iter = dataProcessing.processing_actions_.begin(); iter != dataProcessing.processing_actions_.end(); ++iter)
+    {
+      actions.append((int) *iter);
+    }
+    out << actions;
+
+    out << static_cast<QDateTime>(dataProcessing.completion_time_);
+    out << static_cast<MetaInfoInterface>(dataProcessing);
+
+    return out;
   }
 
 }
