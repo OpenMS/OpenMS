@@ -168,7 +168,10 @@ namespace OpenMS
           if (ith->metaValueExists("name") && ith->metaValueExists("sumformula"))
           {
             String name = ith->getMetaValue("name");
-            if (name > 20) name = name.substr(0,17) + "...";
+            if (name.length() > 20) 
+            {
+              name = name.substr(0, 17) + "...";
+            }
             formula_to_names[ith->getMetaValue("sumformula")].push_back(name);
           }
         }
@@ -181,8 +184,8 @@ namespace OpenMS
                                                     ++ith)
         {
           if (++i >= 4)
-          {
-            text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(std::distance(formula_to_names.begin(), formula_to_names.end())-4) + " more</span></b><br>";
+          { // at this point, this is the 4th entry.. which we don't show any more...
+            text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(std::distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
             break;
           }
           text += String("<b><span style=\"color:") + cols[i].name() + "\">" + ith->first + "</span></b><br>\n";
@@ -198,8 +201,8 @@ namespace OpenMS
             ++itic;
           }
           Annotation1DCaret* ditem = new Annotation1DCaret(points,
-                                                                 QString(),
-                                                                 cols[i]);
+                                                           QString(),
+                                                           cols[i]);
           ditem->setSelected(false);
           temporary_annotations_.push_back(ditem); // for removal (no ownership)
           current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
