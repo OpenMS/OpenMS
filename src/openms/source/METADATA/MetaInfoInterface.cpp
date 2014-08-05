@@ -228,7 +228,6 @@ namespace OpenMS
     }
   }
 
-  /// In-stream operator to serialize MetaInfoInterface instance
   OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, MetaInfoInterface& metaInfoInterface)
   {
     QList<QVariant> keysList;
@@ -249,7 +248,7 @@ namespace OpenMS
       String key = keysList[i].toString();
 
       DataValue dv;
-      switch(typeList[i].toInt())
+      switch (typeList[i].toInt())
       {
       case DataValue::STRING_VALUE:
           dv = valueList[i].toString();
@@ -264,7 +263,7 @@ namespace OpenMS
           break;
 
       case DataValue::STRING_LIST:
-          temp = valueList[i].toString().mid(1); // remove left quote
+          temp = valueList[i].toString().mid(1);  // remove left quote
           temp.chop(1); //remove right quote
           tempList = temp.split(',');
           for (int j = 0; j < tempList.size(); j++)
@@ -275,7 +274,7 @@ namespace OpenMS
           break;
 
       case DataValue::INT_LIST:
-          temp = valueList[i].toString().mid(1); // remove left quote
+          temp = valueList[i].toString().mid(1);  // remove left quote
           temp.chop(1); //remove right quote
           tempList = temp.split(',');
 
@@ -287,7 +286,7 @@ namespace OpenMS
           break;
 
       case DataValue::DOUBLE_LIST:
-          temp = valueList[i].toString().mid(1); // remove left quote
+          temp = valueList[i].toString().mid(1);  // remove left quote
           temp.chop(1); //remove right quote
           tempList = temp.split(',');
           for (int j = 0; j < tempList.size(); j++)
@@ -298,7 +297,7 @@ namespace OpenMS
           break;
       }
 
-      if(unitsList[i].isValid())
+      if (unitsList[i].isValid())
       {
           dv.setUnit(unitsList[i].toString());
       }
@@ -311,7 +310,6 @@ namespace OpenMS
 
   }
 
-  /// Out-stream operator to serialize MetaInfoInterface instance
   OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const MetaInfoInterface& metaInfoInterface)
   {
     vector<String> keys;
@@ -335,7 +333,7 @@ namespace OpenMS
 
       valueList.append(dv.toQString());
 
-      if(dv.hasUnit())
+      if (dv.hasUnit())
       {
         unitsList.append(dv.getUnit().toQString());
       }
