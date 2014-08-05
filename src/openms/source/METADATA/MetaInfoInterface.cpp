@@ -34,6 +34,10 @@
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
+#include <QtCore/QList>
+#include <QtCore/QStringList>
+#include <QtCore/QVariant>
+
 using namespace std;
 
 namespace OpenMS
@@ -223,5 +227,130 @@ namespace OpenMS
       meta_->removeValue(index);
     }
   }
+
+  /// In-stream operator to serialize MetaInfoInterface instance
+  OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, MetaInfoInterface& metaInfoInterface)
+  {
+    QList<QVariant> keysList;
+    QList<QVariant> typeList;
+    QList<QVariant> valueList;
+    QList<QVariant> unitsList;
+
+    QString temp;
+    QStringList tempList;
+    StringList sList;
+    IntList iList;
+    DoubleList dList;
+
+    in >> keysList >> typeList >> valueList >> unitsList;
+
+    for (int i = 0; i < keysList.size(); i++)
+    {
+      String key = keysList[i].toString();
+
+      DataValue dv;
+      switch(typeList[i].toInt())
+      {
+      case DataValue::STRING_VALUE:
+          dv = valueList[i].toString();
+          break;
+
+      case DataValue::INT_VALUE:
+          dv = valueList[i].toString().toInt();
+          break;
+
+      case DataValue::DOUBLE_VALUE:
+          dv = valueList[i].toString().toDouble();
+          break;
+
+      case DataValue::STRING_LIST:
+          temp = valueList[i].toString().mid(1); // remove left quote
+          temp.chop(1); //remove right quote
+          tempList = temp.split(',');
+          for (int j = 0; j < tempList.size(); j++)
+          {
+              sList.push_back(String(tempList[j].trimmed()));
+          }
+          dv = sList;
+          break;
+
+      case DataValue::INT_LIST:
+          temp = valueList[i].toString().mid(1); // remove left quote
+          temp.chop(1); //remove right quote
+          tempList = temp.split(',');
+
+          for (int j = 0; j < tempList.size(); j++)
+          {
+              iList.push_back(tempList[j].trimmed().toInt());
+          }
+          dv = iList;
+          break;
+
+      case DataValue::DOUBLE_LIST:
+          temp = valueList[i].toString().mid(1); // remove left quote
+          temp.chop(1); //remove right quote
+          tempList = temp.split(',');
+          for (int j = 0; j < tempList.size(); j++)
+          {
+              dList.push_back(tempList[j].trimmed().toDouble());
+          }
+          dv = dList;
+          break;
+      }
+
+      if(unitsList[i].isValid())
+      {
+          dv.setUnit(unitsList[i].toString());
+      }
+
+      metaInfoInterface.setMetaValue(key, dv);
+
+    }
+
+    return in;
+
+  }
+
+  /// Out-stream operator to serialize MetaInfoInterface instance
+  OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const MetaInfoInterface& metaInfoInterface)
+  {
+    vector<String> keys;
+    metaInfoInterface.getKeys(keys);
+
+    QList<QVariant> keysList;
+    QList<QVariant> typeList;
+    QList<QVariant> valueList;
+    QList<QVariant> unitsList;
+
+    vector<String>::const_iterator iter;
+    for (iter = keys.begin(); iter != keys.end(); ++iter)
+    {
+      String key = *iter;
+
+      keysList.append(key.toQString());
+
+      DataValue dv = metaInfoInterface.getMetaValue(key);
+      QVariant type = QVariant((int) dv.valueType());
+      typeList.append(type);
+
+      valueList.append(dv.toQString());
+
+      if(dv.hasUnit())
+      {
+        unitsList.append(dv.getUnit().toQString());
+      }
+      else
+      {
+        unitsList.append(QVariant());
+      }
+
+    }
+
+    out << keysList << typeList << valueList << unitsList;
+
+    return out;
+
+  }
+
 
 } //namespace

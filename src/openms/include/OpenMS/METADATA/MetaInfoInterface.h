@@ -37,6 +37,8 @@
 
 #include <OpenMS/METADATA/MetaInfo.h>
 
+#include <QtCore/QMetaType>
+
 namespace OpenMS
 {
   class String;
@@ -107,6 +109,11 @@ public:
     /// removes all meta values
     void clearMetaInfo();
 
+    /// In-stream operator to serialize MetaInfoInterface instance
+    friend OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, MetaInfoInterface& metaInfoInterface);
+    /// Out-stream operator to serialize MetaInfoInterface instance
+    friend OPENMS_DLLAPI QDataStream& operator<<(QDataStream& out, const MetaInfoInterface& metaInfoInterface);
+
 protected:
     /// creates the MetaInfo object if it does not exist
     inline void createIfNotExists_();
@@ -115,5 +122,7 @@ protected:
   };
 
 } // namespace OpenMS
+
+Q_DECLARE_METATYPE(OpenMS::MetaInfoInterface)
 
 #endif // OPENMS_METADATA_METAINFOINTERFACE_H
