@@ -472,7 +472,10 @@ namespace OpenMS
     while (getline(database_file, line) && !not_found.empty())
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
+
       line.trim();
 
       // empty and comment lines are skipped
@@ -493,7 +496,9 @@ namespace OpenMS
         sequence.clear();
       }
       else if (nf_i != not_found.end())
+      {
         sequence.append(line);
+      }
     }
     if (nf_i != not_found.end())
     {
