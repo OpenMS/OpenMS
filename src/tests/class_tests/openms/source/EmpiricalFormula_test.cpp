@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -95,25 +95,32 @@ START_SECTION(const Element* getElement(const String& name) const)
 	TEST_EQUAL(e->getSymbol(), "C")
 END_SECTION
 
-START_SECTION(Size getNumberOf(UInt atomic_number) const)
+START_SECTION(SignedSize getNumberOf(UInt atomic_number) const)
 	Size num1 = e_ptr->getNumberOf(6);
 	TEST_EQUAL(num1, 4);
 END_SECTION
 
-START_SECTION(Size getNumberOf(const String& name) const)
+START_SECTION(SignedSize getNumberOf(const String& name) const)
 	Size num2 = e_ptr->getNumberOf("C");
 	TEST_EQUAL(num2, 4);
+  EmpiricalFormula ef("C-2");
+  TEST_EQUAL(ef.getNumberOf("C"), -2);
 END_SECTION
 
-START_SECTION(Size getNumberOf(const Element* element) const)
+START_SECTION(SignedSize getNumberOf(const Element* element) const)
 	const Element* e = e_ptr->getElement(6);
 	Size num3 = e_ptr->getNumberOf(e);
 	TEST_EQUAL(num3, 4);
+  EmpiricalFormula ef("C-2H6");
+  const Element* e2 = ef.getElement("C");
+  TEST_EQUAL(ef.getNumberOf(e2), -2);
 END_SECTION
 
-START_SECTION(Size getNumberOfAtoms() const)
+START_SECTION(SignedSize getNumberOfAtoms() const)
 	Size num4 = e_ptr->getNumberOfAtoms();
 	TEST_EQUAL(num4, 4);
+  EmpiricalFormula ef("C-2H6");
+  TEST_EQUAL(ef.getNumberOfAtoms(), 4);
 END_SECTION
 
 START_SECTION(EmpiricalFormula& operator = (const EmpiricalFormula& rhs))
@@ -232,6 +239,27 @@ START_SECTION(bool hasElement(const Element* element) const)
 	TEST_EQUAL(e_ptr->hasElement(e), true)
 	e = e_ptr->getElement(1);
 	TEST_EQUAL(e_ptr->hasElement(e), false)
+END_SECTION
+
+START_SECTION(bool contains(const EmpiricalFormula& ef))
+
+  EmpiricalFormula metabolite("C12H36N2");
+
+  TEST_EQUAL(metabolite.contains(metabolite), true) // contains itself?
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("C-12H36N2")), true)
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("C11H36N2")), true)
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("N2")), true)
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("H36")), true)
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("H3")), true)
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("P-1")), true)
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula()), true)
+
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("P1")), false)
+
+  // the 'adduct' test
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("KH-2") * -1), true) // make sure we can loose 2H (i.e. we have 2H in the metabolite); K is adducted, so is does not need to be intrinsic
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("K-1H2")), true) // same as above
+  TEST_EQUAL(metabolite.contains(EmpiricalFormula("KH-2") * 1), false) // cannot loose K, since we don't have it
 END_SECTION
 
 START_SECTION(void setCharge(SignedSize charge))
