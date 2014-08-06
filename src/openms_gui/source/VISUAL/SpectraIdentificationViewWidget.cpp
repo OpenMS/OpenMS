@@ -435,7 +435,6 @@ namespace OpenMS
         cout << "  peptide hits found: " << ph.size() << endl;
 #endif
 
-        Size best_score = pi[0].getHits()[0].getScore();
         bool is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
 
         PeptideHit best_ph;
