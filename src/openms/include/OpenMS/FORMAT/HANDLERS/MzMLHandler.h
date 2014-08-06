@@ -935,7 +935,7 @@ protected:
       bool skip_chromatogram_;
       bool skip_spectrum_;
 
-      // Remeber whether the RT of the spectrum was set or not
+      // Remember whether the RT of the spectrum was set or not
       bool rt_set_;
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)

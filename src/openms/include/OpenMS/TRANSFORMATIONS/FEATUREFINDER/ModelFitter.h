@@ -576,7 +576,7 @@ protected:
     {
       QualityType quality = 0.0;
 
-      // Calculate the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
+      // Calculate the Pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
       if (algorithm_ != "")
       {
         std::vector<float> real_data;

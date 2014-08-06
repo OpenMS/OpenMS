@@ -194,7 +194,7 @@ protected:
     PeakShape fitPeakShape_(const PeakArea_ & area, bool enable_centroid_fit);
 
     /**
-                @brief Returns the squared pearson coefficient.
+                @brief Returns the squared Pearson coefficient.
 
                 Computes the correlation of the peak and the original data given by the peak endpoints area.left and area.right.
                 If the value is near 1, the fitted peakshape and the raw data are expected to be very similar.
