@@ -59,20 +59,12 @@ namespace OpenMS
 {
   namespace Internal
   {
-
     //TODO add documentation, warning and logger integration
     //TODO care for casts, switch validation on
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
     //TODO general id openms struct for overall parameter for one id run
-
-    /**
-     *  Constructor initializes xerces-C libraries.
-     *  The XML tags and attributes which we seek are defined.
-     *  The xerces-C DOM parser infrastructure is initialized.
-     */
-
-    MzIdentMLDOMHandler::MzIdentMLDOMHandler(const std::vector<ProteinIdentification> & pro_id, const std::vector<PeptideIdentification> & pep_id, const String & filename, const String & version, const ProgressLogger & logger) :
+    MzIdentMLDOMHandler::MzIdentMLDOMHandler(const std::vector<ProteinIdentification> & pro_id, const std::vector<PeptideIdentification> & pep_id, const String & version, const ProgressLogger & logger) :
       logger_(logger),
       //~ ms_exp_(0),
       pro_id_(0),
@@ -98,13 +90,13 @@ namespace OpenMS
 
       // Tags and attributes used in XML file.
       // Can't call transcode till after Xerces Initialize()
-      TAG_root        = XMLString::transcode("MzIdentML");
+      TAG_root = XMLString::transcode("MzIdentML");
       TAG_CV = XMLString::transcode("cvParam");
       ATTR_name = XMLString::transcode("option_a");
 
     }
 
-    MzIdentMLDOMHandler::MzIdentMLDOMHandler(std::vector<ProteinIdentification> & pro_id, std::vector<PeptideIdentification> & pep_id, const String & filename, const String & version, const ProgressLogger & logger) :
+    MzIdentMLDOMHandler::MzIdentMLDOMHandler(std::vector<ProteinIdentification> & pro_id, std::vector<PeptideIdentification> & pep_id, const String & version, const ProgressLogger & logger) :
       logger_(logger),
       //~ ms_exp_(0),
       pro_id_(&pro_id),
@@ -177,7 +169,7 @@ namespace OpenMS
      *
      *  @param file.
      */
-    void MzIdentMLDOMHandler::readMzIdentMLFile(string& mzid_file)
+    void MzIdentMLDOMHandler::readMzIdentMLFile(const string& mzid_file)
             throw( std::runtime_error )
     {
        // Test to see if the file is ok.
@@ -276,7 +268,7 @@ namespace OpenMS
        }
     }
 
-    void MzIdentMLDOMHandler::writeMzIdentMLFile(string& mzid_file)
+    void MzIdentMLDOMHandler::writeMzIdentMLFile(const string& mzid_file)
             throw( std::runtime_error )
     {
        //TODO
