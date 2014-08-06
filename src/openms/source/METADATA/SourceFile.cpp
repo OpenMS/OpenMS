@@ -174,6 +174,7 @@ namespace OpenMS
   OPENMS_DLLAPI QDataStream& operator>>(QDataStream& in, SourceFile& sourceFile)
   {
     QString tempQString;
+    int tempInt;
 
     in >> tempQString;
     sourceFile.name_of_file_ = tempQString;
@@ -189,7 +190,8 @@ namespace OpenMS
     in >> tempQString;
     sourceFile.checksum_ = tempQString;
 
-    in >> (int&) sourceFile.checksum_type_;
+    in >> tempInt;
+    sourceFile.checksum_type_ = static_cast<SourceFile::ChecksumType>(tempInt);
 
     in >> tempQString;
     sourceFile.native_id_type_ = tempQString;
