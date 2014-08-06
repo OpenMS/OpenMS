@@ -18,6 +18,7 @@ set(concept_executables_list
 
 set(datastructures_executables_list
   Adduct_test
+  ClusteringGrid_test
   CVMappingRule_test
   CVMappingTerm_test
   CVMappings_test
@@ -44,7 +45,6 @@ set(datastructures_executables_list
   Map_test
   MassExplainer_test
   Matrix_test
-  MultiplexGrid_test
   Param_test
   QTCluster_test
   RangeManager_test

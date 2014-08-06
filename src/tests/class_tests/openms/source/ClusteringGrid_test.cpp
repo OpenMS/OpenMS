@@ -35,14 +35,14 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
 
 #include <limits>
 #include <iostream>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexGrid, "$Id$")
+START_TEST(ClusteringGrid, "$Id$")
 
 std::vector<double> grid_spacing_x;
 std::vector<double> grid_spacing_y;
@@ -52,22 +52,22 @@ for (double i = 0; i <=10; ++i)
     grid_spacing_y.push_back(i);
 }
 
-MultiplexGrid* nullPointer = 0;
-MultiplexGrid* ptr;
+ClusteringGrid* nullPointer = 0;
+ClusteringGrid* ptr;
 
-START_SECTION(MultiplexGrid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y))
-    MultiplexGrid grid(grid_spacing_x, grid_spacing_y);
+START_SECTION(ClusteringGrid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y))
+    ClusteringGrid grid(grid_spacing_x, grid_spacing_y);
     TEST_EQUAL(grid.getGridSpacingX()[3], 3);
-    ptr = new MultiplexGrid(grid_spacing_x, grid_spacing_y);
+    ptr = new ClusteringGrid(grid_spacing_x, grid_spacing_y);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexGrid grid(grid_spacing_x, grid_spacing_y);
-MultiplexGrid::CellIndex index1 = std::make_pair(2,3);
-MultiplexGrid::CellIndex index2 = std::make_pair(5,4);
-MultiplexGrid::CellIndex index3 = std::make_pair(7,7);
-MultiplexGrid::Point point(6.6,7.7);
+ClusteringGrid grid(grid_spacing_x, grid_spacing_y);
+ClusteringGrid::CellIndex index1 = std::make_pair(2,3);
+ClusteringGrid::CellIndex index2 = std::make_pair(5,4);
+ClusteringGrid::CellIndex index3 = std::make_pair(7,7);
+ClusteringGrid::Point point(6.6,7.7);
 
 START_SECTION(std::vector<double> getGridSpacingX() const)
     TEST_EQUAL(grid.getGridSpacingX()[3], 3);

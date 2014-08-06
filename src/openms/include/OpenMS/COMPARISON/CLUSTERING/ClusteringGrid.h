@@ -37,8 +37,8 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-#ifndef OPENMS_COMPARISON_CLUSTERING_MULTIPLEXGRID_H
-#define OPENMS_COMPARISON_CLUSTERING_MULTIPLEXGRID_H
+#ifndef OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H
+#define OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H
 
 namespace OpenMS
 {
@@ -48,7 +48,7 @@ namespace OpenMS
 * 
 * @see LocalClustering
 */
-class OPENMS_DLLAPI MultiplexGrid
+class OPENMS_DLLAPI ClusteringGrid
 {
     public:
     /**
@@ -68,7 +68,7 @@ class OPENMS_DLLAPI MultiplexGrid
      *
      * @note Vectors are assumed to be sorted.
      */
-    MultiplexGrid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y);
+    ClusteringGrid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y);
     
     /**
     * @brief returns grid spacing in x direction
@@ -158,4 +158,4 @@ class OPENMS_DLLAPI MultiplexGrid
 
 }
 
-#endif /* OPENMS_COMPARISON_CLUSTERING_MULTIPLEXGRID_H */
+#endif /* OPENMS_COMPARISON_CLUSTERING_CLUSTERINGGRID_H */

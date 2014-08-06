@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <vector>
@@ -43,22 +43,22 @@
 namespace OpenMS
 {
     
-MultiplexGrid::MultiplexGrid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y)
+ClusteringGrid::ClusteringGrid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y)
 :grid_spacing_x_(grid_spacing_x), grid_spacing_y_(grid_spacing_y), range_x_(grid_spacing_x.front(),grid_spacing_x.back()), range_y_(grid_spacing_y.front(),grid_spacing_y.back())
 {
 }
 
-std::vector<double> MultiplexGrid::getGridSpacingX() const
+std::vector<double> ClusteringGrid::getGridSpacingX() const
 {
     return grid_spacing_x_;
 }
 
-std::vector<double> MultiplexGrid::getGridSpacingY() const
+std::vector<double> ClusteringGrid::getGridSpacingY() const
 {
     return grid_spacing_y_;
 }
 
-void MultiplexGrid::addCluster(const CellIndex &cell_index, const int &cluster_index)
+void ClusteringGrid::addCluster(const CellIndex &cell_index, const int &cluster_index)
 {
     if (cells_.find(cell_index) == cells_.end())
     {
@@ -74,7 +74,7 @@ void MultiplexGrid::addCluster(const CellIndex &cell_index, const int &cluster_i
     }
 }
 
-void MultiplexGrid::removeCluster(const CellIndex &cell_index, const int &cluster_index)
+void ClusteringGrid::removeCluster(const CellIndex &cell_index, const int &cluster_index)
 {
     if (cells_.find(cell_index) != cells_.end())
     {
@@ -86,17 +86,17 @@ void MultiplexGrid::removeCluster(const CellIndex &cell_index, const int &cluste
     }
 }
 
-void MultiplexGrid::removeAllClusters()
+void ClusteringGrid::removeAllClusters()
 {
     cells_.clear();
 }
 
-std::list<int> MultiplexGrid::getClusters(const CellIndex &cell_index) const
+std::list<int> ClusteringGrid::getClusters(const CellIndex &cell_index) const
 {
     return cells_.find(cell_index)->second;
 }
 
-MultiplexGrid::CellIndex MultiplexGrid::getIndex(const Point &position) const
+ClusteringGrid::CellIndex ClusteringGrid::getIndex(const Point &position) const
 {
     if (position.getX() < range_x_.first || position.getX() > range_x_.second || position.getY() < range_y_.first || position.getY() > range_y_.second)
     {
@@ -123,15 +123,15 @@ MultiplexGrid::CellIndex MultiplexGrid::getIndex(const Point &position) const
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Cell index is negative.","");
     }
     
-    return MultiplexGrid::CellIndex (i,j);
+    return ClusteringGrid::CellIndex (i,j);
 }
 
-bool MultiplexGrid::isNonEmptyCell(const CellIndex &cell_index) const
+bool ClusteringGrid::isNonEmptyCell(const CellIndex &cell_index) const
 {
     return cells_.find(cell_index) != cells_.end();
 }
 
-int MultiplexGrid::getCellCount() const
+int ClusteringGrid::getCellCount() const
 {
     return cells_.size();
 }

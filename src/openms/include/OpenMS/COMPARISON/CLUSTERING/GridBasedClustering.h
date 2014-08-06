@@ -42,7 +42,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexGrid.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 
 #ifndef OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
@@ -142,7 +142,7 @@ class OPENMS_DLLAPI GridBasedClustering
     */
     typedef GridBasedCluster::Point Point;    // DPosition<2>
     typedef GridBasedCluster::Rectangle Rectangle;    // DBoundingBox<2>
-    typedef MultiplexGrid::CellIndex CellIndex;    // std::pair<int,int>
+    typedef ClusteringGrid::CellIndex CellIndex;    // std::pair<int,int>
     
     /**
      * @brief initialises all data structures
@@ -296,7 +296,7 @@ class OPENMS_DLLAPI GridBasedClustering
         std::vector<double> grid_spacing_y_new;
         grid_spacing_y_new.push_back(grid_spacing_y.front());
         grid_spacing_y_new.push_back(grid_spacing_y.back());
-        MultiplexGrid grid_x_only(grid_spacing_x, grid_spacing_y_new);
+        ClusteringGrid grid_x_only(grid_spacing_x, grid_spacing_y_new);
         
         // register final clusters on the new grid
         for (std::map<int, GridBasedCluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
@@ -449,7 +449,7 @@ class OPENMS_DLLAPI GridBasedClustering
     * @brief grid on which the position of the clusters are registered
     * used in cluster method
     */
-    MultiplexGrid grid_;
+    ClusteringGrid grid_;
 
     /**
     * @brief list of clusters

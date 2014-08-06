@@ -7,10 +7,10 @@ AverageLinkage.cpp
 ClusterAnalyzer.cpp
 ClusterFunctor.cpp
 ClusterHierarchical.cpp
+ClusteringGrid.cpp
 CompleteLinkage.cpp
 EuclideanSimilarity.cpp
 GridBasedCluster.cpp
-MultiplexGrid.cpp
 SingleLinkage.cpp
 )
 
