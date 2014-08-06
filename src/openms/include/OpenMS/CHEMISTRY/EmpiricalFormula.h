@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
@@ -134,17 +134,17 @@ public:
     /// returns a pointer to the element db which is used with this class
     const ElementDB * getElementDB() const;
 
-    /// returns the number of atoms with the given atomic_number
-    Size getNumberOf(UInt atomic_number) const;
+    /// returns the number of atoms with the given atomic_number (can be negative)
+    SignedSize getNumberOf(UInt atomic_number) const;
 
-    /// returns the number of atoms with the given name
-    Size getNumberOf(const String & name) const;
+    /// returns the number of atoms with the given name (can be negative)
+    SignedSize getNumberOf(const String & name) const;
 
-    /// returns the number of atoms
-    Size getNumberOf(const Element * element) const;
+    /// returns the number of atoms (can be negative)
+    SignedSize getNumberOf(const Element * element) const;
 
-    /// returns the atoms total
-    Size getNumberOfAtoms() const;
+    /// returns the atoms total (can be negative)
+    SignedSize getNumberOfAtoms() const;
 
     /// returns the charge
     SignedSize getCharge() const;
@@ -226,6 +226,9 @@ public:
     /// returns true if the formula contains the element with the given atomic number
     bool hasElement(UInt atomic_number) const;
 
+    /// returns true if all elements from @p ef are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula
+    bool contains(const EmpiricalFormula& ef);
+
     /// returns true if the formulas contain equal elements in equal quantities
     bool operator==(const EmpiricalFormula & rhs) const;
 
@@ -240,7 +243,7 @@ public:
 
     /** returns true if the formulas differ in elements composition
 
-            @throw throws ParseError if the formula cannot be parsed
+      @throw throws ParseError if the formula cannot be parsed
     */
     bool operator!=(const String & rhs) const;
     //@}
