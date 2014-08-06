@@ -467,7 +467,7 @@ class OPENMS_DLLAPI GridBasedClustering
     * @brief list of minimum distances
     * stores the smallest of the distances in the head
     */
-    std::multiset<MinimumDistance, std::less<std::vector<MinimumDistance>::value_type> > distances_;
+    std::multiset<MinimumDistance> distances_;
     
     /**
      * @brief initialises all data structures
