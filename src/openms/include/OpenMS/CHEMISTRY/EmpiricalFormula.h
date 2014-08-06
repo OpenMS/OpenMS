@@ -121,12 +121,12 @@ public:
     /** @brief returns the isotope distribution of the formula
         *	The details of the calculation of the isotope distribution
         * are described in the doc to the IsotopeDistribution class.
-        *	@param max_depth: this parameter gives the max isotope which is considered, if 0 all are reported
+        *	@param max_depth: the maximum isotope which is considered, if 0 all are reported
         */
     IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
 
-    /// returns a pointer to the element with name or symbol or 0 if no such element is fount
-    const Element * getElement(const String & name) const;
+    /// returns a pointer to the element with name or symbol or 0 if no such element is found
+    const Element * getElement(const String& name) const;
 
     /// returns a pointer to the element with given atomic number or 0 if none if found
     const Element * getElement(UInt atomic_number) const;
@@ -137,13 +137,13 @@ public:
     /// returns the number of atoms with the given atomic_number (can be negative)
     SignedSize getNumberOf(UInt atomic_number) const;
 
-    /// returns the number of atoms with the given name (can be negative)
-    SignedSize getNumberOf(const String & name) const;
+    /// returns the number of atoms with the given @p name (can be negative)
+    SignedSize getNumberOf(const String& name) const;
 
-    /// returns the number of atoms (can be negative)
-    SignedSize getNumberOf(const Element * element) const;
+    /// returns the number of atoms for a certain @p element (can be negative)
+    SignedSize getNumberOf(const Element* element) const;
 
-    /// returns the atoms total (can be negative)
+    /// returns the atoms total (not absolute: negative counts for certain elements will reduce the overall count). Negative result is possible.
     SignedSize getNumberOfAtoms() const;
 
     /// returns the charge
