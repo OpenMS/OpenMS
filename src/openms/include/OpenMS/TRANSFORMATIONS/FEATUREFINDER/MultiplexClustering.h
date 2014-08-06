@@ -41,7 +41,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 
 #include <vector>
 #include <algorithm>
@@ -67,7 +67,7 @@ namespace OpenMS
         /**
          * @brief cluster centre, cluster bounding box, grid index
          */
-        typedef MultiplexCluster::Point Point;    // DPosition<2>
+        typedef GridBasedCluster::Point Point;    // DPosition<2>
 
         /**
          * @brief constructor
@@ -91,7 +91,7 @@ namespace OpenMS
          * 
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
-        std::vector<std::map<int,MultiplexCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
+        std::vector<std::map<int,GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
         
         /**
          * @brief rough estimation of the peak width at m/z

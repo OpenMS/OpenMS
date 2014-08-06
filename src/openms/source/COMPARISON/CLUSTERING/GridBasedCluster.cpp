@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <vector>
 #include <algorithm>
@@ -42,52 +42,52 @@
 namespace OpenMS
 {
 
-MultiplexCluster::MultiplexCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B)
+GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B)
 : centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(property_A), properties_B_(properties_B)
 {
 }
 
-MultiplexCluster::MultiplexCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices)
+GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices)
 : centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(-1), properties_B_(point_indices.size(),-1)
 {
 }
 
-MultiplexCluster::Point MultiplexCluster::getCentre() const
+GridBasedCluster::Point GridBasedCluster::getCentre() const
 {
     return centre_;
 }
 
-MultiplexCluster::Rectangle MultiplexCluster::getBoundingBox() const
+GridBasedCluster::Rectangle GridBasedCluster::getBoundingBox() const
 {
     return bounding_box_;
 }
 
-std::vector<int> MultiplexCluster::getPoints() const
+std::vector<int> GridBasedCluster::getPoints() const
 {
     return point_indices_;
 }
 
-int MultiplexCluster::getPropertyA() const
+int GridBasedCluster::getPropertyA() const
 {
     return property_A_;
 }
 
-std::vector<int> MultiplexCluster::getPropertiesB() const
+std::vector<int> GridBasedCluster::getPropertiesB() const
 {
     return properties_B_;
 }
 
-bool MultiplexCluster::operator<(MultiplexCluster other) const
+bool GridBasedCluster::operator<(GridBasedCluster other) const
 {
     return centre_.getY() < other.centre_.getY();
 }
 
-bool MultiplexCluster::operator>(MultiplexCluster other) const
+bool GridBasedCluster::operator>(GridBasedCluster other) const
 {
     return centre_.getY() > other.centre_.getY();
 }
 
-bool MultiplexCluster::operator==(MultiplexCluster other) const
+bool GridBasedCluster::operator==(GridBasedCluster other) const
 {
     return centre_.getY() == other.centre_.getY();
 }

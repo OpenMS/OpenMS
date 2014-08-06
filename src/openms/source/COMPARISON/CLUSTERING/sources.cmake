@@ -9,7 +9,7 @@ ClusterFunctor.cpp
 ClusterHierarchical.cpp
 CompleteLinkage.cpp
 EuclideanSimilarity.cpp
-MultiplexCluster.cpp
+GridBasedCluster.cpp
 MultiplexGrid.cpp
 SingleLinkage.cpp
 )
