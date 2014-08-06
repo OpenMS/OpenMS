@@ -51,6 +51,309 @@
 namespace OpenMS
 {
 /**
+* @brief data structure to store 2D data to be clustered
+* e.g. (m/z, retention time) coordinates from multiplex filtering
+*/
+class OPENMS_DLLAPI Grid
+{
+    public:
+    /**
+     * coordinates of a grid cell
+     */
+    typedef std::pair<int,int> CellIndex;
+    
+    /**
+     * coordinates in x-y-plane
+     */
+    typedef DPosition<2> Point;
+
+    /**
+     * @brief constructor taking two vectors
+     * @param grid_spacing_x    grid spacing in x direction
+     * @param grid_spacing_y    grid spacing in y direction
+     *
+     * @note Vectors are assumed to be sorted.
+     */
+    Grid(const std::vector<double> &grid_spacing_x, const std::vector<double> &grid_spacing_y)
+    :grid_spacing_x_(grid_spacing_x), grid_spacing_y_(grid_spacing_y), range_x_(grid_spacing_x.front(),grid_spacing_x.back()), range_y_(grid_spacing_y.front(),grid_spacing_y.back())
+    {
+    }
+    
+    /**
+    * @brief returns grid spacing in x direction
+    */
+    std::vector<double> getGridSpacingX() const
+    {
+        return grid_spacing_x_;
+    }
+        
+    /**
+    * @brief returns grid spacing in y direction
+    */
+    std::vector<double> getGridSpacingY() const
+    {
+        return grid_spacing_y_;
+    }
+    
+    /**
+    * @brief adds a cluster to this grid cell
+    * 
+    * @param cell_index    cell index (i,j) on the grid
+    * @param cluster_index    index of the cluster in the cluster list
+    */
+    void addCluster(const CellIndex &cell_index, const int &cluster_index)
+    {
+        if (cells_.find(cell_index) == cells_.end())
+        {
+            // If hash grid cell does not yet exist, create a new one.
+            std::list<int> clusters;
+            clusters.push_back(cluster_index);
+            cells_.insert(std::make_pair(cell_index, clusters));
+        }
+        else
+        {
+            // If hash grid cell already exists, add the new cluster index to the existing list of clusters.
+            cells_.find(cell_index)->second.push_back(cluster_index);
+        }
+    }
+    
+    /**
+    * @brief removes a cluster from this grid cell
+    * and removes the cell if no other cluster left
+    * 
+    * @param cell_index    cell index (i,j) on the grid
+    * @param cluster_index    index of the cluster in the cluster list
+    */
+    void removeCluster(const CellIndex &cell_index, const int &cluster_index)
+    {
+        if (cells_.find(cell_index) != cells_.end())
+        {
+            cells_.find(cell_index)->second.remove(cluster_index);
+            if (cells_.find(cell_index)->second.empty())
+            {
+                cells_.erase(cell_index);
+            }
+        }
+    }
+
+    /**
+    * @brief removes all clusters from this grid (and hence all cells)
+    */
+    void removeAllClusters()
+    {
+        cells_.clear();
+    }
+
+    /**
+    * @brief returns clusters in this grid cell
+    * 
+    * @param cell_index    cell index (i,j) on the grid
+    * @return list of cluster indices (from the list of clusters) which are centred in this cell
+    */
+    std::list<int> getClusters(const CellIndex &cell_index) const
+    {
+        return cells_.find(cell_index)->second;
+    }
+
+    /**
+    * @brief returns grid cell index (i,j) for the positions (x,y)
+    * 
+    * @param position    coordinates (x,y) on the grid
+    * @return cell index (i,j) of the cell in which (x,y) lies
+    */
+    CellIndex getIndex(const Point &position) const
+    {
+        if (position.getX() < range_x_.first || position.getX() > range_x_.second || position.getY() < range_y_.first || position.getY() > range_y_.second)
+        {
+            std::stringstream stream;
+            stream << "This position (x,y)=(" << position.getX() << "," << position.getY() << ") is outside the range of the grid. (" << range_x_.first << " < x < " << range_x_.second << ", " << range_y_.first << " < y < " << range_y_.second << ")";
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+        }
+        
+        int i = -1;
+        int j = -1;
+        
+        if (range_x_.first <= position.getX() && position.getX() <= range_x_.second)
+        {
+            i = std::lower_bound(grid_spacing_x_.begin(), grid_spacing_x_.end(), position.getX(), std::less_equal< double >()) - grid_spacing_x_.begin();
+        }
+        
+        if (range_y_.first <= position.getY() && position.getY() <= range_y_.second)
+        {
+            j = std::lower_bound(grid_spacing_y_.begin(), grid_spacing_y_.end(), position.getY(), std::less_equal< double >()) - grid_spacing_y_.begin();
+        }
+        
+        if (i < 0 || j < 0)
+        {
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Cell index is negative.","");
+        }
+        
+        return MultiplexGrid::CellIndex (i,j);
+    }
+
+    /**
+    * @brief checks if there are clusters at this cell index
+    * 
+    * @param cell_index    cell index (i,j) on the grid
+    * @return true if there are clusters in this cell
+    * 
+    * @throw Exception::IllegalArgument if the coordinates (x,y) lie outside the grid.
+    * @throw Exception::InvalidValue if one of the two indices is negative.
+    */
+    bool isNonEmptyCell(const CellIndex &cell_index) const
+    {
+        return cells_.find(cell_index) != cells_.end();
+    }
+
+    /**
+    * @brief returns number of grid cells occupied by one or more clusters
+    * 
+    * @return number of non-empty cells
+    */
+    int getCellCount() const
+    {
+        return cells_.size();
+    }
+
+    private:
+    /**
+    * @brief spacing of the grid in x and y direction
+    */
+    const std::vector<double> grid_spacing_x_;
+    const std::vector<double> grid_spacing_y_;
+
+    /**
+    * @brief [min, max] of the grid in x and y direction
+    */
+    std::pair <double,double> range_x_;  
+    std::pair <double,double> range_y_;  
+
+    /**
+    * @brief grid cell index mapped to a list of clusters in it
+    */
+    std::map<CellIndex, std::list<int> > cells_;
+
+};  
+    
+/**
+* @brief basic data structure for clustering
+*/
+class OPENMS_DLLAPI Cluster
+{
+    public:
+    /**
+     * centre of a cluster
+     */
+    typedef DPosition<2> Point;
+
+    /**
+     * bounding box of a cluster
+     */
+    typedef DBoundingBox<2> Rectangle;
+
+    /**
+     * @brief initialises all data structures
+     */
+    Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B)
+    : centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(property_A), properties_B_(properties_B)
+    {
+    }
+
+    /**
+     * @brief initialises all data structures
+     */
+    Cluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices)
+    : centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(-1), properties_B_(point_indices.size(),-1)
+    {
+    }
+
+    /**
+     * @brief returns cluster centre
+     */
+    Point getCentre() const
+    {
+        return centre_;
+    }
+
+    /**
+     * @brief returns bounding box
+     */
+    Rectangle getBoundingBox() const
+    {
+        return bounding_box_;
+    }
+
+    /**
+     * @brief returns indices of points in cluster
+     */
+    std::vector<int> getPoints() const
+    {
+        return point_indices_;
+    }
+
+    /**
+     * @brief returns property A
+     */
+    int getPropertyA() const
+    {
+        return property_A_;
+    }
+
+    /**
+     * @brief returns properties B of all points
+     */
+    std::vector<int> getPropertiesB() const
+    {
+        return properties_B_;
+    }
+    
+    /**
+     * @brief operators for comparisons
+     */
+    bool operator<(Cluster other) const
+    {
+        return centre_.getY() < other.centre_.getY();
+    }
+    bool operator>(Cluster other) const
+    {
+        return centre_.getY() > other.centre_.getY();
+    }
+    bool operator==(Cluster other) const
+    {
+        return centre_.getY() == other.centre_.getY();
+    }
+    
+    private:
+    /**
+    * @brief centre of the cluster
+    */
+    Point centre_;
+
+    /**
+    * @brief bounding box of the cluster
+    * i.e. (min,max) in x and y direction
+    */
+    Rectangle bounding_box_;
+
+    /**
+    * @brief set of indices referencing the points in the cluster
+    */
+    std::vector<int> point_indices_;
+
+    /**
+    * @brief properties A and B
+    * Each point in a cluster can (optionally) possess two properties A and B.
+    * For two points to be in the same cluster, they need to have the same
+    * property A, e.g. the same charge. For two points to be in the same cluster,
+    * they need to have different properties B, e.g. originate from two
+    * different maps. -1 means properties are not set.
+    */
+    int property_A_;
+    std::vector<int> properties_B_;
+    
+};
+
+/**
  * @brief basic data structure for distances between clusters
  */
 class OPENMS_DLLAPI MinimumDistance
