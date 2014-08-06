@@ -32,8 +32,8 @@
 // $Authors: Mathias Walzer$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
-#define OPENMS_FORMAT_HANDLERS_MZIDENTMLHANDLER_H
+#ifndef OPENMS_FORMAT_HANDLERS_MZIDENTMLDOMHANDLER_H
+#define OPENMS_FORMAT_HANDLERS_MZIDENTMLDOMHANDLER_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
@@ -97,19 +97,19 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLDOMHandler(const std::vector<ProteinIdentification> & pro_id, const std::vector<PeptideIdentification> & pep_id, const String & filename, const String & version, const ProgressLogger & logger);
+      MzIdentMLDOMHandler(const std::vector<ProteinIdentification> & pro_id, const std::vector<PeptideIdentification> & pep_id, const String & version, const ProgressLogger & logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLDOMHandler(std::vector<ProteinIdentification> & pro_id, std::vector<PeptideIdentification> & pep_id, const String & filename, const String & version, const ProgressLogger & logger);
+      MzIdentMLDOMHandler(std::vector<ProteinIdentification> & pro_id, std::vector<PeptideIdentification> & pep_id, const String & version, const ProgressLogger & logger);
 
       /// Destructor
       virtual ~MzIdentMLDOMHandler();
       //@}
 
       /// Provides the functionality of reading a mzid with a handler object
-      void readMzIdentMLFile(std::string& mzid_file) throw(std::runtime_error);
+      void readMzIdentMLFile(const std::string &mzid_file) throw(std::runtime_error);
       /// Providese the functionality to write a mzid with a handler object
-      void writeMzIdentMLFile(std::string& mzid_file) throw(std::runtime_error);
+      void writeMzIdentMLFile(const std::string &mzid_file) throw(std::runtime_error);
 
 protected:
       /// Progress logger
