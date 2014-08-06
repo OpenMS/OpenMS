@@ -150,8 +150,8 @@ file formats, data reduction functionality and all other analysis algorithms.
 @section concept_primitives Basic data types
 
   %OpenMS has its own names for the C++ primitive types. The integer types of %OpenMS
-  are @a Int (int) and @a UInt (unsigned int). For floating point numbers, @a Real (float) and
-  @a DoubleReal (double) are used.
+  are @a Int (int) and @a UInt (unsigned int). For floating point numbers, no
+  such names exist and the primitives float and double should be used.
 
   These and more types are defined in @a OpenMS/CONCEPT/Types.h.
   The typeAsString() function can be used to find out the actual type of an object,

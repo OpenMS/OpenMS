@@ -164,9 +164,9 @@ public:
     //@}
 
 	  /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
-	  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+	  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
 	  const DataValue & getMetaValue(const String &name) const;
-	  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+	  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
 	  void setMetaValue(const String &name, const DataValue &value);
 
 

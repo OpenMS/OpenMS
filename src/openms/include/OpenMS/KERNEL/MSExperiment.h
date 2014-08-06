@@ -267,7 +267,7 @@ public:
       Fill MSExperiment with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
-      @param container An iteratable type whose elements support getRT(), getMZ() and getIntensity()
+      @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
       retention time (in debug AND release mode)
