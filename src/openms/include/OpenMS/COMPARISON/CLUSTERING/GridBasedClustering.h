@@ -184,7 +184,7 @@ class OPENMS_DLLAPI GridBasedClustering
     void cluster()
     {
         MinimumDistance zero_distance(-1, -1, 0);
-        typedef std::multiset<MinimumDistance, std::less<std::vector<MinimumDistance>::value_type> >::iterator MultisetIterator;
+        typedef std::multiset<MinimumDistance>::iterator MultisetIterator;
         
         // combine clusters until all have been moved to the final list
         while (clusters_.size() > 0)
