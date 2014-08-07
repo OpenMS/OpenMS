@@ -162,7 +162,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 #------------------------------------------------------------------------------
 # Enable STL debug mode (GCC only)
 #------------------------------------------------------------------------------
-option(STL_DEBUG OFF "[GCC only] Enable STL-DEBUG mode (very slow).")
+option(STL_DEBUG "[GCC only] Enable STL-DEBUG mode (very slow)." OFF)
 if(STL_DEBUG)
   include(cmake/stl_debug.cmake)
 endif()
