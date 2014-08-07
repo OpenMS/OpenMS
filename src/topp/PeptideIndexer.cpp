@@ -52,7 +52,7 @@ using namespace std;
 /**
     @page TOPP_PeptideIndexer PeptideIndexer
 
-    @brief Refreshes the protein references for all peptide hits from a idXML file.
+    @brief Refreshes the protein references for all peptide hits from an idXML file and adds target/decoy information.
 
 <CENTER>
     <table>
@@ -69,7 +69,7 @@ using namespace std;
 </CENTER>
 
   Each peptide hit is annotated by a target_decoy string,
-  indicating if the peptide sequence is found in a 'target', a 'decoy' or in both 'target+decoy' protein. This information is
+  indicating if the peptide sequence is found in a 'target' protein, a 'decoy' protein, or in both 'target+decoy' proteins. This information is
   crucial for the @ref TOPP_FalseDiscoveryRate @ref TOPP_IDPosteriorErrorProbability tools.
 
   @note Make sure that your protein names in the database contain a correctly formatted decoy string. This can be ensured by using @ref UTILS_DecoyDatabase.
@@ -80,13 +80,12 @@ using namespace std;
         This tool will also give you some target/decoy statistics when its done. Look carefully!
 
 
-  This tool supports relative database filenames, which (when not found in the current working directory) is looked up in
-  the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+  This tool supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
-  By default the tool will fail, if an unmatched peptide occurs, i.e. the database does not contain the corresponding protein.
-  You can force the tool to return successfully in this case by using the flag 'allow_unmatched'.
+  By default the tool will fail if an unmatched peptide occurs, i.e. the database does not contain the corresponding protein.
+  You can force the tool to return successfully in this case by using the flag @p allow_unmatched.
 
-  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g., exchange 'X' with 'H'.
+  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
   This will cause this peptide not to be found by exactly matching its sequence to the database. However, we can recover these cases by using tolerant search (done automatically).
 
   Two search modes are available:
@@ -97,16 +96,18 @@ using namespace std;
              Allow ambiguous amino acids in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
              This mode might yield more protein hits for some peptides (those that contain ambiguous amino acids).
 
-  No matter if exact or tolerant search is used, we require ambiguous amino acids in peptide sequence to match exactly in the protein DB (i.e., 'X' in peptide only matches 'X' in database).
-  The exact mode is much faster (about x10) and consumes less memory (about x2.5), but might fail to report a few protein hits with ambiguous amino acids for some peptides. Usually these proteins are putative, however.
-  The exact mode also supports usage of multiple threads (use @ -threads option) to speed up computation even further, at the cost of some memory. This is only for the exact search though (Aho Corasick). If tolerant searching
-  needs to be done for unassigned peptides, the latter will consume the major time portion.
+  Independent of whether exact or tolerant search is used, we require ambiguous amino acids in peptide sequences to match exactly in the protein DB (i.e. 'X' in a peptide only matches 'X' in the database).
+
+  The exact mode is much faster (about 10 times) and consumes less memory (about 2.5 times), but might fail to report a few protein hits with ambiguous amino acids for some peptides. Usually these proteins are putative, however.
+  The exact mode also supports usage of multiple threads (@p threads option) to speed up computation even further, at the cost of some memory. This is only for the exact search (Aho-Corasick algorithm), however. If tolerant searching needs to be done for unassigned peptides, the latter will consume the major share of the runtime.
+
+  Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences. Since the two have the exact same chemical composition and mass, they generally cannot be distinguished by mass spectrometry. If a peptide containing 'I' was reported as a match for a spectrum, a peptide containing 'L' instead would be an equally good match (and vice versa). To account for this inherent ambiguity, setting the flag @p IL_equivalent causes 'I' and 'L' to be considered as indistinguishable.@n
+  For example, if the sequence "PEPTIDE" (matching "Protein1") was identified as a search hit, but the database additionally contained "PEPTLDE" (matching "Protein2"), running PeptideIndexer with the @p IL_equivalent option would report both "Protein1" and "Protein2" as accessions for "PEPTIDE". (This is independent of the error-tolerant search controlled by @p full_tolerant_search and @p aaa_max.)
 
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
-  By default, we demand that the peptide is fully tryptic (since the enzyme parameter is set to "trypsin" and specificity is "full").
+  By default, we demand that the peptide is fully tryptic (i.e. the enzyme parameter is set to "trypsin" and specificity is "full").
   So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
-  We make one exception for peptides which start at the second amino acid of the protein where the first amino acid of the protein is methionin (M), which is usually cleaved off in vivo, e.g.,
-  the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
+  We make one exception for peptides which start at the second amino acid of the protein where the first amino acid of the protein is methionin (M), which is usually cleaved off in vivo, e.g., the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
 
   You can relax the requirements further by chosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) or <tt>none</tt> (essentially allowing all hits, no matter their context).
 
@@ -271,8 +272,8 @@ namespace seqan
     524288, // 19 Val Valine (V)
     12, // 20 Aspartic Acid, Asparagine (B)
     96, // 21 Glutamic Acid, Glutamine (Z)
-    static_cast<unsigned>(-1), //22 Unknown (matches ALL)
-    static_cast<unsigned>(-1), //23 Terminator (dummy)
+    static_cast<unsigned>(-1), // 22 Unknown (matches ALL)
+    static_cast<unsigned>(-1), // 23 Terminator (dummy)
   };
 
 
@@ -405,6 +406,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accession of the protein database to indicate a decoy protein.", false);
+    registerFlag_("prefix", "Set if 'decoy_string' (see above) appears as a prefix of the decoy protein accessions in the database.");
     registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
     setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
 
@@ -424,12 +426,12 @@ protected:
     setValidStrings_("enzyme:specificity", spec);
 
     registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
-    registerFlag_("prefix", "If set, the database has protein accessions with 'decoy_string' as prefix.");
     registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
     registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. this flag is not set) the program terminates with error status on unmatched peptides.");
     registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous AA's) are associated. This is much slower!");
-    registerIntOption_("aaa_max", "<AA count>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein DB with AAA's. AAA's are 'B', 'Z', and 'X'", false);
+    registerIntOption_("aaa_max", "<AA count>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein DB with AAA's. AAA's are 'B', 'Z' and 'X'", false);
     setMinInt_("aaa_max", 0);
+    registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
   }
 
   ExitCodes main_(int, const char**)
@@ -437,16 +439,17 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in(getStringOption_("in"));
-    String out(getStringOption_("out"));
-    bool write_protein_sequence(getFlag_("write_protein_sequence"));
-    bool prefix(getFlag_("prefix"));
-    bool keep_unreferenced_proteins(getFlag_("keep_unreferenced_proteins"));
-    bool allow_unmatched(getFlag_("allow_unmatched"));
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    bool write_protein_sequence = getFlag_("write_protein_sequence");
+    bool keep_unreferenced_proteins = getFlag_("keep_unreferenced_proteins");
+    bool allow_unmatched = getFlag_("allow_unmatched");
+    bool il_equivalent = getFlag_("IL_equivalent");
 
-    String decoy_string(getStringOption_("decoy_string"));
+    String decoy_string = getStringOption_("decoy_string");
+    bool prefix = getFlag_("prefix");
 
-    String db_name(getStringOption_("fasta"));
+    String db_name = getStringOption_("fasta");
     if (!File::readable(db_name))
     {
       String full_db_name;
@@ -489,7 +492,6 @@ protected:
       return INPUT_FILE_EMPTY;
     }
 
-
     if (pep_ids.size() == 0) // Aho-Corasick requires non-empty input
     {
       LOG_WARN << "Warning: An empty idXML file was provided. Output will be empty as well." << std::endl;
@@ -511,13 +513,17 @@ protected:
       /**
        BUILD Protein DB
       */
-
       seqan::StringSet<seqan::Peptide> prot_DB;
 
       for (Size i = 0; i != proteins.size(); ++i)
       {
-        // build Prot DB
-        seqan::appendValue(prot_DB, proteins[i].sequence.substitute("*", "").c_str());
+        // build protein DB
+        String seq = proteins[i].sequence.remove('*');
+        if (il_equivalent)
+        {
+          seq.substitute('I', 'J').substitute('L', 'J');
+        }
+        seqan::appendValue(prot_DB, seq.c_str());
 
         // consistency check
         String acc = proteins[i].identifier;
@@ -538,7 +544,12 @@ protected:
         vector<PeptideHit> hits = it1->getHits();
         for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
         {
-          appendValue(pep_DB, it2->getSequence().toUnmodifiedString().substitute("*", "").c_str());
+          String seq = it2->getSequence().toUnmodifiedString().remove('*');
+          if (il_equivalent)
+          {
+            seq.substitute('I', 'J').substitute('L', 'J');
+          }
+          appendValue(pep_DB, seq.c_str());
         }
       }
 
@@ -594,7 +605,7 @@ protected:
 
         sw.stop();
 
-        writeLog_(String("Aho-Corasick done. Found ") + func.filter_passed + " hits in " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " (wall) " + sw.getCPUTime() + " (CPU)).");
+        writeLog_(String("Aho-Corasick done. Found ") + func.filter_passed + " hits in " + func.pep_to_prot.size() + " of " + length(pep_DB) + " peptides (time: " + sw.getClockTime() + " s (wall), " + sw.getCPUTime() + " s (CPU)).");
       }
 
       /// check if every peptide was found:
