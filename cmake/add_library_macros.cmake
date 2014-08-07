@@ -39,7 +39,7 @@ include(GenerateExportHeader)
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
 ## build
-option(ENABLE_UNITYBUILD "Enables unity builds for all libraries." Off)
+option(ENABLE_UNITYBUILD "Enables unity builds for all libraries." OFF)
 
 #------------------------------------------------------------------------------
 ## Unity Build of a set of cpp files
