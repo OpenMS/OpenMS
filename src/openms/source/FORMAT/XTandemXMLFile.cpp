@@ -157,7 +157,10 @@ namespace OpenMS
     {
       PeptideHit hit;
       hit.metaRegistry().registerName("E-Value", "E-Value of hit");
-      hit.metaRegistry().registerName("RT_index", "Scan index of hit");
+      hit.metaRegistry().registerName("nextscore", "next_score of hit");
+      // get nextscore
+      double nextscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("nextscore"))))).toDouble());
+      hit.setMetaValue("nextscore", nextscore);
       // get hyperscore
       double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
       hit.setScore(hyperscore);
@@ -193,7 +196,7 @@ namespace OpenMS
       vector<String> split;
       id_string.split('.', split);
       UInt id(split[0].toInt());
-      hit.setMetaValue("RT_index", id);
+      // hit.setMetaValue("RT_index", id);
       actual_id_ = id;
 
       String tmp;
