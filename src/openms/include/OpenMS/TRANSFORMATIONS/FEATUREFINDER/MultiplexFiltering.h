@@ -153,7 +153,7 @@ namespace OpenMS
          * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
          * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
          * 
-         * @return true if all intensities above threshold
+         * @return false if all intensities above threshold (i.e. not vetoed)
          */
         bool monoIsotopicPeakIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices) const;
         

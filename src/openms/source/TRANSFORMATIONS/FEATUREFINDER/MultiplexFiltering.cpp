@@ -454,9 +454,15 @@ namespace OpenMS
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       int peak_index = mz_shifts_actual_indices[peptide * (peaks_per_peptide_max_ + 1) + 1];
+      if (peak_index < 0)
+      {
+        // peak not found
+        return true;
+      }
       MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin() + peak_index;
       if (it_mz->getIntensity() < intensity_cutoff_)
       {
+        // below intensity threshold
         return true;
       }
     }
