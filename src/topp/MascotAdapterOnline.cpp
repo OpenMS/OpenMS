@@ -182,9 +182,9 @@ protected:
     mgf_file.setParameters(mascot_param);
 
     // get the spectra into string stream
-    writeDebug_("Writing Mascot MGF file to stringstream", 1);
+    writeDebug_("Writing MGF file to stream", 1);
     stringstream ss;
-    mgf_file.store(ss, in, exp);
+    mgf_file.store(ss, in, exp, true); // write in compact format
 
     // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
     // QEventLoop to process the signals and slots and grab the results afterwards from

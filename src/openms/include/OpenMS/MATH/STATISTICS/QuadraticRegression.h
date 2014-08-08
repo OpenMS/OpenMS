@@ -143,7 +143,7 @@ namespace OpenMS
 
           sumW += weight;
       }
-      //create matrixes to solve Ax = B
+      //create matrices to solve Ax = B
       double A[3][3] =
       {
           {sumW, sumX, sumXX},

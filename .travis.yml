@@ -8,9 +8,12 @@ before_script:
 script:
   ./tools/lnx-cibuild.sh
 env:
-  - ENABLE_STYLE_TESTING=On
-  - ENABLE_STYLE_TESTING=Off
+  - ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off
+  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=On
+  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off
 matrix:
   exclude:
-    - env: ENABLE_STYLE_TESTING=On
+    - env: ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off
       compiler: clang
+    - env: ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=On
+      compiler: gcc

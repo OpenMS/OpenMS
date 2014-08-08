@@ -205,7 +205,8 @@ protected:
       try
       {
         seq = AASequence::fromString(item);
-      } catch (Exception::ParseError &e)
+      } 
+      catch (Exception::ParseError& /*e*/)
       {
         LOG_WARN << "Warning: '" << item << "' is not a valid peptide sequence - skipping\n";
         continue;
@@ -220,7 +221,7 @@ protected:
         {
           local_charges.insert(item.toInt());
         }
-        catch (Exception::ConversionError & /*e*/)
+        catch (Exception::ConversionError& /*e*/)
         {
           ++conversion_failed_count;
         }
@@ -293,7 +294,8 @@ protected:
         try
         {
          seq = AASequence::fromString(*it);
-        } catch (Exception::ParseError & e)
+        }
+        catch (Exception::ParseError& /*e*/)
         {
           LOG_WARN << "Warning: '" << *it << "' is not a valid peptide sequence - skipping\n";
           continue;

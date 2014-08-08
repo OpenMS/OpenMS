@@ -76,6 +76,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T1.1"/>
 			<userParam type="float" name="FWHM" value="20.484899520874"/>
+			<userParam type="float" name="SD" value="0.0444833380798492"/>
 		</feature>
 		<feature id="f_17749660155506638460">
 			<position dim="0">2458.847</position>
@@ -141,6 +142,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T2.1"/>
 			<userParam type="float" name="FWHM" value="27.3393993377686"/>
+			<userParam type="float" name="SD" value="0.045119396758389"/>
 		</feature>
 		<feature id="f_7804704400743266335">
 			<position dim="0">2465.6642</position>
@@ -206,6 +208,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T3.1"/>
 			<userParam type="float" name="FWHM" value="25.6215000152588"/>
+			<userParam type="float" name="SD" value="0.0433978050013126"/>
 		</feature>
 		<feature id="f_15004869347769368353">
 			<position dim="0">2465.6642</position>
@@ -269,6 +272,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T4.1"/>
 			<userParam type="float" name="FWHM" value="27.3213996887207"/>
+			<userParam type="float" name="SD" value="0.0393298795259285"/>
 		</feature>
 		<feature id="f_3332699010107892018">
 			<position dim="0">2295.4041</position>
@@ -324,6 +328,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T5.1"/>
 			<userParam type="float" name="FWHM" value="24.1877994537354"/>
+			<userParam type="float" name="SD" value="0.0242631775200226"/>
 		</feature>
 		<feature id="f_13440783915218733453">
 			<position dim="0">2330.2597</position>
@@ -345,6 +350,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T5.2"/>
 			<userParam type="float" name="FWHM" value="14.2459001541138"/>
+			<userParam type="float" name="SD" value="0.0444252352307497"/>
 		</feature>
 		<feature id="f_15916652588957785155">
 			<position dim="0">2457.1369</position>
@@ -386,6 +392,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T6.1"/>
 			<userParam type="float" name="FWHM" value="18.7626991271973"/>
+			<userParam type="float" name="SD" value="0.0237525700897359"/>
 		</feature>
 		<feature id="f_15157403601844400700">
 			<position dim="0">2155.4741</position>
@@ -457,6 +464,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T7.1"/>
 			<userParam type="float" name="FWHM" value="21.31369972229"/>
+			<userParam type="float" name="SD" value="0.0457433125577247"/>
 		</feature>
 		<feature id="f_6408859317243173796">
 			<position dim="0">2236.4495</position>
@@ -506,6 +514,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T8.1"/>
 			<userParam type="float" name="FWHM" value="32.9398994445801"/>
+			<userParam type="float" name="SD" value="0.0430417609614007"/>
 		</feature>
 		<feature id="f_474525871221756682">
 			<position dim="0">2463.9564</position>
@@ -571,6 +580,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T9.1"/>
 			<userParam type="float" name="FWHM" value="22.1968002319336"/>
+			<userParam type="float" name="SD" value="0.050778584389741"/>
 		</feature>
 		<feature id="f_12999979801269632061">
 			<position dim="0">2455.4355</position>
@@ -606,6 +616,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T10.1"/>
 			<userParam type="float" name="FWHM" value="22.1989002227783"/>
+			<userParam type="float" name="SD" value="0.0295066393506064"/>
 		</feature>
 		<feature id="f_17413765565443951891">
 			<position dim="0">2236.4495</position>
@@ -651,6 +662,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T11.1"/>
 			<userParam type="float" name="FWHM" value="27.7565994262695"/>
+			<userParam type="float" name="SD" value="0.0376986766152409"/>
 		</feature>
 		<feature id="f_2927519776102075938">
 			<position dim="0">2304.0212</position>
@@ -702,6 +714,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T12.1"/>
 			<userParam type="float" name="FWHM" value="24.1917991638184"/>
+			<userParam type="float" name="SD" value="0.0339711328041273"/>
 		</feature>
 		<feature id="f_16907355690727166316">
 			<position dim="0">2050.5696</position>
@@ -777,6 +790,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T13.1"/>
 			<userParam type="float" name="FWHM" value="28.4969997406006"/>
+			<userParam type="float" name="SD" value="0.0485142424442326"/>
 		</feature>
 		<feature id="f_10306100746905639127">
 			<position dim="0">2300.5738</position>
@@ -834,6 +848,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T14.1"/>
 			<userParam type="float" name="FWHM" value="22.4517002105713"/>
+			<userParam type="float" name="SD" value="0.0493495292439875"/>
 		</feature>
 		<feature id="f_12524258085768770586">
 			<position dim="0">2298.845</position>
@@ -899,6 +914,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T15.1"/>
 			<userParam type="float" name="FWHM" value="22.4517002105713"/>
+			<userParam type="float" name="SD" value="0.0515065692253142"/>
 		</feature>
 		<feature id="f_1755235105885170967">
 			<position dim="0">2234.7232</position>
@@ -948,6 +964,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T16.1"/>
 			<userParam type="float" name="FWHM" value="31.2115001678467"/>
+			<userParam type="float" name="SD" value="0.0403134320282698"/>
 		</feature>
 		<feature id="f_14811341817612382122">
 			<position dim="0">2387.5374</position>
@@ -997,6 +1014,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T17.1"/>
 			<userParam type="float" name="FWHM" value="15.7405004501343"/>
+			<userParam type="float" name="SD" value="0.0498930221067237"/>
 		</feature>
 		<feature id="f_2684106197423007927">
 			<position dim="0">2048.7927</position>
@@ -1074,6 +1092,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T18.1"/>
 			<userParam type="float" name="FWHM" value="28.50950050354"/>
+			<userParam type="float" name="SD" value="0.0320144901212313"/>
 		</feature>
 		<feature id="f_8119044117483804262">
 			<position dim="0">2153.7001</position>
@@ -1145,6 +1164,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T19.1"/>
 			<userParam type="float" name="FWHM" value="23.1229000091553"/>
+			<userParam type="float" name="SD" value="0.0427162962366011"/>
 		</feature>
 		<feature id="f_17314619952666245179">
 			<position dim="0">2465.6642</position>
@@ -1188,6 +1208,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T20.1"/>
 			<userParam type="float" name="FWHM" value="29.0669002532959"/>
+			<userParam type="float" name="SD" value="0.0265383365520741"/>
 		</feature>
 		<feature id="f_3023658190814908261">
 			<position dim="0">2153.7001</position>
@@ -1265,6 +1286,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T21.1"/>
 			<userParam type="float" name="FWHM" value="30.2709999084473"/>
+			<userParam type="float" name="SD" value="0.0328791285041289"/>
 		</feature>
 		<feature id="f_7898004582401008768">
 			<position dim="0">2255.4493</position>
@@ -1324,6 +1346,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T22.1"/>
 			<userParam type="float" name="FWHM" value="34.6806983947754"/>
+			<userParam type="float" name="SD" value="0.0915845277413006"/>
 		</feature>
 		<feature id="f_15050004366391181853">
 			<position dim="0">2479.3861</position>
@@ -1355,6 +1378,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T23.1"/>
 			<userParam type="float" name="FWHM" value="15.4897003173828"/>
+			<userParam type="float" name="SD" value="0.0619228162559971"/>
 		</feature>
 		<feature id="f_17716858074023296841">
 			<position dim="0">2052.3418</position>
@@ -1430,6 +1454,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T24.1"/>
 			<userParam type="float" name="FWHM" value="28.4969997406006"/>
+			<userParam type="float" name="SD" value="0.0317500250252816"/>
 		</feature>
 		<feature id="f_16250062551099875712">
 			<position dim="0">2305.7472</position>
@@ -1473,6 +1498,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T25.1"/>
 			<userParam type="float" name="FWHM" value="18.9683990478516"/>
+			<userParam type="float" name="SD" value="0.0404621273899485"/>
 		</feature>
 		<feature id="f_16177748921272733768">
 			<position dim="0">2450.3192</position>
@@ -1518,6 +1544,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T26.1"/>
 			<userParam type="float" name="FWHM" value="17.0548992156982"/>
+			<userParam type="float" name="SD" value="0.0440222261266938"/>
 		</feature>
 		<feature id="f_7276556891837796968">
 			<position dim="0">2475.9407</position>
@@ -1555,6 +1582,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T27.1"/>
 			<userParam type="float" name="FWHM" value="24.0970001220703"/>
+			<userParam type="float" name="SD" value="0.0417682014851321"/>
 		</feature>
 		<feature id="f_1147219038608936718">
 			<position dim="0">2453.7277</position>
@@ -1582,6 +1610,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T28.1"/>
 			<userParam type="float" name="FWHM" value="15.3636999130249"/>
+			<userParam type="float" name="SD" value="0.0650037725556422"/>
 		</feature>
 		<feature id="f_11115414975438642789">
 			<position dim="0">2450.3192</position>
@@ -1615,6 +1644,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T29.1"/>
 			<userParam type="float" name="FWHM" value="13.6429996490479"/>
+			<userParam type="float" name="SD" value="0.0788587816456999"/>
 		</feature>
 		<feature id="f_14509930621887606273">
 			<position dim="0">2258.9136</position>
@@ -1658,6 +1688,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T30.1"/>
 			<userParam type="float" name="FWHM" value="31.2423992156982"/>
+			<userParam type="float" name="SD" value="0.0770037197358444"/>
 		</feature>
 		<feature id="f_13424404046998308790">
 			<position dim="0">2482.8308</position>
@@ -1677,6 +1708,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T31.1"/>
 			<userParam type="float" name="FWHM" value="6.89690017700195"/>
+			<userParam type="float" name="SD" value="0.0319897395662339"/>
 		</feature>
 		<feature id="f_12665713047548007769">
 			<position dim="0">2460.5445</position>
@@ -1728,6 +1760,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T32.1"/>
 			<userParam type="float" name="FWHM" value="11.9364995956421"/>
+			<userParam type="float" name="SD" value="0.0483403242441144"/>
 		</feature>
 		<feature id="f_17092894204355333314">
 			<position dim="0">2231.2626</position>
@@ -1769,6 +1802,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T33.1"/>
 			<userParam type="float" name="FWHM" value="26.0270004272461"/>
+			<userParam type="float" name="SD" value="0.0336281594816617"/>
 		</feature>
 		<feature id="f_3491056946625602141">
 			<position dim="0">2481.1011</position>
@@ -1794,6 +1828,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T34.1"/>
 			<userParam type="float" name="FWHM" value="18.9832992553711"/>
+			<userParam type="float" name="SD" value="0.0392715694866196"/>
 		</feature>
 		<feature id="f_10627069796380146481">
 			<position dim="0">2458.847</position>
@@ -1847,6 +1882,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T35.1"/>
 			<userParam type="float" name="FWHM" value="22.190299987793"/>
+			<userParam type="float" name="SD" value="0.0419522956949266"/>
 		</feature>
 		<feature id="f_10052793688680741109">
 			<position dim="0">2458.847</position>
@@ -1908,6 +1944,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T36.1"/>
 			<userParam type="float" name="FWHM" value="29.0393009185791"/>
+			<userParam type="float" name="SD" value="0.0464487484833732"/>
 		</feature>
 		<feature id="f_15166508592180818156">
 			<position dim="0">2150.1436</position>
@@ -1967,6 +2004,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T37.1"/>
 			<userParam type="float" name="FWHM" value="30.2709999084473"/>
+			<userParam type="float" name="SD" value="0.0335086665655604"/>
 		</feature>
 		<feature id="f_14768204679546465715">
 			<position dim="0">2153.7001</position>
@@ -1982,6 +2020,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T38"/>
 			<userParam type="float" name="FWHM" value="5.33150005340576"/>
+			<userParam type="float" name="SD" value="0.00815372786451007"/>
 		</feature>
 		<feature id="f_12156709473159629610">
 			<position dim="0">2498.3931</position>
@@ -2007,6 +2046,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T39.1"/>
 			<userParam type="float" name="FWHM" value="10.3793001174927"/>
+			<userParam type="float" name="SD" value="0.0477869713269535"/>
 		</feature>
 		<feature id="f_15885522598119108466">
 			<position dim="0">2450.3192</position>
@@ -2032,6 +2072,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T40.1"/>
 			<userParam type="float" name="FWHM" value="15.3556995391846"/>
+			<userParam type="float" name="SD" value="0.0338935256288479"/>
 		</feature>
 		<feature id="f_3823858840059792698">
 			<position dim="0">2248.5422</position>
@@ -2053,6 +2094,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T41.1"/>
 			<userParam type="float" name="FWHM" value="13.829400062561"/>
+			<userParam type="float" name="SD" value="0.0178522994840284"/>
 		</feature>
 		<feature id="f_893904610286969204">
 			<position dim="0">2238.1823</position>
@@ -2092,6 +2134,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T42.1"/>
 			<userParam type="float" name="FWHM" value="29.482400894165"/>
+			<userParam type="float" name="SD" value="0.0524795052103903"/>
 		</feature>
 		<feature id="f_14851350658635457156">
 			<position dim="0">2050.5696</position>
@@ -2169,6 +2212,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T43.1"/>
 			<userParam type="float" name="FWHM" value="30.3178005218506"/>
+			<userParam type="float" name="SD" value="0.0478691906757141"/>
 		</feature>
 		<feature id="f_17447818880105247092">
 			<position dim="0">2260.6347</position>
@@ -2218,6 +2262,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T44.1"/>
 			<userParam type="float" name="FWHM" value="39.7677993774414"/>
+			<userParam type="float" name="SD" value="0.105612090211927"/>
 		</feature>
 		<feature id="f_1003624456647096845">
 			<position dim="0">2391.0357</position>
@@ -2253,6 +2298,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T45.1"/>
 			<userParam type="float" name="FWHM" value="19.2723999023438"/>
+			<userParam type="float" name="SD" value="0.0508825437387357"/>
 		</feature>
 		<feature id="f_15120290131060441429">
 			<position dim="0">2498.3931</position>
@@ -2274,6 +2320,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T46.1"/>
 			<userParam type="float" name="FWHM" value="8.64550018310547"/>
+			<userParam type="float" name="SD" value="0.0272612201411989"/>
 		</feature>
 		<feature id="f_11275867043381640475">
 			<position dim="0">2498.3931</position>
@@ -2301,6 +2348,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T47.1"/>
 			<userParam type="float" name="FWHM" value="10.3793001174927"/>
+			<userParam type="float" name="SD" value="0.035094628737419"/>
 		</feature>
 		<feature id="f_3713543811689521337">
 			<position dim="0">2054.1124</position>
@@ -2364,6 +2412,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T48.1"/>
 			<userParam type="float" name="FWHM" value="23.1235008239746"/>
+			<userParam type="float" name="SD" value="0.032963113422808"/>
 		</feature>
 		<feature id="f_8666254306116808202">
 			<position dim="0">2453.7277</position>
@@ -2397,6 +2446,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T49.1"/>
 			<userParam type="float" name="FWHM" value="11.9455003738403"/>
+			<userParam type="float" name="SD" value="0.0493882964017117"/>
 		</feature>
 		<feature id="f_3246735940528705071">
 			<position dim="0">2262.3631</position>
@@ -2422,6 +2472,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T50.1"/>
 			<userParam type="float" name="FWHM" value="13.8739004135132"/>
+			<userParam type="float" name="SD" value="0.0336308133118115"/>
 		</feature>
 		<feature id="f_4584897071539917580">
 			<position dim="0">2408.4245</position>
@@ -2453,6 +2504,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T51.1"/>
 			<userParam type="float" name="FWHM" value="17.3838996887207"/>
+			<userParam type="float" name="SD" value="0.0374561679009565"/>
 		</feature>
 		<feature id="f_260132145239717571">
 			<position dim="0">2457.1369</position>
@@ -2468,6 +2520,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T52"/>
 			<userParam type="float" name="FWHM" value="5.1149001121521"/>
+			<userParam type="float" name="SD" value="0.0209812507938786"/>
 		</feature>
 		<feature id="f_17569764383250687096">
 			<position dim="0">2236.4495</position>
@@ -2519,6 +2572,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T53.1"/>
 			<userParam type="float" name="FWHM" value="32.9398994445801"/>
+			<userParam type="float" name="SD" value="0.0382113383991449"/>
 		</feature>
 		<feature id="f_14317784148091680644">
 			<position dim="0">2404.9536</position>
@@ -2560,6 +2614,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T54.1"/>
 			<userParam type="float" name="FWHM" value="15.6472997665405"/>
+			<userParam type="float" name="SD" value="0.035075511736819"/>
 		</feature>
 		<feature id="f_17671779025680303814">
 			<position dim="0">2404.9536</position>
@@ -2603,6 +2658,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T55.1"/>
 			<userParam type="float" name="FWHM" value="15.6472997665405"/>
+			<userParam type="float" name="SD" value="0.0556844519709387"/>
 		</feature>
 		<feature id="f_1196373166564353753">
 			<position dim="0">2264.0944</position>
@@ -2620,6 +2676,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T56.1"/>
 			<userParam type="float" name="FWHM" value="5.18079996109009"/>
+			<userParam type="float" name="SD" value="0.0114934579241984"/>
 		</feature>
 		<feature id="f_7539502987715517688">
 			<position dim="0">2265.8264</position>
@@ -2659,6 +2716,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T57.1"/>
 			<userParam type="float" name="FWHM" value="31.2730007171631"/>
+			<userParam type="float" name="SD" value="0.0538303215334654"/>
 		</feature>
 		<feature id="f_9126387050458671424">
 			<position dim="0">2481.1011</position>
@@ -2680,6 +2738,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T58.1"/>
 			<userParam type="float" name="FWHM" value="8.60939979553223"/>
+			<userParam type="float" name="SD" value="0.0163882237455836"/>
 		</feature>
 		<feature id="f_13113514917555180171">
 			<position dim="0">2491.4704</position>
@@ -2703,6 +2762,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T59.1"/>
 			<userParam type="float" name="FWHM" value="15.5622997283936"/>
+			<userParam type="float" name="SD" value="0.0394412886041303"/>
 		</feature>
 		<feature id="f_7316644956366259183">
 			<position dim="0">2394.5305</position>
@@ -2738,6 +2798,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T60.1"/>
 			<userParam type="float" name="FWHM" value="22.7455997467041"/>
+			<userParam type="float" name="SD" value="0.0586386242206017"/>
 		</feature>
 		<feature id="f_6182960951962378739">
 			<position dim="0">2232.9951</position>
@@ -2779,6 +2840,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T61.1"/>
 			<userParam type="float" name="FWHM" value="25.9885997772217"/>
+			<userParam type="float" name="SD" value="0.0419371942568744"/>
 		</feature>
 		<feature id="f_14891455924036538147">
 			<position dim="0">2401.4906</position>
@@ -2814,6 +2876,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T62.1"/>
 			<userParam type="float" name="FWHM" value="13.8856000900269"/>
+			<userParam type="float" name="SD" value="0.0307069297854119"/>
 		</feature>
 		<feature id="f_5860084234476467938">
 			<position dim="0">2481.1011</position>
@@ -2843,6 +2906,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T63.1"/>
 			<userParam type="float" name="FWHM" value="18.9528007507324"/>
+			<userParam type="float" name="SD" value="0.0443449523189562"/>
 		</feature>
 		<feature id="f_12758854762884412659">
 			<position dim="0">2401.4906</position>
@@ -2880,6 +2944,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T64.1"/>
 			<userParam type="float" name="FWHM" value="17.38450050354"/>
+			<userParam type="float" name="SD" value="0.0451862041752414"/>
 		</feature>
 		<feature id="f_17287849381738438716">
 			<position dim="0">2452.0246</position>
@@ -2901,6 +2966,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T65.1"/>
 			<userParam type="float" name="FWHM" value="8.53400039672852"/>
+			<userParam type="float" name="SD" value="0.0189703479885016"/>
 		</feature>
 		<feature id="f_2660422259164526995">
 			<position dim="0">2484.5555</position>
@@ -2930,6 +2996,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T66.1"/>
 			<userParam type="float" name="FWHM" value="20.6756000518799"/>
+			<userParam type="float" name="SD" value="0.0269819178160105"/>
 		</feature>
 		<feature id="f_5495827884756377090">
 			<position dim="0">2055.8863</position>
@@ -2999,6 +3066,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T67.1"/>
 			<userParam type="float" name="FWHM" value="24.9181003570557"/>
+			<userParam type="float" name="SD" value="0.0369716880485143"/>
 		</feature>
 		<feature id="f_4143272592559840046">
 			<position dim="0">2401.4906</position>
@@ -3030,6 +3098,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T68.1"/>
 			<userParam type="float" name="FWHM" value="20.9202995300293"/>
+			<userParam type="float" name="SD" value="0.0298433764026392"/>
 		</feature>
 		<feature id="f_7870901012988979006">
 			<position dim="0">2304.0212</position>
@@ -3075,6 +3144,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T69.1"/>
 			<userParam type="float" name="FWHM" value="20.7138996124268"/>
+			<userParam type="float" name="SD" value="0.031432913108586"/>
 		</feature>
 		<feature id="f_5342974036930030800">
 			<position dim="0">2458.847</position>
@@ -3128,6 +3198,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T70.1"/>
 			<userParam type="float" name="FWHM" value="22.2129993438721"/>
+			<userParam type="float" name="SD" value="0.0487397841907546"/>
 		</feature>
 		<feature id="f_11399299100673837381">
 			<position dim="0">2153.7001</position>
@@ -3177,6 +3248,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T71.1"/>
 			<userParam type="float" name="FWHM" value="37.5438003540039"/>
+			<userParam type="float" name="SD" value="0.0274275989497455"/>
 		</feature>
 		<feature id="f_16164338904207598736">
 			<position dim="0">2258.9136</position>
@@ -3220,6 +3292,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T72.1"/>
 			<userParam type="float" name="FWHM" value="10.3863000869751"/>
+			<userParam type="float" name="SD" value="0.082913698444483"/>
 		</feature>
 		<feature id="f_4410447320637600518">
 			<position dim="0">2404.9536</position>
@@ -3253,6 +3326,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T73.1"/>
 			<userParam type="float" name="FWHM" value="20.8880996704102"/>
+			<userParam type="float" name="SD" value="0.0254333687944006"/>
 		</feature>
 		<feature id="f_12561328592123678330">
 			<position dim="0">2494.9337</position>
@@ -3268,6 +3342,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T74"/>
 			<userParam type="float" name="FWHM" value="5.18610000610352"/>
+			<userParam type="float" name="SD" value="0.0218841353223525"/>
 		</feature>
 		<feature id="f_8795943655088158336">
 			<position dim="0">2239.8997</position>
@@ -3321,6 +3396,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T75.1"/>
 			<userParam type="float" name="FWHM" value="38.2467002868652"/>
+			<userParam type="float" name="SD" value="0.0629843848480626"/>
 		</feature>
 		<feature id="f_6878260161865568505">
 			<position dim="0">2264.0944</position>
@@ -3338,6 +3414,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T76.1"/>
 			<userParam type="float" name="FWHM" value="8.67650032043457"/>
+			<userParam type="float" name="SD" value="0.00872039394540236"/>
 		</feature>
 		<feature id="f_4021463513649428920">
 			<position dim="0">2477.6586</position>
@@ -3365,6 +3442,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T77.1"/>
 			<userParam type="float" name="FWHM" value="10.3340997695923"/>
+			<userParam type="float" name="SD" value="0.0442126438824339"/>
 		</feature>
 		<feature id="f_3386388678910226661">
 			<position dim="0">2150.1436</position>
@@ -3430,6 +3508,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T78.1"/>
 			<userParam type="float" name="FWHM" value="28.4857006072998"/>
+			<userParam type="float" name="SD" value="0.0468212296032715"/>
 		</feature>
 		<feature id="f_13574947772324278593">
 			<position dim="0">2469.0914</position>
@@ -3447,6 +3526,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T79"/>
 			<userParam type="float" name="FWHM" value="5.13059997558594"/>
+			<userParam type="float" name="SD" value="0.00713600106047211"/>
 		</feature>
 		<feature id="f_3689406389503231823">
 			<position dim="0">2436.5378</position>
@@ -3472,6 +3552,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T80.1"/>
 			<userParam type="float" name="FWHM" value="17.4284000396729"/>
+			<userParam type="float" name="SD" value="0.0437863822945359"/>
 		</feature>
 		<feature id="f_11106716189850669289">
 			<position dim="0">2385.791</position>
@@ -3507,6 +3588,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T81.1"/>
 			<userParam type="float" name="FWHM" value="19.2723999023438"/>
+			<userParam type="float" name="SD" value="0.0521716254846003"/>
 		</feature>
 		<feature id="f_11221884879889731173">
 			<position dim="0">2401.4906</position>
@@ -3538,6 +3620,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T82.1"/>
 			<userParam type="float" name="FWHM" value="19.1341991424561"/>
+			<userParam type="float" name="SD" value="0.0195783077549287"/>
 		</feature>
 		<feature id="f_575144564576995072">
 			<position dim="0">2316.1886</position>
@@ -3553,6 +3636,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T83"/>
 			<userParam type="float" name="FWHM" value="5.23850011825562"/>
+			<userParam type="float" name="SD" value="0.0041299783299011"/>
 		</feature>
 		<feature id="f_5805590394902791448">
 			<position dim="0">2401.4906</position>
@@ -3580,6 +3664,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T84.1"/>
 			<userParam type="float" name="FWHM" value="15.6342000961304"/>
+			<userParam type="float" name="SD" value="0.0417652240714577"/>
 		</feature>
 		<feature id="f_11586291247413769442">
 			<position dim="0">2264.0944</position>
@@ -3613,6 +3698,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T85.1"/>
 			<userParam type="float" name="FWHM" value="13.8572998046875"/>
+			<userParam type="float" name="SD" value="0.0425629154339128"/>
 		</feature>
 		<feature id="f_7061025990090747374">
 			<position dim="0">2401.4906</position>
@@ -3648,6 +3734,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T86.1"/>
 			<userParam type="float" name="FWHM" value="19.1378002166748"/>
+			<userParam type="float" name="SD" value="0.0437922102934375"/>
 		</feature>
 		<feature id="f_8195437834883133454">
 			<position dim="0">2498.3931</position>
@@ -3673,6 +3760,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T87.1"/>
 			<userParam type="float" name="FWHM" value="15.5622997283936"/>
+			<userParam type="float" name="SD" value="0.05814763242899"/>
 		</feature>
 		<feature id="f_3395379003172100421">
 			<position dim="0">2300.5738</position>
@@ -3714,6 +3802,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T88.1"/>
 			<userParam type="float" name="FWHM" value="24.1917991638184"/>
+			<userParam type="float" name="SD" value="0.0234126145175418"/>
 		</feature>
 		<feature id="f_11630589982317102322">
 			<position dim="0">2048.7927</position>
@@ -3791,6 +3880,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T89.1"/>
 			<userParam type="float" name="FWHM" value="24.906099319458"/>
+			<userParam type="float" name="SD" value="0.0849032599394259"/>
 		</feature>
 		<feature id="f_1339341489815824759">
 			<position dim="0">2295.4041</position>
@@ -3828,6 +3918,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T90.1"/>
 			<userParam type="float" name="FWHM" value="18.9683990478516"/>
+			<userParam type="float" name="SD" value="0.0359880870337539"/>
 		</feature>
 		<feature id="f_17325731682080510033">
 			<position dim="0">2436.5378</position>
@@ -3847,6 +3938,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T91"/>
 			<userParam type="float" name="FWHM" value="12.1517000198364"/>
+			<userParam type="float" name="SD" value="0.0507269072707871"/>
 		</feature>
 		<feature id="f_13641829453453140763">
 			<position dim="0">2300.5738</position>
@@ -3888,6 +3980,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T92.1"/>
 			<userParam type="float" name="FWHM" value="20.7061996459961"/>
+			<userParam type="float" name="SD" value="0.04610071055377"/>
 		</feature>
 		<feature id="f_12388384985798314387">
 			<position dim="0">2457.1369</position>
@@ -3903,6 +3996,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T93"/>
 			<userParam type="float" name="FWHM" value="5.1149001121521"/>
+			<userParam type="float" name="SD" value="0.0165388177993009"/>
 		</feature>
 		<feature id="f_4041634828915281168">
 			<position dim="0">2264.0944</position>
@@ -3922,6 +4016,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T94.1"/>
 			<userParam type="float" name="FWHM" value="5.19659996032715"/>
+			<userParam type="float" name="SD" value="0.0165521668440335"/>
 		</feature>
 		<feature id="f_17078574238716611972">
 			<position dim="0">2452.0246</position>
@@ -3939,6 +4034,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T95.1"/>
 			<userParam type="float" name="FWHM" value="6.83580017089844"/>
+			<userParam type="float" name="SD" value="0.0265678406460746"/>
 		</feature>
 		<feature id="f_5106727040801878879">
 			<position dim="0">2494.9337</position>
@@ -3958,6 +4054,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T96.1"/>
 			<userParam type="float" name="FWHM" value="5.18610000610352"/>
+			<userParam type="float" name="SD" value="0.0175594977626101"/>
 		</feature>
 		<feature id="f_18390135059454481268">
 			<position dim="0">2234.7232</position>
@@ -3973,6 +4070,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T97"/>
 			<userParam type="float" name="FWHM" value="5.20359992980957"/>
+			<userParam type="float" name="SD" value="0.0166670256842281"/>
 		</feature>
 		<feature id="f_15721057298497490036">
 			<position dim="0">2257.1777</position>
@@ -4008,6 +4106,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T98.1"/>
 			<userParam type="float" name="FWHM" value="29.4279003143311"/>
+			<userParam type="float" name="SD" value="0.0457010386262686"/>
 		</feature>
 		<feature id="f_2608380305220684729">
 			<position dim="0">2248.5422</position>
@@ -4049,6 +4148,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T99.1"/>
 			<userParam type="float" name="FWHM" value="22.4881992340088"/>
+			<userParam type="float" name="SD" value="0.057776973473986"/>
 		</feature>
 		<feature id="f_11422463686885200558">
 			<position dim="0">2408.4245</position>
@@ -4086,6 +4186,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T100.1"/>
 			<userParam type="float" name="FWHM" value="12.1555004119873"/>
+			<userParam type="float" name="SD" value="0.0738641738986478"/>
 		</feature>
 		<feature id="f_7344192187426184761">
 			<position dim="0">2394.5305</position>
@@ -4101,6 +4202,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T101"/>
 			<userParam type="float" name="FWHM" value="5.24249982833862"/>
+			<userParam type="float" name="SD" value="0.0369443961780427"/>
 		</feature>
 		<feature id="f_7283948392886265699">
 			<position dim="0">2258.9136</position>
@@ -4128,6 +4230,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T102.1"/>
 			<userParam type="float" name="FWHM" value="26.0897006988525"/>
+			<userParam type="float" name="SD" value="0.0189935776881365"/>
 		</feature>
 		<feature id="f_2130311522918743509">
 			<position dim="0">2496.6645</position>
@@ -4147,6 +4250,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T103.1"/>
 			<userParam type="float" name="FWHM" value="10.3793001174927"/>
+			<userParam type="float" name="SD" value="0.00879562266429298"/>
 		</feature>
 		<feature id="f_9140546320740515641">
 			<position dim="0">2460.5445</position>
@@ -4170,6 +4274,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T104.1"/>
 			<userParam type="float" name="FWHM" value="13.6429996490479"/>
+			<userParam type="float" name="SD" value="0.0404992523352318"/>
 		</feature>
 		<feature id="f_12049315334424432437">
 			<position dim="0">2050.5696</position>
@@ -4233,6 +4338,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T105.1"/>
 			<userParam type="float" name="FWHM" value="15.9622001647949"/>
+			<userParam type="float" name="SD" value="0.0366546033383383"/>
 		</feature>
 		<feature id="f_9868242461570157420">
 			<position dim="0">2232.9951</position>
@@ -4268,6 +4374,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T106.1"/>
 			<userParam type="float" name="FWHM" value="27.9356994628906"/>
+			<userParam type="float" name="SD" value="0.0251634997116022"/>
 		</feature>
 		<feature id="f_16616557306000669869">
 			<position dim="0">2389.288</position>
@@ -4295,6 +4402,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T107.1"/>
 			<userParam type="float" name="FWHM" value="22.7935009002686"/>
+			<userParam type="float" name="SD" value="0.0470709402853506"/>
 		</feature>
 		<feature id="f_8984402899352117479">
 			<position dim="0">2453.7277</position>
@@ -4322,6 +4430,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T108.1"/>
 			<userParam type="float" name="FWHM" value="13.6429996490479"/>
+			<userParam type="float" name="SD" value="0.0346314070815471"/>
 		</feature>
 		<feature id="f_1621338151966755474">
 			<position dim="0">2055.8863</position>
@@ -4383,6 +4492,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T109.1"/>
 			<userParam type="float" name="FWHM" value="26.6989994049072"/>
+			<userParam type="float" name="SD" value="0.0461431994870953"/>
 		</feature>
 		<feature id="f_25974125700937907">
 			<position dim="0">2438.2814</position>
@@ -4406,6 +4516,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T110.1"/>
 			<userParam type="float" name="FWHM" value="8.70349979400635"/>
+			<userParam type="float" name="SD" value="0.0313547354744554"/>
 		</feature>
 		<feature id="f_7444998229116103684">
 			<position dim="0">2255.4493</position>
@@ -4453,6 +4564,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T111.1"/>
 			<userParam type="float" name="FWHM" value="22.551399230957"/>
+			<userParam type="float" name="SD" value="0.0628638272453099"/>
 		</feature>
 		<feature id="f_11583213259935596392">
 			<position dim="0">2401.4906</position>
@@ -4472,6 +4584,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T112.1"/>
 			<userParam type="float" name="FWHM" value="8.67580032348633"/>
+			<userParam type="float" name="SD" value="0.0198517769347103"/>
 		</feature>
 		<feature id="f_12520536430934325912">
 			<position dim="0">2486.2845</position>
@@ -4487,6 +4600,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T113"/>
 			<userParam type="float" name="FWHM" value="5.18590021133423"/>
+			<userParam type="float" name="SD" value="0.0172414303849564"/>
 		</feature>
 		<feature id="f_3619468215685938204">
 			<position dim="0">2477.6586</position>
@@ -4510,6 +4624,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T114.1"/>
 			<userParam type="float" name="FWHM" value="12.08899974823"/>
+			<userParam type="float" name="SD" value="0.0180088698070997"/>
 		</feature>
 		<feature id="f_15246437841577070383">
 			<position dim="0">2260.6347</position>
@@ -4539,6 +4654,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T115.1"/>
 			<userParam type="float" name="FWHM" value="27.6396007537842"/>
+			<userParam type="float" name="SD" value="0.0643753937242524"/>
 		</feature>
 		<feature id="f_17876486934271562208">
 			<position dim="0">2052.3418</position>
@@ -4606,6 +4722,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T116.1"/>
 			<userParam type="float" name="FWHM" value="17.7847003936768"/>
+			<userParam type="float" name="SD" value="0.0434473333074291"/>
 		</feature>
 		<feature id="f_9949257177078866781">
 			<position dim="0">2293.6847</position>
@@ -4637,6 +4754,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T117.1"/>
 			<userParam type="float" name="FWHM" value="27.6830005645752"/>
+			<userParam type="float" name="SD" value="0.0445443176776334"/>
 		</feature>
 		<feature id="f_8474756626526195362">
 			<position dim="0">2438.2814</position>
@@ -4654,6 +4772,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T118"/>
 			<userParam type="float" name="FWHM" value="8.67510032653809"/>
+			<userParam type="float" name="SD" value="0.0556145771784038"/>
 		</feature>
 		<feature id="f_16603831684342283009">
 			<position dim="0">2438.2814</position>
@@ -4671,6 +4790,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T119"/>
 			<userParam type="float" name="FWHM" value="5.21799993515015"/>
+			<userParam type="float" name="SD" value="0.029213491385819"/>
 		</feature>
 		<feature id="f_3607574553438867574">
 			<position dim="0">2150.1436</position>
@@ -4716,6 +4836,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T120.1"/>
 			<userParam type="float" name="FWHM" value="32.0952987670898"/>
+			<userParam type="float" name="SD" value="0.0259316750620199"/>
 		</feature>
 		<feature id="f_4906628401344677738">
 			<position dim="0">2418.9377</position>
@@ -4733,6 +4854,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T121.1"/>
 			<userParam type="float" name="FWHM" value="3.51909995079041"/>
+			<userParam type="float" name="SD" value="0.0210218758850838"/>
 		</feature>
 		<feature id="f_17475759268436611148">
 			<position dim="0">2477.6586</position>
@@ -4758,6 +4880,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T122.1"/>
 			<userParam type="float" name="FWHM" value="13.7607002258301"/>
+			<userParam type="float" name="SD" value="0.0398117218147755"/>
 		</feature>
 		<feature id="f_9672067365742190701">
 			<position dim="0">2455.4355</position>
@@ -4781,6 +4904,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T123.1"/>
 			<userParam type="float" name="FWHM" value="17.05419921875"/>
+			<userParam type="float" name="SD" value="0.0846933577380217"/>
 		</feature>
 		<feature id="f_11902665203725986836">
 			<position dim="0">2234.7232</position>
@@ -4812,6 +4936,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T124.1"/>
 			<userParam type="float" name="FWHM" value="17.3892002105713"/>
+			<userParam type="float" name="SD" value="0.0165187103470974"/>
 		</feature>
 		<feature id="f_3279626156608649238">
 			<position dim="0">2440.0082</position>
@@ -4829,6 +4954,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T125"/>
 			<userParam type="float" name="FWHM" value="6.92749977111816"/>
+			<userParam type="float" name="SD" value="0.0435848854489741"/>
 		</feature>
 		<feature id="f_17153647282322401195">
 			<position dim="0">2408.4245</position>
@@ -4846,6 +4972,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T126"/>
 			<userParam type="float" name="FWHM" value="6.94600009918213"/>
+			<userParam type="float" name="SD" value="0.051668121940396"/>
 		</feature>
 		<feature id="f_10231321952512194787">
 			<position dim="0">2304.0212</position>
@@ -4875,6 +5002,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T127.1"/>
 			<userParam type="float" name="FWHM" value="17.2504997253418"/>
+			<userParam type="float" name="SD" value="0.0615802043400179"/>
 		</feature>
 		<feature id="f_2067209405782217684">
 			<position dim="0">2257.1777</position>
@@ -4916,6 +5044,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T128.1"/>
 			<userParam type="float" name="FWHM" value="48.5442008972168"/>
+			<userParam type="float" name="SD" value="0.0449317366385819"/>
 		</feature>
 		<feature id="f_7619024488371696138">
 			<position dim="0">2467.3734</position>
@@ -4937,6 +5066,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T129.1"/>
 			<userParam type="float" name="FWHM" value="13.6457004547119"/>
+			<userParam type="float" name="SD" value="0.0161326992080883"/>
 		</feature>
 		<feature id="f_1253235807487386477">
 			<position dim="0">2238.1823</position>
@@ -4954,6 +5084,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T130.1"/>
 			<userParam type="float" name="FWHM" value="3.44470000267029"/>
+			<userParam type="float" name="SD" value="0.040787860779048"/>
 		</feature>
 		<feature id="f_15568981923429820128">
 			<position dim="0">2260.6347</position>
@@ -4969,6 +5100,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T131"/>
 			<userParam type="float" name="FWHM" value="5.18540000915527"/>
+			<userParam type="float" name="SD" value="0.010209594421762"/>
 		</feature>
 		<feature id="f_9657195323739211621">
 			<position dim="0">2239.8997</position>
@@ -4996,6 +5128,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T132.1"/>
 			<userParam type="float" name="FWHM" value="10.3557996749878"/>
+			<userParam type="float" name="SD" value="0.0281701417158864"/>
 		</feature>
 		<feature id="f_15595829921891090644">
 			<position dim="0">2462.2518</position>
@@ -5027,6 +5160,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T133.1"/>
 			<userParam type="float" name="FWHM" value="20.484899520874"/>
+			<userParam type="float" name="SD" value="0.0357349742225655"/>
 		</feature>
 		<feature id="f_9693516254110939661">
 			<position dim="0">2406.691</position>
@@ -5056,6 +5190,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T134.1"/>
 			<userParam type="float" name="FWHM" value="17.4011993408203"/>
+			<userParam type="float" name="SD" value="0.0323815758615995"/>
 		</feature>
 		<feature id="f_16459288859473286876">
 			<position dim="0">2260.6347</position>
@@ -5073,6 +5208,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T135.1"/>
 			<userParam type="float" name="FWHM" value="6.91450023651123"/>
+			<userParam type="float" name="SD" value="0.0220918646468644"/>
 		</feature>
 		<feature id="f_6330535588886112108">
 			<position dim="0">2253.7202</position>
@@ -5090,6 +5226,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T136.1"/>
 			<userParam type="float" name="FWHM" value="5.19339990615845"/>
+			<userParam type="float" name="SD" value="0.0290003275905283"/>
 		</feature>
 		<feature id="f_16262506217367104038">
 			<position dim="0">2445.1888</position>
@@ -5111,6 +5248,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T137.1"/>
 			<userParam type="float" name="FWHM" value="8.65100002288818"/>
+			<userParam type="float" name="SD" value="0.0679316556073509"/>
 		</feature>
 		<feature id="f_13656841482678042157">
 			<position dim="0">2477.6586</position>
@@ -5126,6 +5264,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T138"/>
 			<userParam type="float" name="FWHM" value="5.17220020294189"/>
+			<userParam type="float" name="SD" value="0.0273651406310729"/>
 		</feature>
 		<feature id="f_7138020121190169918">
 			<position dim="0">2475.9407</position>
@@ -5141,6 +5280,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T139"/>
 			<userParam type="float" name="FWHM" value="5.14589977264404"/>
+			<userParam type="float" name="SD" value="0.0528641772621086"/>
 		</feature>
 		<feature id="f_9239964739177281349">
 			<position dim="0">2453.7277</position>
@@ -5168,6 +5308,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T140.1"/>
 			<userParam type="float" name="FWHM" value="17.044900894165"/>
+			<userParam type="float" name="SD" value="0.0696184016708794"/>
 		</feature>
 		<feature id="f_1913989207508168661">
 			<position dim="0">2274.5086</position>
@@ -5187,6 +5328,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T141"/>
 			<userParam type="float" name="FWHM" value="12.2073001861572"/>
+			<userParam type="float" name="SD" value="0.0178705671969968"/>
 		</feature>
 		<feature id="f_3110306690676341028">
 			<position dim="0">2445.1888</position>
@@ -5208,6 +5350,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T142.1"/>
 			<userParam type="float" name="FWHM" value="10.3636999130249"/>
+			<userParam type="float" name="SD" value="0.0492855261129007"/>
 		</feature>
 		<feature id="f_7273255783824449336">
 			<position dim="0">2160.7929</position>
@@ -5247,6 +5390,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T143.1"/>
 			<userParam type="float" name="FWHM" value="35.7000999450684"/>
+			<userParam type="float" name="SD" value="0.0426277069155303"/>
 		</feature>
 		<feature id="f_16715553145456715818">
 			<position dim="0">2323.1737</position>
@@ -5262,6 +5406,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T144"/>
 			<userParam type="float" name="FWHM" value="5.31150007247925"/>
+			<userParam type="float" name="SD" value="0.0396522008292496"/>
 		</feature>
 		<feature id="f_17732694574582820772">
 			<position dim="0">2337.3619</position>
@@ -5277,6 +5422,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T145"/>
 			<userParam type="float" name="FWHM" value="5.32670021057129"/>
+			<userParam type="float" name="SD" value="0.022551623212011"/>
 		</feature>
 		<feature id="f_15974525296577096328">
 			<position dim="0">2298.845</position>
@@ -5292,6 +5438,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T146"/>
 			<userParam type="float" name="FWHM" value="5.16029977798462"/>
+			<userParam type="float" name="SD" value="0.0197832799403841"/>
 		</feature>
 		<feature id="f_3850221777823943420">
 			<position dim="0">2300.5738</position>
@@ -5309,6 +5456,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T147.1"/>
 			<userParam type="float" name="FWHM" value="5.16970014572144"/>
+			<userParam type="float" name="SD" value="0.0606768471476259"/>
 		</feature>
 		<feature id="f_14745721201431314415">
 			<position dim="0">2470.7948</position>
@@ -5326,6 +5474,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T148.1"/>
 			<userParam type="float" name="FWHM" value="8.54300022125244"/>
+			<userParam type="float" name="SD" value="0.0190067692288511"/>
 		</feature>
 		<feature id="f_4804931408721345291">
 			<position dim="0">2153.7001</position>
@@ -5371,6 +5520,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T149.1"/>
 			<userParam type="float" name="FWHM" value="19.5767002105713"/>
+			<userParam type="float" name="SD" value="0.0619787618081234"/>
 		</feature>
 		<feature id="f_17559911639132578699">
 			<position dim="0">2474.2214</position>
@@ -5392,6 +5542,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T150.1"/>
 			<userParam type="float" name="FWHM" value="10.306300163269"/>
+			<userParam type="float" name="SD" value="0.0264636619677224"/>
 		</feature>
 		<feature id="f_16987762588190708774">
 			<position dim="0">2062.9985</position>
@@ -5409,6 +5560,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T151"/>
 			<userParam type="float" name="FWHM" value="5.38600015640259"/>
+			<userParam type="float" name="SD" value="0.0206915442471274"/>
 		</feature>
 		<feature id="f_12855069628258305325">
 			<position dim="0">2403.2204</position>
@@ -5434,6 +5586,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T152.1"/>
 			<userParam type="float" name="FWHM" value="17.4011993408203"/>
+			<userParam type="float" name="SD" value="0.041229153551922"/>
 		</feature>
 		<feature id="f_9774290362926279551">
 			<position dim="0">2251.9944</position>
@@ -5451,6 +5604,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T153"/>
 			<userParam type="float" name="FWHM" value="5.18450021743774"/>
+			<userParam type="float" name="SD" value="0.0294752643560924"/>
 		</feature>
 		<feature id="f_11164532998186420766">
 			<position dim="0">2440.0082</position>
@@ -5466,6 +5620,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T154"/>
 			<userParam type="float" name="FWHM" value="5.1806001663208"/>
+			<userParam type="float" name="SD" value="0.0278645115174641"/>
 		</feature>
 		<feature id="f_435931305321438914">
 			<position dim="0">2232.9951</position>
@@ -5489,6 +5644,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T155.1"/>
 			<userParam type="float" name="FWHM" value="8.71739959716797"/>
+			<userParam type="float" name="SD" value="0.0170953343914677"/>
 		</feature>
 		<feature id="f_6432949088199598535">
 			<position dim="0">2482.8308</position>
@@ -5504,6 +5660,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T156"/>
 			<userParam type="float" name="FWHM" value="5.18300008773804"/>
+			<userParam type="float" name="SD" value="0.0440332032077161"/>
 		</feature>
 		<feature id="f_14426272183616168414">
 			<position dim="0">2408.4245</position>
@@ -5531,6 +5688,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T157.1"/>
 			<userParam type="float" name="FWHM" value="19.1660995483398"/>
+			<userParam type="float" name="SD" value="0.0695137672544871"/>
 		</feature>
 		<feature id="f_17623301629315165502">
 			<position dim="0">2295.4041</position>
@@ -5562,6 +5720,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T158.1"/>
 			<userParam type="float" name="FWHM" value="18.9683990478516"/>
+			<userParam type="float" name="SD" value="0.0834872838264009"/>
 		</feature>
 		<feature id="f_8226270557132872791">
 			<position dim="0">2417.1835</position>
@@ -5577,6 +5736,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T159"/>
 			<userParam type="float" name="FWHM" value="5.26849985122681"/>
+			<userParam type="float" name="SD" value="0.0138204052450419"/>
 		</feature>
 		<feature id="f_15355009979912333657">
 			<position dim="0">2253.7202</position>
@@ -5620,6 +5780,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T160.1"/>
 			<userParam type="float" name="FWHM" value="24.257999420166"/>
+			<userParam type="float" name="SD" value="0.0480338162727909"/>
 		</feature>
 		<feature id="f_12175240310315893095">
 			<position dim="0">2450.3192</position>
@@ -5645,6 +5806,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T161.1"/>
 			<userParam type="float" name="FWHM" value="18.767599105835"/>
+			<userParam type="float" name="SD" value="0.105226558168721"/>
 		</feature>
 		<feature id="f_10712702250035817065">
 			<position dim="0">2231.2626</position>
@@ -5662,6 +5824,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T162.1"/>
 			<userParam type="float" name="FWHM" value="7.02479982376099"/>
+			<userParam type="float" name="SD" value="0.00475371570451811"/>
 		</feature>
 		<feature id="f_18365384202816725379">
 			<position dim="0">2251.9944</position>
@@ -5679,6 +5842,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T163.1"/>
 			<userParam type="float" name="FWHM" value="6.91919994354248"/>
+			<userParam type="float" name="SD" value="0.0363372036048135"/>
 		</feature>
 		<feature id="f_3115030544351500350">
 			<position dim="0">2450.3192</position>
@@ -5704,6 +5868,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T164.1"/>
 			<userParam type="float" name="FWHM" value="13.6372003555298"/>
+			<userParam type="float" name="SD" value="0.0202281556365464"/>
 		</feature>
 		<feature id="f_7207737926139754191">
 			<position dim="0">2403.2204</position>
@@ -5721,6 +5886,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T165.1"/>
 			<userParam type="float" name="FWHM" value="6.93959999084473"/>
+			<userParam type="float" name="SD" value="0.00315269727132602"/>
 		</feature>
 		<feature id="f_11513186574425272818">
 			<position dim="0">2457.1369</position>
@@ -5738,6 +5904,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T166.1"/>
 			<userParam type="float" name="FWHM" value="8.51760005950928"/>
+			<userParam type="float" name="SD" value="0.0104358814873511"/>
 		</feature>
 		<feature id="f_13986717998338703682">
 			<position dim="0">2489.7476</position>
@@ -5753,6 +5920,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T167"/>
 			<userParam type="float" name="FWHM" value="5.18610000610352"/>
+			<userParam type="float" name="SD" value="0.0221529595360153"/>
 		</feature>
 		<feature id="f_15012949867540041090">
 			<position dim="0">2150.1436</position>
@@ -5780,6 +5948,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T168.1"/>
 			<userParam type="float" name="FWHM" value="19.5767002105713"/>
+			<userParam type="float" name="SD" value="0.0226635243413733"/>
 		</feature>
 		<feature id="f_276808963686810837">
 			<position dim="0">2436.5378</position>
@@ -5797,6 +5966,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T169"/>
 			<userParam type="float" name="FWHM" value="8.72970008850098"/>
+			<userParam type="float" name="SD" value="0.0256082025435881"/>
 		</feature>
 		<feature id="f_2235225131863392357">
 			<position dim="0">2238.1823</position>
@@ -5822,6 +5992,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T170.1"/>
 			<userParam type="float" name="FWHM" value="18.9969997406006"/>
+			<userParam type="float" name="SD" value="0.0583919056344289"/>
 		</feature>
 		<feature id="f_12316044051609314127">
 			<position dim="0">2470.7948</position>
@@ -5837,6 +6008,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T171"/>
 			<userParam type="float" name="FWHM" value="5.14589977264404"/>
+			<userParam type="float" name="SD" value="0.00400962401386096"/>
 		</feature>
 		<feature id="f_3985464472191994486">
 			<position dim="0">2264.0944</position>
@@ -5880,6 +6052,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T172.1"/>
 			<userParam type="float" name="FWHM" value="26.0062999725342"/>
+			<userParam type="float" name="SD" value="0.0677082973336452"/>
 		</feature>
 		<feature id="f_15490049804574065229">
 			<position dim="0">2389.288</position>
@@ -5903,6 +6076,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T173.1"/>
 			<userParam type="float" name="FWHM" value="14.0389995574951"/>
+			<userParam type="float" name="SD" value="0.0623130630369431"/>
 		</feature>
 		<feature id="f_17052620940680608488">
 			<position dim="0">2411.915</position>
@@ -5920,6 +6094,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T174"/>
 			<userParam type="float" name="FWHM" value="5.26849985122681"/>
+			<userParam type="float" name="SD" value="0.0192107772115076"/>
 		</feature>
 		<feature id="f_6748518772549940365">
 			<position dim="0">2410.1664</position>
@@ -5935,6 +6110,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T175"/>
 			<userParam type="float" name="FWHM" value="5.21280002593994"/>
+			<userParam type="float" name="SD" value="0.0353244582288426"/>
 		</feature>
 		<feature id="f_5156711929824391485">
 			<position dim="0">2441.7406</position>
@@ -5950,6 +6126,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T176"/>
 			<userParam type="float" name="FWHM" value="5.20279979705811"/>
+			<userParam type="float" name="SD" value="0.0408282813887126"/>
 		</feature>
 		<feature id="f_11470839092866542957">
 			<position dim="0">2384.0293</position>
@@ -5965,6 +6142,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T177"/>
 			<userParam type="float" name="FWHM" value="5.28429985046387"/>
+			<userParam type="float" name="SD" value="0.00815753561550991"/>
 		</feature>
 		<feature id="f_13663761038749696507">
 			<position dim="0">2420.7039</position>
@@ -5982,6 +6160,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T178.1"/>
 			<userParam type="float" name="FWHM" value="8.78890037536621"/>
+			<userParam type="float" name="SD" value="0.0649210505090013"/>
 		</feature>
 		<feature id="f_3109052061041085863">
 			<position dim="0">2298.845</position>
@@ -5997,6 +6176,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T179"/>
 			<userParam type="float" name="FWHM" value="5.16029977798462"/>
+			<userParam type="float" name="SD" value="0.0033258089891683"/>
 		</feature>
 		<feature id="f_11356404697098357181">
 			<position dim="0">2234.7232</position>
@@ -6016,6 +6196,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T180.1"/>
 			<userParam type="float" name="FWHM" value="8.66720008850098"/>
+			<userParam type="float" name="SD" value="0.0365453361319815"/>
 		</feature>
 		<feature id="f_15137961832517596447">
 			<position dim="0">2298.845</position>
@@ -6053,6 +6234,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T181.1"/>
 			<userParam type="float" name="FWHM" value="25.9416007995605"/>
+			<userParam type="float" name="SD" value="0.0556825406968222"/>
 		</feature>
 		<feature id="f_16437269819074619437">
 			<position dim="0">2498.3931</position>
@@ -6068,6 +6250,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T182"/>
 			<userParam type="float" name="FWHM" value="5.18839979171753"/>
+			<userParam type="float" name="SD" value="0.0278543650833854"/>
 		</feature>
 		<feature id="f_12959367150092654332">
 			<position dim="0">2467.3734</position>
@@ -6083,6 +6266,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T183"/>
 			<userParam type="float" name="FWHM" value="5.13609981536865"/>
+			<userParam type="float" name="SD" value="0.0277575499703744"/>
 		</feature>
 		<feature id="f_4870109536405501088">
 			<position dim="0">2304.0212</position>
@@ -6110,6 +6294,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T184.1"/>
 			<userParam type="float" name="FWHM" value="15.527099609375"/>
+			<userParam type="float" name="SD" value="0.0859487370281364"/>
 		</feature>
 		<feature id="f_11504199178185045470">
 			<position dim="0">2384.0293</position>
@@ -6137,6 +6322,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T185.1"/>
 			<userParam type="float" name="FWHM" value="13.9881000518799"/>
+			<userParam type="float" name="SD" value="0.0482748263866461"/>
 		</feature>
 		<feature id="f_6780584527845373550">
 			<position dim="0">2143.0003</position>
@@ -6152,6 +6338,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T186"/>
 			<userParam type="float" name="FWHM" value="5.46689987182617"/>
+			<userParam type="float" name="SD" value="0.0100187102086085"/>
 		</feature>
 		<feature id="f_2897592749236539531">
 			<position dim="0">2375.1887</position>
@@ -6167,6 +6354,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T187"/>
 			<userParam type="float" name="FWHM" value="5.38430023193359"/>
+			<userParam type="float" name="SD" value="0.0362063488041097"/>
 		</feature>
 		<feature id="f_7207371083159283456">
 			<position dim="0">2258.9136</position>
@@ -6186,6 +6374,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T188.1"/>
 			<userParam type="float" name="FWHM" value="12.1168003082275"/>
+			<userParam type="float" name="SD" value="0.0230321423912115"/>
 		</feature>
 		<feature id="f_298401133637741504">
 			<position dim="0">2304.0212</position>
@@ -6203,6 +6392,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T189.1"/>
 			<userParam type="float" name="FWHM" value="5.19059991836548"/>
+			<userParam type="float" name="SD" value="0.0370523562070968"/>
 		</feature>
 		<feature id="f_9450327747750257644">
 			<position dim="0">2290.2434</position>
@@ -6218,6 +6408,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T190"/>
 			<userParam type="float" name="FWHM" value="5.22289991378784"/>
+			<userParam type="float" name="SD" value="0.0461586008491395"/>
 		</feature>
 		<feature id="f_3500354167110536664">
 			<position dim="0">2153.7001</position>
@@ -6259,6 +6450,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T191.1"/>
 			<userParam type="float" name="FWHM" value="21.3089008331299"/>
+			<userParam type="float" name="SD" value="0.034093210423889"/>
 		</feature>
 		<feature id="f_1736129847460668689">
 			<position dim="0">2452.0246</position>
@@ -6274,6 +6466,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T192"/>
 			<userParam type="float" name="FWHM" value="5.12309980392456"/>
+			<userParam type="float" name="SD" value="0.0382592790016065"/>
 		</feature>
 		<feature id="f_8045278939144768624">
 			<position dim="0">2245.0807</position>
@@ -6289,6 +6482,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T193"/>
 			<userParam type="float" name="FWHM" value="5.18100023269653"/>
+			<userParam type="float" name="SD" value="0.0496702569045037"/>
 		</feature>
 		<feature id="f_11330022419841184299">
 			<position dim="0">2403.2204</position>
@@ -6304,6 +6498,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T194"/>
 			<userParam type="float" name="FWHM" value="5.20410013198853"/>
+			<userParam type="float" name="SD" value="0.0442395872796624"/>
 		</feature>
 		<feature id="f_7681485519006928191">
 			<position dim="0">2403.2204</position>
@@ -6321,6 +6516,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T195.1"/>
 			<userParam type="float" name="FWHM" value="5.20300006866455"/>
+			<userParam type="float" name="SD" value="0.0132921226430778"/>
 		</feature>
 		<feature id="f_3895238410403729308">
 			<position dim="0">2457.1369</position>
@@ -6342,6 +6538,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T196.1"/>
 			<userParam type="float" name="FWHM" value="8.51760005950928"/>
+			<userParam type="float" name="SD" value="0.0535776679559192"/>
 		</feature>
 		<feature id="f_1380230199713784757">
 			<position dim="0">2295.4041</position>
@@ -6369,6 +6566,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T197.1"/>
 			<userParam type="float" name="FWHM" value="17.2504997253418"/>
+			<userParam type="float" name="SD" value="0.0329790185652201"/>
 		</feature>
 		<feature id="f_4052294204879239723">
 			<position dim="0">2317.9356</position>
@@ -6392,6 +6590,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T198.1"/>
 			<userParam type="float" name="FWHM" value="17.5622997283936"/>
+			<userParam type="float" name="SD" value="0.0379780692585836"/>
 		</feature>
 		<feature id="f_17879691353184002386">
 			<position dim="0">2231.2626</position>
@@ -6409,6 +6608,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T199"/>
 			<userParam type="float" name="FWHM" value="8.66269969940186"/>
+			<userParam type="float" name="SD" value="0.0433890066027768"/>
 		</feature>
 		<feature id="f_17757401347613427925">
 			<position dim="0">2293.6847</position>
@@ -6426,6 +6626,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T200"/>
 			<userParam type="float" name="FWHM" value="6.89849996566772"/>
+			<userParam type="float" name="SD" value="0.0326997838825244"/>
 		</feature>
 		<feature id="f_9283548542228005819">
 			<position dim="0">2436.5378</position>
@@ -6441,6 +6642,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T201"/>
 			<userParam type="float" name="FWHM" value="5.20279979705811"/>
+			<userParam type="float" name="SD" value="0.0406795310829771"/>
 		</feature>
 		<feature id="f_3725296011092108785">
 			<position dim="0">2460.5445</position>
@@ -6456,6 +6658,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T202"/>
 			<userParam type="float" name="FWHM" value="5.10900020599365"/>
+			<userParam type="float" name="SD" value="0.0212125430732613"/>
 		</feature>
 		<feature id="f_4349546871070693707">
 			<position dim="0">2387.5374</position>
@@ -6475,6 +6678,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T203.1"/>
 			<userParam type="float" name="FWHM" value="8.73950004577637"/>
+			<userParam type="float" name="SD" value="0.0308230750821615"/>
 		</feature>
 		<feature id="f_3103608995878612024">
 			<position dim="0">2389.288</position>
@@ -6496,6 +6700,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T204.1"/>
 			<userParam type="float" name="FWHM" value="15.7712001800537"/>
+			<userParam type="float" name="SD" value="0.00599992277700714"/>
 		</feature>
 		<feature id="f_2523775179728812781">
 			<position dim="0">2472.5095</position>
@@ -6511,6 +6716,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T205"/>
 			<userParam type="float" name="FWHM" value="5.14909982681274"/>
+			<userParam type="float" name="SD" value="0.0270895469943753"/>
 		</feature>
 		<feature id="f_10409195546240342212">
 			<position dim="0">2408.4245</position>
@@ -6536,6 +6742,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T206.1"/>
 			<userParam type="float" name="FWHM" value="17.4011993408203"/>
+			<userParam type="float" name="SD" value="0.041252716839562"/>
 		</feature>
 		<feature id="f_1479160453569602855">
 			<position dim="0">2218.8696</position>
@@ -6551,6 +6758,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T207"/>
 			<userParam type="float" name="FWHM" value="5.36819982528687"/>
+			<userParam type="float" name="SD" value="0.0624613243926433"/>
 		</feature>
 		<feature id="f_17798533385406028685">
 			<position dim="0">2257.1777</position>
@@ -6568,6 +6776,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T208.1"/>
 			<userParam type="float" name="FWHM" value="8.63549995422363"/>
+			<userParam type="float" name="SD" value="0.0219719430622362"/>
 		</feature>
 		<feature id="f_2477368416748083016">
 			<position dim="0">2364.3859</position>
@@ -6585,6 +6794,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T209.1"/>
 			<userParam type="float" name="FWHM" value="7.2733998298645"/>
+			<userParam type="float" name="SD" value="0.0339743828780008"/>
 		</feature>
 		<feature id="f_5634796270667792442">
 			<position dim="0">2425.9917</position>
@@ -6600,6 +6810,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T210"/>
 			<userParam type="float" name="FWHM" value="5.28679990768433"/>
+			<userParam type="float" name="SD" value="0.049079663605653"/>
 		</feature>
 		<feature id="f_4877407491526870466">
 			<position dim="0">2489.7476</position>
@@ -6615,6 +6826,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T211"/>
 			<userParam type="float" name="FWHM" value="5.19210004806519"/>
+			<userParam type="float" name="SD" value="0.0250246552300268"/>
 		</feature>
 		<feature id="f_14976954448023685397">
 			<position dim="0">2267.5597</position>
@@ -6630,6 +6842,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T212"/>
 			<userParam type="float" name="FWHM" value="5.21120023727417"/>
+			<userParam type="float" name="SD" value="0.0667327100697447"/>
 		</feature>
 		<feature id="f_2935923263525422257">
 			<position dim="0">2159.018</position>
@@ -6663,6 +6876,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T213.1"/>
 			<userParam type="float" name="FWHM" value="28.4477005004883"/>
+			<userParam type="float" name="SD" value="0.0550284895628378"/>
 		</feature>
 		<feature id="f_6330378408783783417">
 			<position dim="0">2445.1888</position>
@@ -6680,6 +6894,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T214.1"/>
 			<userParam type="float" name="FWHM" value="5.1806001663208"/>
+			<userParam type="float" name="SD" value="0.0820663433514885"/>
 		</feature>
 		<feature id="f_14278822580076064845">
 			<position dim="0">2298.845</position>
@@ -6699,6 +6914,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T215"/>
 			<userParam type="float" name="FWHM" value="12.0853004455566"/>
+			<userParam type="float" name="SD" value="0.030320127805121"/>
 		</feature>
 		<feature id="f_8563167430029240731">
 			<position dim="0">2109.6008</position>
@@ -6720,6 +6936,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T216.1"/>
 			<userParam type="float" name="FWHM" value="9.28689956665039"/>
+			<userParam type="float" name="SD" value="0.0333861432086166"/>
 		</feature>
 		<feature id="f_17153118873428995855">
 			<position dim="0">2269.2999</position>
@@ -6739,6 +6956,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T217.1"/>
 			<userParam type="float" name="FWHM" value="12.1455001831055"/>
+			<userParam type="float" name="SD" value="0.023544500350675"/>
 		</feature>
 		<feature id="f_8737956799617760608">
 			<position dim="0">2298.845</position>
@@ -6758,6 +6976,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T218.1"/>
 			<userParam type="float" name="FWHM" value="8.609299659729"/>
+			<userParam type="float" name="SD" value="0.048621706910459"/>
 		</feature>
 		<feature id="f_4287466236848599457">
 			<position dim="0">2047.0178</position>
@@ -6799,6 +7018,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T219.1"/>
 			<userParam type="float" name="FWHM" value="28.4969997406006"/>
+			<userParam type="float" name="SD" value="0.0286172577526312"/>
 		</feature>
 		<feature id="f_5494749430262800962">
 			<position dim="0">2055.8863</position>
@@ -6852,6 +7072,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T220.1"/>
 			<userParam type="float" name="FWHM" value="28.50950050354"/>
+			<userParam type="float" name="SD" value="0.0559480453850592"/>
 		</feature>
 		<feature id="f_14086301720075657476">
 			<position dim="0">2436.5378</position>
@@ -6869,6 +7090,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T221.1"/>
 			<userParam type="float" name="FWHM" value="5.25930023193359"/>
+			<userParam type="float" name="SD" value="0.0203866044035745"/>
 		</feature>
 		<feature id="f_7518490237765357274">
 			<position dim="0">2494.9337</position>
@@ -6888,6 +7110,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T222.1"/>
 			<userParam type="float" name="FWHM" value="8.65069961547852"/>
+			<userParam type="float" name="SD" value="0.0326099535042004"/>
 		</feature>
 		<feature id="f_8269033494178950104">
 			<position dim="0">2472.5095</position>
@@ -6909,6 +7132,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T223.1"/>
 			<userParam type="float" name="FWHM" value="13.6625003814697"/>
+			<userParam type="float" name="SD" value="0.106940772893092"/>
 		</feature>
 		<feature id="f_6485175442085010172">
 			<position dim="0">2279.7614</position>
@@ -6924,6 +7148,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T224"/>
 			<userParam type="float" name="FWHM" value="5.25279998779297"/>
+			<userParam type="float" name="SD" value="0.0125812599566302"/>
 		</feature>
 		<feature id="f_5850860311130757289">
 			<position dim="0">2410.1664</position>
@@ -6941,6 +7166,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T225"/>
 			<userParam type="float" name="FWHM" value="5.22399997711182"/>
+			<userParam type="float" name="SD" value="0.0365160008900987"/>
 		</feature>
 		<feature id="f_5790065978798102656">
 			<position dim="0">2317.9356</position>
@@ -6960,6 +7186,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T226.1"/>
 			<userParam type="float" name="FWHM" value="5.23820018768311"/>
+			<userParam type="float" name="SD" value="0.0167400797806021"/>
 		</feature>
 		<feature id="f_13980879381374140731">
 			<position dim="0">2387.5374</position>
@@ -6983,6 +7210,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T227.1"/>
 			<userParam type="float" name="FWHM" value="12.2536001205444"/>
+			<userParam type="float" name="SD" value="0.0255004318358076"/>
 		</feature>
 		<feature id="f_17037743280630708180">
 			<position dim="0">2408.4245</position>
@@ -7002,6 +7230,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T228.1"/>
 			<userParam type="float" name="FWHM" value="5.24020004272461"/>
+			<userParam type="float" name="SD" value="0.0227952064611923"/>
 		</feature>
 		<feature id="f_13689446208680806914">
 			<position dim="0">2310.9573</position>
@@ -7019,6 +7248,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T229.1"/>
 			<userParam type="float" name="FWHM" value="8.66329956054688"/>
+			<userParam type="float" name="SD" value="0.0442519978341624"/>
 		</feature>
 		<feature id="f_6085347502476921755">
 			<position dim="0">2392.784</position>
@@ -7046,6 +7276,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T230.1"/>
 			<userParam type="float" name="FWHM" value="19.2136993408203"/>
+			<userParam type="float" name="SD" value="0.0474632463171862"/>
 		</feature>
 		<feature id="f_12638646769781568686">
 			<position dim="0">2496.6645</position>
@@ -7063,6 +7294,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T231"/>
 			<userParam type="float" name="FWHM" value="6.92269992828369"/>
+			<userParam type="float" name="SD" value="0.0378693976422487"/>
 		</feature>
 		<feature id="f_11486987517808453959">
 			<position dim="0">2332.0352</position>
@@ -7078,6 +7310,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T232"/>
 			<userParam type="float" name="FWHM" value="5.32670021057129"/>
+			<userParam type="float" name="SD" value="0.0431364644418863"/>
 		</feature>
 		<feature id="f_15266089238820240396">
 			<position dim="0">2364.3859</position>
@@ -7093,6 +7326,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T233"/>
 			<userParam type="float" name="FWHM" value="5.46490001678467"/>
+			<userParam type="float" name="SD" value="0.034206492896601"/>
 		</feature>
 		<feature id="f_1897639188110923731">
 			<position dim="0">2496.6645</position>
@@ -7108,6 +7342,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T234"/>
 			<userParam type="float" name="FWHM" value="5.19409990310669"/>
+			<userParam type="float" name="SD" value="0.0164491786321225"/>
 		</feature>
 		<feature id="f_17480794184187398956">
 			<position dim="0">2316.1886</position>
@@ -7133,6 +7368,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T235.1"/>
 			<userParam type="float" name="FWHM" value="15.7424001693726"/>
+			<userParam type="float" name="SD" value="0.0329930465906796"/>
 		</feature>
 		<feature id="f_2196373945720374912">
 			<position dim="0">2075.7091</position>
@@ -7154,6 +7390,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T236"/>
 			<userParam type="float" name="FWHM" value="11.2031002044678"/>
+			<userParam type="float" name="SD" value="0.0333067663711905"/>
 		</feature>
 		<feature id="f_14250952015258313885">
 			<position dim="0">2231.2626</position>
@@ -7171,6 +7408,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T237"/>
 			<userParam type="float" name="FWHM" value="6.92990016937256"/>
+			<userParam type="float" name="SD" value="0.0251968263915768"/>
 		</feature>
 		<feature id="f_13171818018686116661">
 			<position dim="0">2260.6347</position>
@@ -7186,6 +7424,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T238"/>
 			<userParam type="float" name="FWHM" value="5.19169998168945"/>
+			<userParam type="float" name="SD" value="0.0276548134600034"/>
 		</feature>
 		<feature id="f_10602625357488771666">
 			<position dim="0">2234.7232</position>
@@ -7221,6 +7460,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T239.1"/>
 			<userParam type="float" name="FWHM" value="33.1248016357422"/>
+			<userParam type="float" name="SD" value="0.0192467566941486"/>
 		</feature>
 		<feature id="f_5068111435437013712">
 			<position dim="0">2153.7001</position>
@@ -7236,6 +7476,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T240"/>
 			<userParam type="float" name="FWHM" value="5.31790018081665"/>
+			<userParam type="float" name="SD" value="0.0380581193964129"/>
 		</feature>
 		<feature id="f_1713197315473853654">
 			<position dim="0">2460.5445</position>
@@ -7261,6 +7502,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T241.1"/>
 			<userParam type="float" name="FWHM" value="18.8416004180908"/>
+			<userParam type="float" name="SD" value="0.105131254787832"/>
 		</feature>
 		<feature id="f_14880201573811942647">
 			<position dim="0">2392.784</position>
@@ -7276,6 +7518,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T242"/>
 			<userParam type="float" name="FWHM" value="5.23339986801147"/>
+			<userParam type="float" name="SD" value="0.0390079787987361"/>
 		</feature>
 		<feature id="f_8130451410245685019">
 			<position dim="0">2411.915</position>
@@ -7291,6 +7534,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T243"/>
 			<userParam type="float" name="FWHM" value="5.26849985122681"/>
+			<userParam type="float" name="SD" value="0.0175177163593067"/>
 		</feature>
 		<feature id="f_5322749189241434745">
 			<position dim="0">2479.3861</position>
@@ -7310,6 +7554,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T244.1"/>
 			<userParam type="float" name="FWHM" value="5.16039991378784"/>
+			<userParam type="float" name="SD" value="0.0128507160128492"/>
 		</feature>
 		<feature id="f_17523294400186120337">
 			<position dim="0">2425.9917</position>
@@ -7325,6 +7570,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T245"/>
 			<userParam type="float" name="FWHM" value="5.28679990768433"/>
+			<userParam type="float" name="SD" value="0.0191286557284643"/>
 		</feature>
 		<feature id="f_12790509195249234965">
 			<position dim="0">2130.114</position>
@@ -7340,6 +7586,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T246"/>
 			<userParam type="float" name="FWHM" value="5.5789999961853"/>
+			<userParam type="float" name="SD" value="0.0103976703621811"/>
 		</feature>
 		<feature id="f_8416276272241661922">
 			<position dim="0">2316.1886</position>
@@ -7363,6 +7610,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T247.1"/>
 			<userParam type="float" name="FWHM" value="10.476300239563"/>
+			<userParam type="float" name="SD" value="0.0298802385417161"/>
 		</feature>
 		<feature id="f_13874157993235401229">
 			<position dim="0">2288.5056</position>
@@ -7386,6 +7634,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T248.1"/>
 			<userParam type="float" name="FWHM" value="10.3836002349854"/>
+			<userParam type="float" name="SD" value="0.0198251693497021"/>
 		</feature>
 		<feature id="f_8895517416657908109">
 			<position dim="0">2424.2265</position>
@@ -7405,6 +7654,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T249.1"/>
 			<userParam type="float" name="FWHM" value="5.2842001914978"/>
+			<userParam type="float" name="SD" value="0.0441327201234959"/>
 		</feature>
 		<feature id="f_9229951951226823321">
 			<position dim="0">2433.0371</position>
@@ -7420,6 +7670,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T250"/>
 			<userParam type="float" name="FWHM" value="5.24429988861084"/>
+			<userParam type="float" name="SD" value="0.0490144847204539"/>
 		</feature>
 		<feature id="f_5044655372998579004">
 			<position dim="0">2253.7202</position>
@@ -7435,6 +7686,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T251"/>
 			<userParam type="float" name="FWHM" value="5.17799997329712"/>
+			<userParam type="float" name="SD" value="0.00337188075184289"/>
 		</feature>
 		<feature id="f_6675346238472377214">
 			<position dim="0">2436.5378</position>
@@ -7450,6 +7702,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T252"/>
 			<userParam type="float" name="FWHM" value="5.25930023193359"/>
+			<userParam type="float" name="SD" value="0.0427646957299625"/>
 		</feature>
 		<feature id="f_4177776976011375854">
 			<position dim="0">2368.0082</position>
@@ -7465,6 +7718,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T253"/>
 			<userParam type="float" name="FWHM" value="5.44579982757568"/>
+			<userParam type="float" name="SD" value="0.0139485092336145"/>
 		</feature>
 		<feature id="f_3404719972762258001">
 			<position dim="0">2293.6847</position>
@@ -7488,6 +7742,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T254.1"/>
 			<userParam type="float" name="FWHM" value="15.5156002044678"/>
+			<userParam type="float" name="SD" value="0.0563579231458077"/>
 		</feature>
 		<feature id="f_1510041322410100755">
 			<position dim="0">2498.3931</position>
@@ -7503,6 +7758,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T255"/>
 			<userParam type="float" name="FWHM" value="5.18839979171753"/>
+			<userParam type="float" name="SD" value="0.0215717975446494"/>
 		</feature>
 		<feature id="f_2527298019381746972">
 			<position dim="0">2304.0212</position>
@@ -7518,6 +7774,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T256"/>
 			<userParam type="float" name="FWHM" value="5.19059991836548"/>
+			<userParam type="float" name="SD" value="0.0488910901658528"/>
 		</feature>
 		<feature id="f_10159193354140608506">
 			<position dim="0">2319.6713</position>
@@ -7539,6 +7796,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T257.1"/>
 			<userParam type="float" name="FWHM" value="10.476300239563"/>
+			<userParam type="float" name="SD" value="0.015914672577247"/>
 		</feature>
 		<feature id="f_15293352267620635047">
 			<position dim="0">2319.6713</position>
@@ -7554,6 +7812,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T258"/>
 			<userParam type="float" name="FWHM" value="5.26119995117188"/>
+			<userParam type="float" name="SD" value="0.00995700460690724"/>
 		</feature>
 		<feature id="f_16735227066174993168">
 			<position dim="0">2131.9764</position>
@@ -7569,6 +7828,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T259"/>
 			<userParam type="float" name="FWHM" value="5.62430000305176"/>
+			<userParam type="float" name="SD" value="0.0513487975608769"/>
 		</feature>
 		<feature id="f_925368203741219696">
 			<position dim="0">2455.4355</position>
@@ -7586,6 +7846,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T260.1"/>
 			<userParam type="float" name="FWHM" value="5.11630010604858"/>
+			<userParam type="float" name="SD" value="0.0499367020741487"/>
 		</feature>
 		<feature id="f_17198820827940555384">
 			<position dim="0">2066.5774</position>
@@ -7601,6 +7862,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T261"/>
 			<userParam type="float" name="FWHM" value="5.45529985427856"/>
+			<userParam type="float" name="SD" value="0.0420686495737519"/>
 		</feature>
 		<feature id="f_10534409609594510246">
 			<position dim="0">2440.0082</position>
@@ -7616,6 +7878,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T262"/>
 			<userParam type="float" name="FWHM" value="5.21799993515015"/>
+			<userParam type="float" name="SD" value="0.0214424208355012"/>
 		</feature>
 		<feature id="f_12750316911469522381">
 			<position dim="0">2316.1886</position>
@@ -7631,6 +7894,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T263"/>
 			<userParam type="float" name="FWHM" value="5.23129987716675"/>
+			<userParam type="float" name="SD" value="0.0391377287199922"/>
 		</feature>
 		<feature id="f_16929718536696058955">
 			<position dim="0">2477.6586</position>
@@ -7646,6 +7910,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T264"/>
 			<userParam type="float" name="FWHM" value="5.17220020294189"/>
+			<userParam type="float" name="SD" value="0.043515974942066"/>
 		</feature>
 		<feature id="f_9429020594666658834">
 			<position dim="0">2401.4906</position>
@@ -7661,6 +7926,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T265"/>
 			<userParam type="float" name="FWHM" value="5.20979976654053"/>
+			<userParam type="float" name="SD" value="0.0488007724597992"/>
 		</feature>
 		<feature id="f_4917717027748334870">
 			<position dim="0">2124.4658</position>
@@ -7676,6 +7942,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T266"/>
 			<userParam type="float" name="FWHM" value="5.57810020446777"/>
+			<userParam type="float" name="SD" value="0.0415808829040998"/>
 		</feature>
 		<feature id="f_12383683518728261590">
 			<position dim="0">2146.596</position>
@@ -7711,6 +7978,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T267.1"/>
 			<userParam type="float" name="FWHM" value="28.4477005004883"/>
+			<userParam type="float" name="SD" value="0.0625587630049727"/>
 		</feature>
 		<feature id="f_1583119142016402466">
 			<position dim="0">2269.2999</position>
@@ -7728,6 +7996,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T268.1"/>
 			<userParam type="float" name="FWHM" value="6.93680000305176"/>
+			<userParam type="float" name="SD" value="0.0337259751759271"/>
 		</feature>
 		<feature id="f_17877631333404726869">
 			<position dim="0">2290.2434</position>
@@ -7745,6 +8014,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T269.1"/>
 			<userParam type="float" name="FWHM" value="5.22289991378784"/>
+			<userParam type="float" name="SD" value="0.0378497914222737"/>
 		</feature>
 		<feature id="f_9681608301587048926">
 			<position dim="0">2429.5107</position>
@@ -7760,6 +8030,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T270"/>
 			<userParam type="float" name="FWHM" value="5.27950000762939"/>
+			<userParam type="float" name="SD" value="0.0325551385900744"/>
 		</feature>
 		<feature id="f_346143151348285874">
 			<position dim="0">2346.298</position>
@@ -7775,6 +8046,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T271"/>
 			<userParam type="float" name="FWHM" value="5.36269998550415"/>
+			<userParam type="float" name="SD" value="0.0169599688390463"/>
 		</feature>
 		<feature id="f_2027900418508605084">
 			<position dim="0">2475.9407</position>
@@ -7790,6 +8062,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T272"/>
 			<userParam type="float" name="FWHM" value="5.14589977264404"/>
+			<userParam type="float" name="SD" value="0.0166699633749843"/>
 		</feature>
 		<feature id="f_1306039369812879929">
 			<position dim="0">2054.1124</position>
@@ -7825,6 +8098,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T273.1"/>
 			<userParam type="float" name="FWHM" value="32.1249008178711"/>
+			<userParam type="float" name="SD" value="0.0501720506563606"/>
 		</feature>
 		<feature id="f_14356764654261201422">
 			<position dim="0">2293.6847</position>
@@ -7850,6 +8124,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T274.1"/>
 			<userParam type="float" name="FWHM" value="15.5775995254517"/>
+			<userParam type="float" name="SD" value="0.0313167091156137"/>
 		</feature>
 		<feature id="f_9510891806101218699">
 			<position dim="0">2243.3506</position>
@@ -7871,6 +8146,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T275.1"/>
 			<userParam type="float" name="FWHM" value="13.8222999572754"/>
+			<userParam type="float" name="SD" value="0.0369071654466222"/>
 		</feature>
 		<feature id="f_2652253729487148893">
 			<position dim="0">2385.791</position>
@@ -7884,7 +8160,7 @@
 				<pt x="2376.966" y="1336.32941279768" />
 				<pt x="2382.2769" y="1336.21845791258" />
 				<pt x="2384.0293" y="1336.27367877281" />
-				<pt x="2385.791" y="1336.26866392844" />
+				<pt x="2385.791" y="1336.6392845" />
 				<pt x="2387.5374" y="1336.28375867272" />
 				<pt x="2392.784" y="1336.33897175272" />
 				<pt x="2387.5374" y="1336.28375867272" />
@@ -7894,6 +8170,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T276.1"/>
 			<userParam type="float" name="FWHM" value="15.8179998397827"/>
+			<userParam type="float" name="SD" value="0.0387157019150967"/>
 		</feature>
 		<feature id="f_1740627715817141822">
 			<position dim="0">2288.5056</position>
@@ -7915,6 +8192,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T277.1"/>
 			<userParam type="float" name="FWHM" value="8.66419982910156"/>
+			<userParam type="float" name="SD" value="0.0418085008606726"/>
 		</feature>
 		<feature id="f_6668064177024114161">
 			<position dim="0">2408.4245</position>
@@ -7938,6 +8216,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T278.1"/>
 			<userParam type="float" name="FWHM" value="10.444299697876"/>
+			<userParam type="float" name="SD" value="0.0104773672894876"/>
 		</feature>
 		<feature id="f_655481111622903641">
 			<position dim="0">2408.4245</position>
@@ -7955,6 +8234,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T279.1"/>
 			<userParam type="float" name="FWHM" value="8.66499996185303"/>
+			<userParam type="float" name="SD" value="0.0256795406039039"/>
 		</feature>
 		<feature id="f_662013024116491039">
 			<position dim="0">2234.7232</position>
@@ -7972,6 +8252,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T280.1"/>
 			<userParam type="float" name="FWHM" value="8.71739959716797"/>
+			<userParam type="float" name="SD" value="0.0524230689253112"/>
 		</feature>
 		<feature id="f_165387485365251622">
 			<position dim="0">2274.5086</position>
@@ -7987,6 +8268,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T281"/>
 			<userParam type="float" name="FWHM" value="5.25279998779297"/>
+			<userParam type="float" name="SD" value="0.00865447544231666"/>
 		</feature>
 		<feature id="f_12118934174490584131">
 			<position dim="0">2218.8696</position>
@@ -8002,6 +8284,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T282"/>
 			<userParam type="float" name="FWHM" value="5.42819976806641"/>
+			<userParam type="float" name="SD" value="0.00650896931711031"/>
 		</feature>
 		<feature id="f_10311526739941384046">
 			<position dim="0">2271.0304</position>
@@ -8017,6 +8300,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T283"/>
 			<userParam type="float" name="FWHM" value="5.2039999961853"/>
+			<userParam type="float" name="SD" value="0.00323683919054929"/>
 		</feature>
 		<feature id="f_3485442719273951885">
 			<position dim="0">2066.5774</position>
@@ -8032,6 +8316,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T284"/>
 			<userParam type="float" name="FWHM" value="5.45529985427856"/>
+			<userParam type="float" name="SD" value="0.0474139607229063"/>
 		</feature>
 		<feature id="f_7933270947021762650">
 			<position dim="0">2458.847</position>
@@ -8047,6 +8332,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T285"/>
 			<userParam type="float" name="FWHM" value="5.10939979553223"/>
+			<userParam type="float" name="SD" value="0.00457468975264419"/>
 		</feature>
 		<feature id="f_13343514148591584918">
 			<position dim="0">2458.847</position>
@@ -8064,6 +8350,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T286"/>
 			<userParam type="float" name="FWHM" value="8.5241003036499"/>
+			<userParam type="float" name="SD" value="0.0312126392002769"/>
 		</feature>
 		<feature id="f_17518854626305524736">
 			<position dim="0">2309.2118</position>
@@ -8081,6 +8368,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T287"/>
 			<userParam type="float" name="FWHM" value="6.93610000610352"/>
+			<userParam type="float" name="SD" value="0.0149500750686698"/>
 		</feature>
 		<feature id="f_17913703819525749873">
 			<position dim="0">2176.8929</position>
@@ -8098,6 +8386,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T288"/>
 			<userParam type="float" name="FWHM" value="5.48199987411499"/>
+			<userParam type="float" name="SD" value="0.0290650888475597"/>
 		</feature>
 		<feature id="f_7924899341108903907">
 			<position dim="0">2153.7001</position>
@@ -8121,6 +8410,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T289.1"/>
 			<userParam type="float" name="FWHM" value="16.1667003631592"/>
+			<userParam type="float" name="SD" value="0.0148553640367953"/>
 		</feature>
 		<feature id="f_11321705335266637823">
 			<position dim="0">2424.2265</position>
@@ -8136,6 +8426,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T290"/>
 			<userParam type="float" name="FWHM" value="5.28879976272583"/>
+			<userParam type="float" name="SD" value="0.0171460585797831"/>
 		</feature>
 		<feature id="f_5550756649143897830">
 			<position dim="0">2193.3189</position>
@@ -8151,6 +8442,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T291"/>
 			<userParam type="float" name="FWHM" value="5.50050020217896"/>
+			<userParam type="float" name="SD" value="0.0355854983124573"/>
 		</feature>
 		<feature id="f_6546482100771912741">
 			<position dim="0">2217.0722</position>
@@ -8166,6 +8458,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T292"/>
 			<userParam type="float" name="FWHM" value="5.44869995117188"/>
+			<userParam type="float" name="SD" value="0.0324725885063799"/>
 		</feature>
 		<feature id="f_611493635450527389">
 			<position dim="0">2489.7476</position>
@@ -8176,13 +8469,14 @@
 			<overallquality>0.666667</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
-				<pt x="2481.1011" y="2623.11474889586" />
+				<pt x="2481.1011" y="2623.4889587" />
 				<pt x="2486.2845" y="2623.07305147306" />
 				<pt x="2489.7476" y="2623.02140777385" />
 				<pt x="2486.2845" y="2623.07305147306" />
 			</convexhull>
 			<userParam type="string" name="label" value="T293.1"/>
 			<userParam type="float" name="FWHM" value="8.64649963378906"/>
+			<userParam type="float" name="SD" value="0.0374281338063501"/>
 		</feature>
 		<feature id="f_1276068484780993272">
 			<position dim="0">2115.1782</position>
@@ -8200,6 +8494,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T294"/>
 			<userParam type="float" name="FWHM" value="7.42700004577637"/>
+			<userParam type="float" name="SD" value="0.031965993064079"/>
 		</feature>
 		<feature id="f_3369058652043219951">
 			<position dim="0">2443.4653</position>
@@ -8217,6 +8512,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T295"/>
 			<userParam type="float" name="FWHM" value="5.1609001159668"/>
+			<userParam type="float" name="SD" value="0.0134736325307192"/>
 		</feature>
 		<feature id="f_14355553896400643137">
 			<position dim="0">2470.7948</position>
@@ -8232,6 +8528,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T296"/>
 			<userParam type="float" name="FWHM" value="5.14589977264404"/>
+			<userParam type="float" name="SD" value="0.0356119809342671"/>
 		</feature>
 		<feature id="f_17435873260432890273">
 			<position dim="0">2196.9878</position>
@@ -8249,6 +8546,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T297"/>
 			<userParam type="float" name="FWHM" value="5.49270009994507"/>
+			<userParam type="float" name="SD" value="0.0357817870478984"/>
 		</feature>
 		<feature id="f_16026504753601459146">
 			<position dim="0">2404.9536</position>
@@ -8264,6 +8562,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T298"/>
 			<userParam type="float" name="FWHM" value="5.21280002593994"/>
+			<userParam type="float" name="SD" value="0.0168324184037374"/>
 		</feature>
 		<feature id="f_7063966219209930662">
 			<position dim="0">2176.8929</position>
@@ -8279,6 +8578,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T299"/>
 			<userParam type="float" name="FWHM" value="5.43009996414185"/>
+			<userParam type="float" name="SD" value="0.0586158383077057"/>
 		</feature>
 		<feature id="f_16290421735094563442">
 			<position dim="0">2323.1737</position>
@@ -8296,6 +8596,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T300.1"/>
 			<userParam type="float" name="FWHM" value="6.98509979248047"/>
+			<userParam type="float" name="SD" value="0.0113053949304533"/>
 		</feature>
 		<feature id="f_12626510412820167899">
 			<position dim="0">2211.6235</position>
@@ -8311,6 +8612,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T301"/>
 			<userParam type="float" name="FWHM" value="5.44869995117188"/>
+			<userParam type="float" name="SD" value="0.0131125149330273"/>
 		</feature>
 		<feature id="f_13058174462349305798">
 			<position dim="0">2115.1782</position>
@@ -8332,6 +8634,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T302.1"/>
 			<userParam type="float" name="FWHM" value="11.128999710083"/>
+			<userParam type="float" name="SD" value="0.0172287336789648"/>
 		</feature>
 		<feature id="f_15733511310427031803">
 			<position dim="0">2039.875</position>
@@ -8347,6 +8650,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T303"/>
 			<userParam type="float" name="FWHM" value="5.46950006484985"/>
+			<userParam type="float" name="SD" value="0.0174201421702946"/>
 		</feature>
 		<feature id="f_2688179552091881983">
 			<position dim="0">2391.0357</position>
@@ -8366,6 +8670,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T304.1"/>
 			<userParam type="float" name="FWHM" value="12.2515001296997"/>
+			<userParam type="float" name="SD" value="0.0611262283653271"/>
 		</feature>
 		<feature id="f_4169697051499708787">
 			<position dim="0">2220.6669</position>
@@ -8381,6 +8686,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T305"/>
 			<userParam type="float" name="FWHM" value="5.41909980773926"/>
+			<userParam type="float" name="SD" value="0.00803145907229919"/>
 		</feature>
 		<feature id="f_16007354456047415681">
 			<position dim="0">2206.1445</position>
@@ -8398,6 +8704,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T306.1"/>
 			<userParam type="float" name="FWHM" value="7.32509994506836"/>
+			<userParam type="float" name="SD" value="0.0499805931903082"/>
 		</feature>
 		<feature id="f_9206404168793008851">
 			<position dim="0">2403.2204</position>
@@ -8413,6 +8720,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T307"/>
 			<userParam type="float" name="FWHM" value="5.20410013198853"/>
+			<userParam type="float" name="SD" value="0.0283033859352599"/>
 		</feature>
 		<feature id="f_7215943084481145332">
 			<position dim="0">2055.8863</position>
@@ -8448,6 +8756,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T308.1"/>
 			<userParam type="float" name="FWHM" value="30.3292007446289"/>
+			<userParam type="float" name="SD" value="0.106240190451392"/>
 		</feature>
 		<feature id="f_7662798661582682098">
 			<position dim="0">2278.0007</position>
@@ -8463,6 +8772,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T309"/>
 			<userParam type="float" name="FWHM" value="5.26669979095459"/>
+			<userParam type="float" name="SD" value="0.029827640341864"/>
 		</feature>
 		<feature id="f_17321673465290894659">
 			<position dim="0">2113.3173</position>
@@ -8482,6 +8792,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T310"/>
 			<userParam type="float" name="FWHM" value="12.9927997589111"/>
+			<userParam type="float" name="SD" value="0.0814243385345543"/>
 		</feature>
 		<feature id="f_3429226038186940441">
 			<position dim="0">2135.693</position>
@@ -8497,6 +8808,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T311"/>
 			<userParam type="float" name="FWHM" value="5.4987998008728"/>
+			<userParam type="float" name="SD" value="0.0156284360091377"/>
 		</feature>
 		<feature id="f_7139870933477615878">
 			<position dim="0">2496.6645</position>
@@ -8516,6 +8828,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T312.1"/>
 			<userParam type="float" name="FWHM" value="8.64550018310547"/>
+			<userParam type="float" name="SD" value="0.0302290253807653"/>
 		</feature>
 		<feature id="f_12796575050967004386">
 			<position dim="0">2373.3924</position>
@@ -8531,6 +8844,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T313"/>
 			<userParam type="float" name="FWHM" value="5.38420009613037"/>
+			<userParam type="float" name="SD" value="0.00356370079998669"/>
 		</feature>
 		<feature id="f_3070492751474283061">
 			<position dim="0">2420.7039</position>
@@ -8546,6 +8860,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T314"/>
 			<userParam type="float" name="FWHM" value="5.28529977798462"/>
+			<userParam type="float" name="SD" value="0.0545905362569101"/>
 		</feature>
 		<feature id="f_10666771715999960526">
 			<position dim="0">2366.1922</position>
@@ -8563,6 +8878,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T315"/>
 			<userParam type="float" name="FWHM" value="8.99650001525879"/>
+			<userParam type="float" name="SD" value="0.0774569177497138"/>
 		</feature>
 		<feature id="f_9280572821339638149">
 			<position dim="0">2150.1436</position>
@@ -8592,6 +8908,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T316.1"/>
 			<userParam type="float" name="FWHM" value="30.4302005767822"/>
+			<userParam type="float" name="SD" value="0.0349145276622283"/>
 		</feature>
 		<feature id="f_17351069880123432645">
 			<position dim="0">2107.7148</position>
@@ -8607,6 +8924,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T317"/>
 			<userParam type="float" name="FWHM" value="5.60249996185303"/>
+			<userParam type="float" name="SD" value="0.0163049572070122"/>
 		</feature>
 		<feature id="f_1958179543060470692">
 			<position dim="0">2355.2934</position>
@@ -8622,6 +8940,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T318"/>
 			<userParam type="float" name="FWHM" value="5.41599988937378"/>
+			<userParam type="float" name="SD" value="0.0312255472774723"/>
 		</feature>
 		<feature id="f_14629045591043354911">
 			<position dim="0">2061.2051</position>
@@ -8641,6 +8960,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T319.1"/>
 			<userParam type="float" name="FWHM" value="12.4392995834351"/>
+			<userParam type="float" name="SD" value="0.0220786691882635"/>
 		</feature>
 		<feature id="f_18251849631538333325">
 			<position dim="0">2052.3418</position>
@@ -8660,6 +8980,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T320.1"/>
 			<userParam type="float" name="FWHM" value="10.6562995910645"/>
+			<userParam type="float" name="SD" value="0.0288043094950335"/>
 		</feature>
 		<feature id="f_12697467487414938944">
 			<position dim="0">2207.9703</position>
@@ -8675,6 +8996,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T321"/>
 			<userParam type="float" name="FWHM" value="5.48979997634888"/>
+			<userParam type="float" name="SD" value="0.0487654032388993"/>
 		</feature>
 		<feature id="f_14545089398880866717">
 			<position dim="0">2050.5696</position>
@@ -8692,6 +9014,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T322"/>
 			<userParam type="float" name="FWHM" value="7.08449983596802"/>
+			<userParam type="float" name="SD" value="0.0134252730488444"/>
 		</feature>
 		<feature id="f_1710461392160758637">
 			<position dim="0">2491.4704</position>
@@ -8707,6 +9030,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T323"/>
 			<userParam type="float" name="FWHM" value="5.19409990310669"/>
+			<userParam type="float" name="SD" value="0.0604758905251401"/>
 		</feature>
 		<feature id="f_8183479809560916255">
 			<position dim="0">2378.745</position>
@@ -8722,6 +9046,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T324"/>
 			<userParam type="float" name="FWHM" value="5.35260009765625"/>
+			<userParam type="float" name="SD" value="0.0175940007257969"/>
 		</feature>
 		<feature id="f_626016427783280945">
 			<position dim="0">2113.3173</position>
@@ -8741,6 +9066,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T325.1"/>
 			<userParam type="float" name="FWHM" value="9.3129997253418"/>
+			<userParam type="float" name="SD" value="0.0303279914952871"/>
 		</feature>
 		<feature id="f_9569484589158075318">
 			<position dim="0">2135.693</position>
@@ -8760,6 +9086,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T326.1"/>
 			<userParam type="float" name="FWHM" value="7.30730009078979"/>
+			<userParam type="float" name="SD" value="0.0186403660606977"/>
 		</feature>
 		<feature id="f_14868461944796607728">
 			<position dim="0">2115.1782</position>
@@ -8777,6 +9104,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T327"/>
 			<userParam type="float" name="FWHM" value="7.41429996490479"/>
+			<userParam type="float" name="SD" value="0.0436958100835435"/>
 		</feature>
 		<feature id="f_5251706238937085209">
 			<position dim="0">2291.9613</position>
@@ -8792,6 +9120,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T328"/>
 			<userParam type="float" name="FWHM" value="5.19180011749268"/>
+			<userParam type="float" name="SD" value="0.00864338240775127"/>
 		</feature>
 		<feature id="f_4314556777634898838">
 			<position dim="0">2245.0807</position>
@@ -8807,6 +9136,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T329"/>
 			<userParam type="float" name="FWHM" value="5.18410015106201"/>
+			<userParam type="float" name="SD" value="0.0017605045839985"/>
 		</feature>
 		<feature id="f_4426839943702196831">
 			<position dim="0">2137.5334</position>
@@ -8822,6 +9152,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T330"/>
 			<userParam type="float" name="FWHM" value="5.55700016021729"/>
+			<userParam type="float" name="SD" value="0.00671087066098153"/>
 		</feature>
 		<feature id="f_8571969588491709856">
 			<position dim="0">2229.5196</position>
@@ -8837,6 +9168,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T331"/>
 			<userParam type="float" name="FWHM" value="5.20359992980957"/>
+			<userParam type="float" name="SD" value="0.0339918854290317"/>
 		</feature>
 		<feature id="f_15364592766247890342">
 			<position dim="0">2111.4734</position>
@@ -8862,6 +9194,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T332.1"/>
 			<userParam type="float" name="FWHM" value="14.8968000411987"/>
+			<userParam type="float" name="SD" value="0.0267923640170584"/>
 		</feature>
 		<feature id="f_8734334354285411525">
 			<position dim="0">2269.2999</position>
@@ -8879,6 +9212,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T333"/>
 			<userParam type="float" name="FWHM" value="6.94449996948242"/>
+			<userParam type="float" name="SD" value="0.0188104292348954"/>
 		</feature>
 		<feature id="f_9371243749883817737">
 			<position dim="0">2243.3506</position>
@@ -8922,6 +9256,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T334.1"/>
 			<userParam type="float" name="FWHM" value="36.3068008422852"/>
+			<userParam type="float" name="SD" value="0.152628277798477"/>
 		</feature>
 		<feature id="f_2272123589000258408">
 			<position dim="0">2222.456</position>
@@ -8939,6 +9274,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T335"/>
 			<userParam type="float" name="FWHM" value="8.91269969940186"/>
+			<userParam type="float" name="SD" value="0.011149163498635"/>
 		</feature>
 		<feature id="f_15960569366695886719">
 			<position dim="0">2401.4906</position>
@@ -8962,6 +9298,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T336.1"/>
 			<userParam type="float" name="FWHM" value="17.4470996856689"/>
+			<userParam type="float" name="SD" value="0.0638311272685854"/>
 		</feature>
 		<feature id="f_5529354363062563465">
 			<position dim="0">2159.018</position>
@@ -8979,6 +9316,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T337.1"/>
 			<userParam type="float" name="FWHM" value="8.87440013885498"/>
+			<userParam type="float" name="SD" value="0.0462317259428333"/>
 		</feature>
 		<feature id="f_12746178122571865423">
 			<position dim="0">2258.9136</position>
@@ -8994,6 +9332,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T338"/>
 			<userParam type="float" name="FWHM" value="5.18079996109009"/>
+			<userParam type="float" name="SD" value="0.0114740373013555"/>
 		</feature>
 		<feature id="f_12117951712182094287">
 			<position dim="0">2425.9917</position>
@@ -9011,6 +9350,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T339"/>
 			<userParam type="float" name="FWHM" value="7.05649995803833"/>
+			<userParam type="float" name="SD" value="0.0294378876362279"/>
 		</feature>
 		<feature id="f_9252459895939169728">
 			<position dim="0">2077.5722</position>
@@ -9028,6 +9368,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T340"/>
 			<userParam type="float" name="FWHM" value="9.34000015258789"/>
+			<userParam type="float" name="SD" value="0.0178943825574434"/>
 		</feature>
 		<feature id="f_13726644473851641505">
 			<position dim="0">2267.5597</position>
@@ -9049,6 +9390,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T341.1"/>
 			<userParam type="float" name="FWHM" value="13.8395004272461"/>
+			<userParam type="float" name="SD" value="0.0675053250131547"/>
 		</feature>
 		<feature id="f_13675702441979559036">
 			<position dim="0">2038.0804</position>
@@ -9066,6 +9408,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T342.1"/>
 			<userParam type="float" name="FWHM" value="5.53480005264282"/>
+			<userParam type="float" name="SD" value="0.0186485802126969"/>
 		</feature>
 		<feature id="f_11692311285173001500">
 			<position dim="0">2224.2378</position>
@@ -9083,6 +9426,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T343.1"/>
 			<userParam type="float" name="FWHM" value="7.16559982299805"/>
+			<userParam type="float" name="SD" value="0.0482657860520709"/>
 		</feature>
 		<feature id="f_13915460150620923421">
 			<position dim="0">2070.2042</position>
@@ -9098,6 +9442,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T344"/>
 			<userParam type="float" name="FWHM" value="5.5048999786377"/>
+			<userParam type="float" name="SD" value="0.0315256222129392"/>
 		</feature>
 		<feature id="f_8584884414816915660">
 			<position dim="0">2295.4041</position>
@@ -9113,6 +9458,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T345"/>
 			<userParam type="float" name="FWHM" value="5.16970014572144"/>
+			<userParam type="float" name="SD" value="0.015967431422526"/>
 		</feature>
 		<feature id="f_17504183779440084427">
 			<position dim="0">2019.1601</position>
@@ -9128,6 +9474,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T346"/>
 			<userParam type="float" name="FWHM" value="5.76800012588501"/>
+			<userParam type="float" name="SD" value="0.0162021904536687"/>
 		</feature>
 		<feature id="f_4985139383950586126">
 			<position dim="0">2028.7329</position>
@@ -9143,6 +9490,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T347"/>
 			<userParam type="float" name="FWHM" value="5.67259979248047"/>
+			<userParam type="float" name="SD" value="0.00547236604671271"/>
 		</feature>
 		<feature id="f_1399684737377279016">
 			<position dim="0">2344.5056</position>
@@ -9160,6 +9508,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T348.1"/>
 			<userParam type="float" name="FWHM" value="8.99250030517578"/>
+			<userParam type="float" name="SD" value="0.0622713313139067"/>
 		</feature>
 		<feature id="f_9783921873539307765">
 			<position dim="0">2111.4734</position>
@@ -9177,6 +9526,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T349"/>
 			<userParam type="float" name="FWHM" value="9.2564001083374"/>
+			<userParam type="float" name="SD" value="0.0371993743925293"/>
 		</feature>
 		<feature id="f_13283915689800830221">
 			<position dim="0">2232.9951</position>
@@ -9196,6 +9546,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T350"/>
 			<userParam type="float" name="FWHM" value="12.1765003204346"/>
+			<userParam type="float" name="SD" value="0.0329764966555835"/>
 		</feature>
 		<feature id="f_9637723581632676922">
 			<position dim="0">2113.3173</position>
@@ -9219,6 +9570,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T351.1"/>
 			<userParam type="float" name="FWHM" value="14.8649997711182"/>
+			<userParam type="float" name="SD" value="0.0267716050128247"/>
 		</feature>
 		<feature id="f_9054074110186170608">
 			<position dim="0">2391.0357</position>
@@ -9236,6 +9588,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T352"/>
 			<userParam type="float" name="FWHM" value="8.73950004577637"/>
+			<userParam type="float" name="SD" value="0.0478793812058152"/>
 		</feature>
 		<feature id="f_655261895931297456">
 			<position dim="0">2344.5056</position>
@@ -9251,6 +9604,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T353"/>
 			<userParam type="float" name="FWHM" value="5.36180019378662"/>
+			<userParam type="float" name="SD" value="0.00637776726057382"/>
 		</feature>
 		<feature id="f_7632861276876604852">
 			<position dim="0">2319.6713</position>
@@ -9268,6 +9622,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T354.1"/>
 			<userParam type="float" name="FWHM" value="5.22410011291504"/>
+			<userParam type="float" name="SD" value="0.0148545054533401"/>
 		</feature>
 		<feature id="f_3493140189087918189">
 			<position dim="0">2317.9356</position>
@@ -9283,6 +9638,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T355"/>
 			<userParam type="float" name="FWHM" value="5.23820018768311"/>
+			<userParam type="float" name="SD" value="0.00794894836394633"/>
 		</feature>
 		<feature id="f_14576552972435125814">
 			<position dim="0">2385.791</position>
@@ -9298,6 +9654,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T356"/>
 			<userParam type="float" name="FWHM" value="5.28140020370483"/>
+			<userParam type="float" name="SD" value="0.0387324189030096"/>
 		</feature>
 		<feature id="f_16613868263531932304">
 			<position dim="0">2312.6974</position>
@@ -9313,6 +9670,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T357"/>
 			<userParam type="float" name="FWHM" value="5.2185001373291"/>
+			<userParam type="float" name="SD" value="0.0143310145630246"/>
 		</feature>
 		<feature id="f_698165093650093409">
 			<position dim="0">2204.307</position>
@@ -9328,6 +9686,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T358"/>
 			<userParam type="float" name="FWHM" value="5.48759984970093"/>
+			<userParam type="float" name="SD" value="0.0307664846977787"/>
 		</feature>
 		<feature id="f_13785334729500830177">
 			<position dim="0">2349.8774</position>
@@ -9343,6 +9702,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T359"/>
 			<userParam type="float" name="FWHM" value="5.41599988937378"/>
+			<userParam type="float" name="SD" value="0.0190445197032481"/>
 		</feature>
 		<feature id="f_4552078778429781211">
 			<position dim="0">2285.0205</position>
@@ -9358,6 +9718,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T360"/>
 			<userParam type="float" name="FWHM" value="5.25909996032715"/>
+			<userParam type="float" name="SD" value="0.00824211446683876"/>
 		</feature>
 		<feature id="f_12443978693414558718">
 			<position dim="0">2373.3924</position>
@@ -9373,6 +9734,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T361"/>
 			<userParam type="float" name="FWHM" value="5.38420009613037"/>
+			<userParam type="float" name="SD" value="0.0256238410714861"/>
 		</feature>
 		<feature id="f_13685576450990063320">
 			<position dim="0">2312.6974</position>
@@ -9392,6 +9754,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T362"/>
 			<userParam type="float" name="FWHM" value="12.2164001464844"/>
+			<userParam type="float" name="SD" value="0.0111284976422632"/>
 		</feature>
 		<feature id="f_2167960984773533086">
 			<position dim="0">2438.2814</position>
@@ -9407,6 +9770,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T363"/>
 			<userParam type="float" name="FWHM" value="5.18389987945557"/>
+			<userParam type="float" name="SD" value="0.0253926318022673"/>
 		</feature>
 		<feature id="f_16434191891425959854">
 			<position dim="0">2368.0082</position>
@@ -9422,6 +9786,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T364"/>
 			<userParam type="float" name="FWHM" value="5.44579982757568"/>
+			<userParam type="float" name="SD" value="0.0301876162582175"/>
 		</feature>
 		<feature id="f_14330533564863596576">
 			<position dim="0">2157.2435</position>
@@ -9437,6 +9802,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T365"/>
 			<userParam type="float" name="FWHM" value="5.33349990844727"/>
+			<userParam type="float" name="SD" value="0.0329569716114867"/>
 		</feature>
 		<feature id="f_7749446350751358817">
 			<position dim="0">2355.2934</position>
@@ -9452,6 +9818,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T366"/>
 			<userParam type="float" name="FWHM" value="5.45539999008179"/>
+			<userParam type="float" name="SD" value="0.0509485328981505"/>
 		</feature>
 		<feature id="f_11674798365780822705">
 			<position dim="0">2222.456</position>
@@ -9467,6 +9834,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T367"/>
 			<userParam type="float" name="FWHM" value="5.38380002975464"/>
+			<userParam type="float" name="SD" value="0.0151396056990052"/>
 		</feature>
 		<feature id="f_13459927643760717721">
 			<position dim="0">2073.8759</position>
@@ -9484,6 +9852,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T368.1"/>
 			<userParam type="float" name="FWHM" value="9.27110004425049"/>
+			<userParam type="float" name="SD" value="0.00958574851422785"/>
 		</feature>
 		<feature id="f_4979826240700198304">
 			<position dim="0">2079.4235</position>
@@ -9499,6 +9868,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T369"/>
 			<userParam type="float" name="FWHM" value="5.54759979248047"/>
+			<userParam type="float" name="SD" value="0.0109724944464823"/>
 		</feature>
 		<feature id="f_11199236071933705614">
 			<position dim="0">2036.2596</position>
@@ -9514,6 +9884,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T370"/>
 			<userParam type="float" name="FWHM" value="5.60519981384277"/>
+			<userParam type="float" name="SD" value="0.0309878305952225"/>
 		</feature>
 		<feature id="f_11951074431693044320">
 			<position dim="0">2052.3418</position>
@@ -9529,6 +9900,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T371"/>
 			<userParam type="float" name="FWHM" value="5.31230020523071"/>
+			<userParam type="float" name="SD" value="0.0171294281934857"/>
 		</feature>
 		<feature id="f_4042725457641046628">
 			<position dim="0">2109.6008</position>
@@ -9544,6 +9916,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T372"/>
 			<userParam type="float" name="FWHM" value="5.65360021591187"/>
+			<userParam type="float" name="SD" value="0.0408804226372013"/>
 		</feature>
 		<feature id="f_535894999922013045">
 			<position dim="0">2351.6877</position>
@@ -9559,6 +9932,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T373"/>
 			<userParam type="float" name="FWHM" value="5.38969993591309"/>
+			<userParam type="float" name="SD" value="0.0380254745991806"/>
 		</feature>
 		<feature id="f_10708745507622811418">
 			<position dim="0">2191.4919</position>
@@ -9574,6 +9948,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T374"/>
 			<userParam type="float" name="FWHM" value="5.49590015411377"/>
+			<userParam type="float" name="SD" value="0.0495664615659735"/>
 		</feature>
 		<feature id="f_9750677956154114661">
 			<position dim="0">2052.3418</position>
@@ -9589,6 +9964,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T375"/>
 			<userParam type="float" name="FWHM" value="5.32399988174438"/>
+			<userParam type="float" name="SD" value="0.03407995592279"/>
 		</feature>
 		<feature id="f_4740036451083265196">
 			<position dim="0">2021.0909</position>
@@ -9604,6 +9980,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T376"/>
 			<userParam type="float" name="FWHM" value="5.82100009918213"/>
+			<userParam type="float" name="SD" value="0.0208847972000967"/>
 		</feature>
 		<feature id="f_15968856894897204047">
 			<position dim="0">2184.2134</position>
@@ -9619,10 +9996,11 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T377"/>
 			<userParam type="float" name="FWHM" value="5.45979976654053"/>
+			<userParam type="float" name="SD" value="0.00130516224021449"/>
 		</feature>
 		<feature id="f_9252057529577872104">
 			<position dim="0">2167.8941</position>
-			<position dim="1">1280.22280995999</position>
+			<position dim="1">1280.19267527</position>
 			<intensity>6554.99</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
@@ -9634,6 +10012,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T378"/>
 			<userParam type="float" name="FWHM" value="5.31710004806519"/>
+			<userParam type="float" name="SD" value="0.00434404493853435"/>
 		</feature>
 		<feature id="f_17623414133510866146">
 			<position dim="0">2150.1436</position>
@@ -9651,6 +10030,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T379"/>
 			<userParam type="float" name="FWHM" value="5.33050012588501"/>
+			<userParam type="float" name="SD" value="0.048214530543606"/>
 		</feature>
 		<feature id="f_3552445793072071659">
 			<position dim="0">2339.1438</position>
@@ -9666,6 +10046,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T380"/>
 			<userParam type="float" name="FWHM" value="5.36180019378662"/>
+			<userParam type="float" name="SD" value="0.0196196540188176"/>
 		</feature>
 		<feature id="f_8521521804453648145">
 			<position dim="0">2048.7927</position>
@@ -9685,6 +10066,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T381.1"/>
 			<userParam type="float" name="FWHM" value="12.4124002456665"/>
+			<userParam type="float" name="SD" value="0.0335788970054181"/>
 		</feature>
 		<feature id="f_10911976627736443251">
 			<position dim="0">2054.1124</position>
@@ -9702,6 +10084,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T382.1"/>
 			<userParam type="float" name="FWHM" value="7.09460020065308"/>
+			<userParam type="float" name="SD" value="0.0214060250757186"/>
 		</feature>
 		<feature id="f_10655081126782733365">
 			<position dim="0">2368.0082</position>
@@ -9717,6 +10100,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T383"/>
 			<userParam type="float" name="FWHM" value="5.44579982757568"/>
+			<userParam type="float" name="SD" value="0.0390123403049074"/>
 		</feature>
 		<feature id="f_1730470373859067269">
 			<position dim="0">2048.7927</position>
@@ -9740,6 +10124,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T384.1"/>
 			<userParam type="float" name="FWHM" value="15.9884004592896"/>
+			<userParam type="float" name="SD" value="0.0906397340756772"/>
 		</feature>
 		<feature id="f_18148742099053868226">
 			<position dim="0">2118.8877</position>
@@ -9755,6 +10140,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T385"/>
 			<userParam type="float" name="FWHM" value="5.57810020446777"/>
+			<userParam type="float" name="SD" value="0.0338899664445762"/>
 		</feature>
 		<feature id="f_9462493458134831305">
 			<position dim="0">2217.0722</position>
@@ -9770,6 +10156,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T386"/>
 			<userParam type="float" name="FWHM" value="5.44869995117188"/>
+			<userParam type="float" name="SD" value="0.0296687262075466"/>
 		</feature>
 		<feature id="f_12509508179789851166">
 			<position dim="0">2176.8929</position>
@@ -9787,6 +10174,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T387"/>
 			<userParam type="float" name="FWHM" value="5.47650003433228"/>
+			<userParam type="float" name="SD" value="0.0204049076120256"/>
 		</feature>
 		<feature id="f_10262439972721943923">
 			<position dim="0">2429.5107</position>
@@ -9802,6 +10190,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T388"/>
 			<userParam type="float" name="FWHM" value="5.2842001914978"/>
+			<userParam type="float" name="SD" value="0.0229492631663106"/>
 		</feature>
 		<feature id="f_16925151590283380732">
 			<position dim="0">2039.875</position>
@@ -9819,6 +10208,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T389"/>
 			<userParam type="float" name="FWHM" value="5.42589998245239"/>
+			<userParam type="float" name="SD" value="0.013729925792282"/>
 		</feature>
 		<feature id="f_13158719758619989294">
 			<position dim="0">2013.3082</position>
@@ -9834,6 +10224,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T390"/>
 			<userParam type="float" name="FWHM" value="5.81379985809326"/>
+			<userParam type="float" name="SD" value="0.0432546439783437"/>
 		</feature>
 		<feature id="f_4287485895807678640">
 			<position dim="0">2081.286</position>
@@ -9849,6 +10240,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T391"/>
 			<userParam type="float" name="FWHM" value="5.57690000534058"/>
+			<userParam type="float" name="SD" value="0.028015448047654"/>
 		</feature>
 		<feature id="f_18381283504158219286">
 			<position dim="0">2090.6838</position>
@@ -9864,6 +10256,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T392"/>
 			<userParam type="float" name="FWHM" value="5.71430015563965"/>
+			<userParam type="float" name="SD" value="0.0124366782197285"/>
 		</feature>
 		<feature id="f_16910160256995002990">
 			<position dim="0">2059.4295</position>
@@ -9879,6 +10272,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T393"/>
 			<userParam type="float" name="FWHM" value="5.3516001701355"/>
+			<userParam type="float" name="SD" value="0.0428001503942141"/>
 		</feature>
 		<feature id="f_14345703244982708966">
 			<position dim="0">2041.6855</position>
@@ -9894,6 +10288,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T394"/>
 			<userParam type="float" name="FWHM" value="5.42589998245239"/>
+			<userParam type="float" name="SD" value="0.00552000238212713"/>
 		</feature>
 		<feature id="f_11595921421070804873">
 			<position dim="0">2333.8036</position>
@@ -9909,6 +10304,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T395"/>
 			<userParam type="float" name="FWHM" value="5.31839990615845"/>
+			<userParam type="float" name="SD" value="0.0268726875179937"/>
 		</feature>
 		<feature id="f_3173344317656295289">
 			<position dim="0">2344.5056</position>
@@ -9926,6 +10322,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T396"/>
 			<userParam type="float" name="FWHM" value="8.93610000610352"/>
+			<userParam type="float" name="SD" value="0.0315252235325958"/>
 		</feature>
 		<feature id="f_12554011686428582825">
 			<position dim="0">2021.0909</position>
@@ -9941,6 +10338,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T397"/>
 			<userParam type="float" name="FWHM" value="5.82100009918213"/>
+			<userParam type="float" name="SD" value="0.0268855653736474"/>
 		</feature>
 		<feature id="f_9462057889525570726">
 			<position dim="0">2075.7091</position>
@@ -9956,6 +10354,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T398"/>
 			<userParam type="float" name="FWHM" value="5.5048999786377"/>
+			<userParam type="float" name="SD" value="0.00420622331785125"/>
 		</feature>
 		<feature id="f_6937595060035157365">
 			<position dim="0">2146.596</position>
@@ -9973,6 +10372,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T399.1"/>
 			<userParam type="float" name="FWHM" value="7.22849988937378"/>
+			<userParam type="float" name="SD" value="0.014188033880049"/>
 		</feature>
 		<feature id="f_9980591491151092836">
 			<position dim="0">2180.5441</position>
@@ -9988,6 +10388,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T400"/>
 			<userParam type="float" name="FWHM" value="5.47900009155273"/>
+			<userParam type="float" name="SD" value="0.0369249673132247"/>
 		</feature>
 		<feature id="f_2048939979934748630">
 			<position dim="0">2057.6541</position>
@@ -10003,6 +10404,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T401"/>
 			<userParam type="float" name="FWHM" value="5.34439992904663"/>
+			<userParam type="float" name="SD" value="0.00415632089220708"/>
 		</feature>
 		<feature id="f_7844608080029943075">
 			<position dim="0">2050.5696</position>
@@ -10018,6 +10420,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T402"/>
 			<userParam type="float" name="FWHM" value="5.31669998168945"/>
+			<userParam type="float" name="SD" value="0.0172610570394909"/>
 		</feature>
 		<feature id="f_9868554043403427496">
 			<position dim="0">2111.4734</position>
@@ -10033,6 +10436,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T403"/>
 			<userParam type="float" name="FWHM" value="5.64039993286133"/>
+			<userParam type="float" name="SD" value="0.0540664231239134"/>
 		</feature>
 		<feature id="f_11247118806392514785">
 			<position dim="0">2382.2769</position>
@@ -10048,6 +10452,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T404"/>
 			<userParam type="float" name="FWHM" value="5.31090021133423"/>
+			<userParam type="float" name="SD" value="0.0190581723447042"/>
 		</feature>
 		<feature id="f_15388517483644187191">
 			<position dim="0">2316.1886</position>
@@ -10075,6 +10480,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T405.1"/>
 			<userParam type="float" name="FWHM" value="10.4853000640869"/>
+			<userParam type="float" name="SD" value="0.0546149647747327"/>
 		</feature>
 		<feature id="f_11359784331840780723">
 			<position dim="0">2182.3749</position>
@@ -10092,6 +10498,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T406.1"/>
 			<userParam type="float" name="FWHM" value="9.11699962615967"/>
+			<userParam type="float" name="SD" value="0.0405299325079976"/>
 		</feature>
 		<feature id="f_17335195571373876892">
 			<position dim="0">2291.9613</position>
@@ -10109,6 +10516,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T407"/>
 			<userParam type="float" name="FWHM" value="5.16069984436035"/>
+			<userParam type="float" name="SD" value="0.0215636185777695"/>
 		</feature>
 		<feature id="f_9972482156775897349">
 			<position dim="0">2041.6855</position>
@@ -10124,6 +10532,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T408"/>
 			<userParam type="float" name="FWHM" value="5.33230018615723"/>
+			<userParam type="float" name="SD" value="0.000667951539981005"/>
 		</feature>
 		<feature id="f_3761493319490060591">
 			<position dim="0">2182.3749</position>
@@ -10139,6 +10548,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T409"/>
 			<userParam type="float" name="FWHM" value="5.48199987411499"/>
+			<userParam type="float" name="SD" value="0.0151443442789301"/>
 		</feature>
 		<feature id="f_5930089466193586468">
 			<position dim="0">2039.875</position>
@@ -10154,6 +10564,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T410"/>
 			<userParam type="float" name="FWHM" value="5.46950006484985"/>
+			<userParam type="float" name="SD" value="0.0236250742191619"/>
 		</feature>
 		<feature id="f_17627416364357335857">
 			<position dim="0">2059.4295</position>
@@ -10169,6 +10580,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T411"/>
 			<userParam type="float" name="FWHM" value="5.3516001701355"/>
+			<userParam type="float" name="SD" value="0.00835020373460793"/>
 		</feature>
 		<feature id="f_1811301243321716172">
 			<position dim="0">2122.5936</position>
@@ -10184,6 +10596,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T412"/>
 			<userParam type="float" name="FWHM" value="5.64449977874756"/>
+			<userParam type="float" name="SD" value="0.00384012415929647"/>
 		</feature>
 		<feature id="f_3485378768692219473">
 			<position dim="0">2438.2814</position>
@@ -10199,6 +10612,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T413"/>
 			<userParam type="float" name="FWHM" value="5.18389987945557"/>
+			<userParam type="float" name="SD" value="0.0212324302302046"/>
 		</feature>
 		<feature id="f_9022759305526014355">
 			<position dim="0">2319.6713</position>
@@ -10214,6 +10628,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T414"/>
 			<userParam type="float" name="FWHM" value="5.26119995117188"/>
+			<userParam type="float" name="SD" value="0.0228602452963951"/>
 		</feature>
 		<feature id="f_6084223105613261000">
 			<position dim="0">2026.8324</position>
@@ -10229,6 +10644,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T415"/>
 			<userParam type="float" name="FWHM" value="5.74149990081787"/>
+			<userParam type="float" name="SD" value="0.0390412383080729"/>
 		</feature>
 		<feature id="f_5766433565644960323">
 			<position dim="0">2103.9472</position>
@@ -10246,6 +10662,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T416.1"/>
 			<userParam type="float" name="FWHM" value="7.54909992218018"/>
+			<userParam type="float" name="SD" value="0.0232664863544197"/>
 		</feature>
 		<feature id="f_17484030831826855015">
 			<position dim="0">2157.2435</position>
@@ -10261,6 +10678,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T417"/>
 			<userParam type="float" name="FWHM" value="5.32630014419556"/>
+			<userParam type="float" name="SD" value="0.0250219956402589"/>
 		</feature>
 		<feature id="f_5718915399222090117">
 			<position dim="0">2166.1232</position>
@@ -10276,6 +10694,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T418"/>
 			<userParam type="float" name="FWHM" value="5.33029985427856"/>
+			<userParam type="float" name="SD" value="0.012560381648882"/>
 		</feature>
 		<feature id="f_8469646142350269142">
 			<position dim="0">2189.6732</position>
@@ -10291,6 +10710,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T419"/>
 			<userParam type="float" name="FWHM" value="5.45979976654053"/>
+			<userParam type="float" name="SD" value="0.00685010947279464"/>
 		</feature>
 		<feature id="f_16461727883993709656">
 			<position dim="0">2317.9356</position>
@@ -10308,6 +10728,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T420"/>
 			<userParam type="float" name="FWHM" value="6.97989988327026"/>
+			<userParam type="float" name="SD" value="0.0187375841137358"/>
 		</feature>
 		<feature id="f_10723273230193029788">
 			<position dim="0">2028.7329</position>
@@ -10323,6 +10744,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T421"/>
 			<userParam type="float" name="FWHM" value="5.72389984130859"/>
+			<userParam type="float" name="SD" value="0.00487471298003757"/>
 		</feature>
 		<feature id="f_1791379470263001101">
 			<position dim="0">2321.4271</position>
@@ -10338,6 +10760,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T422"/>
 			<userParam type="float" name="FWHM" value="5.23850011825562"/>
+			<userParam type="float" name="SD" value="0.00356691810031862"/>
 		</feature>
 		<feature id="f_17448698604148637995">
 			<position dim="0">2083.147</position>
@@ -10353,6 +10776,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T423"/>
 			<userParam type="float" name="FWHM" value="5.57480001449585"/>
+			<userParam type="float" name="SD" value="0.0132205764828086"/>
 		</feature>
 		<feature id="f_6462658601309690663">
 			<position dim="0">2128.2381</position>
@@ -10368,6 +10792,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T424"/>
 			<userParam type="float" name="FWHM" value="5.60370016098022"/>
+			<userParam type="float" name="SD" value="0.00918948866808415"/>
 		</feature>
 		<feature id="f_430934307908448384">
 			<position dim="0">2314.4472</position>
@@ -10385,6 +10810,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T425"/>
 			<userParam type="float" name="FWHM" value="8.72970008850098"/>
+			<userParam type="float" name="SD" value="0.0145789805268371"/>
 		</feature>
 		<feature id="f_8937159074073549608">
 			<position dim="0">2333.8036</position>
@@ -10400,6 +10826,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T426"/>
 			<userParam type="float" name="FWHM" value="5.34019994735718"/>
+			<userParam type="float" name="SD" value="0.00553158433751833"/>
 		</feature>
 		<feature id="f_9813207267145607284">
 			<position dim="0">2011.3569</position>
@@ -10415,6 +10842,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T427"/>
 			<userParam type="float" name="FWHM" value="5.87120008468628"/>
+			<userParam type="float" name="SD" value="0.038707242268174"/>
 		</feature>
 		<feature id="f_16857747820578715200">
 			<position dim="0">2410.1664</position>
@@ -10430,6 +10858,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T428"/>
 			<userParam type="float" name="FWHM" value="5.21280002593994"/>
+			<userParam type="float" name="SD" value="0.0181210117498828"/>
 		</feature>
 		<feature id="f_10714867338982130820">
 			<position dim="0">2162.577</position>
@@ -10445,6 +10874,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T429"/>
 			<userParam type="float" name="FWHM" value="5.31710004806519"/>
+			<userParam type="float" name="SD" value="0.00200381295849184"/>
 		</feature>
 		<feature id="f_14897638103752113319">
 			<position dim="0">2139.3675</position>
@@ -10460,6 +10890,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T430"/>
 			<userParam type="float" name="FWHM" value="5.52570009231567"/>
+			<userParam type="float" name="SD" value="0.0257041623719942"/>
 		</feature>
 		<feature id="f_1216511045582904264">
 			<position dim="0">2385.791</position>
@@ -10475,6 +10906,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T431"/>
 			<userParam type="float" name="FWHM" value="5.24469995498657"/>
+			<userParam type="float" name="SD" value="0.0124540992551374"/>
 		</feature>
 		<feature id="f_5210021208417746191">
 			<position dim="0">2164.3413</position>
@@ -10492,6 +10924,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T432"/>
 			<userParam type="float" name="FWHM" value="5.33029985427856"/>
+			<userParam type="float" name="SD" value="0.00874607530137761"/>
 		</feature>
 		<feature id="f_6244178397615412071">
 			<position dim="0">2115.1782</position>
@@ -10509,6 +10942,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T433.1"/>
 			<userParam type="float" name="FWHM" value="9.34519958496094"/>
+			<userParam type="float" name="SD" value="0.033232312997814"/>
 		</feature>
 		<feature id="f_9950936438912456644">
 			<position dim="0">2202.4805</position>
@@ -10526,6 +10960,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T434.1"/>
 			<userParam type="float" name="FWHM" value="9.14299964904785"/>
+			<userParam type="float" name="SD" value="0.0255738677676383"/>
 		</feature>
 		<feature id="f_2547597046393019773">
 			<position dim="0">2438.2814</position>
@@ -10541,6 +10976,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T435"/>
 			<userParam type="float" name="FWHM" value="5.24429988861084"/>
+			<userParam type="float" name="SD" value="0.0192287473365051"/>
 		</feature>
 		<feature id="f_17118515683443455458">
 			<position dim="0">2392.784</position>
@@ -10556,6 +10992,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T436"/>
 			<userParam type="float" name="FWHM" value="5.23339986801147"/>
+			<userParam type="float" name="SD" value="0.00612218234175543"/>
 		</feature>
 		<feature id="f_13916592869622500300">
 			<position dim="0">2231.2626</position>
@@ -10571,6 +11008,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T437"/>
 			<userParam type="float" name="FWHM" value="5.25680017471313"/>
+			<userParam type="float" name="SD" value="0.00974488112823909"/>
 		</feature>
 		<feature id="f_10147015604772775807">
 			<position dim="0">2036.2596</position>
@@ -10588,6 +11026,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T438.1"/>
 			<userParam type="float" name="FWHM" value="5.60519981384277"/>
+			<userParam type="float" name="SD" value="0.0193249559978627"/>
 		</feature>
 		<feature id="f_8002577509882545576">
 			<position dim="0">2005.56</position>
@@ -10603,6 +11042,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T439"/>
 			<userParam type="float" name="FWHM" value="5.79689979553223"/>
+			<userParam type="float" name="SD" value="0.0638084331660493"/>
 		</feature>
 		<feature id="f_14868022199306242395">
 			<position dim="0">2489.7476</position>
@@ -10618,6 +11058,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T440"/>
 			<userParam type="float" name="FWHM" value="5.19210004806519"/>
+			<userParam type="float" name="SD" value="0.0133521462974499"/>
 		</feature>
 		<feature id="f_6439916495748663103">
 			<position dim="0">2448.6193</position>
@@ -10633,6 +11074,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T441"/>
 			<userParam type="float" name="FWHM" value="5.15399980545044"/>
+			<userParam type="float" name="SD" value="0.000534718768108178"/>
 		</feature>
 		<feature id="f_6577895467092461988">
 			<position dim="0">2036.2596</position>
@@ -10650,6 +11092,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T442.1"/>
 			<userParam type="float" name="FWHM" value="5.60519981384277"/>
+			<userParam type="float" name="SD" value="0.0140734501681577"/>
 		</feature>
 		<feature id="f_8629766171681189474">
 			<position dim="0">2068.3845</position>
@@ -10665,6 +11108,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T443"/>
 			<userParam type="float" name="FWHM" value="5.49139976501465"/>
+			<userParam type="float" name="SD" value="0.0132843457489052"/>
 		</feature>
 		<feature id="f_10110888475853982524">
 			<position dim="0">2103.9472</position>
@@ -10680,6 +11124,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T444"/>
 			<userParam type="float" name="FWHM" value="5.66179990768433"/>
+			<userParam type="float" name="SD" value="0.0168147255998292"/>
 		</feature>
 		<feature id="f_7459857709672936328">
 			<position dim="0">2086.9122</position>
@@ -10695,6 +11140,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T445"/>
 			<userParam type="float" name="FWHM" value="5.6725001335144"/>
+			<userParam type="float" name="SD" value="0.0115433030968006"/>
 		</feature>
 		<feature id="f_1747517360768976839">
 			<position dim="0">2086.9122</position>
@@ -10710,6 +11156,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T446"/>
 			<userParam type="float" name="FWHM" value="5.6725001335144"/>
+			<userParam type="float" name="SD" value="0.0150878782514458"/>
 		</feature>
 		<feature id="f_10959714027095477006">
 			<position dim="0">2455.4355</position>
@@ -10725,6 +11172,7 @@
 			</convexhull>
 			<userParam type="string" name="label" value="T447"/>
 			<userParam type="float" name="FWHM" value="5.11630010604858"/>
+			<userParam type="float" name="SD" value="0.022766904469855"/>
 		</feature>
 	</featureList>
 </featureMap>

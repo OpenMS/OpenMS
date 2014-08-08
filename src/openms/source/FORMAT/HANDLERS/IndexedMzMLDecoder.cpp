@@ -50,7 +50,7 @@
 namespace OpenMS
 {
 
-  namespace StringUtils
+  namespace IndexedMzMLUtils
   {
     std::streampos stringToStreampos(std::string s)
     {
@@ -169,9 +169,9 @@ namespace OpenMS
     {
       try
       {
-        indexoffset = OpenMS::StringUtils::stringToStreampos(thismatch);
+        indexoffset = OpenMS::IndexedMzMLUtils::stringToStreampos(thismatch);
       }
-      catch (Exception::ConversionError& e)
+      catch (Exception::ConversionError& /*e*/)
       {
         std::cerr << "Corrupted / unreadable value in <indexListOffset> : " << thismatch << std::endl;
         // free resources and re-throw
@@ -183,7 +183,7 @@ namespace OpenMS
     else
     {
       std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last " <<
-        buffersize << " bytes. Maybe this is not a indexedmzML." << std::endl;
+      buffersize << " bytes. Maybe this is not a indexedMzML." << std::endl;
       std::cerr << buffer << std::endl;
     }
 
@@ -258,7 +258,7 @@ namespace OpenMS
             char* name = xercesc::XMLString::transcode(currentElement->getAttribute(idref_tag));
             char* offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
-            std::streampos thisOffset = OpenMS::StringUtils::stringToStreampos( String(offset) );
+            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(offset) );
             result.push_back(std::make_pair(std::string(name), thisOffset));
 
             xercesc::XMLString::release(&name);

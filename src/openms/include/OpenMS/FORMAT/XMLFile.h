@@ -107,15 +107,6 @@ protected:
     };
 
     /**
-      @brief Escapes a string and returns the escaped string
-
-      Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
-      need to be escaped. Parsing those escaped strings from file again is automatically done by Xerces.
-      Escaped characters are: & < > " ' 
-    */
-    String OPENMS_DLLAPI writeXMLEscape(const String & to_escape);
-
-    /**
       @brief Encodes tabs '\t' in the string as &amp;#x9; and returns the encoded string.
       
       @param to_encode The String to encode.

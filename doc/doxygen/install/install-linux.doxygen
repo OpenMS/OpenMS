@@ -150,7 +150,7 @@
   should substitute \c /PATH/TO/contrib/ with the above path to the build contrib.
 
   \code
-  cmake -DCMAKE_FIND_ROOT_PATH="/PATH/TO/contrib;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
+  cmake -DCMAKE_PREFIX_PATH="/PATH/TO/contrib;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
   \endcode
 
   In order to <i>build</i> the %OpenMS library, the TOPP tools, tests, and this
@@ -232,7 +232,7 @@
      </td>
     </tr>
     <tr>
-      <td valign="top">\c CMAKE_FIND_ROOT_PATH</td>
+      <td valign="top">\c CMAKE_PREFIX_PATH</td>
       <td>Additional search path for the contrib libraries.
           If not set the location is assumed to be <pre>contrib/</pre> as packaged in the Release tar.gz.</td>
     </tr>

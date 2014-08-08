@@ -179,7 +179,10 @@ public:
     {
       for (Size i = 0; i < D; i++)
       {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
         if (coordinate_[i] != point.coordinate_[i]) return false;
+#pragma clang diagnostic pop
       }
       return true;
     }
