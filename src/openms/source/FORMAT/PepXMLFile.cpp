@@ -121,7 +121,7 @@ namespace OpenMS
     }
     if (base_name.hasSubstring(".")) // spectrum query name is splited by dot, otherwise correct charge can not be read.
     {
-      replace( base_name.begin(), base_name.end(), '.', '_' );
+      replace(base_name.begin(), base_name.end(), '.', '_');
     }
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
@@ -285,19 +285,19 @@ namespace OpenMS
         f <<  " \"num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
           << "\" massdiff=\"0.0\" num_tol_term=\"";
         Int num_tol_term = 1;
-        if ((h.getAABefore() == 'R' || h.getAABefore() == 'K') && search_params.enzyme == ProteinIdentification::TRYPSIN )
+        if ((h.getAABefore() == 'R' || h.getAABefore() == 'K') && search_params.enzyme == ProteinIdentification::TRYPSIN)
         {
           num_tol_term = 2;
         }
         f << num_tol_term;
         f << "\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
-        
+
         // multiple protein hits: <alternative_protein protein="sp|P0CZ86|GLS24_STRP3" num_tol_term="2" peptide_prev_aa="K" peptide_next_aa="-"/>
         if (h.getProteinAccessions().size() > 1)
         {
           for (Size j = 1; j < h.getProteinAccessions().size(); ++j)
           {
-            f << "\t\t<alternative_protein protein=\"" << h.getProteinAccessions()[j] <<"\" num_tol_term=\"" << num_tol_term <<"\" peptide_prev_aa=\"" << h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter() << "\"/>"<<"\n";
+            f << "\t\t<alternative_protein protein=\"" << h.getProteinAccessions()[j] << "\" num_tol_term=\"" << num_tol_term << "\" peptide_prev_aa=\"" << h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter() << "\"/>" << "\n";
           }
         }
         if (seq.isModified())
@@ -309,14 +309,14 @@ namespace OpenMS
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
             f << " mod_nterm_mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
+            precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
             f << "mod_cterm_mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
+            precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           f << ">" << "\n";
@@ -329,7 +329,7 @@ namespace OpenMS
               // the modification position is 1-based
               f << "\t\t\t\t<mod_aminoacid_mass position=\"" << (i + 1)
                 << "\" mass=\"" <<
-                precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
+              precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
             }
           }
 
@@ -347,28 +347,30 @@ namespace OpenMS
         else
         {
           if (search_engine_name == "X! Tandem")
-          { 
+          {
             // check if score type is XTandem or qvalue/fdr
             if (it->getScoreType() == "XTandem")
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
-              f << "\t\t\t<search_score" << " name=\"nextscore\" value=\""; 
+              f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
               if (it->metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
-              } else
+              }
+              else
               {
                 f << h.getScore() << "\"" << "/>\n";
               }
-            } 
-            else if(it->metaValueExists("XTandem_score"))
+            }
+            else if (it->metaValueExists("XTandem_score"))
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
               if (it->metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
-              } else
+              }
+              else
               {
                 f << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               }
@@ -608,7 +610,6 @@ namespace OpenMS
     scan_map_.clear();
   }
 
-
   /*
     NOTE: numbering schemes for multiple searches
     ---------------------------------------------
@@ -763,7 +764,7 @@ namespace OpenMS
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
-        insertHit(hit);
+      insertHit(hit);
     }
     else if (element == "search_result") // parent: "spectrum_query"
     { // creates a new PeptideIdentification
@@ -866,7 +867,7 @@ namespace OpenMS
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
-        insertHit(hit);
+      insertHit(hit);
     }
     else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
     {
@@ -1078,8 +1079,8 @@ namespace OpenMS
       search_id_ = 1;
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       vector<ProteinIdentification>::iterator prot_it;
-      if (search_id_ <= proteins_->size())
-      { // ProteinIdent. was already created for "msms_run_summary" -> add to it
+      if (search_id_ <= proteins_->size()) // ProteinIdent. was already created for "msms_run_summary" -> add to it
+      {
         prot_it = current_proteins_.back();
       }
       else // create a new ProteinIdentification
@@ -1109,7 +1110,7 @@ namespace OpenMS
       else
         enzyme_ = ProteinIdentification::UNKNOWN_ENZYME;
 
-      ProteinIdentification::SearchParameters params = 
+      ProteinIdentification::SearchParameters params =
         current_proteins_.front()->getSearchParameters();
       params.enzyme = enzyme_;
       current_proteins_.front()->setSearchParameters(params);
