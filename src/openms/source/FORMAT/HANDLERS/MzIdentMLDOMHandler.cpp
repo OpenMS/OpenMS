@@ -157,9 +157,7 @@ namespace OpenMS
       catch( xercesc::XMLException& e )
       {
          char* message = xercesc::XMLString::transcode( e.getMessage() );
-
-         cerr << "XML ttolkit teardown error: " << message << endl;
-
+         cerr << "XML toolkit teardown error: " << message << endl;
          XMLString::release( &message );
       }
     }
