@@ -1638,6 +1638,7 @@ namespace OpenMS
 //            <userParam value="3" name="MaxCharge"/>
         sp.setMetaValue(upit->first,upit->second);
       }
+      
       return sp;
     }
   }   //namespace Internal
