@@ -83,12 +83,16 @@ namespace OpenMS
     {
       if (protein_ids.size() > 1)
       {
-        warning(STORE, "More than one protein identification defined; only first one is written into pepXML, more are not supported.");
+        warning(STORE, "More than one protein identification defined; only first search parameters are written into pepXML; search engine must be the same.");
       }
       search_params = protein_ids.begin()->getSearchParameters();
       if (protein_ids.begin()->getSearchEngine() == "XTandem")
       {
         search_engine_name = "X! Tandem";
+      }
+      else if (protein_ids.begin()->getSearchEngine() == "Mascot")
+      {
+        search_engine_name = "MASCOT";
       }
       else
       {
@@ -115,14 +119,20 @@ namespace OpenMS
     {
       base_name = mz_name;
     }
-
+    if (base_name.hasSubstring(".")) // spectrum query name is splited by dot, otherwise correct charge can not be read.
+    {
+      replace( base_name.begin(), base_name.end(), '.', '_' );
+    }
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
-
-    f << "\t<sample_enzyme name=\"trypsin\">" << "\n";
-    f << "\t\t<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << "\n";
-    f << "\t</sample_enzyme>" << "\n";
+    // If enzyme is not trypsin, skip it here and specify in TPP parser.
+    if (search_params.enzyme == ProteinIdentification::TRYPSIN)
+    {
+      f << "\t<sample_enzyme name=\"" << "trypsin" << "\">" << "\n";
+      f << "\t\t<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << "\n";
+      f << "\t</sample_enzyme>" << "\n";
+    }
 
     f << "\t<search_summary base_name=\"" << base_name;
     f << "\" search_engine=\"" << search_engine_name;
@@ -231,13 +241,13 @@ namespace OpenMS
     for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin();
          it != peptide_ids.end(); ++it, ++count)
     {
-      if (it->getHits().size() > 0)
+      if (it->getHits().size() == 0)
       {
-        if (it->getHits().size() > 1)
-        {
-          LOG_WARN << "PepXMLFile::store() : only writing the first peptide hit of " << it->getHits().size() << " for PeptideID# " << count << "\n";
-        }
-        PeptideHit h = *it->getHits().begin();
+        continue;
+      }
+      for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+      {
+        PeptideHit h = *hit;
         AASequence seq = h.getSequence();
         double precursor_neutral_mass = seq.getMonoWeight();
 
@@ -251,7 +261,7 @@ namespace OpenMS
           scan_index = count;
         }
         // PeptideProphet requires this format for "spectrum" attribute (otherwise TPP parsing error)
-        f << "\t<spectrum_query spectrum=\"" << base_name << "." << scan_index << "." << scan_index << "." << h.getCharge() << "\""
+        f << "\t<spectrum_query spectrum=\"" << base_name << ".00000.00000." << h.getCharge() << "\""
           << " start_scan=\"" << scan_index << "\""
           << " end_scan=\"" << scan_index << "\""
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
@@ -267,9 +277,29 @@ namespace OpenMS
         f << "\t\t<search_hit hit_rank=\"1\" peptide=\""
           << seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
           << h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter()
-          << "\" protein=\" " << h.getProteinAccessions()[0]
-          <<  " \"num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
-          << "\" massdiff=\"0.0\" num_tol_term=\"0\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
+          << "\" protein=\" ";
+        if (h.getProteinAccessions().size() > 0)
+        {
+          f << h.getProteinAccessions()[0];
+        }
+        f <<  " \"num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
+          << "\" massdiff=\"0.0\" num_tol_term=\"";
+        Int num_tol_term = 1;
+        if ((h.getAABefore() == 'R' || h.getAABefore() == 'K') && search_params.enzyme == ProteinIdentification::TRYPSIN )
+        {
+          num_tol_term = 2;
+        }
+        f << num_tol_term;
+        f << "\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
+        
+        // multiple protein hits: <alternative_protein protein="sp|P0CZ86|GLS24_STRP3" num_tol_term="2" peptide_prev_aa="K" peptide_next_aa="-"/>
+        if (h.getProteinAccessions().size() > 1)
+        {
+          for (Size j = 1; j < h.getProteinAccessions().size(); ++j)
+          {
+            f << "\t\t<alternative_protein protein=\"" << h.getProteinAccessions()[j] <<"\" num_tol_term=\"" << num_tol_term <<"\" peptide_prev_aa=\"" << h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter() << "\"/>"<<"\n";
+          }
+        }
         if (seq.isModified())
         {
           f << "\t\t\t<modification_info modified_peptide=\""
@@ -317,9 +347,32 @@ namespace OpenMS
         else
         {
           if (search_engine_name == "X! Tandem")
-          {
-            f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
-            f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"" << h.getScore() << "\"" << "/>\n";
+          { 
+            // check if score type is XTandem or qvalue/fdr
+            if (it->getScoreType() == "XTandem")
+            {
+              f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << " name=\"nextscore\" value=\""; 
+              if (it->metaValueExists("nextscore"))
+              {
+                f << h.getMetaValue("nextscore") << "\"" << "/>\n";
+              } else
+              {
+                f << h.getScore() << "\"" << "/>\n";
+              }
+            } 
+            else if(it->metaValueExists("XTandem_score"))
+            {
+              f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
+              f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
+              if (it->metaValueExists("nextscore"))
+              {
+                f << h.getMetaValue("nextscore") << "\"" << "/>\n";
+              } else
+              {
+                f << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
+              }
+            }
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getMetaValue("E-Value") << "\"" << "/>\n";
           }
           else if (search_engine_name == "MASCOT")
@@ -329,7 +382,6 @@ namespace OpenMS
           else if (search_engine_name == "OMSSA")
           {
             f << "\t\t\t<search_score" << " name=\"expect\" value=\"" << h.getScore() << "\"" << "/>\n";
-            f << "\t\t\t<search_score" << " name=\"pvalue\" value=\"" << h.getScore() << "\"" << "/>\n";
           }
         }
         f << "\t\t</search_hit>" << "\n";
