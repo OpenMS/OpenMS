@@ -561,7 +561,8 @@ public:
         substrings.push_back(String(begin, end));
       }
 
-      return true;
+      // at this point we are sure that there are at least two components
+      return true; 
     }
 
     static bool split(const String & this_s, const String& splitter, std::vector<String>& substrings)

@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -58,14 +58,27 @@ START_SECTION((TextFile()))
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
+START_SECTION((TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false) ))
+  // just some basic stuff, since the C'Tor calls load() directly
+  TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
+  TEST_EQUAL(file[0].trim() == "first_line", true)
+  TEST_EQUAL(file[3].trim() == "middle_line", true)
+  TEST_EQUAL(file[10].trim() == "last_line", true)
+  TEST_EQUAL(file.size(), 11)
+
+  TextFile file2(OPENMS_GET_TEST_DATA_PATH("TextFile_test_empty_infile.txt"));
+  TEST_EQUAL(file2.size(), 0)
+END_SECTION
+
 START_SECTION((~TextFile()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((void load(const String& filename, bool trim_lines=false, Int first_n=-1) ))
+
+START_SECTION((void load(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false) ))
 	TextFile file;
 	
-	TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))	
+	TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))
 	
 	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
 	TEST_EQUAL(file.size(), 11)
@@ -101,6 +114,21 @@ START_SECTION((void load(const String& filename, bool trim_lines=false, Int firs
 	TEST_EQUAL(file[1].trim() == "", true)
 	TEST_EQUAL(file[2].trim() == "", true)
 	TEST_EQUAL(file[3].trim() == "middle_line", true)
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true, -1, true);
+  TEST_EQUAL(file.size(), 7)
+  TEST_EQUAL(file[0].trim() == "first_line", true)
+  TEST_EQUAL(file[1].trim() == "middle_line", true)
+  TEST_EQUAL(file[2].trim() == "space_line", true)
+  TEST_EQUAL(file[6].trim() == "last_line", true)
+
+  file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true, 4, true);
+  TEST_EQUAL(file.size(), 4)
+  TEST_EQUAL(file[0].trim() == "first_line", true)
+  TEST_EQUAL(file[1].trim() == "middle_line", true)
+  TEST_EQUAL(file[2].trim() == "space_line", true)
+  TEST_EQUAL(file[3].trim() == "tab_line", true)
+
 END_SECTION
 
 START_SECTION((void store(const String& filename) ))
@@ -120,16 +148,6 @@ START_SECTION((void store(const String& filename) ))
 	TEST_EQUAL(file[2] == "line3",true);
 END_SECTION
 
-START_SECTION((TextFile(const String& filename, bool trim_lines=false, Int first_n=-1) ))
-	TextFile file(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
-	TEST_EQUAL(file[0].trim() == "first_line", true)
-	TEST_EQUAL(file[3].trim() == "middle_line", true)
-	TEST_EQUAL(file[10].trim() == "last_line", true)
-	TEST_EQUAL(file.size(), 11)
-	
-	TextFile file2(OPENMS_GET_TEST_DATA_PATH("TextFile_test_empty_infile.txt"));
-	TEST_EQUAL(file2.size(), 0)
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
