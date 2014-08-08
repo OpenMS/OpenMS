@@ -454,7 +454,7 @@ namespace OpenMS
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       int peak_index = mz_shifts_actual_indices[peptide * (peaks_per_peptide_max_ + 1) + 1];
-      if (peak_index < 0)
+      if (peak_index != -1)
       {
         // peak not found
         return true;
@@ -491,7 +491,11 @@ namespace OpenMS
       bool seen_in_all_peptides = true;
       for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
       {
-        if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1] < intensity_cutoff_)
+        if (boost::math::isnan(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]))
+        {
+          seen_in_all_peptides = false;
+        }  
+        else if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1] < intensity_cutoff_)
         {
           seen_in_all_peptides = false;
         }
