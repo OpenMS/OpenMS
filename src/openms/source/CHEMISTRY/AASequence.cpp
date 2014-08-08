@@ -128,6 +128,21 @@ namespace OpenMS
       return (peptide_.size() < rhs.peptide_.size());
     }
 
+    // when checking terminal mods
+    // no mod is lesser than any other mod
+    if (n_term_mod_ && !rhs.n_term_mod_)
+    {
+      return false;
+    }
+    else if (!n_term_mod_ && rhs.n_term_mod_)
+    {
+      return true;
+    }
+    else if (n_term_mod_ && rhs.n_term_mod_)
+    {
+      return (n_term_mod_->getId() < rhs.n_term_mod_->getId());
+    }
+
     ConstIterator a = begin();
     ConstIterator b = rhs.begin();
 
@@ -144,21 +159,7 @@ namespace OpenMS
       }
     }
 
-    // finally check terminal mods
-    // no mod is lesser than any other mod
-    if (n_term_mod_ && !rhs.n_term_mod_)
-    {
-      return false;
-    }
-    else if (!n_term_mod_ && rhs.n_term_mod_)
-    {
-      return true;
-    }
-    else if (n_term_mod_ && rhs.n_term_mod_)
-    {
-      return (n_term_mod_->getId() < rhs.n_term_mod_->getId());
-    }
-
+    // c-term
     if (c_term_mod_ && !rhs.c_term_mod_)
     {
       return false;
