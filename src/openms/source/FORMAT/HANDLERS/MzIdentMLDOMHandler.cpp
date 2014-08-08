@@ -426,10 +426,10 @@ namespace OpenMS
           DOMElement* child = element_dbs->getFirstElementChild();
           while ( child )
           {
-            //std::cout << "DBSequences child" << std::endl;
+//            std::cout << "DBSequences child" << std::endl;
             if ((std::string)XMLString::transcode(child->getTagName()) == "Seq")
             {
-              seq = XMLString::transcode(child->getNodeValue()); //http://mail-archives.apache.org/mod_mbox/xerces-c-users/200610.mbox/%3C7.0.1.0.2.20061004133628.046911a8@datadirect.com%3E -> dynamic_cast< xercesc::DOMNode* >
+              seq = (std::string)XMLString::transcode(child->getTextContent());
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "cvParam")
             {
@@ -443,7 +443,7 @@ namespace OpenMS
           }
         }
       }
-      //std::cout << "DBSequences found: " << count  << " / " << db_sq_map_.size() << std::endl;
+//      std::cout << "DBSequences found: " << count  << " / " << db_sq_map_.size() << std::endl;
     }
 
     void MzIdentMLDOMHandler::parsePeptideElements_(DOMNodeList * peptideElements)
@@ -538,10 +538,10 @@ namespace OpenMS
             }
             child = child->getNextElementSibling();
           }
-
           si_map_.insert(std::make_pair(id,SpectrumIdentification{spectra_data_ref, searchDatabase_ref, spectrumIdentificationProtocol_ref, spectrumIdentificationList_ref}));
 
           pro_id_->push_back(ProteinIdentification());
+//          si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
           si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
 
         }
@@ -686,9 +686,9 @@ namespace OpenMS
             if (si_it->second.spectrum_identification_protocol_ref == id)
             {
               // TODO @mths get these from AnalysisSoftware!
-              si_pro_map_[si_it->first]->setSearchEngine(search_engine_);
-              si_pro_map_[si_it->first]->setSearchEngineVersion(search_engine_version_);
-              si_pro_map_[si_it->first]->setIdentifier(search_engine_); // TODO @mths: name/date of search
+              si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngine(search_engine_);
+              si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngineVersion(search_engine_version_);
+              si_pro_map_[si_it->second.spectrum_identification_list_ref]->setIdentifier(search_engine_); // TODO @mths: name/date of search
               // TODO @mths set SearchParameters 	search_parameters_
             }
           }
