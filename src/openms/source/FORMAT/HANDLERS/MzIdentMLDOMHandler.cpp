@@ -158,7 +158,7 @@ namespace OpenMS
       {
          char* message = xercesc::XMLString::transcode( e.getMessage() );
 
-         cerr << "XML ttolkit teardown error: " << message << endl;
+         cerr << "XML toolkit teardown error: " << message << endl;
          XMLString::release( &message );
       }
     }
@@ -861,9 +861,8 @@ namespace OpenMS
 
       DBSequence& db = db_sq_map_[dpv];
       spectrum_identification.getHits().back().addProteinAccession(db.accession);    
-
       if (si_pro_map_[spectrumIdentificationList_ref]->findHit(db.accession)
-          != si_pro_map_[spectrumIdentificationList_ref]->getHits().end())
+          == si_pro_map_[spectrumIdentificationList_ref]->getHits().end())
       { // butt ugly!
         si_pro_map_[spectrumIdentificationList_ref]->insertHit(ProteinHit());
         si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setSequence(db.sequence);
