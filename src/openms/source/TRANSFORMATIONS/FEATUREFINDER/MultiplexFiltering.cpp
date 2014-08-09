@@ -331,7 +331,16 @@ namespace OpenMS
             vector<double> intensities_actual;
             for (unsigned i = 0; i < mz_shifts_actual_indices.size(); ++i)
             {
-              intensities_actual.push_back(peak_intensity[mz_shifts_actual_indices[i]]);
+              int index = mz_shifts_actual_indices[i];
+              if (index == -1)
+              {
+                // no peak found
+                intensities_actual.push_back(std::numeric_limits<double>::quiet_NaN());
+              }
+              else
+              {
+                intensities_actual.push_back(peak_intensity[mz_shifts_actual_indices[i]]);
+              }
             }
             result.addFilterResultPeak(peak_position[peak], rt_picked, mz_shifts_actual, intensities_actual, results_raw);
           }
@@ -462,9 +471,15 @@ namespace OpenMS
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       int peak_index = mz_shifts_actual_indices[peptide * (peaks_per_peptide_max_ + 1) + 1];
+      if (peak_index == -1)
+      {
+        // peak not found
+        return true;
+      }
       MSSpectrum<Peak1D>::ConstIterator it_mz = it_rt->begin() + peak_index;
       if (it_mz->getIntensity() < intensity_cutoff_)
       {
+        // below intensity threshold
         return true;
       }
     }
@@ -493,8 +508,14 @@ namespace OpenMS
       bool seen_in_all_peptides = true;
       for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
       {
-        if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1] < intensity_cutoff_)
+        if (boost::math::isnan(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]))
         {
+          // peak not found
+          seen_in_all_peptides = false;
+        }
+        else if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1] < intensity_cutoff_)
+        {
+          // below intensity threshold
           seen_in_all_peptides = false;
         }
       }
@@ -514,7 +535,17 @@ namespace OpenMS
       // scaling factor for the zeroth peak intensity
       // (The zeroth peak is problematic if its intensity exceeds zero_scaling * intensity of mono-isotopic peak.)
       double zero_scaling = 0.7;
-      if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1)] > zero_scaling * intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + 1])
+      if (boost::math::isnan(intensities_actual[peptide * (peaks_per_peptide_max_ + 1)]))
+      {
+        // zeroth peak not found
+        continue;
+      }
+      else if (boost::math::isnan(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + 1]))
+      {
+        // first peak not found
+        return true;
+      }
+      else if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1)] > zero_scaling * intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + 1])
       {
         return true;
       }
@@ -529,8 +560,24 @@ namespace OpenMS
     {
       for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
       {
-        isotope_pattern_1.push_back(intensities_actual[isotope + 1]);
-        isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
+        if (boost::math::isnan(intensities_actual[isotope + 1]))
+        {
+          // no peak found, hence assume the intensity at this position to be zero
+          isotope_pattern_1.push_back(0);
+        }
+        else
+        {
+          isotope_pattern_1.push_back(intensities_actual[isotope + 1]);
+        }
+        if (boost::math::isnan(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]))
+        {
+          // no peak found, hence assume the intensity at this position to be zero
+          isotope_pattern_2.push_back(0);
+        }
+        else
+        {
+          isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
+        }
       }
       if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
       {
@@ -548,7 +595,15 @@ namespace OpenMS
       vector<double> isotope_pattern;
       for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
       {
-        isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
+        if (boost::math::isnan(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]))
+        {
+          // no peak found, hence assume the intensity at this position to be zero
+          isotope_pattern.push_back(0);
+        }
+        else
+        {
+          isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
+        }
       }
       if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < averagine_similarity_)
       {
