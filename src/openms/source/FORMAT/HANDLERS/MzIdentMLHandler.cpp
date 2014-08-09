@@ -423,12 +423,12 @@ namespace OpenMS
         spd_set.insert("UNKNOWN");
         spd_ids.insert(std::pair<String, UInt64>("UNKNOWN", spdid));
 
-        spectra_data += String("<SpectraData location=\"") + String("UNKNOWN") + String("\" id=\"") + String(spdid) + String("\">");
-        spectra_data += String("<FileFormat> \n ");
+        spectra_data += String("\t\t<SpectraData location=\"") + String("UNKNOWN") + String("\" id=\"") + String(spdid) + String("\">");
+        spectra_data += String("\n\t\t\t<FileFormat> \n ");
         spectra_data +=  cv_.getTermByName("mzML file").toXMLString(cv_ns);
-        spectra_data += String("\n </FileFormat>\n <SpectrumIDFormat> \n ");
+        spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
         spectra_data +=  cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
-        spectra_data += String("\n </SpectrumIDFormat> \n </SpectraData>");
+        spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>");
       }
 
       /*
@@ -443,14 +443,14 @@ namespace OpenMS
           dbid = UniqueIdGenerator::getUniqueId();
           String dbst(it->getSearchParameters().db);
 
-          inputs_element += String("<SearchDatabase ");
+          inputs_element += String("\t\t<SearchDatabase ");
           inputs_element += String("location=\"") + dbst + "\" ";
           //TODO get version db += String("version=\"") + String(it->getSearchParameters().version) + "\" ";
-          inputs_element += String("id=\"") + String(dbid) + String("\" > \n <FileFormat> \n ");
+          inputs_element += String("id=\"") + String(dbid) + String("\" > \n\t\t\t<FileFormat> \n ");
           //TODO Searchdb file format type cvParam handling
           inputs_element += cv_.getTermByName("FASTA format").toXMLString(cv_ns);
-          inputs_element += String(" </FileFormat> \n <DatabaseName>\n <userParam name=\"") + dbst + String("\"/>\n </DatabaseName>\n");
-          inputs_element += "</SearchDatabase> \n";
+          inputs_element += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + dbst + String("\"/>\n\t\t\t</DatabaseName>\n");
+          inputs_element += "\t\t</SearchDatabase> \n";
 
           sdb_ids.insert(std::pair<String, UInt64>(dbst, dbid));
         }
@@ -492,9 +492,9 @@ namespace OpenMS
         {
           swid = UniqueIdGenerator::getUniqueId();
           //~ TODO consider not only searchengine but also version!
-          String sost = String("<AnalysisSoftware version=\"") + String(it->getSearchEngineVersion()) + String("\" name=\"") + swcn +  String("\" id=\"") + String(swid) + String("\"> \n") + String("<SoftwareName> \n ");
-          sost += cv_.getTermByName(osecv).toXMLString(cv_ns);
-          sost += String("\n </SoftwareName> \n </AnalysisSoftware> \n");
+          String sost = String("\t<AnalysisSoftware version=\"") + String(it->getSearchEngineVersion()) + String("\" name=\"") + swcn +  String("\" id=\"") + String(swid) + String("\"> \n") + String("\t\t<SoftwareName> \n ");
+          sost += "\t\t\t" + cv_.getTermByName(osecv).toXMLString(cv_ns);
+          sost += String("\n\t\t</SoftwareName> \n\t</AnalysisSoftware> \n");
           sof_set.insert(sost);
           sof_ids.insert(std::pair<String, UInt64>(swcn, swid));
         }
@@ -508,11 +508,11 @@ namespace OpenMS
         if (spit == sip_ids.end())
         {
           UInt64 spid = UniqueIdGenerator::getUniqueId();
-          String sip = String("<SpectrumIdentificationProtocol id=\"") + String(spid) + String("\" analysisSoftware_ref=\"")  + String(swid) + String("\"> \n <SearchType>\n");
-          sip += cv_.getTermByName("ms-ms search").toXMLString(cv_ns);
-          sip += String(" \n </SearchType>\n<Threshold>\n");
+          String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(spid) + String("\" analysisSoftware_ref=\"")  + String(swid) + String("\"> \n\t\t<SearchType>\n");
+          sip += "\t\t\t" + cv_.getTermByName("ms-ms search").toXMLString(cv_ns);
+          sip += String(" \n\t\t</SearchType>\n\t\t<Threshold>\n");
           sip += cv_.getTermByName("no threshold").toXMLString(cv_ns);
-          sip += String("\n</Threshold>\n</SpectrumIdentificationProtocol>\n");
+          sip += String("\n\t\t</Threshold>\n\t</SpectrumIdentificationProtocol>\n");
           sip_set.insert(sip);
           sip_ids.insert(std::pair<String, UInt64>(swcn, spid));
         }
@@ -527,16 +527,16 @@ namespace OpenMS
             enid = UniqueIdGenerator::getUniqueId();             //TODO IDs from metadata or where its stored at read in;
             String enst(jt->getAccession());
 
-            entry += "<DBSequence accession=\"" + enst + "\" ";
+            entry += "\t<DBSequence accession=\"" + enst + "\" ";
             entry += "searchDatabase_ref=\"" + String(dbid) + "\" ";
             entry += "length=\"" + String(jt->getSequence().length()) + "\" ";
             entry += String("id=\"") + String(enid) + String("\">\n");
             String s = String(jt->getSequence());
             if (!s.empty())
             {
-              entry += "<Seq>" + s + "</Seq>\n";
+              entry += "\t<Seq>" + s + "</Seq>\n";
             }
-            entry += cv_.getTermByName("protein description").toXMLString(cv_ns, enst);
+            entry += "\t\t" + cv_.getTermByName("protein description").toXMLString(cv_ns, enst);
             entry += "</DBSequence>\n";
 
             sen_ids.insert(std::pair<String, UInt64>(enst, enid));
@@ -570,23 +570,23 @@ namespace OpenMS
           {
             String p;
             //~ TODO simplify mod cv param write
-            p += String("<Peptide id=\"") + String(pepid) + String("\"> \n <PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence> \n");
+            p += String("\t<Peptide id=\"") + String(pepid) + String("\"> \n\t\t<PeptideSequence>") + jt->getSequence().toUnmodifiedString() + String("</PeptideSequence> \n");
             if (jt->getSequence().isModified())
             {
               ModificationsDB * mod_db = ModificationsDB::getInstance();
               if (!jt->getSequence().getNTerminalModification().empty())
               {
-                p += "<Modification location=\"0\"> \n <cvParam accession=\"";
+                p += "\t\t<Modification location=\"0\"> \n\t\t\t<cvParam accession=\"";
                 p += jt->getSequence().getNTerminalModification();             // "UNIMOD:" prefix??
-                p += "\" cvRef=\"UNIMOD\"/> \n </Modification> \n";
+                p += "\" cvRef=\"UNIMOD\"/> \n\t\t</Modification> \n";
               }
               if (!jt->getSequence().getCTerminalModification().empty())
               {
-                p += "<Modification location=\"";
+                p += "\t\t<Modification location=\"";
                 p += String(jt->getSequence().size());
-                p += "\"> \n <cvParam accession=\"";
+                p += "\"> \n\t\t\t<cvParam accession=\"";
                 p += jt->getSequence().getCTerminalModification();             // "UNIMOD:" prefix??
-                p += "\" cvRef=\"UNIMOD\"/> \n </Modification> \n";
+                p += "\" cvRef=\"UNIMOD\"/> \n\t\t</Modification> \n";
               }
               for (Size i = 0; i < jt->getSequence().size(); ++i)
               {
@@ -598,19 +598,19 @@ namespace OpenMS
                   if (!mods.empty())
                   {
                     //~ p += jt->getSequence()[i].getModification() + "\t" +  jt->getSequence()[i].getOneLetterCode()  + "\t" +  x +   "\n" ;
-                    p += "<Modification location=\"" + String(i + 1);
+                    p += "\t\t<Modification location=\"" + String(i + 1);
                     p += "\" residues=\"" + jt->getSequence()[i].getOneLetterCode();
                     String acc = (*mods.begin())->getUniModAccession();
-                    p += "\"> \n <cvParam accession=\"UNIMOD:" + acc.suffix(':');                //TODO repair ResidueModification which gives UniMod ... anyways do not exclusively use unimod ...
+                    p += "\"> \n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');                //TODO repair ResidueModification which gives UniMod ... anyways do not exclusively use unimod ...
                     p += "\" name=\"" +  mod_str;
                     p += "\" cvRef=\"UNIMOD\"/>";
-                    p += "\n </Modification> \n";
+                    p += "\n\t\t</Modification> \n";
                   }
                 }
                 /* <psi-pi:SubstitutionModification originalResidue="A" replacementResidue="A"/> */
               }
             }
-            p += "</Peptide> \n ";
+            p += "\t</Peptide> \n ";
             sen_set.insert(p);
           }
           else
@@ -625,9 +625,10 @@ namespace OpenMS
             UInt64 pevid =  UniqueIdGenerator::getUniqueId();
             String dBSequence_ref = String(sen_ids.find(*at)->second);
 
+            // TODO FIXME remove redundant peptidehits (for peptideevidence only)
             String e;
             String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
-            e += "<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
+            e += "\t<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
 
             //~ TODO no '*' allowed!!
             String po = String(jt->getAAAfter());
@@ -640,8 +641,8 @@ namespace OpenMS
             {
               e += "\" pre=\"" + pr;
             }
-            e += "\" isDecoy=\"" + String(idec) + "\"> \n";
-            e += "</PeptideEvidence>\n";
+            e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
+//            e += "\t</PeptideEvidence>\n";
             sen_set.insert(e);
             pevid_ids.push_back(pevid);
           }
@@ -659,44 +660,47 @@ namespace OpenMS
           UInt64 sir =  UniqueIdGenerator::getUniqueId();
           UInt64 sii =  UniqueIdGenerator::getUniqueId();
           //~ TODO get spectra_data when loading idxml if possible - then add here and in spectra_data section
-          sidres += String("<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + String("MZ:") + emz + String("@RT:") + ert + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
-          sidres += String("<SpectrumIdentificationItem passThreshold=\"") + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"") + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz + String("\" experimentalMassToCharge=\"") + emz + String("\" chargeState=\"") + c +  String("\" id=\"") + String(sii) + String("\"> \n");
+          sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + String("MZ:") + emz + String("@RT:") + ert + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
+          sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"") + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"") + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz + String("\" experimentalMassToCharge=\"") + emz + String("\" chargeState=\"") + c +  String("\" id=\"") + String(sii) + String("\"> \n");
           for (std::vector<UInt64>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
-            sidres += "<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
+            sidres += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
           }
 
           //~ TODO nicer cvParam handling!
           if (st == "q-value" || st == "FDR")
           {
-            sidres +=  cv_.getTermByName("pep:global FDR").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("pep:global FDR").toXMLString(cv_ns, sc);
           }
           else if (st == "Posterior Error Probability")
           {
-            sidres +=  cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns, sc);        // 'percolaror' is not a typo.
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns, sc);        // 'percolaror' is not a typo.
           }
           else if (pie_ids[pro_pep_matchstring] == "OMSSA")
           {
-            sidres +=  cv_.getTermByName("OMSSA:evalue").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("OMSSA:evalue").toXMLString(cv_ns, sc);
           }
           else if (pie_ids[pro_pep_matchstring] == "Mascot")
           {
-            sidres +=  cv_.getTermByName("MASCOT:score").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("MASCOT:score").toXMLString(cv_ns, sc);
           }
           else if (pie_ids[pro_pep_matchstring] == "XTandem")
           {
-            sidres +=  cv_.getTermByName("X!Tandem:expect").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("X!Tandem:expect").toXMLString(cv_ns, sc);
           }
           else if (pie_ids[pro_pep_matchstring] == "SEQUEST")
           {
-            sidres +=  cv_.getTermByName("Sequest:xcorr").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("Sequest:xcorr").toXMLString(cv_ns, sc);
           }
           else
           {
-            sidres +=  cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns, sc);
           }
+
+          writeUserParams_(sidres, *jt, 5);
+
           //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
-          sidres += "</SpectrumIdentificationItem>\n </SpectrumIdentificationResult>\n";
+          sidres += "\t\t\t\t</SpectrumIdentificationItem>\n\t\t\t</SpectrumIdentificationResult>\n";
           sidlist.push_back(sidres);
 
         }
@@ -714,7 +718,7 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
-      os << "<cvList> \n <cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"3.15.0\"></cv> \n <cv id=\"UNIMOD\" fullName=\"UNIMOD\"        uri=\"http://www.unimod.org/obo/unimod.obo\"></cv> \n <cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"></cv>\n</cvList>\n";
+      os << "<cvList> \n \t<cv id=\"PSI-MS\" fullName=\"Proteomics Standards Initiative Mass Spectrometry Vocabularies\"  uri=\"http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" version=\"3.15.0\"></cv> \n \t<cv id=\"UNIMOD\" fullName=\"UNIMOD\"        uri=\"http://www.unimod.org/obo/unimod.obo\"></cv> \n \t<cv id=\"UO\"     fullName=\"UNIT-ONTOLOGY\" uri=\"http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo\"></cv>\n</cvList>\n";
 
       //--------------------------------------------------------------------------------------------
       // AnalysisSoftwareList
@@ -728,8 +732,8 @@ namespace OpenMS
       std::map<String, UInt64>::iterator soit = sof_ids.find("TOPP software");
       if (soit == sof_ids.end())
       {
-        os << "<AnalysisSoftware version=\"OpenMS TOPP v1.9\" name=\"TOPP software\" id=\"" << String(UniqueIdGenerator::getUniqueId()) << "\"> \n"
-           << "<SoftwareName> \n " << cv_.getTermByName("TOPP software").toXMLString(cv_ns) << " \n </SoftwareName> \n </AnalysisSoftware> \n";
+        os << "\t<AnalysisSoftware version=\"OpenMS TOPP v1.9\" name=\"TOPP software\" id=\"" << String(UniqueIdGenerator::getUniqueId()) << "\"> \n"
+           << "\t\t<SoftwareName> \n\t\t\t" << cv_.getTermByName("TOPP software").toXMLString(cv_ns) << " \n\t\t</SoftwareName> \n\t</AnalysisSoftware> \n";
       }
       os << "</AnalysisSoftwareList>\n";
 
@@ -751,14 +755,15 @@ namespace OpenMS
       //~ TODO for every pair of input vector<Protein/PeptideIdentification> create one SpectrumIdentificationList and fill
       UInt64 silly  = UniqueIdGenerator::getUniqueId();
 
-      os <<   "<AnalysisCollection>";
+      os <<   "<AnalysisCollection>\n";
       for (std::map<String, UInt64>::const_iterator sip = sip_ids.begin(); sip != sip_ids.end(); ++sip)
       {
+        //TODO FIXME WRITE spectradataref and searchdatabaseref!!!
         //~ TODO unsure when to create several lists instead of one SpectrumIdentificationList - for now only one list
         //~ for  (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
         //~ {
         UInt64 ss  = UniqueIdGenerator::getUniqueId();
-        String entry = String("<SpectrumIdentification id=\"") + String(ss) + String("\" spectrumIdentificationProtocol_ref=\"") + String(sip->second) + String("\" spectrumIdentificationList_ref=\"") + String(silly) + String("\">") + String("<InputSpectra/>\n<SearchDatabaseRef/>\n </SpectrumIdentification>\n");
+        String entry = String("\t<SpectrumIdentification id=\"") + String(ss) + String("\" spectrumIdentificationProtocol_ref=\"") + String(sip->second) + String("\" spectrumIdentificationList_ref=\"") + String(silly) + String("\">\n") + String("\t\t<InputSpectra/>\n\t\t<SearchDatabaseRef/>\n\t</SpectrumIdentification>\n");
         os <<   entry;
         //~ }
       }
@@ -783,14 +788,14 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       os << "<DataCollection>\n" << inputs_element;
       //~ TODO for every pair of input vector<Protein/PeptideIdentification> create one SpectrumIdentificationList and fill
-      os << "<AnalysisData>\n<SpectrumIdentificationList id=\""
+      os << "\t<AnalysisData>\n\t\t<SpectrumIdentificationList id=\""
          << String(silly)
          << String("\"> \n");
       for (std::vector<String>::const_iterator sid = sidlist.begin(); sid != sidlist.end(); ++sid)
       {
         os << *sid;
       }
-      os << "</SpectrumIdentificationList>\n</AnalysisData>\n</DataCollection>\n";
+      os << "\t\t</SpectrumIdentificationList>\n\t</AnalysisData>\n</DataCollection>\n";
 
       //--------------------------------------------------------------------------------------------
       // close XML header
@@ -798,6 +803,38 @@ namespace OpenMS
       os << "</MzIdentML>";
 
     }
+
+    void MzIdentMLHandler::writeUserParams_(String& s, const MetaInfoInterface& meta, UInt indent) const
+    {
+      if (meta.isMetaEmpty())
+      {
+        return;
+      }
+      std::vector<String> keys;
+      meta.getKeys(keys);
+
+      for (Size i = 0; i != keys.size(); ++i)
+      {
+        s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
+
+        DataValue d = meta.getMetaValue(keys[i]);
+        //determine type
+        if (d.valueType() == DataValue::INT_VALUE)
+        {
+          s += "xsd:integer";
+        }
+        else if (d.valueType() == DataValue::DOUBLE_VALUE)
+        {
+          s += "xsd:double";
+        }
+        else //string or lists are converted to string
+        {
+          s += "xsd:string";
+        }
+        s += "\" value=\"" + (String)(d) + "\"/>" + "\n";
+      }
+    }
+
 
   }   //namespace Internal
 } // namespace OpenMS
