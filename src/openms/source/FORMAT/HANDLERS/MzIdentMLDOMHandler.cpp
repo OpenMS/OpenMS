@@ -688,9 +688,20 @@ namespace OpenMS
           }
           catch (...)
           {
-            std::cout << "fuuu" << std::endl;
+            std::cerr << "another derp in progress" << std::endl;
           }
-          pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post}));
+          bool idec = false;
+          try
+          {
+            String d = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("isDecoy")));
+            if (d.hasPrefix('t'))
+              idec = true;
+          }
+          catch (...)
+          {
+            std::cerr << "another derp in progress" << std::endl;
+          }
+          pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post,idec}));
           p_pv_map_.insert(std::make_pair(peptide_ref,id));
           pv_db_map_.insert(std::make_pair(id,dBSequence_ref));
 
@@ -1085,6 +1096,7 @@ namespace OpenMS
       {
         hit.setMetaValue(up->first, up->second);
       }
+      //
       spectrum_identification.insertHit(hit);
       spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
 
@@ -1093,6 +1105,10 @@ namespace OpenMS
         PeptideEvidence& pv = pe_ev_map_[pev];
         spectrum_identification.getHits().back().setAABefore(pv.pre);
         spectrum_identification.getHits().back().setAAAfter(pv.post);
+        if (pv.idec)
+          spectrum_identification.getHits().back().setMetaValue("target_decoy","decoy");
+        else
+          spectrum_identification.getHits().back().setMetaValue("target_decoy","target");
       }
 
       DBSequence& db = db_sq_map_[dpv];
