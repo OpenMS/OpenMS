@@ -168,6 +168,7 @@ private:
         int stop;
         char pre;
         char post;
+        bool idec;
       };
       struct DBSequence
       {
