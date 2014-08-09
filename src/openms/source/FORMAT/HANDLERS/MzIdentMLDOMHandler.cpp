@@ -1094,6 +1094,7 @@ namespace OpenMS
       {
         hit.setMetaValue(up->first, up->second);
       }
+      //
       spectrum_identification.insertHit(hit);
       spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
 
