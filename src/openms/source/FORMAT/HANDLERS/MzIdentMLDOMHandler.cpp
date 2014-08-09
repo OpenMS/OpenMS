@@ -507,7 +507,6 @@ namespace OpenMS
         String type = XMLString::transcode(param->getAttribute(XMLString::transcode("type")));
         DataValue dv;
         dv.setUnit(unitAcc+":"+unitName);
-
         if ( type == "xsd:float" || type == "xsd:double")
         {
           dv = value.toDouble();
@@ -847,7 +846,6 @@ namespace OpenMS
                   }
 
                   String enzymename = "UNKNOWN";
-
                   DOMElement* sub = enzy->getFirstElementChild();
                   if ( sub )
                   {
@@ -1303,6 +1301,7 @@ namespace OpenMS
             {
               std::cerr << "another derp in progress" << std::endl;
             }
+
             //double monoisotopicMassDelta = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
 //            std::cout << "index: " << index << std::endl;
             DOMElement* cvp = element_sib->getFirstElementChild();
