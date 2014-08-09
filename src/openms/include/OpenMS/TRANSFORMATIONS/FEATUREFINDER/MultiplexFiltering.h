@@ -106,14 +106,14 @@ namespace OpenMS
          * @param intensity_cutoff    intensity cutoff
          * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
          * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
-         * @param peptide_similarity
-         * @param averagine_similarity
-         * @param debug    debug mode
+         * @param peptide_similarity    similarity score for two peptides in the same multiplet
+         * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
+         * @param out_debug    directory for debug output
          * 
          * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool debug);
+        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
         
         /**
          * @brief filter for patterns
@@ -153,7 +153,7 @@ namespace OpenMS
          * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
          * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
          * 
-         * @return false if all intensities above threshold (i.e. not vetoed)
+         * @return true if all intensities above threshold
          */
         bool monoIsotopicPeakIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices) const;
         
@@ -346,6 +346,11 @@ namespace OpenMS
          * @brief averagine similarity
          */
         double averagine_similarity_;
+        
+        /**
+         * @brief directory for debug output
+         */
+        String out_debug_;
         
         /**
          * @brief debug mode
