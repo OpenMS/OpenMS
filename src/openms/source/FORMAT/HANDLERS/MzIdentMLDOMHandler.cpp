@@ -441,6 +441,7 @@ namespace OpenMS
       }
     }
 
+
     std::pair<CVTermList, std::map<String,DataValue> > MzIdentMLDOMHandler::parseParamGroup_(DOMNodeList * paramGroup)
     {
       CVTermList ret_cv;
@@ -1208,6 +1209,7 @@ namespace OpenMS
 
       DBSequence& db = db_sq_map_[dBSequence_ref];
 
+      //TODO @ mths FIXME this introduces "random" prothits
       protein_identification.insertHit(ProteinHit());
       protein_identification.getHits().back().setSequence(db.sequence);
       protein_identification.getHits().back().setAccession(db.accession);
