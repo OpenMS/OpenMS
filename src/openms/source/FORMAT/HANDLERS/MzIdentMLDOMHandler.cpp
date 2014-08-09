@@ -294,8 +294,6 @@ namespace OpenMS
               buildCvList_(cvl_p);
               rootElem->appendChild(cvl_p);
 
-
-
               // * AnalysisSoftwareList *
               DOMElement* asl_p = xmlDoc->createElement(XMLString::transcode("AnalysisSoftwareList"));
               for(std::vector<ProteinIdentification>::const_iterator pi = cpro_id_->begin(); pi != cpro_id_->end(); ++pi )
@@ -497,7 +495,7 @@ namespace OpenMS
         return CVTerm(accession, name, cvRef, value, u);
       }
       else
-        throw "no cv here.";
+        throw invalid_argument("no cv param here");
     }
 
     std::pair<String,DataValue> MzIdentMLDOMHandler::parseUserParam_(DOMElement* param)
@@ -507,32 +505,36 @@ namespace OpenMS
         //      <userParam name="Mascot User Comment" value="Example Mascot MS-MS search for PSI mzIdentML"/>
         String name = XMLString::transcode(param->getAttribute(XMLString::transcode("name")));
         String value = XMLString::transcode(param->getAttribute(XMLString::transcode("value")));
-
         String unitAcc = XMLString::transcode(param->getAttribute(XMLString::transcode("unitAccession")));
         String unitName = XMLString::transcode(param->getAttribute(XMLString::transcode("unitName")));
         String unitCvRef = XMLString::transcode(param->getAttribute(XMLString::transcode("unitCvRef")));
         String type = XMLString::transcode(param->getAttribute(XMLString::transcode("type")));
-
         DataValue dv;
         dv.setUnit(unitAcc+":"+unitName);
-
         if ( type == "xsd:float" || type == "xsd:double")
         {
           dv = value.toDouble();
         }
         else if ( type == "xsd:int" || type == "xsd:unsignedInt")
         {
-          dv = value.toInt();
+          try
+          {
+            dv = value.toInt();
+          }
+          catch (...)
+          {
+            std::cout << "derp" << std::endl;
+          }
         }
         else
         {
           dv = value;
         }
-
         return std::make_pair(name,dv);
       }
       else
-        throw "no up here.";
+        std::cout << "derp!" << std::endl;
+        throw invalid_argument("no user param here");
     }
 
     void MzIdentMLDOMHandler::parseAnalysisSoftwareList_(DOMNodeList * analysisSoftwareElements)
@@ -666,11 +668,28 @@ namespace OpenMS
           String peptide_ref = XMLString::transcode(element_pev->getAttribute(XMLString::transcode("peptide_ref")));
           String dBSequence_ref = XMLString::transcode(element_pev->getAttribute(XMLString::transcode("dBSequence_ref")));
           //rest is optional !!
-          int start = String(XMLString::transcode(element_pev->getAttribute(XMLString::transcode("start")))).toInt();
-          int end = String(XMLString::transcode(element_pev->getAttribute(XMLString::transcode("end")))).toInt();
-          char pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
-          char post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
-
+          int start = -1;
+          int end = -1;
+          try
+          {
+            start = String(XMLString::transcode(element_pev->getAttribute(XMLString::transcode("start")))).toInt();
+            end = String(XMLString::transcode(element_pev->getAttribute(XMLString::transcode("end")))).toInt();
+          }
+          catch (...)
+          {
+            std::cerr << "another derp in progress" << std::endl;
+          }
+          char pre = '-';
+          char post = '-';
+          try
+          {
+            pre = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("pre")));
+            post = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("post")));
+          }
+          catch (...)
+          {
+            std::cout << "fuuu" << std::endl;
+          }
           pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post}));
           p_pv_map_.insert(std::make_pair(peptide_ref,id));
           pv_db_map_.insert(std::make_pair(id,dBSequence_ref));
@@ -790,13 +809,30 @@ namespace OpenMS
                 {
                   String id = XMLString::transcode(enzy->getAttribute(XMLString::transcode("id")));
                   String name = XMLString::transcode(enzy->getAttribute(XMLString::transcode("name")));
-                  int missedCleavages = String(XMLString::transcode(enzy->getAttribute(XMLString::transcode("missedCleavages")))).toInt();
+                  int missedCleavages = -1;
+                  try
+                  {
+                    missedCleavages = String(XMLString::transcode(enzy->getAttribute(XMLString::transcode("missedCleavages")))).toInt();
+                  }
+                  catch (...)
+                  {
+                    std::cerr << "another derp in progress" << std::endl;
+                  }
+
                   String semiSpecific = XMLString::transcode(enzy->getAttribute(XMLString::transcode("semiSpecific"))); //xsd:boolean
                   String cTermGain = XMLString::transcode(enzy->getAttribute(XMLString::transcode("cTermGain")));
                   String nTermGain = XMLString::transcode(enzy->getAttribute(XMLString::transcode("nTermGain")));
-                  int minDistance = String(XMLString::transcode(enzy->getAttribute(XMLString::transcode("minDistance")))).toInt();
-                  String enzymename = "UNKNOWN";
+                  int minDistance = -1;
+                  try
+                  {
+                    minDistance = String(XMLString::transcode(enzy->getAttribute(XMLString::transcode("minDistance")))).toInt();
+                  }
+                  catch (...)
+                  {
+                    std::cerr << "another derp in progress" << std::endl;
+                  }
 
+                  String enzymename = "UNKNOWN";
                   DOMElement* sub = enzy->getFirstElementChild();
                   if ( sub )
                   {
@@ -807,14 +843,23 @@ namespace OpenMS
                     {
                       //take the first param for name
                       DOMElement* pren = sub->getFirstElementChild();
-                      if ((std::string)XMLString::transcode(pren->getTagName()) == "userParam")
+                      if ((std::string)XMLString::transcode(pren->getTagName()) == "cvParam")
                       {
                         CVTerm param = parseCvParam_(pren->getFirstElementChild());
                         enzymename = param.getValue();
                       }
-                      else if ((std::string)XMLString::transcode(pren->getTagName()) == "cvParam")
+                      else if ((std::string)XMLString::transcode(pren->getTagName()) == "userParam")
                       {
-                        std::pair<String,DataValue> param = parseUserParam_(pren->getFirstElementChild());
+                          std::pair<String,DataValue> param;
+                          std::cout << "derp?" << std::endl;
+                         try{
+                        param = parseUserParam_(pren->getFirstElementChild());
+                          }
+                          catch (...)
+                          {
+                            std::cerr << "derp in progress" << std::endl;
+                          }
+
                         enzymename = param.second.toString();
                       }
                     }
@@ -868,7 +913,7 @@ namespace OpenMS
           }
         }
       }
-      //std::cout << "SpectrumIdentificationProtocol found: " << count << std::endl;
+//      std::cout << "SpectrumIdentificationProtocol found: " << count << std::endl;
     }
 
     void MzIdentMLDOMHandler::parseInputElements_(DOMNodeList * inputElements)
@@ -987,9 +1032,26 @@ namespace OpenMS
       // TODO @ mths : where to put calc. mz if even
 //      long double calculatedMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("calculatedMassToCharge")))).toDouble();
 //      long double calculatedPI = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("calculatedPI")))).toDouble();
-      int chargeState = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("chargeState")))).toInt();
+      int chargeState = 0;
+      try
+      {
+        chargeState = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("chargeState")))).toInt();
+      }
+      catch (...)
+      {
+        std::cerr << "another derp in progress" << std::endl;
+      }
       long double experimentalMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("experimentalMassToCharge")))).toDouble();
-      int rank = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("rank")))).toInt();
+      int rank = 0;
+      try
+      {
+        rank = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("rank")))).toInt();
+      }
+      catch (...)
+      {
+        std::cerr << "another derp in progress" << std::endl;
+      }
+
       String peptide_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("peptide_ref")));
 //      String sample_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("sample_ref")));
 //      String massTable_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("massTable_ref")));
@@ -1188,6 +1250,7 @@ namespace OpenMS
 
             if (!location.empty())
             {
+              std::cout << location.toInt() << std::endl;
               as[location.toInt()-1] = replacementResidue;
 //              std::cout << as[location.toInt()-1] << ": " << originalResidue << "->" << replacementResidue << std::endl;
             }
@@ -1216,8 +1279,16 @@ namespace OpenMS
           DOMElement* element_sib = dynamic_cast< xercesc::DOMElement* >( current_sib );
           if ((std::string)XMLString::transcode(element_sib->getTagName()) == "Modification")
           {
-            // all attributes optional :( !!!
-            int index = String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")))).toInt();
+            int index = -1;
+            try
+            {
+              index = String(XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")))).toInt();
+            }
+            catch (...)
+            {
+              std::cerr << "another derp in progress" << std::endl;
+            }
+
             //double monoisotopicMassDelta = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
 //            std::cout << "index: " << index << std::endl;
             DOMElement* cvp = element_sib->getFirstElementChild();
