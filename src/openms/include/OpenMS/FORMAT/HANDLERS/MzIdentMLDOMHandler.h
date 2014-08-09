@@ -148,14 +148,14 @@ protected:
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement * proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
       void parseProteinDetectionListElements_( xercesc::DOMNodeList * proteinDetectionListElements);
 
-      //void buildCvList_(xercesc::DOMElement * cvElements);
-      //void buildAnalysisSoftwareList_(xercesc::DOMElement * analysisSoftwareElements);
-      //void buildSequenceCollection_(xercesc::DOMElement * sequenceCollectionElements);
-      //void buildAnalysisCollection_(xercesc::DOMElement * analysisCollectionElements);
-      //void buildAnalysisProtocolCollection_(xercesc::DOMElement * protocolElements);
-      //void buildInputDataCollection_(xercesc::DOMElement * inputElements);
-      //void buildEnclosedCV_(xercesc::DOMElement * parentElement, String encel, String acc, String name, String cvref);
-      //void buildAnalysisDataCollection_(xercesc::DOMElement * analysisElements);
+      void buildCvList_(xercesc::DOMElement * cvElements);
+      void buildAnalysisSoftwareList_(xercesc::DOMElement * analysisSoftwareElements);
+      void buildSequenceCollection_(xercesc::DOMElement * sequenceCollectionElements);
+      void buildAnalysisCollection_(xercesc::DOMElement * analysisCollectionElements);
+      void buildAnalysisProtocolCollection_(xercesc::DOMElement * protocolElements);
+      void buildInputDataCollection_(xercesc::DOMElement * inputElements);
+      void buildEnclosedCV_(xercesc::DOMElement * parentElement, String encel, String acc, String name, String cvref);
+      void buildAnalysisDataCollection_(xercesc::DOMElement * analysisElements);
 
 private:
       MzIdentMLDOMHandler();

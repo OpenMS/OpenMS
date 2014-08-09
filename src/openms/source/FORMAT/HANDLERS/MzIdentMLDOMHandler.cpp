@@ -271,8 +271,182 @@ namespace OpenMS
     void MzIdentMLDOMHandler::writeMzIdentMLFile(const string& mzid_file)
             throw( std::runtime_error )
     {
-       //TODO
+      DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XMLString::transcode("XML 1.0")); //XML 3?!
+      if (impl != NULL)
+      {
+          try
+          {
+              DOMDocument* xmlDoc = impl->createDocument(
+                XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1"),
+                XMLString::transcode("MzIdentML"),         // root element name
+                0);                   // document type object (DTD).
+
+              DOMElement* rootElem = xmlDoc->getDocumentElement();
+              rootElem->setAttribute(XMLString::transcode("version"),
+                                     XMLString::transcode("1.1.0"));
+              rootElem->setAttribute(XMLString::transcode("xsi:schemaLocation"),
+                                     XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1 ../../schema/mzIdentML1.1.0.xsd"));
+              rootElem->setAttribute(XMLString::transcode("creationDate"),
+                                     XMLString::transcode("2011-03-25T13:16:49")); // TODO set date
+
+              // * cvList *
+              DOMElement* cvl_p = xmlDoc->createElement(XMLString::transcode("cvList")); // TODO add generically
+              buildCvList_(cvl_p);
+              rootElem->appendChild(cvl_p);
+
+
+
+              // * AnalysisSoftwareList *
+              DOMElement* asl_p = xmlDoc->createElement(XMLString::transcode("AnalysisSoftwareList"));
+              for(std::vector<ProteinIdentification>::const_iterator pi = cpro_id_->begin(); pi != cpro_id_->end(); ++pi )
+              {
+                  search_engine_version_ = pi->getSearchEngineVersion();
+                  search_engine_ = pi->getSearchEngine();
+//                  std::cout << search_engine_ <<search_engine_version_ << "bgwaak-1" << std::endl;
+              }
+              buildAnalysisSoftwareList_(asl_p);
+              rootElem->appendChild(asl_p);
+
+//              // * AnalysisSampleCollection *
+//              DOMElement* asc_p = xmlDoc->createElement(XMLString::transcode("AnalysisSampleCollection"));
+//              buildAnalysisSampleCollection_(asc_p);
+//              rootElem->appendChild(asc_p);
+
+              // * SequenceCollection *
+              DOMElement* sc_p = xmlDoc->createElement(XMLString::transcode("SequenceCollection"));
+
+              for(std::vector<ProteinIdentification>::const_iterator pi = cpro_id_->begin(); pi != cpro_id_->end(); ++pi)
+              {
+                  String dbref = pi->getSearchParameters().db +  pi->getSearchParameters().db_version + pi->getSearchParameters().taxonomy; //TODO @mths : this needs to be more unique, btw add tax etc. as cv to DBSequence
+                  for(std::vector<ProteinHit>::const_iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
+                  {
+                      CVTermList cvs;
+                      db_sq_map_.insert(std::make_pair(ph->getAccession(), DBSequence{ph->getSequence(),dbref,ph->getAccession(),cvs}));
+                  }
+              }
+
+              std::set<AASequence> pepset;
+              for(std::vector<PeptideIdentification>::const_iterator pi = cpep_id_->begin(); pi != cpep_id_->end(); ++pi)
+              {
+                  for(std::vector<PeptideHit>::const_iterator ph = pi->getHits().begin() ; ph != pi->getHits().end(); ++ph)
+                  {
+                      std::vector<String> dbrefs = ph->getProteinAccessions();
+                      std::list<String> pepevs;
+                      for(std::vector<String>::const_iterator dBSequence_ref = dbrefs.begin() ; dBSequence_ref != dbrefs.end(); ++dBSequence_ref)
+                      {
+                          String pepevref = String("OpenMS")+String(UniqueIdGenerator::getUniqueId());
+                          pv_db_map_.insert(std::make_pair(pepevref,*dBSequence_ref));
+                          pepevs.push_back(pepevref);
+                          String pep = ph->getSequence().toUnmodifiedString();
+                          int start = 0;
+                          db_sq_map_[*dBSequence_ref].sequence.toQString().indexOf(pep.toQString(), start); // TODO @ mths : make that safe, also finds only the first - no biggy
+                          pe_ev_map_.insert(std::make_pair(pepevref,PeptideEvidence{start,start+pep.length(),ph->getAABefore(),ph->getAAAfter()})); // TODO @ mths : double check start & end & chars for before & after
+                      }
+                      hit_pev_.push_back(pepevs);
+
+                      String pepref = String("OpenMS")+String(UniqueIdGenerator::getUniqueId());
+                      if (pepset.find(ph->getSequence()) != pepset.end())
+                      {
+                          pepset.insert(ph->getSequence());
+                          pep_map_.insert(std::make_pair(pepref,ph->getSequence()));
+                          for(std::list<String>::iterator pepevref = pepevs.begin() ; pepevref != pepevs.end(); ++pepevref)
+                          {
+                            p_pv_map_.insert(std::make_pair(*pepevref,pepref));
+                          }
+                      }
+                  }
+              }
+
+//                nicht vergessen die proteinhits fertig zu bauen beim lesen!
+//                nicht vergessen die decoys beim lesen zu annotieren
+
+              buildSequenceCollection_(sc_p);
+              rootElem->appendChild(sc_p);
+
+              // * AnalysisCollection *
+              DOMElement* analysis_c_p = xmlDoc->createElement(XMLString::transcode("AnalysisCollection"));
+              buildAnalysisCollection_(analysis_c_p);
+              rootElem->appendChild(analysis_c_p);
+
+              // * AnalysisProtocolCollection *
+              DOMElement* apc_p = xmlDoc->createElement(XMLString::transcode("AnalysisProtocolCollection"));
+              buildAnalysisCollection_(apc_p);
+              rootElem->appendChild(apc_p);
+
+              // * DataCollection *
+              DOMElement* dc_p = xmlDoc->createElement(XMLString::transcode("DataCollection"));
+              rootElem->appendChild(dc_p);
+              DOMElement* in_p = dc_p->getOwnerDocument()->createElement(XMLString::transcode("Inputs"));
+              DOMElement* ad_p = dc_p->getOwnerDocument()->createElement(XMLString::transcode("AnalysisData"));
+              dc_p->appendChild(in_p);
+              dc_p->appendChild(ad_p);
+
+              // * BibliographicReference *
+              DOMElement* br_p = xmlDoc->createElement(XMLString::transcode("BibliographicReference"));
+              br_p->setAttribute(XMLString::transcode("authors"), XMLString::transcode("all"));
+              rootElem->appendChild(br_p);
+
+              // * Serialisation *
+              DOMLSSerializer* serializer = ((DOMImplementationLS*)impl)->createLSSerializer();
+              // serializer gets prettyprint and stuff
+              if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTDiscardDefaultContent, true))
+                serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTDiscardDefaultContent, true);
+              if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true))
+                serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true);
+
+//              // optionally implement DOMErrorHandler (e.g. MyDOMErrorHandler) and set it to the serializer
+//              DOMErrorHandler* errHandler = new myDOMErrorHandler();
+//              serializer->getDomConfig()->setParameter(XMLUni::fgDOMErrorHandler, myErrorHandler);
+
+              XMLFormatTarget* file_target = new LocalFileFormatTarget(mzid_file.c_str());
+              DOMLSOutput* dom_output = ((DOMImplementationLS*)impl)->createLSOutput();
+              dom_output->setByteStream(file_target);
+
+              try {
+                // do the serialization through DOMLSSerializer::write();
+                serializer->write(xmlDoc, dom_output);
+              }
+              catch (const XMLException& toCatch) {
+                char* message = XMLString::transcode(toCatch.getMessage());
+                cout << "Exception message is: \n"
+                     << message << "\n";
+                XMLString::release(&message);
+              }
+              catch (const DOMException& toCatch) {
+                char* message = XMLString::transcode(toCatch.msg);
+                cout << "Exception message is: \n"
+                     << message << "\n";
+                XMLString::release(&message);
+              }
+              catch (...) {
+                cout << "Unexpected Exception \n" ;
+              }
+
+              dom_output->release();
+              serializer->release();
+//              delete myErrorHandler;
+              delete file_target;
+          }
+          catch (const OutOfMemoryException&)
+          {
+              XERCES_STD_QUALIFIER cerr << "OutOfMemoryException" << XERCES_STD_QUALIFIER endl;
+          }
+          catch (const DOMException& e)
+          {
+              XERCES_STD_QUALIFIER cerr << "DOMException code is:  " << e.code << XERCES_STD_QUALIFIER endl;
+          }
+          catch (const std::exception &e)
+          {
+              XERCES_STD_QUALIFIER cerr << "An error occurred creating the document: " << e.what() << XERCES_STD_QUALIFIER endl;
+          }
+
+      }  // (inpl != NULL)
+      else
+      {
+          XERCES_STD_QUALIFIER cerr << "Requested implementation is not supported" << XERCES_STD_QUALIFIER endl;
+      }
     }
+
 
     std::pair<CVTermList, std::map<String,DataValue> > MzIdentMLDOMHandler::parseParamGroup_(DOMNodeList * paramGroup)
     {
@@ -958,6 +1132,7 @@ namespace OpenMS
 
       DBSequence& db = db_sq_map_[dBSequence_ref];
 
+      //TODO @ mths FIXME this introduces "random" prothits
       protein_identification.insertHit(ProteinHit());
       protein_identification.getHits().back().setSequence(db.sequence);
       protein_identification.getHits().back().setAccession(db.accession);
@@ -1077,6 +1252,280 @@ namespace OpenMS
         }
       }
       return aas;
+    }
+
+    void MzIdentMLDOMHandler::buildCvList_(DOMElement * cvElements)
+    {
+      DOMElement* cv1 = cvElements->getOwnerDocument()->createElement(XMLString::transcode("cv"));
+      cv1->setAttribute(XMLString::transcode("id"), XMLString::transcode("PSI-MS"));
+      cv1->setAttribute(XMLString::transcode("fullName"),
+                        XMLString::transcode("Proteomics Standards Initiative Mass Spectrometry Vocabularies"));
+      cv1->setAttribute(XMLString::transcode("uri"),
+                        XMLString::transcode("http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo"));
+      cv1->setAttribute(XMLString::transcode("version"), XMLString::transcode("2.32.0"));
+      cvElements->appendChild(cv1);
+      DOMElement* cv2 = cvElements->getOwnerDocument()->createElement(XMLString::transcode("cv"));
+      cv2->setAttribute(XMLString::transcode("id"), XMLString::transcode("UNIMOD"));
+      cv2->setAttribute(XMLString::transcode("fullName"),
+                        XMLString::transcode("UNIMOD"));
+      cv2->setAttribute(XMLString::transcode("uri"),
+                        XMLString::transcode("http://www.unimod.org/obo/unimod.obo"));
+      cvElements->appendChild(cv2);
+      DOMElement* cv3 = cvElements->getOwnerDocument()->createElement(XMLString::transcode("cv"));
+      cv3->setAttribute(XMLString::transcode("id"), XMLString::transcode("UO"));
+      cv3->setAttribute(XMLString::transcode("fullName"),
+                        XMLString::transcode("UNIT-ONTOLOGY"));
+      cv3->setAttribute(XMLString::transcode("uri"),
+                        XMLString::transcode("http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo"));
+      cvElements->appendChild(cv3);
+    }
+
+    void MzIdentMLDOMHandler::buildAnalysisSoftwareList_(DOMElement * analysisSoftwareElements)
+    {
+      DOMElement* current_as = analysisSoftwareElements->getOwnerDocument()->createElement(XMLString::transcode("AnalysisSoftware"));
+      current_as->setAttribute(XMLString::transcode("id"), XMLString::transcode(String(String("OpenMS")+String(UniqueIdGenerator::getUniqueId())).c_str()));
+      current_as->setAttribute(XMLString::transcode("version"), XMLString::transcode(search_engine_version_.c_str()));
+      current_as->setAttribute(XMLString::transcode("name"), XMLString::transcode(search_engine_.c_str()));
+      analysisSoftwareElements->appendChild(current_as);
+      DOMElement* current_sw = current_as->getOwnerDocument()->createElement(XMLString::transcode("SoftwareName"));
+      DOMElement* current_cv = current_sw->getOwnerDocument()->createElement(XMLString::transcode("cvParam")); //TODO extract as function bauen and insert cv
+      current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(search_engine_.c_str()));
+      current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("PSI-MS"));
+      current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(cv_.getTermByName(search_engine_).id.c_str())); //TODO this needs error handling
+      current_sw->appendChild(current_cv);
+      analysisSoftwareElements->appendChild(current_sw);
+    }
+
+    void MzIdentMLDOMHandler::buildSequenceCollection_(DOMElement * sequenceCollectionElements)
+    {
+      for(std::map<String, DBSequence>::iterator dbs = db_sq_map_.begin(); dbs != db_sq_map_.end(); ++dbs)
+      {
+        DOMElement* current_dbs = sequenceCollectionElements->getOwnerDocument()->createElement(XMLString::transcode("DBSequence"));
+        current_dbs->setAttribute(XMLString::transcode("id"), XMLString::transcode(dbs->second.accession.c_str()));
+        current_dbs->setAttribute(XMLString::transcode("length"), XMLString::transcode(String(dbs->second.sequence.length()).c_str()));
+        current_dbs->setAttribute(XMLString::transcode("accession"), XMLString::transcode(dbs->second.accession.c_str()));
+        current_dbs->setAttribute(XMLString::transcode("searchDatabase_ref"), XMLString::transcode(dbs->second.database_ref.c_str())); // This is going to be wrong
+        DOMElement* current_seq = current_dbs->getOwnerDocument()->createElement(XMLString::transcode("Seq"));
+        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(XMLString::transcode(dbs->second.sequence.c_str()));
+        current_seq->appendChild(current_seqnot);
+        current_dbs->appendChild(current_seq);
+        sequenceCollectionElements->appendChild(current_dbs);
+      }
+
+      for(std::map<String, AASequence>::iterator peps = pep_map_.begin(); peps != pep_map_.end(); ++peps)
+      {
+          DOMElement* current_pep = sequenceCollectionElements->getOwnerDocument()->createElement(XMLString::transcode("Peptide"));
+          current_pep->setAttribute(XMLString::transcode("id"), XMLString::transcode(peps->first.c_str()));
+          DOMElement* current_seq = current_pep->getOwnerDocument()->createElement(XMLString::transcode("PeptideSequence"));
+          DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(XMLString::transcode(peps->second.toUnmodifiedString().c_str()));
+          current_seq->appendChild(current_seqnot);
+          current_pep->appendChild(current_seq);
+          if (peps->second.hasNTerminalModification())
+          {
+              ResidueModification mod = ModificationsDB::getInstance()->getModification(peps->second.getNTerminalModification());
+              DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
+              DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
+              current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode("0"));
+              current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
+              current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod.getOrigin().c_str()));
+
+              current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+              current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
+              current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+
+              current_mod->appendChild(current_cv);
+              current_pep->appendChild(current_mod);
+          }
+          if (peps->second.hasCTerminalModification())
+          {
+              ResidueModification mod = ModificationsDB::getInstance()->getModification(peps->second.getCTerminalModification());
+              DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
+              DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
+              current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(peps->second.size()+1).c_str()));
+              current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
+              current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod.getOrigin().c_str()));
+
+              current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+              current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
+              current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+
+              current_mod->appendChild(current_cv);
+              current_pep->appendChild(current_mod);
+          }
+          if (peps->second.isModified())
+          {
+              Size i = 0;
+              for(AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res)
+              {
+                ResidueModification mod = ModificationsDB::getInstance()->getModification(res->getModification());
+                DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(XMLString::transcode("Modification"));
+                DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
+                current_mod->setAttribute(XMLString::transcode("location"), XMLString::transcode(String(i).c_str()));
+                current_mod->setAttribute(XMLString::transcode("monoisotopicMassDelta"), XMLString::transcode(String(mod.getDiffMonoMass()).c_str()));
+                current_mod->setAttribute(XMLString::transcode("residues"), XMLString::transcode(mod.getOrigin().c_str()));
+
+                current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(mod.getName().c_str()));
+                current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("UNIMOD"));
+                current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(mod.getUniModAccession().c_str()));
+
+                current_mod->appendChild(current_cv);
+                current_pep->appendChild(current_mod);
+                ++i;
+              }
+           }
+          sequenceCollectionElements->appendChild(current_pep);
+      }
+
+      for(std::map<String, PeptideEvidence>::iterator pevs = pe_ev_map_.begin(); pevs != pe_ev_map_.end(); ++pevs)
+      {
+          DOMElement* current_pev = sequenceCollectionElements->getOwnerDocument()->createElement(XMLString::transcode("PeptideEvidence"));
+          current_pev->setAttribute(XMLString::transcode("peptide_ref"), XMLString::transcode("TBA"));
+          current_pev->setAttribute(XMLString::transcode("id"), XMLString::transcode(pevs->first.c_str()));
+          current_pev->setAttribute(XMLString::transcode("start"), XMLString::transcode(String(pevs->second.start).c_str()));
+          current_pev->setAttribute(XMLString::transcode("end"), XMLString::transcode(String(pevs->second.stop).c_str()));
+          current_pev->setAttribute(XMLString::transcode("pre"), XMLString::transcode(String(pevs->second.pre).c_str()));
+          current_pev->setAttribute(XMLString::transcode("post"), XMLString::transcode(String(pevs->second.post).c_str()));
+          current_pev->setAttribute(XMLString::transcode("isDecoy"), XMLString::transcode("false")); //nicht vergessen decoy zu annotiern
+          sequenceCollectionElements->appendChild(current_pev);
+      }
+    }
+
+    void MzIdentMLDOMHandler::buildAnalysisCollection_(DOMElement * analysisCollectionElements)
+    {
+      // for now there is only one search per file
+      DOMElement* current_si = analysisCollectionElements->getOwnerDocument()->createElement(XMLString::transcode("SpectrumIdentification"));
+      current_si->setAttribute(XMLString::transcode("id"), XMLString::transcode("TBA"));
+      current_si->setAttribute(XMLString::transcode("spectrumIdentificationProtocol_ref"), XMLString::transcode("SIP"));
+      current_si->setAttribute(XMLString::transcode("spectrumIdentificationList_ref"), XMLString::transcode("SIL"));
+      current_si->setAttribute(XMLString::transcode("activityDate"), XMLString::transcode("now"));
+      DOMElement* current_is = current_si->getOwnerDocument()->createElement(XMLString::transcode("InputSpectra"));
+      current_is->setAttribute(XMLString::transcode("spectraData_ref"), XMLString::transcode("TODO")); // TODO @ mths while DataCollection
+      DOMElement* current_sr = current_si->getOwnerDocument()->createElement(XMLString::transcode("SearchDatabaseRef"));
+      current_sr->setAttribute(XMLString::transcode("searchDatabase_ref"), XMLString::transcode("TODO")); // TODO @ mths while DataCollection
+      current_si->appendChild(current_is);
+      current_si->appendChild(current_sr);
+      // and no ProteinDetection for now
+      analysisCollectionElements->appendChild(current_si);
+    }
+
+    void MzIdentMLDOMHandler::buildAnalysisProtocolCollection_(DOMElement * protocolElements)
+    {
+      // for now there is only one search per file
+      DOMElement* current_sp = protocolElements->getOwnerDocument()->createElement(XMLString::transcode("SpectrumIdentificationProtocol"));
+      current_sp->setAttribute(XMLString::transcode("id"), XMLString::transcode("SIP"));
+      current_sp->setAttribute(XMLString::transcode("analysisSoftware_ref"), XMLString::transcode("what now?"));
+      protocolElements->appendChild(current_sp);
+      DOMElement* current_st = current_sp->getOwnerDocument()->createElement(XMLString::transcode("SearchType"));
+      current_sp->appendChild(current_st);
+      DOMElement* current_cv = current_st->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
+      current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode("MS:1001083")); // TODO @ mths for now static cv
+      current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode("ms-ms search"));
+      current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("PSI-MS"));
+      current_st->appendChild(current_cv);
+
+      //for now no <AdditionalSearchParams>, <ModificationParams>, <Enzymes independent="0">, <MassTable id="MT" msLevel="1 2">, <FragmentTolerance>, <ParentTolerance>, <DatabaseFilters>, <DatabaseTranslations>
+
+      DOMElement* current_th = current_sp->getOwnerDocument()->createElement(XMLString::transcode("Threshold"));
+      DOMElement* current_up = current_th->getOwnerDocument()->createElement(XMLString::transcode("userParam"));
+      current_up->setAttribute(XMLString::transcode("value"), XMLString::transcode("0.05")); // TODO @ mths for now static cv
+      current_up->setAttribute(XMLString::transcode("name"), XMLString::transcode("some significance threshold"));
+      current_st->appendChild(current_up);
+      // and no ProteinDetection for now
+      protocolElements->appendChild(current_th);
+    }
+
+    void MzIdentMLDOMHandler::buildInputDataCollection_(DOMElement * inputElements)
+    {
+      DOMElement* current_sf = inputElements->getOwnerDocument()->createElement(XMLString::transcode("SourceFile"));
+      current_sf->setAttribute(XMLString::transcode("location"), XMLString::transcode("file:///tmp/test.dat"));
+      current_sf->setAttribute(XMLString::transcode("id"), XMLString::transcode("SF1"));
+      buildEnclosedCV_(current_sf,"FileFormat","MS:1001199","Mascot DAT file","PSI-MS"); // TODO @ mths for now static cv
+      inputElements->appendChild(current_sf);
+
+      DOMElement* current_sd = inputElements->getOwnerDocument()->createElement(XMLString::transcode("SearchDatabase"));
+      current_sd->setAttribute(XMLString::transcode("location"), XMLString::transcode("file:///tmp/test.fasta"));
+      current_sd->setAttribute(XMLString::transcode("id"), XMLString::transcode("DB1"));
+      current_sd->setAttribute(XMLString::transcode("name"), XMLString::transcode("SwissProt"));
+      current_sd->setAttribute(XMLString::transcode("numDatabaseSequences"), XMLString::transcode("257964"));
+      current_sd->setAttribute(XMLString::transcode("numResidues"), XMLString::transcode("93947433"));
+      current_sd->setAttribute(XMLString::transcode("releaseDate"), XMLString::transcode("2011-03-01T21:32:52"));
+      current_sd->setAttribute(XMLString::transcode("version"), XMLString::transcode("SwissProt_51.6.fasta"));
+      buildEnclosedCV_(current_sd,"FileFormat","MS:1001348","FASTA format","PSI-MS"); // TODO @ mths for now static cv
+      DOMElement* current_dn = current_sd->getOwnerDocument()->createElement(XMLString::transcode("DatabaseName"));
+      DOMElement* current_up = current_dn->getOwnerDocument()->createElement(XMLString::transcode("userParam"));
+      current_up->setAttribute(XMLString::transcode("name"), XMLString::transcode("SwissProt_51.6.fasta")); // TODO @ mths for now static cv
+      current_dn->appendChild(current_up);
+      current_sd->appendChild(current_dn);
+
+      DOMElement* current_cv = current_sd->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
+      current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode("MS:1001073")); // TODO @ mths for now static cv
+      current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode("database type amino acid"));
+      current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("PSI-MS"));
+      current_sd->appendChild(current_cv);
+      inputElements->appendChild(current_sd);
+
+      DOMElement* current_spd = inputElements->getOwnerDocument()->createElement(XMLString::transcode("SpectraData"));
+      current_spd->setAttribute(XMLString::transcode("location"), XMLString::transcode("file:///tmp/test.mzML"));
+      current_spd->setAttribute(XMLString::transcode("id"), XMLString::transcode("SD1"));
+      buildEnclosedCV_(current_spd,"FileFormat","MS:1001062", "Mascot MGF file","PSI-MS");
+      buildEnclosedCV_(current_spd,"SpectrumIDFormat","MS:1001528","Mascot query number","PSI-MS");
+      inputElements->appendChild(current_spd);
+    }
+
+    void MzIdentMLDOMHandler::buildEnclosedCV_(DOMElement * parentElement, String encel, String acc, String name, String cvref)
+    {
+      DOMElement* current_ff = parentElement->getOwnerDocument()->createElement(XMLString::transcode(encel.c_str()));
+      DOMElement* current_cv = current_ff->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
+      current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(acc.c_str()));
+      current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode(name.c_str()));
+      current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode(cvref.c_str()));
+      current_ff->appendChild(current_cv);
+      parentElement->appendChild(current_ff);
+    }
+
+    void MzIdentMLDOMHandler::buildAnalysisDataCollection_(DOMElement * analysisElements)
+    {
+      DOMElement* current_sil = analysisElements->getOwnerDocument()->createElement(XMLString::transcode("SpectrumIdentificationList"));
+      current_sil->setAttribute(XMLString::transcode("id"), XMLString::transcode("SIL1"));
+      current_sil->setAttribute(XMLString::transcode("numSequencesSearched"), XMLString::transcode("TBA"));
+      // for now no FragmentationTable
+
+      for(std::vector<PeptideIdentification>::iterator pi = pep_id_->begin(); pi != pep_id_->end(); ++pi)
+      {
+        DOMElement* current_sr = current_sil->getOwnerDocument()->createElement(XMLString::transcode("SpectrumIdentificationResult"));
+        current_sr->setAttribute(XMLString::transcode("id"), XMLString::transcode(String(UniqueIdGenerator::getUniqueId()).c_str()));
+        current_sr->setAttribute(XMLString::transcode("spectrumID"), XMLString::transcode(String(UniqueIdGenerator::getUniqueId()).c_str()));
+        current_sr->setAttribute(XMLString::transcode("spectraData_ref"), XMLString::transcode("SD1"));
+        for(std::vector<PeptideHit>::iterator ph = pi->getHits().begin() ; ph != pi->getHits().end(); ++ph)
+        {
+          DOMElement* current_si = current_sr->getOwnerDocument()->createElement(XMLString::transcode("SpectrumIdentificationItem"));
+          current_si->setAttribute(XMLString::transcode("id"), XMLString::transcode(String(UniqueIdGenerator::getUniqueId()).c_str()));
+          current_si->setAttribute(XMLString::transcode("calculatedMassToCharge"), XMLString::transcode(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge())).c_str())); //TODO @mths : this is not correct!1elf - these interfaces are BS!
+          current_si->setAttribute(XMLString::transcode("chargeState"), XMLString::transcode(String(ph->getCharge()).c_str()));
+          current_si->setAttribute(XMLString::transcode("experimentalMassToCharge"), XMLString::transcode(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge())).c_str())); //TODO @mths : this is not correct!1elf - these interfaces are BS!
+          current_si->setAttribute(XMLString::transcode("peptide_ref"), XMLString::transcode("TBA"));
+          current_si->setAttribute(XMLString::transcode("rank"), XMLString::transcode(String(ph->getRank()).c_str()));
+          current_si->setAttribute(XMLString::transcode("passThreshold"), XMLString::transcode("TBA"));
+          current_si->setAttribute(XMLString::transcode("sample_ref"), XMLString::transcode("TBA"));
+          //   nicht vergessen  cvs for score!
+          current_sr->appendChild(current_si);
+          for(std::list<String>::iterator pepevref = hit_pev_.front().begin() ; pepevref != hit_pev_.front().end(); ++pepevref)
+          {
+            DOMElement* current_per = current_si->getOwnerDocument()->createElement(XMLString::transcode("PeptideEvidenceRef"));
+            current_per->setAttribute(XMLString::transcode("peptideEvidence_ref"), XMLString::transcode(pepevref->c_str()));
+            current_si->appendChild(current_per);
+          }
+          hit_pev_.pop_front();
+          // and no Fragmentation annotation for now
+        }
+//          <cvParam accession="MS:1001371" name="Mascot:identity threshold" cvRef="PSI-MS" value="44"/>
+//          <cvParam accession="MS:1001370" name="Mascot:homology threshold" cvRef="PSI-MS" value="18"/>
+//          <cvParam accession="MS:1001030" name="number of peptide seqs compared to each spectrum" cvRef="PSI-MS" value="26981"/>
+//          <cvParam accession="MS:1000796" name="spectrum title" cvRef="PSI-MS" value="dp210198 21-Jan-98 DERIVED SPECTRUM    #9"/>
+         current_sil->appendChild(current_sr);
+      }
+
+      // and no ProteinDetection for now
     }
 
 
