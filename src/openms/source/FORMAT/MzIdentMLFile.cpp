@@ -72,10 +72,10 @@ namespace OpenMS
 
   void MzIdentMLFile::store(const String & filename, const std::vector<ProteinIdentification> & poid, const std::vector<PeptideIdentification> & peid) const
   {
-//    Internal::MzIdentMLHandler handler(poid, peid, filename, schema_version_, *this);
-//    save_(filename, &handler);
-    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
-    handler.writeMzIdentMLFile(filename);
+    Internal::MzIdentMLHandler handler(poid, peid, filename, schema_version_, *this);
+    save_(filename, &handler);
+//    Internal::MzIdentMLDOMHandler handler(poid, peid, schema_version_, *this);
+//    handler.writeMzIdentMLFile(filename);
   }
 
   bool MzIdentMLFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
