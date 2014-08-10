@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <set>
 
@@ -711,10 +712,12 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
          << "<MzIdentML xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
-         << "xsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/1.1 http://psi-pi.googlecode.com/svn/trunk/schema/mzIdentML1.1.0.xsd\"\n"
-         << "xmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\" \n  id=\"\" \n version=\"1.1.0\"\n"
-         << "creationDate=\"2011-11-11T11:11:11\">\n";
-      //~ TODO dateTime
+         << "\txsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/1.1 http://psi-pi.googlecode.com/svn/trunk/schema/mzIdentML1.1.0.xsd\"\n"
+         << "\txmlns=\"http://psidev.info/psi/pi/mzIdentML/1.1\"\n"
+         << "\tversion=\"1.1.0\"\n"
+         << "\tid=\"OpenMS_" << String(UniqueIdGenerator::getUniqueId()) << "\"\n"
+         << "\tcreationDate=\"" << DateTime::now().get() << "\">\n";
+
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
