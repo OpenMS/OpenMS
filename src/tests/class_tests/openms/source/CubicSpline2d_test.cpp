@@ -62,9 +62,9 @@ intensity.push_back(2848879.25);
 intensity.push_back(3564045.5);
 intensity.push_back(2744585.7);
 intensity.push_back(1605583.0);
-intensity.push_back(518984.0);
-intensity.push_back(59152.21);
-intensity.push_back(0.0);
+intensity.push_back(1518984.0);
+intensity.push_back(1591352.21);
+intensity.push_back(1691345.1);
 
 std::map<double,double> map;
 for (Size i=0; i<mz.size(); ++i)
@@ -89,29 +89,29 @@ END_SECTION
 
 START_SECTION(double eval(double x))
   // near border of spline range
-  TEST_REAL_SIMILAR(sp1.eval(486.785), 35203.124211885166);
-  TEST_REAL_SIMILAR(sp2.eval(486.785), 35203.124211885166);
+  TEST_REAL_SIMILAR(sp1.eval(486.785), 35173.1841778984);
+  TEST_REAL_SIMILAR(sp2.eval(486.785), 35173.1841778984);
   // inside spline range
-  TEST_REAL_SIMILAR(sp1.eval(486.794), 2270517.50463);
-  TEST_REAL_SIMILAR(sp2.eval(486.794), 2270517.50463);
+  TEST_REAL_SIMILAR(sp1.eval(486.794), 2271426.93316241);
+  TEST_REAL_SIMILAR(sp2.eval(486.794), 2271426.93316241);
   // at the input nodes
   TEST_REAL_SIMILAR(sp1.eval(486.784), 0.0);
   TEST_REAL_SIMILAR(sp1.eval(486.790), 620386.5);
-  TEST_REAL_SIMILAR(sp2.eval(486.808), 59152.21);
-  TEST_REAL_SIMILAR(sp2.eval(486.811), 0.0);
+  TEST_REAL_SIMILAR(sp2.eval(486.808), 1591352.21);
+  TEST_REAL_SIMILAR(sp2.eval(486.811), 1691345.1);
 END_SECTION
 
 START_SECTION(double derivatives(double x, unsigned order))
   // near border of spline range
-  TEST_REAL_SIMILAR(sp1.derivatives(486.785,1), 39292607.3251133)
-  TEST_REAL_SIMILAR(sp1.derivatives(486.785,2), 12268449342.7831);
-  TEST_REAL_SIMILAR(sp2.derivatives(486.785,1), 39292607.3251133);
-  TEST_REAL_SIMILAR(sp2.derivatives(486.785,2), 12268449342.7831);
+  TEST_REAL_SIMILAR(sp1.derivatives(486.785,1), 39270152.2996247)
+  TEST_REAL_SIMILAR(sp1.derivatives(486.785,2), 12290904368.2736);
+  TEST_REAL_SIMILAR(sp2.derivatives(486.785,1), 39270152.2996247);
+  TEST_REAL_SIMILAR(sp2.derivatives(486.785,2), 12290904368.2736);
   // inside spline range
-  TEST_REAL_SIMILAR(sp1.derivatives(486.794,1), 594354391.618931);
-  TEST_REAL_SIMILAR(sp1.derivatives(486.794,2), 9234360709.46161);
-  TEST_REAL_SIMILAR(sp2.derivatives(486.794,1), 594354391.618931);
-  TEST_REAL_SIMILAR(sp2.derivatives(486.794,2), 9234360709.46161);
+  TEST_REAL_SIMILAR(sp1.derivatives(486.794,1), 594825947.154264);
+  TEST_REAL_SIMILAR(sp1.derivatives(486.794,2), 7415503644.8958);
+  TEST_REAL_SIMILAR(sp2.derivatives(486.794,1), 594825947.154264);
+  TEST_REAL_SIMILAR(sp2.derivatives(486.794,2), 7415503644.8958);
 END_SECTION
 
 END_TEST
