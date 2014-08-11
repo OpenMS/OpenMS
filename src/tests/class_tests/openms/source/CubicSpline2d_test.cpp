@@ -66,8 +66,8 @@ intensity.push_back(1518984.0);
 intensity.push_back(1591352.21);
 intensity.push_back(1691345.1);
 
-double x_min = -1;
-double x_max = 7;
+double x_min = -0.5;
+double x_max = 1.5;
 Size n = 10;
 std::vector<double> x;
 std::vector<double> y;
@@ -126,7 +126,7 @@ START_SECTION(double eval(double x))
   }
   // test sine between nodes
   // The cubic spline is a third order approximation of the (co)sines.
-  TOLERANCE_RELATIVE(1.15);
+  TOLERANCE_RELATIVE(1.005);
   for (Size i=0; i<(n+6); ++i)
   {
     double xx = x_min + (double)i/(n+5)*(x_max-x_min);
@@ -147,15 +147,15 @@ START_SECTION(double derivatives(double x, unsigned order))
   TEST_REAL_SIMILAR(sp2.derivatives(486.794,1), 594825947.154264);
   TEST_REAL_SIMILAR(sp2.derivatives(486.794,2), 7415503644.8958);
   // test cosine at nodes
-  // No tests at the boundaries, since deviation from cos(x) large and expected.
-  TOLERANCE_RELATIVE(1.1);
-  for (Size i=1; i<n; ++i)
+  // No tests near boundaries, since deviation from cos(x) large and expected.
+  TOLERANCE_RELATIVE(1.01);
+  for (Size i=2; i<n-1; ++i)
   {
     TEST_REAL_SIMILAR(sp5.derivatives(x[i],1), cos(x[i]));
     TEST_REAL_SIMILAR(sp6.derivatives(x[i],1), cos(x[i]));
   }
   // test cosine between nodes
-  for (Size i=1; i<(n+5); ++i)
+  for (Size i=2; i<(n+4); ++i)
   {
     double xx = x_min + (double)i/(n+5)*(x_max-x_min);
     TEST_REAL_SIMILAR(sp5.derivatives(xx,1), cos(xx));
