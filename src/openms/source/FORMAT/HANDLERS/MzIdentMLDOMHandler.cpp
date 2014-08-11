@@ -1208,7 +1208,6 @@ namespace OpenMS
 
       DBSequence& db = db_sq_map_[dBSequence_ref];
 
-      //TODO @ mths FIXME this introduces "random" prothits
       protein_identification.insertHit(ProteinHit());
       protein_identification.getHits().back().setSequence(db.sequence);
       protein_identification.getHits().back().setAccession(db.accession);
