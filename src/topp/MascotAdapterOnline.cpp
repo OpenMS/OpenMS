@@ -126,8 +126,7 @@ protected:
 
     registerSubsection_("Mascot_server", "Mascot server details");
     registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
-    registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there"
-                                        " are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
+    registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
   }
 
   Param getSubsectionDefaults_(const String& section) const
@@ -155,7 +154,7 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    //input/output files
+    // input/output files
     String in(getStringOption_("in")), out(getStringOption_("out"));
     FileHandler fh;
     FileTypes::Type in_type = fh.getType(in);
@@ -232,40 +231,36 @@ protected:
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    // write Mascot response to file
-    String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
-    QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
-    mascot_tmp_file.open(QIODevice::WriteOnly);
-    mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
-    mascot_tmp_file.close();
-
-    int search_number = mascot_query->getSearchNumber();
-
-    // clean up
-    delete mascot_query;
-
     vector<PeptideIdentification> pep_ids;
     ProteinIdentification prot_id;
 
-    // set up mapping between scan numbers and retention times:
-    MascotXMLFile::RTMapping rt_mapping;
-    MascotXMLFile::generateRTMapping(exp.begin(), exp.end(), rt_mapping);
-
-    // read the response
-    MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
-    writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
-    prot_id.setMetaValue("SearchNumber", search_number);
-
-    // for debugging errors relating to unexpected response files
-    if (this->debug_level_ >= 100)
+    if (mascot_query_param.exists("skip_export") && 
+        (mascot_query_param.getValue("skip_export") != "true"))
     {
-      writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
-    }
-    else
-    {
-      // delete file
-      mascot_tmp_file.remove();
-    }
+      // write Mascot response to file
+      String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
+      QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
+      mascot_tmp_file.open(QIODevice::WriteOnly);
+      mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
+      mascot_tmp_file.close();
+
+      // set up mapping between scan numbers and retention times:
+      MascotXMLFile::RTMapping rt_mapping;
+      MascotXMLFile::generateRTMapping(exp.begin(), exp.end(), rt_mapping);
+
+      // read the response
+      MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
+      writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
+
+      // for debugging errors relating to unexpected response files
+      if (this->debug_level_ >= 100)
+      {
+        writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+      }
+      else
+      {
+        mascot_tmp_file.remove(); // delete file
+      }
 
     // keep or delete protein identifications?!
     vector<ProteinIdentification> prot_ids;
@@ -274,23 +269,30 @@ protected:
       // remove protein links from peptides
       for (Size i = 0; i < pep_ids.size(); ++i)
       {
-        std::vector<PeptideHit> hits = pep_ids[i].getHits();
-        for (Size h = 0; h < hits.size(); ++h)
+        // remove protein links from peptides
+        std::vector<String> empty;
+        for (Size i = 0; i < pep_ids.size(); ++i)
         {
           hits[h].setPeptideEvidences(vector<PeptideEvidence>());
         }
-        pep_ids[i].setHits(hits);
+        // remove proteins
+        std::vector<ProteinHit> p_hit;
+        prot_id.setHits(p_hit);
       }
-      // remove proteins
-      std::vector<ProteinHit> p_hit;
-      prot_id.setHits(p_hit);
     }
-    prot_ids.push_back(prot_id);
+      
+    int search_number = mascot_query->getSearchNumber();
+    prot_id.setMetaValue("SearchNumber", search_number);
+
+    // clean up
+    delete mascot_query;
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
 
+    vector<ProteinIdentification> prot_ids;
+    prot_ids.push_back(prot_id);
     IdXMLFile().store(out, prot_ids, pep_ids);
 
     return EXECUTION_OK;
