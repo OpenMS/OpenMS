@@ -66,14 +66,33 @@ intensity.push_back(1518984.0);
 intensity.push_back(1591352.21);
 intensity.push_back(1691345.1);
 
+double x_min = -1;
+double x_max = 7;
+Size n = 10;
+std::vector<double> x;
+std::vector<double> y;
+for (Size i=0; i<(n+1); ++i)
+{
+    x.push_back(x_min + (double)i/10*(x_max-x_min));
+    y.push_back(sin(x_min + (double)i/10*(x_max-x_min)));
+}
+
 std::map<double,double> map;
 for (Size i=0; i<mz.size(); ++i)
 {
     map.insert(std::pair<double,double>(mz[i], intensity[i]));
 }
 
+std::map<double,double> map2;
+for (Size i=0; i<x.size(); ++i)
+{
+    map2.insert(std::pair<double,double>(x[i], y[i]));
+}
+
 CubicSpline2d sp1(mz, intensity);
 CubicSpline2d sp2(map);
+CubicSpline2d sp5(x, y);
+CubicSpline2d sp6(map2);
 
 CubicSpline2d* nullPointer = 0;
 
@@ -87,6 +106,10 @@ START_SECTION(CubicSpline2d(const std::map<double, double>& m))
   TEST_NOT_EQUAL(sp4, nullPointer)
 END_SECTION
 
+// The cubic spline is a third order approximation of the (co)sines.
+// Some errors are expected, especially for derivates at the boundaries.
+double error_scaling = 0.000001;
+
 START_SECTION(double eval(double x))
   // near border of spline range
   TEST_REAL_SIMILAR(sp1.eval(486.785), 35173.1841778984);
@@ -99,6 +122,24 @@ START_SECTION(double eval(double x))
   TEST_REAL_SIMILAR(sp1.eval(486.790), 620386.5);
   TEST_REAL_SIMILAR(sp2.eval(486.808), 1591352.21);
   TEST_REAL_SIMILAR(sp2.eval(486.811), 1691345.1);
+  // test sine at nodes
+  for (Size i=0; i<(n+1); ++i)
+  {
+    double xx = x_min + (double)i/n*(x_max-x_min);
+    double error5 = sp5.eval(xx) - sin(xx);
+    double error6 = sp6.eval(xx) - sin(xx);
+    TEST_REAL_SIMILAR(error5, 0);
+    TEST_REAL_SIMILAR(error6, 0);
+  }
+  // test sine between nodes
+  for (Size i=0; i<(n+6); ++i)
+  {
+    double xx = x_min + (double)i/(n+5)*(x_max-x_min);
+    double error5 = (sp5.eval(xx) - sin(xx))/sin(xx)*error_scaling;    // scaled relative error
+    double error6 = (sp6.eval(xx) - sin(xx))/sin(xx)*error_scaling;    // scaled relative error
+    TEST_REAL_SIMILAR(error5, 0);
+    TEST_REAL_SIMILAR(error6, 0);
+  }
 END_SECTION
 
 START_SECTION(double derivatives(double x, unsigned order))
@@ -112,6 +153,24 @@ START_SECTION(double derivatives(double x, unsigned order))
   TEST_REAL_SIMILAR(sp1.derivatives(486.794,2), 7415503644.8958);
   TEST_REAL_SIMILAR(sp2.derivatives(486.794,1), 594825947.154264);
   TEST_REAL_SIMILAR(sp2.derivatives(486.794,2), 7415503644.8958);
+  // test cosine at nodes
+  for (Size i=0; i<(n+1); ++i)
+  {
+    double xx = x_min + (double)i/n*(x_max-x_min);
+    double error5 = (sp5.derivatives(xx,1) - cos(xx))/cos(xx)*error_scaling;    // scaled relative error
+    double error6 = (sp6.derivatives(xx,1) - cos(xx))/cos(xx)*error_scaling;    // scaled relative error
+    TEST_REAL_SIMILAR(error5, 0);
+    TEST_REAL_SIMILAR(error6, 0);
+  }
+  // test cosine between nodes
+  for (Size i=0; i<(n+6); ++i)
+  {
+    double xx = x_min + (double)i/(n+5)*(x_max-x_min);
+    double error5 = (sp5.derivatives(xx,1) - cos(xx))/cos(xx)*error_scaling;    // scaled relative error
+    double error6 = (sp6.derivatives(xx,1) - cos(xx))/cos(xx)*error_scaling;    // scaled relative error
+    TEST_REAL_SIMILAR(error5, 0);
+    TEST_REAL_SIMILAR(error6, 0);
+  }
 END_SECTION
 
 END_TEST
