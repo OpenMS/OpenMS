@@ -48,7 +48,7 @@ namespace OpenMS
 /**
  * @brief fundamental data structure for SplineSpectrum
  *
- * In many cases, data points in MS spctra are not equi-spaced in m/z but consist of packages of
+ * In many cases, data points in MS spectra are not equidistant in m/z but consist of packages of
  * data points separated by wide m/z ranges with zero intensity. SplinePackage contains the
  * spline fit of a single set of such data points.
  *

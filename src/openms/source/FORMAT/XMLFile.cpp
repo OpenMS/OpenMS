@@ -187,19 +187,6 @@ private:
       os.close();
     }
 
-    String writeXMLEscape(const String& to_escape)
-    {
-      String _copy = to_escape;
-      // has() is cheap, so check before calling substitute(), since substitute() will usually happen rarely
-      if (_copy.has('&')) _copy.substitute("&","&amp;");
-      if (_copy.has('>')) _copy.substitute(">","&gt;");
-      if (_copy.has('"')) _copy.substitute("\"","&quot;");
-      if (_copy.has('<')) _copy.substitute("<","&lt;");
-      if (_copy.has('\'')) _copy.substitute("'","&apos;");
-
-      return _copy;
-    }
-    
     String encodeTab(const String& to_encode)
     {
       if (!to_encode.has('\t')) return to_encode;

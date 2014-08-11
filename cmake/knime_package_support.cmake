@@ -191,7 +191,7 @@ elseif(WIN32)
   # assemble required libraries for win32
   # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces
   get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-  get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
+  get_filename_component(WIN32_DLLPATH "${WIN32_DLLLOCATION}" PATH)
 
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
@@ -218,7 +218,7 @@ elseif(WIN32)
 
   # xerces
   set(target_lib)
-  get_filename_component(xerces_path ${CONTRIB_XERCESC_OPT} PATH)
+  get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
   file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native)
       add_custom_command(
       TARGET prepare_knime_payload_libs POST_BUILD

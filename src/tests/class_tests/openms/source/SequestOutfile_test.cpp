@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // $Authors: Martin Langwisch $
@@ -86,24 +86,24 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	vector< double > pvalues;
-	
+
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file 'a' could not be found")
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out1"), peptide_identifications, protein_identification, 0.01, pvalues),  OPENMS_GET_TEST_DATA_PATH_MESSAGE("","SequestOutfile.out1", " in: Wrong number of columns in line 16! (11 present, should be 12)"))
 	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification, 2.0, pvalues))
 	TEST_EXCEPTION(Exception::IllegalArgument, file.load("", peptide_identifications, protein_identification,-1.0, pvalues))
-	
+
 	peptide_identifications.clear();
 	protein_identification.setHits(vector< ProteinHit >());
 	pvalues.clear();
-	
+
 
 	// test the actual program
 	file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile2.out"), peptide_identifications, protein_identification, 1.0, pvalues);
 	TEST_EQUAL(peptide_identifications.size(), 0)
-	
+
 	file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out"), peptide_identifications, protein_identification, 1.0, pvalues);
-	
+
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
 	{
@@ -208,7 +208,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 	pvalues.push_back(0.05);
 	pvalues.push_back(0.5);
 	file.load(OPENMS_GET_TEST_DATA_PATH("SequestOutfile.out"), peptide_identifications, protein_identification, 0.01, pvalues);
-	
+
 	TEST_EQUAL(peptide_identifications.size(), 1)
 	if ( peptide_identifications.size() == 1 )
 	{
@@ -262,7 +262,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 		}
 		TEST_STRING_EQUAL(peptide_identifications[0].getIdentifier(), "TurboSEQUEST_2004-03-16")
 	}
-	
+
 	TEST_STRING_EQUAL(protein_identification.getSearchEngine(), "TurboSEQUEST")
 	TEST_STRING_EQUAL(protein_identification.getSearchEngineVersion(), "v.27 (rev. 12)")
 	TEST_STRING_EQUAL(protein_identification.getIdentifier(), "TurboSEQUEST_2004-03-16")
@@ -286,11 +286,11 @@ START_SECTION(bool getColumns(const String& line, vector< String >& substrings, 
 	TEST_EQUAL(file.getColumns("", substrings, 12, 10), false)
 	TEST_EQUAL(file.getColumns(line, substrings, 12, 10), true)
 	TEST_EQUAL((columns == substrings), true)
-	
+
 	line = "  1.   1/80          0 1967.0013  0.0000  1.5789   310.3 0.05    0 18/64 gi|544379|sp|P35574|GDE RABIT+2   C.ETQAWSIATILETLYDL.-";
 	TEST_EQUAL(file.getColumns(line, substrings, 12, 10), true)
 	TEST_EQUAL((columns == substrings), true)
-	
+
 	line = "  1.   1/80          0 1967.0013  0.0000  1.5789   310.3 0.05    0 18/64 gi|544379|sp|P35574|GDE RABIT   +X   C.ETQAWSIATILETLYDL.-";
 	TEST_EQUAL(file.getColumns(line, substrings, 12, 10), true)
 	columns[10] = "gi|544379|sp|P35574|GDE RABIT +X";
@@ -305,54 +305,47 @@ START_SECTION(void getSequences(const String& database_filename, const map< Stri
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.getSequences("a", not_found, found_sequences, found, not_found), "the file 'a' could not be found")
 
-
 	// test the actual program
 	ac_position_map["P02666"] = 0;
 	ac_position_map["Q9CQV8"] = 1;
 	ac_position_map["Q5EEQ7"] = 2;
 	ac_position_map["P68509"] = 3;
-	
+
 	sequences.push_back("MKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPPFLQPEVMGVSKVKEAMAPKHKEMPFPKYPVEPFTESQSLTLTDVENLHLPLPLLQSWMHQPHQPLPPTVMFPPQSVLSLSQSKVLPVPQKAVPYPQRDMPIQAFLLYQEPVLGPVRGPFPIIV");
 	sequences.push_back("TMDKSELVQKAKLAEQAERYDDMAAAMKAVTEQGHELSNEERNLLSVAYKNVVGARRSSWRVISSIEQKTERNEKKQQMGKEYREKIEAELQDICNDVLELLDKYLILNATQAESKVFYLKMKGDYFRYLSEVASGENKQTTVSNSQQAYQEAFEISKKEMQPTHPIRLGLALNFSVFYYEILNSPEKACSLAKTAFDEAIAELDTLNEESYKDSTLIMQLLRDNLTLWTSENQGDEGDAGEGEN");
 	sequences.push_back("SAPPSLLVLYFGKKELRAMKVLILACLVALALARELEELNVPGEIVESLSSSEESITRINKKIEKFQSEEQQQTEDELQDKIHPFAQTQSLVYPFPGPIPNSLPQNIPPLTQTPVVVPP");
 	sequences.push_back("GDREQLLQRARLAEQAERYDDMASAMKAVTELNEPLSNEDRNLLSVAYKNVVGARRSSWRVISSIEQKTMADGNEKKLEKVKAYREKIEKELETVCNDVLALLDKFLIKNCNDFQYESKVFYLKMKGDYYRYLAEVASGEKKNSVVEASEAAYKEAFEISKEHMQPTHPIRLGLALNFSVFYYEIQNAPEQACLLAKQAFDDAIAELDTLNEDSYKDSTLIMQLLRDNLTLWTSDQQDEEAGEGN");
-	
+
+	ABORT_IF(ac_position_map.size() != 4)
 	file.getSequences(OPENMS_GET_TEST_DATA_PATH("Sequest_test.fasta"), ac_position_map, found_sequences, found, not_found);
+	ABORT_IF(ac_position_map.size() != 4)
 	TEST_EQUAL(found.size(), 2)
 	TEST_EQUAL(not_found.size(), 2)
-	if ( found.size() == 2 && not_found.size() == 2 )
-	{
-		map< String, Size >::const_iterator i = ++ac_position_map.begin();
-		TEST_EQUAL(i->first, found[0].first)
-		TEST_EQUAL(i->second, found[0].second)
+	ABORT_IF( found.size() != 2 || not_found.size() != 2 )
 
-		i = --ac_position_map.end();
-		TEST_EQUAL(i->first, found[1].first)
-		TEST_EQUAL(i->second, found[1].second)
-		
-		TEST_EQUAL(sequences[3], found_sequences[0])
-		TEST_EQUAL(sequences[1], found_sequences[1])
+	TEST_EQUAL(String("P68509"), found[0].first)
+	TEST_EQUAL(ac_position_map["P68509"], found[0].second)
+	TEST_EQUAL(sequences[ac_position_map["P68509"]], found_sequences[0])
 
-		file.getSequences(OPENMS_GET_TEST_DATA_PATH("Sequest_test2.fasta"), not_found, found_sequences, found, not_found);
-		TEST_EQUAL(found.size(), 4)
-		TEST_EQUAL(not_found.size(), 0)
+	TEST_EQUAL(String("Q9CQV8"), found[1].first)
+	TEST_EQUAL(ac_position_map["Q9CQV8"], found[1].second)
+	TEST_EQUAL(sequences[ac_position_map["Q9CQV8"]], found_sequences[1])
 
-		i = ac_position_map.begin();
-		TEST_EQUAL(i->first, found[2].first)
-		TEST_EQUAL(i->second, found[2].second)
+	// create a copy as getSequences() does some weird things with the actual map
+	map< String, Size > ac_position_map_subset = not_found;
+	file.getSequences(OPENMS_GET_TEST_DATA_PATH("Sequest_test2.fasta"), ac_position_map_subset, found_sequences, found, not_found);
+	TEST_EQUAL(found.size(), 4)
+	TEST_EQUAL(not_found.size(), 0)
+	ABORT_IF(found.size() != 4 || not_found.size() != 0)
 
-		++i; ++i;
-		TEST_EQUAL(i->first, found[3].first)
-		TEST_EQUAL(i->second, found[3].second)
-		
-		TEST_EQUAL(sequences[0], found_sequences[2])
-		TEST_EQUAL(sequences[2], found_sequences[3])
-	}
-	ac_position_map.clear();
-	sequences.clear();
-	found_sequences.clear();
-	found.clear();
-	not_found.clear();
+	TEST_EQUAL(String("P02666"), found[2].first)
+	TEST_EQUAL(ac_position_map["P02666"], found[2].second)
+	TEST_EQUAL(sequences[ac_position_map["P02666"]], found_sequences[2])
+
+	TEST_EQUAL(String("Q5EEQ7"), found[3].first)
+	TEST_EQUAL(ac_position_map["Q5EEQ7"], found[3].second)
+	TEST_EQUAL(sequences[ac_position_map["Q5EEQ7"]], found_sequences[3])
+
 END_SECTION
 
 START_SECTION(void getACAndACType(String line, String& accession, String& accession_type))
@@ -360,31 +353,31 @@ START_SECTION(void getACAndACType(String line, String& accession, String& access
 	file.getACAndACType(">sp|P02666|CASB_BOVIN Beta-casein precursor - Bos taurus (Bovine).", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "P02666")
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
-	
+
 	file.getACAndACType(">tr|Q5EEQ7|Q5EEQ7_BOVIN Beta-casein (Fragment) - Bos taurus (Bovine).", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "Q5EEQ7")
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
-	
+
 	file.getACAndACType("gi|110174602|gb|DQ660451.1|", accession, accession_type);
 	TEST_STRING_EQUAL("DQ660451.1", accession)
 	TEST_STRING_EQUAL("GenBank", accession_type)
-	
+
 	file.getACAndACType("gi|1655698|emb|Y07752|VCPHEROPH", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "Y07752")
 	TEST_STRING_EQUAL(accession_type, "EMBL")
-	
+
 	file.getACAndACType("gi|10038695|dbj|BAB12730|", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "BAB12730")
 	TEST_STRING_EQUAL(accession_type, "DDBJ")
-	
+
 	file.getACAndACType("gi|9628804|ref|NP_043835|", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "NP_043835")
 	TEST_STRING_EQUAL(accession_type, "NCBI")
-	
+
 	file.getACAndACType("gi|21362794|sp|P58858.0|", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "P58858.0")
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
-	
+
 	file.getACAndACType("gi|21362794|tr|P58858.0|", accession, accession_type);
 	TEST_STRING_EQUAL(accession, "P58858.0")
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
@@ -407,10 +400,10 @@ START_SECTION(void getACAndACType(String line, String& accession, String& access
 END_SECTION
 
 START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, double& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns))
-	
+
 	String result_filename = OPENMS_GET_TEST_DATA_PATH("Sequest.mzXML.13.1.d.out");
 	DateTime datetime;
-	
+
 	double precursor_mz_value(0.0);
 	Int
 	 charge(-1),
@@ -426,7 +419,7 @@ START_SECTION(void readOutHeader(const String& result_filename, DateTime& dateti
 	 reference_column(-1),
 	 peptide_column(-1),
 	 score_column(-1);
-	
+
 	Size
 	 precursor_mass_type(0),
 	 ion_mass_type(0),
@@ -440,13 +433,13 @@ START_SECTION(void readOutHeader(const String& result_filename, DateTime& dateti
 
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.readOutHeader("a", datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns), "the file 'a' could not be found")
-	
+
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, file.readOutHeader(OPENMS_GET_TEST_DATA_PATH("SequestOutfile_headerfile.txt"), datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns),  OPENMS_GET_TEST_DATA_PATH_MESSAGE("","SequestOutfile_headerfile.txt", " in: No Sequest version found!"))
-	
+
 
 	// test the actual program
 	file.readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
-	
+
 	TOLERANCE_ABSOLUTE(0.0001)
 	TEST_REAL_SIMILAR(precursor_mz_value, 866.606)
 

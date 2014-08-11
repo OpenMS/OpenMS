@@ -364,7 +364,8 @@ namespace OpenMS
       // std::cout << "looking for " << pos_adducts_[adduct_idx] << std::endl;
       //if ((adduct_charge > 0) && (charge != adduct_charge))
       if (adduct_charge != 0 && (std::abs(adduct_charge) != std::abs(charge)))
-      {   // we ignore 0 charge, but anything else must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
+      { // charge must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
+        // charge 0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
         continue;
       }
 
@@ -484,7 +485,7 @@ namespace OpenMS
     return ion_mode_internal_;
   }
 
-  void AccurateMassSearchEngine::run(const FeatureMap<>& fmap, MzTab& mztab_out)
+  void AccurateMassSearchEngine::run(FeatureMap<>& fmap, MzTab& mztab_out)
   {
     if (!is_initialized_) init_(); // parse DB
 
@@ -502,7 +503,6 @@ namespace OpenMS
 
     for (Size i = 0; i < fmap.size(); ++i)
     {
-      // Feature().getMetaValue(3)
       std::vector<AccurateMassSearchResult> query_results;
 
       // std::cout << i << ": " << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
@@ -510,30 +510,34 @@ namespace OpenMS
 
       if (query_results.size() == 0) continue;
 
-      if (iso_similarity_ && (Size)fmap[i].getMetaValue("num_of_masstraces") > 1)
+      if (iso_similarity_)
       {
-        // compute isotope pattern similarities and determine best matching one
-        double best_iso_sim(std::numeric_limits<double>::max());
-        Size best_iso_idx(0);
-
-        for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
+        if (!fmap[i].metaValueExists("num_of_masstraces"))
         {
-          String emp_formula(query_results[hit_idx].getFormulaString());
-          double iso_sim(computeIsotopePatternSimilarity_(fmap[i], EmpiricalFormula(emp_formula)));
-          query_results[hit_idx].setIsotopesSimScore(iso_sim);
-
-          if (iso_sim > best_iso_sim)
-          {
-            best_iso_sim = iso_sim;
-            best_iso_idx = hit_idx;
-          }
+          LOG_WARN << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
         }
+        else if ((Size)fmap[i].getMetaValue("num_of_masstraces") > 1)
+        { // compute isotope pattern similarities and determine best matching one
+          double best_iso_sim(std::numeric_limits<double>::max());
+          Size best_iso_idx(0);
+          for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
+          {
+            String emp_formula(query_results[hit_idx].getFormulaString());
+            double iso_sim(computeIsotopePatternSimilarity_(fmap[i], EmpiricalFormula(emp_formula)));
+            query_results[hit_idx].setIsotopesSimScore(iso_sim);
+            if (iso_sim > best_iso_sim)
+            {
+              best_iso_sim = iso_sim;
+              best_iso_idx = hit_idx;
+            }
+          }
+        
+          std::vector<AccurateMassSearchResult> tmp_results;
+          tmp_results.push_back(query_results[best_iso_idx]);
 
-        std::vector<AccurateMassSearchResult> tmp_results;
-        tmp_results.push_back(query_results[best_iso_idx]);
-
-        // keep the best AccurateMassSearchResult, drop all other hits
-        query_results = tmp_results;
+          // keep the best AccurateMassSearchResult, drop all other hits
+          query_results = tmp_results;
+        }
       }
 
       // debug output
@@ -544,7 +548,13 @@ namespace OpenMS
 
       // String feat_label(fmap[i].getMetaValue(3));
       overall_results.push_back(query_results);
+      annotate_(query_results, fmap[i]);
     }
+    // add dummy protein identification which is required to keep peptidehits alive during store()
+    fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
+    fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchResult");
+    fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearchResult");
+    fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     LOG_INFO << "Found " << overall_results.size() << " matched masses (with at least one hit each) from " << fmap.size() << " features." << std::endl;
 
@@ -553,7 +563,31 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::run(const ConsensusMap& cmap, MzTab& mztab_out)
+  void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f)
+  {
+    f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
+    f.getPeptideIdentifications().back().setIdentifier("AccurateMassSearchResult");
+    for (std::vector<AccurateMassSearchResult>::const_iterator it_row  = amr.begin();
+                                                               it_row != amr.end();
+                                                               ++it_row)
+    {
+      PeptideHit hit;
+      hit.setMetaValue("identifier", it_row->getMatchingHMDBids());
+      StringList names;
+      for (Size i = 0; i < it_row->getMatchingHMDBids().size(); ++i)
+      {
+        names.push_back(hmdb_properties_mapping_[it_row->getMatchingHMDBids()[i]][0]);
+      }
+      hit.setMetaValue("description", names);
+      hit.setMetaValue("charge", it_row->getCharge());
+      hit.setMetaValue("modifications", it_row->getFoundAdduct());
+      hit.setMetaValue("chemical_formula", it_row->getFormulaString());
+      hit.setMetaValue("ppm_error", it_row->getErrorPPM());
+      f.getPeptideIdentifications().back().insertHit(hit);
+    }
+  }
+
+  void AccurateMassSearchEngine::run(ConsensusMap& cmap, MzTab& mztab_out)
   {
     if (!is_initialized_) init_(); // parse DB
 
@@ -576,8 +610,14 @@ namespace OpenMS
       std::vector<AccurateMassSearchResult> query_results;
       // std::cout << i << ": " << cmap[i].getMetaValue(3) << " mass: " << cmap[i].getMZ() << " num_traces: " << cmap[i].getMetaValue("num_of_masstraces") << " charge: " << cmap[i].getCharge() << std::endl;
       queryByConsensusFeature(cmap[i], i, num_of_maps, query_results);
+      annotate_(query_results, cmap[i]);
       overall_results.push_back(query_results);
     }
+    // add dummy protein identification which is required to keep peptidehits alive during store()
+    cmap.getProteinIdentifications().resize(cmap.getProteinIdentifications().size() + 1);
+    cmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchResult");
+    cmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearchResult");
+    cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     exportMzTab_(overall_results, mztab_out);
     return;
@@ -594,7 +634,7 @@ namespace OpenMS
     Size id_group(1);
 
     std::map<String, UInt> adduct_stats; // adduct --> # occurences
-    std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count for each feature only once)
+    std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
@@ -604,7 +644,7 @@ namespace OpenMS
       {
         // tab_it->second[hit_idx].outputResults();
 
-        std::vector<String> matching_ids = tab_it->at(hit_idx).getMatchingHMDBids();
+        std::vector<String> matching_ids = (*tab_it)[hit_idx].getMatchingHMDBids();
 
         // iterate over multiple IDs, generate a new row for each one
 
@@ -625,7 +665,7 @@ namespace OpenMS
 
           // set the chemical formula field
           MzTabString chem_form;
-          String form_temp = tab_it->at(hit_idx).getFormulaString();
+          String form_temp = (*tab_it)[hit_idx].getFormulaString();
           chem_form.set(form_temp);
 
           mztab_row_record.chemical_formula = chem_form;
@@ -653,7 +693,7 @@ namespace OpenMS
 
 
           // set mass_to_charge field
-          double mz_temp = tab_it->at(hit_idx).getAdductMass();
+          double mz_temp = (*tab_it)[hit_idx].getAdductMass();
           MzTabDouble mass_to_charge;
           mass_to_charge.set(mz_temp);
 
@@ -661,7 +701,7 @@ namespace OpenMS
 
 
           // set charge field
-          Int ch_temp = tab_it->at(hit_idx).getCharge();
+          Int ch_temp = (*tab_it)[hit_idx].getCharge();
           MzTabDouble mcharge;
           mcharge.set(ch_temp);
 
@@ -669,11 +709,9 @@ namespace OpenMS
 
 
           // set RT field
-          double rt_temp(tab_it->at(hit_idx).getObservedRT());
-          MzTabDouble rt_temp2;
-          rt_temp2.set(rt_temp);
-          std::vector<MzTabDouble> rt_temp3;
-          rt_temp3.push_back(rt_temp2);
+          MzTabDouble rt_temp;
+          rt_temp.set((*tab_it)[hit_idx].getObservedRT());
+          std::vector<MzTabDouble> rt_temp3(1, rt_temp);
           MzTabDoubleList observed_rt;
           observed_rt.set(rt_temp3);
 
@@ -704,7 +742,7 @@ namespace OpenMS
 
           if (indiv_ints.size() == 0)
           {
-            double int_temp(tab_it->at(hit_idx).getObservedIntensity());
+            double int_temp((*tab_it)[hit_idx].getObservedIntensity());
             MzTabDouble int_temp2;
             int_temp2.set(int_temp);
             int_temp3.push_back(int_temp2);
@@ -724,20 +762,19 @@ namespace OpenMS
 
 
           // set smallmolecule_abundance_stdev_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
-          double stdev_temp(0.0);
-          MzTabDouble stdev_temp2;
-          stdev_temp2.set(stdev_temp);
+          MzTabDouble stdev_temp;
+          stdev_temp.set(0.0);
           std::vector<MzTabDouble> stdev_temp3;
 
           if (indiv_ints.size() == 0)
           {
-            stdev_temp3.push_back(stdev_temp2);
+            stdev_temp3.push_back(stdev_temp);
           }
           else
           {
             for (Size ii = 0; ii < indiv_ints.size(); ++ii)
             {
-              stdev_temp3.push_back(stdev_temp2);
+              stdev_temp3.push_back(stdev_temp);
             }
           }
 
@@ -745,9 +782,8 @@ namespace OpenMS
 
 
           // set smallmolecule_abundance_std_error_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
-          double stderr_temp(0.0);
           MzTabDouble stderr_temp2;
-          stderr_temp2.set(stderr_temp);
+          stderr_temp2.set(0.0);
           std::vector<MzTabDouble> stderr_temp3;
 
           if (indiv_ints.size() == 0)
@@ -771,14 +807,14 @@ namespace OpenMS
 
           // ppm error
           MzTabString ppmerr;
-          ppmerr.set(String(tab_it->at(hit_idx).getErrorPPM()));
+          ppmerr.set(String((*tab_it)[hit_idx].getErrorPPM()));
           MzTabOptionalColumnEntry col0;
           col0.first = "opt_ppm_error";
           col0.second = ppmerr;
           optionals.push_back(col0);
 
           // set found adduct ion
-          String addion_temp(tab_it->at(hit_idx).getFoundAdduct());
+          String addion_temp((*tab_it)[hit_idx].getFoundAdduct());
           MzTabString addion;
           addion.set(addion_temp);
           MzTabOptionalColumnEntry col1;
@@ -789,7 +825,7 @@ namespace OpenMS
 
 
           // set isotope similarity score
-          double sim_score_temp(tab_it->at(hit_idx).getIsotopesSimScore());
+          double sim_score_temp((*tab_it)[hit_idx].getIsotopesSimScore());
           std::stringstream read_in;
           read_in << sim_score_temp;
           String sim_score_temp2(read_in.str());
@@ -1040,6 +1076,7 @@ namespace OpenMS
     Size end_idx = std::distance(mass_mappings_.begin(), upper_it);
 
     hit_indices.clear();
+    hit_indices.reserve(end_idx - start_idx);
 
     for (Size hit_idx = start_idx; hit_idx < end_idx; ++hit_idx)
     {
@@ -1051,10 +1088,6 @@ namespace OpenMS
     }
 
     return;
-  }
-
-  void AccurateMassSearchEngine::parseAdductString_(const String& /* addstr */, std::vector<String>& /* components */)
-  {
   }
 
   void AccurateMassSearchEngine::computeNeutralMassFromAdduct_(const double& adduct_mass, const String& adduct_string, double& neutral_mass, Int& charge_value)
@@ -1320,7 +1353,7 @@ namespace OpenMS
   double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form)
   {
     Size num_traces = (Size)feat.getMetaValue("num_of_masstraces");
-    Size MAX_THEORET_ISOS(5);
+    const Size MAX_THEORET_ISOS(5);
 
     Size common_size = num_traces < MAX_THEORET_ISOS ? num_traces : MAX_THEORET_ISOS;
 

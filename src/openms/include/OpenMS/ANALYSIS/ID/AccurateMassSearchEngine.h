@@ -178,8 +178,12 @@ public:
     void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results);
 
     /// main method of AccurateMassSearchEngine
-    void run(const FeatureMap<>&, MzTab&);
-    void run(const ConsensusMap&, MzTab&);
+    /// input map is not const, since it will get annotated with results
+    void run(FeatureMap<>&, MzTab&);
+
+    /// main method of AccurateMassSearchEngine
+    /// input map is not const, since it will get annotated with results
+    void run(ConsensusMap&, MzTab&);
 
     /// the internal ion-mode used depending on annotation of input data if "ion_mode" was set to 'auto'
     /// if run() was not called yet, this will be identical to 'ion_mode', i.e. 'auto' will no be resolved yet
@@ -234,7 +238,9 @@ private:
     void parseAdductsFile_(const String& filename, StringList& result);
     void searchMass_(const double&, std::vector<Size>& hit_indices);
 
-    void parseAdductString_(const String&, std::vector<String>&);
+    /// add search results to a Consensus/Feature
+    void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&);
+
     /**
       @brief given an adduct and an observed mass, we compute the neutral mass (without adduct) and the theoretical charge (of the adduct)
 

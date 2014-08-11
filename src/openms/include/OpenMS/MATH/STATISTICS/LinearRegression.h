@@ -56,7 +56,7 @@ namespace OpenMS
       @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 
       Next to the intercept with the y-axis and the slope of the fitted line, this class computes the:
-        - squared pearson coefficient
+        - squared Pearson coefficient
         - value of the t-distribution
         - standard deviation of the residuals
         - standard error of the slope
@@ -144,7 +144,7 @@ public:
       double getUpper() const;
       /// Non-mutable access to the value of the t-distribution
       double getTValue() const;
-      /// Non-mutable access to the squared pearson coefficient
+      /// Non-mutable access to the squared Pearson coefficient
       double getRSquared() const;
       /// Non-mutable access to the standard deviation of the residuals
       double getStandDevRes() const;
@@ -192,7 +192,7 @@ protected:
       template <typename Iterator>
       double computeChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, double slope, double intercept);
 
-      /// Compute the chi squared of a weigthed linear fit
+      /// Compute the chi squared of a weighted linear fit
       template <typename Iterator>
       double computeWeightedChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, double slope, double intercept);
 
@@ -288,7 +288,7 @@ private:
           sumXY += (*wIter)*points[i].X()*points[i].Y();
           sumW += (*wIter);
       }
-      //create matrixes to solve Ax = B
+      //create matrices to solve Ax = B
       double A[2][2] =
       {
           {sumXX, sumX},

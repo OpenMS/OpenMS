@@ -181,6 +181,8 @@ public:
     bool operator==(const MSSpectrum & rhs) const
     {
       //name_ can differ => it is not checked
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       return std::operator==(*this, rhs) &&
              RangeManager<1>::operator==(rhs) &&
              SpectrumSettings::operator==(rhs)  &&
@@ -189,6 +191,7 @@ public:
              float_data_arrays_ == rhs.float_data_arrays_ &&
              string_data_arrays_ == rhs.string_data_arrays_ &&
              integer_data_arrays_ == rhs.integer_data_arrays_;
+#pragma clang diagnostic pop
     }
 
     /// Equality operator

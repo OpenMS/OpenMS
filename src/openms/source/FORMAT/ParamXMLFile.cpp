@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <fstream>
 #include <iostream>
@@ -45,6 +46,12 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  String writeXMLEscape(const String& to_escape)
+  {
+    return XMLHandler::writeXMLEscape(to_escape);
+  }
+
   ParamXMLFile::ParamXMLFile() :
     XMLFile("/SCHEMAS/Param_1_6_2.xsd", "1.6.2")
   {

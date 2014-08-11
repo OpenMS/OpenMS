@@ -75,7 +75,7 @@
 	- @subpage UTILS_SequenceCoverageCalculator - Prints information about idXML files.
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
-  - @subpage UTILS_SpecLibCreator - Creates an MSP formated spectral library.
+  - @subpage UTILS_SpecLibCreator - Creates an MSP formatted spectral library.
   - @subpage UTILS_RNPxl - Tool for RNP cross linking experiment analysis.
 
  <b>Quantitation</b>

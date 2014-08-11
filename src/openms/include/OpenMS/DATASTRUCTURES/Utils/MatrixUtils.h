@@ -81,7 +81,7 @@ namespace OpenMS
           break;
         }
       }
-      // leave outer loop if we have reached the abortion cirteria
+      // leave outer loop if we have reached the abortion criteria
       if (!is_identity) break;
     }
     return is_identity;
