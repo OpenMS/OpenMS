@@ -132,7 +132,7 @@ protected:
       void handleUserParam_(const String & parent_parent_tag, const String & parent_tag, const String & name, const String & type, const String & value);
 
       /// Writes user terms
-      void writeUserParams_(String& s, const MetaInfoInterface & meta, UInt indent) const;
+      void writeMetaInfos_(String& s, const MetaInfoInterface & meta, UInt indent) const;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;
