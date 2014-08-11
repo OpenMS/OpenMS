@@ -64,7 +64,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 
-#include<QDir>
+#include <QDir>
 
 //std includes
 #include <cmath>
