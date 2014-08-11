@@ -157,6 +157,8 @@ protected:
       void buildEnclosedCV_(xercesc::DOMElement * parentElement, String encel, String acc, String name, String cvref);
       void buildAnalysisDataCollection_(xercesc::DOMElement * analysisElements);
 
+      ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList,std::map<String,DataValue> > as_params);
+
 private:
       MzIdentMLDOMHandler();
       MzIdentMLDOMHandler(const MzIdentMLDOMHandler & rhs);

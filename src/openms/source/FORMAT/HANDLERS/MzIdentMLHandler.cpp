@@ -426,7 +426,7 @@ namespace OpenMS
         spd_ids.insert(std::pair<String, UInt64>("UNKNOWN", spdid));
 
         spectra_data += String("\t\t<SpectraData location=\"") + String("UNKNOWN") + String("\" id=\"") + String(spdid) + String("\">");
-        spectra_data += String("\n\t\t\t<FileFormat> \n ");
+        spectra_data += String("\n\t\t\t<FileFormat> \n\t\t\t");
         spectra_data +=  cv_.getTermByName("mzML file").toXMLString(cv_ns);
         spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
         spectra_data +=  cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
@@ -510,14 +510,17 @@ namespace OpenMS
         if (spit == sip_ids.end())
         {
           UInt64 spid = UniqueIdGenerator::getUniqueId();
-          String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(spid) + String("\" analysisSoftware_ref=\"")  + String(swid) + String("\"> \n\t\t<SearchType>\n");
-          sip += "\t\t\t" + cv_.getTermByName("ms-ms search").toXMLString(cv_ns);
-          sip += String(" \n\t\t</SearchType>\n\t\t<Threshold>\n");
-          sip += cv_.getTermByName("no threshold").toXMLString(cv_ns);
+          String sip = String("\t<SpectrumIdentificationProtocol id=\"") + String(spid) + String("\" analysisSoftware_ref=\"")  + String(swid) + String("\">");
+          sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
+          sip += String("\n\t\t<AdditionalSearchParams>\n");
+          writeMetaInfos_(sip,it->getSearchParameters(),3);
+          sip += String("\t\t</AdditionalSearchParams>");
+          sip += String("\n\t\t<Threshold>\n\t\t\t") + cv_.getTermByName("no threshold").toXMLString(cv_ns);
           sip += String("\n\t\t</Threshold>\n\t</SpectrumIdentificationProtocol>\n");
           sip_set.insert(sip);
           sip_ids.insert(std::pair<String, UInt64>(swcn, spid));
         }
+        //TODO @mths: FIXME missing enzyme modificationparams, parenttolerances, fragmenttolerances
 
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
@@ -558,6 +561,7 @@ namespace OpenMS
       /*
       2nd: iterate over peptideidentification vector
       */
+      std::set<String> peps;
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
         String pro_pep_matchstring = it->getIdentifier();    //~ TODO getIdentifier() lookup in proteinidentification get search db etc
@@ -565,6 +569,12 @@ namespace OpenMS
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
           String pepi = jt->getSequence().toString();
+          if (peps.find(pepi) != peps.end())
+          {
+            continue; //TODO @mths FIXME, do not omit SpectrumIdentificationResult for this peptidehit!
+          }
+          peps.insert(pepi);
+
           UInt64 pepid =  UniqueIdGenerator::getUniqueId();
 
           std::map<String, UInt64>::iterator pit = pep_ids.find(pepi);
@@ -644,7 +654,6 @@ namespace OpenMS
               e += "\" pre=\"" + pr;
             }
             e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
-//            e += "\t</PeptideEvidence>\n";
             sen_set.insert(e);
             pevid_ids.push_back(pevid);
           }
@@ -658,12 +667,14 @@ namespace OpenMS
           String c(jt->getCharge());       //charge
           String pte(boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? jt->getScore() > it->getSignificanceThreshold() : jt->getScore() < it->getSignificanceThreshold())); //passThreshold-eval
 
+          //write SpectrumIdentificationResult elements
           String sidres;
           UInt64 sir =  UniqueIdGenerator::getUniqueId();
           UInt64 sii =  UniqueIdGenerator::getUniqueId();
           //~ TODO get spectra_data when loading idxml if possible - then add here and in spectra_data section
           sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + String("MZ:") + emz + String("@RT:") + ert + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
           sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"") + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"") + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz + String("\" experimentalMassToCharge=\"") + emz + String("\" chargeState=\"") + c +  String("\" id=\"") + String(sii) + String("\"> \n");
+
           for (std::vector<UInt64>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
             sidres += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/> \n";
@@ -699,7 +710,7 @@ namespace OpenMS
             sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns, sc);
           }
 
-          writeUserParams_(sidres, *jt, 5);
+          writeMetaInfos_(sidres, *jt, 5);
 
           //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
           sidres += "\t\t\t\t</SpectrumIdentificationItem>\n\t\t\t</SpectrumIdentificationResult>\n";
@@ -762,7 +773,7 @@ namespace OpenMS
       os <<   "<AnalysisCollection>\n";
       for (std::map<String, UInt64>::const_iterator sip = sip_ids.begin(); sip != sip_ids.end(); ++sip)
       {
-        //TODO FIXME WRITE spectradataref and searchdatabaseref!!!
+        //TODO @mths: FIXME WRITE inputspectraref and searchdatabaseref!!!
         //~ TODO unsure when to create several lists instead of one SpectrumIdentificationList - for now only one list
         //~ for  (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
         //~ {
@@ -808,8 +819,9 @@ namespace OpenMS
 
     }
 
-    void MzIdentMLHandler::writeUserParams_(String& s, const MetaInfoInterface& meta, UInt indent) const
+    void MzIdentMLHandler::writeMetaInfos_(String& s, const MetaInfoInterface& meta, UInt indent) const
     {
+        //TODO @mths: write those metas with their name in the cvs loaded as CVs!
       if (meta.isMetaEmpty())
       {
         return;
