@@ -355,9 +355,6 @@ namespace OpenMS
                   }
               }
 
-//                nicht vergessen die proteinhits fertig zu bauen beim lesen!
-//                nicht vergessen die decoys beim lesen zu annotieren
-
               buildSequenceCollection_(sc_p);
               rootElem->appendChild(sc_p);
 
@@ -759,6 +756,7 @@ namespace OpenMS
       int count = 0;
       for( XMLSize_t c = 0; c < si_node_count; ++c )
       {
+        ProteinIdentification::SearchParameters sp;
         DOMNode * current_sip = spectrumIdentificationProtocolElements->item(c);
         if( current_sip->getNodeType() &&  // true is not NULL
             current_sip->getNodeType() == DOMNode::ELEMENT_NODE ) // is element - possibly not necessary after getElementsByTagName
@@ -788,7 +786,7 @@ namespace OpenMS
             else if ((std::string)XMLString::transcode(child->getTagName()) == "AdditionalSearchParams")
             {
               std::pair<CVTermList,std::map<String,DataValue> > as_params = parseParamGroup_(child->getChildNodes());
-              //as_params2searchparams: Search
+              sp = findSearchParameters_(as_params);
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "ModificationParams") // TODO @all where to store the specificities?
             {
@@ -1616,6 +1614,36 @@ namespace OpenMS
       // and no ProteinDetection for now
     }
 
+    ProteinIdentification::SearchParameters MzIdentMLDOMHandler::findSearchParameters_(std::pair<CVTermList,std::map<String,DataValue> > as_params)
+    {
+      ProteinIdentification::SearchParameters sp = ProteinIdentification::SearchParameters();
+
+      for (Map< String, std::vector< CVTerm > >::ConstIterator cvs = as_params.first.getCVTerms().begin(); cvs != as_params.first.getCVTerms().end(); ++cvs)
+      {
+        for (std::vector< CVTerm >::const_iterator cvit = cvs->second.begin(); cvit != cvs->second.end(); ++cvit)
+        {
+//            ???:
+//            String sp.db
+//            String sp.db_version
+//            String sp.taxonomy
+//            PeakMassType 	sp.mass_type
+//            std::vector< String > 	sp.fixed_modifications
+//            std::vector< String > 	sp.variable_modifications
+//            UInt 	missed_cleavages
+          sp.setMetaValue(cvs->first, cvit->getValue());
+        }
+      }
+
+      for (std::map<String,DataValue>::const_iterator upit = as_params.second.begin(); upit != as_params.second.end(); ++upit)
+      {
+//            String sp.charges:
+//            <userParam value="2" name="MinCharge"/>
+//            <userParam value="3" name="MaxCharge"/>
+        sp.setMetaValue(upit->first,upit->second);
+      }
+
+      return sp;
+    }
 
   }   //namespace Internal
 } // namespace OpenMS
