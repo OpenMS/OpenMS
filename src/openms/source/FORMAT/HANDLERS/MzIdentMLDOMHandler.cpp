@@ -122,7 +122,7 @@ namespace OpenMS
 
       // Tags and attributes used in XML file.
       // Can't call transcode till after Xerces Initialize()
-      TAG_root        = XMLString::transcode("MzIdentML");
+      TAG_root = XMLString::transcode("MzIdentML");
       TAG_CV = XMLString::transcode("cvParam");
       ATTR_name = XMLString::transcode("name");
 
@@ -787,8 +787,8 @@ namespace OpenMS
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "AdditionalSearchParams")
             {
-              std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(child->getChildNodes());
-
+              std::pair<CVTermList,std::map<String,DataValue> > as_params = parseParamGroup_(child->getChildNodes());
+              //as_params2searchparams: Search
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "ModificationParams") // TODO @all where to store the specificities?
             {
@@ -911,6 +911,8 @@ namespace OpenMS
           }
           sp_map_.insert(std::make_pair(id,SpectrumIdentificationProtocol{searchtype,enzyme,param_cv,param_up,modparam,p_tol,f_tol,tcv,tup}));
 
+          //TODO @mths : FIXME from <SpectrumIdentification> a omnidirectional mapping of protocol, searchdb, specinput, and specidlist
+
           for (Map< String, SpectrumIdentification >::ConstIterator si_it = si_map_.begin(); si_it != si_map_.end(); ++si_it)
           {
             if (si_it->second.spectrum_identification_protocol_ref == id)
@@ -919,7 +921,7 @@ namespace OpenMS
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngine(search_engine_);
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngineVersion(search_engine_version_);
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setIdentifier(search_engine_); // TODO @mths: name/date of search
-              // TODO @mths set SearchParameters 	search_parameters_
+              si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchParameters(sp);
             }
           }
         }
@@ -1210,7 +1212,6 @@ namespace OpenMS
 
       DBSequence& db = db_sq_map_[dBSequence_ref];
 
-      //TODO @ mths FIXME this introduces "random" prothits
       protein_identification.insertHit(ProteinHit());
       protein_identification.getHits().back().setSequence(db.sequence);
       protein_identification.getHits().back().setAccession(db.accession);
