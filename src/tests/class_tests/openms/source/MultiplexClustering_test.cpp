@@ -75,6 +75,7 @@ double mz_tolerance = 40;
 bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double rt_typical = 90;
 double rt_minimum = 5;
+String out_debug = "";
 bool debug = false;
 
 // construct list of peak patterns
@@ -93,7 +94,7 @@ for (int c = charge_max; c >= charge_min; --c)
     patterns.push_back(pattern2);
 } 
 
-MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, debug);
+MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
 std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 
 MultiplexClustering* nullPointer = 0;
