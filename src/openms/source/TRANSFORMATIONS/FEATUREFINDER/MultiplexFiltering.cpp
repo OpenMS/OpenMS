@@ -49,6 +49,7 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <QDir>
 
 #include<QDir>
 
