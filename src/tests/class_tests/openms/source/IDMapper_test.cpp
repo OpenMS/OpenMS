@@ -96,7 +96,6 @@ END_SECTION
 
 
 START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
-{
   IDMapper mapper;
   Param p = mapper.getParameters();
   p.setValue("rt_tolerance", 0.5);
@@ -105,13 +104,84 @@ START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
   mapper.setParameters(p);
   IDMapper m2=mapper;
   TEST_EQUAL(m2.getParameters(), p);
-}
 END_SECTION
 
+START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>& map, FeatureMap<> fmap, const bool clear_ids = false, const bool mapMS1 = false)))
+  // create id
+  FeatureMap<> fm;
+  Feature f;
+  f.setMZ(900.0);
+  f.setRT(9.0);
+  std::vector< PeptideIdentification > pids;
+  PeptideIdentification pid;
+  pid.setIdentifier("myID");
+  pid.setHits(std::vector<PeptideHit>(4));
+  pids.push_back(pid); // without MZ&RT for PID (take feature instead)
+  pid.setMZ(800.0);
+  pid.setRT(9.05);
+  pids.push_back(pid); // with MZ&RT from PID
+  f.setPeptideIdentifications(pids);
+  fm.push_back(f);
+  std::vector< ProteinIdentification > prids(2);
+  fm.setProteinIdentifications(prids);
 
-START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType > &map, const std::vector< PeptideIdentification > &ids, const std::vector< ProteinIdentification > &protein_ids)))
-{
-  //load id
+  // create experiment
+  MSExperiment<> experiment;
+  MSSpectrum<> spectrum;
+  Precursor precursor;
+  precursor.setMZ(0);
+  spectrum.setRT(8.9);
+  experiment.addSpectrum(spectrum);
+  experiment[0].getPrecursors().push_back(precursor);
+  precursor.setMZ(20);
+  spectrum.setRT(9.1);
+  experiment.addSpectrum(spectrum);
+  experiment[1].getPrecursors().push_back(precursor);
+  precursor.setMZ(11);
+  spectrum.setRT(12.0);
+  experiment.addSpectrum(spectrum);
+  experiment[2].getPrecursors().push_back(precursor);
+
+  // map
+  IDMapper mapper;
+  Param p = mapper.getParameters();
+  p.setValue("rt_tolerance", 0.3);
+  p.setValue("mz_tolerance", 0.05);
+  p.setValue("mz_measure", "Da");
+  p.setValue("ignore_charge", "true");
+  mapper.setParameters(p);
+
+
+  mapper.annotate(experiment, fm, true, true);
+
+  //test
+  TEST_EQUAL(experiment.getProteinIdentifications().size(), 2)
+  //scan 1
+  TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 2)
+  //scan 2
+  TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 2)
+  ABORT_IF(experiment[1].getPeptideIdentifications().size() != 2)
+  TEST_EQUAL(experiment[1].getPeptideIdentifications()[0].getHits().size(), 4)
+  TEST_EQUAL(experiment[1].getPeptideIdentifications()[0].getMZ(), 900.0)
+  TEST_EQUAL(experiment[1].getPeptideIdentifications()[1].getHits().size(), 4)
+  TEST_EQUAL(experiment[1].getPeptideIdentifications()[1].getMZ(), 800.0)
+  //scan 3
+  TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 0)
+
+  mapper.annotate(experiment, fm, true, false); // no MS1 mapping. MZ threshold never fulfilled
+  //test
+  TEST_EQUAL(experiment.getProteinIdentifications().size(), 2)
+  //scan 1
+  TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 0)
+  //scan 2
+  TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
+  //scan 3
+  TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 0)
+
+END_SECTION
+
+START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)))
+  // load id
   vector<PeptideIdentification> identifications;
   vector<ProteinIdentification> protein_identifications;
   String document_id;
@@ -124,7 +194,7 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
   TEST_EQUAL(protein_identifications.size(),1)
   TEST_EQUAL(protein_identifications[0].getHits().size(), 2)
 
-  //create experiment
+  // create experiment
   MSExperiment<> experiment;
   MSSpectrum<> spectrum;
   Precursor precursor;
@@ -168,7 +238,6 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
   TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)
   TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
   TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
-}
 END_SECTION
 
 

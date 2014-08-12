@@ -271,7 +271,7 @@ if(WIN32)
     file(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     file(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     set(FOUND_XERCES FALSE)
-    foreach(CONTRIB_PATH ${CONTRIB_DIR})
+    foreach(CONTRIB_PATH ${CMAKE_PREFIX_PATH})
         if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
             file(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
             set(FOUND_XERCES TRUE)
@@ -311,6 +311,9 @@ set(PYOPENMS_INCLUDE_DIRS
   ${SuperHirn_INCLUDE_DIRECTORIES}
 )
 
+# TODO: this is a workaround; we need to clarify why exactly pyOpenMS needs
+#       access to the directories and not the library locations itself 
+set(CONTRIB_DIR ${CMAKE_PREFIX_PATH})
 set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 set(OPEN_MS_LIB "")
 set(OPEN_SWATH_ALGO_LIB "")

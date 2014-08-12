@@ -156,8 +156,11 @@ namespace OpenMS
     if (tag_ == "domain")
     {
       PeptideHit hit;
-      hit.metaRegistry().registerName("E-Value", "E-Value of Hit");
-
+      hit.metaRegistry().registerName("E-Value", "E-Value of hit");
+      hit.metaRegistry().registerName("nextscore", "next_score of hit");
+      // get nextscore
+      double nextscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("nextscore"))))).toDouble());
+      hit.setMetaValue("nextscore", nextscore);
       // get hyperscore
       double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
       hit.setScore(hyperscore);
@@ -183,7 +186,7 @@ namespace OpenMS
       // get expectation value
       double expect(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
       hit.setMetaValue("E-Value", expect);
-
+      
       // get precursor m/z
       //double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
       //hit.setMetaValue("MZ", mh); // not needed, set by the XTandem Adapter itself
@@ -193,6 +196,7 @@ namespace OpenMS
       vector<String> split;
       id_string.split('.', split);
       UInt id(split[0].toInt());
+      // hit.setMetaValue("RT_index", id);
       actual_id_ = id;
 
       String tmp;

@@ -40,6 +40,9 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#define HIGH_PRECISION 8
+#define LOW_PRECISION 6
+
 using namespace std;
 
 namespace OpenMS
@@ -125,23 +128,28 @@ namespace OpenMS
     }
   }
 
-  void MascotGenericFile::store(const String& filename, const PeakMap& experiment)
+  void MascotGenericFile::store(const String& filename, const PeakMap& experiment, bool compact)
   {
     if (!File::writable(filename))
     {
       throw Exception::FileNotWritable(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
     ofstream os(filename.c_str());
-    store(os, filename, experiment);
+    store(os, filename, experiment, compact);
     os.close();
   }
 
-  void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment)
+  void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment, bool compact)
   {
+    const streamsize precision = os.precision(); // may get changed, so back-up
+    
+    store_compact_ = compact;
     if (param_.getValue("internal:content") != "peaklist_only")
       writeHeader_(os);
     if (param_.getValue("internal:content") != "header_only")
       writeMSExperiment_(os, filename, experiment);
+
+    os.precision(precision); // reset precision
   }
 
   void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
@@ -293,24 +301,39 @@ namespace OpenMS
     }
     if (spec.size() >= 10000)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as MGF has more than 10.000 peaks which is"
-                                                                             " the maximum upper limit. Only centroided data is allowed. This is most likely raw data.",
-                                    String(spec.size()));
+      throw Exception::InvalidValue(
+        __FILE__, __LINE__, __PRETTY_FUNCTION__, "Spectrum to be written as "
+        "MGF has more than 10.000 peaks, which is the maximum upper limit. "
+        "Only centroided data is allowed. This is most likely raw data.", 
+        String(spec.size()));
     }
     double mz(precursor.getMZ()), rt(spec.getRT());
 
     if (mz == 0)
     {
       //retention time
-      cout << "No precursor m/z information for spectrum with rt: " << rt << " present, skipping spectrum!\n";
+      cout << "No precursor m/z information for spectrum with rt " << rt 
+           << " present, skipping spectrum!\n";
     }
     else
     {
       os << "\n";
       os << "BEGIN IONS\n";
-      os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) << "_" << spec.getNativeID() << "_" << filename << "\n";
-      os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
-      os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
+      if (!store_compact_)
+      {
+        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt) 
+           << "_" << spec.getNativeID() << "_" << filename << "\n";
+        os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
+        os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
+      }
+      else
+      {
+        os << "TITLE=" << setprecision(HIGH_PRECISION) << mz << "_" 
+           << setprecision(LOW_PRECISION) << rt << "_" 
+           << spec.getNativeID() << "_" << filename << "\n";
+        os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
+        os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
+      }
 
       int charge(precursor.getCharge());
 
@@ -323,11 +346,23 @@ namespace OpenMS
         }
       }
 
-      os << "\n";
-
-      for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
+      if (!store_compact_)
       {
-        os << precisionWrapper(it->getMZ()) << " " << precisionWrapper(it->getIntensity()) << "\n";
+        for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
+        {
+          os << precisionWrapper(it->getMZ()) << " " 
+             << precisionWrapper(it->getIntensity()) << "\n";
+        }
+      }
+      else
+      {
+        for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
+        {
+          PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
+          if (intensity == 0.0) continue; // skip zero-intensity peaks
+          os << setprecision(HIGH_PRECISION) << it->getMZ() << " " 
+             << setprecision(LOW_PRECISION) << intensity << "\n";
+        }
       }
       os << "END IONS\n";
     }

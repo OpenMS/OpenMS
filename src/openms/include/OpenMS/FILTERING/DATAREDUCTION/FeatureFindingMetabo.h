@@ -53,7 +53,7 @@ namespace OpenMS
   feature hypotheses are formulated exhaustively based on the set of mass traces detected within a local RT and m/z region. These feature hypotheses are scored by their similarity to
   real metabolite isotope patterns. The score is derived from independent models for retention time shifts and m/z differences between isotopic mass traces.
   Hypotheses with correct or false isotopic abundances are distinguished by a SVM model. Mass traces that could not be assembled or low-intensity metabolites with only a
-monoisotopic mass trace to observe are left in the resulting @ref FeatureMap as singletons with the undefined charge state of 0.
+  monoisotopic mass trace to observe are left in the resulting @ref FeatureMap as singletons with the undefined charge state of 0.
 
   @htmlinclude OpenMS_FeatureFindingMetabo.parameters
 
@@ -96,7 +96,7 @@ public:
         return iso_pattern_.size();
     }
 
-    String getLabel()
+    String getLabel() const
     {
         String label;
 
@@ -114,7 +114,7 @@ public:
         return label;
     }
 
-    std::vector<String> getLabels()
+    std::vector<String> getLabels() const
     {
         std::vector<String> tmp_labels;
 
@@ -126,7 +126,7 @@ public:
         return tmp_labels;
     }
 
-    double getScore()
+    double getScore() const
     {
         return feat_score_;
     }
@@ -136,7 +136,7 @@ public:
         feat_score_ = score;
     }
 
-    SignedSize getCharge()
+    SignedSize getCharge() const
     {
         return charge_;
     }
@@ -158,7 +158,7 @@ public:
         return tmp;
     }
 
-    double getCentroidMZ()
+    double getCentroidMZ() const
     {
         if (iso_pattern_.empty())
         {
@@ -168,25 +168,21 @@ public:
         return iso_pattern_[0]->getCentroidMZ();
     }
 
-    double getCentroidRT()
+    double getCentroidRT() const
     {
         if (iso_pattern_.empty())
         {
             throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
         }
-
-        // iso_pattern_[0]->updateWeightedMeanRT();
-
         return iso_pattern_[0]->getCentroidRT();
     }
 
-    double getFWHM(bool use_smoothed_ints = false)
+    double getFWHM(bool use_smoothed_ints = false) const
     {
         if (iso_pattern_.empty())
         {
             return 0.0;
         }
-
         return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
     }
 
@@ -194,7 +190,6 @@ public:
     void addMassTrace(MassTrace &);
     double getMonoisotopicFeatureIntensity(bool);
     double getSummedFeatureIntensity(bool);
-
 
     Size getNumFeatPoints() const;
     std::vector<ConvexHull2D> getConvexHulls() const;

@@ -400,28 +400,28 @@ public:
             bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
             for (Size i = 1; i <= min_spectra_; ++i)
             {
-              try
+              if (!map_[s + i].empty())
               {
                 Size spec_index = map_[s + i].findNearest(pos);
                 double position_score = positionScore_(pos, map_[s + i][spec_index].getMZ(), trace_tolerance_);
                 if (position_score > 0 && map_[s + i][spec_index].getIntensity() > inte) is_max_peak = false;
                 scores.push_back(position_score);
               }
-              catch (...) //no peaks in the spectrum
+              else //no peaks in the spectrum
               {
                 scores.push_back(0.0);
               }
             }
             for (Size i = 1; i <= min_spectra_; ++i)
             {
-              try
+              if (!map_[s - i].empty())
               {
                 Size spec_index = map_[s - i].findNearest(pos);
                 double position_score = positionScore_(pos, map_[s - i][spec_index].getMZ(), trace_tolerance_);
                 if (position_score > 0 && map_[s - i][spec_index].getIntensity() > inte) is_max_peak = false;
                 scores.push_back(position_score);
               }
-              catch (...) //no peaks in the spectrum
+              else //no peaks in the spectrum
               {
                 scores.push_back(0.0);
               }
@@ -1425,13 +1425,9 @@ protected:
         {
           //find better seeds (no-empty scan/low mz diff/higher intensity)
           SignedSize peak_index = -1;
-          try
+          if (!map_[spectrum_index].empty())
           {
             peak_index = map_[spectrum_index].findNearest(map_[starting_peak.spectrum][starting_peak.peak].getMZ());
-          }
-          catch (...) //no peaks in the spectrum
-          {
-            peak_index = -1;
           }
 
           if (peak_index < 0 ||
@@ -1540,13 +1536,9 @@ protected:
 
         SignedSize peak_index = -1;
 
-        try
+        if (!map_[spectrum_index].empty())
         {
           peak_index = map_[spectrum_index].findNearest(mz);
-        }
-        catch (...) //no peaks in the spectrum
-        {
-          peak_index = -1;
         }
 
         // check if the peak is "missing"

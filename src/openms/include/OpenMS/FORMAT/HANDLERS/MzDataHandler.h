@@ -829,7 +829,10 @@ protected:
          << sm.getName()
          << "</sampleName>\n";
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
       if (sm.getNumber() != "" || sm.getState() || sm.getMass() || sm.getVolume() || sm.getConcentration()  || !sm.isMetaEmpty())
+#pragma clang diagnostic pop
       {
         os << "\t\t\t<sampleDescription>\n";
         writeCVS_(os, sm.getNumber(), "1000001", "SampleNumber");
