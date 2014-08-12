@@ -75,6 +75,7 @@ PeptideIndexer
 PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
+ProteinProphetAdapter
 ProteinQuantifier
 ProteinResolver
 RTModel
