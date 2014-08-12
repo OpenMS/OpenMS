@@ -235,7 +235,7 @@ namespace OpenMS
               {
                 Peak2D data_point;
                 data_point.setRT(rt_picked);
-                data_point.setMZ(peak_position[peak]);
+                data_point.setMZ(mz);
                 data_point.setIntensity(3);                    // filter 3 failed
                 debug_rejected.push_back(data_point);
               }
@@ -254,7 +254,7 @@ namespace OpenMS
               {
                 Peak2D data_point;
                 data_point.setRT(rt_picked);
-                data_point.setMZ(peak_position[peak]);
+                data_point.setMZ(mz);
                 data_point.setIntensity(4);                    // filter 4 failed
                 debug_rejected.push_back(data_point);
               }
@@ -274,7 +274,7 @@ namespace OpenMS
               {
                 Peak2D data_point;
                 data_point.setRT(rt_picked);
-                data_point.setMZ(peak_position[peak]);
+                data_point.setMZ(mz);
                 data_point.setIntensity(5);                    // filter 5 failed
                 debug_rejected.push_back(data_point);
               }
@@ -292,7 +292,7 @@ namespace OpenMS
               {
                 Peak2D data_point;
                 data_point.setRT(rt_picked);
-                data_point.setMZ(peak_position[peak]);
+                data_point.setMZ(mz);
                 data_point.setIntensity(6);                    // filter 6 failed
                 debug_rejected.push_back(data_point);
               }
