@@ -161,6 +161,11 @@ START_SECTION(double derivatives(double x, unsigned order))
     TEST_REAL_SIMILAR(sp5.derivatives(xx,1), cos(xx));
     TEST_REAL_SIMILAR(sp6.derivatives(xx,1), cos(xx));
   }
+  // test boundary conditions y"=0
+  TEST_REAL_SIMILAR(sp5.derivatives(x[0],2), 0);
+  TEST_REAL_SIMILAR(sp6.derivatives(x[0],2), 0);
+  TEST_REAL_SIMILAR(sp5.derivatives(x[n],2), 0);
+  TEST_REAL_SIMILAR(sp6.derivatives(x[n],2), 0);
 END_SECTION
 
 END_TEST
