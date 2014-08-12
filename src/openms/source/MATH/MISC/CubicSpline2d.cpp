@@ -87,7 +87,7 @@ namespace OpenMS
 
     // determine index of closest node left of (or exactly at) x
     unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
-    if (x_[i] > x)
+    if (x_[i] > x || x_[x_.size() - 1] == x)
     {
         --i;
     }
@@ -110,7 +110,7 @@ namespace OpenMS
 
     // determine index of closest node left of (or exactly at) x
     unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
-    if (x_[i] > x)
+    if (x_[i] > x || x_[x_.size() - 1] == x)
     {
         --i;
     }
