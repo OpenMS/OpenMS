@@ -51,6 +51,11 @@ openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
 # MyriMatch
 OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
 
+message(STATUS "Searching for TPP ...")
+#------------------------------------------------------------------------------
+# TPP
+OPENMS_FINDBINARY(TPP_BINARY "xinteract" "TPP")
+
 #------------------------------------------------------------------------------
 ## optional tests
 if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
@@ -73,7 +78,12 @@ if (NOT (${MYRIMATCH_BINARY} STREQUAL "MYRIMATCH_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_MyriMatchAdapter_1_out" PROPERTIES DEPENDS "TOPP_MyriMatchAdapter_1")
 endif()
 
-
+#------------------------------------------------------------------------------
+if (NOT (${TPP_BINARY} STREQUAL "TPP_BINARY-NOTFOUND"))
+  add_test("TOPP_ProteinProphetAdapter_1" ${TOPP_BIN_PATH}/ProteinProphetAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/ProteinProphetAdapter_1.ini -in ${DATA_DIR_TOPP}/SEARCHENGINES/ProteinProphetAdapter_1.idXML -out ProteinProphetAdapter_1_out.tmp -tpp_executable "${TPP_BINARY}")
+  add_test("TOPP_ProteinProphetAdapter_1_out" ${DIFF} -in1 ProteinProphetAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/ProteinProphetAdapter_1_out.idXML -whitelist "IdentificationRun date")
+  set_tests_properties("TOPP_ProteinProphetAdapter_1_out" PROPERTIES DEPENDS "TOPP_ProteinProphetAdapter_1")
+endif()
 # TODO the following tests are waiting for better implementations of InspectAdapter and associated classes
 #add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/InspectAdapter.out -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -out InspectAdapter_4_output.tmp -inspect_out)
 #add_test("TOPP_InspectAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 InspectAdapter_4_output.tmp -in2 ${DATA_DIR_TOPP}/InspectAdapter_4_output.idXML )
