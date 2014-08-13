@@ -214,6 +214,8 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
   PepXMLFile().store(cm_file_out, proteins, peptides, "", "test", true);
 
   FuzzyStringComparator fsc;
+  fsc.setAcceptableAbsolute(1e-7);
+  fsc.setAcceptableRelative(1.0 + 1e-7);
   // fsc.setWhitelist (ListUtils::create<String>("base_name, local_path, <spectrum_query "));
   String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out.pepxml");
   TEST_EQUAL(fsc.compareFiles(cm_file_out.c_str(), filename_out.c_str()), true)
@@ -224,6 +226,8 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
   PepXMLFile().store(cm_file_out_1, proteins, peptides, "", "test", false);
 
   FuzzyStringComparator fsc_1;
+  fsc_1.setAcceptableAbsolute(1e-7);
+  fsc_1.setAcceptableRelative(1.0 + 1e-7);
   // fsc_1.setWhitelist(ListUtils::create<String>("base_name, local_path, <spectrum_query "));
   String filename_out_1 = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_1.pepxml");
   TEST_EQUAL(fsc_1.compareFiles(cm_file_out_1.c_str(), filename_out_1.c_str()), true)
