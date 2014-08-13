@@ -112,7 +112,7 @@ protected:
     setValidStrings_("out_type", ListUtils::create<String>("idXML,pepXML,protXML"));
     registerInputFile_("mz_file", "<file>", "", "Experiment data file", false);
     setValidFormats_("mz_file", ListUtils::create<String>("mzML"));
-    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", false);
+    registerInputFile_("database", "<file>", "", "Path to FASTA file or pro file, needed when it's different from the path given in peptide ID file.", false);
     registerStringOption_("database_type", "<database type>", "AA", "Specify 'AA' for amino acid, 'NA' for nucleic acid (default 'AA')", false);
     setValidStrings_("database_type", ListUtils::create<String>("AA,NA"));
     addEmptyLine_();
@@ -237,9 +237,9 @@ protected:
     parameters << "-N" + xinteract_output_filename; // store the output temp file
     // checking database
     String db_name = getStringOption_("database");
+    bool db_name_contains_space = false;
     if (!db_name.empty())
     {
-      bool db_name_contains_space = false;
       if (db_name.hasSubstring(" "))
       {
         db_name_contains_space = true;
