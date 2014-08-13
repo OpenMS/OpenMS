@@ -142,7 +142,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::dia_ms1_massdiff_score(double precursor_mz, SpectrumType spectrum,
+  bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, SpectrumType spectrum,
                                           double& ppm_score)
   {
     ppm_score = -1;
@@ -159,10 +159,12 @@ namespace OpenMS
       if (mz == -1)
       {
         ppm_score = dia_extract_window_ / precursor_mz * 1000000;
+        return false;
       }
       else
       {
         ppm_score = std::fabs(mz - precursor_mz) * 1000000 / precursor_mz;
+        return true;
       }
     }
   }

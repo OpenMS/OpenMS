@@ -298,22 +298,21 @@ START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &tra
 }
 END_SECTION
 
-START_SECTION ( void DIAScoring::dia_ms1_massdiff_score(double precursor_mz, transitions, SpectrumType spectrum, double& ppm_score) )
+START_SECTION ( bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, transitions, SpectrumType spectrum, double& ppm_score) )
 { 
   OpenSwath::SpectrumPtr sptr = prepareShiftedSpectrum();
   DIAScoring diascoring;
   diascoring.set_dia_parameters(0.5, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
   double ppm_score = 0;
 
-  diascoring.dia_ms1_massdiff_score(500.0, sptr, ppm_score);
+  TEST_EQUAL(diascoring.dia_ms1_massdiff_score(500.0, sptr, ppm_score), true);
   TEST_REAL_SIMILAR(ppm_score, 15); // 15 ppm shifted
 
-  diascoring.dia_ms1_massdiff_score(600.0, sptr, ppm_score);
+  TEST_EQUAL(diascoring.dia_ms1_massdiff_score(600.0, sptr, ppm_score), true);
   TEST_REAL_SIMILAR(ppm_score, 10); // 10 ppm shifted
 
-  diascoring.dia_ms1_massdiff_score(100.0, sptr, ppm_score);
-  TEST_REAL_SIMILAR(ppm_score, -1); // not present
-
+  TEST_EQUAL(diascoring.dia_ms1_massdiff_score(100.0, sptr, ppm_score), false);
+  TEST_REAL_SIMILAR(ppm_score, 0.5 * 1000000 / 100.0); // not present
 }
 END_SECTION
 

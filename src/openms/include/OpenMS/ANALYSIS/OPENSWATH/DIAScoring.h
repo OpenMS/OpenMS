@@ -125,7 +125,15 @@ public:
                             SpectrumType spectrum, const std::vector<double>& normalized_library_intensity,
                             double& ppm_score, double& ppm_score_weighted);
 
-    void dia_ms1_massdiff_score(double precursor_mz, SpectrumType spectrum,
+    /**
+      Precursor massdifference score
+
+      @param precursor_mz Exact m/z of the precursor to be evaluated
+      @param spectrum MS1 spectrum to be evaluated
+      @param ppm_score Resulting score
+      @return False if no signal was found (and no sensible score calculated), true otherwise
+    */
+    bool dia_ms1_massdiff_score(double precursor_mz, SpectrumType spectrum,
                                 double& ppm_score);
 
     /// b/y ion scores
