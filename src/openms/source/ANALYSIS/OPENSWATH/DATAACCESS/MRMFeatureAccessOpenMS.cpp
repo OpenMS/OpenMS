@@ -114,6 +114,16 @@ namespace OpenMS
     return boost::static_pointer_cast<OpenSwath::IFeature>(precursor_features_[nativeID]);
   }
 
+  std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
+  {
+    std::vector<std::string> v;
+    for(std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it) 
+    {
+      v.push_back(it->first);
+    }
+    return v;
+  }
+
   float MRMFeatureOpenMS::getIntensity()
   {
     return mrmfeature_.getIntensity();

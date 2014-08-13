@@ -59,6 +59,7 @@ public:
     virtual ~IMRMFeature(){}
     virtual boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) = 0;
     virtual boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) = 0;
+    virtual std::vector<std::string> getPrecursorIDs() const = 0;
     virtual float getIntensity() = 0;
     virtual double getRT() = 0;
     virtual size_t size() = 0;
