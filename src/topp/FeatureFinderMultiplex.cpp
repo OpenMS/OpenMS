@@ -656,12 +656,18 @@ public:
                 }
             }
             
-            Math::LinearRegression linreg;
-            // weighted or un-weighted ?
-            linreg.computeRegressionWeighted(0.95, intensities1.begin(), intensities1.end(), intensities2.begin(), intensitiesMean.begin());
+            //Math::LinearRegression linreg;
+            //linreg.computeRegressionWeighted(0.95, intensities1.begin(), intensities1.end(), intensities2.begin(), intensitiesMean.begin());
             //linreg.computeRegression(0.95, intensities1.begin(), intensities1.end(), intensities2.begin());
-            ratios.push_back(linreg.getSlope());            
+            
+            LinearRegressionWithoutIntercept linreg;
+            for (unsigned i=0; i<intensities1.size(); ++i)
+            {
+                linreg.addData(intensities1[i], intensities2[i]);
+            }
+            ratios.push_back(linreg.getSlope());          
             intensities.push_back(intensity);
+
         }
         
         // correct intensities for ratios
@@ -670,7 +676,7 @@ public:
         {
             double xd = (intensities[0] + ratios[1]*intensities[1])/(1+ratios[1]*ratios[1]);
             double yd = ratios[1] * xd;
-            std::cout << "x = " << intensities[0] << "  y = " << intensities[1] << "  y/x = " << intensities[1]/intensities[0] << "  ratio = " << ratios[1] << "  x' = " << xd << "  y' = " << yd << "  new ratio = " << yd/xd << "\n";  
+            std::cout << "x = " << intensities[0] << "  y = " << intensities[1] << "  y/x = " << intensities[1]/intensities[0] << "  ratio = " << ratios[1] << "  x' = " << xd << "  y' = " << yd << "\n";  
         }
         /*else if ()
         {
@@ -815,6 +821,67 @@ public:
         ConsensusXMLFile file;
         file.store(filename, map);
     }
+
+    /**
+    * @brief simple linear regression through the origin
+    * 
+    * TODO: combine with OpenMS/MATH/STATISTICS/LinearRegression
+    */
+    class OPENMS_DLLAPI LinearRegressionWithoutIntercept
+    {
+        public:
+        /**
+         * @brief constructor
+         */
+        LinearRegressionWithoutIntercept()
+        : sum_xx_(0), sum_xy_(0), n_(0)
+        {
+        }
+        
+        /**
+         * @brief adds an observation (x,y) to the regression data set.
+         * 
+         * @param x    independent variable value
+         * @param y    dependent variable value
+         */
+        void addData(double x, double y)
+        {
+            sum_xx_ += x*x;
+            sum_xy_ += x*y;
+            
+            ++n_;
+        }
+        
+        /**
+         * @brief returns the slope of the estimated regression line.
+         */
+        double getSlope()
+        {
+            if (n_ < 2)
+            {
+                return std::numeric_limits<double>::quiet_NaN();    // not enough data
+            }
+            return sum_xy_/sum_xx_;
+        }
+        
+        private:
+        /**
+         * @brief total variation in x
+         */
+        double sum_xx_;
+    
+        /**
+         * @brief sum of products
+         */
+        double sum_xy_;
+    
+        /**
+         * @brief number of observations
+         */
+        int n_;
+        
+    };
+
 
   ExitCodes main_(int, const char **)
   {
