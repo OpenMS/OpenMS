@@ -560,22 +560,14 @@ namespace OpenMS
       /*
       2nd: iterate over peptideidentification vector
       */
-      std::set<String> peps;
+      std::map<String, std::vector<UInt64> > pep_evis; //maps the sequence to the corresponding evidence elements for the next scope
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
         String pro_pep_matchstring = it->getIdentifier();    //~ TODO getIdentifier() lookup in proteinidentification get search db etc
-
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
-          String pepi = jt->getSequence().toString();
-          if (peps.find(pepi) != peps.end())
-          {
-            continue; //TODO @mths FIXME, do not omit SpectrumIdentificationResult for this peptidehit!
-          }
-          peps.insert(pepi);
-
           UInt64 pepid =  UniqueIdGenerator::getUniqueId();
-
+          String pepi = jt->getSequence().toString();
           std::map<String, UInt64>::iterator pit = pep_ids.find(pepi);
           if (pit == pep_ids.end())
           {
@@ -623,38 +615,48 @@ namespace OpenMS
             }
             p += "\t</Peptide> \n ";
             sen_set.insert(p);
+            pep_ids.insert(std::make_pair(pepi, pepid));
           }
           else
           {
             pepid = pit->second;
           }
 
-          std::vector<String> accs = jt->getProteinAccessions();       //TODO idxml allows peptidehits without protein_refs!!! Fails in that case run peptideindexer first
           std::vector<UInt64> pevid_ids;
-          for (std::vector<String>::const_iterator at = accs.begin(); at != accs.end(); ++at)
+          if (pit == pep_ids.end())
           {
-            UInt64 pevid =  UniqueIdGenerator::getUniqueId();
-            String dBSequence_ref = String(sen_ids.find(*at)->second);
-
-            String e;
-            String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
-            e += "\t<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
-
-            //~ TODO no '*' allowed!!
-            String po = String(jt->getAAAfter());
-            if (!po.empty() && po != " " && po != "*")
+            std::vector<String> accs = jt->getProteinAccessions();       //TODO idxml allows peptidehits without protein_refs!!! Fails in that case run peptideindexer first
+            for (std::vector<String>::const_iterator at = accs.begin(); at != accs.end(); ++at)
             {
-              e += "\" post=\"" + po;
+              UInt64 pevid =  UniqueIdGenerator::getUniqueId();
+              String dBSequence_ref = String(sen_ids.find(*at)->second);
+
+              String e;
+              String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
+              e += "\t<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
+
+              //~ TODO no '*' allowed!!
+              String po = String(jt->getAAAfter());
+              if (!po.empty() && po != " " && po != "*")
+              {
+                e += "\" post=\"" + po;
+              }
+              String pr = String(jt->getAABefore());
+              if (!pr.empty() && pr != " " && pr != "*")
+              {
+                e += "\" pre=\"" + pr;
+              }
+              e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
+              sen_set.insert(e);
+              pevid_ids.push_back(pevid);
             }
-            String pr = String(jt->getAABefore());
-            if (!pr.empty() && pr != " " && pr != "*")
-            {
-              e += "\" pre=\"" + pr;
-            }
-            e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
-            sen_set.insert(e);
-            pevid_ids.push_back(pevid);
+            pep_evis.insert(std::make_pair(pepi, pevid_ids));
           }
+          else
+          {
+            pevid_ids =  pep_evis[pepi];
+          }
+
 
           String cmz(jt->getSequence().getMonoWeight(res_type_, jt->getCharge()));       //calculatedMassToCharge
           String emz(it->getMZ());
@@ -803,10 +805,10 @@ namespace OpenMS
       //~ TODO for every pair of input vector<Protein/PeptideIdentification> create one SpectrumIdentificationList and fill
       os << "\t<AnalysisData>\n\t\t<SpectrumIdentificationList id=\"" << String(silly) << "\"> \n";
 
-      os << "\t\t\t<FragmentationTable>\n";
+      os << "\t\t\t<FragmentationTable>\n"
          << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
          << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
-         << "\t\t\t\t</Measure>\n";
+         << "\t\t\t\t</Measure>\n"
          << "\t\t\t</FragmentationTable>\n";
 
       for (std::vector<String>::const_iterator sid = sidlist.begin(); sid != sidlist.end(); ++sid)
