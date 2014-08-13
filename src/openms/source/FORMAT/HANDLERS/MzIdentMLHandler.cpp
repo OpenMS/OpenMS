@@ -636,7 +636,6 @@ namespace OpenMS
             UInt64 pevid =  UniqueIdGenerator::getUniqueId();
             String dBSequence_ref = String(sen_ids.find(*at)->second);
 
-            // TODO FIXME remove redundant peptidehits (for peptideevidence only)
             String e;
             String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
             e += "\t<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
@@ -802,9 +801,14 @@ namespace OpenMS
       //--------------------------------------------------------------------------------------------
       os << "<DataCollection>\n" << inputs_element;
       //~ TODO for every pair of input vector<Protein/PeptideIdentification> create one SpectrumIdentificationList and fill
-      os << "\t<AnalysisData>\n\t\t<SpectrumIdentificationList id=\""
-         << String(silly)
-         << String("\"> \n");
+      os << "\t<AnalysisData>\n\t\t<SpectrumIdentificationList id=\"" << String(silly) << "\"> \n";
+
+      os << "\t\t\t<FragmentationTable>\n";
+         << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
+         << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
+         << "\t\t\t\t</Measure>\n";
+         << "\t\t\t</FragmentationTable>\n";
+
       for (std::vector<String>::const_iterator sid = sidlist.begin(); sid != sidlist.end(); ++sid)
       {
         os << *sid;
