@@ -121,16 +121,15 @@ protected:
                        "TPP bin directory e.g. '/usr/local/tpp/bin/xinteract'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
     
-    registerFlag_("refinement", "Discard search results with PeptideProphet probabilities below 0.05.");
     registerIntOption_("num_extra_interation", "<num>", 20, "Number of extra PeptideProphet interations; default <num>=20", false);
     registerIntOption_("ignore_charge", "<num>", -1, "Ignore charge <num>+", false);
-    registerStringOption_("decoy_prefix", "<tag>", "", "Use decoy hits to pin down the negative distribution; the decoy protein names must begin with <tag> (whitespace is not allowed). e.g. decoy", false);
+    registerStringOption_("decoy_prefix", "<tag>", "", "Use decoy hits to pin down the negative distribution; the decoy protein names must begin with <tag> (whitespace is not allowed). e.g. 'decoy_'. OMSSA results must contain decoy search with decoy prefix, otherwise TPP parser error.", false);
     registerIntOption_("conservative_level", "<num>", 0, "Specify how conservative the model is to be in number of standard deviations from negative mean to allow positive model to cover, higher is more conservative.", false);
     registerStringOption_("precursor_error_units", "<unit>", "dalton", "Specify the precusor error unit for the accurate mass model.", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("dalton,ppm"));
     registerStringOption_("experiment_label", "<tag>", "", "Used to commonly label all spectra belonging to one experiment (required by iProphet). ", false);
     registerIntOption_("minimun_pep_length", "<num>", 7, "Minimum peptide length considered in the analysis (default 7).", false);
-    registerDoubleOption_("filter_result", "<float>", 0.05, "Filter results below PeptideProphet probability <value> (default 0.05).", false);
+    registerDoubleOption_("filter_result", "<float>", 0, "Filter results below PeptideProphet probability. <value> = 0 will skip the filter. TPP default is 0.05.", false);
     // -mw [calculate protein molecular weights]" ;
     registerStringOption_("fragment_type", "<unit>", "MONO", "Calculate monoisotopic/average peptide masses during conversion to pepXML.", false);
     setValidStrings_("fragment_type", ListUtils::create<String>("MONO,AVE"));
@@ -259,10 +258,6 @@ protected:
       }
     }
     parameters << "-T" + getStringOption_("database_type");
-    if (!getFlag_("refinement"))
-    {
-      parameters << "-p0";
-    }
     parameters << "-x" + String(getIntOption_("num_extra_interation"));
     if (getIntOption_("ignore_charge") >= 0)
     {
