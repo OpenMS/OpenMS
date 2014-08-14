@@ -185,7 +185,7 @@ private:
 
     */
     double largePeaksBeforeFirstIsotope_(double product_mz,
-                                            SpectrumPtrType spectrum, double max_ppm_diff, double main_peak);
+                                            SpectrumPtrType spectrum, double main_peak);
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
@@ -204,7 +204,7 @@ private:
     double dia_byseries_ppm_diff_;
     double dia_nr_isotopes_;
     double dia_nr_charges_;
-
+    double peak_before_mono_max_ppm_diff_;
   };
 }
 

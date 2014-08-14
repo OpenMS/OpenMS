@@ -72,6 +72,9 @@ namespace OpenMS
     defaults_.setValue("dia_nr_charges", 4, "DIA nr of charges to consider.");
     defaults_.setMinInt("dia_nr_charges", 0);
 
+    defaults_.setValue("peak_before_mono_max_ppm_diff", 20.0, "DIA maximal difference in ppm to count a peak at lower m/z when searching for evidence that a peak might not be monoisotopic.");
+    defaults_.setMinFloat("peak_before_mono_max_ppm_diff", 0.0);
+
     // write defaults into Param object param_
     defaultsToParam_();
   }
@@ -85,6 +88,7 @@ namespace OpenMS
 
     dia_nr_isotopes_ = (int)param_.getValue("dia_nr_isotopes");
     dia_nr_charges_ = (int)param_.getValue("dia_nr_charges");
+    peak_before_mono_max_ppm_diff_ = (double)param_.getValue("peak_before_mono_max_ppm_diff");
   }
 
   void DIAScoring::set_dia_parameters(double dia_extract_window, double dia_centroided,
@@ -174,8 +178,6 @@ namespace OpenMS
   void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
                                           double& isotope_corr, double& isotope_overlap)
   {
-    double max_ppm_diff = 20.0; // TODO (hroest) make this a proper parameter
-
     // collect the potential isotopes of this peak
     std::vector<double> isotopes_int;
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
@@ -190,7 +192,7 @@ namespace OpenMS
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
     isotope_corr = scoreIsotopePattern_(precursor_mz, isotopes_int, charge_state);
-    isotope_overlap = largePeaksBeforeFirstIsotope_(precursor_mz, spectrum, max_ppm_diff, isotopes_int[0]);
+    isotope_overlap = largePeaksBeforeFirstIsotope_(precursor_mz, spectrum, isotopes_int[0]);
   }
 
   void DIAScoring::dia_by_ion_score(SpectrumPtrType spectrum,
@@ -256,8 +258,6 @@ namespace OpenMS
                                           double& isotope_corr, double& isotope_overlap)
   {
     std::vector<double> isotopes_int;
-    double max_ppm_diff = 20.0; // TODO (hroest) make this a proper parameter
-
     for (Size k = 0; k < transitions.size(); k++)
     {
       isotopes_int.clear();
@@ -285,13 +285,13 @@ namespace OpenMS
       // isotope correlation (forward) and the isotope overlap (backward) scores
       double score = scoreIsotopePattern_(transitions[k].getProductMZ(), isotopes_int, putative_fragment_charge);
       isotope_corr += score * rel_intensity;
-      score = largePeaksBeforeFirstIsotope_(transitions[k].getProductMZ(), spectrum, max_ppm_diff, isotopes_int[0]);
+      score = largePeaksBeforeFirstIsotope_(transitions[k].getProductMZ(), spectrum, isotopes_int[0]);
       isotope_overlap += score * rel_intensity;
     }
   }
 
   double DIAScoring::largePeaksBeforeFirstIsotope_(double product_mz,
-                                                   SpectrumPtrType spectrum, double max_ppm_diff, double main_peak)
+                                                   SpectrumPtrType spectrum, double main_peak)
   {
     double result = 0;
     double mz, intensity;
@@ -317,7 +317,7 @@ namespace OpenMS
       double ddiff_ppm = std::fabs(mz - (product_mz - 1.0 / (double) ch)) * 1000000 / product_mz;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
-      if (ratio > 1 && ddiff_ppm < max_ppm_diff)
+      if (ratio > 1 && ddiff_ppm < peak_before_mono_max_ppm_diff_)
       {
         //isotope_overlap += 1.0 * rel_intensity;
 
