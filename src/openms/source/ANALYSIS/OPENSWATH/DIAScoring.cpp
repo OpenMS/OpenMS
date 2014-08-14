@@ -170,6 +170,29 @@ namespace OpenMS
     }
   }
 
+  /// Precursor isotope scores
+  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
+                                          double& isotope_corr, double& isotope_overlap)
+  {
+    double max_ppm_diff = 20.0; // TODO (hroest) make this a proper parameter
+
+    // collect the potential isotopes of this peak
+    std::vector<double> isotopes_int;
+    for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
+    {
+      double left  = precursor_mz - dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double right = precursor_mz + dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<double>(charge_state);
+      double mz, intensity;
+      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      isotopes_int.push_back(intensity);
+    }
+
+    // calculate the scores:
+    // isotope correlation (forward) and the isotope overlap (backward) scores
+    isotope_corr = scoreIsotopePattern_(precursor_mz, isotopes_int, charge_state);
+    isotope_overlap = largePeaksBeforeFirstIsotope_(precursor_mz, spectrum, max_ppm_diff, isotopes_int[0]);
+  }
+
   void DIAScoring::dia_by_ion_score(SpectrumPtrType spectrum,
                                     AASequence& sequence, int charge, double& bseries_score,
                                     double& yseries_score)

@@ -136,6 +136,11 @@ public:
     bool dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
                                 double& ppm_score);
 
+    /// Precursor isotope scores
+    void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
+                                double& isotope_corr, double& isotope_overlap);
+
+
     /// b/y ion scores
     void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
                           int charge, double& bseries_score, double& yseries_score);
