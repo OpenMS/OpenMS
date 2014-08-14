@@ -114,7 +114,7 @@ namespace OpenMS
         "\tvar_massdev_score\tvar_massdev_score_weighted\tvar_norm_rt_score\tvar_xcorr_coelution" <<
         "\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted" <<
         "\tvar_yseries_score\tvar_elution_model_fit_score" << 
-        "\tvar_ms1_ppm_diff\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape" << 
+        "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape" << 
         "\txx_lda_prelim_score\txx_swath_prelim_score" <<
         "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
     }
@@ -213,6 +213,8 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("var_yseries_score")
             + "\t" + (String)feature_it->getMetaValue("var_elution_model_fit_score")
             + "\t" + (String)feature_it->getMetaValue("var_ms1_ppm_diff")
+            + "\t" + (String)feature_it->getMetaValue("var_ms1_isotope_correlation")
+            + "\t" + (String)feature_it->getMetaValue("var_ms1_isotope_overlap")
             + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_coelution")
             + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_shape")
             + "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
