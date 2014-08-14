@@ -389,7 +389,7 @@ namespace OpenMS
       String inputs_element, analysisdata_element;
       std::set<String> sdb_set, sen_set, sof_set, sip_set, spd_set;
       std::map<String, UInt64> sdb_ids, sen_ids, sof_ids, sip_ids, spd_ids, pep_ids;
-      std::map<String, String> pie_ids;
+      std::map<String, String> pie_ids, sip_sdb;
       std::vector<String> /* peps, pepevis, */ sidlist;
       //TODO MS:1001035 (date / time search performed) for sidlist
 
@@ -409,7 +409,7 @@ namespace OpenMS
       +Inputs
       -AnalysisData collected in sidlist --> unclosed element string
       ---------------------------------------------------------------------*/
-      inputs_element += String("<Inputs>");
+      inputs_element += String("\t<Inputs>\n");
       String spectra_data;
       //~ for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       //~ {
@@ -519,6 +519,7 @@ namespace OpenMS
           sip += String("\n\t\t</Threshold>\n\t</SpectrumIdentificationProtocol>\n");
           sip_set.insert(sip);
           sip_ids.insert(std::pair<String, UInt64>(swcn, spid));
+          sip_sdb.insert(std::make_pair(spid, dbid));
         }
         //TODO @mths: FIXME missing enzyme modificationparams, parenttolerances, fragmenttolerances
 
@@ -709,6 +710,7 @@ namespace OpenMS
           {
             sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns, sc);
           }
+          sidres += "\n";
 
           writeMetaInfos_(sidres, *jt, 5);
 
@@ -778,7 +780,13 @@ namespace OpenMS
         //~ for  (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
         //~ {
         UInt64 ss  = UniqueIdGenerator::getUniqueId();
-        String entry = String("\t<SpectrumIdentification id=\"") + String(ss) + String("\" spectrumIdentificationProtocol_ref=\"") + String(sip->second) + String("\" spectrumIdentificationList_ref=\"") + String(silly) + String("\">\n") + String("\t\t<InputSpectra/>\n\t\t<SearchDatabaseRef/>\n\t</SpectrumIdentification>\n");
+        String entry = String("\t<SpectrumIdentification id=\"") + String(ss) + String("\" spectrumIdentificationProtocol_ref=\"")
+                + String(sip->second) + String("\" spectrumIdentificationList_ref=\"") + String(silly)
+                + String("\">\n")
+                + "\t\t<InputSpectra/>\n"
+                + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sip_sdb[sip->first] + "\"/>\n"
+                + "\t</SpectrumIdentification>\n";
+
         os <<   entry;
         //~ }
       }

@@ -208,7 +208,18 @@ namespace OpenMS
           if( !analysisSoftwareElements ) throw(std::runtime_error( "No AnalysisSoftware nodes" ));
           parseAnalysisSoftwareList_(analysisSoftwareElements);
 
-          // 1. AnalysisSampleCollection ??? contact stuff
+          // 1. DataCollection {1,1}
+          DOMNodeList * spectraDataElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectraData"));
+          if( !spectraDataElements ) throw(std::runtime_error( "No SpectraData nodes" ));
+          parseInputElements_(spectraDataElements);
+
+          DOMNodeList * searchDatabaseElements = xmlDoc->getElementsByTagName(XMLString::transcode("SearchDatabase"));
+          if( !searchDatabaseElements ) throw(std::runtime_error( "No SearchDatabase nodes" ));
+          parseInputElements_(searchDatabaseElements);
+
+          DOMNodeList * sourceFileElements = xmlDoc->getElementsByTagName(XMLString::transcode("SourceFile"));
+          if( !sourceFileElements ) throw(std::runtime_error( "No SourceFile nodes" ));
+          parseInputElements_(sourceFileElements);
 
           // 2. SpectrumIdentification  {1,unbounded} ! identification runs
           DOMNodeList * spectrumIdentificationElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentification"));
@@ -234,18 +245,7 @@ namespace OpenMS
           parsePeptideEvidenceElements_(peptideEvidenceElements);
 //          mzid_parser_.resetDocumentPool(); //segfault prone: do not use!
 
-          // 5. DataCollection {1,1}
-          DOMNodeList * spectraDataElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectraData"));
-          if( !spectraDataElements ) throw(std::runtime_error( "No SpectraData nodes" ));
-          parseInputElements_(spectraDataElements);
-
-          DOMNodeList * searchDatabaseElements = xmlDoc->getElementsByTagName(XMLString::transcode("SearchDatabase"));
-          if( !searchDatabaseElements ) throw(std::runtime_error( "No SearchDatabase nodes" ));
-          parseInputElements_(searchDatabaseElements);
-
-          DOMNodeList * sourceFileElements = xmlDoc->getElementsByTagName(XMLString::transcode("SourceFile"));
-          if( !sourceFileElements ) throw(std::runtime_error( "No SourceFile nodes" ));
-          parseInputElements_(sourceFileElements);
+          // 5. AnalysisSampleCollection ??? contact stuff
 
           // 6. AnalysisCollection {1,1} - build final structures
           DOMNodeList * spectrumIdentificationResultElements = xmlDoc->getElementsByTagName(XMLString::transcode("SpectrumIdentificationResult"));
@@ -731,20 +731,21 @@ namespace OpenMS
           {
             if ((std::string)XMLString::transcode(child->getTagName()) == "InputSpectra")
             {
-              spectra_data_ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("spectraData_ref")));
+              spectra_data_ref = XMLString::transcode(child->getAttribute(XMLString::transcode("spectraData_ref")));
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "SearchDatabaseRef")
             {
-              searchDatabase_ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("searchDatabase_ref")));
+              searchDatabase_ref = XMLString::transcode(child->getAttribute(XMLString::transcode("searchDatabase_ref")));
             }
             child = child->getNextElementSibling();
           }
           si_map_.insert(std::make_pair(id,SpectrumIdentification{spectra_data_ref, searchDatabase_ref, spectrumIdentificationProtocol_ref, spectrumIdentificationList_ref}));
 
           pro_id_->push_back(ProteinIdentification());
-//          si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
+          ProteinIdentification::SearchParameters sp;
+          sp.db = input_dbs_[searchDatabase_ref].location;
+          pro_id_->back().setSearchParameters(sp);
           si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
-
         }
       }
       //std::cout << "SpectrumIdentification found: " << count << std::endl;
@@ -919,6 +920,7 @@ namespace OpenMS
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngine(search_engine_);
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngineVersion(search_engine_version_);
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setIdentifier(search_engine_); // TODO @mths: name/date of search
+              sp.db = si_pro_map_[si_it->second.spectrum_identification_list_ref]->getSearchParameters().db;
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchParameters(sp);
             }
           }
@@ -1265,7 +1267,7 @@ namespace OpenMS
 
             if (!location.empty())
             {
-              std::cout << location.toInt() << std::endl;
+              //std::cout << location.toInt() << std::endl;
               as[location.toInt()-1] = replacementResidue;
 //              std::cout << as[location.toInt()-1] << ": " << originalResidue << "->" << replacementResidue << std::endl;
             }
@@ -1276,7 +1278,7 @@ namespace OpenMS
             }
             else
             {
-              std::cout << "going to throw up from <PeptideSequence>" << std::endl;
+              //std::cout << "going to throw up from <PeptideSequence>" << std::endl;
               throw "ERROR : Non Text Node";
             }
           }
