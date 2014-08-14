@@ -187,7 +187,7 @@ public:
     inline void addPrecursorChromatogram(SpectrumType & chromatogram, String key)
     {
       precursor_chromatograms_.push_back(chromatogram);
-      precursor_chromatogram_map_[key] = boost::numeric_cast<int>(precursor_chromatogram_map_.size()) - 1;
+      precursor_chromatogram_map_[key] = boost::numeric_cast<int>(precursor_chromatograms_.size()) - 1;
     }
 
     inline SpectrumType & getPrecursorChromatogram(String key)
