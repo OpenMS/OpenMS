@@ -1037,7 +1037,7 @@ namespace OpenMS
       String name = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("name")));
 
       // TODO @ mths : where to put calc. mz if even
-//      long double calculatedMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("calculatedMassToCharge")))).toDouble();
+      long double calculatedMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("calculatedMassToCharge")))).toDouble();
 //      long double calculatedPI = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("calculatedPI")))).toDouble();
       int chargeState = 0;
       try
@@ -1095,6 +1095,8 @@ namespace OpenMS
       //
       spectrum_identification.insertHit(hit);
       spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
+      pep_id_->back().setMetaValue("calcMZ", calculatedMassToCharge);
+
 
       if (pe_ev_map_.find(pev) != pe_ev_map_.end())
       {
