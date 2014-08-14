@@ -29,30 +29,67 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Bastian Blank $
+// $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
+//
 
-#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
-
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H
-#define OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <vector>
+#include <algorithm>
+#include <iostream>
 
 namespace OpenMS
 {
-  /**
-   * @brief A single SILAC pattern containing multiple found points
-   * @see HashGrid
-   * @ingroup Datastructures
-   */
-  class OPENMS_DLLAPI SILACPattern :
-    public SILACPoint
-  {
-public:
-    /**
-     * Points checked and found in the raw data.
-     */
-    std::vector<SILACPoint> points;
-  };
+
+GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices, const int &property_A, const std::vector<int> &properties_B)
+: centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(property_A), properties_B_(properties_B)
+{
 }
 
-#endif /* OPENMS_FILTERING_DATAREDUCTION_SILACPATTERN_H */
+GridBasedCluster::GridBasedCluster(const Point &centre, const Rectangle &bounding_box, const std::vector<int> &point_indices)
+: centre_(centre), bounding_box_(bounding_box), point_indices_(point_indices), property_A_(-1), properties_B_(point_indices.size(),-1)
+{
+}
+
+GridBasedCluster::Point GridBasedCluster::getCentre() const
+{
+    return centre_;
+}
+
+GridBasedCluster::Rectangle GridBasedCluster::getBoundingBox() const
+{
+    return bounding_box_;
+}
+
+std::vector<int> GridBasedCluster::getPoints() const
+{
+    return point_indices_;
+}
+
+int GridBasedCluster::getPropertyA() const
+{
+    return property_A_;
+}
+
+std::vector<int> GridBasedCluster::getPropertiesB() const
+{
+    return properties_B_;
+}
+
+bool GridBasedCluster::operator<(GridBasedCluster other) const
+{
+    return centre_.getY() < other.centre_.getY();
+}
+
+bool GridBasedCluster::operator>(GridBasedCluster other) const
+{
+    return centre_.getY() > other.centre_.getY();
+}
+
+bool GridBasedCluster::operator==(GridBasedCluster other) const
+{
+    return centre_.getY() == other.centre_.getY();
+}
+
+}
