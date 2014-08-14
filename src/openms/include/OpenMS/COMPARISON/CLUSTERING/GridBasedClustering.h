@@ -59,43 +59,25 @@ class OPENMS_DLLAPI MinimumDistance
     /**
     * @brief constructor
     */
-    MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance)
-    :cluster_index_(cluster_index), nearest_neighbour_index_(nearest_neighbour_index), distance_(distance)
-    {
-    }
+    MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance);
 
     /**
     * @brief returns cluster index
     */
-    int getClusterIndex() const
-    {
-        return cluster_index_;
-    }
+    int getClusterIndex() const;
     
     /**
     * @brief returns index of nearest cluster
     */
-    int getNearestNeighbourIndex() const
-    {
-        return  nearest_neighbour_index_;
-    }
+    int getNearestNeighbourIndex() const;
 
     /**
      * @brief operators for comparisons
      * (for multiset)
      */
-    bool operator<(MinimumDistance other) const
-    {
-        return distance_ < other.distance_;
-    }
-    bool operator>(MinimumDistance other) const
-    {
-        return distance_ > other.distance_;
-    }
-    bool operator==(MinimumDistance other) const
-    {
-        return distance_ == other.distance_;
-    }
+    bool operator<(MinimumDistance other) const;
+    bool operator>(MinimumDistance other) const;
+    bool operator==(MinimumDistance other) const;
 
     private:        
     /// hide default constructor

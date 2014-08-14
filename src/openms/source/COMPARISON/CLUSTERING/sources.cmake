@@ -11,6 +11,7 @@ ClusteringGrid.cpp
 CompleteLinkage.cpp
 EuclideanSimilarity.cpp
 GridBasedCluster.cpp
+GridBasedClustering.cpp
 SingleLinkage.cpp
 )
 
