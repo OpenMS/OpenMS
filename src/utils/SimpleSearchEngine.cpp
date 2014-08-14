@@ -330,7 +330,7 @@ class SimpleSearchEngine :
         double z = 0;
         for (y = 2; y <= x; y++)
         {
-          z = log(y) + z;
+          z = log((double)y) + z;
         }
 
         return z;
