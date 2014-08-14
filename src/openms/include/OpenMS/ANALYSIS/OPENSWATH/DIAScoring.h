@@ -85,7 +85,7 @@ namespace OpenMS
     ///Type definitions
     //@{
     /// Spectrum type, see Spectrum interface
-    typedef OpenSwath::SpectrumPtr SpectrumType;
+    typedef OpenSwath::SpectrumPtr SpectrumPtrType;
     /// Transition interface (Transition, Peptide, Protein)
     typedef OpenSwath::LightTransition TransitionType;
     typedef OpenSwath::LightPeptide PeptideType;
@@ -117,12 +117,12 @@ public:
     //@{
     /// Isotope scores, see class description
     void dia_isotope_scores(const std::vector<TransitionType>& transitions,
-                            SpectrumType spectrum, OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr,
+                            SpectrumPtrType spectrum, OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr,
                             double& isotope_overlap);
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            SpectrumType spectrum, const std::vector<double>& normalized_library_intensity,
+                            SpectrumPtrType spectrum, const std::vector<double>& normalized_library_intensity,
                             double& ppm_score, double& ppm_score_weighted);
 
     /**
@@ -133,15 +133,15 @@ public:
       @param ppm_score Resulting score
       @return False if no signal was found (and no sensible score calculated), true otherwise
     */
-    bool dia_ms1_massdiff_score(double precursor_mz, SpectrumType spectrum,
+    bool dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
                                 double& ppm_score);
 
     /// b/y ion scores
-    void dia_by_ion_score(SpectrumType spectrum, AASequence& sequence,
+    void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
                           int charge, double& bseries_score, double& yseries_score);
 
     /// Dotproduct / Manhatten score with theoretical spectrum
-    void score_with_isotopes(SpectrumType spectrum, const std::vector<TransitionType>& transitions,
+    void score_with_isotopes(SpectrumPtrType spectrum, const std::vector<TransitionType>& transitions,
                              double& dotprod, double& manhattan);
     //@}
 
@@ -158,7 +158,7 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                                SpectrumType spectrum, std::map<std::string, double>& intensities,
+                                SpectrumPtrType spectrum, std::map<std::string, double>& intensities,
                                 double& isotope_corr, double& isotope_overlap);
 
     /// retrieves intensities from MRMFeature
@@ -171,23 +171,26 @@ private:
 private:
 
     /**
-      @brief Search for a large peak _before_ (lower m/z) the current peak
+      @brief Determine whether the current m/z value is a monoisotopic peak 
+      
+      This function will try to determine whether the current peak is a
+      monoisotopic peak or not. It will do so by searching for an intense peak
+      at a lower m/z that could explain the current peak as part of a isotope
+      pattern.
 
-      This function will try to determine whether the current peak is part of
-      an isotopic pattern that does NOT have the current peak as monoisotopic
-      peak.
     */
     double largePeaksBeforeFirstIsotope_(double product_mz,
-                                            SpectrumType& spectrum, double max_ppm_diff, double main_peak);
+                                            SpectrumPtrType spectrum, double max_ppm_diff, double main_peak);
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
 
       This function will take an array of isotope intensities and compare them
-      to the theoretically expected ones using Pearson correlation.
+      to the theoretically expected ones for the given m/z using an averagine
+      model. The returned value is a Pearson correlation between the
+      experimental and theoretical pattern.
     */
-    double scoreIsotopePattern_(double product_mz,
-                                   const std::vector<double>& isotopes_int, int putative_fragment_charge);
+    double scoreIsotopePattern_(double product_mz, const std::vector<double>& isotopes_int, int putative_fragment_charge);
 
     // Parameters
     double dia_extract_window_;

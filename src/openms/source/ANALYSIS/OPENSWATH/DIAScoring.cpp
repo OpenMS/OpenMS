@@ -102,7 +102,7 @@ namespace OpenMS
   ///////////////////////////////////////////////////////////////////////////
   // DIA / SWATH scoring
 
-  void DIAScoring::dia_isotope_scores(const std::vector<TransitionType>& transitions, SpectrumType spectrum,
+  void DIAScoring::dia_isotope_scores(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
                                       OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr, double& isotope_overlap)
   {
     isotope_corr = 0;
@@ -113,7 +113,7 @@ namespace OpenMS
     diaIsotopeScoresSub_(transitions, spectrum, intensities, isotope_corr, isotope_overlap);
   }
 
-  void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions, SpectrumType spectrum,
+  void DIAScoring::dia_massdiff_score(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
                                       const std::vector<double>& normalized_library_intensity,
                                       double& ppm_score, double& ppm_score_weighted)
   {
@@ -144,7 +144,7 @@ namespace OpenMS
     }
   }
 
-  bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, SpectrumType spectrum,
+  bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
                                           double& ppm_score)
   {
     ppm_score = -1;
@@ -170,7 +170,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::dia_by_ion_score(SpectrumType spectrum,
+  void DIAScoring::dia_by_ion_score(SpectrumPtrType spectrum,
                                     AASequence& sequence, int charge, double& bseries_score,
                                     double& yseries_score)
   {
@@ -205,7 +205,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::score_with_isotopes(SpectrumType spectrum, const std::vector<TransitionType>& transitions,
+  void DIAScoring::score_with_isotopes(SpectrumPtrType spectrum, const std::vector<TransitionType>& transitions,
                                        double& dotprod, double& manhattan)
   {
     OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
@@ -228,7 +228,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, SpectrumType spectrum,
+  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
                                           std::map<std::string, double>& intensities, //relative intensities
                                           double& isotope_corr, double& isotope_overlap)
   {
@@ -267,9 +267,8 @@ namespace OpenMS
     }
   }
 
-  /// Search for a large peak _before_ (lower m/z) the current peak
   double DIAScoring::largePeaksBeforeFirstIsotope_(double product_mz,
-                                                      SpectrumType& spectrum, double max_ppm_diff, double main_peak)
+                                                   SpectrumPtrType spectrum, double max_ppm_diff, double main_peak)
   {
     double result = 0;
     double mz, intensity;
@@ -309,7 +308,6 @@ namespace OpenMS
     return result;
   }
 
-  /// Compare an experimental isotope pattern to a theoretical one
   double DIAScoring::scoreIsotopePattern_(double product_mz,
                                              const std::vector<double>& isotopes_int, int putative_fragment_charge)
   {
