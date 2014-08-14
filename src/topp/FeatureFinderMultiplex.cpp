@@ -778,19 +778,28 @@ public:
                 // calculate intensities for each of the peptides from profile data
                 std::vector<double> peptide_intensities = getPeptideIntensities(profile_intensities);
                 
+                // average peptide intensity (= consensus intensity)
+                double average_peptide_intensity = 0;
+                for (unsigned i=0; i<peptide_intensities.size(); ++i)
+                {
+                    average_peptide_intensity += peptide_intensities[i];
+                }
+                average_peptide_intensity /= peptide_intensities.size();
+                
                 // fill map with consensuses and its features
                 consensus.setMZ(sum_intensity_mz[0]/sum_intensity[0]);
                 consensus.setRT(sum_intensity_rt[0]/sum_intensity[0]);
-                consensus.setIntensity(sum_intensity[0]);
+                consensus.setIntensity(average_peptide_intensity);
                 consensus.setCharge(patterns[pattern].getCharge());
-                consensus.setQuality(1);
+                consensus.setQuality(1 - 1/points.size());    // rough quality score in [0,1]
                 
                 for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
                 {
                     FeatureHandle feature;
                     feature.setMZ(sum_intensity_mz[peptide]/sum_intensity[peptide]);
                     feature.setRT(sum_intensity_rt[peptide]/sum_intensity[peptide]);
-                    feature.setIntensity(sum_intensity[peptide]);
+                    feature.setIntensity(peptide_intensities[peptide]);
+                    feature.setCharge(patterns[pattern].getCharge());
                     feature.setMapIndex(peptide);
                     //feature.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
                     consensus_map.getFileDescriptions()[peptide].size++;
