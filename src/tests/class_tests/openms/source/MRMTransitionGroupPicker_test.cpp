@@ -393,7 +393,7 @@ START_SECTION((template < typename SpectrumT > void remove_overlapping_features(
   std::vector< RichPeakChromatogram > picked_chroms_orig = picked_chroms;
 
   // First we look at the rightmost peak which should include the first two
-  // peaks in the first chromatogram and and the first peak in the second
+  // peaks in the first chromatogram and the first peak in the second
   //chromatogram
   double best_left = 3100; double best_right = 3140; 
   picked_chroms = picked_chroms_orig;
