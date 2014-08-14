@@ -795,17 +795,23 @@ public:
                 
                 for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
                 {
-                    FeatureHandle feature;
+                    FeatureHandle feature_handle;
+                    feature_handle.setMZ(sum_intensity_mz[peptide]/sum_intensity[peptide]);
+                    feature_handle.setRT(sum_intensity_rt[peptide]/sum_intensity[peptide]);
+                    feature_handle.setIntensity(peptide_intensities[peptide]);
+                    feature_handle.setCharge(patterns[pattern].getCharge());
+                    feature_handle.setMapIndex(peptide);
+                    //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
+                    consensus_map.getFileDescriptions()[peptide].size++;
+                    consensus.insert(feature_handle);
+                    
+                    Feature feature;
                     feature.setMZ(sum_intensity_mz[peptide]/sum_intensity[peptide]);
                     feature.setRT(sum_intensity_rt[peptide]/sum_intensity[peptide]);
                     feature.setIntensity(peptide_intensities[peptide]);
                     feature.setCharge(patterns[pattern].getCharge());
-                    feature.setMapIndex(peptide);
-                    //feature.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
-                    consensus_map.getFileDescriptions()[peptide].size++;
-                    consensus.insert(feature);
-                    
-                    
+                    feature.setOverallQuality(1 - 1/points.size());
+                    feature_map.push_back(feature);
                 }
                 
                 consensus_map.push_back(consensus);
@@ -821,7 +827,7 @@ public:
      * @param filename    name of consensusXML file
      * @param map    consensus map for output
      */
-    void writeConsensusMap_(const String & filename, ConsensusMap &map) const
+    void writeConsensusMap_(const String &filename, ConsensusMap &map) const
     {
         map.sortByPosition();
         map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -832,6 +838,21 @@ public:
         desc.label = "multiplex";
         
         ConsensusXMLFile file;
+        file.store(filename, map);
+    }
+
+    /**
+     * @brief Write feature map to featureXML file.
+     * 
+     * @param filename    name of featureXML file
+     * @param map    feature map for output
+     */
+    void writeFeatureMap_(const String &filename, FeatureMap<> &map) const
+    {
+        map.sortByPosition();
+        map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+        FeatureXMLFile file;
         file.store(filename, map);
     }
 
@@ -983,6 +1004,7 @@ public:
     FeatureMap<> feature_map;   
     generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     writeConsensusMap_(out, consensus_map);
+    writeFeatureMap_(out, feature_map);
     
     std::cout << "The map contains " << consensus_map.size() << " consensuses.\n";
 
