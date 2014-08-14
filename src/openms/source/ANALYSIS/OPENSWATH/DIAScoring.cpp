@@ -358,5 +358,4 @@ namespace OpenMS
 
   } //end of dia_isotope_corr_sub
 
-//mrmfeature
 }
