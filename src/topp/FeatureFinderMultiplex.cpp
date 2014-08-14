@@ -620,7 +620,7 @@ public:
     /**
      * @brief calculate peptide intensities 
      * 
-     * @param profile_intensities    vectors of profile intensities for each of the peptides
+     * @param profile_intensities    vectors of profile intensities for each of the peptides (first index: peptide 0=L, 1=M, 2=H etc, second index: raw data point)
      * @return vector with intensities for each peptide
      */
     std::vector<double> getPeptideIntensities(std::vector<std::vector<double> > &profile_intensities)
@@ -643,7 +643,6 @@ public:
             // filter for non-NaN intensities
             std::vector<double> intensities1;
             std::vector<double> intensities2;
-            std::vector<double> intensitiesMean;
             double intensity = 0;
             for (unsigned j = 0; j < count; ++j)
             {
@@ -651,52 +650,56 @@ public:
                 {
                     intensities1.push_back(profile_intensities[0][j]);
                     intensities2.push_back(profile_intensities[i][j]);
-                    intensitiesMean.push_back(profile_intensities[0][j] + profile_intensities[i][j]);
                     intensity += profile_intensities[i][j];
                 }
             }
             
-            //Math::LinearRegression linreg;
-            //linreg.computeRegressionWeighted(0.95, intensities1.begin(), intensities1.end(), intensities2.begin(), intensitiesMean.begin());
-            //linreg.computeRegression(0.95, intensities1.begin(), intensities1.end(), intensities2.begin());
-            
             LinearRegressionWithoutIntercept linreg;
-            for (unsigned i=0; i<intensities1.size(); ++i)
-            {
-                linreg.addData(intensities1[i], intensities2[i]);
-            }
+            linreg.addData(intensities1, intensities2);
             ratios.push_back(linreg.getSlope());          
             intensities.push_back(intensity);
 
         }
         
-        // correct intensities for ratios
+        // correct peptide intensities
+        // (so that their ratios are in agreement with the ratios from the linear regression)
         std::vector<double> corrected_intensities;
         if (profile_intensities.size() == 2)
         {
-            double xd = (intensities[0] + ratios[1]*intensities[1])/(1+ratios[1]*ratios[1]);
-            double yd = ratios[1] * xd;
-            std::cout << "x = " << intensities[0] << "  y = " << intensities[1] << "  y/x = " << intensities[1]/intensities[0] << "  ratio = " << ratios[1] << "  x' = " << xd << "  y' = " << yd << "\n";  
+            double intensity1 = (intensities[0] + ratios[1]*intensities[1])/(1+ratios[1]*ratios[1]);
+            double intensity2 = ratios[1] * intensity1;
+            std::cout << "x = " << intensities[0] << "  y = " << intensities[1] << "  y/x = " << intensities[1]/intensities[0] << "  ratio = " << ratios[1] << "  x' = " << intensity1 << "  y' = " << intensity2 << "\n";
+            corrected_intensities.push_back(intensity1);
+            corrected_intensities.push_back(intensity2);
         }
-        /*else if ()
+        else if (profile_intensities.size() > 2)
         {
+            // Now there are multiple labelled/light ratios. Light intensities stay fixed, just adjust intensities of labelled peptides.
+            // TODO: Better project onto hyperplane defined by ratios, then light is not singled out.
+            corrected_intensities.push_back(intensities[0]);
+            for (unsigned i = 1; i < profile_intensities.size(); ++i)
+            {
+                corrected_intensities.push_back(ratios[i] * intensities[0]);
+            }
         }
         else
         {
-        }*/
+            corrected_intensities.push_back(intensities[0]);
+        }
         
-        return intensities;
+        //return intensities;
+        return corrected_intensities;
     }
     
     /**
-     * @brief generates consensus map containing all peptide multiplets
+     * @brief generates consensus and feature maps containing all peptide multiplets
      * 
      * @param patterns    patterns of isotopic peaks we have been searching for
      * @param filter_results    filter results for each of the patterns
      * @param cluster_results    clusters of filter results
      * @param map    consensus map with peptide multiplets (to be filled)
      */
-     void generateConsensusMap_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results, ConsensusMap &map)
+     void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results, ConsensusMap &map)
     {
         // data structures for final results
         std::vector<std::vector<double> > peptide_RT;
@@ -707,7 +710,7 @@ public:
         // loop over peak patterns
         for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
         {
-            std::cout << "pattern " << pattern << " contains " << cluster_results[pattern].size() << " clusters.\n";
+            std::cout << "\n" << "pattern " << pattern << " contains " << cluster_results[pattern].size() << " clusters.\n";
             
             // loop over clusters
             for (std::map<int,MultiplexCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
@@ -853,6 +856,20 @@ public:
         }
         
         /**
+         * @brief adds observations (x,y) to the regression data set.
+         * 
+         * @param x    vector of independent variable values
+         * @param y    vector of dependent variable values
+         */
+        void addData(std::vector<double> &x, std::vector<double> &y)
+        {
+            for (unsigned i=0; i<x.size(); ++i)
+            {
+                addData(x[i],y[i]);
+            }
+        }
+        
+        /**
          * @brief returns the slope of the estimated regression line.
          */
         double getSlope()
@@ -953,7 +970,7 @@ public:
      * write to output
      */
     ConsensusMap map;     
-    generateConsensusMap_(patterns, filter_results, cluster_results, map);
+    generateMaps_(patterns, filter_results, cluster_results, map);
     writeConsensusMap_(out, map);
     
     std::cout << "The map contains " << map.size() << " consensuses.\n";
