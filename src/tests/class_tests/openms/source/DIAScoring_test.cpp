@@ -66,14 +66,14 @@ OpenSwath::SpectrumPtr prepareSpectrum()
   OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
 
   static const double arr1[] = {
-    10, 20, 50, 100, 50, 20, 10, // peak at 499
-    3, 7, 15, 30, 15, 7, 3,      // peak at 500
-    1, 3, 9, 15, 9, 3, 1,        // peak at 501
-    3, 9, 3,                     // peak at 502
+    10, 20, 50, 100, 50, 20, 10, // peak at 499 -> 260-20 = 240 intensity within 0.05 Th
+    3, 7, 15, 30, 15, 7, 3,      // peak at 500 -> 80-6 = 74 intensity within 0.05 Th
+    1, 3, 9, 15, 9, 3, 1,        // peak at 501 -> 41-2 = 39 intensity within 0.05 Th
+    3, 9, 3,                     // peak at 502 -> 15 intensity within 0.05 Th
 
-    10, 20, 50, 100, 50, 20, 10, // peak at 600
-    3, 7, 15, 30, 15, 7, 3,      // peak at 601
-    1, 3, 9, 15, 9, 3, 1,        // peak at 602
+    10, 20, 50, 100, 50, 20, 10, // peak at 600 -> 260-20 = 240 intensity within 0.05 Th
+    3, 7, 15, 30, 15, 7, 3,      // peak at 601 -> 80-6 = 74 intensity within 0.05 Th
+    1, 3, 9, 15, 9, 3, 1,        // peak at 602 -> sum([ 9, 15, 9, 3, 1]) = 37 intensity within 0.05 Th
     3, 9, 3                      // peak at 603
   };
   std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
@@ -85,6 +85,8 @@ OpenSwath::SpectrumPtr prepareSpectrum()
 
     599.97, 599.98, 599.99, 600.0, 600.01, 600.02, 600.03,
     600.97, 600.98, 600.99, 601.0, 601.01, 601.02, 601.03,
+    // note that this peak at 602 is special since it is integrated from 
+    // [(600+2*1.0033548) - 0.025, (600+2*1.0033548)  + 0.025] = [601.9817096 to 602.0317096]
     601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
     602.99, 603.0, 603.01
   };
@@ -205,17 +207,20 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
   getMRMFeatureTest(imrmfeature_test);
   imrmfeature_test->m_intensity = 0.7f;
   std::vector<OpenSwath::LightTransition> transitions;
+
+  // Try with transition at 600 m/z 
   transitions.push_back(mock_tr2);
 
   DIAScoring diascoring;
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
-  // >> exp = [240, 74, 39, 15, 0]
+
+  // >> exp = [240, 74, 37, 15, 0]
   // >> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
   // >> from scipy.stats.stats import pearsonr
   // >> pearsonr(exp, theo)
-  // (0.99463189043051314, 0.00047175434098498532)
+  // (0.99536128611183172, 0.00037899006151919545)
   //
   TEST_REAL_SIMILAR(isotope_corr, 0.995361286111832)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0)
@@ -229,6 +234,9 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
   getMRMFeatureTest(imrmfeature_test);
   imrmfeature_test->m_intensity = 0.3f;
   std::vector<OpenSwath::LightTransition> transitions;
+
+  // Try with transition at 500 m/z 
+  // This peak is not monoisotopic (e.g. at 499 there is another, more intense, peak)
   transitions.push_back(mock_tr1);
 
   DIAScoring diascoring;
@@ -241,11 +249,8 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
   // >> from scipy.stats.stats import pearsonr
   // >> pearsonr(exp, theo)
   // (0.959570883150479, 0.0096989307464742554)
-  // there is one peak (this one) which has an overlap in isotopes
-
   TEST_REAL_SIMILAR(isotope_corr, 0.959570883150479)
   TEST_REAL_SIMILAR(isotope_overlap, 1.0)
-
 }
 END_SECTION
 
@@ -266,10 +271,66 @@ START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &tra
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
-  // see above for the the two individual numbers (forward and backward)
-  TEST_REAL_SIMILAR(isotope_corr, 0.984624164796771)
-  TEST_REAL_SIMILAR(isotope_overlap, 1.0 * 0.3)
+  // see above for the two individual numbers (forward and backward)
+  TEST_REAL_SIMILAR(isotope_corr, 0.995361286111832 * 0.7 + 0.959570883150479 * 0.3)
+  TEST_REAL_SIMILAR(isotope_overlap, 0.0 * 0.7 + 1.0 * 0.3)
 
+}
+END_SECTION
+
+START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
+                                double& isotope_corr, double& isotope_overlap))
+{
+  OpenSwath::SpectrumPtr sptr = prepareSpectrum();
+
+  DIAScoring diascoring;
+  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
+
+  // Check for charge 1+ and m/z at 500
+  {
+    size_t precursor_charge_state = 1;
+    double precursor_mz = 500;
+
+    double isotope_corr = 0, isotope_overlap = 0;
+    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, precursor_charge_state, isotope_corr, isotope_overlap);
+
+    // see above for the two individual numbers (forward and backward)
+    TEST_REAL_SIMILAR(isotope_corr, 0.959570883150479)
+    TEST_REAL_SIMILAR(isotope_overlap, 1.0)
+  }
+
+  // Check if charge state is assumed 2+
+  {
+    size_t precursor_charge_state = 2;
+    double precursor_mz = 500;
+
+    double isotope_corr = 0, isotope_overlap = 0;
+    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, precursor_charge_state, isotope_corr, isotope_overlap);
+
+    // >>> theo = [0.57277789564886, 0.305415548811564, 0.0952064968352544, 0.0218253361702587, 0.00404081869309618]
+    // >>> exp = [74, 0, 39, 0, 15]
+    // >>> pearsonr(exp, theo)
+    // (0.68135233883093205, 0.20528953804781694)
+    TEST_REAL_SIMILAR(isotope_corr, 0.681352338830933)
+    TEST_REAL_SIMILAR(isotope_overlap, 1.0)
+  }
+
+  // Check and confirm that monoisotopic is at m/z 499
+  {
+    size_t precursor_charge_state = 1;
+    double precursor_mz = 499;
+
+    double isotope_corr = 0, isotope_overlap = 0;
+    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, precursor_charge_state, isotope_corr, isotope_overlap);
+
+    // >> exp = [240, 74, 39, 15, 0]
+    // >> theo = [0.755900817146293, 0.201673974754608, 0.0367726851778834, 0.00502869795238462, 0.000564836713740715]
+    // >> from scipy.stats.stats import pearsonr
+    // >> pearsonr(exp, theo)
+    // (0.99463189043051314, 0.00047175434098498532)
+    TEST_REAL_SIMILAR(isotope_corr, 0.995485552148335)
+    TEST_REAL_SIMILAR(isotope_overlap, 0.0) // monoisotopic
+  }
 }
 END_SECTION
 
