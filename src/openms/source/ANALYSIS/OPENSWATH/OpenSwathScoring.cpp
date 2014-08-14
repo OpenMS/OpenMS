@@ -109,6 +109,7 @@ namespace OpenMS
     {
       OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
+      diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, pep.getChargeState(), scores.ms1_isotope_correlation, scores.ms1_isotope_overlap);
     }
   }
 

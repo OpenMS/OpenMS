@@ -34,9 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
-
 // data access
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -101,8 +100,8 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_dia_scores", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_correlation", "true", "Use the correlation scores with the MS1 elution profiles", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ms1_correlation", ListUtils::create<String>("true,false"));
-    scores_to_use.setValue("use_ms1_ppm", "true", "Use the ppm accuracy of the MS1 scan for DIA (SWATH) scores", ListUtils::create<String>("advanced"));
-    scores_to_use.setValidStrings("use_ms1_ppm", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ms1_fullscan", "true", "Use the full MS1 scan at the peak apex for scoring (ppm accuracy of precursor and isotopic pattern)", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ms1_fullscan", ListUtils::create<String>("true,false"));
     defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_
@@ -354,9 +353,11 @@ namespace OpenMS
           mrmfeature->addScore("var_ms1_xcorr_shape", scores.xcorr_ms1_shape_score);
           mrmfeature->addScore("var_ms1_xcorr_coelution", scores.xcorr_ms1_coelution_score);
         }
-        if (su_.use_ms1_ppm)
+        if (su_.use_ms1_fullscan)
         {
           mrmfeature->addScore("var_ms1_ppm_diff", scores.ms1_ppm_score);
+          mrmfeature->addScore("var_ms1_isotope_correlation", scores.ms1_isotope_correlation);
+          mrmfeature->addScore("var_ms1_isotope_overlap", scores.ms1_isotope_overlap);
         }
 
         double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
@@ -442,7 +443,7 @@ namespace OpenMS
     su_.use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
     su_.use_ms1_correlation      = param_.getValue("Scores:use_ms1_correlation").toBool();
-    su_.use_ms1_ppm              = param_.getValue("Scores:use_ms1_ppm").toBool();
+    su_.use_ms1_fullscan         = param_.getValue("Scores:use_ms1_fullscan").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,

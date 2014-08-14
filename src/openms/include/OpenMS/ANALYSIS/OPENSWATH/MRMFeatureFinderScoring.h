@@ -39,6 +39,7 @@
 
 // Actual scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
 
@@ -71,6 +72,16 @@ namespace OpenMS
   all corresponding chromatograms at the peak-position. It then goes on to
   score those MRMFeatures using different criteria described in the
   MRMScoring class.
+
+  Internally, all peak group detection is performed in MRMTransitionGroupPicker
+  which segments the data and determines consensus peaks across traces
+  (MRMFeatures). All scoring is delegated to the OpenSwathScoring class which
+  implements i) chromatographic scores, ii) library based scores and iii) full
+  spectrum (DIA) scores. These scores are retrieved from the OpenSwathScoring
+  class and added to the MRMFeatures found in this algorithm. Note that the
+  OpenSwathScoring is a facade that can be used to communicate with the
+  underlying actual scoring engines and assembles the scores inside a scoring
+  object called OpenSwath_Scores where they are easy to retrieve.
 
   @htmlinclude OpenMS_MRMFeatureFinderScoring.parameters
 

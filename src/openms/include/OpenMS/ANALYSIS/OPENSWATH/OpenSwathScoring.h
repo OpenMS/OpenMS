@@ -82,7 +82,7 @@ namespace OpenMS
     {}
 
     bool use_ms1_correlation;
-    bool use_ms1_ppm;
+    bool use_ms1_fullscan;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -117,6 +117,8 @@ namespace OpenMS
     double xcorr_ms1_coelution_score;
     double xcorr_ms1_shape_score;
     double ms1_ppm_score;
+    double ms1_isotope_correlation;
+    double ms1_isotope_overlap;
 
     double library_manhattan;
     double library_dotprod;
@@ -153,6 +155,8 @@ namespace OpenMS
       xcorr_ms1_coelution_score(0),
       xcorr_ms1_shape_score(0),
       ms1_ppm_score(0),
+      ms1_isotope_correlation(0),
+      ms1_isotope_overlap(0),
       library_manhattan(0),
       library_dotprod(0),
       intensity(0),
