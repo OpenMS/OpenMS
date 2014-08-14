@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse $
+// $Authors: Lars Nilse, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
@@ -687,7 +687,6 @@ public:
             corrected_intensities.push_back(intensities[0]);
         }
         
-        //return intensities;
         return corrected_intensities;
     }
     
@@ -697,9 +696,10 @@ public:
      * @param patterns    patterns of isotopic peaks we have been searching for
      * @param filter_results    filter results for each of the patterns
      * @param cluster_results    clusters of filter results
-     * @param map    consensus map with peptide multiplets (to be filled)
+     * @param consensus_map    consensus map with peptide multiplets (to be filled)
+     * @param feature_map    feature map with peptides (to be filled)
      */
-     void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results, ConsensusMap &map)
+     void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results, ConsensusMap &consensus_map, FeatureMap<> &feature_map)
     {
         // data structures for final results
         std::vector<std::vector<double> > peptide_RT;
@@ -786,19 +786,20 @@ public:
                 consensus.setQuality(1);
                 
                 for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-                //for (unsigned peptide = 0; peptide < 1; ++peptide)
                 {
                     FeatureHandle feature;
                     feature.setMZ(sum_intensity_mz[peptide]/sum_intensity[peptide]);
                     feature.setRT(sum_intensity_rt[peptide]/sum_intensity[peptide]);
                     feature.setIntensity(sum_intensity[peptide]);
                     feature.setMapIndex(peptide);
-                    //feature.setUniqueId(&UniqueIdInterface::setUniqueId);    // TO DO: Do we need to set unique ID?
-                    map.getFileDescriptions()[peptide].size++;
+                    //feature.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
+                    consensus_map.getFileDescriptions()[peptide].size++;
                     consensus.insert(feature);
+                    
+                    
                 }
                 
-                map.push_back(consensus);
+                consensus_map.push_back(consensus);
             }
                         
         }
@@ -969,11 +970,12 @@ public:
     /**
      * write to output
      */
-    ConsensusMap map;     
-    generateMaps_(patterns, filter_results, cluster_results, map);
-    writeConsensusMap_(out, map);
+    ConsensusMap consensus_map;   
+    FeatureMap<> feature_map;   
+    generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
+    writeConsensusMap_(out, consensus_map);
     
-    std::cout << "The map contains " << map.size() << " consensuses.\n";
+    std::cout << "The map contains " << consensus_map.size() << " consensuses.\n";
 
 
 
