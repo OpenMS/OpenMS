@@ -90,6 +90,8 @@
 			<userParam type="float" name="var_ms1_xcorr_shape" value="0"/>
 			<userParam type="float" name="var_ms1_xcorr_coelution" value="17"/>
 			<userParam type="float" name="var_ms1_ppm_diff" value="121.212121212121"/>
+			<userParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<userParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.31772661301802"/>
 			<userParam type="float" name="PrecursorMZ" value="412.5"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
@@ -178,6 +180,8 @@
 			<userParam type="float" name="var_ms1_xcorr_shape" value="0"/>
 			<userParam type="float" name="var_ms1_xcorr_coelution" value="17"/>
 			<userParam type="float" name="var_ms1_ppm_diff" value="114.285714285714"/>
+			<userParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<userParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.2444316573965"/>
 			<userParam type="float" name="PrecursorMZ" value="437.5"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
@@ -266,6 +270,8 @@
 			<userParam type="float" name="var_ms1_xcorr_shape" value="0"/>
 			<userParam type="float" name="var_ms1_xcorr_coelution" value="15"/>
 			<userParam type="float" name="var_ms1_ppm_diff" value="108.108108108108"/>
+			<userParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<userParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.2539525145745"/>
 			<userParam type="float" name="PrecursorMZ" value="462.5"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
@@ -354,6 +360,8 @@
 			<userParam type="float" name="var_ms1_xcorr_shape" value="0"/>
 			<userParam type="float" name="var_ms1_xcorr_coelution" value="14"/>
 			<userParam type="float" name="var_ms1_ppm_diff" value="102.564102564103"/>
+			<userParam type="float" name="var_ms1_isotope_correlation" value="0"/>
+			<userParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.30926594649706"/>
 			<userParam type="float" name="PrecursorMZ" value="487.5"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
@@ -442,6 +450,8 @@
 			<userParam type="float" name="var_ms1_xcorr_shape" value="0.515106327247116"/>
 			<userParam type="float" name="var_ms1_xcorr_coelution" value="10"/>
 			<userParam type="float" name="var_ms1_ppm_diff" value="0.023933009041013"/>
+			<userParam type="float" name="var_ms1_isotope_correlation" value="0.861611631153185"/>
+			<userParam type="float" name="var_ms1_isotope_overlap" value="0"/>
 			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.28130708890022"/>
 			<userParam type="float" name="PrecursorMZ" value="510.05"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
