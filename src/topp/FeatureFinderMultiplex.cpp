@@ -57,6 +57,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 
@@ -171,15 +172,15 @@ class TOPPFeatureFinderMultiplex :
 private:
 
   // input and output files
-  String in;
-  String out;
-  String out_features;
-  String out_mzq;
-  String out_debug;
+  String in_;
+  String out_;
+  String out_features_;
+  String out_mzq_;
+  String out_debug_;
   bool debug_;
 
   // section "algorithm"
-  String labels;
+  String labels_;
   unsigned charge_min_;
   unsigned charge_max_;
   unsigned missed_cleavages_;
@@ -292,18 +293,18 @@ public:
 
   void getParameters_in_out_()
   {
-    in = getStringOption_("in");
-    out = getStringOption_("out");
-    out_features = getStringOption_("out_features");
-    out_mzq = getStringOption_("out_mzq");
-    out_debug = getStringOption_("out_debug");
-    debug_ = !out_debug.empty();
+    in_ = getStringOption_("in");
+    out_ = getStringOption_("out");
+    out_features_ = getStringOption_("out_features");
+    out_mzq_ = getStringOption_("out_mzq");
+    out_debug_ = getStringOption_("out_debug");
+    debug_ = !out_debug_.empty();
   }
 
   void getParameters_algorithm_()
   {
     // get selected labels
-    labels = getParam_().getValue("algorithm:labels");
+    labels_ = getParam_().getValue("algorithm:labels");
 
     // get selected charge range
     String charge_string = getParam_().getValue("algorithm:charge");
@@ -361,10 +362,10 @@ public:
 	{
         // SILAC, Dimethyl, ICPL or no labelling ??
         
-        bool labelling_SILAC = ((labels.find("Arg")!=std::string::npos) || (labels.find("Lys")!=std::string::npos));
-        bool labelling_Dimethyl = (labels.find("Dimethyl")!=std::string::npos);
-        bool labelling_ICPL = (labels.find("ICPL")!=std::string::npos);
-        bool labelling_none = labels.empty() || (labels=="[]") || (labels=="()") || (labels=="{}");
+        bool labelling_SILAC = ((labels_.find("Arg")!=std::string::npos) || (labels_.find("Lys")!=std::string::npos));
+        bool labelling_Dimethyl = (labels_.find("Dimethyl")!=std::string::npos);
+        bool labelling_ICPL = (labels_.find("ICPL")!=std::string::npos);
+        bool labelling_none = labels_.empty() || (labels_=="[]") || (labels_=="()") || (labels_=="{}");
         
         bool SILAC = (labelling_SILAC && !labelling_Dimethyl && !labelling_ICPL && !labelling_none);
         bool Dimethyl = (!labelling_SILAC && labelling_Dimethyl && !labelling_ICPL && !labelling_none);
@@ -379,7 +380,7 @@ public:
         // split labels string
         std::vector<std::vector<String> > samples_labels;    // list of samples containing lists of corresponding labels
         std::vector<String> temp_samples;
-        boost::split(temp_samples, labels, boost::is_any_of("[](){}"));   // any bracket allowed to separate samples
+        boost::split(temp_samples, labels_, boost::is_any_of("[](){}"));   // any bracket allowed to separate samples
         for (unsigned i = 0; i < temp_samples.size(); ++i)
         {
           if (!temp_samples[i].empty())
@@ -699,7 +700,7 @@ public:
      * @param consensus_map    consensus map with peptide multiplets (to be filled)
      * @param feature_map    feature map with peptides (to be filled)
      */
-     void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,MultiplexCluster> > cluster_results, ConsensusMap &consensus_map, FeatureMap<> &feature_map)
+     void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int,GridBasedCluster> > cluster_results, ConsensusMap &consensus_map, FeatureMap<> &feature_map)
     {
         // data structures for final results
         std::vector<std::vector<double> > peptide_RT;
@@ -713,7 +714,7 @@ public:
             std::cout << "\n" << "pattern " << pattern << " contains " << cluster_results[pattern].size() << " clusters.\n";
             
             // loop over clusters
-            for (std::map<int,MultiplexCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
+            for (std::map<int,GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
             {
                 ConsensusFeature consensus;
                 
@@ -737,7 +738,7 @@ public:
                     profile_intensities.push_back(temp);
                 }
                 
-                MultiplexCluster cluster = cluster_it->second;
+                GridBasedCluster cluster = cluster_it->second;
                 std::vector<int> points = cluster.getPoints();
                 std::cout << "  The cluster contains " << points.size() << " points.\n";
                 
@@ -956,7 +957,7 @@ public:
     
     LOG_DEBUG << "Loading input..." << endl;
     file.setLogType(log_type_);
-    file.load(in, exp);
+    file.load(in_, exp);
 
     // update m/z and RT ranges
     exp.updateRanges();
@@ -988,14 +989,14 @@ public:
     bool missing_peaks_ = false;
 	std::vector<MassPattern> masses = generateMassPatterns_();
 	std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
-    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug);
+    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
     std::vector<MultiplexFilterResult> filter_results = filtering.filter();
      
     /**
      * cluster filter results
      */
-    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, out_debug);
-    std::vector<std::map<int,MultiplexCluster> > cluster_results = clustering.cluster(filter_results);
+    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, out_debug_);
+    std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
     /**
      * write to output
@@ -1003,8 +1004,8 @@ public:
     ConsensusMap consensus_map;   
     FeatureMap<> feature_map;   
     generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
-    writeConsensusMap_(out, consensus_map);
-    writeFeatureMap_(out, feature_map);
+    writeConsensusMap_(out_, consensus_map);
+    writeFeatureMap_(out_features_, feature_map);
     
     std::cout << "The map contains " << consensus_map.size() << " consensuses.\n";
 
@@ -1047,7 +1048,7 @@ public:
       // labels
       label_massshift);*/
 
-    /*if (out_mzq != "")
+    /*if (out_mzq_ != "")
     {
       vector<vector<String> > SILAClabels = analyzer.getSILAClabels(); // list of SILAC labels, e.g. labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
 
@@ -1162,10 +1163,10 @@ public:
     // write output
     //--------------------------------------------------------------
 
-    if (out_debug != "")
+    if (out_debug_ != "")
     {
       LOG_DEBUG << "Writing debug output file..." << endl;
-      std::ofstream out((out_debug + ".clusters.csv").c_str());
+      std::ofstream out((out_debug_ + ".clusters.csv").c_str());
 
       vector<vector<DoubleReal> > massShifts = analyzer.getMassShifts(); // list of mass shifts
 
@@ -1242,7 +1243,7 @@ public:
       addDataProcessing_(map, getProcessingInfo_(actions));
 
       analyzer.writeConsensus(out, map);
-      if (out_mzq != "")
+      if (out_mzq_ != "")
       {
         LOG_DEBUG << "Generating output mzQuantML file..." << endl;
         ConsensusMap numap(map);
@@ -1280,7 +1281,7 @@ public:
 
         //~ msq.addFeatureMap();//add FeatureFinderMultiplex evidencetrail as soon as clear what is realy contained in the featuremap
         //~ add AuditCollection - no such concept in TOPPTools yet
-        analyzer.writeMzQuantML(out_mzq, msq);
+        analyzer.writeMzQuantML(out_mzq_, msq);
       }
     }
 
@@ -1301,7 +1302,7 @@ public:
       analyzer.writeConsensus(out_clusters, map);
     }
 
-    if (out_features != "")
+    if (out_features_ != "")
     {
       LOG_DEBUG << "Generating output feature map..." << endl;
       FeatureMap<> map;
@@ -1310,7 +1311,7 @@ public:
         analyzer.generateClusterFeatureByCluster(map, **it);
       }
 
-      analyzer.writeFeatures(out_features, map);
+      analyzer.writeFeatures(out_features_, map);
     }*/
 
     return EXECUTION_OK;
