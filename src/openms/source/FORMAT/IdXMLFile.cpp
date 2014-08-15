@@ -333,8 +333,8 @@ namespace OpenMS
           os << "\t\t\t</PeptideHit>\n";
         }
 
-		    // do not write "spectrum_reference" since it is written as attribute already
-		    MetaInfoInterface tmp = peptide_ids[l];
+        // do not write "spectrum_reference" since it is written as attribute already
+        MetaInfoInterface tmp = peptide_ids[l];
         tmp.removeMetaValue("spectrum_reference");
         writeUserParam_("UserParam", os, tmp, 3);
         os << "\t\t</PeptideIdentification>\n";
