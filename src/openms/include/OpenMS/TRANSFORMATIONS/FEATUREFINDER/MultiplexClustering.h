@@ -32,8 +32,8 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_MULTIPLEXCLUSTERING_H
-#define OPENMS_FILTERING_DATAREDUCTION_MULTIPLEXCLUSTERING_H
+#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXCLUSTERING_H
+#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXCLUSTERING_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
@@ -101,7 +101,7 @@ namespace OpenMS
          * 
          * TO DO: Use Lowess instead of Linear Regression.
          */
-        class OPENMS_DLLAPI PeakWidthEstimator
+        class OPENMS_DLLAPI PeakWidthEstimator_
         {
             public:
             /**
@@ -112,7 +112,7 @@ namespace OpenMS
             * 
             * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
             */
-            PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries);
+            PeakWidthEstimator_(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries);
         
             /**
             * @brief returns the estimated peak width at m/z
@@ -123,7 +123,7 @@ namespace OpenMS
         
             private:        
             /// hide default constructor
-            PeakWidthEstimator();
+            PeakWidthEstimator_();
         
             /**
             * @brief m/z range of peak width interpolation
@@ -193,7 +193,7 @@ namespace OpenMS
          * @param points    data points for debug output
          * @param pattern    pattern ID
          */
-        void writeDebug(std::vector<DebugPoint> points, int pattern) const;
+        void writeDebug_(std::vector<DebugPoint> points, int pattern) const;
 
         /**
          * @brief returns a colour for ID
@@ -201,7 +201,7 @@ namespace OpenMS
          * @param c    integer ID
          * @return string for one of 50 colours
          */
-        String getColour(int c) const;
+        String getColour_(int c) const;
 
         /**
          * @brief grid spacing for clustering
