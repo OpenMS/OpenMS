@@ -179,6 +179,8 @@ namespace OpenMS
                                           double& isotope_corr, double& isotope_overlap)
   {
     // collect the potential isotopes of this peak
+    double max_ratio;
+    int nr_occurences;
     std::vector<double> isotopes_int;
     for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
     {
@@ -192,7 +194,8 @@ namespace OpenMS
     // calculate the scores:
     // isotope correlation (forward) and the isotope overlap (backward) scores
     isotope_corr = scoreIsotopePattern_(precursor_mz, isotopes_int, charge_state);
-    isotope_overlap = largePeaksBeforeFirstIsotope_(precursor_mz, spectrum, isotopes_int[0]);
+    largePeaksBeforeFirstIsotope_(spectrum, precursor_mz, isotopes_int[0], nr_occurences, max_ratio);
+    isotope_overlap = max_ratio;
   }
 
   void DIAScoring::dia_by_ion_score(SpectrumPtrType spectrum,
@@ -258,6 +261,8 @@ namespace OpenMS
                                           double& isotope_corr, double& isotope_overlap)
   {
     std::vector<double> isotopes_int;
+    double max_ratio;
+    int nr_occurences;
     for (Size k = 0; k < transitions.size(); k++)
     {
       isotopes_int.clear();
@@ -285,21 +290,21 @@ namespace OpenMS
       // isotope correlation (forward) and the isotope overlap (backward) scores
       double score = scoreIsotopePattern_(transitions[k].getProductMZ(), isotopes_int, putative_fragment_charge);
       isotope_corr += score * rel_intensity;
-      score = largePeaksBeforeFirstIsotope_(transitions[k].getProductMZ(), spectrum, isotopes_int[0]);
-      isotope_overlap += score * rel_intensity;
+      largePeaksBeforeFirstIsotope_(spectrum, transitions[k].getProductMZ(), isotopes_int[0], nr_occurences, max_ratio);
+      isotope_overlap += nr_occurences * rel_intensity;
     }
   }
 
-  double DIAScoring::largePeaksBeforeFirstIsotope_(double product_mz,
-                                                   SpectrumPtrType spectrum, double main_peak)
+  void DIAScoring::largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurences, double& max_ratio)
   {
-    double result = 0;
     double mz, intensity;
+    nr_occurences = 0;
+    max_ratio = 0.0;
 
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
-      double left = product_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
-      double right = product_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
+      double left = mono_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
+      double right = mono_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
       bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
       // Continue if no signal was found - we therefore don't make a statement
@@ -309,26 +314,26 @@ namespace OpenMS
         continue;
       }
 
-      double ratio = intensity / main_peak;
-      if (main_peak == 0)
-      {
-        ratio = 0;
-      }
-      double ddiff_ppm = std::fabs(mz - (product_mz - 1.0 / (double) ch)) * 1000000 / product_mz;
+      // Compute ratio between the (presumed) monoisotopic peak intensity and the now found peak
+      double ratio;
+      if (mono_int != 0) { ratio = intensity / mono_int; }
+      else { ratio = 0; }
+      if (ratio > max_ratio) {max_ratio = ratio;}
+        
+      double ddiff_ppm = std::fabs(mz - (mono_mz - 1.0 / (double) ch)) * 1000000 / mono_mz;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
       if (ratio > 1 && ddiff_ppm < peak_before_mono_max_ppm_diff_)
       {
         //isotope_overlap += 1.0 * rel_intensity;
 
-        result += 1.0; // we count how often this happens...
+        nr_occurences += 1.0; // we count how often this happens...
 
 #ifdef MRMSCORING_TESTING
-        cout << " _ overlap diff ppm  " << ddiff_ppm << " and inten ratio " << ratio << " with " << main_peak << endl;
+        cout << " _ overlap diff ppm  " << ddiff_ppm << " and inten ratio " << ratio << " with " << mono_int << endl;
 #endif
       }
     }
-    return result;
   }
 
   double DIAScoring::scoreIsotopePattern_(double product_mz,
