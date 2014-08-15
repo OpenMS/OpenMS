@@ -139,7 +139,7 @@ class OPENMS_DLLAPI GridBasedClustering
     GridBasedClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y)
     : metric_(metric), grid_(grid_spacing_x,grid_spacing_y)
     {
-        init(data_x, data_y, properties_A, properties_B);
+        init_(data_x, data_y, properties_A, properties_B);
     }
     
     /**
@@ -156,7 +156,7 @@ class OPENMS_DLLAPI GridBasedClustering
         // set properties A and B to -1, i.e. ignore properties when clustering
         std::vector<int> properties_A(data_x.size(),-1);
         std::vector<int> properties_B(data_x.size(),-1);
-        init(data_x, data_y, properties_A, properties_B);
+        init_(data_x, data_y, properties_A, properties_B);
     }
     
     /**
@@ -198,7 +198,7 @@ class OPENMS_DLLAPI GridBasedClustering
             new_box.enlarge(box2.maxPosition());
             
             // Properties A of both clusters should by now be the same. The merge veto has been checked
-            // when a new entry to the minimum distance list was added, @see findNearestNeighbour.
+            // when a new entry to the minimum distance list was added, @see findNearestNeighbour_.
             if (cluster1.getPropertyA() != cluster2.getPropertyA())
             {
                 throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Property A of both clusters not the same. ", "A");
@@ -254,7 +254,7 @@ class OPENMS_DLLAPI GridBasedClustering
             
             for (std::vector<int>::const_iterator cluster_index = clusters_to_be_updated.begin(); cluster_index != clusters_to_be_updated.end(); ++cluster_index)
             {
-                if (findNearestNeighbour(clusters_.find(*cluster_index)->second,*cluster_index))
+                if (findNearestNeighbour_(clusters_.find(*cluster_index)->second,*cluster_index))
                 {
                     GridBasedCluster c = clusters_.find(*cluster_index)->second;
                     grid_.removeCluster(grid_.getIndex(c.getCentre()), *cluster_index);    // remove from grid
@@ -459,7 +459,7 @@ class OPENMS_DLLAPI GridBasedClustering
      * @param properties_A    property A of points (same in each cluster)
      * @param properties_B    property B of points (different in each cluster)
      */
-    void init(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B)
+    void init_(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B)
     {
         // fill the grid with points to be clustered (initially each cluster contains a single point)
         for (unsigned i = 0; i < data_x.size(); ++i)
@@ -487,7 +487,7 @@ class OPENMS_DLLAPI GridBasedClustering
             int cluster_index = iterator->first;
             GridBasedCluster cluster = iterator->second;
             
-            if (findNearestNeighbour(cluster, cluster_index))
+            if (findNearestNeighbour_(cluster, cluster_index))
             {
                 // remove from grid
                 grid_.removeCluster(grid_.getIndex(cluster.getCentre()), cluster_index);
@@ -514,7 +514,7 @@ class OPENMS_DLLAPI GridBasedClustering
     * true -> clusters can be merged
     * false -> clusters cannot be merged
     */
-    bool mergeVeto(GridBasedCluster c1, GridBasedCluster c2) const
+    bool mergeVeto_(GridBasedCluster c1, GridBasedCluster c2) const
     {
         int A1 = c1.getPropertyA();
         int A2 = c2.getPropertyA();
@@ -554,7 +554,7 @@ class OPENMS_DLLAPI GridBasedClustering
      * 
      * @param Should the cluster be removed from the cluster list? 
      */
-    bool findNearestNeighbour(GridBasedCluster cluster, int cluster_index)
+    bool findNearestNeighbour_(GridBasedCluster cluster, int cluster_index)
     {
         Point centre = cluster.getCentre();
         CellIndex cell_index = grid_.getIndex(centre);
@@ -579,7 +579,7 @@ class OPENMS_DLLAPI GridBasedClustering
                             GridBasedCluster cluster2 = clusters_.find(*cluster_index2)->second;
                             Point centre2 = cluster2.getCentre();
                             double distance = metric_(centre, centre2);
-                            bool veto = mergeVeto(cluster, cluster2);    // If clusters cannot be merged anyhow, they are no nearest neighbours.
+                            bool veto = mergeVeto_(cluster, cluster2);    // If clusters cannot be merged anyhow, they are no nearest neighbours.
                             if (!veto && (distance < min_dist || nearest_neighbour == -1))
                             {
                                 min_dist = distance;

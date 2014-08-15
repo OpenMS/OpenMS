@@ -73,7 +73,7 @@ namespace OpenMS
     double rt_max = exp_profile.getMaxRT();
     
     // generate grid spacing
-    PeakWidthEstimator estimator(exp_picked, boundaries);
+    PeakWidthEstimator_ estimator(exp_picked, boundaries);
     // We assume that the jitter of the peak centres are less than <scaling> times the peak width.
     // This factor ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
     double scaling = 0.2;
@@ -141,7 +141,7 @@ namespace OpenMS
           }
           ++cluster_id;
         }
-        writeDebug(debug_clustered, i);
+        writeDebug_(debug_clustered, i);
       }
 
     }
@@ -149,7 +149,7 @@ namespace OpenMS
     return cluster_results;
   }
 
-  MultiplexClustering::PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries)
+  MultiplexClustering::PeakWidthEstimator_::PeakWidthEstimator_(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries)
   {
     if (exp_picked.size() != boundaries.size())
     {
@@ -189,7 +189,7 @@ namespace OpenMS
     intercept_ = linreg.getIntercept();
   }
 
-  double MultiplexClustering::PeakWidthEstimator::getPeakWidth(double mz)
+  double MultiplexClustering::PeakWidthEstimator_::getPeakWidth(double mz)
   {
     double width;
 
@@ -229,7 +229,7 @@ namespace OpenMS
       return sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
   }
 
-  void MultiplexClustering::writeDebug(vector<DebugPoint> points, int pattern) const
+  void MultiplexClustering::writeDebug_(vector<DebugPoint> points, int pattern) const
   {
     // fill consensus map
     ConsensusMap map;
@@ -240,7 +240,7 @@ namespace OpenMS
       consensus.setMZ((*it).mz);
       consensus.setIntensity((*it).cluster);
       consensus.setCharge(1);          // dummy
-      consensus.setMetaValue("color", getColour((*it).cluster));
+      consensus.setMetaValue("color", getColour_((*it).cluster));
       consensus.setMetaValue("Cluster ID", (*it).cluster);
 
       FeatureHandle feature;
@@ -281,7 +281,7 @@ namespace OpenMS
     file.store(file_name, map);
   }
 
-  String MultiplexClustering::getColour(int c) const
+  String MultiplexClustering::getColour_(int c) const
   {
     // 35 + 15 HTML colors
     static const String colours[] =
