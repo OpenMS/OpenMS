@@ -681,9 +681,15 @@ namespace OpenMS
           String sidres;
           UInt64 sir =  UniqueIdGenerator::getUniqueId();
           UInt64 sii =  UniqueIdGenerator::getUniqueId();
-          //~ TODO get spectra_data when loading idxml if possible - then add here and in spectra_data section
-          sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + String("MZ:") + emz + String("@RT:") + ert + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
+          String sid = it->getMetaValue("spectrum_reference");
+          if (sid.empty())
+          {
+            sid = String("MZ:") + emz + String("@RT:") + ert;
+          }
+          sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + sid + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
           sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"") + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"") + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz + String("\" experimentalMassToCharge=\"") + emz + String("\" chargeState=\"") + c +  String("\" id=\"") + String(sii) + String("\"> \n");
+
+          //TODO @mths: FIXME passThreshold attr.
 
           for (std::vector<UInt64>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
