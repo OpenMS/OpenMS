@@ -878,6 +878,7 @@ namespace OpenMS
     for (Size i = 0; i < pkg.size(); ++i)
     {
       per_round_basenames.push_back(pkg[i].find(max_size_index)->second.filenames);
+      //String s = String(pkg[i].find(max_size_index)->second.filenames.join(" + "));
     }
 
     // maybe we find something more unique, e.g. last base directory if all filenames are equal
@@ -931,15 +932,14 @@ namespace OpenMS
       {
         // store edge for this param for all rounds
         output_files_[r][param_index] = vrp; // index by index of source-out param
-        QString fn = path;
 
         // check if tool consumes list and outputs single file (such as IDMerger or FileMerger)
         if (per_round_basenames[r].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE)
         {
-          fn += QString(QFileInfo(per_round_basenames[r].first()).fileName()
-                        + "_to_"
-                        + QFileInfo(per_round_basenames[r].last()).fileName()
-                        + "_merged");
+          QString fn = path + QString(QFileInfo(per_round_basenames[r].first()).fileName()
+                            + "_to_"
+                            + QFileInfo(per_round_basenames[r].last()).fileName()
+                            + "_merged");
           fn = fn.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
           fn += "_tmp" + QString::number(uid_++);
           fn = QDir::toNativeSeparators(fn);
@@ -949,7 +949,7 @@ namespace OpenMS
         {
           foreach(const QString &input_file, per_round_basenames[r])
           {
-            fn += QFileInfo(input_file).fileName(); // discard directory
+            QString fn = path + QFileInfo(input_file).fileName(); // discard directory
             QRegExp rx("_tmp\\d+$"); // remove "_tmp<number>" if its a suffix
             int tmp_index = rx.indexIn(fn);
             if (tmp_index != -1)
