@@ -48,7 +48,7 @@ MultiplexClustering::MultiplexDistance metric(1);
 
 std::vector<double> grid_spacing_x;
 std::vector<double> grid_spacing_y;
-for (double i = 0; i <=10; ++i)
+for (double i = 0; i <= 10; ++i)
 {
     grid_spacing_x.push_back(i);
     grid_spacing_y.push_back(i);
@@ -60,8 +60,8 @@ std::vector<int> properties_A;
 std::vector<int> properties_B;
 for (int i = 0; i < 1000; ++i)
 {
-    data_x.push_back(5*(sin(i)+1));
-    data_y.push_back(5*(sin(i+18)+1));
+    data_x.push_back(5*(sin(static_cast<double>(i))+1));
+    data_y.push_back(5*(sin(static_cast<double>(i+18))+1));
     properties_A.push_back(1);    // Should be the same within each cluster.
     properties_B.push_back(i);    // Should be different within each cluster.
 }
