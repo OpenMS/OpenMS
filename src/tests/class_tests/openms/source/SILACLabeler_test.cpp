@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche, Fabian Kriegel, Frederic Lehnert $
@@ -45,7 +45,7 @@ using namespace std;
 void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps, bool add3rd)
 {
   feature_maps.clear();
-  
+
   FeatureMapSim fm1,fm2,fm3;
   ProteinHit prothit1,prothit2,prothit3,prothit4,prothit5,prothit6,prothit7,prothit8,prothit9,prothit10, prothit11, prothit12;
 
@@ -116,37 +116,37 @@ void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps, bool add3
 
   if (add3rd)
   {
-	  prothit7.setSequence("AAAAAAAKAAAAA"); // Ergebniss : AAAAAAAK(Label Heavy_K) , AAAAA ( einmal kommt in allen Channels vor )
+    prothit7.setSequence("AAAAAAAKAAAAA"); // Ergebniss : AAAAAAAK(Label Heavy_K) , AAAAA ( einmal kommt in allen Channels vor )
     prothit7.setMetaValue("description", "test sequence 7");
-	  prothit7.setAccession("ACC7");
+    prothit7.setAccession("ACC7");
     prothit7.setMetaValue("intensity", 30.0);
 
-	  prothit8.setSequence("CNARCNCNCN"); // Ergebniss: CNAR(Label Heavy_R) , CNCNCN (einmal kommt in allen Channels vor)
-	  prothit8.setMetaValue("description", "test sequence 8");
-	  prothit8.setAccession("ACC8");
+    prothit8.setSequence("CNARCNCNCN"); // Ergebniss: CNAR(Label Heavy_R) , CNCNCN (einmal kommt in allen Channels vor)
+    prothit8.setMetaValue("description", "test sequence 8");
+    prothit8.setAccession("ACC8");
     prothit8.setMetaValue("intensity", 130.0);
 
-	  prothit9.setSequence("LDRCEL"); //Ergebniss: LDR(label Heavy_R) , CEL (einmal kommt in channel 2 und 3 vor)
-	  prothit9.setMetaValue("description", "test sequence 9");
-	  prothit9.setAccession("ACC9");
+    prothit9.setSequence("LDRCEL"); //Ergebniss: LDR(label Heavy_R) , CEL (einmal kommt in channel 2 und 3 vor)
+    prothit9.setMetaValue("description", "test sequence 9");
+    prothit9.setAccession("ACC9");
     prothit9.setMetaValue("intensity", 70.0);
 
-	  prothit10.setSequence("YCYCY"); //Ergebniss: YCYCY kommt nur in diesem Channel vor
-	  prothit10.setMetaValue("description", "test sequence 10");
-	  prothit10.setAccession("ACC10");
-	  prothit10.setMetaValue("intensity", 80.0);
+    prothit10.setSequence("YCYCY"); //Ergebniss: YCYCY kommt nur in diesem Channel vor
+    prothit10.setMetaValue("description", "test sequence 10");
+    prothit10.setAccession("ACC10");
+    prothit10.setMetaValue("intensity", 80.0);
 
-	  ProteinIdentification protIdent3;
-	  protIdent3.insertHit(prothit7);
-	  protIdent3.insertHit(prothit8);
-	  protIdent3.insertHit(prothit9);
-	  protIdent3.insertHit(prothit10);
-	  vector<ProteinIdentification> protIdents_vec3;
-	  protIdents_vec3.push_back(protIdent3);
+    ProteinIdentification protIdent3;
+    protIdent3.insertHit(prothit7);
+    protIdent3.insertHit(prothit8);
+    protIdent3.insertHit(prothit9);
+    protIdent3.insertHit(prothit10);
+    vector<ProteinIdentification> protIdents_vec3;
+    protIdents_vec3.push_back(protIdent3);
     fm3.setProteinIdentifications(protIdents_vec3);
     feature_maps.push_back(fm3);
   }
-  
+
 }
 
 
@@ -175,14 +175,14 @@ SILACLabeler* ptr = 0;
 SILACLabeler* nullPtr = 0;
 START_SECTION(SILACLabeler())
 {
-	ptr = new SILACLabeler();
-	TEST_NOT_EQUAL(ptr, nullPtr)
+  ptr = new SILACLabeler();
+  TEST_NOT_EQUAL(ptr, nullPtr)
 }
 END_SECTION
 
 START_SECTION(~SILACLabeler())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -197,10 +197,10 @@ END_SECTION
 START_SECTION((void setUpHook(FeatureMapSimVector & )))
 {
   SILACLabeler labeler;
-  
+
   FeatureMapSimVector feature_maps;
   FeatureMapSim fm1,fm2,fm3,fm4;
-  
+
   feature_maps.push_back(fm1);
   TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(feature_maps),"1 channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!")
   feature_maps.push_back(fm2);
@@ -214,7 +214,7 @@ END_SECTION
 
 START_SECTION((void postDigestHook(FeatureMapSimVector & )))
 {
-  
+
   FeatureMapSimVector feature_maps;
   createTestFeatureMapSimVector_(feature_maps, false);
 
@@ -224,37 +224,37 @@ START_SECTION((void postDigestHook(FeatureMapSimVector & )))
 
   // maps are digested by now
   labeler.postDigestHook(feature_maps);
-  
+
   TEST_EQUAL(feature_maps.size(), 1)
   ABORT_IF(feature_maps.size() != 1)
 
   TEST_EQUAL(feature_maps[0].size(), 12)
   ABORT_IF(feature_maps[0].size() != 12)
-  
-  
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
 
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:2H(4))")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
-  
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6))")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6))")
 
-  TEST_EQUAL(feature_maps[0][6].getIntensity(), 180)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 80)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR")
 
-  TEST_EQUAL(feature_maps[0][7].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
+
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 180)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
+
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:2H(4))")
+
+  TEST_EQUAL(feature_maps[0][7].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
 
   TEST_EQUAL(feature_maps[0][8].getIntensity(), 110)
   TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR(Label:13C(6))")
@@ -268,7 +268,6 @@ START_SECTION((void postDigestHook(FeatureMapSimVector & )))
   TEST_EQUAL(feature_maps[0][11].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
 
- 
   createTestFeatureMapSimVector_(feature_maps, true);
 
   SILACLabeler three_channel_labeler;
@@ -284,41 +283,41 @@ START_SECTION((void postDigestHook(FeatureMapSimVector & )))
   TEST_EQUAL(feature_maps[0].size(), 16)
   ABORT_IF(feature_maps[0].size() != 16)
 
-  TEST_EQUAL(feature_maps[0][0].getIntensity(), 280)
-  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
+  TEST_EQUAL(feature_maps[0][0].getIntensity(), 190)
+  TEST_EQUAL(feature_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
 
-  TEST_EQUAL(feature_maps[0][1].getIntensity(), 30)
-  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:13C(6)15N(2))")
+  TEST_EQUAL(feature_maps[0][1].getIntensity(), 70)
+  TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6)15N(4))")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 50)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:2H(4))")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6))")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 130)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6)15N(4))")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 190)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CEL")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 100)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6))")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 130)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6)15N(4))")
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 80)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR")
 
-  TEST_EQUAL(feature_maps[0][6].getIntensity(), 100)
-  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][6].getIntensity(), 280)
+  TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAA")
 
   TEST_EQUAL(feature_maps[0][7].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNAR")
+  TEST_EQUAL(feature_maps[0][7].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "YCYCY")
 
   TEST_EQUAL(feature_maps[0][8].getIntensity(), 310)
   TEST_EQUAL(feature_maps[0][8].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNCNCN")
 
-  TEST_EQUAL(feature_maps[0][9].getIntensity(), 70)
-  TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6)15N(4))")
+  TEST_EQUAL(feature_maps[0][9].getIntensity(), 30)
+  TEST_EQUAL(feature_maps[0][9].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:13C(6)15N(2))")
 
-  TEST_EQUAL(feature_maps[0][10].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDR(Label:13C(6))")
+  TEST_EQUAL(feature_maps[0][10].getIntensity(), 50)
+  TEST_EQUAL(feature_maps[0][10].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK(Label:2H(4))")
 
-  TEST_EQUAL(feature_maps[0][11].getIntensity(), 80)
-  TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "YCYCY")
+  TEST_EQUAL(feature_maps[0][11].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][11].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
 
   TEST_EQUAL(feature_maps[0][12].getIntensity(), 110)
   TEST_EQUAL(feature_maps[0][12].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "VNAAAAAAR(Label:13C(6))")

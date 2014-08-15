@@ -131,14 +131,14 @@ BaseLabeler* base_nullPointer = 0;
 
 START_SECTION(O18Labeler())
 {
-	ptr = new O18Labeler();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new O18Labeler();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~O18Labeler())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -194,14 +194,14 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0][1].getIntensity(), 200)
   TEST_EQUAL(feature_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
 
-  TEST_EQUAL(feature_maps[0][2].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
+  TEST_EQUAL(feature_maps[0][2].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
 
   TEST_EQUAL(feature_maps[0][5].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDCELR")
@@ -243,14 +243,14 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(feature_maps[0][2].getIntensity(), 204.5)
   TEST_EQUAL(feature_maps[0][2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAAAAK")
 
-  TEST_EQUAL(feature_maps[0][3].getIntensity(), 200)
-  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
+  TEST_EQUAL(feature_maps[0][3].getIntensity(), 250)
+  TEST_EQUAL(feature_maps[0][3].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
 
-  TEST_EQUAL(feature_maps[0][4].getIntensity(), 120)
-  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
+  TEST_EQUAL(feature_maps[0][4].getIntensity(), 200)
+  TEST_EQUAL(feature_maps[0][4].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAAAAAAAAA")
 
-  TEST_EQUAL(feature_maps[0][5].getIntensity(), 250)
-  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "HHHHHHHHHHH")
+  TEST_EQUAL(feature_maps[0][5].getIntensity(), 120)
+  TEST_EQUAL(feature_maps[0][5].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "CNHAADDAAAAA")
 
   TEST_EQUAL(feature_maps[0][6].getIntensity(), 100)
   TEST_EQUAL(feature_maps[0][6].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "LDCELR")

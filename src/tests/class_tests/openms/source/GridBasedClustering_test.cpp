@@ -35,13 +35,16 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexLocalClustering.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexLocalClustering, "$Id$")
+START_TEST(GridBasedClustering, "$Id$")
+
+MultiplexClustering::MultiplexDistance metric(1);
 
 std::vector<double> grid_spacing_x;
 std::vector<double> grid_spacing_y;
@@ -55,7 +58,6 @@ std::vector<double> data_x;
 std::vector<double> data_y;
 std::vector<int> properties_A;
 std::vector<int> properties_B;
-double scaling_y = 1;
 for (int i = 0; i < 1000; ++i)
 {
     data_x.push_back(5*(sin(i)+1));
@@ -64,28 +66,28 @@ for (int i = 0; i < 1000; ++i)
     properties_B.push_back(i);    // Should be different within each cluster.
 }
 
-MultiplexLocalClustering* nullPointer = 0;
-MultiplexLocalClustering* ptr;
+GridBasedClustering<MultiplexClustering::MultiplexDistance>* nullPointer = 0;
+GridBasedClustering<MultiplexClustering::MultiplexDistance>* ptr;
 
-START_SECTION(MultiplexLocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y))
-    MultiplexLocalClustering clustering(data_x, data_y, properties_A, properties_B, grid_spacing_x, grid_spacing_y, scaling_y);
+START_SECTION(GridBasedClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, const std::vector<int> &properties_A, const std::vector<int> &properties_B, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y))
+    GridBasedClustering<MultiplexClustering::MultiplexDistance> clustering(metric, data_x, data_y, properties_A, properties_B, grid_spacing_x, grid_spacing_y);
     clustering.cluster();
     TEST_EQUAL(clustering.getResults().size(), 12);
-    ptr = new MultiplexLocalClustering(data_x, data_y, properties_A, properties_B, grid_spacing_x, grid_spacing_y, scaling_y);
+    ptr = new GridBasedClustering<MultiplexClustering::MultiplexDistance>(metric, data_x, data_y, properties_A, properties_B, grid_spacing_x, grid_spacing_y);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-START_SECTION(MultiplexLocalClustering(const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y, double scaling_y))
-    MultiplexLocalClustering clustering(data_x, data_y, grid_spacing_x, grid_spacing_y, scaling_y);
+START_SECTION(GridBasedClustering(Metric metric, const std::vector<double> &data_x, const std::vector<double> &data_y, std::vector<double> grid_spacing_x, std::vector<double> grid_spacing_y))
+    GridBasedClustering<MultiplexClustering::MultiplexDistance> clustering(metric, data_x, data_y, grid_spacing_x, grid_spacing_y);
     clustering.cluster();
     TEST_EQUAL(clustering.getResults().size(), 12);
-    ptr = new MultiplexLocalClustering(data_x, data_y, grid_spacing_x, grid_spacing_y, scaling_y);
+    ptr = new GridBasedClustering<MultiplexClustering::MultiplexDistance>(metric, data_x, data_y, grid_spacing_x, grid_spacing_y);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexLocalClustering clustering(data_x, data_y, grid_spacing_x, grid_spacing_y, scaling_y);
+GridBasedClustering<MultiplexClustering::MultiplexDistance> clustering(metric, data_x, data_y, grid_spacing_x, grid_spacing_y);
 
 START_SECTION(void cluster())
     clustering.cluster();

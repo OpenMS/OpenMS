@@ -7,13 +7,12 @@ AverageLinkage.cpp
 ClusterAnalyzer.cpp
 ClusterFunctor.cpp
 ClusterHierarchical.cpp
+ClusteringGrid.cpp
 CompleteLinkage.cpp
 EuclideanSimilarity.cpp
-MultiplexCluster.cpp
-MultiplexGrid.cpp
-MultiplexLocalClustering.cpp
+GridBasedCluster.cpp
+GridBasedClustering.cpp
 SingleLinkage.cpp
-SILACClustering.cpp
 )
 
 ### add path to the filenames

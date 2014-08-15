@@ -44,8 +44,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexLocalClustering.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
 
 #include <vector>
 #include <algorithm>
@@ -65,7 +65,7 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
     }
-
+    
     // ranges of the experiment
     double mz_min = exp_profile.getMinMZ();
     double mz_max = exp_profile.getMaxMZ();
@@ -74,10 +74,11 @@ namespace OpenMS
     
     // generate grid spacing
     PeakWidthEstimator estimator(exp_picked, boundaries);
-    for (double mz = mz_min; mz < mz_max; mz = mz + estimator.getPeakWidth(mz) / 5)
+    // We assume that the jitter of the peak centres are less than <scaling> times the peak width.
+    // This factor ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
+    double scaling = 0.2;
+    for (double mz = mz_min; mz < mz_max; mz = mz + scaling * estimator.getPeakWidth(mz))
     {
-      // We assume that the jitter of the peak centres are less than 1/5 of the peak width.
-      // The factor 1/5 ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
       grid_spacing_mz_.push_back(mz);
     }
     grid_spacing_mz_.push_back(mz_max);
@@ -105,14 +106,15 @@ namespace OpenMS
 
   }
 
-  std::vector<std::map<int, MultiplexCluster> > MultiplexClustering::cluster(std::vector<MultiplexFilterResult> filter_results)
+  std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(std::vector<MultiplexFilterResult> filter_results)
   {
-    std::vector<std::map<int, MultiplexCluster> > cluster_results;
+    std::vector<std::map<int, GridBasedCluster> > cluster_results;
 
     // loop over patterns i.e. cluster each of the corresponding filter results
     for (unsigned i = 0; i < filter_results.size(); ++i)
     {
-      MultiplexLocalClustering clustering(filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_, rt_scaling_);
+        
+      GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
       clustering.cluster();
       //clustering.extendClustersY();
       clustering.removeSmallClustersY(rt_minimum_);
@@ -122,11 +124,11 @@ namespace OpenMS
       vector<DebugPoint> debug_clustered;
       if (debug_)
       {
-        std::map<int, MultiplexCluster> cluster_result = clustering.getResults();
+        std::map<int, GridBasedCluster> cluster_result = clustering.getResults();
         MultiplexFilterResult filter_result = filter_results[i];
 
         int cluster_id = 0;
-        for (std::map<int, MultiplexCluster>::iterator it = cluster_result.begin(); it != cluster_result.end(); ++it)
+        for (std::map<int, GridBasedCluster>::iterator it = cluster_result.begin(); it != cluster_result.end(); ++it)
         {
           std::vector<int> points = (it->second).getPoints();
           for (std::vector<int>::iterator it2 = points.begin(); it2 != points.end(); ++it2)
@@ -210,6 +212,21 @@ namespace OpenMS
     }
 
     return width;
+  }
+
+  MultiplexClustering::MultiplexDistance::MultiplexDistance(double rt_scaling)
+  : rt_scaling_(rt_scaling)
+  {
+  }
+  
+  MultiplexClustering::MultiplexDistance::MultiplexDistance()
+  : rt_scaling_(1)
+  {
+  }
+  
+  double MultiplexClustering::MultiplexDistance::operator()(Point p1, Point p2)
+  {
+      return sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
   }
 
   void MultiplexClustering::writeDebug(vector<DebugPoint> points, int pattern) const

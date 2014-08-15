@@ -41,7 +41,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/MultiplexCluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 
 #include <vector>
 #include <algorithm>
@@ -65,6 +65,11 @@ namespace OpenMS
     {        
         public:
         /**
+         * @brief cluster centre, cluster bounding box, grid index
+         */
+        typedef GridBasedCluster::Point Point;    // DPosition<2>
+
+        /**
          * @brief constructor
          * 
          * @param exp_profile    experimental data in profile mode
@@ -86,7 +91,7 @@ namespace OpenMS
          * 
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
-        std::vector<std::map<int,MultiplexCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
+        std::vector<std::map<int,GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
         
         /**
          * @brief rough estimation of the peak width at m/z
@@ -132,6 +137,38 @@ namespace OpenMS
             double slope_;
             double intercept_;
         
+        };
+        
+        /**
+         * @brief scaled Euclidean distance for clustering
+         */
+        class OPENMS_DLLAPI MultiplexDistance
+        {
+            public:
+            /**
+            * @brief constructor
+            * 
+            * @param rt_scaling    scaling of RT coordinates before calculating Euclidean distance 
+            */
+            MultiplexDistance(double rt_scaling);
+       
+            /**
+             * @brief constructor
+             */
+            MultiplexDistance();
+            
+            /**
+             * @brief returns Euclidean distance
+             * 
+             * @param p1    first point in the (m/z,RT) plane
+             * @param p2    second point in the (m/z,RT) plane
+             * @return distance
+             */
+            double operator()(Point p1, Point p2);
+     
+            private:
+            double rt_scaling_;
+            
         };
 
         private:

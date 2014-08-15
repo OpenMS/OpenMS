@@ -7,15 +7,13 @@ AverageLinkage.h
 ClusterAnalyzer.h
 ClusterFunctor.h
 ClusterHierarchical.h
+ClusteringGrid.h
 CompleteLinkage.h
 EuclideanSimilarity.h
+GridBasedCluster.h
+GridBasedClustering.h
 HashGrid.h
-HierarchicalClustering.h
-MultiplexCluster.h
-MultiplexGrid.h
-MultiplexLocalClustering.h
 SingleLinkage.h
-SILACClustering.h
 )
 
 ### add path to the filenames
