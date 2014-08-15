@@ -60,8 +60,8 @@ std::vector<int> properties_A;
 std::vector<int> properties_B;
 for (int i = 0; i < 1000; ++i)
 {
-    data_x.push_back(5*(sin(i)+1));
-    data_y.push_back(5*(sin(i+18)+1));
+    data_x.push_back(5*(sin((double)i)+1));
+    data_y.push_back(5*(sin((double)(i+18))+1));
     properties_A.push_back(1);    // Should be the same within each cluster.
     properties_B.push_back(i);    // Should be different within each cluster.
 }
