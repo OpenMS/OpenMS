@@ -107,7 +107,7 @@ public:
       - PeptideRef
       - leftWidth
       - rightWidth
-      - total_xic
+      - total_xic (fragment trace XIC sum)
       - peak_apices_sum
 
     */
@@ -320,13 +320,10 @@ public:
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
 
+      // Also pick the precursor chromatogram (note total_xic is not extracted here, only for fragment traces)
       if (transition_group.hasPrecursorChromatogram("Precursor_i0"))
       {
         const SpectrumT& chromatogram = transition_group.getPrecursorChromatogram("Precursor_i0");
-        for (typename SpectrumT::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
-        {
-          total_xic += it->getIntensity();
-        }
 
         // resample the current chromatogram
         const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
