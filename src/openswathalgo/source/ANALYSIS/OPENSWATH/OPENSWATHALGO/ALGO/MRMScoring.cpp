@@ -38,18 +38,10 @@
 #include <iterator>
 #include <iostream>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
-
-
-#ifdef OPENMS_ASSERTIONS
-#define OPENMS_PRECONDITION(condition, message) \
-  if (!(condition)) \
-  { throw std::runtime_error(message); }
-#else
-#define OPENMS_PRECONDITION(condition, message)
-#endif
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 namespace OpenSwath
 {

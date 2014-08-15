@@ -32,17 +32,11 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
+
 #include <cmath>
 #include <boost/numeric/conversion/cast.hpp>
-
-#ifdef OPENMS_ASSERTIONS
-#define OPENMS_PRECONDITION(condition, message)\
- if (!(condition))\
-    { throw std::runtime_error(message); }
-#else
-#define OPENMS_PRECONDITION(condition, message)
-#endif
 
 namespace OpenSwath
 {

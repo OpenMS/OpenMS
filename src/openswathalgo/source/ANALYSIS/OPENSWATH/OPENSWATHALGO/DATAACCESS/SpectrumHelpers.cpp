@@ -32,7 +32,8 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
 
 #include <algorithm>
 #include <numeric>
@@ -74,13 +75,10 @@ namespace OpenSwath
   bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
                        double mz_end, double & mz, double & intensity, bool centroided)
   {
-#ifdef OPENMS_ASSERTIONS
     //check precondtion
-    if (std::adjacent_find(spectrum->getMZArray()->data.begin(), spectrum->getMZArray()->data.end(), std::greater<double>()) != spectrum->getMZArray()->data.end())
-    {
-      throw std::runtime_error("Precondition MZ vector needs to be sorted!");
-    }
-#endif
+    OPENMS_PRECONDITION( std::adjacent_find(spectrum->getMZArray()->data.begin(),
+            spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
+          "Precondition violated: m/z vector needs to be sorted!" )
 
     intensity = 0;
     if (!centroided)
