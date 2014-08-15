@@ -386,7 +386,7 @@ namespace OpenMS
       String cv_ns = cv_.name();
       String datacollection_element, analysissoftwarelist_element, analysisprotocolcollection_element, analysiscollection_element;
       String inputs_element, analysisdata_element;
-      std::set<String> sdb_set, sen_set, sof_set, sip_set, spd_set;
+      std::set<String> sen_set, sof_set, sip_set;
       std::map<String, UInt64> sdb_ids, sen_ids, sof_ids, sip_ids, spd_ids, pep_ids;
       std::map<String, String> pie_ids, sip_sdb;
       std::vector<String> /* peps, pepevis, */ sidlist;
@@ -409,58 +409,65 @@ namespace OpenMS
       -AnalysisData collected in sidlist --> unclosed element string
       ---------------------------------------------------------------------*/
       inputs_element += String("\t<Inputs>\n");
-      String spectra_data;
-      //~ for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
-      //~ {
-      //~ for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
-      //~ {
-      //TODO get spectra_data location not build in idxml or internal structures yet
-      //~ }
-      //~ }
-      if (spd_set.empty())
-      {
-        UInt64 spdid;
-        spdid = UniqueIdGenerator::getUniqueId();
-        spd_set.insert("UNKNOWN");
-        spd_ids.insert(std::pair<String, UInt64>("UNKNOWN", spdid));
-
-        spectra_data += String("\t\t<SpectraData location=\"") + String("UNKNOWN") + String("\" id=\"") + String(spdid) + String("\">");
-        spectra_data += String("\n\t\t\t<FileFormat> \n\t\t\t");
-        spectra_data +=  cv_.getTermByName("mzML file").toXMLString(cv_ns);
-        spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
-        spectra_data +=  cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
-        spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>");
-      }
+      String spectra_data, search_database;
 
       /*
       1st: iterate over proteinidentification vector
       */
       for (std::vector<ProteinIdentification>::const_iterator it = cpro_id_->begin(); it != cpro_id_->end(); ++it)
       {
-        UInt64 dbid;
-        std::set<String>::iterator dbit = sdb_set.find(String(it->getSearchParameters().db));
-        if (dbit == sdb_set.end())
+        UInt64 dbid, sdid;
+
+        // handle SearchDatabase element for each ProteinIdentification
+        String dbst(it->getSearchParameters().db);
+        std::map<String, UInt64>::iterator dbit = sdb_ids.find(dbst);
+        if (dbit == sdb_ids.end())
         {
           dbid = UniqueIdGenerator::getUniqueId();
-          String dbst(it->getSearchParameters().db);
 
-          inputs_element += String("\t\t<SearchDatabase ");
-          inputs_element += String("location=\"") + dbst + "\" ";
+          search_database += String("\t\t<SearchDatabase ");
+          search_database += String("location=\"") + dbst + "\" ";
           //TODO get version db += String("version=\"") + String(it->getSearchParameters().version) + "\" ";
-          inputs_element += String("id=\"") + String(dbid) + String("\" > \n\t\t\t<FileFormat> \n ");
+          search_database += String("id=\"") + String(dbid) + String("\" > \n\t\t\t<FileFormat> \n ");
           //TODO Searchdb file format type cvParam handling
-          inputs_element += cv_.getTermByName("FASTA format").toXMLString(cv_ns);
-          inputs_element += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + dbst + String("\"/>\n\t\t\t</DatabaseName>\n");
-          inputs_element += "\t\t</SearchDatabase> \n";
+          search_database += cv_.getTermByName("FASTA format").toXMLString(cv_ns);
+          search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + dbst + String("\"/>\n\t\t\t</DatabaseName>\n");
+          search_database += "\t\t</SearchDatabase> \n";
 
           sdb_ids.insert(std::pair<String, UInt64>(dbst, dbid));
         }
         else
         {
-          dbid = sdb_ids.find(*dbit)->second;
+          dbid = dbit->second;
         }
 
-        //~ get a map from identifier to match OpenMS Protein/PeptideIdentification match string;
+        // handle SpectraData element for each ProteinIdentification
+        String sdst(it->getMetaValue("spectra_data"));
+        if (sdst.empty())
+        {
+          sdst = String("UNKNOWN");
+        }
+        std::map<String, UInt64>::iterator sdit = spd_ids.find(sdst);
+        if (sdit == spd_ids.end())
+        {
+           sdid = UniqueIdGenerator::getUniqueId();
+
+           //xml
+           spectra_data += String("\t\t<SpectraData location=\"") + sdst + String("\" id=\"") + String(sdid) + String("\">");
+           spectra_data += String("\n\t\t\t<FileFormat> \n\t\t\t");
+           spectra_data +=  cv_.getTermByName("mzML file").toXMLString(cv_ns);
+           spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
+           spectra_data +=  cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
+           spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
+
+           spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
+        }
+        else
+        {
+          sdid = sdit->second;
+        }
+
+        // get a map from identifier to match OpenMS Protein/PeptideIdentification match string;
         pie_ids.insert(std::pair<String, String>(it->getIdentifier(), it->getSearchEngine()));
 
         //~ collect analysissoftware in this loop - does not go into inputelement
@@ -552,9 +559,11 @@ namespace OpenMS
           {
             enid = enit->second;
           }
+
         }
 
       }
+      inputs_element += search_database;
       inputs_element += spectra_data;
       inputs_element += "</Inputs>\n";
 
@@ -783,7 +792,7 @@ namespace OpenMS
         String entry = String("\t<SpectrumIdentification id=\"") + String(ss) + String("\" spectrumIdentificationProtocol_ref=\"")
                 + String(sip->second) + String("\" spectrumIdentificationList_ref=\"") + String(silly)
                 + String("\">\n")
-                + "\t\t<InputSpectra/>\n"
+                + "\t\t<InputSpectra/>\n" //TODO FIXME
                 + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sip_sdb[sip->first] + "\"/>\n"
                 + "\t</SpectrumIdentification>\n";
 
@@ -809,9 +818,11 @@ namespace OpenMS
       //+Inputs
       //+AnalysisData
       //--------------------------------------------------------------------------------------------
-      os << "<DataCollection>\n" << inputs_element;
-      //~ TODO for every pair of input vector<Protein/PeptideIdentification> create one SpectrumIdentificationList and fill
-      os << "\t<AnalysisData>\n\t\t<SpectrumIdentificationList id=\"" << String(silly) << "\"> \n";
+      os << "<DataCollection>\n"
+         << inputs_element;
+      os << "\t<AnalysisData>\n\t\t<SpectrumIdentificationList id=\""
+         << String(silly)
+         << String("\"> \n");
 
       os << "\t\t\t<FragmentationTable>\n"
          << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"

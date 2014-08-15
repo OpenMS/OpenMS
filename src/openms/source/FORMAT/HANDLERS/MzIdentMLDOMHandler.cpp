@@ -745,6 +745,7 @@ namespace OpenMS
           ProteinIdentification::SearchParameters sp;
           sp.db = input_dbs_[searchDatabase_ref].location;
           pro_id_->back().setSearchParameters(sp);
+          pro_id_->back().setMetaValue("spectra_data",input_spectra_data_[spectra_data_ref]);//TODO @mths FIXME whilst reading mzid set spectra_data and spectrum_reference (ProteinIdentification, PeptideIdentification)
           si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
         }
       }
