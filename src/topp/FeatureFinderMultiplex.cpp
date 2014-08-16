@@ -823,6 +823,17 @@ public:
     }
     
     /**
+     * @brief generates the data structure for mzQuantML output
+     * 
+     * @param consensus_map    consensus map with complete quantitative information
+     * @param quantifications    MSQuantifications data structure for writing mzQuantML (mzq)
+     */
+    void generateMSQuantifications(ConsensusMap &consensus_map, MSQuantifications &quantifications)
+    {
+        int x = 5;
+    }
+
+    /**
      * @brief Write consensus map to consensusXML file.
      * 
      * @param filename    name of consensusXML file
@@ -832,7 +843,7 @@ public:
     {
         map.sortByPosition();
         map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-        map.setExperimentType("multiplex");    // TO DO: adjust for SILAC, Dimethyl, ICPL etc.
+        map.setExperimentType("multiplex");    // TODO: adjust for SILAC, Dimethyl, ICPL etc.
         
         ConsensusMap::FileDescription& desc = map.getFileDescriptions()[0];
         desc.filename = filename;
@@ -1002,317 +1013,15 @@ public:
      * write to output
      */
     ConsensusMap consensus_map;   
-    FeatureMap<> feature_map;   
+    FeatureMap<> feature_map;
     generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     writeConsensusMap_(out_, consensus_map);
     writeFeatureMap_(out_features_, feature_map);
+
+    MSQuantifications quantifications;
+    generateMSQuantifications(consensus_map,quantifications);
     
     std::cout << "The map contains " << consensus_map.size() << " consensuses.\n";
-
-
-
-
-
-
-    // data to be passed through the algorithm
-    /*vector<vector<SILACPattern> > data;
-    MSQuantifications msq;
-    vector<Clustering *> cluster_data;*/
-
-    /*if (labels.empty() && !out.empty()) // incompatible parameters
-    {
-      writeLog_("Error: The 'out' parameter cannot be used without a label (parameter 'sample:labels'). Use 'out_features' instead.");
-      return ILLEGAL_PARAMETERS;
-    }*/
-
-    // 
-    // Initializing the SILACAnalzer with our parameters
-    // 
-    /*SILACAnalyzer analyzer;
-    analyzer.setLogType(log_type_);
-    analyzer.initialize(
-      // section "sample"
-      labels,
-      charge_min,
-      charge_max,
-      missed_cleavages,
-      isotopes_per_peptide_min,
-      isotopes_per_peptide_max,
-      // section "algorithm"
-      rt_typical,
-      rt_min,
-      intensity_cutoff,
-      peptide_similarity,
-      averagine_similarity,
-      allow_missing_peaks,
-      // labels
-      label_massshift);*/
-
-    /*if (out_mzq_ != "")
-    {
-      vector<vector<String> > SILAClabels = analyzer.getSILAClabels(); // list of SILAC labels, e.g. labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
-
-      std::vector<std::vector<std::pair<String, DoubleReal> > > labels;
-      //add none label
-      labels.push_back(std::vector<std::pair<String, DoubleReal> >(1, std::make_pair<String, DoubleReal>(String("none"), DoubleReal(0))));
-      for (Size i = 0; i < SILAClabels.size(); ++i)       //SILACLabels MUST be in weight order!!!
-      {
-        std::vector<std::pair<String, DoubleReal> > one_label;
-        for (UInt j = 0; j < SILAClabels[i].size(); ++j)
-        {
-          one_label.push_back(*(label_massshift.find(SILAClabels[i][j])));              // this dereferencing would break if all SILAClabels would not have been checked before!
-        }
-        labels.push_back(one_label);
-      }
-      msq.registerExperiment(exp, labels);       //add assays
-      msq.assignUIDs();
-    }
-    MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
-    msq.setAnalysisSummaryQuantType(quant_type);    //add analysis_summary_
-	*/
-	
-	// ---------------------------
-	// testing new data structures
-	// ---------------------------
-    
-    // testing size types    
-    /*double nonNaN = 100;
-    double nan = std::numeric_limits<double>::quiet_NaN();
-    std::cout << "double: " << (boost::math::isnan)(nonNaN) << " " << (boost::math::isnan)(nan) << "\n";*/
-    
-    // testing vector constructors
-    /*std::vector<int> int_vector(100,-1);
-    std::cout << "int vector: " << int_vector[0] << " " << int_vector[1] << " " << int_vector[99] << "\n";*/
-
-	// ---------------------------
-	// testing peak picking
-	// ---------------------------
-    
-	//MzMLFile file_picked;
-	//file_picked.store("picked.mzML", exp_picked);
-	
-	// ---------------------------
-	// testing filtering
-	// ---------------------------	
-	
-	// ---------------------------
-	// testing clustering
-	// ---------------------------	
-
-    //--------------------------------------------------
-    // estimate peak width
-    //--------------------------------------------------
-
-    /*LOG_DEBUG << "Estimating peak width..." << endl;
-    PeakWidthEstimator::Result peak_width;
-    try
-    {
-      peak_width = analyzer.estimatePeakWidth(exp);
-    }
-    catch (Exception::InvalidSize &)
-    {
-      writeLog_("Error: Unable to estimate peak width of input data.");
-      return INCOMPATIBLE_INPUT_DATA;
-    }
-
-
-    if (in_filters == "")
-    {
-      //--------------------------------------------------
-      // filter input data
-      //--------------------------------------------------
-
-      LOG_DEBUG << "Filtering input data..." << endl;
-      analyzer.filterData(exp, peak_width, data); 
-
-      //--------------------------------------------------
-      // store filter results
-      //--------------------------------------------------
-
-      if (out_filters != "")
-      {
-        LOG_DEBUG << "Storing filtering results..." << endl;
-        ConsensusMap map;
-        for (std::vector<std::vector<SILACPattern> >::const_iterator it = data.begin(); it != data.end(); ++it)
-        {
-          analyzer.generateFilterConsensusByPattern(map, *it);
-        }
-        analyzer.writeConsensus(out_filters, map);
-      }
-    }
-    else
-    {
-      //--------------------------------------------------
-      // load filter results
-      //--------------------------------------------------
-
-      LOG_DEBUG << "Loading filtering results..." << endl;
-      ConsensusMap map;
-      analyzer.readConsensus(in_filters, map);
-      analyzer.readFilterConsensusByPattern(map, data);
-    }
-
-    //--------------------------------------------------
-    // clustering
-    //--------------------------------------------------
-
-    LOG_DEBUG << "Clustering data..." << endl;
-    analyzer.clusterData(exp, peak_width, cluster_data, data);
-
-    //--------------------------------------------------------------
-    // write output
-    //--------------------------------------------------------------
-
-    if (out_debug_ != "")
-    {
-      LOG_DEBUG << "Writing debug output file..." << endl;
-      std::ofstream out((out_debug_ + ".clusters.csv").c_str());
-
-      vector<vector<DoubleReal> > massShifts = analyzer.getMassShifts(); // list of mass shifts
-
-      // generate header
-      out
-      << std::fixed << std::setprecision(8)
-      << "ID,RT,MZ_PEAK,CHARGE";
-      for (UInt i = 1; i <= massShifts[0].size(); ++i)
-      {
-        out << ",DELTA_MASS_" << i + 1;
-      }
-      for (UInt i = 0; i <= massShifts[0].size(); ++i)
-      {
-        for (UInt j = 1; j <= isotopes_per_peptide_max; ++j)
-        {
-          out << ",INT_PEAK_" << i + 1 << '_' << j;
-        }
-      }
-      out << ",MZ_RAW";
-      for (UInt i = 0; i <= massShifts[0].size(); ++i)
-      {
-        for (UInt j = 1; j <= isotopes_per_peptide_max; ++j)
-        {
-          out << ",INT_RAW_" << i + 1 << '_' << j;
-        }
-      }
-      for (UInt i = 0; i <= massShifts[0].size(); ++i)
-      {
-        for (UInt j = 1; j <= isotopes_per_peptide_max; ++j)
-        {
-          out << ",MZ_RAW_" << i + 1 << '_' << j;
-        }
-      }
-      out << '\n';
-
-      // write data
-      UInt cluster_id = 0;
-      for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
-      {
-        analyzer.generateClusterDebug(out, **it, cluster_id);
-      }
-    }
-
-    if (out != "")
-    {
-      LOG_DEBUG << "Generating output consensus map..." << endl;
-      ConsensusMap map;
-
-      for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
-      {
-        analyzer.generateClusterConsensusByCluster(map, **it);
-      }
-
-      LOG_DEBUG << "Adding meta data..." << endl;
-      // XXX: Need a map per mass shift
-      ConsensusMap::FileDescriptions& desc = map.getFileDescriptions();
-      Size id = 0;
-      for (ConsensusMap::FileDescriptions::iterator it = desc.begin(); it != desc.end(); ++it)
-      {
-        if (test_mode_) it->second.filename = in; // skip path, since its not cross platform and complicates verification
-        else it->second.filename = File::basename(in);
-        // Write correct label
-        // (this would crash if used without a label!)
-        if (id > 0) it->second.label = ListUtils::concatenate(analyzer.getSILAClabels()[id - 1], ""); // skip first round (empty label is not listed)
-        ++id;
-      }
-
-      std::set<DataProcessing::ProcessingAction> actions;
-      actions.insert(DataProcessing::DATA_PROCESSING);
-      actions.insert(DataProcessing::PEAK_PICKING);
-      actions.insert(DataProcessing::FILTERING);
-      actions.insert(DataProcessing::QUANTITATION);
-
-      addDataProcessing_(map, getProcessingInfo_(actions));
-
-      analyzer.writeConsensus(out, map);
-      if (out_mzq_ != "")
-      {
-        LOG_DEBUG << "Generating output mzQuantML file..." << endl;
-        ConsensusMap numap(map);
-        //calc. ratios
-        for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
-        {
-          //~ make ratio templates
-          std::vector<ConsensusFeature::Ratio> rts;
-          for (std::vector<MSQuantifications::Assay>::const_iterator ait = msq.getAssays().begin() + 1; ait != msq.getAssays().end(); ++ait)
-          {
-            ConsensusFeature::Ratio r;
-            r.numerator_ref_ = String(msq.getAssays().begin()->uid_);
-            r.denominator_ref_ = String(ait->uid_);
-            r.description_.push_back("Simple ratio calc");
-            r.description_.push_back("light to medium/.../heavy");
-            //~ "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>"
-            rts.push_back(r);
-          }
-
-          const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
-          if (feature_handles.size() > 1)
-          {
-            std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin();             // this is unlabeled
-            fit++;
-            for (; fit != feature_handles.end(); ++fit)
-            {
-              Size ri = std::distance(feature_handles.begin(), fit);
-              rts[ri - 1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity();             // a proper silacalanyzer algo should never have 0-intensities so no 0devison ...
-            }
-          }
-
-          cit->setRatios(rts);
-        }
-        msq.addConsensusMap(numap);        //add FeatureFinderMultiplex result
-
-        //~ msq.addFeatureMap();//add FeatureFinderMultiplex evidencetrail as soon as clear what is realy contained in the featuremap
-        //~ add AuditCollection - no such concept in TOPPTools yet
-        analyzer.writeMzQuantML(out_mzq_, msq);
-      }
-    }
-
-    if (out_clusters != "")
-    {
-      LOG_DEBUG << "Generating cluster output file..." << endl;
-      ConsensusMap map;
-      for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
-      {
-        UInt cluster_id = 0;
-        analyzer.generateClusterConsensusByPattern(map, **it, cluster_id);
-      }
-
-      ConsensusMap::FileDescription & desc = map.getFileDescriptions()[0];
-      desc.filename = in;
-      desc.label = "Cluster";
-
-      analyzer.writeConsensus(out_clusters, map);
-    }
-
-    if (out_features_ != "")
-    {
-      LOG_DEBUG << "Generating output feature map..." << endl;
-      FeatureMap<> map;
-      for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
-      {
-        analyzer.generateClusterFeatureByCluster(map, **it);
-      }
-
-      analyzer.writeFeatures(out_features_, map);
-    }*/
 
     return EXECUTION_OK;
   }
