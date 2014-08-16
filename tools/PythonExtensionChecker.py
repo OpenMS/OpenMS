@@ -846,6 +846,50 @@ class TestResultHandler:
           */
                 """
 
+def writeOutput(testresults, output_format, cnt, bin_path):
+    ###################################
+    #   Output
+    ###################################
+    if output_format in ["text", "text-verbose", "text-quiet"]:
+        for classtestresults in testresults:
+            if len(classtestresults) > 1:
+                t = classtestresults[0]
+                lenfailed = len([t for t in classtestresults if not t.isPassed() ] )
+                if lenfailed > 0:
+                    print "== Test results for element %s - from Cpp file %s with maintainer %s and corresponding pxd file %s" % (
+                        t.comp_name, t.file_location, t.maintainer, t.pxdfile)
+            for tres in classtestresults:
+                if not tres.isPassed():
+                    print tres.message
+                elif tres.log_level >= 10 and output_format in ["text", "text-verbose"]:
+                    print tres.message
+                elif tres.log_level >= 0 and output_format in ["text-verbose"]:
+                    print tres.name, "::", tres.message
+
+    elif output_format == "xml":
+
+        # check if all files required to report in CDash are present
+        tag_file = os.path.join(bin_path, "Testing", "TAG" )
+        try:
+            # read the first line of tagfile (TAG) -> if it does not exist,
+            # an IOError is thrown
+            with open(tag_file) as f:
+                ctestReportingPath = f.readline().strip()
+                ctestReportingPath = os.path.join(bin_path, "Testing", ctestReportingPath)
+                if not os.path.exists( ctestReportingPath ):
+                    raise Exception("Missing directory at %s" % ( ctestReportingPath ) )
+        except IOError:
+            raise Exception("Missing nightly test information at %s" % (tag_file) )
+
+        template_path = os.path.join(ctestReportingPath, "Test.xml" )
+        testresults.to_cdash_xml(template_path, template_path)
+
+    else:
+        raise Exception("Unknown output format %s" % output_format)
+
+    cnt.print_stats()
+    cnt.print_skipping_reason()
+
 
 def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd, output_format, generate_pxd):
     """ Checks a set of doxygen xml file against a set of pxd header files
@@ -1000,48 +1044,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
         testresults.append(classtestresults)
 
-    ###################################
-    #   Output
-    ###################################
-    if output_format in ["text", "text-verbose", "text-quiet"]:
-        for classtestresults in testresults:
-            if len(classtestresults) > 1:
-                t = classtestresults[0]
-                lenfailed = len([t for t in classtestresults if not t.isPassed() ] )
-                if lenfailed > 0:
-                    print "== Test results for element %s - from Cpp file %s with maintainer %s and corresponding pxd file %s" % (
-                        t.comp_name, t.file_location, t.maintainer, t.pxdfile)
-            for tres in classtestresults:
-                if not tres.isPassed():
-                    print tres.message
-                elif tres.log_level >= 10 and output_format in ["text", "text-verbose"]:
-                    print tres.message
-                elif tres.log_level >= 0 and output_format in ["text-verbose"]:
-                    print tres.message
-
-    elif output_format == "xml":
-
-        # check if all files required to report in CDash are present
-        tag_file = os.path.join(bin_path, "Testing", "TAG" )
-        try:
-            # read the first line of tagfile (TAG) -> if it does not exist,
-            # an IOError is thrown
-            with open(tag_file) as f:
-                ctestReportingPath = f.readline().strip()
-                ctestReportingPath = os.path.join(bin_path, "Testing", ctestReportingPath)
-                if not os.path.exists( ctestReportingPath ):
-                    raise Exception("Missing directory at %s" % ( ctestReportingPath ) )
-        except IOError:
-            raise Exception("Missing nightly test information at %s" % (tag_file) )
-
-        template_path = os.path.join(ctestReportingPath, "Test.xml" )
-        testresults.to_cdash_xml(template_path, template_path)
-
-    else:
-        raise Exception("Unknown output format %s" % output_format)
-
-    cnt.print_stats()
-    cnt.print_skipping_reason()
+    writeOutput(testresults, output_format, cnt, bin_path)
 
 def main(options):
     checkPythonPxdHeader(options.src_path, options.bin_path, options.ignorefile, options.pxds_out, options.print_pxd, options.output_format, options.generate_pxd)
