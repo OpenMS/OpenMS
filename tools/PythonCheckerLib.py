@@ -84,19 +84,18 @@ def parse_pxd_file(path):
 
 
 def create_pxd_file_map(bin_path):
-    # Finds all .pxd files given an OpenMS
+    # Finds all .pxd files given an OpenMS source (header) file
     import glob, os, re
     pxd_path = os.path.join(bin_path, "src/pyOpenMS/pxds/")
-    include_path = os.path.join(bin_path, "src/openms/include")
     pxds = glob.glob(pxd_path + "/*.pxd")
     pxd_file_matching = {}
     for pfile in pxds:
         filename_rgx = re.compile("cdef extern from \"<([^\"]*)>\"", re.IGNORECASE)
         filematch = [o.group(1) for o in filename_rgx.finditer(open(pfile).read()) ]
-        filematch = [os.path.realpath( os.path.join(include_path, o) ) for o in filematch]
         for fm in filematch:
             res = pxd_file_matching.get(fm, set([]))
             res.update([pfile])
             pxd_file_matching[fm] = res
+
     return pxd_file_matching
 

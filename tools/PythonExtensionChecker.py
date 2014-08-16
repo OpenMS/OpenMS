@@ -949,8 +949,11 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             testresults.append([ tres ])
             cnt.skipped_no_sections += 1
             continue
-        if file_location in pxd_file_matching:
-            pxdfiles = pxd_file_matching[file_location]
+
+        # Retrieve all associated pxd files with this specific header file
+        file_location_key = file_location.split("include/")[1]
+        if file_location_key in pxd_file_matching:
+            pxdfiles = pxd_file_matching[file_location_key]
         else:
             msg = "Skip:: No-pxd :: No pxd file exists for Class %s (File %s) %s" % (comp_name, file_location, f)
             tres = TestResult(False, msg,  name="Missing_%s_test" % comp_name )
