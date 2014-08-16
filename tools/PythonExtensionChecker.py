@@ -879,7 +879,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
     print "Found %s doxygen xml files" % (len(xml_files))
     if len(xml_files) == 0:
         raise Exception("No doxygen files found in directory:\n%s,\n" % xml_output_path + \
-                        "Please make sure you build the doxygen xmls (make dox_xml)\n" +\
+                        "Please make sure you build the doxygen xmls (make doc_xml)\n" +\
                         "and that you specified the correct directory." )
 
     print "Creating pxd file map"
