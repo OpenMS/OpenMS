@@ -1030,7 +1030,10 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             continue
 
         # Retrieve all associated pxd files with this specific header file
-        file_location_key = file_location.split("include/")[1]
+        file_location_key = file_location
+        if len(file_location.split("include/")) > 1:
+            file_location_key = file_location.split("include/")[1]
+
         if file_location_key in pxd_file_matching:
             pxdfiles = pxd_file_matching[file_location_key]
         else:
