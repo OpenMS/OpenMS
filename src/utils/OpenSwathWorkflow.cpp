@@ -347,9 +347,14 @@ namespace OpenMS
           extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
 
+          std::vector< OpenMS::MSChromatogram<> > chromatograms;
+          extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(), chromatograms, true);
+
           for (Size j = 0; j < coordinates.size(); j++)
           {
             ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
+            // write MS1 chroms to disk
+            chromConsumer->consumeChromatogram( chromatograms[j] );
           }
         }
       }
