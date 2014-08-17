@@ -25,3 +25,5 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         bool isSemanticallyValid(String & filename, StringList & errors, StringList & warnings) nogil except +
 
         # NAMESPACE # bool isValid(String & filename, std::ostream & os)
+
+        # void loadSize(String & filename, Size & scount, Size & ccount) 
