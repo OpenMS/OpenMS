@@ -141,7 +141,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 tres.setMessage("Cannot wrap method with iterator/operator %s" % mdef.name)
             else:
                 tres.setPassed(False)
-                tres.setMessage(" -- TODO missing function in PXD: %s " % mdef.format_definition_for_cython())
+                tres.setMessage(" -- TODO missing function in PXD: %s nogil except +" % mdef.format_definition_for_cython())
     else:
         # It is neither public function/enum/variable
         tres.setPassed(True)
