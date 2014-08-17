@@ -91,13 +91,15 @@ namespace OpenMS
     std::ofstream ofs;
     String input_filename_;
     bool doWrite_;
+    bool use_ms1_traces_;
 
   public:
 
-    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile") :
+    OpenSwathTSVWriter(String output_filename, String input_filename = "inputfile", bool ms1_scores = false) :
       ofs(output_filename.c_str()),
       input_filename_(input_filename),
-      doWrite_(!output_filename.empty())
+      doWrite_(!output_filename.empty()),
+      use_ms1_traces_(ms1_scores)
       {}
 
     bool isActive() {return doWrite_;}
@@ -113,9 +115,12 @@ namespace OpenMS
         "\tvar_library_rootmeansquare\tvar_library_sangle\tvar_log_sn_score\tvar_manhatt_score" <<
         "\tvar_massdev_score\tvar_massdev_score_weighted\tvar_norm_rt_score\tvar_xcorr_coelution" <<
         "\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted" <<
-        "\tvar_yseries_score\tvar_elution_model_fit_score" << 
-        "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape" << 
-        "\txx_lda_prelim_score\txx_swath_prelim_score" <<
+        "\tvar_yseries_score\tvar_elution_model_fit_score";
+        if (use_ms1_traces_) 
+        {
+          ofs << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
+        }
+      ofs << "\txx_lda_prelim_score\txx_swath_prelim_score" <<
         "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
     }
 
@@ -211,13 +216,18 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("var_xcorr_shape")
             + "\t" + (String)feature_it->getMetaValue("var_xcorr_shape_weighted")
             + "\t" + (String)feature_it->getMetaValue("var_yseries_score")
-            + "\t" + (String)feature_it->getMetaValue("var_elution_model_fit_score")
-            + "\t" + (String)feature_it->getMetaValue("var_ms1_ppm_diff")
-            + "\t" + (String)feature_it->getMetaValue("var_ms1_isotope_correlation")
-            + "\t" + (String)feature_it->getMetaValue("var_ms1_isotope_overlap")
-            + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_coelution")
-            + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_shape")
-            + "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
+            + "\t" + (String)feature_it->getMetaValue("var_elution_model_fit_score");
+
+            if (use_ms1_traces_) 
+            {
+              line += "\t" + (String)feature_it->getMetaValue("var_ms1_ppm_diff")
+              + "\t" + (String)feature_it->getMetaValue("var_ms1_isotope_correlation")
+              + "\t" + (String)feature_it->getMetaValue("var_ms1_isotope_overlap")
+              + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_coelution")
+              + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_shape");
+            }
+
+            line += "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
             + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score")
             + "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation + "\n";
           result += line;
@@ -243,7 +253,12 @@ namespace OpenMS
   class OpenSwathWorkflow :
     public ProgressLogger
   {
+
   public:
+
+    OpenSwathWorkflow(bool use_ms1_traces) :
+      use_ms1_traces_(use_ms1_traces)
+    {}
 
     /** @brief ChromatogramExtractor parameters
      *
@@ -317,7 +332,7 @@ namespace OpenMS
       std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
-        if (swath_maps[i].ms1) 
+        if (swath_maps[i].ms1 && use_ms1_traces_) 
         {
           // store reference to MS1 map for later -> note that this is *not* threadsafe!
           ms1_map_ = swath_maps[i].sptr;
@@ -412,6 +427,7 @@ namespace OpenMS
             {
               chromConsumer->consumeChromatogram(chromatograms[j]);
             }
+
             // write features to output if so desired
             if (!out.empty())
             {
@@ -639,9 +655,12 @@ namespace OpenMS
       // To ensure multi-threading safe access to the individual spectra, we
       // need to use a light clone of the spectrum access (if multiple threads
       // share a single filestream and call seek on it, chaos will ensue).
-      OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
+      if (use_ms1_traces_) 
+      {
+        OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
+        featureFinder.setMS1Map( threadsafe_ms1 );
+      }
 
-      featureFinder.setMS1Map( threadsafe_ms1 );
       MRMTransitionGroupPicker trgroup_picker;
 
       trgroup_picker.setParameters(feature_finder_param.copy("TransitionGroupPicker:", true));
@@ -845,8 +864,18 @@ namespace OpenMS
       }
     }
 
-    /// Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
+  private:
+    /**
+     * @brief Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
+     *
+     * @note This pointer is not threadsafe, please use the lightClone() function to create a copy for each thread
+     * @note This pointer may be NULL if use_ms1_traces_ is set to false
+     *
+     */
     OpenSwath::SpectrumAccessPtr ms1_map_;
+
+    /// Whether to use the MS1 traces
+    bool use_ms1_traces_;
 
   };
 
@@ -1062,6 +1091,8 @@ protected:
     registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
     registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
+    registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
+
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
@@ -1211,7 +1242,7 @@ protected:
     }
     else if (!irt_tr_file.empty())
     {
-      OpenSwathWorkflow wf;
+      OpenSwathWorkflow wf(false);
       wf.setLogType(log_type_);
       // Loading iRT file
       std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
@@ -1259,6 +1290,7 @@ protected:
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
+    bool use_ms1_traces = getFlag_("use_ms1_traces");
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     double mz_extraction_window = getDoubleOption_("mz_extraction_window");
     double rt_extraction_window = getDoubleOption_("rt_extraction_window");
@@ -1293,8 +1325,15 @@ protected:
     cp_irt.rt_extraction_window = -1; // extract the whole RT range
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
-    if (use_emg_score) { feature_finder_param.setValue("Scores:use_elution_model_score", "true");}
-    else { feature_finder_param.setValue("Scores:use_elution_model_score", "false");}
+    if (use_emg_score) 
+      { feature_finder_param.setValue("Scores:use_elution_model_score", "true"); }
+    else 
+      { feature_finder_param.setValue("Scores:use_elution_model_score", "false"); }
+    if (use_ms1_traces)
+    {
+      feature_finder_param.setValue("Scores:use_ms1_correlation", "true");
+      feature_finder_param.setValue("Scores:use_ms1_fullscan", "true");
+    }
 
     ///////////////////////////////////
     // Load the SWATH files
@@ -1361,8 +1400,8 @@ protected:
     ///////////////////////////////////
     FeatureMap<> out_featureFile;
 
-    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0]);
-    OpenSwathWorkflow wf;
+    OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces);
+    OpenSwathWorkflow wf(use_ms1_traces);
     wf.setLogType(log_type_);
 
     wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,

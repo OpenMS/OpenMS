@@ -483,6 +483,7 @@ var_yseries_score   -0.0327896378737766
      * @param imrmfeature The feature to be scored
      * @param transitions The library transition to score the feature against
      * @param swath_map The SWATH-MS (DIA map) from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
      * @param diascoring DIA Scoring object to use for scoring
      * @param pep The peptide corresponding to the library transitions
      * @param scores The object to store the result
