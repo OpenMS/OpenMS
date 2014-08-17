@@ -101,6 +101,9 @@ public:
       std::vector<double> result_windows_odd;
 
       /// Constructor
+      NoiseEstimator() {}
+
+      /// Constructor
       NoiseEstimator(double nr_windows_, double mz_start_, double win_len_) :
         nr_windows(nr_windows_),
         mz_start(mz_start_),
