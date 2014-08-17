@@ -3735,6 +3735,33 @@ def testTransformationXMLFile():
     assert td.getDataPoints() == []
 
 @report
+def testIBSpectraFile():
+    """
+    @tests:
+     IBSpectraFile.__init__
+     IBSpectraFile.store
+    """
+    fh = pyopenms.IBSpectraFile()
+    cmap = pyopenms.ConsensusMap()
+    correctError = False
+    try:
+        fh.store( pyopenms.String(b"test.ibspectra.file"), cmap)
+        assert False
+    except RuntimeError:
+        correctError = True
+
+    assert correctError 
+
+@report
+def testSwathFile():
+    """
+    @tests:
+     SwathFile.__init__
+     SwathFile.store
+    """
+    fh = pyopenms.SwathFile()
+
+@report
 def testType():
     """
     @tests:
@@ -3984,12 +4011,69 @@ def testOptimizePeakDeconvolution():
 
 
 @report
+def testKernelMassTrace():
+    trace = pyopenms.Kernel_MassTrace()
+
+    assert trace.getSize is not None
+    assert trace.getLabel is not None
+    assert trace.setLabel is not None
+
+    assert trace.getCentroidMZ is not None
+    assert trace.getCentroidRT is not None
+    assert trace.getCentroidSD is not None
+    assert trace.getFWHM is not None
+    assert trace.getTraceLength is not None
+    assert trace.getFWHMborders is not None
+    assert trace.getSmoothedIntensities is not None
+    assert trace.getScanTime is not None
+
+    assert trace.computeSmoothedPeakArea is not None
+    assert trace.computePeakArea is not None
+    assert trace.findMaxByIntPeak is not None
+    assert trace.estimateFWHM is not None
+    assert trace.computeFwhmArea is not None
+    assert trace.computeFwhmAreaSmooth is not None
+    assert trace.computeFwhmAreaRobust is not None
+    assert trace.computeFwhmAreaSmoothRobust is not None
+    assert trace.getIntensity is not None
+    assert trace.getMaxIntensity is not None
+
+    assert trace.getConvexhull is not None
+
+    assert trace.setCentroidSD is not None
+    assert trace.setSmoothedIntensities is not None
+    assert trace.updateSmoothedMaxRT is not None
+    assert trace.updateWeightedMeanRT is not None
+    assert trace.updateSmoothedWeightedMeanRT is not None
+    assert trace.updateMedianRT is not None
+    assert trace.updateMedianMZ is not None
+    assert trace.updateMeanMZ is not None
+    assert trace.updateWeightedMeanMZ is not None
+    assert trace.updateWeightedMZsd is not None
+
+    s = trace.getSize()
+
+@report
+def testElutionPeakDetection():
+    detection = pyopenms.ElutionPeakDetection()
+
+    assert detection.detectPeaks is not None
+    assert detection.filterByPeakWidth is not None
+    assert detection.computeMassTraceNoise is not None
+    assert detection.computeMassTraceSNR is not None
+    assert detection.computeApexSNR is not None
+    assert detection.findLocalExtrema  is not None
+    assert detection.smoothData  is not None
+
+    trace = pyopenms.Kernel_MassTrace()
+    detection.smoothData(trace, 4)
+
+@report
 def testIndexedMzMLDecoder():
     decoder = pyopenms.IndexedMzMLDecoder()
     pos = decoder.findIndexListOffset(b"abcde", 100)
     assert isinstance(pos, pyopenms.streampos)
     assert long(pos) == -1   # not found
-
 
 def test_streampos():
     p = long(pyopenms.streampos())
