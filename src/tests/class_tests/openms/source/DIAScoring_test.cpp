@@ -296,7 +296,7 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
 
     // see above for the two individual numbers (forward and backward)
     TEST_REAL_SIMILAR(isotope_corr, 0.959570883150479)
-    TEST_REAL_SIMILAR(isotope_overlap, 1.0)
+    TEST_REAL_SIMILAR(isotope_overlap, 240/74.0)
   }
 
   // Check if charge state is assumed 2+
@@ -312,7 +312,7 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     // >>> pearsonr(exp, theo)
     // (0.68135233883093205, 0.20528953804781694)
     TEST_REAL_SIMILAR(isotope_corr, 0.681352338830933)
-    TEST_REAL_SIMILAR(isotope_overlap, 1.0)
+    TEST_REAL_SIMILAR(isotope_overlap, 240/74.0)
   }
 
   // Check and confirm that monoisotopic is at m/z 499
