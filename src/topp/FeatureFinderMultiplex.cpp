@@ -1002,7 +1002,7 @@ public:
      * @param filename    name of mzq file
      * @param map    MS quantification map for output
      */
-    void writeMzQuantML(const String &filename, MSQuantifications &msq) const
+    void writeMSQuantifications(const String &filename, MSQuantifications &msq) const
     {
       //~ TODO apply above to ConsensusMap befor putting into Msq
       //~ out.sortByPosition();
@@ -1174,7 +1174,7 @@ public:
     {
         MSQuantifications quantifications;
         generateMSQuantifications(exp, consensus_map, quantifications);
-        //writeMSQuantifications(out_mzq_, quantifications);
+        writeMSQuantifications(out_mzq_, quantifications);
     }
     
     std::cout << "The map contains " << consensus_map.size() << " consensuses.\n";
