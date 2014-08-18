@@ -335,7 +335,7 @@ public:
 
         ConvexHull2D::PointArrayType hull_points;
         double intensity_sum(0.0), rt_sum(0.0);
-        // double peak_apex_int = -1;
+        double peak_apex_int = -1;
         double peak_apex_dist = std::fabs(used_chromatogram.begin()->getMZ() - peak_apex);
         // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
         for (typename SpectrumT::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
@@ -348,7 +348,7 @@ public:
             hull_points.push_back(p);
             if (std::fabs(it->getMZ() - peak_apex) <= peak_apex_dist)
             {
-              //peak_apex_int = p[1];
+              peak_apex_int = p[1];
               peak_apex_dist = std::fabs(it->getMZ() - peak_apex);
             }
             rt_sum += it->getMZ();
@@ -357,16 +357,13 @@ public:
         }
 
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
-        // f.setMZ(chromatogram.getMetaValue("product_mz"));
+        f.setMZ(chromatogram.getMetaValue("precursor_mz"));
         f.setIntensity(intensity_sum);
         ConvexHull2D hull;
         hull.setHullPoints(hull_points);
         f.getConvexHulls().push_back(hull);
-        /*
-        f.setMetaValue("MZ", chromatogram.getMetaValue("product_mz"));
         f.setMetaValue("native_id", chromatogram.getNativeID());
         f.setMetaValue("peak_apex_int", peak_apex_int);
-        */
 
         mrmFeature.addPrecursorFeature(f, "Precursor_i0");
       }

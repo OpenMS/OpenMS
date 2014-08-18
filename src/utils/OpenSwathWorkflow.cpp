@@ -701,6 +701,7 @@ namespace OpenMS
         MRMTransitionGroupType transition_group;
         transition_group.setTransitionGroupID(id);
         double expected_rt = transition_exp.getPeptides()[ assay_peptide_map[id] ].rt;
+        double precursor_mz = -1;
 
         // Go through all transitions, for each transition get chromatogram and
         // the chromatogram and the assay to the MRMTransitionGroup
@@ -721,6 +722,7 @@ namespace OpenMS
           RichPeakChromatogram chromatogram;
 
           // Extract and convert chromatogram to input chromatogram
+          precursor_mz = transition->getPrecursorMZ();
           chromatogram.setMetaValue("product_mz", transition->getProductMZ());
           chromatogram.setMetaValue("precursor_mz", transition->getPrecursorMZ());
           chromatogram.setNativeID(transition->getNativeID());
@@ -743,6 +745,8 @@ namespace OpenMS
           OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
           RichPeakChromatogram chromatogram;
           selectChrom_(chromatogram_old, chromatogram, -1, -1);
+          chromatogram.setMetaValue("precursor_mz", precursor_mz);
+          chromatogram.setNativeID( transition_group.getTransitionGroupID() + "_" + "Precursor_i0");
           transition_group.addPrecursorChromatogram(chromatogram, "Precursor_i0");
         }
 

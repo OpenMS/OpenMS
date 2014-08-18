@@ -51,6 +51,28 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
   return left.first < right.first;
 }
 
+void processFeatureForOutput(OpenMS::Feature & curr_feature, bool write_convex_hull_, double
+    quantification_cutoff_, double & total_intensity, double & total_peak_apices, std::string ms_level)
+{
+  // Save some space when writing out the featureXML
+  if (!write_convex_hull_) 
+  {
+    curr_feature.getConvexHulls().clear(); 
+  }
+
+  // Ensure a unique id is present
+  curr_feature.ensureUniqueId();
+
+  // Sum up intensities of the MS2 features
+  if (curr_feature.getMZ() > quantification_cutoff_ && ms_level == "MS2")
+  {
+    total_intensity += curr_feature.getIntensity();
+    total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
+  }
+
+  curr_feature.setMetaValue("FeatureLevel", ms_level);
+}
+
 namespace OpenMS
 {
 
@@ -61,7 +83,7 @@ namespace OpenMS
     defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after feature (ordered by quality; -1 means do not stop).");
     defaults_.setValue("rt_extraction_window", -1.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 500 means to extract around +/- 500 s of the expected elution). For this to work, the TraML input file needs to contain normalized RT values.");
     defaults_.setValue("rt_normalization_factor", 1.0, "The normalized RT is expected to be between 0 and 1. If your normalized RT has a different range, pass this here (e.g. it goes from 0 to 100, set this value to 100)");
-    defaults_.setValue("quantification_cutoff", 0.0, "Cutoff below which peaks should not be used for quantification any more", ListUtils::create<String>("advanced"));
+    defaults_.setValue("quantification_cutoff", 0.0, "Cutoff in m/z below which peaks should not be used for quantification any more", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("quantification_cutoff", 0.0);
     defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("write_convex_hull", ListUtils::create<String>("true,false"));
@@ -387,19 +409,28 @@ namespace OpenMS
 
       mrmfeature->getPeptideIdentifications().push_back(pep_id_);
       mrmfeature->ensureUniqueId();
+
       mrmfeature->setMetaValue("PrecursorMZ", transition_group.getTransitions()[0].getPrecursorMZ());
-      mrmfeature->setSubordinates(mrmfeature->getFeatures()); // add all the subfeatures as subordinates
+        std::cout << " precursor mz " << transition_group.getTransitions()[0].getPrecursorMZ() << std::endl;
+
+      std::vector<Feature> allFeatures = mrmfeature->getFeatures();
       double total_intensity = 0, total_peak_apices = 0;
-      for (std::vector<Feature>::iterator sub_it = mrmfeature->getSubordinates().begin(); sub_it != mrmfeature->getSubordinates().end(); ++sub_it)
+      for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
       {
-        if (!write_convex_hull_) {sub_it->getConvexHulls().clear(); }
-        sub_it->ensureUniqueId();
-        if (sub_it->getMZ() > quantification_cutoff_)
-        {
-          total_intensity += sub_it->getIntensity();
-          total_peak_apices += (double)sub_it->getMetaValue("peak_apex_int");
-        }
+        processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
       }
+      // Also append data for MS1 precursors
+      std::vector<String> precursors_ids;
+      mrmfeature->getPrecursorFeatureIDs(precursors_ids);
+      for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
+      {
+        Feature curr_feature = mrmfeature->getPrecursorFeature(*id_it);
+        curr_feature.setCharge(pep->getChargeState());
+        processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS1");
+        allFeatures.push_back(curr_feature);
+      }
+      mrmfeature->setSubordinates(allFeatures); // add all the subfeatures as subordinates
+
       // overwrite the reported intensities with those above the m/z cutoff
       mrmfeature->setIntensity(total_intensity);
       mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);

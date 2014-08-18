@@ -26,6 +26,7 @@
 					<userParam type="float" name="MZ" value="500.01"/>
 					<userParam type="string" name="native_id" value="1"/>
 					<userParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_5233264595117471314_17749660155506638460">
 					<position dim="0">101.000000298023</position>
@@ -38,6 +39,7 @@
 					<userParam type="float" name="MZ" value="500.15"/>
 					<userParam type="string" name="native_id" value="2"/>
 					<userParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_5233264595117471314_7804704400743266335">
 					<position dim="0">101.000000298023</position>
@@ -50,6 +52,7 @@
 					<userParam type="float" name="MZ" value="500.25"/>
 					<userParam type="string" name="native_id" value="3"/>
 					<userParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<userParam type="string" name="potentialOutlier" value="none"/>
@@ -111,6 +114,7 @@
 					<userParam type="float" name="MZ" value="501.01"/>
 					<userParam type="string" name="native_id" value="4"/>
 					<userParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15004869347769368353_13440783915218733453">
 					<position dim="0">112.006757080555</position>
@@ -123,6 +127,7 @@
 					<userParam type="float" name="MZ" value="501.15"/>
 					<userParam type="string" name="native_id" value="5"/>
 					<userParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15004869347769368353_15916652588957785155">
 					<position dim="0">112.006757080555</position>
@@ -135,6 +140,7 @@
 					<userParam type="float" name="MZ" value="501.25"/>
 					<userParam type="string" name="native_id" value="6"/>
 					<userParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<userParam type="string" name="potentialOutlier" value="none"/>
@@ -196,6 +202,7 @@
 					<userParam type="float" name="MZ" value="502.01"/>
 					<userParam type="string" name="native_id" value="7"/>
 					<userParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15157403601844400700_474525871221756682">
 					<position dim="0">122.984792172909</position>
@@ -208,6 +215,7 @@
 					<userParam type="float" name="MZ" value="502.15"/>
 					<userParam type="string" name="native_id" value="8"/>
 					<userParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_15157403601844400700_12999979801269632061">
 					<position dim="0">122.984792172909</position>
@@ -220,6 +228,7 @@
 					<userParam type="float" name="MZ" value="502.25"/>
 					<userParam type="string" name="native_id" value="9"/>
 					<userParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<userParam type="string" name="potentialOutlier" value="none"/>
@@ -281,6 +290,7 @@
 					<userParam type="float" name="MZ" value="503.01"/>
 					<userParam type="string" name="native_id" value="10"/>
 					<userParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_17413765565443951891_16907355690727166316">
 					<position dim="0">133.987522065639</position>
@@ -293,6 +303,7 @@
 					<userParam type="float" name="MZ" value="503.15"/>
 					<userParam type="string" name="native_id" value="11"/>
 					<userParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_17413765565443951891_10306100746905639127">
 					<position dim="0">133.987522065639</position>
@@ -305,6 +316,7 @@
 					<userParam type="float" name="MZ" value="503.25"/>
 					<userParam type="string" name="native_id" value="12"/>
 					<userParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<userParam type="string" name="potentialOutlier" value="none"/>
@@ -366,6 +378,7 @@
 					<userParam type="float" name="MZ" value="504.01"/>
 					<userParam type="string" name="native_id" value="13"/>
 					<userParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_12524258085768770586_14811341817612382122">
 					<position dim="0">145.374986231327</position>
@@ -378,6 +391,7 @@
 					<userParam type="float" name="MZ" value="504.15"/>
 					<userParam type="string" name="native_id" value="14"/>
 					<userParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_12524258085768770586_2684106197423007927">
 					<position dim="0">145.374986231327</position>
@@ -390,6 +404,7 @@
 					<userParam type="float" name="MZ" value="504.25"/>
 					<userParam type="string" name="native_id" value="15"/>
 					<userParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<userParam type="string" name="potentialOutlier" value="none"/>
@@ -451,6 +466,7 @@
 					<userParam type="float" name="MZ" value="504.01"/>
 					<userParam type="string" name="native_id" value="16"/>
 					<userParam type="float" name="peak_apex_int" value="1436.19226074219"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_8119044117483804262_3023658190814908261">
 					<position dim="0">145.374986231327</position>
@@ -463,6 +479,7 @@
 					<userParam type="float" name="MZ" value="504.15"/>
 					<userParam type="string" name="native_id" value="17"/>
 					<userParam type="float" name="peak_apex_int" value="718.096130371094"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 				<feature id="f_8119044117483804262_7898004582401008768">
 					<position dim="0">145.374986231327</position>
@@ -475,6 +492,7 @@
 					<userParam type="float" name="MZ" value="504.25"/>
 					<userParam type="string" name="native_id" value="18"/>
 					<userParam type="float" name="peak_apex_int" value="478.730743408203"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<userParam type="string" name="potentialOutlier" value="none"/>
