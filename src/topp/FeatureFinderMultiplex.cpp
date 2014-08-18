@@ -669,7 +669,6 @@ public:
         {
             double intensity1 = (intensities[0] + ratios[1]*intensities[1])/(1+ratios[1]*ratios[1]);
             double intensity2 = ratios[1] * intensity1;
-            std::cout << "x = " << intensities[0] << "  y = " << intensities[1] << "  y/x = " << intensities[1]/intensities[0] << "  ratio = " << ratios[1] << "  x' = " << intensity1 << "  y' = " << intensity2 << "\n";
             corrected_intensities.push_back(intensity1);
             corrected_intensities.push_back(intensity2);
         }
@@ -737,19 +736,20 @@ public:
                     std::vector<double> temp;
                     profile_intensities.push_back(temp);
                 }
+                // bounding boxes of mass traces for each peptide multiplet
+                // First index is the peptide, second is the mass trace within the peptide. 
+                std::map<std::pair<unsigned, unsigned>, DBoundingBox<2> > mass_traces;
                 
                 GridBasedCluster cluster = cluster_it->second;
                 std::vector<int> points = cluster.getPoints();
-                std::cout << "  The cluster contains " << points.size() << " points.\n";
                 
                 // loop over points in cluster
                 for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
                 {
                     int index = (*point_it);
-                    //double RT = filter_results[pattern].getRT(index);
-                    //std::cout << "    index = " << index << "  RT = " << RT << "\n";
                     
                     MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
+                    double rt = result_peak.getRT();
                     
                     for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
                     {
@@ -771,6 +771,13 @@ public:
                             for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
                             {
                                 profile_intensities[peptide].push_back(result_raw.getIntensities()[(isotopes_per_peptide_max_ + 1)*peptide + peak + 1]);    // +1 due to zeroth peaks
+                                
+                                std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
+                                double mz = result_raw.getMZ() + result_raw.getMZShifts()[(isotopes_per_peptide_max_ + 1)*peptide + peak + 1];
+                                if (!(boost::math::isnan(mz)))
+                                {
+                                    mass_traces[peptide_peak].enlarge(rt, mz);
+                                }
                             }
                         }
                     }
@@ -812,6 +819,18 @@ public:
                     feature.setIntensity(peptide_intensities[peptide]);
                     feature.setCharge(patterns[pattern].getCharge());
                     feature.setOverallQuality(1 - 1/points.size());
+                    for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
+                    {
+                        std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
+                        if (mass_traces.count(peptide_peak) > 0)
+                        {
+                            ConvexHull2D hull;
+                            hull.addPoint(mass_traces[peptide_peak].min_);
+                            hull.addPoint(mass_traces[peptide_peak].max_);
+                            feature.getConvexHulls().push_back(hull);
+                        }
+                    }
+                     
                     feature_map.push_back(feature);
                 }
                 
