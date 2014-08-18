@@ -116,12 +116,16 @@ namespace OpenMS
         "\tvar_massdev_score\tvar_massdev_score_weighted\tvar_norm_rt_score\tvar_xcorr_coelution" <<
         "\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted" <<
         "\tvar_yseries_score\tvar_elution_model_fit_score";
-        if (use_ms1_traces_) 
-        {
-          ofs << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
-        }
-      ofs << "\txx_lda_prelim_score\txx_swath_prelim_score" <<
-        "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
+      if (use_ms1_traces_) 
+      {
+        ofs << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
+      }
+      ofs << "\txx_lda_prelim_score\txx_swath_prelim_score";
+      if (use_ms1_traces_) 
+      {
+        ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Fragment_Annotation";
+      }
+      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
     }
 
     String prepareLine(const OpenSwath::LightPeptide & pep,
@@ -138,18 +142,33 @@ namespace OpenMS
           String aggr_Peak_Area = "";
           String aggr_Peak_Apex = "";
           String aggr_Fragment_Annotation = "";
+          String aggr_prec_Peak_Area = "";
+          String aggr_prec_Peak_Apex = "";
+          String aggr_prec_Fragment_Annotation = "";
           for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
           {
             sprintf(intensity_char, "%f", sub_it->getIntensity());
-            aggr_Peak_Area += (String)intensity_char + ";";
-            aggr_Peak_Apex +=  "NA;";
-            aggr_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
+            if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS2")
+            {
+              aggr_Peak_Area += (String)intensity_char + ";";
+              aggr_Peak_Apex +=  "NA;";
+              aggr_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
+            }
+            else if (sub_it->metaValueExists("FeatureLevel") && sub_it->getMetaValue("FeatureLevel") == "MS1")
+            {
+              aggr_prec_Peak_Area += (String)intensity_char + ";";
+              aggr_prec_Peak_Apex +=  "NA;";
+              aggr_prec_Fragment_Annotation += (String)sub_it->getMetaValue("native_id") + ";";
+            }
           }
           if (!feature_it->getSubordinates().empty())
           {
             aggr_Peak_Area = aggr_Peak_Area.substr(0, aggr_Peak_Area.size() - 1);
             aggr_Peak_Apex = aggr_Peak_Apex.substr(0, aggr_Peak_Apex.size() - 1);
             aggr_Fragment_Annotation = aggr_Fragment_Annotation.substr(0, aggr_Fragment_Annotation.size() - 1);
+            aggr_prec_Peak_Area = aggr_prec_Peak_Area.substr(0, aggr_prec_Peak_Area.size() - 1);
+            aggr_prec_Peak_Apex = aggr_prec_Peak_Apex.substr(0, aggr_prec_Peak_Apex.size() - 1);
+            aggr_prec_Fragment_Annotation = aggr_prec_Fragment_Annotation.substr(0, aggr_prec_Fragment_Annotation.size() - 1);
           }
 
           String full_peptide_name = "";
@@ -228,8 +247,12 @@ namespace OpenMS
             }
 
             line += "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
-            + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score")
-            + "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation + "\n";
+            + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score");
+            if (use_ms1_traces_) 
+            {
+              line += "\t" + aggr_prec_Peak_Area + "\t" + aggr_prec_Peak_Apex + "\t" + aggr_prec_Fragment_Annotation;
+            }
+            line += "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation + "\n";
           result += line;
         } // end of iteration
       return result;
