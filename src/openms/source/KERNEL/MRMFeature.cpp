@@ -127,18 +127,6 @@ namespace OpenMS
     }
   }
 
-  /*
-  const Feature & MRMFeature::getMS1Feature() const
-  {
-    return ms1_feature_;
-  }
-
-  void MRMFeature::setMS1Feature(Feature & f)
-  {
-    ms1_feature_ = f;
-  }
-  */
-
   void MRMFeature::addPrecursorFeature(Feature & feature, const String& key)
   {
     precursor_features_.push_back(feature);

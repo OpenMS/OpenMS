@@ -54,10 +54,10 @@ public:
     virtual ~ISpectrumAccess();
 
     /**
-      @brief Light clone operator to produce a threadsafe copy.
+      @brief Light clone operator to produce a copy for concurrent read access.
 
       This function guarantees to produce a copy of the underlying object that
-      provides thread-safe concurrent access to the underlying data. It is
+      provides thread-safe concurrent read access to the underlying data. It
       should be implemented with minimal copy-overhead to make this operation
       as fast as possible. 
       

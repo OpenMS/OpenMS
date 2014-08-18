@@ -798,7 +798,7 @@ namespace OpenMS
       }
     }
 
-    /// Wrap around prepare coordinates that also correctly handles transformations
+    /// Wrapper function for prepare_coordinates that also correctly handles transformations
     void prepare_coordinates_wrap(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
       std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
       OpenSwath::LightTargetedExperiment & transition_exp_used,
