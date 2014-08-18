@@ -279,7 +279,7 @@ namespace OpenMS
 
   public:
 
-    OpenSwathWorkflow(bool use_ms1_traces) :
+    explicit OpenSwathWorkflow(bool use_ms1_traces) :
       use_ms1_traces_(use_ms1_traces)
     {}
 
