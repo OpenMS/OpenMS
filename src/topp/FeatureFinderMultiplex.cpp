@@ -920,6 +920,45 @@ public:
         
         MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
         quantifications.setAnalysisSummaryQuantType(quant_type);
+        
+        // add results from  analysis
+        LOG_DEBUG << "Generating output mzQuantML file..." << endl;
+        ConsensusMap numap(consensus_map);
+        //calc. ratios
+        for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
+        {
+          //~ make ratio templates
+          std::vector<ConsensusFeature::Ratio> rts;
+          for (std::vector<MSQuantifications::Assay>::const_iterator ait = quantifications.getAssays().begin() + 1; ait != quantifications.getAssays().end(); ++ait)
+          {
+            ConsensusFeature::Ratio r;
+            r.numerator_ref_ = String(quantifications.getAssays().begin()->uid_);
+            r.denominator_ref_ = String(ait->uid_);
+            r.description_.push_back("Simple ratio calc");
+            r.description_.push_back("light to medium/.../heavy");
+            //~ "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>"
+            rts.push_back(r);
+          }
+
+          const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
+          if (feature_handles.size() > 1)
+          {
+            std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin();             // this is unlabeled
+            fit++;
+            for (; fit != feature_handles.end(); ++fit)
+            {
+              Size ri = std::distance(feature_handles.begin(), fit);
+              rts[ri - 1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity();             // a proper algo should never have 0-intensities so no 0devison ...
+            }
+          }
+
+          cit->setRatios(rts);
+        }
+        quantifications.addConsensusMap(numap);        //add FeatureFinderMultiplex result
+
+        //~ msq.addFeatureMap(); //add FeatureFinderMultiplex evidencetrail as soon as clear what is realy contained in the featuremap
+        //~ add AuditCollection - no such concept in TOPPTools yet
+        
     }
 
     /**
