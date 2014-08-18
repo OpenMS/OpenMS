@@ -356,8 +356,11 @@ public:
           }
         }
 
+        if (chromatogram.metaValueExists("precursor_mz")) 
+        {
+          f.setMZ(chromatogram.getMetaValue("precursor_mz"));
+        }
         f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
-        f.setMZ(chromatogram.getMetaValue("precursor_mz"));
         f.setIntensity(intensity_sum);
         ConvexHull2D hull;
         hull.setHullPoints(hull_points);

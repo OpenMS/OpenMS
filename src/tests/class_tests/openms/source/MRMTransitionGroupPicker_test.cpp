@@ -123,6 +123,7 @@ sum(datapoints[3:10])
     peak.setIntensity(ms1_intdata[k]);
     chromatogram.push_back(peak);
   } 
+  chromatogram.setNativeID("precursor_chrom");
   transition_group.addPrecursorChromatogram(chromatogram, "Precursor_i0");
   }
 }
