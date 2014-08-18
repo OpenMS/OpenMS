@@ -446,8 +446,6 @@ namespace OpenMS
         if (sdst.empty())
         {
           sdst = String("UNKNOWN");
-<<<<<<< HEAD
-=======
         }
         std::map<String, UInt64>::iterator sdit = spd_ids.find(sdst);
         if (sdit == spd_ids.end())
@@ -467,31 +465,8 @@ namespace OpenMS
         else
         {
           sdid = sdit->second;
->>>>>>> 4c0fe2d260b74d9affe9f231b238239e823c2921
-        }
-        std::map<String, UInt64>::iterator sdit = spd_ids.find(sdst);
-        if (sdit == spd_ids.end())
-        {
-           sdid = UniqueIdGenerator::getUniqueId();
-
-<<<<<<< HEAD
-           //xml
-           spectra_data += String("\t\t<SpectraData location=\"") + sdst + String("\" id=\"") + String(sdid) + String("\">");
-           spectra_data += String("\n\t\t\t<FileFormat> \n\t\t\t");
-           spectra_data +=  cv_.getTermByName("mzML file").toXMLString(cv_ns);
-           spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
-           spectra_data +=  cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
-           spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
-
-           spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
-        }
-        else
-        {
-          sdid = sdit->second;
         }
 
-=======
->>>>>>> 4c0fe2d260b74d9affe9f231b238239e823c2921
         // get a map from identifier to match OpenMS Protein/PeptideIdentification match string;
         pie_ids.insert(std::pair<String, String>(it->getIdentifier(), it->getSearchEngine()));
 
@@ -686,20 +661,11 @@ namespace OpenMS
               pevid_ids.push_back(pevid);
             }
             pep_evis.insert(std::make_pair(pepi, pevid_ids));
-<<<<<<< HEAD
-          }
-          else
-          {
-            pevid_ids =  pep_evis[pepi];
-=======
->>>>>>> 4c0fe2d260b74d9affe9f231b238239e823c2921
           }
           else
           {
             pevid_ids =  pep_evis[pepi];
           }
-
-
 
           String cmz(jt->getSequence().getMonoWeight(res_type_, jt->getCharge()));       //calculatedMassToCharge
           String emz(it->getMZ());
