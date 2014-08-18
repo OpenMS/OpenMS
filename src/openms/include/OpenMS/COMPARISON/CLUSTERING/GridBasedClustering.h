@@ -116,7 +116,7 @@ class OPENMS_DLLAPI MinimumDistance
 * all properties B different.
 */
 template <typename Metric>
-class OPENMS_DLLAPI GridBasedClustering
+class GridBasedClustering
 {
     public:
     /**
