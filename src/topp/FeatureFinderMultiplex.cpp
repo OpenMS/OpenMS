@@ -196,7 +196,7 @@ private:
   bool knock_out_;
   
   // section "labels"
-  map<String,double> label_massshift;
+  map<String,double> label_massshift_;
 
 public:
   TOPPFeatureFinderMultiplex() :
@@ -342,19 +342,19 @@ public:
   void getParameters_labels_()
   {
     // create map of pairs (label as string, mass shift as double)
-    label_massshift.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
-    label_massshift.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
-    label_massshift.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
-    label_massshift.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
-    label_massshift.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
-    label_massshift.insert(make_pair("Dimethyl0", getParam_().getValue("labels:Dimethyl0")));
-    label_massshift.insert(make_pair("Dimethyl4", getParam_().getValue("labels:Dimethyl4")));
-    label_massshift.insert(make_pair("Dimethyl6", getParam_().getValue("labels:Dimethyl6")));
-    label_massshift.insert(make_pair("Dimethyl8", getParam_().getValue("labels:Dimethyl8")));
-    label_massshift.insert(make_pair("ICPL0", getParam_().getValue("labels:ICPL0")));
-    label_massshift.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
-    label_massshift.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
-    label_massshift.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
+    label_massshift_.insert(make_pair("Arg6", getParam_().getValue("labels:Arg6")));
+    label_massshift_.insert(make_pair("Arg10", getParam_().getValue("labels:Arg10")));
+    label_massshift_.insert(make_pair("Lys4", getParam_().getValue("labels:Lys4")));
+    label_massshift_.insert(make_pair("Lys6", getParam_().getValue("labels:Lys6")));
+    label_massshift_.insert(make_pair("Lys8", getParam_().getValue("labels:Lys8")));
+    label_massshift_.insert(make_pair("Dimethyl0", getParam_().getValue("labels:Dimethyl0")));
+    label_massshift_.insert(make_pair("Dimethyl4", getParam_().getValue("labels:Dimethyl4")));
+    label_massshift_.insert(make_pair("Dimethyl6", getParam_().getValue("labels:Dimethyl6")));
+    label_massshift_.insert(make_pair("Dimethyl8", getParam_().getValue("labels:Dimethyl8")));
+    label_massshift_.insert(make_pair("ICPL0", getParam_().getValue("labels:ICPL0")));
+    label_massshift_.insert(make_pair("ICPL4", getParam_().getValue("labels:ICPL4")));
+    label_massshift_.insert(make_pair("ICPL6", getParam_().getValue("labels:ICPL6")));
+    label_massshift_.insert(make_pair("ICPL10", getParam_().getValue("labels:ICPL10")));
   }
     
 	// generate list of mass patterns
@@ -377,19 +377,8 @@ public:
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
         }    
         
-        // split labels string
-        std::vector<std::vector<String> > samples_labels;    // list of samples containing lists of corresponding labels
-        std::vector<String> temp_samples;
-        boost::split(temp_samples, labels_, boost::is_any_of("[](){}"));   // any bracket allowed to separate samples
-        for (unsigned i = 0; i < temp_samples.size(); ++i)
-        {
-          if (!temp_samples[i].empty())
-          {
-              vector<String> temp_labels;
-              boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: "));   // various separators allowed to separate labels
-              samples_labels.push_back(temp_labels);
-          }
-        }
+        // split label string
+        std::vector<std::vector<String> > samples_labels = splitLabelString_();
 
         // debug output labels
         cout << "\n";
@@ -454,7 +443,7 @@ public:
                                 if (samples_labels[i][j].find("Lys6")!=std::string::npos) Lys6There = 1;
                                 if (samples_labels[i][j].find("Lys8")!=std::string::npos) Lys8There = 1;
                                 
-                                mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_massshift["Arg6"] + Arg10There * label_massshift["Arg10"]) + LysPerPeptide * (Lys4There * label_massshift["Lys4"] + Lys6There * label_massshift["Lys6"] + Lys8There * label_massshift["Lys8"]);
+                                mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_massshift_["Arg6"] + Arg10There * label_massshift_["Arg10"]) + LysPerPeptide * (Lys4There * label_massshift_["Lys4"] + Lys6There * label_massshift_["Lys6"] + Lys8There * label_massshift_["Lys8"]);
 
                                 // check that Arg (or Lys) is in the peptide and label
                                 goAhead_Arg = goAhead_Arg || !((ArgPerPeptide != 0 && Arg6There + Arg10There == 0));
@@ -486,7 +475,7 @@ public:
                 MassPattern temp;
                 for (unsigned i = 0; i < samples_labels.size(); i++)
                 {
-                    temp.push_back((mc+1)*(label_massshift[samples_labels[i][0]] - label_massshift[samples_labels[0][0]]));
+                    temp.push_back((mc+1)*(label_massshift_[samples_labels[i][0]] - label_massshift_[samples_labels[0][0]]));
                 }
                 list.push_back(temp);
             }
@@ -595,9 +584,41 @@ public:
         
 		return list;
 	}
+    
+    /**
+     * @brief split labels string
+     * 
+     * @return list of samples containing lists of corresponding labels
+     */
+    std::vector<std::vector<String> > splitLabelString_()
+    {
+        std::vector<std::vector<String> > samples_labels;
+        std::vector<String> temp_samples;
+        boost::split(temp_samples, labels_, boost::is_any_of("[](){}"));   // any bracket allowed to separate samples
+        for (unsigned i = 0; i < temp_samples.size(); ++i)
+        {
+          if (!temp_samples[i].empty())
+          {
+              vector<String> temp_labels;
+              boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: "));   // various separators allowed to separate labels
+              samples_labels.push_back(temp_labels);
+          }
+        }
+
+        return samples_labels;
+    }
   
-	// generate list of mass shifts
-	std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaksPerPeptideMax, std::vector<MassPattern> massPatternList)
+    /**
+     * @brief generate list of mass shifts
+     * 
+     * @param charge_min
+     * @param charge_max
+     * @param peaks_per_peptide_max
+     * @param mass_pattern_list
+     * 
+     * @return list of mass shifts
+     */
+	std::vector<MultiplexPeakPattern> generatePeakPatterns_(int charge_min, int charge_max, int peaks_per_peptide_max, std::vector<MassPattern> mass_pattern_list)
 	{
 		std::vector<MultiplexPeakPattern> list;
 	  
@@ -608,9 +629,9 @@ public:
 			// iterate over all mass shifts (from small to large shifts)
 			// first look for the more likely non-missed-cleavage cases
 			// e.g. first (0, 4, 8) then (0, 8, 16)
-			for (unsigned i = 0; i < massPatternList.size(); ++i)
+			for (unsigned i = 0; i < mass_pattern_list.size(); ++i)
 			{
-				MultiplexPeakPattern pattern(c, peaksPerPeptideMax, massPatternList[i], i);
+				MultiplexPeakPattern pattern(c, peaks_per_peptide_max, mass_pattern_list[i], i);
 				list.push_back(pattern);
 			}
 		} 
@@ -847,9 +868,33 @@ public:
      * @param consensus_map    consensus map with complete quantitative information
      * @param quantifications    MSQuantifications data structure for writing mzQuantML (mzq)
      */
-    void generateMSQuantifications(ConsensusMap &consensus_map, MSQuantifications &quantifications)
+    void generateMSQuantifications(MSExperiment<Peak1D> &exp, ConsensusMap &consensus_map, MSQuantifications &quantifications)
     {
-        int x = 5;
+        // split labels string
+        std::vector<std::vector<String> > samples_labels;    // list of samples containing lists of corresponding labels
+        std::vector<String> temp_samples;
+        boost::split(temp_samples, labels_, boost::is_any_of("[](){}"));   // any bracket allowed to separate samples
+        for (unsigned i = 0; i < temp_samples.size(); ++i)
+        {
+          if (!temp_samples[i].empty())
+          {
+              vector<String> temp_labels;
+              boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: "));   // various separators allowed to separate labels
+              samples_labels.push_back(temp_labels);
+          }
+        }
+
+        
+        
+        
+        
+        std::vector<std::vector<std::pair<String, double> > > labels;
+        
+        quantifications.registerExperiment(exp, labels);
+        quantifications.assignUIDs();
+        
+        MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
+        quantifications.setAnalysisSummaryQuantType(quant_type);
     }
 
     /**
@@ -1033,12 +1078,21 @@ public:
      */
     ConsensusMap consensus_map;   
     FeatureMap<> feature_map;
-    generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
-    writeConsensusMap_(out_, consensus_map);
-    writeFeatureMap_(out_features_, feature_map);
+    if ((out_ != "") || (out_features_ != ""))
+    {
+        generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
+    }
+    if (out_ != "")
+    {
+        writeConsensusMap_(out_, consensus_map);
+    }
+    if (out_features_ != "")
+    {
+        writeFeatureMap_(out_features_, feature_map);
+    }
 
     MSQuantifications quantifications;
-    generateMSQuantifications(consensus_map,quantifications);
+    generateMSQuantifications(exp, consensus_map, quantifications);
     
     std::cout << "The map contains " << consensus_map.size() << " consensuses.\n";
 
