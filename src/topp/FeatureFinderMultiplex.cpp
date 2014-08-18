@@ -995,6 +995,24 @@ public:
         FeatureXMLFile file;
         file.store(filename, map);
     }
+    
+    /**
+     * @brief Write MS quantification map to mzq file.
+     * 
+     * @param filename    name of mzq file
+     * @param map    MS quantification map for output
+     */
+    void writeMzQuantML(const String &filename, MSQuantifications &msq) const
+    {
+      //~ TODO apply above to ConsensusMap befor putting into Msq
+      //~ out.sortByPosition();
+      //~ out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+      //~ out.setExperimentType("multiplex");
+
+      MzQuantMLFile file;
+      file.store(filename, msq);
+    }
+
 
     /**
     * @brief simple linear regression through the origin
