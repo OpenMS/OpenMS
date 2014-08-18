@@ -667,8 +667,6 @@ namespace OpenMS
             pevid_ids =  pep_evis[pepi];
           }
 
-
-
           String cmz(jt->getSequence().getMonoWeight(res_type_, jt->getCharge()));       //calculatedMassToCharge
           String emz(it->getMZ());
           String ert(it->getRT());
