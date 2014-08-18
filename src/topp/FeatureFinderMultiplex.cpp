@@ -624,10 +624,10 @@ public:
     /**
      * @brief generate list of mass shifts
      * 
-     * @param charge_min
-     * @param charge_max
-     * @param peaks_per_peptide_max
-     * @param mass_pattern_list
+     * @param charge_min    minimum charge
+     * @param charge_max    maximum charge
+     * @param peaks_per_peptide_max    maximum number of isotopes in peptide
+     * @param mass_pattern_list    mass shifts due to labelling
      * 
      * @return list of mass shifts
      */
@@ -883,18 +883,18 @@ public:
      */
     void generateMSQuantifications(MSExperiment<Peak1D> &exp, ConsensusMap &consensus_map, MSQuantifications &quantifications)
     {
-        // list of labels for each sample
-        std::vector<std::vector<String> > samples_labels = splitLabelString_();
-        
-        // list of labels and corresponding mass shifts for each sample
+        // generate the labels
         std::vector<std::vector<std::pair<String, double> > > labels;
+        std::vector<std::vector<String> > samples_labels = splitLabelString_();
         for (unsigned sample = 0; sample < samples_labels.size(); ++sample)
         {
+            // The labels are required to be ordered in mass shift.
+            std::map<double, String> single_label_map;
             std::vector<std::pair<String, double> > single_label;
             for (unsigned label = 0; label < samples_labels[sample].size(); ++label)
             {
                 String label_string = samples_labels[sample][label];
-                double shift = 0;
+                double shift;
                 if (label_string == "")
                 {
                     label_string = "none";
@@ -905,7 +905,11 @@ public:
                     shift = label_massshift_[label_string];
                 }
                 
-                std::pair<String, double> label_shift(label_string,shift);
+                single_label_map[shift] = label_string;
+            }
+            for (std::map<double, String>::const_iterator it = single_label_map.begin(); it != single_label_map.end(); ++it)
+            {
+                std::pair<String, double> label_shift(it->second, it->first);
                 single_label.push_back(label_shift);
             }
             labels.push_back(single_label);
@@ -1099,10 +1103,7 @@ public:
      */
     ConsensusMap consensus_map;   
     FeatureMap<> feature_map;
-    if ((out_ != "") || (out_features_ != ""))
-    {
-        generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
-    }
+    generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")
     {
         writeConsensusMap_(out_, consensus_map);
@@ -1112,8 +1113,12 @@ public:
         writeFeatureMap_(out_features_, feature_map);
     }
 
-    MSQuantifications quantifications;
-    generateMSQuantifications(exp, consensus_map, quantifications);
+    if (out_mzq_ != "")
+    {
+        MSQuantifications quantifications;
+        generateMSQuantifications(exp, consensus_map, quantifications);
+        //writeMSQuantifications(out_mzq_, quantifications);
+    }
     
     std::cout << "The map contains " << consensus_map.size() << " consensuses.\n";
 
