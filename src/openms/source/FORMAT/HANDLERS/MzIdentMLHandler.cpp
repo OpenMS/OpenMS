@@ -830,13 +830,11 @@ namespace OpenMS
       os << "\t<AnalysisData>\n\t\t<SpectrumIdentificationList id=\""
          << String(silly)
          << String("\"> \n");
-
       os << "\t\t\t<FragmentationTable>\n"
          << "\t\t\t\t<Measure id=\"Measure_MZ\">\n"
          << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
          << "\t\t\t\t</Measure>\n"
          << "\t\t\t</FragmentationTable>\n";
-
       for (std::vector<String>::const_iterator sid = sidlist.begin(); sid != sidlist.end(); ++sid)
       {
         os << *sid;
