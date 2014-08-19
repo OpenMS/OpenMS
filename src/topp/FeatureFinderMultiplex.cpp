@@ -1153,6 +1153,7 @@ public:
      * cluster filter results
      */
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, out_debug_);
+    clustering.setLogType(log_type_);
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
 
     /**
