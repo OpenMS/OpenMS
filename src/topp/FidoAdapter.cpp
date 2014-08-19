@@ -40,10 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <iostream>
 #include <fstream>
-
-#include <OpenMS/FORMAT/FASTAFile.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -59,9 +56,29 @@ using namespace std;
 /**
     @page TOPP_FidoAdapter FidoAdapter
 
-    @brief A protein inference tool adapter.
+    @brief Computes a protein identification based on the target and decoy peptide IDs.
+    <CENTER>
+      <table>
+      <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ FidoAdapter \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+      </tr>
+      <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter (or other ID engines)</td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> @ref TOPP_PeptideIndexer </td>
+      </tr>
+      <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FalseDiscoveryRate </td>
+      </tr>
+      <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+      </tr>
+      </table>
+    </CENTER>
+    @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-    @em
+    Fido should be installed properly before running this tool.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FidoAdapter.cli
@@ -96,10 +113,11 @@ protected:
     registerInputFile_("fido_executable", "<executable>", "/fido/bin/Fido", "bin directory e.g. '/usr/local/fido/bin/Fido' or '/usr/local/fido/bin/FidoChooseParameters'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
     addEmptyLine_();
+    registerStringOption_("peptide_probability", "<string>", "", "Specify the MetaValue of peptide hits that will be used as the peptide probability, otherwise the score will be used", false);
     registerFlag_("fido_choose_parameter_off", "Disable FidoChooseParameters program. If set, three parameters: alpha, beta, gamma must be given mannually.");
-    registerDoubleOption_("alpha", "<float>", 0, "manually set paramter", false);
-    registerDoubleOption_("beta", "<float>", 0, "manually set paramter", false);
-    registerDoubleOption_("gamma", "<float>", 0, "manually set paramter", false);
+    registerDoubleOption_("alpha", "<float>", 0, "Fido paramter, needed when not running FidoChooseParameter.", false);
+    registerDoubleOption_("beta", "<float>", 0, "Fido paramter, needed when not running FidoChooseParameter.", false);
+    registerDoubleOption_("gamma", "<float>", 0, "Fido paramter, needed when not running FidoChooseParameter.", false);
     registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accession of the protein database to indicate a decoy protein.", false);
     registerFlag_("prefix", "Set if 'decoy_string' (see above) appears as a prefix of the decoy protein accessions in the database.");
     registerFlag_("clean_peptide_names", "FidoChooseParameters option -p: omits cleaning the peptide names.");
@@ -108,10 +126,59 @@ protected:
     registerIntOption_("accurary_level", "<Int>", 1, "FidoChooseParameters option -c: sets start parameter's accurary level (1-3): 1 = best    / slower; 2 = relaxed / faster; 3 = sloppy  / very fast", false);
     registerFlag_("log2_size", "FidoChooseParameters option l1: l1 is the log2 of maximum number of subgraph connected states.");
     registerFlag_("log2_calculation", "FidoChooseParameters option l2: l2 is the log2 for the main calculation, and l1 is only used.");
-
   }
 
-  void readFidoOutput_(StringList & protein_score, vector<ProteinIdentification> &prot_ids, vector<PeptideIdentification> &pep_ids)
+  void writeFidoinput_(String & graph_filename, vector<PeptideIdentification> &pep_ids, String & peptide_probability)
+  {
+    /* psm graph file:
+    e EEEMPEPK
+    r SW:TRP6_HUMAN
+    r GP:AJ271067_1
+    r GP:AJ271068_1
+    p 0.9849
+    */
+    ofstream graph(graph_filename.c_str());
+    if (!graph)
+    {
+      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, graph_filename);
+    }
+
+    for (vector<PeptideIdentification>::iterator id = pep_ids.begin(); id != pep_ids.end(); ++id)
+    {
+      //higher_score_better="false";
+      for (vector<PeptideHit>::iterator hit_it = id->getHits().begin(); hit_it != id->getHits().end(); ++hit_it)
+      {
+        if (hit_it->getProteinAccessions().size() > 0)
+        {
+          graph << "e " << hit_it->getSequence() << "\n";
+          StringList proteins = hit_it->getProteinAccessions();
+          for (Size i = 0; i < hit_it->getProteinAccessions().size(); ++i)
+          {
+            graph << "r " << hit_it->getProteinAccessions()[i] << "\n";
+          }
+        }
+        graph << "p ";
+        if (peptide_probability.empty())
+        {
+          if (id->isHigherScoreBetter())
+          {
+            graph << hit_it->getScore() << "\n";
+          }
+          else
+          {
+            graph << 1.0 - hit_it->getScore() << "\n";
+          }
+        }
+        else
+        {
+          graph << hit_it->getMetaValue(peptide_probability) << "\n";
+        }
+      }
+    }
+    graph.close();
+  }
+    
+  void loadFidoOutput_(StringList & protein_score, vector<ProteinIdentification> &prot_ids, vector<PeptideIdentification> &pep_ids)
   {
     //protein_score[0]: 1 { sp|P16083|NQO2_HUMAN }
     StringList proteins_list;
@@ -231,38 +298,9 @@ protected:
     //-------------------------------------------------------------
     // write Fido graph input files
     //-------------------------------------------------------------
-    /* 
-    e EEEMPEPK
-    r SW:TRP6_HUMAN
-    r GP:AJ271067_1
-    r GP:AJ271068_1
-    p 0.9849
-    */
     String psm_graph_file(temp_directory + "psm_graph_file");
-    ofstream graph(psm_graph_file.c_str());
-    if (!graph)
-    {
-      throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, psm_graph_file);
-    }
-
-    for (vector<PeptideIdentification>::iterator id = pep_ids.begin(); id != pep_ids.end(); ++id)
-    {
-      for (vector<PeptideHit>::iterator hit_it = id->getHits().begin(); hit_it != id->getHits().end(); ++hit_it)
-      {
-        if (hit_it->getProteinAccessions().size() > 0)
-        {
-          graph << "e " << hit_it->getSequence() << "\n";
-          StringList proteins = hit_it->getProteinAccessions();
-          for (Size i = 0; i < hit_it->getProteinAccessions().size(); ++i)
-          {
-            graph << "r " << hit_it->getProteinAccessions()[i] << "\n";
-          }
-        }
-        // TODO: select peptide detectability.
-        graph << "p " << 1.0 - hit_it->getScore() << "\n";
-      }
-    }
-    graph.close();
+    String peptide_probability(getStringOption_("peptide_probability"));
+    writeFidoinput_(psm_graph_file, pep_ids, peptide_probability);
     
     //-------------------------------------------------------------
     // parsing parameters
@@ -293,7 +331,7 @@ protected:
       String decoy_string(getStringOption_("decoy_string"));
       writeTargetdecoyfile_(targetdecoy_filename, prot_ids, decoy_string);
       
-      //Progresslogger
+
       fido_executable = exe_path + "/FidoChooseParameters";
       if (getFlag_("clean_peptide_names") )
       {
@@ -316,18 +354,18 @@ protected:
     //-------------------------------------------------------------
     // run Fido, Fido output is always stdout
     //-------------------------------------------------------------
-    //String fido_output(temp_directory + "fido_output"); // need to be converted into idXML
     QStringList qparam;
     for (Size i = 0; i < paramlist.size(); ++i)
     {
       qparam << paramlist[i].toQString();
     }
-    writeDebug_("Run Fido...", 5);
+
     QProcess program;
     program.start(fido_executable.toQString(), qparam); 
 
     bool success = program.waitForFinished();
     String fido_output(QString(program.readAllStandardOutput()));
+    //String fido_parameters(QString(program.readAllStandardError()));
     if (!success || program.exitStatus() != 0 || program.exitCode() != 0)
     {
       writeLog_("Fido problem. Aborting! Calling command was: '" + fido_executable + " \"" + inputfile_name + "\"'.\nDoes the Fido executable exist?");
@@ -344,8 +382,8 @@ protected:
     }
     else
     {
-      StringList protein_score = ListUtils::create<String>(fido_output, '\n');
-      readFidoOutput_(protein_score, prot_ids, pep_ids);
+      StringList protein_scores = ListUtils::create<String>(fido_output, '\n');
+      loadFidoOutput_(protein_scores, prot_ids, pep_ids);
     }
 
     //-------------------------------------------------------------
