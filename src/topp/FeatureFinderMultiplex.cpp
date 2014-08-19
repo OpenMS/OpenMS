@@ -743,9 +743,7 @@ public:
 
         // loop over peak patterns
         for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
-        {
-            std::cout << "\n" << "pattern " << pattern << " contains " << cluster_results[pattern].size() << " clusters.\n";
-            
+        {            
             // loop over clusters
             for (std::map<int,GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
             {
@@ -1147,6 +1145,7 @@ public:
 	std::vector<MassPattern> masses = generateMassPatterns_();
 	std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
     MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
+    filtering.setLogType(log_type_);
     std::vector<MultiplexFilterResult> filter_results = filtering.filter();
      
     /**
@@ -1176,8 +1175,6 @@ public:
         generateMSQuantifications(exp, consensus_map, quantifications);
         writeMSQuantifications(out_mzq_, quantifications);
     }
-    
-    std::cout << "The map contains " << consensus_map.size() << " consensuses.\n";
 
     return EXECUTION_OK;
   }

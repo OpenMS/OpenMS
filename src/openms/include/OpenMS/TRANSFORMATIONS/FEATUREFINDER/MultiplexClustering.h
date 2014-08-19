@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXCLUSTERING_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
@@ -61,7 +62,8 @@ namespace OpenMS
      * @see MultiplexFiltering
      * @see LocalClustering
      */
-    class OPENMS_DLLAPI MultiplexClustering
+    class OPENMS_DLLAPI MultiplexClustering :
+        public ProgressLogger
     {        
         public:
         /**

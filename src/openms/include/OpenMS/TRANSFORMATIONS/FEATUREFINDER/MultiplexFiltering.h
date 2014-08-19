@@ -35,8 +35,9 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERING_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERING_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
@@ -61,7 +62,8 @@ namespace OpenMS
      * @see MultiplexPeakPattern
      * @see MultiplexFilterResult
      */
-    class OPENMS_DLLAPI MultiplexFiltering
+    class OPENMS_DLLAPI MultiplexFiltering :
+        public ProgressLogger
     {        
         public:
         /**
