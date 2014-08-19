@@ -248,6 +248,18 @@ add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFin
 set_tests_properties("TOPP_FeatureFinderMRM_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMRM_1")
 
 #------------------------------------------------------------------------------
+# FeatureFinderMultiplex test
+add_test("TOPP_FeatureFinderMultiplex_1" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_parameters.ini -out FeatureFinderMultiplex_1.tmp -out_features FeatureFinderMultiplex_2.tmp -out_mzq FeatureFinderMultiplex_3.tmp)
+add_test("TOPP_FeatureFinderMultiplex_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderMultiplex_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_1")
+add_test("TOPP_FeatureFinderMultiplex_2" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_parameters.ini -out FeatureFinderMultiplex_1.tmp -out_features FeatureFinderMultiplex_2.tmp -out_mzq FeatureFinderMultiplex_3.tmp)
+add_test("TOPP_FeatureFinderMultiplex_2_out2" ${DIFF} -whitelist "id=" -in1 FeatureFinderMultiplex_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_2_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_2")
+add_test("TOPP_FeatureFinderMultiplex_3" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_parameters.ini -out FeatureFinderMultiplex_1.tmp -out_features FeatureFinderMultiplex_2.tmp -out_mzq FeatureFinderMultiplex_3.tmp)
+add_test("TOPP_FeatureFinderMultiplex_3_out3" ${DIFF} -whitelist "id=" -in1 FeatureFinderMultiplex_3.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.mzq )
+set_tests_properties("TOPP_FeatureFinderMultiplex_3_out3" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_3")
+
+#------------------------------------------------------------------------------
 # FileConverter tests
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out FileConverter_1.tmp -out_type mzML)
 add_test("TOPP_FileConverter_1_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileConverter_1.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML )
