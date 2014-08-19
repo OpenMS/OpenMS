@@ -1128,6 +1128,7 @@ public:
      */
 	PeakPickerHiRes picker;
 	Param param = picker.getParameters();
+    picker.setLogType(log_type_);
     param.setValue("ms1_only", DataValue("true"));
     param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
     picker.setParameters(param);

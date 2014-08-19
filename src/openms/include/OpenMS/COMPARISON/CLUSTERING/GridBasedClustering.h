@@ -42,6 +42,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 
@@ -116,7 +117,8 @@ class OPENMS_DLLAPI MinimumDistance
 * all properties B different.
 */
 template <typename Metric>
-class GridBasedClustering
+class GridBasedClustering :
+    public ProgressLogger
 {
     public:
     /**
@@ -165,12 +167,17 @@ class GridBasedClustering
      */
     void cluster()
     {
+        // progress logger
+        unsigned clusters_start = clusters_.size();
+        startProgress(0, clusters_start, "clustering");
+        
         MinimumDistance zero_distance(-1, -1, 0);
         typedef std::multiset<MinimumDistance>::iterator MultisetIterator;
         
         // combine clusters until all have been moved to the final list
         while (clusters_.size() > 0)
         {
+            setProgress(clusters_start - clusters_.size());
             
             MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
             MinimumDistance smallest_distance(*smallest_distance_it);
@@ -263,6 +270,8 @@ class GridBasedClustering
             }
                      
         }
+   
+        endProgress();
     }
 
     /**

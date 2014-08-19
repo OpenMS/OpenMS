@@ -108,6 +108,7 @@ namespace OpenMS
 
   std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(std::vector<MultiplexFilterResult> filter_results)
   {
+      
     std::vector<std::map<int, GridBasedCluster> > cluster_results;
 
     // loop over patterns i.e. cluster each of the corresponding filter results
@@ -115,6 +116,7 @@ namespace OpenMS
     {
         
       GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(rt_scaling_), filter_results[i].getMZ(), filter_results[i].getRT(), grid_spacing_mz_, grid_spacing_rt_);
+      clustering.setLogType(getLogType());
       clustering.cluster();
       //clustering.extendClustersY();
       clustering.removeSmallClustersY(rt_minimum_);
