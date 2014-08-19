@@ -128,17 +128,16 @@ using namespace boost::math;
 
   <b>Parameter Tuning</b>
 
-  FeatureFinderMultiplex can detect SILAC patterns of any number of peptides, i.e. doublets (pairs), triplets, quadruplets et cetera.
+  FeatureFinderMultiplex can detect isotope patterns of any number of peptides, i.e. doublets (pairs), triplets, quadruplets et cetera.
 
   <i>input:</i>
   - in [*.mzML] - LC-MS dataset to be analyzed
   - ini [*.ini] - file containing all parameters (see discussion below)
 
-  <i>standard output:</i>
-  - out [*.consensusXML] - contains the list of identified peptides (retention time and m/z of the lightest peptide, ratios)
-
-  <i>optional output:</i>
-  - out_clusters [*.consensusXML] - contains the complete set of data points passing the filters, see Fig. (e)
+  <i>output:</i>
+  - out [*.consensusXML] - contains the list of identified peptide multiples (retention time and m/z of the lightest peptide, ratios)
+  - out_features [*.featureXML] - contains the list of individual peptides
+  - out_mzq [*.mzq] - contains the results in mzQuantML format
 
   The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
 
@@ -146,18 +145,18 @@ using namespace boost::math;
   - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
   - <i>rt_typical</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
   - <i>rt_min</i> - Lower bound for the retentions time [s].
-  - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a SILAC pattern.
+  - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a peptide pattern.
   - <i>peptide_similarity</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
-  - <i>averagine_similarity</i> - Upper bound on the factor by which the ratios of observed isotopic peaks are allowed to differ from the ratios of the theoretic averagine model, i.e. ( theoretic_ratio / model_deviation ) < observed_ratio < ( theoretic_ratio * model_deviation ).
+  - <i>averagine_similarity</i> - Lower bound for the Pearson correlation coefficient, which measures how well the isotope patterns match the theoretical averagine model.
 
   Parameters in section <i>algorithm:</i>
-  - <i>labels</i> - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
+  - <i>labels</i> - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [][Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
   - <i>charge</i> - Range of charge states in the sample, i.e. min charge : max charge.
   - <i>missed_cleavages</i> - Maximum number of missed cleavages.
   - <i>isotopes_per_peptide</i> - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
 
  Parameters in section <i>labels:</i>
- This section contains a list of all isotopic labels currently available for analysis of SILAC data with FeatureFinderMultiplex.
+ This section contains a list of all isotopic labels currently available for analysis with FeatureFinderMultiplex.
 
  <b>References:</b>
   @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard,  <a href="http://www.springerlink.com/content/u40057754100v71t">SILACAnalyzer - a tool for differential quantitation of stable isotope derived data</a>, in F. Masulli, L. Peterson, and R. Tagliaferri (Eds.): CIBB 2009, LNBI 6160, pp. 4555, 2010.
