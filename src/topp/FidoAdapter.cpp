@@ -95,7 +95,7 @@ class TOPPFidoAdapter :
 {
 public:
   TOPPFidoAdapter() :
-    TOPPBase("FidoAdapter", "A protein inference tool.",false)
+    TOPPBase("FidoAdapter", "A protein inference tool.", false)
   {
   }
 
@@ -128,7 +128,8 @@ protected:
     registerFlag_("log2_calculation", "FidoChooseParameters option l2: l2 is the log2 for the main calculation, and l1 is only used.");
   }
 
-  void writeFidoinput_(String & graph_filename, vector<PeptideIdentification> &pep_ids, String & peptide_probability)
+  // Fido psm_graph_file gamma alpha beta -options
+  void writeFidoinput_(String& graph_filename, vector<PeptideIdentification>& pep_ids, String& peptide_probability)
   {
     /* psm graph file:
     e EEEMPEPK
@@ -177,10 +178,12 @@ protected:
     }
     graph.close();
   }
-    
-  void loadFidoOutput_(StringList & protein_score, vector<ProteinIdentification> &prot_ids, vector<PeptideIdentification> &pep_ids)
+
+  void loadFidoOutput_(StringList& protein_score, vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
   {
-    //protein_score[0]: 1 { sp|P16083|NQO2_HUMAN }
+    //1 { P16083|NQO2_HUMAN }
+    //0.9097144245 { Q86XS8|GOLI_HUMAN }
+    //0.9097144245 { Q9NVH1|DJC11_HUMAN , P05129|KPCG_HUMAN }
     StringList proteins_list;
     map<String, String> fido_results;
     for (Size i = 0; i < protein_score.size(); ++i)
@@ -228,15 +231,15 @@ protected:
     }
   }
 
-
-  void writeTargetdecoyfile_(String &targetdecoy_filename, vector<ProteinIdentification> &prot_ids, String &decoy_string)
+  // FidoChooseParameters -options psm_graph_file target_decoy_file
+  void writeTargetdecoyfile_(String& targetdecoy_filename, vector<ProteinIdentification>& prot_ids, String& decoy_string)
   {
     vector<String> target, decoy;
     for (vector<ProteinIdentification>::iterator pid = prot_ids.begin(); pid != prot_ids.end(); ++pid)
     {
       ProteinIdentification pit = *pid;
       for (vector<ProteinHit>::const_iterator hit_it = pit.getHits().begin();
-            hit_it != pit.getHits().end(); ++hit_it)
+           hit_it != pit.getHits().end(); ++hit_it)
       {
         String protein_accession = hit_it->getAccession();
         if (protein_accession.hasSubstring(decoy_string))
@@ -262,7 +265,7 @@ protected:
     f << " }\n";
     f.close();
   }
-  
+
   ExitCodes main_(int, const char**)
   {
     // path to the log file
@@ -275,11 +278,11 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    
+
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
     IdXMLFile().load(inputfile_name, prot_ids, pep_ids);
-    
+
     String outputfile_name = getStringOption_("out");
     writeDebug_(String("Output file: ") + outputfile_name, 1);
     if (outputfile_name == "")
@@ -288,20 +291,20 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    
+
     String temp_directory = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString()); // body for the tmp files
     {
       QDir d;
       d.mkpath(temp_directory.toQString());
     }
-    writeDebug_("Write Fido psm graph file...", 5);
+    writeLog_("Write Fido psm graph file...");
     //-------------------------------------------------------------
     // write Fido graph input files
     //-------------------------------------------------------------
     String psm_graph_file(temp_directory + "psm_graph_file");
     String peptide_probability(getStringOption_("peptide_probability"));
     writeFidoinput_(psm_graph_file, pep_ids, peptide_probability);
-    
+
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
@@ -310,11 +313,11 @@ protected:
     String fido_executable;
     if (File::isDirectory(getStringOption_("fido_executable")))
     {
-    exe_path = getStringOption_("fido_executable");
+      exe_path = getStringOption_("fido_executable");
     }
     else
     {
-    exe_path = File::path(getStringOption_("fido_executable"));
+      exe_path = File::path(getStringOption_("fido_executable"));
     }
     if (getFlag_("fido_choose_parameter_off")) // only run fido: Fido psm_graph_file 0.9 0.04 0 > output is stdout
     {
@@ -326,22 +329,22 @@ protected:
     }
     else // run FidoChooseParameters -p -a -c 1 psm_graph_file target_decoy_file > stdout
     {
-      writeDebug_("Write Fido target_decoy_file...", 5);
+      writeLog_("Write Fido target_decoy_file...");
       String targetdecoy_filename(temp_directory + "targetdecoy_file");
       String decoy_string(getStringOption_("decoy_string"));
       writeTargetdecoyfile_(targetdecoy_filename, prot_ids, decoy_string);
-      
+
 
       fido_executable = exe_path + "/FidoChooseParameters";
-      if (getFlag_("clean_peptide_names") )
+      if (getFlag_("clean_peptide_names"))
       {
         paramlist << "-p";
       }
-      if (getFlag_("use_all_psms") )
+      if (getFlag_("use_all_psms"))
       {
         paramlist << "-a";
       }
-      if (getFlag_("use_group_level") )
+      if (getFlag_("use_group_level"))
       {
         paramlist << "-g";
       }
@@ -350,7 +353,7 @@ protected:
       paramlist << targetdecoy_filename;
       writeDebug_("Run FidoChooseParameters...", 5);
     }
-    
+
     //-------------------------------------------------------------
     // run Fido, Fido output is always stdout
     //-------------------------------------------------------------
@@ -361,11 +364,11 @@ protected:
     }
 
     QProcess program;
-    program.start(fido_executable.toQString(), qparam); 
+    program.start(fido_executable.toQString(), qparam);
 
     bool success = program.waitForFinished();
     String fido_output(QString(program.readAllStandardOutput()));
-    //String fido_parameters(QString(program.readAllStandardError()));
+    String fido_parameters(QString(program.readAllStandardError()));
     if (!success || program.exitStatus() != 0 || program.exitCode() != 0)
     {
       writeLog_("Fido problem. Aborting! Calling command was: '" + fido_executable + " \"" + inputfile_name + "\"'.\nDoes the Fido executable exist?");
@@ -382,7 +385,13 @@ protected:
     }
     else
     {
+      if (!fido_parameters.empty())
+      {
+        writeLog_("Fido choose parameters process...");
+        writeLog_(fido_parameters);
+      }
       StringList protein_scores = ListUtils::create<String>(fido_output, '\n');
+      writeLog_("Load Fido results...");
       loadFidoOutput_(protein_scores, prot_ids, pep_ids);
     }
 
@@ -390,7 +399,7 @@ protected:
     // writing results into idXML
     //-------------------------------------------------------------
     IdXMLFile().store(outputfile_name, prot_ids, pep_ids);
-    
+
     // Deletion of temporary files
     if (this->debug_level_ < 2)
     {
@@ -403,6 +412,7 @@ protected:
     }
     return EXECUTION_OK;
   }
+
 };
 
 int main(int argc, const char** argv)
