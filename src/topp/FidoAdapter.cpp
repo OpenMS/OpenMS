@@ -260,6 +260,19 @@ protected:
       }
     }
 
+    if (targets.empty())
+    {
+      LOG_ERROR << "Error: No target proteins found. Fido needs both targets "
+        "and decoys." << endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+    if (decoys.empty())
+    {
+      LOG_ERROR << "Error: No decoy proteins found. Fido needs both targets "
+        "and decoys." << endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
+
     // write target/decoy protein sets:
     ofstream proteins_out(fido_input_proteins.c_str());
     proteins_out << "{ ";
