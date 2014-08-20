@@ -106,8 +106,6 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", false);
-    setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
     addEmptyLine_();
     registerInputFile_("fido_executable", "<executable>", "/fido/bin/Fido", "bin directory e.g. '/usr/local/fido/bin/Fido' or '/usr/local/fido/bin/FidoChooseParameters'", true, false, ListUtils::create<String>("skipexists"));
@@ -119,7 +117,6 @@ protected:
     registerDoubleOption_("beta", "<float>", 0, "Fido paramter, needed when not running FidoChooseParameter.", false);
     registerDoubleOption_("gamma", "<float>", 0, "Fido paramter, needed when not running FidoChooseParameter.", false);
     registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accession of the protein database to indicate a decoy protein.", false);
-    registerFlag_("prefix", "Set if 'decoy_string' (see above) appears as a prefix of the decoy protein accessions in the database.");
     registerFlag_("clean_peptide_names", "FidoChooseParameters option -p: omits cleaning the peptide names.");
     registerFlag_("use_all_psms", "FidoChooseParameters option -a: uses all PSM matches instead the best one.");
     registerFlag_("use_group_level", "FidoChooseParameters option -g: uses protein group level inference.");
