@@ -833,12 +833,13 @@ protected:
         }
     }
 
-    // Original target input and the percolator results going to be saved in IdXMLFile
-    IdXMLFile idxml;
-    idxml.store(getStringOption_("out"), protein_ids, peptide_ids);
+    // Original target input and the percolator results going to be saved in mzid file
+    Internal::MzIdentMLDOMHandler output(protein_ids, peptide_ids, var, progresslogger);
+    output.writeMzIdentMLFile(getStringOption_("out").toQString().toStdString());
+    cout << "completed writing" << endl;
 
     // As the percolator poutput file is not needed anymore, the temporary directory is going to be deleted
-    //File::removeDirRecursively(temp_data_directory);
+    File::removeDirRecursively(temp_data_directory);
 
     return EXECUTION_OK;
   }
