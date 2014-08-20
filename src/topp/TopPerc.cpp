@@ -276,10 +276,8 @@ protected:
 
         // TODO FOR FUTURE DEVELOPMENT: check out without explict parameter setting if input file is target or decoy!!!
         // Both input files are read in
-        Internal::MzIdentMLDOMHandler mzid_target(protein_ids, peptide_ids, var, progresslogger);
-        mzid_target.readMzIdentMLFile(inputfile_target_name);
-        Internal::MzIdentMLDOMHandler mzid_decoy(protein_ids_d, peptide_ids_d, var, progresslogger);
-        mzid_decoy.readMzIdentMLFile(inputfile_decoy_name);
+        MzIdentMLFile().load(inputfile_target_name, protein_ids, peptide_ids);
+        MzIdentMLFile().load(inputfile_decoy_name, protein_ids_d, peptide_ids_d);
 
         // Open File and check if the Identifier is MSGF+
         if(peptide_ids.front().getIdentifier() == "MS-GF+" && peptide_ids_d.front().getIdentifier() == "MS-GF+") {
@@ -325,10 +323,14 @@ protected:
                         // only take features from first ranked entries and only with meanerrortop7 != 0.0
                         if(hit->getRank() == 1 && hit->getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0){
 
+                            String spec_ref = it->getMetaValue("spectrum_reference").toQString().toStdString();
+                            vector<String> scan_id;
+                            spec_ref.split("scan=", scan_id);
+
+
                             int rank = hit->getRank();
                             int charge = hit->getCharge();
-                            String scannumber = String(it->getMetaValue("scannumber"));
-                            String SpecId = "target_SII_" + String(scannumber) + "_" + String(rank) + "_" + String(scannumber) + "_" + String(charge) + "_" + String(rank);
+                            String SpecId = "target_SII_" + scan_id[1] + "_" + String(rank) + "_" + scan_id[1] + "_" + String(charge) + "_" + String(rank);
 
                             // label = 1 for target entries
                             int label = 1;
@@ -401,7 +403,7 @@ protected:
                             String protein = hit->getProteinAccessions().front();
 
                             // One PeptideSpectrumHit with all its features
-                            String lis = SpecId + out_sep + String(label) + out_sep + scannumber + out_sep + (String)rawScore + out_sep +
+                            String lis = SpecId + out_sep + String(label) + out_sep + scan_id[1] + out_sep + (String)rawScore + out_sep +
                             (String)denovoScore + out_sep + (String)scoreRatio + out_sep + (String)energy + out_sep + (String)ln_eval +
                             out_sep + (String)isotopeError + out_sep + (String)lnExplainedIonCurrentRatio + out_sep +
                             (String)lnNTermIonCurrentRatio + out_sep + (String)lnCTermIonCurrentRatio + out_sep + (String)lnMS2IonCurrent
@@ -428,8 +430,11 @@ protected:
                         if(hit->getRank() == 1 && hit->getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0){
                             int rank = hit->getRank();
                             int charge = hit->getCharge();
-                            String scannumber = String(it->getMetaValue("scannumber"));
-                            String SpecId = "decoy_SII_" + String(scannumber) + "_" + String(rank) + "_" + String(scannumber) + "_" + String(charge) + "_" + String(rank);
+
+                            String spec_ref = it->getMetaValue("spectrum_reference").toQString().toStdString();
+                            vector<String> scan_id;
+                            spec_ref.split("scan=", scan_id);
+                            String SpecId = "target_SII_" + scan_id[1] + "_" + String(rank) + "_" + scan_id[1] + "_" + String(charge) + "_" + String(rank);
 
                             // label = -1 for decoy entries
                             int label = -1;
@@ -506,7 +511,7 @@ protected:
                             String protein = hit->getProteinAccessions().front();
 
                             // One PeptideSpectrumHit with all its features
-                            String lis = SpecId + out_sep + String(label) + out_sep + scannumber + out_sep + (String)rawScore + out_sep +
+                            String lis = SpecId + out_sep + String(label) + out_sep + scan_id[1] + out_sep + (String)rawScore + out_sep +
                             (String)denovoScore + out_sep + (String)scoreRatio + out_sep + (String)energy + out_sep + (String)ln_eval +
                             out_sep + (String)isotopeError + out_sep + (String)lnExplainedIonCurrentRatio + out_sep +
                             (String)lnNTermIonCurrentRatio + out_sep + (String)lnCTermIonCurrentRatio + out_sep + (String)lnMS2IonCurrent
@@ -526,8 +531,8 @@ protected:
             // TODO: Mascot Implementation
         }
     }
-        // converter for XTandem-Files
-        else if(data_target == "idXML" && data_decoy == "idXML") {
+    // converter for XTandem-Files
+    else if(data_target == "idXML" && data_decoy == "idXML") {
         IdXMLFile file;
         IdXMLFile decoy_file;
         file.load(getStringOption_("in_target"), protein_ids, peptide_ids);
@@ -725,8 +730,9 @@ protected:
         }
         // Insert the header with the features names to the file
         txt.insert(txt.begin(), ListUtils::concatenate(txt_header0, out_sep));
-    } else {
-        cout << "target and decoy files are not of the same type" << endl;
+}
+    else {
+    cout << "target and decoy files are not of the same type" << endl;
     }
 
     cout << "Executing percolator" << endl;
@@ -821,22 +827,24 @@ protected:
 	}
 
     // Add the percolator results to the peptide vector of the original input file
-    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+    for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it < peptide_ids.end(); ++it)
     {
-        for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit) {
+        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit < it->getHits().end(); ++hit) {
             String seq = seqToUnimod(hit->getSequence().toString());
             if(pep_map.find(seq) != pep_map.end()) {
-                it->setMetaValue("svm_score", pep_map[seq][0]);
-                it->setMetaValue("q_value", pep_map[seq][1]);
-                it->setMetaValue("pep", pep_map[seq][2]);
+                hit->setMetaValue("svm_score", pep_map[seq][0]);
+                hit->setMetaValue("q_value", pep_map[seq][1]);
+                hit->setMetaValue("pep", pep_map[seq][2]);
             }
         }
     }
 
-    // Original target input and the percolator results going to be saved in mzid file
-    Internal::MzIdentMLDOMHandler output(protein_ids, peptide_ids, var, progresslogger);
-    output.writeMzIdentMLFile(getStringOption_("out").toQString().toStdString());
+    // Storing the PeptideHits with calculated q-value, pep and svm score
+    MzIdentMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids, peptide_ids);
     cout << "completed writing" << endl;
+
+
+
 
     // As the percolator poutput file is not needed anymore, the temporary directory is going to be deleted
     File::removeDirRecursively(temp_data_directory);
