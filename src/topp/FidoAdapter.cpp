@@ -143,7 +143,6 @@ protected:
 
     for (vector<PeptideIdentification>::iterator id = pep_ids.begin(); id != pep_ids.end(); ++id)
     {
-      //higher_score_better="false";
       for (vector<PeptideHit>::iterator hit_it = id->getHits().begin(); hit_it != id->getHits().end(); ++hit_it)
       {
         if (hit_it->getProteinAccessions().size() > 0)
@@ -182,7 +181,7 @@ protected:
     //0.9097144245 { Q86XS8|GOLI_HUMAN }
     //0.9097144245 { Q9NVH1|DJC11_HUMAN , P05129|KPCG_HUMAN }
     StringList proteins_list;
-    map<String, String> fido_results;
+    map<String, double> fido_results;
     for (Size i = 0; i < protein_score.size(); ++i)
     {
       StringList sp = ListUtils::create<String>(protein_score[i], ' ');
@@ -190,31 +189,29 @@ protected:
       {
         String protein_name = sp[j];
         proteins_list.push_back(protein_name);
-        fido_results.insert(pair<String, String>(protein_name, sp[0]));
+        fido_results[protein_name] = sp[0].toDouble();
         if (sp[j + 1] == "}") break;
       }
     }
 
     for (vector<ProteinIdentification>::iterator pid = prot_ids.begin(); pid != prot_ids.end(); ++pid)
     {
-      ProteinIdentification pit = *pid;
       pid->setScoreType("fido");
       vector<ProteinHit> hits;
-      for (vector<ProteinHit>::iterator hit_it = pit.getHits().begin();
-           hit_it != pit.getHits().end(); ++hit_it)
+      for (vector<ProteinHit>::iterator hit_it = pid->getHits().begin();
+           hit_it != pid->getHits().end(); ++hit_it)
       {
         String protein_accession = hit_it->getAccession();
-        if (fido_results[protein_accession].c_str())
+        if (fido_results.find(protein_accession) != fido_results.end() )
         {
-          double score = atof(fido_results[protein_accession].c_str());
-          hit_it->setScore(score);
+          hit_it->setScore(fido_results[protein_accession]);
           hits.push_back(*hit_it);
         }
       }
       pid->setHits(hits);
       pid->assignRanks();
-
     }
+    
     for (vector<PeptideIdentification>::iterator id = pep_ids.begin(); id != pep_ids.end(); ++id)
     {
       vector<PeptideHit> pep_hits;
@@ -222,7 +219,7 @@ protected:
       {
         vector<PeptideHit> peptides;
         id->getReferencingHits(proteins_list[i], peptides);
-        for (Size j = 0; j < peptides.size(); ++j) pep_hits.push_back(peptides[j]);
+        pep_hits.insert(pep_hits.end(), peptides.begin(), peptides.end());
       }
       id->setHits(pep_hits);
     }
