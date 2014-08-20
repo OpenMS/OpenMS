@@ -453,6 +453,10 @@ set_tests_properties("TOPP_FileFilter_41_out1" PROPERTIES DEPENDS "TOPP_FileFilt
 add_test("TOPP_FileFilter_42" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_40_input.mzML -out FileFilter_42.tmp -spectra:select_polarity "" -in_type mzML -out_type mzML)
 add_test("TOPP_FileFilter_42_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_42.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_42_output.mzML)
 set_tests_properties("TOPP_FileFilter_42_out1" PROPERTIES DEPENDS "TOPP_FileFilter_42")
+# Test XML escaping of our XML handlers
+add_test("TOPP_FileFilter_43" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_43_input.mzML -out FileFilter_43.tmp  -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_43_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_43.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_43_output.mzML)
+set_tests_properties("TOPP_FileFilter_43_out1" PROPERTIES DEPENDS "TOPP_FileFilter_43")
 
 #------------------------------------------------------------------------------
 # FileInfo tests
