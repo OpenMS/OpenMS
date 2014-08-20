@@ -162,6 +162,7 @@ namespace OpenMS
     }
     p.charge = pep.getChargeState();
     p.sequence = pep.sequence;
+    p.peptide_group_label = pep.getPeptideGroupLabel();
     if (!pep.protein_refs.empty())
     {
       p.protein_ref = pep.protein_refs[0];
