@@ -267,20 +267,8 @@ protected:
     StringList parameters;
     String inputfile_name = getStringOption_("in");
     writeDebug_(String("Input file: ") + inputfile_name, 1);
-    if (inputfile_name == "")
-    {
-      writeLog_("No input file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
     String outputfile_name = getStringOption_("out");
     writeDebug_(String("Output file: ") + outputfile_name, 1);
-    if (outputfile_name == "")
-    {
-      writeLog_("No output file specified. Aborting!");
-      printUsage_();
-      return ILLEGAL_PARAMETERS;
-    }
 
     //-------------------------------------------------------------
     // parsing parameters
