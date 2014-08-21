@@ -271,8 +271,12 @@ protected:
     TextFile txt;
     char out_sep = '\t';
 
+    //get Information about database search
+    String datab = "";
+
     // converter for MSGF+ & Mascot Files
     if(data_target == "mzid" && data_decoy == "mzid") {
+        datab = "MSGF+";
 
         // TODO FOR FUTURE DEVELOPMENT: check out without explict parameter setting if input file is target or decoy!!!
         // Both input files are read in
@@ -434,7 +438,7 @@ protected:
                             String spec_ref = it->getMetaValue("spectrum_reference").toQString().toStdString();
                             vector<String> scan_id;
                             spec_ref.split("scan=", scan_id);
-                            String SpecId = "target_SII_" + scan_id[1] + "_" + String(rank) + "_" + scan_id[1] + "_" + String(charge) + "_" + String(rank);
+                            String SpecId = "decoy_SII_" + scan_id[1] + "_" + String(rank) + "_" + scan_id[1] + "_" + String(charge) + "_" + String(rank);
 
                             // label = -1 for decoy entries
                             int label = -1;
@@ -532,7 +536,9 @@ protected:
         }
     }
     // converter for XTandem-Files
+    // TODO IN FUTURE DEVELOPMENT: IMPLEMENT MZID READER FOR XTANDEMFILES
     else if(data_target == "idXML" && data_decoy == "idXML") {
+    datab = "XTANDEM";
         IdXMLFile file;
         IdXMLFile decoy_file;
         file.load(getStringOption_("in_target"), protein_ids, peptide_ids);
@@ -582,7 +588,7 @@ protected:
         String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() + ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
         StringList txt_header0 = ListUtils::create<String>(featureset);
 
-
+        cout << "read in target file" << endl;
          // get all the features from the target file
         for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
         {
@@ -656,7 +662,8 @@ protected:
             }
         }
 
-         // get all the features from the target file
+        cout << "read in decoy file" << endl;
+         // get all the features from the decoy file
         for (vector<PeptideIdentification>::iterator it = peptide_ids_d.begin(); it != peptide_ids_d.end(); ++it)
         {
             if(it->isHigherScoreBetter()){
@@ -825,7 +832,6 @@ protected:
         dt_vec.push_back(dv_pep);
 	    pep_map[sequence[1]] = dt_vec;
 	}
-
     // Add the percolator results to the peptide vector of the original input file
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it < peptide_ids.end(); ++it)
     {
@@ -840,11 +846,13 @@ protected:
     }
 
     // Storing the PeptideHits with calculated q-value, pep and svm score
-    MzIdentMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids, peptide_ids);
-    cout << "completed writing" << endl;
-
-
-
+    // Note: This is not necessary when MzIdentMLFile is able to write xtandem files
+    if(datab == "MSGF+"){
+        MzIdentMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids, peptide_ids);
+    } else if(datab == "XTANDEM") {
+        IdXMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids, peptide_ids);
+    }
+    cout << "TopPerc finished successfully!" << endl;
 
     // As the percolator poutput file is not needed anymore, the temporary directory is going to be deleted
     File::removeDirRecursively(temp_data_directory);
