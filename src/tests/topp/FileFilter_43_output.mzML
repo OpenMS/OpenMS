@@ -19,7 +19,7 @@
 			</sourceFile>
 		</sourceFileList>
 		<contact>
-			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="&, LastName" />
+			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="&amp;, LastName" />
 			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="" />
 			<cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.OpenMS.de" />
 			<cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="admin@foo.de" />

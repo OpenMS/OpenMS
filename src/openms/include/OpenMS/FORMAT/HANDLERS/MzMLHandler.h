@@ -4025,6 +4025,7 @@ protected:
       }
       // writeUserParam_(os, exp, 3, "/mzML/fileDescription/fileContent/cvParam/@accession", validator);
       os << "\t\t</fileContent>\n";
+
       //--------------------------------------------------------------------------------------------
       // source file list
       //--------------------------------------------------------------------------------------------
@@ -4033,16 +4034,20 @@ protected:
       for (Size i = 0; i < exp.size(); ++i)
       {
         if (exp[i].getSourceFile() != SourceFile())
+        {
           ++sf_sp_count;
+        }
       }
       if (exp.getSourceFiles().size() > 0 || sf_sp_count > 0)
       {
         os << "\t\t<sourceFileList count=\"" << exp.getSourceFiles().size() + sf_sp_count << "\">\n";
+
         //write source file of run
         for (Size i=0; i<exp.getSourceFiles().size(); ++i)
         {
           writeSourceFile_(os, String("sf_ru_") + String(i), exp.getSourceFiles()[i], validator);
         }
+
         // write source files of spectra
         if (sf_sp_count > 0 )
         {
@@ -4055,8 +4060,10 @@ protected:
             }
           }
         }
+
         os << "\t\t</sourceFileList>\n";
       }
+
       //--------------------------------------------------------------------------------------------
       // contacts
       //--------------------------------------------------------------------------------------------
@@ -4064,38 +4071,39 @@ protected:
       {
         const ContactPerson& cp = exp.getContacts()[i];
         os << "\t\t<contact>\n";
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\" />\n";
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << writeXMLEscape(cp.getLastName()) << ", " << writeXMLEscape(cp.getFirstName()) << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << writeXMLEscape(cp.getInstitution()) << "\" />\n";
 
         if (cp.getAddress() != "")
         {
-          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << cp.getAddress() << "\" />\n";
+          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << writeXMLEscape(cp.getAddress()) << "\" />\n";
         }
         if (cp.getURL() != "")
         {
-          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << cp.getURL() << "\" />\n";
+          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << writeXMLEscape(cp.getURL()) << "\" />\n";
         }
         if (cp.getEmail() != "")
         {
-          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << cp.getEmail() << "\" />\n";
+          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << writeXMLEscape(cp.getEmail()) << "\" />\n";
         }
         if (cp.getContactInfo() != "")
         {
-          os << "\t\t\t<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << cp.getContactInfo() << "\" />\n";
+          os << "\t\t\t<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << writeXMLEscape(cp.getContactInfo()) << "\" />\n";
         }
         writeUserParam_(os, cp, 3, "/mzML/fileDescription/contact/cvParam/@accession", validator);
         os << "\t\t</contact>\n";
       }
       os << "\t</fileDescription>\n";
+
       //--------------------------------------------------------------------------------------------
       // sample
       //--------------------------------------------------------------------------------------------
       const Sample& sa = exp.getSample();
       os << "\t<sampleList count=\"1\">\n";
-      os << "\t\t<sample id=\"sa_0\" name=\"" << sa.getName() << "\">\n";
+      os << "\t\t<sample id=\"sa_0\" name=\"" << writeXMLEscape(sa.getName()) << "\">\n";
       if (sa.getNumber() != "")
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << writeXMLEscape(sa.getNumber()) << "\" />\n";
       }
       os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\" unitAccession=\"UO:0000021\" unitName=\"gram\" unitCvRef=\"UO\" />\n";
       os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\" unitAccession=\"UO:0000098\" unitName=\"milliliter\" unitCvRef=\"UO\" />\n";
@@ -4126,7 +4134,7 @@ protected:
       }
       if (sa.getComment() != "")
       {
-        os << "\t\t\t<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\" />\n";
+        os << "\t\t\t<userParam name=\"comment\" type=\"xsd:string\" value=\"" << writeXMLEscape(sa.getComment()) << "\" />\n";
       }
       writeUserParam_(os, sa, 3, "/mzML/sampleList/sample/cvParam/@accession", validator);
       os << "\t\t</sample>\n";
@@ -4207,7 +4215,7 @@ protected:
       ControlledVocabulary::CVTerm in_term = getChildWithName_("MS:1000031", in.getName());
       if (in_term.id != "")
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << in_term.id << "\" name=\"" << in_term.name << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << in_term.id << "\" name=\"" << writeXMLEscape(in_term.name) << "\" />\n";
       }
       else
       {
@@ -4216,7 +4224,7 @@ protected:
 
       if (in.getCustomizations() != "")
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << in.getCustomizations() << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << writeXMLEscape(in.getCustomizations()) << "\" />\n";
       }
 
       //ion optics
