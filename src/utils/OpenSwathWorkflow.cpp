@@ -104,7 +104,7 @@ namespace OpenMS
 
     void writeHeader()
     {
-      ofs << "transition_group_id\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName" <<
+      ofs << "transition_group_id\tpeptide_group_label\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName" <<
         "\tCharge\tm/z\tIntensity\tProteinName\tdecoy\tassay_rt\tdelta_rt\tleftWidth" <<
         "\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier" <<
         "\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score" <<
@@ -162,8 +162,15 @@ namespace OpenMS
             }
           }
 
+          // Compute peptide group label (use the provided label or use the
+          // transition group).
+          String group_label = pep.peptide_group_label;
+          if (group_label.empty()) group_label = id;
+          if (group_label == "light") group_label = id; // legacy fix since there are many TraMLs floating around which have "light" in there
+
           String line = "";
           line += id + "_run0"
+            + "\t" + group_label
             + "\t" + "0"
             + "\t" + input_filename_
             + "\t" + (String)feature_it->getRT()
