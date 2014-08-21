@@ -360,7 +360,7 @@ namespace OpenMS
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getScore() << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
-              if (it->metaValueExists("nextscore"))
+              if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
               }
@@ -369,11 +369,11 @@ namespace OpenMS
                 f << h.getScore() << "\"" << "/>\n";
               }
             }
-            else //if (it->metaValueExists("XTandem_score")) // it's not registered...
+            else if (h.metaValueExists("XTandem_score"))
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
-              if (it->metaValueExists("nextscore"))
+              if (h.metaValueExists("nextscore"))
               {
                 f << h.getMetaValue("nextscore") << "\"" << "/>\n";
               }
