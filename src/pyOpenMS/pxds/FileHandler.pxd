@@ -17,6 +17,8 @@ cdef extern from "<OpenMS/FORMAT/FileHandler.h>" namespace "OpenMS":
         bool loadFeatures(libcpp_string, FeatureMap[Feature] &) nogil except +
 
         PeakFileOptions  getOptions() nogil except +
+        void setOptions(PeakFileOptions) nogil except +
+
 #
 # wrap static method:
 #
