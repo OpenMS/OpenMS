@@ -202,7 +202,11 @@ private:
     //@}
 
 
-    /// write a TargetedExperiment to a file
+    /** @brief Write a TargetedExperiment to a file
+     *
+     * @param filename Name of the output file
+     * @param targeted_exp The data structure to be written to the file
+    */
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
 protected:
