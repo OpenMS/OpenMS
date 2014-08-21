@@ -376,7 +376,7 @@ protected:
     //-------------------------------------------------------------
     // run ProteinProphet afterwards
     //-------------------------------------------------------------
-    // "usage:\tProteinProphet <interact_pepxml_file1> [<interact_pepxml_file2>[....]] <output_protxml_file> (ICAT) (GLYC) (XPRESS) (ASAP_PROPHET) (FPKM) (NONSP) (ACCURACY) (ASAP) (PROTLEN) (NOPROTLEN) (IPROPHET) (NORMPROTLEN) (GROUPWTS) (INSTANCES) (REFRESH) (DELUDE) (NOOCCAM) (NOPLOT) (PROTMW)
+    // "usage:\tProteinProphet <interact_pepxml_file1> <output_protxml_file> (ICAT) (GLYC) (XPRESS) (ASAP_PROPHET) (FPKM) (NONSP) (ACCURACY) (ASAP) (PROTLEN) (NOPROTLEN) (IPROPHET) (NORMPROTLEN) (GROUPWTS) (INSTANCES) (REFRESH) (DELUDE) (NOOCCAM) (NOPLOT) (PROTMW)
     if (!getFlag_("proteinprophet_off"))
     {
       StringList parameters_pp;
@@ -398,23 +398,14 @@ protected:
         protein_ids.resize(1);
         peptide_ids.resize(1);
         ProtXMLFile().load(proteinprophet_output_filename, protein_ids[0], peptide_ids[0]);
-        protein_ids[0].setSearchEngine("XTandem"); // TODO: add other search engines.
+        // protein_ids[0].setSearchEngine("XTandem"); // Without setting this, search_engine="proteinprophet" in the output.
         IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
       }
       else
       {
         QFile::copy(proteinprophet_output_filename.toQString(), outputfile_name.toQString());
       }
-      // Deletion of temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
-      }
-      else
-      {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
-      }
+
       pl.endProgress();
     }
     else // if not running ProteinProphet, then only storing PeptideProphet results.
@@ -425,7 +416,7 @@ protected:
         ProteinIdentification protein_id;
         vector<PeptideIdentification> peptide_ids;
         PepXMLFile().load(xinteract_output_filename, protein_ids, peptide_ids);
-        protein_id.setSearchEngine("XTandem"); // TODO: add other search engines.
+        // protein_id.setSearchEngine("XTandem"); // Not necessary. it's correctly identified in PepXMLFile::load() .
         protein_ids.push_back(protein_id);
         IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
       }
@@ -433,16 +424,16 @@ protected:
       {
         QFile::copy(xinteract_output_filename.toQString(), outputfile_name.toQString());
       }
-      // Deletion of temporary files
-      if (this->debug_level_ < 2)
-      {
-        File::removeDirRecursively(temp_directory);
-        LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
-      }
-      else
-      {
-        LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
-      }
+    }
+    // Deletion of temporary files
+    if (this->debug_level_ < 2)
+    {
+      File::removeDirRecursively(temp_directory);
+      LOG_WARN << "Set debug level to >=2 to keep the temporary files at '" << temp_directory << "'" << std::endl;
+    }
+    else
+    {
+      LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
     }
     return EXECUTION_OK;
   }
