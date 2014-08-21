@@ -29,67 +29,44 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Lars Nilse $
-// $Authors: Lars Nilse, Holger Plattfaut, Steffen Sass, Bastian Blank $
+// $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
 
-#ifndef OPENMS_FILTERING_DATAREDUCTION_SILACPOINT_H
-#define OPENMS_FILTERING_DATAREDUCTION_SILACPOINT_H
+using namespace std;
 
 namespace OpenMS
 {
-  /**
-   * @brief A single SILAC point
-   * @see HashGrid
-   * @ingroup Datastructures
-   */
-  class OPENMS_DLLAPI SILACPoint
+    
+  MinimumDistance::MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance)
+  :cluster_index_(cluster_index), nearest_neighbour_index_(nearest_neighbour_index), distance_(distance)
   {
-public:
-    /**
-     * @brief m/z value of the element
-     */
-    double mz;
+  }
+  
+  int MinimumDistance::getClusterIndex() const
+  {
+    return cluster_index_;
+  }
 
-    /**
-     *@brief RT value of the element
-     */
-    double rt;
+  int MinimumDistance::getNearestNeighbourIndex() const
+  {
+    return  nearest_neighbour_index_;
+  }
 
-    /**
-     * @brief exact m/z positions at which the intensities are read
-     */
-    std::vector<std::vector<double> > mz_positions;
+  bool MinimumDistance::operator<(MinimumDistance other) const
+  {
+    return distance_ < other.distance_;
+  }
+  
+  bool MinimumDistance::operator>(MinimumDistance other) const
+  {
+    return distance_ > other.distance_;
+  }
+  
+  bool MinimumDistance::operator==(MinimumDistance other) const
+  {
+    return distance_ == other.distance_;
+  }
 
-    /**
-     * @brief intensities at RT and the exact m/z positions
-     */
-    std::vector<std::vector<double> > intensities;
-
-    /**
-     * @brief mass shifts [Da] used in the filter
-     */
-    std::vector<double> mass_shifts;
-
-    /**
-     * @brief charge of the cluster (i.e. peptide) which the data point is part of
-     */
-    Int charge;
-
-    /**
-     * @brief number of isotopes per peptide of the cluster
-     */
-    Int isotopes_per_peptide;
-
-    /**
-     * @brief quality of the cluster
-     */
-    double quality;
-
-    SILACPoint() :
-      mz(0), rt(0), charge(0), isotopes_per_peptide(0), quality(0)
-    {}
-  };
 }
-
-#endif

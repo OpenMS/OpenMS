@@ -462,13 +462,13 @@ protected:
     /// returns true if the residue at the position is modified
     bool isModified(Size index) const;
 
-    /// equality operator
+    /// equality operator. Two sequences are equal iff all amino acids including PTMs are equal
     bool operator==(const AASequence& rhs) const;
 
-    /// lesser than operator which compares the C-term mods, sequence and N-term mods; can be used for maps
+    /// lesser than operator which compares the C-term mods, sequence including PTMS and N-term mods; can be used for maps
     bool operator<(const AASequence& rhs) const;
 
-    /// inequality operator
+    /// inequality operator. Complement of equality operator.
     bool operator!=(const AASequence& rhs) const;
     //@}
 

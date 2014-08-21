@@ -49,8 +49,8 @@ IBSpectraFile* nullPointer = 0;
 
 START_SECTION((IBSpectraFile()))
 {
-	ptr = new IBSpectraFile();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new IBSpectraFile();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -101,7 +101,7 @@ START_SECTION((void store(const String& filename, const ConsensusMap& cm)))
   IBSpectraFile ibfile;
   ibfile.store(tmp_filename, cm);
 
-  TEST_FILE_EQUAL(tmp_filename.c_str(), OPENMS_GET_TEST_DATA_PATH("IBSpectraFile.ibspectra.csv"))
+  TEST_FILE_SIMILAR(tmp_filename.c_str(), OPENMS_GET_TEST_DATA_PATH("IBSpectraFile.ibspectra.csv"))
 }
 END_SECTION
 

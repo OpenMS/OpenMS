@@ -120,6 +120,7 @@ PyOpenMSChecker:
         - NamesOfReflectronState
     OpenMS::EnzymaticDigestion:
         - NamesOfEnzymes
+        - NamesOfSpecificity
     OpenMS::SourceFile:
         - NamesOfChecksumType
     OpenMS::Precursor:
@@ -178,6 +179,11 @@ PyOpenMSChecker:
     OpenMS::PeptideAndProteinQuant::Statistics:
         - Statistics # renamed constructor
 
+    # Legacy functions only
+    OpenMS::OnDiscMSExperiment:
+        - isSortedByRT
+        - size
+        - empty
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed methods
@@ -852,6 +858,7 @@ PyOpenMSChecker:
     - OpenMS::TOPPASToolVertex::IOInfo
     - OpenMS::TOPPASScene::TOPPProcess
     - OpenMS::TOPPASVertex::VertexRoundPackage
+    - OpenMS::Annotation1DCaret
     - TOPPPCV
 
     ########################################################################

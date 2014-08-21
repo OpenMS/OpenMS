@@ -3450,10 +3450,7 @@ protected:
       String cvTerm = "<cvParam cvRef=\"" + c.id.prefix(':') + "\" accession=\"" + c.id + "\" name=\"" + c.name;
       if (!metaValue.isEmpty())
       {
-        String stringMetaValue = (String)metaValue;
-        stringMetaValue.substitute("\"", "&quot;");
-        cvTerm += "\" value=\"" + stringMetaValue;
-
+        cvTerm += "\" value=\"" + writeXMLEscape(metaValue.toString());
         if (metaValue.hasUnit())
         {
           //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
@@ -3526,10 +3523,7 @@ protected:
             {
               userParam += "xsd:string";
             }
-            String s = (String)(d);
-            s.substitute("\"", "&quot;");
-            userParam += "\" value=\"" + s + "\"/>" + "\n";
-
+            userParam += "\" value=\"" + writeXMLEscape(d.toString()) + "\"/>" + "\n";
             userParams.push_back(userParam);
           }
         }
@@ -3573,11 +3567,11 @@ protected:
       }
       else if (so_term.id != "")
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << so_term.name << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << writeXMLEscape(so_term.name) << "\" />\n";
       }
       else
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"" << software.getName() << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"" << writeXMLEscape(software.getName()) << "\" />\n";
       }
       writeUserParam_(os, software, 3, "/mzML/Software/cvParam/@accession", validator);
       os << "\t\t</software>\n";
@@ -3586,7 +3580,7 @@ protected:
     template <typename MapType>
     void MzMLHandler<MapType>::writeSourceFile_(std::ostream& os, const String& id, const SourceFile& source_file, Internal::MzMLValidator& validator)
     {
-      os << "\t\t\t<sourceFile id=\"" << id << "\" name=\"" << source_file.getNameOfFile() << "\" location=\"" << source_file.getPathToFile() << "\">\n";
+      os << "\t\t\t<sourceFile id=\"" << id << "\" name=\"" << writeXMLEscape(source_file.getNameOfFile()) << "\" location=\"" << writeXMLEscape(source_file.getPathToFile()) << "\">\n";
       //checksum
       if (source_file.getChecksumType() == SourceFile::SHA1)
       {
@@ -3948,7 +3942,7 @@ protected:
       {
         os << "<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd\">\n";
       }
-      os << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"" << version_ << "\">\n";
+      os << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << writeXMLEscape(exp.getIdentifier()) << "\" version=\"" << version_ << "\">\n";
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
@@ -4855,7 +4849,7 @@ protected:
         spectra_offsets.push_back(make_pair(native_id, offset+3));
 
         // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
-        os << "\t\t\t<spectrum id=\"" << native_id << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
+        os << "\t\t\t<spectrum id=\"" << writeXMLEscape(native_id) << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
         if (spec.getSourceFile() != SourceFile())
         {
           os << " sourceFileRef=\"sf_sp_" << s << "\"";
@@ -5180,7 +5174,7 @@ protected:
 
         // TODO native id with chromatogram=?? prefix?
         // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag
-        os << "      <chromatogram id=\"" << chromatogram.getNativeID() << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
+        os << "      <chromatogram id=\"" << writeXMLEscape(chromatogram.getNativeID()) << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
 
         // write cvParams (chromatogram type)
         if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)

@@ -124,7 +124,7 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<userParam name="filter string" type="xsd:string" value="lorem & &quot;impsum&quot; <> "/>
+				<userParam name="filter string" type="xsd:string" value="lorem &amp; &quot;impsum&quot; &lt;&gt; "/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
