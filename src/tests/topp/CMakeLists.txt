@@ -454,9 +454,12 @@ add_test("TOPP_FileFilter_42" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_42_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_42.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_42_output.mzML)
 set_tests_properties("TOPP_FileFilter_42_out1" PROPERTIES DEPENDS "TOPP_FileFilter_42")
 # Test XML escaping of our XML handlers
-add_test("TOPP_FileFilter_43" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_43_input.mzML -out FileFilter_43.tmp  -in_type mzML -out_type mzML)
-add_test("TOPP_FileFilter_43_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_43.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_43_output.mzML)
+add_test("TOPP_FileFilter_43" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_43_input.mzML -out FileFilter_43.tmp.mzML -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_43_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_43.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_43_output.mzML)
+# We check whether the XML we just produced can be read again
+add_test("TOPP_FileFilter_43_read_again" ${TOPP_BIN_PATH}/FileFilter -test -in FileFilter_43.tmp.mzML -out FileFilter_43.dummy.tmp  -in_type mzML -out_type mzML)
 set_tests_properties("TOPP_FileFilter_43_out1" PROPERTIES DEPENDS "TOPP_FileFilter_43")
+set_tests_properties("TOPP_FileFilter_43_read_again" PROPERTIES DEPENDS "TOPP_FileFilter_43")
 
 #------------------------------------------------------------------------------
 # FileInfo tests
