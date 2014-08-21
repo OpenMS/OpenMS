@@ -127,13 +127,20 @@ namespace OpenMS
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v117.xsd\" summary_xml=\".xml\">" << "\n";
     f << "<msms_run_summary base_name=\"" << base_name << "\" raw_data_type=\"raw\" raw_data=\"." << raw_data << "\" search_engine=\"" << search_engine_name << "\">" << "\n";
     // TODO: other enzymes. If enzyme is not trypsin, skip it here and specify in TPP parser.
-    if (search_params.enzyme == ProteinIdentification::TRYPSIN || search_params.enzyme == ProteinIdentification::UNKNOWN_ENZYME)
+    if (search_params.enzyme == ProteinIdentification::TRYPSIN) 
     {
       f << "\t<sample_enzyme name=\"" << "trypsin" << "\">" << "\n";
       f << "\t\t<specificity cut=\"KR\" no_cut=\"P\" sense=\"C\"/>" << "\n";
       f << "\t</sample_enzyme>" << "\n";
     }
-
+    else if (search_params.enzyme == ProteinIdentification::UNKNOWN_ENZYME)
+    {
+      error(STORE, "Enzyme is unknown. Please specify the enzyme, otherwise TPP parse error.");
+    }
+    else
+    {
+      warning(STORE, "Enzyme is not written into the pepXML file when it's not trypsin; please mannually specify it before running TPP, details see TPP documentation.");
+    }
     f << "\t<search_summary base_name=\"" << base_name;
     f << "\" search_engine=\"" << search_engine_name;
     f << "\" precursor_mass_type=\"";
@@ -362,7 +369,7 @@ namespace OpenMS
                 f << h.getScore() << "\"" << "/>\n";
               }
             }
-            else // if (it->metaValueExists("XTandem_score")) // it's not registered...
+            else //if (it->metaValueExists("XTandem_score")) // it's not registered...
             {
               f << "\t\t\t<search_score" << " name=\"hyperscore\" value=\"" << h.getMetaValue("XTandem_score") << "\"" << "/>\n";
               f << "\t\t\t<search_score" << " name=\"nextscore\" value=\"";
