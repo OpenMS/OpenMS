@@ -390,6 +390,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return options_;
   }
 
+  void FileHandler::setOptions(const PeakFileOptions & options)
+  {
+      options_ = options;
+  }
+
   String FileHandler::computeFileHash_(const String& filename) const
   {
     QCryptographicHash crypto(QCryptographicHash::Sha1);
