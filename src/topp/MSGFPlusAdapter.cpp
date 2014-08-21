@@ -178,7 +178,8 @@ protected:
     registerOutputFile_("mzid_out", "<file>", "", "mzIdentML outputfile", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
 
-    registerStringOption_("java_memory_size", "<size>", "Xmx3500M", "Maximum Java heap size, Xmx<size>", false);
+    registerIntOption_("java_memory_size", "<num>", 3500, "Maximum Java heap size", false);
+    registerIntOption_("java_permgen_size", "<num>", 0, "Maximum permanent generation space size; only for Java 7 and below", false);
   }
 
   // The following sequence modification methods are used to modify the sequence stored in the tsv such that it can be used by AASequence
@@ -394,7 +395,7 @@ protected:
     //-------------------------------------------------------------
    
     // run MSGFPlus process and create the mzid file
-    String max_memory_size = "-" + getStringOption_("java_memory_size");
+    String max_memory_size = "-Xmx" + String(getIntOption_("java_memory_size")) + "M";
     String msgf_executable("java " + max_memory_size + " -jar " + getStringOption_("msgfplus_executable"));
 
     QProcess process;
@@ -409,7 +410,14 @@ protected:
     // execute tsv converter
     //------------------------------------------------------------- 
     String mzidtotsv_output_filename(temp_directory + "svFile.tsv");
-    String converter_executable("java -cp " + getStringOption_("msgfplus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv ");
+    int max_permgen_size = getIntOption("java_permgen_size");
+    String max_permgen_size_cmd = "";
+    if (max_permgen_size != 0) 
+    {
+      max_permgen_size_cmd = "-XX:MaxPermSize=" + String(max_permgen_size) + "m";
+    }
+
+    String converter_executable("java " + max_permgen_size_cmd + " -cp " + getStringOption_("msgfplus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv ");
 
     parameters = "-i " +  msgfplus_output_filename;
     parameters += " -o " + mzidtotsv_output_filename;
