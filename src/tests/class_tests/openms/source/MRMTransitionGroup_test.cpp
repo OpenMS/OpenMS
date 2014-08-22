@@ -246,26 +246,6 @@ START_SECTION (  bool hasPrecursorChromatogram(String key))
 }
 END_SECTION
 
-/*
-START_SECTION ( SpectrumType & getMS1Chromatogram() )
-{
-  MRMTransitionGroupType mrmtrgroup;
-  TEST_EQUAL(mrmtrgroup.getMS1Chromatogram().empty(), true) // default MS1 chrom is empty
-
-  mrmtrgroup.setMS1Chromatogram(chrom1);
-  TEST_EQUAL(chrom1 == mrmtrgroup.getMS1Chromatogram(), true)
-}
-END_SECTION
-
-START_SECTION ( void setMS1Chromatogram(SpectrumType & chromatogram) )
-{
-  MRMTransitionGroupType mrmtrgroup;
-  mrmtrgroup.setMS1Chromatogram(chrom1);
-  TEST_EQUAL(chrom1 == mrmtrgroup.getMS1Chromatogram(), true)
-}
-END_SECTION
-*/
-
 START_SECTION (  const std::vector<MRMFeature> & getFeatures() const)
 {
   MRMTransitionGroupType mrmtrgroup;
