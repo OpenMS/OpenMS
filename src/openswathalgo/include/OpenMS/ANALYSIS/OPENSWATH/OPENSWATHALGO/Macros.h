@@ -43,7 +43,7 @@
 // see http://stackoverflow.com/questions/3692954/add-custom-messages-in-assert
 // "Since a pointer "is true" if it's non-null, you can use the &&-operator to
 // chain and display the message".
-#define OPENMS_PRECONDITION(condition, message)\
+#define OPENSWATH_PRECONDITION(condition, message)\
   assert( (condition) && (message));
 
 #define OPENMS_POSTCONDITION(condition, message)\

@@ -76,7 +76,7 @@ namespace OpenSwath
                        double mz_end, double & mz, double & intensity, bool centroided)
   {
     //check precondtion
-    OPENMS_PRECONDITION( std::adjacent_find(spectrum->getMZArray()->data.begin(),
+    OPENSWATH_PRECONDITION( std::adjacent_find(spectrum->getMZArray()->data.begin(),
             spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
           "Precondition violated: m/z vector needs to be sorted!" )
 
