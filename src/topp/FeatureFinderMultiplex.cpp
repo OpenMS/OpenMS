@@ -930,10 +930,10 @@ public:
     // add results from  analysis
     LOG_DEBUG << "Generating output mzQuantML file..." << endl;
     ConsensusMap numap(consensus_map);
-    //calc. ratios
+    //calculate ratios
     for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
     {
-      //~ make ratio templates
+      // make ratio templates
       std::vector<ConsensusFeature::Ratio> rts;
       for (std::vector<MSQuantifications::Assay>::const_iterator ait = quantifications.getAssays().begin() + 1; ait != quantifications.getAssays().end(); ++ait)
       {
@@ -942,7 +942,6 @@ public:
         r.denominator_ref_ = String(ait->uid_);
         r.description_.push_back("Simple ratio calc");
         r.description_.push_back("light to medium/.../heavy");
-        //~ "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>"
         rts.push_back(r);
       }
 
@@ -961,9 +960,6 @@ public:
       cit->setRatios(rts);
     }
     quantifications.addConsensusMap(numap);            //add FeatureFinderMultiplex result
-
-    //~ msq.addFeatureMap(); //add FeatureFinderMultiplex evidencetrail as soon as clear what is realy contained in the featuremap
-    //~ add AuditCollection - no such concept in TOPPTools yet
 
   }
 
@@ -1028,11 +1024,6 @@ public:
    */
   void writeMSQuantifications(const String& filename, MSQuantifications& msq) const
   {
-    //~ TODO apply above to ConsensusMap befor putting into Msq
-    //~ out.sortByPosition();
-    //~ out.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    //~ out.setExperimentType("multiplex");
-
     MzQuantMLFile file;
     file.store(filename, msq);
   }
