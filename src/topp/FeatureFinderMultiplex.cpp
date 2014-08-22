@@ -669,6 +669,7 @@ public:
     }
 
     // determine ratios through linear regression
+    // of all (spline-interpolated) profile intensities that passed all multiplex filters, @see MultiplexFiltering
     std::vector<double> ratios;        // L:L, M:L, H:L etc.
     std::vector<double> intensities;        // L, M, H etc.
     // loop over peptides
@@ -696,7 +697,11 @@ public:
     }
 
     // correct peptide intensities
-    // (so that their ratios are in agreement with the ratios from the linear regression)
+    // The peptide ratios are calculated as linear regression of (spline-interpolated) profile intensities, @see linreg
+    // The individual peptide intensities are the sum of the same profile intensities. But the quotient of these peptide intensities
+    // is not necessarily the same as the independently calculated ratio from the linear regression. Since the peptide ratio
+    // from linear regression is the more accurate one, we correct two the peptide intensities by projecting them onto the ratio.
+    // In the end, both peptide ratio from linear regression and the quotient of the peptide intensities are identical.
     std::vector<double> corrected_intensities;
     if (profile_intensities.size() == 2)
     {
@@ -707,8 +712,9 @@ public:
     }
     else if (profile_intensities.size() > 2)
     {
-      // Now there are multiple labelled/light ratios. Light intensities stay fixed, just adjust intensities of labelled peptides.
-      // TODO: Better project onto hyperplane defined by ratios, then light is not singled out.
+      // Now with n instead of two peptide intensities, one needs to project the peptide intensities onto the hyperplane defined
+      // by the set of all peptide ratios (TODO). Instead, it is simpler to keep the lightest peptide intensity fixed, and correct
+      // only the remaining ones. The correct peptide ratio (from linear regression) is reported on both cases.
       corrected_intensities.push_back(intensities[0]);
       for (unsigned i = 1; i < profile_intensities.size(); ++i)
       {
@@ -717,6 +723,7 @@ public:
     }
     else
     {
+      // For simple feature detection (singlets) the intensities remain unchanged.
       corrected_intensities.push_back(intensities[0]);
     }
 
