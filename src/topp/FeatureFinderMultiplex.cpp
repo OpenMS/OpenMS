@@ -750,15 +750,10 @@ public:
 
         // The position (m/z, RT) of the peptide features is the centre-of-mass of the mass trace of the lightest isotope.
         // The centre-of-mass is the intensity-weighted average of the peak positions.
-        std::vector<double> sum_intensity_mz;
-        std::vector<double> sum_intensity_rt;
-        std::vector<double> sum_intensity;
-        for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-        {
-          sum_intensity_mz.push_back(0);
-          sum_intensity_rt.push_back(0);
-          sum_intensity.push_back(0);
-        }
+        unsigned number_of_peptides = patterns[pattern].getMassShiftCount();
+        std::vector<double> sum_intensity_mz(number_of_peptides,0);
+        std::vector<double> sum_intensity_rt(number_of_peptides,0);
+        std::vector<double> sum_intensity(number_of_peptides,0);
         // (Spline-interpolated) profile intensities for accurate ratio determination.
         // First index is the peptide, second is just the profile intensities collected
         std::vector<std::vector<double> > profile_intensities;
