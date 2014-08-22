@@ -659,11 +659,20 @@ public:
    */
   std::vector<double> getPeptideIntensities(std::vector<std::vector<double> >& profile_intensities)
   {
-    unsigned count = profile_intensities[0].size();
-    if (count == 0)
+    if (profile_intensities.empty())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The profile intensity vector of the lightest peptide should not be empty.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The entire profile intensity vector is empty.");
     }
+    bool empty_intensities = false;
+    for (unsigned i = 0; i < profile_intensities.size(); ++i)
+    {
+      empty_intensities = empty_intensities || profile_intensities[i].empty();
+   }
+    if (empty_intensities)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "One of the profile intensity vectors is empty.");
+    }
+    unsigned count = profile_intensities[0].size();
     for (unsigned i = 0; i < profile_intensities.size(); ++i)
     {
       if (profile_intensities[i].size() != count)
@@ -704,7 +713,7 @@ public:
     // The peptide ratios are calculated as linear regression of (spline-interpolated) profile intensities, @see linreg
     // The individual peptide intensities are the sum of the same profile intensities. But the quotient of these peptide intensities
     // is not necessarily the same as the independently calculated ratio from the linear regression. Since the peptide ratio
-    // from linear regression is the more accurate one, we correct two the peptide intensities by projecting them onto the ratio.
+    // from linear regression is the more accurate one, we correct the two peptide intensities by projecting them onto the ratio.
     // In the end, both peptide ratio from linear regression and the quotient of the peptide intensities are identical.
     std::vector<double> corrected_intensities;
     if (profile_intensities.size() == 2)
