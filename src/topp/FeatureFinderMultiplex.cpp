@@ -180,6 +180,7 @@ private:
 
   // section "algorithm"
   String labels_;
+  std::vector<std::vector<String> > samples_labels_;
   unsigned charge_min_;
   unsigned charge_max_;
   unsigned missed_cleavages_;
@@ -310,6 +311,7 @@ public:
   {
     // get selected labels
     labels_ = getParam_().getValue("algorithm:labels");
+    samples_labels_ = splitLabelString_();
 
     // get selected charge range
     String charge_string = getParam_().getValue("algorithm:charge");
@@ -389,31 +391,28 @@ public:
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown labelling. Neither SILAC, Dimethyl nor ICPL.");
     }
 
-    // split label string
-    std::vector<std::vector<String> > samples_labels = splitLabelString_();
-
     // debug output labels
     cout << "\n";
-    for (unsigned i = 0; i < samples_labels.size(); ++i)
+    for (unsigned i = 0; i < samples_labels_.size(); ++i)
     {
       cout << "sample " << (i + 1) << ":   ";
-      for (unsigned j = 0; j < samples_labels[i].size(); ++j)
+      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
       {
-        cout << samples_labels[i][j] << " ";
+        cout << samples_labels_[i][j] << " ";
       }
       cout << "\n";
     }
 
     // check if the labels are included in advanced section "labels"
     String all_labels = "Arg6 Arg10 Lys4 Lys6 Lys8 Dimethyl0 Dimethyl4 Dimethyl6 Dimethyl8 ICPL0 ICPL4 ICPL6 ICPL10";
-    for (unsigned i = 0; i < samples_labels.size(); i++)
+    for (unsigned i = 0; i < samples_labels_.size(); i++)
     {
-      for (unsigned j = 0; j < samples_labels[i].size(); ++j)
+      for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
       {
-        if (all_labels.find(samples_labels[i][j]) == std::string::npos)
+        if (all_labels.find(samples_labels_[i][j]) == std::string::npos)
         {
           std::stringstream stream;
-          stream << "The label " << samples_labels[i][j] << " is unknown.";
+          stream << "The label " << samples_labels_[i][j] << " is unknown.";
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
         }
       }
@@ -434,14 +433,14 @@ public:
           {
             MassPattern temp;
             temp.push_back(0);
-            for (unsigned i = 0; i < samples_labels.size(); i++)
+            for (unsigned i = 0; i < samples_labels_.size(); i++)
             {
               double mass_shift = 0;
               // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There + Lys8There == 0) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
               bool goAhead_Lys = false;
               bool goAhead_Arg = false;
 
-              for (unsigned j = 0; j < samples_labels[i].size(); ++j)
+              for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
               {
                 int Arg6There = 0;                    // Is Arg6 in the SILAC label?
                 int Arg10There = 0;
@@ -449,11 +448,11 @@ public:
                 int Lys6There = 0;
                 int Lys8There = 0;
 
-                if (samples_labels[i][j].find("Arg6") != std::string::npos) Arg6There = 1;
-                if (samples_labels[i][j].find("Arg10") != std::string::npos) Arg10There = 1;
-                if (samples_labels[i][j].find("Lys4") != std::string::npos) Lys4There = 1;
-                if (samples_labels[i][j].find("Lys6") != std::string::npos) Lys6There = 1;
-                if (samples_labels[i][j].find("Lys8") != std::string::npos) Lys8There = 1;
+                if (samples_labels_[i][j].find("Arg6") != std::string::npos) Arg6There = 1;
+                if (samples_labels_[i][j].find("Arg10") != std::string::npos) Arg10There = 1;
+                if (samples_labels_[i][j].find("Lys4") != std::string::npos) Lys4There = 1;
+                if (samples_labels_[i][j].find("Lys6") != std::string::npos) Lys6There = 1;
+                if (samples_labels_[i][j].find("Lys8") != std::string::npos) Lys8There = 1;
 
                 mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_massshift_["Arg6"] + Arg10There * label_massshift_["Arg10"]) + LysPerPeptide * (Lys4There * label_massshift_["Lys4"] + Lys6There * label_massshift_["Lys6"] + Lys8There * label_massshift_["Lys8"]);
 
@@ -485,9 +484,9 @@ public:
       for (unsigned mc = 0; mc <= missed_cleavages_; ++mc)
       {
         MassPattern temp;
-        for (unsigned i = 0; i < samples_labels.size(); i++)
+        for (unsigned i = 0; i < samples_labels_.size(); i++)
         {
-          temp.push_back((mc + 1) * (label_massshift_[samples_labels[i][0]] - label_massshift_[samples_labels[0][0]]));
+          temp.push_back((mc + 1) * (label_massshift_[samples_labels_[i][0]] - label_massshift_[samples_labels_[0][0]]));
         }
         list.push_back(temp);
       }
