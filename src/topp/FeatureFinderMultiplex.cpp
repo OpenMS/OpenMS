@@ -500,9 +500,35 @@ public:
       list.push_back(temp);
     }
 
-    // generate all mass shifts that can occur due to the absence of one or multiple peptides
-    // (e.g. for a triplet experiment generate the doublets and singlets that might be present)
-    unsigned n = list[0].size();        // n=2 for doublets, n=3 for triplets ...
+    // generate additional mass shifts due to knock-outs
+    generateKnockoutMassShifts(list);
+
+    // debug output mass shifts
+    cout << "\n";
+    for (unsigned i = 0; i < list.size(); ++i)
+    {
+      std::cout << "mass shift " << (i + 1) << ":    ";
+      MassPattern temp = list[i];
+      for (unsigned j = 0; j < temp.size(); ++j)
+      {
+        std::cout << temp[j] << "  ";
+      }
+      std::cout << "\n";
+    }
+    std::cout << "\n";
+
+    return list;
+  }
+
+  /**
+   * @brief generate all mass shifts that can occur due to the absence of one or multiple peptides
+   * (e.g. for a triplet experiment generate the doublets and singlets that might be present)
+   *
+   * @param list of mass shifts to be extended
+   */
+  void generateKnockoutMassShifts(std::vector<MassPattern> &list)
+  {
+    unsigned n = list[0].size();        // n=2 for doublets, n=3 for triplets, n=4 for quadruplets
     if (knock_out_ && n == 4)
     {
       unsigned m = list.size();
@@ -578,22 +604,6 @@ public:
       MassPattern singlet(1, 0);
       list.push_back(singlet);
     }
-
-    // debug output mass shifts
-    cout << "\n";
-    for (unsigned i = 0; i < list.size(); ++i)
-    {
-      std::cout << "mass shift " << (i + 1) << ":    ";
-      MassPattern temp = list[i];
-      for (unsigned j = 0; j < temp.size(); ++j)
-      {
-        std::cout << temp[j] << "  ";
-      }
-      std::cout << "\n";
-    }
-    std::cout << "\n";
-
-    return list;
   }
 
   /**
