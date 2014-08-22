@@ -251,7 +251,7 @@ public:
       defaults.setMaxFloat("averagine_similarity", 1.0);
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("knock_out", "true", "Is it likely that knock-outs are present?", ListUtils::create<String>("advanced"));
+      defaults.setValue("knock_out", "true", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
     }
 
@@ -501,7 +501,18 @@ public:
     }
 
     // generate additional mass shifts due to knock-outs
-    generateKnockoutMassShifts(list);
+    if (knock_out_ && list[0].size()==1)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
+    }
+    else if (knock_out_ && list[0].size()<=4)
+    {
+      generateKnockoutMassShifts(list);
+    }
+    else if (knock_out_ && list[0].size()>4)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
+    }
 
     // debug output mass shifts
     cout << "\n";
