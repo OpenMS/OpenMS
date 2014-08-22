@@ -660,6 +660,10 @@ public:
   std::vector<double> getPeptideIntensities(std::vector<std::vector<double> >& profile_intensities)
   {
     unsigned count = profile_intensities[0].size();
+    if (count == 0)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The profile intensity vector of the lightest peptide should not be empty.");
+    }
     for (unsigned i = 0; i < profile_intensities.size(); ++i)
     {
       if (profile_intensities[i].size() != count)
