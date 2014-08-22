@@ -35,7 +35,7 @@
 			<userParam name="name" type="xsd:string" value="contact1"/>
 		</contact>
 		<contact>
-			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Drek'Thar, " />
+			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Drek&apos;Thar, " />
 			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="da" />
 			<userParam name="name" type="xsd:string" value="contact2"/>
 		</contact>
