@@ -776,12 +776,7 @@ public:
         std::vector<double> sum_intensity(number_of_peptides,0);
         // (Spline-interpolated) profile intensities for accurate ratio determination.
         // First index is the peptide, second is just the profile intensities collected
-        std::vector<std::vector<double> > profile_intensities;
-        for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-        {
-          std::vector<double> temp;
-          profile_intensities.push_back(temp);
-        }
+        std::vector<std::vector<double> > profile_intensities(patterns[pattern].getMassShiftCount(), std::vector<double>());
         // bounding boxes of mass traces for each peptide multiplet
         // First index is the peptide, second is the mass trace within the peptide.
         std::map<std::pair<unsigned, unsigned>, DBoundingBox<2> > mass_traces;
