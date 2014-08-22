@@ -54,13 +54,13 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 /**
-  @page TOPP_ProteinProphetAdapter ProteinProphetAdapter
+  @page TOPP_TPPAdapter TPPAdapter
   @brief Computes a protein identification based on the number of identified peptides.
 <CENTER>
   <table>
     <tr>
       <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ ProteinProphetAdapter \f$ \longrightarrow \f$</td>
+      <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ TPPAdapter \f$ \longrightarrow \f$</td>
       <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
     </tr>
     <tr>
@@ -84,20 +84,20 @@ using namespace std;
   @ref OpenMS::IdXMLFile "idXML"
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_ProteinProphetAdapter.cli
+  @verbinclude TOPP_TPPAdapter.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_ProteinProphetAdapter.html
+  @htmlinclude TOPP_TPPAdapter.html
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPProteinProphetAdapter :
+class TOPPTPPAdapter :
   public TOPPBase
 {
 public:
-  TOPPProteinProphetAdapter() :
-    TOPPBase("ProteinProphetAdapter", "TPP adapter, a protein inference tool.", false)
+  TOPPTPPAdapter() :
+    TOPPBase("TPPAdapter", "TPP adapter, a protein inference tool.", false)
   {
   }
 
@@ -118,8 +118,8 @@ protected:
     setValidStrings_("database_type", ListUtils::create<String>("AA,NA"));
     addEmptyLine_();
     registerFlag_("proteinprophet_off", "Only PeptideProphet will run and ProteinProphet will be disabled; output can be pepXML or idXML containing peptide prophet probability.");
-    registerInputFile_("tpp_executable", "<executable>", "/tpp/bin/xinteract",
-                       "TPP bin directory e.g. '/usr/local/tpp/bin/xinteract'", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("tpp_executable", "<executable/path>", "/tpp/bin/xinteract",
+                       "TPP bin directory e.g. '/usr/local/tpp/bin, /usr/local/tpp/bin/xinteract'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
 
     registerIntOption_("num_extra_interation", "<num>", 20, "Number of extra PeptideProphet interations; default <num>=20", false);
@@ -441,7 +441,7 @@ protected:
 };
 int main(int argc, const char** argv)
 {
-  TOPPProteinProphetAdapter tool;
+  TOPPTPPAdapter tool;
   return tool.main(argc, argv);
 }
 

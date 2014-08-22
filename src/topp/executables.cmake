@@ -75,7 +75,6 @@ PeptideIndexer
 PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
-ProteinProphetAdapter
 ProteinQuantifier
 ProteinResolver
 RTModel
@@ -95,6 +94,7 @@ SpectraFilterNormalizer
 SpectraMerger
 TMTAnalyzer
 TOFCalibration
+TPPAdapter
 TextExporter
 MzTabExporter
 XTandemAdapter
