@@ -977,11 +977,29 @@ public:
   {
     map.sortByPosition();
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    map.setExperimentType("multiplex");        // TODO: adjust for SILAC, Dimethyl, ICPL etc.
+    map.setExperimentType("multiplex");
 
-    ConsensusMap::FileDescription& desc = map.getFileDescriptions()[0];
-    desc.filename = filename;
-    desc.label = "multiplex";
+    // annotate maps
+    for (unsigned i = 0; i < samples_labels_.size(); ++i)
+    {
+        ConsensusMap::FileDescription& desc = map.getFileDescriptions()[i];
+        desc.filename = filename;
+        
+        if (knock_out_)
+        {
+            // With knock-outs present, the correct labels can only be determined during ID mapping.
+            desc.label = "";
+        }
+        else
+        {
+            String label_string;
+            for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
+            {
+                label_string.append(samples_labels_[i][j]);
+            }
+            desc.label = label_string;
+        }
+    }
 
     ConsensusXMLFile file;
     file.store(filename, map);
