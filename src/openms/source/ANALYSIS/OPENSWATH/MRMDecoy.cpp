@@ -542,6 +542,10 @@ namespace OpenMS
       if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue;}
       peptide.id = decoy_tag + peptide.id;
       OpenMS::String original_sequence = peptide.sequence;
+      if (!peptide.getPeptideGroupLabel().empty()) 
+      {
+          peptide.setPeptideGroupLabel(decoy_tag + peptide.getPeptideGroupLabel());
+      }
 
       if (method == "pseudo-reverse")
       {
