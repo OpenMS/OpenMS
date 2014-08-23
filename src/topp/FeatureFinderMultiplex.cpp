@@ -679,19 +679,13 @@ public:
    */
   std::vector<double> getPeptideIntensities(std::vector<std::vector<double> >& profile_intensities)
   {
-    if (profile_intensities.empty())
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The entire profile intensity vector is empty.");
-    }
+    OPENMS_PRECONDITION(!profile_intensities.empty(), "The entire profile intensity vector should not be empty.");
     bool empty_intensities = false;
     for (unsigned i = 0; i < profile_intensities.size(); ++i)
     {
       empty_intensities = empty_intensities || profile_intensities[i].empty();
-   }
-    if (empty_intensities)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "One of the profile intensity vectors is empty.");
     }
+    OPENMS_PRECONDITION(!empty_intensities, "None of the individual profile intensity vectors should be empty.");
     unsigned count = profile_intensities[0].size();
     for (unsigned i = 0; i < profile_intensities.size(); ++i)
     {
