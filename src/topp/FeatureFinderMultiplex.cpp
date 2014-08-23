@@ -960,7 +960,7 @@ public:
       if (feature_handles.size() > 1)
       {
         std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin();                 // this is unlabeled
-        fit++;
+        ++fit;
         for (; fit != feature_handles.end(); ++fit)
         {
           Size ri = std::distance(feature_handles.begin(), fit);
