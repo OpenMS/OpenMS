@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="./current.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	</SearchParameters>
+	<IdentificationRun date="2014-08-15T14:10:23" search_engine="unknown" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="DECOY_SW:TRP6_HUMAN" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="decoy"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="GP:AJ271067_1" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="GP:AJ271068_1" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="gi|1574458|gb|AAC23247.1|" score="0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="probability" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0.1" sequence="AAA" charge="2" protein_refs="PH_0 PH_1 PH_2" >
+            </PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="probability" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0.9" sequence="CCC" charge="2" protein_refs="PH_1 PH_2" >
+            </PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="probability" higher_score_better="true" significance_threshold="0" >
+			<PeptideHit score="0.8" sequence="DDD" charge="2" protein_refs="PH_3" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
