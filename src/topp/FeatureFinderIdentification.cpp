@@ -154,6 +154,8 @@ protected:
     StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
     registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
     setValidStrings_("model:type", models);
+    registerDoubleOption_("model:add_zeros", "<value>", 0.5, "Add zero-intensity points outside the feature range to constrain the model fit. This parameter sets the weight given to these points during model fitting; '0' to disable.", true);
+    setMinFloat_("model:add_zeros", 0.0);
     registerFlag_("model:unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
     registerFlag_("model:no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the initial intensity estimate", true);
     registerTOPPSubsection_("model:check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
@@ -764,6 +766,7 @@ protected:
     // - all convex hulls in one feature contain the same number (> 0) of points
     // - the y coordinates of the hull points store the intensities
 
+    double add_zeros = getDoubleOption_("model:add_zeros");
     bool weighted = !getFlag_("model:unweighted_fit");
     bool impute = !getFlag_("model:no_imputation");
     double check_boundaries = getDoubleOption_("model:check:boundaries");
@@ -816,14 +819,19 @@ protected:
          feat_it != features.end(); ++feat_it, ++index)
     {
       LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
+      double region_start = double(feat_it->getMetaValue("leftWidth"));
+      double region_end = double(feat_it->getMetaValue("rightWidth"));
+
       vector<Peak1D> peaks;
       // reserve space once, to avoid copying and invalidating pointers:
       Size points_per_hull = feat_it->
         getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
-      peaks.reserve(feat_it->getSubordinates().size() * points_per_hull);
+      peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
+                    (add_zeros > 0.0)); // don't forget additional zero point
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> traces;
       traces.max_trace = 0;
-      traces.reserve(feat_it->getSubordinates().size());
+      // need a mass trace for every transition, plus maybe one for add. zeros:
+      traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
       for (vector<Feature>::iterator sub_it =
              feat_it->getSubordinates().begin(); sub_it !=
              feat_it->getSubordinates().end(); ++sub_it)
@@ -874,6 +882,21 @@ protected:
       // traces.updateBaseline();
       // traces.baseline = 0.75 * traces.baseline;
       traces.baseline = 0.0;
+
+      if (add_zeros > 0.0)
+      {
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
+        trace.peaks.reserve(2);
+        trace.theoretical_int = add_zeros;
+        Peak1D peak;
+        peak.setMZ(feat_it->getSubordinates()[0].getMZ());
+        peak.setIntensity(0.0);
+        peaks.push_back(peak);
+        double offset = 0.2 * (region_start - region_end);
+        trace.peaks.push_back(make_pair(region_start - offset, &peaks.back()));
+        trace.peaks.push_back(make_pair(region_end + offset, &peaks.back()));
+        traces.push_back(trace);
+      }
 
       // fit the model:
       bool fit_success = true;
@@ -943,8 +966,6 @@ protected:
       feat_it->setMetaValue("model_error", mre);
 
       // check model validity:
-      double region_start = double(feat_it->getMetaValue("leftWidth"));
-      double region_end = double(feat_it->getMetaValue("rightWidth"));
       double area = fitter->getArea();
       feat_it->setMetaValue("model_area", area);
       if ((area != area) || (area <= 0.0)) // x != x: test for NaN
