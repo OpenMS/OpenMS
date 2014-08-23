@@ -768,12 +768,6 @@ public:
    */
   void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap<>& feature_map)
   {
-    // data structures for final results
-    std::vector<std::vector<double> > peptide_RT;
-    std::vector<std::vector<double> > peptide_MZ;
-    std::vector<std::vector<double> > peptide_intensity;
-    std::vector<std::vector<int> > peptide_charge;
-
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
