@@ -200,7 +200,9 @@ private:
 
 public:
   TOPPFeatureFinderMultiplex() :
-    TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true)
+  TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true),
+  debug_(false), charge_min_(1), charge_max_(1), missed_cleavages_(0), isotopes_per_peptide_min_(1), isotopes_per_peptide_max_(1), rt_typical_(0.0), rt_min_(0.0),
+  mz_tolerance_(0.0), mz_unit_(true), intensity_cutoff_(0.0), peptide_similarity_(0.0), averagine_similarity_(0.0), knock_out_(false)
   {
   }
 
