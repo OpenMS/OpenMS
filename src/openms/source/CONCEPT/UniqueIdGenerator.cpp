@@ -46,17 +46,7 @@ namespace OpenMS
   UInt64 UniqueIdGenerator::getUniqueId()
   {
     UniqueIdGenerator& instance = getInstance_();
-#ifdef _OPENMP
-    UInt64 val;
-#pragma omp critical (OPENMS_UniqueIdGenerator_getUniqueId)
-    {
-      val = (*instance.dist_)(*instance.rng_);
-    }
-    // note: OpenMP can only work on a structured block, return needs to be outside that block
-    return val; 
-#else
     return (*instance.dist_)(*instance.rng_);
-#endif
   }
 
   UInt64 UniqueIdGenerator::getSeed()
@@ -66,49 +56,32 @@ namespace OpenMS
 
   void UniqueIdGenerator::setSeed(UInt64 seed)
   {
-  // modifies static members
-#ifdef _OPENMP
-#pragma omp critical (OPENMS_UniqueIdGenerator_setSeed)
-#endif
-    {
-      UniqueIdGenerator& instance = getInstance_();
-      instance.seed_ = seed;
-      instance.rng_->seed( instance.seed_ );
-      instance.dist_->reset();
-    }
+    UniqueIdGenerator& instance = getInstance_();
+    instance.seed_ = seed;
+    instance.rng_->seed( instance.seed_ );
+    instance.dist_->reset();
   }
 
   UniqueIdGenerator::UniqueIdGenerator()
   {
+
   }
 
   UniqueIdGenerator & UniqueIdGenerator::getInstance_()
   {
-  // modifies static members
-#ifdef _OPENMP
-#pragma omp critical (OPENMS_UniqueIdGenerator_getInstance_)
-#endif
+    if (!instance_)
     {
-      if (!instance_)
-      {
-        instance_ = new UniqueIdGenerator();
-        instance_->init_();
-      }
+      instance_ = new UniqueIdGenerator();
+      instance_->init_();
     }
     return *instance_;
   }
 
   void UniqueIdGenerator::init_()
   {
-  // modifies static members
-#ifdef _OPENMP
-#pragma omp critical (OPENMS_UniqueIdGenerator_init_)
-#endif
-    {
-      seed_ = std::time(0);
-      rng_ = new boost::mt19937_64 (seed_);
-      dist_ = new boost::uniform_int<UInt64> (0,std::numeric_limits<UInt64>::max());
-    }
+    seed_ = std::time(0);
+    rng_ = new boost::mt19937_64 (seed_);
+    dist_ = new boost::uniform_int<UInt64> (0,std::numeric_limits<UInt64>::max());
   }
 
   UniqueIdGenerator::~UniqueIdGenerator()

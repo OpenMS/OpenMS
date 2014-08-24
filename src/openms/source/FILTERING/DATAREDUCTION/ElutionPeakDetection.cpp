@@ -448,7 +448,7 @@ namespace OpenMS
         // if (mt_quality >= 1.2)
         //      {
 #ifdef _OPENMP
-#pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
+#pragma omp critical
 #endif
         single_mtraces.push_back(mt);
 
@@ -539,7 +539,7 @@ namespace OpenMS
           // if ((new_mt_length >= min_trace_length_) && (new_mt_length <= max_trace_length_))
           //{
 #ifdef _OPENMP
-#pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
+#pragma omp critical
 #endif
           single_mtraces.push_back(new_mt);
         }

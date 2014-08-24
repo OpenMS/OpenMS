@@ -70,8 +70,7 @@ namespace OpenMS
       Replicates
       NrModifications
       PrecursorCharge (integer)
-      PeptideGroupLabel (free text, designates to which peptide label group (as defined in MS:1000893) the peptide belongs to)
-      LabelType (free text, optional description of which label was used, e.g. heavy or light)
+      Labelgroup (free text, e.g. heavy or light)
 
   @htmlinclude OpenMS_TransitionTSVReader.parameters
 
@@ -84,7 +83,6 @@ namespace OpenMS
 private:
     /// Members
     String retentionTimeInterpretation_;
-    bool override_group_label_check_;
 
     /// Typedefs
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
@@ -112,8 +110,7 @@ private:
       String Annotation;
       String FullPeptideName;
       int precursor_charge;
-      String peptide_group_label;
-      String label_type;
+      String group_label;
       int fragment_charge;
       int fragment_nr;
       double fragment_mzdelta;
@@ -176,21 +173,6 @@ private:
      *
    */
     //@{
-
-    /** Resolve cases where the same peptide label group has different sequences.
-     *
-     * Since members in a peptide label group (MS:1000893) should only be
-     * isotopically modified forms of the same peptide, having different
-     * peptide sequences (different AA order) within the same group most likely
-     * constitutes an error. This function will fix the error by erasing the
-     * provided "peptide group label" for a peptide and replace it with the
-     * peptide id (transition group id).
-     *
-     * @param transition_list The list of read transitions to be fixed.
-     *
-     */
-    void resolveMixedSequenceGroups_(std::vector<TSVTransition>& transition_list);
-
     void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
 
     void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
@@ -202,11 +184,7 @@ private:
     //@}
 
 
-    /** @brief Write a TargetedExperiment to a file
-     *
-     * @param filename Name of the output file
-     * @param targeted_exp The data structure to be written to the file
-    */
+    /// write a TargetedExperiment to a file
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
 protected:

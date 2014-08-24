@@ -21,6 +21,7 @@
   <CompoundList>
     <Peptide id="P0C0L5;P0C0L4_AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV_3" sequence="AACAQLNDFLQEYGTQGCQV">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)AQLNDFLQEYGTQGC(Carbamidomethyl)QV"/>
       <ProteinRef ref="P0C0L5;P0C0L4"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
@@ -38,6 +39,7 @@
     </Peptide>
     <Peptide id="Q9HCU0_AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR_2" sequence="AACGPSSCYALFPR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)GPSSC(Carbamidomethyl)YALFPR"/>
       <ProteinRef ref="Q9HCU0"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
@@ -55,6 +57,7 @@
     </Peptide>
     <Peptide id="Q9BX93_AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL_2" sequence="AACICAEEEKEEL">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)IC(Carbamidomethyl)AEEEKEEL"/>
       <ProteinRef ref="Q9BX93"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
@@ -72,6 +75,7 @@
     </Peptide>
     <Peptide id="P02768_AAC(Carbamidomethyl)LLPK_2" sequence="AACLLPK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)LLPK"/>
       <ProteinRef ref="P02768"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">
@@ -86,6 +90,7 @@
     </Peptide>
     <Peptide id="P02768_AAC(Carbamidomethyl)LLPKLDELRDEGK_3" sequence="AACLLPKLDELRDEGK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAC(Carbamidomethyl)LLPKLDELRDEGK"/>
       <ProteinRef ref="P02768"/>
       <Modification location="3" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">

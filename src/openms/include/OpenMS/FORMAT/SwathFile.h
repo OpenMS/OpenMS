@@ -79,7 +79,7 @@ public:
       {
 
 #ifdef _OPENMP
-#pragma omp critical (OPENMS_SwathFile_loadSplit)
+#pragma omp critical (load)
 #endif
         {
           std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << std::endl;
@@ -137,7 +137,7 @@ public:
         swath_map.upper = upper;
         swath_map.ms1 = ms1;
 #ifdef _OPENMP
-#pragma omp critical (OPENMS_SwathFile_loadSplit)
+#pragma omp critical (load)
 #endif
         {
           LOG_DEBUG << "Adding Swath file " << file_list[i] << " with " << swath_map.lower << " to " << swath_map.upper << std::endl;

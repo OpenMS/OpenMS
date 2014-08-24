@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -45,8 +44,6 @@ namespace OpenMS
   {
     defaults_.setValue("retentionTimeInterpretation", "iRT", "How to interpret the provided retention time (the retention time column can either be interpreted to be in iRT, minutes or seconds)", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("retentionTimeInterpretation", ListUtils::create<String>("iRT,seconds,minutes"));
-    defaults_.setValue("override_group_label_check", "false", "Override an internal check that assures that all members of the same PeptideGroupLabel have the same PeptideSequence (this ensures that only different isotopic forms of the same peptide can be grouped together in the same label group). Only turn this off if you know what you are doing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("override_group_label_check", ListUtils::create<String>("true,false"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -60,7 +57,6 @@ namespace OpenMS
   void TransitionTSVReader::updateMembers_()
   {
     retentionTimeInterpretation_ = param_.getValue("retentionTimeInterpretation");
-    override_group_label_check_ = param_.getValue("override_group_label_check").toBool();
   }
 
   const char* TransitionTSVReader::strarray_[] =
@@ -81,12 +77,11 @@ namespace OpenMS
     "Replicates",
     "NrModifications",
     "PrecursorCharge",
-    "PeptideGroupLabel",
-    "LabelType",
+    "GroupLabel",
     "UniprotID"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 19);
+  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 18);
 
   void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
@@ -182,6 +177,7 @@ namespace OpenMS
       header_dict["SpectraSTUnknown"] = 10;
       header_dict["SpectraSTNumberOfProteinsMappedTo"] = 11;
       header_dict["ProteinName"] = 12;
+
     }
     else
     {
@@ -328,15 +324,11 @@ namespace OpenMS
         // charge is assumed to be the charge of the precursor
         mytransition.precursor_charge             =                      String(tmp_line[header_dict["Charge"]]).toInt();
       }
+      if (header_dict.find("GroupLabel") != header_dict.end())
+      {
+        mytransition.group_label                  =                             tmp_line[header_dict["GroupLabel"]];
+      }
 
-      if (header_dict.find("PeptideGroupLabel") != header_dict.end()) 
-      {
-        mytransition.peptide_group_label = tmp_line[header_dict["PeptideGroupLabel"]];
-      }
-      if (header_dict.find("LabelType") != header_dict.end())
-      {
-        mytransition.label_type                   =                             tmp_line[header_dict["LabelType"]];
-      }
       if (header_dict.find("UniprotID") != header_dict.end())
       {
         if (tmp_line[header_dict["UniprotID"]] != "NA")
@@ -445,7 +437,7 @@ namespace OpenMS
       std::cout << mytransition.Annotation << std::endl;
       std::cout << mytransition.FullPeptideName << std::endl;
       std::cout << mytransition.precursor_charge << std::endl;
-      std::cout << mytransition.peptide_group_label << std::endl;
+      std::cout << mytransition.group_label << std::endl;
       std::cout << mytransition.fragment_charge << std::endl;
       std::cout << mytransition.fragment_nr << std::endl;
       std::cout << mytransition.fragment_mzdelta << std::endl;
@@ -485,11 +477,8 @@ namespace OpenMS
     mytransition.group_id  = mytransition.group_id.remove('"');
     mytransition.group_id  = mytransition.group_id.remove('\'');
 
-    mytransition.peptide_group_label  = mytransition.peptide_group_label.remove('"');
-    mytransition.peptide_group_label  = mytransition.peptide_group_label.remove('\'');
-
-    mytransition.label_type  = mytransition.label_type.remove('"');
-    mytransition.label_type  = mytransition.label_type.remove('\'');
+    mytransition.group_label  = mytransition.group_label.remove('"');
+    mytransition.group_label  = mytransition.group_label.remove('\'');
 
     mytransition.fragment_type  = mytransition.fragment_type.remove('"');
     mytransition.fragment_type  = mytransition.fragment_type.remove('\'');
@@ -505,6 +494,12 @@ namespace OpenMS
       mytransition.FullPeptideName = substrings[0];
       mytransition.precursor_charge = substrings[1].toInt();
     }
+
+    if (mytransition.group_label.empty())
+    {
+      mytransition.group_label = "light";
+    }
+
   }
 
   void TransitionTSVReader::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp)
@@ -517,8 +512,6 @@ namespace OpenMS
 
     std::map<String, int> peptide_map;
     std::map<String, int> protein_map;
-
-    resolveMixedSequenceGroups_(transition_list);
 
     Size progress = 0;
     startProgress(0, transition_list.size(), "converting to TraML format");
@@ -561,8 +554,6 @@ namespace OpenMS
   {
     std::map<String, int> peptide_map;
     std::map<String, int> protein_map;
-
-    resolveMixedSequenceGroups_(transition_list);
 
     OpenMS::TargetedExperiment::Peptide tramlpeptide;
 
@@ -609,56 +600,6 @@ namespace OpenMS
       setProgress(progress++);
     }
     endProgress();
-  }
-
-  void TransitionTSVReader::resolveMixedSequenceGroups_(std::vector<TransitionTSVReader::TSVTransition>& transition_list)
-  {
-    // Create temporary map by group label
-    std::map< String, std::vector<TSVTransition*> > label_transition_map;
-    for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
-    {
-      if (!tr_it->peptide_group_label.empty() )
-      {
-        label_transition_map[tr_it->peptide_group_label].push_back(& (*tr_it));
-      }
-    }
-
-    // Iterate through all the group labels and perform sanity check whether the peptide sequence is the same for all of them
-    for (std::map< String, std::vector<TSVTransition*> >::iterator pep_it = label_transition_map.begin(); pep_it != label_transition_map.end(); ++pep_it)
-    {
-      String curr_sequence;
-      if (!pep_it->second.empty() )
-      { 
-        curr_sequence = (*pep_it->second.begin())->PeptideSequence;
-      }
-
-      for (std::vector<TSVTransition*>::iterator tr_it = pep_it->second.begin(); tr_it != pep_it->second.end(); ++tr_it)
-      {
-        // Sanity check: different peptide sequence in the same peptide label group means that something is probably wrong ...
-        if (!curr_sequence.empty() && (*tr_it)->PeptideSequence != curr_sequence)
-        {
-
-          if (override_group_label_check_)
-          {
-            // We wont fix it but give out a warning
-            LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it->first << 
-              //" found multiple peptide sequences: " << curr_sequence << " and " << (*tr_it)->PeptideSequence << 
-              ". Since 'override_group_label_check' is on, nothing will be changed." << std::endl;
-          }
-          else
-          {
-            // Lets fix it and inform the user
-            LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it->first << 
-              //" found multiple peptide sequences: " << curr_sequence << " and " << (*tr_it)->PeptideSequence << 
-              ". This is most likely an error and to fix this, a new peptide label group will be inferred - " << 
-              "to override this decision, please use the override_group_label_check parameter." << std::endl;
-            (*tr_it)->peptide_group_label = (*tr_it)->group_id;
-          }
-
-        }
-      }
-    }
-
   }
 
   void TransitionTSVReader::createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans)
@@ -888,13 +829,9 @@ namespace OpenMS
 
     // per peptide user params
     peptide.setMetaValue("full_peptide_name", tr_it->FullPeptideName);
-    if (!tr_it->label_type.empty())
-    {
-      peptide.setMetaValue("LabelType", tr_it->label_type);
-    }
 
     // per peptide CV terms
-    peptide.setPeptideGroupLabel(tr_it->peptide_group_label);
+    peptide.setPeptideGroupLabel(tr_it->group_label);
     if (tr_it->precursor_charge != -1)
     {
       peptide.setChargeState(tr_it->precursor_charge);
@@ -1124,17 +1061,14 @@ namespace OpenMS
       {
         mytransition.precursor_charge = pep.getChargeState();
       }
-      mytransition.peptide_group_label = "NA";
+      mytransition.group_label = "NA";
       if (pep.getPeptideGroupLabel() != "")
       {
-        mytransition.peptide_group_label = pep.getPeptideGroupLabel();
-      }
-      if (pep.metaValueExists("LabelType"))
-      {
-        mytransition.label_type = pep.getMetaValue("LabelType").toString();
+        mytransition.group_label = pep.getPeptideGroupLabel();
       }
 
       mytransitions.push_back(mytransition);
+
       setProgress(progress++);
     }
     endProgress();
@@ -1173,8 +1107,7 @@ namespace OpenMS
         + (String)0                            + "\t"
         + (String)0                            + "\t"
         + (String)it->precursor_charge         + "\t"
-        + (String)it->peptide_group_label      + "\t"
-        + (String)it->label_type               + "\t"
+        + (String)it->group_label              + "\t"
         + (String)it->uniprot_id;
 
       os << line << std::endl;
@@ -1199,6 +1132,7 @@ namespace OpenMS
 
   void TransitionTSVReader::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp)
   {
+    std::cout << FileTypes::typeToName(filetype) << std::endl;
     std::vector<TSVTransition> transition_list;
     readUnstructuredTSVInput_(filename, filetype, transition_list);
     TSVToTargetedExperiment_(transition_list, targeted_exp);

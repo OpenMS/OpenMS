@@ -225,6 +225,16 @@ public:
         CVTermList()
       {
         charge_ = -1;
+        peptide_group_label_ = -1;
+
+        // we store the actual labels in a static vector which allows us to
+        // store each label only once.
+        static std::vector<String> * init_peptide_group_labels_ = 0;
+        if (init_peptide_group_labels_ == 0)
+        {
+          init_peptide_group_labels_ = new std::vector<String>;
+        }
+        peptide_group_labels_ = init_peptide_group_labels_;
       }
 
       Peptide(const Peptide & rhs) :
@@ -236,7 +246,8 @@ public:
         sequence(rhs.sequence),
         mods(rhs.mods),
         charge_(rhs.charge_),
-        peptide_group_label_(rhs.peptide_group_label_)
+        peptide_group_label_(rhs.peptide_group_label_),
+        peptide_group_labels_(rhs.peptide_group_labels_)
       {
       }
 
@@ -253,6 +264,7 @@ public:
           mods = rhs.mods;
           charge_ = rhs.charge_;
           peptide_group_label_ = rhs.peptide_group_label_;
+          peptide_group_labels_ = rhs.peptide_group_labels_;
         }
         return *this;
       }
@@ -267,43 +279,44 @@ public:
                sequence == rhs.sequence &&
                mods == rhs.mods &&
                charge_ == rhs.charge_ &&
-               peptide_group_label_ == rhs.peptide_group_label_;
+               peptide_group_label_ == rhs.peptide_group_label_ &&
+               peptide_group_labels_ == rhs.peptide_group_labels_;
       }
 
-      /// Set the peptide charge state
       void setChargeState(int charge)
       {
         charge_ = charge;
       }
 
-      /// Return the peptide charge state
       int getChargeState() const
       {
         return charge_;
       }
 
-      /** @name The peptide group label specifies to non-labeled peptide group to which the peptide belongs
-       *
-       * MS:1000893: "An arbitrary string label used to mark a set of peptides
-       * that belong together in a set, whereby the members are differentiated
-       * by different isotopic labels. For example, the heavy and light forms
-       * of the same peptide will both be assigned the same peptide group
-       * label." [PSI:MS]
-       *
-     */
-      //@{
-      /// Set the peptide group label
       void setPeptideGroupLabel(const String & label)
       {
-        peptide_group_label_ = label;
+        for (Size i = 0; i < peptide_group_labels_->size(); i++)
+        {
+          if ((*peptide_group_labels_)[i] == label)
+          {
+            peptide_group_label_ = (Int)i;
+            return;
+          }
+        }
+
+        // not found, add it to the list
+        peptide_group_label_ = (Int)peptide_group_labels_->size();
+        peptide_group_labels_->push_back(label);
       }
 
-      /// Get the peptide group label
       String getPeptideGroupLabel() const
       {
-        return peptide_group_label_;
+        if (peptide_group_label_ == -1)
+        {
+          return "";
+        }
+        return (*peptide_group_labels_)[peptide_group_label_];
       }
-      //@}
 
       double getRetentionTime() const
       {
@@ -326,7 +339,8 @@ public:
 
 protected:
       int charge_;
-      String peptide_group_label_;
+      Int peptide_group_label_;
+      std::vector<String> * peptide_group_labels_;
     };
 
     struct OPENMS_DLLAPI Contact :
