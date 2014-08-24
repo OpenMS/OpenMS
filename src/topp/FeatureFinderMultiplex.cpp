@@ -901,16 +901,17 @@ public:
   void generateMSQuantifications(MSExperiment<Peak1D>& exp, ConsensusMap& consensus_map, MSQuantifications& quantifications)
   {
     // generate the labels
+    // (for each sample a list of (label string, mass shift) pairs)
+    // for example triple-SILAC: [(none,0)][(Lys4,4.0251),(Arg6,6.0201)][Lys8,8.0141)(Arg10,10.0082)]
     std::vector<std::vector<std::pair<String, double> > > labels;
-    std::vector<std::vector<String> > samples_labels = splitLabelString_();
-    for (unsigned sample = 0; sample < samples_labels.size(); ++sample)
+    for (unsigned sample = 0; sample < samples_labels_.size(); ++sample)
     {
       // The labels are required to be ordered in mass shift.
       std::map<double, String> single_label_map;
       std::vector<std::pair<String, double> > single_label;
-      for (unsigned label = 0; label < samples_labels[sample].size(); ++label)
+      for (unsigned label = 0; label < samples_labels_[sample].size(); ++label)
       {
-        String label_string = samples_labels[sample][label];
+        String label_string = samples_labels_[sample][label];
         double shift;
         if (label_string == "")
         {
