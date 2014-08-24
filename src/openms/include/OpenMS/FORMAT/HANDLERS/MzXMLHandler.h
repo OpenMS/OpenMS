@@ -235,7 +235,7 @@ protected:
         {
           if ((*it)[0] != '#') // internally used meta info start with '#'
           {
-            os << String(indent, '\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
+            os << String(indent, '\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << writeXMLEscape(meta.getMetaValue(*it)) << "\"/>\n";
           }
         }
       }
@@ -1145,7 +1145,7 @@ private:
 
           if (cont.metaValueExists("#phone"))
           {
-            os << " phone=\"" << (String)(cont.getMetaValue("#phone")) << "\"";
+            os << " phone=\"" << writeXMLEscape(cont.getMetaValue("#phone").toString()) << "\"";
           }
 
           os << "/>\n";
@@ -1154,7 +1154,7 @@ private:
 
         if (inst.metaValueExists("#comment"))
         {
-          os << "\t\t\t<comment>" << inst.getMetaValue("#comment") << "</comment>\n";
+          os << "\t\t\t<comment>" << writeXMLEscape(inst.getMetaValue("#comment")) << "</comment>\n";
         }
 
         os << "\t\t</msInstrument>\n";
@@ -1183,13 +1183,13 @@ private:
              << "\"";
           if (data_processing.metaValueExists("#intensity_cutoff"))
           {
-            os << " intensityCutoff=\"" << data_processing.getMetaValue("#intensity_cutoff").toString() << "\"";
+            os << " intensityCutoff=\"" << writeXMLEscape(data_processing.getMetaValue("#intensity_cutoff").toString()) << "\"";
           }
           os << ">\n"
              << "\t\t\t<software type=\"";
           if (data_processing.metaValueExists("#type"))
           {
-            os << data_processing.getMetaValue("#type").toString();
+            os << writeXMLEscape(data_processing.getMetaValue("#type").toString());
           }
           else
           {

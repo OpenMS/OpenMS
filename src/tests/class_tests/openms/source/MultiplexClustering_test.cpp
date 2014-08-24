@@ -76,7 +76,6 @@ bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double rt_typical = 90;
 double rt_minimum = 5;
 String out_debug = "";
-bool debug = false;
 
 // construct list of peak patterns
 std::vector<MultiplexPeakPattern> patterns;
