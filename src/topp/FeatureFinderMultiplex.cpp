@@ -235,9 +235,9 @@ public:
       defaults.setValue("labels", "[][Lys8,Arg10]", "Labels used for labelling the samples. [...] specifies the labels for a single sample. For example\n\n[][Lys8,Arg10]        ... SILAC\n[][Lys4,Arg6][Lys8,Arg10]        ... triple-SILAC\n[Dimethyl0][Dimethyl6]        ... Dimethyl\n[Dimethyl0][Dimethyl4][Dimethyl8]        ... triple Dimethyl\n[ICPL0][ICPL4][ICPL6][ICPL10]        ... ICPL");
       defaults.setValue("charge", "1:4", "Range of charge states in the sample, i.e. min charge : max charge.");
       defaults.setValue("isotopes_per_peptide", "3:6", "Range of isotopes per peptide in the sample. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
-      defaults.setValue("rt_typical", 90.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
+      defaults.setValue("rt_typical", 40.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
       defaults.setMinFloat("rt_typical", 0.0);
-      defaults.setValue("rt_min", 5.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
+      defaults.setValue("rt_min", 2.0, "Lower bound for the retention time [s]. (Any peptides seen for a shorter time period are not reported.)");
       defaults.setMinFloat("rt_min", 0.0);
       defaults.setValue("mz_tolerance", 6.0, "m/z tolerance for search of peak patterns.");
       defaults.setMinFloat("mz_tolerance", 0.0);
@@ -245,10 +245,10 @@ public:
       defaults.setValidStrings("mz_unit", ListUtils::create<String>("Da,ppm"));
       defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
       defaults.setMinFloat("intensity_cutoff", 0.0);
-      defaults.setValue("peptide_similarity", 0.7, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
+      defaults.setValue("peptide_similarity", 0.5, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
       defaults.setMinFloat("peptide_similarity", 0.0);
       defaults.setMaxFloat("peptide_similarity", 1.0);
-      defaults.setValue("averagine_similarity", 0.6, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
+      defaults.setValue("averagine_similarity", 0.4, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
       defaults.setMinFloat("averagine_similarity", 0.0);
       defaults.setMaxFloat("averagine_similarity", 1.0);
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
