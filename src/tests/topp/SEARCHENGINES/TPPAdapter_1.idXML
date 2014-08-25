@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
 <IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/mi/liangoaix/storage/ground-truth/Sigma49/SP_Homo_20140620.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+4" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="1.5" peak_mass_tolerance="0.3" >
+	<SearchParameters id="SP_0" db="TPPAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+4" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="1.5" peak_mass_tolerance="0.3" >
 	</SearchParameters>
 	<IdentificationRun date="2014-07-03T18:04:23" search_engine="XTandem" search_engine_version="" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="XTandem" higher_score_better="false" significance_threshold="0" >
