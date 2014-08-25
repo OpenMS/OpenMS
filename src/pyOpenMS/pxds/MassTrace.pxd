@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
     cdef cppclass Kernel_MassTrace "OpenMS::MassTrace":
 
         Kernel_MassTrace()  nogil except +
-        Kernel_MassTrace(Kernel_MassTrace &) nogil except + # wrap-ignore
+        Kernel_MassTrace(Kernel_MassTrace &) nogil except +
 
         Size getSize() nogil except +
         String getLabel() nogil except +

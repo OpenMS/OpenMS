@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
         UInt64 unique_id
 
         FileDescription() nogil except +
-        FileDescription(FileDescription &)  # wrap-ignore
+        FileDescription(FileDescription &) nogil except +
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work
@@ -44,7 +44,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         #   RangeManager2
 
         ConsensusMap() nogil except +
-        ConsensusMap(ConsensusMap) nogil except + # wrap-ignore
+        ConsensusMap(ConsensusMap &) nogil except +
 
         bool operator==(ConsensusMap) nogil except +
         bool operator!=(ConsensusMap) nogil except +
