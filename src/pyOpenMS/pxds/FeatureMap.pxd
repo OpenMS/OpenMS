@@ -22,8 +22,8 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #   FeatureMap := FeatureMap[Feature]
 
         FeatureMap() nogil except +
-        FeatureMap(FeatureMap[FeatureT]) nogil except + # wrap-ignore
-        int   size()  nogil except +
+        FeatureMap(FeatureMap[FeatureT] &) nogil except +
+        int size()  nogil except +
         Feature operator[](int)      nogil except + #wrap-upper-limit:size()
         void push_back(FeatureT spec) nogil except +
 
