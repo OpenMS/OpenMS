@@ -821,7 +821,6 @@ namespace OpenMS
                 {
                   String id = XMLString::transcode(enzy->getAttribute(XMLString::transcode("id")));
                   String name = XMLString::transcode(enzy->getAttribute(XMLString::transcode("name")));
-
                   int missedCleavages = -1;
                   try
                   {
@@ -865,10 +864,10 @@ namespace OpenMS
                       {
                           std::pair<String,DataValue> param;
                           std::cout << "derp?" << std::endl;
-			  try
-			  {
+                          try
+                          {
                             param = parseUserParam_(pren->getFirstElementChild());
-			  }
+                          }
                           catch (...)
                           {
                             std::cerr << "derp in progress" << std::endl;
@@ -1119,7 +1118,7 @@ namespace OpenMS
         si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setAccession(db.accession);
       }
 
-//due to redundand references this is not needed!
+      //due to redundand references this is not needed!
 //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
 //      while ( child )
 //      {
@@ -1642,4 +1641,3 @@ namespace OpenMS
     }
   }   //namespace Internal
 } // namespace OpenMS
-
