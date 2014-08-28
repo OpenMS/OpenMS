@@ -120,7 +120,7 @@ public:
     static std::pair<double,double> estimateRTRange(OpenSwath::LightTargetedExperiment & exp);
 
     /**
-      @brief Simple method to extrac the best Feature for each transition group (e.g. for RT alignment)
+      @brief Simple method to extract the best Feature for each transition group (e.g. for RT alignment)
 
       @param transition_group_map Input data
       @param pairs Output (containing pairs of  mapping  data

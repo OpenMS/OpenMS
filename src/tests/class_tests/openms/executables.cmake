@@ -18,6 +18,7 @@ set(concept_executables_list
 
 set(datastructures_executables_list
   Adduct_test
+  ClusteringGrid_test
   CVMappingRule_test
   CVMappingTerm_test
   CVMappings_test
@@ -34,6 +35,8 @@ set(datastructures_executables_list
   Date_test
   DefaultParamHandler_test
   DistanceMatrix_test
+  GridBasedCluster_test
+  GridBasedClustering_test
   GridFeature_test
   HashGrid_test
   ListUtils_test
@@ -253,6 +256,7 @@ set(filtering_executables_list
   MarkerMower_test
   MassTraceDetection_test
   MorphologicalFilter_test
+  MultiplexClustering_test
   MultiplexFiltering_test
   MultiplexFilterResult_test
   MultiplexFilterResultPeak_test
@@ -264,8 +268,6 @@ set(filtering_executables_list
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
-  SILACPattern_test
-  SILACPoint_test
   SplinePackage_test
   SplineSpectrum_test
   SavitzkyGolayFilter_test
@@ -294,11 +296,9 @@ set(comparison_executables_list
   ClusterHierarchical_test
   CompleteLinkage_test
   EuclideanSimilarity_test
-  HierarchicalClustering_test
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
   SingleLinkage_test
-  SILACClustering_test
   SpectraSTSimilarityScore_test
   SpectrumAlignmentScore_test
   SpectrumAlignment_test

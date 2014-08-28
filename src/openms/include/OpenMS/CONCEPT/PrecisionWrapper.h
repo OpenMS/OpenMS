@@ -99,7 +99,7 @@ private:
     return PrecisionWrapper<FloatingPointType>(rhs);
   }
 
-  /// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
+  /// Output operator for a PrecisionWrapper. Specializations are defined for float, double, long double.
   template <typename FloatingPointType>
   inline std::ostream & operator<<(std::ostream & os, const PrecisionWrapper<FloatingPointType> & rhs)
   {

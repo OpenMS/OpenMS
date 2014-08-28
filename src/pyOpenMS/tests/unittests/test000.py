@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import pyopenms
+import copy
 
 print(b"IMPORTED b", pyopenms.__file__)
 
@@ -18,8 +19,6 @@ def report(f):
         print(b"run b", f.__name__)
         f(*a, **kw)
     return wrapper
-
-
 
 @report
 def _testMetaInfoInterface(what):
@@ -592,6 +591,13 @@ def testConsensusFeature():
 
 
     f = pyopenms.ConsensusFeature()
+    f_ = copy.copy(f)
+    assert f_ == f
+    f_ = copy.deepcopy(f)
+    assert f_ == f
+    f_ = pyopenms.ConsensusFeature(f)
+    assert f_ == f
+
     _testUniqueIdInterface(f)
     _testMetaInfoInterface(f)
 
@@ -655,6 +661,12 @@ def testConsensusMap():
      ConsensusMap.updateRanges
      """
     m = pyopenms.ConsensusMap()
+    m_ = copy.copy(m)
+    assert m_ == m
+    m_ = copy.deepcopy(m)
+    assert m_ == m
+    m_ = pyopenms.ConsensusMap(m)
+    assert m_ == m
 
     m.clear()
     m.clearUniqueId()
@@ -1858,6 +1870,13 @@ def testFeatureMap():
      FeatureMap.updateRanges
     """
     fm = pyopenms.FeatureMap()
+    fm_ = copy.copy(fm)
+    assert fm_ == fm
+    fm_ = copy.deepcopy(fm)
+    assert fm_ == fm
+    fm_ = pyopenms.FeatureMap(fm)
+    assert fm_ == fm
+
     _testUniqueIdInterface(fm)
     fm.clear()
     fm.clearUniqueId()
@@ -2602,6 +2621,13 @@ def testMSExperiment():
      MSExperiment.isSorted
     """
     mse = pyopenms.MSExperiment()
+    mse_ = copy.copy(mse)
+    assert mse_ == mse
+    mse_ = copy.deepcopy(mse)
+    assert mse_ == mse
+    mse_ = pyopenms.MSExperiment(mse)
+    assert mse_ == fm
+
     _testMetaInfoInterface(mse)
     mse.updateRanges()
     mse.sortSpectra(True)
@@ -2637,7 +2663,6 @@ def testMSExperiment():
     assert mse.getSize() >= 0
     assert int(mse.isSorted()) in (0,1)
 
-    import copy
     mse2 = copy.copy(mse)
 
     assert mse.getSize() == mse2.getSize()
@@ -2737,6 +2762,13 @@ def testMSSpectrum():
      MSSpectrum.__ne__
      """
     spec = pyopenms.MSSpectrum()
+    spec_ = copy.copy(spec)
+    assert spec_ == spec
+    spec_ = copy.deepcopy(spec)
+    assert spec_ == spec
+    spec_ = pyopenms.MSSpectrum(spec)
+    assert spec_ == spec
+
     _testMetaInfoInterface(spec)
 
     testSpectrumSetting(spec)
@@ -2777,6 +2809,56 @@ def testMSSpectrum():
     assert ii0 == ii
 
     assert int(spec.isSorted()) in  (0,1)
+
+@report
+def testMSChromatogram():
+    """
+    @tests:
+     MSChromatogram.__init__
+     MSChromatogram.__copy__
+     """
+    chrom = pyopenms.MSChromatogram()
+    chrom_ = copy.copy(chrom)
+    assert chrom_ == chrom
+    chrom_ = copy.deepcopy(chrom)
+    assert chrom_ == chrom
+    chrom_ = pyopenms.MSSpectrum(chrom)
+    assert chrom_ == chrom
+
+    _testMetaInfoInterface(chrom)
+
+    chrom.setName(b"chrom")
+    assert chrom.getName() == b"chrom"
+
+    p = pyopenms.ChromatogramPeak()
+    p.setRT(1000.0)
+    p.setIntensity(200.0)
+
+    chrom.push_back(p)
+    assert chrom.size() == 1
+    assert chrom[0] == p
+
+    chrom.updateRanges()
+    assert isinstance(chrom.findNearest(0.0), int)
+
+    assert isinstance(chrom.getMin()[0], float)
+    assert isinstance(chrom.getMax()[0], float)
+    assert isinstance(chrom.getMinInt(), float)
+    assert isinstance(chrom.getMaxInt(), float)
+
+    assert chrom == chrom
+    assert not chrom != chrom
+
+    mz, ii = chrom.get_peaks()
+    assert len(mz) == len(ii)
+    assert len(mz) == 1
+
+    chrom.set_peaks((mz, ii))
+    mz0, ii0 = chrom.get_peaks()
+    assert mz0 == mz
+    assert ii0 == ii
+
+    assert int(chrom.isSorted()) in  (0,1)
 
 @report
 def testMRMFeature():
@@ -3735,6 +3817,33 @@ def testTransformationXMLFile():
     assert td.getDataPoints() == []
 
 @report
+def testIBSpectraFile():
+    """
+    @tests:
+     IBSpectraFile.__init__
+     IBSpectraFile.store
+    """
+    fh = pyopenms.IBSpectraFile()
+    cmap = pyopenms.ConsensusMap()
+    correctError = False
+    try:
+        fh.store( pyopenms.String(b"test.ibspectra.file"), cmap)
+        assert False
+    except RuntimeError:
+        correctError = True
+
+    assert correctError 
+
+@report
+def testSwathFile():
+    """
+    @tests:
+     SwathFile.__init__
+     SwathFile.store
+    """
+    fh = pyopenms.SwathFile()
+
+@report
 def testType():
     """
     @tests:
@@ -3984,12 +4093,69 @@ def testOptimizePeakDeconvolution():
 
 
 @report
+def testKernelMassTrace():
+    trace = pyopenms.Kernel_MassTrace()
+
+    assert trace.getSize is not None
+    assert trace.getLabel is not None
+    assert trace.setLabel is not None
+
+    assert trace.getCentroidMZ is not None
+    assert trace.getCentroidRT is not None
+    assert trace.getCentroidSD is not None
+    assert trace.getFWHM is not None
+    assert trace.getTraceLength is not None
+    assert trace.getFWHMborders is not None
+    assert trace.getSmoothedIntensities is not None
+    assert trace.getScanTime is not None
+
+    assert trace.computeSmoothedPeakArea is not None
+    assert trace.computePeakArea is not None
+    assert trace.findMaxByIntPeak is not None
+    assert trace.estimateFWHM is not None
+    assert trace.computeFwhmArea is not None
+    assert trace.computeFwhmAreaSmooth is not None
+    assert trace.computeFwhmAreaRobust is not None
+    assert trace.computeFwhmAreaSmoothRobust is not None
+    assert trace.getIntensity is not None
+    assert trace.getMaxIntensity is not None
+
+    assert trace.getConvexhull is not None
+
+    assert trace.setCentroidSD is not None
+    assert trace.setSmoothedIntensities is not None
+    assert trace.updateSmoothedMaxRT is not None
+    assert trace.updateWeightedMeanRT is not None
+    assert trace.updateSmoothedWeightedMeanRT is not None
+    assert trace.updateMedianRT is not None
+    assert trace.updateMedianMZ is not None
+    assert trace.updateMeanMZ is not None
+    assert trace.updateWeightedMeanMZ is not None
+    assert trace.updateWeightedMZsd is not None
+
+    s = trace.getSize()
+
+@report
+def testElutionPeakDetection():
+    detection = pyopenms.ElutionPeakDetection()
+
+    assert detection.detectPeaks is not None
+    assert detection.filterByPeakWidth is not None
+    assert detection.computeMassTraceNoise is not None
+    assert detection.computeMassTraceSNR is not None
+    assert detection.computeApexSNR is not None
+    assert detection.findLocalExtrema  is not None
+    assert detection.smoothData  is not None
+
+    trace = pyopenms.Kernel_MassTrace()
+    detection.smoothData(trace, 4)
+
+@report
 def testIndexedMzMLDecoder():
     decoder = pyopenms.IndexedMzMLDecoder()
     pos = decoder.findIndexListOffset(b"abcde", 100)
     assert isinstance(pos, pyopenms.streampos)
     assert long(pos) == -1   # not found
-
 
 def test_streampos():
     p = long(pyopenms.streampos())

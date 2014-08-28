@@ -38,3 +38,5 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>" names
 
         void findLocalExtrema(Kernel_MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & ) nogil except +
 
+        void smoothData(Kernel_MassTrace & mt, int win_size) nogil except +
+

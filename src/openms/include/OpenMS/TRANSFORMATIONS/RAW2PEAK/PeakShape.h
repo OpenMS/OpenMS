@@ -141,7 +141,7 @@ namespace OpenMS
     double area;
     /** @brief Correlation coefficient.
 
-      It represents the squared pearson correlation coefficient with the original data (0 <= r_value <= 1).
+      It represents the squared Pearson correlation coefficient with the original data (0 <= r_value <= 1).
     */
     double r_value;
     /// The signal to noise ratio at the mz_position

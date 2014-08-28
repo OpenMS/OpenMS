@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
     cdef cppclass MRMFeature:
 
         MRMFeature() nogil except +
-        MRMFeature(MRMFeature) nogil except +
+        MRMFeature(MRMFeature &) nogil except +
 
         # TODO STL map with wrapped key
         # libcpp_map[String, double] getScores() nogil except +

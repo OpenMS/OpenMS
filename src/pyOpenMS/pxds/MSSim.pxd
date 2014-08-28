@@ -45,3 +45,5 @@ cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
 
         # Returns the default parameters for simulation including the labeling technique with name @p labeling_name
         Param getParameters() nogil except +
+
+        void getMS2Identifications(libcpp_vector[ ProteinIdentification ] & proteins, libcpp_vector[ PeptideIdentification ] & peptides) nogil except +

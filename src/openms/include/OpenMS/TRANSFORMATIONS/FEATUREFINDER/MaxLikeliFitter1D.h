@@ -80,7 +80,7 @@ public:
 
 protected:
 
-    /// fit an offset on the basis of the pearson correlation coefficient
+    /// fit an offset on the basis of the Pearson correlation coefficient
     QualityType fitOffset_(InterpolationModel * model, const RawDataArrayType & set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step)
     {
       const CoordinateType offset_min = model->getInterpolation().supportMin() - stdev1;

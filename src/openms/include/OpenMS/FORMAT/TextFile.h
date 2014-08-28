@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_TEXTFILE_H
@@ -72,37 +72,40 @@ public:
     /**
       @brief Constructor with filename
 
-      @param filename The input file name.
-      @param trim_lines Whether or not the lines are trimmed when reading them from file.
-      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
+      @param filename @see load()
+      @param trim_lines @see load()
+      @param first_n @see load()
+      @param skip_empty_lines @see load()
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    TextFile(const String & filename, bool trim_lines = false, Int first_n = -1);
+    TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false);
 
     /**
       @brief Loads data from a text file.
 
-      @param filename The input file name.
-      @param trim_lines Whether or not the lines are trimmed when reading them from file.
-      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
+      @param filename The input file name
+      @param trim_lines Whether or not the lines are trimmed when reading them from file
+      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read
+      @param skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count
+             towards the total number of read lines.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void load(const String & filename, bool trim_lines = false, Int first_n = -1);
+    void load(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false);
 
     /**
       @brief Writes the data to a file
 
-      @note this function uses unix-style linebreaks
+      @note This function uses platform-dependent line breaks
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename);
+    void store(const String& filename);
     
     /// Operator for appending entries with less code
     template <typename StringType>
-    TextFile & operator<<(const StringType & string)
+    TextFile & operator<<(const StringType& string)
     {
       this->push_back(string);
       return *this;
