@@ -808,7 +808,7 @@ protected:
 
     // When pervolator finished calculation, it stores the results into [filename].peptides. This is going to be opened now
     TextFile txtfl;
-    string filename = getStringOption_("r") + ".peptides";
+    string filename = getStringOption_("r") + ".psms";
     txtfl.load(filename, true);
 
     vector<String> substr;
