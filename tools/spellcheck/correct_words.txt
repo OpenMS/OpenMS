@@ -430,6 +430,7 @@ Brusniak
 Meinicke
 Scherbart
 Tholey
+Faires
 # }}}
 
 ###################################
@@ -590,6 +591,11 @@ DataProcessingPtr
 FullId
 Indices
 FeatureFinderMetabo
+MRMScoring
+OPENSWATHALGO
+DCanvas
+PersistentObject
+SignalToNoiseEstimatorRapid
 #  }}}
 
 # Functions {{{ 
@@ -670,13 +676,17 @@ indistinguishableProteins
 massShift
 removeDatabase
 #  }}}
-
+  
+lastPackage
 AAD
 Elephas
 GenBank
 getPValuesFromOutFiles
 gi
 maximus
+
+ApprLineFit
+GeometricTools
 # }}}
 
 ###################################
@@ -860,6 +870,14 @@ Quantiles
 Manhatten
 Massdiff
 Dotproduct
+Sortedness
+printf
+stdout
+li
+libc
+GSL
+SciPy
+colspan
 # }}}
 
 ###################################
@@ -1026,6 +1044,9 @@ RMSD
 Chauvenet's
 iRT
 hyperscore
+Proc
+SwathMaps
+mzq
 # }}}
 
 ###################################
@@ -1339,6 +1360,37 @@ instanciate
 convolving
 functionalities
 authentification
+
+GitHub
+gui
+mkdir
+mkspecs
+nmake
+testname
+WildMagic
+coinmp
+github
+gsl
+GSL
+mkdir
+valign
+WildMagic
+WILDMAGIC
+WildMagic
+XSERVER
+endhtmlonly
+endlink
+htmlonly
+coli
+CTRL
+omssacl
+OpenMSInfo
+consts
+CUDA
+nbsp
+PageDown
+PageUp
+ReadMe
 
 # }}}
 

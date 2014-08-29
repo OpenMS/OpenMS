@@ -174,7 +174,7 @@ namespace OpenMS
   /**
     @brief Calculates the first quantile of a range of values
 
-    The range is devided into half and the median for the first half is returned.
+    The range is divided into half and the median for the first half is returned.
 
     @param begin Start of range
     @param end End of range (past-the-end iterator)

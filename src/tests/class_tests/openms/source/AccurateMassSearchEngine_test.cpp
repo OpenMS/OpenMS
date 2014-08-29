@@ -37,13 +37,16 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzTab.h>
+
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -250,11 +253,25 @@ ams_param.setValue("isotopic_similarity", "true");
 String fm_id_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H8N4","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
 String fm_id_filt_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
 
+FuzzyStringComparator fsc;
+StringList sl;
+sl.push_back("xml-stylesheet");
+sl.push_back("IdentificationRun");
+fsc.setWhitelist(sl);
 
-START_SECTION((void run(const FeatureMap<> &, MzTab &)))
+
+START_SECTION((void run(FeatureMap<>& fmap, MzTab& mztab_out)))
 {
     ams_feat_test.run(exp_fm, test_mztab);
 
+    // test annotation of input
+    String tmp_file;
+    NEW_TMP_FILE(tmp_file);
+    FeatureXMLFile ff;
+    ff.store(tmp_file, exp_fm);
+    TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.featureXML")), true);
+
+    // test mzTab output
     MzTabSmallMoleculeSectionData sms = test_mztab.getSmallMoleculeSectionData();
     MzTabSmallMoleculeSectionRows sm_rows = sms["AccMassSearch"];
 
@@ -273,7 +290,9 @@ START_SECTION((void run(const FeatureMap<> &, MzTab &)))
 
     ams_feat_test.setParameters(ams_param);
 
-    // now with isotope filtering
+    ////////////////////////////////
+    // now with isotope filtering //
+    ////////////////////////////////
     ams_feat_test.run(exp_fm, test_mztab);
 
     sms = test_mztab.getSmallMoleculeSectionData();
@@ -300,10 +319,18 @@ MzTab test_mztab2;
 
 String cons_id_list[] = {"C27H41NO6","C27H36O6","C27H36O6","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C26H52NO7P","C26H52NO7P","C27H40O6","C27H40O6","C15H21NO3","C26H46O6","C12H24N2O4","C31H48O2S2","C11H20N4O2","C60H86O18","C48H86O18P2","C48H86O18P2","C48H86O18P2","C48H86O18P2","C26H54NO7P","C26H54NO7P","C24H40N8O4","C27H42O6","C13H23NO3","C10H14N2O6","C10H14N2O6","C10H14N2O6","C9H18N2O4S","C9H18N2O4S"};
 
-START_SECTION((void run(const ConsensusMap &, MzTab &)))
+START_SECTION((void run(ConsensusMap& cmap, MzTab& mztab_out)))
 {
     ams_feat_test.run(exp_cm, test_mztab2);
 
+    // test annotation of input
+    String tmp_file;
+    NEW_TMP_FILE(tmp_file);
+    ConsensusXMLFile ff;
+    ff.store(tmp_file, exp_cm);
+    TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.consensusXML")), true);
+
+    // test mzTab output
     MzTabSmallMoleculeSectionData sms = test_mztab2.getSmallMoleculeSectionData();
     MzTabSmallMoleculeSectionRows sm_rows = sms["AccMassSearch"];
 

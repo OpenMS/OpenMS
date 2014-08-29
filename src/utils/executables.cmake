@@ -33,6 +33,7 @@ OpenMSInfo
 PeakPickerIterative
 SemanticValidator
 SequenceCoverageCalculator
+SimpleSearchEngine
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation

@@ -103,7 +103,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
-    registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+    registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content", false);
     setValidStrings_("out_type", ListUtils::create<String>("featureXML,consensusXML"));
 
     addEmptyLine_();
@@ -170,14 +170,11 @@ protected:
     // make sure that the spectra are sorted by m/z
     ms_peakmap.sortSpectra(true);
     
-    FeatureMap<> ms_feat_map;
-    vector<MassTrace> m_traces;
-
     //-------------------------------------------------------------
     // get params for MTD and EPD algorithms
     //-------------------------------------------------------------
     Param com_param = getParam_().copy("algorithm:common:", true);
-    writeDebug_("Common parameters passed to both subalgorithms (mtd and epd)", com_param, 3);
+    writeDebug_("Common parameters passed to both sub-algorithms (mtd and epd)", com_param, 3);
 
     Param mtd_param = getParam_().copy("algorithm:mtd:", true);
     writeDebug_("Parameters passed to MassTraceDetection", mtd_param, 3);
@@ -194,35 +191,39 @@ protected:
     mtd_param.insert("", com_param);
     mtd_param.remove("chrom_fwhm");
     mt_ext.setParameters(mtd_param);
+    vector<MassTrace> m_traces;
     mt_ext.run(ms_peakmap, m_traces);
 
-    vector<MassTrace> m_traces_final = m_traces;
+    vector<MassTrace> m_traces_final;
 
     bool use_epd = epd_param.getValue("enabled").toBool();
 
-    if (use_epd)
+    if (!use_epd)
+    {
+      m_traces_final = m_traces;
+    }
+    else
     {
       ElutionPeakDetection ep_det;
 
-      epd_param.remove("enabled");       // artificially added above
+      epd_param.remove("enabled"); // artificially added above
       epd_param.insert("", com_param);
 
       ep_det.setParameters(epd_param);
 
-      std::vector<MassTrace> splitted_mtraces;
-
-      ep_det.detectPeaks(m_traces, splitted_mtraces);
+      std::vector<MassTrace> split_mtraces;
+      ep_det.detectPeaks(m_traces, split_mtraces);
 
       if (ep_det.getParameters().getValue("width_filtering") == "auto")
       {
         m_traces_final.clear();
-        ep_det.filterByPeakWidth(splitted_mtraces, m_traces_final);
+        ep_det.filterByPeakWidth(split_mtraces, m_traces_final);
 
-        LOG_INFO << "Notice: " << splitted_mtraces.size() - m_traces_final.size() << " of total " << splitted_mtraces.size() << " were dropped because of too low peak width." << std::endl;
+        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size() << " of total " << split_mtraces.size() << " were dropped because of too low peak width." << std::endl;
       }
       else
       {
-        m_traces_final = splitted_mtraces;
+        m_traces_final = split_mtraces;
       }
     }
 
@@ -264,16 +265,22 @@ protected:
       ConsensusXMLFile().store(out, consensus_map);
 
     }
-    else
+    else //(out_type == FileTypes::FEATUREXML)
     {
 
       //-----------------------------------------------------------
       // convert mass traces to features
       //-----------------------------------------------------------
 
+      std::vector<double> stats_sd;
+      FeatureMap<> ms_feat_map;
+
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
         if (m_traces_final[i].getSize() == 0) continue;
+
+        m_traces_final[i].updateMeanMZ();
+        m_traces_final[i].updateWeightedMZsd();
 
         Feature f;
         f.setMetaValue(3, m_traces_final[i].getLabel());
@@ -284,22 +291,21 @@ protected:
         f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
         f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
         f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
-
+        f.setMetaValue("SD", m_traces_final[i].getCentroidSD());
+        stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
-
-
-        // debug output
-  //            double cent_rt(m_traces_final[i].getCentroidRT());
-  //            double cent_mz(m_traces_final[i].getCentroidMZ());
-  //            // double cent_int(m_traces_final[i].compute());
-
-  //            for (MassTrace::const_iterator v_it = m_traces_final[i].begin(); v_it != m_traces_final[i].end(); ++v_it)
-  //            {
-  //                std::cout << cent_rt << " " << cent_mz << " " << /* cent_int << " "  << */ v_it->getMZ() << " " << v_it->getIntensity() << std::endl;
-  //            }
-
-  //            std::cout << "----" << std::endl;
       }
+
+      // print some stats about standard deviation of mass traces
+      if (stats_sd.size() > 0)
+      {
+        std::sort(stats_sd.begin(), stats_sd.end());
+        LOG_INFO << "Mass trace m/z s.d.\n"
+                 << "    low quartile: " << stats_sd[stats_sd.size()*1/4] << "\n"
+                 << "          median: " << stats_sd[stats_sd.size()*1/2] << "\n"
+                 << "    upp quartile: " << stats_sd[stats_sd.size()*3/4] << std::endl;
+      }
+
 
       ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
@@ -307,9 +313,9 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      //annotate output with data processing info TODO
+      // annotate output with data processing info TODO
       addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
-      // ms_feat_map.setUniqueId();
+      //ms_feat_map.setUniqueId();
 
       FeatureXMLFile().store(out, ms_feat_map);
     }

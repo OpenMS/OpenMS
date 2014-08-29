@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>" names
 
         # TODO nested STL
         # /// Applies the <i>given</i> transformations to peptide identifications
-        ## void transformPeptideIdentifications(libcpp_vector[libcpp_vector[PeptideIdentification] ] & maps, libcpp_vector[TransformationDescription] & given_trafos) nogil except +
+        void transformPeptideIdentifications(libcpp_vector[libcpp_vector[PeptideIdentification] ] & maps, libcpp_vector[TransformationDescription] & given_trafos) nogil except +
 
         # /// Applies the <i>given</i> transformations to a single peak map
         void transformSinglePeakMap(MSExperiment[Peak1D,ChromatogramPeak] & msexp, TransformationDescription & trafo) nogil except +

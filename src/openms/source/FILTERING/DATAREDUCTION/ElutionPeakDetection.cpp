@@ -336,7 +336,7 @@ namespace OpenMS
 #pragma omp atomic
 #endif
       ++progress;
-
+      // push_back to 'single_mtraces' is protected, so threading is ok
       detectElutionPeaks_(mt_vec[i], single_mtraces);
     }
 
@@ -384,9 +384,8 @@ namespace OpenMS
     // Size win_size = mt.getFWHMScansNum();
     double scan_time(mt.getScanTime());
     Size win_size = std::ceil(chrom_fwhm_ / scan_time);
+    // add smoothed data (original data is still accessible)
     smoothData(mt, win_size);
-
-
 
     // debug intensities
 
@@ -401,9 +400,6 @@ namespace OpenMS
     //std::cout << "*****" << std::endl;
 
     std::vector<Size> maxes, mins;
-
-    // mt.findLocalExtrema(win_size / 2, maxes, mins);
-
     findLocalExtrema(mt, win_size / 2, maxes, mins);
 
     // if only one maximum exists: finished!
@@ -452,7 +448,7 @@ namespace OpenMS
         // if (mt_quality >= 1.2)
         //      {
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
 #endif
         single_mtraces.push_back(mt);
 
@@ -462,14 +458,17 @@ namespace OpenMS
     {
       return;
     }
-    else // split mt to subtraces
+    else // split mt to sub-traces
     {
       MassTrace::const_iterator cp_it = mt.begin();
       Size last_idx(0);
 
+      // add last data point as last minimum (to grep the last chunk of the MT)
+      mins.push_back(mt.getSize()-1);
+
       for (Size min_idx = 0; min_idx < mins.size(); ++min_idx)
       {
-        // copy subtrace between cp_it and splitpoint
+        // copy sub-trace between cp_it and split point
         std::vector<PeakType> tmp_mt;
         std::vector<double> smoothed_tmp;
 
@@ -485,10 +484,9 @@ namespace OpenMS
 
 //            if (tmp_mt.size() >= win_size / 2)
 //            {
-        double scantime(mt.getScanTime());
-        MassTrace new_mt(tmp_mt, scantime);
+        MassTrace new_mt(tmp_mt, mt.getScanTime());
 
-        // copy smoothed ints
+        // copy smoothed int's
         new_mt.setSmoothedIntensities(smoothed_tmp);
 
 
@@ -522,14 +520,8 @@ namespace OpenMS
 
         if (pw_ok && snr_ok)
         {
-
-          // set label of subtrace
-          String tr_num;
-          std::stringstream read_in;
-          read_in << (min_idx + 1);
-          tr_num = "." + read_in.str();
-
-          new_mt.setLabel(mt.getLabel() + tr_num);
+          // set label of sub-trace
+          new_mt.setLabel(mt.getLabel() + "." + String(min_idx + 1));
           //new_mt.updateWeightedMeanRT();
           new_mt.updateSmoothedMaxRT();
           //new_mt.updateSmoothedWeightedMeanRT();
@@ -547,100 +539,22 @@ namespace OpenMS
           // if ((new_mt_length >= min_trace_length_) && (new_mt_length <= max_trace_length_))
           //{
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
 #endif
           single_mtraces.push_back(new_mt);
         }
         //  }
       }
 
-      // don't forget the trailing trace
-      std::vector<PeakType> tmp_mt;
-
-      std::vector<double> smoothed_tmp;
-
-      while (last_idx < mt.getSize())
-      {
-        tmp_mt.push_back(*cp_it);
-        smoothed_tmp.push_back(mt.getSmoothedIntensities()[last_idx]);
-        ++cp_it;
-        ++last_idx;
-      }
-
-//        if (tmp_mt.size() >= win_size / 2)
-//        {
-      double scantime(mt.getScanTime());
-      MassTrace new_mt(tmp_mt, scantime);
-
-      // copy smoothed ints
-      new_mt.setSmoothedIntensities(smoothed_tmp);
-
-      // check filter criteria
-      bool pw_ok = true;
-      bool snr_ok = true;
-
-      // check mass trace filter criteria (if enabled)
-      if (pw_filtering_ == "fixed")
-      {
-        double act_fwhm(new_mt.estimateFWHM(true));
-
-        // std::cout << "act_fwhm: " << act_fwhm << " ";
-
-        if (act_fwhm < min_fwhm_ || act_fwhm > max_fwhm_)
-        {
-          pw_ok = false;
-        }
-
-        // std::cout << pw_ok << std::endl;
-      }
-
-      if (mt_snr_filtering_)
-      {
-        if (computeApexSNR(mt) < chrom_peak_snr_)
-        {
-          snr_ok = false;
-        }
-      }
-
-
-      if (pw_ok && snr_ok)
-      {
-        // set label of subtrace
-        String tr_num;
-        std::stringstream read_in;
-        read_in << (mins.size() + 1);
-        tr_num = "." + read_in.str();
-
-        new_mt.setLabel(mt.getLabel() + tr_num);
-        new_mt.updateSmoothedMaxRT();
-        new_mt.updateWeightedMeanMZ();
-        new_mt.updateWeightedMZsd();
-
-        if (pw_filtering_ != "fixed")
-        {
-          new_mt.estimateFWHM(true);
-        }
-        // double mt_quality(computeApexSNR(new_mt));
-
-        //                double mt_length(std::fabs(new_mt.rbegin()->getRT() - new_mt.begin()->getRT()));
-
-        //                if ((mt_length >= min_trace_length_) && (mt_length <= max_trace_length_))
-        //                {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-        single_mtraces.push_back(new_mt);
-      }
-      //   }
     }
     return;
   }
 
   void ElutionPeakDetection::smoothData(MassTrace& mt, int win_size)
   {
-    //alternative smoothing using SavitzkyGolay
-    //looking at the unit test, this mehtod gives better fits than lowess smoothing
-    //reference paper uses lowess smoothing
+    // alternative smoothing using SavitzkyGolay
+    // looking at the unit test, this method gives better fits than lowess smoothing
+    // reference paper uses lowess smoothing
 
     MSSpectrum<PeakType> spectrum;
     spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
@@ -669,20 +583,20 @@ namespace OpenMS
     //    }
 
     // use one global window size for all mass traces to smooth
-//  std::vector<double> rts, ints;
-//
-//  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
-//  {
-//      rts.push_back(c_it->getRT());
-//      ints.push_back(c_it->getIntensity());
-//  }
-//  LowessSmoothing lowess_smooth;
-//  Param lowess_params;
-//  lowess_params.setValue("window_size", win_size);
-//  lowess_smooth.setParameters(lowess_params);
-//  std::vector<double> smoothed_data;
-//  lowess_smooth.smoothData(rts, ints, smoothed_data);
-//  mt.setSmoothedIntensities(smoothed_data);
+    //  std::vector<double> rts, ints;
+    //
+    //  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
+    //  {
+    //      rts.push_back(c_it->getRT());
+    //      ints.push_back(c_it->getIntensity());
+    //  }
+    //  LowessSmoothing lowess_smooth;
+    //  Param lowess_params;
+    //  lowess_params.setValue("window_size", win_size);
+    //  lowess_smooth.setParameters(lowess_params);
+    //  std::vector<double> smoothed_data;
+    //  lowess_smooth.smoothData(rts, ints, smoothed_data);
+    //  mt.setSmoothedIntensities(smoothed_data);
   }
 
   void ElutionPeakDetection::updateMembers_()

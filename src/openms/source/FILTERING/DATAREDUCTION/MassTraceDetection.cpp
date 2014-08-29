@@ -331,7 +331,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         // double outlier_ratio(0.3);
 
         // double ftl_mean(centroid_mz);
-        double ftl_sd((centroid_mz / 1000000) * mass_error_ppm_);
+        double ftl_sd((centroid_mz / 1e6) * mass_error_ppm_);
         double intensity_so_far(apex_peak.getIntensity());
 
         while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size() - 1) && toggle_up))
@@ -525,19 +525,15 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second] = true;
             }
 
-            String tr_num;
-            std::stringstream read_in;
-            read_in << trace_number;
-            tr_num = read_in.str();
-
             // create new MassTrace object and store collected peaks from list current_trace
             MassTrace new_trace(current_trace, scan_time);
             new_trace.updateWeightedMeanRT();
             new_trace.updateWeightedMeanMZ();
 
-            new_trace.setCentroidSD(ftl_sd);
+            //new_trace.setCentroidSD(ftl_sd);
+            new_trace.updateWeightedMZsd();
 
-            new_trace.setLabel("T" + tr_num);
+            new_trace.setLabel("T" + String(trace_number));
 
             peaks_detected += new_trace.getSize();
             this->setProgress(peaks_detected);

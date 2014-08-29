@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Chris Bielow $
+// $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
 
@@ -132,7 +132,7 @@ namespace OpenMS
     return element_db_;
   }
 
-  Size EmpiricalFormula::getNumberOf(UInt atomic_number) const
+  SignedSize EmpiricalFormula::getNumberOf(UInt atomic_number) const
   {
     if (element_db_->hasElement(atomic_number))
     {
@@ -144,7 +144,7 @@ namespace OpenMS
     return 0;
   }
 
-  Size EmpiricalFormula::getNumberOf(const String & name) const
+  SignedSize EmpiricalFormula::getNumberOf(const String & name) const
   {
     if (element_db_->hasElement(name))
     {
@@ -156,7 +156,7 @@ namespace OpenMS
     return 0;
   }
 
-  Size EmpiricalFormula::getNumberOf(const Element * element) const
+  SignedSize EmpiricalFormula::getNumberOf(const Element * element) const
   {
     if (formula_.has(element))
     {
@@ -165,9 +165,9 @@ namespace OpenMS
     return 0;
   }
 
-  Size EmpiricalFormula::getNumberOfAtoms() const
+  SignedSize EmpiricalFormula::getNumberOfAtoms() const
   {
-    Size num_atoms(0);
+    SignedSize num_atoms(0);
     Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
@@ -430,6 +430,18 @@ namespace OpenMS
       }
     }
     return false;
+  }
+
+  bool EmpiricalFormula::contains(const EmpiricalFormula& ef)
+  {
+    for (EmpiricalFormula::ConstIterator it = ef.begin(); it != ef.end(); ++it)
+    {
+      if (this->getNumberOf(it->first) < it->second) 
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   bool EmpiricalFormula::operator==(const EmpiricalFormula & formula) const

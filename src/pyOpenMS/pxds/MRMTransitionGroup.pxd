@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         #   MRMTransitionGroup := MRMTransitionGroup[MSSpectrum[Peak1D], ReactionMonitoringTransition]
 
         MRMTransitionGroup() nogil except +
-        MRMTransitionGroup(MRMTransitionGroup) nogil except +
+        MRMTransitionGroup(MRMTransitionGroup &) nogil except +
 
         Size size() nogil except+
 
