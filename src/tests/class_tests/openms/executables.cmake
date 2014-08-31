@@ -390,6 +390,7 @@ set(analysis_executables_list
   ItraqFourPlexQuantitationMethod_test
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
+  TMTTenPlexQuantitationMethod_test
   ItraqQuantifier_test
   LabeledPairFinder_test
   LocalLinearMap_test
