@@ -40,6 +40,7 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -512,7 +513,185 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_REAL_SIMILAR(cm_filtered[2].getMetaValue("precursor_purity"), 1.0)
   }
 }
+END_SECTION
 
+// extra test for tmt10plex to ensure high-res extraction works
+START_SECTION(([EXTRA] TMT 10plex support))
+{
+  MSExperiment<Peak1D> tmt10plex_exp;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_8.mzML"), tmt10plex_exp);
+
+  TMTTenPlexQuantitationMethod tmt10plex;
+  IsobaricChannelExtractor ice(&tmt10plex);
+
+  // disable activation filtering
+  Param p = ice.getParameters();
+  p.setValue("reporter_mass_shift", 0.005);
+  ice.setParameters(p);
+
+  // extract channels
+  ConsensusMap cm_out;
+  ice.extractChannels(tmt10plex_exp, cm_out);
+
+  TEST_EQUAL(cm_out.size(), 5)
+  ABORT_IF(cm_out.size() != 5)
+
+  ConsensusMap::iterator cm_it = cm_out.begin();
+  ConsensusFeature::iterator cf_it;
+
+  TEST_EQUAL(cm_it->size(), 10)
+  ABORT_IF(cm_it->size() != 10)
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=7811")
+
+  // test the extracted intensities
+  cf_it = cm_it->begin();
+
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 7759.65)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 6637.34)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 9147.74)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 8026)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 9454.86)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 21048.8)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 27783.1)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 27442.5)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 15765.4)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 17543.5)
+  ++cf_it;
+  ABORT_IF(cf_it != cm_it->end())
+
+  // next scan
+  ++cm_it;
+  TEST_EQUAL(cm_it->size(), 10)
+  ABORT_IF(cm_it->size() != 10)
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=7812")
+
+  // test the extracted intensities .. acutally no reporter in this scan
+  cf_it = cm_it->begin();
+
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  ABORT_IF(cf_it != cm_it->end())
+
+  // next scan
+  ++cm_it;
+  TEST_EQUAL(cm_it->size(), 10)
+  ABORT_IF(cm_it->size() != 10)
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=7813")
+
+  // test the extracted intensities
+  cf_it = cm_it->begin();
+
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 1888.23)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 1692.61)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 1902.28)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 1234.26)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 1961.36)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 1560.74)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 2308.15)
+  ++cf_it;
+  ABORT_IF(cf_it != cm_it->end())
+
+  // next scan
+  ++cm_it;
+  TEST_EQUAL(cm_it->size(), 10)
+  ABORT_IF(cm_it->size() != 10)
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=7814")
+
+  // test the extracted intensities
+  cf_it = cm_it->begin();
+
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 26266.6)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 20802.2)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 36053.4)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 30815.4)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 34762.3)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 27767.8)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 45284.8)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 51015.2)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 29435.1)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 40080.7)
+  ++cf_it;
+  ABORT_IF(cf_it != cm_it->end())
+
+  // next scan
+  ++cm_it;
+  TEST_EQUAL(cm_it->size(), 10)
+  ABORT_IF(cm_it->size() != 10)
+  TEST_EQUAL(cm_it->getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=7815")
+
+  // test the extracted intensities
+  cf_it = cm_it->begin();
+
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 30760.9)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 17172)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 19647.1)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 24401.9)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 32279.3)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 19115.6)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 35027.3)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 34874.2)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 24060.4)
+  ++cf_it;
+  TEST_REAL_SIMILAR(cf_it->getIntensity(), 30866.5)
+  ++cf_it;
+  ABORT_IF(cf_it != cm_it->end())
+}
 END_SECTION
 
 delete q_method;
