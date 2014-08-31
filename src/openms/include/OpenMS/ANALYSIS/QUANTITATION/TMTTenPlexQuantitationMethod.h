@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   /**
-    @brief TMT 6plex quantitation to be used with the IsobaricQuantitation.
+    @brief TMT 10plex quantitation to be used with the IsobaricQuantitation.
 
     @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
   */
@@ -78,7 +78,7 @@ public:
     /// @}
 
   private:
-    /// the actual information on the different itraq4plex channels.
+    /// the actual information on the different tmt10plex channels.
     IsobaricChannelList channels_;
 
     /// The name of the quantitation method.
@@ -86,7 +86,7 @@ public:
 
     /// The reference channel for this experiment.
     Size reference_channel_;
-    
+
     /// List of available channel names as they are presented to the user
     static const std::vector<String> channel_names_;
 
