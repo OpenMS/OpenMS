@@ -93,19 +93,20 @@ namespace OpenMS
         // hence we check if the target_channel corresponds to the contributing_channel -2/-1/+1/+2
         // if yes, we assign the corresponding contribution
         // contribution to itself is handled separately
-        if ((getChannelInformation()[contributing_channel].name - 2) == getChannelInformation()[target_channel].name)
+
+        if (getChannelInformation()[contributing_channel].channel_id_minus_2 == static_cast<Int>(target_channel))
         {
           channel_frequency.setValue(target_channel, contributing_channel, isotope_correction_matrix.getValue(contributing_channel, 0) / 100);
         }
-        else if ((getChannelInformation()[contributing_channel].name - 1) == getChannelInformation()[target_channel].name)
+        else if (getChannelInformation()[contributing_channel].channel_id_minus_1 == static_cast<Int>(target_channel))
         {
           channel_frequency.setValue(target_channel, contributing_channel, isotope_correction_matrix.getValue(contributing_channel, 1) / 100);
         }
-        else if ((getChannelInformation()[contributing_channel].name + 1) == getChannelInformation()[target_channel].name)
+        else if (getChannelInformation()[contributing_channel].channel_id_plus_1 == static_cast<Int>(target_channel))
         {
           channel_frequency.setValue(target_channel, contributing_channel, isotope_correction_matrix.getValue(contributing_channel, 2) / 100);
         }
-        else if ((getChannelInformation()[contributing_channel].name + 2) == getChannelInformation()[target_channel].name)
+        else if (getChannelInformation()[contributing_channel].channel_id_plus_2 == static_cast<Int>(target_channel))
         {
           channel_frequency.setValue(target_channel, contributing_channel, isotope_correction_matrix.getValue(contributing_channel, 3) / 100);
         }

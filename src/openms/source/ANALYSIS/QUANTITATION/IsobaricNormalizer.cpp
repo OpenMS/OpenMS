@@ -66,7 +66,7 @@ namespace OpenMS
          it_elements != cf.end();
          ++it_elements)
     {
-      if ((Int) consensus_map.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel_name_)
+      if (consensus_map.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel_name_)
       {
         return it_elements;
       }
@@ -86,7 +86,7 @@ namespace OpenMS
          file_it != consensus_map.getFileDescriptions().end();
          ++file_it)
     {
-      if ((Int) file_it->second.getMetaValue("channel_name") == reference_channel_name_)
+      if (file_it->second.getMetaValue("channel_name") == reference_channel_name_)
       {
         ref_map_id_ = file_it->first;
       }
