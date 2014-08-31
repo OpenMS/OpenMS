@@ -100,7 +100,7 @@ namespace OpenMS
     cout << "############## END DEBUG -- FEATURE MAPS ##############" << endl;
 #else
     if (feature_maps.empty())
-      cout << stage;                             // just to avoid warnings of unused parameters
+      cout << stage; // just to avoid warnings of unused parameters
 #endif
   }
 
@@ -143,7 +143,7 @@ namespace OpenMS
 
     for (vector<String>::iterator product_name = products.begin(); product_name != products.end(); ++product_name)
     {
-      BaseLabeler * labeler = Factory<BaseLabeler>::create(*product_name);
+      BaseLabeler* labeler = Factory<BaseLabeler>::create(*product_name);
       tmp.insert("Labeling:" + *product_name + ":", labeler->getDefaultParameters());
       if (!tmp.copy("Labeling:" + *product_name).empty())
       {
@@ -157,7 +157,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void MSSim::simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels & channels)
+  void MSSim::simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels& channels)
   {
     /*todo: move to a global config file or into INI file */
     Log_fatal.setPrefix("%S: ");
@@ -285,8 +285,8 @@ namespace OpenMS
     // some last fixing of meta-values (this is impossible to do before as we do not know the final number of scans)
     for (Size i = 0; i < feature_maps_[0].size(); ++i)
     {
-      Feature & f = feature_maps_[0][i];
-      PeptideIdentification & pi = f.getPeptideIdentifications()[0];
+      Feature& f = feature_maps_[0][i];
+      PeptideIdentification& pi = f.getPeptideIdentifications()[0];
       // search for closest scan index:
       MSSimExperiment::ConstIterator it_rt = experiment_.RTBegin(f.getRT());
       SignedSize scan_index = distance<MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
@@ -312,7 +312,7 @@ namespace OpenMS
     }
   }
 
-  void MSSim::createFeatureMap_(const SampleProteins & proteins, FeatureMapSim & feature_map, Size map_index)
+  void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map, Size map_index)
   {
     // clear feature map
     feature_map.clear(true);
@@ -335,7 +335,7 @@ namespace OpenMS
     feature_map.setProteinIdentifications(vec_protIdent);
   }
 
-  void MSSim::syncParams_(Param & p, bool to_outer)
+  void MSSim::syncParams_(Param& p, bool to_outer)
   {
     vector<StringList> globals;
     // here the globals params are listed that require to be in sync across several modules
@@ -359,7 +359,7 @@ namespace OpenMS
         }
       }
     }
-    else     // restore local params from global one
+    else // restore local params from global one
     {
       for (Size i = 0; i < globals.size(); ++i)
       {
@@ -412,43 +412,71 @@ namespace OpenMS
     return peak_map_;
   }
 
-  void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins,
-                                    vector<PeptideIdentification>& peptides)
-    const
+  void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
   {
+    // clear incoming vectors
     proteins.clear();
     peptides.clear();
+
+    // we need to keep track of the proteins we write out
     set<String> accessions;
+
+    // collect peptide identifications
     for (MSSimExperiment::const_iterator ms_it = experiment_.begin();
-         ms_it != experiment_.end(); ++ms_it)
+         ms_it != experiment_.end();
+         ++ms_it)
     {
+      // skip non-ms2 spectra
       if (ms_it->getMSLevel() != 2) continue;
+
+      // create matching PeptideIdentification
+      PeptideIdentification pep_ident;
+      pep_ident.setHigherScoreBetter(true);
+      pep_ident.setRT(ms_it->getRT());
+      // we follow the solution used throughout OpenMS .. take the first precursor
+      pep_ident.setMZ(ms_it->getPrecursors().begin()->getMZ());
+
       // "the" precursor is the one with highest intensity:
-      Size index = 0;
-      double intensity = ms_it->getPrecursors()[0].getIntensity();
-      for (Size i = 1; i < ms_it->getPrecursors().size(); ++i)
-      {
-        if (ms_it->getPrecursors()[i].getIntensity() > intensity)
-        {
-          intensity = ms_it->getPrecursors()[i].getIntensity();
-          index = i;
-        }
-      }
+      Precursor::IntensityType total_intensity = 0.0;
+
+      // get information on the feature ids used for this spectrum
       IntList feat_ids = ms_it->getMetaValue("parent_feature_ids");
-      const Feature& feature = feature_maps_[0][feat_ids[index]];
-      peptides.push_back(feature.getPeptideIdentifications()[0]);
-      peptides.back().setRT(ms_it->getRT());
-      peptides.back().setMZ(ms_it->getPrecursors()[index].getMZ());
-      const PeptideHit& hit = peptides.back().getHits()[0];
-      accessions.insert(hit.getProteinAccessions().begin(),
-                        hit.getProteinAccessions().end());
+
+      // store all precursors as peptide hits
+      for (Size prec_idx = 0; prec_idx < ms_it->getPrecursors().size(); ++prec_idx)
+      {
+        const Feature& feature = feature_maps_[0][feat_ids[prec_idx]];
+        // append the first (and only) peptide hit of this feature to our peptide identification
+        pep_ident.getHits().push_back(*(feature.getPeptideIdentifications().begin()->getHits().begin()));
+        // store m/z value, eases matching
+        pep_ident.getHits().back().setMetaValue("MZ", ms_it->getPrecursors()[prec_idx].getMZ());
+
+        // store protein accessions
+        accessions.insert(pep_ident.getHits().back().getProteinAccessions().begin(),
+                          pep_ident.getHits().back().getProteinAccessions().end());
+
+        // compute total intensity to score the individual hits
+        total_intensity += ms_it->getPrecursors()[prec_idx].getIntensity();
+      }
+
+      // assign score to each peptidehit based on intensity contribution to the total intensity
+      for (Size prec_idx = 0; prec_idx < ms_it->getPrecursors().size() & prec_idx < pep_ident.getHits().size(); ++prec_idx)
+      {
+        pep_ident.getHits()[prec_idx].setScore(ms_it->getPrecursors()[prec_idx].getIntensity() / total_intensity);
+      }
+      
+      // sort according to score
+      pep_ident.sort();
+      
+      // append peptide identification
+      peptides.push_back(pep_ident);
     }
-    const ProteinIdentification& protein =
-      feature_maps_[0].getProteinIdentifications()[0];
+
+    // store protein identification / protein hits for those proteins used in the ms2 spectra
+    const ProteinIdentification& protein = feature_maps_[0].getProteinIdentifications()[0];
     proteins.push_back(protein);
     proteins[0].getHits().clear();
-    for (vector<ProteinHit>::const_iterator prot_it = protein.getHits().begin();
-         prot_it != protein.getHits().end(); ++prot_it)
+    for (vector<ProteinHit>::const_iterator prot_it = protein.getHits().begin(); prot_it != protein.getHits().end(); ++prot_it)
     {
       if (accessions.find(prot_it->getAccession()) != accessions.end())
       {
