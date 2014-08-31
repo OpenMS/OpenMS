@@ -143,6 +143,17 @@ public:
     quant_methods_[tmt10plex->getName()] = tmt10plex;
   }
 
+  ~TOPPIsobaricAnalyzer()
+  {
+    // free allocated labelers
+    for (std::map<String, IsobaricQuantitationMethod*>::iterator it = quant_methods_.begin();
+         it != quant_methods_.end();
+         ++it)
+    {
+      delete it->second;
+    }
+  }
+
 protected:
   void registerOptionsAndFlags_()
   {
