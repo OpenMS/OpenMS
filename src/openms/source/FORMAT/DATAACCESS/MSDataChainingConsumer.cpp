@@ -36,6 +36,43 @@
 
 namespace OpenMS
 {
-  MSDataChainingConsumer default_chaining_consumer;
+
+  void MSDataChainingConsumer::appendConsumer(IMSDataConsumer<> * consumer)
+  {
+    consumers_.push_back(consumer);
+  }
+
+  void MSDataChainingConsumer::setExperimentalSettings(const ExperimentalSettings & settings)
+  {
+    for (Size i = 0; i < consumers_.size(); i++)
+    {
+      consumers_[i]->setExperimentalSettings(settings);
+    }
+  }
+
+  void MSDataChainingConsumer::setExpectedSize(Size s_size, Size c_size) 
+  {
+    for (Size i = 0; i < consumers_.size(); i++)
+    {
+      consumers_[i]->setExpectedSize(s_size, c_size);
+    }
+  }
+
+  void MSDataChainingConsumer::consumeSpectrum(SpectrumType & s)
+  {
+    for (Size i = 0; i < consumers_.size(); i++)
+    {
+      consumers_[i]->consumeSpectrum(s);
+    }
+  }
+
+  void MSDataChainingConsumer::consumeChromatogram(ChromatogramType & c)
+  {
+    for (Size i = 0; i < consumers_.size(); i++)
+    {
+      consumers_[i]->consumeChromatogram(c);
+    }
+  }
+
 } //end namespace OpenMS
 

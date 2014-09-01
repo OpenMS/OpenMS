@@ -45,7 +45,7 @@ namespace OpenMS
 
     This consumer allows to chain multiple data consumers and applying them in
     a pre-specified order. This can be useful if a certain operation on a
-    dataset needs to be performed but some pre-processing (data reduction etc)
+    dataset needs to be performed but some pre-processing (data reduction etc.)
     or post-processing (writing to disk, caching on disk). The different
     processing steps can be added to the chaining consumer(in the correct
     order) without knowledge of the specific pre/post processing steps.
@@ -69,6 +69,9 @@ namespace OpenMS
      *
      * Pass a list of consumers that should be called sequentially
      *
+     * @note This does not transfers ownership - it is the callers
+     * responsibility to delete the pointer to consumer afterwards.
+     *
      */
     MSDataChainingConsumer(std::vector<IMSDataConsumer<> *> consumers) :
       consumers_(consumers)
@@ -87,10 +90,7 @@ namespace OpenMS
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
-    void appendConsumer(IMSDataConsumer<> * consumer)
-    {
-      consumers_.push_back(consumer);
-    }
+    void appendConsumer(IMSDataConsumer<> * consumer);
 
     /**
      * @brief Set experimental settings for all consumers
@@ -98,13 +98,7 @@ namespace OpenMS
      * Will set the experimental settings for all chained consumers
      *
      */
-    void setExperimentalSettings(const ExperimentalSettings & settings)
-    {
-      for (Size i = 0; i < consumers_.size(); i++)
-      {
-        consumers_[i]->setExperimentalSettings(settings);
-      }
-    }
+    void setExperimentalSettings(const ExperimentalSettings & settings);
 
     /**
      * @brief Set expected size for all consumers
@@ -112,37 +106,19 @@ namespace OpenMS
      * Will set the expected size for all chained consumers
      *
      */
-    void setExpectedSize(Size s_size, Size c_size) 
-    {
-      for (Size i = 0; i < consumers_.size(); i++)
-      {
-        consumers_[i]->setExpectedSize(s_size, c_size);
-      }
-    }
+    void setExpectedSize(Size s_size, Size c_size);
 
     /**
      * @brief Call all consumers in the specified order for the given spectrum
      *
      */
-    void consumeSpectrum(SpectrumType & s)
-    {
-      for (Size i = 0; i < consumers_.size(); i++)
-      {
-        consumers_[i]->consumeSpectrum(s);
-      }
-    }
+    void consumeSpectrum(SpectrumType & s);
 
     /**
      * @brief Call all consumers in the specified order for the given chromatogram
      *
      */
-    void consumeChromatogram(ChromatogramType & c)
-    {
-      for (Size i = 0; i < consumers_.size(); i++)
-      {
-        consumers_[i]->consumeChromatogram(c);
-      }
-    }
+    void consumeChromatogram(ChromatogramType & c);
 
   };
 
