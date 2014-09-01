@@ -95,20 +95,37 @@ public:
     /// Adds an feature from a single chromatogram into the feature.
     void addFeature(Feature & feature, const String& key);
 
+    /// get a list of features
     const std::vector<Feature> & getFeatures() const;
 
+    /// get a list of IDs of available features
     void getFeatureIDs(std::vector<String> & result) const;
+
+    /// Adds a precursor feature from a single chromatogram into the feature.
+    void addPrecursorFeature(Feature & feature, const String& key);
+
+    /// get a list of IDs of available precursor features
+    void getPrecursorFeatureIDs(std::vector<String> & result) const;
+
+    /// get a specified precursor feature
+    Feature & getPrecursorFeature(String key);
+
     //@}
 
 protected:
 
     FeatureListType features_;
 
+    FeatureListType precursor_features_;
+
     /// peak group scores
     PGScoresType pg_scores_;
 
     /// map native ids to the features
     std::map<String, int> feature_map_;
+
+    /// map native ids to the precursor features
+    std::map<String, int> precursor_feature_map_;
 
   };
 }
