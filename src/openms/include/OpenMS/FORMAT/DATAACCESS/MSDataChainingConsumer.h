@@ -62,7 +62,7 @@ namespace OpenMS
      * @brief Default Constructor
      *
      */
-    MSDataChainingConsumer() {}
+    MSDataChainingConsumer();
 
     /**
      * @brief Constructor
@@ -73,15 +73,13 @@ namespace OpenMS
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
-    MSDataChainingConsumer(std::vector<IMSDataConsumer<> *> consumers) :
-      consumers_(consumers)
-    {}
+    MSDataChainingConsumer(std::vector<IMSDataConsumer<> *> consumers);
 
     /**
      * @brief Destructor
      *
      */
-    ~MSDataChainingConsumer() {}
+    ~MSDataChainingConsumer();
 
     /**
      * @brief Append a consumer to the chain of consumers to be executed

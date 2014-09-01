@@ -37,6 +37,14 @@
 namespace OpenMS
 {
 
+  MSDataChainingConsumer::MSDataChainingConsumer() {}
+
+  MSDataChainingConsumer::MSDataChainingConsumer(std::vector<IMSDataConsumer<> *> consumers) :
+    consumers_(consumers)
+  {}
+
+  MSDataChainingConsumer::~MSDataChainingConsumer() {}
+
   void MSDataChainingConsumer::appendConsumer(IMSDataConsumer<> * consumer)
   {
     consumers_.push_back(consumer);
