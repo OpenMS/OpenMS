@@ -24,6 +24,7 @@ source_group("Source Files\\OpenMS\\SYSTEM" FILES ${mocced_sources})
 set(sources_list_h
 File.h
 FileWatcher.h
+Java.h
 StopWatch.h
 SysInfo.h
 )

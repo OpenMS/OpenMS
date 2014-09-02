@@ -100,6 +100,7 @@ set(metadata_executables_list
 set(system_executables_list
   File_test
   FileWatcher_test
+  Java_test
   StopWatch_test
   SysInfo_test
 )
