@@ -414,6 +414,9 @@ namespace OpenMS
 
   void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides) const
   {
+    // test if we have a feature map at all .. if not, no simulation was performed
+    if (feature_maps_.empty()) return;
+
     // clear incoming vectors
     proteins.clear();
     peptides.clear();
@@ -460,27 +463,31 @@ namespace OpenMS
       }
 
       // assign score to each peptidehit based on intensity contribution to the total intensity
-      for (Size prec_idx = 0; prec_idx < ms_it->getPrecursors().size() & prec_idx < pep_ident.getHits().size(); ++prec_idx)
+      for (Size prec_idx = 0; prec_idx < ms_it->getPrecursors().size() && prec_idx < pep_ident.getHits().size(); ++prec_idx)
       {
         pep_ident.getHits()[prec_idx].setScore(ms_it->getPrecursors()[prec_idx].getIntensity() / total_intensity);
       }
-      
+
       // sort according to score
       pep_ident.sort();
-      
+
       // append peptide identification
       peptides.push_back(pep_ident);
     }
 
-    // store protein identification / protein hits for those proteins used in the ms2 spectra
-    const ProteinIdentification& protein = feature_maps_[0].getProteinIdentifications()[0];
-    proteins.push_back(protein);
-    proteins[0].getHits().clear();
-    for (vector<ProteinHit>::const_iterator prot_it = protein.getHits().begin(); prot_it != protein.getHits().end(); ++prot_it)
+    // test if we have a feature map at all ..
+    if (feature_maps_[0].getProteinIdentifications().size() > 0)
     {
-      if (accessions.find(prot_it->getAccession()) != accessions.end())
+      // store protein identification / protein hits for those proteins used in the ms2 spectra
+      const ProteinIdentification& protein = feature_maps_[0].getProteinIdentifications()[0];
+      proteins.push_back(protein);
+      proteins[0].getHits().clear();
+      for (vector<ProteinHit>::const_iterator prot_it = protein.getHits().begin(); prot_it != protein.getHits().end(); ++prot_it)
       {
-        proteins[0].insertHit(*prot_it);
+        if (accessions.find(prot_it->getAccession()) != accessions.end())
+        {
+          proteins[0].insertHit(*prot_it);
+        }
       }
     }
   }

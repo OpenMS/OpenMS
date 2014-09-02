@@ -425,6 +425,15 @@ START_SECTION((void getMS2Identifications(vector<ProteinIdentification>& protein
 
   // test if there was at least one mix spectrum
   TEST_EQUAL(is_mixture, true)
+
+  // test empty case when no simulation was performed
+  MSSim no_sim;
+  vector<ProteinIdentification> no_proteins;
+  vector<PeptideIdentification> no_peptides;
+  no_sim.getMS2Identifications(no_proteins, no_peptides);
+
+  TEST_EQUAL(no_proteins.empty(), true)
+  TEST_EQUAL(no_peptides.empty(), true)
 }
 END_SECTION
 
