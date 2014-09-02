@@ -90,7 +90,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_STRING_EQUAL(channel_list[7].description, "")
   TEST_STRING_EQUAL(channel_list[8].description, "")
   TEST_STRING_EQUAL(channel_list[9].description, "")
-  
+
   // check masses&co
   TEST_EQUAL(channel_list[0].name, "126")
   TEST_EQUAL(channel_list[0].id, 0)
@@ -99,7 +99,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[0].channel_id_minus_1, -1)
   TEST_EQUAL(channel_list[0].channel_id_plus_1, 2)
   TEST_EQUAL(channel_list[0].channel_id_plus_2, 3)
-  
+
   TEST_EQUAL(channel_list[1].name, "127N")
   TEST_EQUAL(channel_list[1].id, 1)
   TEST_EQUAL(channel_list[1].center, 127.124760)
@@ -107,7 +107,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[1].channel_id_minus_1, -1)
   TEST_EQUAL(channel_list[1].channel_id_plus_1, 3)
   TEST_EQUAL(channel_list[1].channel_id_plus_2, 4)
-  
+
   TEST_EQUAL(channel_list[2].name, "127C")
   TEST_EQUAL(channel_list[2].id, 2)
   TEST_EQUAL(channel_list[2].center, 127.131079)
@@ -115,7 +115,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[2].channel_id_minus_1, 0)
   TEST_EQUAL(channel_list[2].channel_id_plus_1, 4)
   TEST_EQUAL(channel_list[2].channel_id_plus_2, 5)
-  
+
   TEST_EQUAL(channel_list[3].name, "128N")
   TEST_EQUAL(channel_list[3].id, 3)
   TEST_EQUAL(channel_list[3].center, 128.128114)
@@ -123,7 +123,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[3].channel_id_minus_1, 1)
   TEST_EQUAL(channel_list[3].channel_id_plus_1, 5)
   TEST_EQUAL(channel_list[3].channel_id_plus_2, 6)
-  
+
   TEST_EQUAL(channel_list[4].name, "128C")
   TEST_EQUAL(channel_list[4].id, 4)
   TEST_EQUAL(channel_list[4].center, 128.134433)
@@ -131,7 +131,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[4].channel_id_minus_1, 2)
   TEST_EQUAL(channel_list[4].channel_id_plus_1, 6)
   TEST_EQUAL(channel_list[4].channel_id_plus_2, 7)
-  
+
   TEST_EQUAL(channel_list[5].name, "129N")
   TEST_EQUAL(channel_list[5].id, 5)
   TEST_EQUAL(channel_list[5].center, 129.131468)
@@ -139,7 +139,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[5].channel_id_minus_1, 3)
   TEST_EQUAL(channel_list[5].channel_id_plus_1, 7)
   TEST_EQUAL(channel_list[5].channel_id_plus_2, 8)
-  
+
   TEST_EQUAL(channel_list[6].name, "129C")
   TEST_EQUAL(channel_list[6].id, 6)
   TEST_EQUAL(channel_list[6].center, 129.137787)
@@ -147,7 +147,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[6].channel_id_minus_1, 4)
   TEST_EQUAL(channel_list[6].channel_id_plus_1, 8)
   TEST_EQUAL(channel_list[6].channel_id_plus_2, 9)
-  
+
   TEST_EQUAL(channel_list[7].name, "130N")
   TEST_EQUAL(channel_list[7].id, 7)
   TEST_EQUAL(channel_list[7].center, 130.134822)
@@ -155,7 +155,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[7].channel_id_minus_1, 6)
   TEST_EQUAL(channel_list[7].channel_id_plus_1, 9)
   TEST_EQUAL(channel_list[7].channel_id_plus_2, -1)
-  
+
   TEST_EQUAL(channel_list[8].name, "130C")
   TEST_EQUAL(channel_list[8].id, 8)
   TEST_EQUAL(channel_list[8].center, 130.141141)
@@ -163,7 +163,7 @@ START_SECTION((const IsobaricChannelList& getChannelInformation() const ))
   TEST_EQUAL(channel_list[8].channel_id_minus_1, 6)
   TEST_EQUAL(channel_list[8].channel_id_plus_1, -1)
   TEST_EQUAL(channel_list[8].channel_id_plus_2, -1)
-  
+
   TEST_EQUAL(channel_list[9].name, "131")
   TEST_EQUAL(channel_list[9].id, 9)
   TEST_EQUAL(channel_list[9].center, 131.138176)
@@ -186,7 +186,7 @@ START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const ))
   TMTTenPlexQuantitationMethod quant_meth;
 
   // we only check the default matrix here which is an identity matrix
-  // for tmt6plex
+  // for tmt10plex
   Matrix<double> m = quant_meth.getIsotopeCorrectionMatrix();
   TEST_EQUAL(m.rows(), 10)
   TEST_EQUAL(m.cols(), 10)

@@ -78,7 +78,7 @@ public:
     /// @}
 
   private:
-    /// the actual information on the different tmt 6lex channels.
+    /// the actual information on the different tmt 6plex channels.
     IsobaricChannelList channels_;
 
     /// The name of the quantitation method.
