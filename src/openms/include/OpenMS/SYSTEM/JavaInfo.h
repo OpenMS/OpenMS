@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_SYSTEM_JAVA_H
-#define OPENMS_SYSTEM_JAVA_H
+#ifndef OPENMS_SYSTEM_JAVAINFO_H
+#define OPENMS_SYSTEM_JAVAINFO_H
 
 #include <OpenMS/config.h>
 
@@ -45,7 +45,7 @@ namespace OpenMS
 
     @ingroup System
   */
-  class OPENMS_DLLAPI Java
+  class OPENMS_DLLAPI JavaInfo
   {
 public:
     /// Returns false if java executable can not be called. true if java executable can be executed.
@@ -54,4 +54,4 @@ public:
 
 }
 
-#endif // OPENMS_SYSTEM_JAVA_H
+#endif // OPENMS_SYSTEM_JAVAINFO_H

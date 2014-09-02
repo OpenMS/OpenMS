@@ -32,19 +32,28 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/SYSTEM/Java.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
+
+/////////////////////////////////////////////////////////////
+
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <QtCore/QProcess>
+#include <OpenMS/SYSTEM/JavaInfo.h>
 
-namespace OpenMS
-{
+using namespace OpenMS;
+using namespace std;
 
-  bool Java::canRun(String java_executable)
-  {
-    QProcess qp;
-    qp.start(java_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly);   // does automatic escaping etc...
-    bool success = qp.waitForFinished();
-    return success;
-  }
+///////////////////////////
 
-} // namespace OpenMS
+START_TEST(TextFile, "$Id$")
+
+/////////////////////////////////////////////////////////////
+
+START_SECTION((static bool canRun(const String &file)))
+  // test for missing java executable
+  TEST_EQUAL(JavaInfo::canRun(""), false)
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
