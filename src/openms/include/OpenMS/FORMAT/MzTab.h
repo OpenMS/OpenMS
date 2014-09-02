@@ -171,16 +171,17 @@ class MzTabDouble :
     {
     }
 
+    explicit MzTabDouble(const double v)
+    {
+      set(v);
+    }
+
     virtual ~MzTabDouble() {}
 
     void set(const double& value)
     {
       state_ = MZTAB_CELLSTATE_DEFAULT;
       value_ = value;
-    }
-    explicit MzTabDouble(const double v)
-    {
-      set(v);
     }
 
     double get() const
@@ -322,6 +323,15 @@ class MzTabInteger :
     public MzTabNullNaNAndInfAbleBase
 {
   public:
+    MzTabInteger()
+      : value_(0)
+    {
+    }
+
+    explicit MzTabInteger(const int v)
+    {
+      set(v);
+    }
 
     virtual ~MzTabInteger() {}
 
@@ -1515,7 +1525,7 @@ struct MzTabPeptideSectionRow
     MzTabModificationList modifications; // Modifications identified in the peptide.
     MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
     MzTabDoubleList retention_time_window;
-    MzTabDouble charge; // Precursor ion’s charge.
+    MzTabInteger charge; // Precursor ion’s charge.
     MzTabDouble mass_to_charge; // Precursor ion’s m/z.
     MzTabString uri; // Location of the PSMs source entry.
     MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
@@ -1540,8 +1550,8 @@ struct MzTabPSMSectionRow
     MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
     MzTabModificationList modifications; // Modifications identified in the peptide.
     MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
-    MzTabDouble charge; // Precursor ion’s charge.
-    MzTabDouble exp_mass_to_charge; // Precursor ion’s m/z.
+    MzTabInteger charge; // The charge of the experimental precursor ion.
+    MzTabDouble exp_mass_to_charge; // The m/z ratio of the experimental precursor ion.
     MzTabDouble calc_mass_to_charge;
     MzTabString uri; // Location of the PSM’s source entry.
     MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.

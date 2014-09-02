@@ -99,6 +99,8 @@ protected:
     {
       registerInputFile_("in_feature", "<file>", "", "FeatureXMLs used to generate the mzTab file.", false);
       setValidFormats_("in_feature", ListUtils::create<String>("featureXML"));
+      registerInputFile_("in_consensus", "<file>", "", "ConsensusXMLs used to generate the mzTab file.", false);
+      setValidFormats_("in_consensus", ListUtils::create<String>("consensusXML"));
       registerInputFile_("in_id", "<file>", "", "Identifications used to generate the mzTab file.", false);
       setValidFormats_("in_id", ListUtils::create<String>("idXML"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
@@ -110,13 +112,14 @@ protected:
       // parameter handling
       String in_feature = getStringOption_("in_feature");
       String in_id = getStringOption_("in_id");
+      String in_consensus = getStringOption_("in_consensus");
       String out = getStringOption_("out");
 
       if (!in_feature.empty())
       {
         MzTab mztab;
         MzTabMetaData meta_data;
-        // For featureXML we export a "Summary Quantification". This means we don't need to report feature quantification values at the assay level
+        // For featureXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
         // but only at the (single) study variable variable level.
 
         // load featureXML
@@ -206,7 +209,7 @@ protected:
           MzTabDoubleList rt_window;
           rt_window.set(window);
           row.retention_time_window = rt_window;
-          row.charge = MzTabDouble(f.getCharge());
+          row.charge = MzTabInteger(f.getCharge());
           row.peptide_abundance_stdev_study_variable[1];
           row.peptide_abundance_std_error_study_variable[1];
           row.peptide_abundance_study_variable[1] = MzTabDouble(f.getIntensity());
@@ -345,13 +348,108 @@ protected:
         meta_data.mz_tab_type = MzTabString("Identification");
         meta_data.mz_tab_mode = MzTabString("Summary");
         meta_data.description = MzTabString("Export from idXML");
+        meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information 
+        MzTabMSRunMetaData ms_run;
+        ms_run.location = MzTabString(in_id);
+        meta_data.ms_run[1] = ms_run;
+        mztab.setMetaData(meta_data);
 
         String document_id;
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in_id, prot_ids, pep_ids, document_id);
 
-        //TODO: psm export
+        MzTabPSMSectionRows rows;
+        for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+        {
+          // skip empty peptide identification objects
+          if (it->getHits().empty())
+          {
+            continue;
+          }
+          
+          MzTabPSMSectionRow row;
+          // sort by rank
+          it->assignRanks();
+
+          const PeptideHit& best_ph = it->getHits()[0];
+          const AASequence& aas = best_ph.getSequence();
+          row.sequence = MzTabString(aas.toUnmodifiedString());
+
+          MzTabModificationList mod_list;
+          vector<MzTabModification> mods;
+          if (aas.isModified())
+          {
+            for (Size ai = 0; ai != aas.size(); ++ai)
+            {
+              if (aas.isModified(ai))
+              {
+                MzTabModification mod;
+                String mod_name = aas[ai].getModification();
+                ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+                // MzTab standard is to just report Unimod accession.
+                MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
+                mod.setModificationIdentifier(unimod_accession);
+                vector<std::pair<Size, MzTabParameter> > pos;
+                pos.push_back(make_pair(ai + 1, MzTabParameter()));
+                mod.setPositionsAndParameters(pos);
+                mods.push_back(mod);
+              }
+            }
+          }
+          mod_list.set(mods);
+          row.modifications = mod_list;
+
+          const vector<String>& accessions = best_ph.getProteinAccessions();
+          row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
+          row.accession = accessions.size() == 0 ? MzTabString("null") : MzTabString(accessions[0]); // select first accession as representative accession
+          row.search_engine_score[1] = MzTabDouble(best_ph.getScore());
+          vector<MzTabDouble> rts_vector;
+          rts_vector.push_back(MzTabDouble(it->getRT()));
+          MzTabDoubleList rts;
+          rts.set(rts_vector);
+          row.retention_time = rts;
+          row.charge = MzTabInteger(best_ph.getCharge());
+          row.exp_mass_to_charge = MzTabDouble(it->getMZ());
+          row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
+          row.pre = MzTabString(best_ph.getAABefore());
+          row.post = MzTabString(best_ph.getAAAfter());
+
+          // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
+          for (Size i = 0; i != row.opt_.size(); ++i)
+          {
+            MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+            if (opt_entry.first == String("opt_global_modified_sequence"))
+            {
+              opt_entry.second = MzTabString(aas.toString());
+            }
+          }
+
+          // fill opt_ column of psm
+          vector<String> ph_keys;
+          best_ph.getKeys(ph_keys);
+          for (Size k = 0; k != ph_keys.size(); ++k)
+          {
+            const String& key = ph_keys[k];
+
+            // find matching entry in opt_ (TODO: speed this up)
+            for (Size i = 0; i != row.opt_.size(); ++i)
+            {
+              MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+              if (opt_entry.first == String("opt_psm_") + key)
+              {
+                opt_entry.second = MzTabString(best_ph.getMetaValue(key).toString());
+              }
+            }
+          }
+          rows.push_back(row);
+        }
+
+        mztab.setPSMSectionRows(rows);
+
         MzTabFile().store(out, mztab);
       }
 

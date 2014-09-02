@@ -2521,6 +2521,12 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   if (!psm_section.empty())
   {
     Size n_search_engine_scores = mz_tab.getMetaData().psm_search_engine_score.size();
+
+    if (n_search_engine_scores == 0)
+    {
+      // TODO warn
+    }
+
     out.push_back(generateMzTabPSMHeader_(n_search_engine_scores, mz_tab.getPSMOptionalColumnNames()));
     generateMzTabPSMSection_(mz_tab.getPSMSectionRows(), out);
   }
