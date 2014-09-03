@@ -411,7 +411,6 @@ namespace OpenMS
       mrmfeature->ensureUniqueId();
 
       mrmfeature->setMetaValue("PrecursorMZ", transition_group.getTransitions()[0].getPrecursorMZ());
-        std::cout << " precursor mz " << transition_group.getTransitions()[0].getPrecursorMZ() << std::endl;
 
       std::vector<Feature> allFeatures = mrmfeature->getFeatures();
       double total_intensity = 0, total_peak_apices = 0;
