@@ -39,6 +39,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 
 #include <vector>
 #include <algorithm>
@@ -337,6 +339,7 @@ protected:
         }
         mztab.setPeptideSectionRows(rows);
         MzTabFile().store(out, mztab);
+        return EXECUTION_OK;
       }
 
       if (!in_id.empty())
@@ -413,8 +416,10 @@ protected:
           row.charge = MzTabInteger(best_ph.getCharge());
           row.exp_mass_to_charge = MzTabDouble(it->getMZ());
           row.calc_mass_to_charge = best_ph.getCharge() != 0 ? MzTabDouble(aas.getMonoWeight(Residue::Full, best_ph.getCharge()) / best_ph.getCharge()) : MzTabDouble();
-          row.pre = MzTabString(best_ph.getAABefore());
-          row.post = MzTabString(best_ph.getAAAfter());
+          String pre = best_ph.getAABefore();
+          row.pre = pre == " " ? MzTabString("-") : MzTabString(pre);
+          String post = best_ph.getAAAfter();
+          row.post = post == " " ? MzTabString("-") : MzTabString(post);
 
           // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
           for (Size i = 0; i != row.opt_.size(); ++i)
@@ -451,8 +456,49 @@ protected:
         mztab.setPSMSectionRows(rows);
 
         MzTabFile().store(out, mztab);
+        return EXECUTION_OK;
       }
 
+      if (!in_consensus.empty())
+      {
+        MzTab mztab;
+        MzTabMetaData meta_data;
+                 
+        // mandatory meta values
+        meta_data.mz_tab_type = MzTabString("Quantification");
+        meta_data.mz_tab_mode = MzTabString("Summary");
+        meta_data.description = MzTabString("Export from consensusXML");
+                                  
+        // For featureXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
+        // but only at the (single) study variable variable level.
+
+        // load featureXML
+        ConsensusMap consensus_map;
+        ConsensusXMLFile c;
+        c.load(in_feature, consensus_map);
+
+        // compute protein coverage
+        vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
+        vector<PeptideIdentification> pep_ids;
+
+        MzTabPeptideSectionRows rows;
+
+        for (Size i = 0; i < consensus_map.size(); ++i)
+        {
+          MzTabPeptideSectionRow row;
+          const ConsensusFeature& c = consensus_map[i];
+          
+          for (ConsensusFeature::const_iterator cfit = c.begin(); cfit != c.end(); ++cfit)
+          {
+             
+          }
+   
+          rows.push_back(row);    
+        }
+        
+        return EXECUTION_OK;
+      }
+ 
       return EXECUTION_OK;
     }
 
