@@ -1120,7 +1120,7 @@ protected:
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
-    registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
+    registerInputFile_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
     registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     registerFlag_("use_ms1_traces", "Extract the precursor ion trace(s) and use for scoring", true);
@@ -1338,12 +1338,31 @@ protected:
     String readoptions = getStringOption_("readOptions");
     String tmp = getStringOption_("tempDirectory");
 
+    ///////////////////////////////////
+    // Parameter validation
+    ///////////////////////////////////
+
     if (trafo_in.empty() && irt_tr_file.empty())
           std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
             "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     if ((out.empty() && out_tsv.empty()) || (!out.empty() && !out_tsv.empty()) )
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
               "Either out_features or out_tsv needs to be set (but not both)");
+
+    // Check swath window input
+    if (!swath_windows_file.empty())
+    {
+      std::cout << "Validate provided Swath windows file:" << std::endl;
+      std::vector<double> swath_prec_lower;
+      std::vector<double> swath_prec_upper;
+      SwathWindowLoader::readSwathWindows(swath_windows_file, swath_prec_lower, swath_prec_upper);
+
+      std::cout << "Read Swath maps file with " << swath_prec_lower.size() << " windows." << std::endl;
+      for (Size i = 0; i < swath_prec_lower.size(); i++)
+      {
+        LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
+      }
+    }
 
     OpenSwathWorkflow::ChromExtractParams cp;
     cp.min_upper_edge_dist   = min_upper_edge_dist;
