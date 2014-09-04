@@ -534,6 +534,7 @@ if(NOT DISABLE_OPENSWATH)
     SpectrumAddition_test
     OpenSwathSpectrumAccessOpenMS_test
     OpenSwathDataAccessHelper_test
+    MasstraceCorrelator_test
     MRMFeatureScoring_test
     MRMFeatureFinderScoring_test
     SpectrumHelpers_test
