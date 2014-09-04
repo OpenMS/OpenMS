@@ -225,7 +225,7 @@ public:
 
   }
 
-  // create prameters for sections (set default values and restrictions)
+  // create parameters for sections (set default values and restrictions)
   Param getSubsectionDefaults_(const String& section) const
   {
     Param defaults;
@@ -438,29 +438,22 @@ public:
             for (unsigned i = 0; i < samples_labels_.size(); i++)
             {
               double mass_shift = 0;
-              // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There + Lys8There == 0) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
+              // Considering the case of an amino acid (e.g. LysPerPeptide != 0) for which no label is present (e.g. Lys4There && Lys6There && Lys8There == false) makes no sense. Therefore each amino acid will have to give its "Go Ahead" before the shift is calculated.
               bool goAhead_Lys = false;
               bool goAhead_Arg = false;
 
               for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
               {
-                int Arg6There = 0;                    // Is Arg6 in the SILAC label?
-                int Arg10There = 0;
-                int Lys4There = 0;
-                int Lys6There = 0;
-                int Lys8There = 0;
-
-                if (samples_labels_[i][j].find("Arg6") != std::string::npos) Arg6There = 1;
-                if (samples_labels_[i][j].find("Arg10") != std::string::npos) Arg10There = 1;
-                if (samples_labels_[i][j].find("Lys4") != std::string::npos) Lys4There = 1;
-                if (samples_labels_[i][j].find("Lys6") != std::string::npos) Lys6There = 1;
-                if (samples_labels_[i][j].find("Lys8") != std::string::npos) Lys8There = 1;
+                bool Arg6There = (samples_labels_[i][j].find("Arg6") != std::string::npos);    // Is Arg6 in the SILAC label?
+                bool Arg10There = (samples_labels_[i][j].find("Arg10") != std::string::npos);
+                bool Lys4There = (samples_labels_[i][j].find("Lys4") != std::string::npos);
+                bool Lys6There = (samples_labels_[i][j].find("Lys6") != std::string::npos);
+                bool Lys8There = (samples_labels_[i][j].find("Lys8") != std::string::npos);
 
                 mass_shift = mass_shift + ArgPerPeptide * (Arg6There * label_massshift_["Arg6"] + Arg10There * label_massshift_["Arg10"]) + LysPerPeptide * (Lys4There * label_massshift_["Lys4"] + Lys6There * label_massshift_["Lys6"] + Lys8There * label_massshift_["Lys8"]);
 
-                // check that Arg (or Lys) is in the peptide and label
-                goAhead_Arg = goAhead_Arg || !((ArgPerPeptide != 0 && Arg6There + Arg10There == 0));
-                goAhead_Lys = goAhead_Lys || !((LysPerPeptide != 0 && Lys4There + Lys6There + Lys8There == 0));
+                goAhead_Arg = goAhead_Arg || !(ArgPerPeptide != 0 && !Arg6There && !Arg10There);
+                goAhead_Lys = goAhead_Lys || !(LysPerPeptide != 0 && !Lys4There && !Lys6There && !Lys8There);
               }
 
               if (goAhead_Arg && goAhead_Lys && (mass_shift != 0))
