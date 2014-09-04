@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -149,6 +150,11 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      out_type = FileHandler().getTypeByFileName(out);
+    }
 
     //-------------------------------------------------------------
     // loading input
