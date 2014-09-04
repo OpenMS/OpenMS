@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/KERNEL/OnDiscMSExperiment.h>" namespace "OpenMS":
         #   OnDiscMSExperiment := OnDiscMSExperiment[Peak1D, ChromatogramPeak]
 
         OnDiscMSExperiment() nogil except +
+        OnDiscMSExperiment(OnDiscMSExperiment &) nogil except +
 
         bool openFile(String filename) nogil except +
         Size getNrSpectra() nogil except +

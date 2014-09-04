@@ -69,14 +69,17 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
-      OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
+      OpenSwath::SpectrumAccessPtr swath_map, OpenSwath::SpectrumAccessPtr ms1_map, OpenMS::DIAScoring & diascoring,
       const PeptideType& pep, OpenSwath_Scores & scores)
   {
+    OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
+
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     // parameters
     int by_charge_state = 1; // for which charge states should we check b/y series
+    double precursor_mz = transitions[0].precursor_mz;
 
     // find spectrum that is closest to the apex of the peak using binary search
     OpenSwath::SpectrumPtr spectrum_ = getAddedSpectra_(swath_map, imrmfeature->getRT(), add_up_spectra_);
@@ -100,6 +103,14 @@ namespace OpenMS
 
     // DIA dotproduct and manhattan score
     diascoring.score_with_isotopes((*spectrum), transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
+
+    // MS1 ppm score : check that the map is not NULL and contains spectra
+    if (ms1_map && ms1_map->getNrSpectra() > 0) 
+    {
+      OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
+      diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
+      diascoring.dia_ms1_isotope_scores(precursor_mz, ms1_spectrum, pep.getChargeState(), scores.ms1_isotope_correlation, scores.ms1_isotope_overlap);
+    }
   }
 
   void OpenSwathScoring::calculateChromatographicScores(
@@ -127,6 +138,14 @@ namespace OpenMS
     {
       scores.xcorr_shape_score = mrmscore_.calcXcorrShape_score();
       scores.weighted_xcorr_shape = mrmscore_.calcXcorrShape_score_weighted(normalized_library_intensity);
+    }
+
+    // check that the MS1 feature is present and that the MS1 correlation should be calculated
+    if (imrmfeature->getPrecursorIDs().size() > 0 && su_.use_ms1_correlation)
+    {
+      mrmscore_.initializeMS1XCorr(imrmfeature, native_ids, "Precursor_i0"); // perform cross-correlation on monoisotopic precursor
+      scores.xcorr_ms1_coelution_score = mrmscore_.calcMS1XcorrCoelutionScore();
+      scores.xcorr_ms1_shape_score = mrmscore_.calcMS1XcorrShape_score();
     }
 
     if (su_.use_nr_peaks_score_) 

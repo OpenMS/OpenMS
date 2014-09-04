@@ -57,9 +57,17 @@ public:
     typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
     typedef OpenMS::MSChromatogram<ChromatogramPeak> MSChromatogramType;
 
+    /// Constructor
     explicit SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment);
 
+    /// Destructor
     ~SpectrumAccessOpenMS();
+
+    /// Copy constructor
+    SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs);
+
+    /// Light clone operator (actual data will not get copied)
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
 
     OpenSwath::SpectrumPtr getSpectrumById(int id);
 

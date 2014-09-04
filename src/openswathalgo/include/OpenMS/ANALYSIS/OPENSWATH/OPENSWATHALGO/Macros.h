@@ -32,55 +32,21 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H
+#ifndef OPENSWATH_MACROS_H
+#define OPENSWATH_MACROS_H
 
-#include <vector>
-#include <boost/shared_ptr.hpp>
+#include <cassert>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+// Simple implementation of PRE and POST conditions using assert (should be on
+// during debug mode and off during release mode) with a informative message
+// which is printed alongside the dump.
+// see http://stackoverflow.com/questions/3692954/add-custom-messages-in-assert
+// "Since a pointer "is true" if it's non-null, you can use the &&-operator to
+// chain and display the message".
+#define OPENSWATH_PRECONDITION(condition, message)\
+  assert( (condition) && (message));
 
-namespace OpenSwath
-{
-  // Datastructures for Scoring
-  class OPENSWATHALGO_DLLAPI IFeature
-  {
-public:
-    virtual ~IFeature(){}
-    virtual void getRT(std::vector<double>& rt) = 0;
-    virtual void getIntensity(std::vector<double>& intens) = 0;
-    virtual float getIntensity() = 0;
-    virtual double getRT() = 0;
-  };
+#define OPENMS_POSTCONDITION(condition, message)\
+  assert( (condition) && (message));
 
-  class OPENSWATHALGO_DLLAPI IMRMFeature
-  {
-public:
-    virtual ~IMRMFeature(){}
-    virtual boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID) = 0;
-    virtual boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID) = 0;
-    virtual std::vector<std::string> getPrecursorIDs() const = 0;
-    virtual float getIntensity() = 0;
-    virtual double getRT() = 0;
-    virtual size_t size() = 0;
-  };
-
-  struct OPENSWATHALGO_DLLAPI ITransitionGroup
-  {
-    virtual ~ITransitionGroup() {}
-    virtual std::size_t size() = 0;
-    virtual std::vector<std::string> getNativeIDs() = 0;
-    virtual void getLibraryIntensities(std::vector<double>& intensities) = 0;
-  };
-
-  struct OPENSWATHALGO_DLLAPI ISignalToNoise
-  {
-    virtual ~ISignalToNoise() {}
-    virtual double getValueAtRT(double RT) = 0;
-  };
-  typedef boost::shared_ptr<ISignalToNoise> ISignalToNoisePtr;
-
-
-} //end Namespace OpenSwath
-
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H
+#endif // OPENSWATH_MACROS_H

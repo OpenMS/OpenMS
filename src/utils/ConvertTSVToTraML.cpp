@@ -67,9 +67,10 @@ using namespace OpenMS;
           <li> PeptideSequence  (free text, sequence only (no modifications) ) </li>
           <li> ProteinName (free text) </li>
           <li> Annotation (free text, e.g. y7) </li>
-          <li> FullUniModPeptideName  (free text, should contain modifications*)  </li>
+          <li> FullUniModPeptideName  (free text, should contain modifications<sup>1</sup>)  </li>
           <li> PrecursorCharge (integer, contains the charge of the precursor) </li>
-          <li> GroupLabel (free text, e.g. heavy or light) </li>
+          <li> PeptideGroupLabel (free text, designates to which peptide label group (as defined in MS:1000893) the peptide belongs to<sup>2</sup>) </li>
+          <li> LabelType (free text, optional description of which label was used, e.g. heavy or light) </li>
           <li> UniprotID (free text) </li>
           <li> FragmentType (free text, contains the type of the fragment, e.g. "b" or "y") </li>
           <li> FragmentCharge (integer, contains the fragment charge) </li>
@@ -77,11 +78,26 @@ using namespace OpenMS;
         </ul>
 
 <p>
-* modifications should be supplied inside the sequence using UniMod
-  identifiers or freetext identifiers that are understood by %OpenMS. Please do
-  not use the ambiguous bracket notation (e.g. PEPT[+80]IDE or PEPT[181]IDE)
-  since this is ambiguous and will NOT be interpreted correctly!
-  example: PEPT(Phosphorylation)IDE(UniMod:27)A )
+Remarks:
+</p>
+<ul>
+  <li>
+    1. modifications should be supplied inside the sequence using UniMod
+      identifiers or freetext identifiers that are understood by %OpenMS. <br/>
+      example: PEPT(Phosphorylation)IDE(UniMod:27)A )
+  </li>
+  <li>
+    2. peptide label groups designate groups of peptides that are isotopically
+    modified forms of the same peptide species. For example, the heavy and
+    light forms of the same peptide will both be assigned the same peptide
+    group label.  <br/>
+      example: <br/>
+      PEPTIDEAK -> gets label "PEPTIDEAK_gr1" <br/>
+      PEPTIDEAK[+8] -> gets label "PEPTIDEAK_gr1" <br/>
+      PEPT(Phosphorylation)IDEAK -> gets label "PEPTIDEAK_gr2" <br/>
+      PEPT(Phosphorylation)IDEAK[+8] -> gets label "PEPTIDEAK_gr2" <br/>
+  </li>
+</ul>
 </p>
 
 */
