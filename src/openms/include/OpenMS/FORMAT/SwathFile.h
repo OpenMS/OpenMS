@@ -296,7 +296,8 @@ protected:
           {
             if (s.getPrecursors().empty())
             {
-              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Swath scan needs to have a precursor set.");
+              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                  "Found SWATH scan (MS level 2 scan) without a precursor. Cannot determine SWATH window.");
             }
             const std::vector<Precursor> prec = s.getPrecursors();
             double center = prec[0].getMZ();
