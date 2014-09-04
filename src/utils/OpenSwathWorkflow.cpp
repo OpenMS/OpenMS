@@ -1375,12 +1375,12 @@ protected:
     // Check swath window input
     if (!swath_windows_file.empty())
     {
-      std::cout << "Validate provided Swath windows file:" << std::endl;
+      LOG_INFO << "Validate provided Swath windows file:" << std::endl;
       std::vector<double> swath_prec_lower;
       std::vector<double> swath_prec_upper;
       SwathWindowLoader::readSwathWindows(swath_windows_file, swath_prec_lower, swath_prec_upper);
 
-      std::cout << "Read Swath maps file with " << swath_prec_lower.size() << " windows." << std::endl;
+      LOG_INFO << "Read Swath maps file with " << swath_prec_lower.size() << " windows." << std::endl;
       for (Size i = 0; i < swath_prec_lower.size(); i++)
       {
         LOG_DEBUG << "Read lower swath window " << swath_prec_lower[i] << " and upper window " << swath_prec_upper[i] << std::endl;
