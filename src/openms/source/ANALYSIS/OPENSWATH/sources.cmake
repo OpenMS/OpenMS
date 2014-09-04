@@ -16,6 +16,7 @@ DIAHelper.cpp
 DIAScoring.cpp
 DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
+MasstraceCorrelator.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
 )

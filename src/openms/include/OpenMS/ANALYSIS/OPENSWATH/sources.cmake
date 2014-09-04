@@ -13,6 +13,7 @@ set(sources_list_h
   MRMFeatureFinderScoring.h
   MRMRTNormalizer.h
   MRMTransitionGroupPicker.h
+  MasstraceCorrelator.h
   OpenSwathHelper.h
   OpenSwathScoring.h
   SpectrumAddition.h
