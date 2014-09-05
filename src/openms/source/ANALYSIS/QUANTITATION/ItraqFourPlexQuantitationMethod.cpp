@@ -46,10 +46,10 @@ namespace OpenMS
     setName("ItraqFourPlexQuantitationMethod");
 
     // create the channel map
-    channels_.push_back(IsobaricChannelInformation(114, 0, "", 114.1112));
-    channels_.push_back(IsobaricChannelInformation(115, 1, "", 115.1082));
-    channels_.push_back(IsobaricChannelInformation(116, 2, "", 116.1116));
-    channels_.push_back(IsobaricChannelInformation(117, 3, "", 117.1149));
+    channels_.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, -1, -1, 1, 2));
+    channels_.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, -1, 0, 2, 3));
+    channels_.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, 0, 1, 3, -1));
+    channels_.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, 1, 2, -1, -1));
 
     // we assume 114 to be the reference
     reference_channel_ = 0;

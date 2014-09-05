@@ -32,8 +32,8 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H
-#define OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H
+#ifndef OPENMS_ANALYSIS_QUANTITATION_TMTTENPLEXQUANTITATIONMETHOD_H
+#define OPENMS_ANALYSIS_QUANTITATION_TMTTENPLEXQUANTITATIONMETHOD_H
 
 #include <OpenMS/config.h>
 
@@ -42,25 +42,25 @@
 namespace OpenMS
 {
   /**
-    @brief TMT 6plex quantitation to be used with the IsobaricQuantitation.
+    @brief TMT 10plex quantitation to be used with the IsobaricQuantitation.
 
     @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
   */
-  class OPENMS_DLLAPI TMTSixPlexQuantitationMethod :
+  class OPENMS_DLLAPI TMTTenPlexQuantitationMethod :
     public IsobaricQuantitationMethod
   {
 public:
     /// Default c'tor
-    TMTSixPlexQuantitationMethod();
+    TMTTenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTSixPlexQuantitationMethod();
+    ~TMTTenPlexQuantitationMethod();
 
     /// Copy c'tor
-    TMTSixPlexQuantitationMethod(const TMTSixPlexQuantitationMethod& other);
+    TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other);
 
     /// Assignment operator
-    TMTSixPlexQuantitationMethod & operator=(const TMTSixPlexQuantitationMethod& rhs);
+    TMTTenPlexQuantitationMethod & operator=(const TMTTenPlexQuantitationMethod& rhs);
 
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
@@ -78,7 +78,7 @@ public:
     /// @}
 
   private:
-    /// the actual information on the different tmt 6plex channels.
+    /// the actual information on the different tmt10plex channels.
     IsobaricChannelList channels_;
 
     /// The name of the quantitation method.
@@ -86,6 +86,9 @@ public:
 
     /// The reference channel for this experiment.
     Size reference_channel_;
+
+    /// List of available channel names as they are presented to the user
+    static const std::vector<String> channel_names_;
 
   protected:
     /// implemented for DefaultParamHandler
@@ -97,4 +100,4 @@ public:
   };
 } // namespace
 
-#endif // OPENMS_ANALYSIS_QUANTITATION_TMTSIXPLEXQUANTITATIONMETHOD_H
+#endif // OPENMS_ANALYSIS_QUANTITATION_TMTTENPLEXQUANTITATIONMETHOD_H
