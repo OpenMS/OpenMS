@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXCLUSTERING_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
@@ -61,7 +62,8 @@ namespace OpenMS
      * @see MultiplexFiltering
      * @see LocalClustering
      */
-    class OPENMS_DLLAPI MultiplexClustering
+    class OPENMS_DLLAPI MultiplexClustering :
+        public ProgressLogger
     {        
         public:
         /**
@@ -77,11 +79,11 @@ namespace OpenMS
          * @param boundaries    peak boundaries for exp_picked
          * @param rt_typical    elution time of a characteristic peptide in the sample
          * @param rt_minimum    shortest elution time i.e. all peptides appearing for a shorter time are being ignored
-         * @param debug    debug mode
+         * @param out_debug    directory for debug output
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug);
+        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug);
         
         /**
          * @brief cluster filter results
@@ -223,6 +225,11 @@ namespace OpenMS
          * @brief minimum retention time
          */
         double rt_minimum_;
+        
+        /**
+         * @brief directory for debug output
+         */
+        String out_debug_;
         
         /**
          * @brief debug mode

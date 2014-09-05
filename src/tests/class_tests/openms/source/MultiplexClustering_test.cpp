@@ -76,7 +76,6 @@ bool mz_tolerance_unit = true;    // ppm (true), Da (false)
 double rt_typical = 90;
 double rt_minimum = 5;
 String out_debug = "";
-bool debug = false;
 
 // construct list of peak patterns
 std::vector<MultiplexPeakPattern> patterns;
@@ -100,15 +99,15 @@ std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 MultiplexClustering* nullPointer = 0;
 MultiplexClustering* ptr;
 
-START_SECTION(MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug))
-    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
+START_SECTION(MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug))
+    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
-    ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
+    ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, debug);
+MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
 
 START_SECTION(std::vector<std::map<int GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results))
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);

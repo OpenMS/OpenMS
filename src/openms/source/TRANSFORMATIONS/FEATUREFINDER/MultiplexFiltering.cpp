@@ -51,6 +51,8 @@
 #include <iostream>
 #include <QDir>
 
+#include<QDir>
+
 using namespace std;
 using namespace boost::math;
 
@@ -125,6 +127,10 @@ namespace OpenMS
 
   vector<MultiplexFilterResult> MultiplexFiltering::filter()
   {
+    // progress logger
+    unsigned progress = 0;
+    startProgress(0, patterns_.size() * exp_profile_.size(), "filtering LC-MS data");
+      
     // list of filter results for each peak pattern
     vector<MultiplexFilterResult> filter_results;
 
@@ -150,6 +156,8 @@ namespace OpenMS
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of peaks and number of peak boundaries differ.");
         }
+        
+        setProgress(++progress);
 
         int spectrum = it_rt_profile - exp_profile_.begin();            // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
         double rt_picked = it_rt_picked->getRT();
@@ -361,6 +369,8 @@ namespace OpenMS
         writeDebug(pattern, false, debug_filtered);
       }
     }
+
+    endProgress();
 
     return filter_results;
   }
