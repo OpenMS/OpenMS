@@ -148,7 +148,7 @@ public:
       applied to the data before storing them in a map (e.g. if data-reduction
       should be applied to the data before loading all data into memory).
 
-      @param filename_in Filename of input mzML file to transform 
+      @param filename_in Filename of input mzXML file to transform 
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
       @param map Map to store the resulting spectra and chromatograms
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
