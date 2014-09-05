@@ -165,8 +165,14 @@ protected:
     //input file names
     String in = getStringOption_("in");
     bool write_mzML_index;
-    if (getStringOption_("write_mzML_index") == "true") {write_mzML_index = true;}
-    else {write_mzML_index = false;}
+    if (getStringOption_("write_mzML_index") == "true") 
+    {
+      write_mzML_index = true;
+    }
+    else 
+    {
+      write_mzML_index = false;
+    }
 
     //input file type
     FileHandler fh;
