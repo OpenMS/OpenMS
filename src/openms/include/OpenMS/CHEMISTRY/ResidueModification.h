@@ -87,6 +87,8 @@ public:
       ANYWHERE = 0,
       C_TERM = 1,
       N_TERM = 2,
+      PROTEIN_C_TERM = 3,
+      PROTEIN_N_TERM = 4,
       NUMBER_OF_TERM_SPECIFICITY
     };
 
