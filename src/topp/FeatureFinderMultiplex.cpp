@@ -1038,7 +1038,7 @@ public:
   *
   * TODO: combine with OpenMS/MATH/STATISTICS/LinearRegression
   */
-  class OPENMS_DLLAPI LinearRegressionWithoutIntercept
+  class LinearRegressionWithoutIntercept
   {
 public:
     /**
