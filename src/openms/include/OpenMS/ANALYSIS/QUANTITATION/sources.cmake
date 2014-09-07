@@ -19,7 +19,7 @@ ProteinInference.h
 ProteinResolver.h
 QuantitativeExperimentalDesign.h
 TMTSixPlexQuantitationMethod.h
-TMTTenPlexQuantitationMethod
+TMTTenPlexQuantitationMethod.h
 )
 
 ### add path to the filenames
