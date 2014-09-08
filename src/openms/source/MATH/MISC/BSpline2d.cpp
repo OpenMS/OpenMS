@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: .. $
-// $Authors: .. $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Stephan Aiche, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/MATH/MISC/BSpline2d.h>
@@ -40,30 +40,37 @@
 namespace OpenMS
 {
 
-  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y)
+  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wave_length, BoundaryCondition boundary_condition, Size num_nodes)
   {
-    // fill from incoming data
-    // spline_ = new BSpline(&x[0], x.size(), &y[0])
+    OPENMS_PRECONDITION(x.size() == y.size(), "x and y vector passed to BSpline constructor must match.")
+    spline_ = new BSpline<double>(&x[0], x.size(), &y[0], wave_length, boundary_condition, num_nodes);
   }
 
-  bool BSpline2d::solve (const std::vector<double> y)
+  BSpline2d::~BSpline2d()
   {
-    return false;
+    delete spline_;
   }
 
-  double BSpline2d::evaluate (double x)
+  bool BSpline2d::solve (const std::vector<double>& y)
   {
-    return 0.0;
+    OPENMS_PRECONDITION(x.size() == y.size(), "y vector passed to BSpline solve must match size of x.")
+    // pass vector as array
+    return spline_->solve(&y[0]);
   }
 
-  double BSpline2d::slope (double x)
+  double BSpline2d::eval (double x)
   {
-    return 0.0;
+    return spline_->evaluate(x);
+  }
+
+  double BSpline2d::derivative (double x)
+  {
+    return spline_->slope(x);
   }
 
   double BSpline2d::coefficient (int n)
   {
-    return 0.0;
+    return spline_->coefficient(n);
   }
 
 }

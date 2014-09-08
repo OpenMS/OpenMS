@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: .. $
-// $Authors: .. $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Stephan Aiche, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_MATH_MISC_BSPLINE2D_H
@@ -38,6 +38,7 @@
 #include <vector>
 
 #include <OpenMS/config.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 // forward declaration of impl class BSpline
 template <class T>
@@ -51,9 +52,46 @@ namespace OpenMS
   class OPENMS_DLLAPI BSpline2d
   {
 public:
+    
+    // Note: Don't change boundary coniditon constants ase these are passed through to the eol-bspline implementation.
+    enum BoundaryCondition
+    {
+      /// Set the endpoints of the spline to zero.
+      BC_ZERO_ENDPOINTS = 0,
+      /// Set the first derivative of the spline to zero at the endpoints.
+      BC_ZERO_FIRST = 1,
+      /// Set the second derivative to zero.
+      BC_ZERO_SECOND = 2
+    };
+
     /**
-    */
-    BSpline2d(const std::vector<double>& x, const std::vector<double>& y);
+     * Create a single spline with the parameters required to set up
+     * the domain and subsequently smooth the given set of y values.
+     * The y values must correspond to each of the values in the x array.
+     * If either the domain setup fails or the spline cannot be solved,
+     * the state will be set to not ok.
+     *
+     * @see ok().
+     *
+     * @param x		The array of x values in the domain.
+     * @param y		The array of y values corresponding to each of the
+     *			nX() x values in the domain.
+     * @param wavelength	The cutoff wavelength, in the same units as the
+     *				@p x values.  A wavelength of zero disables
+     *				the derivative constraint.
+     * @param bc_type	The enumerated boundary condition type.  If
+     *			omitted it defaults to BC_ZERO_SECOND.
+     * @param num_nodes The number of nodes to use for the cubic b-spline.
+     *			If less than 2 a "reasonable" number will be
+     *			calculated automatically, taking into account
+     *			the given cutoff wavelength.                                                                                                               
+     **/
+    BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wave_length = 0, BoundaryCondition boundary_condition = BC_ZERO_ENDPOINTS, Size num_nodes = 0);
+
+    /**
+     * Destructor
+     */
+    virtual ~BSpline2d();
 
     /**
      * Solve the spline curve for a new set of y values.  Returns false
@@ -62,19 +100,19 @@ public:
      * @param y The array of y values corresponding to each of the nX()
      *		x values in the domain.
      */
-    bool solve (const std::vector<double> y);
+    bool solve (const std::vector<double>& y);
 
     /**
      * Return the evaluation of the smoothed curve
      * at a particular @p x value.  If current state is not ok(), returns 0.
      */
-    double evaluate (double x);
+    double eval (double x);
 
     /**
      * Return the first derivative of the spline curve at the given @p x.
      * Returns zero if the current state is not ok().
      */
-    double slope (double x);
+    double derivative (double x);
 
     /**
      * Return the @p n-th basis coefficient, from 0 to M.  If the current
@@ -82,6 +120,7 @@ public:
      */
     double coefficient (int n);
 private:
+    BSpline2d();
 
     BSpline<double>* spline_;
 
