@@ -563,7 +563,7 @@ protected:
       for (Size trace = 0; trace < n_traces; ++trace)
       {
         double intensity = scaled[trace][time];
-        if (intensity > 0) points.push_back(make_pair(intensity, trace));
+        if (intensity > 0.0) points.push_back(make_pair(intensity, trace));
       }
 
       sort(points.begin(), points.end());
@@ -621,12 +621,24 @@ protected:
           }
         }
 
-        matches[time] = regions[best_region_index];
+        const vector<Size>& best_region = regions[best_region_index];
+        matches[time] = best_region;
         which_matches.push_back(time);
-        vector<double> matching_intensities(regions[best_region_index].size());
-        for (Size i = 0; i < regions[best_region_index].size(); ++i)
+        vector<double> matching_intensities(best_region.size());
+        for (Size i = 0; i < best_region.size(); ++i)
         {
-          matching_intensities[i] = scaled[i][time];
+          matching_intensities[i] = scaled[best_region[i]][time];
+        }
+        if (debug_level_ >= 10)
+        {
+          // convert intensities to "float" to print fewer decimals:
+          String values = float(matching_intensities[0]);
+          for (Size i = 1; i < matching_intensities.size(); ++i)
+          {
+            values += " " + String(float(matching_intensities[i]));
+          }
+          LOG_DEBUG << "Matching intensities at step " << time << ": " << values
+                    << endl;
         }
         peak.setIntensity(Math::median(matching_intensities.begin(),
                                        matching_intensities.end()));
@@ -644,7 +656,17 @@ protected:
 
       // apply smoothing to medians of matching scaled intensities:
       MSChromatogram<> smoothed = medians;
-      gauss_filter.filter(smoothed);     
+      gauss_filter.filter(smoothed);
+      if (debug_level_ >= 10)
+      {
+        LOG_DEBUG << "Medians of matching intensities (RT: raw/smoothed):"
+                  << endl;
+        for (Size i = 0; i < medians.size(); ++i)
+        {
+          LOG_DEBUG << medians[i].getRT() << ": " << medians[i].getIntensity()
+                    << " / " << smoothed[i].getIntensity() << endl;
+        }
+      }
       // to estimate the density of matching intensities, apply smoothing to the
       // histogram (in lieu of kernel density estimation):
       MSChromatogram<> density = n_matches;
@@ -796,7 +818,7 @@ protected:
     // store model parameters to find outliers later:
     double width_limit = getDoubleOption_("model:check:width");
     double asym_limit = (asymmetric ? 
-                             getDoubleOption_("model:check:asymmetry") : 0.0);
+                         getDoubleOption_("model:check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
     vector<double> widths_all, widths_good, asym_all, asym_good;
