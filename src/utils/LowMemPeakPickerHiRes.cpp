@@ -128,10 +128,10 @@ protected:
   public:
 
     PPHiResMzMLConsumer(String filename, PeakPickerHiRes pp) :
-      MSDataWritingConsumer(filename)
+      MSDataWritingConsumer(filename),
+      ms1_levels_(pp.getParameters().getValue("ms_levels").toIntList())
     {
       pp_ = pp;
-      ms1_levels_ = pp.getParameters().getValue("ms_levels");
     }
 
     void processSpectrum_(MapType::SpectrumType & s)
