@@ -236,7 +236,7 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
     }
-    //String s = String(rp[param_index].filenames.join("\" \""));
+    String s = String(rp[param_index].filenames.join("\" \""));
     return rp[param_index].filenames;
   }
 
