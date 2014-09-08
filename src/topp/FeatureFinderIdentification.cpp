@@ -481,7 +481,7 @@ protected:
   // optionally don't extend past a given gap length (in RT):
   pair<Size, double> findNextExtremum_(const MSChromatogram<>& data, Size start,
                                        bool go_right=false, bool find_min=false,
-                                       double fraction=0.0, double max_gap=0.0)
+                                       double max_gap=0.0)
   {
     Int stop, step, index;
     if (go_right)
@@ -497,14 +497,12 @@ protected:
 
     double previous_int = data[start].getIntensity();
     double previous_rt = data[start].getRT();
-    double threshold = fraction * previous_int;
     Int min_max = find_min ? -1 : 1; // multiply by -1 to change "<" to ">"
     for (index = start + step; index * step <= stop; index += step)
     {
       double current_int = data[index].getIntensity();
       double current_rt = data[index].getRT();
       if ((min_max * current_int < min_max * previous_int) || 
-          ((fraction > 0.0) && (min_max * current_int < min_max * threshold)) ||
           ((max_gap > 0.0) && (fabs(previous_rt - current_rt) > max_gap)))
       {
         index -= step; // went a step too far, go back
@@ -677,26 +675,28 @@ protected:
                 << endl;
       // find left peak border:
       pair<Size, double> left_border = 
-        findNextExtremum_(smoothed, apex.first, false, true);
+        findNextExtremum_(smoothed, apex.first, false, true, max_gap_);
       LOG_DEBUG << "left border: " << left_border.first << " -> ";
       // try to extend further based on original (non-smoothed) data:
-      if (medians[left_border.first].getIntensity() <= 
-          smoothed[left_border.first].getIntensity())
+      double median_int = medians[left_border.first].getIntensity();
+      if ((median_int > 0.0) && 
+          (median_int <= smoothed[left_border.first].getIntensity()))
       {
         left_border = findNextExtremum_(medians, left_border.first, false, 
-                                        true);
+                                        true, max_gap_);
       }
       LOG_DEBUG << left_border.first << endl;
       // find right peak border:
       pair<Size, double> right_border = 
-        findNextExtremum_(smoothed, apex.first, true, true);
+        findNextExtremum_(smoothed, apex.first, true, true, max_gap_);
       // try to extend further based on original (non-smoothed) data:
       LOG_DEBUG << "right border: " << right_border.first << " -> ";
-      if (medians[right_border.first].getIntensity() <= 
-          smoothed[right_border.first].getIntensity())
+      median_int = medians[right_border.first].getIntensity();
+      if ((median_int > 0.0) && 
+          (median_int <= smoothed[right_border.first].getIntensity()))
       {
         right_border = findNextExtremum_(medians, right_border.first, true, 
-                                         true);
+                                         true, max_gap_);
       }
       LOG_DEBUG << right_border.first << endl;
 
