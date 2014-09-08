@@ -50,7 +50,7 @@ using namespace std;
   @page TOPP_PeakPickerHiRes PeakPickerHiRes
 
   @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
- 
+
   <center>
   <table>
   <tr>
@@ -125,38 +125,38 @@ protected:
     @brief Helper class for the Low Memory peak-picking
   */
   class PPHiResMzMLConsumer :
-    public MSDataWritingConsumer 
+    public MSDataWritingConsumer
   {
 
   public:
 
     PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
-      MSDataWritingConsumer(filename) 
+      MSDataWritingConsumer(filename)
     {
       pp_ = pp;
-      ms1_only_ = pp.getParameters().getValue("ms1_only").toBool();
+      ms_levels_ = pp.getParameters().getValue("ms_levels");
     }
 
     void processSpectrum_(MapType::SpectrumType& s)
     {
-      if (ms1_only_ && (s.getMSLevel() != 1)) {return;}
+      if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return;}
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
       s = sout;  // todo: swap? (requires implementation)
     }
 
-    void processChromatogram_(MapType::ChromatogramType & c) 
+    void processChromatogram_(MapType::ChromatogramType & c)
     {
-      MapType::ChromatogramType cout;
-      pp_.pick(c, cout);
-      c = cout;
+      MapType::ChromatogramType c_out;
+      pp_.pick(c, c_out);
+      c = c_out;
     }
 
   private:
 
     PeakPickerHiRes pp_;
-    bool ms1_only_;
+    std::vector<Int> ms_levels_;
   };
 
   void registerOptionsAndFlags_()

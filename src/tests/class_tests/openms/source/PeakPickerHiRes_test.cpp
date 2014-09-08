@@ -436,27 +436,6 @@ START_SECTION([EXTRA] test spectrum level selection)
       TEST_NOT_EQUAL(inSpecSelection[i], outMs1And2[i])
     }
   }
-
-  // pick ms1 and ms2 but set ms1_only -> should overwrite
-  MSExperiment<> outMs1OnlyOverWrite;
-  pp_hires_param.setValue("ms_levels", ListUtils::create<Int>("1,2"));
-  pp_hires_param.setValue("ms1_only", "true");
-  pp_spec_select.setParameters(pp_hires_param);
-
-  pp_spec_select.pickExperiment(inSpecSelection, outMs1OnlyOverWrite);
-
-  ABORT_IF(inSpecSelection.size() != outMs1OnlyOverWrite.size())
-  for(Size i = 0; i < outMs2Only.size(); ++i)
-  {
-    if (outMs1OnlyOverWrite[i].getMSLevel() == 1)
-    {
-      TEST_NOT_EQUAL(inSpecSelection[i], outMs1OnlyOverWrite[i])
-    }
-    else
-    {
-      TEST_EQUAL(inSpecSelection[i], outMs1OnlyOverWrite[i])
-    }
-  }
 END_SECTION
 
 END_TEST
