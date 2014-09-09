@@ -140,14 +140,14 @@ protected:
     setMaxFloat_("extract:isotope_pmin", 1.0);
 
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
-    StringList modes = ListUtils::create<String>("OS_best,OS_all,filtered");
-    registerStringOption_("detect:mode", "<choice>", modes[0], "Feature detection mode. 'OS_best': use OpenSWATH feature detection, return single best feature per charged peptide; 'OS_all': use OpenSWATH feature detection, return all features (requires further processing of results); 'filtered': filter data according to expected isotope distribution, then detect elution peak (experimental).", false);
-    setValidStrings_("detect:mode", modes);
+    StringList algos = ListUtils::create<String>("OS_best,OS_all,iso_match");
+    registerStringOption_("detect:algorithm", "<choice>", algos[0], "Feature detection algorithm. 'OS_best': use OpenSWATH feature detection, return single best feature per charged peptide; 'OS_all': use OpenSWATH feature detection, return all features (requires further processing of results); 'iso_match': filter data according to expected isotope distribution, then detect elution peak (experimental).", false);
+    setValidStrings_("detect:algorithm", algos);
     registerDoubleOption_("detect:peak_width", "<value>", 30.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
     setMinFloat_("detect:peak_width", 0.0);
-    registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('filtered' mode only); relative to the square root of the measured intensity", false);
+    registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('iso_match' algorithm only); relative to the square root of the measured intensity", false);
     setMinFloat_("detect:tolerance", 0.0);
-    registerDoubleOption_("detect:max_gap", "<value>", 0.5, "Maximum gap (region without matching isotope peaks) length beyond which a feature won't be extended further ('filtered' mode only); relative to 'peak_width'; '0' to disable", false, true);
+    registerDoubleOption_("detect:max_gap", "<value>", 0.5, "Maximum gap (region without matching isotope peaks) beyond which a feature won't be extended further ('iso_match' algorithm only); relative to 'peak_width'; '0' to disable", false, true);
     setMinFloat_("detect:max_gap", 0.0);
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
@@ -1171,8 +1171,8 @@ protected:
     double mz_window = getDoubleOption_("extract:mz_window");
     bool mz_window_ppm = mz_window >= 1;
     double isotope_pmin = getDoubleOption_("extract:isotope_pmin");
-    String detection_mode = getStringOption_("detect:mode");
-    bool filtered_detection = detection_mode == "filtered";
+    String detection_algo = getStringOption_("detect:algorithm");
+    bool use_iso_match = detection_algo == "iso_match";
     double peak_width = getDoubleOption_("detect:peak_width");
     max_gap_ = getDoubleOption_("detect:max_gap") * peak_width;
     String elution_model = getStringOption_("model:type");
@@ -1352,7 +1352,7 @@ protected:
     LOG_INFO << "Finding chromatographic peaks..." << endl;
     FeatureMap<> features;
 
-    if (filtered_detection)
+    if (use_iso_match)
     {
       detectFeatures_(chrom_data, features, peak_width);
     }
@@ -1361,7 +1361,7 @@ protected:
       MRMFeatureFinderScoring mrm_finder;
       Param params = mrm_finder.getParameters();
       params.setValue("stop_report_after_feature", 
-                      (detection_mode == "OS_all") ? -1 : 1);
+                      (detection_algo == "OS_all") ? -1 : 1);
       if (elution_model != "none") params.setValue("write_convex_hull", "true");
       params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
       params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
@@ -1391,7 +1391,7 @@ protected:
     for (FeatureMap<>::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
-      if (!filtered_detection)
+      if (!use_iso_match)
       {
         feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
         feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
