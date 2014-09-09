@@ -78,7 +78,6 @@ public:
       }
     }
 
-
     return f.getCharge() == charge_ && f_sequence == sequence_;
   }
 
@@ -132,7 +131,8 @@ public:
     @param reverse if @p reverse is true, operator() returns true if the metavalue does not exist.
   */
   SumFormulaValue(String expected_value) :
-    expected_value_(expected_value)
+    expected_value_(expected_value),
+    meta_value_key_("sum_formula")
   {}
 
   inline bool operator()(const Feature& f) const
@@ -141,13 +141,16 @@ public:
     {
       return f.getMetaValue(meta_value_key_) == expected_value_;
     }
+    else
+    {
+      return false;
+    }
   }
 
 protected:
   const String expected_value_;
-  const String meta_value_key_ = "sum_formula";
+  const String meta_value_key_;
 };
-
 
 START_TEST(MSSim, "$Id$")
 
