@@ -1078,34 +1078,71 @@ namespace OpenMS
         PeakMap exp;
         FileHandler().loadExperiment(in, exp);
 
-        if (exp.getChromatograms().empty())
+        if (exp.getSpectra().empty() && exp.getChromatograms().empty())
         {
-          writeLog_("File does not contain chromatograms. No output was generated!");
+          writeLog_("File does not contain spectra or chromatograms.");
           return INCOMPATIBLE_INPUT_DATA;
         }
-
-        Size output_count(0);
 
         ofstream outstr(out.c_str());
         SVOutStream output(outstr, sep, replacement, quoting_method);
         output.modifyStrings(false);
-        for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
-        {
-          if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
-          {
-            ++output_count;
-            output << "MRM Q1=" << it->getPrecursor().getMZ() << " Q3=" << it->getProduct().getMZ() << nl;
-            for (MSChromatogram<>::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
-            {
-              output << cit->getRT() << " " << cit->getIntensity() << nl;
-            }
-            output << nl;
-          }
-        }
-        outstr.close();
 
-        writeLog_("Found " + String() + " SRM spectra!");
-        if (output_count == 0) writeLog_("No output was generated!!");
+        {
+          if (exp.getSpectra().empty())
+          {
+            writeLog_("File does not contain spectra. No output for spectra generated!");
+          }
+
+          output << "#MS" << "level" << "rt" << "mz" << "peaks" << nl;
+          for (MSExperiment<>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
+          {
+            if (it->getMSLevel() == 1)
+            {
+              output << "MS" << it->getMSLevel() << it->getRT() << "" << it->size() << nl;
+            } 
+            else if (it->getMSLevel() == 2)
+            {
+              double precursor_mz = -1;
+
+              if (!it->getPrecursors().empty())
+              {
+                precursor_mz = it->getPrecursors()[0].getMZ();
+              }
+
+              output << "MS" << it->getMSLevel() << it->getRT() << precursor_mz << it->size() << nl;
+            }
+          }
+          output << nl;
+        }
+
+        {
+          if (exp.getChromatograms().empty())
+          {
+            writeLog_("File does not contain chromatograms. No output for chromatograms generated!");
+          }
+
+          Size output_count(0);
+
+          for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
+          {
+            if (it->getChromatogramType() == ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+            {
+              ++output_count;
+              output << "MRM Q1=" << it->getPrecursor().getMZ() << " Q3=" << it->getProduct().getMZ() << nl;
+              for (MSChromatogram<>::ConstIterator cit = it->begin(); cit != it->end(); ++cit)
+              {
+                output << cit->getRT() << " " << cit->getIntensity() << nl;
+              }
+              output << nl;
+            }
+          }
+
+          writeLog_("Found " + String(output_count) + " SRM spectra!");
+         if (output_count == 0) writeLog_("No output for chromatograms were generated!!");
+       }
+
+       outstr.close();
       }
 
       return EXECUTION_OK;
