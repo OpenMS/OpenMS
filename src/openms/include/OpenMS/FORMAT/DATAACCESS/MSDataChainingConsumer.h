@@ -54,7 +54,7 @@ namespace OpenMS
   class OPENMS_DLLAPI MSDataChainingConsumer :
     public Interfaces::IMSDataConsumer< MSExperiment<> >
   {
-    std::vector<IMSDataConsumer<> *> consumers_;
+    std::vector<Interfaces::IMSDataConsumer<> *> consumers_;
 
   public:
 
@@ -73,7 +73,7 @@ namespace OpenMS
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
-    MSDataChainingConsumer(std::vector<IMSDataConsumer<> *> consumers);
+    MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer<> *> consumers);
 
     /**
      * @brief Destructor
@@ -88,7 +88,7 @@ namespace OpenMS
      * responsibility to delete the pointer to consumer afterwards.
      *
      */
-    void appendConsumer(IMSDataConsumer<> * consumer);
+    void appendConsumer(Interfaces::IMSDataConsumer<> * consumer);
 
     /**
      * @brief Set experimental settings for all consumers
