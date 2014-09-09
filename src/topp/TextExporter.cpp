@@ -1094,26 +1094,38 @@ namespace OpenMS
             writeLog_("File does not contain spectra. No output for spectra generated!");
           }
 
-          output << "#MS" << "level" << "rt" << "mz" << "peaks" << nl;
+          Size output_count(0);
+
+          output << "#MS" << "level" << "rt" << "mz" << "charge" << "peaks" << "index" << "name" << nl;
           for (MSExperiment<>::const_iterator it = exp.getSpectra().begin(); it != exp.getSpectra().end(); ++it)
           {
+            int index = (it - exp.getSpectra().begin());
+            String name = it->getName();
             if (it->getMSLevel() == 1)
             {
-              output << "MS" << it->getMSLevel() << it->getRT() << "" << it->size() << nl;
+              ++output_count;
+              output << "MS" << it->getMSLevel() << it->getRT() << "" << "" << it->size() << index << name << nl;
             } 
             else if (it->getMSLevel() == 2)
             {
               double precursor_mz = -1;
+              int precursor_charge = -1;
 
               if (!it->getPrecursors().empty())
               {
                 precursor_mz = it->getPrecursors()[0].getMZ();
+                precursor_charge = it->getPrecursors()[0].getCharge();
               }
 
-              output << "MS" << it->getMSLevel() << it->getRT() << precursor_mz << it->size() << nl;
+              ++output_count;
+              output << "MS" << it->getMSLevel() << it->getRT() << precursor_mz << precursor_charge << it->size() << index << name << nl;
             }
           }
-          output << nl;
+
+          if (output_count != 0)
+          {
+            writeLog_("Exported " + String(output_count) + " spectra!");
+          }
         }
 
         {
@@ -1123,6 +1135,7 @@ namespace OpenMS
           }
 
           Size output_count(0);
+          Size unsupported_chromatogram_count(0);
 
           for (vector<MSChromatogram<> >::const_iterator it = exp.getChromatograms().begin(); it != exp.getChromatograms().end(); ++it)
           {
@@ -1135,13 +1148,25 @@ namespace OpenMS
                 output << cit->getRT() << " " << cit->getIntensity() << nl;
               }
               output << nl;
+            } 
+            else
+            {
+              ++unsupported_chromatogram_count;
             }
           }
 
-          writeLog_("Found " + String(output_count) + " SRM spectra!");
-         if (output_count == 0) writeLog_("No output for chromatograms were generated!!");
+          if (output_count != 0)
+          {
+            writeLog_("Exported " + String(output_count) + " SRM spectra!");
+          }
+
+          if (unsupported_chromatogram_count != 0)
+          {
+            writeLog_("Ignored " + String(unsupported_chromatogram_count) + " chromatograms not supported by TextExporter!");
+          }
        }
 
+       output << nl;
        outstr.close();
       }
 
