@@ -158,6 +158,14 @@ protected:
     void processChromatogram_(MapType::ChromatogramType & c) 
     {
       MapType::ChromatogramType cout;
+      if (sort_)
+      {
+        c.sortByPosition();
+      }
+      else if (!c.isSorted())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not all chromatograms are sorted according to peak m/z positions. Use FileFilter or the 'sort' option to sort the input.");
+      }
       pp_.pick(c, cout);
       c = cout;
     }
@@ -176,7 +184,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "output peak file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
-    registerFlag_("sort", "The algorithm requires peaks in input spectra to be sorted according to m/z. If the input data may be unsorted, set this flag to force sorting.");
+    registerFlag_("sort", "The algorithm requires peaks in input spectra and chromatograms to be sorted according to m/z. If the input data may be unsorted, set this flag to force sorting.");
 
     registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
     setValidStrings_("processOption", ListUtils::create<String>("inmemory,lowmemory"));
