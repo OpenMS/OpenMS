@@ -33,168 +33,32 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
-#include "Wm5Vector2.h"
-#include "Wm5ApprLineFit2.h"
-
-#include <algorithm>
-#include <numeric>
-#include <iterator>
-
-
-using namespace std;
 
 namespace OpenMS
 {
-  TransformationModelLinear::TransformationModelLinear(
-    const TransformationModel::DataPoints& data, const Param& params)
-  {
-    params_ = params;
-    data_given_ = !data.empty();
-    if (!data_given_ && params.exists("slope") && (params.exists("intercept")))
-    {
-      // don't estimate parameters, use given values
-      slope_ = params.getValue("slope");
-      intercept_ = params.getValue("intercept");
-    }
-    else // estimate parameters from data
-    {
-      Param defaults;
-      getDefaultParameters(defaults);
-      params_.setDefaults(defaults);
-      symmetric_ = params_.getValue("symmetric_regression") == "true";
 
-      size_t size = data.size();
-      std::vector<Wm5::Vector2d> points;
-      if (size == 0) // no data
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                         "no data points for 'linear' model");
-      }
-      else if (size == 1) // degenerate case, but we can still do something
-      {
-        slope_ = 1.0;
-        intercept_ = data[0].second - data[0].first;
-      }
-      else // compute least-squares fit
-      {
-        for (size_t i = 0; i < size; ++i)
-        {
-          points.push_back(Wm5::Vector2d(data.at(i).first, data.at(i).second));
-        }
-        if (!Wm5::HeightLineFit2<double>(size, &points.front(), slope_, intercept_))
-          throw std::runtime_error("could not fit");
-      }
-    }
-  }
-
-  TransformationModelLinear::~TransformationModelLinear()
+  TransformationModel::TransformationModel(const TransformationModel::DataPoints&, const Param&) :
+    params_()
   {
   }
 
-  double TransformationModelLinear::evaluate(const double value) const
+  TransformationModel::~TransformationModel()
   {
-    return slope_ * value + intercept_;
   }
 
-  void TransformationModelLinear::invert()
+  double TransformationModel::evaluate(const double value) const
   {
-    if (slope_ == 0)
-      throw Exception::DivisionByZero(__FILE__, __LINE__,
-                                      __PRETTY_FUNCTION__);
-    intercept_ = -intercept_ / slope_;
-    slope_ = 1.0 / slope_;
-    // update parameters:
-    if (params_.exists("slope") && (params_.exists("intercept")))
-    {
-      params_.setValue("slope", slope_, params_.getDescription("slope"));
-      params_.setValue("intercept", intercept_,
-                       params_.getDescription("intercept"));
-    }
+    return value;
   }
 
-  void TransformationModelLinear::getParameters(double& slope,
-                                                double& intercept) const
+  const Param& TransformationModel::getParameters() const
   {
-    slope = slope_;
-    intercept = intercept_;
+    return params_;
   }
 
-  void TransformationModelLinear::getDefaultParameters(Param& params)
+  void TransformationModel::getDefaultParameters(Param& params)
   {
     params.clear();
-    params.setValue("symmetric_regression", "false", "Perform linear regression"
-                                                     " on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
-    params.setValidStrings("symmetric_regression",
-                           ListUtils::create<String>("true,false"));
-  }
-
-  TransformationModelInterpolated::TransformationModelInterpolated(
-    const TransformationModel::DataPoints& data, const Param& params)
-  {
-    params_ = params;
-    Param defaults;
-    getDefaultParameters(defaults);
-    params_.setDefaults(defaults);
-
-    // need monotonically increasing x values (can't have the same value twice):
-    map<double, vector<double> > mapping;
-    for (TransformationModel::DataPoints::const_iterator it = data.begin();
-         it != data.end(); ++it)
-    {
-      mapping[it->first].push_back(it->second);
-    }
-    x_.resize(mapping.size());
-    y_.resize(mapping.size());
-    size_t i = 0;
-    for (map<double, vector<double> >::const_iterator it =
-           mapping.begin(); it != mapping.end(); ++it, ++i)
-    {
-      x_[i] = it->first;
-      // use average y value:
-      y_[i] = accumulate(it->second.begin(), it->second.end(), 0.0) /
-              it->second.size();
-    }
-    if (x_.size() < 3)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cubic spline model needs at least 3 data points (with unique x values)");
-    }
-    interp_ = new Spline2d<double>(3, x_, y_);
-
-    // linear model for extrapolation:
-    TransformationModel::DataPoints lm_data(2);
-    lm_data[0] = make_pair(x_.front(), y_.front());
-    lm_data[1] = make_pair(x_.back(), y_.back());
-    lm_ = new TransformationModelLinear(lm_data, Param());
-  }
-
-  TransformationModelInterpolated::~TransformationModelInterpolated()
-  {
-    delete interp_;
-    delete lm_;
-  }
-
-  double TransformationModelInterpolated::evaluate(const double value)
-  const
-  {
-    if ((value < x_.front()) || (value > x_.back())) // extrapolate
-    {
-      return lm_->evaluate(value);
-    }
-    // interpolate:
-    return interp_->eval(value);
-  }
-
-  void TransformationModelInterpolated::getDefaultParameters(Param& params)
-  {
-    params.clear();
-    params.setValue("interpolation_type", "cspline",
-                    "Type of interpolation to apply.");
-    StringList types = ListUtils::create<String>("linear,polynomial,cspline,akima");
-    params.setValidStrings("interpolation_type", types);
   }
 
 }

@@ -52,6 +52,10 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
@@ -63,31 +67,31 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_FeatureFinderIdentification FeatureFinderIdentification
+  @page TOPP_FeatureFinderIdentification FeatureFinderIdentification
 
-        @brief Detects features in MS1 data based on peptide identifications.
+  @brief Detects features in MS1 data based on peptide identifications.
 
-        <CENTER>
-        <table>
-        <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIdentification \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-        </tr>
-        </table>
-        </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIdentification \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+  </tr>
+  </table>
+  </CENTER>
 
-        This tool uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+  This tool uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_FeatureFinderIdentification.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_FeatureFinderIdentification.cli
 */
 
 // We do not want this class to show up in the docu:

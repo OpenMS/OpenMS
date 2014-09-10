@@ -30,6 +30,8 @@ SimplePairFinder.h
 StablePairFinder.h
 TransformationDescription.h
 TransformationModel.h
+TransformationModelLinear.h
+TransformationModelInterpolated.h
 )
 
 ### add path to the filenames

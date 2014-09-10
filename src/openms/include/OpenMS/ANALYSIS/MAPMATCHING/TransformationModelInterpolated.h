@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-//
+// 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -26,57 +26,63 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+// 
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELINTERPOLATED_H
+#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELINTERPOLATED_H
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/config.h>
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+
+#include <OpenMS/MATH/MISC/Spline2d.h>
 
 namespace OpenMS
 {
   /**
-    @brief Base class for transformation models
+    @brief Interpolation model for transformations
 
-    Implements the identity (no transformation). Parameters and data are ignored.
+    Between the data points, the interpolation uses the neighboring points. Outside the range spanned by the points, we extrapolate using a line through the first and the last point.
+
+    Interpolation is done by a cubic spline. Note that at least 4 data point are required.
 
     @ingroup MapAlignment
   */
-  class OPENMS_DLLAPI TransformationModel
+  class OPENMS_DLLAPI TransformationModelInterpolated :
+    public TransformationModel
   {
 public:
-    /// Coordinate pair
-    typedef std::pair<double, double> DataPoint;
-    /// Vector of coordinate pairs
-    typedef std::vector<DataPoint> DataPoints;
+    /**
+         @brief Constructor
 
-    /// Constructor
-    TransformationModel() {}
-
-    /// Alternative constructor (derived classes should implement this one!)
-    TransformationModel(const TransformationModel::DataPoints &, const Param &);
+         @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
+    */
+    TransformationModelInterpolated(const DataPoints & data,
+                                    const Param & params);
 
     /// Destructor
-    virtual ~TransformationModel();
+    ~TransformationModelInterpolated();
 
     /// Evaluates the model at the given value
-    virtual double evaluate(const double value) const;
-
-    /// Gets the (actual) parameters
-    const Param & getParameters() const;
+    double evaluate(const double value) const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param & params);
 
 protected:
-    /// Parameters
-    Param params_;
+    /// Data coordinates
+    std::vector<double> x_, y_;
+    /// Interpolation function
+    Spline2d<double> * interp_;
+    /// Linear model for extrapolation
+    TransformationModelLinear * lm_;
   };
 
-} // end of namespace OpenMS
+} // namespace
 
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELINTERPOLATED_H

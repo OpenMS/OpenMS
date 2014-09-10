@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-//
+// 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -26,57 +26,71 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
+// 
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H
+#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/config.h>
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 
 namespace OpenMS
 {
-  /**
-    @brief Base class for transformation models
 
-    Implements the identity (no transformation). Parameters and data are ignored.
+  /**
+    @brief Linear model for transformations
+
+    The model can be inferred from data or specified using explicit parameters. If data is given, a least squares fit is used to find the model parameters (slope and intercept). Depending on parameter @p symmetric_regression, a normal regression (@e y on @e x) or symmetric regression (@f$ y - x @f$ on @f$ y + x @f$) is performed.
+
+    Without data, the model can be specified by giving the parameters @p slope and @p intercept explicitly.
 
     @ingroup MapAlignment
   */
-  class OPENMS_DLLAPI TransformationModel
+  class OPENMS_DLLAPI TransformationModelLinear :
+    public TransformationModel
   {
 public:
-    /// Coordinate pair
-    typedef std::pair<double, double> DataPoint;
-    /// Vector of coordinate pairs
-    typedef std::vector<DataPoint> DataPoints;
+    /**
+      @brief Constructor
 
-    /// Constructor
-    TransformationModel() {}
-
-    /// Alternative constructor (derived classes should implement this one!)
-    TransformationModel(const TransformationModel::DataPoints &, const Param &);
+      @exception IllegalArgument is thrown if neither data points nor explicit parameters (slope/intercept) are given.
+    */
+    TransformationModelLinear(const DataPoints & data, const Param & params);
 
     /// Destructor
-    virtual ~TransformationModel();
+    ~TransformationModelLinear();
 
     /// Evaluates the model at the given value
     virtual double evaluate(const double value) const;
 
-    /// Gets the (actual) parameters
-    const Param & getParameters() const;
+    using TransformationModel::getParameters;
+
+    /// Gets the "real" parameters
+    void getParameters(double & slope, double & intercept) const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param & params);
 
+    /**
+     @brief Computes the inverse
+
+     @exception DivisionByZero is thrown if the slope is zero.
+    */
+    void invert();
+
 protected:
-    /// Parameters
-    Param params_;
+    /// Parameters of the linear model
+    double slope_, intercept_;
+    /// Was the model estimated from data?
+    bool data_given_;
+    /// Use symmetric regression?
+    bool symmetric_;
   };
+} // namespace
 
-} // end of namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H
