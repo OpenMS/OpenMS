@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------
-set(DO_NOT_TEST_THESE_FILES_REGEX "(/(moc|ui)_|/MSNumpress.cpp)")
+set(DO_NOT_TEST_THESE_FILES_REGEX "(/(moc|ui)_|/MSNumpress.cpp|3rdparty)")
 set(IGNORE_FILES_IN_BUILD_DIRECTORY "^${PROJECT_BINARY_DIR}")
 
 # --------------------------------------------------------------------------
