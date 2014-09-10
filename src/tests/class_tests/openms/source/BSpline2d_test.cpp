@@ -112,6 +112,7 @@ START_SECTION((double eval(double x)))
   for (Size i = 0; i != x.size(); ++i)
   {
     double error = y[i] - 10.0 * sin(x[i]);
+    //cout << "Original Error: " << error << endl;
     mean_squared_error_noisy += error * error;
   }
   mean_squared_error_noisy /= (double)x.size();
@@ -123,6 +124,7 @@ START_SECTION((double eval(double x)))
     for (Size i = 0; i != x.size(); ++i)
     {
       double error = b.eval(x[i]) - 10.0 * sin(x[i]);
+      //cout << "Smoothed Error: " << error << endl;
       mean_squared_error_smoothed += error * error;
     }
     mean_squared_error_smoothed /= (double)x.size();
@@ -150,16 +152,48 @@ END_SECTION
 
 START_SECTION((double derivative(double x)))
 {
-  // TODO
+  {
+    // calculate error on first derivative of smoothed points. 
+    // preserve curvature - otherwise we get large errors on derivative
+    BSpline2d b(x, y, 0, BSpline2d::BC_ZERO_SECOND);
+    double mean_absolute_derivative_error(0.0);
+    for (Size i = 0; i != x.size(); ++i)
+    {
+      double error = fabs(b.derivative(x[i]) - 10.0 * cos(x[i]));
+      mean_absolute_derivative_error += error;
+    }
+    mean_absolute_derivative_error /= (double)x.size();
+ 
+    //cout << mean_absolute_derivative_error << endl;
+    TEST_EQUAL(mean_absolute_derivative_error < 10.0 * 0.2, true)
+  }
+  
 }
 END_SECTION
 
 START_SECTION((double coefficient(int n)))
 {
-  // TODO
+  vector<double> x2;
+  vector<double> y2;
+  for (Size i = 0; i != 100; ++i)
+  {
+    x2.push_back(i);
+    y2.push_back(i);
+  }
+  
+  // b-spline coefficients should increase monotopically for this example (checked with R)
+  BSpline2d b(x2, y2, 0, BSpline2d::BC_ZERO_SECOND, 100);
+  bool coeff_mono_increase = true;
+  for (Size i = 1; i < 100; ++i)
+  {
+    if (b.coefficient(i) <= b.coefficient(i - 1))
+    {
+      coeff_mono_increase = false;
+    }
+  }
+  TEST_EQUAL(coeff_mono_increase, true);
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

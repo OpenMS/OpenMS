@@ -80,13 +80,13 @@ public:
      *				@p x values.  A wavelength of zero disables
      *				the derivative constraint.
      * @param bc_type	The enumerated boundary condition type.  If
-     *			omitted it defaults to BC_ZERO_ENDPOINTS.
+     *			omitted it defaults to BC_ZERO_SECOND.
      * @param num_nodes The number of nodes to use for the cubic b-spline.
      *			If less than 2 a "reasonable" number will be
      *			calculated automatically, taking into account
      *			the given cutoff wavelength.                                                                                                               
      **/
-    BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wave_length = 0, BoundaryCondition boundary_condition = BC_ZERO_ENDPOINTS, Size num_nodes = 0);
+    BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wave_length = 0, BoundaryCondition boundary_condition = BC_ZERO_SECOND, Size num_nodes = 0);
 
     /**
      * Destructor
