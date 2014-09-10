@@ -5224,6 +5224,8 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
                 date_time_modified="2006-10-15 18:24:07"
                 approved="1"
                 record_id="199">
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Isotopic label"
+                           spec_group="4"/>
          <umod:specificity hidden="1" site="N-term" position="Protein N-term"
                            classification="Isotopic label"
                            spec_group="3"/>
@@ -10185,6 +10187,8 @@ corrected by subtraction of a further -O at 8.6.2010</umod:misc_notes>
                 date_time_modified="2006-10-15 18:26:15"
                 approved="1"
                 record_id="510">
+         <umod:specificity hidden="1" site="R" position="Anywhere" classification="Isotopic label"
+                           spec_group="3"/>
          <umod:specificity hidden="1" site="N-term" position="Any N-term" classification="Isotopic label"
                            spec_group="2"/>
          <umod:specificity hidden="1" site="K" position="Anywhere" classification="Isotopic label"
