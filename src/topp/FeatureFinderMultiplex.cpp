@@ -985,7 +985,7 @@ public:
     {
         ConsensusMap::FileDescription& desc = map.getFileDescriptions()[i];
         desc.filename = filename;
-        
+
         if (knock_out_)
         {
             // With knock-outs present, the correct labels can only be determined during ID mapping.
@@ -1150,7 +1150,7 @@ private:
     PeakPickerHiRes picker;
     Param param = picker.getParameters();
     picker.setLogType(log_type_);
-    param.setValue("ms1_only", DataValue("true"));
+    param.setValue("ms_levels", ListUtils::create<Int>("1"));
     param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
     picker.setParameters(param);
 
