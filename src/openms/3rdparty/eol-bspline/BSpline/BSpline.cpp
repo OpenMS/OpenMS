@@ -108,7 +108,7 @@ template<class T> bool BSpline<T>::solve(const T *y) {
         mx = (int)((xj - xmin) / DX);
 
         for (m = my::max(0, mx-1); m <= my::min(mx+2, M); ++m) {
-            B[m] += yj * Basis(m, xj);
+            B[m] += yj * this->Basis(m, xj);
         }
     }
 
@@ -150,7 +150,7 @@ template<class T> T BSpline<T>::evaluate(T x) {
     if (OK) {
         int n = (int)((x - xmin)/DX);
         for (int i = my::max(0, n-1); i <= my::min(M, n+2); ++i) {
-            y += s->A[i] * Basis(i, x);
+            y += s->A[i] * this->Basis(i, x);
         }
         y += mean;
     }
@@ -162,7 +162,7 @@ template<class T> T BSpline<T>::slope(T x) {
     if (OK) {
         int n = (int)((x - xmin)/DX);
         for (int i = my::max(0, n-1); i <= my::min(M, n+2); ++i) {
-            dy += s->A[i] * DBasis(i, x);
+            dy += s->A[i] * this->DBasis(i, x);
         }
     }
     return dy;
