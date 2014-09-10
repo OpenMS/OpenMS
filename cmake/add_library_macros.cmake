@@ -35,6 +35,7 @@
 # required modules
 include(CMakeParseArguments)
 include(GenerateExportHeader)
+include(CheckLibArchitecture)
 
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
@@ -170,6 +171,8 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Link library against other libraries
   if(openms_add_library_LINK_LIBRARIES)
+    ## check for consistent lib arch (e.g. all 64bit)? 
+    check_lib_architecture(openms_add_library_LINK_LIBRARIES)
     target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
   endif()
