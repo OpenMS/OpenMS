@@ -356,6 +356,9 @@ namespace OpenMS
     }
 
     return computeFwhmAreaRobust();
+
+    //return getMaxIntensity(smoothed);
+
   }
 
   double MassTrace::getMaxIntensity(bool smoothed) const

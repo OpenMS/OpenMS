@@ -95,6 +95,21 @@ String id_list_neg[] = {/*"C32H28O11",*/ "C17H17Cl2N", "C10H13N5O5", "C6H14O6S2"
                         //                   305.073804963  283.091668551   246.02317956
 START_SECTION((void queryByMass(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)))
 {
+    if (0)
+    {
+      std::vector<AccurateMassSearchResult> res;
+      Param ams_param;
+      ams_param.setValue("db:mapping", "M:\\projects\\LipidsQuant\\identifyByFullScan\\LM_MappingFile_SpikeInOnly.tsv");
+      ams_param.setValue("db:struct", "M:\\projects\\LipidsQuant\\identifyByFullScan\\LM_StructMapping_SpikeInOnly.tsv");
+      ams_param.setValue("mass_error_value", 50.0);
+      ams_param.setValue("ionization_mode", "negative");
+      ams_param.setValue("negative_adducts_file", "M:\\projects\\LipidsQuant\\identifyByFullScan\\AdductsNegative.tsv");
+      ams_neg.setParameters(ams_param);
+      ams_neg.queryByMass(762.520746723911, 1, res); // C40H77NO10PNa (762.5171)
+
+      exit(0);
+    }
+
     std::vector<AccurateMassSearchResult> hmdb_results_pos, hmdb_results_neg;
     ams_pos.queryByMass(query_mass_pos, 1.0, hmdb_results_pos);
 

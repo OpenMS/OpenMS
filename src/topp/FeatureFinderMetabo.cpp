@@ -237,11 +237,11 @@ protected:
                                             ++it)
       {
         it->disableFHWM();
-        if (ffm_param.getValue("use_smoothed_intensities").toBool())
-        {
-          LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
-          ffm_param.setValue("use_smoothed_intensities", "false");
-        }
+      }
+      if (ffm_param.getValue("use_smoothed_intensities").toBool())
+      {
+        LOG_WARN << "Without EPD, smoothing is not supported. Setting 'use_smoothed_intensities' to false!" << std::endl;
+        ffm_param.setValue("use_smoothed_intensities", "false");
       }
     }
 

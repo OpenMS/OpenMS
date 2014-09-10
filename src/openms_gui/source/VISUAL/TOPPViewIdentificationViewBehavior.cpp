@@ -165,14 +165,21 @@ namespace OpenMS
                                                        ith!= it->getHits().end();
                                                        ++ith)
         {
-          if (ith->metaValueExists("name") && ith->metaValueExists("sumformula"))
+          if (ith->metaValueExists("identifier") && ith->metaValueExists("chemical_formula"))
           {
-            String name = ith->getMetaValue("name");
+            String name = ith->getMetaValue("identifier");
             if (name.length() > 20) 
             {
               name = name.substr(0, 17) + "...";
             }
-            formula_to_names[ith->getMetaValue("sumformula")].push_back(name);
+            formula_to_names[ith->getMetaValue("chemical_formula")].push_back(name);
+          }
+          else
+          {
+            StringList msg;
+            if (!ith->metaValueExists("identifier")) msg.push_back("identifier");
+            if (!ith->metaValueExists("chemical_formula")) msg.push_back("chemical_formula");
+            LOG_WARN << "Missing meta-value(s): " << ListUtils::concatenate(msg, ", ") << ". Cannot annotate!\n";
           }
         }
 

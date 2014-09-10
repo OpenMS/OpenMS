@@ -113,6 +113,7 @@ namespace OpenMS
         // debug/output functions
         void outputResults() const;
 
+
     private:
         /// Stored information/results of DB query
         double adduct_mass_;
@@ -199,27 +200,34 @@ private:
     template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map)
     {
        String ion_mode_detect_msg = "";
-       if (map.size() > 0 && map[0].metaValueExists("scan_polarity"))
+       if (map.size() > 0)
        {
-         StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
-         if (pols.size() == 1 && pols[0].size() > 0)
+         if (map[0].metaValueExists("scan_polarity"))
          {
-            pols[0].toLower();
-            if (pols[0] == "positive" || pols[0] == "negative")
-            {
-              ion_mode_internal_ = pols[0];
-              LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal_ << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
-            }
-            else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
+           StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
+           if (pols.size() == 1 && pols[0].size() > 0)
+           {
+              pols[0].toLower();
+              if (pols[0] == "positive" || pols[0] == "negative")
+              {
+                ion_mode_internal_ = pols[0];
+                LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal_ << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
+              }
+              else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
+           }
+           else
+           {
+             ion_mode_detect_msg = String("ambiguous ion mode: ") + String(map[0].getMetaValue("scan_polarity"));
+           }
          }
          else
          {
-           ion_mode_detect_msg = String("ambiguous ion mode: ") + String(map[0].getMetaValue("scan_polarity"));
+           ion_mode_detect_msg = String("Meta value 'scan_polarity' not found in (Consensus-)Feature map");
          }
        }
        else
-       {
-         ion_mode_detect_msg = String("Meta value 'scan_polarity' not found in first element of (Consensus-)Feature map!");
+       { // do nothing, since map is
+         LOG_INFO << "Meta value 'scan_polarity' cannot be determined since (Consensus-)Feature map is empty!" << std::endl;
        }
 
        if (ion_mode_detect_msg.size() > 0)
@@ -231,28 +239,54 @@ private:
     /// parse database and adduct files
     void init_();
 
-    bool is_initialized_; // true if init_() was called without any subsequent param changes
+    class OPENMS_DLLAPI AdductInfo_
+    {
 
+    public: 
+
+      AdductInfo_(const String& name, const EmpiricalFormula& adduct, int charge, bool is_intrinsic = false, uint mol_multiplier = 1);
+
+      double getNeutralMass(double observed_mz) const;
+
+      /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e.a if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
+      /// If the negative parts are present in @p db_entry, true is returned.
+      bool isCompatible(EmpiricalFormula db_entry) const;
+
+      /// get charge of adduct
+      int getCharge() const;
+
+      /// original string used for parsing
+      const String& getName() const;
+
+      /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
+      /// e.g. M+H;1+
+      /// 'M' can have multipliers, e.g. '2M + H;1+' (for a singly charged dimer)
+      static AdductInfo_ parseAdductString(const String adduct);
+
+    private:
+      /// hide default C'tor
+      AdductInfo_();
+
+      /// members
+      String name_;
+      EmpiricalFormula ef_;
+      double mass_; // computed from ef_.getMonoWeight(), but stored explicitly for efficency
+      int charge_;
+      bool is_intrinsic_;
+      uint mol_multiplier_;
+    };
+    
     void parseMappingFile_(const String&);
     void parseStructMappingFile_(const String&);
-    void parseAdductsFile_(const String& filename, StringList& result);
-    void searchMass_(const double&, std::vector<Size>& hit_indices);
+    void parseAdductsFile_(const String& filename, std::vector<AdductInfo_>& result);
+    void searchMass_(const double&, std::pair<Size, Size>& hit_indices);
 
     /// add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&);
 
-    /**
-      @brief given an adduct and an observed mass, we compute the neutral mass (without adduct) and the theoretical charge (of the adduct)
-
-    */
-    void computeNeutralMassFromAdduct_(const double& observed_mass, const String& adduct_string, double& neutral_mass, Int& charge_value);
-
     double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y);
     double computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y);
     double computeIsotopePatternSimilarity_(const Feature&, const EmpiricalFormula&);
-
-
-    String ion_mode_internal_;
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
@@ -270,7 +304,7 @@ private:
     };
     std::vector<MappingEntry_> mass_mappings_;
 
-    struct CompareEntryAndMass_     // defined here to allow for inlining by compiler
+    struct CompareEntryAndMass_     // defined here to allow for in-lining by compiler
     {
        double asMass( const MappingEntry_& v ) const
        {
@@ -291,6 +325,9 @@ private:
 
     HMDBPropsMapping hmdb_properties_mapping_;
 
+    String ion_mode_internal_;
+    bool is_initialized_; //< true if init_() was called without any subsequent param changes
+
     /// parameter stuff
     double mass_error_value_;
     String mass_error_unit_;
@@ -303,8 +340,8 @@ private:
     String db_mapping_file_;
     String db_struct_file_;
 
-    StringList pos_adducts_;
-    StringList neg_adducts_;
+    std::vector<AdductInfo_> pos_adducts_;
+    std::vector<AdductInfo_> neg_adducts_;
   };
 
 }
