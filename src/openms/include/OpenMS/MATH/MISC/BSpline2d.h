@@ -80,7 +80,7 @@ public:
      *				@p x values.  A wavelength of zero disables
      *				the derivative constraint.
      * @param bc_type	The enumerated boundary condition type.  If
-     *			omitted it defaults to BC_ZERO_SECOND.
+     *			omitted it defaults to BC_ZERO_ENDPOINTS.
      * @param num_nodes The number of nodes to use for the cubic b-spline.
      *			If less than 2 a "reasonable" number will be
      *			calculated automatically, taking into account
