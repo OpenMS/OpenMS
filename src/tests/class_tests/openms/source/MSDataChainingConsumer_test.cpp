@@ -77,7 +77,7 @@ START_SECTION((~MSDataChainingConsumer()))
 END_SECTION
 
 START_SECTION(( MSDataChainingConsumer(std::vector<IMSDataConsumer*> consumers) ))
-  std::vector<typename Interfaces::IMSDataConsumer<> *> consumer_list;
+  std::vector<Interfaces::IMSDataConsumer<> *> consumer_list;
   chaining_consumer_ptr = new MSDataChainingConsumer(consumer_list);
   TEST_NOT_EQUAL(chaining_consumer_ptr, chaining_consumer_nullPointer)
   delete chaining_consumer_ptr;
