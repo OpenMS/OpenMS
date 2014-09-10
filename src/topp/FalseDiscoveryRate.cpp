@@ -36,6 +36,9 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -109,12 +112,12 @@ protected:
     registerInputFile_("in", "<file>", "", "Identification input file which contains a search against "
                        "a concatenated sequence database. "
                        "Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input.", false);
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
 
     registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward run.", false);
-    setValidFormats_("fwd_in", ListUtils::create<String>("idXML"));
+    setValidFormats_("fwd_in", ListUtils::create<String>("idXML,mzid"));
     registerInputFile_("rev_in", "<file>", "", "Identification input to estimate FDR, decoy run.", false);
-    setValidFormats_("rev_in", ListUtils::create<String>("idXML"));
+    setValidFormats_("rev_in", ListUtils::create<String>("idXML,mzid"));
 
     registerOutputFile_("out", "<file>", "", "Identification output with annotated FDR");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
@@ -178,7 +181,17 @@ protected:
     {
       vector<PeptideIdentification> pep_ids;
       vector<ProteinIdentification> prot_ids;
-      IdXMLFile().load(in, prot_ids, pep_ids);
+      FileTypes::Type in_type = FileHandler::getTypeByFileName(getStringOption_("in"));
+
+      if (in_type == FileTypes::MZIDENTML)
+      {
+          MzIdentMLFile().load(in, prot_ids, pep_ids);
+      }
+      else
+      {
+          IdXMLFile().load(in, prot_ids, pep_ids);
+      }
+
       try
       {
         if (!proteins_only) fdr.apply(pep_ids);
@@ -204,15 +217,32 @@ protected:
     else         // -fw_in & rev_in given
     {
       vector<PeptideIdentification> fwd_pep, rev_pep;
-      vector<ProteinIdentification> fwd_prot, rev_prot;
-      IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
-      IdXMLFile().load(rev_in, rev_prot, rev_pep);
+      vector<ProteinIdentification> fwd_prot, rev_prot;  
+      FileTypes::Type in_type = FileHandler::getTypeByFileName(getStringOption_("fwd_in"));
+      writeDebug_("Reading - in_type is: "+String(in_type),1);
+
+      if (in_type == FileTypes::MZIDENTML)
+      {
+          MzIdentMLFile().load(fwd_in, fwd_prot, fwd_pep);
+          MzIdentMLFile().load(rev_in, rev_prot, rev_pep);
+          writeDebug_("Reading with MzIdentMLFile",1);
+      }
+      else if (in_type == FileTypes::IDXML)
+      {
+          IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
+          IdXMLFile().load(rev_in, rev_prot, rev_pep);
+      }
+      else
+      {
+          writeLog_("Error, unknown format in 'fwd_in' or 'rev_in'.");
+          return ILLEGAL_PARAMETERS;
+      }
 
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
 
-      writeDebug_("Starting calculations", 1);
+      writeDebug_("Starting calculations with "+String(fwd_pep.size())+"/"+String(rev_pep.size())+" read peptide IDs", 1);
 
       if (!proteins_only)
       {
