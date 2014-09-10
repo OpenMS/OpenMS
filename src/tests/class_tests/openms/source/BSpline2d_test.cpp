@@ -78,15 +78,11 @@ for (Size i = 0; i != sinus_file.size(); ++i)
   }
 }
 
-START_SECTION(~BSpline2d())
-{
-  delete ptr;
-}
-END_SECTION
-
 START_SECTION((BSpline2d(const std::vector< double > &x, const std::vector< double > &y, double wave_length=0, BoundaryCondition boundary_condition=BC_ZERO_ENDPOINTS, Size num_nodes=0)))
 {
-  BSpline2d(x, y);
+  ptr = new BSpline2d(x, y);
+  TEST_NOT_EQUAL(ptr, null_ptr)
+
   BSpline2d(x, y, 10, BSpline2d::BC_ZERO_ENDPOINTS);
   BSpline2d(x, y, 1, BSpline2d::BC_ZERO_FIRST);
   BSpline2d(x, y, 100, BSpline2d::BC_ZERO_SECOND);
@@ -95,6 +91,7 @@ END_SECTION
 
 START_SECTION((virtual ~BSpline2d()))
 {
+  delete ptr;
 }
 END_SECTION
 
