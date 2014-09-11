@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzerr $
+// $Maintainer: Mathias Walzer $
 // $Authors: Dilek Dere, Mathias Walzer, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
@@ -78,14 +78,14 @@
 </CENTER>
 
     @em MSGF+ must be installed before this wrapper can be used. This wrapper
-    has been successfully tested. Please be sure that java and MSGF+ are working.
+    has been successfully tested. Please be sure that Java and MSGF+ are working.
 
     This adapter supports relative database filenames, which (when not found in the 
     current working directory) is looked up in the directories specified by 
     'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 		
     The adapter has four input parameters. The input file is a spectrum file, the database
-    is the used database file for the search usually as fasta file,
+    is the used database file for the search usually as FASTA file,
     the name of the output file as idXML and the MSGF+ executable.
     Other parameters are set in the implementation and cannot be changed by the user
     in the moment. 
@@ -130,7 +130,7 @@ protected:
     registerInputFile_("database", "<file>", "", "FASTA file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
-    registerInputFile_("msgfplus_executable", "<executable>", "", "MSGFPlus executable of the installation e.g. 'java - jar MSGFPlus.jar'");
+    registerInputFile_("msgfplus_executable", "<executable>", "", "MSGFPlus jar file, e.g. 'c:\\program files\\MSGFPlus.jar'");
 
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 20, "Precursor mono mass tolerance.", false);
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Unit to be used for precursor mass tolerance.", false);
@@ -179,6 +179,7 @@ protected:
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
 
     registerStringOption_("java_memory_size", "<size>", "Xmx3500M", "Maximum Java heap size, Xmx<size>", false);
+
   }
 
   // The following sequence modification methods are used to modify the sequence stored in the tsv such that it can be used by AASequence
@@ -350,6 +351,11 @@ protected:
     parameters += " -n " + String(getIntOption_("matches_per_spec"));
     parameters += " -addFeatures " + String(getIntOption_("add_features"));
 
+    // TODO: forward thread number from OpenMS param, since the default might not be what the user wants when processing multiple files in parallel
+    // [-thread NumThreads] (Number of concurrent threads to be executed, Default: Number of available cores)
+
+
+    // TODO: create mod database on the fly from fixed and variable mod params
     String modfile_name = getStringOption_("mod");
     if(modfile_name != "") 
     {
@@ -362,6 +368,7 @@ protected:
    
     // run MSGFPlus process and create the mzid file
     String max_memory_size = "-" + getStringOption_("java_memory_size");
+    // TODO: this is not safe against spaces in paths. Better use QStringList for arguments and the respective execute() function overload
     String msgf_executable("java " + max_memory_size + " -jar " + getStringOption_("msgfplus_executable"));
 
     QProcess process;
@@ -383,7 +390,7 @@ protected:
     parameters += " -showQValue 1";
     parameters += " -showDecoy 1";
     parameters += " -unroll 1";
-
+    // TODO: same as above: use QStringList for execute() !
     status = process.execute((converter_executable + " " + parameters).toQString());
     if (status != 0)
     {
@@ -450,7 +457,7 @@ protected:
     protein_id.setSearchEngine("MSGFPlus");
     protein_id.setScoreType("MSGFPlus");
 
-    // store all peptide identifications in a map, the key is the scannumber
+    // store all peptide identifications in a map, the key is the scan number
     map<int,PeptideIdentification> peptide_identifications;
     set<String> prot_accessions;
 
