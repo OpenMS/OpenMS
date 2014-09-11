@@ -1007,6 +1007,8 @@ namespace OpenMS
           std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(element_res->getChildNodes());
 
           pep_id_->push_back(PeptideIdentification());
+          pep_id_->back().setHigherScoreBetter(false);
+          PeptideIdentification().setScoreType("e-value");
           //fill pep_id_->back() with content
 
           //butt ugly!
