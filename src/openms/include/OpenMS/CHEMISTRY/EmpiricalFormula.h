@@ -125,21 +125,6 @@ public:
         */
     IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
 
-    /// returns a pointer to the element with name or symbol or 0 if no such element is found
-    const Element * getElement(const String& name) const;
-
-    /// returns a pointer to the element with given atomic number or 0 if none if found
-    const Element * getElement(UInt atomic_number) const;
-
-    /// returns a pointer to the element db which is used with this class
-    const ElementDB * getElementDB() const;
-
-    /// returns the number of atoms with the given atomic_number (can be negative)
-    SignedSize getNumberOf(UInt atomic_number) const;
-
-    /// returns the number of atoms with the given @p name (can be negative)
-    SignedSize getNumberOf(const String& name) const;
-
     /// returns the number of atoms for a certain @p element (can be negative)
     SignedSize getNumberOf(const Element* element) const;
 
@@ -162,20 +147,8 @@ public:
     /// assignment operator
     EmpiricalFormula & operator=(const EmpiricalFormula & rhs);
 
-    /** assignment operator which assigns an string to the formula
-
-            @throw throws ParseError if the formula cannot be parsed
-    */
-    EmpiricalFormula & operator=(const String & rhs);
-
     /// adds the elements of the given formula
     EmpiricalFormula & operator+=(const EmpiricalFormula & rhs);
-
-    /** adds the elements from the given formula, which is given as a OpenMS String
-
-            @throw throws ParseError if the formula cannot be parsed
-    */
-    EmpiricalFormula & operator+=(const String & rhs);
 
     /// multiplies the elements and charge with a factor
     EmpiricalFormula operator*(const SignedSize & times) const;
@@ -183,29 +156,12 @@ public:
     /// adds the elements of the given formula and returns a new formula
     EmpiricalFormula operator+(const EmpiricalFormula & rhs) const;
 
-    /** adds the elements of the given formula (given as a String) and returns a new formula
-
-            @throw throws ParseError if the formula cannot be parsed
-    */
-    EmpiricalFormula operator+(const String & rhs) const;
-
     /// subtracts the elements of a formula
     EmpiricalFormula & operator-=(const EmpiricalFormula & rhs);
-
-    /** subtracts the elements of a formula given as string
-
-            @throw throws ParseError if the formula cannot be parsed
-    */
-    EmpiricalFormula & operator-=(const String & rhs);
 
     /// subtracts the elements of a formula an returns a new formula
     EmpiricalFormula operator-(const EmpiricalFormula & rhs) const;
 
-    /** subtracts the elements of a formula given as a String and returns a new formula
-
-            @throw throws ParseError if the formula cannot be parsed
-    */
-    EmpiricalFormula operator-(const String & rhs) const;
     //@}
 
     /**@name Predicates
@@ -220,32 +176,15 @@ public:
     /// returns true if the formula contains the element
     bool hasElement(const Element * element) const;
 
-    /// returns true if the formula contains the element, given with its name or symbol
-    bool hasElement(const String & name) const;
-
-    /// returns true if the formula contains the element with the given atomic number
-    bool hasElement(UInt atomic_number) const;
-
     /// returns true if all elements from @p ef are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula
     bool contains(const EmpiricalFormula& ef);
 
     /// returns true if the formulas contain equal elements in equal quantities
     bool operator==(const EmpiricalFormula & rhs) const;
 
-    /** returns true if the formulas contain equal elements in equal quantities
-
-            @throw throws ParseError if the formula cannot be parsed
-    */
-    bool operator==(const String & rhs) const;
-
     /// returns true if the formulas differ in elements composition
     bool operator!=(const EmpiricalFormula & rhs) const;
 
-    /** returns true if the formulas differ in elements composition
-
-      @throw throws ParseError if the formula cannot be parsed
-    */
-    bool operator!=(const String & rhs) const;
     //@}
 
     /// writes the formula to a stream
@@ -268,11 +207,7 @@ protected:
 
     SignedSize charge_;
 
-    void readElementsFromFile_(const String & file_name);
-
     SignedSize parseFormula_(Map<const Element *, SignedSize> & ef, const String & formula) const;
-
-    const ElementDB * element_db_;
   };
 
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const EmpiricalFormula & formula);

@@ -718,7 +718,8 @@ namespace OpenMS
         if (mod_i->empty())
           continue;
         // clear the formulae
-        add_formula = substract_formula = name = residues = mass = type = "";
+        add_formula = substract_formula = EmpiricalFormula();
+        name = residues = mass = type = "";
 
         // get the single parts of the modification string
         mod_i->split(',', mod_parts);
@@ -789,12 +790,12 @@ namespace OpenMS
           {
             if (pos != String::npos)
             {
-              add_formula = mass.substr(0, pos);
-              substract_formula = mass.substr(++pos);
+              add_formula = EmpiricalFormula(mass.substr(0, pos));
+              substract_formula = EmpiricalFormula(mass.substr(++pos));
             }
             else
             {
-              add_formula = mass;
+              add_formula = EmpiricalFormula(mass);
             }
             // sum up the masses
             if (monoisotopic)

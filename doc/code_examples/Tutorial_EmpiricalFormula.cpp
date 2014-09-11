@@ -29,6 +29,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -40,8 +41,10 @@ Int main()
 
   EmpiricalFormula sum = methanol + water;
 
+  const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
+
   cout << sum << " "
-       << sum.getNumberOf("Carbon") << " "
+       << sum.getNumberOf(carbon) << " "
        << sum.getAverageWeight() << endl;
 
   IsotopeDistribution iso_dist = sum.getIsotopeDistribution(3);
