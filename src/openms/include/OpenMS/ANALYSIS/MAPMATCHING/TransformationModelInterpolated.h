@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -26,7 +26,7 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Stephan Aiche $
@@ -39,8 +39,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
-
-#include <OpenMS/MATH/MISC/Spline2d.h>
 
 namespace OpenMS
 {
@@ -58,12 +56,11 @@ namespace OpenMS
   {
 public:
     /**
-         @brief Constructor
+      @brief Constructor
 
-         @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
+      @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
     */
-    TransformationModelInterpolated(const DataPoints & data,
-                                    const Param & params);
+    TransformationModelInterpolated(const DataPoints& data, const Param& params);
 
     /// Destructor
     ~TransformationModelInterpolated();
@@ -72,15 +69,46 @@ public:
     double evaluate(const double value) const;
 
     /// Gets the default parameters
-    static void getDefaultParameters(Param & params);
+    static void getDefaultParameters(Param& params);
 
-protected:
+    /**
+     * @brief The class defines a generic interpolation technique used in the TransformationModelInterpolated.
+     *
+     * @note This class is nested in cpp file as we don't want this to be part of the public interface nor
+     *       to be exposed to derived or other classes.
+     */
+    class Interpolator
+    {
+public:
+      /**
+       * @brief Initialize the Interpolator.
+       * @param x The x data.
+       * @param y The y data.
+       */
+      virtual void init(const std::vector<double>& x, const std::vector<double>& y) = 0;
+
+      /**
+       * @brief Evaluate the underlying interpolation at a specific position x.
+       *
+       * @param x The position where the interpolation should be evaluated.
+       *
+       * @return The interpolated value.
+       */
+      virtual double eval(const double& x) = 0;
+
+      /**
+       * @brief d'tor.
+       */
+      virtual ~Interpolator() {}
+    };
+
+private:
     /// Data coordinates
     std::vector<double> x_, y_;
     /// Interpolation function
-    Spline2d<double> * interp_;
+    Interpolator* interp_;
     /// Linear model for extrapolation
-    TransformationModelLinear * lm_;
+    TransformationModelLinear* lm_;
   };
 
 } // namespace

@@ -38,8 +38,41 @@
 #include <vector>
 #include <algorithm>
 
+#include <OpenMS/MATH/MISC/Spline2d.h>
+
 namespace OpenMS
 {
+  class Spline2dInterpolator :
+    public TransformationModelInterpolated::Interpolator
+  {
+public:
+    Spline2dInterpolator()
+      : spline_(0)
+    {
+    }
+
+    void init(const std::vector<double>& x, const std::vector<double>& y)
+    {
+      // cleanup before we use a new one
+      if(spline_ != 0) delete spline_;
+
+      // initialize spline
+      spline_ = new Spline2d<double>(3, x, y);
+    }
+
+    double eval(const double& x)
+    {
+      return spline_->eval(x);
+    }
+
+    ~Spline2dInterpolator()
+    {
+      if(spline_ != 0) delete spline_;
+    }
+
+private:
+    Spline2d<double>* spline_;
+  };
 
   TransformationModelInterpolated::TransformationModelInterpolated(const TransformationModel::DataPoints& data, const Param& params)
   {
@@ -70,7 +103,9 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cubic spline model needs at least 3 data points (with unique x values)");
     }
-    interp_ = new Spline2d<double>(3, x_, y_);
+
+    interp_ = new Spline2dInterpolator();
+    interp_->init(x_, y_);
 
     // linear model for extrapolation:
     TransformationModel::DataPoints lm_data(2);
