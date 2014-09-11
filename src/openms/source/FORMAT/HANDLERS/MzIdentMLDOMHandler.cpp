@@ -702,7 +702,7 @@ namespace OpenMS
           pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post,idec}));
           p_pv_map_.insert(std::make_pair(peptide_ref,id));
           pv_db_map_.insert(std::make_pair(id,dBSequence_ref));
-
+          // TODO @mths : multiple accessions do not seem to be taken over
         }
       }
       //std::cout << "PeptideEvidences found: " << count << std::endl;
@@ -1081,8 +1081,8 @@ namespace OpenMS
       {
           if (params.first.getCVTerms().has(*scoreit))
           {
-            score = (long double)params.first.getCVTerms()[*scoreit].front().getValue();
-            // std::cout << "using as score: " << *scoreit << std::endl;
+             score = params.first.getCVTerms()[*scoreit].front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+//             std::cout << "using as score: " << *scoreit << "by value" << score << std::endl;
             break;  // TODO @mths catch if an evalue (or any other SmallerIsBetter score appears first)
           }
       }

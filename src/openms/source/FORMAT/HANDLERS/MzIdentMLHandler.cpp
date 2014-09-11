@@ -491,6 +491,10 @@ namespace OpenMS
         {
           osecv = "Sequest";
         }
+        else if (swcn == "MS-GF+")
+        {
+          osecv = "MS-GF+";
+        }
         else
         {
           osecv = "analysis software";
@@ -720,6 +724,10 @@ namespace OpenMS
           {
             sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("Sequest:xcorr").toXMLString(cv_ns, sc);
           }
+          else if (pie_ids[pro_pep_matchstring] == "MS-GF+")
+          {
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("MS-GF:RawScore").toXMLString(cv_ns, sc);
+          }
           else
           {
             sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns, sc);
@@ -858,23 +866,32 @@ namespace OpenMS
 
       for (Size i = 0; i != keys.size(); ++i)
       {
-        s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
+          if (cv_.exists(keys[i]))
+          {
+              ControlledVocabulary::CVTerm a = cv_.getTerm(keys[i]);
+              s += String(indent, '\t') + a.toXMLString("PSI-MS",(String)(meta.getMetaValue(keys[i]))) + "\n";
+          }
+          else
+          {
+            s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-        DataValue d = meta.getMetaValue(keys[i]);
-        //determine type
-        if (d.valueType() == DataValue::INT_VALUE)
-        {
-          s += "xsd:integer";
-        }
-        else if (d.valueType() == DataValue::DOUBLE_VALUE)
-        {
-          s += "xsd:double";
-        }
-        else //string or lists are converted to string
-        {
-          s += "xsd:string";
-        }
-        s += "\" value=\"" + (String)(d) + "\"/>" + "\n";
+            DataValue d = meta.getMetaValue(keys[i]);
+            //determine type
+            if (d.valueType() == DataValue::INT_VALUE)
+            {
+              s += "xsd:integer";
+            }
+            else if (d.valueType() == DataValue::DOUBLE_VALUE)
+            {
+              s += "xsd:double";
+            }
+            else //string or lists are converted to string
+            {
+              s += "xsd:string";
+            }
+            s += "\" value=\"" + (String)(d) + "\"/>" + "\n";
+          }
+
       }
     }
 
