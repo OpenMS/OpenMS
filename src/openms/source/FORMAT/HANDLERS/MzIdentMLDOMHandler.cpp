@@ -1007,8 +1007,8 @@ namespace OpenMS
           std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(element_res->getChildNodes());
 
           pep_id_->push_back(PeptideIdentification());
-          pep_id_->back().setHigherScoreBetter(false);
-          PeptideIdentification().setScoreType("e-value");
+          pep_id_->back().setHigherScoreBetter(true);
+          PeptideIdentification().setScoreType(search_engine_);
           //fill pep_id_->back() with content
 
           //butt ugly!
@@ -1075,9 +1075,16 @@ namespace OpenMS
 
       long double score = 0;
       std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
-      if (params.first.getCVTerms().has("MS:1001172"))// TODO @mths get children of MS:1001143
+      std::set<String> score_terms;
+      cv_.getAllChildTerms(score_terms, "MS:1001143"); //search engine specific score for peptides
+      for (std::set<String>::const_iterator scoreit = score_terms.begin(); scoreit != score_terms.end(); ++scoreit)
       {
-        score = (long double)params.first.getCVTerms()["MS:1001172"].front().getValue();
+          if (params.first.getCVTerms().has(*scoreit))
+          {
+            score = (long double)params.first.getCVTerms()[*scoreit].front().getValue();
+            // std::cout << "using as score: " << *scoreit << std::endl;
+            break;  // TODO @mths catch if an evalue (or any other SmallerIsBetter score appears first)
+          }
       }
 
       String& pev = p_pv_map_[peptide_ref];
