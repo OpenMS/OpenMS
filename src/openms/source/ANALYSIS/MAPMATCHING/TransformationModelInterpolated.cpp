@@ -62,20 +62,20 @@ public:
     void init(std::vector<double>& x, std::vector<double>& y)
     {
       // cleanup before we use a new one
-      if (spline_ != (Spline2d<double>*)0) delete spline_;
+      if (spline_ != (Spline2d<double>*) 0) delete spline_;
 
       // initialize spline
       spline_ = new Spline2d<double>(3, x, y);
     }
 
-    double eval(const double& x)
+    double eval(const double& x) const
     {
       return spline_->eval(x);
     }
 
     ~Spline2dInterpolator()
     {
-      if (spline_ != (Spline2d<double>*)0) delete spline_;
+      if (spline_ != (Spline2d<double>*) 0) delete spline_;
     }
 
 private:
@@ -89,29 +89,90 @@ private:
     public TransformationModelInterpolated::Interpolator
   {
 public:
-    AkimaInterpolator()
-      : interpolator_(0)
+    AkimaInterpolator() :
+      interpolator_(0)
     {}
 
     void init(std::vector<double>& x, std::vector<double>& y)
     {
-      if(interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*)0) delete interpolator_;
+      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) 0) delete interpolator_;
       // re-construct a new interpolator
       interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(x.size(), &x.front(), &y.front());
     }
 
-    double eval(const double& x)
+    double eval(const double& x) const
     {
-      return (*interpolator_)(x);
+      return (* interpolator_)(x);
     }
 
     ~AkimaInterpolator()
     {
-      if(interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*)0) delete interpolator_;
+      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) 0) delete interpolator_;
     }
 
 private:
     Wm5::IntpAkimaNonuniform1<double>* interpolator_;
+  };
+
+  /**
+   * @brief LinearInterpolator.
+   */
+  class LinearInterpolator :
+    public TransformationModelInterpolated::Interpolator
+  {
+public:
+    LinearInterpolator()
+    {}
+
+    void init(std::vector<double>& x, std::vector<double>& y)
+    {
+      // clear data
+      x_.clear();
+      y_.clear();
+
+      // copy data
+      // TODO: should we solve this using pointers to the original data?
+      x_.insert(x_.begin(), x.begin(), x.end());
+      y_.insert(y_.begin(), y.begin(), y.end());
+    }
+
+    double eval(const double& x) const
+    {
+      // find nearest pair of points
+      std::vector<double>::const_iterator it = std::upper_bound(x_.begin(), x_.end(), x);
+
+      // interpolator is guaranteed to be only evaluated on points x, x_.front() =< x =< x x.back()
+      // see TransformationModelInterpolated::evaluate
+
+      // compute interpolation
+      // the only point that is > then an element in our series is y_.back()
+      // see call guarantee above
+      if (it == x_.end())
+      {
+        return y_.back();
+      }
+      else
+      {
+        // interpolate .. invariant: idx > 0
+        const SignedSize idx = it - x_.begin();
+        const double x_0 = x_[idx - 1];
+        const double x_1 = x_[idx];
+        const double y_0 = y_[idx - 1];
+        const double y_1 = y_[idx];
+
+        return y_0 + (y_1 - y_0) * (x - x_0) / (x_1 - x_0);
+      }
+    }
+
+    ~LinearInterpolator()
+    {
+    }
+
+private:
+    /// x values
+    std::vector<double> x_;
+    /// y values
+    std::vector<double> y_;
   };
 
   void TransformationModelInterpolated::preprocessDataPoints_(const DataPoints& data)
@@ -155,10 +216,22 @@ private:
 
     // choose the actual interpolation type
     const String interpolation_type = params_.getValue("interpolation_type");
-    if (interpolation_type == "linear")          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-    else if (interpolation_type == "polynomial") throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-    else if (interpolation_type == "cspline")    interp_ = new Spline2dInterpolator();
-    else if (interpolation_type == "akima")      interp_ = new AkimaInterpolator();
+    if (interpolation_type == "linear")
+    {
+      interp_ = new LinearInterpolator();
+    }
+    else if (interpolation_type == "polynomial")
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
+    else if (interpolation_type == "cspline")
+    {
+      interp_ = new Spline2dInterpolator();
+    }
+    else if (interpolation_type == "akima")
+    {
+      interp_ = new AkimaInterpolator();
+    }
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unknown/unsupported interpolation type '" + interpolation_type + "'");

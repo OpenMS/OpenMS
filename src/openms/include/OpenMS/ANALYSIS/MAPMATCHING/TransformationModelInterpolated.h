@@ -97,7 +97,7 @@ public:
        *
        * @return The interpolated value.
        */
-      virtual double eval(const double& x) = 0;
+      virtual double eval(const double& x) const = 0;
 
       /**
        * @brief d'tor.

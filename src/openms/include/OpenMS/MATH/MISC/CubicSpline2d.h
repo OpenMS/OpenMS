@@ -35,6 +35,8 @@
 #ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H_
 #define OPENMS_MATH_MISC_CUBICSPLINE2D_H_
 
+#include <OpenMS/config.h>
+
 #include <vector>
 #include <map>
 
