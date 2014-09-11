@@ -45,9 +45,9 @@ namespace OpenMS
   /**
     @brief Interpolation model for transformations
 
-    Between the data points, the interpolation uses the neighboring points. Outside the range spanned by the points, we extrapolate using a line through the first and the last point.
-
-    Interpolation is done by a cubic spline. Note that at least 4 data point are required.
+    Between the data points, the interpolation uses the neighboring points.
+    Outside the range spanned by the points, we extrapolate using a line through
+    the first and the last point.
 
     @ingroup MapAlignment
   */
@@ -57,6 +57,9 @@ namespace OpenMS
 public:
     /**
       @brief Constructor
+
+      @param data The known data points.
+      @param params Param object holding information on which model to choose.
 
       @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
     */
@@ -109,6 +112,8 @@ private:
     Interpolator* interp_;
     /// Linear model for extrapolation
     TransformationModelLinear* lm_;
+    /// Preprocesses the incoming data and fills the vectors x_ and y_.
+    void preprocessDataPoints_(const DataPoints& data);
   };
 
 } // namespace

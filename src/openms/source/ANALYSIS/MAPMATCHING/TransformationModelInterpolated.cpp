@@ -74,17 +74,13 @@ private:
     Spline2d<double>* spline_;
   };
 
-  TransformationModelInterpolated::TransformationModelInterpolated(const TransformationModel::DataPoints& data, const Param& params)
+  void TransformationModelInterpolated::preprocessDataPoints_(const DataPoints& data)
   {
-    params_ = params;
-    Param defaults;
-    getDefaultParameters(defaults);
-    params_.setDefaults(defaults);
-
     // need monotonically increasing x values (can't have the same value twice):
     std::map<double, std::vector<double> > mapping;
     for (TransformationModel::DataPoints::const_iterator it = data.begin();
-         it != data.end(); ++it)
+         it != data.end();
+         ++it)
     {
       mapping[it->first].push_back(it->second);
     }
@@ -99,10 +95,23 @@ private:
       // use average y value:
       y_[i] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
     }
+
+    // ensure that we have enough points for an interpolation
     if (x_.size() < 3)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cubic spline model needs at least 3 data points (with unique x values)");
     }
+  }
+
+  TransformationModelInterpolated::TransformationModelInterpolated(const TransformationModel::DataPoints& data, const Param& params)
+  {
+    params_ = params;
+    Param defaults;
+    getDefaultParameters(defaults);
+    params_.setDefaults(defaults);
+
+    // convert incoming data to x_ and y_
+    preprocessDataPoints_(data);
 
     interp_ = new Spline2dInterpolator();
     interp_->init(x_, y_);
