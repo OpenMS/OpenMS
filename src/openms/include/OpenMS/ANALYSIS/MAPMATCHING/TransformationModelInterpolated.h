@@ -88,7 +88,7 @@ public:
        * @param x The x data.
        * @param y The y data.
        */
-      virtual void init(const std::vector<double>& x, const std::vector<double>& y) = 0;
+      virtual void init(std::vector<double>& x, std::vector<double>& y) = 0;
 
       /**
        * @brief Evaluate the underlying interpolation at a specific position x.

@@ -38,23 +38,31 @@
 #include <vector>
 #include <algorithm>
 
+// Spline2dInterpolator
 #include <OpenMS/MATH/MISC/Spline2d.h>
+
+// AkimaInterpolator
+#include <Wm5IntpAkimaNonuniform1.h>
+#include <Wm5Math.h>
 
 namespace OpenMS
 {
+  /**
+   * @brief Spline2dInterpolator
+   */
   class Spline2dInterpolator :
     public TransformationModelInterpolated::Interpolator
   {
 public:
-    Spline2dInterpolator()
-      : spline_(0)
+    Spline2dInterpolator() :
+      spline_(0)
     {
     }
 
-    void init(const std::vector<double>& x, const std::vector<double>& y)
+    void init(std::vector<double>& x, std::vector<double>& y)
     {
       // cleanup before we use a new one
-      if(spline_ != 0) delete spline_;
+      if (spline_ != (Spline2d<double>*)0) delete spline_;
 
       // initialize spline
       spline_ = new Spline2d<double>(3, x, y);
@@ -67,11 +75,43 @@ public:
 
     ~Spline2dInterpolator()
     {
-      if(spline_ != 0) delete spline_;
+      if (spline_ != (Spline2d<double>*)0) delete spline_;
     }
 
 private:
     Spline2d<double>* spline_;
+  };
+
+  /**
+   * @brief AkimaInterpolator
+   */
+  class AkimaInterpolator :
+    public TransformationModelInterpolated::Interpolator
+  {
+public:
+    AkimaInterpolator()
+      : interpolator_(0)
+    {}
+
+    void init(std::vector<double>& x, std::vector<double>& y)
+    {
+      if(interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*)0) delete interpolator_;
+      // re-construct a new interpolator
+      interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(x.size(), &x.front(), &y.front());
+    }
+
+    double eval(const double& x)
+    {
+      return (*interpolator_)(x);
+    }
+
+    ~AkimaInterpolator()
+    {
+      if(interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*)0) delete interpolator_;
+    }
+
+private:
+    Wm5::IntpAkimaNonuniform1<double>* interpolator_;
   };
 
   void TransformationModelInterpolated::preprocessDataPoints_(const DataPoints& data)
@@ -113,7 +153,18 @@ private:
     // convert incoming data to x_ and y_
     preprocessDataPoints_(data);
 
-    interp_ = new Spline2dInterpolator();
+    // choose the actual interpolation type
+    const String interpolation_type = params_.getValue("interpolation_type");
+    if (interpolation_type == "linear")          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    else if (interpolation_type == "polynomial") throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    else if (interpolation_type == "cspline")    interp_ = new Spline2dInterpolator();
+    else if (interpolation_type == "akima")      interp_ = new AkimaInterpolator();
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unknown/unsupported interpolation type '" + interpolation_type + "'");
+    }
+
+    // assign data
     interp_->init(x_, y_);
 
     // linear model for extrapolation:
