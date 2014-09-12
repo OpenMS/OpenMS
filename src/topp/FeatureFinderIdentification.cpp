@@ -54,7 +54,6 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
