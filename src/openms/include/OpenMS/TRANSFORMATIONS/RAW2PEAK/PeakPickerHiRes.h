@@ -260,7 +260,7 @@ public:
           
           bool previous_zero_right(false); // no need to extend peak if previous intensity was zero
           Size missing_right(0);
-          Size right_boundary(i+1); // index of the right boundary for the spline interpolation
+          Size right_boundary(i + 1); // index of the right boundary for the spline interpolation
           
           while ((i + k) < input.size()
                  && (missing_right < 2)
@@ -289,7 +289,7 @@ public:
             ++k;
           }
 
-          //skip if the minimal number of 3 points for fitting is not reached
+          // skip if the minimal number of 3 points for fitting is not reached
           if (peak_raw_data.size() < 4) continue;
 
           CubicSpline2d peak_spline (peak_raw_data);
@@ -440,13 +440,11 @@ public:
       // resize output with respect to input
       output.resize(input.size());
 
-      bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
-
       startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
-        if (ms1_only && (input[scan_idx].getMSLevel() != 1))
+        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
         {
           output[scan_idx] = input[scan_idx];
         }
@@ -492,13 +490,11 @@ public:
       // resize output with respect to input
       output.resize(input.size());
 
-      bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
-
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
-        if (ms1_only && (input[scan_idx].getMSLevel() != 1))
+        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
         {
           output[scan_idx] = input[scan_idx];
         }
@@ -531,6 +527,9 @@ protected:
 
     // maximal spacing difference
     double spacing_difference_;
+
+    // MS levels to which peak picking is applied
+    std::vector<Int> ms_levels_;
 
     // docu in base class
     void updateMembers_();
