@@ -35,8 +35,9 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERING_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERING_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
@@ -61,7 +62,8 @@ namespace OpenMS
      * @see MultiplexPeakPattern
      * @see MultiplexFilterResult
      */
-    class OPENMS_DLLAPI MultiplexFiltering
+    class OPENMS_DLLAPI MultiplexFiltering :
+        public ProgressLogger
     {        
         public:
         /**
@@ -106,14 +108,14 @@ namespace OpenMS
          * @param intensity_cutoff    intensity cutoff
          * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
          * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
-         * @param peptide_similarity
-         * @param averagine_similarity
-         * @param debug    debug mode
+         * @param peptide_similarity    similarity score for two peptides in the same multiplet
+         * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
+         * @param out_debug    directory for debug output
          * 
          * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool debug);
+        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
         
         /**
          * @brief filter for patterns
@@ -346,6 +348,11 @@ namespace OpenMS
          * @brief averagine similarity
          */
         double averagine_similarity_;
+        
+        /**
+         * @brief directory for debug output
+         */
+        String out_debug_;
         
         /**
          * @brief debug mode

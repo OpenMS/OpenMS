@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_RANGEUTILS_H
@@ -111,11 +111,8 @@ public:
     inline bool operator()(const MetaContainer& s) const
     {
       bool has_meta_value = s.metaValueExists(metavalue_key_);
-      if (reverse_)
-      {
-        return !has_meta_value;
-      }
-      return has_meta_value;
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ has_meta_value;
     }
 
 protected:
@@ -153,11 +150,8 @@ public:
     inline bool operator()(const SpectrumType& s) const
     {
       double tmp = s.getRT();
-      if (reverse_)
-      {
-        return min_ > tmp || max_ < tmp;
-      }
-      return min_ <= tmp && max_ >= tmp;
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (min_ <= tmp && tmp <= max_);
     }
 
 protected:
@@ -192,11 +186,8 @@ public:
     inline bool operator()(const SpectrumType& s) const
     {
       Int tmp = s.getMSLevel();
-      if (reverse_)
-      {
-        return std::find(levels_.begin(), levels_.end(), tmp) == levels_.end();
-      }
-      return std::find(levels_.begin(), levels_.end(), tmp) != levels_.end();
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ std::find(levels_.begin(), levels_.end(), tmp) != levels_.end();
     }
 
 protected:
@@ -230,17 +221,50 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      if (reverse_)
-      {
-        return s.getInstrumentSettings().getScanMode() != mode_;
-      }
-      return s.getInstrumentSettings().getScanMode() == mode_;
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (s.getInstrumentSettings().getScanMode() == mode_);
     }
 
 protected:
     Int mode_;
     bool reverse_;
   };
+
+  /**
+    @brief Predicate that determines if a spectrum has a certain scan polarity
+
+    SpectrumType must be a Spectrum or have the same interface (SpectrumSettings)
+
+    @ingroup RangeUtils
+  */
+  template <class SpectrumType>
+  class HasScanPolarity :
+    std::unary_function<SpectrumType, bool>
+  {
+public:
+    /**
+      @brief Constructor
+
+      @param mode scan polarity
+      @param reverse if @p reverse is true, operator() returns true if the spectrum has a different
+      scan polarity
+    */
+    HasScanPolarity(Int polarity, bool reverse = false) :
+      polarity_(polarity),
+      reverse_(reverse)
+    {}
+
+    inline bool operator()(const SpectrumType& s) const
+    {
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (s.getInstrumentSettings().getPolarity() == polarity_);
+    }
+
+protected:
+    Int polarity_;
+    bool reverse_;
+  };
+
 
   /**
     @brief Predicate that determines if a spectrum is empty.
@@ -265,11 +289,8 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      if (reverse_)
-      {
-        return !s.empty();
-      }
-      return s.empty();
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ s.empty();
     }
 
 protected:
@@ -300,11 +321,8 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      if (reverse_)
-      {
-        return !s.getInstrumentSettings().getZoomScan();
-      }
-      return s.getInstrumentSettings().getZoomScan();
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ s.getInstrumentSettings().getZoomScan();
     }
 
 protected:
@@ -488,11 +506,8 @@ public:
     inline bool operator()(const PeakType& p) const
     {
       double tmp = p.getPosition()[0];
-      if (reverse_)
-      {
-        return min_ > tmp || max_ < tmp;
-      }
-      return min_ <= tmp && max_ >= tmp;
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (min_ <= tmp && tmp <= max_);
     }
 
 protected:
@@ -528,11 +543,8 @@ public:
     inline bool operator()(const PeakType& p) const
     {
       double tmp = p.getIntensity();
-      if (reverse_)
-      {
-        return min_ > tmp || max_ < tmp;
-      }
-      return min_ <= tmp && max_ >= tmp;
+      // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
+      return reverse_ ^ (min_ <= tmp && tmp <= max_);
     }
 
 protected:

@@ -39,6 +39,8 @@
 
 // Actual scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
+
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
@@ -70,6 +72,16 @@ namespace OpenMS
   all corresponding chromatograms at the peak-position. It then goes on to
   score those MRMFeatures using different criteria described in the
   MRMScoring class.
+
+  Internally, all peak group detection is performed in MRMTransitionGroupPicker
+  which segments the data and determines consensus peaks across traces
+  (MRMFeatures). All scoring is delegated to the OpenSwathScoring class which
+  implements i) chromatographic scores, ii) library based scores and iii) full
+  spectrum (DIA) scores. These scores are retrieved from the OpenSwathScoring
+  class and added to the MRMFeatures found in this algorithm. Note that the
+  OpenSwathScoring is a facade that can be used to communicate with the
+  underlying actual scoring engines and assembles the scores inside a scoring
+  object called OpenSwath_Scores where they are easy to retrieve.
 
   @htmlinclude OpenMS_MRMFeatureFinderScoring.parameters
 
@@ -175,6 +187,20 @@ public:
       strict_ = f;
     }
 
+    /** @brief Add an MS1 map containing spectra
+     *
+     * For DIA (SWATH-MS), an optional MS1 map can be supplied which can be
+     * used to extract precursor ion signal and provides additional scores. If
+     * no MS1 map is provided, the respective scores are not calculated.
+     *
+     * @param ms1_map The raw mass spectrometric MS1 data
+     *
+    */
+    void setMS1Map(OpenSwath::SpectrumAccessPtr ms1_map)
+    {
+      ms1_map_ = ms1_map;
+    }
+
     /** @brief Map the chromatograms to the transitions.
      *
      * Map an input chromatogram experiment (mzML) and transition list (TraML)
@@ -215,6 +241,10 @@ private:
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;
+
+    // data 
+    OpenSwath::SpectrumAccessPtr ms1_map_;
+
   };
 }
 

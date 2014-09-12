@@ -45,6 +45,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTTenPlexQuantitationMethod.h>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
@@ -135,9 +136,22 @@ public:
     ItraqFourPlexQuantitationMethod* itraq4plex = new ItraqFourPlexQuantitationMethod();
     ItraqEightPlexQuantitationMethod* itraq8plex = new ItraqEightPlexQuantitationMethod();
     TMTSixPlexQuantitationMethod* tmt6plex = new TMTSixPlexQuantitationMethod();
+    TMTTenPlexQuantitationMethod* tmt10plex = new TMTTenPlexQuantitationMethod();
     quant_methods_[itraq4plex->getName()] = itraq4plex;
     quant_methods_[itraq8plex->getName()] = itraq8plex;
     quant_methods_[tmt6plex->getName()] = tmt6plex;
+    quant_methods_[tmt10plex->getName()] = tmt10plex;
+  }
+
+  ~TOPPIsobaricAnalyzer()
+  {
+    // free allocated labelers
+    for (std::map<String, IsobaricQuantitationMethod*>::iterator it = quant_methods_.begin();
+         it != quant_methods_.end();
+         ++it)
+    {
+      delete it->second;
+    }
   }
 
 protected:

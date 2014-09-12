@@ -19,6 +19,7 @@ FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderIsotopeWavelet
 FeatureFinderMetabo
+FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT

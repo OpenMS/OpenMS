@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -331,7 +331,6 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 END_SECTION
 
 
-
 //InPrecursorMZRange
 
 InPrecursorMZRange<MSSpectrum<> >* ptr50 = 0;
@@ -377,6 +376,30 @@ START_SECTION((bool operator()(const SpectrumType& s) const))
 
 
 
+END_SECTION
+
+//HasScanPolarity
+
+HasScanPolarity<MSSpectrum<> >* ptr51 = 0;
+HasScanPolarity<MSSpectrum<> >* nullPointer51 = 0;
+START_SECTION((HasScanPolarity(Int polarity,bool reverse = false)))
+  ptr51 = new HasScanPolarity<MSSpectrum<> >(0);
+  TEST_NOT_EQUAL(ptr48, nullPointer51)
+END_SECTION
+
+START_SECTION(([EXTRA]~HasScanPolarity()))
+  delete ptr51;
+END_SECTION
+
+START_SECTION((bool operator()(const SpectrumType& s) const))
+  HasScanPolarity<MSSpectrum<> > s(IonSource::POSITIVE);
+  HasScanPolarity<MSSpectrum<> > s2(IonSource::POSITIVE, true);
+  MSSpectrum<> spec;
+  TEST_EQUAL(s(spec), false);
+  TEST_EQUAL(s2(spec), true);
+  spec.getInstrumentSettings().setPolarity(IonSource::POSITIVE);
+  TEST_EQUAL(s(spec), true);
+  TEST_EQUAL(s2(spec), false);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

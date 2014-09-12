@@ -65,7 +65,10 @@ public:
       template <typename Arg>
       bool operator()(const Arg & a, const Arg & b)
       {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
         if (a.getScore() != b.getScore())
+#pragma clang diagnostic pop
         {
           return a.getScore() > b.getScore();
         }
@@ -81,7 +84,10 @@ public:
       template <typename Arg>
       bool operator()(const Arg & a, const Arg & b)
       {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
         if (a.getScore() != b.getScore())
+#pragma clang diagnostic pop
         {
           return a.getScore() < b.getScore();
         }

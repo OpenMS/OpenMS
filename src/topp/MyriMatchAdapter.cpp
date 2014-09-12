@@ -324,6 +324,15 @@ protected:
       writeDebug_("Warning: unsupported MyriMatch version (" + myrimatch_version + "). Tested only for MyriMatch 2.1.x", 0);
     }
 
+    //-------------------------------------------------------------
+    // Validate user parameters
+    //-------------------------------------------------------------
+    if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
+    {
+      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
 
     //-------------------------------------------------------------
     // parsing parameters

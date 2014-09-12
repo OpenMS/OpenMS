@@ -62,6 +62,20 @@ namespace OpenMS
     ifs_.close();
   }
 
+  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs) :
+    meta_ms_experiment_(rhs.meta_ms_experiment_),
+    ifs_(rhs.filename_cached_.c_str(), std::ios::binary),
+    filename_(rhs.filename_),
+    spectra_index_(rhs.spectra_index_),
+    chrom_index_(rhs.chrom_index_)
+  {
+  }
+
+  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSCached::lightClone() const 
+  {
+    return boost::shared_ptr<SpectrumAccessOpenMSCached>(new SpectrumAccessOpenMSCached(*this));
+  }
+
   OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) 
   {
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);

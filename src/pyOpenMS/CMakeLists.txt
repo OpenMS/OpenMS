@@ -111,7 +111,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 3, 2))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 5, 1))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -126,7 +126,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.3.2 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.5.1 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -271,7 +271,7 @@ if(WIN32)
     file(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     file(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     set(FOUND_XERCES FALSE)
-    foreach(CONTRIB_PATH ${CONTRIB_DIR})
+    foreach(CONTRIB_PATH ${CMAKE_PREFIX_PATH})
         if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
             file(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
             set(FOUND_XERCES TRUE)
@@ -311,6 +311,9 @@ set(PYOPENMS_INCLUDE_DIRS
   ${SuperHirn_INCLUDE_DIRECTORIES}
 )
 
+# TODO: this is a workaround; we need to clarify why exactly pyOpenMS needs
+#       access to the directories and not the library locations itself 
+set(CONTRIB_DIR ${CMAKE_PREFIX_PATH})
 set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
 set(OPEN_MS_LIB "")
 set(OPEN_SWATH_ALGO_LIB "")

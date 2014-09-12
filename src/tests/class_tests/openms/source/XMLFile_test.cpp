@@ -38,6 +38,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/XMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 ///////////////////////////
 
@@ -82,9 +83,9 @@ START_SECTION(([EXTRA] String writeXMLEscape(const String& to_escape)))
   String s2("This string contains an ampersand, &, which must be escaped.");
   String s3("This string also contains characters which is not allowed, and must be escaped; the characters are '>' and \"<\"");
 
-  TEST_STRING_EQUAL(writeXMLEscape(s1), "nothing_to_escape. Just a regular string...")
-  TEST_STRING_EQUAL(writeXMLEscape(s2), "This string contains an ampersand, &amp;, which must be escaped.")
-  TEST_STRING_EQUAL(writeXMLEscape(s3), "This string also contains characters which is not allowed, and must be escaped; the characters are &apos;&gt;&apos; and &quot;&lt;&quot;");
+  TEST_STRING_EQUAL(XMLHandler::writeXMLEscape(s1), "nothing_to_escape. Just a regular string...")
+  TEST_STRING_EQUAL(XMLHandler::writeXMLEscape(s2), "This string contains an ampersand, &amp;, which must be escaped.")
+  TEST_STRING_EQUAL(XMLHandler::writeXMLEscape(s3), "This string also contains characters which is not allowed, and must be escaped; the characters are &apos;&gt;&apos; and &quot;&lt;&quot;");
 END_SECTION
 
 

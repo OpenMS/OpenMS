@@ -36,7 +36,10 @@ include(CppcheckTargets)
 
 ## we use only source files for cppcheck
 set(SOURCE_FILE_REGEX "\\.cpp$")
-set(DO_NOT_TEST_THESE_FILES_REGEX "(/(moc|ui)_|/MSNumpress.cpp)")
+# Exclude certain files 
+# - MSNumpress.cpp since it is an external file
+# - DIAScoring.cpp since it triggers an cppcheck bug (may be fixed in newer versions of cppcheck)
+set(DO_NOT_TEST_THESE_FILES_REGEX "(/(moc|ui)_|/MSNumpress.cpp|/DIAScoring.cpp)")
 
 # --------------------------------------------------------------------------
 # add_cpp_check_tests : This macro generates cppcheck tests for files in the

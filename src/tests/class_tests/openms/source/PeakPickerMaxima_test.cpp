@@ -180,6 +180,34 @@ START_SECTION([EXTRA](pick single peak))
 
   }
 
+  // Test Gaussian function with a zero left
+  {
+  std::vector<PeakPickerMaxima::PeakCandidate> pc;
+  std::vector<double> mz_array_n(mz_array), int_array_n(int_array);
+  int_array_n[8] = 0.0;
+  pp_max.pick(mz_array_n, int_array_n, pc);
+
+  TEST_EQUAL(pc.size(), 1)
+  TEST_EQUAL(pc[0].pos, 10)
+  TEST_EQUAL(pc[0].left_boundary, 8)
+  TEST_EQUAL(pc[0].right_boundary, 19)
+
+  }
+
+  // Test Gaussian function with a zero right
+  {
+  std::vector<PeakPickerMaxima::PeakCandidate> pc;
+  std::vector<double> mz_array_n(mz_array), int_array_n(int_array);
+  int_array_n[12] = 0.0;
+  pp_max.pick(mz_array_n, int_array_n, pc);
+
+  TEST_EQUAL(pc.size(), 1)
+  TEST_EQUAL(pc[0].pos, 10)
+  TEST_EQUAL(pc[0].left_boundary, 0)
+  TEST_EQUAL(pc[0].right_boundary, 12)
+
+  }
+
   // Re-sample at every second point
   {
     std::vector<double> mz_array_mut, int_array_mut;

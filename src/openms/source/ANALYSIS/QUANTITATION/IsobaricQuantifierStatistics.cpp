@@ -79,8 +79,7 @@ namespace OpenMS
 
   IsobaricQuantifierStatistics& IsobaricQuantifierStatistics::operator=(const IsobaricQuantifierStatistics& rhs)
   {
-    if (this == &rhs)
-      return *this;
+    if (this == &rhs) return *this;
 
     channel_count = rhs.channel_count;
     iso_number_ms2_negative = rhs.iso_number_ms2_negative;

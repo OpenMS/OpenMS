@@ -69,7 +69,7 @@ private:
     const IsobaricQuantitationMethod* quant_meth_;
 
     /// The name of the reference channel as given in the IsobaricChannelInformation.
-    Int reference_channel_name_;
+    String reference_channel_name_;
 
     /**
       @brief Given a ConsensusFeature the method will return an iterator pointing to the consensus element representing the reference channel.

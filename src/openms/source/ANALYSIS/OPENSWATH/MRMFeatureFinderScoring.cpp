@@ -34,9 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
-
 // data access
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
@@ -52,6 +51,28 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
   return left.first < right.first;
 }
 
+void processFeatureForOutput(OpenMS::Feature & curr_feature, bool write_convex_hull_, double
+    quantification_cutoff_, double & total_intensity, double & total_peak_apices, std::string ms_level)
+{
+  // Save some space when writing out the featureXML
+  if (!write_convex_hull_) 
+  {
+    curr_feature.getConvexHulls().clear(); 
+  }
+
+  // Ensure a unique id is present
+  curr_feature.ensureUniqueId();
+
+  // Sum up intensities of the MS2 features
+  if (curr_feature.getMZ() > quantification_cutoff_ && ms_level == "MS2")
+  {
+    total_intensity += curr_feature.getIntensity();
+    total_peak_apices += (double)curr_feature.getMetaValue("peak_apex_int");
+  }
+
+  curr_feature.setMetaValue("FeatureLevel", ms_level);
+}
+
 namespace OpenMS
 {
 
@@ -62,7 +83,7 @@ namespace OpenMS
     defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after feature (ordered by quality; -1 means do not stop).");
     defaults_.setValue("rt_extraction_window", -1.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 500 means to extract around +/- 500 s of the expected elution). For this to work, the TraML input file needs to contain normalized RT values.");
     defaults_.setValue("rt_normalization_factor", 1.0, "The normalized RT is expected to be between 0 and 1. If your normalized RT has a different range, pass this here (e.g. it goes from 0 to 100, set this value to 100)");
-    defaults_.setValue("quantification_cutoff", 0.0, "Cutoff below which peaks should not be used for quantification any more", ListUtils::create<String>("advanced"));
+    defaults_.setValue("quantification_cutoff", 0.0, "Cutoff in m/z below which peaks should not be used for quantification any more", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("quantification_cutoff", 0.0);
     defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("write_convex_hull", ListUtils::create<String>("true,false"));
@@ -99,6 +120,10 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_sn_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_dia_scores", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ms1_correlation", "false", "Use the correlation scores with the MS1 elution profiles", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ms1_correlation", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ms1_fullscan", "false", "Use the full MS1 scan at the peak apex for scoring (ppm accuracy of precursor and isotopic pattern)", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ms1_fullscan", ListUtils::create<String>("true,false"));
     defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_
@@ -289,7 +314,7 @@ namespace OpenMS
       if (swath_map->getNrSpectra() > 0 && su_.use_dia_scores_)
       {
         scorer.calculateDIAScores(imrmfeature, transition_group.getTransitions(),
-            swath_map, diascoring_, *pep, scores);
+            swath_map, ms1_map_, diascoring_, *pep, scores);
       }
 
       if (su_.use_coelution_score_) {
@@ -345,6 +370,17 @@ namespace OpenMS
         mrmfeature->addScore("var_yseries_score", scores.yseries_score);
         mrmfeature->addScore("var_dotprod_score", scores.dotprod_score_dia);
         mrmfeature->addScore("var_manhatt_score", scores.manhatt_score_dia);
+        if (su_.use_ms1_correlation)
+        {
+          mrmfeature->addScore("var_ms1_xcorr_shape", scores.xcorr_ms1_shape_score);
+          mrmfeature->addScore("var_ms1_xcorr_coelution", scores.xcorr_ms1_coelution_score);
+        }
+        if (su_.use_ms1_fullscan)
+        {
+          mrmfeature->addScore("var_ms1_ppm_diff", scores.ms1_ppm_score);
+          mrmfeature->addScore("var_ms1_isotope_correlation", scores.ms1_isotope_correlation);
+          mrmfeature->addScore("var_ms1_isotope_overlap", scores.ms1_isotope_overlap);
+        }
 
         double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
         mrmfeature->addScore("main_var_xx_swath_prelim_score", xx_swath_prescore);
@@ -373,19 +409,27 @@ namespace OpenMS
 
       mrmfeature->getPeptideIdentifications().push_back(pep_id_);
       mrmfeature->ensureUniqueId();
+
       mrmfeature->setMetaValue("PrecursorMZ", transition_group.getTransitions()[0].getPrecursorMZ());
-      mrmfeature->setSubordinates(mrmfeature->getFeatures()); // add all the subfeatures as subordinates
+
+      std::vector<Feature> allFeatures = mrmfeature->getFeatures();
       double total_intensity = 0, total_peak_apices = 0;
-      for (std::vector<Feature>::iterator sub_it = mrmfeature->getSubordinates().begin(); sub_it != mrmfeature->getSubordinates().end(); ++sub_it)
+      for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
       {
-        if (!write_convex_hull_) {sub_it->getConvexHulls().clear(); }
-        sub_it->ensureUniqueId();
-        if (sub_it->getMZ() > quantification_cutoff_)
-        {
-          total_intensity += sub_it->getIntensity();
-          total_peak_apices += (double)sub_it->getMetaValue("peak_apex_int");
-        }
+        processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
       }
+      // Also append data for MS1 precursors
+      std::vector<String> precursors_ids;
+      mrmfeature->getPrecursorFeatureIDs(precursors_ids);
+      for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
+      {
+        Feature curr_feature = mrmfeature->getPrecursorFeature(*id_it);
+        curr_feature.setCharge(pep->getChargeState());
+        processFeatureForOutput(curr_feature, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS1");
+        allFeatures.push_back(curr_feature);
+      }
+      mrmfeature->setSubordinates(allFeatures); // add all the subfeatures as subordinates
+
       // overwrite the reported intensities with those above the m/z cutoff
       mrmfeature->setIntensity(total_intensity);
       mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);
@@ -428,6 +472,8 @@ namespace OpenMS
     su_.use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
     su_.use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
+    su_.use_ms1_correlation      = param_.getValue("Scores:use_ms1_correlation").toBool();
+    su_.use_ms1_fullscan         = param_.getValue("Scores:use_ms1_fullscan").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,

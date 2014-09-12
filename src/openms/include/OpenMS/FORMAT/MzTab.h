@@ -43,6 +43,9 @@
 #include <algorithm>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+
 namespace OpenMS
 {
   /**
@@ -1499,5 +1502,7 @@ protected:
   };
 
 } // namespace OpenMS
+
+#pragma clang diagnostic pop
 
 #endif // OPENMS_FORMAT_MZTAB_H
