@@ -79,14 +79,18 @@ namespace OpenMS
   class OPENMS_DLLAPI EmpiricalFormula
   {
 
-public:
+protected:
+	  /// Internal typedef for the used map type
+	  typedef std::map<const Element*, SignedSize> MapType_;
 
+public:
     /** @name Typedefs
     */
     //@{
     /// Iterators
-    typedef std::map<const Element*, SignedSize>::const_iterator ConstIterator;
-    typedef std::map<const Element*, SignedSize>::const_iterator const_iterator;
+    typedef MapType_::const_iterator ConstIterator;
+    typedef MapType_::const_iterator const_iterator;
+    //@}
 
     /** @name Constructors and Destructors
     */
@@ -207,14 +211,12 @@ protected:
     /// remove elements with count 0
     void removeZeroedElements_();
 
-    /// Internal typede
-    typedef std::map<const Element*, SignedSize> map_type_;
-
-    map_type_ formula_;
+    MapType_ formula_;
 
     SignedSize charge_;
 
     SignedSize parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
+
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
