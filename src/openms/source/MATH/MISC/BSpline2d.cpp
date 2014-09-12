@@ -73,4 +73,8 @@ namespace OpenMS
     return spline_->coefficient(n);
   }
 
+  bool BSpline2d::ok()
+  {
+    return spline_->ok();
+  }
 }
