@@ -37,9 +37,10 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 
 // Spline2dInterpolator
-#include <OpenMS/MATH/MISC/Spline2d.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 // AkimaInterpolator
 #include <Wm5IntpAkimaNonuniform1.h>
@@ -62,10 +63,10 @@ public:
     void init(std::vector<double>& x, std::vector<double>& y)
     {
       // cleanup before we use a new one
-      if (spline_ != (Spline2d<double>*) 0) delete spline_;
+      if (spline_ != (CubicSpline2d*) 0) delete spline_;
 
       // initialize spline
-      spline_ = new Spline2d<double>(3, x, y);
+      spline_ = new CubicSpline2d(x, y);
     }
 
     double eval(const double& x) const
@@ -75,11 +76,12 @@ public:
 
     ~Spline2dInterpolator()
     {
-      if (spline_ != (Spline2d<double>*) 0) delete spline_;
+      if (spline_ != (CubicSpline2d*) 0) delete spline_;
     }
 
 private:
-    Spline2d<double>* spline_;
+    CubicSpline2d * spline_;
+    // Spline2d<double>* spline_;
   };
 
   /**
@@ -220,10 +222,6 @@ private:
     {
       interp_ = new LinearInterpolator();
     }
-    else if (interpolation_type == "polynomial")
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-    }
     else if (interpolation_type == "cspline")
     {
       interp_ = new Spline2dInterpolator();
@@ -266,9 +264,8 @@ private:
   void TransformationModelInterpolated::getDefaultParameters(Param& params)
   {
     params.clear();
-    params.setValue("interpolation_type", "cspline",
-                    "Type of interpolation to apply.");
-    StringList types = ListUtils::create<String>("linear,polynomial,cspline,akima");
+    params.setValue("interpolation_type", "cspline", "Type of interpolation to apply.");
+    StringList types = ListUtils::create<String>("linear,cspline,akima");
     params.setValidStrings("interpolation_type", types);
   }
 

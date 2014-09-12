@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELINTERPOLATED_H

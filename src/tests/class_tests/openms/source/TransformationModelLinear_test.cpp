@@ -38,10 +38,11 @@
 ///////////////////////////
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 ///////////////////////////
 
-START_TEST(TransformationModel, "$Id$")
+START_TEST(TransformationModelLinear, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -49,18 +50,18 @@ START_TEST(TransformationModel, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-TransformationModel* ptr = 0;
-TransformationModel* nullPointer = 0;
-START_SECTION((TransformationModel()))
-{
-  ptr = new TransformationModel();
-  TEST_NOT_EQUAL(ptr, nullPointer)
-}
-END_SECTION
+TransformationModelLinear* ptr = 0;
+TransformationModelLinear* nullPointer = 0;
 
-START_SECTION((TransformationModel(const DataPoints&, const Param&)))
+TransformationModel::DataPoints data, empty;
+data.push_back(make_pair(0.0, 1.0));
+data.push_back(make_pair(1.0, 2.0));
+data.push_back(make_pair(1.0, 4.0));
+
+START_SECTION((TransformationModelLinear(const DataPoints&, const Param&)))
 {
-  ptr = new TransformationModel(TransformationModel::DataPoints(), Param());
+  TEST_EXCEPTION(Exception::IllegalArgument, TransformationModelLinear lm(empty, Param())); // need data
+  ptr = new TransformationModelLinear(data, Param());
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -73,28 +74,42 @@ END_SECTION
 
 START_SECTION((virtual double evaluate(const double value) const))
 {
-  // null model (identity):
-  TransformationModel tm;
-  TEST_REAL_SIMILAR(tm.evaluate(-3.14159), -3.14159);
-  TEST_REAL_SIMILAR(tm.evaluate(0.0), 0.0);
-  TEST_REAL_SIMILAR(tm.evaluate(12345678.9), 12345678.9);
+  ptr = new TransformationModelLinear(data, Param());
+
+  TEST_REAL_SIMILAR(ptr->evaluate(-0.5), 0.0);
+  TEST_REAL_SIMILAR(ptr->evaluate(0.0), 1.0);
+  TEST_REAL_SIMILAR(ptr->evaluate(0.5), 2.0);
+  TEST_REAL_SIMILAR(ptr->evaluate(1.0), 3.0);
+  TEST_REAL_SIMILAR(ptr->evaluate(1.5), 4.0);
+
+  data.push_back(make_pair(2.0, 2.0));
 }
 END_SECTION
 
 START_SECTION((void getParameters(Param& params) const))
 {
-  TransformationModel tm;
-  Param p = tm.getParameters();
-  TEST_EQUAL(p.empty(), true)
+  Param p_in;
+  p_in.setValue("symmetric_regression", "true");
+  TransformationModelLinear lm(data, p_in);
+  TEST_EQUAL(lm.getParameters(), p_in);
+  p_in.clear();
+  p_in.setValue("slope", 12.3);
+  p_in.setValue("intercept", -45.6);
+  TransformationModelLinear lm2(empty, p_in);
+  TEST_EQUAL(lm2.getParameters(), p_in);
 }
 END_SECTION
 
-START_SECTION(([EXTRA] static void getDefaultParameters(Param & params)))
+START_SECTION(([EXTRA] void getParameters(double&, double&)))
 {
   Param param;
-  param.setValue("some-value", 12.3);
-  TransformationModel::getDefaultParameters(param);
-  TEST_EQUAL(p.empty(), true)
+  param.setValue("slope", 12.3);
+  param.setValue("intercept", -45.6);
+  TransformationModelLinear lm(empty, param);
+  double slope, intercept;
+  lm.getParameters(slope, intercept);
+  TEST_REAL_SIMILAR(param.getValue("slope"), slope);
+  TEST_REAL_SIMILAR(param.getValue("intercept"), intercept);
 }
 END_SECTION
 
