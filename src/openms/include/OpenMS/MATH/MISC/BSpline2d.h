@@ -119,6 +119,12 @@ public:
      * state is not ok(), or @p n is out of range, the method returns zero.
      */
     double coefficient (int n);
+
+
+    /**
+      * Return if BSpline2d is in a valid state.
+      */
+      bool ok();
 private:
     BSpline2d();
 
