@@ -49,18 +49,18 @@ namespace OpenMS
   {
   }
 
-  EmpiricalFormula::EmpiricalFormula(const EmpiricalFormula & formula) :
+  EmpiricalFormula::EmpiricalFormula(const EmpiricalFormula& formula) :
     formula_(formula.formula_),
     charge_(formula.charge_)
   {
   }
 
-  EmpiricalFormula::EmpiricalFormula(const String & formula)
+  EmpiricalFormula::EmpiricalFormula(const String& formula)
   {
     charge_ = parseFormula_(formula_, formula);
   }
 
-  EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element * element, SignedSize charge)
+  EmpiricalFormula::EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge)
   {
     formula_[element] = number;
     charge_ = charge;
@@ -77,7 +77,7 @@ namespace OpenMS
     {
       weight += Constants::PROTON_MASS_U * charge_;
     }
-    Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
+    map_type_::const_iterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
       weight += it->first->getMonoWeight() * (double)it->second;
@@ -92,7 +92,7 @@ namespace OpenMS
     {
       weight += Constants::PROTON_MASS_U * charge_;
     }
-    Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
+    map_type_::const_iterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
       weight += it->first->getAverageWeight() * (double)it->second;
@@ -103,7 +103,7 @@ namespace OpenMS
   IsotopeDistribution EmpiricalFormula::getIsotopeDistribution(UInt max_depth) const
   {
     IsotopeDistribution result(max_depth);
-    Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
+    map_type_::const_iterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
       IsotopeDistribution tmp = it->first->getIsotopeDistribution();
@@ -114,11 +114,12 @@ namespace OpenMS
     return result;
   }
 
-  SignedSize EmpiricalFormula::getNumberOf(const Element * element) const
+  SignedSize EmpiricalFormula::getNumberOf(const Element* element) const
   {
-    if (formula_.has(element))
+    map_type_::const_iterator it  = formula_.find(element);
+    if (it != formula_.end())
     {
-      return formula_[element];
+      return it->second;
     }
     return 0;
   }
@@ -126,7 +127,7 @@ namespace OpenMS
   SignedSize EmpiricalFormula::getNumberOfAtoms() const
   {
     SignedSize num_atoms(0);
-    Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
+    map_type_::const_iterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
       num_atoms += it->second;
@@ -147,21 +148,21 @@ namespace OpenMS
   String EmpiricalFormula::toString() const
   {
     String formula;
-    Map<String, SignedSize> new_formula;
+    std::map<String, SignedSize> new_formula;
 
-    for (Map<const Element *, SignedSize>::ConstIterator it = formula_.begin(); it != formula_.end(); ++it)
+    for (map_type_::const_iterator it = formula_.begin(); it != formula_.end(); ++it)
     {
       new_formula[it->first->getSymbol()] = it->second;
     }
 
-    for (Map<String, SignedSize>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
+    for (std::map<String, SignedSize>::const_iterator it = new_formula.begin(); it != new_formula.end(); ++it)
     {
       formula += it->first + String(it->second);
     }
     return formula;
   }
 
-  EmpiricalFormula & EmpiricalFormula::operator=(const EmpiricalFormula & formula)
+  EmpiricalFormula& EmpiricalFormula::operator=(const EmpiricalFormula& formula)
   {
     if (this != &formula)
     {
@@ -171,10 +172,10 @@ namespace OpenMS
     return *this;
   }
 
-  EmpiricalFormula EmpiricalFormula::operator*(const SignedSize & times) const
+  EmpiricalFormula EmpiricalFormula::operator*(const SignedSize& times) const
   {
     EmpiricalFormula ef(*this);
-    Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
+    map_type_::const_iterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
       ef.formula_[it->first] *= times;
@@ -184,20 +185,21 @@ namespace OpenMS
     return ef;
   }
 
-  EmpiricalFormula EmpiricalFormula::operator+(const EmpiricalFormula & formula) const
+  EmpiricalFormula EmpiricalFormula::operator+(const EmpiricalFormula& formula) const
   {
     EmpiricalFormula ef;
     ef.formula_ = formula.formula_;
-    Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
+    map_type_::const_iterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
-      if (ef.formula_.has(it->first))
+      map_type_::iterator ef_it  = ef.formula_.find(it->first);
+      if (ef_it != ef.formula_.end())
       {
-        ef.formula_[it->first] += it->second;
+        ef_it->second += it->second;
       }
       else
       {
-        ef.formula_[it->first] = it->second;
+        ef.formula_.insert(*it);
       }
     }
     ef.charge_ = charge_ + formula.charge_;
@@ -205,18 +207,19 @@ namespace OpenMS
     return ef;
   }
 
-  EmpiricalFormula & EmpiricalFormula::operator+=(const EmpiricalFormula & formula)
+  EmpiricalFormula& EmpiricalFormula::operator+=(const EmpiricalFormula& formula)
   {
-    Map<const Element *, SignedSize>::ConstIterator it = formula.formula_.begin();
+    map_type_::const_iterator it = formula.formula_.begin();
     for (; it != formula.formula_.end(); ++it)
     {
-      if (formula_.has(it->first))
+      map_type_::iterator f_it  = formula_.find(it->first);
+      if (f_it != formula_.end())
       {
-        formula_[it->first] += it->second;
+        f_it->second += it->second;
       }
       else
       {
-        formula_[it->first] = it->second;
+        formula_.insert(*it);
       }
     }
     charge_ += formula.charge_;
@@ -224,18 +227,18 @@ namespace OpenMS
     return *this;
   }
 
-
-  EmpiricalFormula EmpiricalFormula::operator-(const EmpiricalFormula & formula) const
+  EmpiricalFormula EmpiricalFormula::operator-(const EmpiricalFormula& formula) const
   {
     EmpiricalFormula ef(*this);
-    Map<const Element *, SignedSize>::ConstIterator it = formula.formula_.begin();
+    map_type_::const_iterator it = formula.formula_.begin();
     for (; it != formula.formula_.end(); ++it)
     {
-      const Element * e = it->first;
+      const Element* e = it->first;
       SignedSize num = it->second;
-      if (formula_.has(e))
+      map_type_::iterator ef_it  = ef.formula_.find(e);
+      if (ef_it != ef.formula_.end())
       {
-        ef.formula_[e] -= num;
+        ef_it->second -= num;
       }
       else
       {
@@ -248,14 +251,15 @@ namespace OpenMS
     return ef;
   }
 
-  EmpiricalFormula & EmpiricalFormula::operator-=(const EmpiricalFormula & formula)
+  EmpiricalFormula& EmpiricalFormula::operator-=(const EmpiricalFormula& formula)
   {
-    Map<const Element *, SignedSize>::ConstIterator it = formula.formula_.begin();
+    map_type_::const_iterator it = formula.formula_.begin();
     for (; it != formula.formula_.end(); ++it)
     {
-      if (formula_.has(it->first))
+      map_type_::iterator f_it  = formula_.find(it->first);
+      if (f_it != formula_.end())
       {
-        formula_[it->first] -= it->second;
+        f_it->second -= it->second;
       }
       else
       {
@@ -277,14 +281,14 @@ namespace OpenMS
     return formula_.empty();
   }
 
-  bool EmpiricalFormula::hasElement(const Element * element) const
+  bool EmpiricalFormula::hasElement(const Element* element) const
   {
-    return formula_.has(element);
+    return formula_.find(element) != formula_.end();
   }
 
   bool EmpiricalFormula::contains(const EmpiricalFormula& ef)
   {
-    for (EmpiricalFormula::ConstIterator it = ef.begin(); it != ef.end(); ++it)
+    for (EmpiricalFormula::const_iterator it = ef.begin(); it != ef.end(); ++it)
     {
       if (this->getNumberOf(it->first) < it->second)
       {
@@ -294,25 +298,25 @@ namespace OpenMS
     return true;
   }
 
-  bool EmpiricalFormula::operator==(const EmpiricalFormula & formula) const
+  bool EmpiricalFormula::operator==(const EmpiricalFormula& formula) const
   {
     return formula_ == formula.formula_ && charge_ == formula.charge_;
   }
 
-  bool EmpiricalFormula::operator!=(const EmpiricalFormula & formula) const
+  bool EmpiricalFormula::operator!=(const EmpiricalFormula& formula) const
   {
     return formula_ != formula.formula_ || charge_ != formula.charge_;
   }
 
-  ostream & operator<<(ostream & os, const EmpiricalFormula & formula)
+  ostream& operator<<(ostream& os, const EmpiricalFormula& formula)
   {
-    Map<String, SignedSize> new_formula;
-    for (Map<const Element *, SignedSize>::ConstIterator it = formula.formula_.begin(); it != formula.formula_.end(); ++it)
+    std::map<String, SignedSize> new_formula;
+    for (Map<const Element*, SignedSize>::const_iterator it = formula.formula_.begin(); it != formula.formula_.end(); ++it)
     {
       new_formula[it->first->getSymbol()] = it->second;
     }
 
-    for (Map<String, SignedSize>::ConstIterator it = new_formula.begin(); it != new_formula.end(); ++it)
+    for (std::map<String, SignedSize>::const_iterator it = new_formula.begin(); it != new_formula.end(); ++it)
     {
       os << it->first;
       if (it->second > 1)
@@ -350,7 +354,7 @@ namespace OpenMS
     return os;
   }
 
-  SignedSize EmpiricalFormula::parseFormula_(Map<const Element *, SignedSize> & ef, const String & input_formula) const
+  SignedSize EmpiricalFormula::parseFormula_(std::map<const Element*, SignedSize>& ef, const String& input_formula) const
   {
     SignedSize charge = 0;
     String formula(input_formula);
@@ -372,7 +376,6 @@ namespace OpenMS
     // determine charge
     if (!suffix.empty())
     {
-      String charge_part;
       Size i = 1;
       for (; i < suffix.size(); ++i)
       {
@@ -509,19 +512,20 @@ namespace OpenMS
         num = number.toInt();
       }
 
-      const ElementDB * db = ElementDB::getInstance();
+      const ElementDB* db = ElementDB::getInstance();
       if (db->hasElement(symbol))
       {
         if (num != 0)
         {
-          const Element * e = db->getElement(symbol);
-          if (ef.has(e))
+          const Element* e = db->getElement(symbol);
+          std::map<const Element*, SignedSize>::iterator it = ef.find(e);
+          if (it != ef.end())
           {
-            ef[e] += num;
+            it->second += num;
           }
           else
           {
-            ef[e] = num;
+            ef.insert(std::make_pair(e, num));
           }
         }
       }
@@ -532,16 +536,16 @@ namespace OpenMS
     }
 
     // remove elements with 0 counts
-    Map<const Element *, SignedSize>::iterator it = ef.begin();
+    std::map<const Element*, SignedSize>::iterator it = ef.begin();
     while (it != ef.end())
     {
       if (it->second == 0)
       {
-         ef.erase(it++);  // Note: post increment needed! Otherwise iterator is invalidated
+        ef.erase(it++);   // Note: post increment needed! Otherwise iterator is invalidated
       }
       else
       {
-         ++it;
+        ++it;
       }
     }
 
@@ -550,16 +554,16 @@ namespace OpenMS
 
   void EmpiricalFormula::removeZeroedElements_()
   {
-    Map<const Element *, SignedSize>::iterator it = formula_.begin();
+    map_type_::iterator it = formula_.begin();
     while (it != formula_.end())
     {
       if (it->second == 0)
       {
-         formula_.erase(it++);  // Note: post increment needed! Otherwise iterator is invalidated
+        formula_.erase(it++);   // Note: post increment needed! Otherwise iterator is invalidated
       }
       else
       {
-         ++it;
+        ++it;
       }
     }
   }

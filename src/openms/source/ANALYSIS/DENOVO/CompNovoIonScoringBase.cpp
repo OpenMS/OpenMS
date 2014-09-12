@@ -34,6 +34,8 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
+
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 

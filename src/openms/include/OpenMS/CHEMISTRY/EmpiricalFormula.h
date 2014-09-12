@@ -37,42 +37,43 @@
 
 #include <iosfwd>
 #include <vector>
+#include <map>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
+  class String;
   class Element;
   class ElementDB;
+  class IsotopeDistribution;
+
   /**
-          @ingroup Chemistry
+    @ingroup Chemistry
 
-          @brief Representation of an empirical formula
+    @brief Representation of an empirical formula
 
-          The formula can be used as follows: elements are represented through its symbol or full name.
-          The symbol or name is followed by a number. If not, the frequency is set to one. Examples
-          are CH3OH or CarbonHydrogen3OH. The names must start with an capital letter (symbols always have
-          an upper-case letter at the beginning). Additionally charges can be used with '+' followed by
-          a number, if no number follows the charge of +1 is set. Negative charges can be added using a '-'
-          sign. However, negative charges are only set if the last element in the string also has a number.
-          E.g. H4C-1, does not set a negative charge, only -1 Carbon atoms, correctly it should be stated
-          H4C-1-.
+    The formula can be used as follows: elements are represented through its symbol or full name.
+    The symbol or name is followed by a number. If not, the frequency is set to one. Examples
+    are CH3OH or CarbonHydrogen3OH. The names must start with an capital letter (symbols always have
+    an upper-case letter at the beginning). Additionally charges can be used with '+' followed by
+    a number, if no number follows the charge of +1 is set. Negative charges can be added using a '-'
+    sign. However, negative charges are only set if the last element in the string also has a number.
+    E.g. H4C-1, does not set a negative charge, only -1 Carbon atoms, correctly it should be stated
+    H4C-1-.
 
-          This class also supports the usage of specific isotopes. By default "C" describes not one isotope
-          but a natural distribution or different isotopes. This distribution can be accessed via the
-          member getIsotopeDistribution().
+    This class also supports the usage of specific isotopes. By default "C" describes not one isotope
+    but a natural distribution or different isotopes. This distribution can be accessed via the
+    member getIsotopeDistribution().
 
-          If one wants only use a specific isotope, it can be specified using "(",")" brackets. For example,
-          to specify 14C a heavy isotope of carbon it is expressed as "(14)C". The isotope distribution
-          of that instance contains only one isotope, 14C itself with a frequency of 100%.
+    If one wants only use a specific isotope, it can be specified using "(",")" brackets. For example,
+    to specify 14C a heavy isotope of carbon it is expressed as "(14)C". The isotope distribution
+    of that instance contains only one isotope, 14C itself with a frequency of 100%.
 
-          Instances EmpiricalFormula support a (limited) set of mathematical operations. Additions and subtractions
-          are supported in different flavors. However, one must be careful, because this can lead to negative
-          frequencies. In most cases this might be misleading, however, the class therefore supports difference
-          formulae. E.g. formula differences of reactions from post-translational modifications.
+    Instances EmpiricalFormula support a (limited) set of mathematical operations. Additions and subtractions
+    are supported in different flavors. However, one must be careful, because this can lead to negative
+    frequencies. In most cases this might be misleading, however, the class therefore supports difference
+    formulae. E.g. formula differences of reactions from post-translational modifications.
   */
 
   class OPENMS_DLLAPI EmpiricalFormula
@@ -84,8 +85,8 @@ public:
     */
     //@{
     /// Iterators
-    typedef Map<const Element *, SignedSize>::ConstIterator ConstIterator;
-    typedef Map<const Element *, SignedSize>::ConstIterator const_iterator;
+    typedef std::map<const Element*, SignedSize>::const_iterator ConstIterator;
+    typedef std::map<const Element*, SignedSize>::const_iterator const_iterator;
 
     /** @name Constructors and Destructors
     */
@@ -94,16 +95,17 @@ public:
     EmpiricalFormula();
 
     /// copy constructor
-    EmpiricalFormula(const EmpiricalFormula & rhs);
+    EmpiricalFormula(const EmpiricalFormula& rhs);
 
-    /** constructor from an OpenMS String
+    /**
+      Constructor from an OpenMS String
 
-            @throw throws ParseError if the formula cannot be parsed
+      @throw throws ParseError if the formula cannot be parsed
     */
-    explicit EmpiricalFormula(const String & rhs);
+    explicit EmpiricalFormula(const String& rhs);
 
     /// constructor with element pointer and number
-    EmpiricalFormula(SignedSize number, const Element * element, SignedSize charge = 0);
+    EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge = 0);
 
     /// destructor
     virtual ~EmpiricalFormula();
@@ -118,11 +120,13 @@ public:
     /// returns the average weight of the formula (includes proton charges)
     double getAverageWeight() const;
 
-    /** @brief returns the isotope distribution of the formula
-        *	The details of the calculation of the isotope distribution
-        * are described in the doc to the IsotopeDistribution class.
-        *	@param max_depth: the maximum isotope which is considered, if 0 all are reported
-        */
+    /**
+      @brief returns the isotope distribution of the formula
+      The details of the calculation of the isotope distribution
+      are described in the doc to the IsotopeDistribution class.
+
+      @param max_depth: the maximum isotope which is considered, if 0 all are reported
+    */
     IsotopeDistribution getIsotopeDistribution(UInt max_depth) const;
 
     /// returns the number of atoms for a certain @p element (can be negative)
@@ -145,22 +149,22 @@ public:
     */
     //@{
     /// assignment operator
-    EmpiricalFormula & operator=(const EmpiricalFormula & rhs);
+    EmpiricalFormula& operator=(const EmpiricalFormula& rhs);
 
     /// adds the elements of the given formula
-    EmpiricalFormula & operator+=(const EmpiricalFormula & rhs);
+    EmpiricalFormula& operator+=(const EmpiricalFormula& rhs);
 
     /// multiplies the elements and charge with a factor
-    EmpiricalFormula operator*(const SignedSize & times) const;
+    EmpiricalFormula operator*(const SignedSize& times) const;
 
     /// adds the elements of the given formula and returns a new formula
-    EmpiricalFormula operator+(const EmpiricalFormula & rhs) const;
+    EmpiricalFormula operator+(const EmpiricalFormula& rhs) const;
 
     /// subtracts the elements of a formula
-    EmpiricalFormula & operator-=(const EmpiricalFormula & rhs);
+    EmpiricalFormula& operator-=(const EmpiricalFormula& rhs);
 
     /// subtracts the elements of a formula an returns a new formula
-    EmpiricalFormula operator-(const EmpiricalFormula & rhs) const;
+    EmpiricalFormula operator-(const EmpiricalFormula& rhs) const;
 
     //@}
 
@@ -174,21 +178,21 @@ public:
     bool isCharged() const;
 
     /// returns true if the formula contains the element
-    bool hasElement(const Element * element) const;
+    bool hasElement(const Element* element) const;
 
     /// returns true if all elements from @p ef are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula
     bool contains(const EmpiricalFormula& ef);
 
     /// returns true if the formulas contain equal elements in equal quantities
-    bool operator==(const EmpiricalFormula & rhs) const;
+    bool operator==(const EmpiricalFormula& rhs) const;
 
     /// returns true if the formulas differ in elements composition
-    bool operator!=(const EmpiricalFormula & rhs) const;
+    bool operator!=(const EmpiricalFormula& rhs) const;
 
     //@}
 
     /// writes the formula to a stream
-    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const EmpiricalFormula & formula);
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
     /** @name Iterators
     */
@@ -203,14 +207,17 @@ protected:
     /// remove elements with count 0
     void removeZeroedElements_();
 
-    Map<const Element *, SignedSize> formula_;
+    /// Internal typede
+    typedef std::map<const Element*, SignedSize> map_type_;
+
+    map_type_ formula_;
 
     SignedSize charge_;
 
-    SignedSize parseFormula_(Map<const Element *, SignedSize> & ef, const String & formula) const;
+    SignedSize parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
   };
 
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const EmpiricalFormula & formula);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const EmpiricalFormula& formula);
 
 } // namespace OpenMS
 #endif
