@@ -45,7 +45,7 @@
 
 namespace OpenMS
 {
-  void PeakWidthEstimator::estimateSpectrumFWHM(const MSSpectrum<Peak1D>& input, std::set<boost::tuple<double, double, double> >& fwhms)
+  void PeakWidthEstimator::estimateSpectrumFWHM(MSSpectrum<Peak1D>& input, std::set<boost::tuple<double, double, double> >& fwhms)
   {
     PeakPickerHiRes picker;
 

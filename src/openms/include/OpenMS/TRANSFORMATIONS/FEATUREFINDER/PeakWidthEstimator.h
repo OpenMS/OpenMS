@@ -79,8 +79,8 @@ public:
 
     };
 
-    static void estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<double, double, double> > & fwhms);
-    static Result estimateFWHM(const MSExperiment<Peak1D> & input);
+    static void estimateSpectrumFWHM(MSSpectrum<Peak1D>& input, std::set<boost::tuple<double, double, double> > & fwhms);
+    static Result estimateFWHM(const MSExperiment<Peak1D>& input);
   };
 }
 

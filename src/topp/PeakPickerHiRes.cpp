@@ -130,12 +130,11 @@ protected:
 
   public:
 
-    PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp, bool sort) :
+    PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
       MSDataWritingConsumer(filename) 
     {
       pp_ = pp;
       ms1_only_ = pp.getParameters().getValue("ms1_only").toBool();
-      sort_ = sort;
     }
 
     void processSpectrum_(MapType::SpectrumType& s)
@@ -143,14 +142,6 @@ protected:
       if (ms1_only_ && (s.getMSLevel() != 1)) {return;}
 
       MapType::SpectrumType sout;
-      if (sort_)
-      {
-        s.sortByPosition();
-      }
-      else if (!s.isSorted())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not all spectra are sorted according to peak m/z positions. Use FileFilter or the 'sort' option to sort the input.");
-      }
       pp_.pick(s, sout);
       s = sout; // todo: swap? (requires implementation)
     }
@@ -158,14 +149,6 @@ protected:
     void processChromatogram_(MapType::ChromatogramType & c) 
     {
       MapType::ChromatogramType cout;
-      if (sort_)
-      {
-        c.sortByPosition();
-      }
-      else if (!c.isSorted())
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not all chromatograms are sorted according to peak m/z positions. Use FileFilter or the 'sort' option to sort the input.");
-      }
       pp_.pick(c, cout);
       c = cout;
     }
@@ -174,7 +157,6 @@ protected:
 
     PeakPickerHiRes pp_;
     bool ms1_only_;
-    bool sort_; 
   };
 
   void registerOptionsAndFlags_()
@@ -183,8 +165,6 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output peak file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
-
-    registerFlag_("sort", "The algorithm requires peaks in input spectra and chromatograms to be sorted according to m/z. If the input data may be unsorted, set this flag to force sorting.");
 
     registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
     setValidStrings_("processOption", ListUtils::create<String>("inmemory,lowmemory"));
@@ -202,7 +182,7 @@ protected:
     ///////////////////////////////////
     // Create the consumer object, add data processing
     ///////////////////////////////////
-    PPHiResMzMLConsumer pp_consumer(out_, pp, sort_);
+    PPHiResMzMLConsumer pp_consumer(out_, pp);
     pp_consumer.addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
     ///////////////////////////////////
@@ -222,7 +202,6 @@ protected:
 
     in_ = getStringOption_("in");
     out_ = getStringOption_("out");
-    sort_ = getFlag_("sort");
     String process_option = getStringOption_("processOption");
 
     Param pepi_param = getParam_().copy("algorithm:", true);
@@ -258,37 +237,8 @@ protected:
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
 
-    //check if spectra are sorted
-    for (Size i = 0; i < ms_exp_raw.size(); ++i)
-    {
-      if (sort_)
-      {
-        ms_exp_raw[i].sortByPosition();
-      }
-      else if (!ms_exp_raw[i].isSorted())
-      {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter or the 'sort' option to sort the input.");
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-    }
-
-    //check if chromatograms are sorted
-    for (Size i = 0; i < ms_exp_raw.getChromatograms().size(); ++i)
-    {
-      if (sort_)
-      {
-        ms_exp_raw.getChromatogram(i).sortByPosition();
-      }
-      else if (!ms_exp_raw.getChromatogram(i).isSorted())
-      {
-        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter or the 'sort' option to sort the input.");
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-    }
-
-
     //-------------------------------------------------------------
-    // pick
+    // peak picking
     //-------------------------------------------------------------
     MSExperiment<> ms_exp_peaks;
     pp.pickExperiment(ms_exp_raw, ms_exp_peaks);
@@ -306,7 +256,6 @@ protected:
   // parameters
   String in_;
   String out_;
-  bool sort_;
 };
 
 

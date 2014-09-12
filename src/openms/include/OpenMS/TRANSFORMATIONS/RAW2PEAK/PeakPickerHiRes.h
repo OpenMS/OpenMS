@@ -86,36 +86,39 @@ public:
     /// structure for peak boundaries
     struct PeakBoundary
     {
-        double mz_min;
-        double mz_max;
+      double mz_min;
+      double mz_max;
     };
 
     /**
-     * @brief Applies the peak-picking algorithm to a single spectrum
+     * @brief Applies the peak picking algorithm to a single spectrum
      * (MSSpectrum). The resulting picked peaks are written to the output
-     * spectrum.
+     * spectrum. The input will be sorted according to m/z, if necessary.
      * 
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
+     * @param sorted  is input already sorted?
      */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output) const
+      void pick(MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, bool sorted = false) const
     {
-        std::vector<PeakBoundary> boundaries;
-        pick(input, output, boundaries);
+      std::vector<PeakBoundary> boundaries;
+      pick(input, output, boundaries, sorted);
     }
 
     /**
-     * @brief Applies the peak-picking algorithm to a single spectrum
+     * @brief Applies the peak picking algorithm to a single spectrum
      * (MSSpectrum). The resulting picked peaks are written to the output
      * spectrum. Peak boundaries are written to a separate structure.
+     * The input will be sorted according to m/z, if necessary.
      * 
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      * @param boundaries  boundaries of the picked peaks
+     * @param sorted  is input already sorted?
      */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const
+      void pick(MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool sorted = false) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
@@ -127,7 +130,18 @@ public:
       output.setType(SpectrumSettings::PEAKS);
 
       // don't pick a spectrum with less than 5 data points
-      if (input.size() < 5) return;
+      if (input.size() < 5) 
+      {
+        // can't say "spectrum", because it might be a converted chromatogram:
+        LOG_ERROR << "Non-fatal error: Input has fewer than 5 peaks. No peak picking is attempted, output will be empty." << std::endl;
+        return;
+      }
+
+      if (!sorted && !input.isSorted()) // data needs to be sorted
+      {
+        LOG_WARN << "Warning: Input data is not sorted according to peak m/z position. It will be sorted as a prerequisite for peak picking." << std::endl;
+        input.sortByPosition();
+      }
 
       // signal-to-noise estimation
       SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
@@ -145,7 +159,7 @@ public:
         double left_neighbor_mz = input[i - 1].getMZ(), left_neighbor_int = input[i - 1].getIntensity();
         double right_neighbor_mz = input[i + 1].getMZ(), right_neighbor_int = input[i + 1].getIntensity();
 
-        //do not interpolate when the left or right support is a zero-data-point
+        // do not interpolate when the left or right support is a zero-data-point
         if(std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon() )
           continue;
         if(std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon() )
@@ -186,7 +200,7 @@ public:
             act_snt_r2 = snt.getSignalToNoise(input[i + 2]);
           }
 
-          //checking signal-to-noise?
+          // checking signal-to-noise?
           if (std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
               && left_neighbor_int < input[i - 2].getIntensity()
               && act_snt_l2 >= signal_to_noise_
@@ -209,24 +223,22 @@ public:
           // to the left
           Size k = 2;
 
-          bool previous_zero_left(false);    // no need to extend peak if previous intensity was zero
+          bool previous_zero_left(false); // no need to extend peak if previous intensity was zero
           Size missing_left(0);
-          Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
+          Size left_boundary(i-1); // index of the left boundary for the spline interpolation
 
-          while ( k <= i    //prevent underflow
-                && (i - k + 1) > 0
-                && (missing_left < 2)
-                && !previous_zero_left
-                && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
+          while (k <= i //prevent underflow
+                 && (i - k + 1) > 0
+                 && (missing_left < 2)
+                 && !previous_zero_left
+                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
-
             double act_snt_lk = 0.0;
 
             if (signal_to_noise_ > 0.0)
             {
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
-
 
             if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
             {
@@ -239,25 +251,22 @@ public:
             }
 
             previous_zero_left = (input[i - k].getIntensity() == 0);
-
             left_boundary = i - k;
             ++k;
-
           }
 
           // to the right
           k = 2;
           
-          bool previous_zero_right(false);    // no need to extend peak if previous intensity was zero
+          bool previous_zero_right(false); // no need to extend peak if previous intensity was zero
           Size missing_right(0);
-          Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
+          Size right_boundary(i+1); // index of the right boundary for the spline interpolation
           
           while ((i + k) < input.size()
-                && (missing_right < 2)
-                && !previous_zero_right
-                && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
+                 && (missing_right < 2)
+                 && !previous_zero_right
+                 && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
           {
-
             double act_snt_rk = 0.0;
 
             if (signal_to_noise_ > 0.0)
@@ -276,14 +285,12 @@ public:
             }
 
             previous_zero_right = (input[i + k].getIntensity() == 0);
-
             right_boundary = i + k;
             ++k;
           }
 
           //skip if the minimal number of 3 points for fitting is not reached
-          if(peak_raw_data.size() < 4)
-            continue;
+          if (peak_raw_data.size() < 4) continue;
 
           CubicSpline2d peak_spline (peak_raw_data);
 
@@ -305,10 +312,7 @@ public:
             double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
 
             // if deriv nearly zero then maximum already found
-            if (!(std::fabs(midpoint_deriv_val) > eps))
-            {
-              break;
-            }
+            if (!(std::fabs(midpoint_deriv_val) > eps)) break;
 
             bool midpoint_sign = (midpoint_deriv_val < 0.0) ? 0 : 1;
 
@@ -327,7 +331,7 @@ public:
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval( max_peak_mz );
 
-          // save picked pick into output spectrum
+          // save picked peak into output spectrum
           PeakType peak;
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
@@ -341,34 +345,37 @@ public:
           i = i + k - 1;
         }
       }
-
-      return;
     }
 
      /**
-     * @brief Applies the peak-picking algorithm to a single chromatogram
-     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
+     * @brief Applies the peak picking algorithm to a single chromatogram
+     * (MSChromatogram). The resulting picked peaks are written to the output
+     * chromatogram. The input will be sorted according to m/z, if necessary.
      * 
      * @param input  input chromatogram in profile mode
      * @param output  output chromatogram with picked peaks
+     * @param sorted  is input already sorted?
      */
     template <typename PeakType>
-    void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output) const
+      void pick(MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output, bool sorted = false) const
     {
-        std::vector<PeakBoundary> boundaries;
-        pick(input, output, boundaries);
+      std::vector<PeakBoundary> boundaries;
+      pick(input, output, boundaries, sorted);
     }
     
     /**
      * @brief Applies the peak-picking algorithm to a single chromatogram
-     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
+     * (MSChromatogram). The resulting picked peaks are written to the output
+     * chromatogram. Peak boundaries are written to a separate structure.
+     * The input will be sorted according to m/z, if necessary.
      * 
      * @param input  input chromatogram in profile mode
      * @param output  output chromatogram with picked peaks
      * @param boundaries  boundaries of the picked peaks
+     * @param sorted  is input already sorted?
      */
     template <typename PeakType>
-    void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output, std::vector<PeakBoundary> & boundaries) const
+      void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType> & output, std::vector<PeakBoundary>& boundaries, bool sorted = false) const
     {
       // copy meta data of the input chromatogram
       output.clear(true);
@@ -382,7 +389,7 @@ public:
       {
         input_spectrum.push_back(*it);
       }
-      pick(input_spectrum, output_spectrum, boundaries);
+      pick(input_spectrum, output_spectrum, boundaries, sorted);
       for (typename MSSpectrum<PeakType>::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
       {
         output.push_back(*it);
@@ -391,33 +398,38 @@ public:
     }
 
     /**
-     * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+     * @brief Applies the peak picking algorithm to a map (MSExperiment). This
      * method picks peaks for each scan in the map consecutively. The resulting
-     * picked peaks are written to the output map.
+     * picked peaks are written to the output map. The input will be sorted
+     * according to m/z, if necessary.
      * 
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
+     * @param sorted  is input already sorted?
      */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output) const
+      void pickExperiment(MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, bool sorted = false) const
     {
-        std::vector<std::vector<PeakBoundary> > boundaries_spec;
-        std::vector<std::vector<PeakBoundary> > boundaries_chrom;
-        pickExperiment(input, output, boundaries_spec, boundaries_chrom);
+      std::vector<std::vector<PeakBoundary> > boundaries_spec;
+      std::vector<std::vector<PeakBoundary> > boundaries_chrom;
+      pickExperiment(input, output, boundaries_spec, boundaries_chrom, sorted);
     }
 
     /**
-     * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+     * @brief Applies the peak picking algorithm to a map (MSExperiment). This
      * method picks peaks for each scan in the map consecutively. The resulting
-     * picked peaks are written to the output map.
+     * picked peaks are written to the output map. Peak boundaries are written
+     * to separate vectors. The input will be sorted according to m/z, if 
+     * necessary.
      * 
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
      * @param boundaries_spec  boundaries of the picked peaks in spectra
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
+     * @param sorted  is input already sorted?
      */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output, std::vector<std::vector<PeakBoundary> > & boundaries_spec, std::vector<std::vector<PeakBoundary> > & boundaries_chrom) const
+      void pickExperiment(MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, bool sorted = false) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -440,8 +452,8 @@ public:
         }
         else
         {
-          std::vector<PeakBoundary> boundaries_s;    // peak boundaries of a single spectrum
-          pick(input[scan_idx], output[scan_idx], boundaries_s);
+          std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
+          pick(input[scan_idx], output[scan_idx], boundaries_s, sorted);
           boundaries_spec.push_back(boundaries_s);
         }
         setProgress(++progress);
@@ -449,27 +461,27 @@ public:
       for (Size i = 0; i < input.getChromatograms().size(); ++i)
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;
-        std::vector<PeakBoundary> boundaries_c;    // peak boundaries of a single chromatogram
-        pick(input.getChromatograms()[i], chromatogram, boundaries_c);
+        std::vector<PeakBoundary> boundaries_c; // peak boundaries of a single chromatogram
+        pick(input.getChromatograms()[i], chromatogram, boundaries_c, sorted);
         output.addChromatogram(chromatogram);
         boundaries_chrom.push_back(boundaries_c);
         setProgress(++progress);
       }
 
       endProgress();
-
-      return;
     }
 
     /**
-      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
-      method picks peaks for each scan in the map consecutively. The resulting
-      picked peaks are written to the output map.
-
-      Currently we have to give up const-correctness but we know that everything on disc is constant
-    */
+     * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+     * method picks peaks for each scan in the map consecutively. The resulting
+     * picked peaks are written to the output map.
+     *
+     * @param input  input map in profile mode
+     * @param output  output map with picked peaks
+     * @param sorted  is input already sorted?
+     */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output) const
+      void pickExperiment(OnDiscMSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, bool sorted = false) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -492,23 +504,25 @@ public:
         }
         else
         {
+          // "input[scan_idx]" creates a temporary object, which we can't pass
+          // by non-const reference, so we need to make a copy:
           MSSpectrum<PeakType> s = input[scan_idx];
-          s.sortByPosition();
-          pick(s, output[scan_idx]);
+          pick(s, output[scan_idx], sorted);
         }
         setProgress(++progress);
       }
       for (Size i = 0; i < input.getNrChromatograms(); ++i)
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;
-        pick(input.getChromatogram(i), chromatogram);
+        // "input.getChromatogram(i)" creates a temporary object, which we can't
+        // pass by non-const reference, so we need to make a copy:
+        MSChromatogram<ChromatogramPeakT> temp = input.getChromatogram(i);
+        pick(temp, chromatogram, sorted);
         output.addChromatogram(chromatogram);
         setProgress(++progress);
       }
 
       endProgress();
-
-      return;
     }
 
 protected:
