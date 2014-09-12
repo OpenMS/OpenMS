@@ -48,7 +48,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"), inpu
 
 TOLERANCE_RELATIVE(1.001);
 
-START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<boost::tuple<double, double, double> > &))
+START_SECTION(static void estimateSpectrumFWHM(MSSpectrum<>&, std::set<boost::tuple<double, double, double> >&))
 {
   typedef std::set<boost::tuple<double, double, double> > Fwhm;
   Fwhm fwhm;
@@ -61,7 +61,7 @@ START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<bo
 }
 END_SECTION
 
-START_SECTION(static Result estimateFWHM(const MSExperiment<> &))
+START_SECTION(static Result estimateFWHM(const MSExperiment<>&))
 {
   PeakWidthEstimator::Result r(PeakWidthEstimator::estimateFWHM(input));
   TEST_REAL_SIMILAR(r.c0, -13.3983270252558);
