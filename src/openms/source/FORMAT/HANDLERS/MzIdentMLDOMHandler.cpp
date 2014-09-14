@@ -675,7 +675,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            std::cerr << "another derp in progress" << std::endl;
+            std::cerr << "another derp0 in progress" << std::endl;
           }
           char pre = '-';
           char post = '-';
@@ -686,7 +686,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            std::cerr << "another derp in progress" << std::endl;
+            std::cerr << "another derp1 in progress" << std::endl;
           }
           bool idec = false;
           try
@@ -697,7 +697,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            std::cerr << "another derp in progress" << std::endl;
+            std::cerr << "another derp2 in progress" << std::endl;
           }
           pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post,idec}));
           p_pv_map_.insert(std::make_pair(peptide_ref,id));
@@ -828,7 +828,7 @@ namespace OpenMS
                   }
                   catch (...)
                   {
-                    std::cerr << "another derp in progress" << std::endl;
+                    std::cerr << "another derp3 in progress" << std::endl;
                   }
 
                   String semiSpecific = XMLString::transcode(enzy->getAttribute(XMLString::transcode("semiSpecific"))); //xsd:boolean
@@ -841,7 +841,7 @@ namespace OpenMS
                   }
                   catch (...)
                   {
-                    std::cerr << "another derp in progress" << std::endl;
+                    std::cerr << "another derp4 in progress" << std::endl;
                   }
 
                   String enzymename = "UNKNOWN";
@@ -1049,7 +1049,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        std::cerr << "another derp in progress" << std::endl;
+        std::cerr << "another derp5 in progress" << std::endl;
       }
       long double experimentalMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("experimentalMassToCharge")))).toDouble();
       int rank = 0;
@@ -1059,7 +1059,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        std::cerr << "another derp in progress" << std::endl;
+        std::cerr << "another derp6 in progress" << std::endl;
       }
 
       String peptide_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("peptide_ref")));
@@ -1113,6 +1113,10 @@ namespace OpenMS
         PeptideEvidence& pv = pe_ev_map_[pev];
         spectrum_identification.getHits().back().setAABefore(pv.pre);
         spectrum_identification.getHits().back().setAAAfter(pv.post);
+
+        spectrum_identification.getHits().back().setMetaValue("start",pv.start);
+        spectrum_identification.getHits().back().setMetaValue("end",pv.stop);
+
         if (pv.idec)
           spectrum_identification.getHits().back().setMetaValue("target_decoy","decoy");
         else
@@ -1309,7 +1313,7 @@ namespace OpenMS
             }
             catch (...)
             {
-              std::cerr << "another derp in progress" << std::endl;
+              std::cerr << "another derp7 in progress" << std::endl;
             }
 
             //double monoisotopicMassDelta = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("monoisotopicMassDelta")));

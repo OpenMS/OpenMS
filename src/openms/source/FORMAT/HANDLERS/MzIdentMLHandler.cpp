@@ -659,7 +659,16 @@ namespace OpenMS
               if (!pr.empty() && pr != " " && pr != "*")
               {
                 e += "\" pre=\"" + pr;
+              }              
+              if (jt->metaValueExists("start"))
+              {
+                  e += "\" start=\"" + String(jt->getMetaValue("start"));
               }
+              if (jt->metaValueExists("end"))
+              {
+                  e += "\" end=\"" + String(jt->getMetaValue("end"));
+              }
+
               e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
               sen_set.insert(e);
               pevid_ids.push_back(pevid);
