@@ -508,7 +508,7 @@ namespace OpenMS
 
   bool ResidueModification::hasNeutralLoss() const
   {
-    return neutral_loss_diff_formula_ != "";
+    return !neutral_loss_diff_formula_.isEmpty() && !neutral_loss_diff_formula_.isCharged();
   }
 
 }

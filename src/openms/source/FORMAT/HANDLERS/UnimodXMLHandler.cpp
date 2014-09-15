@@ -192,7 +192,7 @@ namespace OpenMS
         {
           formula = tmp_symbol + num;
         }
-        diff_formula_ += formula;
+        diff_formula_ += EmpiricalFormula(formula);
 
       }
 
