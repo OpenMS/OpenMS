@@ -62,7 +62,7 @@ function(check_lib_architecture link_libs)
           ## '8664 machine (x64)'
           ## (similar for x86)
           set(M_64bit "Machine      : 8664 \\(x64\\)|8664 machine \\(x64\\)")
-          set(M_32bit "Machine      :  14C \\(x86\\)|14C machine \\(x86\\)")
+          set(M_32bit "Machine      : 14C \\(x86\\)|14C machine \\(x86\\)")
           if ((OPENMS_64BIT_ARCHITECTURE EQUAL 1) AND NOT (${PIPE_OUT_LIB_S} MATCHES ${M_64bit}))
             message(FATAL_ERROR "\n####\n${PIPE_OUT_LIB_S}\n####\n\nWe detected an external 32-bit link library ('${lib_file}') which cannot be linked to this 64-bit OpenMS! Find or compile a 64-bit version and run CMake again! Evidence see above. Expected substring regex was '${M_64bit}'.")
           elseif((OPENMS_64BIT_ARCHITECTURE EQUAL 0) AND NOT(${PIPE_OUT_LIB_S} MATCHES ${M_32bit}))
