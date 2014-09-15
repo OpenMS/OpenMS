@@ -125,6 +125,12 @@ public:
       * Return if BSpline2d is in a valid state.
       */
       bool ok();
+
+    /**
+      * Return the number of x values in the domain.
+      */
+      Size nX();
+
 private:
     BSpline2d();
 

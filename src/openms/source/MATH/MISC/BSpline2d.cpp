@@ -77,4 +77,10 @@ namespace OpenMS
   {
     return spline_->ok();
   }
+
+  Size BSpline2d::nX()
+  {
+    return spline_->nX();
+  }
+
 }

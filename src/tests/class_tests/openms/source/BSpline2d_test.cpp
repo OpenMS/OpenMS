@@ -220,6 +220,22 @@ START_SECTION((bool ok()))
   TEST_REAL_SIMILAR(y1,y2);
 }
 END_SECTION
+
+
+START_SECTION((Size nX()))
+{
+  vector<double> x;
+  vector<double> y;
+  for (Size i = 0; i != 10; ++i)
+  {
+    x.push_back(i);
+    y.push_back(i);
+  }
+  BSpline2d b(x, y);
+  TEST_EQUAL(b.nX(), 10)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
