@@ -708,7 +708,7 @@ namespace OpenMS
       //std::cout << "PeptideEvidences found: " << count << std::endl;
     }
 
-    void MzIdentMLDOMHandler::parserElements_(DOMNodeList * spectrumIdentificationElements)
+    void MzIdentMLDOMHandler::parseSpectrumIdentificationElements_(DOMNodeList * spectrumIdentificationElements)
     {
       const  XMLSize_t si_node_count = spectrumIdentificationElements->getLength();
       int count = 0;
@@ -1032,13 +1032,13 @@ namespace OpenMS
           //adopt cv s
           for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end() ; ++cvit)
           {
-            if (cvit->first == "MS:1000894") //TODO or childs
+            if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
             {
-                pep_id_->back().setRT(cvit->second.getValue()); // TODO convert if unit is minutes
+                pep_id_->back().setRT(cvit->second.front().getValue()); // TODO convert if unit is minutes
             }
             else
             {
-                pep_id_->back().setMetaValue(cvit->first,cvit->second.getValue());
+                pep_id_->back().setMetaValue(cvit->first,cvit->second.front().getValue()); // TODO? all DataValues - are there more then one, my guess is this is overdesigned
             }
           }
           //adopt up s
@@ -1057,7 +1057,6 @@ namespace OpenMS
       String id = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("id")));
       String name = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("name")));
 
-      // TODO @ mths : where to put calc. mz if even
       long double calculatedMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("calculatedMassToCharge")))).toDouble();
 //      long double calculatedPI = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("calculatedPI")))).toDouble();
       int chargeState = 0;
@@ -1123,9 +1122,9 @@ namespace OpenMS
         hit.setMetaValue(up->first, up->second);
       }
       //
+      hit.setMetaValue("calcMZ", calculatedMassToCharge);
       spectrum_identification.insertHit(hit);
       spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
-      hit.setMetaValue("calcMZ", calculatedMassToCharge);
 
       if (pe_ev_map_.find(pev) != pe_ev_map_.end())
       {

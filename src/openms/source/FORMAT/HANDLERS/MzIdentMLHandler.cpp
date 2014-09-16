@@ -582,6 +582,23 @@ namespace OpenMS
       for (std::vector<PeptideIdentification>::const_iterator it = cpep_id_->begin(); it != cpep_id_->end(); ++it)
       {
         String pro_pep_matchstring = it->getIdentifier();    //~ TODO getIdentifier() lookup in proteinidentification get search db etc
+        String emz(it->getMZ());
+        String ert(it->getRT());
+        String st(it->getScoreType());       //scoretype
+        String sid = it->getMetaValue("spectrum_reference");
+        if (sid.empty())
+        {
+          sid = String(it->getMetaValue("spectrum_id"));
+          if (sid.empty())
+          {
+              sid = String("MZ:") + emz + String("@RT:") + ert;
+          }
+        }
+        String sidres;
+        UInt64 sir =  UniqueIdGenerator::getUniqueId();
+        sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + sid + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
+
+
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
           UInt64 pepid =  UniqueIdGenerator::getUniqueId();
@@ -685,28 +702,13 @@ namespace OpenMS
           }
 
           String cmz(jt->getSequence().getMonoWeight(res_type_, jt->getCharge()));       //calculatedMassToCharge
-          String emz(it->getMZ());
-          String ert(it->getRT());
           String r(jt->getRank());      //rank
           String sc(jt->getScore());       //score TODO what if there is no score?
-          String st(it->getScoreType());       //scoretype
           String c(jt->getCharge());       //charge
           String pte(boost::lexical_cast<std::string>(it->isHigherScoreBetter() ? jt->getScore() > it->getSignificanceThreshold() : jt->getScore() < it->getSignificanceThreshold())); //passThreshold-eval
 
           //write SpectrumIdentificationResult elements
-          String sidres;
-          UInt64 sir =  UniqueIdGenerator::getUniqueId();
           UInt64 sii =  UniqueIdGenerator::getUniqueId();
-          String sid = it->getMetaValue("spectrum_reference");
-          if (sid.empty())
-          {
-            sid = String(it->getMetaValue("spectrum_id"));
-            if (sid.empty())
-            {
-                sid = String("MZ:") + emz + String("@RT:") + ert;
-            }
-          }
-          sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + sid + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
           sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"") + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"") + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz + String("\" experimentalMassToCharge=\"") + emz + String("\" chargeState=\"") + c +  String("\" id=\"") + String(sii) + String("\"> \n");
 
           //TODO @mths: FIXME passThreshold attr.
@@ -756,10 +758,10 @@ namespace OpenMS
           writeMetaInfos_(sidres, *jt, 5);
 
           //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";
-          sidres += "\t\t\t\t</SpectrumIdentificationItem>\n\t\t\t</SpectrumIdentificationResult>\n";
-          sidlist.push_back(sidres);
-
+          sidres += "\t\t\t\t</SpectrumIdentificationItem>\n";
         }
+         sidres += "\t\t\t</SpectrumIdentificationResult>\n";
+        sidlist.push_back(sidres);
       }
 
       //--------------------------------------------------------------------------------------------
