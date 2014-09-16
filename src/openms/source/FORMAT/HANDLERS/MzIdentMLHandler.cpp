@@ -753,7 +753,7 @@ namespace OpenMS
           }
           sidres += "\n";
 
-          sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("retention time").toXMLString(cv_ns, ert);
+          sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
 
           writeMetaInfos_(sidres, *jt, 5);
 
