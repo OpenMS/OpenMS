@@ -158,7 +158,7 @@ namespace OpenMS
       intensity_package.push_back(intensity_slim[i]);
     }
     // add the last package
-    if (intensity_package.size() > 2)
+    if (intensity_package.size() > 1)
     {
       packages_.push_back(SplinePackage(mz_package, intensity_package, scaling));
     }
