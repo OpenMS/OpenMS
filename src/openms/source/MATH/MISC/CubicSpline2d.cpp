@@ -49,7 +49,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors are not of the same size.");
     }
 
-    if (x.size() > 1)
+    if (x.size() < 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors need to contain two or more elements.");
     }
@@ -65,7 +65,7 @@ namespace OpenMS
 
   CubicSpline2d::CubicSpline2d(const std::map<double, double>& m)
   {
-    if (m.size() > 1)
+    if (m.size() < 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Map needs to contain two or more elements.");
     }
