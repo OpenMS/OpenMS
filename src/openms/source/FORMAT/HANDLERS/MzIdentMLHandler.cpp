@@ -485,7 +485,7 @@ namespace OpenMS
         }
         else if (swcn == "XTandem")
         {
-          osecv = "xtandem";
+          osecv = "X\\!Tandem"; //wtf escape from escape?
         }
         else if (swcn == "SEQUEST")
         {
@@ -494,6 +494,10 @@ namespace OpenMS
         else if (swcn == "MS-GF+")
         {
           osecv = "MS-GF+";
+        }
+        else if (swcn == "Percolator")
+        {
+          osecv = "Percolator";
         }
         else
         {
@@ -696,7 +700,11 @@ namespace OpenMS
           String sid = it->getMetaValue("spectrum_reference");
           if (sid.empty())
           {
-            sid = String("MZ:") + emz + String("@RT:") + ert;
+            sid = String(it->getMetaValue("spectrum_id"));
+            if (sid.empty())
+            {
+                sid = String("MZ:") + emz + String("@RT:") + ert;
+            }
           }
           sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + sid + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
           sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"") + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"") + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz + String("\" experimentalMassToCharge=\"") + emz + String("\" chargeState=\"") + c +  String("\" id=\"") + String(sii) + String("\"> \n");
@@ -727,7 +735,7 @@ namespace OpenMS
           }
           else if (pie_ids[pro_pep_matchstring] == "XTandem")
           {
-            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("X!Tandem:expect").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("X\\!Tandem:expect").toXMLString(cv_ns, sc);
           }
           else if (pie_ids[pro_pep_matchstring] == "SEQUEST")
           {
@@ -742,6 +750,8 @@ namespace OpenMS
             sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns, sc);
           }
           sidres += "\n";
+
+          sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("retention time").toXMLString(cv_ns, ert);
 
           writeMetaInfos_(sidres, *jt, 5);
 
