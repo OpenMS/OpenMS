@@ -29,29 +29,28 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Stephan Aiche $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_PROGRESSLOGGER_H
 #define OPENMS_CONCEPT_PROGRESSLOGGER_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
 
-class QProgressDialog;
+#include <map>
 
 namespace OpenMS
 {
   class String;
 
   /**
-  @brief Base class for all classes that want to report their progress.
+    @brief Base class for all classes that want to report their progress.
 
-  Per default the progress log is disabled. Use setLogType to enable it.
+    Per default the progress log is disabled. Use setLogType to enable it.
 
-  Use startProgress, setProgress and endProgress for the actual logging.
+    Use startProgress, setProgress and endProgress for the actual logging.
 
-  @note All methods are const, so it can be used through a const reference or in const methods as well!
+    @note All methods are const, so it can be used through a const reference or in const methods as well!
   */
   class OPENMS_DLLAPI ProgressLogger
   {
@@ -62,12 +61,31 @@ public:
     /// Destructor
     ~ProgressLogger();
 
-    ///Possible log types
+    /// Copy constructor
+    ProgressLogger(const ProgressLogger& other);
+
+    /// Assignment Operator
+    ProgressLogger& operator=(const ProgressLogger& other);
+
+    /// Possible log types
     enum LogType
     {
-      CMD,              ///< Command line progress
-      GUI,                ///< Progress dialog
-      NONE            ///< No progress logging
+      CMD, ///< Command line progress
+      GUI, ///< Progress dialog
+      NONE ///< No progress logging
+    };
+
+    /**
+      @brief This class represents an actual implementation of a logger.
+    */
+    class ProgressLoggerImpl
+    {
+public:
+      virtual void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const = 0;
+      virtual void setProgress(const SignedSize value, const int current_recursion_depth) const = 0;
+      virtual void endProgress(const int current_recursion_depth) const = 0;
+
+      virtual ~ProgressLoggerImpl() {}
     };
 
     /// Sets the progress log that should be used. The default type is NONE!
@@ -77,17 +95,26 @@ public:
     LogType getLogType() const;
 
     /**
-    @brief Initializes the progress display
+      @brief Registers a new logger for the given log-type
 
-    Sets the progress range from @p begin to @p end.
-    If @p begin equals @p end, setProgress only indicates that
-    the program is still running, but without showing any absolute progress value.
-
-    Sets the label to @p label.
-
-    @note Make sure to call setLogType first!
+      @note Changes to the logger association will not be copied over to other instances.
+            This class is going to be redesigned in the near future, so this problem is
+            temporarily accepted.
     */
-    void startProgress(SignedSize begin, SignedSize end, const String & label) const;
+    void registerLogger(LogType type, ProgressLogger::ProgressLoggerImpl* newLoggerImpl) const;
+
+    /**
+      @brief Initializes the progress display
+
+      Sets the progress range from @p begin to @p end.
+      If @p begin equals @p end, setProgress only indicates that
+      the program is still running, but without showing any absolute progress value.
+
+      Sets the label to @p label.
+
+      @note Make sure to call setLogType first!
+    */
+    void startProgress(SignedSize begin, SignedSize end, const String& label) const;
 
     /// Sets the current progress
     void setProgress(SignedSize value) const;
@@ -97,13 +124,11 @@ public:
 
 protected:
     mutable LogType type_;
-    mutable SignedSize begin_;
-    mutable SignedSize end_;
-    mutable SignedSize value_;
-    mutable QProgressDialog * dlg_;
-    mutable StopWatch stop_watch_;
     mutable time_t last_invoke_;
     static int recursion_depth_;
+
+    mutable std::map<LogType, ProgressLoggerImpl*> registered_logger_;
+    mutable ProgressLoggerImpl* current_logger_;
   };
 
 } // namespace OpenMS

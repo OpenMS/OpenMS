@@ -85,17 +85,10 @@ public:
     void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const;
 
     /// creates a new instance of a SingleLinkage object
-    static ClusterFunctor * create()
-    {
-      return new SingleLinkage();
-    }
+    static ClusterFunctor * create();
 
     /// get the identifier for this object
-    static const String getProductName()
-    {
-      return "SingleLinkage";
-    }
-
+    static const String getProductName();
   };
 
 

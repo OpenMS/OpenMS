@@ -29,12 +29,15 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
-// $Authors: Marc Sturm $
+// $Authors: Marc Sturm, Stephan Aiche$
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Macros.h>
+
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <QtCore/QString>
 #include <QtGui/QProgressDialog>
@@ -45,79 +48,29 @@ using namespace std;
 
 namespace OpenMS
 {
-  int ProgressLogger::recursion_depth_ = 0;
-
-  ProgressLogger::ProgressLogger() :
-    type_(NONE),
-    begin_(0),
-    end_(0),
-    value_(0),
-    dlg_(0),
-    stop_watch_(),
-    last_invoke_()
+  class CMDProgressLoggerImpl :
+    public ProgressLogger::ProgressLoggerImpl
   {
-  }
-
-  ProgressLogger::~ProgressLogger()
-  {
-    delete(dlg_);
-  }
-
-  void ProgressLogger::setLogType(LogType type) const
-  {
-    type_ = type;
-  }
-
-  ProgressLogger::LogType ProgressLogger::getLogType() const
-  {
-    return type_;
-  }
-
-  void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String & label) const
-  {
-    OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
-    last_invoke_ = time(NULL);
-
-    switch (type_)
+  public:
+    CMDProgressLoggerImpl()
+      : stop_watch_(),
+        begin_(0),
+        end_(0)
     {
-    case CMD:
+    }
+
+    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const
+    {
       begin_ = begin;
       end_ = end;
-      if (recursion_depth_)
-        cout << '\n';
-      cout << string(2 * recursion_depth_, ' ') << "Progress of '" << label << "':" << endl;
+      if (current_recursion_depth) cout << '\n';
+      cout << string(2 * current_recursion_depth, ' ') << "Progress of '" << label << "':" << endl;
       stop_watch_.reset();
       stop_watch_.start();
-      break;
-
-    case GUI:
-      begin_ = begin;
-      end_ = end;
-      if (!dlg_)
-        dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
-      dlg_->setWindowTitle(label.c_str());
-      dlg_->setWindowModality(Qt::WindowModal);
-      dlg_->show();
-      break;
-
-    case NONE:
-      break;
     }
-    ++recursion_depth_;
-    return;
-  }
 
-  void ProgressLogger::setProgress(SignedSize value) const
-  {
-    // update only if at least 1 second has passed
-    if (last_invoke_ == time(NULL))
-      return;
-
-    last_invoke_ = time(NULL);
-
-    switch (type_)
+    void setProgress(const SignedSize value, const int current_recursion_depth) const
     {
-    case CMD:
       if (begin_ == end_)
       {
         cout << '.' << flush;
@@ -129,12 +82,76 @@ namespace OpenMS
       }
       else
       {
-        cout << '\r' << string(2 * recursion_depth_, ' ') << QString::number(float(value - begin_) / float(end_ - begin_) * 100.0, 'f', 2).toStdString()  << " %               ";
+        cout << '\r' << string(2 * current_recursion_depth, ' ') << QString::number(float(value - begin_) / float(end_ - begin_) * 100.0, 'f', 2).toStdString()  << " %               ";
         cout << flush;
       }
-      break;
+    }
 
-    case GUI:
+    void endProgress(const int current_recursion_depth) const
+    {
+      stop_watch_.stop();
+      if (begin_ == end_)
+      {
+        if (current_recursion_depth)
+        {
+          cout << '\n';
+        }
+        cout << endl << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
+      }
+      else
+      {
+        cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
+      }
+    }
+  private:
+    mutable StopWatch stop_watch_;
+    mutable SignedSize begin_;
+    mutable SignedSize end_;
+  };
+
+  class NoProgressLoggerImpl :
+      public ProgressLogger::ProgressLoggerImpl
+  {
+  public:
+    void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const
+    {
+    }
+
+    void setProgress(const SignedSize /* value */, const int /* current_recursion_depth */) const
+    {
+    }
+
+    void endProgress(const int /* current_recursion_depth */) const
+    {
+    }
+  };
+
+  class GUIProgressLoggerImpl :
+      public ProgressLogger::ProgressLoggerImpl
+  {
+  public:
+    GUIProgressLoggerImpl()
+      : dlg_(0),
+        begin_(0),
+        end_(0)
+    {
+    }
+
+    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const
+    {
+      begin_ = begin;
+      end_ = end;
+      if (!dlg_)
+      {
+        dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
+      }
+      dlg_->setWindowTitle(label.c_str());
+      dlg_->setWindowModality(Qt::WindowModal);
+      dlg_->show();
+    }
+
+    void setProgress(const SignedSize value, const int /* current_recursion_depth */) const
+    {
       if (value < begin_ || value > end_)
       {
         cout << "ProgressLogger: Invalid progress value '" << value << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
@@ -150,39 +167,10 @@ namespace OpenMS
           cout << "ProgressLogger warning: 'setValue' called before 'startProgress'!" << endl;
         }
       }
-      break;
-
-    case NONE:
-      break;
-    }
-  }
-
-  void ProgressLogger::endProgress() const
-  {
-    if (recursion_depth_)
-    {
-      --recursion_depth_;
     }
 
-    switch (type_)
+    void endProgress(const int /* current_recursion_depth */) const
     {
-    case CMD:
-      stop_watch_.stop();
-      if (begin_ == end_)
-      {
-        if (recursion_depth_)
-        {
-          cout << '\n';
-        }
-        cout << endl << string(2 * recursion_depth_, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
-      }
-      else
-      {
-        cout << '\r' << string(2 * recursion_depth_, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " <<StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
-      }
-      break;
-
-    case GUI:
       if (dlg_)
       {
         dlg_->setValue((int)end_);
@@ -191,11 +179,110 @@ namespace OpenMS
       {
         cout << "ProgressLogger warning: 'endProgress' called before 'startProgress'!" << endl;
       }
-      break;
-
-    case NONE:
-      break;
     }
+
+    ~GUIProgressLoggerImpl()
+    {
+      delete dlg_;
+    }
+
+  private:
+    mutable QProgressDialog* dlg_;
+    mutable SignedSize begin_;
+    mutable SignedSize end_;
+  };
+
+  int ProgressLogger::recursion_depth_ = 0;
+
+  ProgressLogger::ProgressLogger() :
+    type_(NONE),
+    last_invoke_()
+  {
+    registered_logger_.insert(std::make_pair(ProgressLogger::NONE, new NoProgressLoggerImpl));
+    registered_logger_.insert(std::make_pair(ProgressLogger::GUI, new GUIProgressLoggerImpl));
+    registered_logger_.insert(std::make_pair(ProgressLogger::CMD, new CMDProgressLoggerImpl));
+
+    current_logger_ = registered_logger_[type_];
+  }
+
+  ProgressLogger::ProgressLogger(const ProgressLogger &other) :
+    last_invoke_(other.last_invoke_),
+    type_(other.type_)
+  {
+    registered_logger_.insert(std::make_pair(ProgressLogger::NONE, new NoProgressLoggerImpl));
+    registered_logger_.insert(std::make_pair(ProgressLogger::GUI, new GUIProgressLoggerImpl));
+    registered_logger_.insert(std::make_pair(ProgressLogger::CMD, new CMDProgressLoggerImpl));
+
+    current_logger_ = registered_logger_[type_];
+  }
+
+  ProgressLogger& ProgressLogger::operator=(const ProgressLogger& other)
+  {
+    if (&other == this) return *this;
+
+    this->last_invoke_ = other.last_invoke_;
+    this->type_ = other.type_;
+
+    registered_logger_.insert(std::make_pair(ProgressLogger::NONE, new NoProgressLoggerImpl));
+    registered_logger_.insert(std::make_pair(ProgressLogger::GUI, new GUIProgressLoggerImpl));
+    registered_logger_.insert(std::make_pair(ProgressLogger::CMD, new CMDProgressLoggerImpl));
+
+    current_logger_ = registered_logger_[type_];
+  }
+
+  ProgressLogger::~ProgressLogger()
+  {
+    for(std::map<ProgressLogger::LogType, ProgressLoggerImpl*>::iterator it = registered_logger_.begin();
+        it != registered_logger_.end();
+        ++it)
+    {
+      delete it->second;
+    }
+  }
+
+  void ProgressLogger::setLogType(LogType type) const
+  {
+    type_ = type;
+    current_logger_ = registered_logger_[type_];
+  }
+
+  ProgressLogger::LogType ProgressLogger::getLogType() const
+  {
+    return type_;
+  }
+
+  void ProgressLogger::registerLogger(LogType type, ProgressLoggerImpl* newLoggerImpl) const
+  {
+    // get rid of the old logger
+    delete registered_logger_[type];
+    // register the new one
+    registered_logger_.insert(std::make_pair(type, newLoggerImpl));
+  }
+
+  void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
+  {
+    OPENMS_PRECONDITION(begin <= end, "ProgressLogger::init : invalid range!");
+    last_invoke_ = time(NULL);
+    current_logger_->startProgress(begin, end, label, recursion_depth_);
+    ++recursion_depth_;
+  }
+
+  void ProgressLogger::setProgress(SignedSize value) const
+  {
+    // update only if at least 1 second has passed
+    if (last_invoke_ == time(NULL)) return;
+
+    last_invoke_ = time(NULL);
+    current_logger_->setProgress(value, recursion_depth_);
+  }
+
+  void ProgressLogger::endProgress() const
+  {
+    if (recursion_depth_)
+    {
+      --recursion_depth_;
+    }
+    current_logger_->endProgress(recursion_depth_);
   }
 
 } //namespace OpenMS
