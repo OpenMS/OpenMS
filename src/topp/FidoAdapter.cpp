@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Xiao Liang $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -75,6 +75,8 @@ using namespace std;
 
     Serang <em>et al.</em>: <a href="http://pubs.acs.org/doi/abs/10.1021/pr100594k">Efficient marginalization to compute protein posterior probabilities from shotgun mass spectrometry data</a> (J. Proteome Res., 2010).
 
+    By default, this adapter runs the Fido variant with parameter estimation (@p FidoChooseParameters), as recommended by the authors of Fido. However, it is also possible to run "pure" Fido by setting the @p prob:protein, @p prob:peptide and @p prob:spurious parameters, if appropriate values are known (e.g. from a previous Fido run).
+
     <b>Input format:</b>
 
     Care has to be taken to provide suitable input data for this adapter. In the peptide/protein identification results (e.g. coming from a database search engine), the proteins have to be annotated with target/decoy meta data. To achieve this, run @ref TOPP_PeptideIndexer with the @p annotate_proteins option switched on.@n
@@ -82,7 +84,7 @@ using namespace std;
 
     <b>Output format:</b>
 
-    The output of this tool is an augmented version of the input: The protein groups and accompanying posterior probabilities inferred by Fido are stored as "indistinguishable protein groups", attached to the (first) protein identification run of the input data.@n
+    The output of this tool is an augmented version of the input: The protein groups and accompanying posterior probabilities inferred by Fido are stored as "indistinguishable protein groups", attached to the (first) protein identification run of the input data. Also attached are meta values recording the Fido parameters (@p Fido_prob_protein, @p Fido_prob_peptide, @p Fido_prob_spurious).@n
     The result can be passed to @ref TOPP_ProteinQuantifier via its @p protein_groups parameter, to have the protein grouping taken into account during quantification.
 
 
@@ -110,18 +112,9 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Output: identification results "
-                        "with scored/grouped proteins");
+    registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerStringOption_("exe", "<file>", 
-#if defined(OPENMS_WINDOWSPLATFORM)
-                          "FidoChooseParameters.exe",
-#else
-                          "FidoChooseParameters",
-#endif
-                          "Executable for Fido with parameter estimation", 
-                          false);
-
+    registerStringOption_("exe", "<path>", "", "Path to the executable to use, or to the directory containing the 'Fido' and 'FidoChooseParameters' executables; may be empty if the executables are globally available.", false);
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
@@ -131,6 +124,13 @@ protected:
     setMinInt_("log2_states", 0);
     registerIntOption_("log2_states_precalc", "<number>", 0, "Like 'log2_states', but allows to set a separate limit for the precalculation", false, true);
     setMinInt_("log2_states_precalc", 0);
+    registerTOPPSubsection_("prob", "Probability values for running Fido directly, i.e. without parameter estimation");
+    registerDoubleOption_("prob:protein", "<value>", 0.0, "Protein prior probability ('gamma' parameter)", false);
+    setMinFloat_("prob:protein", 0.0);
+    registerDoubleOption_("prob:peptide", "<value>", 0.0, "Peptide emission probability ('alpha' parameter)", false);
+    setMinFloat_("prob:peptide", 0.0);
+    registerDoubleOption_("prob:spurious", "<value>", 0.0, "Spurious peptide identification probability ('beta' parameter)", false);
+    setMinFloat_("prob:spurious", 0.0);
   }
 
 
@@ -139,7 +139,41 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String exe = getStringOption_("exe");
+    double prob_protein = getDoubleOption_("prob:protein");
+    double prob_peptide = getDoubleOption_("prob:peptide");
+    double prob_spurious = getDoubleOption_("prob:spurious");
 
+#if defined(OPENMS_WINDOWSPLATFORM)
+    bool windows = true;
+#else
+    bool windows = false;
+#endif
+    bool choose_params = ((prob_protein == 0.0) && (prob_peptide == 0.0) &&
+                          (prob_spurious == 0.0)); // use FidoChooseParameters
+    bool check_exe = true;
+
+    if (exe.empty()) // expect executables in PATH
+    {
+      exe = choose_params ? "FidoChooseParameters" : "Fido";
+      if (windows) exe += ".exe";
+      check_exe = false; // how can we test whether the tool is callable?
+    }
+    else if (File::isDirectory(exe)) // expect executables in directory
+    {
+      if (windows)
+      {
+        exe += choose_params ? "\\FidoChooseParameters.exe" : "\\Fido.exe";
+      }
+      else
+      {
+        exe += choose_params ? "/FidoChooseParameters" : "/Fido";
+      }
+    }
+    // else: expect full path to correct executable
+
+    if (check_exe) inputFileReadable_(exe, "exe");
+
+    // input data:
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
 
@@ -293,26 +327,33 @@ protected:
     LOG_INFO << "Running Fido..." << endl;
     // Fido parameters:
     QStringList inputs;
-    if (getFlag_("no_cleanup")) inputs << "-p";
-    if (getFlag_("all_PSMs")) inputs << "-a";
-    if (getFlag_("group_level")) inputs << "-g";
-    String accuracy = getStringOption_("accuracy");
-    if (!accuracy.empty())
-    {
-      if (accuracy == "best") inputs << "-c 1";
-      else if (accuracy == "relaxed") inputs << "-c 2";
-      else if (accuracy == "sloppy") inputs << "-c 3";
-    }
-    inputs << fido_input_graph.toQString() << fido_input_proteins.toQString();
     Int log2_states = getIntOption_("log2_states");
-    Int log2_states_precalc = getIntOption_("log2_states_precalc");
-    if (log2_states_precalc)
+    if (choose_params)
     {
-      if (!log2_states) log2_states = 18; // actual default value
-      inputs << QString::number(log2_states_precalc);
+      if (getFlag_("no_cleanup")) inputs << "-p";
+      if (getFlag_("all_PSMs")) inputs << "-a";
+      if (getFlag_("group_level")) inputs << "-g";
+      String accuracy = getStringOption_("accuracy");
+      if (!accuracy.empty())
+      {
+        if (accuracy == "best") inputs << "-c 1";
+        else if (accuracy == "relaxed") inputs << "-c 2";
+        else if (accuracy == "sloppy") inputs << "-c 3";
+      }
+      inputs << fido_input_graph.toQString() << fido_input_proteins.toQString();
+      Int log2_states_precalc = getIntOption_("log2_states_precalc");
+      if (log2_states_precalc)
+      {
+        if (!log2_states) log2_states = 18; // actual default value
+        inputs << QString::number(log2_states_precalc);
+      }
+    }
+    else // run Fido only
+    {
+      inputs << fido_input_graph.toQString() << QString::number(prob_protein)
+             << QString::number(prob_peptide) << QString::number(prob_spurious);
     }
     if (log2_states) inputs << QString::number(log2_states);
-
     // run program and read output:
     QProcess fido;
     fido.start(exe.toQString(), inputs);
@@ -327,6 +368,35 @@ protected:
     }
     else // success!
     {
+      vector<String> lines;
+
+      if (choose_params) // get relevant parts of parameter search output
+      {
+        String params_output = QString(fido.readAllStandardError());
+        LOG_INFO << "Fido parameter search:" << endl;
+        if (debug_level_ > 1)
+        {
+          String fido_status = temp_directory + "fido_status.txt";
+          ofstream status(fido_status.c_str());
+          status << params_output;
+          status.close();
+        }
+        params_output.split("\n", lines);
+        vector<String>::iterator pos = remove(lines.begin(), lines.end(), "");
+        lines.erase(pos, lines.end());
+        if (!lines.empty())
+        {
+          if (lines[0].hasPrefix("Warning:")) LOG_WARN << lines[0] << endl;
+          if (lines.back().hasPrefix("Using best gamma, alpha, beta ="))
+          {
+            LOG_INFO << lines.back() << endl;
+            stringstream ss;
+            ss << lines.back().suffix('=');
+            ss >> prob_protein >> prob_peptide >> prob_spurious;
+          }
+        }
+      }
+
       LOG_INFO << "Parsing Fido results and writing output..." << endl;
       String output = QString(fido.readAllStandardOutput());
       if (debug_level_ > 1)
@@ -336,8 +406,6 @@ protected:
         results << output;
         results.close();
       }
-
-      vector<String> lines;
       output.split("\n", lines);
 
       Int protein_counter = 0;
@@ -368,6 +436,9 @@ protected:
         }
       }
       proteins[0].getIndistinguishableProteins() = groups;
+      proteins[0].setMetaValue("Fido_prob_protein", prob_protein);
+      proteins[0].setMetaValue("Fido_prob_peptide", prob_peptide);
+      proteins[0].setMetaValue("Fido_prob_spurious", prob_spurious);
       LOG_INFO << "Inferred " << protein_counter << " proteins in "
                << groups.size() << " groups." << endl;
 
