@@ -708,7 +708,7 @@ namespace OpenMS
       //std::cout << "PeptideEvidences found: " << count << std::endl;
     }
 
-    void MzIdentMLDOMHandler::parseSpectrumIdentificationElements_(DOMNodeList * spectrumIdentificationElements)
+    void MzIdentMLDOMHandler::parserElements_(DOMNodeList * spectrumIdentificationElements)
     {
       const  XMLSize_t si_node_count = spectrumIdentificationElements->getLength();
       int count = 0;
@@ -1008,6 +1008,7 @@ namespace OpenMS
 
           pep_id_->push_back(PeptideIdentification());
           pep_id_->back().setHigherScoreBetter(true);
+          pep_id_->back().setMetaValue("spectrum_id",spectrumID); // TODO @mths consider SpectrumIDFormat to get just a index number here
           PeptideIdentification().setScoreType(search_engine_);
           //fill pep_id_->back() with content
 
@@ -1027,7 +1028,24 @@ namespace OpenMS
           //  setSignificanceThreshold
 
           pep_id_->back().setIdentifier(search_engine_); // TODO @mths: set name/date of search
-          pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
+          pep_id_->back().setMetaValue("spectrum_id", spectrumID); //String scannr = substrings.back().reverse().chop(5);
+          //adopt cv s
+          for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end() ; ++cvit)
+          {
+            if (cvit->first == "MS:1000894") //TODO or childs
+            {
+                pep_id_->back().setRT(cvit->second.getValue()); // TODO convert if unit is minutes
+            }
+            else
+            {
+                pep_id_->back().setMetaValue(cvit->first,cvit->second.getValue());
+            }
+          }
+          //adopt up s
+          for (std::map<String,DataValue>::const_iterator upit = params.second.begin(); upit != params.second.end(); ++upit)
+          {
+              pep_id_->back().setMetaValue(upit->first,upit->second);
+          }
         }
       }
       //std::cout << "SpectrumIdentificationResults found: " << count << std::endl;
@@ -1070,7 +1088,9 @@ namespace OpenMS
       XSValue *val = XSValue::getActualValue(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("passThreshold")), XSValue::dt_boolean, status);
       bool pass = false;
       if ( status == XSValue::st_Init )
+      {
         pass = val->fData.fValue.f_bool;
+      }
       delete val;
 
       long double score = 0;
@@ -1105,8 +1125,7 @@ namespace OpenMS
       //
       spectrum_identification.insertHit(hit);
       spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
-      pep_id_->back().setMetaValue("calcMZ", calculatedMassToCharge);
-
+      hit.setMetaValue("calcMZ", calculatedMassToCharge);
 
       if (pe_ev_map_.find(pev) != pe_ev_map_.end())
       {
