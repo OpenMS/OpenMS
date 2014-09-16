@@ -49,10 +49,6 @@ namespace OpenMS
     @brief File adapter for MzML files
 
     This implementation does currently not support the whole functionality of MzML.
-    Some minor features are still missing:
-        - chromatograms
-
-    @todo Implement chromatograms (Andreas)
 
     @ingroup FileIO
   */
@@ -76,7 +72,7 @@ public:
     void setOptions(const PeakFileOptions &);
 
     /**
-      @brief Loads a map from a MzML file.
+      @brief Loads a map from a MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions).
 
       @p map has to be a MSExperiment or have the same interface.
 
@@ -131,16 +127,16 @@ public:
       does not require a full first pass through the file to compute the
       correct number of spectra and chromatograms in the input file.
 
-      @param filename_in Filename of input mzML file to transform 
+      @param filename_in Filename of input mzML file to transform
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
-      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
+      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
     template <typename MapType>
     void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count = false)
     {
       // First pass through the file -> get the meta-data and hand it to the consumer
       transformFirstPass_(filename_in, consumer, skip_full_count);
-      
+
       // Second pass through the data, now read the spectra!
       {
         MapType dummy;
@@ -160,10 +156,10 @@ public:
       applied to the data before storing them in a map (e.g. if data-reduction
       should be applied to the data before loading all data into memory).
 
-      @param filename_in Filename of input mzML file to transform 
+      @param filename_in Filename of input mzML file to transform
       @param consumer Consumer class to operate on the input filename (implementing a transformation)
       @param map Map to store the resulting spectra and chromatograms
-      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file 
+      @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
     template <typename MapType>
     void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map, bool skip_full_count = false)
