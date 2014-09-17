@@ -94,7 +94,7 @@ START_SECTION(([EXTRA] static void getDefaultParameters(Param & params)))
   Param param;
   param.setValue("some-value", 12.3);
   TransformationModel::getDefaultParameters(param);
-  TEST_EQUAL(p.empty(), true)
+  TEST_EQUAL(param.empty(), true)
 }
 END_SECTION
 
