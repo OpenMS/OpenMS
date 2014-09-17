@@ -145,7 +145,7 @@ endif()
 SET(QT_MIN_VERSION "4.5.0")
 
 # find qt
-find_package(Qt4 REQUIRED QtCore QtNetwork QtGui)
+find_package(Qt4 REQUIRED QtCore QtNetwork)
 
 IF (NOT QT4_FOUND)
   message(STATUS "QT4 not found!")
