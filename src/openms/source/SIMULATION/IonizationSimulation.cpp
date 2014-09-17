@@ -225,7 +225,7 @@ namespace OpenMS
       l_charge -= components[0].remove('+').size();
       EmpiricalFormula ef(components[0].remove('+'));
       // effectively subtract electrons
-      ef.setCharge(l_charge); ef -= String("H") + String(l_charge);
+      ef.setCharge(l_charge); ef -= EmpiricalFormula(String("H") + String(l_charge));
       // create adduct
       Adduct a((Int)l_charge, 1, ef.getMonoWeight(), components[0].remove('+'), log(components[1].toDouble()), 0);
       esi_adducts_.push_back(a);

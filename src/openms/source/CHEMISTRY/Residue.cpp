@@ -79,7 +79,7 @@ namespace OpenMS
     gb_bb_l_(0.0),
     gb_bb_r_(0.0)
   {
-    if (formula_ != "")
+    if (!formula_.isEmpty())
     {
       internal_formula_ = formula_ - getInternalToFull();
     }
@@ -585,7 +585,7 @@ namespace OpenMS
     }
 
     bool updated_formula(false);
-    if (mod.getDiffFormula() != "")
+    if (!mod.getDiffFormula().isEmpty())
     {
       updated_formula = true;
       setFormula(getFormula() + mod.getDiffFormula());
@@ -595,7 +595,7 @@ namespace OpenMS
       updated_formula = true;
       String formula = mod.getFormula();
       formula.removeWhitespaces();
-      formula_ = formula;
+      formula_ = EmpiricalFormula(formula);
     }
 
     if (updated_formula)

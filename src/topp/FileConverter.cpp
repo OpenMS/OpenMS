@@ -44,6 +44,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -147,6 +149,11 @@ protected:
     setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
+
+    registerStringOption_("write_mzML_index", "true or false", "false", "Whether to add an index to the file when writing mzML files", false);
+    setValidStrings_("write_mzML_index", ListUtils::create<String>("true,false"));
+
+    registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -157,6 +164,15 @@ protected:
 
     //input file names
     String in = getStringOption_("in");
+    bool write_mzML_index;
+    if (getStringOption_("write_mzML_index") == "true") 
+    {
+      write_mzML_index = true;
+    }
+    else 
+    {
+      write_mzML_index = false;
+    }
 
     //input file type
     FileHandler fh;
@@ -191,6 +207,7 @@ protected:
     }
 
     bool TIC_DTA2D = getFlag_("TIC_DTA2D");
+    bool process_lowmemory = getFlag_("process_lowmemory");
 
     writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 1);
 
@@ -249,6 +266,34 @@ protected:
         exp.set2DData<true>(fm);
       }
     }
+    else if (process_lowmemory)
+    {
+      // Special switch for the low memory options:
+      // We can transform the complete experiment directly without first
+      // loading the complete data into memory. PlainMSDataWritingConsumer will
+      // write out mzML to disk as they are read from the input.
+      if (in_type == FileTypes::MZML && out_type == FileTypes::MZML)
+      {
+        PlainMSDataWritingConsumer consumer(out);
+        consumer.getOptions().setWriteIndex(write_mzML_index);
+        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
+        MzMLFile().transform(in, &consumer);
+        return EXECUTION_OK;
+      }
+      else if (in_type == FileTypes::MZXML && out_type == FileTypes::MZML)
+      {
+        PlainMSDataWritingConsumer consumer(out);
+        consumer.getOptions().setWriteIndex(write_mzML_index);
+        consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
+        MzXMLFile().transform(in, &consumer);
+        return EXECUTION_OK;
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
+      }
+    }
     else
     {
       fh.loadExperiment(in, exp, in_type, log_type_);
@@ -267,6 +312,7 @@ protected:
                                                  CONVERSION_MZML));
       MzMLFile f;
       f.setLogType(log_type_);
+      f.getOptions().setWriteIndex(write_mzML_index);
       ChromatogramTools().convertSpectraToChromatograms(exp, true);
       f.store(out, exp);
     }

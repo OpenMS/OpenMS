@@ -82,7 +82,7 @@ public:
 
     /// Destructor
     virtual ~PeakPickerHiRes();
-    
+
     /// structure for peak boundaries
     struct PeakBoundary
     {
@@ -94,7 +94,7 @@ public:
      * @brief Applies the peak-picking algorithm to a single spectrum
      * (MSSpectrum). The resulting picked peaks are written to the output
      * spectrum.
-     * 
+     *
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      */
@@ -109,7 +109,7 @@ public:
      * @brief Applies the peak-picking algorithm to a single spectrum
      * (MSSpectrum). The resulting picked peaks are written to the output
      * spectrum. Peak boundaries are written to a separate structure.
-     * 
+     *
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      * @param boundaries  boundaries of the picked peaks
@@ -247,11 +247,11 @@ public:
 
           // to the right
           k = 2;
-          
+
           bool previous_zero_right(false);    // no need to extend peak if previous intensity was zero
           Size missing_right(0);
           Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
-          
+
           while ((i + k) < input.size()
                 && (missing_right < 2)
                 && !previous_zero_right
@@ -348,7 +348,7 @@ public:
      /**
      * @brief Applies the peak-picking algorithm to a single chromatogram
      * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     * 
+     *
      * @param input  input chromatogram in profile mode
      * @param output  output chromatogram with picked peaks
      */
@@ -358,11 +358,11 @@ public:
         std::vector<PeakBoundary> boundaries;
         pick(input, output, boundaries);
     }
-    
+
     /**
      * @brief Applies the peak-picking algorithm to a single chromatogram
      * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     * 
+     *
      * @param input  input chromatogram in profile mode
      * @param output  output chromatogram with picked peaks
      * @param boundaries  boundaries of the picked peaks
@@ -394,7 +394,7 @@ public:
      * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
      * method picks peaks for each scan in the map consecutively. The resulting
      * picked peaks are written to the output map.
-     * 
+     *
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
      */
@@ -410,7 +410,7 @@ public:
      * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
      * method picks peaks for each scan in the map consecutively. The resulting
      * picked peaks are written to the output map.
-     * 
+     *
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
      * @param boundaries_spec  boundaries of the picked peaks in spectra
@@ -428,13 +428,12 @@ public:
       // resize output with respect to input
       output.resize(input.size());
 
-      bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
 
       startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
-        if (ms1_only && (input[scan_idx].getMSLevel() != 1))
+        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
         {
           output[scan_idx] = input[scan_idx];
         }
@@ -480,13 +479,12 @@ public:
       // resize output with respect to input
       output.resize(input.size());
 
-      bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
 
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
-        if (ms1_only && (input[scan_idx].getMSLevel() != 1))
+        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
         {
           output[scan_idx] = input[scan_idx];
         }
@@ -517,6 +515,9 @@ protected:
 
     // maximal spacing difference
     double spacing_difference_;
+
+    // ms levels to which peak picking is applied
+    std::vector<Int> ms_levels_;
 
     // docu in base class
     void updateMembers_();

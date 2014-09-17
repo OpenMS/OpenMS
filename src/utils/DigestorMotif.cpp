@@ -37,6 +37,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 #include <map>
 
@@ -255,9 +257,16 @@ protected:
                 const Size nG = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'G');
                 const Size nL = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'L');
 
+                const ElementDB * db = ElementDB::getInstance();
+                const Element * C = db->getElement("C");
+                const Element * H = db->getElement("H");
+                const Element * N = db->getElement("N");
+                const Element * O = db->getElement("O");
+                const Element * S = db->getElement("S");
+
                 fp_out << counter << SEP << ">" << protein_accessions[0] << SEP << j << SEP << temp_peptides[j] << SEP
-                       << EF.getNumberOf("C") << SEP << EF.getNumberOf("H") << SEP << EF.getNumberOf("N") << SEP << EF.getNumberOf("O") << SEP
-                       << EF.getNumberOf("S") << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP
+                       << EF.getNumberOf(C) << SEP << EF.getNumberOf(H) << SEP << EF.getNumberOf(N) << SEP << EF.getNumberOf(O) << SEP
+                       << EF.getNumberOf(S) << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP
                        << precisionWrapper(min_mass) << SEP << precisionWrapper(max_mass) << SEP << temp_peptides[j].getFormula() << SEP
                        << nD << SEP << nE << SEP << nK << SEP << nR << SEP << nH << SEP << nY << SEP << nW << SEP << nF << SEP << nC << SEP
                        << nM << SEP << nS << SEP << nT << SEP << nN << SEP << nQ << SEP << nG << SEP << nA << SEP << nV << SEP << nL << SEP

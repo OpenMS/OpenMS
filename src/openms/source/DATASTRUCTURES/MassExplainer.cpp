@@ -373,7 +373,7 @@ namespace OpenMS
 
     EmpiricalFormula ef(formula);
     //effectively subtract charge electron masses: (-H plus one Proton)*charge
-    ef -= ("H" + String(charge)); // subtracts x hydrogen
+    ef -= EmpiricalFormula("H" + String(charge)); // subtracts x hydrogen
     ef.setCharge(charge); // adds x protons
 
     Adduct a(charge, 1, ef.getMonoWeight(), formula, log(p), 0);

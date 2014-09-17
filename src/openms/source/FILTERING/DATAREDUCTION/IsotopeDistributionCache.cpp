@@ -34,6 +34,8 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/IsotopeDistributionCache.h>
 
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+
 using namespace OpenMS;
 
 IsotopeDistributionCache::IsotopeDistributionCache(double max_mass, double mass_window_width, double intensity_percentage, double intensity_percentage_optional) :
