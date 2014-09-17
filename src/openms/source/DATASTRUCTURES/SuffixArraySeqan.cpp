@@ -318,19 +318,17 @@ namespace OpenMS
       {
         SignedSize edge_length = length(parentEdgeLabel(*it_));
         SignedSize length_till_node = length(representative(*it_)) - edge_length;
-        char cc;
-        char ccn;
 
         double subm = 0;
         double mm = 0;
-        
+
         // br indicates if break was used
         bool br = false;
 
         for (SignedSize i = 0; i < edge_length; ++i)
         {
           // actual character is start_index_in_text + length_till_node + how many steps i walked
-          cc = s_[start_index_in_text + length_till_node + i];
+          char cc = s_[start_index_in_text + length_till_node + i];
           if (modification_map.size() < number_of_posible_mods)
           {
             modifier.refreshModificationList(modification_map, cc);
@@ -339,7 +337,7 @@ namespace OpenMS
           // end of the string. Therefor the next character has to be set to a
           // amino acid so that the digesting enzyme will cut before this
           // position (i.e. for trypsin everything but P)
-          ccn = ((Size)(length_till_node + i + start_index_in_text + 1) == s_.length() - 1) ? 'R' : s_[length_till_node + i + start_index_in_text + 1];
+          char ccn = ((Size)(length_till_node + i + start_index_in_text + 1) == s_.length() - 1) ? 'R' : s_[length_till_node + i + start_index_in_text + 1];
           subm += masse_[(int)cc];
           mm = m + subm;
 
@@ -366,7 +364,7 @@ namespace OpenMS
               // if the mass is in spectrum but only if the digesting enzyme
               // will not cut after the last character (because if it does the
               // candidate was already added to the result the step before)
-              // 
+              //
               // for every modification mass within the modification_map we
               // check if the mass + modification_mass is in the given
               // spectrum. If it is we will add it to a vector of masses and

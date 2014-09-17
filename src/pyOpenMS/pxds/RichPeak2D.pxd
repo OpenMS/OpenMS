@@ -14,6 +14,7 @@ cdef extern from "<OpenMS/KERNEL/RichPeak2D.h>" namespace "OpenMS":
         #    MetaInfoInterface
 
         RichPeak2D() nogil except +
+        RichPeak2D(RichPeak2D &) nogil except +
 
         bool operator==(RichPeak2D) nogil except +
         bool operator!=(RichPeak2D) nogil except +

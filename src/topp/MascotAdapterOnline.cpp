@@ -58,6 +58,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
+    
     @page TOPP_MascotAdapterOnline MascotAdapterOnline
 
     @brief Identifies peptides in MS/MS spectra via Mascot.
@@ -70,27 +71,23 @@ using namespace std;
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (that writes mzML format)</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
         </tr>
     </table>
 </CENTER>
 
-    This wrapper application serves for getting peptide identifications
-    for MS/MS spectra. It communicates with the Mascot server
-    over the network and is not needed to be called from same machine.
+    This wrapper application generates peptide identifications for MS/MS spectra using the search engine Mascot. It communicates with the Mascot server over the network (i.e. it does not have to run on the server itself).
 
-    It support Mascot security features and has also proxy server
-    support. This minimal version of Mascot support by this wrapper
-    is version 2.2.x. Mascot 2.3 works as well, but has not been tested extensively.
-  @note Some Mascot server instances seem to fail without reporting back an error message.
-        Thus, try to run the search on another Mascot server or change/validate search parameters
-        (e.g., using modifications in the INI file, which are unknown to Mascot, but known to OpenMS might be a problem).
+    The adapter supports Mascot security features as well as proxy connections. Mascot versions 2.2.x up to 2.4.1 are supported and have been successfully tested (to varying degrees).
 
+    @bug Running the adapter on Mascot 2.4 (possibly also other versions) produces the following error messages, which should be ignored:\n
+    MascotRemoteQuery: An error occurred (requestId=11): Request aborted (QT Error Code: 7)\n
+    MascotRemoteQuery: An error occurred (requestId=12): Request aborted (QT Error Code: 7)
 
-  @note Be aware that Mascot returns incomplete/incorrect protein assignments for most identified peptides (why ever that is).
-        Thus we do not forward any protein assignments, only peptide sequences. You should run PeptideIndexer after this tool to get correct assignments.
-        You can use the flag 'keep_protein_links' to override this behavior.
+    @note Some Mascot server instances seem to fail without reporting back an error message. In such cases, try to run the search on another Mascot server or change/validate the search parameters (e.g. using modifications that are known to Mascot and can thus be set in the INI file, but which are unknown to Mascot, might pose a problem).
+
+    @note Mascot returns incomplete/incorrect protein assignments for most identified peptides (due to protein-level grouping/filtering). By default the protein associations are therefore not included in the output of this adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run after this tool to get correct assignments. The flag @p keep_protein_links can be used to override this behavior.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MascotAdapterOnline.cli
@@ -185,9 +182,9 @@ protected:
     mgf_file.setParameters(mascot_param);
 
     // get the spectra into string stream
-    writeDebug_("Writing Mascot MGF file to stringstream", 1);
+    writeDebug_("Writing MGF file to stream", 1);
     stringstream ss;
-    mgf_file.store(ss, in, exp);
+    mgf_file.store(ss, in, exp, true); // write in compact format
 
     // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
     // QEventLoop to process the signals and slots and grab the results afterwards from

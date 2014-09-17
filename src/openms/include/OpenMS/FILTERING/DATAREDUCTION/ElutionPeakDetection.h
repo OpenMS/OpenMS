@@ -72,16 +72,19 @@ public:
     /** @name Main computation methods
         */
     /// Extracts chromatographic peaks from a single MassTrace and stores the splits into a vector of new mass traces.
-    void detectPeaks(MassTrace &, std::vector<MassTrace> &);
+    void detectPeaks(MassTrace& mt, std::vector<MassTrace>& single_mtraces);
 
-    /// Applies the aforementioned detection method on a series of mass traces as input.
-    void detectPeaks(std::vector<MassTrace> &, std::vector<MassTrace> &);
+    /// Applies the aforementioned detection method on a series of mass traces as input
+    /// Smoothed intensities are added to @p mt_vec
+    void detectPeaks(std::vector<MassTrace>& mt_vec, std::vector<MassTrace>& single_mtraces);
 
     void filterByPeakWidth(std::vector<MassTrace> &, std::vector<MassTrace> &);
     double computeMassTraceNoise(const MassTrace&);
     double computeMassTraceSNR(const MassTrace&);
     double computeApexSNR(const MassTrace&);
     void findLocalExtrema(const MassTrace&, const Size&, std::vector<Size>&, std::vector<Size>&);
+
+    /// adds smoothed_intensities to internal data of @p mt
     void smoothData(MassTrace & mt, int win_size);
 
 protected:

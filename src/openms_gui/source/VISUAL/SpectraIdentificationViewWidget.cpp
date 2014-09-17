@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/SpectraIdentificationViewWidget.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <QtGui/QVBoxLayout>
@@ -288,10 +289,9 @@ namespace OpenMS
       for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
       {
         UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
-        const vector<PeptideIdentification> peptide_ids = (*layer_->getPeakData())[i].getPeptideIdentifications();
-        Size peptide_ids_count = peptide_ids.size();
+        const vector<PeptideIdentification>& peptide_ids = (*layer_->getPeakData())[i].getPeptideIdentifications();
 
-        if (ms_level != 2 || peptide_ids_count == 0)  // skip non ms2 spectra and spectra with no identification
+        if (ms_level != 2 || peptide_ids.size() == 0)  // skip non ms2 spectra and spectra with no identification
         {
           continue;
         }
@@ -373,19 +373,17 @@ namespace OpenMS
     Size selected_row = 0;
 
     // generate flat list
-    selected_item = 0;
     for (Size i = 0; i < layer_->getPeakData()->size(); ++i)
     {
       UInt ms_level = (*layer_->getPeakData())[i].getMSLevel();
+      const vector<PeptideIdentification>& pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
+      Size id_count = pi.size();
 
-      // skip all non MS2 level scans
-      if (ms_level != 2)
+      // allow only MS2    OR  MS1 with peptideIDs (from Mass Fingerprinting)
+      if (ms_level != 2 && id_count == 0)
       {
         continue;
       }
-
-      vector<PeptideIdentification> pi = (*layer_->getPeakData())[i].getPeptideIdentifications();
-      Size id_count = pi.size();
 
       // skip
       if (hide_no_identification_->isChecked() && id_count == 0)
@@ -433,42 +431,13 @@ namespace OpenMS
 
       if (id_count != 0)
       {
-        vector<PeptideHit> ph = pi[0].getHits();
-
 #ifdef DEBUG_IDENTIFICATION_VIEW
         cout << "  peptide hits found: " << ph.size() << endl;
 #endif
 
-        bool is_higher_score_better = false;
-        Size best_score = pi[0].getHits()[0].getScore();
-        is_higher_score_better = pi[0].isHigherScoreBetter(); // TODO: check whether its ok to assume this holds for all
-
-        if (!ph.empty())
+        PeptideHit best_ph;
+        if (IDFilter().getBestHit(pi, false, best_ph))
         {
-          Size best_pi_index = 0;
-          Size best_j_index = 0;
-
-          for (Size pi_index = 0; pi_index != id_count; ++pi_index)
-          {
-            for (Size j = 0; j != pi[pi_index].getHits().size(); ++j)
-            {
-              PeptideHit ph = pi[pi_index].getHits()[j];
-
-#ifdef DEBUG_IDENTIFICATION_VIEW
-              cout << "    " << i << " "  << pi_index << " " << j << " " << ph.getScore() << " " << ph.getSequence().toString() << endl;
-#endif
-              // better score?
-              if ((ph.getScore() < best_score && !is_higher_score_better)
-                 || (ph.getScore() > best_score && is_higher_score_better))
-              {
-                best_score = ph.getScore();
-                best_j_index = j;
-                best_pi_index = pi_index;
-              }
-            }
-          }
-
-          PeptideHit best_ph = pi[best_pi_index].getHits()[best_j_index];
           // score
           item = table_widget_->itemPrototype()->clone();
           item->setData(Qt::DisplayRole, best_ph.getScore());
@@ -496,20 +465,7 @@ namespace OpenMS
           //Accession
           item = table_widget_->itemPrototype()->clone();
           item->setTextAlignment(Qt::AlignLeft);
-          String accessions = "";
-
-          // add protein accessions:
-          for (vector<String>::const_iterator it = best_ph.getProteinAccessions().begin(); it != best_ph.getProteinAccessions().end(); ++it)
-          {
-            if (accessions != "")
-            {
-              accessions += ", " + *it;
-            }
-            else
-            {
-              accessions = *it;
-            }
-          }
+          String accessions = ListUtils::concatenate(best_ph.getProteinAccessions(), ", ");
           item->setText(accessions.toQString());
           item->setBackgroundColor(c);
           table_widget_->setItem(table_widget_->rowCount() - 1, 11, item);

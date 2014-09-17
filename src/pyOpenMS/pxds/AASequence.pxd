@@ -100,4 +100,5 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
 
         # static members
-        AASequence fromString(String s) nogil except +  # wrap-attach:AASequence
+        AASequence fromString(String s, bool permissive) nogil except +  # wrap-attach:AASequence
+

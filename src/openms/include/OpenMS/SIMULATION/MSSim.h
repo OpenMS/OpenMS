@@ -87,30 +87,33 @@ public:
      @param rnd_gen random number generator which will be passed to the different classes
      @param peptides List of peptides and abundances that will be simulated
      */
-    void simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels & peptides);
+    void simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels& peptides);
 
     /// Access the simulated experiment
-    MSSimExperiment const& getExperiment() const;
+    const MSSimExperiment& getExperiment() const;
 
     /// Access the simulated features
-    FeatureMapSim const& getSimulatedFeatures() const;
+    const FeatureMapSim& getSimulatedFeatures() const;
 
     /// Access the charge consensus map of simulated features
     ConsensusMap& getChargeConsensus();
 
     /// Access the contaminants feature map of simulated features
-    FeatureMapSim const& getContaminants() const;
+    const FeatureMapSim& getContaminants() const;
 
     /// Access the labeling consensus map of simulated features
     ConsensusMap& getLabelingConsensus();
 
     /// Access the picked (centroided) experiment
-    MSSimExperiment const& getPeakMap() const;
+    const MSSimExperiment& getPeakMap() const;
 
-    /// Access the MS2 identifications (proteins and peptides)
-    void getMS2Identifications(std::vector<ProteinIdentification>& proteins, 
-                               std::vector<PeptideIdentification>& peptides) 
-      const;
+    /**
+      @brief Access the simulated MS2 identifications (proteins and peptides)
+
+      @param proteins Will be filled with a single ProteinIdentification holding all ProteinHits used in the simulated MS2 spectra.
+      @param peptides Will be filled with PeptideIdentifications for each simulated MS2 spectra holding all contributing peptides scored by their intensity contribution.
+    */
+    void getMS2Identifications(std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides) const;
 
     /// Returns the default parameters for simulation including the labeling technique with name @p labeling_name
     Param getParameters() const;
@@ -122,18 +125,23 @@ protected:
     /// Convert a list of peptides with given abundance values into a FeatureMap
     void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features, Size map_index);
 
-private:
     /// Synchronize members with param class
     void updateMembers_();
 
+private:
+    /// Holds the simulated data
     MSSimExperiment experiment_;
 
+    /// Holds the ground-truth on generated peaks positions and intensities
     MSSimExperiment peak_map_;
 
+    /// Holds the ground-truth on generated features
     FeatureMapSimVector feature_maps_;
 
+    /// Holds consensus ground-truth about the charge associations
     ConsensusMap consensus_map_;
 
+    /// Holds the ground-truth on generated contaminants
     FeatureMapSim contaminants_map_;
 
     /// Labeling functionality

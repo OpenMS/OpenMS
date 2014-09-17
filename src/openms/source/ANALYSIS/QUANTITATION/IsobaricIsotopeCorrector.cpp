@@ -98,8 +98,8 @@ namespace OpenMS
       fillInputVector_(b, m_b, consensus_map_in[i], consensus_map_in);
 
       //solve
-      Eigen::MatrixXd x = ludecomp.solve( b );
-      if (! ((*m) * x).isApprox(b))
+      Eigen::MatrixXd e_mx = ludecomp.solve( b );
+      if (! ((*m) * e_mx).isApprox(b))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Cannot multiply!");
       }
@@ -109,7 +109,7 @@ namespace OpenMS
       ConsensusFeature::IntensityType cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency
-      computeStats_(m_x, x, cf_intensity, quant_method, stats);
+      computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);
     }
 
     return stats;

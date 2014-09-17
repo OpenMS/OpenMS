@@ -52,6 +52,13 @@
 #include <fstream>
 #include <iomanip>
 
+// This code has quite a few strange things in it triggering warnings which
+// clutters the rest of the diagnostics
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
+#pragma clang diagnostic ignored "-Wconversion"
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
+
 namespace OpenMS
 {
 
@@ -2199,5 +2206,7 @@ protected:
   }
 
 } //namespace
+
+#pragma clang diagnostic pop
 
 #endif

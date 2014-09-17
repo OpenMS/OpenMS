@@ -97,7 +97,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
-    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids);
+    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false);
 
 protected:
 
@@ -200,6 +200,9 @@ private:
 
     /// Hydrogen data (for mass types)
     Element hydrogen_;
+
+    /// Are we currently in an "analysis_summary" element (should be skipped)?
+    bool analysis_summary_;
 
     /// Do current entries belong to the experiment of interest (for pepXML files that bundle results from different experiments)?
     bool wrong_experiment_;

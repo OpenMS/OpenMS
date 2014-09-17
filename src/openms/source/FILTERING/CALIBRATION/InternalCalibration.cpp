@@ -54,7 +54,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void InternalCalibration::checkReferenceIds_(std::vector<PeptideIdentification> & pep_ids)
+  void InternalCalibration::checkReferenceIds_(std::vector<PeptideIdentification>& pep_ids)
   {
     for (Size p_id = 0; p_id < pep_ids.size(); ++p_id)
     {
@@ -62,7 +62,7 @@ namespace OpenMS
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: Your Id-file contains PeptideIdentifications with more than one hit, use the IDFilter to select only the best hits.");
       }
-	    if (!pep_ids[p_id].hasRT())
+      if (!pep_ids[p_id].hasRT())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: meta data value 'RT' missing for peptide identification!");
       }
@@ -73,7 +73,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::makeLinearRegression_(std::vector<double> & observed_masses, std::vector<double> & theoretical_masses)
+  void InternalCalibration::makeLinearRegression_(std::vector<double>& observed_masses, std::vector<double>& theoretical_masses)
   {
     if (observed_masses.size() != theoretical_masses.size())
     {
@@ -115,7 +115,7 @@ namespace OpenMS
 #endif
   }
 
-  void InternalCalibration::calibrateMapGlobally(const FeatureMap<> & feature_map, FeatureMap<> & calibrated_feature_map,
+  void InternalCalibration::calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,
                                                  String trafo_file_name)
   {
     // check if the ids
@@ -152,7 +152,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::calibrateMapGlobally(const FeatureMap<> & feature_map, FeatureMap<> & calibrated_feature_map, std::vector<PeptideIdentification> & ref_ids, String trafo_file_name)
+  void InternalCalibration::calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map, std::vector<PeptideIdentification>& ref_ids, String trafo_file_name)
   {
     checkReferenceIds_(ref_ids);
 
@@ -188,7 +188,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::applyTransformation_(const FeatureMap<> & feature_map, FeatureMap<> & calibrated_feature_map)
+  void InternalCalibration::applyTransformation_(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map)
   {
     calibrated_feature_map = feature_map;
     for (Size f = 0; f < feature_map.size(); ++f)
@@ -221,7 +221,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::checkReferenceIds_(const FeatureMap<> & feature_map)
+  void InternalCalibration::checkReferenceIds_(const FeatureMap<>& feature_map)
   {
     Size num_ids = 0;
     for (Size f = 0; f < feature_map.size(); ++f)

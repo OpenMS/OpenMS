@@ -103,6 +103,9 @@ public:
     /// Non-mutable access to the options for loading/storing
     const PeakFileOptions& getOptions() const;
 
+    /// set options for loading/storing
+    void setOptions(const PeakFileOptions &);
+
     /**
       @brief Loads a file into an MSExperiment
 

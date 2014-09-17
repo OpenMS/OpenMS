@@ -146,15 +146,14 @@ namespace OpenMS
         parent_parent_tag = *(open_tags_.end() - 3);
       }
 
-      static const XMLCh * s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh * s_unit_accession = xercesc::XMLString::transcode("unitAccession");
-      static const XMLCh * s_cv_ref = xercesc::XMLString::transcode("cvRef");
-      //~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh * s_accession = xercesc::XMLString::transcode("accession");
-
-
       if (tag_ == "cvParam")
       {
+        static const XMLCh * s_value = xercesc::XMLString::transcode("value");
+        static const XMLCh * s_unit_accession = xercesc::XMLString::transcode("unitAccession");
+        static const XMLCh * s_cv_ref = xercesc::XMLString::transcode("cvRef");
+        //~ static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+        static const XMLCh * s_accession = xercesc::XMLString::transcode("accession");
+
         String value, unit_accession, cv_ref;
         optionalAttributeAsString_(value, attributes, s_value);
         optionalAttributeAsString_(unit_accession, attributes, s_unit_accession);
@@ -649,7 +648,7 @@ namespace OpenMS
 
           String cmz(jt->getSequence().getMonoWeight(res_type_, jt->getCharge()));       //calculatedMassToCharge
           String emz(it->getMZ());
-          String ert(it->getRT()); 
+          String ert(it->getRT());
           String r(jt->getRank());      //rank
           String sc(jt->getScore());       //score TODO what if there is no score?
           String st(it->getScoreType());       //scoretype

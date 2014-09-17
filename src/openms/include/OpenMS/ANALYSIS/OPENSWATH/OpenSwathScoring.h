@@ -81,6 +81,8 @@ namespace OpenMS
       use_dia_scores_(true)
     {}
 
+    bool use_ms1_correlation;
+    bool use_ms1_fullscan;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -111,6 +113,12 @@ namespace OpenMS
     double weighted_coelution_score;
     double weighted_xcorr_shape;
     double weighted_massdev_score;
+   
+    double xcorr_ms1_coelution_score;
+    double xcorr_ms1_shape_score;
+    double ms1_ppm_score;
+    double ms1_isotope_correlation;
+    double ms1_isotope_overlap;
 
     double library_manhattan;
     double library_dotprod;
@@ -144,6 +152,11 @@ namespace OpenMS
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),
+      xcorr_ms1_coelution_score(0),
+      xcorr_ms1_shape_score(0),
+      ms1_ppm_score(0),
+      ms1_isotope_correlation(0),
+      ms1_isotope_overlap(0),
       library_manhattan(0),
       library_dotprod(0),
       intensity(0),
@@ -470,6 +483,7 @@ var_yseries_score   -0.0327896378737766
      * @param imrmfeature The feature to be scored
      * @param transitions The library transition to score the feature against
      * @param swath_map The SWATH-MS (DIA map) from which to retrieve full MS/MS spectra at the chromatographic peak apices
+     * @param ms1_map The corresponding MS1 (precursor ion map) from which the precursor spectra can be retrieved (optional, may be NULL)
      * @param diascoring DIA Scoring object to use for scoring
      * @param pep The peptide corresponding to the library transitions
      * @param scores The object to store the result
@@ -478,6 +492,7 @@ var_yseries_score   -0.0327896378737766
     void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
         const std::vector<TransitionType> & transitions,
         OpenSwath::SpectrumAccessPtr swath_map,
+        OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
         const PeptideType& pep,
         OpenSwath_Scores & scores);

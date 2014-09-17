@@ -147,7 +147,7 @@ protected:
       int minPeptidesPerBin, int minBinsFilled)
   {
     std::vector<int> binCounter(nrBins, 0);
-    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); pair_it++)
+    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
     {
       double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
       normRT *= nrBins;
@@ -268,7 +268,7 @@ protected:
       // find most likely correct feature for each group and add it to the "pairs" vector
       std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map, 
         estimateBestPeptides, pepEstimationParams.getValue("OverallQualityCutoff"));
-      for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); it++)
+      for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); ++it)
       {
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       }

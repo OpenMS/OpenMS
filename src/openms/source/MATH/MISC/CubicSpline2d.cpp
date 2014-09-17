@@ -44,9 +44,14 @@ namespace OpenMS
 {
   CubicSpline2d::CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y)
   {
-    if (x.empty() || x.size() != y.size())
+    if (x.size() != y.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors either not of the same size or empty.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors are not of the same size.");
+    }
+
+    if (x.size() < 2)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors need to contain two or more elements.");
     }
 
     // assert spectrum is sorted
@@ -60,9 +65,9 @@ namespace OpenMS
 
   CubicSpline2d::CubicSpline2d(const std::map<double, double>& m)
   {
-    if (m.empty())
+    if (m.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Map is empty.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Map needs to contain two or more elements.");
     }
 
     std::vector<double> x;
@@ -85,9 +90,14 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
     }
 
-    int i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin() - 1;
+    // determine index of closest node left of (or exactly at) x
+    unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
+    if (x_[i] > x || x_[x_.size() - 1] == x)
+    {
+        --i;
+    }
+    
     double xx = x - x_[i];
-
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
   }
 
@@ -103,9 +113,14 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Only first, second and third derivative defined on cubic spline");
     }
 
-    int i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin() - 1;
+    // determine index of closest node left of (or exactly at) x
+    unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
+    if (x_[i] > x || x_[x_.size() - 1] == x)
+    {
+        --i;
+    }
+    
     double xx = x - x_[i];
-
     if (order == 1)
     {
       return b_[i] + 2 * c_[i] * xx + 3 * d_[i] * xx * xx;

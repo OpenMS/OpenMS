@@ -94,7 +94,7 @@ file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
 set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs
-list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff GenericWrapper InspectAdapter MascotAdapter PILISIdentification PILISModelCV PILISModelTrainer PILISSpectraGenerator SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
+list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo GenericWrapper InspectAdapter MascotAdapter PILISIdentification PILISModelCV PILISModelTrainer PILISSpectraGenerator SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter IDEvaluator)
 
 # pseudo-ctd target
 add_custom_target(
@@ -191,13 +191,14 @@ elseif(WIN32)
   # assemble required libraries for win32
   # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces
   get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-  get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
+  get_filename_component(WIN32_DLLPATH "${WIN32_DLLLOCATION}" PATH)
 
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS.dll ${PAYLOAD_LIB_PATH}
     COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS_GUI.dll ${PAYLOAD_LIB_PATH}
     COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenSwathAlgo.dll ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/SuperHirn.dll ${PAYLOAD_LIB_PATH}
   )
 
   function(copy_library lib target_path)
@@ -217,7 +218,7 @@ elseif(WIN32)
 
   # xerces
   set(target_lib)
-  get_filename_component(xerces_path ${CONTRIB_XERCESC_OPT} PATH)
+  get_filename_component(xerces_path "${XercesC_LIBRARY_RELEASE}" PATH)
   file(TO_NATIVE_PATH "${xerces_path}/xerces-c_3_1.dll" target_native)
       add_custom_command(
       TARGET prepare_knime_payload_libs POST_BUILD
@@ -225,23 +226,30 @@ elseif(WIN32)
     )
 else()
   # assemble required libraries for lnx
-	set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
-	foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
-		if(NOT "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}" STREQUAL "QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE-NOTFOUND")
-			set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
-			add_custom_command(
-				TARGET prepare_knime_payload_libs POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy "${target_lib}" "${PAYLOAD_LIB_PATH}"
-			)
-		endif()
-	endforeach()
+  set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
+  foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
+    if(NOT "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}" STREQUAL "QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE-NOTFOUND")
+      set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
+      add_custom_command(
+        TARGET prepare_knime_payload_libs POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy "${target_lib}" "${PAYLOAD_LIB_PATH}"
+      )
+    endif()
+  endforeach()
 
-	add_custom_command(
-		TARGET prepare_knime_payload_libs POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS.so ${PAYLOAD_LIB_PATH}
-		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS_GUI.so ${PAYLOAD_LIB_PATH}
-		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenSwathAlgo.so ${PAYLOAD_LIB_PATH}
-	)
+  # additionally query the executables and libs for the qt libs
+  add_custom_command(
+    TARGET prepare_knime_payload_libs POST_BUILD
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/knime/find_qt_libs.sh ${PROJECT_BINARY_DIR}/bin ${PROJECT_BINARY_DIR}/lib ${PAYLOAD_LIB_PATH}
+  )
+
+  add_custom_command(
+    TARGET prepare_knime_payload_libs POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS.so ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS_GUI.so ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenSwathAlgo.so ${PAYLOAD_LIB_PATH}
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libSuperHirn.so ${PAYLOAD_LIB_PATH}
+  )
 endif()
 
 # handle the binaries.ini

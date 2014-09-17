@@ -60,8 +60,8 @@ MRMFeatureFinderScoring* nullPointer = 0;
 
 START_SECTION(MRMFeatureFinderScoring())
 {
-	ptr = new MRMFeatureFinderScoring();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new MRMFeatureFinderScoring();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
@@ -91,14 +91,13 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transitions);
   }
 
-
   // Pick features in the experiment
 #ifdef USE_SP_INTERFACE
   OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
   OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
 #else
-      ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
+  ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
 #endif
 
   // Test the number of features found 
@@ -168,7 +167,6 @@ END_SECTION
     
 START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment &transition_exp, TransitionGroupMapType &transition_group_map, TransformationDescription trafo, double rt_extraction_window))
 {
-
   MRMFeatureFinderScoring ff;
   MRMFeature feature;
   FeatureMap<> featureFile;
@@ -227,6 +225,16 @@ START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr in
   TEST_EQUAL(transition_group.getTransition("tr5").getNativeID(), "tr5")
 
 }
+END_SECTION
+
+START_SECTION( void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, FeatureMap<Feature>& output) ) 
+{
+  NOT_TESTABLE // tested above
+}
+END_SECTION
+
+START_SECTION(void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp) )
+  NOT_TESTABLE // tested above
 END_SECTION
 
 START_SECTION(void setStrictFlag(bool f))

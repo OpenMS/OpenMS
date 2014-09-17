@@ -19,6 +19,7 @@ FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderIsotopeWavelet
 FeatureFinderMetabo
+FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT
@@ -82,7 +83,6 @@ RTModel
 RTPredict
 Resampler
 SeedListGenerator
-#SequestAdapter
 SpecLibSearcher
 SpectraFilterWindowMower
 SpectraFilterThresholdMower

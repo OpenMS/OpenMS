@@ -13,7 +13,6 @@
     <Peptide id="AAAAAK" sequence="AAAAAK">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="AAAAAK"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="3"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -24,7 +23,6 @@
     <Peptide id="ADVTPADFSEWSK" sequence="ADVTPADFSEWSK">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="ADVTPADFSEWSK"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -35,7 +33,6 @@
     <Peptide id="DGLDAASYYAPVR" sequence="DGLDAASYYAPVR">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="DGLDAASYYAPVR"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -46,7 +43,6 @@
     <Peptide id="GAGSSEPVTGLDAK" sequence="GAGSSEPVTGLDAK">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="GAGSSEPVTGLDAK"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -57,7 +53,6 @@
     <Peptide id="GTFIIDPAAVIR" sequence="GTFIIDPAAVIR">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="GTFIIDPAAVIR"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -68,7 +63,6 @@
     <Peptide id="GTFIIDPGGVIR" sequence="GTFIIDPGGVIR">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="GTFIIDPGGVIR"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -79,7 +73,6 @@
     <Peptide id="LFLQFGAQGSPFLK" sequence="LFLQFGAQGSPFLK">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="LFLQFGAQGSPFLK"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -90,7 +83,6 @@
     <Peptide id="LGGNEQVTR" sequence="LGGNEQVTR">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="LGGNEQVTR"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -101,7 +93,6 @@
     <Peptide id="TPVISGGPYEYR" sequence="TPVISGGPYEYR">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="TPVISGGPYEYR"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -112,7 +103,6 @@
     <Peptide id="TPVITGAPYEYR" sequence="TPVITGAPYEYR">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="TPVITGAPYEYR"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -123,7 +113,6 @@
     <Peptide id="VEATFGVDESNAK" sequence="VEATFGVDESNAK">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="VEATFGVDESNAK"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -134,7 +123,6 @@
     <Peptide id="YILAGVENSK" sequence="YILAGVENSK">
       <cvParam cvRef="" accession="" name="full_peptide_name" value="YILAGVENSK"/>
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <ProteinRef ref="AQRT"/>
       <RetentionTimeList>
        <RetentionTime>
@@ -144,7 +132,6 @@
     </Peptide>
     <Peptide id="8_AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR/5" sequence="AAAAAAAAAASGAAIPPLIPPRRVITLYQCFSVSQR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="5"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
       <userParam name="full_peptide_name" type="xsd:string" value="AAAAAAAAAASGAAIPPLIPPRRVITLYQC(UniMod:4)FSVSQR"/>
       <ProteinRef ref="O14654"/>
       <Modification location="30" monoisotopicMassDelta="57.021464" averageMassDelta="57.0513">

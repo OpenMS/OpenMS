@@ -180,5 +180,54 @@ START_SECTION (void getFeatureIDs(std::vector<String> & result) const)
 }
 END_SECTION
 
+START_SECTION (void addPrecursorFeature(Feature & feature, const String & key))
+{
+  // Initially, there should be no feature present
+  MRMFeature mrmfeature;
+  {
+    std::vector<String> result;
+    mrmfeature.getPrecursorFeatureIDs(result);
+    TEST_EQUAL(result.size(), 0)
+  }
+
+  // After adding a feature, there should be one feature present
+  Feature f1;
+  mrmfeature.addPrecursorFeature(f1, "precursor_chromatogram1");
+  {
+    std::vector<String> result;
+    mrmfeature.getPrecursorFeatureIDs(result);
+    TEST_EQUAL(result.size(), 1)
+  }
+}
+END_SECTION
+
+START_SECTION (void getPrecursorFeatureIDs(std::vector<String> & result) const)
+{
+  MRMFeature mrmfeature;
+  Feature f1;
+  f1.setMetaValue("dummy", 1);
+  Feature f2;
+  mrmfeature.addPrecursorFeature(f1, "chromatogram1");
+  mrmfeature.addPrecursorFeature(f1, "chromatogram2");
+  std::vector<String> result;
+  mrmfeature.getPrecursorFeatureIDs(result);
+  TEST_EQUAL(result.size(), 2)
+  TEST_EQUAL(result[0], "chromatogram1")
+  TEST_EQUAL(result[1], "chromatogram2")
+}
+END_SECTION
+
+START_SECTION (Feature & getPrecursorFeature(String key))
+{
+  MRMFeature mrmfeature;
+  Feature f1;
+  f1.setMetaValue("dummy", 1);
+  Feature f2;
+  mrmfeature.addPrecursorFeature(f1, "chromatogram1");
+  mrmfeature.addPrecursorFeature(f1, "chromatogram2");
+  TEST_EQUAL(mrmfeature.getPrecursorFeature("chromatogram1").getMetaValue("dummy"), 1)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 END_TEST

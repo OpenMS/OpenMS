@@ -36,6 +36,7 @@
 #include <utility>
 #include <boost/bind.hpp>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
@@ -62,7 +63,7 @@ namespace OpenMS
       generator.addPeaks(rich_spec, a, Residue::YIon, charge);
 
       for (RichPeakSpectrum::iterator it = rich_spec.begin();
-           it != rich_spec.end(); it++)
+           it != rich_spec.end(); ++it)
       {
         if (it->getMetaValue("IonName").toString()[0] == 'y')
         {
@@ -90,7 +91,7 @@ namespace OpenMS
       generator.addPeaks(rich_spec, a, Residue::YIon, charge);
       generator.addPrecursorPeaks(rich_spec, a, charge);
       for (RichPeakSpectrum::iterator it = rich_spec.begin();
-           it != rich_spec.end(); it++)
+           it != rich_spec.end(); ++it)
       {
         masses.push_back(it->getMZ());
       }

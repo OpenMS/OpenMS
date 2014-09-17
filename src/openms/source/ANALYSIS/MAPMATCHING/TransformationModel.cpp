@@ -50,7 +50,7 @@ using namespace std;
 namespace OpenMS
 {
   TransformationModelLinear::TransformationModelLinear(
-    const TransformationModel::DataPoints & data, const Param & params)
+    const TransformationModel::DataPoints& data, const Param& params)
   {
     params_ = params;
     data_given_ = !data.empty();
@@ -60,7 +60,7 @@ namespace OpenMS
       slope_ = params.getValue("slope");
       intercept_ = params.getValue("intercept");
     }
-    else     // estimate parameters from data
+    else // estimate parameters from data
     {
       Param defaults;
       getDefaultParameters(defaults);
@@ -69,24 +69,24 @@ namespace OpenMS
 
       size_t size = data.size();
       std::vector<Wm5::Vector2d> points;
-      if (size == 0)       // no data
+      if (size == 0) // no data
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                          "no data points for 'linear' model");
       }
-      else if (size == 1)       // degenerate case, but we can still do something
+      else if (size == 1) // degenerate case, but we can still do something
       {
         slope_ = 1.0;
         intercept_ = data[0].second - data[0].first;
       }
-      else       // compute least-squares fit
+      else // compute least-squares fit
       {
         for (size_t i = 0; i < size; ++i)
         {
           points.push_back(Wm5::Vector2d(data.at(i).first, data.at(i).second));
         }
-        if(!Wm5::HeightLineFit2<double>(size, &points.front(), slope_, intercept_))
-            throw std::runtime_error("could not fit");
+        if (!Wm5::HeightLineFit2<double>(size, &points.front(), slope_, intercept_))
+          throw std::runtime_error("could not fit");
       }
     }
   }
@@ -116,14 +116,14 @@ namespace OpenMS
     }
   }
 
-  void TransformationModelLinear::getParameters(double & slope,
-                                                double & intercept) const
+  void TransformationModelLinear::getParameters(double& slope,
+                                                double& intercept) const
   {
     slope = slope_;
     intercept = intercept_;
   }
 
-  void TransformationModelLinear::getDefaultParameters(Param & params)
+  void TransformationModelLinear::getDefaultParameters(Param& params)
   {
     params.clear();
     params.setValue("symmetric_regression", "false", "Perform linear regression"
@@ -133,7 +133,7 @@ namespace OpenMS
   }
 
   TransformationModelInterpolated::TransformationModelInterpolated(
-    const TransformationModel::DataPoints & data, const Param & params)
+    const TransformationModel::DataPoints& data, const Param& params)
   {
     params_ = params;
     Param defaults;
@@ -180,7 +180,7 @@ namespace OpenMS
   double TransformationModelInterpolated::evaluate(const double value)
   const
   {
-    if ((value < x_.front()) || (value > x_.back()))     // extrapolate
+    if ((value < x_.front()) || (value > x_.back())) // extrapolate
     {
       return lm_->evaluate(value);
     }
@@ -188,7 +188,7 @@ namespace OpenMS
     return interp_->eval(value);
   }
 
-  void TransformationModelInterpolated::getDefaultParameters(Param & params)
+  void TransformationModelInterpolated::getDefaultParameters(Param& params)
   {
     params.clear();
     params.setValue("interpolation_type", "cspline",
@@ -196,4 +196,5 @@ namespace OpenMS
     StringList types = ListUtils::create<String>("linear,polynomial,cspline,akima");
     params.setValidStrings("interpolation_type", types);
   }
+
 }

@@ -393,23 +393,26 @@ protected:
     Size below_10k = 0;
     for (Size i = 0; i < exp.size(); ++i)
     {
-      UInt sum = 0;
-      for (Size j = 0; j < exp[i].size(); ++j)
+      if (exp[i].getMSLevel() == 1)
       {
-        sum += exp[i][j].getIntensity();
+        UInt sum = 0;
+        for (Size j = 0; j < exp[i].size(); ++j)
+        {
+          sum += exp[i][j].getIntensity();
+        }
+        if (sum > max)
+        {
+          max = sum;
+        }
+        if (sum < 10000)
+        {
+          ++below_10k;
+        }
+        std::vector<String> row;
+        row.push_back(exp[i].getRT());
+        row.push_back(sum);
+        at.tableRows.push_back(row);
       }
-      if (sum > max)
-      {
-        max = sum;
-      }
-      if (sum < 10000)
-      {
-        ++below_10k;
-      }
-      std::vector<String> row;
-      row.push_back(exp[i].getRT());
-      row.push_back(sum);
-      at.tableRows.push_back(row);
     }
     qcmlfile.addRunAttachment(base_name, at);
     

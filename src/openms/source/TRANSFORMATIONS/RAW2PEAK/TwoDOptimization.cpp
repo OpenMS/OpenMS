@@ -171,7 +171,7 @@ namespace OpenMS
     // Params might contain any additional parameters. We handle these using class members
     // instead.
     // The vector f is supposed to contain the result when we return from this function.
-    double computed_signal, current_position, experimental_signal, step, last_position;
+    double computed_signal, experimental_signal, step, last_position;
     double p_height, p_position, p_width;
     Int count = 0;
     Int counter_posf = 0;
@@ -191,7 +191,7 @@ namespace OpenMS
     for (Size current_scan = 0; current_scan < num_scans; ++current_scan)
     {
       Size curr_scan_idx = current_scan + iso_map_iter->second.peaks.begin()->first;
-      current_position = ((raw_data_first
+      double current_position = ((raw_data_first
                            + signal2D[2 * current_scan].first)->begin()
                           + signal2D[2 * current_scan].second)->getMZ();
       //iterate over all points of the signal
@@ -292,18 +292,16 @@ namespace OpenMS
       std::vector<PeakIndex>::const_iterator vec_iter = map_iter->second.begin();
       double old_position = 0, old_width_l = 0, old_width_r = 0;
       double weight = 0;
-      double old_height, p_height;
       for (; vec_iter != map_iter->second.end(); ++vec_iter)
       {
-
         // intensity at peak position is stored in the meta data array, not as intensity of the peak
-        old_height = picked_peaks[vec_iter->spectrum].getFloatDataArrays()[1][vec_iter->peak];
+        double old_height = picked_peaks[vec_iter->spectrum].getFloatDataArrays()[1][vec_iter->peak];
         weight += old_height;
         old_position += (vec_iter)->getPeak(picked_peaks).getMZ() * old_height;
         old_width_l += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[3][vec_iter->peak] * old_height;
         old_width_r += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[4][vec_iter->peak] * old_height;
 
-        p_height     = x( peak);
+        double p_height = x(peak);
         ++peak;
 
         if (p_height < 1)
@@ -365,7 +363,7 @@ namespace OpenMS
     //          - each row corresponds to one data point
     //          - each column corresponds to one parameter
 
-    double current_position, last_position, step;
+    double last_position, step;
     double p_height, p_position, p_width;
     double diff, denom_inv, ddl_left, ddl_right, ddx0, sinh_term;
     Int count = 0;
@@ -387,7 +385,7 @@ namespace OpenMS
     for (Size current_scan = 0; current_scan < num_scans; ++current_scan)
     {
       Size curr_scan_idx = current_scan + iso_map_iter->second.peaks.begin()->first;
-      current_position = ((raw_data_first
+      double current_position = ((raw_data_first
                            + signal2D[2 * current_scan].first)->begin()
                           + signal2D[2 * current_scan].second)->getMZ();
       // iterate over all points of the signal
@@ -533,17 +531,16 @@ namespace OpenMS
       std::vector<PeakIndex>::const_iterator vec_iter   = map_iter->second.begin();
       double old_position = 0, old_width_l = 0, old_width_r = 0;
       double weight = 0;
-      double old_height, p_height;
       double penalty_h = 0, penalty_l = 0, penalty_r = 0, penalty_p = 0;
       for (; vec_iter != map_iter->second.end(); ++vec_iter)
       {
-        old_height = picked_peaks[vec_iter->spectrum].getFloatDataArrays()[1][vec_iter->peak];
+        double old_height = picked_peaks[vec_iter->spectrum].getFloatDataArrays()[1][vec_iter->peak];
         weight += old_height;
         old_position += (vec_iter)->getPeak(picked_peaks).getMZ() * old_height;
         old_width_l += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[3][vec_iter->peak] * old_height;
         old_width_r += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[4][vec_iter->peak] * old_height;
 
-        p_height     = x(peak);
+        double p_height     = x(peak);
 
 
         double penalty_height = 2. * penalties.height * fabs(p_height - old_height);

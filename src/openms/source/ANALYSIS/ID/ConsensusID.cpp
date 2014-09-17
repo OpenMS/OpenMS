@@ -58,7 +58,7 @@ namespace seqan
       VALUE_SIZE = ValueSize<AminoAcid>::VALUE,
       TAB_SIZE = VALUE_SIZE * VALUE_SIZE
     };
-    static inline int const * getData()
+    static inline int const* getData()
     {
       // DEFINE the PAM30MS matrix from Habermann et al. MCP. 2004.
       static int const _data[TAB_SIZE] =
@@ -121,7 +121,7 @@ namespace seqan
     }
 
   };
-}  // namespace seqan
+} // namespace seqan
 
 using namespace std;
 
@@ -157,7 +157,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void ConsensusID::apply(vector<PeptideIdentification> & ids)
+  void ConsensusID::apply(vector<PeptideIdentification>& ids)
   {
     //Abort if no IDs present
     if (ids.empty())
@@ -194,7 +194,7 @@ namespace OpenMS
     ids[0].assignRanks();
 
 #ifdef DEBUG_ID_CONSENSUS
-    const vector<PeptideHit> & hits2 = ids[0].getHits();
+    const vector<PeptideHit>& hits2 = ids[0].getHits();
     for (Size i = 0; i < hits2.size(); ++i)
     {
       cout << "  " << hits2[i].getSequence() << " " << hits2[i].getScore() << endl;
@@ -202,11 +202,12 @@ namespace OpenMS
 #endif
   }
 
-  void ConsensusID::ranked_(vector<PeptideIdentification> & ids)
+  void ConsensusID::ranked_(vector<PeptideIdentification>& ids)
   {
     map<AASequence, double> scores;
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
     UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
+    String score_type = ids[0].getScoreType();
 
     //iterate over the different ID runs
     for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
@@ -255,7 +256,8 @@ namespace OpenMS
     // replace IDs by consensus
     ids.clear();
     ids.resize(1);
-    ids[0].setScoreType("Consensus_averaged");
+    ids[0].setScoreType(String("Consensus_ranked (") + score_type + ")");
+    ids[0].setHigherScoreBetter(true);
 
     for (map<AASequence, double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
@@ -267,8 +269,7 @@ namespace OpenMS
 
   }
 
-
-  void ConsensusID::average_(vector<PeptideIdentification> & ids)
+  void ConsensusID::average_(vector<PeptideIdentification>& ids)
   {
     map<AASequence, double> scores;
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
@@ -284,22 +285,24 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - ID run" << endl;
 #endif
+
+      //check the score type
+      if (id->getScoreType() != score_type)
+      {
+        cerr << "Warning: You are averaging different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+      }
+      if (id->isHigherScoreBetter() != higher_better)
+      {
+        cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
+      }
+
       //make sure that the ranks are present
       id->assignRanks();
       //iterate over the hits
       UInt hit_count = 1;
       for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
       {
-        //check the score type
-        if (id->getScoreType() != score_type)
-        {
-          cerr << "Warning: You are averaging different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
-        }
-        if (id->isHigherScoreBetter() != higher_better)
-        {
-          cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
-        }
-        if (scores.find(hit->getSequence()) == scores.end())                            //.end zeigt auf ein Element nach dem letzten
+        if (scores.find(hit->getSequence()) == scores.end()) //.end zeigt auf ein Element nach dem letzten
         {
 #ifdef DEBUG_ID_CONSENSUS
           cout << " - New hit: " << hit->getSequence() << " " << hit->getScore() << endl;
@@ -349,14 +352,13 @@ namespace OpenMS
 
 //////////////////////////////////////////PEPMatrix
 
-  void ConsensusID::PEPMatrix_(vector<PeptideIdentification> & ids)
+  void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
   {
     Map<AASequence, vector<double> > scores;
 
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
     int penalty = (UInt)param_.getValue("PEPMatrix:penalty");
     double common = (double)param_.getValue("PEPMatrix:common");
-
 
     String score_type = ids[0].getScoreType();
     bool higher_better = ids[0].isHigherScoreBetter();
@@ -366,28 +368,28 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - ID run" << endl;
 #endif
+
+      //check the score type
+      if (id->getScoreType() != score_type)
+      {
+        cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+      }
+      if (id->isHigherScoreBetter() != higher_better)
+      {
+        cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
+      }
+      if (higher_better)
+      {
+        cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
+      }
+
       //make sure that the ranks are present
       id->assignRanks();
 
       //iterate over the hits
       UInt hit_count = 1;
-
       for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
       {
-
-        //check the score type
-        if (id->getScoreType() != score_type)
-        {
-          cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
-        }
-        if (id->isHigherScoreBetter() != higher_better)
-        {
-          cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
-        }
-        if (!higher_better)
-        {
-          cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
-        }
         double a_score = (double)hit->getScore();
         double a_sim = 1;
         double NumberAnnots = 1;
@@ -405,7 +407,7 @@ namespace OpenMS
             // find the same or most similar peptide sequence in lists from other search engines
             for (vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
             {
-              if (! (hit->getMetaValue("scoring") != t->getMetaValue("scoring"))) exit(1);
+              if (!(hit->getMetaValue("scoring") != t->getMetaValue("scoring"))) exit(1);
 
               if (tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
               {
@@ -415,7 +417,7 @@ namespace OpenMS
                 TSequence seq2 = hit->getSequence().toUnmodifiedString().c_str();
 /////////////////////////introduce scoring with PAM30MS
                 typedef int TValue;
-                typedef::seqan::Score<TValue, ::seqan::ScoreMatrix< ::seqan::AminoAcid, ::seqan::Default> > TScoringScheme;
+                typedef ::seqan::Score<TValue, ::seqan::ScoreMatrix< ::seqan::AminoAcid, ::seqan::Default> > TScoringScheme;
                 TScoringScheme pam30msScoring(-penalty, -penalty);
                 ::seqan::setDefaultScoreMatrix(pam30msScoring, ::seqan::PAM30MS());
 /////////////////////////introduce scoring with PAM30MS
@@ -437,7 +439,7 @@ namespace OpenMS
                 vector<double> temp;
                 temp.push_back(globalAlignment(self1, pam30msScoring, ::seqan::NeedlemanWunsch()));
                 temp.push_back(globalAlignment(self2, pam30msScoring, ::seqan::NeedlemanWunsch()));
-                
+
                 double c = (double)globalAlignment(align, pam30msScoring, ::seqan::NeedlemanWunsch());
                 double b = *(min_element(temp.begin(), temp.end()));
                 c /= b;
@@ -510,7 +512,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////PEPIons
 
-  void ConsensusID::PEPIons_(vector<PeptideIdentification> & ids)
+  void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
   {
     Map<AASequence, vector<double> > scores;
 
@@ -526,6 +528,21 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - ID run" << endl;
 #endif
+
+      //check the score type
+      if (id->getScoreType() != score_type)
+      {
+        cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+      }
+      if (id->isHigherScoreBetter() != higher_better)
+      {
+        cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
+      }
+      if (higher_better)
+      {
+        cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
+      }
+
       //make sure that the ranks are present
       id->assignRanks();
 
@@ -534,20 +551,6 @@ namespace OpenMS
 
       for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
       {
-
-        //check the score type
-        if (id->getScoreType() != score_type)
-        {
-          cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
-        }
-        if (id->isHigherScoreBetter() != higher_better)
-        {
-          cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
-        }
-        if (!higher_better)
-        {
-          cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
-        }
         //double a_score=(double)hit->getMetaValue("PEP");
         double a_score = (double)hit->getScore();
         double a_sim = 1;
@@ -673,7 +676,7 @@ namespace OpenMS
   }
 
 //////////////////////////////////////////////////////////////////////////////////Minimum
-  void ConsensusID::Minimum_(vector<PeptideIdentification> & ids)
+  void ConsensusID::Minimum_(vector<PeptideIdentification>& ids)
   {
     Map<AASequence, double> scores;
 
@@ -732,9 +735,9 @@ namespace OpenMS
 #endif
 
   }
-  
+
   /* this is not used by anyone ... delete?? */
-  void ConsensusID::mapIdentifications_(vector<PeptideIdentification> & sorted_ids, const vector<PeptideIdentification> & ids)
+  void ConsensusID::mapIdentifications_(vector<PeptideIdentification>& sorted_ids, const vector<PeptideIdentification>& ids)
   {
     double mz_delta = 0.01;
     double rt_delta = 0.01;
@@ -745,8 +748,8 @@ namespace OpenMS
       PeptideIdentification new_ids;
       for (vector<PeptideIdentification>::const_iterator it2 = it1 + 1; it2 != ids.end(); ++it2)
       {
-		    double rt2(it2->getRT());
-		    double mz2(it2->getMZ());
+        double rt2(it2->getRT());
+        double mz2(it2->getMZ());
         if (fabs(rt1 - rt2) < rt_delta && fabs(mz1 - mz2) < mz_delta)
         {
           if (new_ids.empty())

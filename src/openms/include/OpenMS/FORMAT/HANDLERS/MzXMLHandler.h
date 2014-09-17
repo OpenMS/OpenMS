@@ -190,13 +190,13 @@ protected:
       Int nesting_level_;
 
       /**
-          @brief Data necessary to generate a single spectrum 
+          @brief Data necessary to generate a single spectrum
 
           Small struct holds all data necessary to populate a spectrum at a
           later timepoint (since reading of the base64 data and generation of
           spectra can be done at distinct timepoints).
       */
-      struct SpectrumData 
+      struct SpectrumData
       {
         UInt peak_count_;
         String precision_;
@@ -235,7 +235,7 @@ protected:
         {
           if ((*it)[0] != '#') // internally used meta info start with '#'
           {
-            os << String(indent, '\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
+            os << String(indent, '\t') << "<" << tag << " name=\"" << *it << "\" value=\"" << writeXMLEscape(meta.getMetaValue(*it)) << "\"/>\n";
           }
         }
       }
@@ -244,7 +244,7 @@ protected:
       std::vector<DataProcessing> data_processing_;
 
       /**
-          @brief Fill a single spectrum with data from input 
+          @brief Fill a single spectrum with data from input
 
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
@@ -318,10 +318,10 @@ protected:
       }
 
       /**
-          @brief Populate all spectra on the stack with data from input 
+          @brief Populate all spectra on the stack with data from input
 
           Will populate all spectra on the current work stack with data (using
-          multiple threads if available) and append them to the result. 
+          multiple threads if available) and append them to the result.
       */
       void populateSpectraWithData_()
       {
@@ -338,9 +338,13 @@ protected:
             // parallel exception catching and re-throwing business
             if (!errCount) // no need to parse further if already an error was encountered
             {
-              try 
+              try
               {
                 doPopulateSpectraWithData_(spectrum_data_[i]);
+                if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
+                {
+                  spectrum_data_[i].spectrum.sortByPosition();
+                }
               }
               catch (...)
               {
@@ -400,6 +404,7 @@ private:
       static const XMLCh* s_peakscount_;
       static const XMLCh* s_polarity_;
       static const XMLCh* s_scantype_;
+      static const XMLCh* s_filterline_;
       static const XMLCh* s_retentiontime_;
       static const XMLCh* s_startmz_;
       static const XMLCh* s_endmz_;
@@ -440,6 +445,7 @@ private:
           s_peakscount_ = xercesc::XMLString::transcode("peaksCount");
           s_polarity_ = xercesc::XMLString::transcode("polarity");
           s_scantype_ = xercesc::XMLString::transcode("scanType");
+          s_filterline_ = xercesc::XMLString::transcode("filterLine");
           s_retentiontime_ = xercesc::XMLString::transcode("retentionTime");
           s_startmz_ = xercesc::XMLString::transcode("startMz");
           s_endmz_ = xercesc::XMLString::transcode("endMz");
@@ -505,6 +511,8 @@ private:
     template <typename MapType>
     const XMLCh * MzXMLHandler<MapType>::s_scantype_ = 0;
     template <typename MapType>
+    const XMLCh * MzXMLHandler<MapType>::s_filterline_ = 0;
+    template <typename MapType>
     const XMLCh * MzXMLHandler<MapType>::s_retentiontime_ = 0;
     template <typename MapType>
     const XMLCh * MzXMLHandler<MapType>::s_startmz_ = 0;
@@ -532,7 +540,7 @@ private:
     const XMLCh * MzXMLHandler<MapType>::s_chargedeconvoluted_ = 0;
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, 
+    void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/,
             const XMLCh* const /*local_name*/, const XMLCh* const qname,
             const xercesc::Attributes& attributes)
     {
@@ -702,8 +710,8 @@ private:
         }
 
         // Add a new spectrum, initialize and set MS level and RT
-        spectrum_data_.resize(spectrum_data_.size() + 1); // TODO !! 
-        spectrum_data_.back().peak_count_ = 0; 
+        spectrum_data_.resize(spectrum_data_.size() + 1); // TODO !!
+        spectrum_data_.back().peak_count_ = 0;
 
         spectrum_data_.back().spectrum.setMSLevel(ms_level);
         spectrum_data_.back().spectrum.setRT(retention_time);
@@ -727,6 +735,14 @@ private:
         String polarity = "any";
         optionalAttributeAsString_(polarity, attributes, s_polarity_);
         spectrum_data_.back().spectrum.getInstrumentSettings().setPolarity((IonSource::Polarity) cvStringToEnum_(0, polarity, "polarity"));
+
+        // Filter string (see CV term MS:1000512 in mzML)
+        String filterLine = "";
+        optionalAttributeAsString_(filterLine, attributes, s_filterline_);
+        if (!filterLine.empty())
+        {
+          spectrum_data_.back().spectrum.setMetaValue("filter string", filterLine);
+        }
 
         String type = "";
         optionalAttributeAsString_(type, attributes, s_scantype_);
@@ -923,7 +939,7 @@ private:
 
       if (equal_(qname, s_mzxml))
       {
-        // Flush the remaining data 
+        // Flush the remaining data
         populateSpectraWithData_();
 
         // End of mzXML
@@ -955,7 +971,7 @@ private:
       if (open_tags_.back() == "peaks")
       {
         //chars may be split to several chunks => concatenate them
-        if (options_.getFillData()) 
+        if (options_.getFillData())
         {
           // Since we convert a Base64 string here, it can only contain plain ASCII
           sm_.appendASCII(chars, length, spectrum_data_.back().char_rest_);
@@ -1002,7 +1018,7 @@ private:
           warning(LOAD, String("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
       }
-      else 
+      else
       {
         char* transcoded_chars = sm_.convert(chars);
         if (String(transcoded_chars).trim() != "")
@@ -1133,7 +1149,7 @@ private:
 
           if (cont.metaValueExists("#phone"))
           {
-            os << " phone=\"" << (String)(cont.getMetaValue("#phone")) << "\"";
+            os << " phone=\"" << writeXMLEscape(cont.getMetaValue("#phone").toString()) << "\"";
           }
 
           os << "/>\n";
@@ -1142,7 +1158,7 @@ private:
 
         if (inst.metaValueExists("#comment"))
         {
-          os << "\t\t\t<comment>" << inst.getMetaValue("#comment") << "</comment>\n";
+          os << "\t\t\t<comment>" << writeXMLEscape(inst.getMetaValue("#comment")) << "</comment>\n";
         }
 
         os << "\t\t</msInstrument>\n";
@@ -1171,13 +1187,13 @@ private:
              << "\"";
           if (data_processing.metaValueExists("#intensity_cutoff"))
           {
-            os << " intensityCutoff=\"" << data_processing.getMetaValue("#intensity_cutoff").toString() << "\"";
+            os << " intensityCutoff=\"" << writeXMLEscape(data_processing.getMetaValue("#intensity_cutoff").toString()) << "\"";
           }
           os << ">\n"
              << "\t\t\t<software type=\"";
           if (data_processing.metaValueExists("#type"))
           {
-            os << data_processing.getMetaValue("#type").toString();
+            os << writeXMLEscape(data_processing.getMetaValue("#type").toString());
           }
           else
           {
@@ -1307,6 +1323,29 @@ private:
           warning(STORE, String("Scan type '") + InstrumentSettings::NamesOfScanMode[spec.getInstrumentSettings().getScanMode()] + "' not supported by mzXML. Using 'Full' scan mode!");
         }
 
+        // filter line
+        if (spec.metaValueExists("filter string") )
+        {
+          os << "\" filterLine=\"";
+          os << writeXMLEscape ( (String)spec.getMetaValue("filter string") );
+        }
+
+        // base peak mz (used by some programs like MAVEN), according to xsd:
+        // "m/z of the base peak (most intense peak)"
+        os << "\" basePeakMz=\"";
+        double basePeakInt = 0;
+        double basePeakMz = 0;
+        for (Size j = 0; j < spec.size(); j++)
+        {
+          if (spec[j].getIntensity() > basePeakInt)
+          {
+            basePeakInt = spec[j].getIntensity();
+            basePeakMz = spec[j].getMZ();
+          }
+        }
+        os << basePeakMz;
+
+        // retention time
         os << "\" retentionTime=\"";
         if (spec.getRT() < 0)
           os << "-";
@@ -1319,6 +1358,8 @@ private:
         {
           warning(STORE, "The MzXML format can store only one scan window for each scan. Only the first one is stored!");
         }
+
+        // end of "scan" attributes
         os << ">\n";
 
 

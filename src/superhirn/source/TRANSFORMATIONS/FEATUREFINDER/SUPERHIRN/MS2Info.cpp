@@ -488,7 +488,7 @@ namespace OpenMS
       {
         return true;
       }
-      F++;
+      ++F;
     }
 
     return false;

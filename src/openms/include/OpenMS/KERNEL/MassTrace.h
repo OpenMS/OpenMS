@@ -50,12 +50,12 @@ namespace OpenMS
 
 /** @brief A container type that gathers peaks similar in m/z and moving along retention time.
 
-        Depending on the method of extraction a mass trace could virtually represent a complete ion chromatogram (XIC) or merely a part of it
+    Depending on the method of extraction a mass trace could virtually represent a complete ion chromatogram (XIC) or merely a part of it
     (e.g., a chromatographic peak). The kernel class provides methods for computing mass trace characteristics such
-      as its centroid m/z and retention time. Coeluting mass traces can be further assembled to complete isotope patterns of peptides/metabolites.
+    as its centroid m/z and retention time. Coeluting mass traces can be further assembled to complete isotope patterns of peptides/metabolites.
 
-                @ingroup Kernel
-        */
+    @ingroup Kernel
+ */
   class OPENMS_DLLAPI MassTrace
   {
 public:

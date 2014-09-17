@@ -45,32 +45,38 @@
 
 namespace OpenMS
 {
+
   /**
-      @brief File adapter for DTA files.
+    @brief File adapter for DTA files.
 
-  The first line contains the singly protonated peptide mass (MH+) and the peptide charge state separated by a space.
-  Subsequent lines contain space separated pairs of fragment ion m/z and intensity values.
+    The first line contains the singly protonated peptide mass (MH+) and the
+    peptide charge state separated by a space.  Subsequent lines contain space
+    separated pairs of fragment ion m/z and intensity values.
 
-  From precursor mass and charge state the mass-charge-ratio is calculated and stored in the spectrum as precursor mass.
+    From precursor mass and charge state the mass-charge-ratio is calculated
+    and stored in the spectrum as precursor mass.
 
-  @ingroup FileIO
-*/
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI DTAFile
   {
+
 public:
+
     /// Default constructor
     DTAFile();
+
     /// Destructor
     virtual ~DTAFile();
 
     /**
-              @brief Loads a DTA file to a spectrum.
+      @brief Loads a DTA file to a spectrum.
 
-              The content of the file is stored in @p spectrum.
-              @p spectrum has to be a MSSpectrum or have the same interface.
+      The content of the file is stored in @p spectrum.
+      @p spectrum has to be a MSSpectrum or have the same interface.
 
-              @exception Exception::FileNotFound is thrown if the file could not be opened
-              @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename SpectrumType>
     void load(const String & filename, SpectrumType & spectrum)
@@ -135,6 +141,7 @@ public:
       }
       precursor.setCharge(charge);
       spectrum.getPrecursors().push_back(precursor);
+      spectrum.setMSLevel(default_ms_level_);
 
       while (getline(is, line, '\n'))
       {
@@ -180,7 +187,7 @@ public:
       The content of @p spectrum is stored in a file.
       @p spectrum has to be a MSSpectrum or have the same interface.
 
-              @exception Exception::UnableToCreateFile is thrown if the file could not be created
+      @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
     void store(const String & filename, const SpectrumType & spectrum) const
@@ -227,6 +234,11 @@ public:
       // done
       os.close();
     }
+
+protected:
+
+    /// Default MS level used when reading the file
+    Size default_ms_level_;
 
   };
 } // namespace OpenMS

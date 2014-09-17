@@ -123,7 +123,7 @@ protected:
     */
     void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor)
     {
-      //TODO: this function is copy&paste from TraceFitter.h. Make a generic werapper for
+      //TODO: this function is copy&paste from TraceFitter.h. Make a generic wrapper for
       //LM optimization
       int data_count = functor.values();
       int num_params = functor.inputs();

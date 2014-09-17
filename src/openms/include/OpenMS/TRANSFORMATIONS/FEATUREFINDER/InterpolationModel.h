@@ -143,7 +143,10 @@ public:
       BaseModel<1>::PeakType peak;
       for (Size i = 0; i < interpolation_.getData().size(); ++i)
       {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wconversion"
         peak.setIntensity(interpolation_.getData()[i]);
+#pragma clang diagnostic pop
         peak.getPosition()[0] = interpolation_.index2key(i);
         cont.push_back(peak);
       }

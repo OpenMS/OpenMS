@@ -51,15 +51,17 @@ namespace OpenMS
   class Peak1D;
 
   /**
-    @brief Representation of a mass spectrometry experiment.
+    @brief In-Memory representation of a mass spectrometry experiment.
 
-    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS).
+    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS). This representation of an MS experiment is organized as list of spectra and chromatograms and provides an in-memory representation of popular mass-spectrometric file formats such as mzXML or mzML. The meta-data associated with an experiment is contained in ExperimentalSettings (by inheritance) while the raw data (as well as spectra and chromatogram level meta data) is stored in objects of type MSSpectrum and MSChromatogram which are accessible through the getSpectrum and getChromatogam functions.
 
     Be careful when changing the order of contained MSSpectrum instances, if tandem-MS data is
     stored in this class. The only way to find a precursor spectrum of MSSpectrum x is to
     search for the first spectrum before x that has a lower MS-level!
 
     @note For range operations, see \ref RangeUtils "RangeUtils module"!
+    @note Some of the meta data is associated with the spectra directly (e.g. DataProcessing) and therefore the spectra need to be present to retain this information.
+    @note For an on-disc representation of an MS experiment, see OnDiskExperiment.
 
     @ingroup Kernel
   */
@@ -265,7 +267,7 @@ public:
       Fill MSExperiment with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
-      @param container An iteratable type whose elements support getRT(), getMZ() and getIntensity()
+      @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
       retention time (in debug AND release mode)

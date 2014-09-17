@@ -83,6 +83,12 @@ public:
     */
     ~SpectrumAccessOpenMSCached();
 
+    /// Copy constructor
+    SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs);
+
+    /// Light clone operator (actual data will not get copied)
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const;
+
     OpenSwath::SpectrumPtr getSpectrumById(int id);
 
     OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;

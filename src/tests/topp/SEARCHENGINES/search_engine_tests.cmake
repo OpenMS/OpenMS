@@ -14,6 +14,28 @@ macro (OPENMS_FINDBINARY varname binaryname name)
   endif()
 endmacro (OPENMS_FINDBINARY)
 
+macro (openms_check_tandem_version binary valid)
+  if(NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND"))
+    set(${valid} FALSE)
+    execute_process(COMMAND ${XTANDEM_BINARY}
+      RESULT_VARIABLE _tandem_result
+      OUTPUT_VARIABLE _tandem_output
+      ERROR_VARIABLE _tandem_error
+      INPUT_FILE ${DATA_DIR_TOPP}/SEARCHENGINES/tandem_break.txt
+    )
+
+    # we are looking for something like (2013.09.01.1)
+    string(REGEX MATCH "\([0-9]+[.][0-9]+[.][0-9]+([.][0-9]+)\)"
+          _tandem_version ${_tandem_output})
+
+    if("${_tandem_version}" VERSION_LESS "2013.09.01")
+      message(STATUS "  - X!Tandem too old. Please provide a X!Tandem version >= 2013.09.01 to enable the tests.")
+    else()
+      set(${valid} TRUE)
+    endif()
+  endif()
+endmacro (openms_check_tandem_version)
+
 message(STATUS "Searching for MS2 search engines ...")
 
 #------------------------------------------------------------------------------
@@ -23,6 +45,7 @@ OPENMS_FINDBINARY(OMSSA_BINARY "omssacl" "OMSSA")
 #------------------------------------------------------------------------------
 # X!Tandem
 OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X!Tandem")
+openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
 
 #------------------------------------------------------------------------------
 # MyriMatch
@@ -34,13 +57,21 @@ if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
   add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
   add_test("TOPP_OMSSAAdapter_1_out" ${DIFF} -in1 OMSSAAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
   set_tests_properties("TOPP_OMSSAAdapter_1_out" PROPERTIES DEPENDS "TOPP_OMSSAAdapter_1")
+
+  # test charge check
+  add_test("TOPP_OMSSAAdapter_2" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}" -min_precursor_charge 4 -max_precursor_charge 3)
+  set_tests_properties("TOPP_OMSSAAdapter_2" PROPERTIES WILL_FAIL 1) ## has invalid charge range
 endif()
 
 #------------------------------------------------------------------------------
-if (NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND"))
+if (NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND") AND xtandem_valid)
   add_test("TOPP_XTandemAdapter_1" ${TOPP_BIN_PATH}/XTandemAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/XTandemAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out XTandemAdapter_1_out.tmp -xtandem_executable "${XTANDEM_BINARY}")
-  add_test("TOPP_XTandemAdapter_1_out" ${DIFF} -in1 XTandemAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/XTandemAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  add_test("TOPP_XTandemAdapter_1_out" ${DIFF} -in1 XTandemAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/XTandemAdapter_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
   set_tests_properties("TOPP_XTandemAdapter_1_out" PROPERTIES DEPENDS "TOPP_XTandemAdapter_1")
+
+  # test charge check
+  add_test("TOPP_XTandemAdapter_2" ${TOPP_BIN_PATH}/XTandemAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/XTandemAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out XTandemAdapter_1_out.tmp -xtandem_executable "${XTANDEM_BINARY}" -min_precursor_charge 4 -max_precursor_charge 3)
+  set_tests_properties("TOPP_XTandemAdapter_2" PROPERTIES WILL_FAIL 1) ## has invalid charge range
 endif()
 
 #------------------------------------------------------------------------------
@@ -48,6 +79,10 @@ if (NOT (${MYRIMATCH_BINARY} STREQUAL "MYRIMATCH_BINARY-NOTFOUND"))
   add_test("TOPP_MyriMatchAdapter_1" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/MyriMatchAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out MyriMatchAdapter_1_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}")
   add_test("TOPP_MyriMatchAdapter_1_out" ${DIFF} -in1 MyriMatchAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/MyriMatchAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
   set_tests_properties("TOPP_MyriMatchAdapter_1_out" PROPERTIES DEPENDS "TOPP_MyriMatchAdapter_1")
+
+  # test charge check
+  add_test("TOPP_MyriMatchAdapter_2" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/MyriMatchAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out MyriMatchAdapter_1_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}" -min_precursor_charge 4 -max_precursor_charge 3)
+  set_tests_properties("TOPP_MyriMatchAdapter_2" PROPERTIES WILL_FAIL 1) ## has invalid charge range
 endif()
 
 
@@ -80,4 +115,3 @@ endif()
 #add_test("TOPP_PepNovoAdapter_2_out1" ${DIFF} -in1 ${DATA_DIR_TOPP}/PepNovo_PTMs_.txt -in2 ${DATA_DIR_TOPP}/PepNovo_PTMs.txt)
 #add_test("TOPP_PepNovoAdapter_3" ${TOPP_BIN_PATH}/PepNovoAdapter -ini ${DATA_DIR_TOPP}/PepNovoAdapter_5_parameters.ini -in ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.pepnovo_out -out PepNovoAdapter_5_output.tmp -pepnovo_out -dta_list ${DATA_DIR_TOPP}/tmp/dta_list.txt -model_directory ${DATA_DIR_TOPP}/tmp/ -temp_data_directory ${DATA_DIR_TOPP}/tmp/ -modifications_xml_file ${DATA_DIR_TOPP}/PepNovo_PTMs.xml -mz_files ${DATA_DIR_TOPP}/PepNovo.mzXML)
 #add_test("TOPP_PepNovoAdapter_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "date_group_1" -in1 PepNovoAdapter_5_output.tmp -in2 ${DATA_DIR_TOPP}/PepNovoAdapter_5_output.idXML)
-

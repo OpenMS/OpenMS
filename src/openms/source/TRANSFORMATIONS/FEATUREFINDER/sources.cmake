@@ -34,6 +34,12 @@ LevMarqFitter1D.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 ModelFitter.cpp
+MultiplexClustering.cpp
+MultiplexFiltering.cpp
+MultiplexFilterResult.cpp
+MultiplexFilterResultPeak.cpp
+MultiplexFilterResultRaw.cpp
+MultiplexPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp

@@ -99,12 +99,15 @@ private:
     return PrecisionWrapper<FloatingPointType>(rhs);
   }
 
-  /// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
+  /// Output operator for a PrecisionWrapper. Specializations are defined for float, double, long double.
   template <typename FloatingPointType>
   inline std::ostream & operator<<(std::ostream & os, const PrecisionWrapper<FloatingPointType> & rhs)
   {
     // Same test as used by isnan(), spelled out here to avoid issues during overload resolution.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
     if (rhs.ref_ != rhs.ref_)
+#pragma clang diagnostic pop
     {
       // That's what Linux GCC uses, and gnuplot understands.
       // Windows would print stuff like 1.#QNAN which makes testing hard.

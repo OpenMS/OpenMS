@@ -131,8 +131,7 @@ namespace OpenMS
     for (size_t i = 0; i < consensus_map_out.size(); ++i)
     {
       // is whole scan empty?!
-      if (consensus_map_out[i].getIntensity() == 0)
-        ++stats_.number_ms2_empty;
+      if (consensus_map_out[i].getIntensity() == 0) ++stats_.number_ms2_empty;
 
       // look at single reporters
       for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_out[i].begin();
@@ -141,7 +140,7 @@ namespace OpenMS
       {
         if (it_elements->getIntensity() == 0)
         {
-          Int ch_index = consensus_map_out.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name");
+          String ch_index = consensus_map_out.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name");
           ++stats_.empty_channels[ch_index];
         }
       }
@@ -151,7 +150,7 @@ namespace OpenMS
     consensus_map_out.setMetaValue("isoquant:scans_total", consensus_map_out.size());
 
     LOG_INFO << "IsobaricQuantifier: channels with signal\n";
-    for (std::map<Size, Size>::const_iterator it_m = stats_.empty_channels.begin();
+    for (std::map<String, Size>::const_iterator it_m = stats_.empty_channels.begin();
          it_m != stats_.empty_channels.end();
          ++it_m)
     {

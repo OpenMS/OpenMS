@@ -57,8 +57,8 @@ namespace OpenMS
 
   bool VersionInfo::VersionDetails::operator==(const VersionInfo::VersionDetails & rhs) const
   {
-    return this->version_major == rhs.version_major && 
-      this->version_minor == rhs.version_minor && 
+    return this->version_major == rhs.version_major &&
+      this->version_minor == rhs.version_minor &&
       this->version_patch == rhs.version_patch;
   }
 
@@ -153,8 +153,12 @@ namespace OpenMS
 
   String VersionInfo::getRevision()
   {
-    return String("unknown revision"); 
+    return String(OPENMS_GIT_SHA1);
+  }
+
+  String VersionInfo::getBranch()
+  {
+    return String(OPENMS_GIT_BRANCH);
   }
 
 }
-

@@ -57,69 +57,65 @@ namespace OpenMS
       typedef MapType::ChromatogramType ChromatogramType;
 
     public:
-      /// Default constructor
+
+      /**
+        @brief Constructor
+  
+        Opens the output file and writes the header.
+      */
       MSDataCachedConsumer(String filename, bool clearData=true) :
         ofs_(filename.c_str(), std::ios::binary),
         clearData_(clearData),
         spectra_written_(0),
-        chromatograms_written_(0),
-        spectra_expected_(0),
-        chromatograms_expexted_(0)
+        chromatograms_written_(0)
       {
+        int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
+        ofs_.write((char*)&file_identifier, sizeof(file_identifier));
       }
 
-      /// Default destructor
+      /**
+        @brief Destructor
+  
+        Closes the output file and writes the footer.
+      */
       ~MSDataCachedConsumer()
       {
+        // Write size of file (to the end of the file)
+        ofs_.write((char*)&spectra_written_, sizeof(spectra_written_));
+        ofs_.write((char*)&chromatograms_written_, sizeof(chromatograms_written_));
+
         // Close file stream: close() _should_ call flush() but it might not in
         // all cases. To be sure call flush() first.
         ofs_.flush();
         ofs_.close();
       }
 
-      /// Write a spectrum
+      /**
+        @brief Write a spectrum to the output file
+      */
       void consumeSpectrum(SpectrumType & s)
       {
-        if (spectra_written_ >= spectra_expected_ || chromatograms_written_ > 0)
+        if (chromatograms_written_ > 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                  "Cannot write spectra, reached expected spectra or have already written chromatograms.");
+            "Cannot write spectra after writing chromatograms.");
         }
         writeSpectrum_(s, ofs_);
         spectra_written_++;
         if (clearData_) {s.clear(false);}
       }
 
-      /// Write a chromatogram
+      /**
+        @brief Write a chromatogram to the output file
+      */
       void consumeChromatogram(ChromatogramType & c)
       {
-        if (chromatograms_written_ >= chromatograms_expexted_ || spectra_written_ != spectra_expected_)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                  "Cannot write spectra, reached expected spectra or have already written chromatograms.");
-        }
         writeChromatogram_(c, ofs_);
         chromatograms_written_++;
         if (clearData_) {c.clear(false);}
       }
 
-      /// Write the header of a file to disk
-      void setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
-      {
-        if (spectra_expected_ != 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                  "Can only set expected size of the experiment once since this will open the file.");
-        }
-
-        spectra_expected_ = expectedSpectra;
-        chromatograms_expexted_ = expectedChromatograms;
-
-        int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
-        ofs_.write((char*)&file_identifier, sizeof(file_identifier));
-        ofs_.write((char*)&spectra_expected_, sizeof(spectra_expected_));
-        ofs_.write((char*)&chromatograms_expexted_, sizeof(chromatograms_expexted_));
-      }
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}
 
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
 
@@ -128,8 +124,6 @@ namespace OpenMS
       bool clearData_;
       Size spectra_written_;
       Size chromatograms_written_;
-      Size spectra_expected_;
-      Size chromatograms_expexted_;
 
     };
 

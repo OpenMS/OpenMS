@@ -79,7 +79,7 @@ namespace OpenMS
     gb_bb_l_(0.0),
     gb_bb_r_(0.0)
   {
-    if (formula_ != "")
+    if (!formula_.isEmpty())
     {
       internal_formula_ = formula_ - getInternalToFull();
     }
@@ -284,14 +284,10 @@ namespace OpenMS
 
   double Residue::getPiValue() const
   {
-    double temp1 = 0.0;
-    double temp2 = 0.0;
-    double temp3 = 0.0;
     double pi = 0;
-
-    temp1 = getPka();
-    temp2 = getPkb();
-    temp3 = getPkc();
+    double temp1 = getPka();
+    double temp2 = getPkb();
+    double temp3 = getPkc();
 
     if (temp3 >= 0 && temp3 < temp1)
     {
@@ -589,7 +585,7 @@ namespace OpenMS
     }
 
     bool updated_formula(false);
-    if (mod.getDiffFormula() != "")
+    if (!mod.getDiffFormula().isEmpty())
     {
       updated_formula = true;
       setFormula(getFormula() + mod.getDiffFormula());
@@ -599,7 +595,7 @@ namespace OpenMS
       updated_formula = true;
       String formula = mod.getFormula();
       formula.removeWhitespaces();
-      formula_ = formula;
+      formula_ = EmpiricalFormula(formula);
     }
 
     if (updated_formula)

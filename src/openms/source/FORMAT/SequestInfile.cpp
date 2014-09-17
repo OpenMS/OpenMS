@@ -193,17 +193,10 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     stringstream file_content;
 
-    float
-    dyn_n_term_mod(0.0),
-    dyn_c_term_mod(0.0),
-    stat_n_term_mod(0.0),
-    stat_c_term_mod(0.0),
-    stat_n_term_prot_mod(0.0),
-    stat_c_term_prot_mod(0.0);
+    float dyn_n_term_mod(0.0), dyn_c_term_mod(0.0), stat_n_term_mod(0.0), stat_c_term_mod(0.0), stat_n_term_prot_mod(0.0), stat_c_term_prot_mod(0.0);
 
     map<char, float> stat_mods, dyn_mods;
     map<char, float> * mods_p = NULL;
-    dyn_n_term_mod = dyn_c_term_mod = stat_n_term_mod = stat_c_term_mod = stat_n_term_prot_mod = stat_c_term_prot_mod = .0;
 
     // compute the masses for the amino acids, divided into fixed and optional modifications
     float mass(0.0);
@@ -725,7 +718,8 @@ namespace OpenMS
         if (mod_i->empty())
           continue;
         // clear the formulae
-        add_formula = substract_formula = name = residues = mass = type = "";
+        add_formula = substract_formula = EmpiricalFormula();
+        name = residues = mass = type = "";
 
         // get the single parts of the modification string
         mod_i->split(',', mod_parts);
@@ -796,12 +790,12 @@ namespace OpenMS
           {
             if (pos != String::npos)
             {
-              add_formula = mass.substr(0, pos);
-              substract_formula = mass.substr(++pos);
+              add_formula = EmpiricalFormula(mass.substr(0, pos));
+              substract_formula = EmpiricalFormula(mass.substr(++pos));
             }
             else
             {
-              add_formula = mass;
+              add_formula = EmpiricalFormula(mass);
             }
             // sum up the masses
             if (monoisotopic)

@@ -13,6 +13,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>"
         double iso_total_intensity_negative
         Size number_ms2_total
         Size number_ms2_empty
-        libcpp_map[ size_t, size_t ] empty_channels
+        # libcpp_map[ size_t, size_t ] empty_channels
         void reset() nogil except +
 

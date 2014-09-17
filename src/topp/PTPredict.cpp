@@ -119,9 +119,6 @@ protected:
     double sigma = 0;
     String temp_string = "";
     UInt maximum_length = 50;
-    String inputfile_name = "";
-    String outputfile_name = "";
-    String svmfile_name = "";
     UInt max_number_of_peptides = getIntOption_("max_number_of_peptides");
 
 
@@ -129,10 +126,10 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
 
-    inputfile_name = getStringOption_("in");
-    outputfile_name = getStringOption_("out");
+    String inputfile_name = getStringOption_("in");
+    String outputfile_name = getStringOption_("out");
 
-    svmfile_name = getStringOption_("svm_model");
+    String svmfile_name = getStringOption_("svm_model");
 
     //-------------------------------------------------------------
     // reading input

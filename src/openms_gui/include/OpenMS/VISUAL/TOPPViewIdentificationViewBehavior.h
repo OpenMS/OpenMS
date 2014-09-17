@@ -109,6 +109,9 @@ private:
     /// removes all layer with theoretical spectrum generated in identification view
     void removeTheoreticalSpectrumLayer_();
 
+    /// Adds annotation (compound name, adducts, ppm error) to a peak in 1D spectra
+    void addPeakAnnotations_(const std::vector<PeptideIdentification> & ph);
+
 private:
     TOPPViewBase * tv_;
     /// Used to check which annotation handles have been added automatically by the identification view. Ownership

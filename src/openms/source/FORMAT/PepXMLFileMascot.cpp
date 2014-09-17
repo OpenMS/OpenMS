@@ -75,11 +75,10 @@ namespace OpenMS
   {
     UInt i = 0;
     bool found = false;
-    double difference = 0.;
 
     while (i < variable_modifications_.size() && !found)
     {
-      difference = variable_modifications_[i].second - mass;
+      double difference = variable_modifications_[i].second - mass;
       if (difference < 0)
       {
         difference *= -1;
@@ -140,12 +139,9 @@ namespace OpenMS
     }
     else if (element == "mod_aminoacid_mass")
     {
-      double modification_mass = 0.;
-      UInt             modification_position = 0;
-      String       temp_description = "";
-
-      modification_position = attributeAsInt_(attributes, "position");
-      modification_mass = attributeAsDouble_(attributes, "mass");
+      String temp_description = "";
+      UInt modification_position = attributeAsInt_(attributes, "position");
+      double modification_mass = attributeAsDouble_(attributes, "mass");
 
       matchModification_(modification_mass, temp_description);
 

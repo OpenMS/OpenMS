@@ -86,7 +86,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  IonizationSimulation::IonizationSimulation(const IonizationSimulation & source) :
+  IonizationSimulation::IonizationSimulation(const IonizationSimulation& source) :
     DefaultParamHandler(source),
     ProgressLogger(source),
     ionization_type_(source.ionization_type_),
@@ -101,7 +101,7 @@ namespace OpenMS
     //updateMembers_();
   }
 
-  IonizationSimulation & IonizationSimulation::operator=(const IonizationSimulation & source)
+  IonizationSimulation& IonizationSimulation::operator=(const IonizationSimulation& source)
   {
     DefaultParamHandler::operator=(source);
     ionization_type_ = source.ionization_type_;
@@ -120,7 +120,7 @@ namespace OpenMS
   {
   }
 
-  void IonizationSimulation::ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment)
+  void IonizationSimulation::ionize(FeatureMapSim& features, ConsensusMap& charge_consensus, MSSimExperiment& experiment)
   {
     LOG_INFO << "Ionization Simulation ... started" << std::endl;
 
@@ -225,7 +225,7 @@ namespace OpenMS
       l_charge -= components[0].remove('+').size();
       EmpiricalFormula ef(components[0].remove('+'));
       // effectively subtract electrons
-      ef.setCharge(l_charge); ef -= String("H") + String(l_charge);
+      ef.setCharge(l_charge); ef -= EmpiricalFormula(String("H") + String(l_charge));
       // create adduct
       Adduct a((Int)l_charge, 1, ef.getMonoWeight(), components[0].remove('+'), log(components[1].toDouble()), 0);
       esi_adducts_.push_back(a);
@@ -235,7 +235,7 @@ namespace OpenMS
       max_adduct_charge_ = std::max(max_adduct_charge_, l_charge);
     }
 
-    // scale probability to 1 
+    // scale probability to 1
     for (Size i = 0; i < esi_charge_impurity.size(); ++i)
     {
       esi_impurity_probabilities_[i] /= summed_probability;
@@ -260,22 +260,22 @@ namespace OpenMS
   class IonizationSimulation::CompareCmpByEF_
   {
 public:
-    bool operator()(const Compomer & x, const Compomer & y) const { return x.getAdductsAsString() < y.getAdductsAsString(); }
+    bool operator()(const Compomer& x, const Compomer& y) const { return x.getAdductsAsString() < y.getAdductsAsString(); }
   };
 
-  void IonizationSimulation::ionizeEsi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
+  void IonizationSimulation::ionizeEsi_(FeatureMapSim& features, ConsensusMap& charge_consensus)
   {
-    for(size_t i=0; i<esi_impurity_probabilities_.size(); ++i )
+    for (size_t i = 0; i < esi_impurity_probabilities_.size(); ++i)
       std::cout << "esi_impurity_probabilities_[" << i << "]: " << esi_impurity_probabilities_.at(i) << std::endl;
 
     std::vector<double> weights;
-    std::transform( esi_impurity_probabilities_.begin(),
-        esi_impurity_probabilities_.end(),
-        std::back_inserter( weights ),
-        boost::bind( std::multiplies<double>(), _1, 10 ) );
-    for(size_t i=0; i<weights.size(); ++i )
+    std::transform(esi_impurity_probabilities_.begin(),
+                   esi_impurity_probabilities_.end(),
+                   std::back_inserter(weights),
+                   boost::bind(std::multiplies<double>(), _1, 10));
+    for (size_t i = 0; i < weights.size(); ++i)
       std::cout << "weights[" << i << "]: " << weights.at(i) << std::endl;
-    boost::random::discrete_distribution<Size, double> ddist (weights.begin(), weights.end());
+    boost::random::discrete_distribution<Size, double> ddist(weights.begin(), weights.end());
 
     try
     {
@@ -293,7 +293,7 @@ public:
 
       this->startProgress(0, features.size(), "Ionization");
       Size progress(0);
-	
+
       // iterate over all features
 #pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
       for (SignedSize index = 0; index < (SignedSize)features.size(); ++index)
@@ -329,14 +329,14 @@ public:
 
         if (basic_residues_c == 0)
         {
-          ++uncharged_feature_count;           // OMP
+          ++uncharged_feature_count; // OMP
           continue;
         }
 
         // precompute random numbers:
         std::vector<UInt> prec_rndbin(abundance);
         {
-          boost::random::binomial_distribution<Int, double> bdist (basic_residues_c, esi_probability_);
+          boost::random::binomial_distribution<Int, double> bdist(basic_residues_c, esi_probability_);
           for (Int j = 0; j < abundance; ++j)
           {
             Int rnd_no = bdist(rnd_gen_->getTechnicalRng());
@@ -403,7 +403,7 @@ public:
         // no charges > 0 selected (this should be really rare)
         if (charge_states.empty())
         {
-          ++uncharged_feature_count;           // OMP!
+          ++uncharged_feature_count; // OMP!
           continue;
         }
 
@@ -444,7 +444,7 @@ public:
 
             if (!isFeatureValid_(charged_feature))
             {
-              ++undetected_features_count;               // OMP!
+              ++undetected_features_count; // OMP!
               continue;
             }
 
@@ -466,7 +466,7 @@ public:
           charge_consensus.push_back(cf);
         }
 
-      }       // ! for feature  (parallel)
+      } // ! for feature  (parallel)
 
       this->endProgress();
 
@@ -481,7 +481,7 @@ public:
       LOG_INFO << "#Peptides not ionized: " << uncharged_feature_count << std::endl;
       LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
     }
-    catch (std::exception & e)
+    catch (std::exception& e)
     {
       // before leaving: free
       LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
@@ -492,7 +492,7 @@ public:
     charge_consensus.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
-  UInt IonizationSimulation::countIonizedResidues_(const AASequence & seq) const
+  UInt IonizationSimulation::countIonizedResidues_(const AASequence& seq) const
   {
     UInt count = 1; // +1 for N-term
     for (Size i = 0; i < seq.size(); ++i)
@@ -507,14 +507,14 @@ public:
     return count;
   }
 
-  void IonizationSimulation::ionizeMaldi_(FeatureMapSim & features, ConsensusMap & charge_consensus)
+  void IonizationSimulation::ionizeMaldi_(FeatureMapSim& features, ConsensusMap& charge_consensus)
   {
     std::vector<double> weights;
-    std::transform( maldi_probabilities_.begin(),
-        maldi_probabilities_.end(),
-        std::back_inserter( weights ),
-        boost::bind( std::multiplies<double>(), _1, 10 ) );
-    boost::random::discrete_distribution<Size, double> ddist (weights.begin(), weights.end());
+    std::transform(maldi_probabilities_.begin(),
+                   maldi_probabilities_.end(),
+                   std::back_inserter(weights),
+                   boost::bind(std::multiplies<double>(), _1, 10));
+    boost::random::discrete_distribution<Size, double> ddist(weights.begin(), weights.end());
 
     try
     {
@@ -578,7 +578,7 @@ public:
 
         this->setProgress(progress);
         ++feature_index;
-      }       // ! feature loop (parallel)
+      } // ! feature loop (parallel)
 
       this->endProgress();
 
@@ -587,7 +587,7 @@ public:
 
       LOG_INFO << "#Peptides outside mz range: " << undetected_features_count << std::endl;
     }
-    catch (std::exception & e)
+    catch (std::exception& e)
     {
       LOG_WARN << "Exception (" << e.what() << ") caught in " << __FILE__ << "\n";
       throw;
@@ -597,9 +597,9 @@ public:
     charge_consensus.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
-  void IonizationSimulation::setFeatureProperties_(Feature & f,
-                                                   const double & adduct_mass,
-                                                   const String & adduct_formula,
+  void IonizationSimulation::setFeatureProperties_(Feature& f,
+                                                   const double& adduct_mass,
+                                                   const String& adduct_formula,
                                                    const SimChargeType charge,
                                                    const SimIntensityType new_intensity,
                                                    const Size parent_index)
@@ -638,7 +638,7 @@ public:
     } // ! pragma
   }
 
-  bool IonizationSimulation::isFeatureValid_(const Feature & feature)
+  bool IonizationSimulation::isFeatureValid_(const Feature& feature)
   {
     if (feature.getMZ() > maximal_mz_measurement_limit_ || feature.getMZ() < minimal_mz_measurement_limit_) // remove feature
     {

@@ -84,7 +84,7 @@ namespace OpenMS
         charge = 1;
       }
 
-	    double exp_mz = identification.getMZ();
+      double exp_mz = identification.getMZ();
       double theo_mz =  (it->getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
       double error(exp_mz - theo_mz);
 
@@ -158,67 +158,43 @@ namespace OpenMS
                                                Size min_length,
                                                Size max_length)
   {
-    vector<Size> new_peptide_indices;
-    vector<PeptideHit> filtered_peptide_hits;
-
     filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-    Size ml = max_length;
     if (max_length < min_length)
     {
-      ml = UINT_MAX;
+      max_length = UINT_MAX;
     }
 
     const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
-
-    for (Size i = 0; i < temp_peptide_hits.size(); i++)
+    vector<PeptideHit> filtered_peptide_hits;
+    for (Size i = 0; i < temp_peptide_hits.size(); ++i)
     {
-      if (temp_peptide_hits[i].getSequence().size() >= min_length && temp_peptide_hits[i].getSequence().size() <= ml)
+      if (min_length <= temp_peptide_hits[i].getSequence().size() && temp_peptide_hits[i].getSequence().size() <= max_length)
       {
-        new_peptide_indices.push_back(i);
+        filtered_peptide_hits.push_back(temp_peptide_hits[i]);
       }
     }
 
-    for (Size i = 0; i < new_peptide_indices.size(); i++)
-    {
-      filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
-    }
-    if (!filtered_peptide_hits.empty())
-    {
-      filtered_identification.setHits(filtered_peptide_hits);
-      filtered_identification.assignRanks();
-    }
+    filtered_identification.setHits(filtered_peptide_hits);
+    filtered_identification.assignRanks();
   }
 
   void IDFilter::filterIdentificationsByCharge(const PeptideIdentification& identification,
                                                Int min_charge,
                                                PeptideIdentification& filtered_identification)
   {
-    vector<Size> new_peptide_indices;
-    vector<PeptideHit> filtered_peptide_hits;
-
     filtered_identification = identification;
-    filtered_identification.setHits(vector<PeptideHit>());
-
     const vector<PeptideHit>& temp_peptide_hits = identification.getHits();
-
-    for (Size i = 0; i < temp_peptide_hits.size(); i++)
+    vector<PeptideHit> filtered_peptide_hits;
+    for (Size i = 0; i < temp_peptide_hits.size(); ++i)
     {
       if (temp_peptide_hits[i].getCharge() >= min_charge)
       {
-        new_peptide_indices.push_back(i);
+        filtered_peptide_hits.push_back(temp_peptide_hits[i]);
       }
     }
 
-    for (Size i = 0; i < new_peptide_indices.size(); i++)
-    {
-      filtered_peptide_hits.push_back(identification.getHits()[new_peptide_indices[i]]);
-    }
-    if (!filtered_peptide_hits.empty())
-    {
-      filtered_identification.setHits(filtered_peptide_hits);
-      filtered_identification.assignRanks();
-    }
+    filtered_identification.setHits(filtered_peptide_hits);
+    filtered_identification.assignRanks();
   }
 
   void IDFilter::filterIdentificationsByVariableModifications(const PeptideIdentification& identification,
@@ -514,7 +490,7 @@ namespace OpenMS
     filtered_identification.setHits(filtered_protein_hits);
   }
 
-  void IDFilter::removeUnreferencedPeptideHits(const ProteinIdentification& identification, 
+  void IDFilter::removeUnreferencedPeptideHits(const ProteinIdentification& identification,
                                                std::vector<PeptideIdentification>& peptide_identifications,
                                                bool delete_unreferenced_peptide_hits /* = false */)
   {
@@ -561,13 +537,15 @@ namespace OpenMS
           filtered_peptide_identifications.push_back(peptide_identifications[i]);
           filtered_peptide_identifications.back().setHits(filtered_pep_hits);
         }
+      } else  // peptide is from another run, let it pass the filter‏
+      {
+        filtered_peptide_identifications.push_back(peptide_identifications[i]);
       }
     }
 
     // exchange with new hits
     filtered_peptide_identifications.swap(peptide_identifications);
   }
-
 
   bool IDFilter::filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, double low, double high, bool missing)
   {
@@ -579,31 +557,28 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByRT(const std::vector<PeptideIdentification>& identifications, double min_rt, double max_rt, std::vector<PeptideIdentification>& filtered_identifications)
   {
-	  filtered_identifications.clear();
+    filtered_identifications.clear();
 
-	  for (Size i = 0; i < identifications.size(); ++i)
-	  {
-		  if (identifications[i].getRT() >= min_rt && identifications[i].getRT() <= max_rt)
-		  {
-			  filtered_identifications.push_back(identifications[i]);
-		  }
-	  }
+    for (Size i = 0; i < identifications.size(); ++i)
+    {
+      if (identifications[i].getRT() >= min_rt && identifications[i].getRT() <= max_rt)
+      {
+        filtered_identifications.push_back(identifications[i]);
+      }
+    }
   }
 
-
-
-  
   void IDFilter::filterIdentificationsByMZ(const std::vector<PeptideIdentification>& identifications, double min_mz, double max_mz, std::vector<PeptideIdentification>& filtered_identifications)
   {
-	  filtered_identifications.clear();
+    filtered_identifications.clear();
 
-	  for (Size i = 0; i < identifications.size(); ++i)
-	  {
-		  if (identifications[i].getMZ() >= min_mz && identifications[i].getMZ() <= max_mz)
-		  {
-			  filtered_identifications.push_back(identifications[i]);
-		  }
-	  }
+    for (Size i = 0; i < identifications.size(); ++i)
+    {
+      if (identifications[i].getMZ() >= min_mz && identifications[i].getMZ() <= max_mz)
+      {
+        filtered_identifications.push_back(identifications[i]);
+      }
+    }
   }
 
 } // namespace OpenMS

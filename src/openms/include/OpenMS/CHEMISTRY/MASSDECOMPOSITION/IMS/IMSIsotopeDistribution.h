@@ -107,7 +107,10 @@ public:
 
         bool operator==(const Peak & peak) const
         {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
           return peak.mass == mass && peak.abundance == abundance;
+#pragma clang diagnostic pop
         }
 
         mass_type mass;

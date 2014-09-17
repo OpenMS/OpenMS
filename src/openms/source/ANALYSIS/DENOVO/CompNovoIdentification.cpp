@@ -106,13 +106,10 @@ namespace OpenMS
       id.setRT(cid_rt);
       id.setMZ(cid_mz);
 
-      double etd_rt(0);
-      double etd_mz(0);
-
       if ((it + 1) != exp.end() && !(it + 1)->getPrecursors().empty())
       {
-        etd_rt = (it + 1)->getRT();
-        etd_mz = (it + 1)->getPrecursors().begin()->getMZ();
+        double etd_rt = (it + 1)->getRT();
+        double etd_mz = (it + 1)->getPrecursors().begin()->getMZ();
 
         if (fabs(etd_rt - cid_rt) < 10 &&         // RT distance is not too large
             fabs(etd_mz - cid_mz) < 0.01)             // same precursor used
@@ -575,8 +572,8 @@ namespace OpenMS
 
     double c_pos(17.0 + prefix);     // TODO high mass accuracy!!
     double z_pos(3.0 + suffix);
-    double b_pos(0.0 + prefix);
-    double y_pos(18.0 + suffix);
+    //double b_pos(0.0 + prefix);
+    //double y_pos(18.0 + suffix);
     // sometimes alsa b and y ions are in this spectrum
 
 #ifdef ETD_SPECTRUM_DEBUG
@@ -592,11 +589,11 @@ namespace OpenMS
 #endif
 
       c_pos += aa_to_weight_[aa];
-      b_pos += aa_to_weight_[aa];
+      //b_pos += aa_to_weight_[aa];
 
       char aa2(sequence[sequence.size() - i - 1]);
       z_pos += aa_to_weight_[aa2];
-      y_pos += aa_to_weight_[aa2];
+      //y_pos += aa_to_weight_[aa2];
 
 #ifdef ETD_SPECTRUM_DEBUG
       cerr << b_pos << " " << c_pos << " " << y_pos << " " << z_pos << endl;

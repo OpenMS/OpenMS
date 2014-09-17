@@ -38,7 +38,7 @@ namespace OpenMS
 {
   SpectrumAccessOpenMS::SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment)
   {
-    // store raw ptr to the experiment
+    // store shared pointer to the actual MSExperiment
     ms_experiment_ = ms_experiment;
   }
 
@@ -46,12 +46,21 @@ namespace OpenMS
   {
   }
 
+  SpectrumAccessOpenMS::SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs) :
+    ms_experiment_(rhs.ms_experiment_)
+  {}
+
+  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMS::lightClone() const
+  {
+    return boost::shared_ptr<SpectrumAccessOpenMS>( new SpectrumAccessOpenMS(*this));
+  }
+
   OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id)
   {
     const MSSpectrumType& spectrum = (*ms_experiment_)[id];
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-    for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); it++)
+    for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
     {
       mz_array->data.push_back(it->getMZ());
       intensity_array->data.push_back(it->getIntensity());
@@ -76,7 +85,7 @@ namespace OpenMS
     const MSChromatogramType& chromatogram = ms_experiment_->getChromatograms()[id];
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
-    for (MSChromatogramType::const_iterator it = chromatogram.begin(); it != chromatogram.end(); it++)
+    for (MSChromatogramType::const_iterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
     {
       rt_array->data.push_back(it->getRT());
       intensity_array->data.push_back(it->getIntensity());

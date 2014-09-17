@@ -72,12 +72,44 @@ option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 
 #------------------------------------------------------------------------------
+# Extend module path with our modules
+# (create an empty list if CMAKE_MODULE_PATH does not exist)
+if(NOT CMAKE_MODULE_PATH)
+	set(CMAKE_MODULE_PATH)
+endif()
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+
+
+#------------------------------------------------------------------------------
 # OpenMS Version Information
 #------------------------------------------------------------------------------
 
 set(OPENMS_PACKAGE_VERSION_MAJOR "1")
 set(OPENMS_PACKAGE_VERSION_MINOR "12")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
+
+#------------------------------------------------------------------------------
+# retrieve detailed informations on the working copy (git)
+include(GetGitRevisionDescription)
+option(GIT_TRACKING "Embedding of Git version control information into the OpenMS library (and OpenMSInfo tool). Note that if activated, every branch-switch or commit will trigger re-generation of the build system (MakeFiles, VS Solutions etc)." ON)
+if (GIT_TRACKING)
+  ## will configure an include file
+  git_short_info(OPENMS_GIT_SHORT_REFSPEC OPENMS_GIT_SHORT_SHA1 OPENMS_GIT_LC_DATE)
+endif()
+
+message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+if(NOT GIT_TRACKING)
+	set(OPENMS_GIT_SHORT_SHA1 "disabled")
+	set(OPENMS_GIT_SHORT_REFSPEC "disabled")
+elseif(OPENMS_GIT_SHORT_REFSPEC EQUAL "GIT-NOTFOUND" OR ${OPENMS_GIT_SHORT_REFSPEC} EQUAL "HEAD-HASH-NOTFOUND")
+	set(OPENMS_GIT_SHORT_SHA1 "exported")
+	set(OPENMS_GIT_SHORT_REFSPEC "exported")
+else()
+	# everything found, print some status information
+	message(STATUS "  - Repository revision ${OPENMS_GIT_SHORT_SHA1}")
+	message(STATUS "  - Repository branch ${OPENMS_GIT_SHORT_REFSPEC}")
+	message(STATUS "  - Repository last change date ${OPENMS_GIT_LC_DATE}")
+endif()
 
 # add some informations used when building packages
 include(cmake/package_definitions.cmake)
@@ -130,7 +162,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 #------------------------------------------------------------------------------
 # Enable STL debug mode (GCC only)
 #------------------------------------------------------------------------------
-option(STL_DEBUG OFF "[GCC only] Enable STL-DEBUG mode (very slow).")
+option(STL_DEBUG "[GCC only] Enable STL-DEBUG mode (very slow)." OFF)
 if(STL_DEBUG)
   include(cmake/stl_debug.cmake)
 endif()
@@ -177,7 +209,7 @@ if(WIN32)
   set(DEF_INSTALL_CMAKE_DIR CMake)
   set(DEF_INSTALL_LIB_DIR bin)
 else()
-  set(DEF_INSTALL_CMAKE_DIR lib/CMake/FooBar)
+  set(DEF_INSTALL_CMAKE_DIR lib/cmake/OpenMS)
   set(DEF_INSTALL_LIB_DIR lib)
 endif()
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
@@ -190,13 +222,6 @@ foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
     set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
   endif()
 endforeach()
-
-#------------------------------------------------------------------------------
-# (create an empty list if CMAKE_MODULE_PATH does not exist)
-if(NOT CMAKE_MODULE_PATH)
-  set(CMAKE_MODULE_PATH)
-endif()
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 #------------------------------------------------------------------------------
 # lib naming when building with msvc

@@ -149,6 +149,16 @@ public:
     ///returns whether to fill the actual data into the container (spectrum/chromatogram)
     bool getFillData() const;
 
+    /// @name sort peaks in spectra / chromatograms by position
+    ///sets whether or not to sort peaks in spectra
+    void setSortSpectraByMZ(bool sort);
+    ///gets whether or not peaks in spectra should be sorted
+    bool getSortSpectraByMZ();
+    ///sets whether or not to sort peaks in chromatograms
+    void setSortChromatogramsByRT(bool sort);
+    ///gets whether or not peaks in chromatograms should be sorted
+    bool getSortChromatogramsByRT();
+
     /**
         @name Precision options
 
@@ -210,6 +220,8 @@ private:
     bool zlib_compression_;
     bool size_only_;
     bool always_append_data_;
+    bool sort_spectra_by_mz_;
+    bool sort_chromatograms_by_rt_;
     bool fill_data_;
     bool write_index_;
     MSNumpressCoder::NumpressConfig np_config_mz_;
