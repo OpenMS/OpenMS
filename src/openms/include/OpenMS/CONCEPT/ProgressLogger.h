@@ -86,6 +86,10 @@ public:
       virtual void endProgress(const int current_recursion_depth) const = 0;
 
       virtual ~ProgressLoggerImpl() {}
+
+      /// Factory requirements
+      static void registerChildren();
+
     };
 
     /// Sets the progress log that should be used. The default type is NONE!
@@ -93,15 +97,6 @@ public:
 
     /// Returns the type of progress log being used.
     LogType getLogType() const;
-
-    /**
-      @brief Registers a new logger for the given log-type
-
-      @note Changes to the logger association will not be copied over to other instances.
-            This class is going to be redesigned in the near future, so this problem is
-            temporarily accepted.
-    */
-    void registerLogger(LogType type, ProgressLogger::ProgressLoggerImpl* newLoggerImpl) const;
 
     /**
       @brief Initializes the progress display
@@ -127,8 +122,17 @@ protected:
     mutable time_t last_invoke_;
     static int recursion_depth_;
 
-    mutable std::map<LogType, ProgressLoggerImpl*> registered_logger_;
+    /// Map LogType to factory name
+    static const std::map<LogType, String> log_type_factory_association_;
+
+    /// Initializer for the file extension map.
+    static std::map<LogType, String> initializeLogAssociation_();
+
+    /// Return the name of the factory product used for this log type
+    static String logTypeToFactoryName(LogType type);
+
     mutable ProgressLoggerImpl* current_logger_;
+
   };
 
 } // namespace OpenMS

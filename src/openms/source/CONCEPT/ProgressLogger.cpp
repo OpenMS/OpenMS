@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -51,12 +52,24 @@ namespace OpenMS
   class CMDProgressLoggerImpl :
     public ProgressLogger::ProgressLoggerImpl
   {
-  public:
-    CMDProgressLoggerImpl()
-      : stop_watch_(),
-        begin_(0),
-        end_(0)
+public:
+    CMDProgressLoggerImpl() :
+      stop_watch_(),
+      begin_(0),
+      end_(0)
     {
+    }
+
+    /// create new object (needed by Factory)
+    static ProgressLogger::ProgressLoggerImpl* create()
+    {
+      return new CMDProgressLoggerImpl();
+    }
+
+    /// name of the model (needed by Factory)
+    static const String getProductName()
+    {
+      return "CMD";
     }
 
     void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const
@@ -103,16 +116,29 @@ namespace OpenMS
         cout << '\r' << string(2 * current_recursion_depth, ' ') << "-- done [took " << StopWatch::toString(stop_watch_.getCPUTime()) << " (CPU), " << StopWatch::toString(stop_watch_.getClockTime()) << " (Wall)] -- " << endl;
       }
     }
-  private:
+
+private:
     mutable StopWatch stop_watch_;
     mutable SignedSize begin_;
     mutable SignedSize end_;
   };
 
   class NoProgressLoggerImpl :
-      public ProgressLogger::ProgressLoggerImpl
+    public ProgressLogger::ProgressLoggerImpl
   {
-  public:
+public:
+    /// create new object (needed by Factory)
+    static ProgressLogger::ProgressLoggerImpl* create()
+    {
+      return new NoProgressLoggerImpl();
+    }
+
+    /// name of the model (needed by Factory)
+    static const String getProductName()
+    {
+      return "NONE";
+    }
+
     void startProgress(const SignedSize /* begin */, const SignedSize /* end */, const String& /* label */, const int /* current_recursion_depth */) const
     {
     }
@@ -124,16 +150,29 @@ namespace OpenMS
     void endProgress(const int /* current_recursion_depth */) const
     {
     }
+
   };
 
   class GUIProgressLoggerImpl :
-      public ProgressLogger::ProgressLoggerImpl
+    public ProgressLogger::ProgressLoggerImpl
   {
-  public:
-    GUIProgressLoggerImpl()
-      : dlg_(0),
-        begin_(0),
-        end_(0)
+public:
+    /// create new object (needed by Factory)
+    static ProgressLogger::ProgressLoggerImpl* create()
+    {
+      return new GUIProgressLoggerImpl();
+    }
+
+    /// name of the model (needed by Factory)
+    static const String getProductName()
+    {
+      return "GUI";
+    }
+
+    GUIProgressLoggerImpl() :
+      dlg_(0),
+      begin_(0),
+      end_(0)
     {
     }
 
@@ -186,34 +225,60 @@ namespace OpenMS
       delete dlg_;
     }
 
-  private:
+private:
     mutable QProgressDialog* dlg_;
     mutable SignedSize begin_;
     mutable SignedSize end_;
   };
 
+  void ProgressLogger::ProgressLoggerImpl::registerChildren()
+  {
+    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(CMDProgressLoggerImpl::getProductName(), &CMDProgressLoggerImpl::create);
+    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(NoProgressLoggerImpl::getProductName(), &NoProgressLoggerImpl::create);
+  }
+
   int ProgressLogger::recursion_depth_ = 0;
+
+  const std::map<ProgressLogger::LogType, String> ProgressLogger::log_type_factory_association_ = ProgressLogger::initializeLogAssociation_();
+
+  std::map<ProgressLogger::LogType, String> ProgressLogger::initializeLogAssociation_()
+  {
+    std::map<ProgressLogger::LogType, String> tmp_map;
+    tmp_map[ProgressLogger::CMD] = "CMD";
+    tmp_map[ProgressLogger::NONE] = "NONE";
+    tmp_map[ProgressLogger::GUI] = "GUI";
+
+    return tmp_map;
+  }
+
+  String ProgressLogger::logTypeToFactoryName(ProgressLogger::LogType type)
+  {
+    std::map<ProgressLogger::LogType, String>::const_iterator it = log_type_factory_association_.find(type);
+    if (it != log_type_factory_association_.end())
+    {
+      return it->second;
+    }
+    else
+    {
+      // should never happen actually
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Their is associated logger for the given LogType.");
+    }
+  }
 
   ProgressLogger::ProgressLogger() :
     type_(NONE),
     last_invoke_()
   {
-    registered_logger_.insert(std::make_pair(ProgressLogger::NONE, new NoProgressLoggerImpl));
-    registered_logger_.insert(std::make_pair(ProgressLogger::GUI, new GUIProgressLoggerImpl));
-    registered_logger_.insert(std::make_pair(ProgressLogger::CMD, new CMDProgressLoggerImpl));
-
-    current_logger_ = registered_logger_[type_];
+    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName(type_));
   }
 
-  ProgressLogger::ProgressLogger(const ProgressLogger &other) :
-    last_invoke_(other.last_invoke_),
-    type_(other.type_)
+  ProgressLogger::ProgressLogger(const ProgressLogger& other) :
+    type_(other.type_),
+    last_invoke_(other.last_invoke_)
   {
-    registered_logger_.insert(std::make_pair(ProgressLogger::NONE, new NoProgressLoggerImpl));
-    registered_logger_.insert(std::make_pair(ProgressLogger::GUI, new GUIProgressLoggerImpl));
-    registered_logger_.insert(std::make_pair(ProgressLogger::CMD, new CMDProgressLoggerImpl));
-
-    current_logger_ = registered_logger_[type_];
+    // recreate our logger
+    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName(type_));
   }
 
   ProgressLogger& ProgressLogger::operator=(const ProgressLogger& other)
@@ -223,40 +288,32 @@ namespace OpenMS
     this->last_invoke_ = other.last_invoke_;
     this->type_ = other.type_;
 
-    registered_logger_.insert(std::make_pair(ProgressLogger::NONE, new NoProgressLoggerImpl));
-    registered_logger_.insert(std::make_pair(ProgressLogger::GUI, new GUIProgressLoggerImpl));
-    registered_logger_.insert(std::make_pair(ProgressLogger::CMD, new CMDProgressLoggerImpl));
+    // we clean our old logger
+    delete current_logger_;
 
-    current_logger_ = registered_logger_[type_];
+    // .. and get a new one
+    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName(type_));
+
+    return *this;
   }
 
   ProgressLogger::~ProgressLogger()
   {
-    for(std::map<ProgressLogger::LogType, ProgressLoggerImpl*>::iterator it = registered_logger_.begin();
-        it != registered_logger_.end();
-        ++it)
-    {
-      delete it->second;
-    }
+    delete current_logger_;
   }
 
   void ProgressLogger::setLogType(LogType type) const
   {
     type_ = type;
-    current_logger_ = registered_logger_[type_];
+    // remove the old logger
+    delete current_logger_;
+
+    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName(type_));
   }
 
   ProgressLogger::LogType ProgressLogger::getLogType() const
   {
     return type_;
-  }
-
-  void ProgressLogger::registerLogger(LogType type, ProgressLoggerImpl* newLoggerImpl) const
-  {
-    // get rid of the old logger
-    delete registered_logger_[type];
-    // register the new one
-    registered_logger_.insert(std::make_pair(type, newLoggerImpl));
   }
 
   void ProgressLogger::startProgress(SignedSize begin, SignedSize end, const String& label) const
