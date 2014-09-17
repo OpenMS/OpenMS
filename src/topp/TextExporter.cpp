@@ -130,7 +130,8 @@ using namespace std;
   <B>idXML input:</B>
   - first column: @p RUN / @p PROTEIN / @p PEPTIDE (indicator for the type of data in the current row)
   - see above for the formats of @p RUN, @p PROTEIN, @p PEPTIDE lines
-  - additional column for @p PEPTIDE lines: @p predicted_rt
+  - additional column for @p PEPTIDE lines: @p predicted_rt (predicted retention time)
+  - additional column for @p PEPTIDE lines: @p predicted_pt (predicted proteotypicity)
 
   With the @p id:proteins_only flag, only @p RUN and @p PROTEIN lines are written.
 
@@ -308,6 +309,7 @@ namespace OpenMS
   // write the header for peptide data
   void writePeptideHeader(SVOutStream& out, const String& what = "PEPTIDE",
                           bool incl_pred_rt = false,
+                          bool incl_pred_pt = false,
                           bool incl_first_dim = false)
   {
     bool old = out.modifyStrings(false);
@@ -316,7 +318,11 @@ namespace OpenMS
     out << "mz" << "score" << "rank" << "sequence" << "charge" << "aa_before"
         << "aa_after" << "score_type" << "search_identifier" << "accessions";
     if (incl_pred_rt) out << "predicted_rt";
+
     if (incl_first_dim) out << "rt_first_dim" << "predicted_rt_first_dim";
+
+    if (incl_pred_pt) out << "predicted_pt";
+
     out << nl;
     out.modifyStrings(old);
   }
@@ -331,7 +337,7 @@ namespace OpenMS
 
   // write a protein identification to the output stream
   void writePeptideId(SVOutStream& out, const PeptideIdentification& pid,
-                      const String& what = "PEPTIDE", bool incl_pred_rt = false,
+                      const String& what = "PEPTIDE", bool incl_pred_rt = false, bool incl_pred_pt = false,
                       bool incl_first_dim = false)
   {
     for (vector<PeptideHit>::const_iterator hit_it = pid.getHits().begin();
@@ -373,6 +379,14 @@ namespace OpenMS
         if (hit_it->metaValueExists("predicted_RT_first_dim"))
         {
           out << hit_it->getMetaValue("predicted_RT_first_dim");
+        }
+        else out << "-1";
+      }
+      if (incl_pred_pt)
+      {
+        if (hit_it->metaValueExists("predicted_PT"))
+        {
+          out << hit_it->getMetaValue("predicted_PT");
         }
         else out << "-1";
       }
@@ -1045,7 +1059,7 @@ namespace OpenMS
         }
         if (!proteins_only)
         {
-          writePeptideHeader(output, what, true, first_dim_rt);
+          writePeptideHeader(output, what, true, true, first_dim_rt);
         }
 
         for (vector<ProteinIdentification>::const_iterator it =
@@ -1065,7 +1079,7 @@ namespace OpenMS
             {
               if (pit->getIdentifier() == actual_id)
               {
-                writePeptideId(output, *pit, what, true, first_dim_rt);
+                writePeptideId(output, *pit, what, true, true, first_dim_rt);
               }
             }
           }
