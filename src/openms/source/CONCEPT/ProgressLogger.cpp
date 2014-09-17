@@ -41,7 +41,6 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <QtCore/QString>
-#include <QtGui/QProgressDialog>
 
 #include <iostream>
 
@@ -153,88 +152,13 @@ public:
 
   };
 
-  class GUIProgressLoggerImpl :
-    public ProgressLogger::ProgressLoggerImpl
-  {
-public:
-    /// create new object (needed by Factory)
-    static ProgressLogger::ProgressLoggerImpl* create()
-    {
-      return new GUIProgressLoggerImpl();
-    }
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "GUI";
-    }
-
-    GUIProgressLoggerImpl() :
-      dlg_(0),
-      begin_(0),
-      end_(0)
-    {
-    }
-
-    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const
-    {
-      begin_ = begin;
-      end_ = end;
-      if (!dlg_)
-      {
-        dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
-      }
-      dlg_->setWindowTitle(label.c_str());
-      dlg_->setWindowModality(Qt::WindowModal);
-      dlg_->show();
-    }
-
-    void setProgress(const SignedSize value, const int /* current_recursion_depth */) const
-    {
-      if (value < begin_ || value > end_)
-      {
-        cout << "ProgressLogger: Invalid progress value '" << value << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << endl;
-      }
-      else
-      {
-        if (dlg_)
-        {
-          dlg_->setValue((int)value);
-        }
-        else
-        {
-          cout << "ProgressLogger warning: 'setValue' called before 'startProgress'!" << endl;
-        }
-      }
-    }
-
-    void endProgress(const int /* current_recursion_depth */) const
-    {
-      if (dlg_)
-      {
-        dlg_->setValue((int)end_);
-      }
-      else
-      {
-        cout << "ProgressLogger warning: 'endProgress' called before 'startProgress'!" << endl;
-      }
-    }
-
-    ~GUIProgressLoggerImpl()
-    {
-      delete dlg_;
-    }
-
-private:
-    mutable QProgressDialog* dlg_;
-    mutable SignedSize begin_;
-    mutable SignedSize end_;
-  };
 
   void ProgressLogger::ProgressLoggerImpl::registerChildren()
   {
     Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(CMDProgressLoggerImpl::getProductName(), &CMDProgressLoggerImpl::create);
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+    // this will only be registered by GUI base app in OpenMS_GUI
+    // Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
     Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(NoProgressLoggerImpl::getProductName(), &NoProgressLoggerImpl::create);
   }
 

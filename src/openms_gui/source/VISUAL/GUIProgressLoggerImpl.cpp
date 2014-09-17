@@ -28,75 +28,84 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
-
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
-//Qt
-#include <QtGui/QApplication>
-#include <QMessageBox>
-#include <QFileOpenEvent>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <QProgressDialog>
+#include <iostream>
 
 namespace OpenMS
 {
-
-  QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) :
-    QApplication(argc, argv)
+  /// create new object (needed by Factory)
+  ProgressLogger::ProgressLoggerImpl* GUIProgressLoggerImpl::create()
   {
-    //
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+    return new GUIProgressLoggerImpl();
   }
 
-  QApplicationTOPP::~QApplicationTOPP()
+  /// name of the model (needed by Factory)
+  const String GUIProgressLoggerImpl::getProductName()
+  {
+    return "GUI";
+  }
+
+  GUIProgressLoggerImpl::GUIProgressLoggerImpl() :
+    dlg_(0),
+    begin_(0),
+    end_(0)
   {
   }
 
-  /*
-    @brief: Catch exceptions in Qt GUI applications, preventing ungraceful exit
-
-    Re-implementing QApplication::notify() to catch exception thrown in event handlers (which is most likely OpenMS code).
-  */
-  bool QApplicationTOPP::notify(QObject* rec, QEvent* ev)
+  void GUIProgressLoggerImpl::startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const
   {
-    // this is called quite often (whenever a signal is fired), so mind performance!
-    try
+    begin_ = begin;
+    end_ = end;
+    if (!dlg_)
     {
-      return QApplication::notify(rec, ev);
+      dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
     }
-    catch (Exception::BaseException& e)
-    {
-      String msg = String("Caught exception: '") + e.getName() + "' with message '" + e.getMessage() + "'";
-      LOG_ERROR << msg << "\n";
-      QMessageBox::warning(0, QString("Unexpected error occurred"), msg.toQString());
-      return false;
-      // we could also exit() here... but no for now
-    }
-
-    return false; // never reached, so return value does not matter
+    dlg_->setWindowTitle(label.c_str());
+    dlg_->setWindowModality(Qt::WindowModal);
+    dlg_->show();
   }
 
-  bool QApplicationTOPP::event(QEvent* event)
+  void GUIProgressLoggerImpl::setProgress(const SignedSize value, const int /* current_recursion_depth */) const
   {
-    switch (event->type())
+    if (value < begin_ || value > end_)
     {
-    case QEvent::FileOpen:
-      emit fileOpen(static_cast<QFileOpenEvent*>(event)->file());
-      return true;
-
-    default:
-      return QApplication::event(event);
+      std::cout << "ProgressLogger: Invalid progress value '" << value << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << std::endl;
+    }
+    else
+    {
+      if (dlg_)
+      {
+        dlg_->setValue((int)value);
+      }
+      else
+      {
+        std::cout << "ProgressLogger warning: 'setValue' called before 'startProgress'!" << std::endl;
+      }
     }
   }
 
+  void GUIProgressLoggerImpl::endProgress(const int /* current_recursion_depth */) const
+  {
+    if (dlg_)
+    {
+      dlg_->setValue((int)end_);
+    }
+    else
+    {
+      std::cout << "ProgressLogger warning: 'endProgress' called before 'startProgress'!" << std::endl;
+    }
+  }
+
+  GUIProgressLoggerImpl::~GUIProgressLoggerImpl()
+  {
+    delete dlg_;
+  }
 }

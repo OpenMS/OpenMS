@@ -1531,11 +1531,11 @@ namespace OpenMS
         ExperimentType out;
         getVisiblePeakData(out);
         addDataProcessing_(out, DataProcessing::FILTERING);
-        FileHandler().storeExperiment(file_name, out);
+        FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
       }
       else
       {
-        FileHandler().storeExperiment(file_name, *layer.getPeakData());
+        FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
       }
     }
   }

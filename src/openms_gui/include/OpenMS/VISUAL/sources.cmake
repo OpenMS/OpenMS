@@ -6,6 +6,7 @@ set(sources_list
 AxisWidget.h
 ColorSelector.h
 EnhancedTabBar.h
+GUIProgressLoggerImpl.h
 HistogramWidget.h
 MetaDataBrowser.h
 MultiGradientSelector.h
