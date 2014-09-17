@@ -36,7 +36,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <QtGui/QTextDocument>
+// #include <QtGui/QTextDocument>
 #include <iostream>
 
 // #define MASCOTREMOTEQUERY_DEBUG
@@ -595,9 +595,9 @@ namespace OpenMS
         else
         {
           LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
-          QTextDocument doc;
-          doc.setHtml(response_text);
-          error_message_ = doc.toPlainText().toStdString();
+          // QTextDocument doc;
+          // doc.setHtml(response_text);
+          error_message_ = response_text;// doc.toPlainText().toStdString();
         }
         endRun_();
       }
