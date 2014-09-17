@@ -75,7 +75,7 @@ using namespace std;
 
     Serang <em>et al.</em>: <a href="http://pubs.acs.org/doi/abs/10.1021/pr100594k">Efficient marginalization to compute protein posterior probabilities from shotgun mass spectrometry data</a> (J. Proteome Res., 2010).
 
-    By default, this adapter runs the Fido variant with parameter estimation (@p FidoChooseParameters), as recommended by the authors of Fido. However, it is also possible to run "pure" Fido by setting the @p prob:protein, @p prob:peptide and @p prob:spurious parameters, if appropriate values are known (e.g. from a previous Fido run).
+    By default, this adapter runs the Fido variant with parameter estimation (@p FidoChooseParameters), as recommended by the authors of Fido. However, it is also possible to run "pure" Fido by setting the @p prob:protein, @p prob:peptide and @p prob:spurious parameters, if appropriate values are known (e.g. from a previous Fido run). Other parameters, except for @p log2_states, are not applicable in this case.
 
     <b>Input format:</b>
 
@@ -124,7 +124,7 @@ protected:
     setMinInt_("log2_states", 0);
     registerIntOption_("log2_states_precalc", "<number>", 0, "Like 'log2_states', but allows to set a separate limit for the precalculation", false, true);
     setMinInt_("log2_states_precalc", 0);
-    registerTOPPSubsection_("prob", "Probability values for running Fido directly, i.e. without parameter estimation");
+    registerTOPPSubsection_("prob", "Probability values for running Fido directly, i.e. without parameter estimation (in which case other settings, except 'log2_states', are ignored)");
     registerDoubleOption_("prob:protein", "<value>", 0.0, "Protein prior probability ('gamma' parameter)", false);
     setMinFloat_("prob:protein", 0.0);
     registerDoubleOption_("prob:peptide", "<value>", 0.0, "Peptide emission probability ('alpha' parameter)", false);
@@ -324,7 +324,8 @@ protected:
     proteins_out << " }" << endl;
     proteins_out.close();
 
-    LOG_INFO << "Running Fido..." << endl;
+    LOG_INFO << "Running Fido " + (choose_params ? "with parameter estimation" :
+                                   "with fixed parameters") + "..." << endl;
     // Fido parameters:
     QStringList inputs;
     Int log2_states = getIntOption_("log2_states");
