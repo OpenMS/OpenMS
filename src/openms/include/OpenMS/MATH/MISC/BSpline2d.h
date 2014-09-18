@@ -137,6 +137,10 @@ private:
     BSpline2d(const BSpline2d& other);
     BSpline2d& operator=(const BSpline2d& other);
 
+    // Pointer to actual implementation. Note: This class follows the PIMPL idiom hiding the actual 
+    // bspline implementation behind this pointer to avoid any dependency of the interface to the 
+    // implementation. Thus, the eol splines are only required during compilation of OpenMS and 
+    // not when linking against OpenMS.
     BSpline<double>* spline_;
   };
 
