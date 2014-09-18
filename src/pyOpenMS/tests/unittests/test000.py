@@ -309,8 +309,7 @@ def testEmpiricalFormula():
     ins.toString()
     ins.isEmpty()
     ins.isCharged()
-    ins.hasElement(b"C")
-    ins.hasElement(6)
+    ins.hasElement( pyopenms.Element() )
 
 @report
 def testIdentificationHit():
@@ -1952,7 +1951,7 @@ def testFeatureMap():
     fm2.setUniqueIds()
 
     fm += fm
-    assert fm + fm != fm
+    assert fm + fm2 != fm
 
 
 @report
@@ -2626,7 +2625,7 @@ def testMSExperiment():
     mse_ = copy.deepcopy(mse)
     assert mse_ == mse
     mse_ = pyopenms.MSExperiment(mse)
-    assert mse_ == fm
+    assert mse_ == mse
 
     _testMetaInfoInterface(mse)
     mse.updateRanges()
@@ -2822,7 +2821,7 @@ def testMSChromatogram():
     assert chrom_ == chrom
     chrom_ = copy.deepcopy(chrom)
     assert chrom_ == chrom
-    chrom_ = pyopenms.MSSpectrum(chrom)
+    chrom_ = pyopenms.MSChromatogram(chrom)
     assert chrom_ == chrom
 
     _testMetaInfoInterface(chrom)
