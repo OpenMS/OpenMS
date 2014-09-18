@@ -96,8 +96,6 @@ START_SECTION(eval(double mz))
 END_SECTION
 
 START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling))
-  //SplinePackage* sp3 = new SplinePackage(mz1, intensity1, 0.7);
-  //TEST_NOT_EQUAL(sp3, nullPointer)
   TEST_EXCEPTION(Exception::IllegalArgument, SplinePackage(mz1, intensity1, 0.7))
 END_SECTION
 
