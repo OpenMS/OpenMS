@@ -95,9 +95,7 @@ public:
     TransformationModelLinear::getDefaultParameters(model_params);
     params.insert("linear:", model_params);
     params.setSectionDescription("linear", "Parameters for 'linear' model");
-    TransformationModelInterpolated::getDefaultParameters(model_params);
-    params.insert("cspline:", model_params);
-    params.setSectionDescription("cspline", "Parameters for 'cspline' model");
+    // TODO: re-add b-spline model here
     TransformationModelInterpolated::getDefaultParameters(model_params);
     params.insert("interpolated:", model_params);
     params.setSectionDescription("interpolated",

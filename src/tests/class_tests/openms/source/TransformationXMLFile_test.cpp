@@ -64,8 +64,8 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 	TransformationXMLFile f;
 	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_1.trafoXML"), std::cerr),true);
 	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_2.trafoXML"), std::cerr),true);
-//	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_3.trafoXML")),false);
-//	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_4.trafoXML")),true);
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_3.trafoXML"), std::cerr),false);
+	TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_4.trafoXML"), std::cerr),true);
 }
 END_SECTION
 
@@ -88,17 +88,17 @@ START_SECTION(void load(const String& filename, TransformationDescription& trans
 	TEST_REAL_SIMILAR(params.getValue("slope"), 3.141592653589793238);
 	TEST_REAL_SIMILAR(params.getValue("intercept"), 2.718281828459045235);
 
-//	trafo_xml.load(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_4.trafoXML"), trafo);
-//	TEST_STRING_EQUAL(trafo.getModelType(), "interpolated");
-//	trafo.getModelParameters(params);
-//	TEST_EQUAL(params.getValue("interpolation_type"), "linear");
-//	TEST_EQUAL(trafo.getDataPoints().size(), 3);
-//	TEST_REAL_SIMILAR(trafo.getDataPoints()[0].first, 1.2);
-//	TEST_REAL_SIMILAR(trafo.getDataPoints()[1].first, 2.2);
-//	TEST_REAL_SIMILAR(trafo.getDataPoints()[2].first, 3.2);
-//	TEST_REAL_SIMILAR(trafo.getDataPoints()[0].second, 5.2);
-//	TEST_REAL_SIMILAR(trafo.getDataPoints()[1].second, 6.25);
-//	TEST_REAL_SIMILAR(trafo.getDataPoints()[2].second, 7.3);
+	trafo_xml.load(OPENMS_GET_TEST_DATA_PATH("TransformationXMLFile_4.trafoXML"), trafo);
+	TEST_STRING_EQUAL(trafo.getModelType(), "interpolated");
+	params = trafo.getModelParameters();
+	TEST_EQUAL(params.getValue("interpolation_type"), "linear");
+	TEST_EQUAL(trafo.getDataPoints().size(), 3);
+	TEST_REAL_SIMILAR(trafo.getDataPoints()[0].first, 1.2);
+	TEST_REAL_SIMILAR(trafo.getDataPoints()[1].first, 2.2);
+	TEST_REAL_SIMILAR(trafo.getDataPoints()[2].first, 3.2);
+	TEST_REAL_SIMILAR(trafo.getDataPoints()[0].second, 5.2);
+	TEST_REAL_SIMILAR(trafo.getDataPoints()[1].second, 6.25);
+	TEST_REAL_SIMILAR(trafo.getDataPoints()[2].second, 7.3);
 }
 END_SECTION
 
@@ -134,12 +134,46 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
 	TEST_EQUAL(params.size(), 2);
 	TEST_REAL_SIMILAR(params.getValue("slope"), 3.141592653589793238);
 	TEST_REAL_SIMILAR(params.getValue("intercept"), 2.718281828459045235);
-
-  TEST_EXCEPTION(Exception::IllegalArgument, trafo.fitModel("mumble_pfrwoarpfz"));
+  {
+    double pre_image = 234255132.43212;
+    double image = trafo.apply(pre_image);
+    STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
+  }
 
 	String tmp_file_pairs;
 	NEW_TMP_FILE(tmp_file_pairs);
 	TransformationDescription::DataPoints pairs;
+	pairs.push_back(make_pair(1.2f,5.2f));
+	pairs.push_back(make_pair(2.2f,6.25f));
+	pairs.push_back(make_pair(3.2f,7.3f));
+	trafo.setDataPoints(pairs);
+	params.clear();
+	params.setValue("interpolation_type", "linear");
+	trafo.fitModel("interpolated", params);
+	trafo_xml.store(tmp_file_pairs, trafo);
+	trafo_xml.load(tmp_file_pairs, trafo2);
+	TEST_STRING_EQUAL(trafo2.getModelType(), "interpolated");
+	params = trafo2.getModelParameters();
+	TEST_EQUAL(params.size(), 1);
+	TEST_STRING_EQUAL(params.getValue("interpolation_type"), "linear");
+	TEST_EQUAL(trafo2.getDataPoints().size(), 3);
+	TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].first, 1.2);
+	TEST_REAL_SIMILAR(trafo2.getDataPoints()[1].first, 2.2);
+	TEST_REAL_SIMILAR(trafo2.getDataPoints()[2].first, 3.2);
+	TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].second, 5.2);
+	TEST_REAL_SIMILAR(trafo2.getDataPoints()[1].second, 6.25);
+	TEST_REAL_SIMILAR(trafo2.getDataPoints()[2].second, 7.3);
+  {
+    double pre_image = 234255132.43212;
+    double image = trafo.apply(pre_image);
+    STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
+  }
+
+  TEST_EXCEPTION(Exception::IllegalArgument, trafo.fitModel("mumble_pfrwoarpfz"));
+#if 0
+	String tmp_file_bspline;
+	NEW_TMP_FILE(tmp_file_bspline);
+  pairs.clear();
   pairs.push_back(make_pair(1.2f,5.2f));
   pairs.push_back(make_pair(3.2f,7.3f));
   pairs.push_back(make_pair(2.2f,6.25f));
@@ -153,18 +187,33 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
   pairs.push_back(make_pair(3.7f,-2.4f));
   trafo.setDataPoints(pairs);
 	params.clear();
-	trafo.fitModel("interpolated", params);
+	params.setValue("num_breakpoints", 4);
+	params.setValue("break_positions", "uniform");
+	trafo.fitModel("b_spline", params);
   trafo_xml.store(tmp_file_pairs,trafo);
   trafo_xml.load(tmp_file_pairs,trafo2);
-  TEST_STRING_EQUAL(trafo2.getModelType(), "interpolated");
+  TEST_STRING_EQUAL(trafo2.getModelType(), "b_spline");
 	params.clear();
 	params = trafo2.getModelParameters();
+  TEST_EQUAL(params.getValue("num_breakpoints"), 4);
+  TEST_EQUAL(params.getValue("break_positions"), "uniform");
+  TEST_EQUAL(params.size(), 2);
   TEST_EQUAL(trafo2.getDataPoints().size(), 11);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].first, 1.2);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[0].second, 5.2);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[10].first, 3.7);
   TEST_REAL_SIMILAR(trafo2.getDataPoints()[10].second, -2.4);
-
+  for ( Int breaks = 0; breaks < 10; ++breaks)
+  {
+    if ( breaks == 1) continue;
+		params.setValue("num_breakpoints", breaks);
+		trafo.fitModel("b_spline", params);
+    STATUS("breaks: " << breaks);
+    double pre_image = 234255132.43212;
+    double image = trafo.apply(pre_image);
+    STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
+  }
+#endif
 }
 END_SECTION
 
