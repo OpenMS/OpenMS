@@ -51,25 +51,28 @@ namespace OpenMS
     delete spline_;
   }
 
-  bool BSpline2d::solve (const std::vector<double>& y)
+  bool BSpline2d::solve(const std::vector<double>& y)
   {
-    OPENMS_PRECONDITION(x.size() == y.size(), "y vector passed to BSpline solve must match size of x.")
+    OPENMS_PRECONDITION(spline_->nX() == y.size(), "y vector passed to BSpline solve must match size of x.")
     // pass vector as array
     return spline_->solve(&y[0]);
   }
 
-  double BSpline2d::eval (double x)
+  double BSpline2d::eval(double x)
   {
+    OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
     return spline_->evaluate(x);
   }
 
-  double BSpline2d::derivative (double x)
+  double BSpline2d::derivative(double x)
   {
+    OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
     return spline_->slope(x);
   }
 
-  double BSpline2d::coefficient (int n)
+  double BSpline2d::coefficient(int n)
   {
+    OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
     return spline_->coefficient(n);
   }
 

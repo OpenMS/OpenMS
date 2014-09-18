@@ -52,8 +52,8 @@ namespace OpenMS
   class OPENMS_DLLAPI BSpline2d
   {
 public:
-    
-    // Note: Don't change boundary coniditon constants ase these are passed through to the eol-bspline implementation.
+
+    // Note: Don't change boundary condition constants as these are passed through to the eol-bspline implementation.
     enum BoundaryCondition
     {
       /// Set the endpoints of the spline to zero.
@@ -84,7 +84,8 @@ public:
      * @param num_nodes The number of nodes to use for the cubic b-spline.
      *			If less than 2 a "reasonable" number will be
      *			calculated automatically, taking into account
-     *			the given cutoff wavelength.                                                                                                               
+     *			the given cutoff wavelength.
+     * @pre x and y must be of the same dimensions.
      **/
     BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wave_length = 0, BoundaryCondition boundary_condition = BC_ZERO_SECOND, Size num_nodes = 0);
 
@@ -100,42 +101,43 @@ public:
      * @param y The array of y values corresponding to each of the nX()
      *		x values in the domain.
      */
-    bool solve (const std::vector<double>& y);
+    bool solve(const std::vector<double>& y);
 
     /**
      * Return the evaluation of the smoothed curve
      * at a particular @p x value.  If current state is not ok(), returns 0.
      */
-    double eval (double x);
+    double eval(double x);
 
     /**
      * Return the first derivative of the spline curve at the given @p x.
      * Returns zero if the current state is not ok().
      */
-    double derivative (double x);
+    double derivative(double x);
 
     /**
      * Return the @p n-th basis coefficient, from 0 to M.  If the current
      * state is not ok(), or @p n is out of range, the method returns zero.
      */
-    double coefficient (int n);
+    double coefficient(int n);
 
 
     /**
-      * Return if BSpline2d is in a valid state.
-      */
-      bool ok();
+     * Return if BSpline2d is in a valid state.
+     */
+    bool ok();
 
     /**
-      * Return the number of x values in the domain.
-      */
-      Size nX();
+     * Return the number of x values in the domain.
+     */
+    Size nX();
 
 private:
     BSpline2d();
+    BSpline2d(const BSpline2d& other);
+    BSpline2d& operator=(const BSpline2d& other);
 
     BSpline<double>* spline_;
-
   };
 
 }
