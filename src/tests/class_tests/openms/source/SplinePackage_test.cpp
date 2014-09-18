@@ -96,12 +96,13 @@ START_SECTION(eval(double mz))
 END_SECTION
 
 START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling))
-  TEST_EXCEPTION(Exception::IllegalArgument, SplinePackage(mz1, intensity1, 0.7))
+  TEST_EXCEPTION(Exception::IllegalArgument, SplinePackage(mz1, intensity1, 0.7));
 END_SECTION
 
 START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling))
   SplinePackage* sp4 = new SplinePackage(mz2, intensity2, 0.7);
-  TEST_NOT_EQUAL(sp4, nullPointer)
+  TEST_NOT_EQUAL(sp4, nullPointer);
+  TEST_REAL_SIMILAR((*sp4).eval(413.85), 50.1);
 END_SECTION
 
 END_TEST
