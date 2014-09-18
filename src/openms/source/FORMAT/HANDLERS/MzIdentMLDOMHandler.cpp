@@ -702,7 +702,6 @@ namespace OpenMS
           pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post,idec}));
           p_pv_map_.insert(std::make_pair(peptide_ref,id));
           pv_db_map_.insert(std::make_pair(id,dBSequence_ref));
-          // TODO @mths : multiple accessions do not seem to be taken over
         }
       }
       //std::cout << "PeptideEvidences found: " << count << std::endl;
@@ -1106,9 +1105,7 @@ namespace OpenMS
           }
       }
 
-      String& pev = p_pv_map_[peptide_ref];
-      String& dpv = pv_db_map_[pev];
-
+      //build the PeptideHit from a SpectrumIdentificationItem
       PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
       for (Map< String, std::vector< CVTerm > >::ConstIterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
       {
@@ -1121,37 +1118,45 @@ namespace OpenMS
       {
         hit.setMetaValue(up->first, up->second);
       }
-      //
       hit.setMetaValue("calcMZ", calculatedMassToCharge);
       spectrum_identification.insertHit(hit);
       spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
 
-      if (pe_ev_map_.find(pev) != pe_ev_map_.end())
+      //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
+      std::pair<std::multimap<String,String>::iterator, std::multimap<String,String>::iterator > pev_its;
+      pev_its = p_pv_map_.equal_range(peptide_ref);
+      for (std::multimap<String,String>::iterator pev_it = pev_its.first; pev_it != pev_its.second; ++pev_it)
       {
-        PeptideEvidence& pv = pe_ev_map_[pev];
-        spectrum_identification.getHits().back().setAABefore(pv.pre);
-        spectrum_identification.getHits().back().setAAAfter(pv.post);
+          if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
+          {
+            PeptideEvidence& pv = pe_ev_map_[pev_it->second];
+            spectrum_identification.getHits().back().setAABefore(pv.pre);
+            spectrum_identification.getHits().back().setAAAfter(pv.post);
 
-        spectrum_identification.getHits().back().setMetaValue("start",pv.start);
-        spectrum_identification.getHits().back().setMetaValue("end",pv.stop);
+            spectrum_identification.getHits().back().setMetaValue("start",pv.start);
+            spectrum_identification.getHits().back().setMetaValue("end",pv.stop);
 
-        if (pv.idec)
-          spectrum_identification.getHits().back().setMetaValue("target_decoy","decoy");
-        else
-          spectrum_identification.getHits().back().setMetaValue("target_decoy","target");
+            if (pv.idec)
+              spectrum_identification.getHits().back().setMetaValue("target_decoy","decoy");
+            else
+              spectrum_identification.getHits().back().setMetaValue("target_decoy","target");
+          }
+
+          String& dpv = pv_db_map_[pev_it->second];
+          DBSequence& db = db_sq_map_[dpv];
+          spectrum_identification.getHits().back().addProteinAccession(db.accession);
+
+          if (si_pro_map_[spectrumIdentificationList_ref]->findHit(db.accession)
+              == si_pro_map_[spectrumIdentificationList_ref]->getHits().end())
+          { // butt ugly! TODO @ mths for ProteinInference
+            si_pro_map_[spectrumIdentificationList_ref]->insertHit(ProteinHit());
+            si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setSequence(db.sequence);
+            si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setAccession(db.accession);
+          }
+
       }
 
-      DBSequence& db = db_sq_map_[dpv];
-      spectrum_identification.getHits().back().addProteinAccession(db.accession);    
-      if (si_pro_map_[spectrumIdentificationList_ref]->findHit(db.accession)
-          == si_pro_map_[spectrumIdentificationList_ref]->getHits().end())
-      { // butt ugly!
-        si_pro_map_[spectrumIdentificationList_ref]->insertHit(ProteinHit());
-        si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setSequence(db.sequence);
-        si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setAccession(db.accession);
-      }
-
-      //due to redundand references this is not needed!
+      //due to redundand references this is not needed! peptideref already maps to all those PeptideEvidence elements
 //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
 //      while ( child )
 //      {

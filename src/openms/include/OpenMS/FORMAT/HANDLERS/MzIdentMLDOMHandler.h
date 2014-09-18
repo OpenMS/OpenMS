@@ -227,7 +227,7 @@ private:
       std::map<String, AASequence> pep_map_; //holding Peptide
       std::map<String, PeptideEvidence> pe_ev_map_; //holding PeptideEvidence
       std::map<String, String> pv_db_map_; //mapping PeptideEvidence to DBSequence
-      std::map<String, String> p_pv_map_; //mapping PeptideEvidence to Peptide
+      std::multimap<String, String> p_pv_map_; //mapping Peptide(reference) -> PeptideEvidence(ID)
       std::map<String, DBSequence> db_sq_map_; //holding DBSequence
       std::map<String, SpectrumIdentification> si_map_; //holding the reference connections of db, hits, spectra - SpectrumIdentification will be the new IdentificationRuns
       std::map<String, ProteinIdentification*> si_pro_map_; //Proteinidentification for each SI list
