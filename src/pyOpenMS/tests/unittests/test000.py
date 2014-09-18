@@ -1951,7 +1951,7 @@ def testFeatureMap():
     fm2.setUniqueIds()
 
     fm += fm
-    assert fm + fm != fm
+    assert fm + fm2 != fm
 
 
 @report
