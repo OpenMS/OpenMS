@@ -22,9 +22,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
         void dia_ms1_isotope_scores(double precursor_mz, OSSpectrumPtr spectrum, size_t charge_state, 
                                     double& isotope_corr, double& isotope_overlap) nogil except +
 
-        # b/y ion scores
-        void dia_by_ion_score(OSSpectrumPtr spectrum, AASequence sequence,
-                              int charge, double& bseries_score, double& yseries_score) nogil except +
+        # TODO automatically wrap 
+        void dia_by_ion_score(OSSpectrumPtr spectrum, AASequence sequence, int charge, double & bseries_score, double & yseries_score) nogil except + # wrap-return:return(bseries_score,yseries_score) wrap-ignore
 
         # Dotproduct / Manhatten score with theoretical spectrum
         void score_with_isotopes(OSSpectrumPtr spectrum, libcpp_vector[LightTransition] transitions,
