@@ -309,8 +309,7 @@ def testEmpiricalFormula():
     ins.toString()
     ins.isEmpty()
     ins.isCharged()
-    ins.hasElement(b"C")
-    ins.hasElement(6)
+    ins.hasElement( pyopenms.Element() )
 
 @report
 def testIdentificationHit():
