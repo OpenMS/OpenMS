@@ -65,6 +65,8 @@ if(WITH_GUI)
     install_tool(${i})
     target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
   endforeach()
+
+  set(UTILS_executables ${UTILS_executables} ${UTILS_executables_with_GUIlib})
 endif()
 
 # FFSuperHirn requires linking against SuperHirn

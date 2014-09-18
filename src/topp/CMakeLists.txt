@@ -67,6 +67,8 @@ if(WITH_GUI)
     install_tool(${i})
     target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
   endforeach(i)
+
+  set(TOPP_executables ${TOPP_executables} ${TOPP_executables_with_GUIlib})
 endif()
 
 ## export the list of TOPP tools into CACHE
