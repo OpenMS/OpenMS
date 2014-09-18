@@ -526,6 +526,12 @@ PyOpenMSChecker:
         - getNumberOfChannels
         - getIsotopeCorrectionMatrix
         - getReferenceChannel
+    OpenMS::TMTTenPlexQuantitationMethod:
+        - getName
+        - getChannelInformation
+        - getNumberOfChannels
+        - getIsotopeCorrectionMatrix
+        - getReferenceChannel
     OpenMS::EdwardsLippertIterator:
         - setFastaFile
         - getFastaFile
