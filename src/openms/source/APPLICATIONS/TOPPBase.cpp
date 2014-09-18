@@ -54,7 +54,7 @@
 
 #include <QDir>
 #include <QFile>
-#include <QApplication>
+#include <QCoreApplication>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -127,7 +127,7 @@ namespace OpenMS
 #if  defined(__APPLE__)
     // we do not want to load plugins as this leads to serious problems
     // when shipping on mac os x
-    QApplication::setLibraryPaths(QStringList());
+    QCoreApplication::setLibraryPaths(QStringList());
 #endif
   }
 

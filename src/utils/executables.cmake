@@ -13,14 +13,11 @@ ERPairFinder
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
-IDEvaluator
 IDExtractor
 IDMassAccuracy
 IDSplitter
 IDDecoyProbability
 RTEvaluation
-ImageCreator
-INIUpdater
 LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess

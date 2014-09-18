@@ -12,7 +12,6 @@ ConsensusMapNormalizer
 DTAExtractor
 Decharger
 EICExtractor
-ExecutePipeline
 FalseDiscoveryRate
 FeatureFinderMRM
 FeatureFinderCentroided
@@ -80,7 +79,6 @@ ProteinQuantifier
 ProteinResolver
 RTModel
 RTPredict
-Resampler
 SeedListGenerator
 SpecLibSearcher
 SpectraFilterWindowMower
