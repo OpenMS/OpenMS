@@ -48,7 +48,7 @@ namespace OpenMS
   SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling) :
     spline_(mz, intensity)
   {
-    if (!(mz.size() == intensity.size() && mz.size() > 2))
+    if (!(mz.size() == intensity.size() && mz.size() > 1))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors either not of the same size or too short.");
     }
