@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
     # as an alternative one could use a similar ctypedef, but these can
     # not be renamed when cipmorting, which might cause trouble !
 
-    cdef cppclass DPosition1 "OpenMS::DPosition<1>":
+    cdef cppclass DPosition1 "OpenMS::DPosition<1> ":
         # wrap-ignore
         DPosition1()  nogil except +
         DPosition1(DPosition1)  nogil except +
@@ -32,7 +32,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
         void clear() nogil except +
         Size size() nogil except +
 
-    cdef cppclass DPosition2 "OpenMS::DPosition<2>":
+    cdef cppclass DPosition2 "OpenMS::DPosition<2> ":
         # wrap-ignore
         DPosition2()  nogil except +
         DPosition2(DPosition2)  nogil except +
