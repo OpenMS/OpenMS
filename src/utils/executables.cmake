@@ -5,29 +5,38 @@ set(directory source/APPLICATIONS/UTILS)
 set(UTILS_executables
 AccurateMassSearch
 CVInspector
-DeMeanderize
 DecoyDatabase
+DeMeanderize
 Digestor
 DigestorMotif
 ERPairFinder
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
+IDDecoyProbability
 IDExtractor
 IDMassAccuracy
 IDSplitter
-IDDecoyProbability
-RTEvaluation
 LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess
+MapAlignmentEvaluation
 MassCalculator
 MetaboliteSpectralMatcher
 MRMPairFinder
 MSSimulator
-MapAlignmentEvaluation
 OpenMSInfo
 PeakPickerIterative
+QCCalculator
+QCEmbedder
+QCExporter
+QCExtractor
+QCImporter
+QCMerger
+QCShrinker
+RNPxl
+RNPxlXICFilter
+RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
@@ -35,15 +44,6 @@ SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
 XMLValidator
-QCCalculator
-QCImporter
-QCEmbedder
-QCExporter
-QCExtractor
-QCMerger
-QCShrinker
-RNPxl
-RNPxlXICFilter
 #SimpleSearchEngine
 #RNPxlSearch
 )
@@ -71,7 +71,8 @@ INIUpdater
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
-foreach(i ${UTILS_executables})
+foreach(i ${UTILS_executables} ${UTILS_executables_with_GUIlib})
 	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
+
 source_group("" FILES ${sources_VS})
