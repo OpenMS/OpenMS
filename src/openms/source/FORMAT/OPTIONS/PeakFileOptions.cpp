@@ -233,7 +233,7 @@ namespace OpenMS
     sort_spectra_by_mz_ = sort;
   }
 
-  bool PeakFileOptions::getSortSpectraByMZ()
+  bool PeakFileOptions::getSortSpectraByMZ() const
   {
     return sort_spectra_by_mz_;
   }
@@ -243,7 +243,7 @@ namespace OpenMS
     sort_chromatograms_by_rt_ = sort;
   }
 
-  bool PeakFileOptions::getSortChromatogramsByRT()
+  bool PeakFileOptions::getSortChromatogramsByRT() const
   {
     return sort_chromatograms_by_rt_;
   }

@@ -53,6 +53,9 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         # returns true if the formula contains the element
         bool hasElement(Element * element) nogil except +
 
+        # returns true if all elements from @p ef are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula
+        bool contains(EmpiricalFormula ef) nogil except +
+
         # returns true if the formulas contain equal elements in equal quantities
         bool operator==(EmpiricalFormula) nogil except +
 

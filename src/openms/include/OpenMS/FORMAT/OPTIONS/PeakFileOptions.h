@@ -153,11 +153,11 @@ public:
     ///sets whether or not to sort peaks in spectra
     void setSortSpectraByMZ(bool sort);
     ///gets whether or not peaks in spectra should be sorted
-    bool getSortSpectraByMZ();
+    bool getSortSpectraByMZ() const;
     ///sets whether or not to sort peaks in chromatograms
     void setSortChromatogramsByRT(bool sort);
     ///gets whether or not peaks in chromatograms should be sorted
-    bool getSortChromatogramsByRT();
+    bool getSortChromatogramsByRT() const;
 
     /**
         @name Precision options
