@@ -38,7 +38,7 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     )
 
 # try to speed up the builds so we don't get killed
-set(CTEST_BUILD_FLAGS -j4)
+set(CTEST_BUILD_FLAGS -j3)
 
 # we want makefiles
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
