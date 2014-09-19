@@ -83,6 +83,64 @@ public:
     };
     //@}
 
+    class PeptideEvidence
+    {
+      public:
+        static const int UNKNOWN_POSITION = -1;
+        // Note: we use 0 as position of the N-terminus while e.g. mzTab or other formats start counting at 1.
+        static const int N_TERMINAL_POSITION = 0;
+        static const char UNKNOWN_AA = " ";
+        // Note: we use '-' as in mzTab specification
+        static const char N_TERMINAL_AA = "-";
+        static const char C_TERMINAL_AA = "-";
+
+        PeptideEvidence() :
+          accession_(""),
+          first_(UNKNOWN_POSITION),
+          last_(UNKNOWN_POSITION),
+          aa_before_(UNKNOWN_AA),
+          aa_after_(UNKNOWN_AA)
+        {
+        }
+
+        /// set the protein accession the peptide matches to. If not available set to empty string.
+        void setAccession(String a);
+
+        /// get the protein accession the peptide matches to. If not available the empty string is returned.
+        String getAccession();
+
+        /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set to UNKNOWN_POSITION. N-terminal positions must be marked with N_TERMINAL_AA
+        void setFirst(Int a);
+
+        /// get the position in the protein (starting at 0 for the N-terminus). If not available UNKNOWN_POSITION constant is returned.
+        Int getFirst() const;
+
+        /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set UNKNOWN_POSITION. C-terminal positions must be marked with C_TERMINAL_AA
+        void setLast(Int a);
+
+        /// get the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available UNKNOWN_POSITION constant is returned.
+        Int getLast() const;
+
+        /// sets the amino acid single letter code before the sequence (preceeding amino acid in the protein). If not available, set to UNKNOWN_AA. If N-terminal set to N_TERMINAL_AA
+        void setAABefore(char acid);
+
+        /// returns the amino acid single letter code before the sequence (preceeding amino acid in the protein). If not available, UNKNOWN_AA is returned. If N-terminal, N_TERMINAL_AA is returned.
+        char getAABefore() const;
+
+        /// sets the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, set to UNKNOWN_AA. If C-terminal set to C_TERMINAL_AA
+        void setAAAfter(char acid);
+
+        /// returns the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, UNKNOWN_AA is returned. If C-terminal, C_TERMINAL_AA is returned.
+        char getAAAfter() const;
+
+     private:
+        String accession_;
+        Int first_;
+        Int last_;
+        char aa_before_;
+        char aa_after_;
+    };
+
     /** @name Constructors and Destructor */
     //@{
     /// default constructor
@@ -113,63 +171,55 @@ public:
     /**	@name Accessors
     */
     //@{
-    /// returns the score of the peptide hit
-    double getScore() const;
-
-    /// returns the rank of the peptide hit
-    UInt getRank() const;
-
     /// returns the peptide sequence without trailing or following spaces
     const AASequence & getSequence() const;
-
-    /// returns the charge of the peptide
-    Int getCharge() const;
-
-    /// returns the corresponding protein accessions
-    const std::vector<String> & getProteinAccessions() const;
-
-    /// sets the corresponding protein accessions
-    void setProteinAccessions(const std::vector<String> & accessions);
-
-    /// sets the score of the peptide hit
-    void setScore(double score);
-
-    /// sets the rank
-    void setRank(UInt newrank);
 
     /// sets the peptide sequence
     void setSequence(const AASequence & sequence);
 
+    /// returns the charge of the peptide
+    Int getCharge() const;
+
     /// sets the charge of the peptide
     void setCharge(Int charge);
 
-    /// adds an accession of a protein which contains this peptide hit
-    void addProteinAccession(const String & accession);
+    /// returns information on peptides (potentially) identified by this PSM
+    const std::vector<String> & getPeptideEvidence() const;
 
-    /// sets the amino acid before the sequence
-    void setAABefore(char acid);
-    /// returns the amino acid before the sequence
-    char getAABefore() const;
+    /// set information on peptides (potentially) identified by this PSM
+    void setPeptideEvidence(const std::vector<String> & accessions);
 
-    /// sets the amino acid after the sequence
-    void setAAAfter(char acid);
-    /// returns the amino acid after the sequence
-    char getAAAfter() const;
+    /// adds information on a peptide that is (potentially) identified by this PSM
+    void addPeptideEvidence(const PeptideEvidence & peptide_evidence);
 
+    /// returns the PSM score
+    double getScore() const;
 
+    /// sets the PSM score
+    void setScore(double score);
+
+    /// returns the PSM rank
+    UInt getRank() const;
+
+    /// sets the PSM rank
+    void setRank(UInt newrank);
     //@}
 
-
 protected:
-    double score_;          ///< the score of the peptide hit
-    UInt rank_;             ///< the position(rank) where the hit appeared in the hit list
-    Int charge_;            ///< the charge of the peptide
-    AASequence sequence_;   ///< the amino acid sequence of the peptide hit
-    std::vector<String> corresponding_protein_accessions_;     ///< the accessions of the corresponding proteins
-    // put small data structures at the end, to allow for potential smaller sizeof() due to alignment
-    char aa_before_;        ///< Amino acid before the sequence
-    char aa_after_;         ///< Amino acid after the sequence
+    /// the score of the peptide hit
+    double score_;
 
+    /// the position(rank) where the hit appeared in the hit list
+    UInt rank_;
+
+    /// the charge of the peptide
+    Int charge_;
+
+    /// the amino acid sequence of the peptide hit
+    AASequence sequence_;
+
+    /// information on the potential peptides observed through this PSM. The name is borrowed from the mzIdent specification.
+    std::vector<PeptideEvidence> peptide_evidences_;
   };
 
 } // namespace OpenMS
