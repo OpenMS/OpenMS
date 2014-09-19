@@ -76,7 +76,7 @@ public:
 
     ~Spline2dInterpolator()
     {
-      if (spline_ != (CubicSpline2d*) 0) delete spline_;
+      delete spline_;
     }
 
 private:
@@ -109,7 +109,7 @@ public:
 
     ~AkimaInterpolator()
     {
-      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) 0) delete interpolator_;
+      delete interpolator_;
     }
 
 private:
