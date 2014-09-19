@@ -1,15 +1,5 @@
 # define build name&co for easier identification on cdassh
-set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_REPO_SLUG}-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
-
-# add style to build name if requested
-if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "On")
-  set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-coding-style")
-endif()
-
-# add unity to build name if requested
-if("$ENV{ENABLE_UNITYBUILD}" STREQUAL "On")
-  set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-unity-build")
-endif()
+set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}")
 
 set(CTEST_SITE "travis-ci-build-server")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
