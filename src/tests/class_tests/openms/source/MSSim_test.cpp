@@ -49,6 +49,11 @@
 
 #include <algorithm>
 
+// OpenMP support
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 
@@ -153,6 +158,13 @@ protected:
 };
 
 START_TEST(MSSim, "$Id$")
+
+// if OpenMP is available features will be generated in different order
+// and with this also the PrecursorIonSelection changes leading to`
+// differing numbers of MS2 spectra
+#ifdef _OPENMP
+omp_set_num_threads(1);
+#endif
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
