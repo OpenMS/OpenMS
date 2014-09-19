@@ -41,6 +41,9 @@ class QProgressDialog;
 
 namespace OpenMS
 {
+  /**
+    @brief Implements a GUI version of the ProgressLoggerImpl.
+  */
   class GUIProgressLoggerImpl :
     public ProgressLogger::ProgressLoggerImpl
   {
@@ -51,14 +54,25 @@ public:
     /// name of the model (needed by Factory)
     static const String getProductName();
 
+    /// default c'tor.
     GUIProgressLoggerImpl();
 
+    /**
+      @brief Implement ProgressLoggerImpl::startProgress().
+    */
     void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const;
 
+    /**
+      @brief Implement ProgressLoggerImpl::setProgress().
+    */
     void setProgress(const SignedSize value, const int /* current_recursion_depth */) const;
 
+    /**
+      @brief Implement ProgressLoggerImpl::endProgress().
+    */
     void endProgress(const int /* current_recursion_depth */) const;
 
+    /// d'tor
     ~GUIProgressLoggerImpl();
 
 private:
