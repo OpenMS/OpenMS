@@ -36,7 +36,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-// #include <QtGui/QTextDocument>
 #include <iostream>
 
 // #define MASCOTREMOTEQUERY_DEBUG
@@ -339,9 +338,7 @@ namespace OpenMS
     {
       QByteArray new_bytes = http_->readAll();
       cerr << "Current response: " << "\n";
-      QTextDocument doc;
-      doc.setHtml(new_bytes.constData());
-      cerr << doc.toPlainText().toStdString() << "\n";
+      cerr << QString(new_bytes.constData()).toStdString() << "\n";
     }
      */
 #endif
@@ -497,9 +494,7 @@ namespace OpenMS
     QByteArray new_bytes = http_->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "Response of query: " << "\n";
-    QTextDocument doc;
-    doc.setHtml(new_bytes.constData());
-    cerr << doc.toPlainText().toStdString() << "\n";
+    cerr << QString(new_bytes.constData()).toStdString() << "\n";
 #endif
 
     if (QString(new_bytes).trimmed().size() == 0 && !(http_->lastResponse().isValid() && http_->lastResponse().statusCode() == 303))
@@ -595,9 +590,7 @@ namespace OpenMS
         else
         {
           LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
-          // QTextDocument doc;
-          // doc.setHtml(response_text);
-          error_message_ = response_text;// doc.toPlainText().toStdString();
+          error_message_ = response_text;
         }
         endRun_();
       }

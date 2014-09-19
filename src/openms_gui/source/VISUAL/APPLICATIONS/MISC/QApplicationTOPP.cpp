@@ -54,7 +54,7 @@ namespace OpenMS
   QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) :
     QApplication(argc, argv)
   {
-    //
+    // register GUI ProgressLogger that can be used in GUI tools
     Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
   }
 
