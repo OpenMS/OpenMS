@@ -7,6 +7,7 @@ ContinuousWaveletTransform.cpp
 ContinuousWaveletTransformNumIntegration.cpp
 OptimizePeakDeconvolution.cpp
 OptimizePick.cpp
+PeakInvestigator.cpp
 PeakPickerCWT.cpp
 PeakPickerHiRes.cpp
 PeakPickerIterative.cpp

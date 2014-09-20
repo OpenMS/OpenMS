@@ -81,7 +81,8 @@ set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
                           ${WM5_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
-                          ${GLPK_LIBRARIES})
+                          ${GLPK_LIBRARIES}
+                          ${LIBSSH_LIBRARIES})
 
 # xerces requires linking against CoreFoundation&CoreServices
 if(APPLE)
@@ -119,6 +120,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CRAWDAD_INCLUDE_DIRS}
                                      ${XercesC_INCLUDE_DIRS}
                                      ${COIN_INCLUDE_DIRS}
+                                     ${LIBSSH_INCLUDE_DIRS}
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${APPLE_EXTRA_LIBS}
                                   ${QT_LIBRARIES}

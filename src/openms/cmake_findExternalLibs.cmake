@@ -155,3 +155,9 @@ include(${QT_USE_FILE})
 include(UseQt4)
 
 #------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# libssh - Required by PeakInvestigator for Mac/Linux
+IF (UNIX AND NOT CYGWIN)
+  find_package(LibSSH REQUIRED)
+ENDIF()
