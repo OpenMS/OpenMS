@@ -162,12 +162,13 @@ public:
 
 protected:
     double score_;          ///< the score of the peptide hit
-    UInt rank_;                         ///< the position(rank) where the hit appeared in the hit list
-    Int charge_;         ///< the charge of the peptide
-    AASequence sequence_;                               ///< the amino acid sequence of the peptide hit
-    char aa_before_;     ///< Amino acid before the sequence
-    char aa_after_;     ///< Amino acid after the sequence
+    UInt rank_;             ///< the position(rank) where the hit appeared in the hit list
+    Int charge_;            ///< the charge of the peptide
+    AASequence sequence_;   ///< the amino acid sequence of the peptide hit
     std::vector<String> corresponding_protein_accessions_;     ///< the accessions of the corresponding proteins
+    // put small data structures at the end, to allow for potential smaller sizeof() due to alignment
+    char aa_before_;        ///< Amino acid before the sequence
+    char aa_after_;         ///< Amino acid after the sequence
 
   };
 

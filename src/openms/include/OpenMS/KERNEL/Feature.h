@@ -183,9 +183,6 @@ protected:
     /// Quality measures for each dimension
     QualityType qualities_[2];
 
-    /// Description of the theoretical model the feature was constructed with
-    ModelDescription<2> model_desc_;
-
     /// Array of convex hulls (one for each mass trace)
     std::vector<ConvexHull2D> convex_hulls_;
 
@@ -197,6 +194,7 @@ protected:
 
     /// subordinate features (e.g. features that the ModelFitter discarded due to inferior quality)
     std::vector<Feature> subordinates_;
+    
   };
 
 } // namespace OpenMS

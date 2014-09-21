@@ -785,7 +785,8 @@ namespace OpenMS
     else if (tag == "model")
     {
       model_desc_.setParam(param_);
-      current_feature_->setModelDescription(model_desc_);
+      fatalError(LOAD, String("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12.'"));
+      //current_feature_->setModelDescription(model_desc_);
     }
     else if (tag == "hullpoint" || tag == "pt")
     {
@@ -901,21 +902,6 @@ namespace OpenMS
     }
     os << indent << "\t\t\t<overallquality>" << precisionWrapper(feat.getOverallQuality()) << "</overallquality>\n";
     os << indent << "\t\t\t<charge>" << feat.getCharge() << "</charge>\n";
-
-    // write model description
-    ModelDescription<2> desc = feat.getModelDescription();
-    if (!desc.getName().empty() || !desc.getParam().empty())
-    {
-      os << indent << "\t\t\t<model name=\"" << desc.getName() << "\">\n";
-      Param modelp = desc.getParam();
-      Param::ParamIterator piter = modelp.begin();
-      while (piter != modelp.end())
-      {
-        os << indent << "\t\t\t\t<param name=\"" << piter.getName() << "\" value=\"" << piter->value << "\"/>\n";
-        piter++;
-      }
-      os << indent << "\t\t\t</model>\n";
-    }
 
     // write convex hull
     vector<ConvexHull2D> hulls = feat.getConvexHulls();
