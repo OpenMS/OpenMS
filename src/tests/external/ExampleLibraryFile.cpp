@@ -34,13 +34,30 @@
 
 #include "ExampleLibraryFile.h"
 
-using namespace std;
+#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
-namespace OpenMSExternal //optional namespace... however you like it
+using namespace std;
+using namespace OpenMS;
+
+//optional namespace... however you like it
+namespace OpenMSExternal
 {
   std::string ExampleLibraryFile::printSomething()
   {
     return "this is the external library.";
   }
 
+  void ExampleLibraryFile::loadAndSaveFeatureXML()
+  {
+    FeatureMap<> fm;
+    Feature feature;
+    fm.push_back(feature);
+    String tmpfilename = "tmpfile.featureXML";
+    FeatureXMLFile().store(tmpfilename, fm);
+
+    FeatureMap<> fm2;
+    FeatureXMLFile().store(tmpfilename, fm2);
+  }
 }

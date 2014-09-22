@@ -32,10 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+
 #include "ExampleLibraryFile.h"
 
 using namespace OpenMS;
@@ -43,10 +42,9 @@ using namespace OpenMSExternal;
 
 int main(int argc, char * argv[])
 {
+  std::cout << "Call OpenMS function from ExampleLibraryFile" << std::endl;
+  ExampleLibraryFile().loadAndSaveFeatureXML();
 
-  FeatureMap<> fm;
-  Feature feature;
-  fm.push_back(feature);
   std::string s = ExampleLibraryFile::printSomething();
   std::cout << "From external lib: " << s << "\n";
 
@@ -54,7 +52,7 @@ int main(int argc, char * argv[])
   MzMLFile f;
   String tmpfilename = "tmpfile.mzML";
 
-  f.store(tmpfilename,exp); 
+  f.store(tmpfilename,exp);
   f.load(tmpfilename,exp);
 
   std::cout << "Loading and storing of mzML worked!\n";
