@@ -494,6 +494,10 @@ public:
       temp.push_back(0);
       list.push_back(temp);
     }
+    
+    // sort mass patterns
+    // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
+    std::sort(list.begin(), list.end());
 
     // generate additional mass shifts due to knock-outs
     if (knock_out_ && list[0].size()==1)
