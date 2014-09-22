@@ -20,8 +20,6 @@ FeatureFinderAlgorithmIsotopeWavelet.h
 FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
-FeatureFinderAlgorithmSimple.h
-FeatureFinderAlgorithmSimplest.h
 FeatureFinderAlgorithm_impl.h
 FeatureFinderDefs.h
 FeatureFinder_impl.h
@@ -38,7 +36,6 @@ IsotopeWaveletTransform.h
 LevMarqFitter1D.h
 MaxLikeliFitter1D.h
 ModelDescription.h
-ModelFitter.h
 MultiplexClustering.h
 MultiplexFiltering.h
 MultiplexFilterResult.h

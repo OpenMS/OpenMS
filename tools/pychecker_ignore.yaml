@@ -1138,9 +1138,7 @@ PyOpenMSChecker:
     - OpenMS::ExtendedIsotopeModel
     - OpenMS::PeakWidthEstimator::Result
     - OpenMS::LmaGaussModel
-    - OpenMS::FeatureFinderAlgorithmSimplest
     - OpenMS::FeatureFinderAlgorithm
-    - OpenMS::ModelFitter
     - OpenMS::FeatureFinderDefs::NoSuccessor
     - OpenMS::FeaFiModule
     - OpenMS::ProductModel< 2 >
@@ -1150,7 +1148,6 @@ PyOpenMSChecker:
     - OpenMS::FeatureFinderDefs
     - OpenMS::FeatureFinderAlgorithmMRM
     - OpenMS::ModelDescription
-    - OpenMS::FeatureFinderAlgorithmSimple
     - OpenMS::PeakWidthEstimator
     - OpenMS::Summary
     - OpenMS::IsotopeWaveletParallelFor
