@@ -60,7 +60,6 @@ namespace OpenMS
     //options_ = FeatureFileOptions(); do NOT reset this, since we need to preserve options!
     size_only_ = false;
     expected_size_ = 0;
-    model_desc_ = ModelDescription<2>();
     param_ = Param();
     current_chull_ = ConvexHull2D::PointArrayType();
     hull_position_ = DPosition<2>();
@@ -410,12 +409,6 @@ namespace OpenMS
     else if (tag == "hullpoint")
     {
       hull_position_ = DPosition<2>::zero();
-    }
-    else if (tag == "model")
-    {
-      model_desc_ = ModelDescription<2>();
-      param_.clear();
-      model_desc_.setName(attributeAsString_(attributes, s_name));
     }
     else if (tag == "param")
     {
@@ -784,9 +777,7 @@ namespace OpenMS
     }
     else if (tag == "model")
     {
-      model_desc_.setParam(param_);
-      fatalError(LOAD, String("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12.'"));
-      //current_feature_->setModelDescription(model_desc_);
+      warning(LOAD, String("The featureXML file contains a 'model' description, but the internal datastructure has no model support since OpenMS 1.12. Model will be ignored!"));
     }
     else if (tag == "hullpoint" || tag == "pt")
     {

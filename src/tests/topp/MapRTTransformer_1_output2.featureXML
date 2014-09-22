@@ -24,10 +24,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="OlesModel">
-				<param name="a" value="5"/>
-				<param name="b" value="10"/>
-			</model>
 			<subordinate>
 				<feature id="f_0_0">
 					<position dim="0">2401</position>
@@ -60,10 +56,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="OlesModel">
-				<param name="a" value="5"/>
-				<param name="b" value="10"/>
-			</model>
 			<subordinate>
 				<feature id="f_1_0">
 					<position dim="0">2401</position>
@@ -118,10 +110,6 @@
 							<quality dim="1">0</quality>
 							<overallquality>0.1</overallquality>
 							<charge>2</charge>
-							<model name="OlesModel">
-								<param name="a" value="5"/>
-								<param name="b" value="10"/>
-							</model>
 							<convexhull nr="0">
 								<pt x="151" y="1.8" />
 								<pt x="251" y="2.8" />
@@ -154,10 +142,6 @@
 							<quality dim="1">0</quality>
 							<overallquality>0.1</overallquality>
 							<charge>1</charge>
-							<model name="OlesModel">
-								<param name="a" value="5"/>
-								<param name="b" value="10"/>
-							</model>
 							<convexhull nr="0">
 								<pt x="151" y="1.8" />
 								<pt x="251" y="2.8" />
@@ -198,10 +182,6 @@
 											<quality dim="1">0</quality>
 											<overallquality>0.1</overallquality>
 											<charge>1</charge>
-											<model name="OlesModel">
-												<param name="a" value="5"/>
-												<param name="b" value="10"/>
-											</model>
 											<convexhull nr="0">
 												<pt x="151" y="1.8" />
 												<pt x="251" y="2.8" />
@@ -235,10 +215,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="OlesModel">
-				<param name="a" value="5"/>
-				<param name="b" value="10"/>
-			</model>
 			<convexhull nr="0">
 				<pt x="151" y="1.8" />
 				<pt x="251" y="2.8" />
