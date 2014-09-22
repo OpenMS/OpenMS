@@ -1,6 +1,6 @@
 ### example CMakeLists.txt to develop programs using OpenMS
-project("Main")
-cmake_minimum_required(VERSION 2.6)
+project("Example_Project_using_OpenMS")
+cmake_minimum_required(VERSION 2.8.3)
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. Main.cpp)
 set(my_executables
@@ -15,15 +15,14 @@ set(my_sources
 
 ## find OpenMS configuration and register target "OpenMS" (our library)
 find_package(OpenMS)
-## if the above fails you can try:
-#find_package(OpenMS PATHS "</c/path/to/OpenMS>/cmake")
+## if the above fails you can try calling cmake with -D OpenMS_DIR=/path/to/OpenMS/
+## or modify the find_package() call accordingly
+## find_package(OpenMS PATHS "</path/to/OpenMS//")
 
 # check whether the OpenMS package was found
 if (OpenMS_FOUND)
-
   ## include directories for OpenMS headers (and contrib)
-  include_directories(${OPENMS_INCLUDE_DIRS})
-
+  include_directories(${OpenMS_INCLUDE_DIRECTORIES})
 
   ## append precompiler macros and compiler flags specific to OpenMS
   ## Warning: this could be harmful to your project. Check this if problems occur.

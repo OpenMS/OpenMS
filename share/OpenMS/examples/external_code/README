@@ -1,3 +1,5 @@
+# Example project for OpenMS code using OpenMS
+
 Example project for external code using OpenMS library and headers.
 You can modify the build system via CMakeLists.txt, to add more C++ classes, alter build flags etc...
 
