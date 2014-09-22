@@ -21,7 +21,20 @@ find_package(OpenMS)
 
 # check whether the OpenMS package was found
 if (OpenMS_FOUND)
+
+  # check if the variable containing the include directories is defined
+  if(NOT OpenMS_INCLUDE_DIRECTORIES)
+    set(_message "The variable \${OpenMS_INCLUDE_DIRECTORIES} is not defined.")
+    set(_message "${_message}This CMakeLists.txt and the build of OpenMS seem to incompatible.")
+    set(_message "${_message}Please use the latest version from the OpenMS release!")
+    message(FATAL_ERROR ${_message})
+  endif()
+
   ## include directories for OpenMS headers (and contrib)
+  # Note: If you want to link against a specific libirary contained
+  #       in the OpenMS package you should also list the include
+  #       corresponding directory here, e.g.,
+  #       OpenMS_GUI -> ${OpenMS_GUI_INCLUDE_DIRECTORIES}
   include_directories(${OpenMS_INCLUDE_DIRECTORIES})
 
   ## append precompiler macros and compiler flags specific to OpenMS
