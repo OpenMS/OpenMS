@@ -32,15 +32,31 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 #include "ExampleLibraryFile.h"
 
-using namespace std;
+using namespace OpenMS;
+using namespace OpenMSExternal;
 
-namespace OpenMSExternal //optional namespace... however you like it
+int main(int argc, char * argv[])
 {
-  std::string ExampleLibraryFile::printSomething()
-  {
-    return "this is the external library.";
-  }
+  std::cout << "Call OpenMS function from ExampleLibraryFile" << std::endl;
+  ExampleLibraryFile().loadAndSaveFeatureXML();
 
+  std::string s = ExampleLibraryFile::printSomething();
+  std::cout << "From external lib: " << s << "\n";
+
+  MSExperiment<Peak1D,ChromatogramPeak> exp;
+  MzMLFile f;
+  String tmpfilename = "tmpfile.mzML";
+
+  f.store(tmpfilename,exp);
+  f.load(tmpfilename,exp);
+
+  std::cout << "Loading and storing of mzML worked!\n";
+
+  std::cout << "All good and well!\n";
+  return 0;
 }

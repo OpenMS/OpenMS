@@ -32,33 +32,24 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include "ExampleLibraryFile.h"
+#ifndef OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
+#define OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
 
-using namespace OpenMS;
-using namespace OpenMSExternal;
+#include <string>
 
-int main(int argc, char * argv[])
+//optional namespace... however you like it
+namespace OpenMSExternal
 {
 
-  FeatureMap<> fm;
-  Feature feature;
-  fm.push_back(feature);
-  std::string s = ExampleLibraryFile::printSomething();
-  std::cout << "From external lib: " << s << "\n";
+  class ExampleLibraryFile
+  {
+public:
+    static std::string printSomething();
 
-  MSExperiment<Peak1D,ChromatogramPeak> exp;
-  MzMLFile f;
-  String tmpfilename = "tmpfile.mzML";
+    // just to have a dependency to OpenMS in the lib
+    void loadAndSaveFeatureXML();
+  };
 
-  f.store(tmpfilename,exp); 
-  f.load(tmpfilename,exp);
-
-  std::cout << "Loading and storing of mzML worked!\n";
-
-  std::cout << "All good and well!\n";
-  return 0;
 }
+
+#endif // OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
