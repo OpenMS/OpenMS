@@ -171,14 +171,15 @@ public:
 
 
 protected:
-    String id_;                                                          ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
+    String id_;                                  ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_;               ///< A list containing the peptide hits
     double significance_threshold_;              ///< the peptide significance threshold
-    String score_type_;                                      ///< The score type (Mascot, Sequest, e-value, p-value)
-    bool higher_score_better_;                       ///< The score orientation
+    String score_type_;                          ///< The score type (Mascot, Sequest, e-value, p-value)
+    bool higher_score_better_;                   ///< The score orientation
     String base_name_;
     double mz_;
     double rt_;
+
   };
 
 } //namespace OpenMS

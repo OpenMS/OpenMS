@@ -70,9 +70,10 @@ namespace OpenMS
     rank_(source.rank_),
     charge_(source.charge_),
     sequence_(source.sequence_),
+    corresponding_protein_accessions_(source.corresponding_protein_accessions_),
     aa_before_(source.aa_before_),
-    aa_after_(source.aa_after_),
-    corresponding_protein_accessions_(source.corresponding_protein_accessions_)
+    aa_after_(source.aa_after_)
+    
   {
   }
 
@@ -93,10 +94,10 @@ namespace OpenMS
     charge_ = source.charge_;
     rank_  = source.rank_;
     sequence_ = source.sequence_;
+    corresponding_protein_accessions_ = source.corresponding_protein_accessions_;
     aa_before_ = source.aa_before_;
     aa_after_ = source.aa_after_;
-    corresponding_protein_accessions_ = source.corresponding_protein_accessions_;
-
+    
     return *this;
   }
 
@@ -107,9 +108,9 @@ namespace OpenMS
            && rank_ == rhs.rank_
            && charge_ == rhs.charge_
            && sequence_ == rhs.sequence_
+           && corresponding_protein_accessions_ == rhs.corresponding_protein_accessions_
            && aa_before_ == rhs.aa_before_
-           && aa_after_ == rhs.aa_after_
-           && corresponding_protein_accessions_ == rhs.corresponding_protein_accessions_;
+           && aa_after_ == rhs.aa_after_;
   }
 
   bool PeptideHit::operator!=(const PeptideHit & rhs) const
