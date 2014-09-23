@@ -483,8 +483,6 @@ set(transformations_executables_list
   PeakShape_test
   ProductModel_test
   SeedListGenerator_test
-  SimpleExtender_test
-  SimpleSeeder_test
   TwoDOptimization_test
   TraceFitter_test
 )

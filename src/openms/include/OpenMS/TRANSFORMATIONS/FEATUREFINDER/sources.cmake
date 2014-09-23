@@ -45,8 +45,6 @@ MultiplexPeakPattern.h
 PeakWidthEstimator.h
 ProductModel.h
 SeedListGenerator.h
-SimpleExtender.h
-SimpleSeeder.h
 TraceFitter.h
 )
 

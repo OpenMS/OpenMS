@@ -130,8 +130,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -465,8 +463,6 @@ int main(int argc, char ** argv)
   DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
-  DOCME2(SimpleExtender, (SimpleExtender<Peak1D, Feature>(0, 0, 0)));
-  DOCME2(SimpleSeeder, (SimpleSeeder<Peak1D, Feature>(0, 0, 0)));
   DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
   DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
   DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));

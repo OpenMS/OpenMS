@@ -922,9 +922,6 @@ PyOpenMSChecker:
     - OpenMS::HashGrid
     - OpenMS::HashGrid::ConstIterator
     - OpenMS::HashGrid::Iterator
-    - OpenMS::SimpleExtender
-    - OpenMS::SimpleExtender::IndexWithPriority
-    - OpenMS::SimpleExtender::IndexWithPriority::PriorityLess
     - OpenMS::ims::IMSAlphabetParser
     - OpenMS::ims::IMSAlphabetTextParser
 
@@ -1152,7 +1149,6 @@ PyOpenMSChecker:
     - OpenMS::Summary
     - OpenMS::IsotopeWaveletParallelFor
     - OpenMS::GaussFitter1D
-    - OpenMS::SimpleSeeder
     - OpenMS::EGHTraceFitter
     - OpenMS::GaussModel
     - OpenMS::ExtendedIsotopeFitter1D

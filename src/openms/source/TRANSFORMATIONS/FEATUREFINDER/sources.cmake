@@ -40,9 +40,7 @@ MultiplexPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp
-SimpleExtender.cpp
-SimpleSeeder.cpp
-
+#TraceFitter.cpp // does not exist
 )
 
 ### add path to the filenames
