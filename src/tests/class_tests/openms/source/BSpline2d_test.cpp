@@ -192,6 +192,50 @@ START_SECTION((double coefficient(int n)))
 }
 END_SECTION
 
+
+START_SECTION((bool ok()))
+{
+  vector<double> x;
+  vector<double> y;
+  for (Size i = 0; i != 10; ++i)
+  {
+    x.push_back(i);
+    y.push_back(i);
+  }
+  BSpline2d b1(x, y, 0, BSpline2d::BC_ZERO_SECOND, 100);
+  double y1 = b1.eval(5.5);
+  TEST_EQUAL(b1.ok(), true);
+
+  x.clear();
+  y.clear();
+  for (Size i = 10; i != 0; --i)
+  {
+    x.push_back(i);
+    y.push_back(i);
+  }
+  BSpline2d b2(x, y, 0, BSpline2d::BC_ZERO_SECOND, 100);
+  double y2 = b2.eval(5.5);
+  TEST_EQUAL(b2.ok(), true);
+
+  TEST_REAL_SIMILAR(y1,y2);
+}
+END_SECTION
+
+
+START_SECTION((Size nX()))
+{
+  vector<double> x;
+  vector<double> y;
+  for (Size i = 0; i != 10; ++i)
+  {
+    x.push_back(i);
+    y.push_back(i);
+  }
+  BSpline2d b(x, y);
+  TEST_EQUAL(b.nX(), 10)
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
