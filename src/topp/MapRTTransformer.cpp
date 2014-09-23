@@ -117,12 +117,12 @@ protected:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & /* section */) const
+  Param getSubsectionDefaults_(const String& /* section */) const
   {
     return getModelDefaults("none");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -187,7 +187,7 @@ protected:
       {
         trafoxml.store(trafo_outs[i], trafo);
       }
-      if (!ins.empty())       // load input
+      if (!ins.empty()) // load input
       {
         String in_file = ins[i];
         FileTypes::Type in_type = FileHandler::getType(in_file);
@@ -242,7 +242,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapRTTransformer tool;
   return tool.main(argc, argv);

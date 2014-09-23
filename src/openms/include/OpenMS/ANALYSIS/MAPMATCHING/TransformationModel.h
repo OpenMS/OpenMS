@@ -58,7 +58,7 @@ public:
     TransformationModel() {}
 
     /// Alternative constructor (derived classes should implement this one!)
-    TransformationModel(const TransformationModel::DataPoints &, const Param &);
+    TransformationModel(const TransformationModel::DataPoints&, const Param&);
 
     /// Destructor
     virtual ~TransformationModel();
@@ -67,10 +67,10 @@ public:
     virtual double evaluate(const double value) const;
 
     /// Gets the (actual) parameters
-    const Param & getParameters() const;
+    const Param& getParameters() const;
 
     /// Gets the default parameters
-    static void getDefaultParameters(Param & params);
+    static void getDefaultParameters(Param& params);
 
 protected:
     /// Parameters

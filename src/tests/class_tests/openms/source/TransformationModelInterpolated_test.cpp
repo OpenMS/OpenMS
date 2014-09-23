@@ -61,7 +61,7 @@ dummy_data.push_back(make_pair(0.5, 4.0));
 dummy_data.push_back(make_pair(1.0, 2.0));
 dummy_data.push_back(make_pair(1.0, 4.0));
 
-START_SECTION((TransformationModelInterpolated(const DataPoints& data, const Param& params)))
+START_SECTION((TransformationModelInterpolated(const DataPoints &data, const Param &params)))
 {
   ptr = new TransformationModelInterpolated(dummy_data, Param());
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -129,7 +129,7 @@ START_SECTION((double evaluate(const double value) const))
   }
 
   // test the interpolation
-  for(size_t i = 0; i < gsl_target_points.size(); ++i)
+  for (size_t i = 0; i < gsl_target_points.size(); ++i)
   {
     const double x = gsl_target_points[i];
     TEST_REAL_SIMILAR(linear_interpolation.evaluate(x), gsl_linear[i])
@@ -149,10 +149,11 @@ START_SECTION(([EXTRA] TransformationModelInterpolated::evaluate() beyond the ac
   TEST_REAL_SIMILAR(ptr->evaluate(-0.5), 0.0);
   TEST_REAL_SIMILAR(ptr->evaluate(1.5), 4.0);
 }
+
 END_SECTION
 
 
-START_SECTION((static void getDefaultParameters(Param& params)))
+START_SECTION((static void getDefaultParameters(Param & params)))
 {
   Param p;
   TransformationModelInterpolated::getDefaultParameters(p);

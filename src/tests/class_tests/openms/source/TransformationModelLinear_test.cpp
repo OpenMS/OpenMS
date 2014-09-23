@@ -58,7 +58,7 @@ data.push_back(make_pair(0.0, 1.0));
 data.push_back(make_pair(1.0, 2.0));
 data.push_back(make_pair(1.0, 4.0));
 
-START_SECTION((TransformationModelLinear(const DataPoints&, const Param&)))
+START_SECTION((TransformationModelLinear(const DataPoints &, const Param &)))
 {
   TEST_EXCEPTION(Exception::IllegalArgument, TransformationModelLinear lm(empty, Param())); // need data
   ptr = new TransformationModelLinear(data, Param());
@@ -86,7 +86,7 @@ START_SECTION((virtual double evaluate(const double value) const))
 }
 END_SECTION
 
-START_SECTION((void getParameters(Param& params) const))
+START_SECTION((void getParameters(Param & params) const))
 {
   Param p_in;
   p_in.setValue("symmetric_regression", "true");

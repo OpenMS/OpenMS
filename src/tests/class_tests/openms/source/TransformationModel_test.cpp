@@ -58,7 +58,7 @@ START_SECTION((TransformationModel()))
 }
 END_SECTION
 
-START_SECTION((TransformationModel(const DataPoints&, const Param&)))
+START_SECTION((TransformationModel(const DataPoints &, const Param &)))
 {
   ptr = new TransformationModel(TransformationModel::DataPoints(), Param());
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -81,7 +81,7 @@ START_SECTION((virtual double evaluate(const double value) const))
 }
 END_SECTION
 
-START_SECTION((void getParameters(Param& params) const))
+START_SECTION((void getParameters(Param & params) const))
 {
   TransformationModel tm;
   Param p = tm.getParameters();

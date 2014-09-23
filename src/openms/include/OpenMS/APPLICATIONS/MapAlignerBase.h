@@ -79,13 +79,13 @@ public:
   }
 
   // "public" so it can be used in DefaultParamHandlerDocumenter to get docu
-  static Param getModelDefaults(const String & default_model)
+  static Param getModelDefaults(const String& default_model)
   {
     Param params;
     params.setValue("type", default_model, "Type of model");
     // TODO: avoid referring to each TransformationModel subclass explicitly
     StringList model_types = ListUtils::create<String>("linear,b_spline,interpolated");
-    if (!ListUtils::contains(model_types,default_model))
+    if (!ListUtils::contains(model_types, default_model))
     {
       model_types.insert(model_types.begin(), default_model);
     }
@@ -104,7 +104,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_(const String & file_formats, const bool add_reference = false)
+  void registerOptionsAndFlags_(const String& file_formats, const bool add_reference = false)
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same file type)", true);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
@@ -124,7 +124,7 @@ protected:
   }
 
   /// deprecated? (not used in PoseClustering... and moved to initialize_() )
-  void handleReference_(MapAlignmentAlgorithm * alignment)
+  void handleReference_(MapAlignmentAlgorithm* alignment)
   {
     // note: this function is in the base class to avoid code duplication, but
     // it only makes sense for some derived classes - don't call the function
@@ -146,7 +146,7 @@ protected:
     alignment->setReference(reference_index, reference_file);
   }
 
-  ExitCodes initialize_(MapAlignmentAlgorithm * alignment, bool check_ref = false)
+  ExitCodes initialize_(MapAlignmentAlgorithm* alignment, bool check_ref = false)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -223,7 +223,7 @@ protected:
   }
 
   /// deprecated? (not used in PoseClustering... and moved to initialize_() )
-  ExitCodes commonMain_(MapAlignmentAlgorithm * alignment)
+  ExitCodes commonMain_(MapAlignmentAlgorithm* alignment)
   {
     ExitCodes ret = initialize_(alignment);
     if (ret != EXECUTION_OK) return ret;
@@ -260,7 +260,7 @@ protected:
       {
         alignment->alignPeakMaps(peak_maps, transformations);
       }
-      catch (Exception::NotImplemented &)
+      catch (Exception::NotImplemented&)
       {
         writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for peak data!");
         return INTERNAL_ERROR;
@@ -305,7 +305,7 @@ protected:
         std::vector<Peak2D>::iterator c_it = feat_maps[i].begin();
         for (; it != feature_map.end(); ++it, ++c_it)
         {
-          *c_it = reinterpret_cast<const Peak2D &>(*it);
+          *c_it = reinterpret_cast<const Peak2D&>(*it);
         }
       }
       progresslogger.endProgress();
@@ -315,7 +315,7 @@ protected:
       {
         alignment->alignCompactFeatureMaps(feat_maps, transformations);
       }
-      catch (Exception::NotImplemented &)
+      catch (Exception::NotImplemented&)
       {
         writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for feature data!");
         return INTERNAL_ERROR;
@@ -366,7 +366,7 @@ protected:
       {
         alignment->alignConsensusMaps(cons_maps, transformations);
       }
-      catch (Exception::NotImplemented &)
+      catch (Exception::NotImplemented&)
       {
         writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for consensus feature data!");
         return INTERNAL_ERROR;
@@ -415,7 +415,7 @@ protected:
       {
         alignment->alignPeptideIdentifications(peptide_ids_vec, transformations);
       }
-      catch (Exception::NotImplemented &)
+      catch (Exception::NotImplemented&)
       {
         writeLog_("Error: The algorithm '" + alignment->getName() + "' cannot be used for peptide data!");
         return INTERNAL_ERROR;

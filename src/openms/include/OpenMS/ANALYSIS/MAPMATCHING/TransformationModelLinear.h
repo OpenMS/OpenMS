@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -26,7 +26,7 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Stephan Aiche $
@@ -60,7 +60,7 @@ public:
 
       @exception IllegalArgument is thrown if neither data points nor explicit parameters (slope/intercept) are given.
     */
-    TransformationModelLinear(const DataPoints & data, const Param & params);
+    TransformationModelLinear(const DataPoints& data, const Param& params);
 
     /// Destructor
     ~TransformationModelLinear();
@@ -71,10 +71,10 @@ public:
     using TransformationModel::getParameters;
 
     /// Gets the "real" parameters
-    void getParameters(double & slope, double & intercept) const;
+    void getParameters(double& slope, double& intercept) const;
 
     /// Gets the default parameters
-    static void getDefaultParameters(Param & params);
+    static void getDefaultParameters(Param& params);
 
     /**
      @brief Computes the inverse

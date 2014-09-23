@@ -80,7 +80,7 @@ public:
     }
 
 private:
-    CubicSpline2d * spline_;
+    CubicSpline2d* spline_;
     // Spline2d<double>* spline_;
   };
 
