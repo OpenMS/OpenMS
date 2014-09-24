@@ -37,8 +37,8 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <cmath>
 
-#define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
-#undef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
+// #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
+// #undef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
 
 namespace OpenMS
 {
@@ -208,8 +208,10 @@ namespace OpenMS
   double IsobaricChannelExtractor::computeSingleScanPrecursorPurity2_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::SpectrumType& precursor_spec) const
   {
 
+    typedef MSExperiment<>::SpectrumType::ConstIterator const_spec_iterator;
+    
     // compute the
-    const double charge_dist = Constants::NEUTRON_MASS_U / (double) ms2_spec->getPrecursors()[0].getCharge();
+    const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(ms2_spec->getPrecursors()[0].getCharge());
     
     // the actual boundary values
     const double strict_lower_mz = ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset();
@@ -222,6 +224,10 @@ namespace OpenMS
     Size precursor_peak_idx = precursor_spec.findNearest(ms2_spec->getPrecursors()[0].getMZ());
     const Peak1D& precursor_peak = precursor_spec[precursor_peak_idx];
     
+    // now we get ourselves some border iterators
+    const_spec_iterator lower_bound = precursor_spec.MZBegin(fuzzy_lower_mz);
+    const_spec_iterator upper_bound = precursor_spec.MZEnd(ms2_spec->getPrecursors()[0].getMZ());
+    
     Peak1D::IntensityType precursor_intensity = precursor_peak.getIntensity();
     Peak1D::IntensityType total_intensity = precursor_peak.getIntensity();
     
@@ -232,21 +238,22 @@ namespace OpenMS
     
     while (expected_next_mz > fuzzy_lower_mz)
     {
-      // start from precursor peak idx
-      int idx = static_cast<int>(precursor_peak_idx) - 1;
-      double min_diff = std::fabs(precursor_spec[idx].getMZ() - expected_next_mz)  * 1000000 / expected_next_mz;;
-      int min_idx = idx;
-      --idx;
-      while (idx >= 0 && precursor_spec[idx].getMZ() > fuzzy_lower_mz)
+      // find nearest peak in precusor window
+      const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
+      
+      // handle border cases
+      
+      // check if next peak has smaller dist
+      const_spec_iterator np_it2 = np_it;
+      ++np_it;
+      
+      if (std::fabs(np_it2->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
       {
-        double current_diff = std::fabs(precursor_spec[idx].getMZ() - expected_next_mz)  * 1000000 / expected_next_mz;
-        if (current_diff < min_diff)
-        {
-          min_diff = current_diff;
-          min_idx = idx;
-        }
-        --idx;
+        np_it = np_it2;
       }
+      
+      // compute difference between found peak and expected
+      double min_diff = std::fabs(np_it->getMZ() - expected_next_mz)  * 1000000 / expected_next_mz;;
       
       // check if we found an isotopic peak
       if (min_diff < max_precursor_isotope_deviation_)
@@ -254,19 +261,19 @@ namespace OpenMS
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
         std::cerr << "Mark peak as isotopic peak POS: " << precursor_spec[min_idx] << " (diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << std::endl;
 #endif
-        if (precursor_spec[idx].getMZ() > strict_lower_mz)
+        if (np_it->getMZ() > strict_lower_mz)
         {
-          precursor_intensity += precursor_spec[min_idx].getIntensity();
+          precursor_intensity += np_it->getIntensity();
         }
         else
         {
           // we're in the fuzzy area, so we will take only 50% of the given intensity
           // since we assume that the isolation window borders are not sharp
-          precursor_intensity += 0.5 * precursor_spec[min_idx].getIntensity();
+          precursor_intensity += 0.5 * np_it->getIntensity();
         }
         
         // update expected_next_mz
-        expected_next_mz = precursor_spec[min_idx].getMZ() - charge_dist;
+        expected_next_mz = np_it->getMZ() - charge_dist;
       }
       else
       {
@@ -281,25 +288,30 @@ namespace OpenMS
     // ------------------------------------------------------------------------------
     // try to find a match for our isotopic peak on the right
     
+    // redefine bounds
+    lower_bound = precursor_spec.MZBegin(ms2_spec->getPrecursors()[0].getMZ());
+    upper_bound = precursor_spec.MZEnd(fuzzy_upper_mz);
+
     expected_next_mz = precursor_peak.getMZ() + charge_dist;
     
     while (expected_next_mz < fuzzy_upper_mz)
     {
-      // start from precursor peak idx
-      MSExperiment<Peak1D>::SpectrumType::size_type idx = precursor_peak_idx + 1;
-      double min_diff = std::fabs(precursor_spec[idx].getMZ() - expected_next_mz)  * 1000000 / expected_next_mz;;
-      int min_idx = idx;
-      ++idx;
-      while (idx < precursor_spec.size() && precursor_spec[idx].getMZ() > fuzzy_upper_mz)
+      // find nearest peak in precusor window
+      const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
+      
+      // handle border cases
+      
+      // check if next peak has smaller dist
+      const_spec_iterator np_it2 = np_it;
+      ++np_it;
+      
+      if (std::fabs(np_it2->getMZ() - expected_next_mz) < std::fabs(np_it->getMZ() - expected_next_mz))
       {
-        double current_diff = std::fabs(precursor_spec[idx].getMZ() - expected_next_mz)  * 1000000 / expected_next_mz;
-        if (current_diff < min_diff)
-        {
-          min_diff = current_diff;
-          min_idx = idx;
-        }
-        ++idx;
+        np_it = np_it2;
       }
+      
+      // compute difference between found peak and expected
+      double min_diff = std::fabs(np_it->getMZ() - expected_next_mz)  * 1000000 / expected_next_mz;;
       
       // check if we found an isotopic peak
       if (min_diff < max_precursor_isotope_deviation_)
@@ -307,19 +319,19 @@ namespace OpenMS
 #ifdef ISOBARIC_CHANNEL_EXTRACTOR_DEBUG
         std::cerr << "Mark peak as isotopic peak POS: " << precursor_spec[min_idx] << " (diff: " << min_diff << " vs " << max_precursor_isotope_deviation_ << ")" << std::endl;
 #endif
-        if (precursor_spec[idx].getMZ() < strict_upper_mz)
+        if (np_it->getMZ() < strict_upper_mz)
         {
-          precursor_intensity += precursor_spec[min_idx].getIntensity();
+          precursor_intensity += np_it->getIntensity();
         }
         else
         {
           // we're in the fuzzy area, so we will take only 50% of the given intensity
           // since we assume that the isolation window borders are not sharp
-          precursor_intensity += 0.5 * precursor_spec[min_idx].getIntensity();
+          precursor_intensity += 0.5 * np_it->getIntensity();
         }
         
         // update expected_next_mz
-        expected_next_mz = precursor_spec[min_idx].getMZ() + charge_dist;
+        expected_next_mz = np_it->getMZ() + charge_dist;
       }
       else
       {
@@ -372,7 +384,7 @@ namespace OpenMS
   {
 
     // compute the
-    const double charge_dist = Constants::NEUTRON_MASS_U / (double) ms2_spec->getPrecursors()[0].getCharge();
+    const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(ms2_spec->getPrecursors()[0].getCharge());
 
     // the actual boundary values
     const double strict_lower_mz = ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset();
