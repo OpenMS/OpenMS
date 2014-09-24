@@ -190,13 +190,13 @@ protected:
       Int nesting_level_;
 
       /**
-          @brief Data necessary to generate a single spectrum 
+          @brief Data necessary to generate a single spectrum
 
           Small struct holds all data necessary to populate a spectrum at a
           later timepoint (since reading of the base64 data and generation of
           spectra can be done at distinct timepoints).
       */
-      struct SpectrumData 
+      struct SpectrumData
       {
         UInt peak_count_;
         String precision_;
@@ -244,7 +244,7 @@ protected:
       std::vector<DataProcessing> data_processing_;
 
       /**
-          @brief Fill a single spectrum with data from input 
+          @brief Fill a single spectrum with data from input
 
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
@@ -318,10 +318,10 @@ protected:
       }
 
       /**
-          @brief Populate all spectra on the stack with data from input 
+          @brief Populate all spectra on the stack with data from input
 
           Will populate all spectra on the current work stack with data (using
-          multiple threads if available) and append them to the result. 
+          multiple threads if available) and append them to the result.
       */
       void populateSpectraWithData_()
       {
@@ -338,9 +338,13 @@ protected:
             // parallel exception catching and re-throwing business
             if (!errCount) // no need to parse further if already an error was encountered
             {
-              try 
+              try
               {
                 doPopulateSpectraWithData_(spectrum_data_[i]);
+                if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
+                {
+                  spectrum_data_[i].spectrum.sortByPosition();
+                }
               }
               catch (...)
               {
@@ -536,7 +540,7 @@ private:
     const XMLCh * MzXMLHandler<MapType>::s_chargedeconvoluted_ = 0;
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, 
+    void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/,
             const XMLCh* const /*local_name*/, const XMLCh* const qname,
             const xercesc::Attributes& attributes)
     {
@@ -706,8 +710,8 @@ private:
         }
 
         // Add a new spectrum, initialize and set MS level and RT
-        spectrum_data_.resize(spectrum_data_.size() + 1); // TODO !! 
-        spectrum_data_.back().peak_count_ = 0; 
+        spectrum_data_.resize(spectrum_data_.size() + 1); // TODO !!
+        spectrum_data_.back().peak_count_ = 0;
 
         spectrum_data_.back().spectrum.setMSLevel(ms_level);
         spectrum_data_.back().spectrum.setRT(retention_time);
@@ -935,7 +939,7 @@ private:
 
       if (equal_(qname, s_mzxml))
       {
-        // Flush the remaining data 
+        // Flush the remaining data
         populateSpectraWithData_();
 
         // End of mzXML
@@ -967,7 +971,7 @@ private:
       if (open_tags_.back() == "peaks")
       {
         //chars may be split to several chunks => concatenate them
-        if (options_.getFillData()) 
+        if (options_.getFillData())
         {
           // Since we convert a Base64 string here, it can only contain plain ASCII
           sm_.appendASCII(chars, length, spectrum_data_.back().char_rest_);
@@ -1014,7 +1018,7 @@ private:
           warning(LOAD, String("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
       }
-      else 
+      else
       {
         char* transcoded_chars = sm_.convert(chars);
         if (String(transcoded_chars).trim() != "")

@@ -869,8 +869,10 @@ public:
             if (mass_traces.count(peptide_peak) > 0)
             {
               ConvexHull2D hull;
-              hull.addPoint(mass_traces[peptide_peak].min_);
-              hull.addPoint(mass_traces[peptide_peak].max_);
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(),mass_traces[peptide_peak].minY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(),mass_traces[peptide_peak].maxY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(),mass_traces[peptide_peak].minY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(),mass_traces[peptide_peak].maxY()));
               feature.getConvexHulls().push_back(hull);
             }
           }

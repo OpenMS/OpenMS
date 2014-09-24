@@ -398,7 +398,14 @@ protected:
       FeatureXMLFile ff;
       ff.getOptions().setLoadConvexHull(false); // CH's currently not needed here
       ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
+      size_t mem1, mem2;
+      SysInfo::getProcessMemoryConsumption(mem1);
+
+      // reading input
       ff.load(in, feat);
+
+      SysInfo::getProcessMemoryConsumption(mem2);
+      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
       feat.updateRanges();
 
       os << "Number of features: " << feat.size() << "\n"
@@ -424,7 +431,15 @@ protected:
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
+      size_t mem1, mem2;
+      SysInfo::getProcessMemoryConsumption(mem1);
+
+      // reading input
       ConsensusXMLFile().load(in, cons);
+
+      SysInfo::getProcessMemoryConsumption(mem2);
+      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+
       cons.updateRanges();
 
       map<Size, UInt> num_consfeat_of_size;

@@ -37,13 +37,17 @@
 
 #include <string>
 
-namespace OpenMSExternal //optional namespace... however you like it
+//optional namespace... however you like it
+namespace OpenMSExternal
 {
 
   class ExampleLibraryFile
   {
 public:
     static std::string printSomething();
+
+    // just to have a dependency to OpenMS in the lib
+    void loadAndSaveFeatureXML();
   };
 
 }

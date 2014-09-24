@@ -28,15 +28,36 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/Peak1D.h>
+#include "ExampleLibraryFile.h"
 
-namespace OpenMS
+#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+
+using namespace std;
+using namespace OpenMS;
+
+//optional namespace... however you like it
+namespace OpenMSExternal
 {
-  //FeatureFinderAlgorithmSimplest<Peak1D,Feature> default_featurefinderalgorithmsimplest;
+  std::string ExampleLibraryFile::printSomething()
+  {
+    return "this is the external library.";
+  }
+
+  void ExampleLibraryFile::loadAndSaveFeatureXML()
+  {
+    FeatureMap<> fm;
+    Feature feature;
+    fm.push_back(feature);
+    String tmpfilename = "tmpfile.featureXML";
+    FeatureXMLFile().store(tmpfilename, fm);
+
+    FeatureMap<> fm2;
+    FeatureXMLFile().store(tmpfilename, fm2);
+  }
 }

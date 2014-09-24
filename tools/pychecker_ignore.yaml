@@ -526,6 +526,12 @@ PyOpenMSChecker:
         - getNumberOfChannels
         - getIsotopeCorrectionMatrix
         - getReferenceChannel
+    OpenMS::TMTTenPlexQuantitationMethod:
+        - getName
+        - getChannelInformation
+        - getNumberOfChannels
+        - getIsotopeCorrectionMatrix
+        - getReferenceChannel
     OpenMS::EdwardsLippertIterator:
         - setFastaFile
         - getFastaFile
@@ -916,9 +922,6 @@ PyOpenMSChecker:
     - OpenMS::HashGrid
     - OpenMS::HashGrid::ConstIterator
     - OpenMS::HashGrid::Iterator
-    - OpenMS::SimpleExtender
-    - OpenMS::SimpleExtender::IndexWithPriority
-    - OpenMS::SimpleExtender::IndexWithPriority::PriorityLess
     - OpenMS::ims::IMSAlphabetParser
     - OpenMS::ims::IMSAlphabetTextParser
 
@@ -1132,9 +1135,7 @@ PyOpenMSChecker:
     - OpenMS::ExtendedIsotopeModel
     - OpenMS::PeakWidthEstimator::Result
     - OpenMS::LmaGaussModel
-    - OpenMS::FeatureFinderAlgorithmSimplest
     - OpenMS::FeatureFinderAlgorithm
-    - OpenMS::ModelFitter
     - OpenMS::FeatureFinderDefs::NoSuccessor
     - OpenMS::FeaFiModule
     - OpenMS::ProductModel< 2 >
@@ -1144,12 +1145,10 @@ PyOpenMSChecker:
     - OpenMS::FeatureFinderDefs
     - OpenMS::FeatureFinderAlgorithmMRM
     - OpenMS::ModelDescription
-    - OpenMS::FeatureFinderAlgorithmSimple
     - OpenMS::PeakWidthEstimator
     - OpenMS::Summary
     - OpenMS::IsotopeWaveletParallelFor
     - OpenMS::GaussFitter1D
-    - OpenMS::SimpleSeeder
     - OpenMS::EGHTraceFitter
     - OpenMS::GaussModel
     - OpenMS::ExtendedIsotopeFitter1D
