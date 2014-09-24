@@ -324,8 +324,9 @@ protected:
     proteins_out << " }" << endl;
     proteins_out.close();
 
-    LOG_INFO << "Running Fido " + (choose_params ? "with parameter estimation" :
-                                   "with fixed parameters") + "..." << endl;
+    String with_what = (choose_params ? "with parameter estimation" : 
+                        "with fixed parameters");
+    LOG_INFO << "Running Fido " + with_what + "..." << endl;
     // Fido parameters:
     QStringList inputs;
     Int log2_states = getIntOption_("log2_states");
