@@ -29,14 +29,14 @@ macro (openms_check_tandem_version binary valid)
           _tandem_version ${_tandem_output})
 
     if("${_tandem_version}" VERSION_LESS "2013.09.01")
-      message(STATUS "  - X!Tandem too old. Please provide a X!Tandem version >= 2013.09.01 to enable the tests.")
+      message(STATUS "  - X! Tandem too old. Please provide an X! Tandem version >= 2013.09.01 to enable the tests.")
     else()
       set(${valid} TRUE)
     endif()
   endif()
 endmacro (openms_check_tandem_version)
 
-message(STATUS "Searching for MS2 search engines ...")
+message(STATUS "Searching for third party tools...")
 
 #------------------------------------------------------------------------------
 # OMSSA
@@ -44,12 +44,17 @@ OPENMS_FINDBINARY(OMSSA_BINARY "omssacl" "OMSSA")
 
 #------------------------------------------------------------------------------
 # X!Tandem
-OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X!Tandem")
+OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X! Tandem")
 openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
 
 #------------------------------------------------------------------------------
 # MyriMatch
 OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
+
+#------------------------------------------------------------------------------
+# Fido
+OPENMS_FINDBINARY(FIDO_BINARY "Fido" "Fido")
+OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChooseParameters")
 
 #------------------------------------------------------------------------------
 ## optional tests
@@ -84,6 +89,17 @@ if (NOT (${MYRIMATCH_BINARY} STREQUAL "MYRIMATCH_BINARY-NOTFOUND"))
   add_test("TOPP_MyriMatchAdapter_2" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/MyriMatchAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.mzML -out MyriMatchAdapter_1_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}" -min_precursor_charge 4 -max_precursor_charge 3)
   set_tests_properties("TOPP_MyriMatchAdapter_2" PROPERTIES WILL_FAIL 1) ## has invalid charge range
 endif()
+
+#------------------------------------------------------------------------------
+if (NOT (${FIDOCHOOSEPARAMS_BINARY} STREQUAL "FIDOCHOOSEPARAMS_BINARY-NOTFOUND"))
+  add_test("TOPP_FidoAdapter_1" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_1_output.tmp -exe "${FIDOCHOOSEPARAMS_BINARY}")
+  add_test("TOPP_FidoAdapter_1_out" ${DIFF} -in1 FidoAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_output.idXML)
+  set_tests_properties("TOPP_FidoAdapter_1_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_1")
+
+if (NOT (${FIDO_BINARY} STREQUAL "FIDO_BINARY-NOTFOUND"))
+  add_test("TOPP_FidoAdapter_3" ${TOPP_BIN_PATH}/FidoAdapter -test -in ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_input.idXML -out FidoAdapter_3_output.tmp -exe "${FIDO_BINARY}" -prob:protein 0.9 -prob:peptide 0.36 -prob:spurious 0.0)
+  add_test("TOPP_FidoAdapter_3_out" ${DIFF} -in1 FidoAdapter_3_output.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/FidoAdapter_1_output.idXML)
+  set_tests_properties("TOPP_FidoAdapter_3_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_3")
 
 
 # TODO the following tests are waiting for better implementations of InspectAdapter and associated classes
