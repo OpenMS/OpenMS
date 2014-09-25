@@ -134,10 +134,15 @@ namespace OpenMS
     std::vector<bool> start_package;
     start_package.push_back(true);
     start_package.push_back(false);
-    for (unsigned i = 2; i < mz_slim.size(); ++i)
+    for (unsigned i = 2; i < mz_slim.size()-2; ++i)
     {
-      start_package.push_back((mz_slim[i] - mz_slim[i - 1]) / (mz_slim[i - 1] - mz_slim[i - 2]) > new_package);
+      double min_delta_mz = mz_slim[i - 1] - mz_slim[i - 2];    // minimum m/z distance between data points in the 'hood
+      min_delta_mz = std::min(min_delta_mz, (mz_slim[i+1] - mz_slim[i]));
+      min_delta_mz = std::min(min_delta_mz, (mz_slim[i+2] - mz_slim[i+1]));
+      start_package.push_back((mz_slim[i] - mz_slim[i - 1]) / min_delta_mz > new_package);    // Is the current m/z step significantly larger than the neighbouring ones?
     }
+    start_package.push_back(false);
+    start_package.push_back(false);
 
     // fill the packages
     std::vector<double> mz_package;
