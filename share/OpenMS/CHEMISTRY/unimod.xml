@@ -24156,7 +24156,6 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="O" number="65"/>
          </umod:delta>
       </umod:mod>
-   </umod:modifications>
       <umod:mod title="Trimethyl:13C(3)2H(9)" full_name="3-fold methylation with fully labelled methyl groups"
                 username_of_poster="unimod"
                 group_of_poster=""
@@ -24179,6 +24178,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:url/>
          </umod:xref>
       </umod:mod>
+   </umod:modifications>
    <umod:amino_acids>
       <umod:aa title="-" three_letter="" full_name="" mono_mass="0.0" avge_mass="0.0"/>
       <umod:aa title="A" three_letter="Ala" full_name="Alanine" mono_mass="71.037114"
