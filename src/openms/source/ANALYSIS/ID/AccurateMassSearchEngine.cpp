@@ -516,25 +516,28 @@ namespace OpenMS
 
 /// public methods
 
-  void AccurateMassSearchEngine::queryByMass(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)
+  void AccurateMassSearchEngine::queryByMass(const double& observed_mass, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_)
+    {
+      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
 
     // Depending on ion_mode_internal_, the file containing the rules for positive or negative adducts is loaded
     std::vector<AdductInfo_>::const_iterator it_s, it_e;
-    if (ion_mode_internal_ == "positive")
+    if (ion_mode == "positive")
     {
       it_s = pos_adducts_.begin();
       it_e = pos_adducts_.end();
     }
-    else if (ion_mode_internal_ == "negative")
+    else if (ion_mode == "negative")
     {
       it_s = neg_adducts_.begin();
       it_e = neg_adducts_.end();
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Ion mode cannot be set to '") + ion_mode_ + "'!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Ion mode cannot be set to '") + ion_mode + "'!");
     }
 
 
@@ -606,31 +609,37 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results)
+  void AccurateMassSearchEngine::queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_)
+    {
+      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
 
     std::vector<AccurateMassSearchResult> results_part;
 
-    queryByMass(feature.getMZ(), feature.getCharge(), results_part);
+    queryByMass(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
 
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
       results_part[hit_idx].setObservedRT(feature.getRT());
       results_part[hit_idx].setSourceFeatureIndex(feature_index);
       results_part[hit_idx].setObservedIntensity(feature.getIntensity());
+      // append
+      results.push_back(results_part[hit_idx]);
     }
-
-    std::copy(results_part.begin(), results_part.end(), std::back_inserter(results));
   }
 
-  void AccurateMassSearchEngine::queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results)
+  void AccurateMassSearchEngine::queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_)
+    {
+      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
 
     std::vector<AccurateMassSearchResult> results_part;
 
-    queryByMass(cfeat.getMZ(), cfeat.getCharge(), results_part);
+    queryByMass(cfeat.getMZ(), cfeat.getCharge(), ion_mode, results_part);
 
     ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures());
 
@@ -668,7 +677,7 @@ namespace OpenMS
     std::copy(results_part.begin(), results_part.end(), std::back_inserter(results));
   }
 
-  void AccurateMassSearchEngine::init_()
+  void AccurateMassSearchEngine::init()
   {
     // Loads the default mapping file (chemical formulas -> HMDB IDs)
     parseMappingFile_(db_mapping_file_);
@@ -681,22 +690,17 @@ namespace OpenMS
     is_initialized_ = true;
   }
 
-  const String& AccurateMassSearchEngine::getInternalIonMode()
+  void AccurateMassSearchEngine::run(FeatureMap<>& fmap, MzTab& mztab_out)  const
   {
-    return ion_mode_internal_;
-  }
-
-  void AccurateMassSearchEngine::run(FeatureMap<>& fmap, MzTab& mztab_out)
-  {
-    if (!is_initialized_) init_(); // parse DB
-
+    if (!is_initialized_)
+    {
+      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
+    
+    String ion_mode_internal(ion_mode_);
     if (ion_mode_ == "auto")
     {
-      resolveAutoMode_(fmap);
-    }
-    else
-    { // just copy
-      ion_mode_internal_ = ion_mode_;
+      ion_mode_internal = resolveAutoMode_(fmap);
     }
 
     // map for storing overall results
@@ -707,7 +711,7 @@ namespace OpenMS
       std::vector<AccurateMassSearchResult> query_results;
 
       // std::cout << i << ": " << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
-      queryByFeature(fmap[i], i, query_results);
+      queryByFeature(fmap[i], i, ion_mode_internal, query_results);
 
       if (query_results.size() == 0) continue; // cannot happen if a 'not-found' dummy was added
 
@@ -777,7 +781,7 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f)
+  void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const
   {
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
     f.getPeptideIdentifications().back().setIdentifier("AccurateMassSearchResult");
@@ -795,11 +799,12 @@ namespace OpenMS
           throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' not found in struct file!");
         }
         // get name from index 0 (2nd column in structMapping file)
-        if  (hmdb_properties_mapping_[it_row->getMatchingHMDBids()[i]].size() == 0)
+        HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(it_row->getMatchingHMDBids()[i]);
+        if  (entry == hmdb_properties_mapping_.end())
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("DB entry '") + it_row->getMatchingHMDBids()[i] + "' found in struct file but missing in mapping file!");
         }
-        names.push_back(hmdb_properties_mapping_[it_row->getMatchingHMDBids()[i]][0]);
+        names.push_back(entry->second[0]);
       }
       hit.setMetaValue("description", names);
       hit.setMetaValue("charge", it_row->getCharge());
@@ -810,18 +815,19 @@ namespace OpenMS
     }
   }
 
-  void AccurateMassSearchEngine::run(ConsensusMap& cmap, MzTab& mztab_out)
+  void AccurateMassSearchEngine::run(ConsensusMap& cmap, MzTab& mztab_out)  const
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_)
+    {
+      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
 
+    String ion_mode_internal(ion_mode_);
     if (ion_mode_ == "auto")
     {
-      resolveAutoMode_(cmap);
+      ion_mode_internal = resolveAutoMode_(cmap);
     }
-    else
-    { // just copy
-      ion_mode_internal_ = ion_mode_;
-    }
+
     ConsensusMap::FileDescriptions fd_map = cmap.getFileDescriptions();
     Size num_of_maps = fd_map.size();
 
@@ -832,7 +838,7 @@ namespace OpenMS
     {
       std::vector<AccurateMassSearchResult> query_results;
       // std::cout << i << ": " << cmap[i].getMetaValue(3) << " mass: " << cmap[i].getMZ() << " num_traces: " << cmap[i].getMetaValue("num_of_masstraces") << " charge: " << cmap[i].getCharge() << std::endl;
-      queryByConsensusFeature(cmap[i], i, num_of_maps, query_results);
+      queryByConsensusFeature(cmap[i], i, num_of_maps, ion_mode_internal, query_results);
       annotate_(query_results, cmap[i]);
       overall_results.push_back(query_results);
     }
@@ -846,7 +852,7 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, MzTab& mztab_out)
+  void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, MzTab& mztab_out) const
   {
     // iterate the overall results table
 
@@ -893,22 +899,24 @@ namespace OpenMS
 
           mztab_row_record.chemical_formula = chem_form;
 
+          HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(hid_temp);
+
           // set the smiles field
-          String smi_temp = hmdb_properties_mapping_[hid_temp][1];             // extract SMILES from struct mapping file
+          String smi_temp = entry->second[1];             // extract SMILES from struct mapping file
           MzTabString smi_string;
           smi_string.set(smi_temp);
 
           mztab_row_record.smiles = smi_string;
 
           // set the inchi_key field
-          String inchi_temp = hmdb_properties_mapping_[hid_temp][2];             // extract INCHIKEY from struct mapping file
+          String inchi_temp = entry->second[2];             // extract INCHIKEY from struct mapping file
           MzTabString inchi_key;
           inchi_key.set(inchi_temp);
 
           mztab_row_record.inchi_key = inchi_key;
 
           // set description field (we use it for the common name of the compound)
-          String name_temp = hmdb_properties_mapping_[hid_temp][0];
+          String name_temp = entry->second[0];
           MzTabString common_name;
           common_name.set(name_temp);
 
@@ -1097,7 +1105,6 @@ namespace OpenMS
     mass_error_value_ = (double)param_.getValue("mass_error_value");
     mass_error_unit_ = (String)param_.getValue("mass_error_unit");
     ion_mode_ = (String)param_.getValue("ionization_mode");
-    ion_mode_internal_ = ion_mode_; // just copy, since we have not seen any data yet
 
     iso_similarity_ = param_.getValue("isotopic_similarity").toBool();
 
@@ -1189,15 +1196,6 @@ namespace OpenMS
 
     std::sort(mass_mappings_.begin(), mass_mappings_.end(), CompareEntryAndMass_());
 
-    
-    TextFile f;
-    for (Size i=0; i<mass_mappings_.size(); ++i)
-    {
-      f.push_back( String(mass_mappings_[i].mass) + " " +  ListUtils::concatenate(mass_mappings_[i].massIDs, ",") + " " + mass_mappings_[i].formula );
-    }
-    f.store("c:\\tmp\\mapping.txt");
-    
-
     LOG_INFO << "Read " << mass_mappings_.size() << " entries from mapping file!" << std::endl;
 
     return;
@@ -1272,7 +1270,7 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::searchMass_(const double& neutral_query_mass, std::pair<Size, Size>& hit_indices)
+  void AccurateMassSearchEngine::searchMass_(const double& neutral_query_mass, std::pair<Size, Size>& hit_indices) const
   {
     double diff_mz;
     // check if mass error window is given in ppm or Da
@@ -1293,8 +1291,8 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There are no entries found in mass-to-ids mapping file! Aborting... ", "0");
     }
 
-    std::vector<MappingEntry_>::iterator lower_it = std::lower_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass - diff_mz, CompareEntryAndMass_()); // first element equal or larger
-    std::vector<MappingEntry_>::iterator upper_it = std::upper_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass + diff_mz, CompareEntryAndMass_()); // first element greater than
+    std::vector<MappingEntry_>::const_iterator lower_it = std::lower_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass - diff_mz, CompareEntryAndMass_()); // first element equal or larger
+    std::vector<MappingEntry_>::const_iterator upper_it = std::upper_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass + diff_mz, CompareEntryAndMass_()); // first element greater than
 
     //std::cout << *lower_it << " " << *upper_it << "idx: " << lower_it - masskey_table_.begin() << " " << upper_it - masskey_table_.begin() << std::endl;
     Size start_idx = std::distance(mass_mappings_.begin(), lower_it);
@@ -1317,7 +1315,7 @@ namespace OpenMS
     return;
   }
 
-  double AccurateMassSearchEngine::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y)
+  double AccurateMassSearchEngine::computeCosineSim_( const std::vector<double>& x, const std::vector<double>& y ) const
   {
     if (x.size() != y.size())
     {
@@ -1341,7 +1339,7 @@ namespace OpenMS
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  double AccurateMassSearchEngine::computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y)
+  double AccurateMassSearchEngine::computeEuclideanDist_( const std::vector<double>& x, const std::vector<double>& y ) const
   {
     if (x.size() != y.size())
     {
@@ -1358,7 +1356,7 @@ namespace OpenMS
     return std::sqrt(sum_of_squares);
   }
 
-  double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form)
+  double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const
   {
     Size num_traces = (Size)feat.getMetaValue("num_of_masstraces");
     const Size MAX_THEORET_ISOS(5);

@@ -174,21 +174,21 @@ public:
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
 
        */
-    void queryByMass(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results);
-    void queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results);
-    void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results);
+    void queryByMass(const double& observed_mass, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
-    void run(FeatureMap<>&, MzTab&);
+    void run(FeatureMap<>&, MzTab&) const;
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
-    void run(ConsensusMap&, MzTab&);
+    /// @note Call init() before calling run!
+    void run(ConsensusMap&, MzTab&) const;
 
-    /// the internal ion-mode used depending on annotation of input data if "ion_mode" was set to 'auto'
-    /// if run() was not called yet, this will be identical to 'ion_mode', i.e. 'auto' will no be resolved yet
-    const String& getInternalIonMode();
+    /// parse database and adduct files
+    void init();
 
 protected:
     virtual void updateMembers_();
@@ -197,47 +197,49 @@ private:
     /// private member functions
 
     /// if ion-mode is auto, this will set the internal mode according to input data
-    template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map)
+    /// @throw InvalidParameter if ion mode cannot be resolved
+    template <typename MAPTYPE> String resolveAutoMode_(const MAPTYPE& map) const
     {
-       String ion_mode_detect_msg = "";
-       if (map.size() > 0)
-       {
-         if (map[0].metaValueExists("scan_polarity"))
-         {
-           StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
-           if (pols.size() == 1 && pols[0].size() > 0)
-           {
-              pols[0].toLower();
-              if (pols[0] == "positive" || pols[0] == "negative")
-              {
-                ion_mode_internal_ = pols[0];
-                LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal_ << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
-              }
-              else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
-           }
-           else
-           {
-             ion_mode_detect_msg = String("ambiguous ion mode: ") + String(map[0].getMetaValue("scan_polarity"));
-           }
-         }
-         else
-         {
-           ion_mode_detect_msg = String("Meta value 'scan_polarity' not found in (Consensus-)Feature map");
-         }
-       }
-       else
-       { // do nothing, since map is
-         LOG_INFO << "Meta value 'scan_polarity' cannot be determined since (Consensus-)Feature map is empty!" << std::endl;
-       }
+      String ion_mode_internal;
+      String ion_mode_detect_msg = "";
+      if (map.size() > 0)
+      {
+        if (map[0].metaValueExists("scan_polarity"))
+        {
+          StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
+          if (pols.size() == 1 && pols[0].size() > 0)
+          {
+            pols[0].toLower();
+            if (pols[0] == "positive" || pols[0] == "negative")
+            {
+              ion_mode_internal = pols[0];
+              LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
+            }
+            else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
+          }
+          else
+          {
+            ion_mode_detect_msg = String("ambiguous ion mode: ") + String(map[0].getMetaValue("scan_polarity"));
+          }
+        }
+        else
+        {
+          ion_mode_detect_msg = String("Meta value 'scan_polarity' not found in (Consensus-)Feature map");
+        }
+      }
+      else
+      { // do nothing, since map is
+        LOG_INFO << "Meta value 'scan_polarity' cannot be determined since (Consensus-)Feature map is empty!" << std::endl;
+      }
 
-       if (ion_mode_detect_msg.size() > 0)
-       {
-         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
-       }
+      if (ion_mode_detect_msg.size() > 0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
+      }
+
+      return ion_mode_internal;
     }
 
-    /// parse database and adduct files
-    void init_();
 
     class OPENMS_DLLAPI AdductInfo_
     {
@@ -279,18 +281,18 @@ private:
     void parseMappingFile_(const String&);
     void parseStructMappingFile_(const String&);
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo_>& result);
-    void searchMass_(const double&, std::pair<Size, Size>& hit_indices);
+    void searchMass_(const double& neutral_query_mass, std::pair<Size, Size>& hit_indices) const;
 
     /// add search results to a Consensus/Feature
-    void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&);
+    void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
 
-    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y);
-    double computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y);
-    double computeIsotopePatternSimilarity_(const Feature&, const EmpiricalFormula&);
+    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
+    double computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y) const;
+    double computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const;
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
-    void exportMzTab_(const QueryResultsTable&, MzTab&);
+    void exportMzTab_(const QueryResultsTable& overall_results, MzTab& mztab_out) const;
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;
@@ -325,7 +327,6 @@ private:
 
     HMDBPropsMapping hmdb_properties_mapping_;
 
-    String ion_mode_internal_;
     bool is_initialized_; //< true if init_() was called without any subsequent param changes
 
     /// parameter stuff

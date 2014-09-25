@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
-// $Authors: Erhan Kenar $
+// $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -95,12 +95,12 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-        registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
+        registerInputFileList_("in", "<file>", StringList(), "featureXML or consensusXML file(s); a list can contain mixed file types");
         setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
-        registerOutputFile_("out", "<file>", "", "mzTab file");
+        registerOutputFileList_("out", "<file>", StringList(), "mzTab file(s)");
         setValidFormats_("out", ListUtils::create<String>("csv"));
 
-        registerOutputFile_("out_annotation", "<file>", "", "The input file, annotated with matching hits from the database.", false);
+        registerOutputFileList_("out_annotation", "<file>", StringList(), "A copy of the input file(s), annotated with matching hits from the database.", false);
         setValidFormats_("out_annotation", ListUtils::create<String>("featureXML,consensusXML"));
 
 
@@ -139,8 +139,21 @@ protected:
         // parameter handling
         //-------------------------------------------------------------
 
-        String in = getStringOption_("in");
-        String out = getStringOption_("out");
+        StringList in = getStringList_("in");
+        StringList out = getStringList_("out");
+        StringList file_ann = getStringList_("out_annotation");
+
+        // check length of lists
+        if (in.size() != out.size())
+        {
+          LOG_ERROR << "Length of input and output list do not match (" << in.size() << " != " << out.size() << ")! Aborting!" << std::endl;
+          return ILLEGAL_PARAMETERS;
+        }
+        if (file_ann.size() > 0 && in.size() != file_ann.size())
+        {
+          LOG_ERROR << "Length of input and output annotation list do not match (" << in.size() << " != " << out.size() << ")! Match the size or leave 'out_annotation' empty! Aborting!" << std::endl;
+          return ILLEGAL_PARAMETERS;
+        }
 
         Param ams_param = getParam_().copy("algorithm:", true);
         // copy top-level params to algorithm
@@ -155,21 +168,26 @@ protected:
         // mzTAB output data structure
         MzTab mztab_output;
         MzTabFile mztab_outfile;
-
-        FileTypes::Type filetype = FileHandler::getType(in);
-
-        String file_ann = getStringOption_("out_annotation");
-
-        if (filetype == FileTypes::FEATUREXML)
+        
+        AccurateMassSearchEngine ams;
+        ams.setParameters(ams_param);
+        ams.init();
+        
+        #ifdef _OPENMP
+        #pragma omp parallel for
+        #endif
+        for (SignedSize i = 0; i < (SignedSize)in.size(); ++i)
         {
+          FileTypes::Type filetype = FileHandler::getType(in[i]);
+
+          if (filetype == FileTypes::FEATUREXML)
+          {
             FeatureMap<> ms_feat_map;
-            FeatureXMLFile().load(in, ms_feat_map);
+            FeatureXMLFile().load(in[i], ms_feat_map);
 
             //-------------------------------------------------------------
             // do the work
             //-------------------------------------------------------------
-            AccurateMassSearchEngine ams;
-            ams.setParameters(ams_param);
             ams.run(ms_feat_map, mztab_output);
 
             //-------------------------------------------------------------
@@ -179,22 +197,18 @@ protected:
             //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
             if (!file_ann.empty())
             {
-              FeatureXMLFile().store(file_ann, ms_feat_map);
+              FeatureXMLFile().store(file_ann[i], ms_feat_map);
             }
-        }
-        else if (filetype == FileTypes::CONSENSUSXML)
-        {
+          }
+          else if (filetype == FileTypes::CONSENSUSXML)
+          {
             ConsensusMap ms_cons_map;
 
-            ConsensusXMLFile().load(in, ms_cons_map);
+            ConsensusXMLFile().load(in[i], ms_cons_map);
 
             //-------------------------------------------------------------
             // do the work
             //-------------------------------------------------------------
-
-            AccurateMassSearchEngine ams;
-            ams.setParameters(ams_param);
-
             ams.run(ms_cons_map, mztab_output);
 
             //-------------------------------------------------------------
@@ -205,11 +219,13 @@ protected:
             //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
             if (!file_ann.empty())
             {
-              ConsensusXMLFile().store(file_ann, ms_cons_map);
+              ConsensusXMLFile().store(file_ann[i], ms_cons_map);
             }
-        }
+          }
 
-        mztab_outfile.store(out, mztab_output);
+          mztab_outfile.store(out[i], mztab_output);
+        }
+        
 
         return EXECUTION_OK;
     }
