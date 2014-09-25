@@ -280,7 +280,6 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 	regex_list.push_back("%  9\\.");
 	regex_list.push_back(" 10\\.");
 
-	int pos(0);
 	for (Size i=0;i<regex_list.size();++i)
   {
     boost::regex rx(regex_list[i].c_str());
@@ -338,7 +337,6 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
   // QRegExp rx2(other_stream_regex.c_str());
   // QRegExpValidator v2(rx2, 0);
 
-	int pos(0);
 	for (Size i=0;i<regex_list.size();++i)
 	{
     boost::regex rx(regex_list[i].c_str());
@@ -412,7 +410,6 @@ START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
   TEST_EQUAL(to_validate_list.size(),3)
 
-  int pos(0);
   boost::regex rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
@@ -501,7 +498,6 @@ START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
   TEST_EQUAL(to_validate_list.size(),3)
 
-  int pos(0);
   boost::regex rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {

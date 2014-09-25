@@ -117,9 +117,6 @@ START_SECTION((void configure(const Param &param)))
   TEST_EQUAL(info_warn_result.size() , 3)
 
   // check output with regex
-
-  int pos(0);
-
   String pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] ");
   boost::regex rx(pattern);
 
@@ -165,8 +162,6 @@ START_SECTION((ostream& getStream(const String &stream_name)))
   TEST_EQUAL(info_result.size() , 1)
 
   // check if everything landed in the stream we wanted
-  int pos(0);
-
   String pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] getStream 1");
   boost::regex rx(pattern);
   TEST_EQUAL(regex_match(info_result[0], rx), true)
