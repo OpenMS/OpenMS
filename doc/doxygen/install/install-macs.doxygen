@@ -124,14 +124,14 @@ cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang ~/openms-developme
   # tap the science tap
   brew tap homebrew/science
   brew tap homebrew/versions
-  brew install seqan libsvm xerces-c boost gsl114 coinmp glpk
+  brew install seqan libsvm xerces-c boost coinmp glpk eigen
 \endcode
 
   For macports the following sequence of commands installs some of the
   libraries required by %OpenMS.
 
 \code
-  sudo port install libsvm xercesc3 boost glpk
+  sudo port install libsvm xercesc3 boost glpk eigen3
 \endcode
 
  The rest needs to be installed via the contrib.
@@ -142,8 +142,8 @@ cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang ~/openms-developme
   mkdir contrib-build
   cd contrib-build
   cmake -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_C_COMPILER=clang -D BUILD_TYPE=SEQAN ~/openms-development/contrib
-  cmake -D BUILD_TYPE=GSL .
   cmake -D BUILD_TYPE=COINOR .
+  cmake -D BUILD_TYPE=WILDMAGIC .
 \endcode
 
 <HR>
