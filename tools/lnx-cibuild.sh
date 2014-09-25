@@ -37,7 +37,7 @@ if [ "${ENABLE_UNITYBUILD}" = "On" ]; then
 fi
 
 # add unity to build name if requested
-if [ "${WITH_GUI}" = "On" ]; then
+if [ "${WITH_GUI}" = "Off" ]; then
   _build_name=${_build_name}"-no-gui"
 fi
 
