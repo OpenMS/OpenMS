@@ -28,76 +28,69 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
-// $Authors: Hendrik Weisser, Stephan Aiche $
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H
+#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H
 
-///////////////////////////
+#include <OpenMS/config.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 
-///////////////////////////
-
-START_TEST(TransformationModel, "$Id$")
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-
-using namespace OpenMS;
-using namespace std;
-
-TransformationModel* ptr = 0;
-TransformationModel* nullPointer = 0;
-START_SECTION((TransformationModel()))
+namespace OpenMS
 {
-  ptr = new TransformationModel();
-  TEST_NOT_EQUAL(ptr, nullPointer)
-}
-END_SECTION
 
-START_SECTION((TransformationModel(const DataPoints &, const Param &)))
-{
-  ptr = new TransformationModel(TransformationModel::DataPoints(), Param());
-  TEST_NOT_EQUAL(ptr, nullPointer)
-}
-END_SECTION
+  /**
+    @brief Linear model for transformations
 
-START_SECTION((~TransformationModel()))
-{
-  delete ptr;
-}
-END_SECTION
+    The model can be inferred from data or specified using explicit parameters. If data is given, a least squares fit is used to find the model parameters (slope and intercept). Depending on parameter @p symmetric_regression, a normal regression (@e y on @e x) or symmetric regression (@f$ y - x @f$ on @f$ y + x @f$) is performed.
 
-START_SECTION((virtual double evaluate(const double value) const))
-{
-  // null model (identity):
-  TransformationModel tm;
-  TEST_REAL_SIMILAR(tm.evaluate(-3.14159), -3.14159);
-  TEST_REAL_SIMILAR(tm.evaluate(0.0), 0.0);
-  TEST_REAL_SIMILAR(tm.evaluate(12345678.9), 12345678.9);
-}
-END_SECTION
+    Without data, the model can be specified by giving the parameters @p slope and @p intercept explicitly.
 
-START_SECTION((void getParameters(Param & params) const))
-{
-  TransformationModel tm;
-  Param p = tm.getParameters();
-  TEST_EQUAL(p.empty(), true)
-}
-END_SECTION
+    @ingroup MapAlignment
+  */
+  class OPENMS_DLLAPI TransformationModelLinear :
+    public TransformationModel
+  {
+public:
+    /**
+      @brief Constructor
 
-START_SECTION(([EXTRA] static void getDefaultParameters(Param & params)))
-{
-  Param param;
-  param.setValue("some-value", 12.3);
-  TransformationModel::getDefaultParameters(param);
-  TEST_EQUAL(param.empty(), true)
-}
-END_SECTION
+      @exception IllegalArgument is thrown if neither data points nor explicit parameters (slope/intercept) are given.
+    */
+    TransformationModelLinear(const DataPoints& data, const Param& params);
 
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-END_TEST
+    /// Destructor
+    ~TransformationModelLinear();
+
+    /// Evaluates the model at the given value
+    virtual double evaluate(const double value) const;
+
+    using TransformationModel::getParameters;
+
+    /// Gets the "real" parameters
+    void getParameters(double& slope, double& intercept) const;
+
+    /// Gets the default parameters
+    static void getDefaultParameters(Param& params);
+
+    /**
+     @brief Computes the inverse
+
+     @exception DivisionByZero is thrown if the slope is zero.
+    */
+    void invert();
+
+protected:
+    /// Parameters of the linear model
+    double slope_, intercept_;
+    /// Was the model estimated from data?
+    bool data_given_;
+    /// Use symmetric regression?
+    bool symmetric_;
+  };
+} // namespace
+
+#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H

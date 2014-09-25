@@ -71,7 +71,8 @@ using namespace std;
 
     Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
-    - @ref OpenMS::TransformationModelInterpolated "interpolated": Smoothing spline (non-linear).
+    - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
+    - @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
 
     The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
     @htmlinclude OpenMS_MapRTTransformerModel.parameters @n
@@ -116,12 +117,12 @@ protected:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & /* section */) const
+  Param getSubsectionDefaults_(const String& /* section */) const
   {
     return getModelDefaults("none");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -186,7 +187,7 @@ protected:
       {
         trafoxml.store(trafo_outs[i], trafo);
       }
-      if (!ins.empty())       // load input
+      if (!ins.empty()) // load input
       {
         String in_file = ins[i];
         FileTypes::Type in_type = FileHandler::getType(in_file);
@@ -241,7 +242,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapRTTransformer tool;
   return tool.main(argc, argv);
