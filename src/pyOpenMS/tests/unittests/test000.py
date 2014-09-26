@@ -3799,7 +3799,8 @@ def testTransformationModels():
                 pyopenms.TransformationModelInterpolated]:
         mod = clz()
         p = pyopenms.Param()
-        clz.getDefaultParameters(p)
+        mod.getDefaultParameters(p)
+
 
 @report
 def testTransformationXMLFile():
