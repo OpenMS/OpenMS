@@ -357,7 +357,7 @@ namespace OpenMS
       }
     }
 
-    os << "</PARAMETERS>\n"; // forces a flush
+    os << "</PARAMETERS>" << std::endl; // forces a flush
   }
 
   void ParamXMLFile::load(const String& filename, Param& param)
