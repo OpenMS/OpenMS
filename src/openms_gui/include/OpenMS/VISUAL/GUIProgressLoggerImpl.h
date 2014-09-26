@@ -35,6 +35,8 @@
 #ifndef OPENMS_VISUAL_GUIPROGRESSLOGGERIMPL_H
 #define OPENMS_VISUAL_GUIPROGRESSLOGGERIMPL_H
 
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 class QProgressDialog;
@@ -44,7 +46,7 @@ namespace OpenMS
   /**
     @brief Implements a GUI version of the ProgressLoggerImpl.
   */
-  class GUIProgressLoggerImpl :
+  class OPENMS_GUI_DLLAPI GUIProgressLoggerImpl :
     public ProgressLogger::ProgressLoggerImpl
   {
 public:
