@@ -21,3 +21,4 @@ cdef extern from "<OpenMS/FORMAT/MzIdentMLFile.h>" namespace "OpenMS":
         void store(String filename, Identification & id) nogil except +
         void store(String filename, libcpp_vector[ProteinIdentification] & poid, libcpp_vector[PeptideIdentification] & peid) nogil except +
         bool isSemanticallyValid(String filename, StringList errors, StringList warnings) nogil except +
+

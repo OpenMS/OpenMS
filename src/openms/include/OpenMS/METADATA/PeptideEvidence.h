@@ -65,12 +65,6 @@ public:
     /// default constructor
     PeptideEvidence();
 
-    /// values constructor
-    PeptideEvidence(double score,
-                    UInt rank,
-                    Int charge,
-                    const AASequence & sequence);
-
     /// copy constructor
     PeptideEvidence(const PeptideEvidence & source);
 
