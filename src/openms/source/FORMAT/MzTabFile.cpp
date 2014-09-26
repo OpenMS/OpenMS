@@ -1235,13 +1235,13 @@ namespace OpenMS
 
     if (meta_info_printed)
     {
-      output << "\n";
+      output << std::endl;
     }
 
     // write protein table header
     if (meta_info_printed)
     {
-      output << "\n";
+      output << std::endl;
     }
 
     // determine the number of sub samples in each run from protein ids (it is assumed that peptide ids don't introduce new sub sample categories)
@@ -1264,7 +1264,7 @@ namespace OpenMS
     }
 
     // write peptide header
-    output << "\n";
+    output << std::endl;
 
     writePeptideHeader_(output, map_run_to_n_subsamples);
 
@@ -1406,7 +1406,7 @@ namespace OpenMS
             }
           }
 
-          output << "\n";
+          output << std::endl;
 
         }
       }
@@ -1681,7 +1681,7 @@ namespace OpenMS
         String("peptide_abundance_std_error_sub[") + String(i) + String("]");
     }
 
-    output << "\n";
+    output << std::endl;
   }
 
   void MzTabFile::writeProteinHeader_(SVOutStream& output, std::map<String, Size> n_sub_samples)
@@ -1711,7 +1711,7 @@ namespace OpenMS
         String("protein_abundance_std_error_sub[") + String(i) + String("]");
     }
 
-    output << "\n";
+    output << std::endl;
   }
 
 // same as distinct but additional constraint of uniquenes (=maps to exactly one Protein)
@@ -1863,7 +1863,7 @@ namespace OpenMS
           output << abundancy_value;
         }
       }
-      output << "\n";
+      output << std::endl;
     }
   }
 
