@@ -148,8 +148,21 @@ namespace OpenMS
      */
     template <class PeakType>
     struct MassTraces :
-      public std::vector<MassTrace<PeakType> >
+      private std::vector<MassTrace<PeakType> >
     {
+      // public exports of used mehtods
+      using std::vector<MassTrace<PeakType> >::size;
+      using std::vector<MassTrace<PeakType> >::at;
+      using std::vector<MassTrace<PeakType> >::reserve;
+      using std::vector<MassTrace<PeakType> >::push_back;
+      using std::vector<MassTrace<PeakType> >::operator[];
+      using std::vector<MassTrace<PeakType> >::back;
+      using std::vector<MassTrace<PeakType> >::clear;
+      using std::vector<MassTrace<PeakType> >::begin;
+      using std::vector<MassTrace<PeakType> >::end;
+      using std::vector<MassTrace<PeakType> >::iterator;
+      using std::vector<MassTrace<PeakType> >::const_iterator;
+
       /// Constructor
       MassTraces() :
         max_trace(0)
@@ -187,7 +200,7 @@ namespace OpenMS
       /**
         @brief Returns the theoretical maximum trace index
 
-        @exception Exception::Precondition is thrown if there are not mass traces (not only in debug mode)
+        @exception Exception::Precondition is thrown if there are no mass traces (not only in debug mode)
       */
       Size getTheoreticalmaxPosition() const
       {
