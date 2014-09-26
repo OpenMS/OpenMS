@@ -169,7 +169,37 @@ START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
   TEST_REAL_SIMILAR(spectrum2.getNavigator().getNextMz(500.0), 419.2);
 END_SECTION
 
+std::vector<double> mz_short;
+std::vector<double> intensity_short;
+mz_short.push_back(416.3);
+mz_short.push_back(416.5);
+intensity_short.push_back(6.43);
+intensity_short.push_back(8.88);
 
+START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
+  // For 4 or fewer data points, a single SplinePackage is always generated disregarding the m/z spacing.
+  SplineSpectrum spline_2datapoints(mz_short, intensity_short);
+  TEST_EQUAL(spline_2datapoints.getSplineCount(), 1);
+END_SECTION
 
+mz_short.push_back(616.5);
+mz_short.push_back(616.7);
+intensity_short.push_back(398.41);
+intensity_short.push_back(8.02);
+
+START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
+  // For 4 or fewer data points, a single SplinePackage is always generated disregarding the m/z spacing.
+  SplineSpectrum spline_4datapoints(mz_short, intensity_short);
+  TEST_EQUAL(spline_4datapoints.getSplineCount(), 1);
+END_SECTION
+
+mz_short.push_back(616.95);
+intensity_short.push_back(7.71);
+
+START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
+  // For 5 or more data points, the data points can be split into multiple SplinePackages.
+  SplineSpectrum spline_5datapoints(mz_short, intensity_short);
+  TEST_EQUAL(spline_5datapoints.getSplineCount(), 2);
+END_SECTION
 
 END_TEST

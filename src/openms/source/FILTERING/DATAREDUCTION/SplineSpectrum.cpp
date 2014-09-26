@@ -153,7 +153,7 @@ namespace OpenMS
       {
         if (intensity_package.size() > 1)
         {
-          // Two or more data points in package. At least one of them will be non-zero since unnecessary zeros removed above.
+          // Two or more data points per package are required. At least one of them will be non-zero since unnecessary zeros removed above.
           packages_.push_back(SplinePackage(mz_package, intensity_package, scaling));
         }
         mz_package.clear();
