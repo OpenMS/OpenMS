@@ -28,75 +28,60 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef OPENMS_VISUAL_GUIPROGRESSLOGGERIMPL_H
+#define OPENMS_VISUAL_GUIPROGRESSLOGGERIMPL_H
 
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
-#include <OpenMS/CONCEPT/Factory.h>
 
-//Qt
-#include <QtGui/QApplication>
-#include <QMessageBox>
-#include <QFileOpenEvent>
+class QProgressDialog;
 
 namespace OpenMS
 {
-
-  QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) :
-    QApplication(argc, argv)
-  {
-    // register GUI ProgressLogger that can be used in GUI tools
-    Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
-  }
-
-  QApplicationTOPP::~QApplicationTOPP()
-  {
-  }
-
-  /*
-    @brief: Catch exceptions in Qt GUI applications, preventing ungraceful exit
-
-    Re-implementing QApplication::notify() to catch exception thrown in event handlers (which is most likely OpenMS code).
+  /**
+    @brief Implements a GUI version of the ProgressLoggerImpl.
   */
-  bool QApplicationTOPP::notify(QObject* rec, QEvent* ev)
+  class OPENMS_GUI_DLLAPI GUIProgressLoggerImpl :
+    public ProgressLogger::ProgressLoggerImpl
   {
-    // this is called quite often (whenever a signal is fired), so mind performance!
-    try
-    {
-      return QApplication::notify(rec, ev);
-    }
-    catch (Exception::BaseException& e)
-    {
-      String msg = String("Caught exception: '") + e.getName() + "' with message '" + e.getMessage() + "'";
-      LOG_ERROR << msg << "\n";
-      QMessageBox::warning(0, QString("Unexpected error occurred"), msg.toQString());
-      return false;
-      // we could also exit() here... but no for now
-    }
+public:
+    /// create new object (needed by Factory)
+    static ProgressLogger::ProgressLoggerImpl* create();
 
-    return false; // never reached, so return value does not matter
-  }
+    /// name of the model (needed by Factory)
+    static const String getProductName();
 
-  bool QApplicationTOPP::event(QEvent* event)
-  {
-    switch (event->type())
-    {
-    case QEvent::FileOpen:
-      emit fileOpen(static_cast<QFileOpenEvent*>(event)->file());
-      return true;
+    /// default c'tor.
+    GUIProgressLoggerImpl();
 
-    default:
-      return QApplication::event(event);
-    }
-  }
+    /**
+      @brief Implement ProgressLoggerImpl::startProgress().
+    */
+    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const;
 
+    /**
+      @brief Implement ProgressLoggerImpl::setProgress().
+    */
+    void setProgress(const SignedSize value, const int /* current_recursion_depth */) const;
+
+    /**
+      @brief Implement ProgressLoggerImpl::endProgress().
+    */
+    void endProgress(const int /* current_recursion_depth */) const;
+
+    /// d'tor
+    ~GUIProgressLoggerImpl();
+
+private:
+    mutable QProgressDialog* dlg_;
+    mutable SignedSize begin_;
+    mutable SignedSize end_;
+  };
 }
+
+#endif

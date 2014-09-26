@@ -45,7 +45,8 @@
 ///////////////////////////
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <QRegExpValidator>
+
+#include <boost/regex.hpp>
 
 // OpenMP support
 #ifdef _OPENMP
@@ -279,13 +280,10 @@ START_SECTION((void setPrefix(const std::string &prefix)))
 	regex_list.push_back("%  9\\.");
 	regex_list.push_back(" 10\\.");
 
-	int pos(0);
 	for (Size i=0;i<regex_list.size();++i)
   {
-		QRegExp rx(regex_list[i].c_str());
-		QRegExpValidator v(rx, 0);
-		QString to_validate = to_validate_list[i].toQString();
-		TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+    boost::regex rx(regex_list[i].c_str());
+    TEST_EQUAL(regex_match(to_validate_list[i], rx), true)
 	}
 }
 END_SECTION
@@ -335,19 +333,15 @@ START_SECTION((void setPrefix(const std::ostream &s, const std::string &prefix))
 	regex_list.push_back(" 10\\.");
 
 	String other_stream_regex = "BLABLA [ 1][0-9]\\.";
-	QRegExp rx2(other_stream_regex.c_str());
-	QRegExpValidator v2(rx2, 0);
+  boost::regex rx2(other_stream_regex);
+  // QRegExp rx2(other_stream_regex.c_str());
+  // QRegExpValidator v2(rx2, 0);
 
-	int pos(0);
 	for (Size i=0;i<regex_list.size();++i)
 	{
-		QRegExp rx(regex_list[i].c_str());
-		QRegExpValidator v(rx, 0);
-		QString to_validate = to_validate_list[i].toQString();
-		QString to_validate2 = to_validate_list2[i].toQString();
-		TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
-		TEST_EQUAL(v2.validate(to_validate2,pos)==QValidator::Acceptable, true)
-
+    boost::regex rx(regex_list[i].c_str());
+    TEST_EQUAL(regex_match(to_validate_list[i], rx), true)
+    TEST_EQUAL(regex_match(to_validate_list2[i], rx2), true)
 	}
 
 }
@@ -416,13 +410,10 @@ START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
   TEST_EQUAL(to_validate_list.size(),3)
 
-  int pos(0);
-  QRegExp rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
+  boost::regex rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
-    QString to_validate = to_validate_list[i].toQString();
-    QRegExpValidator v(rx, 0);
-    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+    TEST_EQUAL(regex_match(to_validate_list[i], rx), true)
   }
 }
 END_SECTION
@@ -507,14 +498,11 @@ START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
   StringList to_validate_list = ListUtils::create<String>(String(stream_by_logger.str()),'\n');
   TEST_EQUAL(to_validate_list.size(),3)
 
-  int pos(0);
-  QRegExp rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
+  boost::regex rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
     std::cerr << i << ":" << to_validate_list[i] << std::endl;
-    QString to_validate = to_validate_list[i].toQString();
-    QRegExpValidator v(rx, 0);
-    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+    TEST_EQUAL(regex_match(to_validate_list[i], rx), true)
   }
 }
 END_SECTION

@@ -39,6 +39,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
+#include <OpenMS/SYSTEM/StopWatch.h>
+
 using namespace std;
 //#define PIS_DEBUG
 //#undef PIS_DEBUG

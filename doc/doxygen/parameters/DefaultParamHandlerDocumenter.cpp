@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <fstream>
-#include <QtGui/QApplication>
 
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
@@ -134,9 +133,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSharedPeakCount.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
@@ -164,9 +160,18 @@
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
+
+// those are only added if GUI is enabled
+#ifdef WITH_GUI
+  #include <QtGui/QApplication>
+
+  #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+  #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
+  #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
+  #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
+  #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#endif
 
 using namespace std;
 using namespace OpenMS;
@@ -329,9 +334,6 @@ void writeParameters(const String & class_name, const Param & param, bool table_
 //**********************************************************************************
 int main(int argc, char ** argv)
 {
-  // some classes require a QApplication
-  QApplication app(argc, argv);
-
   //////////////////////////////////
   // Simple cases
   //////////////////////////////////
@@ -436,8 +438,6 @@ int main(int argc, char ** argv)
   DOCME(PILISModelGenerator);
   DOCME(FeatureGroupingAlgorithmIdentification);
   DOCME(OfflinePrecursorIonSelection);
-  DOCME(TOPPViewBase);
-  DOCME(TOPPASBase);
   DOCME(Fitter1D);
   DOCME(EGHModel);
   DOCME(EGHFitter1D);
@@ -463,9 +463,6 @@ int main(int argc, char ** argv)
   DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
-  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
-  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
-  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
   DOCME2(IonizationSimulation, IonizationSimulation(MutableSimRandomNumberGeneratorPtr()));
   DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()));
   DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()))
@@ -475,6 +472,20 @@ int main(int argc, char ** argv)
 
   DOCME2(IsobaricChannelExtractor, IsobaricChannelExtractor(new ItraqFourPlexQuantitationMethod()));
   DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));
+
+  // handle GUI documentation separately
+#ifdef WITH_GUI
+  // some classes require a QApplication
+  QApplication app(argc, argv);
+
+  DOCME(TOPPViewBase);
+  DOCME(TOPPASBase);
+
+  DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
+  DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
+  DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
+#endif
+
   return 0;
 }
 

@@ -45,6 +45,10 @@
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #endif
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
+
 namespace OpenMS
 {
 
@@ -194,6 +198,9 @@ void TestTOPPView::simulateClick_()
 
 void TestTOPPView::testGui()
 {
+  // register a GUI logger
+  Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+
 	TOPPViewBase tv;
 	tv.show();
 	QApplication::processEvents();

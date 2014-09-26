@@ -36,8 +36,20 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 namespace OpenMS
 {
+  ClusterFunctor * SingleLinkage::create()
+  {
+    return new SingleLinkage();
+  }
+
+  const String SingleLinkage::getProductName()
+  {
+    return "SingleLinkage";
+  }
+
   SingleLinkage::SingleLinkage() :
     ClusterFunctor(), ProgressLogger()
   {

@@ -16,11 +16,11 @@ _build_name="travis-ci-"$(cdashify ${TRAVIS_REPO_SLUG})"-"$(cdashify ${TRAVIS_BR
 
 # extend with specific information
 if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-  _build_name=${_build_name}"-"$(cdashify ${$TRAVIS_PULL_REQUEST})
-elif [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
-  _build_name=${_build_name}"-"$(cdashify ${$TRAVIS_COMMIT_RANGE})
+  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_PULL_REQUEST})
+elif [ "${TRAVIS_COMMIT_RANGE}" != "" ]; then
+  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_COMMIT_RANGE})
 else
-  _build_name=${_build_name}"-"$(cdashify ${$TRAVIS_COMMIT})
+  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_COMMIT})
 fi
 
 # append compiler info
@@ -36,11 +36,16 @@ if [ "${ENABLE_UNITYBUILD}" = "On" ]; then
   _build_name=${_build_name}"-unity-build"
 fi
 
+# add unity to build name if requested
+if [ "${WITH_GUI}" = "Off" ]; then
+  _build_name=${_build_name}"-no-gui"
+fi
+
 # we will use this in the cmake script
 export BUILD_NAME=${_build_name}
 
 # we need an X-server for building the documentation and some tests
-# se we start xvfb
+# so we start xvfb
 export DISPLAY=:99.0
 sh -e /etc/init.d/xvfb start
 
