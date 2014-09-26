@@ -164,8 +164,8 @@ START_SECTION((void getTerminalModificationsByDiffMonoMass(std::vector< String >
 	{
 		uniq_mods.insert(*it);
 	}
-	TEST_EQUAL(mods.size(), 16)
-	TEST_EQUAL(uniq_mods.size(), 16)
+	TEST_EQUAL(mods.size(), 18)
+	TEST_EQUAL(uniq_mods.size(), 18)
 	TEST_EQUAL(uniq_mods.find("Acetyl (N-term)") != uniq_mods.end(), true)
 
   // something exotic.. mods should return empty (without clearing it before)
