@@ -21,6 +21,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIs
 
         void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff) nogil except +
         void run() nogil except +
+        # MSSpectrum<PeakType> * createHRData(const UInt i)
+        # static FeatureFinderAlgorithm<PeakType, FeatureType> * create()
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>" namespace "OpenMS::FeatureFinderAlgorithmIsotopeWavelet<OpenMS::Peak1D,OpenMS::Feature>":
 

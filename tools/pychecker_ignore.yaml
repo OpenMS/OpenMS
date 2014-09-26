@@ -223,6 +223,8 @@ PyOpenMSChecker:
         - readChromatogramFast
     OpenMS::ParamXMLFile:
         - writeXMLToStream
+    OpenMS::XMLFile:
+        - isValid
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Iterators / Streams
@@ -251,6 +253,9 @@ PyOpenMSChecker:
         - getSignalToNoise
     OpenMS::Internal::XMLFile:
         - isValid
+    OpenMS::ConsensusFeature:
+        - getPositionRange
+        - getIntensityRange
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Others
@@ -285,6 +290,7 @@ PyOpenMSChecker:
     OpenMS::ConsensusMap:
         - swap
         - applyMemberFunction
+        - isMapConsistent
     OpenMS::Feature:
         - applyMemberFunction
         - getModelDescription
@@ -576,6 +582,7 @@ PyOpenMSChecker:
     # Do not expose List, String and Utils methods - Python has better ones
     - OpenMS::String
     - OpenMS::StringUtils
+    - OpenMS::StringListUtils
     - OpenMS::ListUtils
 
     # External libraries
@@ -907,6 +914,8 @@ PyOpenMSChecker:
     - OpenMS::PoseClusteringShiftSuperimposer
     - OpenMS::Base64::Reinterpreter32_
     - OpenMS::Base64::Reinterpreter64_
+    - OpenMS::Base64::decodeSingleString
+    - OpenMS::BinnedSpectrum::getBins
     - OpenMS::ClusterFunctor
     - OpenMS::ClusterFunctor::InsufficientInput
     - OpenMS::CompNovoIdentificationBase
@@ -1028,7 +1037,6 @@ PyOpenMSChecker:
     - OpenMS::SpecArrayFile
     - OpenMS::PersistentObject
     - OpenMS::FastaIterator
-    - OpenMS::PepXMLFileMascot
     - OpenMS::MascotRemoteQuery
     - OpenMS::LibSVMEncoder
     - OpenMS::CsvFile
@@ -1119,6 +1127,7 @@ PyOpenMSChecker:
     - OpenMS::ConsoleUtils
     - TOPPRNPxl
     - OpenMS::OpenSwathWorkflow
+    - OpenMS::OpenSwathWindowLoader
     - OpenMS::OpenSwathWorkflow::ChromExtractParams
     - OpenMS::OpenSwathTSVWriter 
 

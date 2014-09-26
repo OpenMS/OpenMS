@@ -39,6 +39,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         void sortByOverallQuality() nogil except +
 
         void swap(FeatureMap[FeatureT] &) nogil except +
+        void swapFeaturesOnly(FeatureMap[FeatureT] swapfrom) nogil except +
         void clear() nogil except +
         void clear(bool clear_meta_data) nogil except +
 
