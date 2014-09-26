@@ -7,8 +7,10 @@ from Map cimport *
 cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
     
     cdef cppclass InspectInfile "OpenMS::InspectInfile":
+
         InspectInfile() nogil except +
         InspectInfile(InspectInfile) nogil except +
+
         bool operator==(InspectInfile & inspect_infile) nogil except +
         void store(String & filename) nogil except +
         void handlePTMs(String & modification_line, String & modifications_filename, bool monoisotopic) nogil except +
@@ -34,5 +36,6 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
         void setInstrument(String & instrument) nogil except +
         Int getTagCount() nogil except +
         void setTagCount(Int TagCount) nogil except +
+
         Map[ String, libcpp_vector[ String ] ]  getModifications() nogil except + # wrap-ignore
 

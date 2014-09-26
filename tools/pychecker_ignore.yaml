@@ -225,7 +225,7 @@ PyOpenMSChecker:
         - writeXMLToStream
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Iterators
+    # Iterators / Streams
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::IsotopeWaveletTransform:
         - MZBegin
@@ -249,6 +249,8 @@ PyOpenMSChecker:
     OpenMS::SignalToNoiseEstimator:
         - init
         - getSignalToNoise
+    OpenMS::Internal::XMLFile:
+        - isValid
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Others
@@ -630,7 +632,8 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzIdentMLValidator
     - OpenMS::Internal::MzIterator
     - OpenMS::Internal::MzMLHandler
-    - OpenMS::Internal::MzMLHandler::BinaryData
+    - OpenMS::Internal::MzMLHandlerHelper
+    - OpenMS::Internal::MzMLHandlerHelper::BinaryData
     - OpenMS::Internal::MzMLValidator
     - OpenMS::Internal::MzQuantMLHandler
     - OpenMS::Internal::MzQuantMLValidator
@@ -692,6 +695,9 @@ PyOpenMSChecker:
     - OpenMS::BigString
     - OpenMS::TOPPBase
     - OpenMS::TraceFitter
+
+    # Abstract Base classes
+    - OpenMS::MSDataWritingConsumer
 
     # Exception classes
     - OpenMS::Exception::BaseException
@@ -880,6 +886,7 @@ PyOpenMSChecker:
     - OpenMS::StopWatch
     - OpenMS::StopFileWatcher
     - OpenMS::FileWatcher
+    - OpenMS::MSDataTransformingConsumer # not really useful since it uses function pointers
 
     # prduces compile error
     - OpenMS::IsotopeWaveletTransform::TransSpectrum
@@ -1111,6 +1118,9 @@ PyOpenMSChecker:
     - RNPxlReportRowHeader
     - OpenMS::ConsoleUtils
     - TOPPRNPxl
+    - OpenMS::OpenSwathWorkflow
+    - OpenMS::OpenSwathWorkflow::ChromExtractParams
+    - OpenMS::OpenSwathTSVWriter 
 
     # Comparators of all sorts
     - OpenMS::ReverseComparator
