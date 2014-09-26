@@ -69,6 +69,7 @@ PILISModelTrainer
 PILISSpectraGenerator
 PTModel
 PTPredict
+PeakInvestigator
 PeakPickerHiRes
 PeakPickerWavelet
 PepNovoAdapter

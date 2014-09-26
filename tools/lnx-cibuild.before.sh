@@ -53,7 +53,9 @@ sudo apt-get install -qq  libboost-date-time1.54-dev \
                           libsvm-dev \
                           libsvm3 \
                           glpk \
-                          subversion
+                          subversion \
+                          libssh-4 \
+                          libssh-dev
 
 # install doxygen but not latex (saves some time)
 sudo apt-get install -qq \
