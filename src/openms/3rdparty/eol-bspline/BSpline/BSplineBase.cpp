@@ -23,6 +23,10 @@
 #include <map>
 #include <assert.h>
 
+
+namespace eol_bspline
+{
+
 /*
  * This class simulates a namespace for private symbols used by this template
  * implementation which should not pollute the global namespace.
@@ -651,3 +655,5 @@ template<class T> std::ostream &operator<<(std::ostream &out,
     out << std::endl;
     return out;
 }
+
+} // end namespace

@@ -34,9 +34,6 @@
 
 #include <OpenMS/FORMAT/MzTab.h>
 
-using namespace OpenMS;
-using namespace std;
-
 namespace OpenMS
 {
 

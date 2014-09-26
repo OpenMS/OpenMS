@@ -24,6 +24,9 @@
 #include <algorithm>
 #include <iostream>
 
+namespace eol_bspline
+{
+
 template <class T> class BandedMatrixRow;
 
 
@@ -369,6 +372,8 @@ int LU_solve_banded(const MT &A, Vector &b, unsigned int bands)
 
     return 0;
 }
+
+} // end namspace
 
 
 #endif /* _BANDEDMATRIX_ID */

@@ -20,6 +20,10 @@
 #include "BSplineBase.h"
 #include <vector>
 
+
+namespace eol_bspline
+{
+
 template <class T> struct BSplineP;
 
 
@@ -114,5 +118,7 @@ protected:
     T mean;			// Fit without mean and add it in later
 
 };
+
+} // end namespace
 
 #endif 

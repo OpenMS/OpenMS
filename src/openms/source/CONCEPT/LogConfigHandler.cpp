@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/StreamHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-using namespace OpenMS::Logger;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -123,7 +122,7 @@ namespace OpenMS
       StringList commands;
       iter->split(' ', commands, true);
 
-      LogStream & log = getLogStreamByName_(commands[0]);
+      Logger::LogStream & log = getLogStreamByName_(commands[0]);
 
       // convenience variables
       String & command = commands[1];
@@ -256,9 +255,9 @@ namespace OpenMS
     }
   }
 
-  LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
+  Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    LogStream * log = &Log_debug; // default
+    Logger::LogStream * log = &Log_debug; // default
 
     if (stream_name == "DEBUG")
     {
