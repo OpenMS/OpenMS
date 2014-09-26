@@ -108,6 +108,7 @@ public:
   }
 
 protected:
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
@@ -115,6 +116,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("exe", "<path>", "", "Path to the executable to use, or to the directory containing the 'Fido' and 'FidoChooseParameters' executables; may be empty if the executables are globally available.", false);
+    registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them");
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
@@ -133,25 +135,276 @@ protected:
     setMinFloat_("prob:spurious", 0.0);
   }
 
+  // write a PSM graph file for Fido based on the given peptide identifications;
+  // optionally only use IDs with given identifier (filter by protein ID run):
+  void writePSMGraph_(vector<PeptideIdentification>& peptides, 
+                      const String& out_path, const String& identifier="")
+  {
+    ofstream graph_out(out_path.c_str());
+    bool warned_once = false;
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+         pep_it != peptides.end(); ++pep_it)
+    {
+      if ((!identifier.empty() && (pep_it->getIdentifier() != identifier)) ||
+          (pep_it->getHits().empty()))
+      {
+        continue; 
+      }
+      pep_it->sort();
+      const PeptideHit& hit = pep_it->getHits()[0];
+      if (hit.getSequence().empty() || hit.getProteinAccessions().empty()) 
+      {
+        continue;
+      }
+      double score = hit.getScore();
+
+      String error_reason;
+      if (!pep_it->isHigherScoreBetter())
+      {
+        // workaround for important TOPP tools:
+        String score_type = pep_it->getScoreType();
+        score_type.toLower();
+        if ((score_type == "posterior error probability") || 
+            score_type.hasPrefix("consensus_"))
+        {
+          if (!warned_once)
+          {
+            LOG_WARN << "Warning: Scores of peptide hits seem to be posterior "
+              "error probabilities. Converting to (positive) posterior "
+              "probabilities." << endl;
+            warned_once = true;
+          }
+          score = 1.0 - score;
+        }
+        else error_reason = "lower scores are better";
+      }
+      else if (score < 0.0)
+      {
+        error_reason = "score < 0";
+      }
+      else if (score > 1.0)
+      {
+        error_reason = "score > 1";
+      }
+      if (!error_reason.empty())
+      {
+        String msg = "Error: Unsuitable score type for peptide-spectrum "
+          "matches detected (problem: " + error_reason + ").\nFido requires "
+          "probabilities as scores, e.g. as produced by "
+          "IDPosteriorErrorProbability with the 'prob_correct' option.";
+        LOG_ERROR << msg << endl;
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            __PRETTY_FUNCTION__, msg);
+      }
+
+      graph_out << "e " << hit.getSequence() << endl;
+      for (vector<String>::const_iterator acc_it = 
+             hit.getProteinAccessions().begin(); acc_it != 
+             hit.getProteinAccessions().end(); ++acc_it)
+      {
+        graph_out << "r " << *acc_it << endl;
+      }
+      graph_out << "p " << score << endl;
+    }
+    graph_out.close();
+  }
+
+
+  // write the list of target and decoy proteins for Fido:
+  void writeProteinLists_(const ProteinIdentification& protein, 
+                          const String& out_path)
+  {
+    // gather protein target/decoy data:
+    set<String> targets, decoys;
+    for (vector<ProteinHit>::const_iterator hit_it = protein.getHits().begin();
+         hit_it != protein.getHits().end(); ++hit_it)
+    {
+      String target_decoy = hit_it->getMetaValue("target_decoy").toString();
+      if (target_decoy == "target")
+      {
+        targets.insert(hit_it->getAccession());
+      }
+      else if (target_decoy == "decoy")
+      {
+        decoys.insert(hit_it->getAccession());
+      }
+      else
+      {
+        String msg = "Error: All protein hits must be annotated with target/"
+          "decoy meta data. Run PeptideIndexer with the 'annotate_proteins' "
+          "option to accomplish this.";
+        LOG_ERROR << msg << endl;
+        throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                            __PRETTY_FUNCTION__, msg);
+      }
+    }
+
+    if (targets.empty())
+    {
+      String msg = "Error: No target proteins found. Fido needs both targets "
+        "and decoys.";
+      LOG_ERROR << msg << endl;
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+    if (decoys.empty())
+    {
+      String msg = "Error: No decoy proteins found. Fido needs both targets "
+        "and decoys.";
+      LOG_ERROR << msg << endl;
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+
+    // write sets to file:
+    ofstream proteins_out(out_path.c_str());
+    proteins_out << "{ ";
+    for (set<String>::iterator it = targets.begin(); it != targets.end(); ++it)
+    {
+      if (it != targets.begin()) proteins_out << " , ";
+      proteins_out << *it;
+    }
+    proteins_out << " }\n{ ";
+    for (set<String>::iterator it = decoys.begin(); it != decoys.end(); ++it)
+    {
+      if (it != decoys.begin()) proteins_out << " , ";
+      proteins_out << *it;
+    }
+    proteins_out << " }" << endl;
+    proteins_out.close();
+  }
+
+
+  // run Fido(ChooseParameters) and read output:
+  bool runFido_(ProteinIdentification& protein, 
+                vector<PeptideIdentification>& peptides, bool choose_params,
+                const String& exe, QStringList& fido_params, 
+                double& prob_protein, double& prob_peptide, 
+                double& prob_spurious, const String& temp_dir, Size counter=0)
+  {
+    LOG_INFO << "Generating temporary files for Fido..." << endl;
+    String num = counter ? "." + String(counter) : "";
+    String input_graph = temp_dir + "fido_input_graph" + num + ".txt";
+    fido_params.replaceInStrings("INPUT_GRAPH", input_graph.toQString());
+    writePSMGraph_(peptides, input_graph, protein.getIdentifier());
+    if (choose_params)
+    {
+      String input_proteins = temp_dir + "fido_input_proteins" + num + ".txt";
+      fido_params.replaceInStrings("INPUT_PROTEINS", 
+                                   input_proteins.toQString());
+      writeProteinLists_(protein, input_proteins);
+      LOG_INFO << "Running Fido with parameter estimation..." << endl;
+    }
+    else LOG_INFO << "Running Fido with fixed parameters..." << endl;
+
+    QProcess fido;
+    fido.start(exe.toQString(), fido_params);
+
+    if (!fido.waitForFinished(-1))
+    {
+      String cmd = exe + " \"" + String(fido_params.join("\" \"")) + "\"";
+      LOG_ERROR << "Fatal error running Fido (command: '" + cmd + "').\n"
+                << "Does the Fido executable exist?" << endl;
+      return false;
+    }
+
+    // success! parse output:
+    vector<String> lines;
+    if (choose_params) // get relevant parts of parameter search output
+    {
+      String params_output = QString(fido.readAllStandardError());
+      LOG_INFO << "Fido parameter search:" << endl;
+      if (debug_level_ > 1)
+      {
+        String output_status = temp_dir + "fido_status" + num + ".txt";
+        ofstream status(output_status.c_str());
+        status << params_output;
+        status.close();
+      }
+      params_output.split("\n", lines);
+      vector<String>::iterator pos = remove(lines.begin(), lines.end(), "");
+      lines.erase(pos, lines.end());
+      if (!lines.empty())
+      {
+        if (lines[0].hasPrefix("Warning:")) LOG_WARN << lines[0] << endl;
+        if (lines.back().hasPrefix("Using best gamma, alpha, beta ="))
+        {
+          LOG_INFO << lines.back() << endl;
+          stringstream ss;
+          ss << lines.back().suffix('=');
+          ss >> prob_protein >> prob_peptide >> prob_spurious;
+        }
+      }
+    }
+
+    LOG_INFO << "Parsing Fido results and writing output..." << endl;
+    String output = QString(fido.readAllStandardOutput());
+    if (debug_level_ > 1)
+    {
+      String output_result = temp_dir + "fido_output" + num + ".txt";
+      ofstream results(output_result.c_str());
+      results << output;
+      results.close();
+    }
+    output.split("\n", lines);
+
+    Size protein_counter = 0;
+    vector<ProteinIdentification::ProteinGroup> groups;
+    for (vector<String>::iterator line_it = lines.begin(); 
+         line_it != lines.end(); ++line_it)
+    {
+      // format of a line (example):
+      // 0.6788 { SW:TRP6_HUMAN , GP:AJ271067_1 , GP:AJ271068_1 }
+      istringstream line(*line_it);
+      ProteinIdentification::ProteinGroup group;
+      line >> group.probability;
+      // parse accessions (won't work if accessions can contain spaces!):
+      String accession;
+      line >> accession;
+      while (line)
+      {
+        if (accession.size() > 1) // skip braces and commas
+        {
+          group.accessions.push_back(accession);
+        }
+        line >> accession;
+      }
+      if (!group.accessions.empty())
+      {
+        protein_counter += group.accessions.size();
+        groups.push_back(group);
+      }
+    }
+    protein.getIndistinguishableProteins() = groups;
+    protein.setMetaValue("Fido_prob_protein", prob_protein);
+    protein.setMetaValue("Fido_prob_peptide", prob_peptide);
+    protein.setMetaValue("Fido_prob_spurious", prob_spurious);
+    LOG_INFO << "Inferred " << protein_counter << " proteins in "
+             << groups.size() << " groups." << endl;
+ 
+    return true;
+  }
+
 
   ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String exe = getStringOption_("exe");
+    bool separate_runs = getFlag_("separate_runs");
     double prob_protein = getDoubleOption_("prob:protein");
     double prob_peptide = getDoubleOption_("prob:peptide");
     double prob_spurious = getDoubleOption_("prob:spurious");
+    bool choose_params = ((prob_protein == 0.0) && (prob_peptide == 0.0) &&
+                          (prob_spurious == 0.0)); // use FidoChooseParameters?
 
 #if defined(OPENMS_WINDOWSPLATFORM)
     bool windows = true;
 #else
     bool windows = false;
 #endif
-    bool choose_params = ((prob_protein == 0.0) && (prob_peptide == 0.0) &&
-                          (prob_spurious == 0.0)); // use FidoChooseParameters
-    bool check_exe = true;
 
+    bool check_exe = true;
     if (exe.empty()) // expect executables in PATH
     {
       exe = choose_params ? "FidoChooseParameters" : "Fido";
@@ -191,282 +444,119 @@ protected:
                << "identification run. Protein inference results will be "
                << "written to the first run only." << endl;
     }
-
-    LOG_INFO << "Generating temporary files for Fido..." << endl;
-    String temp_directory = 
-      QDir::toNativeSeparators((File::getTempDirectory() + "/" + 
-                                File::getUniqueName() + "/").toQString());
+    
+    // create temporary directory:
+    String temp_dir = File::getTempDirectory() + "/" + File::getUniqueName() +
+      "/";
+    temp_dir = QDir::toNativeSeparators(temp_dir.toQString());
     {
       QDir d;
-      d.mkpath(temp_directory.toQString());
+      d.mkpath(temp_dir.toQString());
     }
 
-    String fido_input_graph = temp_directory + "fido_input_graph.txt";
-    String fido_input_proteins = temp_directory + "fido_input_proteins.txt";
-
-    // write PSM graph:
-    ofstream graph_out(fido_input_graph.c_str());
-    bool warned_once = false;
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
-    {
-      if (pep_it->getHits().empty()) continue;
-      pep_it->sort();
-      const PeptideHit& hit = pep_it->getHits()[0];
-      if (hit.getSequence().empty() || 
-          hit.getProteinAccessions().empty()) continue;
-      double score = hit.getScore();
-
-      String error_reason;
-      if (!pep_it->isHigherScoreBetter())
-      {
-        // workaround for important TOPP tools:
-        String score_type = pep_it->getScoreType();
-        score_type.toLower();
-        if ((score_type == "posterior error probability") || 
-            score_type.hasPrefix("consensus_"))
-        {
-          if (!warned_once)
-          {
-            LOG_WARN << "Warning: Scores of peptide hits seem to be posterior "
-              "error probabilities. Converting to (positive) posterior "
-              "probabilities." << endl;
-            warned_once = true;
-          }
-          score = 1.0 - score;
-        }
-        else error_reason = "lower scores are better";
-      }
-      else if (score < 0.0)
-      {
-        error_reason = "score < 0";
-      }
-      else if (score > 1.0)
-      {
-        error_reason = "score > 1";
-      }
-      if (!error_reason.empty())
-      {
-        String msg = "Error: Unsuitable score type for peptide-spectrum "
-          "matches detected (problem: " + error_reason + ").\nFido requires "
-          "probabilities as scores, e.g. as produced by "
-          "IDPosteriorErrorProbability with the 'prob_correct' option.";
-        LOG_ERROR << msg << endl;
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-
-      graph_out << "e " << hit.getSequence() << endl;
-      for (vector<String>::const_iterator acc_it = 
-             hit.getProteinAccessions().begin(); acc_it != 
-             hit.getProteinAccessions().end(); ++acc_it)
-      {
-        graph_out << "r " << *acc_it << endl;
-      }
-      graph_out << "p " << score << endl;
-    }
-    graph_out.close();
-
-    // gather protein target/decoy data:
-    set<String> targets, decoys;
-    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-         prot_it != proteins.end(); ++prot_it)
-    {
-      for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
-           hit_it != prot_it->getHits().end(); ++hit_it)
-      {
-        String target_decoy = hit_it->getMetaValue("target_decoy").toString();
-        if (target_decoy == "target")
-        {
-          targets.insert(hit_it->getAccession());
-        }
-        else if (target_decoy == "decoy")
-        {
-          decoys.insert(hit_it->getAccession());
-        }
-        else
-        {
-          String msg = "Error: All protein hits must be annotated with target/"
-            "decoy meta data. Run PeptideIndexer with the 'annotate_proteins' "
-            "option to accomplish this.";
-          LOG_ERROR << msg << endl;
-          return INCOMPATIBLE_INPUT_DATA;
-        }
-      }
-    }
-
-    if (targets.empty())
-    {
-      LOG_ERROR << "Error: No target proteins found. Fido needs both targets "
-        "and decoys." << endl;
-      return INCOMPATIBLE_INPUT_DATA;
-    }
-    if (decoys.empty())
-    {
-      LOG_ERROR << "Error: No decoy proteins found. Fido needs both targets "
-        "and decoys." << endl;
-      return INCOMPATIBLE_INPUT_DATA;
-    }
-
-    // write target/decoy protein sets:
-    ofstream proteins_out(fido_input_proteins.c_str());
-    proteins_out << "{ ";
-    for (set<String>::iterator it = targets.begin(); it != targets.end(); ++it)
-    {
-      if (it != targets.begin()) proteins_out << " , ";
-      proteins_out << *it;
-    }
-    proteins_out << " }\n{ ";
-    for (set<String>::iterator it = decoys.begin(); it != decoys.end(); ++it)
-    {
-      if (it != decoys.begin()) proteins_out << " , ";
-      proteins_out << *it;
-    }
-    proteins_out << " }" << endl;
-    proteins_out.close();
-
-    String with_what = (choose_params ? "with parameter estimation" : 
-                        "with fixed parameters");
-    LOG_INFO << "Running Fido " + with_what + "..." << endl;
-    // Fido parameters:
-    QStringList inputs;
+    // Fido parameters (use placeholders for paths - replace them later):
+    QStringList fido_params;
     Int log2_states = getIntOption_("log2_states");
     if (choose_params)
     {
-      if (getFlag_("no_cleanup")) inputs << "-p";
-      if (getFlag_("all_PSMs")) inputs << "-a";
-      if (getFlag_("group_level")) inputs << "-g";
+      if (getFlag_("no_cleanup")) fido_params << "-p";
+      if (getFlag_("all_PSMs")) fido_params << "-a";
+      if (getFlag_("group_level")) fido_params << "-g";
       String accuracy = getStringOption_("accuracy");
       if (!accuracy.empty())
       {
-        if (accuracy == "best") inputs << "-c 1";
-        else if (accuracy == "relaxed") inputs << "-c 2";
-        else if (accuracy == "sloppy") inputs << "-c 3";
+        if (accuracy == "best") fido_params << "-c 1";
+        else if (accuracy == "relaxed") fido_params << "-c 2";
+        else if (accuracy == "sloppy") fido_params << "-c 3";
       }
-      inputs << fido_input_graph.toQString() << fido_input_proteins.toQString();
+      fido_params << "INPUT_GRAPH" << "INPUT_PROTEINS";
       Int log2_states_precalc = getIntOption_("log2_states_precalc");
       if (log2_states_precalc)
       {
         if (!log2_states) log2_states = 18; // actual default value
-        inputs << QString::number(log2_states_precalc);
+        fido_params << QString::number(log2_states_precalc);
       }
     }
     else // run Fido only
     {
-      inputs << fido_input_graph.toQString() << QString::number(prob_protein)
-             << QString::number(prob_peptide) << QString::number(prob_spurious);
+      fido_params << "INPUT_GRAPH" << QString::number(prob_protein)
+                  << QString::number(prob_peptide) 
+                  << QString::number(prob_spurious);
     }
-    if (log2_states) inputs << QString::number(log2_states);
-    // run program and read output:
-    QProcess fido;
-    fido.start(exe.toQString(), inputs);
+    if (log2_states) fido_params << QString::number(log2_states);
 
-    ExitCodes exit_code = EXECUTION_OK;
-    if (!fido.waitForFinished(-1))
+    bool fido_success = false;
+    if (separate_runs)
     {
-      String msg = "Fatal error running Fido (command: '" + exe + " \"" + 
-        String(inputs.join("\" \"")) + "\"').\nDoes the Fido executable exist?";
-      LOG_ERROR << msg << endl;
-      exit_code = EXTERNAL_PROGRAM_ERROR;
+      Size counter = 1;
+      for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+           prot_it != proteins.end(); ++prot_it, ++counter)
+      {
+        LOG_INFO << "Protein identification run " << counter << ":" << endl;
+        fido_success = runFido_(*prot_it, peptides, choose_params, exe,
+                                fido_params, prob_protein, prob_peptide,
+                                prob_spurious, temp_dir, counter);
+      }
     }
-    else // success!
+    else
     {
-      vector<String> lines;
-
-      if (choose_params) // get relevant parts of parameter search output
+      if (proteins.size() > 1) // multiple ID runs
       {
-        String params_output = QString(fido.readAllStandardError());
-        LOG_INFO << "Fido parameter search:" << endl;
-        if (debug_level_ > 1)
+        ProteinIdentification all_proteins;
+        all_proteins.setSearchEngine("Fido");
+        all_proteins.setScoreType("Posterior Probability");
+        all_proteins.setHigherScoreBetter(true);
+        all_proteins.setDateTime(DateTime::now());
+        all_proteins.setIdentifier("");
+        for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+             prot_it != proteins.end(); ++prot_it)
         {
-          String fido_status = temp_directory + "fido_status.txt";
-          ofstream status(fido_status.c_str());
-          status << params_output;
-          status.close();
+          vector<ProteinHit>& all_hits = all_proteins.getHits();
+          all_hits.insert(all_hits.end(), prot_it->getHits().begin(),
+                          prot_it->getHits().end());
         }
-        params_output.split("\n", lines);
-        vector<String>::iterator pos = remove(lines.begin(), lines.end(), "");
-        lines.erase(pos, lines.end());
-        if (!lines.empty())
+        for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+             pep_it != peptides.end(); ++pep_it)
         {
-          if (lines[0].hasPrefix("Warning:")) LOG_WARN << lines[0] << endl;
-          if (lines.back().hasPrefix("Using best gamma, alpha, beta ="))
-          {
-            LOG_INFO << lines.back() << endl;
-            stringstream ss;
-            ss << lines.back().suffix('=');
-            ss >> prob_protein >> prob_peptide >> prob_spurious;
-          }
+          pep_it->setIdentifier("");
         }
-      }
 
-      LOG_INFO << "Parsing Fido results and writing output..." << endl;
-      String output = QString(fido.readAllStandardOutput());
-      if (debug_level_ > 1)
+        fido_success = runFido_(all_proteins, peptides, choose_params, exe, 
+                                fido_params, prob_protein, prob_peptide,
+                                prob_spurious, temp_dir);
+        proteins.clear();
+        proteins.push_back(all_proteins);
+      }
+      else
       {
-        String fido_output = temp_directory + "fido_output.txt";
-        ofstream results(fido_output.c_str());
-        results << output;
-        results.close();
+        fido_success = runFido_(proteins[0], peptides, choose_params, exe, 
+                                fido_params, prob_protein, prob_peptide,
+                                prob_spurious, temp_dir);
       }
-      output.split("\n", lines);
-
-      Int protein_counter = 0;
-      vector<ProteinIdentification::ProteinGroup> groups;
-      for (vector<String>::iterator line_it = lines.begin(); 
-           line_it != lines.end(); ++line_it)
-      {
-        // format of a line (example):
-        // 0.6788 { SW:TRP6_HUMAN , GP:AJ271067_1 , GP:AJ271068_1 }
-        istringstream line(*line_it);
-        ProteinIdentification::ProteinGroup group;
-        line >> group.probability;
-        // parse accessions (won't work if accessions can contain spaces!):
-        String accession;
-        line >> accession;
-        while (line)
-        {
-          if (accession.size() > 1) // skip braces and commas
-          {
-            group.accessions.push_back(accession);
-          }
-          line >> accession;
-        }
-        if (!group.accessions.empty())
-        {
-          protein_counter += group.accessions.size();
-          groups.push_back(group);
-        }
-      }
-      proteins[0].getIndistinguishableProteins() = groups;
-      proteins[0].setMetaValue("Fido_prob_protein", prob_protein);
-      proteins[0].setMetaValue("Fido_prob_peptide", prob_peptide);
-      proteins[0].setMetaValue("Fido_prob_spurious", prob_spurious);
-      LOG_INFO << "Inferred " << protein_counter << " proteins in "
-               << groups.size() << " groups." << endl;
-
-      // write output:
-      IdXMLFile().store(out, proteins, peptides);
     }
 
-    // clean up temporary files
+    // write output:
+    IdXMLFile().store(out, proteins, peptides);
+    
+    // clean up temporary files:
     if (debug_level_ > 1)
     {
-      LOG_DEBUG << "Keeping temporary files at '" << temp_directory
+      LOG_DEBUG << "Keeping temporary files at '" << temp_dir
                 << "'. Set debug level to 0 or 1 to remove them." << endl;
     }
     else
     {
       LOG_INFO << "Removing temporary files..." << endl;
-      File::removeDirRecursively(temp_directory);
+      File::removeDirRecursively(temp_dir);
       if (debug_level_ == 1)
       {
         String msg = "Set debug level to 2 or higher to keep temporary files "
-          "at '" + temp_directory + "'.";
+          "at '" + temp_dir + "'.";
         LOG_DEBUG << msg << endl;
       }
     }
 
-    return exit_code;
+    return fido_success ? EXECUTION_OK : EXTERNAL_PROGRAM_ERROR;
   }
 
 };
