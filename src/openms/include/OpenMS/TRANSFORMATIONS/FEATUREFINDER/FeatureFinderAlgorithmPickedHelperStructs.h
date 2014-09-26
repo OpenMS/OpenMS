@@ -150,18 +150,20 @@ namespace OpenMS
     struct MassTraces :
       private std::vector<MassTrace<PeakType> >
     {
+      typedef std::vector<MassTrace<PeakType> > privvec;
+
       // public exports of used mehtods
-      using std::vector<MassTrace<PeakType> >::size;
-      using std::vector<MassTrace<PeakType> >::at;
-      using std::vector<MassTrace<PeakType> >::reserve;
-      using std::vector<MassTrace<PeakType> >::push_back;
-      using std::vector<MassTrace<PeakType> >::operator[];
-      using std::vector<MassTrace<PeakType> >::back;
-      using std::vector<MassTrace<PeakType> >::clear;
-      using std::vector<MassTrace<PeakType> >::begin;
-      using std::vector<MassTrace<PeakType> >::end;
-      using std::vector<MassTrace<PeakType> >::iterator;
-      using std::vector<MassTrace<PeakType> >::const_iterator;
+      using privvec::size;
+      using privvec::at;
+      using privvec::reserve;
+      using privvec::push_back;
+      using privvec::operator[];
+      using privvec::back;
+      using privvec::clear;
+      using privvec::begin;
+      using privvec::end;
+      typedef typename privvec::iterator iterator;
+      typedef typename privvec::const_iterator const_iterator;
 
       /// Constructor
       MassTraces() :
