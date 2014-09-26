@@ -19,6 +19,9 @@
 #define _BSPLINEBASE_IFACE_ID "$Id: BSpline.h 6353 2008-05-05 19:30:48Z martinc $"
 #endif
 
+namespace eol_bspline
+{
+
 /**
  * @file
  *
@@ -331,5 +334,7 @@ protected:
 
     double Ratiod (int&, double &, double &);
 };
+
+} // end namespace
 
 #endif /*BSPLINEBASE_H_*/

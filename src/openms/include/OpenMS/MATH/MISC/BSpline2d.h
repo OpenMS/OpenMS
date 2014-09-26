@@ -41,8 +41,11 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 // forward declaration of impl class BSpline
+namespace eol_bspline
+{
 template <class T>
-struct BSpline;
+class BSpline;
+}
 
 namespace OpenMS
 {
@@ -141,7 +144,7 @@ private:
     // bspline implementation behind this pointer to avoid any dependency of the interface to the 
     // implementation. Thus, the eol splines are only required during compilation of OpenMS and 
     // not when linking against OpenMS.
-    BSpline<double>* spline_;
+    eol_bspline::BSpline<double>* spline_;
   };
 
 }

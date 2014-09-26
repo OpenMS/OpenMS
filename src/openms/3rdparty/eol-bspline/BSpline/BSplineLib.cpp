@@ -18,6 +18,10 @@
 #include "BSplineBase.cpp"
 #include "BSpline.cpp"
 
+
+namespace eol_bspline
+{
+
 /// Instantiate BSplineBase for a library
 template class  BSplineBase<double>;
 template class  BSplineBase<float>;
@@ -25,3 +29,5 @@ template class  BSplineBase<float>;
 /// Instantiate BSpline for a library
 template class BSpline<double>;
 template class BSpline<float>;
+
+} // end namespace
