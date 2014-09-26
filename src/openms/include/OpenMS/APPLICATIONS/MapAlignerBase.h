@@ -52,9 +52,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-using namespace OpenMS;
-using namespace std;
-
 //-------------------------------------------------------------
 // Doxygen docu
 //-------------------------------------------------------------
@@ -67,6 +64,9 @@ using namespace std;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+namespace OpenMS
+{
 
 class TOPPMapAlignerBase :
   public TOPPBase
@@ -455,6 +455,8 @@ protected:
   }
 
 };
+
+}
 
 /// @endcond
 

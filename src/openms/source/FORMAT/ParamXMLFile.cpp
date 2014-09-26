@@ -41,15 +41,12 @@
 #include <iostream>
 #include <set>
 
-using namespace OpenMS::Internal;
-using namespace std;
-
 namespace OpenMS
 {
 
   String writeXMLEscape(const String& to_escape)
   {
-    return XMLHandler::writeXMLEscape(to_escape);
+    return Internal::XMLHandler::writeXMLEscape(to_escape);
   }
 
   ParamXMLFile::ParamXMLFile() :
@@ -60,8 +57,8 @@ namespace OpenMS
   void ParamXMLFile::store(const String& filename, const Param& param) const
   {
     //open file
-    ofstream os_;
-    ostream* os_ptr;
+    std::ofstream os_;
+    std::ostream* os_ptr;
     if (filename != "-")
     {
       os_.open(filename.c_str(), std::ofstream::out);
@@ -82,13 +79,13 @@ namespace OpenMS
     os_.close();
   }
 
-  void ParamXMLFile::writeXMLToStream(ostream* os_ptr, const Param& param) const
+  void ParamXMLFile::writeXMLToStream(std::ostream* os_ptr, const Param& param) const
   {
     // hint: the handling of 'getTrace()' is vulnerable to an unpruned tree (a path of nodes, but no entries in them), i.e.
     //       too many closing tags are written to the INI file, but no openening ones.
     //       This currently cannot happen, as removeAll() was fixed to prune the tree, just keep it in mind.
 
-    ostream& os = *os_ptr;
+    std::ostream& os = *os_ptr;
 
     os.precision(writtenDigits<double>(0.0));
 
@@ -99,8 +96,8 @@ namespace OpenMS
     while (it != param.end())
     {
       //write opened/closed nodes
-      const vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
-      for (vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
+      const std::vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
+      for (std::vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
       {
         if (it2->opened) //opened node
         {
@@ -151,7 +148,7 @@ namespace OpenMS
           }
           else
           {
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"string\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << Internal::encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"string\"";
           }
           break;
 
@@ -218,7 +215,7 @@ namespace OpenMS
         if (!tag_list.empty())
         {
           String list;
-          for (set<String>::const_iterator tag_it = tag_list.begin(); tag_it != tag_list.end(); ++tag_it)
+          for (std::set<String>::const_iterator tag_it = tag_list.begin(); tag_it != tag_list.end(); ++tag_it)
           {
             if (!list.empty())
               list += ",";
@@ -234,8 +231,8 @@ namespace OpenMS
         case DataValue::INT_VALUE:
         case DataValue::INT_LIST:
         {
-          bool min_set = (it->min_int != -numeric_limits<Int>::max());
-          bool max_set = (it->max_int != numeric_limits<Int>::max());
+          bool min_set = (it->min_int != -std::numeric_limits<Int>::max());
+          bool max_set = (it->max_int != std::numeric_limits<Int>::max());
           if (max_set || min_set)
           {
             if (min_set)
@@ -254,8 +251,8 @@ namespace OpenMS
         case DataValue::DOUBLE_VALUE:
         case DataValue::DOUBLE_LIST:
         {
-          bool min_set = (it->min_float != -numeric_limits<double>::max());
-          bool max_set = (it->max_float != numeric_limits<double>::max());
+          bool min_set = (it->min_float != -std::numeric_limits<double>::max());
+          bool max_set = (it->max_float != std::numeric_limits<double>::max());
           if (max_set || min_set)
           {
             if (min_set)
@@ -310,7 +307,7 @@ namespace OpenMS
           const StringList& list = it->value;
           for (Size i = 0; i < list.size(); ++i)
           {
-            os << indentation << "  <LISTITEM value=\"" << encodeTab(writeXMLEscape(list[i])) << "\"/>" << "\n";
+            os << indentation << "  <LISTITEM value=\"" << Internal::encodeTab(writeXMLEscape(list[i])) << "\"/>" << "\n";
           }
           os << indentation << "</ITEMLIST>" << "\n";
         }
@@ -351,8 +348,8 @@ namespace OpenMS
     if (param.begin() != param.end())
     {
       //close remaining tags
-      const vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
-      for (vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
+      const std::vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
+      for (std::vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
       {
         Size ss = indentation.size();
         indentation.resize(ss - 2);
@@ -360,12 +357,12 @@ namespace OpenMS
       }
     }
 
-    os << "</PARAMETERS>" << endl; // forces a flush
+    os << "</PARAMETERS>\n"; // forces a flush
   }
 
   void ParamXMLFile::load(const String& filename, Param& param)
   {
-    ParamXMLHandler handler(param, filename, schema_version_);
+    Internal::ParamXMLHandler handler(param, filename, schema_version_);
     parse_(filename, &handler);
   }
 
