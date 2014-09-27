@@ -70,7 +70,7 @@ include(source/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/PeakInvestigator.cmake)
 
 #------------------------------------------------------------------------------
 # add the library
-openms_add_library(TARGET_NAME PeakInvestigator
+openms_add_library(TARGET_NAME PeakInvestigatorImpl
                    SOURCE_FILES ${PeakInvestigatorFiles}
                    HEADER_FILES ${PeakInvestigatorHeaders}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include 
