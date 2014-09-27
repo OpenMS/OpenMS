@@ -143,7 +143,7 @@ protected:
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
-      s = sout;  // todo: swap? (requires implementation)
+      s = sout; // todo: swap? (requires implementation)
     }
 
     void processChromatogram_(MapType::ChromatogramType & c)
@@ -182,14 +182,14 @@ protected:
     ///////////////////////////////////
     // Create the consumer object, add data processing
     ///////////////////////////////////
-    PPHiResMzMLConsumer pp_consumer(out, pp);
+    PPHiResMzMLConsumer pp_consumer(out_, pp);
     pp_consumer.addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
     ///////////////////////////////////
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
-    mz_data_file.transform(in, &pp_consumer);
+    mz_data_file.transform(in_, &pp_consumer);
 
     return EXECUTION_OK;
   }
@@ -200,8 +200,8 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
 
-    in = getStringOption_("in");
-    out = getStringOption_("out");
+    in_ = getStringOption_("in");
+    out_ = getStringOption_("out");
     String process_option = getStringOption_("processOption");
 
     Param pepi_param = getParam_().copy("algorithm:", true);
@@ -222,7 +222,7 @@ protected:
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
     MSExperiment<Peak1D> ms_exp_raw;
-    mz_data_file.load(in, ms_exp_raw);
+    mz_data_file.load(in_, ms_exp_raw);
 
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
     {
@@ -237,29 +237,8 @@ protected:
       writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
 
-    //check if spectra are sorted
-    for (Size i = 0; i < ms_exp_raw.size(); ++i)
-    {
-      if (!ms_exp_raw[i].isSorted())
-      {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-    }
-
-    //check if chromatograms are sorted
-    for (Size i = 0; i < ms_exp_raw.getChromatograms().size(); ++i)
-    {
-      if (!ms_exp_raw.getChromatogram(i).isSorted())
-      {
-        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
-        return INCOMPATIBLE_INPUT_DATA;
-      }
-    }
-
-
     //-------------------------------------------------------------
-    // pick
+    // peak picking
     //-------------------------------------------------------------
     MSExperiment<> ms_exp_peaks;
     pp.pickExperiment(ms_exp_raw, ms_exp_peaks);
@@ -269,14 +248,14 @@ protected:
     //-------------------------------------------------------------
     //annotate output with data processing info
     addDataProcessing_(ms_exp_peaks, getProcessingInfo_(DataProcessing::PEAK_PICKING));
-    mz_data_file.store(out, ms_exp_peaks);
+    mz_data_file.store(out_, ms_exp_peaks);
 
     return EXECUTION_OK;
   }
 
   // parameters
-  String in;
-  String out;
+  String in_;
+  String out_;
 };
 
 

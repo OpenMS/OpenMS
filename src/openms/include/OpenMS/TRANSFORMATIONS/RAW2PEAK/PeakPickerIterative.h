@@ -66,10 +66,10 @@ namespace OpenMS
   }
 
   /**
-  @brief This class implements a peak-picking algorithm for high-resolution MS
+  @brief This class implements a peak picking algorithm for high-resolution MS
   data (specifically designed for TOF-MS data).
 
-  This peak-picking algorithm detects ion signals in raw data and
+  This peak picking algorithm detects ion signals in raw data and
   reconstructs the corresponding peak shape by identifying the left and right
   borders of the peak. It reports the area under the peak as intensity and the
   weighted m/z values as the m/z value as well as left/right border.
@@ -88,8 +88,6 @@ namespace OpenMS
   So far, this peak picker was mainly tested on high resolution TOF-MS data.
 
   @htmlinclude OpenMS_PeakPickerIterative.parameters
-
-  @note The peaks must be sorted according to ascending m/z!
 
   @ingroup PeakPicking
 
@@ -299,7 +297,7 @@ public:
      * The output are the remaining peaks.
     */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
+    void pick(MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)
     {
       // don't pick a spectrum with less than 3 data points
       if (input.size() < 3) return;
@@ -400,7 +398,7 @@ public:
     }
 
     template <typename PeakType>
-    void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
+    void pickExperiment(MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
     {
       // make sure that output is clear
       output.clear(true);
