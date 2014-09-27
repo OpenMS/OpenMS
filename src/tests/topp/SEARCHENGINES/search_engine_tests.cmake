@@ -52,6 +52,10 @@ openms_check_tandem_version(${XTANDEM_BINARY} xtandem_valid)
 OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
 
 #------------------------------------------------------------------------------
+# Fido
+OPENMS_FINDBINARY(FIDO_BINARY "Fido" "FIDO")
+
+#------------------------------------------------------------------------------
 ## optional tests
 if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
   add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
@@ -85,6 +89,12 @@ if (NOT (${MYRIMATCH_BINARY} STREQUAL "MYRIMATCH_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_MyriMatchAdapter_2" PROPERTIES WILL_FAIL 1) ## has invalid charge range
 endif()
 
+#------------------------------------------------------------------------------
+if (NOT (${FIDO_BINARY} STREQUAL "FIDO_BINARY-NOTFOUND"))
+  add_test("TOPP_FidoAdapter_1" ${TOPP_BIN_PATH}/FidoAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/FidoAdapter_1.ini  -in ${DATA_DIR_TOPP}/SEARCHENGINES/FidoAdapter_1.idXML -out FidoAdapter_1_out.tmp -fido_executable "${FIDO_BINARY}")
+  add_test("TOPP_FidoAdapter_1_out" ${DIFF} -in1 FidoAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/FidoAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+  set_tests_properties("TOPP_FidoAdapter_1_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_1")
+endif()
 
 # TODO the following tests are waiting for better implementations of InspectAdapter and associated classes
 #add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/InspectAdapter.out -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -out InspectAdapter_4_output.tmp -inspect_out)
