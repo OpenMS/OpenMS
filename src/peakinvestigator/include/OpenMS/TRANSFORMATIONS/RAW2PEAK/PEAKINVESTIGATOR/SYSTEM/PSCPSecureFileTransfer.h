@@ -39,12 +39,14 @@
 #include <QtCore/QProcess>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include "AbstractSecureFileTransfer.h"
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/PeakInvestigatorImplConfig.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/SYSTEM/AbstractSecureFileTransfer.h>
 
 namespace OpenMS
 {
 
-  class PSCPSecureFileTransfer : public AbstractSecureFileTransfer
+  class PEAKINVESTIGATORIMPL_DLLAPI PSCPSecureFileTransfer 
+      : public AbstractSecureFileTransfer
   {
     public:
       PSCPSecureFileTransfer();

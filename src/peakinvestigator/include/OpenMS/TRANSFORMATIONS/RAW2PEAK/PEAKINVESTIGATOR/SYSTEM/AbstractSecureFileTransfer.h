@@ -37,11 +37,12 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKINVESTIGATOR_SYSTEM_ABSTRACTSECUREFILETRANSFER_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/PeakInvestigatorImplConfig.h>
 
 namespace OpenMS
 {
 
-  class AbstractSecureFileTransfer
+  class PEAKINVESTIGATORIMPL_DLLAPI AbstractSecureFileTransfer
   {
     public:
       AbstractSecureFileTransfer();

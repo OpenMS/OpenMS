@@ -41,12 +41,13 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
-#include "AbstractSecureFileTransfer.h"
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/PeakInvestigatorImplConfig.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/SYSTEM/AbstractSecureFileTransfer.h>
 
 namespace OpenMS
 {
-  class LibSSH2SecureFileTransfer : public AbstractSecureFileTransfer, public ProgressLogger
+  class PEAKINVESTIGATORIMPL_DLLAPI LibSSH2SecureFileTransfer 
+      : public AbstractSecureFileTransfer, public ProgressLogger
   {
     public:
       LibSSH2SecureFileTransfer();

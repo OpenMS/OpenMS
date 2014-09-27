@@ -41,6 +41,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/PeakInvestigatorImplConfig.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/FORMAT/TarFile.h>
 
 #include <QtNetwork/QNetworkAccessManager>
@@ -108,7 +109,7 @@ namespace OpenMS
     @ingroup PeakPicking
   */
 
-  class OPENMS_DLLAPI PeakInvestigator :
+  class PEAKINVESTIGATORIMPL_DLLAPI PeakInvestigator :
     public QObject,
     public DefaultParamHandler,
     public ProgressLogger

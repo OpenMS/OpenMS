@@ -37,12 +37,13 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/PeakInvestigatorImplConfig.h>
 
 class QBuffer;
 
 namespace OpenMS
 {
-  class OPENMS_DLLAPI TarFile :
+  class PEAKINVESTIGATORIMPL_DLLAPI TarFile :
       public ProgressLogger
   {
     public:
