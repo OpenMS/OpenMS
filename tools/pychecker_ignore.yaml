@@ -368,26 +368,12 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Raw pointers
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
-    OpenMS::EmpiricalFormula:
-        - getElement
-        - getElement
-        - getElementDB
-    OpenMS::ElementDB:
-        - getInstance
-        - getNames
-        - getSymbols
-        - getAtomicNumbers
-        - getElement
-        - getElement
-        - getElement
-        - getElement
     OpenMS::HiddenMarkovModel:
         - write # stream
-        - calculateEmissionProbabilities
-        - getState
     OpenMS::MarkerMower:
         - insertmarker
     OpenMS::ProteinResolver::ProteinEntry:
@@ -396,11 +382,9 @@ PyOpenMSChecker:
         - indis
         - type
     OpenMS::ResidueDB:
-        - getResidue
-        - getModifiedResidue
-        - getModifiedResidue
-        - getResidues
-        - getInstance
+        # iterator
+        - beginResidue
+        - endResidue
     # char pointer
     OpenMS::Peak2D:
         - shortDimensionName
@@ -415,14 +399,6 @@ PyOpenMSChecker:
         - fullDimensionUnit
         - fullDimensionUnitRT
         - fullDimensionUnitMZ
-
-    OpenMS::HMMState:
-        addPredecessorState
-        deletePredecessorState
-        addSuccessorState
-        deleteSuccessorState
-        getPredecessorStates
-        getSuccessorStates
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Factory pattern / create methods
