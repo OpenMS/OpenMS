@@ -78,7 +78,7 @@ public:
     /**
       @brief This class represents an actual implementation of a logger.
     */
-    class ProgressLoggerImpl
+    class OPENMS_DLLAPI ProgressLoggerImpl
     {
 public:
       virtual void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int current_recursion_depth) const = 0;
