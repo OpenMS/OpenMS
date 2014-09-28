@@ -70,7 +70,7 @@ class TOPPPeakInvestigator :
 {
 public:
   TOPPPeakInvestigator() :
-    TOPPBase("PeakInvestigator", "Finds mass spectrometric peaks in profile mass spectra using the PeakInvestigator(TM) software.")
+    TOPPBase("PeakInvestigator", "Finds mass spectrometric peaks in profile mass spectra using the PeakInvestigator(TM) software.", false)
   {
   }
 
