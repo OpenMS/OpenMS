@@ -51,7 +51,7 @@ namespace OpenMS
   class AASequence;
   
   /**
-    @brief Implements the export of consensusmaps into the ibspectra format
+    @brief Implements the export of consensusmaps into the IBSpectra format
            used by isobar to load quantification results.
   */
   class OPENMS_DLLAPI IBSpectraFile

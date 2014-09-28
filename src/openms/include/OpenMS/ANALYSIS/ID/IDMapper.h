@@ -162,7 +162,7 @@ public:
 
         // run through RT interval
         while (identifications_iterator != identifications_precursors.end() &&
-               (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definetely within left border, and wait until exceeding the right
+               (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definitely within left border, and wait until exceeding the right
         {
           // testing whether the m/z fits
           if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
