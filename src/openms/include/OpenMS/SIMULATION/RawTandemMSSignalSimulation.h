@@ -64,7 +64,7 @@ public:
     RawTandemMSSignalSimulation();
 
     /// Constructor taking a random generator
-    explicit RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr rng);
+    explicit RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr rng);
 
     /// Copy constructor
     RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation & source);
@@ -78,16 +78,16 @@ public:
     /**
 
      */
-    void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &, MSSimExperiment &);
+    void generateRawTandemSignals(const SimTypes::FeatureMapSim &, SimTypes::MSSimExperiment &, SimTypes::MSSimExperiment &);
 
 
 protected:
-    void generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
+    void generateMSESpectra_(const SimTypes::FeatureMapSim & features, const SimTypes::MSSimExperiment & experiment, SimTypes::MSSimExperiment & ms2);
 
-    void generatePrecursorSpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
+    void generatePrecursorSpectra_(const SimTypes::FeatureMapSim & features, const SimTypes::MSSimExperiment & experiment, SimTypes::MSSimExperiment & ms2);
 
     /// Random number generator
-    MutableSimRandomNumberGeneratorPtr  rnd_gen_;
+    SimTypes::MutableSimRandomNumberGeneratorPtr  rnd_gen_;
   };
 
 }

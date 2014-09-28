@@ -55,9 +55,9 @@ using namespace std;
 
 
 /**
-    @page UTILS_MSSimulator MSSimulator
+  @page UTILS_MSSimulator MSSimulator
 
-    @brief A highly configurable simulator for mass spectrometry experiments.
+  @brief A highly configurable simulator for mass spectrometry experiments.
 
   This implementation is described in
   <p>
@@ -147,7 +147,7 @@ protected:
     registerOutputFile_("out_cntm", "<file>", "", "output: ground-truth features caused by contaminants", false);
     setValidFormats_("out_cntm", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_id", "<file>", "", "output: ground-truth MS2 peptide identifications", false);
-    setValidFormats_("out_id", ListUtils::create<String>("idXML")); 
+    setValidFormats_("out_id", ListUtils::create<String>("idXML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -168,7 +168,7 @@ protected:
   }
 
   // Load proteins from FASTA file
-  void loadFASTA_(const String & filename, SampleProteins & proteins)
+  void loadFASTA_(const String & filename, SimTypes::SampleProteins & proteins)
   {
     writeLog_(String("Loading sequence data from ") + filename +  String(" ..."));
 
@@ -239,7 +239,7 @@ protected:
     //-------------------------------------------------------------
 
     // check if at least one output file is
-    if (getStringOption_("out") == "" && 
+    if (getStringOption_("out") == "" &&
         getStringOption_("out_pm") == "" &&
         getStringOption_("out_fm") == "" &&
         getStringOption_("out_cm") == "" &&
@@ -255,11 +255,11 @@ protected:
     ms_simulation.setParameters(getParam_().copy("algorithm:MSSim:", true));
 
     // read proteins
-    SampleChannels channels;
+    SimTypes::SampleChannels channels;
     StringList input_files = getStringList_("in");
     for (Size i = 0; i < input_files.size(); ++i)
     {
-      SampleProteins proteins;
+      SimTypes::SampleProteins proteins;
       loadFASTA_(input_files[i], proteins);
       channels.push_back(proteins);
     }
@@ -267,7 +267,7 @@ protected:
     // initialize the random number generators
     bool biological_random = getParam_().getValue("algorithm:RandomNumberGenerators:biological") == "random";
     bool technical_random = getParam_().getValue("algorithm:RandomNumberGenerators:technical") == "random";
-    MutableSimRandomNumberGeneratorPtr rnd_gen ( new SimRandomNumberGenerator );
+    SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen ( new SimTypes::SimRandomNumberGenerator );
     rnd_gen->initialize(biological_random, technical_random);
 
     ms_simulation.setLogType(this->log_type_);

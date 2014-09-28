@@ -76,7 +76,7 @@ namespace OpenMS
     // we do not have any prerequisite
   }
 
-  void ICPLLabeler::addLabelToProteinHits_(FeatureMapSim & features, const String & label) const
+  void ICPLLabeler::addLabelToProteinHits_(SimTypes::FeatureMapSim & features, const String & label) const
   {
     // check if proteinIdentification exists before accessing it
     if (features.getProteinIdentifications().empty())
@@ -96,7 +96,7 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::setUpHook(FeatureMapSimVector & features)
+  void ICPLLabeler::setUpHook(SimTypes::FeatureMapSimVector & features)
   {
     // channel check
     if (features.size() < 2 || features.size() > 3)
@@ -120,22 +120,22 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::postDigestHook(FeatureMapSimVector & features_to_simulate)
+  void ICPLLabeler::postDigestHook(SimTypes::FeatureMapSimVector & features_to_simulate)
   {
-    FeatureMapSim & light_labeled_features = features_to_simulate[0];
-    FeatureMapSim & medium_labeled_features = features_to_simulate[1];
+    SimTypes::FeatureMapSim & light_labeled_features = features_to_simulate[0];
+    SimTypes::FeatureMapSim & medium_labeled_features = features_to_simulate[1];
 
     if (param_.getValue("label_proteins") == "false")   // loop for peptide-labeling (post-digest-labeling)
     {
       // iterate over first map for light labeling
-      for (FeatureMapSim::iterator lf_iter = light_labeled_features.begin(); lf_iter != light_labeled_features.end(); ++lf_iter)
+      for (SimTypes::FeatureMapSim::iterator lf_iter = light_labeled_features.begin(); lf_iter != light_labeled_features.end(); ++lf_iter)
       {
         lf_iter->ensureUniqueId();
         addModificationToPeptideHit_(*lf_iter, light_channel_label_);
       }
 
       // iterate over second map for medium labeling
-      for (FeatureMapSim::iterator lf_iter = medium_labeled_features.begin(); lf_iter != medium_labeled_features.end(); ++lf_iter)
+      for (SimTypes::FeatureMapSim::iterator lf_iter = medium_labeled_features.begin(); lf_iter != medium_labeled_features.end(); ++lf_iter)
       {
         lf_iter->ensureUniqueId();
         addModificationToPeptideHit_(*lf_iter, medium_channel_label_);
@@ -143,10 +143,10 @@ namespace OpenMS
 
       if (features_to_simulate.size() == 3)      //third channel labeling can only be done, if a third channel exist
       {
-        FeatureMapSim & heavy_labeled_features = features_to_simulate[2];
+        SimTypes::FeatureMapSim & heavy_labeled_features = features_to_simulate[2];
 
         // iterate over third map
-        for (FeatureMapSim::iterator lf_iter = heavy_labeled_features.begin(); lf_iter != heavy_labeled_features.end(); ++lf_iter)
+        for (SimTypes::FeatureMapSim::iterator lf_iter = heavy_labeled_features.begin(); lf_iter != heavy_labeled_features.end(); ++lf_iter)
         {
           lf_iter->ensureUniqueId();
           addModificationToPeptideHit_(*lf_iter, heavy_channel_label_);
@@ -155,13 +155,13 @@ namespace OpenMS
     }
 
     // merge the generated feature maps and create consensus
-    FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
+    SimTypes::FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
 
     if (features_to_simulate.size() == 2)   // merge_modus for two FeatureMaps
     {
       // create index of light channel features for easy mapping of medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
-      for (FeatureMapSim::iterator light_labeled_features_iter = light_labeled_features.begin();
+      for (SimTypes::FeatureMapSim::iterator light_labeled_features_iter = light_labeled_features.begin();
            light_labeled_features_iter != light_labeled_features.end();
            ++light_labeled_features_iter)
       {
@@ -173,7 +173,7 @@ namespace OpenMS
       }
 
       // iterate over second map
-      for (FeatureMapSim::iterator medium_labeled_feature_iter = medium_labeled_features.begin(); medium_labeled_feature_iter != medium_labeled_features.end(); ++medium_labeled_feature_iter)
+      for (SimTypes::FeatureMapSim::iterator medium_labeled_feature_iter = medium_labeled_features.begin(); medium_labeled_feature_iter != medium_labeled_features.end(); ++medium_labeled_feature_iter)
       {
         AASequence medium_labeled_feature_sequence = (*medium_labeled_feature_iter).getPeptideIdentifications()[0].getHits()[0].getSequence();
 
@@ -229,7 +229,7 @@ namespace OpenMS
     {
       // create index of light channel features for easy mapping of heavy-to-medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
-      for (FeatureMapSim::iterator light_labeled_features_iter = light_labeled_features.begin();
+      for (SimTypes::FeatureMapSim::iterator light_labeled_features_iter = light_labeled_features.begin();
            light_labeled_features_iter != light_labeled_features.end();
            ++light_labeled_features_iter)
       {
@@ -242,7 +242,7 @@ namespace OpenMS
 
       // create index of medium channel features for easy mapping of heavy-to-medium-to-light channel
       Map<String, Feature> medium_labeled_features_index;
-      for (FeatureMapSim::iterator medium_labeled_features_iter = medium_labeled_features.begin();
+      for (SimTypes::FeatureMapSim::iterator medium_labeled_features_iter = medium_labeled_features.begin();
            medium_labeled_features_iter != medium_labeled_features.end();
            ++medium_labeled_features_iter)
       {
@@ -253,7 +253,7 @@ namespace OpenMS
                                                ));
       }
 
-      for (FeatureMapSim::iterator heavy_labeled_feature_iter = features_to_simulate[2].begin(); heavy_labeled_feature_iter != features_to_simulate[2].end(); ++heavy_labeled_feature_iter)
+      for (SimTypes::FeatureMapSim::iterator heavy_labeled_feature_iter = features_to_simulate[2].begin(); heavy_labeled_feature_iter != features_to_simulate[2].end(); ++heavy_labeled_feature_iter)
       {
         Feature & heavy_feature = *heavy_labeled_feature_iter;
         String heavy_feature_unmodified_sequence = getUnmodifiedAASequence_(heavy_feature, heavy_channel_label_);
@@ -442,15 +442,15 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::postRTHook(FeatureMapSimVector & features_to_simulate)
+  void ICPLLabeler::postRTHook(SimTypes::FeatureMapSimVector & features_to_simulate)
   {
     double rt_shift = param_.getValue("ICPL_fixed_rtshift");
 
     if (rt_shift != 0.0)
     {
       Map<UInt64, Feature *> id_map;
-      FeatureMapSim & feature_map = features_to_simulate[0];
-      for (FeatureMapSim::Iterator it = feature_map.begin(); it != feature_map.end(); ++it)
+      SimTypes::FeatureMapSim & feature_map = features_to_simulate[0];
+      for (SimTypes::FeatureMapSim::Iterator it = feature_map.begin(); it != feature_map.end(); ++it)
       {
         id_map.insert(std::make_pair<UInt64, Feature *>(it->getUniqueId(), &(*it)));
       }
@@ -490,22 +490,22 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
+  void ICPLLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
   {
     // no changes to the features .. nothing todo here
   }
 
-  void ICPLLabeler::postIonizationHook(FeatureMapSimVector & /* features_to_simulate */)
+  void ICPLLabeler::postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
   {
     // no changes to the features .. nothing todo here
   }
 
-  void ICPLLabeler::postRawMSHook(FeatureMapSimVector & features_to_simulate)
+  void ICPLLabeler::postRawMSHook(SimTypes::FeatureMapSimVector & features_to_simulate)
   {
     recomputeConsensus_(features_to_simulate[0]);
   }
 
-  void ICPLLabeler::postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */)
+  void ICPLLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */, SimTypes::MSSimExperiment & /* simulated map */)
   {
     // no changes to the features .. nothing todo here
   }

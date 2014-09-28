@@ -52,9 +52,9 @@ START_TEST(RTSimulation, "$Id$")
 const unsigned long rnd_gen_seed = 1;
 RTSimulation* ptr = 0;
 RTSimulation* nullPointer = 0;
-MutableSimRandomNumberGeneratorPtr empty_rnd_gen (new SimRandomNumberGenerator);
+SimTypes::MutableSimRandomNumberGeneratorPtr empty_rnd_gen (new SimTypes::SimRandomNumberGenerator);
 
-START_SECTION((RTSimulation(const MutableSimRandomNumberGeneratorPtr random_generator)))
+START_SECTION((RTSimulation(const SimTypes::MutableSimRandomNumberGeneratorPtr random_generator)))
 {
   ptr = new RTSimulation(empty_rnd_gen);
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -95,7 +95,7 @@ START_SECTION((RTSimulation& operator=(const RTSimulation &source)))
 }
 END_SECTION
 
-START_SECTION(( void predictRT(FeatureMapSim & features) ))
+START_SECTION(( void predictRT(SimTypes::FeatureMapSim & features) ))
 {
   // is fully tested by the different EXTRA tests for HPLC w absolute, HPLC w relative, none HPLC (and hopefully soon CE)
   NOT_TESTABLE
@@ -106,7 +106,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 {
   // init rng
   // init rng
-  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
   rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
   rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
@@ -124,7 +124,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 
   svm_rt_sim.setParameters(svm_params);
 
-  FeatureMapSim svm_rt_features;
+  SimTypes::FeatureMapSim svm_rt_features;
   StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
@@ -136,7 +136,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
     svm_rt_features.push_back(f);
   }
 
-  MSSimExperiment experiment_rt;
+  SimTypes::MSSimExperiment experiment_rt;
   svm_rt_sim.predictRT(svm_rt_features);
 
   TEST_EQUAL(svm_rt_features.size(), 4)
@@ -156,10 +156,10 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 }
 END_SECTION
 
-START_SECTION((void createExperiment(MSSimExperiment & experiment)))
+START_SECTION((void createExperiment(SimTypes::MSSimExperiment & experiment)))
 {
   // init rng
-  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
   rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
   rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
@@ -178,7 +178,7 @@ START_SECTION((void createExperiment(MSSimExperiment & experiment)))
 
   svm_rt_sim.setParameters(svm_params);
 
-  FeatureMapSim svm_rt_features;
+  SimTypes::FeatureMapSim svm_rt_features;
   StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
@@ -190,7 +190,7 @@ START_SECTION((void createExperiment(MSSimExperiment & experiment)))
     svm_rt_features.push_back(f);
   }
 
-  MSSimExperiment experiment_rt;
+  SimTypes::MSSimExperiment experiment_rt;
   svm_rt_sim.predictRT(svm_rt_features);
   svm_rt_sim.createExperiment(experiment_rt);
 
@@ -199,9 +199,9 @@ START_SECTION((void createExperiment(MSSimExperiment & experiment)))
   TEST_REAL_SIMILAR(experiment_rt.getMinRT(), 200.0)
   TEST_REAL_SIMILAR(experiment_rt.getMaxRT(), 500.0)
 
-  MSSimExperiment::ConstIterator it = experiment_rt.RTBegin(200.0);
-  MSSimExperiment::CoordinateType current_rt = 200.0;
-  MSSimExperiment::CoordinateType scan_intervall = 5.0;
+  SimTypes::MSSimExperiment::ConstIterator it = experiment_rt.RTBegin(200.0);
+  SimTypes::MSSimExperiment::CoordinateType current_rt = 200.0;
+  SimTypes::MSSimExperiment::CoordinateType scan_intervall = 5.0;
   while(it != experiment_rt.RTEnd(500.0))
   {
     TEST_REAL_SIMILAR((*it).getRT(), current_rt)
@@ -214,7 +214,7 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - No RT column))
 {
   // init rng
-  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
   rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
   rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
@@ -225,7 +225,7 @@ START_SECTION(([EXTRA] Prediction Test - No RT column))
   p.setValue("total_gradient_time",4000.0);
   no_rt_sim.setParameters(p);
 
-  FeatureMapSim no_rt_features;
+  SimTypes::FeatureMapSim no_rt_features;
   StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
@@ -237,11 +237,11 @@ START_SECTION(([EXTRA] Prediction Test - No RT column))
     no_rt_features.push_back(f);
   }
 
-  MSSimExperiment experiment_no_rt;
+  SimTypes::MSSimExperiment experiment_no_rt;
   no_rt_sim.predictRT(no_rt_features);
   no_rt_sim.createExperiment(experiment_no_rt);
   TEST_EQUAL(experiment_no_rt.size(), 1);
-  for(FeatureMapSim::const_iterator fIt = no_rt_features.begin(); fIt != no_rt_features.end();
+  for(SimTypes::FeatureMapSim::const_iterator fIt = no_rt_features.begin(); fIt != no_rt_features.end();
       ++fIt)
   {
     TEST_EQUAL((*fIt).getRT(), -1);
@@ -252,7 +252,7 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
 {
   // init rng
-  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
   rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
   rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
@@ -271,7 +271,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
 
   rt_sim.setParameters(abs_svm_params);
 
-  FeatureMapSim features;
+  SimTypes::FeatureMapSim features;
 
   // 2070, 1470, 2310, 3150
   StringList abs_peps = ListUtils::create<String>("QEFEVMEDHAGTYGLGDR,KGHHEAEIKPLAQSHATK,STPTAEDVTAPLVDEGAPGK,LSLEFPSGYPYNAPTVK");
@@ -286,7 +286,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
     features.push_back(f);
   }
 
-  MSSimExperiment experiment_rt;
+  SimTypes::MSSimExperiment experiment_rt;
   rt_sim.predictRT(features);
 
   TEST_EQUAL(features.size(), 3)
@@ -311,7 +311,7 @@ START_SECTION(([EXTRA] Prediction Test - CE column))
 }
 END_SECTION
 
-START_SECTION((void predictContaminantsRT(FeatureMapSim &)))
+START_SECTION((void predictContaminantsRT(SimTypes::FeatureMapSim &)))
 {
   // TODO
 }
@@ -334,7 +334,7 @@ START_SECTION((bool isRTColumnOn() const ))
 }
 END_SECTION
 
-START_SECTION((SimCoordinateType getGradientTime() const ))
+START_SECTION((SimTypes::SimCoordinateType getGradientTime() const ))
 {
   RTSimulation rt_sim(empty_rnd_gen);
 

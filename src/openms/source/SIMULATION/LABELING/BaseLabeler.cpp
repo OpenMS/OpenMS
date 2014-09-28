@@ -64,7 +64,7 @@ namespace OpenMS
     return this->defaults_;
   }
 
-  void BaseLabeler::setRnd(MutableSimRandomNumberGeneratorPtr rng)
+  void BaseLabeler::setRnd(SimTypes::MutableSimRandomNumberGeneratorPtr rng)
   {
     rng_ = rng;
   }
@@ -74,13 +74,13 @@ namespace OpenMS
     return String("channel_") + String(channel_index) + "_intensity";
   }
 
-  FeatureMapSim BaseLabeler::mergeProteinIdentificationsMaps_(const FeatureMapSimVector & maps)
+  SimTypes::FeatureMapSim BaseLabeler::mergeProteinIdentificationsMaps_(const SimTypes::FeatureMapSimVector & maps)
   {
     // we do not have any features yet (or at least we ignore them), so simply iterate over the protein
     // identifications
     std::map<String, ProteinHit> prot_hits;
     Size channel_index = 1;
-    for (FeatureMapSimVector::const_iterator maps_iterator = maps.begin(); maps_iterator != maps.end(); ++maps_iterator)
+    for (SimTypes::FeatureMapSimVector::const_iterator maps_iterator = maps.begin(); maps_iterator != maps.end(); ++maps_iterator)
     {
       if (maps_iterator->getProteinIdentifications().size() == 0)
         continue;
@@ -91,12 +91,12 @@ namespace OpenMS
       {
         if (prot_hits.count((*protein_hit).getSequence())) // we already know this protein -- sum up abundances
         {
-          SimIntensityType new_intensity = prot_hits[(*protein_hit).getSequence()].getMetaValue("intensity");
+          SimTypes::SimIntensityType new_intensity = prot_hits[(*protein_hit).getSequence()].getMetaValue("intensity");
 
           // remember channel intensity
           prot_hits[(*protein_hit).getSequence()].setMetaValue("intensity_" + String(channel_index), new_intensity);
 
-          new_intensity += static_cast<SimIntensityType>((*protein_hit).getMetaValue("intensity"));
+          new_intensity += static_cast<SimTypes::SimIntensityType>((*protein_hit).getMetaValue("intensity"));
           prot_hits[(*protein_hit).getSequence()].setMetaValue("intensity", new_intensity);
         }
         else // new protein hit .. remember
@@ -109,7 +109,7 @@ namespace OpenMS
       ++channel_index;
     }
 
-    FeatureMapSim final_map;
+    SimTypes::FeatureMapSim final_map;
     ProteinIdentification protIdent;
 
     for (std::map<String, ProteinHit>::iterator prot_hit_iter = prot_hits.begin(); prot_hit_iter != prot_hits.end(); ++prot_hit_iter)
@@ -155,7 +155,7 @@ namespace OpenMS
     target.getPeptideIdentifications()[0].setHits(pepHits);
   }
 
-  void BaseLabeler::recomputeConsensus_(const FeatureMapSim & simulated_features)
+  void BaseLabeler::recomputeConsensus_(const SimTypes::FeatureMapSim & simulated_features)
   {
     // iterate over all given features stored in the labeling consensus and try to find the corresponding feature in
     // in the feature map

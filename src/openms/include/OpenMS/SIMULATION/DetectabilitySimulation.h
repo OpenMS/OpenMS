@@ -79,7 +79,7 @@ public:
 
      @param features Feature map that will be filtered for detectability
      */
-    void filterDetectability(FeatureMapSim & features);
+    void filterDetectability(SimTypes::FeatureMapSim & features);
 
 
     void predictDetectabilities(std::vector<String> & peptides_vector, std::vector<double> & labels,
@@ -99,10 +99,10 @@ private:
 
 protected:
     /// Filter the feature map using a svm model
-    void svmFilter_(FeatureMapSim &);
+    void svmFilter_(SimTypes::FeatureMapSim &);
 
     /// Do not filter the feature map, just set the detectability to a default value
-    void noFilter_(FeatureMapSim &);
+    void noFilter_(SimTypes::FeatureMapSim &);
 
   };
 

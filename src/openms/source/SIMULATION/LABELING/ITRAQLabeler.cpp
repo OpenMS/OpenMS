@@ -138,7 +138,7 @@ namespace OpenMS
     }
   }
 
-  void ITRAQLabeler::setUpHook(FeatureMapSimVector & features)
+  void ITRAQLabeler::setUpHook(SimTypes::FeatureMapSimVector & features)
   {
     // no action here .. just check for correct # of channels
     Size active_channel_count = 0;
@@ -157,23 +157,23 @@ namespace OpenMS
   /// Join all peptides with the same sequence into one feature
   /// channels are retained via metavalues
   /// if a peptide is not present in all channels, then there will be missing meta values! (so don't rely on them being present)
-  void ITRAQLabeler::postDigestHook(FeatureMapSimVector & channels)
+  void ITRAQLabeler::postDigestHook(SimTypes::FeatureMapSimVector & channels)
   {
     // merge channels into a single feature map
-    FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(channels);
+    SimTypes::FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(channels);
 
     std::map<String, Size> peptide_to_feature;
 
     for (Size i = 0; i < channels.size(); ++i)
     {
-      for (FeatureMapSim::iterator it_f_o = channels[i].begin();
+      for (SimTypes::FeatureMapSim::iterator it_f_o = channels[i].begin();
            it_f_o != channels[i].end();
            ++it_f_o)
       {
         // derive iTRAQ labeled features from original sequence (might be more than one due to partial labeling)
-        FeatureMapSim labeled_features;
+        SimTypes::FeatureMapSim labeled_features;
         labelPeptide_(*it_f_o, labeled_features);
-        for (FeatureMapSim::iterator it_f = labeled_features.begin();
+        for (SimTypes::FeatureMapSim::iterator it_f = labeled_features.begin();
              it_f != labeled_features.end();
              ++it_f)
         {
@@ -205,26 +205,26 @@ namespace OpenMS
   }
 
   /// Labeling between RT and Detectability
-  void ITRAQLabeler::postRTHook(FeatureMapSimVector & /* features_to_simulate */)
+  void ITRAQLabeler::postRTHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
   {
   }
 
   /// Labeling between Detectability and Ionization
-  void ITRAQLabeler::postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */)
+  void ITRAQLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
   {
   }
 
   /// Labeling between Ionization and RawMS
-  void ITRAQLabeler::postIonizationHook(FeatureMapSimVector & /* features_to_simulate */)
+  void ITRAQLabeler::postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
   {
   }
 
   /// Labeling after RawMS
-  void ITRAQLabeler::postRawMSHook(FeatureMapSimVector & /* features_to_simulate */)
+  void ITRAQLabeler::postRawMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
   {
   }
 
-  void ITRAQLabeler::postRawTandemMSHook(FeatureMapSimVector & fm, MSSimExperiment & exp)
+  void ITRAQLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector & fm, SimTypes::MSSimExperiment & exp)
   {
     //std::cout << "Matrix used: \n" << ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_) << "\n\n";
 
@@ -242,7 +242,7 @@ namespace OpenMS
     boost::uniform_real<double> udist (0.0,1.0);
 
     // add signal...
-    for (MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)
+    for (SimTypes::MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (it->getMSLevel() != 2)
         continue;
@@ -268,7 +268,7 @@ namespace OpenMS
       // add signal to MS2 spectrum
       for (Int i_channel = 0; i_channel < ItraqConstants::CHANNEL_COUNT[itraq_type_]; ++i_channel)
       {
-        MSSimExperiment::SpectrumType::PeakType p;
+        SimTypes::MSSimExperiment::SpectrumType::PeakType p;
         // random shift of +-rep_shift around exact position
         double rnd_shift = udist(rng_->getTechnicalRng()) * 2 * rep_shift - rep_shift;
         p.setMZ(channel_names[itraq_type_].getValue(i_channel, 0) + 0.1 + rnd_shift);
@@ -290,7 +290,7 @@ namespace OpenMS
     feature.getPeptideIdentifications()[0].setHits(pep_hits);
   }
 
-  void ITRAQLabeler::labelPeptide_(const Feature & feature, FeatureMapSim & result) const
+  void ITRAQLabeler::labelPeptide_(const Feature & feature, SimTypes::FeatureMapSim & result) const
   {
     // modify with iTRAQ modification (needed for mass calculation and MS/MS signal)
     //site="Y" - low abundance
@@ -382,7 +382,7 @@ namespace OpenMS
     Size ch_internal(0);
     for (ChannelMapType::ConstIterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
     {
-      SimIntensityType intensity(0);
+      SimTypes::SimIntensityType intensity(0);
       if (it->second.active && f.metaValueExists(getChannelIntensityName(ch_internal))) // peptide is present in this channel
       {
         intensity = (double) f.getMetaValue(getChannelIntensityName(ch_internal));

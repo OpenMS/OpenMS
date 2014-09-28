@@ -42,16 +42,16 @@ namespace OpenMS
 {
 
   /**
-        @brief Simulates protein digestion
+    @brief Simulates protein digestion
 
-        Supports all enzymes supported by EnzymaticDigestion.h
-        and additionally incorporates abundance values, which
-        are distributed evenly among digestion products of each
-        protein.
+    Supports all enzymes supported by EnzymaticDigestion.h
+    and additionally incorporates abundance values, which
+    are distributed evenly among digestion products of each
+    protein.
 
-        @htmlinclude OpenMS_DigestSimulation.parameters
+    @htmlinclude OpenMS_DigestSimulation.parameters
 
-        @ingroup Simulation
+    @ingroup Simulation
   */
   class OPENMS_DLLAPI DigestSimulation :
     public DefaultParamHandler
@@ -84,7 +84,7 @@ public:
 
         @param feature_map Input FeatureMap containing the proteins that should be digested as ProteinIdentification
     **/
-    void digest(FeatureMapSim & feature_map);
+    void digest(SimTypes::FeatureMapSim & feature_map);
 
 private:
     /// set defaults

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2014.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Sandro Andreotti $
 // $Authors: Stephan Aiche, Chris Bielow, Sandro Andreotti $
@@ -52,10 +52,10 @@ START_TEST(RawTandemMSSignalSimulation, "$Id$")
 
 RawTandemMSSignalSimulation* ptr = 0;
 RawTandemMSSignalSimulation* null_ptr = 0;
-MutableSimRandomNumberGeneratorPtr rng (new SimRandomNumberGenerator);
+SimTypes::MutableSimRandomNumberGeneratorPtr rng (new SimTypes::SimRandomNumberGenerator);
 rng->initialize(false, false);
 
-START_SECTION((RawTandemMSSignalSimulation(SimRandomNumberGeneratorPtr rng)))
+START_SECTION((RawTandemMSSignalSimulation(SimTypes::SimRandomNumberGeneratorPtr rng)))
 {
 	ptr = new RawTandemMSSignalSimulation(rng);
 	TEST_NOT_EQUAL(ptr, null_ptr)
@@ -88,7 +88,7 @@ START_SECTION((RawTandemMSSignalSimulation& operator=(const RawTandemMSSignalSim
 }
 END_SECTION
 
-START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &, MSSimExperiment &)))
+START_SECTION((void generateRawTandemSignals(const SimTypes::FeatureMapSim &, SimTypes::MSSimExperiment &, SimTypes::MSSimExperiment &)))
 {
     rng->initialize(false, false);
 
@@ -97,8 +97,8 @@ START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperim
     feature_filename = OPENMS_GET_TEST_DATA_PATH("RawTandemMSSignalSimulation_no_ms2.featureXML");
     exp_no_ms2_file = OPENMS_GET_TEST_DATA_PATH("RawTandemMSSignalSimulation_no_ms2.mzML");
     exp_with_ms2_file = OPENMS_GET_TEST_DATA_PATH("RawTandemMSSignalSimulation_with_ms2.mzML");;
-    FeatureMapSim features;
-    MSSimExperiment exp_no_ms2, exp_with_ms2, peak_map;
+    SimTypes::FeatureMapSim features;
+    SimTypes::MSSimExperiment exp_no_ms2, exp_with_ms2, peak_map;
     FeatureXMLFile().load(feature_filename, features);
     MzMLFile().load(exp_no_ms2_file, exp_no_ms2);
     MzMLFile().load(exp_with_ms2_file, exp_with_ms2);
@@ -115,8 +115,8 @@ START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperim
     sim.generateRawTandemSignals(features, exp_no_ms2, peak_map);
     IntList levels;
     levels.push_back(1);
-    exp_no_ms2.getSpectra().erase(remove_if(exp_no_ms2.begin(), exp_no_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_no_ms2.end());
-    exp_with_ms2.getSpectra().erase(remove_if(exp_with_ms2.begin(), exp_with_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_with_ms2.end());
+    exp_no_ms2.getSpectra().erase(remove_if(exp_no_ms2.begin(), exp_no_ms2.end(), InMSLevelRange<SimTypes::MSSimExperiment::SpectrumType>(levels)), exp_no_ms2.end());
+    exp_with_ms2.getSpectra().erase(remove_if(exp_with_ms2.begin(), exp_with_ms2.end(), InMSLevelRange<SimTypes::MSSimExperiment::SpectrumType>(levels)), exp_with_ms2.end());
 //    MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("RawTandemMSSignalSimulation_with_ms2.mzML"), exp_no_ms2);
 
     TEST_EQUAL(exp_with_ms2.size(), exp_no_ms2.size());

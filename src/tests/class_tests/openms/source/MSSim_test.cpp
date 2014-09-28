@@ -187,12 +187,12 @@ END_SECTION
 // we will use this object throughout the test
 MSSim mssim;
 
-START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SampleChannels &peptides)))
+START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SimTypes::SampleChannels &peptides)))
 {
-  MutableSimRandomNumberGeneratorPtr sim_rnd_ptr(new SimRandomNumberGenerator);
+  SimTypes::MutableSimRandomNumberGeneratorPtr sim_rnd_ptr(new SimTypes::SimRandomNumberGenerator);
   sim_rnd_ptr->initialize(false, false);
 
-  SampleProteins proteins;
+  SimTypes::SampleProteins proteins;
 
   // create some proteins that we want to simulate
   FASTAFile::FASTAEntry protein1;
@@ -215,7 +215,7 @@ START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SampleChan
 
   proteins.push_back(std::make_pair(protein2, meta_protein2));
 
-  SampleChannels channels;
+  SimTypes::SampleChannels channels;
   channels.push_back(proteins);
 
   // TODO: we have to call get parameters first ??
@@ -235,18 +235,18 @@ START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SampleChan
 }
 END_SECTION
 
-START_SECTION((MSSimExperiment const& getExperiment() const ))
+START_SECTION((SimTypes::MSSimExperiment const& getExperiment() const ))
 {
   // test experiment simulated above
   TEST_EQUAL(mssim.getExperiment().getNrSpectra(), 234)
 
   int nr_ms1 = std::count_if(mssim.getExperiment().begin(),
                              mssim.getExperiment().end(),
-                             InMSLevelRange<MSSimExperiment::SpectrumType>(ListUtils::create<Int>("1")));
+                             InMSLevelRange<SimTypes::MSSimExperiment::SpectrumType>(ListUtils::create<Int>("1")));
 
   int nr_ms2 = std::count_if(mssim.getExperiment().begin(),
                              mssim.getExperiment().end(),
-                             InMSLevelRange<MSSimExperiment::SpectrumType>(ListUtils::create<Int>("2")));
+                             InMSLevelRange<SimTypes::MSSimExperiment::SpectrumType>(ListUtils::create<Int>("2")));
 
   TEST_EQUAL(nr_ms1, 127)
   TEST_EQUAL(nr_ms2, 107)
@@ -254,13 +254,13 @@ START_SECTION((MSSimExperiment const& getExperiment() const ))
   TEST_EQUAL(nr_ms2 + nr_ms1, mssim.getExperiment().getNrSpectra())
 
   // test empty case when no simulation was performed
-  MSSimExperiment empty_experiment;
+  SimTypes::MSSimExperiment empty_experiment;
   MSSim no_sim;
   TEST_EQUAL(no_sim.getExperiment().getSize(), empty_experiment.getSize())
 }
 END_SECTION
 
-START_SECTION((FeatureMapSim const& getSimulatedFeatures() const ))
+START_SECTION((SimTypes::FeatureMapSim const& getSimulatedFeatures() const ))
 {
   TEST_EQUAL(mssim.getSimulatedFeatures().size(), 18)
 
@@ -342,7 +342,7 @@ START_SECTION((ConsensusMap& getLabelingConsensus() ))
 }
 END_SECTION
 
-START_SECTION((FeatureMapSim const& getContaminants() const ))
+START_SECTION((SimTypes::FeatureMapSim const& getContaminants() const ))
 {
   TEST_EQUAL(mssim.getContaminants().size(), 37)
 
@@ -395,7 +395,7 @@ START_SECTION((Param getParameters() const ))
 }
 END_SECTION
 
-START_SECTION((MSSimExperiment const& getPeakMap() const ))
+START_SECTION((SimTypes::MSSimExperiment const& getPeakMap() const ))
 {
   // TODO
 }
@@ -417,7 +417,7 @@ START_SECTION((void getMS2Identifications(vector<ProteinIdentification>& protein
   // we should have a peptide hit for each ms2 spectrum
   int nr_ms2 = std::count_if(mssim.getExperiment().begin(),
                              mssim.getExperiment().end(),
-                             InMSLevelRange<MSSimExperiment::SpectrumType>(ListUtils::create<Int>("2")));
+                             InMSLevelRange<SimTypes::MSSimExperiment::SpectrumType>(ListUtils::create<Int>("2")));
   TEST_EQUAL(peptides.size(), nr_ms2)
 
   // we assume that there is at least ms2 spectrum that is a mixture of two peptides

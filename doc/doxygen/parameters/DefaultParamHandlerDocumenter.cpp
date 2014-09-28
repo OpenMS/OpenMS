@@ -463,10 +463,10 @@ int main(int argc, char ** argv)
   DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
-  DOCME2(IonizationSimulation, IonizationSimulation(MutableSimRandomNumberGeneratorPtr()));
-  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()));
-  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()))
-  DOCME2(RTSimulation, RTSimulation(MutableSimRandomNumberGeneratorPtr()))
+  DOCME2(IonizationSimulation, IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
+  DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
   DOCME2(GaussTraceFitter, (GaussTraceFitter<Peak1D>()))
   DOCME2(EGHTraceFitter, (EGHTraceFitter<Peak1D>()))
 
