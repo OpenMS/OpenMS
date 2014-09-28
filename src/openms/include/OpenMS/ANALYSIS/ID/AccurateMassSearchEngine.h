@@ -163,9 +163,6 @@ public:
     /// Default constructor
     AccurateMassSearchEngine();
 
-    // Explicit constructor
-    // AccurateMassSearchEngine(const String& map_fname);
-
     /// Default destructor
     virtual ~AccurateMassSearchEngine();
 

@@ -21,6 +21,5 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/MarkerMower.h>" namespace "Open
 
         String getProductName() nogil except +
 
-        # Pointer handling, still TODO 
         void insertmarker(PeakMarker * peak_marker) nogil except +
 

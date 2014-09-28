@@ -103,12 +103,6 @@ public:
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
     const Element * getElement(UInt atomic_number) const;
 
-    /// mutable access to the elements by name
-    Element * getElement(const String & name);
-
-    /// mutable access to the elements by atomic number
-    Element * getElement(UInt atomic_number);
-
     //@}
 
     /** @name Predicates

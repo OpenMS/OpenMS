@@ -32,8 +32,6 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
     ctypedef Map[unsigned long int, FileDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
     ctypedef Map[unsigned long int, FileDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
 
-
-
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
     cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2):
@@ -97,4 +95,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         # wrapped in ../addons/ConsensusMap.pyx:
         void setFileDescriptions(FileDescriptions &)   #wrap-ignore
         FileDescriptions & getFileDescriptions()       #wrap-ignore
+
+        String getExperimentType() nogil except +
+        void setExperimentType(String experiment_type) nogil except +
   
