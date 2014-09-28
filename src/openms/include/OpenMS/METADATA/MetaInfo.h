@@ -35,8 +35,6 @@
 #ifndef OPENMS_METADATA_METAINFO_H
 #define OPENMS_METADATA_METAINFO_H
 
-#include <map>
-#include <string>
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>

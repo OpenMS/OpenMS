@@ -347,7 +347,7 @@ public:
     {
       for (Size i = 0; i < D; ++i)
       {
-        coordinate_[i] = (CoordinateType) 0;
+        coordinate_[i] = static_cast<CoordinateType>(0);
       }
     }
 
