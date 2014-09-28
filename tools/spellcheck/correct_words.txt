@@ -225,6 +225,10 @@ XTandemXML
 ###################################
 # Directory names and abbreviations {{{
 ###################################
+FNs
+FPs
+RNP
+TPs
 qMZ
 TAc
 TNVs
@@ -437,6 +441,17 @@ Faires
 # Classnames, functions and closely related {{{
 ###################################
 # {{{Classnames
+LowLevelComparator
+IDEvaluatorGUI
+AxisWidget
+SpectrumCanvas
+SpectrumWidget
+CachedMzMLConsumer
+LowLevelComparator
+ParamEditor
+SavitzkyGolayQRFilter
+SavitzkyGolaySVDFilter
+TICWritingConsumer
 IsotopeWaveletFeatureFinder
 MetaInfos
 ChargePairs
@@ -596,6 +611,21 @@ OPENSWATHALGO
 DCanvas
 PersistentObject
 SignalToNoiseEstimatorRapid
+PeptideIdentication
+LabelType
+MissedCleavages
+PeptideGroupLabel
+OnDiskExperiment
+LocalClustering
+MovingAverage
+HierarchicalClustering
+LocalClustering
+SpectraIdentificationViewWidget
+MetaValueInterface
+ProteinIdentificationVisualizer
+
+DWidget
+MetaDataBrowser
 #  }}}
 
 # Functions {{{ 
@@ -675,7 +705,10 @@ encodeOligoBorder
 indistinguishableProteins
 massShift
 removeDatabase
+getChromatogam
+
 #  }}}
+
   
 lastPackage
 AAD
@@ -712,6 +745,7 @@ ltnote
 ###################################
 # common technical words {{{
 ###################################
+peaklist
 doi
 pubmed
 subproblems
@@ -878,11 +912,30 @@ libc
 GSL
 SciPy
 colspan
+html
+inlining
+iterable
+eol
+PIMPL
+multiplet
+multiplets
+NotStarted
+deltaAbsError
+deltaRelError
+higherScoreBetter
+SignificanceThreshold
+KiloBytes
+pearson
+rowspan
+Google
+ol
+Javascript
 # }}}
 
 ###################################
 # common Mass spectrometry and OpenMS words {{{
 ###################################
+pepID
 Carboxymethyl
 paramXML
 TOPPASWidgets
@@ -1047,6 +1100,13 @@ hyperscore
 Proc
 SwathMaps
 mzq
+Isotopically
+IBSpectra
+timepoints
+Transcodes
+sulfoxide
+codon
+immonium
 # }}}
 
 ###################################
@@ -1685,6 +1745,27 @@ mymeta
 josie
 kim
 paul
+
+sapf
+nd
+xxxxxx
+xxxxxxx
+iosconstructors
+nd
+ame
+IZ
+evel
+PDF
+nl
+Cmpd
+Deamidated
+NQ
+dx
+dfs
+io
+c'tors
+XXXXX
+
 
 #  }}}
 
