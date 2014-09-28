@@ -92,8 +92,8 @@ public:
 
       double end_pos = (last - 1)->getMZ();
       double start_pos = first->getMZ();
-      int number_raw_points = (int)spectrum.size();
-      int number_resampled_points = (int)(ceil((end_pos - start_pos) / spacing_ + 1));
+      int number_raw_points = static_cast<int>(spectrum.size());
+      int number_resampled_points = static_cast<int>(ceil((end_pos - start_pos) / spacing_ + 1));
 
       typename std::vector<PeakType> resampled_peak_container;
       resampled_peak_container.resize(number_resampled_points);
@@ -116,7 +116,7 @@ public:
       it = resampled_peak_container.begin();
       for (int i = 0; i < number_raw_points; ++i)
       {
-        int help = (int)floor(((first + i)->getMZ() - start_pos) / spacing_);
+        int help = static_cast<int>(floor(((first + i)->getMZ() - start_pos) / spacing_));
         left_index = (help < 0) ? 0 : help;
         help = distance(first, last) - 1;
         right_index = (left_index >= help) ? help : left_index + 1;
@@ -138,7 +138,7 @@ public:
         (it + right_index)->setIntensity(intensity);
       }
 
-      resampled_peak_container.swap(spectrum);
+      spectrum.swap(resampled_peak_container);
     }
 
     /**

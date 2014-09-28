@@ -64,7 +64,7 @@ namespace OpenMS
   */
   template <typename PeakT = Peak1D>
   class MSSpectrum :
-    public std::vector<PeakT>,
+    private std::vector<PeakT>,
     public RangeManager<1>,
     public SpectrumSettings
   {
@@ -127,7 +127,36 @@ public:
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
-
+    ///@name Export methods from std::vector<PeakT>
+    //@{
+    using ContainerType::operator[];
+    using ContainerType::begin;
+    using ContainerType::rbegin;
+    using ContainerType::end;
+    using ContainerType::rend;
+    using ContainerType::resize;
+    using ContainerType::size;
+    using ContainerType::push_back;
+    using ContainerType::pop_back;
+    using ContainerType::empty;
+    using ContainerType::front;
+    using ContainerType::back;
+    using ContainerType::reserve;
+    using ContainerType::insert;
+    using ContainerType::erase;
+    using ContainerType::swap;
+    
+    using typename ContainerType::iterator;
+    using typename ContainerType::const_iterator;
+    using typename ContainerType::size_type;
+    using typename ContainerType::value_type;
+    using typename ContainerType::reference;
+    using typename ContainerType::const_reference;
+    using typename ContainerType::pointer;
+    using typename ContainerType::difference_type;    
+    //@}
+    
+    
     /// Constructor
     MSSpectrum() :
       ContainerType(),

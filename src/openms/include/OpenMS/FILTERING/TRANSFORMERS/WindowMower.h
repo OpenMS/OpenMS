@@ -137,8 +137,8 @@ public:
 
       spectrum.sortByPosition();
 
-      windowsize_ = (double)param_.getValue("windowsize");
-      peakcount_ = (UInt)param_.getValue("peakcount");
+      windowsize_ = static_cast<double>(param_.getValue("windowsize"));
+      peakcount_ = static_cast<UInt>(param_.getValue("peakcount"));
 
       // copy meta data
       SpectrumType out = spectrum;

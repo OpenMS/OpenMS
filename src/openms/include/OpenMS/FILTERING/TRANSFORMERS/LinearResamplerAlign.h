@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2014.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -42,7 +42,7 @@ namespace OpenMS
 
 	/**
 		@brief Linear Resampling of raw data with alignment.
-		
+
 		This class can be used to generate uniform data from non-uniform raw data (e.g. ESI-TOF or MALDI-TOF experiments).
 		Therefore the intensity at every position x in the input raw data is spread to the two
 		adjacent resampling points.
@@ -53,7 +53,7 @@ namespace OpenMS
     points at which resampling will occur. This is useful if the resampling
     points are known in advance, e.g. if one needs to resample a chromatogram
     at the positions of another chromatogram.
-		
+
 	*/
   class LinearResamplerAlign
     : public LinearResampler
@@ -62,7 +62,7 @@ namespace OpenMS
 
 public:
 
-	/** 
+	/**
 		@brief Applies the resampling algorithm to an MSSpectrum.
 	*/
   template <template <typename> class SpecT, typename PeakType>
@@ -70,10 +70,10 @@ public:
   {
     //return if nothing to do
     if (spectrum.empty()) return;
-    
+
     typename SpecT<PeakType>::iterator first = spectrum.begin();
     typename SpecT<PeakType>::iterator last = spectrum.end();
-    
+
     double end_pos = (last-1)->getMZ();
     double start_pos = first->getMZ();
     int number_resampled_points = (int)(ceil((end_pos -start_pos) / spacing_ + 1));
@@ -90,11 +90,11 @@ public:
     }
 
     raster(spectrum.begin(), spectrum.end(), resampled_peak_container.begin(), resampled_peak_container.end());
-    
-    resampled_peak_container.swap(spectrum);
+
+    spectrum.swap(resampled_peak_container);
   }
 
-	/** 
+	/**
 		@brief Applies the resampling algorithm to an MSSpectrum but it will be aligned between start_pos and end_pos
 	*/
   template <template <typename> class SpecT, typename PeakType>
@@ -104,11 +104,11 @@ public:
     if (spectrum.empty()) return;
     if (end_pos < start_pos)
     {
-      SpecT<PeakType> empty;
-      empty.swap(spectrum);
+      typename std::vector<PeakType> empty;
+      spectrum.swap(empty);
       return;
     }
-    
+
     typename SpecT<PeakType>::iterator first = spectrum.begin();
     typename SpecT<PeakType>::iterator last = spectrum.end();
 
@@ -130,11 +130,11 @@ public:
     }
 
     raster(first, last, resampled_peak_container.begin(), resampled_peak_container.end());
-    
-    resampled_peak_container.swap(spectrum);
+
+    spectrum.swap(resampled_peak_container);
   }
 
-	/** 
+	/**
 		@brief Applies the resampling algorithm to an MSSpectrum.
 	*/
   template < typename PeakTypeIterator, typename ConstPeakTypeIterator>
@@ -147,12 +147,12 @@ public:
     {
       resample_it->setIntensity( resample_it->getIntensity() + raw_it->getIntensity() );
       raw_it++;
-    } 
+    }
 
     while(raw_it != raw_end)
     {
-      //advance the resample iterator until our raw point is between two resampled iterators 
-      while(resample_it != resample_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++;} 
+      //advance the resample iterator until our raw point is between two resampled iterators
+      while(resample_it != resample_end && resample_it->getMZ() < raw_it->getMZ()) {resample_it++;}
       if (resample_it != resample_start) {resample_it--;}
 
       // if we have the last datapoint we break
@@ -169,14 +169,14 @@ public:
     }
 
     // add the final intensity to the right
-    while(raw_it != raw_end) 
+    while(raw_it != raw_end)
     {
       resample_it->setIntensity( resample_it->getIntensity() + raw_it->getIntensity() );
       raw_it++;
-    } 
+    }
   }
 
-	/** 
+	/**
 		@brief Applies the resampling algorithm using a linear interpolation
 	*/
   template < typename PeakTypeIterator>
@@ -185,12 +185,12 @@ public:
     PeakTypeIterator raw_start = raw_it;
 
     // need to get the resampled iterator between two iterators of the raw data
-    while(it != resampled_end && it->getMZ() < raw_it->getMZ()) {it++;} 
+    while(it != resampled_end && it->getMZ() < raw_it->getMZ()) {it++;}
 
     while(it != resampled_end)
     {
       //advance the raw_iterator until our current point we want to interpolate is between them
-      while(raw_it != raw_end && raw_it->getMZ() < it->getMZ() ) {raw_it++;} 
+      while(raw_it != raw_end && raw_it->getMZ() < it->getMZ() ) {raw_it++;}
       if (raw_it != raw_start) {raw_it--;}
 
       // if we have the last datapoint we break
