@@ -126,7 +126,22 @@ namespace seqan
   struct FoundProteinFunctor
   {
   public:
-    typedef OpenMS::Map<OpenMS::Size, std::set<OpenMS::Size> > MapType;
+    struct PeptideProteinMatchInformation
+    {
+      /// index of the protein the peptide is contained in
+      OpenMS::Size protein_index;
+
+      /// the amino acid after the peptide in the protein
+      char AABefore;
+
+      /// the amino acid befor the peptide in the protein
+      char AAAfter;
+      
+      /// the position of the peptide in the protein
+      OpenMS::Int position;
+    };
+
+    typedef OpenMS::Map<OpenMS::Size, std::set<PeptideProteinMatchInformation> > MapType;
 
     /// peptide index --> protein indices
     MapType pep_to_prot;

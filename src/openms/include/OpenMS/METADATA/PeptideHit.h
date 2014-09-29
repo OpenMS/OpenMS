@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 
 namespace OpenMS
 {
@@ -82,64 +83,6 @@ public:
 
     };
     //@}
-
-    class PeptideEvidence
-    {
-      public:
-        static const int UNKNOWN_POSITION = -1;
-        // Note: we use 0 as position of the N-terminus while e.g. mzTab or other formats start counting at 1.
-        static const int N_TERMINAL_POSITION = 0;
-        static const char UNKNOWN_AA = " ";
-        // Note: we use '-' as in mzTab specification
-        static const char N_TERMINAL_AA = "-";
-        static const char C_TERMINAL_AA = "-";
-
-        PeptideEvidence() :
-          accession_(""),
-          first_(UNKNOWN_POSITION),
-          last_(UNKNOWN_POSITION),
-          aa_before_(UNKNOWN_AA),
-          aa_after_(UNKNOWN_AA)
-        {
-        }
-
-        /// set the protein accession the peptide matches to. If not available set to empty string.
-        void setAccession(String a);
-
-        /// get the protein accession the peptide matches to. If not available the empty string is returned.
-        String getAccession();
-
-        /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set to UNKNOWN_POSITION. N-terminal positions must be marked with N_TERMINAL_AA
-        void setFirst(Int a);
-
-        /// get the position in the protein (starting at 0 for the N-terminus). If not available UNKNOWN_POSITION constant is returned.
-        Int getFirst() const;
-
-        /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set UNKNOWN_POSITION. C-terminal positions must be marked with C_TERMINAL_AA
-        void setLast(Int a);
-
-        /// get the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available UNKNOWN_POSITION constant is returned.
-        Int getLast() const;
-
-        /// sets the amino acid single letter code before the sequence (preceeding amino acid in the protein). If not available, set to UNKNOWN_AA. If N-terminal set to N_TERMINAL_AA
-        void setAABefore(char acid);
-
-        /// returns the amino acid single letter code before the sequence (preceeding amino acid in the protein). If not available, UNKNOWN_AA is returned. If N-terminal, N_TERMINAL_AA is returned.
-        char getAABefore() const;
-
-        /// sets the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, set to UNKNOWN_AA. If C-terminal set to C_TERMINAL_AA
-        void setAAAfter(char acid);
-
-        /// returns the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, UNKNOWN_AA is returned. If C-terminal, C_TERMINAL_AA is returned.
-        char getAAAfter() const;
-
-     private:
-        String accession_;
-        Int first_;
-        Int last_;
-        char aa_before_;
-        char aa_after_;
-    };
 
     /** @name Constructors and Destructor */
     //@{
@@ -184,7 +127,7 @@ public:
     void setCharge(Int charge);
 
     /// returns information on peptides (potentially) identified by this PSM
-    const std::vector<String> & getPeptideEvidence() const;
+    const std::vector<PeptideEvidence> & getPeptideEvidence() const;
 
     /// set information on peptides (potentially) identified by this PSM
     void setPeptideEvidence(const std::vector<String> & accessions);
@@ -214,9 +157,6 @@ protected:
 
     /// the charge of the peptide
     Int charge_;
-
-    /// the amino acid sequence of the peptide hit
-    AASequence sequence_;
 
     /// information on the potential peptides observed through this PSM. The name is borrowed from the mzIdent specification.
     std::vector<PeptideEvidence> peptide_evidences_;
