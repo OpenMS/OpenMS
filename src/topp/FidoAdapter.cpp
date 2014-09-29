@@ -438,12 +438,6 @@ protected:
                 << "' should contain both protein and peptide data." << endl;
       return INPUT_FILE_EMPTY;
     }
-    if (proteins.size() > 1)
-    {
-      LOG_WARN << "Warning: Input contains more than one protein "
-               << "identification run. Protein inference results will be "
-               << "written to the first run only." << endl;
-    }
     
     // create temporary directory:
     String temp_dir = File::getTempDirectory() + "/" + File::getUniqueName() +
@@ -485,8 +479,9 @@ protected:
     }
     if (log2_states) fido_params << QString::number(log2_states);
 
+    // actually run Fido now and process its output:
     bool fido_success = false;
-    if (separate_runs)
+    if (separate_runs) // treat multiple protein ID runs separately
     {
       Size counter = 1;
       for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
@@ -498,7 +493,7 @@ protected:
                                 prob_spurious, temp_dir, counter);
       }
     }
-    else
+    else // merge multiple protein ID runs
     {
       if (proteins.size() > 1) // multiple ID runs
       {
@@ -507,27 +502,50 @@ protected:
         all_proteins.setScoreType("Posterior Probability");
         all_proteins.setHigherScoreBetter(true);
         all_proteins.setDateTime(DateTime::now());
+        // make sure identifiers match (otherwise "IdXMLFile::store" complains):
         all_proteins.setIdentifier("");
-        for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-             prot_it != proteins.end(); ++prot_it)
-        {
-          vector<ProteinHit>& all_hits = all_proteins.getHits();
-          all_hits.insert(all_hits.end(), prot_it->getHits().begin(),
-                          prot_it->getHits().end());
-        }
         for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
              pep_it != peptides.end(); ++pep_it)
         {
           pep_it->setIdentifier("");
         }
+        // for every protein (accession), save the first occurrence:
+        map<String, ProteinHit*> hit_map; // protein hits by accession
+        for (vector<ProteinIdentification>::reverse_iterator prot_it = 
+               proteins.rbegin(); prot_it != proteins.rend(); ++prot_it)
+        {
+          for (vector<ProteinHit>::reverse_iterator hit_it = 
+                 prot_it->getHits().rbegin(); hit_it != 
+                 prot_it->getHits().rend(); ++hit_it)
+          {
+            hit_map[hit_it->getAccession()] = &(*hit_it);
+          }
+        }
+        all_proteins.getHits().reserve(hit_map.size());
+        for (map<String, ProteinHit*>::iterator map_it = hit_map.begin();
+             map_it != hit_map.end(); ++map_it)
+        {
+          all_proteins.insertHit(*(map_it->second));
+        }
 
         fido_success = runFido_(all_proteins, peptides, choose_params, exe, 
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir);
+        // write Fido probabilities into protein scores:
+        for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
+               all_proteins.getIndistinguishableProteins().begin(); group_it !=
+               all_proteins.getIndistinguishableProteins().end(); ++group_it)
+        {
+          for (vector<String>::iterator acc_it = group_it->accessions.begin();
+               acc_it != group_it->accessions.end(); ++acc_it)
+          {
+            all_proteins.findHit(*acc_it)->setScore(group_it->probability);
+          }
+        }
         proteins.clear();
         proteins.push_back(all_proteins);
       }
-      else
+      else // there is only one ID run
       {
         fido_success = runFido_(proteins[0], peptides, choose_params, exe, 
                                 fido_params, prob_protein, prob_peptide,
