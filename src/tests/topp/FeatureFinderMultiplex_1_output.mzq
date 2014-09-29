@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<MzQuantML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd" xmlns="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3" id="OpenMS_474525871221756682" version="1.0.0" creationDate="2014-09-15 16:24:45">
+<MzQuantML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3 ../../schema/mzQuantML_1_0_0-rc3.xsd" xmlns="http://psidev.info/psi/pi/mzQuantML/1.0.0-rc3" id="OpenMS_474525871221756682" version="1.0.0" creationDate="2014-09-25 17:31:09">
 <CvList>
  	<Cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies"  uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="3.41.0"/>
 	<Cv id="PSI-MOD" fullName="Proteomics Standards Initiative Protein Modifications Vocabularies" uri="http://psidev.cvs.sourceforge.net/psidev/psi/mod/data/PSI-MOD.obo" version="1.2"/>
@@ -117,8 +117,8 @@
 					</DataType>
 				<ColumnIndex>r_17314619952666245179 </ColumnIndex>
 				<DataMatrix>
-				<Row object_ref="c_7276556891837796968">0.264422297477722</Row>
-				<Row object_ref="c_14509930621887606273">0.241642564535141</Row>
+				<Row object_ref="c_7276556891837796968">0.264424622058868</Row>
+				<Row object_ref="c_14509930621887606273">0.241993889212608</Row>
 				</DataMatrix>
 		</RatioQuantLayer>
 	</PeptideConsensusList>
@@ -154,10 +154,10 @@
 
 			</ColumnDefinition>
 				<DataMatrix>
-					<Row object_ref="f_1147219038608936718">2.00873e+09 0</Row>
-					<Row object_ref="f_11115414975438642789">7.59669e+09 0</Row>
-					<Row object_ref="f_13424404046998308790">9.42216e+08 0</Row>
-					<Row object_ref="f_12665713047548007769">3.89921e+09 0</Row>
+					<Row object_ref="f_1147219038608936718">2.00813e+09 0</Row>
+					<Row object_ref="f_11115414975438642789">7.59434e+09 0</Row>
+					<Row object_ref="f_13424404046998308790">9.27351e+08 0</Row>
+					<Row object_ref="f_12665713047548007769">3.83213e+09 0</Row>
 			</DataMatrix>
 		</FeatureQuantLayer>
 	</FeatureList>

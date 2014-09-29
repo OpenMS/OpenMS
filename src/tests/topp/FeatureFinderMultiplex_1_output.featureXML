@@ -4,7 +4,7 @@
 		<feature id="f_15004869347769368353">
 			<position dim="0">1481.78192813311</position>
 			<position dim="1">476.304834607691</position>
-			<intensity>7.59669e+09</intensity>
+			<intensity>7.59434e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -43,7 +43,7 @@
 		<feature id="f_3332699010107892018">
 			<position dim="0">1482.32694449856</position>
 			<position dim="1">472.282282875233</position>
-			<intensity>2.00873e+09</intensity>
+			<intensity>2.00813e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -88,7 +88,7 @@
 		<feature id="f_13440783915218733453">
 			<position dim="0">1483.8580124736</position>
 			<position dim="1">474.325554483854</position>
-			<intensity>3.89921e+09</intensity>
+			<intensity>3.83213e+09</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -96,20 +96,20 @@
 			<convexhull nr="0">
 				<pt x="1476.74046" y="474.315439730996" />
 				<pt x="1487.99964" y="474.315439730996" />
-				<pt x="1487.99964" y="474.336417368054" />
-				<pt x="1476.74046" y="474.336417368054" />
+				<pt x="1487.99964" y="474.335055324578" />
+				<pt x="1476.74046" y="474.335055324578" />
 			</convexhull>
 			<convexhull nr="1">
 				<pt x="1476.74046" y="474.816882180163" />
 				<pt x="1487.99964" y="474.816882180163" />
-				<pt x="1487.99964" y="474.837746741623" />
-				<pt x="1476.74046" y="474.837746741623" />
+				<pt x="1487.99964" y="474.836467749768" />
+				<pt x="1476.74046" y="474.836467749768" />
 			</convexhull>
 			<convexhull nr="2">
 				<pt x="1476.74046" y="475.316777379438" />
 				<pt x="1487.99964" y="475.316777379438" />
-				<pt x="1487.99964" y="475.338275811076" />
-				<pt x="1476.74046" y="475.338275811076" />
+				<pt x="1487.99964" y="475.338255571947" />
+				<pt x="1476.74046" y="475.338255571947" />
 			</convexhull>
 			<convexhull nr="3">
 				<pt x="1476.74046" y="475.820489345863" />
@@ -121,7 +121,7 @@
 		<feature id="f_15916652588957785155">
 			<position dim="0">1484.20212495666</position>
 			<position dim="1">470.303387735018</position>
-			<intensity>9.42216e+08</intensity>
+			<intensity>9.27351e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>1</overallquality>
@@ -129,14 +129,14 @@
 			<convexhull nr="0">
 				<pt x="1476.74046" y="470.293532562256" />
 				<pt x="1487.99964" y="470.293532562256" />
-				<pt x="1487.99964" y="470.313878631592" />
-				<pt x="1476.74046" y="470.313878631592" />
+				<pt x="1487.99964" y="470.312907511393" />
+				<pt x="1476.74046" y="470.312907511393" />
 			</convexhull>
 			<convexhull nr="1">
 				<pt x="1476.74046" y="470.794938301781" />
 				<pt x="1487.99964" y="470.794938301781" />
-				<pt x="1487.99964" y="470.815856529772" />
-				<pt x="1476.74046" y="470.815856529772" />
+				<pt x="1487.99964" y="470.814163567126" />
+				<pt x="1476.74046" y="470.814163567126" />
 			</convexhull>
 			<convexhull nr="2">
 				<pt x="1476.74046" y="471.293519930914" />
