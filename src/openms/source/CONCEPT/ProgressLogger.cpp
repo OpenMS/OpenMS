@@ -176,7 +176,7 @@ public:
     return tmp_map;
   }
 
-  String ProgressLogger::logTypeToFactoryName(ProgressLogger::LogType type)
+  String ProgressLogger::logTypeToFactoryName_(ProgressLogger::LogType type)
   {
     std::map<ProgressLogger::LogType, String>::const_iterator it = log_type_factory_association_.find(type);
     if (it != log_type_factory_association_.end())
@@ -194,7 +194,7 @@ public:
     type_(NONE),
     last_invoke_()
   {
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName(type_));
+    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
   }
 
   ProgressLogger::ProgressLogger(const ProgressLogger& other) :
@@ -202,7 +202,7 @@ public:
     last_invoke_(other.last_invoke_)
   {
     // recreate our logger
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName(type_));
+    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
   }
 
   ProgressLogger& ProgressLogger::operator=(const ProgressLogger& other)
@@ -216,7 +216,7 @@ public:
     delete current_logger_;
 
     // .. and get a new one
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName(type_));
+    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
 
     return *this;
   }
@@ -232,7 +232,7 @@ public:
     // remove the old logger
     delete current_logger_;
 
-    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName(type_));
+    current_logger_ = Factory<ProgressLogger::ProgressLoggerImpl>::create(logTypeToFactoryName_(type_));
   }
 
   ProgressLogger::LogType ProgressLogger::getLogType() const

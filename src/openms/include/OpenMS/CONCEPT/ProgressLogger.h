@@ -129,7 +129,7 @@ protected:
     static std::map<LogType, String> initializeLogAssociation_();
 
     /// Return the name of the factory product used for this log type
-    static String logTypeToFactoryName(LogType type);
+    static String logTypeToFactoryName_(LogType type);
 
     mutable ProgressLoggerImpl* current_logger_;
 
