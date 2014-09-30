@@ -175,6 +175,12 @@ public:
       case GUI:
         return "GUI";
     }
+
+// should never happen but gcc emits a warning/error
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code-return"
+    return "";
+#pragma clang diagnostic pop
   }
 
   ProgressLogger::ProgressLogger() :
