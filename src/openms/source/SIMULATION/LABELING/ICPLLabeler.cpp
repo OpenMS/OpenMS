@@ -71,12 +71,12 @@ namespace OpenMS
   {
   }
 
-  void ICPLLabeler::preCheck(Param & /* param */) const
+  void ICPLLabeler::preCheck(Param& /* param */) const
   {
     // we do not have any prerequisite
   }
 
-  void ICPLLabeler::addLabelToProteinHits_(SimTypes::FeatureMapSim & features, const String & label) const
+  void ICPLLabeler::addLabelToProteinHits_(SimTypes::FeatureMapSim& features, const String& label) const
   {
     // check if proteinIdentification exists before accessing it
     if (features.getProteinIdentifications().empty())
@@ -96,7 +96,7 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::setUpHook(SimTypes::FeatureMapSimVector & features)
+  void ICPLLabeler::setUpHook(SimTypes::FeatureMapSimVector& features)
   {
     // channel check
     if (features.size() < 2 || features.size() > 3)
@@ -104,7 +104,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "We currently support only 2- or 3-channel ICPL");
     }
 
-    if (param_.getValue("label_proteins") == "true")    // loop for protein-labeling (pre-digest-labeling)
+    if (param_.getValue("label_proteins") == "true") // loop for protein-labeling (pre-digest-labeling)
     {
       // first channel labeling (light)
       addLabelToProteinHits_(features[0], light_channel_label_);
@@ -120,12 +120,12 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::postDigestHook(SimTypes::FeatureMapSimVector & features_to_simulate)
+  void ICPLLabeler::postDigestHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
-    SimTypes::FeatureMapSim & light_labeled_features = features_to_simulate[0];
-    SimTypes::FeatureMapSim & medium_labeled_features = features_to_simulate[1];
+    SimTypes::FeatureMapSim& light_labeled_features = features_to_simulate[0];
+    SimTypes::FeatureMapSim& medium_labeled_features = features_to_simulate[1];
 
-    if (param_.getValue("label_proteins") == "false")   // loop for peptide-labeling (post-digest-labeling)
+    if (param_.getValue("label_proteins") == "false") // loop for peptide-labeling (post-digest-labeling)
     {
       // iterate over first map for light labeling
       for (SimTypes::FeatureMapSim::iterator lf_iter = light_labeled_features.begin(); lf_iter != light_labeled_features.end(); ++lf_iter)
@@ -141,9 +141,9 @@ namespace OpenMS
         addModificationToPeptideHit_(*lf_iter, medium_channel_label_);
       }
 
-      if (features_to_simulate.size() == 3)      //third channel labeling can only be done, if a third channel exist
+      if (features_to_simulate.size() == 3) //third channel labeling can only be done, if a third channel exist
       {
-        SimTypes::FeatureMapSim & heavy_labeled_features = features_to_simulate[2];
+        SimTypes::FeatureMapSim& heavy_labeled_features = features_to_simulate[2];
 
         // iterate over third map
         for (SimTypes::FeatureMapSim::iterator lf_iter = heavy_labeled_features.begin(); lf_iter != heavy_labeled_features.end(); ++lf_iter)
@@ -157,7 +157,7 @@ namespace OpenMS
     // merge the generated feature maps and create consensus
     SimTypes::FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
 
-    if (features_to_simulate.size() == 2)   // merge_modus for two FeatureMaps
+    if (features_to_simulate.size() == 2) // merge_modus for two FeatureMaps
     {
       // create index of light channel features for easy mapping of medium-to-light channel
       Map<String, Feature> light_labeled_features_index;
@@ -184,11 +184,11 @@ namespace OpenMS
         if (light_labeled_features_index.has(getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_)))
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
-          Feature & light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_)];
+          Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_)];
           // guarantee uniquenes
           light_labeled_feature.ensureUniqueId();
 
-          if (medium_labeled_feature_sequence.isModified())          // feature has a medium ICPL-Label and is not equal to light-labeled
+          if (medium_labeled_feature_sequence.isModified()) // feature has a medium ICPL-Label and is not equal to light-labeled
           {
             // add features to final map
             final_feature_map.push_back(*medium_labeled_feature_iter);
@@ -211,7 +211,7 @@ namespace OpenMS
             final_feature_map.push_back(final_feature);
           }
         }
-        else         // no ICPL pair, just add the medium-labeled one
+        else // no ICPL pair, just add the medium-labeled one
         {
           final_feature_map.push_back(*medium_labeled_feature_iter);
         }
@@ -255,7 +255,7 @@ namespace OpenMS
 
       for (SimTypes::FeatureMapSim::iterator heavy_labeled_feature_iter = features_to_simulate[2].begin(); heavy_labeled_feature_iter != features_to_simulate[2].end(); ++heavy_labeled_feature_iter)
       {
-        Feature & heavy_feature = *heavy_labeled_feature_iter;
+        Feature& heavy_feature = *heavy_labeled_feature_iter;
         String heavy_feature_unmodified_sequence = getUnmodifiedAASequence_(heavy_feature, heavy_channel_label_);
         heavy_feature.ensureUniqueId();
 
@@ -349,7 +349,7 @@ namespace OpenMS
       // clean up medium-labeled_index
       for (Map<String, Feature>::iterator medium_labeled_index_iter = medium_labeled_features_index.begin(); medium_labeled_index_iter != medium_labeled_features_index.end(); ++medium_labeled_index_iter)
       {
-        Feature & medium_labeled_feature = medium_labeled_index_iter->second;
+        Feature& medium_labeled_feature = medium_labeled_index_iter->second;
         medium_labeled_feature.ensureUniqueId();
 
         String medium_labeled_feature_unmodified_sequence = medium_labeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
@@ -403,7 +403,7 @@ namespace OpenMS
     consensus_.getFileDescriptions()[0] = map_description;
   }
 
-  Feature ICPLLabeler::mergeFeatures_(Feature & feature_to_merge, const AASequence & labeled_feature_sequence, Map<String, Feature> & feature_index) const
+  Feature ICPLLabeler::mergeFeatures_(Feature& feature_to_merge, const AASequence& labeled_feature_sequence, Map<String, Feature>& feature_index) const
   {
     // merge with feature from first map (if it exists)
     if (feature_index.count(labeled_feature_sequence.toString()) != 0)
@@ -429,7 +429,7 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::addModificationToPeptideHit_(Feature & feature, const String & modification) const
+  void ICPLLabeler::addModificationToPeptideHit_(Feature& feature, const String& modification) const
   {
     vector<PeptideHit> pep_hits(feature.getPeptideIdentifications()[0].getHits());
     AASequence modified_sequence(pep_hits[0].getSequence());
@@ -442,23 +442,23 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::postRTHook(SimTypes::FeatureMapSimVector & features_to_simulate)
+  void ICPLLabeler::postRTHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
     double rt_shift = param_.getValue("ICPL_fixed_rtshift");
 
     if (rt_shift != 0.0)
     {
-      Map<UInt64, Feature *> id_map;
-      SimTypes::FeatureMapSim & feature_map = features_to_simulate[0];
+      Map<UInt64, Feature*> id_map;
+      SimTypes::FeatureMapSim& feature_map = features_to_simulate[0];
       for (SimTypes::FeatureMapSim::Iterator it = feature_map.begin(); it != feature_map.end(); ++it)
       {
-        id_map.insert(std::make_pair<UInt64, Feature *>(it->getUniqueId(), &(*it)));
+        id_map.insert(std::make_pair<UInt64, Feature*>(it->getUniqueId(), &(*it)));
       }
 
       // recompute RT of pairs
       for (ConsensusMap::Iterator consensus_it = consensus_.begin(); consensus_it != consensus_.end(); ++consensus_it)
       {
-        ConsensusFeature & cf = *consensus_it;
+        ConsensusFeature& cf = *consensus_it;
 
         // check if these features are still available and were not removed during RT sim
         bool complete = true;
@@ -470,8 +470,8 @@ namespace OpenMS
 
         if (complete)
         {
-          Feature * f1 = id_map[(cf.begin())->getUniqueId()];
-          Feature * f2 = id_map[(++cf.begin())->getUniqueId()];
+          Feature* f1 = id_map[(cf.begin())->getUniqueId()];
+          Feature* f2 = id_map[(++cf.begin())->getUniqueId()];
 
           // the lighter one should be the unmodified one
           EmpiricalFormula ef1 = (f1->getPeptideIdentifications())[0].getHits()[0].getSequence().getFormula();
@@ -490,22 +490,22 @@ namespace OpenMS
     }
   }
 
-  void ICPLLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void ICPLLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
     // no changes to the features .. nothing todo here
   }
 
-  void ICPLLabeler::postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void ICPLLabeler::postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
     // no changes to the features .. nothing todo here
   }
 
-  void ICPLLabeler::postRawMSHook(SimTypes::FeatureMapSimVector & features_to_simulate)
+  void ICPLLabeler::postRawMSHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
     recomputeConsensus_(features_to_simulate[0]);
   }
 
-  void ICPLLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */, SimTypes::MSSimExperiment & /* simulated map */)
+  void ICPLLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */)
   {
     // no changes to the features .. nothing todo here
   }
@@ -517,7 +517,7 @@ namespace OpenMS
     heavy_channel_label_ = param_.getValue("ICPL_heavy_channel_label");
   }
 
-  String ICPLLabeler::getUnmodifiedAASequence_(const Feature & feature, const String & label) const
+  String ICPLLabeler::getUnmodifiedAASequence_(const Feature& feature, const String& label) const
   {
     AASequence unmodified = feature.getPeptideIdentifications()[0].getHits()[0].getSequence();
     if (unmodified.getNTerminalModification() == label)

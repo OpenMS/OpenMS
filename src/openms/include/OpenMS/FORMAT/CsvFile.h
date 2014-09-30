@@ -68,7 +68,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    CsvFile(const String & filename, char is = ',', bool ie = false, Int first_n = -1);
+    CsvFile(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief Loads data from a text file.
@@ -80,7 +80,7 @@ public:
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
-    void fload(const String & filename, char is = ',', bool ie = false, Int first_n = -1);
+    void fload(const String& filename, char is = ',', bool ie = false, Int first_n = -1);
 
     /**
       @brief writes all items from a row to list
@@ -92,7 +92,7 @@ public:
 
       @return  returns false if the given row could not be separated into items
     */
-    bool getRow(Size row, StringList & list);
+    bool getRow(Size row, StringList& list);
 
     /**
       @brief Returns the number of rows that were loaded from the file.

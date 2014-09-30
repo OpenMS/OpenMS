@@ -129,7 +129,7 @@ namespace OpenMS
 
   }
 
-  void ITRAQLabeler::preCheck(Param & param) const
+  void ITRAQLabeler::preCheck(Param& param) const
   {
     // check for valid MS/MS method
     if (!ListUtils::contains(ListUtils::create<String>("disabled,precursor"), param.getValue("RawTandemSignal:status")))
@@ -138,7 +138,7 @@ namespace OpenMS
     }
   }
 
-  void ITRAQLabeler::setUpHook(SimTypes::FeatureMapSimVector & features)
+  void ITRAQLabeler::setUpHook(SimTypes::FeatureMapSimVector& features)
   {
     // no action here .. just check for correct # of channels
     Size active_channel_count = 0;
@@ -157,7 +157,7 @@ namespace OpenMS
   /// Join all peptides with the same sequence into one feature
   /// channels are retained via metavalues
   /// if a peptide is not present in all channels, then there will be missing meta values! (so don't rely on them being present)
-  void ITRAQLabeler::postDigestHook(SimTypes::FeatureMapSimVector & channels)
+  void ITRAQLabeler::postDigestHook(SimTypes::FeatureMapSimVector& channels)
   {
     // merge channels into a single feature map
     SimTypes::FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(channels);
@@ -177,7 +177,7 @@ namespace OpenMS
              it_f != labeled_features.end();
              ++it_f)
         {
-          const String & seq = it_f->getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
+          const String& seq = it_f->getPeptideIdentifications()[0].getHits()[0].getSequence().toString();
           Size f_index;
           //check if we already have a feature for this peptide
           if (peptide_to_feature.count(seq) > 0)
@@ -205,26 +205,26 @@ namespace OpenMS
   }
 
   /// Labeling between RT and Detectability
-  void ITRAQLabeler::postRTHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void ITRAQLabeler::postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Detectability and Ionization
-  void ITRAQLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void ITRAQLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Ionization and RawMS
-  void ITRAQLabeler::postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void ITRAQLabeler::postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling after RawMS
-  void ITRAQLabeler::postRawMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void ITRAQLabeler::postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
-  void ITRAQLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector & fm, SimTypes::MSSimExperiment & exp)
+  void ITRAQLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector& fm, SimTypes::MSSimExperiment& exp)
   {
     //std::cout << "Matrix used: \n" << ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_) << "\n\n";
 
@@ -232,14 +232,14 @@ namespace OpenMS
 
 
     OPENMS_PRECONDITION(fm.size() == 1, "More than one feature map given in ITRAQLabeler::postRawTandemMSHook()!")
-    EigenMatrixXdPtr channel_frequency = convertOpenMSMatrix2EigenMatrixXd( ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_) );
-    Eigen::MatrixXd itraq_intensity_sum (ItraqConstants::CHANNEL_COUNT[itraq_type_], 1);
+    EigenMatrixXdPtr channel_frequency = convertOpenMSMatrix2EigenMatrixXd(ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_));
+    Eigen::MatrixXd itraq_intensity_sum(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1);
 
     std::vector<Matrix<Int> > channel_names(2);
     channel_names[0].setMatrix<4, 1>(ItraqConstants::CHANNELS_FOURPLEX);
     channel_names[1].setMatrix<8, 1>(ItraqConstants::CHANNELS_EIGHTPLEX);
 
-    boost::uniform_real<double> udist (0.0,1.0);
+    boost::uniform_real<double> udist(0.0, 1.0);
 
     // add signal...
     for (SimTypes::MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)
@@ -256,7 +256,7 @@ namespace OpenMS
       for (Size i_f = 0; i_f < parent_fs.size(); ++i_f)
       {
         // get RT scaled iTRAQ intensities
-          EigenMatrixXdPtr row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT());
+        EigenMatrixXdPtr row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT());
 
         // apply isotope matrix to active channels
         // row * channel_frequencyOld = observed iTRAQ intensities
@@ -281,7 +281,7 @@ namespace OpenMS
 
   // CUSTOM FUNCTIONS for iTRAQ:: //
 
-  void ITRAQLabeler::addModificationToPeptideHit_(Feature & feature, const String & modification, const Size & pos) const
+  void ITRAQLabeler::addModificationToPeptideHit_(Feature& feature, const String& modification, const Size& pos) const
   {
     vector<PeptideHit> pep_hits(feature.getPeptideIdentifications()[0].getHits());
     AASequence modified_sequence(pep_hits[0].getSequence());
@@ -290,7 +290,7 @@ namespace OpenMS
     feature.getPeptideIdentifications()[0].setHits(pep_hits);
   }
 
-  void ITRAQLabeler::labelPeptide_(const Feature & feature, SimTypes::FeatureMapSim & result) const
+  void ITRAQLabeler::labelPeptide_(const Feature& feature, SimTypes::FeatureMapSim& result) const
   {
     // modify with iTRAQ modification (needed for mass calculation and MS/MS signal)
     //site="Y" - low abundance
@@ -344,11 +344,11 @@ namespace OpenMS
 
   }
 
-  double ITRAQLabeler::getRTProfileIntensity_(const Feature & f, const double MS2_RT_time) const
+  double ITRAQLabeler::getRTProfileIntensity_(const Feature& f, const double MS2_RT_time) const
   {
     // compute intensity correction factor for feature from RT profile
-    const DoubleList & elution_bounds = f.getMetaValue("elution_profile_bounds");
-    const DoubleList & elution_ints   = f.getMetaValue("elution_profile_intensities");
+    const DoubleList& elution_bounds = f.getMetaValue("elution_profile_bounds");
+    const DoubleList& elution_ints   = f.getMetaValue("elution_profile_intensities");
 
     // check that RT is within the elution bound:
     OPENMS_POSTCONDITION(f.getConvexHull().getBoundingBox().encloses(MS2_RT_time, f.getMZ()), "The MS2 spectrum has wrong parent features! The feature does not touch the spectrum's RT!")
@@ -369,14 +369,14 @@ namespace OpenMS
     return elution_ints[index];
   }
 
-  EigenMatrixXdPtr ITRAQLabeler::getItraqIntensity_(const Feature & f, const double MS2_RT_time) const
+  EigenMatrixXdPtr ITRAQLabeler::getItraqIntensity_(const Feature& f, const double MS2_RT_time) const
   {
 
     double factor = getRTProfileIntensity_(f, MS2_RT_time);
 
     //std::cerr << "\n\nfactor is: " << factor << "\n";
     // fill map with values present (all missing ones remain 0)
-    MutableEigenMatrixXdPtr m (new Eigen::MatrixXd(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1));
+    MutableEigenMatrixXdPtr m(new Eigen::MatrixXd(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1));
     m->setZero();
     Size ch(0);
     Size ch_internal(0);
@@ -388,7 +388,7 @@ namespace OpenMS
         intensity = (double) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;
       }
-      (*m)(ch, 0) = intensity * factor;
+      (* m)(ch, 0) = intensity * factor;
       ++ch;
     }
 

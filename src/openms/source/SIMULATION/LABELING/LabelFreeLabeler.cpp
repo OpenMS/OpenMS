@@ -52,14 +52,14 @@ namespace OpenMS
   {
   }
 
-  void LabelFreeLabeler::preCheck(Param & /* param */) const
+  void LabelFreeLabeler::preCheck(Param& /* param */) const
   {
     // no specific requirements
   }
 
   // merge all channels into the first one
   // no further influence of the simulation process needed
-  void LabelFreeLabeler::setUpHook(SimTypes::FeatureMapSimVector & features)
+  void LabelFreeLabeler::setUpHook(SimTypes::FeatureMapSimVector& features)
   {
     if (features.size() == 1)
       return;
@@ -73,31 +73,31 @@ namespace OpenMS
   }
 
   /// Labeling between digestion and rt simulation
-  void LabelFreeLabeler::postDigestHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between RT and Detectability
-  void LabelFreeLabeler::postRTHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Detectability and Ionization
-  void LabelFreeLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Ionization and RawMS
-  void LabelFreeLabeler::postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling after RawMS
-  void LabelFreeLabeler::postRawMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+  void LabelFreeLabeler::postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
-  void LabelFreeLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimTypes::MSSimExperiment &)
+  void LabelFreeLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector&, SimTypes::MSSimExperiment&)
   {
 
   }

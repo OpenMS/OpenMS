@@ -74,7 +74,7 @@ namespace OpenMS
     return String("channel_") + String(channel_index) + "_intensity";
   }
 
-  SimTypes::FeatureMapSim BaseLabeler::mergeProteinIdentificationsMaps_(const SimTypes::FeatureMapSimVector & maps)
+  SimTypes::FeatureMapSim BaseLabeler::mergeProteinIdentificationsMaps_(const SimTypes::FeatureMapSimVector& maps)
   {
     // we do not have any features yet (or at least we ignore them), so simply iterate over the protein
     // identifications
@@ -123,7 +123,7 @@ namespace OpenMS
     return final_map;
   }
 
-  void BaseLabeler::mergeProteinAccessions_(Feature & target, const Feature & source) const
+  void BaseLabeler::mergeProteinAccessions_(Feature& target, const Feature& source) const
   {
     std::vector<String> target_acc(target.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
     std::vector<String> source_acc(source.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
@@ -155,7 +155,7 @@ namespace OpenMS
     target.getPeptideIdentifications()[0].setHits(pepHits);
   }
 
-  void BaseLabeler::recomputeConsensus_(const SimTypes::FeatureMapSim & simulated_features)
+  void BaseLabeler::recomputeConsensus_(const SimTypes::FeatureMapSim& simulated_features)
   {
     // iterate over all given features stored in the labeling consensus and try to find the corresponding feature in
     // in the feature map
@@ -276,12 +276,12 @@ namespace OpenMS
     consensus_.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
-  ConsensusMap & BaseLabeler::getConsensus()
+  ConsensusMap& BaseLabeler::getConsensus()
   {
     return consensus_;
   }
 
-  const String & BaseLabeler::getDescription() const
+  const String& BaseLabeler::getDescription() const
   {
     return channel_description_;
   }

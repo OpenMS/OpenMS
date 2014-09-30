@@ -50,7 +50,7 @@ namespace OpenMS
 
   }
 
-  vector<double> ConsensusMapNormalizerAlgorithmMedian::computeNormalizationFactors(const ConsensusMap & map)
+  vector<double> ConsensusMapNormalizerAlgorithmMedian::computeNormalizationFactors(const ConsensusMap& map)
   {
     Size number_of_maps = map.getFileDescriptions().size();
     vector<vector<double> > feature_int(number_of_maps);
@@ -83,7 +83,7 @@ namespace OpenMS
     vector<double> medians(number_of_maps);
     for (UInt j = 0; j < number_of_maps; j++)
     {
-      vector<double> & ints_j = feature_int[j];
+      vector<double>& ints_j = feature_int[j];
       medians[j] = Math::median(ints_j.begin(), ints_j.end());
     }
     //compute normalization factors
@@ -96,7 +96,7 @@ namespace OpenMS
     return normalization_factors;
   }
 
-  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap & map)
+  void ConsensusMapNormalizerAlgorithmMedian::normalizeMaps(ConsensusMap& map)
   {
     ConsensusMap::Iterator cf_it;
     ProgressLogger progresslogger;

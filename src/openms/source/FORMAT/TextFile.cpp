@@ -133,7 +133,8 @@ namespace OpenMS
         if (it->hasSuffix("\r\n"))
         {
           os << it->chop(2) << "\n";
-        } else
+        }
+        else
         {
           os << *it;
         }
@@ -145,12 +146,12 @@ namespace OpenMS
     }
     os.close();
   }
-  
+
   TextFile::ConstIterator TextFile::begin() const
   {
     return buffer_.begin();
   }
-  
+
   TextFile::ConstIterator TextFile::end() const
   {
     return buffer_.end();

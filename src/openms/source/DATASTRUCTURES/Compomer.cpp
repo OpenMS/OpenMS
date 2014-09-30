@@ -36,7 +36,7 @@
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
 #include <cmath>
-#include <algorithm>    // std::min
+#include <algorithm> // std::min
 #include <iostream>
 
 using namespace std;
@@ -71,7 +71,7 @@ namespace OpenMS
   }
 
   /// Copy C'tor
-  Compomer::Compomer(const Compomer & p) :
+  Compomer::Compomer(const Compomer& p) :
     cmp_(p.cmp_),
     net_charge_(p.net_charge_),
     mass_(p.mass_),
@@ -84,7 +84,7 @@ namespace OpenMS
   }
 
   /// Assignment Operator
-  Compomer & Compomer::operator=(const Compomer & source)
+  Compomer& Compomer::operator=(const Compomer& source)
   {
     if (&source == this)
       return *this;
@@ -102,7 +102,7 @@ namespace OpenMS
   }
 
   /// Add a.amount of Adduct @param a to Compomer's @param side and update its properties
-  void Compomer::add(const Adduct & a, UInt side)
+  void Compomer::add(const Adduct& a, UInt side)
   {
     if (side >= BOTH)
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::add() does not support this value for 'side'!", String(side));
@@ -139,7 +139,7 @@ namespace OpenMS
    * @param side_this Indicates which "side"(negative or positive adducts) we are looking at. Negative adducts belong to the left side of the ChargePair.
    * @param side_other See above.
    */
-  bool Compomer::isConflicting(const Compomer & cmp, UInt side_this, UInt side_other) const
+  bool Compomer::isConflicting(const Compomer& cmp, UInt side_this, UInt side_other) const
   {
     if (side_this  >= BOTH)
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::isConflicting() does not support this value for 'side_this'!", String(side_this));
@@ -171,54 +171,54 @@ namespace OpenMS
   }
 
   /// set an Id which allows unique identification of a compomer
-  void Compomer::setID(const Size & id)
+  void Compomer::setID(const Size& id)
   {
     id_ = id;
   }
 
   /// return Id which allows unique identification of this compomer
-  const Size & Compomer::getID() const
+  const Size& Compomer::getID() const
   {
     return id_;
   }
 
-  const Compomer::CompomerComponents & Compomer::getComponent() const
+  const Compomer::CompomerComponents& Compomer::getComponent() const
   {
     return cmp_;
   }
 
   /// net charge of compomer (i.e. difference between left and right side of compomer)
-  const Int & Compomer::getNetCharge() const
+  const Int& Compomer::getNetCharge() const
   {
     return net_charge_;
   }
 
   /// mass of all contained adducts
-  const double & Compomer::getMass() const
+  const double& Compomer::getMass() const
   {
     return mass_;
   }
 
   /// summed positive charges of contained adducts
-  const Int & Compomer::getPositiveCharges() const
+  const Int& Compomer::getPositiveCharges() const
   {
     return pos_charges_;
   }
 
   /// summed negative charges of contained adducts
-  const Int & Compomer::getNegativeCharges() const
+  const Int& Compomer::getNegativeCharges() const
   {
     return neg_charges_;
   }
 
   /// return log probability
-  const double & Compomer::getLogP() const
+  const double& Compomer::getLogP() const
   {
     return log_p_;
   }
 
   /// return RT shift induced by this compomer
-  const double & Compomer::getRTShift() const
+  const double& Compomer::getRTShift() const
   {
     return rt_shift_;
   }
@@ -250,7 +250,7 @@ namespace OpenMS
     return r;
   }
 
-  bool Compomer::isSingleAdduct(Adduct & a, const UInt side) const
+  bool Compomer::isSingleAdduct(Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::isSimpleAdduct() does not support this value for 'side'!", String(side));
@@ -264,14 +264,14 @@ namespace OpenMS
     return true;
   }
 
-  Compomer Compomer::removeAdduct(const Adduct & a) const
+  Compomer Compomer::removeAdduct(const Adduct& a) const
   {
     Compomer tmp = removeAdduct(a, LEFT);
     tmp = tmp.removeAdduct(a, RIGHT);
     return tmp;
   }
 
-  Compomer Compomer::removeAdduct(const Adduct & a, const UInt side) const
+  Compomer Compomer::removeAdduct(const Adduct& a, const UInt side) const
   {
     if (side >= BOTH)
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compomer::removeAdduct() does not support this value for 'side'!", String(side));
@@ -279,7 +279,7 @@ namespace OpenMS
     Compomer tmp(*this);
     if (tmp.cmp_[side].count(a.getFormula()) > 0)
     {
-      {       // how many instances does this side contain?
+      { // how many instances does this side contain?
         Int amount = tmp.cmp_[side][a.getFormula()].getAmount();
         int mult[] = {-1, 1};
         //const Adduct &to_remove = tmp.cmp_[side][a.getFormula()];
@@ -316,7 +316,7 @@ namespace OpenMS
   }
 
   /// Adds @p add_side to this compomer.
-  void Compomer::add(const CompomerSide & add_side, UInt side)
+  void Compomer::add(const CompomerSide& add_side, UInt side)
   {
     for (CompomerSide::const_iterator it = add_side.begin(); it != add_side.end(); ++it)
     {
@@ -325,7 +325,7 @@ namespace OpenMS
   }
 
   /// Sort compomer by (in order of importance): net-charge, mass, probability
-  OPENMS_DLLAPI bool operator<(const Compomer & c1, const Compomer & c2)
+  OPENMS_DLLAPI bool operator<(const Compomer& c1, const Compomer& c2)
   {
     // how to sort Compomers:
     // first by net_charge
@@ -349,7 +349,7 @@ namespace OpenMS
   }
 
   /// Print the contents of a Compomer to a stream.
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Compomer & cmp)
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Compomer& cmp)
   {
     os << "Compomer: ";
     os << "Da " << cmp.mass_ << "; q_net " << cmp.net_charge_  << "; logP " << cmp.log_p_ << "[[ ";
@@ -358,7 +358,7 @@ namespace OpenMS
     return os;
   }
 
-  bool operator==(const Compomer & a, const  Compomer & b)
+  bool operator==(const Compomer& a, const  Compomer& b)
   {
     return a.cmp_ == b.cmp_
            && a.net_charge_ == b.net_charge_

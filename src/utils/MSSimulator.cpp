@@ -152,7 +152,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     Param tmp;
     tmp.insert("MSSim:", MSSim().getParameters());
@@ -168,7 +168,7 @@ protected:
   }
 
   // Load proteins from FASTA file
-  void loadFASTA_(const String & filename, SimTypes::SampleProteins & proteins)
+  void loadFASTA_(const String& filename, SimTypes::SampleProteins& proteins)
   {
     writeLog_(String("Loading sequence data from ") + filename +  String(" ..."));
 
@@ -232,7 +232,7 @@ protected:
     writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -267,7 +267,7 @@ protected:
     // initialize the random number generators
     bool biological_random = getParam_().getValue("algorithm:RandomNumberGenerators:biological") == "random";
     bool technical_random = getParam_().getValue("algorithm:RandomNumberGenerators:technical") == "random";
-    SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen ( new SimTypes::SimRandomNumberGenerator );
+    SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen(new SimTypes::SimRandomNumberGenerator);
     rnd_gen->initialize(biological_random, technical_random);
 
     ms_simulation.setLogType(this->log_type_);
@@ -307,7 +307,7 @@ protected:
     {
       writeLog_(String("Storing charged consensus features in: ") + cxml_out);
 
-      ConsensusMap & charge_consensus = ms_simulation.getChargeConsensus();
+      ConsensusMap& charge_consensus = ms_simulation.getChargeConsensus();
       charge_consensus.getFileDescriptions()[0].filename = fxml_out;
       charge_consensus.getFileDescriptions()[0].size = ms_simulation.getSimulatedFeatures().size();
       charge_consensus.getFileDescriptions()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
@@ -321,7 +321,7 @@ protected:
       writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
 
       // set file name for all (sub)feature maps
-      ConsensusMap & labeling_consensus = ms_simulation.getLabelingConsensus();
+      ConsensusMap& labeling_consensus = ms_simulation.getLabelingConsensus();
       for (ConsensusMap::FileDescriptions::iterator fdI = labeling_consensus.getFileDescriptions().begin();
            fdI != labeling_consensus.getFileDescriptions().end();
            ++fdI)
@@ -355,7 +355,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMSSimulator tool;
   return tool.main(argc, argv);

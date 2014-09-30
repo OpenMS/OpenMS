@@ -60,9 +60,9 @@ public:
       @param n The maximum number of elements to be copied.
     */
     static void convert(UInt64 const input_map_index,
-                                      MSExperiment<> & input_map,
-                                      ConsensusMap & output_map,
-                                      Size n = -1);
+                        MSExperiment<>& input_map,
+                        ConsensusMap& output_map,
+                        Size n = -1);
 
     /**
       @brief Convert a ConsensusMap to a FeatureMap (of any feature type).
@@ -75,9 +75,9 @@ public:
       @param output_map The resulting ConsensusMap.
     */
     template <typename FeatureT>
-    static void convert(ConsensusMap const & input_map,
+    static void convert(ConsensusMap const& input_map,
                         const bool keep_uids,
-                        FeatureMap<FeatureT> & output_map)
+                        FeatureMap<FeatureT>& output_map)
     {
       output_map.clear(true);
       output_map.resize(input_map.size());
@@ -91,8 +91,8 @@ public:
 
       for (Size i = 0; i < input_map.size(); ++i)
       {
-        Feature & f = output_map[i];
-        const ConsensusFeature & c = input_map[i];
+        Feature& f = output_map[i];
+        const ConsensusFeature& c = input_map[i];
         f.BaseFeature::operator=(c);
         if (!keep_uids) f.setUniqueId();
       }
@@ -121,8 +121,8 @@ public:
     */
     template <typename FeatureT>
     static void convert(UInt64 const input_map_index,
-                        FeatureMap<FeatureT> const & input_map,
-                        ConsensusMap & output_map,
+                        FeatureMap<FeatureT> const& input_map,
+                        ConsensusMap& output_map,
                         Size n = -1)
     {
       if (n > input_map.size())

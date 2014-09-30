@@ -1878,9 +1878,9 @@ protected:
       // Final score .. intensityScore in the surrounding bins, weighted by the distance of the
       // bin center to the peak
       double final = intensityScore_(rl, ml, intensity) * (d1 / d_sum)
-                         + intensityScore_(rh, ml, intensity) * (d2 / d_sum)
-                         + intensityScore_(rl, mh, intensity) * (d3 / d_sum)
-                         + intensityScore_(rh, mh, intensity) * (d4 / d_sum);
+                     + intensityScore_(rh, ml, intensity) * (d2 / d_sum)
+                     + intensityScore_(rl, mh, intensity) * (d3 / d_sum)
+                     + intensityScore_(rh, mh, intensity) * (d4 / d_sum);
 
       OPENMS_POSTCONDITION(final >= 0.0, (String("Internal error: Intensity score (") + final + ") should be >=0.0").c_str())
       OPENMS_POSTCONDITION(final <= 1.0001, (String("Internal error: Intensity score (") + final + ") should be <=1.0").c_str())
@@ -1933,7 +1933,7 @@ protected:
       }
 
       double final = bin_score +
-                         0.05 * ((it - quantiles20.begin()) - 1.0); // determine position of lower bound in the vector
+                     0.05 * ((it - quantiles20.begin()) - 1.0);     // determine position of lower bound in the vector
 
       //fix numerical problems
       if (final < 0.0) final = 0.0;
@@ -2183,7 +2183,7 @@ protected:
         }
         tf.store(path + plot_nr + ".dta");
       }
-      
+
       {
         //fitted feature
         if (new_traces.getPeakCount() != 0)
@@ -2211,7 +2211,7 @@ protected:
           script = script + "' with points 3";
         }
       }
-      
+
       {
         //fitted functions
         TextFile tf_fitted_func;

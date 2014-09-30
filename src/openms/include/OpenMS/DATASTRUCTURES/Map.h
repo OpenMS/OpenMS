@@ -64,7 +64,7 @@ public:
       public Exception::BaseException
     {
 public:
-      IllegalKey(const char * file, int line, const char * function) :
+      IllegalKey(const char* file, int line, const char* function) :
         Exception::BaseException(file, line, function)
       {
       }
@@ -76,13 +76,13 @@ public:
     typedef std::map<Key, T> Base;
     typedef typename Base::value_type ValueType;
     typedef Key KeyType;
-    typedef typename Base::value_type * PointerType;
+    typedef typename Base::value_type* PointerType;
     typedef typename Base::iterator Iterator;
     typedef typename Base::const_iterator ConstIterator;
     typedef typename Base::reverse_iterator ReverseIterator;
     typedef typename Base::const_reverse_iterator ConstReverseIterator;
     //@}
-    
+
     ///@name Export methods from private base std::vector<Acquisition>
     //@{
     using Base::erase;
@@ -96,16 +96,16 @@ public:
     using Base::find;
     using Base::empty;
     using Base::count;
-    
+
     using typename Base::iterator;
     using typename Base::const_iterator;
-    
+
     using typename Base::mapped_type;
     using typename Base::value_type;
     //@}
 
     ///Test whether the map contains the given key.
-    inline bool has(const Key & key) const
+    inline bool has(const Key& key) const
     {
       return Base::find(key) != Base::end();
     }
@@ -115,19 +115,20 @@ public:
 
       @exception IllegalKey if the given key does not exist
     */
-    const T & operator[](const Key & key) const;
+    const T& operator[](const Key& key) const;
 
     /// Return a mutable reference to the element whose key is @p key. If an element with the key @p key does not exist, it is inserted.
-    T & operator[](const Key & key);
-    
+    T& operator[](const Key& key);
+
 
     inline bool equals(const Map<Key, T>& other) const
     {
-      return operator== (
-                         static_cast<typename Map<Key,T>::Base>(*this),
-                         static_cast<typename Map<Key,T>::Base>(other)
-                         );
+      return operator==(
+        static_cast<typename Map<Key, T>::Base>(*this),
+        static_cast<typename Map<Key, T>::Base>(other)
+        );
     }
+
   };
 
   //******************************************************************************************
@@ -135,7 +136,7 @@ public:
   //******************************************************************************************
 
   template <class Key, class T>
-  const T & Map<Key, T>::operator[](const Key & key) const
+  const T& Map<Key, T>::operator[](const Key& key) const
   {
     ConstIterator it = this->find(key);
     if (it == Base::end())
@@ -149,7 +150,7 @@ public:
   }
 
   template <class Key, class T>
-  T & Map<Key, T>::operator[](const Key & key)
+  T& Map<Key, T>::operator[](const Key& key)
   {
     Iterator it = this->find(key);
     if (it == Base::end())

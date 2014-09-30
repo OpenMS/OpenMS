@@ -84,14 +84,14 @@ public:
     explicit IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr);
 
     /// Copy constructor
-    IonizationSimulation(const IonizationSimulation & source);
+    IonizationSimulation(const IonizationSimulation& source);
 
     /// Destructor
     virtual ~IonizationSimulation();
     //@}
 
     /// Assignment operator
-    IonizationSimulation & operator=(const IonizationSimulation & source);
+    IonizationSimulation& operator=(const IonizationSimulation& source);
 
     /**
       @brief Ionize all peptide features inside the Feature-Map
@@ -103,24 +103,24 @@ public:
       @param charge_consensus ConsensusMap which groups children(=charge variants) of input-features
       @param experiment SimTypes::MSSimExperiment map which contains the simulated experiment
      */
-    void ionize(SimTypes::FeatureMapSim & features, ConsensusMap & charge_consensus, SimTypes::MSSimExperiment & experiment);
+    void ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment);
 
 private:
     class CompareCmpByEF_;
 
     /// ionize using ESI
-    void ionizeEsi_(SimTypes::FeatureMapSim &, ConsensusMap & charge_consensus);
+    void ionizeEsi_(SimTypes::FeatureMapSim&, ConsensusMap& charge_consensus);
 
     /// ionize using MALDI
-    void ionizeMaldi_(SimTypes::FeatureMapSim &, ConsensusMap & charge_consensus);
+    void ionizeMaldi_(SimTypes::FeatureMapSim&, ConsensusMap& charge_consensus);
 
     /// check if feature is within mz bounds of detector
-    inline bool isFeatureValid_(const Feature & feature);
+    inline bool isFeatureValid_(const Feature& feature);
 
     /// set meta values, mz etc after adducts are ready
-    void setFeatureProperties_(Feature & f,
-                               const double & adduct_mass,
-                               const String & adduct_formula,
+    void setFeatureProperties_(Feature& f,
+                               const double& adduct_mass,
+                               const String& adduct_formula,
                                const SimTypes::SimChargeType charge,
                                const SimTypes::SimIntensityType new_intensity,
                                const Size parent_index);
@@ -136,7 +136,7 @@ private:
 
      The N-term contributes +1 always. All other ionizable residues (according to param "esi:ionized_residues") in the sequence are summed up.
     */
-    UInt countIonizedResidues_(const AASequence &) const;
+    UInt countIonizedResidues_(const AASequence&) const;
 
 
     // Members //

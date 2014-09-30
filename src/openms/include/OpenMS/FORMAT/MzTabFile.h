@@ -49,9 +49,9 @@
 
 namespace OpenMS
 {
-  // forward decl 
+  // forward decl
   class TextFile;
-  
+
   /**
     @brief File adapter for MzTab files
 
@@ -68,13 +68,13 @@ public:
     typedef std::map<std::pair<String, String>, std::vector<PeptideHit> > MapAccPepType;
 
     // (deprecated) TODO: use conversion to MzTab data structure and store function below
-    void store(const String & filename, const std::vector<ProteinIdentification> & protein_ids, const std::vector<PeptideIdentification> & peptide_ids, String in, String document_id) const;
+    void store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, String in, String document_id) const;
 
     // store MzTab file
-    void store(const String & filename, const MzTab& mz_tab) const;
+    void store(const String& filename, const MzTab& mz_tab) const;
 
-     // load MzTab file
-    void load(const String & filename, MzTab& mz_tab);
+    // load MzTab file
+    void load(const String& filename, MzTab& mz_tab);
 
 protected:
     void generateMzTabMetaDataSection_(const MzTabMetaData& map, TextFile& sl) const;
@@ -87,7 +87,7 @@ protected:
 
     void generateMzTabPeptideSection_(const MzTabPeptideSectionData& map, TextFile& sl) const;
 
-    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData & map, TextFile& sl) const;
+    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData& map, TextFile& sl) const;
 
     String generateMzTabPeptideHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns) const;
 
@@ -104,51 +104,51 @@ protected:
     static void keepFirstPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);
 
     /// Extract protein and peptide identifications for each run. maps are assumed empty.
-    static void partitionIntoRuns_(const std::vector<PeptideIdentification> & pep_ids,
-                                  const std::vector<ProteinIdentification> & pro_ids,
-                                  std::map<String, std::vector<PeptideIdentification> > & map_run_to_pepids,
-                                  std::map<String, std::vector<ProteinIdentification> > & map_run_to_proids
-                                  );
+    static void partitionIntoRuns_(const std::vector<PeptideIdentification>& pep_ids,
+                                   const std::vector<ProteinIdentification>& pro_ids,
+                                   std::map<String, std::vector<PeptideIdentification> >& map_run_to_pepids,
+                                   std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids
+                                   );
 
 
     /// create links from protein to peptides
-    static void createProteinToPeptideLinks_(const std::map<String, std::vector<PeptideIdentification> > & map_run_to_pepids, MapAccPepType & map_run_accession_to_pephits);
+    static void createProteinToPeptideLinks_(const std::map<String, std::vector<PeptideIdentification> >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits);
 
     /// Extracts, if possible a unique protein accession for a peptide hit in mzTab format. Otherwise NA is returned
-    static String extractProteinAccession_(const PeptideHit & peptide_hit);
+    static String extractProteinAccession_(const PeptideHit& peptide_hit);
 
     /// Extracts, modifications and positions of a peptide hit in mzTab format
-    static String extractPeptideModifications_(const PeptideHit & peptide_hit);
+    static String extractPeptideModifications_(const PeptideHit& peptide_hit);
 
     /// Map search engine identifier to CV, param etc.
-    static String mapSearchEngineToCvParam_(const String & openms_search_engine_name);
+    static String mapSearchEngineToCvParam_(const String& openms_search_engine_name);
 
-    static String mapSearchEngineScoreToCvParam_(const String & openms_search_engine_name, double score, String score_type);
+    static String mapSearchEngineScoreToCvParam_(const String& openms_search_engine_name, double score, String score_type);
 
-    static String extractNumPeptides_(const String & common_identifier, const String & protein_accession,
-                                     const MapAccPepType & map_run_accesion_to_peptides);
+    static String extractNumPeptides_(const String& common_identifier, const String& protein_accession,
+                                      const MapAccPepType& map_run_accesion_to_peptides);
 
     // mzTab definition of distinct
     static String extractNumPeptidesDistinct_(String common_identifier, String protein_accession,
-                                             const MapAccPepType & map_run_accesion_to_peptides);
+                                              const MapAccPepType& map_run_accesion_to_peptides);
 
     // same as distinct but additional constraint of uniqueness (=maps to exactly one Protein)
     static String extractNumPeptidesUnambiguous_(String common_identifier, String protein_accession,
-                                                const MapAccPepType & map_run_accesion_to_peptides);
+                                                 const MapAccPepType& map_run_accesion_to_peptides);
 
-    static std::map<String, Size> extractNumberOfSubSamples_(const std::map<String, std::vector<ProteinIdentification> > & map_run_to_proids);
+    static std::map<String, Size> extractNumberOfSubSamples_(const std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids);
 
-    static void writePeptideHeader_(SVOutStream & output, std::map<String, Size> n_sub_samples);
+    static void writePeptideHeader_(SVOutStream& output, std::map<String, Size> n_sub_samples);
 
-    static void writeProteinHeader_(SVOutStream & output, std::map<String, Size> n_sub_samples);
+    static void writeProteinHeader_(SVOutStream& output, std::map<String, Size> n_sub_samples);
 
-    static void writeProteinData_(SVOutStream & output,
-                                  const ProteinIdentification & prot_id,
+    static void writeProteinData_(SVOutStream& output,
+                                  const ProteinIdentification& prot_id,
                                   Size run_count,
                                   String input_filename,
                                   bool has_coverage,
-                                  const MapAccPepType & map_run_accesion_to_peptides,
-                                  const std::map<String, Size> & map_run_to_num_sub
+                                  const MapAccPepType& map_run_accesion_to_peptides,
+                                  const std::map<String, Size>& map_run_to_num_sub
                                   );
 
   };

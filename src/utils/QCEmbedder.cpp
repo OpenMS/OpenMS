@@ -114,7 +114,7 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input qcml file",false);
+    registerInputFile_("in", "<file>", "", "Input qcml file", false);
     setValidFormats_("in", ListUtils::create<String>("qcML"));
     registerStringOption_("qp_att_acc", "<string>", "", "Defines the qp cv accession of the qp to which the table/image is attached.", false);
     registerStringOption_("cv_acc", "<string>", "", "Defines the cv accession of the attachment.");

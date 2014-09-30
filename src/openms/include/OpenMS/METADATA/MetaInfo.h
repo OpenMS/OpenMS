@@ -69,47 +69,47 @@ public:
     MetaInfo();
 
     ///copy constructor
-    MetaInfo(const MetaInfo & rhs);
+    MetaInfo(const MetaInfo& rhs);
 
     ///destructor
     ~MetaInfo();
 
     ///assignment operator
-    MetaInfo & operator=(const MetaInfo & rhs);
+    MetaInfo& operator=(const MetaInfo& rhs);
 
     /// Equality operator
-    bool operator==(const MetaInfo & rhs) const;
+    bool operator==(const MetaInfo& rhs) const;
     /// Equality operator
-    bool operator!=(const MetaInfo & rhs) const;
+    bool operator!=(const MetaInfo& rhs) const;
 
     /// returns the value corresponding to a string
-    const DataValue & getValue(const String & name) const;
+    const DataValue& getValue(const String& name) const;
     /// returns the value corresponding to an index
-    const DataValue & getValue(UInt index) const;
+    const DataValue& getValue(UInt index) const;
 
     /// returns if this MetaInfo is set
-    bool exists(const String & name) const;
+    bool exists(const String& name) const;
     /// returns if this MetaInfo is set
     bool exists(UInt index) const;
 
     /// sets the DataValue corresponding to a name
-    void setValue(const String & name, const DataValue & value);
+    void setValue(const String& name, const DataValue& value);
     ///  sets the DataValue corresponding to an index
-    void setValue(UInt index, const DataValue & value);
+    void setValue(UInt index, const DataValue& value);
 
     /// Removes the DataValue corresponding to @p name if it exists
-    void removeValue(const String & name);
+    void removeValue(const String& name);
     /// Removes the DataValue corresponding to @p index if it exists
     void removeValue(UInt index);
 
     /// returns a reference to the MetaInfoRegistry
-    static MetaInfoRegistry & registry();
+    static MetaInfoRegistry& registry();
 
     /// fills the given vector with a list of all keys for which a value is set
-    void getKeys(std::vector<String> & keys) const;
+    void getKeys(std::vector<String>& keys) const;
 
     /// fills the given vector with a list of all keys for which a value is set
-    void getKeys(std::vector<UInt> & keys) const;
+    void getKeys(std::vector<UInt>& keys) const;
 
     /// returns if the MetaInfo is empty
     bool empty() const;

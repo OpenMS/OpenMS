@@ -55,16 +55,16 @@ namespace OpenMS
   KroenikFile::~KroenikFile()
   {
   }
-  
-  void KroenikFile::load(const String & filename, FeatureMap<> & feature_map)
+
+  void KroenikFile::load(const String& filename, FeatureMap<>& feature_map)
   {
     // load input
     TextFile input(filename);
-    
+
     // reset map
     FeatureMap<> fmap;
     feature_map = fmap;
-    
+
     TextFile::ConstIterator it = input.begin();
     if (it == input.end()) return; // no data to load
 
@@ -74,11 +74,11 @@ namespace OpenMS
     for (; it != input.end(); ++it)
     {
       String line = *it;
-      
+
       //split lines: File,  First Scan,  Last Scan,  Num of Scans,  Charge,  Monoisotopic Mass,  Base Isotope Peak,  Best Intensity,  Summed Intensity,  First RTime,  Last RTime,  Best RTime,  Best Correlation,  Modifications
       std::vector<String> parts;
       line.split('\t', parts);
-      
+
       if (parts.size() != 14)
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
@@ -99,27 +99,27 @@ namespace OpenMS
       f.setIntensity(parts[8].toDouble());
       ConvexHull2D hull;
       ConvexHull2D::PointType point;
-      
+
       point.setX(parts[9].toDouble());
       point.setY(f.getMZ());
       hull.addPoint(point);
-      
+
       point.setX(parts[9].toDouble());
       point.setY(f.getMZ() + 3.0 / static_cast<double>(f.getCharge()));
       hull.addPoint(point);
-      
+
       point.setX(parts[10].toDouble());
       point.setY(f.getMZ() + 3.0 / static_cast<double>(f.getCharge()));
       hull.addPoint(point);
-      
+
       point.setX(parts[10].toDouble());
       point.setY(f.getMZ());
       hull.addPoint(point);
-      
+
       point.setX(parts[9].toDouble());
       point.setY(f.getMZ());
       hull.addPoint(point);
-      
+
       std::vector<ConvexHull2D> hulls;
       hulls.push_back(hull);
       f.setConvexHulls(hulls);
@@ -130,7 +130,7 @@ namespace OpenMS
       f.setMetaValue("AveragineModifications", parts[13]);
       feature_map.push_back(f);
     }
-    
+
     LOG_INFO << "Hint: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
   }
 

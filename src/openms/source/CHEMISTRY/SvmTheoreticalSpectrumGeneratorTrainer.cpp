@@ -209,13 +209,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer(const SvmTheoreticalSpectrumGeneratorTrainer & rhs) :
+  SvmTheoreticalSpectrumGeneratorTrainer::SvmTheoreticalSpectrumGeneratorTrainer(const SvmTheoreticalSpectrumGeneratorTrainer& rhs) :
     DefaultParamHandler(rhs)
   {
     updateMembers_();
   }
 
-  SvmTheoreticalSpectrumGeneratorTrainer & SvmTheoreticalSpectrumGeneratorTrainer::operator=(const SvmTheoreticalSpectrumGeneratorTrainer & rhs)
+  SvmTheoreticalSpectrumGeneratorTrainer& SvmTheoreticalSpectrumGeneratorTrainer::operator=(const SvmTheoreticalSpectrumGeneratorTrainer& rhs)
   {
     if (this != &rhs)
     {
@@ -229,7 +229,7 @@ namespace OpenMS
   {
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap & spectra, const std::vector<AASequence> & annotations, String filename, Int precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap& spectra, const std::vector<AASequence>& annotations, String filename, Int precursor_charge)
   {
     //----------- BEGIN OF PARAMETER READING-------------------------
 
@@ -730,8 +730,8 @@ namespace OpenMS
       else
       {
         //std::vector<double> predictions_reg(training_input_reg.size(), 0);
-        svm_node ** input_training_reg = new svm_node *[training_input_reg.size()];
-        double * output_training_reg = &training_output_reg[0];
+        svm_node** input_training_reg = new svm_node*[training_input_reg.size()];
+        double* output_training_reg = &training_output_reg[0];
         for (Size i = 0; i < training_input_reg.size(); ++i)
         {
           input_training_reg[i] = &(training_input_reg[i].descriptors[0]);
@@ -820,8 +820,8 @@ namespace OpenMS
       }
       else
       {
-        double * output_training_class = &training_output[type_nr][0];
-        svm_node ** input_training_class = new svm_node *[training_input[type_nr].size()];
+        double* output_training_class = &training_output[type_nr][0];
+        svm_node** input_training_class = new svm_node*[training_input[type_nr].size()];
         for (Size i = 0; i < training_input[type_nr].size(); ++i)
         {
           input_training_class[i] = &(training_input[type_nr][i].descriptors[0]);
@@ -897,13 +897,13 @@ namespace OpenMS
     info_outfile.addLine(lower);
     info_outfile.addLine("</ScalingLower>");
     info_outfile.addLine("<MaxFeatures>");
-    for(std::vector<double>::const_iterator maxFeatIt = max_features.begin(); maxFeatIt != max_features.end(); ++maxFeatIt)
+    for (std::vector<double>::const_iterator maxFeatIt = max_features.begin(); maxFeatIt != max_features.end(); ++maxFeatIt)
     {
       info_outfile.addLine(*maxFeatIt);
     }
     info_outfile.addLine("</MaxFeatures>");
     info_outfile.addLine("<MinFeatures>");
-    for(std::vector<double>::const_iterator minFeatIt = min_features.begin(); minFeatIt != min_features.end(); ++minFeatIt)
+    for (std::vector<double>::const_iterator minFeatIt = min_features.begin(); minFeatIt != min_features.end(); ++minFeatIt)
     {
       info_outfile.addLine(*minFeatIt);
     }
@@ -928,7 +928,7 @@ namespace OpenMS
   }
 
   //like in Cong Zhou paper
-  void SvmTheoreticalSpectrumGeneratorTrainer::normalizeIntensity(PeakSpectrum & S) const
+  void SvmTheoreticalSpectrumGeneratorTrainer::normalizeIntensity(PeakSpectrum& S) const
   {
     NLargest n_larg;
     Param larg_param = n_larg.getParameters();
@@ -966,8 +966,8 @@ namespace OpenMS
       if (S[i].getIntensity() > 0)
       {
         double intens = lower + (upper - lower) *
-                            (intensities[i] - min_intens) /
-                            (max_intens - min_intens);
+                        (intensities[i] - min_intens) /
+                        (max_intens - min_intens);
         S[i].setIntensity(intens);
       }
       else
@@ -978,12 +978,12 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainSecondaryTypes_(TextFile & info_outfile,
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainSecondaryTypes_(TextFile& info_outfile,
                                                                     Size number_of_regions,
                                                                     Size number_of_intensity_levels,
-                                                                    ObservedIntensMap & observed_intensities,
-                                                                    const std::vector<IonType> & ion_types,
-                                                                    const std::vector<bool> & is_primary
+                                                                    ObservedIntensMap& observed_intensities,
+                                                                    const std::vector<IonType>& ion_types,
+                                                                    const std::vector<bool>& is_primary
                                                                     )
   {
     std::vector<double> tmp;
@@ -991,9 +991,9 @@ namespace OpenMS
     {
       //we start by binning the intensities. We select the bin boarders such that
       //the intensities of the primary ions are equally split
-      std::vector<double> & observed_b = observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
+      std::vector<double>& observed_b = observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
       tmp.insert(tmp.end(), observed_b.begin(), observed_b.end());
-      std::vector<double> & observed_y = observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
+      std::vector<double>& observed_y = observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
       tmp.insert(tmp.end(), observed_y.begin(), observed_y.end());
     }
 
@@ -1041,7 +1041,7 @@ namespace OpenMS
     {
       for (Size i = 0; i < ion_types.size(); ++i)
       {
-        std::vector<double> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
+        std::vector<double>& intensities = observed_intensities[std::make_pair(ion_types[i], region)];
         for (Size j = 0; j < intensities.size(); ++j)
         {
           double intens = intensities[j];
@@ -1063,7 +1063,7 @@ namespace OpenMS
     //count joint appearances of primary and secondary peaks
     for (Size i = 0; i < ion_types.size(); ++i)
     {
-      const IonType & type = ion_types[i];
+      const IonType& type = ion_types[i];
       if (is_primary[i])
         continue;
 
@@ -1079,8 +1079,8 @@ namespace OpenMS
       {
         joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<double>(number_of_intensity_levels, 1));
         background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, number_of_intensity_levels);
-        const std::vector<double> & secondary = observed_intensities[std::make_pair(type, region)];
-        const std::vector<double> & primary = observed_intensities[std::make_pair(primary_type, region)];
+        const std::vector<double>& secondary = observed_intensities[std::make_pair(type, region)];
+        const std::vector<double>& primary = observed_intensities[std::make_pair(primary_type, region)];
 
         for (Size j = 0; j < primary.size(); ++j)
         {
@@ -1096,7 +1096,7 @@ namespace OpenMS
     //compute conditional probabilities and store them in the outfile
     for (Size i = 0; i < ion_types.size(); ++i)
     {
-      const IonType & type = ion_types[i];
+      const IonType& type = ion_types[i];
       if (is_primary[i])
         continue;
 
@@ -1109,7 +1109,7 @@ namespace OpenMS
       for (Size region = 0; region < number_of_regions; ++region)
       {
         info_outfile.addLine("<Region " + String(region) + ">");
-        std::vector<double> & back_counts = background_counts[std::make_pair(type, region)];
+        std::vector<double>& back_counts = background_counts[std::make_pair(type, region)];
 
         for (Size prim = 0; prim < number_of_intensity_levels; ++prim)
         {
@@ -1130,10 +1130,10 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum & spectrum,
-                                                                 const AASequence & annotation,
+  void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum& spectrum,
+                                                                 const AASequence& annotation,
                                                                  IonType type,
-                                                                 std::map<std::pair<IonType, Size>, std::vector<double> > & observed_intensities,
+                                                                 std::map<std::pair<IonType, Size>, std::vector<double> >& observed_intensities,
                                                                  double tolerance,
                                                                  Size number_of_regions
                                                                  )
@@ -1215,7 +1215,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<double> & training_output, String filename)
+  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet>& training_input, std::vector<double>& training_output, String filename)
   {
     std::cerr << "Creating Training File.. " << filename;
     TextFile file;

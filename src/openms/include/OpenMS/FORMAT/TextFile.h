@@ -60,8 +60,8 @@ public:
     /// Non-mutable reverse iterator
     typedef std::vector<String>::const_reverse_iterator ConstReverseIterator;
     //@}
-    
-    
+
+
     ///Default constructor
     TextFile();
 
@@ -100,22 +100,21 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String& filename);
-    
+
     /// Operator for appending entries with less code
     template <typename StringType>
-    TextFile & operator<<(const StringType& string)
+    TextFile& operator<<(const StringType& string)
     {
       buffer_.push_back(static_cast<String>(string));
       return *this;
     }
 
-    
     template <typename StringType>
     void addLine(const StringType& line)
     {
       buffer_.push_back(static_cast<String>(line));
     }
-    
+
     /**
       @brief Gives access to the underlying text buffer.
     */
@@ -125,7 +124,7 @@ public:
      @brief Gives access to the underlying text buffer.
      */
     ConstIterator end() const;
-    
+
 protected:
     /// Internal buffer storing the lines before writing them to the file.
     std::vector<String> buffer_;

@@ -56,7 +56,7 @@ namespace OpenMS
   {
   }
 
-  PepNovoInfile::PepNovoInfile(const PepNovoInfile & pepnovo_infile)
+  PepNovoInfile::PepNovoInfile(const PepNovoInfile& pepnovo_infile)
   {
     mods_ = pepnovo_infile.mods_;
     mods_and_keys_ = pepnovo_infile.mods_and_keys_;
@@ -67,7 +67,7 @@ namespace OpenMS
   {
   }
 
-  PepNovoInfile & PepNovoInfile::operator=(const PepNovoInfile & pepnovo_infile)
+  PepNovoInfile& PepNovoInfile::operator=(const PepNovoInfile& pepnovo_infile)
   {
     if (this != &pepnovo_infile)
     {
@@ -78,7 +78,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool PepNovoInfile::operator==(const PepNovoInfile & pepnovo_infile) const
+  bool PepNovoInfile::operator==(const PepNovoInfile& pepnovo_infile) const
   {
     if (this != &pepnovo_infile)
     {
@@ -88,7 +88,7 @@ namespace OpenMS
     return true;
   }
 
-  String PepNovoInfile::handlePTMs_(const String & modification, const bool variable)
+  String PepNovoInfile::handlePTMs_(const String& modification, const bool variable)
   {
     String locations, key, type;
 
@@ -172,12 +172,12 @@ namespace OpenMS
     return line;
   }
 
-  void PepNovoInfile::store(const String & filename)
+  void PepNovoInfile::store(const String& filename)
   {
     ptm_file_.store(filename);
   }
 
-  void PepNovoInfile::setModifications(const StringList & fixed_mods, const StringList & variable_mods)
+  void PepNovoInfile::setModifications(const StringList& fixed_mods, const StringList& variable_mods)
   {
     mods_.setModifications(fixed_mods, variable_mods);
     mods_and_keys_.clear();
@@ -199,7 +199,7 @@ namespace OpenMS
     }
   }
 
-  void PepNovoInfile::getModifications(std::map<String, String> & modification_key_map) const
+  void PepNovoInfile::getModifications(std::map<String, String>& modification_key_map) const
   {
     modification_key_map = mods_and_keys_;
   }

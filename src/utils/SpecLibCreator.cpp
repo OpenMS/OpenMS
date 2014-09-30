@@ -93,10 +93,10 @@ protected:
     setValidFormats_("spec", ListUtils::create<String>("mzData,mzXML"));
 
     registerOutputFile_("out", "<file>", "", "output MSP formated spectra library");
-    setValidFormats_("out",ListUtils::create<String>("msp"));
+    setValidFormats_("out", ListUtils::create<String>("msp"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -133,8 +133,8 @@ protected:
     Int peptide = -1;
     Int measured_weight = -1;
     //UInt first_scan;
-    UInt charge_state(0), Experimental_id(0);        //,found_by, track, comment, vaccination_peptid,epitope, confident, hlaallele;
-    const char * sepi = itemseperator.c_str();
+    UInt charge_state(0), Experimental_id(0); //,found_by, track, comment, vaccination_peptid,epitope, confident, hlaallele;
+    const char* sepi = itemseperator.c_str();
     char sepo = *sepi;
     CsvFile csv_file(info, sepo, itemenclosed);
     vector<StringList>  list;
@@ -221,7 +221,7 @@ protected:
     for (UInt i = 1; i < list.size(); ++i)
     {
       bool no_peptide = true;
-      double rt =  (60 * (list[i][retention_time].toFloat()));              // from minutes to seconds
+      double rt =  (60 * (list[i][retention_time].toFloat())); // from minutes to seconds
       double mz = list[i][measured_weight].toFloat();
       for (MSExperiment<>::Iterator it = msexperiment.begin(); it < msexperiment.end(); ++it)
       {
@@ -252,11 +252,11 @@ protected:
             richy.setIntensity(it->operator[](j).getIntensity());
             richy.setPosition(it->operator[](j).getPosition());
             richy.setMZ(it->operator[](j).getMZ());
-            richy.setPos(it->operator[](j).getPos());                    //ALIAS for setMZ???
+            richy.setPos(it->operator[](j).getPos()); //ALIAS for setMZ???
 
             speci.push_back(richy);
           }
-          PeptideHit hit;                  // = *it->getPeptideIdentifications().begin()->getHits().begin();
+          PeptideHit hit; // = *it->getPeptideIdentifications().begin()->getHits().begin();
           AASequence aa = AASequence::fromString(list[i][peptide]);
           hit.setSequence(aa);
           hit.setCharge(list[i][charge_state].toInt());
@@ -307,7 +307,7 @@ protected:
 
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSpecLibCreator tool;
   return tool.main(argc, argv);

@@ -48,7 +48,7 @@ namespace OpenMS
   {
   }
 
-  double EDTAFile::checkedToDouble_(const std::vector<String> & parts, Size index, double def)
+  double EDTAFile::checkedToDouble_(const std::vector<String>& parts, Size index, double def)
   {
     if (index < parts.size() && parts[index] != "NA")
     {
@@ -57,7 +57,7 @@ namespace OpenMS
     return def;
   }
 
-  Int EDTAFile::checkedToInt_(const std::vector<String> & parts, Size index, Int def)
+  Int EDTAFile::checkedToInt_(const std::vector<String>& parts, Size index, Int def)
   {
     if (index < parts.size() && parts[index] != "NA")
     {
@@ -66,12 +66,12 @@ namespace OpenMS
     return def;
   }
 
-  void EDTAFile::load(const String & filename, ConsensusMap & consensus_map)
+  void EDTAFile::load(const String& filename, ConsensusMap& consensus_map)
   {
     // load input
     TextFile input(filename);
     TextFile::ConstIterator input_it = input.begin();
-    
+
     // reset map
     consensus_map = ConsensusMap();
     consensus_map.setUniqueId();
@@ -127,7 +127,7 @@ namespace OpenMS
       mz = headers[1].toDouble();
       it = headers[2].toDouble();
     }
-    catch (Exception::BaseException &)
+    catch (Exception::BaseException&)
     {
       offset = 1;
       ++input_it;
@@ -154,7 +154,7 @@ namespace OpenMS
     }
 
     SignedSize input_size = input.end() - input.begin();
-    
+
     ConsensusMap::FileDescription desc;
     desc.filename = filename;
     desc.size = (input_size) - offset;
@@ -201,7 +201,7 @@ namespace OpenMS
         if (input_type != TYPE_OLD_NOCHARGE)
           cf.setCharge(ch);
       }
-      catch (Exception::BaseException &)
+      catch (Exception::BaseException&)
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + ((input_it - input.begin()) + 1) + ")\n");
       }
@@ -231,7 +231,7 @@ namespace OpenMS
             cf.insert(j - 1, f);
           }
         }
-        catch (Exception::BaseException &)
+        catch (Exception::BaseException&)
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + ((input_it - input.begin()) + 1) + ")\n");
         }
@@ -274,7 +274,7 @@ namespace OpenMS
 
   }
 
-  void EDTAFile::store(const String & filename, const ConsensusMap & map) const
+  void EDTAFile::store(const String& filename, const ConsensusMap& map) const
   {
     TextFile tf;
 
@@ -316,14 +316,14 @@ namespace OpenMS
     tf.store(filename);
   }
 
-  void EDTAFile::store(const String & filename, const FeatureMap<> & map) const
+  void EDTAFile::store(const String& filename, const FeatureMap<>& map) const
   {
     TextFile tf;
     tf.addLine("RT\tm/z\tintensity\tcharge");
 
     for (Size i = 0; i < map.size(); ++i)
     {
-      const Feature & f = map[i];
+      const Feature& f = map[i];
       tf.addLine(String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge());
     }
 

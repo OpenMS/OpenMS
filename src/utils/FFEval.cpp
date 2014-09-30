@@ -100,7 +100,7 @@ protected:
   }
 
   /// Counts the number of features with meta value @p name equal to @p value
-  UInt count(const FeatureMap<> & map, const String & name, const String & value = "")
+  UInt count(const FeatureMap<>& map, const String& name, const String& value = "")
   {
     UInt count = 0;
     for (Size i = 0; i < map.size(); ++i)
@@ -135,7 +135,7 @@ protected:
     return String::number(a[0], decimal_places) + " " + String::number(a[a.size() / 4], decimal_places) + " " + String::number(a[a.size() / 2], decimal_places) + " " + String::number(a[(3 * a.size()) / 4], decimal_places) + " " + String::number(a.back(), decimal_places);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //load data
     FeatureMap<> features_in, features_truth;
@@ -192,14 +192,14 @@ protected:
 
     for (Size m = 0; m < features_truth.size(); ++m)
     {
-      Feature & f_t =  features_truth[m];
+      Feature& f_t =  features_truth[m];
       UInt match_count = 0;
       bool correct_charge = false;
       bool exact_centroid_match = false;
       Size last_match_index = features_in.size() + 1;
       for (Size a = 0; a < features_in.size(); ++a)
       {
-        const Feature & f_i =  features_in[a];
+        const Feature& f_i =  features_in[a];
         //RT match
         if (fabs(f_i.getRT() - f_t.getRT()) < rt_tol)
         {
@@ -237,7 +237,7 @@ protected:
         {
           f_t.setMetaValue("correct_charge", String("true"));
           f_t.setMetaValue("intensity_ratio", features_in[last_match_index].getIntensity() / f_t.getIntensity());
-          features_in[last_match_index].setMetaValue("correct_hit", "true");           //flag the feature for ROC curve
+          features_in[last_match_index].setMetaValue("correct_hit", "true"); //flag the feature for ROC curve
         }
         else
         {
@@ -269,7 +269,7 @@ protected:
         String reason = "";
         for (Size b = 0; b < abort_reasons.size(); ++b)
         {
-          const Feature & f_ab =  abort_reasons[b];
+          const Feature& f_ab =  abort_reasons[b];
           if (fabs(f_ab.getRT() - f_t.getRT()) <= rt_tol
              && fabs(f_ab.getMZ() - f_t.getMZ()) <= mz_tol)
           {
@@ -402,7 +402,7 @@ protected:
         {
           ++f_false;
         }
-        tf.addLine(String(f_false) + "\t"+ f_correct + "\t"+ String::number(f_false / found, 3) + "\t"+ String::number(f_correct / correct, 3));
+        tf.addLine(String(f_false) + "\t" + f_correct + "\t" + String::number(f_false / found, 3) + "\t" + String::number(f_correct / correct, 3));
       }
       tf.store(getStringOption_("out_roc"));
     }
@@ -412,7 +412,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFFEval tool;
   return tool.main(argc, argv);

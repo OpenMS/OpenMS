@@ -82,28 +82,28 @@ public:
 public:
       typedef ValueT ValueType;
       typedef ValueType value_type;
-      typedef typename std::vector<ValueType *>::difference_type difference_type;
-      typedef const value_type & reference;
-      typedef const value_type * pointer;
+      typedef typename std::vector<ValueType*>::difference_type difference_type;
+      typedef const value_type& reference;
+      typedef const value_type* pointer;
       typedef std::random_access_iterator_tag iterator_category;
 
       ConstRefVectorConstIterator()
       {
       }
 
-      ConstRefVectorConstIterator(const typename std::vector<ValueType *> * vec, unsigned int position)
+      ConstRefVectorConstIterator(const typename std::vector<ValueType*>* vec, unsigned int position)
       {
-        vector_ = (typename std::vector<ValueType *> *)vec;
+        vector_ = (typename std::vector<ValueType*>*)vec;
         position_ = position;
       }
 
-      ConstRefVectorConstIterator(typename std::vector<ValueType *> * vec, unsigned int position)
+      ConstRefVectorConstIterator(typename std::vector<ValueType*>* vec, unsigned int position)
       {
         vector_ = vec;
         position_ = position;
       }
 
-      ConstRefVectorConstIterator(const ConstRefVectorConstIterator & it)
+      ConstRefVectorConstIterator(const ConstRefVectorConstIterator& it)
       {
         vector_ = it.vector_;
         position_ = it.position_;
@@ -430,25 +430,25 @@ public:
     /// See std::vector documentation.
     Iterator begin()
     {
-      return Iterator((std::vector<const ValueType *> *) & vector_, (unsigned int)0);
+      return Iterator((std::vector<const ValueType*>*) & vector_, (unsigned int)0);
     }
 
     /// See std::vector documentation.
     Iterator end()
     {
-      return Iterator((std::vector<const ValueType *> *) & vector_, (unsigned int)(vector_.size()));
+      return Iterator((std::vector<const ValueType*>*) & vector_, (unsigned int)(vector_.size()));
     }
 
     /// See std::vector documentation.
     ConstIterator begin() const
     {
-      return ConstIterator((const std::vector<const ValueType *> *) & vector_, (unsigned int)0);
+      return ConstIterator((const std::vector<const ValueType*>*) & vector_, (unsigned int)0);
     }
 
     /// See std::vector documentation.
     ConstIterator end() const
     {
-      return ConstIterator((const std::vector<const ValueType *> *) & vector_, (unsigned int)(vector_.size()));
+      return ConstIterator((const std::vector<const ValueType*>*) & vector_, (unsigned int)(vector_.size()));
     }
 
     /// See std::vector documentation.

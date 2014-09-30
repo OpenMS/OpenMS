@@ -358,7 +358,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != complete_file.size(); ++i)
       {
-        if (complete_file[i].trim()=="FORMAT=Mascot generic" || complete_file[i].trim()=="BEGIN IONS")
+        if (complete_file[i].trim() == "FORMAT=Mascot generic" || complete_file[i].trim() == "BEGIN IONS")
         {
           return FileTypes::MGF;
         }
@@ -420,9 +420,9 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return options_;
   }
 
-  void FileHandler::setOptions(const PeakFileOptions & options)
+  void FileHandler::setOptions(const PeakFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
 
   String FileHandler::computeFileHash_(const String& filename) const

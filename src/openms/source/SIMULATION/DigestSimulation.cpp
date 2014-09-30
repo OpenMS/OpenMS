@@ -47,12 +47,12 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  DigestSimulation::DigestSimulation(const DigestSimulation & source) :
+  DigestSimulation::DigestSimulation(const DigestSimulation& source) :
     DefaultParamHandler(source)
   {
   }
 
-  DigestSimulation & DigestSimulation::operator=(const DigestSimulation & source)
+  DigestSimulation& DigestSimulation::operator=(const DigestSimulation& source)
   {
     if (this != &source)
     {
@@ -94,7 +94,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void DigestSimulation::digest(SimTypes::FeatureMapSim & feature_map)
+  void DigestSimulation::digest(SimTypes::FeatureMapSim& feature_map)
   {
     LOG_INFO << "Digest Simulation ... started" << std::endl;
 
@@ -188,7 +188,7 @@ namespace OpenMS
           continue;
         intensities[*it_key] = std::max(SimTypes::SimIntensityType(1), SimTypes::SimIntensityType(protein_hit->getMetaValue(*it_key))
                                         * SimTypes::SimIntensityType(number_of_digestion_products)
-                                        / SimTypes::SimIntensityType(number_atomic_whole));                                                                                         // order changed for numeric stability
+                                        / SimTypes::SimIntensityType(number_atomic_whole)); // order changed for numeric stability
       }
 
       // do real digest

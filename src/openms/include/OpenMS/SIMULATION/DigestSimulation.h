@@ -65,14 +65,14 @@ public:
     DigestSimulation();
 
     /// Copy constructor
-    DigestSimulation(const DigestSimulation & source);
+    DigestSimulation(const DigestSimulation& source);
 
     /// Destructor
     virtual ~DigestSimulation();
     //@}
 
     /// Assignment operator
-    DigestSimulation & operator=(const DigestSimulation & source);
+    DigestSimulation& operator=(const DigestSimulation& source);
 
 
     /**
@@ -84,7 +84,7 @@ public:
 
         @param feature_map Input FeatureMap containing the proteins that should be digested as ProteinIdentification
     **/
-    void digest(SimTypes::FeatureMapSim & feature_map);
+    void digest(SimTypes::FeatureMapSim& feature_map);
 
 private:
     /// set defaults

@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   class String;
-  
+
   /**
     @brief File adapter for Kroenik (HardKloer sibling) files.
 
@@ -76,8 +76,8 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, FeatureMap<> & feature_map);
-    
+    void load(const String& filename, FeatureMap<>& feature_map);
+
     /**
       @brief Stores a featureXML as a Kroenik file.
 
@@ -86,7 +86,7 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
-    void store(const String & filename, const SpectrumType & spectrum) const
+    void store(const String& filename, const SpectrumType& spectrum) const
     {
       std::cerr << "Store() for KroenikFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);

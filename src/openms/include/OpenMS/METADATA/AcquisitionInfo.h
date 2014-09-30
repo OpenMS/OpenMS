@@ -56,27 +56,27 @@ namespace OpenMS
   {
 private:
     typedef std::vector<Acquisition> ContainerType;
-    
+
 public:
     /// Constructor
     AcquisitionInfo();
     /// Copy constructor
-    AcquisitionInfo(const AcquisitionInfo & source);
+    AcquisitionInfo(const AcquisitionInfo& source);
     /// Destructor
     ~AcquisitionInfo();
 
     /// Assignment operator
-    AcquisitionInfo & operator=(const AcquisitionInfo & source);
+    AcquisitionInfo& operator=(const AcquisitionInfo& source);
 
     /// Equality operator
-    bool operator==(const AcquisitionInfo & rhs) const;
+    bool operator==(const AcquisitionInfo& rhs) const;
     /// Equality operator
-    bool operator!=(const AcquisitionInfo & rhs) const;
+    bool operator!=(const AcquisitionInfo& rhs) const;
 
     /// returns the method of combination
-    const String & getMethodOfCombination() const;
+    const String& getMethodOfCombination() const;
     /// sets the method of combination
-    void setMethodOfCombination(const String & method_of_combination);
+    void setMethodOfCombination(const String& method_of_combination);
 
     ///@name Export methods from private base std::vector<Acquisition>
     //@{
@@ -93,7 +93,7 @@ public:
     using typename ContainerType::iterator;
     using typename ContainerType::const_iterator;
     //@}
-    
+
 protected:
     String method_of_combination_;
 

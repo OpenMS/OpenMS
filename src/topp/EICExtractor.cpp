@@ -472,13 +472,13 @@ public:
         if (fi == 0)
         {
           vec_single[i] += String(cm[i].getRT()) + out_sep +
-                          String(cm[i].getMZ()) + out_sep;
+                           String(cm[i].getMZ()) + out_sep;
         }
         vec_single[i] += String(max_peak.getRT()) + out_sep +
-                        String(max_peak.getRT() - cm[i].getRT()) + out_sep +
-                        String(max_peak.getMZ()) + out_sep +
-                        String(ppm)  + out_sep +
-                        String(max_peak.getIntensity());
+                         String(max_peak.getRT() - cm[i].getRT()) + out_sep +
+                         String(max_peak.getMZ()) + out_sep +
+                         String(ppm)  + out_sep +
+                         String(max_peak.getIntensity());
       }
 
       if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";

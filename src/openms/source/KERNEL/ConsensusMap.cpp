@@ -46,7 +46,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::FileDescription::FileDescription(const ConsensusMap::FileDescription & other):
+  ConsensusMap::FileDescription::FileDescription(const ConsensusMap::FileDescription& other) :
     MetaInfoInterface(other),
     filename(other.filename),
     label(other.label),
@@ -70,7 +70,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap::ConsensusMap(const ConsensusMap & source) :
+  ConsensusMap::ConsensusMap(const ConsensusMap& source) :
     Base(source),
     MetaInfoInterface(source),
     RangeManagerType(source),
@@ -103,7 +103,7 @@ namespace OpenMS
   {
   }
 
-  ConsensusMap & ConsensusMap::operator=(const ConsensusMap & source)
+  ConsensusMap& ConsensusMap::operator=(const ConsensusMap& source)
   {
     if (this == &source)
     {
@@ -124,7 +124,7 @@ namespace OpenMS
     return *this;
   }
 
-  ConsensusMap & ConsensusMap::operator+=(const ConsensusMap & rhs)
+  ConsensusMap& ConsensusMap::operator+=(const ConsensusMap& rhs)
   {
     ConsensusMap empty_map;
 
@@ -170,13 +170,13 @@ namespace OpenMS
       std::vector<String>::iterator it_2;
 
       // remove redundant variable modifications
-      std::vector<String> & varMod = const_cast<std::vector<String> &>(it_1->getSearchParameters().variable_modifications);
+      std::vector<String>& varMod = const_cast<std::vector<String>&>(it_1->getSearchParameters().variable_modifications);
       sort(varMod.begin(), varMod.end());
       it_2 = unique(varMod.begin(), varMod.end());
       varMod.resize(it_2 - varMod.begin());
 
       // remove redundant fixed modifications
-      std::vector<String> & fixMod = const_cast<std::vector<String> &>(it_1->getSearchParameters().fixed_modifications);
+      std::vector<String>& fixMod = const_cast<std::vector<String>&>(it_1->getSearchParameters().fixed_modifications);
       sort(fixMod.begin(), fixMod.end());
       it_2 = unique(fixMod.begin(), fixMod.end());
       fixMod.resize(it_2 - fixMod.begin());
@@ -226,27 +226,27 @@ namespace OpenMS
     }
   }
 
-  const ConsensusMap::FileDescriptions & ConsensusMap::getFileDescriptions() const
+  const ConsensusMap::FileDescriptions& ConsensusMap::getFileDescriptions() const
   {
     return file_description_;
   }
 
-  ConsensusMap::FileDescriptions & ConsensusMap::getFileDescriptions()
+  ConsensusMap::FileDescriptions& ConsensusMap::getFileDescriptions()
   {
     return file_description_;
   }
 
-  void ConsensusMap::setFileDescriptions(const ConsensusMap::FileDescriptions & file_description)
+  void ConsensusMap::setFileDescriptions(const ConsensusMap::FileDescriptions& file_description)
   {
-      file_description_ = file_description;
+    file_description_ = file_description;
   }
 
-  const String & ConsensusMap::getExperimentType() const
+  const String& ConsensusMap::getExperimentType() const
   {
     return experiment_type_;
   }
 
-  void ConsensusMap::setExperimentType(const String & experiment_type)
+  void ConsensusMap::setExperimentType(const String& experiment_type)
   {
     experiment_type_ = experiment_type;
   }
@@ -300,7 +300,7 @@ namespace OpenMS
     std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MapsLess());
   }
 
-  void ConsensusMap::swap(ConsensusMap & from)
+  void ConsensusMap::swap(ConsensusMap& from)
   {
     ConsensusMap tmp;
 
@@ -330,61 +330,61 @@ namespace OpenMS
   }
 
   /// non-mutable access to the protein identifications
-  const std::vector<ProteinIdentification> & ConsensusMap::getProteinIdentifications() const
+  const std::vector<ProteinIdentification>& ConsensusMap::getProteinIdentifications() const
   {
     return protein_identifications_;
   }
 
   /// mutable access to the protein identifications
-  std::vector<ProteinIdentification> & ConsensusMap::getProteinIdentifications()
+  std::vector<ProteinIdentification>& ConsensusMap::getProteinIdentifications()
   {
     return protein_identifications_;
   }
 
   /// sets the protein identifications
-  void ConsensusMap::setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications)
+  void ConsensusMap::setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)
   {
     protein_identifications_ = protein_identifications;
   }
 
   /// non-mutable access to the unassigned peptide identifications
-  const std::vector<PeptideIdentification> & ConsensusMap::getUnassignedPeptideIdentifications() const
+  const std::vector<PeptideIdentification>& ConsensusMap::getUnassignedPeptideIdentifications() const
   {
     return unassigned_peptide_identifications_;
   }
 
   /// mutable access to the unassigned peptide identifications
-  std::vector<PeptideIdentification> & ConsensusMap::getUnassignedPeptideIdentifications()
+  std::vector<PeptideIdentification>& ConsensusMap::getUnassignedPeptideIdentifications()
   {
     return unassigned_peptide_identifications_;
   }
 
   /// sets the unassigned peptide identifications
-  void ConsensusMap::setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification> & unassigned_peptide_identifications)
+  void ConsensusMap::setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)
   {
     unassigned_peptide_identifications_ = unassigned_peptide_identifications;
   }
 
   /// returns a const reference to the description of the applied data processing
-  const std::vector<DataProcessing> & ConsensusMap::getDataProcessing() const
+  const std::vector<DataProcessing>& ConsensusMap::getDataProcessing() const
   {
     return data_processing_;
   }
 
   /// returns a mutable reference to the description of the applied data processing
-  std::vector<DataProcessing> & ConsensusMap::getDataProcessing()
+  std::vector<DataProcessing>& ConsensusMap::getDataProcessing()
   {
     return data_processing_;
   }
 
   /// sets the description of the applied data processing
-  void ConsensusMap::setDataProcessing(const std::vector<DataProcessing> & processing_method)
+  void ConsensusMap::setDataProcessing(const std::vector<DataProcessing>& processing_method)
   {
     data_processing_ = processing_method;
   }
 
   /// Equality operator
-  bool ConsensusMap::operator==(const ConsensusMap & rhs) const
+  bool ConsensusMap::operator==(const ConsensusMap& rhs) const
   {
     return std::operator==(*this, rhs) &&
            MetaInfoInterface::operator==(rhs) &&
@@ -399,12 +399,12 @@ namespace OpenMS
   }
 
   /// Equality operator
-  bool ConsensusMap::operator!=(const ConsensusMap & rhs) const
+  bool ConsensusMap::operator!=(const ConsensusMap& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  std::ostream & operator<<(std::ostream & os, const ConsensusMap & cons_map)
+  std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map)
   {
     for (ConsensusMap::FileDescriptions::const_iterator it = cons_map.getFileDescriptions().begin(); it != cons_map.getFileDescriptions().end(); ++it)
     {
@@ -464,16 +464,15 @@ namespace OpenMS
     }
   }
 
-
   bool ConsensusMap::isMapConsistent(Logger::LogStream* stream) const
   {
     Size stats_wrongMID(0); // invalid map ID references by a feature handle
-    Map<Size,Size> wrong_ID_count; // which IDs were given which are not valid
+    Map<Size, Size> wrong_ID_count; // which IDs were given which are not valid
 
     // check file descriptions
     std::set<String> maps;
     String all_maps; // for output later
-    for (FileDescriptions::const_iterator it=file_description_.begin();  it!=file_description_.end(); ++it)
+    for (FileDescriptions::const_iterator it = file_description_.begin(); it != file_description_.end(); ++it)
     {
       String s = String("  file: ") + it->second.filename + " label: " + it->second.label;
       maps.insert(s);
@@ -509,9 +508,9 @@ namespace OpenMS
       if (stream != 0)
       {
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
-        for (Map<Size,Size>::ConstIterator it=wrong_ID_count.begin(); it!=wrong_ID_count.end(); ++it)
+        for (Map<Size, Size>::ConstIterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
         {
-           *stream << "  wrong id="<< it->first << " (occurred " << it->second << "x)\n";
+          *stream << "  wrong id=" << it->first << " (occurred " << it->second << "x)\n";
         }
         *stream << std::endl;
       }

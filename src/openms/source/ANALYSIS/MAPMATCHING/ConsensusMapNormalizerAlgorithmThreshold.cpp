@@ -50,7 +50,7 @@ namespace OpenMS
 
   }
 
-  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap & map, const double & ratio_threshold)
+  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold)
   {
     Size number_of_features = map.size();
     Size number_of_maps = map.getFileDescriptions().size();
@@ -100,7 +100,7 @@ namespace OpenMS
     return ratio_vector;
   }
 
-  void ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(ConsensusMap & map, const vector<double> & ratios)
+  void ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(ConsensusMap& map, const vector<double>& ratios)
   {
     ConsensusMap::Iterator cf_it;
     ProgressLogger progresslogger;

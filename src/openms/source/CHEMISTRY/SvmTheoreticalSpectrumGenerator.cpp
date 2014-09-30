@@ -721,7 +721,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
     RichPeak1D p_;
     // just in case someone wants the ion names;
@@ -916,8 +916,8 @@ namespace OpenMS
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
             std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
             std::vector<double> weights;
-            std::transform( props.begin(), props.end(), std::back_inserter(weights), boost::bind( std::multiplies<double>(), _1, 10 ) );
-            boost::random::discrete_distribution<Size> ddist (weights.begin(), weights.end());
+            std::transform(props.begin(), props.end(), std::back_inserter(weights), boost::bind(std::multiplies<double>(), _1, 10));
+            boost::random::discrete_distribution<Size> ddist(weights.begin(), weights.end());
             Size binned_int = ddist(rng);
 
             if (binned_int != 0)

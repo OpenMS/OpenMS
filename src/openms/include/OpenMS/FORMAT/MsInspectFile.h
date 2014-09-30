@@ -75,7 +75,7 @@ public:
               @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename FeatureMapType>
-    void load(const String & filename, FeatureMapType & feature_map)
+    void load(const String& filename, FeatureMapType& feature_map)
     {
       // load input
       TextFile input(filename);
@@ -165,7 +165,7 @@ public:
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
-    void store(const String & filename, const SpectrumType & spectrum) const
+    void store(const String& filename, const SpectrumType& spectrum) const
     {
       std::cerr << "Store() for MsInspectFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);

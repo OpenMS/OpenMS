@@ -118,7 +118,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm section for peak picking");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the PeakPicker param
     Param tmp;
@@ -126,7 +126,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -225,7 +225,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPTOFCalibration tool;
   return tool.main(argc, argv);

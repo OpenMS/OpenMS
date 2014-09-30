@@ -115,14 +115,14 @@ protected:
     registerSubsection_("algorithm", "Settings for the internal calibration.");
   }
 
-  Param getSubsectionDefaults_(const String & /* section*/) const
+  Param getSubsectionDefaults_(const String& /* section*/) const
   {
     Param tmp;
     tmp.insert("", InternalCalibration().getDefaults());
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -226,7 +226,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPInternalCalibration tool;
   return tool.main(argc, argv);

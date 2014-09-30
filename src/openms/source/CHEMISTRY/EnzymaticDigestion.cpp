@@ -73,9 +73,8 @@ namespace OpenMS
       model_data_[bs] = cl;
     }
   }
-  
-  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs)
-    :
+
+  EnzymaticDigestion::EnzymaticDigestion(const EnzymaticDigestion& rhs) :
     missed_cleavages_(rhs.missed_cleavages_),
     enzyme_(rhs.enzyme_),
     specificity_(rhs.specificity_),
@@ -124,18 +123,18 @@ namespace OpenMS
       enzyme_ = SIZE_OF_ENZYMES;
   }
 
-  EnzymaticDigestion::Enzyme EnzymaticDigestion::getEnzymeByName(const String & name)
+  EnzymaticDigestion::Enzyme EnzymaticDigestion::getEnzymeByName(const String& name)
   {
-    for (Size i=0; i<SIZE_OF_ENZYMES; ++i)
+    for (Size i = 0; i < SIZE_OF_ENZYMES; ++i)
     {
       if (name == NamesOfEnzymes[i]) return Enzyme(i);
     }
     return SIZE_OF_ENZYMES;
   }
 
-  EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const String & name)
+  EnzymaticDigestion::Specificity EnzymaticDigestion::getSpecificityByName(const String& name)
   {
-    for (Size i=0; i<SIZE_OF_SPECIFICITY; ++i)
+    for (Size i = 0; i < SIZE_OF_SPECIFICITY; ++i)
     {
       if (name == NamesOfSpecificity[i]) return Specificity(i);
     }
@@ -184,7 +183,7 @@ namespace OpenMS
         {
           return false;
         }
-        SignedSize pos = distance(AASequence::ConstIterator(protein.begin()), 
+        SignedSize pos = distance(AASequence::ConstIterator(protein.begin()),
                                   iterator) - 4; // start position in sequence
         double score_cleave = 0, score_missed = 0;
         for (SignedSize i = 0; i < 9; ++i)
@@ -192,7 +191,7 @@ namespace OpenMS
           if ((pos + i >= 0) && (pos + i < (SignedSize)protein.size()))
           {
             BindingSite bs(i, protein[pos + i].getOneLetterCode());
-            Map<BindingSite, CleavageModel>::const_iterator pos_it = 
+            Map<BindingSite, CleavageModel>::const_iterator pos_it =
               model_data_.find(bs);
             if (pos_it != model_data_.end()) // no data for non-std. amino acids
             {
@@ -201,14 +200,15 @@ namespace OpenMS
             }
           }
         }
-        return (score_missed - score_cleave > log_model_threshold_);
+        return score_missed - score_cleave > log_model_threshold_;
       }
       else // naive digestion
       {
         // R or K at the end and not P afterwards
-        return ((*iterator == 'R' || *iterator == 'K') && 
-                ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'));
+        return (*iterator == 'R' || *iterator == 'K') &&
+               ((iterator + 1) == protein.end() || *(iterator + 1) != 'P');
       }
+
     default:
       return false;
     }
@@ -246,7 +246,7 @@ namespace OpenMS
       return false;
     }
 
-    if (specificity_ == SPEC_NONE) 
+    if (specificity_ == SPEC_NONE)
     {
       return true; // we don't care about terminal ends
     }
@@ -255,28 +255,28 @@ namespace OpenMS
       bool spec_c = false, spec_n = false;
 
       // test each end
-      if (pep_pos == 0 || 
-           (pep_pos==1 && protein.getResidue((Size)0).getOneLetterCode()=="M") || 
-           isCleavageSite_(protein, protein.begin() + (pep_pos - 1))) 
+      if (pep_pos == 0 ||
+          (pep_pos == 1 && protein.getResidue((Size)0).getOneLetterCode() == "M") ||
+          isCleavageSite_(protein, protein.begin() + (pep_pos - 1)))
       {
         spec_n = true;
       }
 
-      if (pep_pos+pep_length == protein.size() || 
-            isCleavageSite_(protein, protein.begin() + (pep_pos + pep_length - 1))) 
+      if (pep_pos + pep_length == protein.size() ||
+          isCleavageSite_(protein, protein.begin() + (pep_pos + pep_length - 1)))
       {
         spec_c = true;
       }
-      
-      if (spec_n && spec_c) 
+
+      if (spec_n && spec_c)
       {
         return true; // if both are fine, its definitely valid
       }
-      else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c)) 
+      else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c))
       {
         return true; // one only for SEMI
       }
-      else 
+      else
       {
         return false;
       }
@@ -304,7 +304,7 @@ namespace OpenMS
     return sum;
   }
 
-  void EnzymaticDigestion::digest(const AASequence & protein, vector<AASequence> & output) const
+  void EnzymaticDigestion::digest(const AASequence& protein, vector<AASequence>& output) const
   {
     //initialization
     SignedSize count = 1;
@@ -313,7 +313,7 @@ namespace OpenMS
     SignedSize missed_cleavages = missed_cleavages_;
 
     if (use_log_model_)
-      missed_cleavages = 0;                 // log model has missed cleavages build-in
+      missed_cleavages = 0; // log model has missed cleavages build-in
 
     //missed cleavage iterators
     vector<AASequence::ConstIterator> mc_iterators;
@@ -340,7 +340,7 @@ namespace OpenMS
     }
 
     //missed cleavages
-    if (mc_iterators.size() > 2)     //there is at least one cleavage site!
+    if (mc_iterators.size() > 2) //there is at least one cleavage site!
     {
       //resize to number of fragments
       Size sum = count;
@@ -370,4 +370,4 @@ namespace OpenMS
     }
   }
 
-}   //namespace
+} //namespace

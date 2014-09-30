@@ -74,13 +74,13 @@ public:
     explicit RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr rng);
 
     /// Copy constructor
-    RawMSSignalSimulation(const RawMSSignalSimulation & source);
+    RawMSSignalSimulation(const RawMSSignalSimulation& source);
 
     /// Destructor
     virtual ~RawMSSignalSimulation();
     //@}
 
-    RawMSSignalSimulation & operator=(const RawMSSignalSimulation & source);
+    RawMSSignalSimulation& operator=(const RawMSSignalSimulation& source);
 
     /// load the contaminants from contaminants:file param
     /// You do not have to call this function before calling generateRawSignals(), but it might
@@ -88,10 +88,10 @@ public:
     void loadContaminants();
 
     /// fill experiment with signals and noise
-    void generateRawSignals(SimTypes::FeatureMapSim & features,
-                            SimTypes::MSSimExperiment & experiment,
-                            SimTypes::MSSimExperiment & experiment_ct,
-                            SimTypes::FeatureMapSim & contaminants);
+    void generateRawSignals(SimTypes::FeatureMapSim& features,
+                            SimTypes::MSSimExperiment& experiment,
+                            SimTypes::MSSimExperiment& experiment_ct,
+                            SimTypes::FeatureMapSim& contaminants);
 
 protected:
 
@@ -112,7 +112,7 @@ protected:
      @param experiment The experiment to which the simulated signals should be added
      @param experiment_ct Ground truth for picked peaks
      */
-    void add1DSignal_(Feature & feature, SimTypes::MSSimExperiment & experiment, SimTypes::MSSimExperiment & experiment_ct);
+    void add1DSignal_(Feature& feature, SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& experiment_ct);
 
     /**
      @brief Add a 2D signal for a single feature
@@ -121,7 +121,7 @@ protected:
      @param experiment The experiment to which the simulated signals should be added
      @param experiment_ct Ground truth for picked peaks
      */
-    void add2DSignal_(Feature & feature, SimTypes::MSSimExperiment & experiment, SimTypes::MSSimExperiment & experiment_ct);
+    void add2DSignal_(Feature& feature, SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& experiment_ct);
 
     /**
      @brief Samples signals for the given 1D model
@@ -133,12 +133,12 @@ protected:
      @param experiment_ct Experiment to which the centroided Ground Truth sampled signals will be added
      @param activeFeature The current feature that is simulated
      */
-    void samplePeptideModel1D_(const IsotopeModel & iso,
+    void samplePeptideModel1D_(const IsotopeModel& iso,
                                const SimTypes::SimCoordinateType mz_start,
                                const SimTypes::SimCoordinateType mz_end,
-                               SimTypes::MSSimExperiment & experiment,
-                               SimTypes::MSSimExperiment & experiment_ct,
-                               Feature & activeFeature);
+                               SimTypes::MSSimExperiment& experiment,
+                               SimTypes::MSSimExperiment& experiment_ct,
+                               Feature& activeFeature);
 
     /**
      @brief Samples signals for the given 2D model
@@ -152,49 +152,49 @@ protected:
      @param experiment_ct Experiment to which the centroided Ground Truth sampled signals will be added
      @param activeFeature The current feature that is simulated
      */
-    void samplePeptideModel2D_(const ProductModel<2> & pm,
+    void samplePeptideModel2D_(const ProductModel<2>& pm,
                                const SimTypes::SimCoordinateType mz_start,
                                const SimTypes::SimCoordinateType mz_end,
                                SimTypes::SimCoordinateType rt_start,
                                SimTypes::SimCoordinateType rt_end,
-                               SimTypes::MSSimExperiment & experiment,
-                               SimTypes::MSSimExperiment & experiment_ct,
-                               Feature & activeFeature);
+                               SimTypes::MSSimExperiment& experiment,
+                               SimTypes::MSSimExperiment& experiment_ct,
+                               Feature& activeFeature);
 
     /**
      @brief Add the correct Elution profile to the passed ProductModel
      */
-    void chooseElutionProfile_(EGHModel * const elutionmodel,
-                               Feature & feature,
+    void chooseElutionProfile_(EGHModel* const elutionmodel,
+                               Feature& feature,
                                const double scale,
                                const double rt_sampling_rate,
-                               const SimTypes::MSSimExperiment & experiment);
+                               const SimTypes::MSSimExperiment& experiment);
 
     /**
      @brief build contaminant feature map
     */
-    void createContaminants_(SimTypes::FeatureMapSim & contaminants, SimTypes::MSSimExperiment & exp, SimTypes::MSSimExperiment & exp_ct);
+    void createContaminants_(SimTypes::FeatureMapSim& contaminants, SimTypes::MSSimExperiment& exp, SimTypes::MSSimExperiment& exp_ct);
 
     /// Add shot noise to the experiment
-    void addShotNoise_(SimTypes::MSSimExperiment & experiment, SimTypes::SimCoordinateType minimal_mz_measurement_limit, SimTypes::SimCoordinateType maximal_mz_measurement_limit);
+    void addShotNoise_(SimTypes::MSSimExperiment& experiment, SimTypes::SimCoordinateType minimal_mz_measurement_limit, SimTypes::SimCoordinateType maximal_mz_measurement_limit);
 
     /// Add white noise to the experiment
-    void addWhiteNoise_(SimTypes::MSSimExperiment & experiment);
+    void addWhiteNoise_(SimTypes::MSSimExperiment& experiment);
 
     /// Add detector noise to the experiment
-    void addDetectorNoise_(SimTypes::MSSimExperiment & experiment);
+    void addDetectorNoise_(SimTypes::MSSimExperiment& experiment);
 
     /// Add a base line to the experiment
-    void addBaseLine_(SimTypes::MSSimExperiment & experiment, SimTypes::SimCoordinateType minimal_mz_measurement_limit);
+    void addBaseLine_(SimTypes::MSSimExperiment& experiment, SimTypes::SimCoordinateType minimal_mz_measurement_limit);
 
     /// get the mz grid where all m/z values will be mapped to
-    void getSamplingGrid_(std::vector<SimTypes::SimCoordinateType> & grid,
+    void getSamplingGrid_(std::vector<SimTypes::SimCoordinateType>& grid,
                           const SimTypes::SimCoordinateType mz_min,
                           const SimTypes::SimCoordinateType mz_max,
                           const Int step_Da);
 
     /// Compress signals in a single RT scan (to merge signals which were sampled overlapping)
-    void compressSignals_(SimTypes::MSSimExperiment & experiment);
+    void compressSignals_(SimTypes::MSSimExperiment& experiment);
 
     /// number of points sampled per peak's FWHM
     Int sampling_points_per_FWHM_;
@@ -213,7 +213,7 @@ protected:
      * @return Rescaled feature intensity.
      */
     SimTypes::SimIntensityType getFeatureScaledIntensity_(const SimTypes::SimIntensityType feature_intensity,
-                                                const SimTypes::SimIntensityType natural_scaling_factor);
+                                                          const SimTypes::SimIntensityType natural_scaling_factor);
 
 
     /**

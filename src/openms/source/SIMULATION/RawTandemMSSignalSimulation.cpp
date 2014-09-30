@@ -77,6 +77,7 @@ namespace OpenMS
 
     defaultsToParam_();
   }
+
   RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr rng) :
     DefaultParamHandler("RawTandemMSSignalSimulation"),
     rnd_gen_(rng)
@@ -113,14 +114,14 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation & source) :
+  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation& source) :
     DefaultParamHandler(source)
   {
     setParameters(source.getParameters());
     rnd_gen_ = source.rnd_gen_;
   }
 
-  RawTandemMSSignalSimulation & RawTandemMSSignalSimulation::operator=(const RawTandemMSSignalSimulation & source)
+  RawTandemMSSignalSimulation& RawTandemMSSignalSimulation::operator=(const RawTandemMSSignalSimulation& source)
   {
     DefaultParamHandler::operator=(source);
     setParameters(source.getParameters());
@@ -132,7 +133,7 @@ namespace OpenMS
   {
   }
 
-  void RawTandemMSSignalSimulation::generateMSESpectra_(const SimTypes::FeatureMapSim & features, const SimTypes::MSSimExperiment & experiment, SimTypes::MSSimExperiment & ms2)
+  void RawTandemMSSignalSimulation::generateMSESpectra_(const SimTypes::FeatureMapSim& features, const SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& ms2)
   {
     //get tandem mode
     Size tandem_mode = param_.getValue("tandem_mode");
@@ -222,8 +223,8 @@ namespace OpenMS
       // check if values fit the experiment:
 
 #ifdef OPENMS_ASSERTIONS
-      const DoubleList & elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
-      const DoubleList & elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
+      const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
+      const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
 
       OPENMS_PRECONDITION(elution_bounds[0] < experiment.size(), "Elution profile out of bounds (left)");
       OPENMS_PRECONDITION(elution_bounds[2] < experiment.size(), "Elution profile out of bounds (right)");
@@ -241,7 +242,7 @@ namespace OpenMS
       std::vector<Size> features_fragmented;
       for (Size i_f = 0; i_f < features.size(); ++i_f)
       {
-        const DoubleList & elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
+        const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
         if ((elution_bounds[1] <= experiment[i].getRT()) && (experiment[i].getRT() <= elution_bounds[3]))
         {
           features_fragmented.push_back(i_f);
@@ -264,8 +265,8 @@ namespace OpenMS
         MS2_spectra[index] = precomputed_MS2[i_f];
         MS2_spectra[index].setRT(experiment[i].getRT() + sampling_rate * (double(index + 1) / double(features_fragmented.size() + 2)));
         // adjust intensity of single MS2 spectra by feature intensity
-        const DoubleList & elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
-        const DoubleList & elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
+        const DoubleList& elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
+        const DoubleList& elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
         double factor = elution_ints[i - elution_bounds[0]] * features[i_f].getIntensity();
         for (SimTypes::MSSimExperiment::SpectrumType::iterator it = MS2_spectra[index].begin(); it != MS2_spectra[index].end(); ++it)
         {
@@ -302,7 +303,7 @@ namespace OpenMS
 
   }
 
-  void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const SimTypes::FeatureMapSim & features, const SimTypes::MSSimExperiment & experiment, SimTypes::MSSimExperiment & ms2)
+  void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const SimTypes::FeatureMapSim& features, const SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& ms2)
   {
     IntList qs = param_.getValue("Precursor:charge_filter");
     std::set<Int> qs_set(qs.begin(), qs.end());
@@ -402,7 +403,7 @@ namespace OpenMS
     }
   }
 
-  void RawTandemMSSignalSimulation::generateRawTandemSignals(const SimTypes::FeatureMapSim & features, SimTypes::MSSimExperiment & experiment, SimTypes::MSSimExperiment & experiment_ct)
+  void RawTandemMSSignalSimulation::generateRawTandemSignals(const SimTypes::FeatureMapSim& features, SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& experiment_ct)
   {
     LOG_INFO << "Tandem MS Simulation ... ";
 

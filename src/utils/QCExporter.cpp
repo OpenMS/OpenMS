@@ -110,7 +110,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", ListUtils::create<String>("qcML"));
-    registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.",false);
+    registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.", false);
     registerInputFile_("mapping", "<file>", "", "The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.", true);
     setValidFormats_("mapping", ListUtils::create<String>("csv"));
     registerOutputFile_("out_csv", "<file>", "", "Output csv formatted quality parameter.");
@@ -145,7 +145,7 @@ protected:
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      StringList header,according;
+      StringList header, according;
       map_file.getRow(0, header);
       map_file.getRow(1, according);
       if (header.size() != according.size())
@@ -168,18 +168,18 @@ protected:
           }
           catch (...)
           {
-            cerr << "Error: You have to specify a correct cv with accession or name in col "<< String(i) <<". Aborting!" << endl;
+            cerr << "Error: You have to specify a correct cv with accession or name in col " << String(i) << ". Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
           }
         }
         //~ else
         //~ {
-          //~ const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
-          //~ header[i] = term.name; //TODO what if custom headers are needed?!
+        //~ const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
+        //~ header[i] = term.name; //TODO what if custom headers are needed?!
         //~ }
         //~ if (header[i] == "raw file name")
         //~ {
-          //~ runset_col = i;
+        //~ runset_col = i;
         //~ }
       }
 
@@ -196,17 +196,17 @@ protected:
       {
         //~ if (qcmlfile.existsRun(names[i]))
         //~ {
-        csv_str += qcmlfile.exportQPs(names[i],according);
+        csv_str += qcmlfile.exportQPs(names[i], according);
         csv_str += '\n';
         //~ }
         //~ else if (qcmlfile.existsSet(names[i]))
         //~ {
-          //~ csv_str += qcmlfile.exportSetQP(names[i],according);
+        //~ csv_str += qcmlfile.exportSetQP(names[i],according);
         //~ }
         //~ else
         //~ {
-          //~ cerr << "Error: You have to specify a existing set for this qp. " << names[i] << " seems not to exist. Aborting!" << endl;
-          //~ return ILLEGAL_PARAMETERS;
+        //~ cerr << "Error: You have to specify a existing set for this qp. " << names[i] << " seems not to exist. Aborting!" << endl;
+        //~ return ILLEGAL_PARAMETERS;
         //~ }
       }
 
@@ -220,6 +220,7 @@ protected:
     }
     return EXECUTION_OK;
   }
+
 };
 int main(int argc, const char** argv)
 {

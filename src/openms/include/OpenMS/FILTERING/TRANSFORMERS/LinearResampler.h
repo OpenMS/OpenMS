@@ -82,7 +82,7 @@ public:
         @brief Applies the resampling algorithm to an MSSpectrum.
     */
     template <typename PeakType>
-    void raster(MSSpectrum<PeakType> & spectrum)
+    void raster(MSSpectrum<PeakType>& spectrum)
     {
       //return if nothing to do
       if (spectrum.empty()) return;
@@ -145,7 +145,7 @@ public:
         @brief Resamples the data in an MSExperiment.
     */
     template <typename PeakType>
-    void rasterExperiment(MSExperiment<PeakType> & exp)
+    void rasterExperiment(MSExperiment<PeakType>& exp)
     {
       startProgress(0, exp.size(), "resampling of data");
       for (Size i = 0; i < exp.size(); ++i)

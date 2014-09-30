@@ -51,20 +51,20 @@ namespace OpenMS
   {
   }
 
-  CsvFile::CsvFile(const String & filename, char is, bool ie, Int first_n) :
+  CsvFile::CsvFile(const String& filename, char is, bool ie, Int first_n) :
     TextFile(), itemseperator_(is), itemenclosed_(ie)
   {
     load(filename, false, first_n);
   }
 
-  void CsvFile::fload(const String & filename, char is, bool ie, Int first_n)
+  void CsvFile::fload(const String& filename, char is, bool ie, Int first_n)
   {
     itemseperator_ = is;
     itemenclosed_ = ie;
     load(filename, true, first_n);
   }
 
-  bool CsvFile::getRow(Size row, StringList & list)
+  bool CsvFile::getRow(Size row, StringList& list)
   {
     if (row > TextFile::buffer_.size())
     {

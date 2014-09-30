@@ -107,13 +107,13 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input qcml file",false);
+    registerInputFile_("in", "<file>", "", "Input qcml file", false);
     setValidFormats_("in", ListUtils::create<String>("qcML"));
     registerInputFile_("table", "<file>", "", "The table containing the additional qp values in the columns. First row is considered containing the header. The target run or set names/ids are indicated by column \"raw data file\", so each row after the header will contain the values of qps for that run. (csv without \"!)", true);
     setValidFormats_("table", ListUtils::create<String>("csv"));
     registerInputFile_("mapping", "<file>", "", "The mapping of the table header to the according qp cvs, also in csv format. The first row is considered containing the headers as in the table. The second row is considered the according qp cv accessions. (csv without \"!)", true);
     setValidFormats_("mapping", ListUtils::create<String>("csv"));
-    registerOutputFile_("out", "<file>", "", "Output extended qcML file",true);
+    registerOutputFile_("out", "<file>", "", "Output extended qcML file", true);
     setValidFormats_("out", ListUtils::create<String>("qcML"));
   }
 
@@ -150,7 +150,7 @@ protected:
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-      StringList header,according;
+      StringList header, according;
       map_file.getRow(0, header);
       map_file.getRow(1, according);
 
@@ -174,7 +174,7 @@ protected:
           }
           catch (...)
           {
-            cerr << "Error: You have to specify a correct cv with accession or name in col "<< String(i) <<". Aborting!" << endl;
+            cerr << "Error: You have to specify a correct cv with accession or name in col " << String(i) << ". Aborting!" << endl;
             //~ cerr << "Header was: "<< header[i] << " , according value was: " << according[i] << endl;
             return ILLEGAL_PARAMETERS;
           }
@@ -204,16 +204,16 @@ protected:
           csv_file.getRow(i, li);
           if (li.size() < according.size())
           {
-            cerr << "Error: You have to give a correct mapping of your table - row " << String(i+1) <<" is too short. Aborting!" << endl;
+            cerr << "Error: You have to give a correct mapping of your table - row " << String(i + 1) << " is too short. Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
           }
 
-          std::vector< QcMLFile::QualityParameter > qps;
+          std::vector<QcMLFile::QualityParameter> qps;
           String id;
           bool set = false;
           for (Size j = 0; j < li.size(); ++j)
           {
-            if (j==static_cast<Size>(runset_col))
+            if (j == static_cast<Size>(runset_col))
             {
               if (qcmlfile.existsRun(li[j])) //TODO this only works for real run IDs
               {
@@ -227,7 +227,7 @@ protected:
               else
               {
                 id = li[j];
-                qcmlfile.registerRun(id,id);
+                qcmlfile.registerRun(id, id);
                 //TODO warn that if this was supposed to be a set - now it is not!
               }
             }
@@ -239,7 +239,7 @@ protected:
             def.value = li[j];
             qps.push_back(def);
           }
-          if (id!="")
+          if (id != "")
           {
             for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qps.begin(); qit != qps.end(); ++qit)
             {
@@ -259,6 +259,7 @@ protected:
     qcmlfile.store(out);
     return EXECUTION_OK;
   }
+
 };
 int main(int argc, const char** argv)
 {

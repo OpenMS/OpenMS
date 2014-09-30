@@ -43,7 +43,7 @@
 namespace OpenMS
 {
   class String;
-  
+
   /**
     @brief Class represents a decomposition of a mass into amino acids
 
@@ -63,10 +63,10 @@ public:
     MassDecomposition();
 
     /// copy constructor
-    MassDecomposition(const MassDecomposition & deco);
+    MassDecomposition(const MassDecomposition& deco);
 
     /// constructor with String as parameter
-    explicit MassDecomposition(const String & deco);
+    explicit MassDecomposition(const String& deco);
     //@}
 
     /**
@@ -74,10 +74,10 @@ public:
     */
     //@{
     /// assignment operator
-    MassDecomposition & operator=(const MassDecomposition & rhs);
+    MassDecomposition& operator=(const MassDecomposition& rhs);
 
     /// adds the mass decomposition d to this object
-    MassDecomposition & operator+=(const MassDecomposition & d);
+    MassDecomposition& operator+=(const MassDecomposition& d);
 
     /// returns the decomposition as a string
     String toString() const;
@@ -86,7 +86,7 @@ public:
     String toExpandedString() const;
 
     /// adds this decomposition and the decomposition given and returns a new composition
-    MassDecomposition operator+(const MassDecomposition & rhs) const;
+    MassDecomposition operator+(const MassDecomposition& rhs) const;
 
     /// returns the max frequency of this composition
     Size getNumberOfMaxAA() const;
@@ -97,16 +97,16 @@ public:
     */
     //@{
     /// less than predicate
-    bool operator<(const MassDecomposition & rhs) const;
+    bool operator<(const MassDecomposition& rhs) const;
 
     /// equality operator
-    bool operator==(const String & deco) const;
+    bool operator==(const String& deco) const;
 
     /// returns true if tag is contained in the mass decomposition
-    bool containsTag(const String & tag) const;
+    bool containsTag(const String& tag) const;
 
     /// returns true if the mass decomposition if contained in this instance
-    bool compatible(const MassDecomposition & deco) const;
+    bool compatible(const MassDecomposition& deco) const;
     //@}
 
 protected:

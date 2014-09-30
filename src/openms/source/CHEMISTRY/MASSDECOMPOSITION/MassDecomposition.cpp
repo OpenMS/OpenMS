@@ -47,7 +47,7 @@ namespace OpenMS
   {
   }
 
-  MassDecomposition::MassDecomposition(const String & deco) :
+  MassDecomposition::MassDecomposition(const String& deco) :
     number_of_max_aa_(0)
   {
     String tmp = deco;
@@ -84,13 +84,13 @@ namespace OpenMS
     }
   }
 
-  MassDecomposition::MassDecomposition(const MassDecomposition & rhs) :
+  MassDecomposition::MassDecomposition(const MassDecomposition& rhs) :
     decomp_(rhs.decomp_),
     number_of_max_aa_(rhs.number_of_max_aa_)
   {
   }
 
-  MassDecomposition & MassDecomposition::operator=(const MassDecomposition & rhs)
+  MassDecomposition& MassDecomposition::operator=(const MassDecomposition& rhs)
   {
     if (&rhs != this)
     {
@@ -100,7 +100,7 @@ namespace OpenMS
     return *this;
   }
 
-  MassDecomposition & MassDecomposition::operator+=(const MassDecomposition & d)
+  MassDecomposition& MassDecomposition::operator+=(const MassDecomposition& d)
   {
     for (map<char, Size>::const_iterator it = d.decomp_.begin(); it != d.decomp_.end(); ++it)
     {
@@ -126,12 +126,12 @@ namespace OpenMS
     return *this;
   }
 
-  bool MassDecomposition::operator<(const MassDecomposition & rhs) const
+  bool MassDecomposition::operator<(const MassDecomposition& rhs) const
   {
     return decomp_ < rhs.decomp_;
   }
 
-  bool MassDecomposition::operator==(const String & deco) const
+  bool MassDecomposition::operator==(const String& deco) const
   {
     MassDecomposition md(deco);
 
@@ -158,7 +158,7 @@ namespace OpenMS
     return s;
   }
 
-  bool MassDecomposition::containsTag(const String & tag) const
+  bool MassDecomposition::containsTag(const String& tag) const
   {
     map<char, Size> tmp;
     for (String::ConstIterator it = tag.begin(); it != tag.end(); ++it)
@@ -169,7 +169,7 @@ namespace OpenMS
       {
         return false;
       }
-      
+
       map<char, Size>::iterator it3 = tmp.find(aa);
       if (it3 != tmp.end())
       {
@@ -193,12 +193,12 @@ namespace OpenMS
     return true;
   }
 
-  bool MassDecomposition::compatible(const MassDecomposition & deco) const
+  bool MassDecomposition::compatible(const MassDecomposition& deco) const
   {
     for (map<char, Size>::const_iterator it = deco.decomp_.begin(); it != deco.decomp_.end(); ++it)
     {
       map<char, Size>::const_iterator it2 = decomp_.find(it->first);
-      if ( it2 == decomp_.end() || decomp_.find(it->first)->second < it->second)
+      if (it2 == decomp_.end() || decomp_.find(it->first)->second < it->second)
       {
         cerr << it->first << " " << it->second << endl;
         return false;
@@ -207,7 +207,7 @@ namespace OpenMS
     return true;
   }
 
-  MassDecomposition MassDecomposition::operator+(const MassDecomposition & rhs) const
+  MassDecomposition MassDecomposition::operator+(const MassDecomposition& rhs) const
   {
     MassDecomposition d(*this);
     for (map<char, Size>::const_iterator it = rhs.decomp_.begin(); it != rhs.decomp_.end(); ++it)

@@ -69,26 +69,26 @@ public:
     explicit RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr random_generator);
 
     /// Copy constructor
-    RTSimulation(const RTSimulation & source);
+    RTSimulation(const RTSimulation& source);
 
     /// Destructor
     virtual ~RTSimulation();
     //@}
 
     /// Assignment operator
-    RTSimulation & operator=(const RTSimulation & source);
+    RTSimulation& operator=(const RTSimulation& source);
 
     /**
      @brief Predict retention times for given peptide features based for HPLC or CE
 
      @param features Feature map for which the retention times will be predicted
      */
-    void predictRT(SimTypes::FeatureMapSim & features);
+    void predictRT(SimTypes::FeatureMapSim& features);
 
     /**
      @brief Set retention times randomly for given contaminants
      */
-    void predictContaminantsRT(SimTypes::FeatureMapSim &);
+    void predictContaminantsRT(SimTypes::FeatureMapSim&);
 
     /**
      @brief Returns true if a RT column was simulated
@@ -96,22 +96,22 @@ public:
     bool isRTColumnOn() const;
 
     /// Wrapper for the SVM RT Prediction (HPLC) using AASequences
-    void wrapSVM(std::vector<AASequence> & peptide_sequences, std::vector<double> & predicted_retention_times);
+    void wrapSVM(std::vector<AASequence>& peptide_sequences, std::vector<double>& predicted_retention_times);
 
     SimTypes::SimCoordinateType getGradientTime() const;
 
     /// Size experiment and assign retention time grid
-    void createExperiment(SimTypes::MSSimExperiment & experiment);
+    void createExperiment(SimTypes::MSSimExperiment& experiment);
 
 private:
     /// Set default parameters
     void setDefaultParams_();
 
     /// Simply set all retention times to -1
-    void noRTColumn_(SimTypes::FeatureMapSim &);
+    void noRTColumn_(SimTypes::FeatureMapSim&);
 
     /// smoothes the simulated distortion for the elution profiles with a moving average filter of size 3
-    void smoothRTDistortion_(SimTypes::MSSimExperiment & experiment);
+    void smoothRTDistortion_(SimTypes::MSSimExperiment& experiment);
 
     /**
       Wrapper for the Migration time calculation (CE)
@@ -120,12 +120,12 @@ private:
              describing widening of MT shape.
       @param predicted_retention_times will contain afterwards the predicted retention times.
     */
-    void calculateMT_(SimTypes::FeatureMapSim & features, std::vector<double> & predicted_retention_times);
+    void calculateMT_(SimTypes::FeatureMapSim& features, std::vector<double>& predicted_retention_times);
 
-    void getChargeContribution_(Map<String, double> & q_cterm,
-                                Map<String, double> & q_nterm,
-                                Map<String, double> & q_aa_basic,
-                                Map<String, double> & q_aa_acidic);
+    void getChargeContribution_(Map<String, double>& q_cterm,
+                                Map<String, double>& q_nterm,
+                                Map<String, double>& q_aa_basic,
+                                Map<String, double>& q_aa_acidic);
 
     // MEMBERS:
 

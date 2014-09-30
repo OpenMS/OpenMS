@@ -61,47 +61,47 @@ public:
     CVMappings();
 
     /// Copy constructor
-    CVMappings(const CVMappings & rhs);
+    CVMappings(const CVMappings& rhs);
 
     /// Destructor
     virtual ~CVMappings();
 
     /// Assignment operator
-    CVMappings & operator=(const CVMappings & rhs);
+    CVMappings& operator=(const CVMappings& rhs);
 
     /** @name Accessors
     */
     //@{
     /// sets the mapping rules of the mapping file
-    void setMappingRules(const std::vector<CVMappingRule> & cv_mapping_rules);
+    void setMappingRules(const std::vector<CVMappingRule>& cv_mapping_rules);
 
     /// returns the mapping rules
-    const std::vector<CVMappingRule> & getMappingRules() const;
+    const std::vector<CVMappingRule>& getMappingRules() const;
 
     /// adds a mapping rule
-    void addMappingRule(const CVMappingRule & cv_mapping_rule);
+    void addMappingRule(const CVMappingRule& cv_mapping_rule);
 
     /// sets the CV references
-    void setCVReferences(const std::vector<CVReference> & cv_references);
+    void setCVReferences(const std::vector<CVReference>& cv_references);
 
     /// returns the CV references
-    const std::vector<CVReference> & getCVReferences() const;
+    const std::vector<CVReference>& getCVReferences() const;
 
     /// adds a CV reference
-    void addCVReference(const CVReference & cv_reference);
+    void addCVReference(const CVReference& cv_reference);
     //@}
 
     /** @name Predicates
     */
     //@{
     /// returns true if a CV reference is given
-    bool hasCVReference(const String & identifier);
+    bool hasCVReference(const String& identifier);
 
     /// equality operator
-    bool operator==(const CVMappings & rhs) const;
+    bool operator==(const CVMappings& rhs) const;
 
     /// inequality operator
-    bool operator!=(const CVMappings & rhs) const;
+    bool operator!=(const CVMappings& rhs) const;
     //@}
 
 protected:

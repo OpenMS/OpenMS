@@ -56,10 +56,10 @@
 
 namespace OpenMS
 {
-  
+
   namespace SimTypes
   {
-  
+
     /// Coordinate type in mz and rt dimension
     typedef Peak2D::CoordinateType SimCoordinateType;
 
@@ -103,7 +103,7 @@ namespace OpenMS
     */
     class SimRandomNumberGenerator
     {
-    public:
+public:
 
       boost::random::mt19937_64& getBiologicalRng()
       {
@@ -115,12 +115,12 @@ namespace OpenMS
         return technical_rng_;
       }
 
-      void setBiologicalRngSeed( unsigned long int seed )
+      void setBiologicalRngSeed(unsigned long int seed)
       {
         biological_rng_.seed(seed);
       }
 
-      void setTechnicalRngSeed( unsigned long int seed )
+      void setTechnicalRngSeed(unsigned long int seed)
       {
         technical_rng_.seed(seed);
       }
@@ -144,20 +144,21 @@ namespace OpenMS
         }
         else
         {
-            technical_rng_ = boost::random::mt19937_64(0);
+          technical_rng_ = boost::random::mt19937_64(0);
         }
       }
-    private:
+
+private:
       /// random number generator for biological variability
       boost::random::mt19937_64 biological_rng_;
       /// random number generator for technical variability
       boost::random::mt19937_64 technical_rng_;
 
     };
-    
+
     //Sim Shared Pointer type
     typedef boost::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
-    
+
   }
 
 }
