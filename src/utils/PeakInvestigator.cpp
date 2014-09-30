@@ -128,22 +128,22 @@ protected:
     pp.setLogType(log_type_);
     pp.setParameters(pepi_param);
 
-    if(!pp.setExperiment(experiment))
+    if (!pp.setExperiment(experiment))
     {
       return TOPPBase::INCOMPATIBLE_INPUT_DATA;
     }
 
-    if(mode == "submit")
+    if (mode == "submit")
     {
         pp.setMode(PeakInvestigator::SUBMIT);
     }
 
-    else if(mode == "check")
+    else if (mode == "check")
     {
         pp.setMode(PeakInvestigator::CHECK);
     }
 
-    else if(mode == "fetch")
+    else if (mode == "fetch")
     {
         pp.setMode(PeakInvestigator::FETCH);
     }
