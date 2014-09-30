@@ -458,16 +458,33 @@ START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType>
 
     pp_hires.pickExperiment(input, tmp_picked, tmp_boundaries_s, tmp_boundaries_c);
 
-    // go to problematic peak
     TEST_EQUAL(tmp_picked[0].size(), 167);
     MSSpectrum<Peak1D>::Iterator it_mz = tmp_picked.begin()->begin();
     vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary = tmp_boundaries_s.begin()->begin();
+    
     it_mz += 146;
     it_mz_boundary += 146;
-    
     TEST_REAL_SIMILAR(it_mz->getMZ(),1141.57188829383);
     TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1141.51216791402);
     TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1141.63481354941);
+    
+    it_mz += 2;
+    it_mz_boundary += 2;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),1142.57196823237);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1142.50968574851);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1142.6323313839);
+    
+    it_mz += 10;
+    it_mz_boundary += 10;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),1178.08692219102);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1178.02013862689);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1178.14847787348);
+    
+    it_mz += 1;
+    it_mz_boundary += 1;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),1178.58906411531);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1178.5249396635);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1178.6532789101);
     
 END_SECTION
 
