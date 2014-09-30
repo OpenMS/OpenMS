@@ -215,7 +215,8 @@ public:
 
           while ( k <= i    // prevent underflow
                 && (i - k + 1) > 0
-                && (missing_left < 2)
+                && (missing_left <= missing_)
+                && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing
                 && !previous_zero_left
                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
@@ -227,15 +228,14 @@ public:
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
 
-
-            if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
+            if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < 1.5 * min_spacing)
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
             }
             else
             {
               ++missing_left;
-              if (missing_left < 2)
+              if (missing_left <= missing_)
               {
                 peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
               }
@@ -256,7 +256,8 @@ public:
           Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
 
           while ((i + k) < input.size()
-                && (missing_right < 2)
+                && (missing_right <= missing_)
+                && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing
                 && !previous_zero_right
                 && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
           {
@@ -268,14 +269,14 @@ public:
               act_snt_rk = snt.getSignalToNoise(input[i + k]);
             }
 
-            if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing)
+            if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < 1.5 * min_spacing)
             {
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
             }
             else
             {
               ++missing_right;
-              if (missing_right < 2)
+              if (missing_right <= missing_)
               {
                 peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
               }
@@ -523,7 +524,7 @@ protected:
     double spacing_difference_;
     
     // maximum number of missing points
-    int missing_;
+    unsigned missing_;
 
     // ms levels to which peak picking is applied
     std::vector<Int> ms_levels_;

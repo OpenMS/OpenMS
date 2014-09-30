@@ -447,7 +447,8 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_simulation.mzML"),inp
 
 //set params
 param.setValue("signal_to_noise",0.0);
-param.setValue("missing",4);
+param.setValue("missing",0);
+param.setValue("spacing_difference",4);
 pp_hires.setParameters(param);
 
 START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const)
