@@ -447,7 +447,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_simulation.mzML"),inp
 
 //set params
 param.setValue("signal_to_noise",0.0);
-param.setValue("missing",0);
+param.setValue("missing",1);
 param.setValue("spacing_difference",4.0);
 pp_hires.setParameters(param);
 
@@ -466,8 +466,8 @@ START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType>
     it_mz_boundary += 146;
     
     TEST_REAL_SIMILAR(it_mz->getMZ(),1141.57188829383);
-    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1141.13605463217);
-    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1142.01092683127);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1141.51216791402);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1141.63481354941);
     
 END_SECTION
 
