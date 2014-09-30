@@ -271,14 +271,18 @@ namespace OpenMS
       TextFile tf(contaminants_file, true);
       contaminants_.clear();
       const UInt COLS_EXPECTED = 8;
-      for (Size i = 0; i < tf.size(); ++i)
+      Size line_number = 1;
+      for (TextFile::ConstIterator tf_it = tf.begin(); tf_it != tf.end(); ++tf_it, ++line_number)
       {
-        if (tf[i].empty() || tf[i].hasPrefix("#"))
-          continue; // skip comments
+        if (tf_it->empty() || tf_it->hasPrefix("#")) continue; // skip comments
+        
+        String line = *tf_it;
         StringList cols;
-        tf[i].removeWhitespaces().split(',', cols, true);
+        line.removeWhitespaces().split(',', cols, true);
         if (cols.size() != COLS_EXPECTED)
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, tf[i], "Expected " + String(COLS_EXPECTED) + " components, got " + String(cols.size()));
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "Expected " + String(COLS_EXPECTED) + " components, got " + String(cols.size()));
+        }
         ContaminantInfo c;
         c.name = cols[0];
         try
@@ -286,12 +290,12 @@ namespace OpenMS
           c.sf = EmpiricalFormula(cols[1]);
           if (c.sf.getCharge() != 0)
           {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, cols[1], "Line " + String(i + 1) + " in " + contaminants_file + " contains forbidden charged sum formulas. Charges must be specified in another column. Remove all '+' or '-'!");
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, cols[1], "Line " + String(line_number) + " in " + contaminants_file + " contains forbidden charged sum formulas. Charges must be specified in another column. Remove all '+' or '-'!");
           }
         }
         catch (...)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, cols[1], "Could not parse line " + String(i + 1) + " in " + contaminants_file + ".");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, cols[1], "Could not parse line " + String(line_number) + " in " + contaminants_file + ".");
         }
         try
         {
@@ -302,23 +306,37 @@ namespace OpenMS
         }
         catch (...)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, tf[i], "Could not parse line " + String(i + 1) + " in " + contaminants_file + ".");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "Could not parse line " + String(line_number) + " in " + contaminants_file + ".");
         }
         if (cols[6].toUpper() == "REC")
+        {
           c.shape = RT_RECTANGULAR;
+        }
         else if (cols[6].toUpper() == "GAUSS")
+        {
           c.shape = RT_GAUSSIAN;
+        }
         else
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, tf[i], "Unknown shape type: " + cols[6] + " in line " + String(i + 1) + " of '" + contaminants_file + "'");
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "Unknown shape type: " + cols[6] + " in line " + String(line_number) + " of '" + contaminants_file + "'");
+        }
 
         if (cols[7].toUpper() == "ESI")
+        {
           c.im = IM_ESI;
+        }
         else if (cols[7].toUpper() == "MALDI")
+        {
           c.im = IM_MALDI;
+        }
         else if (cols[7].toUpper() == "ALL")
+        {
           c.im = IM_ALL;
+        }
         else
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, tf[i], "Unknown ionization type: " + cols[7] + " in line " + String(i + 1) + " of '" + contaminants_file + "'");
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "Unknown ionization type: " + cols[7] + " in line " + String(line_number) + " of '" + contaminants_file + "'");
+        }
 
         contaminants_.push_back(c);
       }

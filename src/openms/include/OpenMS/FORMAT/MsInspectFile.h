@@ -85,9 +85,9 @@ public:
       feature_map = fmap;
 
       bool first_line = true;
-      for (Size i = 0; i < input.size(); ++i)
+      for (TextFile::ConstIterator it = input.begin(); it != input.end(); ++it)
       {
-        String line = input[i];
+        String line = *it;
 
         //ignore comment lines
         if (line.empty() || line[0] == '#') continue;
@@ -105,7 +105,7 @@ public:
 
         if (parts.size() < 18)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert line ")  + String(i + 1) + ". Not enough columns (expected 18 or more, got " + String(parts.size()) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert line ")  + String((it - input.begin()) + 1) + ". Not enough columns (expected 18 or more, got " + String(parts.size()) + ")");
         }
 
         //create feature
@@ -149,7 +149,7 @@ public:
         }
         catch (Exception::BaseException /*&e*/)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert value in column ") + String(column_to_convert + 1) + " into a number (line '" + (i + 1) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert value in column ") + String(column_to_convert + 1) + " into a number (line '" + ((it - input.begin()) + 1) + ")");
         }
         f.setMetaValue("description", parts[17]);
         feature_map.push_back(f);

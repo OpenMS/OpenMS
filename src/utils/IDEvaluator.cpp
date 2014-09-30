@@ -209,13 +209,13 @@ protected:
           sl1.push_back(s[j].getMZ());
           sl2.push_back(s[j].getIntensity());
         }
-        tf.push_back(String("# ") + String(s.getMetaValue("search_engine")));
-        tf.push_back(ListUtils::concatenate(sl1, ","));
-        tf.push_back(ListUtils::concatenate(sl2, ","));
+        tf.addLine(String("# ") + String(s.getMetaValue("search_engine")));
+        tf.addLine(ListUtils::concatenate(sl1, ","));
+        tf.addLine(ListUtils::concatenate(sl2, ","));
       }
       tf.store(out_csv);
     }
-    
+
     delete(mw);
     return EXECUTION_OK;
   }

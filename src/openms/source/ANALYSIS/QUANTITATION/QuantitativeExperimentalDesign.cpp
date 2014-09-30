@@ -340,7 +340,7 @@ namespace OpenMS
 
     // read the header and split according separator
     StringList header;
-    TextFile::Iterator titer = file.begin();
+    TextFile::ConstIterator titer = file.begin();
     titer->split(separator, header);
     ++titer;
 

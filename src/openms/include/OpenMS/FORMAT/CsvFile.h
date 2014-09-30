@@ -41,14 +41,14 @@
 namespace OpenMS
 {
   /**
-      @brief This class handles csv files. Currently only loading is implemented.
+    @brief This class handles csv files. Currently only loading is implemented.
 
-      @note items are allowed to be enclosed by only one character e.g. "item" where " is enclosing character
+    @note items are allowed to be enclosed by only one character e.g. "item" where " is enclosing character
 
-  @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI CsvFile :
-    public TextFile
+    private TextFile
   {
 public:
 
@@ -93,6 +93,13 @@ public:
       @return  returns false if the given row could not be separated into items
     */
     bool getRow(Size row, StringList & list);
+
+    /**
+      @brief Returns the number of rows that were loaded from the file.
+
+      @return The number of loaded rows.
+    */
+    std::vector<String>::size_type rowCount() const;
 
 private:
     char itemseperator_;

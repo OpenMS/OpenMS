@@ -82,10 +82,10 @@ using namespace std;
     </CENTER>
 
     If there is additional data from external tools in tabular format containing additional quality control parameter (qp) to runs or sets, or even new runs, in the qcml file at @p in it can be imported to complete the qcml file, written subsequently to @p out.
-    
+
     - @p table The table containing the additional qp values in the columns. First row is considered containing the header. The target run or set names/ids are indicated by column "raw data file", so each row after the header will contain the values of qps for that run.
     - @p mapping The mapping of the table header to the according qp cvs, also in csv format. The first row is considered containing the headers as in the table. The second row is considered the according qp cv accessions.
-    
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCImporter.cli
     <B>INI file documentation of this tool:</B>
@@ -126,11 +126,11 @@ protected:
     String out = getStringOption_("out");
     String mappi = getStringOption_("mapping");
     String tab = getStringOption_("table");
-    
+
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
-    
+
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
@@ -139,13 +139,13 @@ protected:
     {
       qcmlfile.load(in);
     }
-        
+
     if (mappi != "" && tab != "")
     {
       CsvFile csv_file(tab);
       CsvFile map_file(mappi);
-      
-      if (map_file.size()<2) //assumed that first row is the header of table and second row is the according qc
+
+      if (map_file.rowCount() < 2) //assumed that first row is the header of table and second row is the according qc
       {
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
@@ -153,7 +153,7 @@ protected:
       StringList header,according;
       map_file.getRow(0, header);
       map_file.getRow(1, according);
-      
+
       if (header.size() != according.size())
       {
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
@@ -195,10 +195,10 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
 
-      if (csv_file.size()>1)
+      if (csv_file.rowCount() > 1)
       {
         StringList li;
-        for (Size i = 1; i < csv_file.size(); ++i)
+        for (Size i = 1; i < csv_file.rowCount(); ++i)
         {
           StringList li;
           csv_file.getRow(i, li);
@@ -207,7 +207,7 @@ protected:
             cerr << "Error: You have to give a correct mapping of your table - row " << String(i+1) <<" is too short. Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
           }
-          
+
           std::vector< QcMLFile::QualityParameter > qps;
           String id;
           bool set = false;

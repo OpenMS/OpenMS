@@ -81,12 +81,12 @@ using namespace std;
     </CENTER>
 
     The data contained as values of the qp of a qcml file at @p in can be exported in tabluar (csv) format.
-    
+
     - @p names The name of the target runs or sets to be exported from. If empty, from all will be exported.
     - @p mapping The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.
-    
-    Output is in csv format (see parameter @p out_csv) which can be easily viewed/parsed by many programs. 
-    
+
+    Output is in csv format (see parameter @p out_csv) which can be easily viewed/parsed by many programs.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCExporter.cli
     <B>INI file documentation of this tool:</B>
@@ -126,7 +126,7 @@ protected:
     String csv = getStringOption_("out_csv");
     StringList names = getStringList_("names");
     String mappi = getStringOption_("mapping");
-    
+
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
@@ -139,8 +139,8 @@ protected:
     if (mappi != "")
     {
       CsvFile map_file(mappi);
-      
-      if (map_file.size()<2) //assumed that first row is the header of table and second row is the according qc
+
+      if (map_file.rowCount() < 2) //assumed that first row is the header of table and second row is the according qc
       {
         cerr << "Error: You have to give a mapping of your table (first row is the header of table and second row is the according qc). Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
@@ -188,8 +188,8 @@ protected:
         std::vector<String> ns;
         qcmlfile.getRunIDs(ns); //n.b. names are ids
         names = StringList(ns); //TODO also  sets
-      } 
-    
+      }
+
       String csv_str = ListUtils::concatenate(header, ",");
       csv_str += '\n';
       for (Size i = 0; i < names.size(); ++i)
@@ -209,7 +209,7 @@ protected:
           //~ return ILLEGAL_PARAMETERS;
         //~ }
       }
-   
+
       ofstream fout(csv.c_str());
       fout << csv_str << endl;
       fout.close();

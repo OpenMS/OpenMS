@@ -275,7 +275,7 @@ namespace OpenMS
     TextFile file;
     file.load(filename, true);
 
-    TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
+    TextFile::ConstIterator it_begin(file.begin()), it_end(file.begin());
     it_begin = StringListUtils::searchPrefix(it_begin, file.end(), "BASE_MODEL_BEGIN");
     it_end = StringListUtils::searchPrefix(it_begin, file.end(), "BASE_MODEL_END");
     parseHMMModel_(++it_begin, it_end, hmm_, param_);

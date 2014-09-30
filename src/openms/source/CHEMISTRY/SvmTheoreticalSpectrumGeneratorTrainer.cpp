@@ -499,11 +499,11 @@ namespace OpenMS
 
     String info_outfile_name = filename + ".info";
     TextFile info_outfile;
-    info_outfile.push_back("<PrecursorCharge>");
-    info_outfile.push_back(precursor_charge);
-    info_outfile.push_back("</PrecursorCharge>");
+    info_outfile.addLine("<PrecursorCharge>");
+    info_outfile.addLine(precursor_charge);
+    info_outfile.addLine("</PrecursorCharge>");
 
-    info_outfile.push_back("<PrimaryTypes>");
+    info_outfile.addLine("<PrimaryTypes>");
 
     //count number of usable spectra
     Size usable_spectra = spectra.size();
@@ -866,17 +866,17 @@ namespace OpenMS
 
 
         //add entries to info file
-        info_outfile.push_back("<IonType>");
-        info_outfile.push_back(ion_types[type_nr].residue);
-        info_outfile.push_back(ion_types[type_nr].loss.toString());
-        info_outfile.push_back(ion_types[type_nr].charge);
-        info_outfile.push_back("<SvmModelFileClass>");
-        info_outfile.push_back(svm_model_file_class);
-        info_outfile.push_back("</SvmModelFileClass>");
-        info_outfile.push_back("<SvmModelFileReg>");
-        info_outfile.push_back(svm_model_file_reg);
-        info_outfile.push_back("</SvmModelFileReg>");
-        info_outfile.push_back("</IonType>");
+        info_outfile.addLine("<IonType>");
+        info_outfile.addLine(ion_types[type_nr].residue);
+        info_outfile.addLine(ion_types[type_nr].loss.toString());
+        info_outfile.addLine(ion_types[type_nr].charge);
+        info_outfile.addLine("<SvmModelFileClass>");
+        info_outfile.addLine(svm_model_file_class);
+        info_outfile.addLine("</SvmModelFileClass>");
+        info_outfile.addLine("<SvmModelFileReg>");
+        info_outfile.addLine(svm_model_file_reg);
+        info_outfile.addLine("</SvmModelFileReg>");
+        info_outfile.addLine("</IonType>");
 
       } //end of else
 
@@ -889,35 +889,41 @@ namespace OpenMS
       return;
     }
 
-    info_outfile.push_back("</PrimaryTypes>");
-    info_outfile.push_back("<ScalingUpper>");
-    info_outfile.push_back(upper);
-    info_outfile.push_back("</ScalingUpper>");
-    info_outfile.push_back("<ScalingLower>");
-    info_outfile.push_back(lower);
-    info_outfile.push_back("</ScalingLower>");
-    info_outfile.push_back("<MaxFeatures>");
-    info_outfile.insert(info_outfile.end(), max_features.begin(), max_features.end());
-    info_outfile.push_back("</MaxFeatures>");
-    info_outfile.push_back("<MinFeatures>");
-    info_outfile.insert(info_outfile.end(), min_features.begin(), min_features.end());
-    info_outfile.push_back("</MinFeatures>");
+    info_outfile.addLine("</PrimaryTypes>");
+    info_outfile.addLine("<ScalingUpper>");
+    info_outfile.addLine(upper);
+    info_outfile.addLine("</ScalingUpper>");
+    info_outfile.addLine("<ScalingLower>");
+    info_outfile.addLine(lower);
+    info_outfile.addLine("</ScalingLower>");
+    info_outfile.addLine("<MaxFeatures>");
+    for(std::vector<double>::const_iterator maxFeatIt = max_features.begin(); maxFeatIt != max_features.end(); ++maxFeatIt)
+    {
+      info_outfile.addLine(*maxFeatIt);
+    }
+    info_outfile.addLine("</MaxFeatures>");
+    info_outfile.addLine("<MinFeatures>");
+    for(std::vector<double>::const_iterator minFeatIt = min_features.begin(); minFeatIt != min_features.end(); ++minFeatIt)
+    {
+      info_outfile.addLine(*minFeatIt);
+    }
+    info_outfile.addLine("</MinFeatures>");
 
     //------------------------------------------------------------------------------------------
     //----------------------Training prob. model for secondary types------------------
     //------------------------------------------------------------------------------------------
 
-    info_outfile.push_back("<SecondaryTypes>");
+    info_outfile.addLine("<SecondaryTypes>");
     if (secondary_types)
     {
-      info_outfile.push_back("<IntensityLevels>");
-      info_outfile.push_back(number_of_intensity_levels);
-      info_outfile.push_back("</IntensityLevels>");
+      info_outfile.addLine("<IntensityLevels>");
+      info_outfile.addLine(number_of_intensity_levels);
+      info_outfile.addLine("</IntensityLevels>");
 
       trainSecondaryTypes_(info_outfile, number_of_regions, number_of_intensity_levels, observed_intensities, ion_types, is_primary);
     }
 
-    info_outfile.push_back("</SecondaryTypes>");
+    info_outfile.addLine("</SecondaryTypes>");
     info_outfile.store(info_outfile_name);
   }
 
@@ -1017,18 +1023,18 @@ namespace OpenMS
       prev_index = index;
     }
 
-    info_outfile.push_back("<IntensityBinBoarders>");
+    info_outfile.addLine("<IntensityBinBoarders>");
     for (Size i = 0; i < number_of_intensity_levels - 1; ++i)
     {
-      info_outfile.push_back(bin_boarders[i]);
+      info_outfile.addLine(bin_boarders[i]);
     }
-    info_outfile.push_back("</IntensityBinBoarders>");
-    info_outfile.push_back("<IntensityBinValues>");
+    info_outfile.addLine("</IntensityBinBoarders>");
+    info_outfile.addLine("<IntensityBinValues>");
     for (Size i = 0; i < number_of_intensity_levels - 1; ++i)
     {
-      info_outfile.push_back(bin_values[i]);
+      info_outfile.addLine(bin_values[i]);
     }
-    info_outfile.push_back("</IntensityBinValues>");
+    info_outfile.addLine("</IntensityBinValues>");
 
     //use the boarder values to bin the entries
     for (Size region = 0; region < number_of_regions; ++region)
@@ -1094,15 +1100,15 @@ namespace OpenMS
       if (is_primary[i])
         continue;
 
-      info_outfile.push_back("<IonType>");
-      info_outfile.push_back(type.residue);
-      info_outfile.push_back(type.loss.toString());
-      info_outfile.push_back(type.charge);
-      info_outfile.push_back("<ConditionalProbabilities>");
+      info_outfile.addLine("<IonType>");
+      info_outfile.addLine(type.residue);
+      info_outfile.addLine(type.loss.toString());
+      info_outfile.addLine(type.charge);
+      info_outfile.addLine("<ConditionalProbabilities>");
 
       for (Size region = 0; region < number_of_regions; ++region)
       {
-        info_outfile.push_back("<Region " + String(region) + ">");
+        info_outfile.addLine("<Region " + String(region) + ">");
         std::vector<double> & back_counts = background_counts[std::make_pair(type, region)];
 
         for (Size prim = 0; prim < number_of_intensity_levels; ++prim)
@@ -1114,13 +1120,13 @@ namespace OpenMS
               joint_counts[std::make_pair(type, region)][sec][prim] = joint_counts[std::make_pair(type, region)][sec][prim] / back_counts[prim];
               //std::cerr<<"conditional prob  "<<type.residue<<" "<<sec<<"  "<<prim<<"  "<<joint_counts[std::make_pair(type, region)][sec][prim]<<std::endl;
             }
-            info_outfile.push_back(joint_counts[std::make_pair(type, region)][sec][prim]);
+            info_outfile.addLine(joint_counts[std::make_pair(type, region)][sec][prim]);
           }
         }
-        info_outfile.push_back("</Region " + String(region) + ">");
+        info_outfile.addLine("</Region " + String(region) + ">");
       }
-      info_outfile.push_back("</ConditionalProbabilities>");
-      info_outfile.push_back("</IonType>");
+      info_outfile.addLine("</ConditionalProbabilities>");
+      info_outfile.addLine("</IonType>");
     }
   }
 
@@ -1222,7 +1228,7 @@ namespace OpenMS
       {
         ss << " " << it_debug->index << ":" << it_debug->value;
       }
-      file.push_back(ss.str());
+      file.addLine(ss.str());
     }
     file.store(filename);
     std::cerr << " Done" << std::endl;

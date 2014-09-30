@@ -752,7 +752,9 @@ protected:
       Int status = QProcess::execute((inspect_directory + "inspect").toQString(), QStringList(call.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
       if (status != 0)
       {
-        string_buffer = ListUtils::concatenate(TextFile(inspect_logfile));
+        TextFile tf(inspect_logfile);
+        string_buffer.clear();
+        string_buffer.concatenate(tf.begin(), tf.end());
         writeLog_("Inspect problem: " + string_buffer + " Aborting!");
 
         exit_code = EXTERNAL_PROGRAM_ERROR;
@@ -799,7 +801,9 @@ protected:
       Int status = QProcess::execute((inspect_directory + "inspect").toQString(), QStringList(call.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
       if (status != 0)
       {
-        string_buffer = ListUtils::concatenate(TextFile(inspect_logfile));
+        TextFile tf(inspect_logfile);
+        string_buffer.clear();
+        string_buffer.concatenate(tf.begin(), tf.end());
         writeLog_("Inspect problem: " + string_buffer + ". Aborting!");
         exit_code =  EXTERNAL_PROGRAM_ERROR;
       }

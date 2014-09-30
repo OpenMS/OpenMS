@@ -44,8 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TextFile::TextFile() :
-    StringList()
+  TextFile::TextFile()
   {
 
   }
@@ -54,8 +53,7 @@ namespace OpenMS
   {
   }
 
-  TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines) :
-    StringList()
+  TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines)
   {
     load(filename, trim_lines, first_n, skip_empty_lines);
   }
@@ -70,7 +68,7 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
-    clear();
+    buffer_.clear();
 
     String str;
     bool had_enough = false;
@@ -106,9 +104,9 @@ namespace OpenMS
         // skip? (only after trimming!)
         if (skip_empty_lines && lines[i].empty()) continue;
 
-        push_back(lines[i]);
+        buffer_.push_back(lines[i]);
 
-        if (first_n > -1 && (Int)(size()) == first_n)
+        if (first_n > -1 && static_cast<Int>(buffer_.size()) == first_n)
         {
           had_enough = true;
           break;
@@ -128,7 +126,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
-    for (Iterator it = begin(); it != end(); ++it)
+    for (Iterator it = buffer_.begin(); it != buffer_.end(); ++it)
     {
       if (it->hasSuffix("\n"))
       {
@@ -146,6 +144,16 @@ namespace OpenMS
       }
     }
     os.close();
+  }
+  
+  TextFile::ConstIterator TextFile::begin() const
+  {
+    return buffer_.begin();
+  }
+  
+  TextFile::ConstIterator TextFile::end() const
+  {
+    return buffer_.end();
   }
 
 } // namespace OpenMS

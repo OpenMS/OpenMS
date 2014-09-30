@@ -88,19 +88,26 @@ namespace OpenMS
     {
       filename = File::find(filename);
     }
-    TextFile file(filename);
-
+    
     Param sim_param = SvmTheoreticalSpectrumGenerator().getDefaults();
-    for (Size line_num = 1; line_num < file.size(); ++line_num)
+    
+    TextFile file(filename);
+    TextFile::ConstIterator it = file.begin();
+    
+    if (it == file.end()) return; // no data to load
+    
+    // skip header line
+    ++it;
+    // process content
+    for (; it != file.end(); ++it)
     {
-      String line(file[line_num]);
       std::vector<String> spl;
-      line.split(":", spl);
+      it->split(":", spl);
       Int precursor_charge = spl[0].toInt();
 
       if (spl.size() != 2 || precursor_charge < 1)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file[line_num], " Invalid entry in SVM model File");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *it, " Invalid entry in SVM model File");
       }
 
       //load the model into the map

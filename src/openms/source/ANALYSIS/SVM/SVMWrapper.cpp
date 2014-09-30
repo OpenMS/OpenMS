@@ -119,13 +119,13 @@ namespace OpenMS
     }
 
     TextFile text_file(filename.c_str(), true);
-    TextFile::iterator it;
+    TextFile::ConstIterator it;
 
     it = text_file.begin();
 
-    sequences.resize(text_file.size(), std::vector<std::pair<Int, double> >());
-    labels.resize(text_file.size(), 0.);
-    while (counter < text_file.size() && it != text_file.end())
+    sequences.resize(text_file.end() - text_file.begin(), std::vector<std::pair<Int, double> >());
+    labels.resize(text_file.end() - text_file.begin(), 0.);
+    while (it != text_file.end())
     {
       it->split(' ', parts);
       labels[counter] = parts[0].trim().toFloat();
@@ -467,7 +467,7 @@ namespace OpenMS
   void SVMWrapper::loadModel(string model_filename)
   {
     TextFile file;
-    TextFile::iterator it;
+    TextFile::ConstIterator it;
     vector<String> parts;
 
     if (model_ != NULL)

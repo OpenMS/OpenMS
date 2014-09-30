@@ -294,15 +294,15 @@ namespace OpenMS
     }
 
     TextFile text_file(filename.c_str(), true);
-    TextFile::iterator it;
+    TextFile::ConstIterator it;
 
     it = text_file.begin();
 
     data = new svm_problem;
-    data->l = (Int)text_file.size();
-    data->x = new svm_node *[text_file.size()];
-    data->y = new double[text_file.size()];
-    while (counter < text_file.size() && it != text_file.end())
+    data->l = (Int)(text_file.end() - text_file.begin());
+    data->x = new svm_node *[(text_file.end() - text_file.begin())];
+    data->y = new double[(text_file.end() - text_file.begin())];
+    while (it != text_file.end())
     {
       it->split(' ', parts);
       data->y[counter] = parts[0].trim().toFloat();

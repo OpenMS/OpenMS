@@ -70,28 +70,29 @@ namespace OpenMS
   {
     // load input
     TextFile input(filename);
-
+    TextFile::ConstIterator input_it = input.begin();
+    
     // reset map
     consensus_map = ConsensusMap();
     consensus_map.setUniqueId();
 
     char separator = ' ';
-    if (input[0].hasSubstring("\t"))
+    if (input_it->hasSubstring("\t"))
       separator = '\t';
-    else if (input[0].hasSubstring(" "))
+    else if (input_it->hasSubstring(" "))
       separator = ' ';
-    else if (input[0].hasSubstring(","))
+    else if (input_it->hasSubstring(","))
       separator = ',';
 
     // parsing header line
     std::vector<String> headers;
-    input[0].split(separator, headers);
+    input_it->split(separator, headers);
     int offset = 0;
     for (Size i = 0; i < headers.size(); ++i)
     {
       headers[i].trim();
     }
-    String header_trimmed = input[0];
+    String header_trimmed = *input.begin();
     header_trimmed.trim();
 
     enum
@@ -129,6 +130,7 @@ namespace OpenMS
     catch (Exception::BaseException &)
     {
       offset = 1;
+      ++input_it;
       LOG_INFO << "Detected a header line.\n";
     }
 
@@ -151,34 +153,35 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line 1: No HEADER provided. This is only allowed for three columns. You have more!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
 
+    SignedSize input_size = input.end() - input.begin();
+    
     ConsensusMap::FileDescription desc;
     desc.filename = filename;
-    desc.size = input.size() - offset;
+    desc.size = (input_size) - offset;
     consensus_map.getFileDescriptions()[0] = desc;
 
     // parsing features
-    consensus_map.reserve(input.size());
+    consensus_map.reserve(input_size);
 
-    for (Size i = offset; i < input.size(); ++i)
+    for (; input_it != input.end(); ++input_it)
     {
       //do nothing for empty lines
-      String line_trimmed = input[i];
+      String line_trimmed = *input_it;
       line_trimmed.trim();
       if (line_trimmed == "")
       {
-        if (i < input.size() - 1)
-          LOG_WARN << "Notice: Empty line ignored (line " << (i + 1) << ").";
+        if ((input_it - input.begin()) < input_size - 1) LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
         continue;
       }
 
       //split line to tokens
       std::vector<String> parts;
-      input[i].split(separator, parts);
+      input_it->split(separator, parts);
 
       //abort if line does not contain enough fields
       if (parts.size() < 3)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": At least three columns are needed! (got  " + String(parts.size()) + ")\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": At least three columns are needed! (got  " + String(parts.size()) + ")\nOffending line: '" + line_trimmed + "'  (line " + ((input_it - input.begin()) + 1) + ")\n");
       }
 
       ConsensusFeature cf;
@@ -200,7 +203,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException &)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + ((input_it - input.begin()) + 1) + ")\n");
       }
 
       // Check all features in one line
@@ -230,7 +233,7 @@ namespace OpenMS
         }
         catch (Exception::BaseException &)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String(i + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + (i + 1) + ")\n");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + ((input_it - input.begin()) + 1) + ")\n");
         }
       }
 
@@ -288,7 +291,7 @@ namespace OpenMS
     {
       header += "\tRT" + String(i) + "\tm/z" + String(i) + "\tintensity" + String(i) + "\tcharge" + String(i);
     }
-    tf.push_back(header);
+    tf.addLine(header);
 
     for (Size i = 0; i < map.size(); ++i)
     {
@@ -306,7 +309,7 @@ namespace OpenMS
       {
         entry += "\tNA\tNA\tNA\tNA";
       }
-      tf.push_back(entry);
+      tf.addLine(entry);
     }
 
 
@@ -316,12 +319,12 @@ namespace OpenMS
   void EDTAFile::store(const String & filename, const FeatureMap<> & map) const
   {
     TextFile tf;
-    tf.push_back("RT\tm/z\tintensity\tcharge");
+    tf.addLine("RT\tm/z\tintensity\tcharge");
 
     for (Size i = 0; i < map.size(); ++i)
     {
       const Feature & f = map[i];
-      tf.push_back(String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge());
+      tf.addLine(String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge());
     }
 
 

@@ -137,7 +137,7 @@ protected:
       {
         subterm_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
       }
-      file.push_back(subterm_line + "<BR>");
+      file.addLine(subterm_line + "<BR>");
       writeTermTree_(child_term.id, cv, file, indent + 1);
     }
   }
@@ -169,24 +169,24 @@ protected:
     if (getStringOption_("html") != "")
     {
       TextFile file;
-      file.push_back("<HTML>");
-      file.push_back("  <HEAD>");
-      file.push_back("    <TITLE>CV mapping file</TITLE>");
-      file.push_back("    <SCRIPT language=javascript type='text/javascript'>");
-      file.push_back("      function toggleDiv(layer_ref,force_state) ");
-      file.push_back("      {");
-      file.push_back("        if (document.getElementById(layer_ref).style.display=='none' || force_state=='true')");
-      file.push_back("        {");
-      file.push_back("          document.getElementById(layer_ref).style.display = 'block';");
-      file.push_back("        }");
-      file.push_back("        else if (document.getElementById(layer_ref).style.display=='block' || force_state=='false')");
-      file.push_back("        {");
-      file.push_back("          document.getElementById(layer_ref).style.display = 'none';");
-      file.push_back("        }");
-      file.push_back("      }");
-      file.push_back("    </SCRIPT>");
-      file.push_back("  </HEAD>");
-      file.push_back("  <BODY>");
+      file.addLine("<HTML>");
+      file.addLine("  <HEAD>");
+      file.addLine("    <TITLE>CV mapping file</TITLE>");
+      file.addLine("    <SCRIPT language=javascript type='text/javascript'>");
+      file.addLine("      function toggleDiv(layer_ref,force_state) ");
+      file.addLine("      {");
+      file.addLine("        if (document.getElementById(layer_ref).style.display=='none' || force_state=='true')");
+      file.addLine("        {");
+      file.addLine("          document.getElementById(layer_ref).style.display = 'block';");
+      file.addLine("        }");
+      file.addLine("        else if (document.getElementById(layer_ref).style.display=='block' || force_state=='false')");
+      file.addLine("        {");
+      file.addLine("          document.getElementById(layer_ref).style.display = 'none';");
+      file.addLine("        }");
+      file.addLine("      }");
+      file.addLine("    </SCRIPT>");
+      file.addLine("  </HEAD>");
+      file.addLine("  <BODY>");
 
       //count the number of terms and add button to expend/collaps all terms
       Int term_count = 0;
@@ -204,39 +204,39 @@ protected:
         expand_all += String(";toggleDiv('div") + i + "','true')";
         collapse_all += String(";toggleDiv('div") + i + "','false')";
       }
-      file.push_back(expand_all + "\">Expand all</a><BR>");
-      file.push_back(collapse_all + "\">Collapse all</a>");
-      file.push_back("    <TABLE width=100% border=0>");
+      file.addLine(expand_all + "\">Expand all</a><BR>");
+      file.addLine(collapse_all + "\">Collapse all</a>");
+      file.addLine("    <TABLE width=100% border=0>");
       term_count = -1;
       for (vector<CVMappingRule>::const_iterator it = mappings.getMappingRules().begin(); it != mappings.getMappingRules().end(); ++it)
       {
         //create rule line
-        file.push_back("      <TR><TD colspan=\"2\"><HR></TD></TR>");
-        file.push_back(String("      <TR><TD>Identifier:</TD><TD><B>") + it->getIdentifier() + "</B></TD></TR>");
-        file.push_back(String("      <TR><TD>Element:</TD><TD><B>") + it->getElementPath() + "</B></TD></TR>");
+        file.addLine("      <TR><TD colspan=\"2\"><HR></TD></TR>");
+        file.addLine(String("      <TR><TD>Identifier:</TD><TD><B>") + it->getIdentifier() + "</B></TD></TR>");
+        file.addLine(String("      <TR><TD>Element:</TD><TD><B>") + it->getElementPath() + "</B></TD></TR>");
         if (it->getRequirementLevel() == CVMappingRule::MUST)
         {
-          file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"red\">MUST</FONT></TD></TR>");
+          file.addLine("      <TR><TD>Requirement level:</TD><TD><FONT color=\"red\">MUST</FONT></TD></TR>");
         }
         else if (it->getRequirementLevel() == CVMappingRule::SHOULD)
         {
-          file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"orange\">SHOULD</FONT></TD></TR>");
+          file.addLine("      <TR><TD>Requirement level:</TD><TD><FONT color=\"orange\">SHOULD</FONT></TD></TR>");
         }
         else if (it->getRequirementLevel() == CVMappingRule::MAY)
         {
-          file.push_back("      <TR><TD>Requirement level:</TD><TD><FONT color=\"green\">MAY</FONT></TD></TR>");
+          file.addLine("      <TR><TD>Requirement level:</TD><TD><FONT color=\"green\">MAY</FONT></TD></TR>");
         }
         if (it->getCombinationsLogic() == CVMappingRule::AND)
         {
-          file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"red\">AND</FONT></TD></TR>");
+          file.addLine("      <TR><TD>Combination logic:</TD><TD><FONT color=\"red\">AND</FONT></TD></TR>");
         }
         else if (it->getCombinationsLogic() == CVMappingRule::XOR)
         {
-          file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"orange\">XOR</FONT></TD></TR>");
+          file.addLine("      <TR><TD>Combination logic:</TD><TD><FONT color=\"orange\">XOR</FONT></TD></TR>");
         }
         else if (it->getCombinationsLogic() == CVMappingRule::OR)
         {
-          file.push_back("      <TR><TD>Combination logic:</TD><TD><FONT color=\"green\">OR</FONT></TD></TR>");
+          file.addLine("      <TR><TD>Combination logic:</TD><TD><FONT color=\"green\">OR</FONT></TD></TR>");
         }
 
         //create table with terms
@@ -320,12 +320,12 @@ protected:
           {
             term_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
           }
-          file.push_back(term_line);
+          file.addLine(term_line);
 
           // check whether we need the whole tree, or just the term itself
           if (tit->getAllowChildren())
           {
-            file.push_back(String("        <div id=\"div") + term_count + "\" style=\"display: none\">");
+            file.addLine(String("        <div id=\"div") + term_count + "\" style=\"display: none\">");
             if (cv.exists(tit->getAccession()))
             {
               writeTermTree_(tit->getAccession(), cv, file, 1);
@@ -351,17 +351,17 @@ protected:
             }
             else
             {
-              file.push_back("          &nbsp;&nbsp;&nbsp;- Missing terms, CV not loaded...");
+              file.addLine("          &nbsp;&nbsp;&nbsp;- Missing terms, CV not loaded...");
               cerr << "Warning: no child terms for " << tit->getAccession() << " found!" << endl;
             }
-            file.push_back("          </div>");
-            file.push_back("        </TD></TD></TR>");
+            file.addLine("          </div>");
+            file.addLine("        </TD></TD></TR>");
           }
         }
       }
-      file.push_back("    </TABLE>");
-      file.push_back("  </BODY>");
-      file.push_back("</HTML>");
+      file.addLine("    </TABLE>");
+      file.addLine("  </BODY>");
+      file.addLine("</HTML>");
       file.store(getStringOption_("html"));
       return EXECUTION_OK;
     }

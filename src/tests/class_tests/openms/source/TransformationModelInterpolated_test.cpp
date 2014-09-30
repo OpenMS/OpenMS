@@ -83,7 +83,7 @@ START_SECTION((double evaluate(const double value) const))
    */
   CsvFile data_points(OPENMS_GET_TEST_DATA_PATH("TransformationModelInterpolated_base_data.txt"), '\t');
   TransformationModel::DataPoints base_data;
-  for (Size i = 0; i < data_points.size(); ++i)
+  for (Size i = 0; i < data_points.rowCount(); ++i)
   {
     StringList sl;
     if (data_points.getRow(i, sl))
@@ -116,7 +116,7 @@ START_SECTION((double evaluate(const double value) const))
   std::vector<double> gsl_linear;
   std::vector<double> gsl_akima;
 
-  for (Size i = 0; i < gsl_results.size(); ++i)
+  for (Size i = 0; i < gsl_results.rowCount(); ++i)
   {
     StringList sl;
     if (gsl_results.getRow(i, sl))

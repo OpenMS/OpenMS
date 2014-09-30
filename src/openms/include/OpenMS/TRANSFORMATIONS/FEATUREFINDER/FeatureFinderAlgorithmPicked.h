@@ -2168,61 +2168,70 @@ protected:
     {
 
       double pseudo_rt_shift = param_.getValue("debug:pseudo_rt_shift");
-      TextFile tf;
-      //gnuplot script
-      String script = String("plot \"") + path + plot_nr + ".dta\" title 'before fit (RT: " +  String::number(fitter->getCenter(), 2) + " m/z: " +  String::number(peak.getMZ(), 4) + ")' with points 1";
-      //feature before fit
-      for (Size k = 0; k < traces.size(); ++k)
+      String script;
       {
-        for (Size j = 0; j < traces[k].peaks.size(); ++j)
+        TextFile tf;
+        //gnuplot script
+        script = String("plot \"") + path + plot_nr + ".dta\" title 'before fit (RT: " +  String::number(fitter->getCenter(), 2) + " m/z: " +  String::number(peak.getMZ(), 4) + ")' with points 1";
+        //feature before fit
+        for (Size k = 0; k < traces.size(); ++k)
         {
-          tf.push_back(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "\t" + traces[k].peaks[j].second->getIntensity());
-        }
-      }
-      tf.store(path + plot_nr + ".dta");
-      //fitted feature
-      if (new_traces.getPeakCount() != 0)
-      {
-        tf.clear();
-        for (Size k = 0; k < new_traces.size(); ++k)
-        {
-          for (Size j = 0; j < new_traces[k].peaks.size(); ++j)
+          for (Size j = 0; j < traces[k].peaks.size(); ++j)
           {
-            tf.push_back(String(pseudo_rt_shift * k + new_traces[k].peaks[j].first) + "\t" + new_traces[k].peaks[j].second->getIntensity());
+            tf.addLine(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "\t" + traces[k].peaks[j].second->getIntensity());
           }
         }
-
-        tf.store(path + plot_nr + "_cropped.dta");
-        script = script + ", \"" + path + plot_nr + "_cropped.dta\" title 'feature ";
-
-        if (!feature_ok)
-        {
-          script = script + " - " + error_msg;
-        }
-        else
-        {
-          script = script + (features_->size() + 1) + " (score: " +  String::number(final_score, 3) + ")";
-        }
-        script = script + "' with points 3";
+        tf.store(path + plot_nr + ".dta");
       }
-      //fitted functions
-      tf.clear();
-      for (Size k = 0; k < traces.size(); ++k)
+      
       {
-        char fun = 'f';
-        fun += (char)k;
-        tf.push_back(fitter->getGnuplotFormula(traces[k], fun, traces.baseline, pseudo_rt_shift * k));
-        //tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + fitter->getGnuplotFormula(traces[k], pseudo_rt_shift * k));
-        script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z: " + String::number(traces[k].getAvgMZ(), 4) + ")'";
-      }
+        //fitted feature
+        if (new_traces.getPeakCount() != 0)
+        {
+          TextFile tf_new_trace;
+          for (Size k = 0; k < new_traces.size(); ++k)
+          {
+            for (Size j = 0; j < new_traces[k].peaks.size(); ++j)
+            {
+              tf_new_trace.addLine(String(pseudo_rt_shift * k + new_traces[k].peaks[j].first) + "\t" + new_traces[k].peaks[j].second->getIntensity());
+            }
+          }
 
-      //output
-      tf.push_back("set xlabel \"pseudo RT (mass traces side-by-side)\"");
-      tf.push_back("set ylabel \"intensity\"");
-      tf.push_back("set samples 1000");
-      tf.push_back(script);
-      tf.push_back("pause -1");
-      tf.store(path + plot_nr + ".plot");
+          tf_new_trace.store(path + plot_nr + "_cropped.dta");
+          script = script + ", \"" + path + plot_nr + "_cropped.dta\" title 'feature ";
+
+          if (!feature_ok)
+          {
+            script = script + " - " + error_msg;
+          }
+          else
+          {
+            script = script + (features_->size() + 1) + " (score: " +  String::number(final_score, 3) + ")";
+          }
+          script = script + "' with points 3";
+        }
+      }
+      
+      {
+        //fitted functions
+        TextFile tf_fitted_func;
+        for (Size k = 0; k < traces.size(); ++k)
+        {
+          char fun = 'f';
+          fun += (char)k;
+          tf_fitted_func.addLine(fitter->getGnuplotFormula(traces[k], fun, traces.baseline, pseudo_rt_shift * k));
+          //tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + fitter->getGnuplotFormula(traces[k], pseudo_rt_shift * k));
+          script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z: " + String::number(traces[k].getAvgMZ(), 4) + ")'";
+        }
+
+        //output
+        tf_fitted_func.addLine("set xlabel \"pseudo RT (mass traces side-by-side)\"");
+        tf_fitted_func.addLine("set ylabel \"intensity\"");
+        tf_fitted_func.addLine("set samples 1000");
+        tf_fitted_func.addLine(script);
+        tf_fitted_func.addLine("pause -1");
+        tf_fitted_func.store(path + plot_nr + ".plot");
+      }
     }
 
     //@}

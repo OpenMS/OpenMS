@@ -1021,7 +1021,7 @@ namespace OpenMS
     //#ifdef PISP_DEBUG
     std::cout << "load " << path << std::endl;
     //#endif
-    TextFile::Iterator iter = file.begin();
+    TextFile::ConstIterator iter = file.begin();
     ++iter;
     for (; iter != file.end() && !iter->hasPrefix("###"); ++iter)
     {

@@ -564,8 +564,8 @@ namespace OpenMS
     String path_to_models = File().path(svm_info_file) + "/";
     info_file.load(svm_info_file);
 
-    TextFile::iterator left_marker = StringListUtils::searchPrefix(info_file, "<PrecursorCharge>");
-    TextFile::iterator right_marker = StringListUtils::searchPrefix(info_file, "</PrecursorCharge>");
+    TextFile::ConstIterator left_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "<PrecursorCharge>");
+    TextFile::ConstIterator right_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "</PrecursorCharge>");
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
@@ -574,8 +574,8 @@ namespace OpenMS
     ++left_marker;
     precursor_charge_ = left_marker->toInt();
 
-    left_marker = StringListUtils::searchPrefix(info_file, "<PrimaryTypes>");
-    right_marker = StringListUtils::searchPrefix(info_file, "</PrimaryTypes>");
+    left_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "<PrimaryTypes>");
+    right_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "</PrimaryTypes>");
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)

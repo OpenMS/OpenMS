@@ -139,7 +139,8 @@ struct HeaderInfo
     header_description = "-- empty --";
     TextFile tf;
     tf.load(filename);
-    String content = ListUtils::concatenate(tf, ";");
+    String content;
+    content.concatenate(tf.begin(), tf.end(), ";");
 
     String search = "$$ Sample Description:";
     Size pos = content.find(search);
@@ -264,8 +265,8 @@ public:
 
     StringList tf_single_header0, tf_single_header1, tf_single_header2; // header content, for each column
 
-    TextFile tf_single; // one line for each compound, multiple columns per experiment
-    tf_single.resize(cm.size());
+    std::vector<String> vec_single; // one line for each compound, multiple columns per experiment
+    vec_single.resize(cm.size());
     for (Size fi = 0; fi < in.size(); ++fi)
     {
       // load raw data
@@ -384,7 +385,7 @@ public:
         }
 
         // resize, since we have more positions now
-        tf_single.resize(cm.size());
+        vec_single.resize(cm.size());
       }
 
 
@@ -467,13 +468,13 @@ public:
         // appending the second column set requires separator
         String append_sep = (fi == 0 ? "" : out_sep);
 
-        tf_single[i] += append_sep; // new line
+        vec_single[i] += append_sep; // new line
         if (fi == 0)
         {
-          tf_single[i] += String(cm[i].getRT()) + out_sep +
+          vec_single[i] += String(cm[i].getRT()) + out_sep +
                           String(cm[i].getMZ()) + out_sep;
         }
-        tf_single[i] += String(max_peak.getRT()) + out_sep +
+        vec_single[i] += String(max_peak.getRT()) + out_sep +
                         String(max_peak.getRT() - cm[i].getRT()) + out_sep +
                         String(max_peak.getMZ()) + out_sep +
                         String(ppm)  + out_sep +
@@ -486,14 +487,19 @@ public:
     //-------------------------------------------------------------
     // create header
     //-------------------------------------------------------------
-    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header2, out_sep));
-    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header1, out_sep));
-    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header0, out_sep));
+    vec_single.insert(vec_single.begin(), ListUtils::concatenate(tf_single_header2, out_sep));
+    vec_single.insert(vec_single.begin(), ListUtils::concatenate(tf_single_header1, out_sep));
+    vec_single.insert(vec_single.begin(), ListUtils::concatenate(tf_single_header0, out_sep));
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    tf_single.store(out);
+    TextFile tf;
+    for (std::vector<String>::iterator v_it = vec_single.begin(); v_it != vec_single.end(); ++v_it)
+    {
+      tf.addLine(*v_it);
+    }
+    tf.store(out);
 
     return EXECUTION_OK;
   }

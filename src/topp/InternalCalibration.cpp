@@ -50,7 +50,7 @@ using namespace std;
   @page TOPP_InternalCalibration InternalCalibration
 
   @brief Performs an internal calibration on an MS experiment.
- 
+
   <CENTER>
   <table>
   <tr>
@@ -67,7 +67,7 @@ using namespace std;
   </tr>
   </table>
   </CENTER>
- 
+
   This a simple calibration method: given a list of reference masses and an MS experiment or a feature map,
   the relative errors of the peaks in the data are approximated by linear regression and
   subtracted from the data. The user can choose whether the calibration function shall be
@@ -160,7 +160,7 @@ protected:
       {
         TextFile ref_file;
         ref_file.load(ref, true);
-        for (TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+        for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
         {
           ref_masses.push_back(String(iter->c_str()).toDouble());
         }

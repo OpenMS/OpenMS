@@ -250,7 +250,7 @@ protected:
     std::vector<String> parts;
     labels.clear();
 
-    TextFile::iterator it = text_file.begin();
+    TextFile::ConstIterator it = text_file.begin();
     while (it != text_file.end())
     {
       it->split(' ', parts);

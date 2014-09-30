@@ -49,11 +49,14 @@
 
 namespace OpenMS
 {
-/**
-  @brief File adapter for MzTab files
+  // forward decl 
+  class TextFile;
+  
+  /**
+    @brief File adapter for MzTab files
 
-  @ingroup FileIO
- */
+    @ingroup FileIO
+  */
   class OPENMS_DLLAPI MzTabFile
   {
 public:
@@ -74,17 +77,17 @@ public:
     void load(const String & filename, MzTab& mz_tab);
 
 protected:
-    void generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const;
+    void generateMzTabMetaDataSection_(const MzTabMetaData& map, TextFile& sl) const;
 
     String generateMzTabProteinHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns) const;
 
     String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const String& unit_id) const;
 
-    void generateMzTabProteinSection_(const MzTabProteinSectionData& map, StringList& sl) const;
+    void generateMzTabProteinSection_(const MzTabProteinSectionData& map, TextFile& sl) const;
 
-    void generateMzTabPeptideSection_(const MzTabPeptideSectionData& map, StringList& sl) const;
+    void generateMzTabPeptideSection_(const MzTabPeptideSectionData& map, TextFile& sl) const;
 
-    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData & map, StringList& sl) const;
+    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData & map, TextFile& sl) const;
 
     String generateMzTabPeptideHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns) const;
 

@@ -159,14 +159,14 @@ protected:
     TextFile ref_file;
     ref_file.load(ref, true);
 
-    for (TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+    for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
     {
       ref_masses.push_back(String(iter->c_str()).toDouble());
     }
     TextFile const_file;
     const_file.load(conv, true);
     std::vector<String> vec;
-    TextFile::Iterator iter = const_file.begin();
+    TextFile::ConstIterator iter = const_file.begin();
     iter->split('\t', vec);
 
     std::vector<double> ml1, ml2, ml3;

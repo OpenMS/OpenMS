@@ -72,7 +72,9 @@ namespace OpenMS
     //determine if this is indexed mzML or not
     bool indexed = false;
     TextFile file(filename, true, 4);
-    if (ListUtils::concatenate(file).hasSubstring("<indexedmzML"))
+    String s;
+    s.concatenate(file.begin(), file.end());
+    if (s.hasSubstring("<indexedmzML"))
     {
       indexed = true;
     }

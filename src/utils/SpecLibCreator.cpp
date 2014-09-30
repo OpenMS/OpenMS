@@ -139,9 +139,9 @@ protected:
     CsvFile csv_file(info, sepo, itemenclosed);
     vector<StringList>  list;
 
-    list.resize(csv_file.size());
+    list.resize(csv_file.rowCount());
 
-    for (UInt i = 0; i < csv_file.size(); ++i)
+    for (UInt i = 0; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, list[i]);
     }
