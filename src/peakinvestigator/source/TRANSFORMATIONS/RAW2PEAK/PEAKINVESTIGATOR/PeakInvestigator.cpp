@@ -54,7 +54,6 @@
 
 #define VI_API_SUFFIX "/interface/API.php"
 #define VI_SSH_HASH String("7E:6D:03:89:68:38:0B:9F:C7:E5:13:26:56:46:08:FF")
-#define BUFFER_SIZE 65536
 
 using namespace std;
 
