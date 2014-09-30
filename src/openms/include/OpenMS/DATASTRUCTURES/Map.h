@@ -42,23 +42,23 @@
 namespace OpenMS
 {
   /**
-      @brief Map class based on the STL map (containing several convenience functions)
+    @brief Map class based on the STL map (containing several convenience functions)
 
-      @ingroup Datastructures
+    @ingroup Datastructures
   */
   template <class Key, class T>
   class Map :
-    public std::map<Key, T>
+    private std::map<Key, T>
   {
 public:
 
     /**
-        @brief Map illegal key exception
+      @brief Map illegal key exception
 
-Thrown when trying to access an element with operator[], which is not contained in the Map
-, i.e. no default ctor is called (as done in std::map)
+      Thrown when trying to access an element with operator[], which is not contained in the Map
+      , i.e. no default ctor is called (as done in std::map)
 
-        @ingroup Exceptions
+      @ingroup Exceptions
     */
     class IllegalKey :
       public Exception::BaseException
@@ -82,6 +82,27 @@ public:
     typedef typename Base::reverse_iterator ReverseIterator;
     typedef typename Base::const_reverse_iterator ConstReverseIterator;
     //@}
+    
+    ///@name Export methods from private base std::vector<Acquisition>
+    //@{
+    using Base::erase;
+    using Base::size;
+    using Base::begin;
+    using Base::rbegin;
+    using Base::end;
+    using Base::rend;
+    using Base::clear;
+    using Base::insert;
+    using Base::find;
+    using Base::empty;
+    using Base::count;
+    
+    using typename Base::iterator;
+    using typename Base::const_iterator;
+    
+    using typename Base::mapped_type;
+    using typename Base::value_type;
+    //@}
 
     ///Test whether the map contains the given key.
     inline bool has(const Key & key) const
@@ -90,14 +111,23 @@ public:
     }
 
     /**
-        @brief Return a constant reference to the element whose key is @p key.
+      @brief Return a constant reference to the element whose key is @p key.
 
-        @exception IllegalKey if the given key does not exist
+      @exception IllegalKey if the given key does not exist
     */
     const T & operator[](const Key & key) const;
 
     /// Return a mutable reference to the element whose key is @p key. If an element with the key @p key does not exist, it is inserted.
     T & operator[](const Key & key);
+    
+
+    inline bool equals(const Map<Key, T>& other) const
+    {
+      return operator== (
+                         static_cast<typename Map<Key,T>::Base>(*this),
+                         static_cast<typename Map<Key,T>::Base>(other)
+                         );
+    }
   };
 
   //******************************************************************************************

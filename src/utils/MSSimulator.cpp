@@ -322,7 +322,7 @@ protected:
 
       // set file name for all (sub)feature maps
       ConsensusMap & labeling_consensus = ms_simulation.getLabelingConsensus();
-      for (ConsensusMap::FileDescriptions::Iterator fdI = labeling_consensus.getFileDescriptions().begin();
+      for (ConsensusMap::FileDescriptions::iterator fdI = labeling_consensus.getFileDescriptions().begin();
            fdI != labeling_consensus.getFileDescriptions().end();
            ++fdI)
       {

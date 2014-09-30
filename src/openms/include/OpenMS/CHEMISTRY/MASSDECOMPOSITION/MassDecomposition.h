@@ -35,11 +35,15 @@
 #ifndef OPENMS_CHEMISTRY_MASSDECOMPOSITION_MASSDECOMPOSITION_H
 #define OPENMS_CHEMISTRY_MASSDECOMPOSITION_MASSDECOMPOSITION_H
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Types.h>
+
+#include <map>
 
 namespace OpenMS
 {
+  class String;
+  
   /**
     @brief Class represents a decomposition of a mass into amino acids
 
@@ -106,7 +110,7 @@ public:
     //@}
 
 protected:
-    Map<char, Size> decomp_;
+    std::map<char, Size> decomp_;
     Size number_of_max_aa_;
   };
 } // namespace OpenMS

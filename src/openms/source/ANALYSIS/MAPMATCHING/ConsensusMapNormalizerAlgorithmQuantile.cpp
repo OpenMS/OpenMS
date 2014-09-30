@@ -167,7 +167,9 @@ namespace OpenMS
     out_intensities.resize(number_of_maps);
     for (UInt i = 0; i < number_of_maps; i++)
     {
-      out_intensities[i].reserve(map.getFileDescriptions()[i].size);
+      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
+      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(i));
+      out_intensities[i].reserve(it->second.size);
     }
     //fill out_intensities
     ConsensusMap::ConstIterator cf_it;

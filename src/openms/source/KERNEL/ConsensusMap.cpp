@@ -473,7 +473,7 @@ namespace OpenMS
     // check file descriptions
     std::set<String> maps;
     String all_maps; // for output later
-    for (FileDescriptions::ConstIterator it=file_description_.begin();  it!=file_description_.end(); ++it)
+    for (FileDescriptions::const_iterator it=file_description_.begin();  it!=file_description_.end(); ++it)
     {
       String s = String("  file: ") + it->second.filename + " label: " + it->second.label;
       maps.insert(s);
@@ -496,7 +496,7 @@ namespace OpenMS
       const ConsensusFeature& elem = (*this)[i];
       for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
       {
-        if (!file_description_.has(it->getMapIndex()))
+        if (file_description_.find(it->getMapIndex()) == file_description_.end())
         {
           ++stats_wrongMID;
           ++wrong_ID_count[it->getMapIndex()];

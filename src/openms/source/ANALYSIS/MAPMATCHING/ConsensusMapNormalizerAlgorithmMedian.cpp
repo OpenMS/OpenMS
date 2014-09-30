@@ -55,13 +55,18 @@ namespace OpenMS
     Size number_of_maps = map.getFileDescriptions().size();
     vector<vector<double> > feature_int(number_of_maps);
     //get map with most features, reserve space for feature_int (unequal vector lengths, 0-features omitted)
-    UInt map_with_most_features = 0;
+    ConsensusMap::FileDescriptions::const_iterator map_with_most_features = map.getFileDescriptions().find(0);
+    UInt map_with_most_features_idx = 0;
     for (UInt i = 0; i < number_of_maps; i++)
     {
-      feature_int[i].reserve(map.getFileDescriptions()[i].size);
-      if (map.getFileDescriptions()[i].size > map.getFileDescriptions()[map_with_most_features].size)
+      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
+      if (it == map.getFileDescriptions().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(i));
+      feature_int[i].reserve(it->second.size);
+
+      if (it->second.size > map_with_most_features->second.size)
       {
-        map_with_most_features = i;
+        map_with_most_features = it;
+        map_with_most_features_idx = i;
       }
     }
     //fill feature_int with intensities
@@ -85,7 +90,7 @@ namespace OpenMS
     vector<double> normalization_factors(number_of_maps);
     for (UInt j = 0; j < number_of_maps; ++j)
     {
-      normalization_factors[j] = medians[map_with_most_features] / medians[j];
+      normalization_factors[j] = medians[map_with_most_features_idx] / medians[j];
     }
 
     return normalization_factors;

@@ -36,22 +36,22 @@
 #define OPENMS_DATASTRUCTURES_CVMAPPINGS_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 #include <OpenMS/DATASTRUCTURES/CVReference.h>
 
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
   /**
-      @brief Representation of controlled vocabulary mapping rules (for PSI formats)
+    @brief Representation of controlled vocabulary mapping rules (for PSI formats)
 
-      This file serves as object for the controlled vocabulary term usage definitions
-      used in CV-Mapping files. All the supported attributes supported in the
-      mapping file are supported by this class.
+    This file serves as object for the controlled vocabulary term usage definitions
+    used in CV-Mapping files. All the supported attributes supported in the
+    mapping file are supported by this class.
 
-      @ingroup Format
+    @ingroup Format
   */
   class OPENMS_DLLAPI CVMappings
   {
@@ -108,7 +108,7 @@ protected:
 
     std::vector<CVMappingRule> mapping_rules_;
 
-    Map<String, CVReference> cv_references_;
+    std::map<String, CVReference> cv_references_;
 
     std::vector<CVReference> cv_references_vector_;
   };

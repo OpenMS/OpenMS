@@ -154,7 +154,8 @@ namespace OpenMS
       for (CompomerSide::const_iterator it = cmp_[side_this].begin(); it != cmp_[side_this].end(); ++it)
       {
         // is it there at all?! if yes: has it the same amount?!
-        if ((!cmp.getComponent()[side_other].has(it->first)) || cmp.getComponent()[side_other][it->first].getAmount() != it->second.getAmount())
+        CompomerSide::const_iterator it2 = cmp.getComponent()[side_other].find(it->first);
+        if (it2 == cmp.getComponent()[side_other].end() || it2->second.getAmount() != it->second.getAmount())
         {
           conflict_found = true;
           break;

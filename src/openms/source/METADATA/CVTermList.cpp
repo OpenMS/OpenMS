@@ -108,7 +108,7 @@ namespace OpenMS
 
   bool CVTermList::operator==(const CVTermList & cv_term_list) const
   {
-    return MetaInfoInterface::operator==(cv_term_list) && cv_terms_ == cv_term_list.cv_terms_;
+    return MetaInfoInterface::operator==(cv_term_list) && cv_terms_.equals(cv_term_list.cv_terms_);
   }
 
   bool CVTermList::operator!=(const CVTermList & cv_term_list) const

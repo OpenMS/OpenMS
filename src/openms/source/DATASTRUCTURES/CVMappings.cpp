@@ -120,7 +120,7 @@ namespace OpenMS
 
   bool CVMappings::hasCVReference(const String & identifier)
   {
-    return cv_references_.has(identifier);
+    return cv_references_.find(identifier) != cv_references_.end(); 
   }
 
 } // namespace OpenMS

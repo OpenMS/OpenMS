@@ -97,7 +97,7 @@ namespace OpenMS
       DPosition<2> point(cons_it->getRT(), cons_it->getMZ());
       // for each sub-map in the consensus map, add a seed at the position of
       // this consensus feature:
-      for (ConsensusMap::FileDescriptions::ConstIterator file_it =
+      for (ConsensusMap::FileDescriptions::const_iterator file_it =
              consensus.getFileDescriptions().begin(); file_it !=
            consensus.getFileDescriptions().end(); ++file_it)
         seed_lists[file_it->first].push_back(point);

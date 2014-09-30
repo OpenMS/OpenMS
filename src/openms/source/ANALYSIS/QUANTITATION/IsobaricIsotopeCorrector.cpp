@@ -124,7 +124,7 @@ namespace OpenMS
          ++it_elements)
     {
       //find channel_id of current element
-      Int index = Int(cm.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_id"));
+      Int index = Int(cm.getFileDescriptions().find(it_elements->getMapIndex())->second.getMetaValue("channel_id"));
 #ifdef ISOBARIC_QUANT_DEBUG
       std::cout << "  map_index " << it_elements->getMapIndex() << "-> id " << index << " with intensity " << it_elements->getIntensity() << "\n" << std::endl;
 #endif

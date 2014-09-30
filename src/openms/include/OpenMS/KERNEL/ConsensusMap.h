@@ -46,6 +46,8 @@
 // Members
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <map>
+
 namespace OpenMS
 {
   /**
@@ -120,7 +122,7 @@ public:
     //@{
     typedef std::vector<ConsensusFeature> Base;
     typedef RangeManager<2> RangeManagerType;
-    typedef Map<UInt64, FileDescription> FileDescriptions;
+    typedef std::map<UInt64, FileDescription> FileDescriptions;
     /// Mutable iterator
     typedef std::vector<ConsensusFeature>::iterator Iterator;
     /// Non-mutable iterator
