@@ -122,12 +122,6 @@ protected:
     mutable time_t last_invoke_;
     static int recursion_depth_;
 
-    /// Map LogType to factory name
-    static const std::map<LogType, String> log_type_factory_association_;
-
-    /// Initializer for the file extension map.
-    static std::map<LogType, String> initializeLogAssociation_();
-
     /// Return the name of the factory product used for this log type
     static String logTypeToFactoryName_(LogType type);
 

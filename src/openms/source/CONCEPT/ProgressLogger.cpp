@@ -164,29 +164,16 @@ public:
 
   int ProgressLogger::recursion_depth_ = 0;
 
-  const std::map<ProgressLogger::LogType, String> ProgressLogger::log_type_factory_association_ = ProgressLogger::initializeLogAssociation_();
-
-  std::map<ProgressLogger::LogType, String> ProgressLogger::initializeLogAssociation_()
-  {
-    std::map<ProgressLogger::LogType, String> tmp_map;
-    tmp_map[ProgressLogger::CMD] = "CMD";
-    tmp_map[ProgressLogger::NONE] = "NONE";
-    tmp_map[ProgressLogger::GUI] = "GUI";
-
-    return tmp_map;
-  }
-
   String ProgressLogger::logTypeToFactoryName_(ProgressLogger::LogType type)
   {
-    std::map<ProgressLogger::LogType, String>::const_iterator it = log_type_factory_association_.find(type);
-    if (it != log_type_factory_association_.end())
+    switch (type)
     {
-      return it->second;
-    }
-    else
-    {
-      // should never happen actually
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Their is associated logger for the given LogType.");
+      case NONE:
+        return "NONE";
+      case CMD:
+        return "CMD";
+      case GUI:
+        return "GUI";
     }
   }
 
