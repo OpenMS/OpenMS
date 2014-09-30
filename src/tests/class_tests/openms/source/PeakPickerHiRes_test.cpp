@@ -438,4 +438,38 @@ START_SECTION([EXTRA] test spectrum level selection)
   }
 END_SECTION
 
+///////////////////////////
+// simulation data tests //
+///////////////////////////
+
+// load input data
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_simulation.mzML"),input);
+
+//set params
+param.setValue("signal_to_noise",0.0);
+pp_hires.setParameters(param);
+
+START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const)
+    MSExperiment<Peak1D> tmp_picked;
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s;    // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c;    // peak boundaries for chromatograms
+
+    pp_hires.pickExperiment(input, tmp_picked, tmp_boundaries_s, tmp_boundaries_c);
+
+    // go to problematic peak
+    TEST_EQUAL(tmp_picked[0].size(), 167);
+    MSSpectrum<Peak1D>::Iterator it_mz = tmp_picked.begin()->begin();
+    vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary = tmp_boundaries_s.begin()->begin();
+    it_mz += 146;
+    it_mz_boundary += 146;
+    
+    TEST_REAL_SIMILAR(it_mz->getMZ(),1141.57188829383);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1141.13605463217);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1142.01092683127);
+    
+END_SECTION
+
+input.clear(true);
+output.clear(true);
+
 END_TEST
