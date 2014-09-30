@@ -59,9 +59,6 @@ namespace OpenMS
 
       void setExpectedServerHash(String expected_hash) { expected_hash_ = expected_hash; }
 
-      uint getBufferSize() { return buffer_size_; }
-      void setBufferSize(uint buffer_size) { buffer_size_ = buffer_size; }
-
     protected:
       bool establishSSHSession_();
       bool confirmSSHServerIdentity_();
@@ -72,7 +69,6 @@ namespace OpenMS
       int state_;
       int socket_;
       struct addrinfo* host_info_;
-      uint buffer_size_;
 
       LIBSSH2_SESSION* ssh_session_;
       LIBSSH2_SFTP* sftp_session_;

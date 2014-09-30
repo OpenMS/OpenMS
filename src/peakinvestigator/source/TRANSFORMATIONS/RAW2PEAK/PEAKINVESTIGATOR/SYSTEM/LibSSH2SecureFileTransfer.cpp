@@ -59,6 +59,8 @@
 #define ESTABLISH_SSH_SESSION     8
 #define ESTABLISH_SFTP_SESSION    16
 
+#define BUFFER_SIZE 65536
+
 using namespace std;
 
 namespace OpenMS
@@ -71,7 +73,6 @@ namespace OpenMS
     socket_ = 0;
     ssh_session_ = NULL;
     sftp_session_ = NULL;
-    buffer_size_ = 65536;
 
     // initialize libssh2
     state_ = LIBRARY_UNINITIALIZED;
@@ -89,7 +90,6 @@ namespace OpenMS
     socket_ = 0;
     ssh_session_ = NULL;
     sftp_session_ = NULL;
-    buffer_size_ = 65536;
 
     // initialize libssh2
     state_ = LIBRARY_UNINITIALIZED;
@@ -139,7 +139,7 @@ namespace OpenMS
       LIBSSH2_SFTP_HANDLE* sftp_handle = libssh2_sftp_open(sftp_session_, fromFilename.c_str(), flags, 0);
       if (sftp_handle)
       {
-        char buffer[buffer_size_];
+        char buffer[BUFFER_SIZE];
         int nwritten, length;
 
         do
@@ -213,7 +213,7 @@ namespace OpenMS
         QFileInfo info(fromFilename.toQString());
         qint64 size = info.size();
         qint64 progress = 0;
-        char buffer[buffer_size_];
+        char buffer[BUFFER_SIZE];
         int length, nwritten;
 
         startProgress(0, size, "Uploading file to " + hostname_);
@@ -229,7 +229,7 @@ namespace OpenMS
           char *ptr = buffer;
           do
           {
-            nwritten = libssh2_sftp_write(sftp_handle, buffer, length);
+            nwritten = libssh2_sftp_write(sftp_handle, ptr, length);
             if (nwritten < 0)
             {
               break;
@@ -330,7 +330,7 @@ namespace OpenMS
   {
     const char* fingerprint = libssh2_hostkey_hash(ssh_session_, LIBSSH2_HOSTKEY_HASH_MD5);
     int size = 16; // MD5 is 16 bytes long
-    char hash[size * 3 - 1]; // seperate pairs of bytes with colons
+    char hash[16 * 3 - 1]; // seperate pairs of bytes with colons, the first number should match size
 
     // clear hash with NULL, and then copy fingerprint to human readable form
     memset(&hash, 0, size * 3 - 1);
