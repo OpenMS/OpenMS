@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 //
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/SYSTEM/AbstractSecureFileTransfer.h>
 
 namespace OpenMS
@@ -48,6 +49,12 @@ namespace OpenMS
 
   AbstractSecureFileTransfer::~AbstractSecureFileTransfer()
   {
+  }
+
+  void AbstractSecureFileTransfer::setExpectedServerHash(String expected_hash)
+  {
+    LOG_WARN << "Setting the following expected hash string in class that does not support it:\n";
+    LOG_WARN << expected_hash << ".\n";
   }
 
 } //OpenMS

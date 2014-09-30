@@ -58,7 +58,7 @@ namespace OpenMS
       String getPassword() { return password_; }
       void setPassword(String password) { password_ = password; }
 
-      void setExpectedServerHash(String expected_hash) { }
+      void setExpectedServerHash(String expected_hash);
 
       virtual bool downloadFile(String fromFilename, String toFileName) = 0;
       virtual bool uploadFile(String fromFilename, String toFileName) = 0;
