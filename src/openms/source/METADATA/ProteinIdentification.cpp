@@ -340,8 +340,9 @@ namespace OpenMS
       vector<PeptideHit> peptide_hits = it1->getHits();
       for (vector<PeptideHit>::iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
       {
+        set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
         // matched proteins for hit
-        for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+        for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
         {
           if (protein_index.has(*it3))
           {

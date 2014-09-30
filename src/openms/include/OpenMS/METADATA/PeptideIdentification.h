@@ -60,8 +60,8 @@ namespace OpenMS
 
         @ingroup Metadata
   */
-  class OPENMS_DLLAPI PeptideIdentification 
-	  : public MetaInfoInterface
+  class OPENMS_DLLAPI PeptideIdentification
+    : public MetaInfoInterface
   {
 public:
 
@@ -83,7 +83,7 @@ public:
     /// Inequality operator
     bool operator!=(const PeptideIdentification & rhs) const;
     //@}
-  
+
     /// returns the RT of the MS2 spectrum
     double getRT() const;
     /// sets the RT of the MS2 spectrum
@@ -91,20 +91,20 @@ public:
     /// shortcut for isnan(getRT())
     bool hasRT() const;
 
-	  /// returns the MZ of the MS2 spectrum
+    /// returns the MZ of the MS2 spectrum
     double getMZ() const;
-	  /// sets the MZ of the MS2 spectrum
+    /// sets the MZ of the MS2 spectrum
     void setMZ(double mz);
-	  /// shortcut for isnan(getRT())
-	  bool hasMZ() const;
+    /// shortcut for isnan(getRT())
+    bool hasMZ() const;
 
-	  /// returns the peptide hits as const
-	  const std::vector<PeptideHit>& getHits() const;
-	  /// returns the peptide hits
-	  std::vector<PeptideHit>& getHits();
-	  /// Appends a peptide hit
-	  void insertHit(const PeptideHit & hit);
-	  /// Sets the peptide hits
+    /// returns the peptide hits as const
+    const std::vector<PeptideHit>& getHits() const;
+    /// returns the peptide hits
+    std::vector<PeptideHit>& getHits();
+    /// Appends a peptide hit
+    void insertHit(const PeptideHit & hit);
+    /// Sets the peptide hits
     void setHits(const std::vector<PeptideHit> & hits);
 
     /// returns the peptide significance threshold value
@@ -148,6 +148,7 @@ public:
     ///@name Methods for linking peptide and protein hits
     //@{
 
+    /*
     /// finds and inserts all peptide hits which reference to a given protein accession
     void getReferencingHits(const String & protein_accession, std::vector<PeptideHit> & peptide_hits) const;
 
@@ -162,12 +163,12 @@ public:
     void getNonReferencingHits(const std::vector<String> & accessions, std::vector<PeptideHit> & peptide_hits) const;
     void getNonReferencingHits(const std::vector<ProteinHit> & protein_hits, std::vector<PeptideHit> & peptide_hits) const;
     //@}
-
-	  /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
-	  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
-	  const DataValue & getMetaValue(const String &name) const;
-	  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
-	  void setMetaValue(const String &name, const DataValue &value);
+*/
+    /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
+    /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
+    const DataValue & getMetaValue(const String &name) const;
+    /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
+    void setMetaValue(const String &name, const DataValue &value);
 
 
 protected:

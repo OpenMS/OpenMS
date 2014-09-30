@@ -35,13 +35,16 @@
 #ifndef OPENMS_METADATA_PEPTIDEEVIDENCE_H
 #define OPENMS_METADATA_PEPTIDEEVIDENCE_H
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
+
 namespace OpenMS
 {
 
-struct AASequence;
+struct String;
 
 /**
-  @brief Representation of a peptide evidence similarly defined in the MzIdentML specification.
+  @brief Representation of a peptide evidence.
 
   A peptide evidence object describes a peptide to protein match.
 
@@ -61,10 +64,9 @@ class PeptideEvidence
     static const char C_TERMINAL_AA = '-';
 
     PeptideEvidence() :
-      sequence_(),
       accession_(),
-      first_(UNKNOWN_POSITION),
-      last_(UNKNOWN_POSITION),
+      start_(UNKNOWN_POSITION),
+      end_(UNKNOWN_POSITION),
       aa_before_(UNKNOWN_AA),
       aa_after_(UNKNOWN_AA)
     {
@@ -86,12 +88,6 @@ class PeptideEvidence
     /// not equal
     bool operator!=(const PeptideEvidence & rhs) const;
 
-    /// set the peptide sequence
-    void setSequence(const AASequence & s);
-
-    /// get the peptide sequence
-    const AASequence & getSequence() const;
-
     /// set the protein accession the peptide matches to. If not available set to empty string.
     void setProteinAccession(const String & s);
 
@@ -99,16 +95,16 @@ class PeptideEvidence
     const String & getProteinAccession() const;
 
     /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set to UNKNOWN_POSITION. N-terminal positions must be marked with N_TERMINAL_AA
-    void setFirst(const Int a);
+    void setStart(const Int a);
 
     /// get the position in the protein (starting at 0 for the N-terminus). If not available UNKNOWN_POSITION constant is returned.
-    Int getFirst() const;
+    Int getStart() const;
 
     /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set UNKNOWN_POSITION. C-terminal positions must be marked with C_TERMINAL_AA
-    void setLast(const Int a);
+    void setEnd(const Int a);
 
     /// get the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available UNKNOWN_POSITION constant is returned.
-    Int getLast() const;
+    Int getEnd() const;
 
     /// sets the amino acid single letter code before the sequence (preceeding amino acid in the protein). If not available, set to UNKNOWN_AA. If N-terminal set to N_TERMINAL_AA
     void setAABefore(const char acid);
@@ -123,13 +119,11 @@ class PeptideEvidence
     char getAAAfter() const;
 
  private:
-    AASequence sequence_;
-
     String accession_;
 
-    Int first_;
+    Int start_;
 
-    Int last_;
+    Int end_;
 
     char aa_before_;
 

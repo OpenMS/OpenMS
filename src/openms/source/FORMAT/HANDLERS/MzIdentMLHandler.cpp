@@ -618,24 +618,25 @@ namespace OpenMS
             pepid = pit->second;
           }
 
-          std::vector<String> accs = jt->getProteinAccessions();       //TODO idxml allows peptidehits without protein_refs!!! Fails in that case run peptideindexer first
+          //TODO idxml allows peptidehits without protein_refs!!! Fails in that case run peptideindexer first
+          std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();
           std::vector<UInt64> pevid_ids;
-          for (std::vector<String>::const_iterator at = accs.begin(); at != accs.end(); ++at)
+          for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
           {
             UInt64 pevid =  UniqueIdGenerator::getUniqueId();
-            String dBSequence_ref = String(sen_ids.find(*at)->second);
+            String dBSequence_ref = String(sen_ids.find(pe->getProteinAccession())->second);
 
             String e;
             String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
             e += "<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
 
             //~ TODO no '*' allowed!!
-            String po = String(jt->getAAAfter());
+            String po = String(pe->getAAAfter());
             if (!po.empty() && po != " " && po != "*")
             {
               e += "\" post=\"" + po;
             }
-            String pr = String(jt->getAABefore());
+            String pr = String(pe->getAABefore());
             if (!pr.empty() && pr != " " && pr != "*")
             {
               e += "\" pre=\"" + pr;

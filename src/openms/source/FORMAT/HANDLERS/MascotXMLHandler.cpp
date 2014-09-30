@@ -57,6 +57,7 @@ namespace OpenMS
       id_data_(id_data),
       actual_protein_hit_(),
       actual_peptide_hit_(),
+      actual_peptide_evidence_(),
       peptide_identification_index_(0),
       tag_(),
       date_(),
@@ -194,7 +195,7 @@ namespace OpenMS
                   id_data_[peptide_identification_index_].setRT(rt_mapping_[scan_no]);
                 }
               }
-              if (match["MZ"].matched && 
+              if (match["MZ"].matched &&
                   !id_data_[peptide_identification_index_].hasMZ())
               {
                 double mz = String(match["MZ"].str()).toDouble();
@@ -324,7 +325,7 @@ namespace OpenMS
         String temp_string = character_buffer_.trim();
         if (temp_string != "")
         {
-          actual_peptide_hit_.setAABefore(temp_string[0]);
+          actual_peptide_evidence_.setAABefore(temp_string[0]);
         }
       }
 
@@ -333,7 +334,7 @@ namespace OpenMS
         String temp_string = character_buffer_.trim();
         if (temp_string != "")
         {
-          actual_peptide_hit_.setAAAfter(temp_string[0]);
+          actual_peptide_evidence_.setAAAfter(temp_string[0]);
         }
       }
 
@@ -621,18 +622,22 @@ namespace OpenMS
           }
           ++it;
         }
+
         if (!already_stored)
         {
           id_data_[peptide_identification_index_].setIdentifier(identifier_);
           id_data_[peptide_identification_index_].setScoreType("Mascot");
-          actual_peptide_hit_.addProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_evidence_.setProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_hit_.addPeptideEvidence(actual_peptide_evidence_);
           id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
         }
         else
         {
-          it->addProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_evidence_.setProteinAccession(actual_protein_hit_.getAccession());
+          it->addPeptideEvidence(actual_peptide_evidence_);
           id_data_[peptide_identification_index_].setHits(temp_peptide_hits);
         }
+        actual_peptide_evidence_ = PeptideEvidence();
         actual_peptide_hit_ = PeptideHit();
       }
 
@@ -641,6 +646,7 @@ namespace OpenMS
         id_data_[peptide_identification_index_].setIdentifier(identifier_);
         id_data_[peptide_identification_index_].setScoreType("Mascot");
         id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
+        actual_peptide_evidence_ = PeptideEvidence();
         actual_peptide_hit_ = PeptideHit();
       }
 

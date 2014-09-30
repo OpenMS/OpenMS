@@ -259,6 +259,7 @@ namespace OpenMS
            && base_name_ == "";
   }
 
+  /*
   void PeptideIdentification::getReferencingHits(const String& protein_accession, std::vector<PeptideHit>& peptide_hits) const
   {
     vector<String> accession;
@@ -342,6 +343,7 @@ namespace OpenMS
     getNonReferencingHits(accessions, peptide_hits);
   }
 
+  */
   /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
   const DataValue& PeptideIdentification::getMetaValue(const String& name) const
   {

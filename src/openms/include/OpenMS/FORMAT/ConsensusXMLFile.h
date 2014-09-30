@@ -40,6 +40,7 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 
 namespace OpenMS
 {
@@ -129,6 +130,8 @@ protected:
     ProteinHit prot_hit_;
     /// Temporary peptide hit
     PeptideHit pep_hit_;
+    /// Temporary peptide evidences
+    std::vector<PeptideEvidence> peptide_evidences_;
     /// Map from protein id to accession
     Map<String, String> proteinid_to_accession_;
     /// Map from search identifier concatenated with protein accession to id

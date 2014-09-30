@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
@@ -87,6 +88,7 @@ private:
       std::vector<PeptideIdentification> & id_data_; ///< the identifications (storing the peptide hits)
       ProteinHit actual_protein_hit_;
       PeptideHit actual_peptide_hit_;
+      PeptideEvidence actual_peptide_evidence_;
       UInt peptide_identification_index_;
       String tag_;
       DateTime date_;

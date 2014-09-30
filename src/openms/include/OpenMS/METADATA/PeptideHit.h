@@ -127,10 +127,10 @@ public:
     void setCharge(Int charge);
 
     /// returns information on peptides (potentially) identified by this PSM
-    const std::vector<PeptideEvidence> & getPeptideEvidence() const;
+    const std::vector<PeptideEvidence> & getPeptideEvidences() const;
 
     /// set information on peptides (potentially) identified by this PSM
-    void setPeptideEvidence(const std::vector<String> & accessions);
+    void setPeptideEvidences(const std::vector<PeptideEvidence> & peptide_evidences);
 
     /// adds information on a peptide that is (potentially) identified by this PSM
     void addPeptideEvidence(const PeptideEvidence & peptide_evidence);
@@ -148,7 +148,11 @@ public:
     void setRank(UInt newrank);
     //@}
 
+    /// helper that extracts the set of protein accessions from peptide evidences
+    static std::set<String> extractProteinAccessions(const PeptideHit & ph);
 protected:
+    AASequence sequence_;
+
     /// the score of the peptide hit
     double score_;
 
@@ -158,7 +162,7 @@ protected:
     /// the charge of the peptide
     Int charge_;
 
-    /// information on the potential peptides observed through this PSM. The name is borrowed from the mzIdent specification.
+    /// information on the potential peptides observed through this PSM.
     std::vector<PeptideEvidence> peptide_evidences_;
   };
 

@@ -35,14 +35,16 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
+namespace OpenMS
+{
+
 bool PeptideEvidence::operator==(const PeptideEvidence & rhs) const
 {
-  return sequence_ != rhs.sequence_ &&
-         accession_ != rhs.accession_ &&
-         first_ != rhs.first_ &&
-         last_ != rhs.last_ &&
+  return accession_ != rhs.accession_ &&
+         start_ != rhs.start_ &&
+         end_ != rhs.end_ &&
          aa_before_ != rhs.aa_before_ &&
-         aa_after != rhs.aa_after;
+         aa_after_ != rhs.aa_after_;
 }
 
 bool PeptideEvidence::operator!=(const PeptideEvidence & rhs) const
@@ -50,44 +52,34 @@ bool PeptideEvidence::operator!=(const PeptideEvidence & rhs) const
   return !operator==(rhs);
 }
 
-void PeptideEvidence::setSequence(const AASequence &s)
-{
-  sequence_ = s;
-}
-
-AASequence PeptideEvidence::getSequence() const
-{
-  return sequence_;
-}
-
-void PeptideEvidence::setProteinAccession(const String &s)
+void PeptideEvidence::setProteinAccession(const String & s)
 {
   accession_ = s;
 }
 
-String PeptideEvidence::getProteinAccession() const
+const String & PeptideEvidence::getProteinAccession() const
 {
   return accession_;
 }
 
-void PeptideEvidence::setFirst(const Int a)
+void PeptideEvidence::setStart(const Int a)
 {
-  first_ = a;
+  start_ = a;
 }
 
-Int PeptideEvidence::getFirst() const
+Int PeptideEvidence::getStart() const
 {
-  return first_;
+  return start_;
 }
 
-void PeptideEvidence::setLast(const Int a)
+void PeptideEvidence::setEnd(const Int a)
 {
-  last_ = a;
+  end_ = a;
 }
 
-Int PeptideEvidence::getLast() const
+Int PeptideEvidence::getEnd() const
 {
-  return last_;
+  return end_;
 }
 
 void PeptideEvidence::setAABefore(const char acid)
@@ -110,3 +102,4 @@ char PeptideEvidence::getAAAfter() const
   return aa_after_;
 }
 
+} // namespace OpenMS
