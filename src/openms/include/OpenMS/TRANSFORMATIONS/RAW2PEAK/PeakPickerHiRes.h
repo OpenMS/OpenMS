@@ -213,7 +213,7 @@ public:
           Size missing_left(0);
           Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
 
-          while ( k <= i    //prevent underflow
+          while ( k <= i    // prevent underflow
                 && (i - k + 1) > 0
                 && (missing_left < 2)
                 && !previous_zero_left
@@ -234,8 +234,11 @@ public:
             }
             else
             {
-              peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
               ++missing_left;
+              if (missing_left < 2)
+              {
+                peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
+              }
             }
 
             previous_zero_left = (input[i - k].getIntensity() == 0);
@@ -271,8 +274,11 @@ public:
             }
             else
             {
-              peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
               ++missing_right;
+              if (missing_right < 2)
+              {
+                peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
+              }
             }
 
             previous_zero_right = (input[i + k].getIntensity() == 0);
@@ -515,6 +521,9 @@ protected:
 
     // maximal spacing difference
     double spacing_difference_;
+    
+    // maximum number of missing points
+    int missing_;
 
     // ms levels to which peak picking is applied
     std::vector<Int> ms_levels_;
