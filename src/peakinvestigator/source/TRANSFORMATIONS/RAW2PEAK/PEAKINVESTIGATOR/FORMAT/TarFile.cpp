@@ -105,7 +105,7 @@ namespace OpenMS
   void TarFile::load(const String &filename, MSExperiment<Peak1D> &experiment)
   {
     char temp[8192];
-    int numBytes, retval;
+    int numBytes;
 
     gzFile file = gzopen(filename.c_str(), "rb");
 
@@ -134,7 +134,7 @@ namespace OpenMS
       }
 
       bool ok;
-      qlonglong fileSize = QString(header.size).toLongLong(&ok, 8);
+      qulonglong fileSize = QString(header.size).toULongLong(&ok, 8);
       if (!ok) // ugly hack to handle end of tarfile, as well as bad-formed header
       {
         continue;
@@ -162,7 +162,7 @@ namespace OpenMS
       // now load the buffer into a Spectrum, and place it in the MSExperiment
       int num;
       int count = sscanf(header.name, "scan_%6d", &num);
-      if (count == 1 && num < experiment.size())
+      if (count == 1 && (Size) num < experiment.size())
       {
         LOG_DEBUG << header.name << " loading scan #" << num << ".\n";
         loadDataFromBuffer_(buffer, experiment[num]);
