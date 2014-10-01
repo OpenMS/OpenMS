@@ -59,7 +59,7 @@
 #define ESTABLISH_SSH_SESSION     8
 #define ESTABLISH_SFTP_SESSION    16
 
-#define BUFFER_SIZE 65536
+#define BUFFER_SIZE 131072
 
 using namespace std;
 
