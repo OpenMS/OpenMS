@@ -134,7 +134,7 @@ namespace OpenMS
       }
 
       bool ok;
-      qulonglong fileSize = QString(header.size).toULongLong(&ok, 8);
+      qulonglong fileSize = QString(header.size).left(11).toULongLong(&ok, 8);
       if (!ok) // ugly hack to handle end of tarfile, as well as bad-formed header
       {
         continue;
