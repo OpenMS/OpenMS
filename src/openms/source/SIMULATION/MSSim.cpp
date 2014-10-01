@@ -321,11 +321,11 @@ namespace OpenMS
     for (SimTypes::SampleProteins::const_iterator it = proteins.begin(); it != proteins.end(); ++it)
     {
       // add new ProteinHit to ProteinIdentification
-      ProteinHit protHit(0.0, 1, (it->first).identifier, (it->first).sequence);
+      ProteinHit protHit(0.0, 1, (it->entry).identifier, (it->entry).sequence);
       // copy all meta values from FASTA file parsing
-      protHit = (it->second);
+      protHit = (it->meta);
       // additional meta values:
-      protHit.setMetaValue("description", it->first.description);
+      protHit.setMetaValue("description", it->entry.description);
       protHit.setMetaValue("map_index", map_index);
       protIdent.insertHit(protHit);
     }

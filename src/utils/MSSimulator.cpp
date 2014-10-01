@@ -226,7 +226,7 @@ protected:
         }
       }
 
-      proteins.push_back(make_pair(*it, data));
+      proteins.push_back(SimTypes::SimProtein(*it, data));
     }
 
     writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));

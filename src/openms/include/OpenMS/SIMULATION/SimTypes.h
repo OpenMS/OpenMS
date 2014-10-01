@@ -72,8 +72,27 @@ namespace OpenMS
     /// Raw data point
     typedef Peak1D SimPointType;
 
+    /**
+      @brief Plain data object holding sequence and abundance information on a single protein.
+    */
+    struct SimProtein
+    {
+      /// FASTAEntry holding the sequence information
+      FASTAFile::FASTAEntry entry;
+      /// MetaInfoInterface holding the abundance information
+      MetaInfoInterface meta;
+
+      /**
+        @brief c'tor
+      */
+      SimProtein(FASTAFile::FASTAEntry& e, MetaInfoInterface& m) :
+       entry(e),
+       meta(m)
+      {}
+    };
+
     /// Container for FASTAEntry & abundance information
-    typedef std::vector<std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > SampleProteins;
+    typedef std::vector<SimProtein> SampleProteins;
 
     /// Container for multiple channels of SampleProteins
     typedef std::vector<SampleProteins> SampleChannels;

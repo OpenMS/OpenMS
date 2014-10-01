@@ -203,7 +203,7 @@ START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SimTypes::
   MetaInfoInterface meta_protein1;
   meta_protein1.setMetaValue("intensity", 1000.0);
 
-  proteins.push_back(std::make_pair(protein1, meta_protein1));
+  proteins.push_back(SimTypes::SimProtein(protein1, meta_protein1));
 
   FASTAFile::FASTAEntry protein2;
   protein2.identifier = "2";
@@ -213,7 +213,7 @@ START_SECTION((void simulate(const SimRandomNumberGenerator &rnd_gen, SimTypes::
   MetaInfoInterface meta_protein2;
   meta_protein2.setMetaValue("intensity", 2000.0);
 
-  proteins.push_back(std::make_pair(protein2, meta_protein2));
+  proteins.push_back(SimTypes::SimProtein(protein2, meta_protein2));
 
   SimTypes::SampleChannels channels;
   channels.push_back(proteins);
