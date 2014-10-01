@@ -334,7 +334,7 @@ public:
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval( max_peak_mz );
 
-          // save picked pick into output spectrum
+          // save picked peak into output spectrum
           PeakType peak;
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
