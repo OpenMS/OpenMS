@@ -51,6 +51,16 @@ if (NOT CMAKE_SIZEOF_VOID_P)
                       " CMake version.")
 endif()
 
+
+#------------------------------------------------------------------------------
+# -> used from VTK
+# Set a consistent MACOSX_RPATH default across all CMake versions.
+# When CMake 2.8.12 is required, change this default to 1.
+# When CMake 3.0.0 is required, remove this block (see CMP0042).
+if (NOT DEFINED CMAKE_MACOSX_RPATH)
+  set(CMAKE_MACOSX_RPATH 0)
+endif()
+
 #------------------------------------------------------------------------------
 # Include the standard Dart testing module
 # for Nightly Build log
