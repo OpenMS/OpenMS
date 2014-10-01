@@ -50,7 +50,7 @@ namespace OpenMS
 
     @htmlinclude OpenMS_BinnedSpectralContrastAngle.parameters
 
-    @see BinnedSpectrumCompareFunctor 
+    @see BinnedSpectrumCompareFunctor
     @see BinnedSpectrum
 
     @ingroup SpectraComparison
@@ -65,13 +65,13 @@ public:
     BinnedSpectralContrastAngle();
 
     /// copy constructor
-    BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle & source);
+    BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle& source);
 
     /// destructor
     virtual ~BinnedSpectralContrastAngle();
 
     /// assignment operator
-    BinnedSpectralContrastAngle & operator=(const BinnedSpectralContrastAngle & source);
+    BinnedSpectralContrastAngle& operator=(const BinnedSpectralContrastAngle& source);
 
     /** function call operator, calculates the similarity of the given arguments
 
@@ -79,13 +79,13 @@ public:
       @param spec2 Second spectrum given in a binned representation
       @throw IncompatibleBinning is thrown if the bins of the spectra are not the same
     */
-    double operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const;
+    double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
 
     /// function call operator, calculates self similarity
-    double operator()(const BinnedSpectrum & spec) const;
+    double operator()(const BinnedSpectrum& spec) const;
 
     ///
-    static BinnedSpectrumCompareFunctor * create() { return new BinnedSpectralContrastAngle(); }
+    static BinnedSpectrumCompareFunctor* create() { return new BinnedSpectralContrastAngle(); }
 
     /// get the identifier for this DefaultParamHandler
     static const String getProductName()

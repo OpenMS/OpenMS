@@ -48,7 +48,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  BinnedSumAgreeingIntensities::BinnedSumAgreeingIntensities(const BinnedSumAgreeingIntensities & source) :
+  BinnedSumAgreeingIntensities::BinnedSumAgreeingIntensities(const BinnedSumAgreeingIntensities& source) :
     BinnedSpectrumCompareFunctor(source)
   {
   }
@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSumAgreeingIntensities & BinnedSumAgreeingIntensities::operator=(const BinnedSumAgreeingIntensities & source)
+  BinnedSumAgreeingIntensities& BinnedSumAgreeingIntensities::operator=(const BinnedSumAgreeingIntensities& source)
   {
     if (this != &source)
     {
@@ -66,7 +66,7 @@ namespace OpenMS
     return *this;
   }
 
-  double BinnedSumAgreeingIntensities::operator()(const BinnedSpectrum & spec) const
+  double BinnedSumAgreeingIntensities::operator()(const BinnedSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
@@ -76,7 +76,7 @@ namespace OpenMS
     precursor_mass_tolerance_ = param_.getValue("precursor_mass_tolerance");
   }
 
-  double BinnedSumAgreeingIntensities::operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const
+  double BinnedSumAgreeingIntensities::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
     // avoid crash while comparing
     if (!spec1.checkCompliance(spec2))

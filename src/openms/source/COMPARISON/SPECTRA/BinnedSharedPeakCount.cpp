@@ -48,7 +48,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  BinnedSharedPeakCount::BinnedSharedPeakCount(const BinnedSharedPeakCount & source) :
+  BinnedSharedPeakCount::BinnedSharedPeakCount(const BinnedSharedPeakCount& source) :
     BinnedSpectrumCompareFunctor(source)
   {
   }
@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSharedPeakCount & BinnedSharedPeakCount::operator=(const BinnedSharedPeakCount & source)
+  BinnedSharedPeakCount& BinnedSharedPeakCount::operator=(const BinnedSharedPeakCount& source)
   {
     if (this != &source)
     {
@@ -66,17 +66,17 @@ namespace OpenMS
     return *this;
   }
 
-  double BinnedSharedPeakCount::operator()(const BinnedSpectrum & spec) const
+  double BinnedSharedPeakCount::operator()(const BinnedSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
-  
+
   void BinnedSharedPeakCount::updateMembers_()
   {
     precursor_mass_tolerance_ = param_.getValue("precursor_mass_tolerance");
   }
 
-  double BinnedSharedPeakCount::operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const
+  double BinnedSharedPeakCount::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
     if (!spec1.checkCompliance(spec2))
     {

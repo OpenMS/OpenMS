@@ -48,7 +48,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  BinnedSpectralContrastAngle::BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle & source) :
+  BinnedSpectralContrastAngle::BinnedSpectralContrastAngle(const BinnedSpectralContrastAngle& source) :
     BinnedSpectrumCompareFunctor(source)
   {
   }
@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSpectralContrastAngle & BinnedSpectralContrastAngle::operator=(const BinnedSpectralContrastAngle & source)
+  BinnedSpectralContrastAngle& BinnedSpectralContrastAngle::operator=(const BinnedSpectralContrastAngle& source)
   {
     if (this != &source)
     {
@@ -66,7 +66,7 @@ namespace OpenMS
     return *this;
   }
 
-  double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum & spec) const
+  double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
@@ -76,7 +76,7 @@ namespace OpenMS
     precursor_mass_tolerance_ = param_.getValue("precursor_mass_tolerance");
   }
 
-  double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const
+  double BinnedSpectralContrastAngle::operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const
   {
     if (!spec1.checkCompliance(spec2))
     {
@@ -89,7 +89,7 @@ namespace OpenMS
     {
       pre_mz1 = spec1.getRawSpectrum().getPrecursors()[0].getMZ();
     }
-     double pre_mz2 = 0.0;
+    double pre_mz2 = 0.0;
     if (!spec2.getRawSpectrum().getPrecursors().empty())
     {
       pre_mz2 = spec2.getRawSpectrum().getPrecursors()[0].getMZ();

@@ -62,7 +62,7 @@ private:
 
 public:
 
-    /** 
+    /**
       @brief Exception thrown if compared spectra are incompatible
 
       the compared spectra have different settings in binsize and/or binspread
@@ -72,7 +72,7 @@ public:
       public Exception::BaseException
     {
 public:
-      IncompatibleBinning(const char * file, int line, const char * function, const char * message
+      IncompatibleBinning(const char* file, int line, const char* function, const char* message
                             = "compared spectra have different settings in binsize and/or binspread")  throw();
       virtual ~IncompatibleBinning() throw();
     };
@@ -81,19 +81,19 @@ public:
     BinnedSpectrumCompareFunctor();
 
     /// copy constructor
-    BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor & source);
+    BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor& source);
 
     /// destructor
     virtual ~BinnedSpectrumCompareFunctor();
 
     /// assignment operator
-    BinnedSpectrumCompareFunctor & operator=(const BinnedSpectrumCompareFunctor & source);
+    BinnedSpectrumCompareFunctor& operator=(const BinnedSpectrumCompareFunctor& source);
 
     /// function call operator, calculates the similarity of the given arguments
-    virtual double operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const = 0;
+    virtual double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const = 0;
 
     /// function call operator, calculates self similarity
-    virtual double operator()(const BinnedSpectrum & spec) const = 0;
+    virtual double operator()(const BinnedSpectrum& spec) const = 0;
 
     /// registers all derived products
     static void registerChildren();

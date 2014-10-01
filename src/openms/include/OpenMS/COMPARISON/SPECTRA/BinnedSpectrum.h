@@ -69,7 +69,7 @@ private:
 
     UInt bin_spread_;
     float bin_size_;
-    /// The computed bins 
+    /// The computed bins
     SparseVector<float> bins_;
     /// The original raw spectrum
     PeakSpectrum raw_spec_;
@@ -84,7 +84,7 @@ public:
       public Exception::BaseException
     {
 public:
-      NoSpectrumIntegrated(const char * file, int line, const char * function, const char * message = "BinnedSpectrum hasn't got a PeakSpectrum to base on yet") throw();
+      NoSpectrumIntegrated(const char* file, int line, const char* function, const char* message = "BinnedSpectrum hasn't got a PeakSpectrum to base on yet") throw();
 
       virtual ~NoSpectrumIntegrated() throw();
     };
@@ -99,13 +99,13 @@ public:
     BinnedSpectrum(float size, UInt spread, PeakSpectrum ps);
 
     /// copy constructor
-    BinnedSpectrum(const BinnedSpectrum & source);
+    BinnedSpectrum(const BinnedSpectrum& source);
 
     /// destructor
     virtual ~BinnedSpectrum();
 
     /// assignment operator
-    BinnedSpectrum & operator=(const BinnedSpectrum & source)
+    BinnedSpectrum& operator=(const BinnedSpectrum& source)
     {
       if (&source != this)
       {
@@ -118,7 +118,7 @@ public:
     }
 
     /// assignment operator for PeakSpectra
-    BinnedSpectrum & operator=(const PeakSpectrum & source)
+    BinnedSpectrum& operator=(const PeakSpectrum& source)
     {
       if (raw_spec_ != source)
       {
@@ -129,30 +129,31 @@ public:
     }
 
     /// equality operator
-    bool operator==(const BinnedSpectrum & rhs) const
+    bool operator==(const BinnedSpectrum& rhs) const
     {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
       return raw_spec_ == rhs.raw_spec_ &&
              rhs.getBinSize() == this->bin_size_ &&
              rhs.getBinSpread() == this->bin_spread_;
+
 #pragma clang diagnostic pop
     }
 
     /// inequality operator
-    bool operator!=(const BinnedSpectrum & rhs) const
+    bool operator!=(const BinnedSpectrum& rhs) const
     {
       return !(operator==(rhs));
     }
 
     /// equality operator for PeakSpectra
-    bool operator==(const PeakSpectrum & rhs) const
+    bool operator==(const PeakSpectrum& rhs) const
     {
       return raw_spec_ == rhs;
     }
 
     /// inequality operator for PeakSpectra
-    bool operator!=(const PeakSpectrum & rhs) const
+    bool operator!=(const PeakSpectrum& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -185,7 +186,7 @@ public:
 
             @throw NoSpectrumIntegrated is thrown if no spectrum was integrated
     */
-    inline const SparseVector<float> & getBins() const
+    inline const SparseVector<float>& getBins() const
     {
       if (bins_.empty())
       {
@@ -198,7 +199,7 @@ public:
 
             @throw NoSpectrumIntegrated is thrown if no spectrum was integrated
     */
-    inline SparseVector<float> & getBins()
+    inline SparseVector<float>& getBins()
     {
       if (bins_.empty())
       {
@@ -287,7 +288,7 @@ public:
     void setBinning();
 
     /// function to check comparability of two BinnedSpectrum objects, i.e. if they have equal bin size and spread
-    bool checkCompliance(const BinnedSpectrum & bs) const;
+    bool checkCompliance(const BinnedSpectrum& bs) const;
 
     /// Gives access to the underlying raw spectrum
     const PeakSpectrum& getRawSpectrum() const;

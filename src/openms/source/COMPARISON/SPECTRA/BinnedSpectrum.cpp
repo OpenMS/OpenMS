@@ -51,7 +51,7 @@ namespace OpenMS
     setBinning();
   }
 
-  BinnedSpectrum::BinnedSpectrum(const BinnedSpectrum & source) :
+  BinnedSpectrum::BinnedSpectrum(const BinnedSpectrum& source) :
     raw_spec_(source.raw_spec_), bin_spread_(source.getBinSpread()), bin_size_(source.getBinSize()), bins_(source.getBins())
   {
   }
@@ -107,13 +107,13 @@ namespace OpenMS
   }
 
   //yields false if given BinnedSpectrum size or spread differs from this one (comparing those might crash)
-  bool BinnedSpectrum::checkCompliance(const BinnedSpectrum & bs) const
+  bool BinnedSpectrum::checkCompliance(const BinnedSpectrum& bs) const
   {
     return (this->bin_size_ == bs.getBinSize()) &&
            (this->bin_spread_ == bs.getBinSpread());
   }
 
-  BinnedSpectrum::NoSpectrumIntegrated::NoSpectrumIntegrated(const char * file, int line, const char * function, const char * message) throw() :
+  BinnedSpectrum::NoSpectrumIntegrated::NoSpectrumIntegrated(const char* file, int line, const char* function, const char* message) throw() :
     BaseException(file, line, function, "BinnedSpectrum::NoSpectrumIntegrated", message)
   {
   }
@@ -124,7 +124,7 @@ namespace OpenMS
 
   const PeakSpectrum& BinnedSpectrum::getRawSpectrum() const
   {
-    return raw_spec_;  
+    return raw_spec_;
   }
 
 }
