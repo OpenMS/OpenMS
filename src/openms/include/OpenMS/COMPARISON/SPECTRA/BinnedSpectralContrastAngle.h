@@ -37,27 +37,24 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrumCompareFunctor.h>
 
-#include <cmath>
-#include <cfloat>
-
 namespace OpenMS
 {
 
   /**
-      @brief Compare functor scoring the spectral contrast angle for similarity measurement
+    @brief Compare functor scoring the spectral contrast angle for similarity measurement
 
-        The details of the score can be found in:
-        K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from
-        similarity index to spectral contrast angle. Journal of the American Society
-        for Mass Spectrometry, 13(1):85-88, January 2002.
+    The details of the score can be found in:
+    K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from
+    similarity index to spectral contrast angle. Journal of the American Society
+    for Mass Spectrometry, 13(1):85-88, January 2002.
 
-        @htmlinclude OpenMS_BinnedSpectralContrastAngle.parameters
+    @htmlinclude OpenMS_BinnedSpectralContrastAngle.parameters
 
-        @see BinnedSpectrumCompareFunctor @see BinnedSpectrum
+    @see BinnedSpectrumCompareFunctor 
+    @see BinnedSpectrum
 
-        @ingroup SpectraComparison
-    */
-
+    @ingroup SpectraComparison
+  */
   class OPENMS_DLLAPI BinnedSpectralContrastAngle :
     public BinnedSpectrumCompareFunctor
   {
@@ -78,9 +75,9 @@ public:
 
     /** function call operator, calculates the similarity of the given arguments
 
-        @param spec1 First spectrum given in a binned representation
-        @param spec2 Second spectrum given in a binned representation
-        @throw IncompatibleBinning is thrown if the bins of the spectra are not the same
+      @param spec1 First spectrum given in a binned representation
+      @param spec2 Second spectrum given in a binned representation
+      @throw IncompatibleBinning is thrown if the bins of the spectra are not the same
     */
     double operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const;
 
@@ -96,6 +93,9 @@ public:
       return "BinnedSpectralContrastAngle";
     }
 
+protected:
+    void updateMembers_();
+    double precursor_mass_tolerance_;
   };
 
 }

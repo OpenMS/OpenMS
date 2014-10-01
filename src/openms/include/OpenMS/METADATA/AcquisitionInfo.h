@@ -90,8 +90,8 @@ public:
     using ContainerType::insert;
     using ContainerType::resize;
 
-    using typename ContainerType::iterator;
-    using typename ContainerType::const_iterator;
+    using ContainerType::iterator;
+    using ContainerType::const_iterator;
     //@}
 
 protected:

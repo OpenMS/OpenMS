@@ -44,17 +44,18 @@ namespace OpenMS
 {
 
   /**
-      @brief Compare functor scoring the sum of agreeing intensities for similarity measurement
+    @brief Compare functor scoring the sum of agreeing intensities for similarity measurement
 
-        Transformation and other factors of the peptide mass spectrometry pairwise peak-list comparison process
-        Witold E Wolski , Maciej Lalowski* , Peter Martus* , Ralf Herwig* , Patrick Giavalisco , Johan Gobom , Albert Sickmann , Hans Lehrach and Knut Reinert*
-        BMC Bioinformatics 2005, 6:285     doi:10.1186/1471-2105-6-285
+    Transformation and other factors of the peptide mass spectrometry pairwise peak-list comparison process
+    Witold E Wolski , Maciej Lalowski* , Peter Martus* , Ralf Herwig* , Patrick Giavalisco , Johan Gobom , Albert Sickmann , Hans Lehrach and Knut Reinert*
+    BMC Bioinformatics 2005, 6:285 doi:10.1186/1471-2105-6-285
 
-        @htmlinclude OpenMS_BinnedSumAgreeingIntensities.parameters
+    @htmlinclude OpenMS_BinnedSumAgreeingIntensities.parameters
 
-        @see BinnedSpectrumCompareFunctor @see BinnedSpectrum
+    @see BinnedSpectrumCompareFunctor 
+    @see BinnedSpectrum
 
-        @ingroup SpectraComparison
+    @ingroup SpectraComparison
   */
 
   class OPENMS_DLLAPI BinnedSumAgreeingIntensities :
@@ -76,10 +77,10 @@ public:
 
     /** function call operator, calculates the similarity of the given arguments
 
-                @param spec1 First spectrum given as a binned representation
-                @param spec2 Second spectrum given as a binned representation
-                @throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
-        */
+      @param spec1 First spectrum given as a binned representation
+      @param spec2 Second spectrum given as a binned representation
+      @throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
+    */
     double operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const;
 
     /// function call operator, calculates self similarity
@@ -94,6 +95,9 @@ public:
       return "BinnedSumAgreeingIntensities";
     }
 
+protected:
+    void updateMembers_();
+    double precursor_mass_tolerance_;
   };
 
 }

@@ -181,7 +181,16 @@ namespace OpenMS
       //abort if line does not contain enough fields
       if (parts.size() < 3)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": At least three columns are needed! (got  " + String(parts.size()) + ")\nOffending line: '" + line_trimmed + "'  (line " + ((input_it - input.begin()) + 1) + ")\n");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "",
+                                    String("Failed parsing in line ")
+                                    + String((input_it - input.begin()) + 1)
+                                    + ": At least three columns are needed! (got  "
+                                    + String(parts.size())
+                                    + ")\nOffending line: '"
+                                    + line_trimmed
+                                    + "'  (line "
+                                    + String((input_it - input.begin()) + 1)
+                                    + ")\n");
       }
 
       ConsensusFeature cf;
@@ -203,7 +212,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException&)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + ((input_it - input.begin()) + 1) + ")\n");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert the first three columns to a number!\nOffending line: '" + line_trimmed + "'  (line " + String((input_it - input.begin()) + 1) + ")\n");
       }
 
       // Check all features in one line
@@ -233,7 +242,7 @@ namespace OpenMS
         }
         catch (Exception::BaseException&)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + ((input_it - input.begin()) + 1) + ")\n");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed parsing in line ") + String((input_it - input.begin()) + 1) + ": Could not convert one of the four sub-feature columns (starting at column " + (j * 4 + 1) + ") to a number! Is the correct separator specified?\nOffending line: '" + line_trimmed + "'  (line " + String((input_it - input.begin()) + 1) + ")\n");
         }
       }
 

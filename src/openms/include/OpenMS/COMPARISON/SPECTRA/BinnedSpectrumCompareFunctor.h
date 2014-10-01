@@ -45,15 +45,14 @@ namespace OpenMS
 {
 
   /**
+    @brief Base class for compare functors of BinnedSpectra
 
-        @brief Base class for compare functors of BinnedSpectra
+    BinnedSpectrumCompareFunctor classes return a value for a pair of BinnedSpectrum objects (or a single one with itself).
+    Ideally the value should reflect the similarity of the pair. For methods of computing the similarity see the
+    documentation of the concrete functors.
+    Functors normalized in the range [0,1] are identifiable at the set "normalized" parameter of the ParameterHandler
 
-        BinnedSpectrumCompareFunctor classes return a value for a pair of BinnedSpectrum objects (or a single one with itself).
-        Ideally the value should reflect the similarity of the pair. For methods of computing the similarity see the
-        documentation of the concrete functors.
-        Functors normalized in the range [0,1] are identifiable at the set "normalized" parameter of the ParameterHandler
-
-        @ingroup SpectraComparison
+    @ingroup SpectraComparison
   */
   class OPENMS_DLLAPI BinnedSpectrumCompareFunctor :
     public DefaultParamHandler
@@ -63,10 +62,11 @@ private:
 
 public:
 
-    /** @brief Exception thrown if compared spectra are incompatible
+    /** 
+      @brief Exception thrown if compared spectra are incompatible
 
-            the compared spectra have different settings in binsize and/or binspread
-            due to which comparison would fail
+      the compared spectra have different settings in binsize and/or binspread
+      due to which comparison would fail
     */
     class OPENMS_DLLAPI IncompatibleBinning :
       public Exception::BaseException
@@ -106,6 +106,6 @@ public:
 
   };
 
-
 }
+
 #endif // OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H

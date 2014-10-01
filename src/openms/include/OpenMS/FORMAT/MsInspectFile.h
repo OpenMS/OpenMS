@@ -149,7 +149,7 @@ public:
         }
         catch (Exception::BaseException /*&e*/)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert value in column ") + String(column_to_convert + 1) + " into a number (line '" + ((it - input.begin()) + 1) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert value in column ") + String(column_to_convert + 1) + " into a number (line '" + String((it - input.begin()) + 1) + ")");
         }
         f.setMetaValue("description", parts[17]);
         feature_map.push_back(f);
