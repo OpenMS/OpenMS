@@ -74,12 +74,10 @@ namespace OpenMS
     pp.setLogType(log_type_);
     pp.setParameters(pepi_param); // set parameters containing username, password, and account number
 
-    if(!pp.loadFromInputFilename(in)) // make sure the file has correct type/format
+    if(!pp.setExperiment(expr)) // make sure the experiment has correct type of data
     {
         return TOPPBase::INCOMPATIBLE_INPUT_DATA;
     }
-
-    pp.setOutputFilename(out); // set output name, which is used in PeakInvestigator::run()
 
     if(mode == "submit")
     {
@@ -103,6 +101,10 @@ namespace OpenMS
     QTimer::singleShot(100, &pp, SLOT(run()));
 
     app.exec();
+
+    // get the results back (i.e. either meta-data containing job ID from a submit
+    // or the actual peaks from a fetch)
+    pp.getExperiment();
 
     @endcode
 
@@ -138,15 +140,14 @@ public:
      *
      * This function also makes sure the experiment being set has the correct data (i.e.
      * contains mass spectra and isn't already centroided).
-     * @param experiment  Self-explanatory.
      * @return Bool indicating whether the experiment has the correct attributes.
      */
     bool setExperiment(MSExperiment<Peak1D>& experiment);
 
-    /// Get the experiment after processing
+    /// Get the experiment after processing.
     MSExperiment<Peak1D>& getExperiment() { return experiment_; }
 
-    /// Get the jobID
+    /// Get the jobID, which is set after a call to initializeJob_().
     QString getJobID() { return job_; }
 
     /// Function that should be called to exit the Qt event loop.
@@ -163,24 +164,6 @@ signals:
     void finishedRequest();
 
 protected:
-
-//--------------------------------------------------------------------------------------------------------
-// Bundling/Extracting and SFTP Upload/Download functions
-//--------------------------------------------------------------------------------------------------------
-    /** @name Packaging functions
-     * Used for bundling/unbundling files, and trasmission to/from SFTP server. Makes calls to the
-     * SFTP-related and Spectrum <--> QBuffer functions.
-     */
-///@{
-
-    /// Upload the bundle containing scans to the Veritomyx SFTP directory.
-    bool uploadBundle_();
-
-    /// Download the bundle containing results from the Veritomyx SFTP directory.
-    bool downloadBundle_();
-
-///@}
-//--------------------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------------------
 // PeakInvestigator public API functions
