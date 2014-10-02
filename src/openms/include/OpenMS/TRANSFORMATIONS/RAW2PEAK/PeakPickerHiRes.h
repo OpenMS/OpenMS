@@ -216,7 +216,7 @@ public:
           while ( k <= i    // prevent underflow
                 && (i - k + 1) > 0
                 && (missing_left <= missing_)
-                && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing
+                && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_gap_ * min_spacing
                 && !previous_zero_left
                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
@@ -228,7 +228,7 @@ public:
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
 
-            if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < 1.5 * min_spacing)
+            if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
             }
@@ -257,7 +257,7 @@ public:
 
           while ((i + k) < input.size()
                 && (missing_right <= missing_)
-                && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing
+                && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_gap_ * min_spacing
                 && !previous_zero_right
                 && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
           {
@@ -269,7 +269,7 @@ public:
               act_snt_rk = snt.getSignalToNoise(input[i + k]);
             }
 
-            if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < 1.5 * min_spacing)
+            if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing)
             {
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
             }
@@ -520,7 +520,10 @@ protected:
     // signal-to-noise parameter
     double signal_to_noise_;
 
-    // maximal spacing difference
+    // maximal spacing difference defining a large gap
+    double spacing_difference_gap_;
+    
+    // maximal spacing difference defining a missing data point
     double spacing_difference_;
     
     // maximum number of missing points
