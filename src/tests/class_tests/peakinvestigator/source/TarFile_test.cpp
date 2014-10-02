@@ -66,97 +66,92 @@ START_SECTION((~TarFile()))
 END_SECTION
 
 TarFile file;
+MSExperiment<> empty;
+MSExperiment<> full;
+for (Size i = 0; i < 4; i++)
+{
+  MSSpectrum<Peak1D> spectrum;
+  spectrum.setRT(0.25 * i);
+  full.addSpectrum(spectrum);
+}
 
+// this tests the expected case
 START_SECTION((void load(const String& filename, MSExperiment<Peak1D>& experiment)))
+{
+  MSExperiment<Peak1D> expr(full);
+  file.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_1.tar.gz"), expr);
 
-  // generate empty experiment to load data into
-  MSExperiment<Peak1D> expr;
-
-  // test case where spectra are absent from experiment
-  {
-    file.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_1.tar.gz"), expr);
-    TEST_EQUAL(expr.size(), 0);
-  }
-
-  // test case where filename is invalid
-  {
-    file.load("", expr);
-    TEST_EQUAL(expr.size(), 0);
-  }
-
-  // add empty spectra to experiment (requirement for load to run as expected)
+  TEST_EQUAL(expr.size(), 4);
   for (Size i = 0; i < 4; i++)
   {
-    MSSpectrum<Peak1D> spectrum;
-    spectrum.setRT(0.25 * i);
-    expr.addSpectrum(spectrum);
-  }
+    MSSpectrum<Peak1D> current = expr[i];
 
-  // test case where there are no data
-  {
-    file.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_2_empty.tar.gz"), expr);
-    TEST_EQUAL(expr.size(), 4);
-    for (Size i = 0; i < expr.size(); i++)
+    TEST_EQUAL(current.size(), 14);
+    for (Size j = 0; j < current.size(); j++)
     {
-      TEST_EQUAL(expr[i].size(), 0);
+      TEST_REAL_SIMILAR(current[j].getMZ(), j + 1);
+      TEST_REAL_SIMILAR(current[j].getIntensity(), 15.0 - double (j + 1) / double (i + 1));
     }
-
   }
+}
+END_SECTION
 
-  // test expected case
+START_SECTION([EXTRA] load with invalid filename)
+{
+  MSExperiment<> expr(empty);
+  file.load("", expr);
+  TEST_EQUAL(expr.size(), 0);
+}
+END_SECTION
+
+START_SECTION([EXTRA] load with empty experiment)
+{
+  MSExperiment<> expr(empty);
+  file.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_1.tar.gz"), expr);
+  TEST_EQUAL(expr.size(), 0);
+}
+END_SECTION
+
+START_SECTION([EXTRA] load with no data)
+{
+  MSExperiment<> expr(full);
+  file.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_2_empty.tar.gz"), expr);
+
+  TEST_EQUAL(expr.size(), 4);
+  for (Size i = 0; i < expr.size(); i++)
   {
-    file.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_1.tar.gz"), expr);
+    TEST_EQUAL(expr[i].size(), 0);
+  }
+}
+END_SECTION
 
-    TEST_EQUAL(expr.size(), 4);
-    for (Size i = 0; i < 4; i++)
+// test load where scan_000003.txt has been replaced with scan_000004.txt
+START_SECTION([EXTRA] load with scan mismatch)
+{
+  MSExperiment<> expr(full);
+  file.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_3_mismatch.tar.gz"), expr);
+
+  TEST_EQUAL(expr.size(), 4);
+  for (Size i = 0; i < expr.size(); i++)
+  {
+    MSSpectrum<Peak1D> current = expr[i];
+
+    if (i < expr.size() - 1)
     {
-      MSSpectrum<Peak1D> current = expr[i];
-
       TEST_EQUAL(current.size(), 14);
-      for (Size j = 0; j < current.size(); j++)
-      {
-        TEST_REAL_SIMILAR(current[j].getMZ(), j + 1);
-        TEST_REAL_SIMILAR(current[j].getIntensity(), 15.0 - double (j + 1) / double (i + 1));
-      }
     }
-  }
-
-  // clear experiment for next test
-  expr.clear(true);
-
-  // add empty spectra to experiment (requirement for load to run as expected)
-  for (Size i = 0; i < 4; i++)
-  {
-    MSSpectrum<Peak1D> spectrum;
-    spectrum.setRT(0.25 * i);
-    expr.addSpectrum(spectrum);
-  }
-
-  // test case where the scan numbers exceed number of spectra
-  {
-    file.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_3_mismatch.tar.gz"), expr);
-    TEST_EQUAL(expr.size(), 4);
-    for (Size i = 0; i < expr.size(); i++)
+    else
     {
-      MSSpectrum<Peak1D> current = expr[i];
+      TEST_EQUAL(current.size(), 0);
+    }
 
-      if (i < expr.size() - 1)
-      {
-        TEST_EQUAL(current.size(), 14);
-      }
-      else
-      {
-        TEST_EQUAL(current.size(), 0);
-      }
-
-      for (Size j = 0; j < current.size(); j++)
-      {
-        TEST_REAL_SIMILAR(current[j].getMZ(), j + 1);
-        TEST_REAL_SIMILAR(current[j].getIntensity(), 15.0 - double (j + 1) / double (i + 1));
-      }
+    for (Size j = 0; j < current.size(); j++)
+    {
+      TEST_REAL_SIMILAR(current[j].getMZ(), j + 1);
+      TEST_REAL_SIMILAR(current[j].getIntensity(), 15.0 - double (j + 1) / double (i + 1));
     }
   }
-
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
