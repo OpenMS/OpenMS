@@ -209,7 +209,7 @@ namespace OpenMS
 
       // set tar format
       std::sprintf(header.magic, "ustar");
-      std::sprintf(header.version, "  ");
+      std::memcpy(header.version, "  ", sizeof(header.version));
 
       // set modification time, mode, and filetype
       std::sprintf(header.mtime, "%011lo", time(NULL));
