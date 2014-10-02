@@ -495,6 +495,10 @@ public:
       list.push_back(temp);
     }
 
+    // sort mass patterns
+    // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
+    std::sort(list.begin(), list.end());
+
     // generate additional mass shifts due to knock-outs
     if (knock_out_ && list[0].size()==1)
     {
@@ -814,13 +818,14 @@ public:
               // loop over peptides
               for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
               {
-                profile_intensities[peptide].push_back(result_raw.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + peak + 1]);                  // +1 due to zeroth peaks
-
-                std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-                double mz = result_raw.getMZ() + result_raw.getMZShifts()[(isotopes_per_peptide_max_ + 1) * peptide + peak + 1];
-                if (!(boost::math::isnan(mz)))
+                unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
+                profile_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
+                
+                double mz_shift = result_raw.getMZShifts()[index];
+                if (!(boost::math::isnan(mz_shift)))
                 {
-                  mass_traces[peptide_peak].enlarge(rt, mz);
+                  std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
+                  mass_traces[peptide_peak].enlarge(rt, result_raw.getMZ() + mz_shift);
                 }
               }
             }
