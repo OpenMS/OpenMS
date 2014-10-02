@@ -28,40 +28,37 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: $
+# $Authors: Adam Tenderholt $
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
-project("OpenMS_class_tests")
+project("OpenMS_class_tests_peakinvestigator")
 
 #------------------------------------------------------------------------------
-# set new CMAKE_RUNTIME_OUTPUT_DIRECTORY for tests and remember old setting
-set(_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+# Configure test file to get the TEST_DATA_PATH into the tests
+set(CF_PEAKINVESTIGATOR_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
+set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/test_config.h")
+configure_file(${PROJECT_SOURCE_DIR}/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
 
-#------------------------------------------------------------------------------
-# add OpenSWATHAlgo specific tests
-add_subdirectory(openswathalgo)
+# --------------------------------------------------------------------------
+# add include directories
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES}
+                           ${PeakInvestigatorImpl_INCLUDE_DIRECTORIES}
+                           ${PROJECT_BINARY_DIR})
 
-#------------------------------------------------------------------------------
-# add OpenMS specific tests
-add_subdirectory(openms)
+# --------------------------------------------------------------------------
+set(peakinvestigator_tests
+  # peakinvestigator classes
+  TarFile_test
+  # superhirn featurefinder
+  #  FeatureFinderAlgorithmSH_test
+)
 
-#------------------------------------------------------------------------------
-# add OpenMS specific tests
-add_subdirectory(superhirn)
-
-#------------------------------------------------------------------------------
-# add PeakInvestigator specific tests
-add_subdirectory(peakinvestigator)
-
-if(WITH_GUI)
-  #------------------------------------------------------------------------------
-  # add OpenMS_GUI specific tests
-  add_subdirectory(openms_gui)
-endif()
-
-#------------------------------------------------------------------------------
-# restore old CMAKE_RUNTIME_OUTPUT_DIRECTORY
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+# --------------------------------------------------------------------------
+# add targets for the executables
+foreach(i ${peakinvestigator_tests})
+  add_executable(${i} source/${i}.cpp)
+  target_link_libraries(${i} PeakInvestigatorImpl OpenMS)
+  add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+endforeach(i)
