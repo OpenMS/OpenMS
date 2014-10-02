@@ -213,9 +213,10 @@ public:
           Size missing_left(0);
           Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
 
-          while ( k <= i    //prevent underflow
+          while ( k <= i    // prevent underflow
                 && (i - k + 1) > 0
-                && (missing_left < 2)
+                && (missing_left <= missing_)
+                && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_gap_ * min_spacing
                 && !previous_zero_left
                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
@@ -227,15 +228,17 @@ public:
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
 
-
             if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
             }
             else
             {
-              peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
               ++missing_left;
+              if (missing_left <= missing_)
+              {
+                peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
+              }
             }
 
             previous_zero_left = (input[i - k].getIntensity() == 0);
@@ -253,7 +256,8 @@ public:
           Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
 
           while ((i + k) < input.size()
-                && (missing_right < 2)
+                && (missing_right <= missing_)
+                && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_gap_ * min_spacing
                 && !previous_zero_right
                 && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
           {
@@ -271,8 +275,11 @@ public:
             }
             else
             {
-              peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
               ++missing_right;
+              if (missing_right <= missing_)
+              {
+                peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
+              }
             }
 
             previous_zero_right = (input[i + k].getIntensity() == 0);
@@ -327,7 +334,7 @@ public:
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval( max_peak_mz );
 
-          // save picked pick into output spectrum
+          // save picked peak into output spectrum
           PeakType peak;
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
@@ -513,8 +520,14 @@ protected:
     // signal-to-noise parameter
     double signal_to_noise_;
 
-    // maximal spacing difference
+    // maximal spacing difference defining a large gap
+    double spacing_difference_gap_;
+    
+    // maximal spacing difference defining a missing data point
     double spacing_difference_;
+    
+    // maximum number of missing points
+    unsigned missing_;
 
     // ms levels to which peak picking is applied
     std::vector<Int> ms_levels_;

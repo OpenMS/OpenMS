@@ -438,4 +438,107 @@ START_SECTION([EXTRA] test spectrum level selection)
   }
 END_SECTION
 
+//////////////////////////////////////////////
+// check peak boundaries on simulation data //
+//////////////////////////////////////////////
+
+// load input data
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_simulation.mzML"),input);
+
+//set params
+param.setValue("signal_to_noise",0.0);
+param.setValue("missing",1);
+param.setValue("spacing_difference_gap",4.0);
+pp_hires.setParameters(param);
+
+START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const)
+    MSExperiment<Peak1D> tmp_picked;
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s;    // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c;    // peak boundaries for chromatograms
+
+    pp_hires.pickExperiment(input, tmp_picked, tmp_boundaries_s, tmp_boundaries_c);
+
+    TEST_EQUAL(tmp_picked[0].size(), 167);
+    MSSpectrum<Peak1D>::Iterator it_mz = tmp_picked.begin()->begin();
+    vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary = tmp_boundaries_s.begin()->begin();
+    
+    it_mz += 146;
+    it_mz_boundary += 146;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),1141.57188829383);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1141.51216791402);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1141.63481354941);
+    
+    it_mz += 2;
+    it_mz_boundary += 2;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),1142.57196823237);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1142.50968574851);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1142.6323313839);
+    
+    it_mz += 10;
+    it_mz_boundary += 10;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),1178.08692219102);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1178.02013862689);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1178.14847787348);
+    
+    it_mz += 1;
+    it_mz_boundary += 1;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),1178.58906411531);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,1178.5249396635);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,1178.6532789101);
+    
+END_SECTION
+
+input.clear(true);
+output.clear(true);
+
+////////////////////////////////////////////
+// check peak boundaries on orbitrap data //
+////////////////////////////////////////////
+
+// load input data
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"),input);
+
+//set params
+param.setValue("signal_to_noise",0.0);
+param.setValue("missing",1);
+param.setValue("spacing_difference_gap",4.0);
+pp_hires.setParameters(param);
+
+START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const)
+    MSExperiment<Peak1D> tmp_picked;
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s;    // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c;    // peak boundaries for chromatograms
+
+    pp_hires.pickExperiment(input, tmp_picked, tmp_boundaries_s, tmp_boundaries_c);
+
+    TEST_EQUAL(tmp_picked[0].size(), 82);
+    MSSpectrum<Peak1D>::Iterator it_mz = tmp_picked.begin()->begin();
+    vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary = tmp_boundaries_s.begin()->begin();
+    
+    it_mz += 14;
+    it_mz_boundary += 14;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),355.070081088692);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,355.064544677734);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,355.078430175781);
+
+    it_mz += 23;
+    it_mz_boundary += 23;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),362.848715607077);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,362.844085693359);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,362.851928710938);
+
+    it_mz += 17;
+    it_mz_boundary += 17;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),370.210756298155);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,370.205871582031);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,370.215301513672);    // Same as min of next peak.
+
+    it_mz += 1;
+    it_mz_boundary += 1;
+    TEST_REAL_SIMILAR(it_mz->getMZ(),370.219596356153);
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,370.215301513672);    // Same as max of previous peak.
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,370.223358154297);
+    
+END_SECTION
+
 END_TEST
