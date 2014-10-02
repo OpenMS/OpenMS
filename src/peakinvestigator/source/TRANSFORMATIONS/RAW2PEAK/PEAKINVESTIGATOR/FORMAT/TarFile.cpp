@@ -41,57 +41,12 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/FORMAT/TarFile.h>
-
-// From https://github.com/lindenb/cclindenb/blob/master/src/core/lindenb/io/tarball.cpp
-struct PosixTarHeader
-{
-    char name[100];
-    char mode[8];
-    char uid[8];
-    char gid[8];
-    char size[12];
-    char mtime[12];
-    char checksum[8];
-    char typeflag[1];
-    char linkname[100];
-    char magic[6];
-    char version[2];
-    char uname[32];
-    char gname[32];
-    char devmajor[8];
-    char devminor[8];
-    char prefix[155];
-    char pad[12];
-};
-
-// Based on code from https://github.com/lindenb/cclindenb/blob/master/src/core/lindenb/io/tarball.cpp
-uint headerChecksum(void* header)
-{
-  unsigned int sum = 0;
-  char *p = (char *) header;
-  char *q = p + sizeof(PosixTarHeader);
-
-  while (p < static_cast<PosixTarHeader*>(header)->checksum)
-  {
-    sum += *p++ & 0xff;
-  }
-
-  for (int i = 0; i < 8; ++i)
-  {
-    sum += ' ';
-    ++p;
-  }
-
-  while (p < q)
-  {
-    sum += *p++ & 0xff;
-  }
-
-  return sum;
-}
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/FORMAT/INTERNAL/tarball.h>
 
 namespace OpenMS
 {
+
+  typedef Internal::PosixTarHeader TarHeader;
 
   TarFile::TarFile(): ProgressLogger()
   {
@@ -119,15 +74,15 @@ namespace OpenMS
     do
     {
       // read header of entry i
-      PosixTarHeader header;
-      numBytes = gzread(file, &header, sizeof(PosixTarHeader));
+      TarHeader header;
+      numBytes = gzread(file, &header, sizeof(TarHeader));
 
       if (numBytes == 0) // end of file
       {
         break;
       }
 
-      else if (numBytes != sizeof(PosixTarHeader))
+      else if (numBytes != sizeof(TarHeader))
       {
         LOG_ERROR << "Problem parsing header for entry " << i << std::endl;
         return;
@@ -139,7 +94,7 @@ namespace OpenMS
       {
         continue;
       }
-      int remainder = sizeof(PosixTarHeader) - (fileSize % sizeof(PosixTarHeader)); // entries are mulitply NULL terminated
+      int remainder = sizeof(TarHeader) - (fileSize % sizeof(TarHeader)); // entries are mulitply NULL terminated
 
       QBuffer* buffer = new QBuffer;
       buffer->open(QIODevice::WriteOnly);
@@ -194,7 +149,7 @@ namespace OpenMS
     char temp[8192];
 
     gzFile file = gzopen(filename.c_str(), "wb");
-    PosixTarHeader header;
+    TarHeader header;
 
     startProgress(0, experiment.size(), "Bundling scans for upload");
     for (Size i = 0; i < experiment.size(); ++i)
@@ -202,7 +157,7 @@ namespace OpenMS
       QBuffer* buffer = saveDataToBuffer_(experiment[i]);
 
       // initialize archive header
-      std::memset(&header, 0, sizeof(PosixTarHeader)); // fill with NULL chars
+      std::memset(&header, 0, sizeof(TarHeader)); // fill with NULL chars
 
       // set archive filename
       std::sprintf(header.name, "scan_%06i.txt", (int) i);
@@ -221,11 +176,11 @@ namespace OpenMS
       std::sprintf(header.size, "%011llo", (long long unsigned int) size);
 
       // set header checksum
-      std::sprintf(header.checksum, "%06o", headerChecksum(&header));
+      std::sprintf(header.checksum, "%06o", Internal::headerChecksum(&header));
 
       // now write archive file header (required before writing data)
-      numBytes = gzwrite(file, &header, sizeof(PosixTarHeader));
-      if(numBytes != sizeof(PosixTarHeader))
+      numBytes = gzwrite(file, &header, sizeof(TarHeader));
+      if(numBytes != sizeof(TarHeader))
       {
         LOG_ERROR << "Not all of the header was written for scan " << i << "!\n";
         delete buffer;
@@ -243,7 +198,7 @@ namespace OpenMS
       buffer->close();
 
       // fill remaining 512-byte block with NULL
-      while (size % sizeof(PosixTarHeader) != 0)
+      while (size % sizeof(TarHeader) != 0)
       {
         gzputc(file, 0);
         ++size;
@@ -259,9 +214,9 @@ namespace OpenMS
     }
 
     // now close out tar format by writing with two NULL header entries
-    std::memset(&header, 0, sizeof(PosixTarHeader)); // fill with NULL chars
-    gzwrite(file, &header, sizeof(PosixTarHeader));
-    gzwrite(file, &header, sizeof(PosixTarHeader));
+    std::memset(&header, 0, sizeof(TarHeader)); // fill with NULL chars
+    gzwrite(file, &header, sizeof(TarHeader));
+    gzwrite(file, &header, sizeof(TarHeader));
 
     gzclose(file);
 
