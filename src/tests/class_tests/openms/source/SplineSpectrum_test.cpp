@@ -169,7 +169,28 @@ START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
   TEST_REAL_SIMILAR(spectrum2.getNavigator().getNextMz(500.0), 419.2);
 END_SECTION
 
+// Each SplinePackage in a SplineSpectrum must contain two or more data points. If this is not the case, the interpolation might lead to unexpected results.
+// In the example below, a single data point @ 407.5 is placed between two packages. It does not form a SplinePackage on its own, but is instead part of the second SplinePackage.
+std::vector<double> mz3;
+std::vector<double> intensity3;
+for (unsigned i=0; i<4; ++i)
+{
+    mz3.push_back(400+i*0.5);
+    intensity3.push_back(10.0);
+}
+mz3.push_back(407.5);
+intensity3.push_back(10.0);
+for (unsigned i=0; i<4; ++i)
+{
+    mz3.push_back(410+i*0.5);
+    intensity3.push_back(10.0);
+}
+SplineSpectrum spectrum3(mz3, intensity3);
 
-
+START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
+  TEST_EQUAL(spectrum3.getSplineCount(),2);
+  TEST_EQUAL(spectrum3.getNavigator().eval(405),0);    // Zero as expected, since 405 is between packages.
+  TEST_EQUAL(spectrum3.getNavigator().eval(408),10);    // One might expect zero, but 407.5 is part of the second package.
+END_SECTION
 
 END_TEST
