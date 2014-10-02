@@ -448,7 +448,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_simulation.mzML"),inp
 //set params
 param.setValue("signal_to_noise",0.0);
 param.setValue("missing",1);
-param.setValue("spacing_difference",4.0);
+param.setValue("spacing_difference_gap",4.0);
 pp_hires.setParameters(param);
 
 START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const)
@@ -501,7 +501,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"),input
 //set params
 param.setValue("signal_to_noise",0.0);
 param.setValue("missing",1);
-param.setValue("spacing_difference",4.0);
+param.setValue("spacing_difference_gap",4.0);
 pp_hires.setParameters(param);
 
 START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const)
