@@ -41,12 +41,25 @@
 
 namespace OpenMS
 {
-
+  /** @brief Abstract base class for all classes that peform file transfers using a SSH-based
+   * method such as SFTP or SCP.
+   *
+   * It should be subclassed for seperate implmentations such as those that make system
+   * calls (e.g. @ref PSCPSecureFileTransfer) or use other libraries
+   * (e.g. LibSSH2SecureFileTransfer).
+   *
+   * The downloadFile() and uploadFile() functions must be implemented in subclasses.
+   */
   class PEAKINVESTIGATORIMPL_DLLAPI AbstractSecureFileTransfer
   {
     public:
+      /// Constructor
       AbstractSecureFileTransfer();
+
+      /// Constructor that sets hostname, username, and password
       AbstractSecureFileTransfer(String hostname, String username, String password);
+
+      /// Destructor
       virtual ~AbstractSecureFileTransfer();
 
       String getHostname() { return hostname_; }
@@ -58,15 +71,25 @@ namespace OpenMS
       String getPassword() { return password_; }
       void setPassword(String password) { password_ = password; }
 
+      /** @brief Stub fuction for setting expected hash.
+       *
+       * This function should be overridden in any subclass that does not
+       * make an external call to a system SFTP/SCP program, and performs its own
+       * host authentication step.
+       *
+       */
       void setExpectedServerHash(String expected_hash);
 
+      /// Function for downloading file that must be implemented in base class.
       virtual bool downloadFile(String fromFilename, String toFileName) = 0;
+
+      /// Function for uploading file that must be implemented in base class.
       virtual bool uploadFile(String fromFilename, String toFileName) = 0;
 
     protected:
-      String hostname_;
-      String username_;
-      String password_;
+      String hostname_; ///< @brief SFTP server hostname
+      String username_; ///< @brief SFTP username
+      String password_; ///< @brief SFTP password
   };
 
 

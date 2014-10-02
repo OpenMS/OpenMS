@@ -46,29 +46,97 @@
 
 namespace OpenMS
 {
-  class PEAKINVESTIGATORIMPL_DLLAPI LibSSH2SecureFileTransfer 
+  /** @brief Wrapper around libssh2.
+   *
+   * This class is used for transferring files via the secure file transfer protocol.
+   *
+   * For each call to uploadFile() and downloadFile(), the SSH/SFTP sessions are initialized
+   * before file transfers can take place. Since there are multiple steps for connection that
+   * involve creating various objects, and each step can fail, this class also keeps track
+   * of the state of each session and should correctly disconnect sessions and free objects before
+   * returning from downloadFile() or uploadFile().
+   */
+  class PEAKINVESTIGATORIMPL_DLLAPI LibSSH2SecureFileTransfer
       : public AbstractSecureFileTransfer, public ProgressLogger
   {
     public:
+      /** @brief Default constructor.
+       *
+       * Sets logging type to ProgressLogger::CMD, initializes protected variables to sane values,
+       * and initializes the libssh2 library.
+       */
       LibSSH2SecureFileTransfer();
+
+      /** @brief Constructor that sets SFTP server hostname, SFTP username, and SFTP password.
+       *
+       * Sets logging type to ProgressLogger::CMD, initializes protected variables to sane values,
+       * and initializes the libssh2 library.
+       */
       LibSSH2SecureFileTransfer(String hostname, String username, String password);
+
+      /** @brief Deconstructor.
+       *
+       * De-initializes the libssh2 library.
+       */
       ~LibSSH2SecureFileTransfer();
 
+      /** @brief Download a file from a SFTP server.
+       *
+       * @param fromFilename  The remote filename, including path.
+       * @param toFilename    The local filename, including path.
+       * @returns Bool indicating success.
+       */
       bool downloadFile(String fromFilename, String toFilename);
+
+      /** @brief Upload a file to a remote SFTP server.
+       *
+       * @param fromFilename  The local filename, including path.
+       * @param toFilename    The remote filename, including path.
+       * @returns Bool indicating success.
+       */
       bool uploadFile(String fromFilename, String toFilename);
 
+      /** @brief Sets the expected server hash to bypass warning about the host in
+       * confirmSSHServerIdentity_()
+       */
       void setExpectedServerHash(String expected_hash) { expected_hash_ = expected_hash; }
 
     protected:
+      /** @brief Takes care of steps for establishing the SSH session.
+       *
+       * This includes a hostname lookup, creating and connecting a network socket,
+       * initializing the ssh session, and performing the SSH "handshake". It also calls
+       * confirmSSHServerIdentity_() and authenticateUser_().
+       * @returns Bool indicating success.
+       */
       bool establishSSHSession_();
+
+      /** @brief Confirm that the SSH server hash is correct, either automatically or prompting user.
+       *
+       * This function compares the MD5 hash against expected_hash_. If the two hashes do not match,
+       * the user is presented the hashes and asked if they wish to continue.
+       * @returns Bool indicating success.
+       */
       bool confirmSSHServerIdentity_();
+
+      /** @brief Authenticate the user using the username_ and password_ instance variables.
+       *
+       * @returns Bool indicating success.
+       */
       bool authenticateUser_();
+
+      /** @brief Establish an SFTP session on top of an existing SSH session.
+       *
+       * @returns Bool indicating success.
+       */
       bool establishSFTPSession_();
+
+      /// @brief Takes care of the appropriate disconnect/free steps depending on state.
       void disconnect_();
 
-      int state_;
-      int socket_;
-      struct addrinfo* host_info_;
+      int state_; ///< Variable to keep track of the state.
+      int socket_; ///< The socket used for connection.
+      struct addrinfo* host_info_; ///< Variable used for creating connecting the socket based on hostname
 
       LIBSSH2_SESSION* ssh_session_;
       LIBSSH2_SFTP* sftp_session_;

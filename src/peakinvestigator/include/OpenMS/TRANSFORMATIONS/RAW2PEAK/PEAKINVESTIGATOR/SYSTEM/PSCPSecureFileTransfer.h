@@ -44,21 +44,52 @@
 
 namespace OpenMS
 {
-
+  /** @brief Wrapper around PuTTY's scp program (Windows).
+   *
+   * This class is used for transferring files using the secure file transfer protocol.
+   */
   class PEAKINVESTIGATORIMPL_DLLAPI PSCPSecureFileTransfer 
       : public AbstractSecureFileTransfer
   {
     public:
+      /** @brief Default constructor.
+       *
+       * This sets the QProcess channel mode to forwarding so that output is directly
+       * echod to the terminal.
+       */
       PSCPSecureFileTransfer();
+
+      /** @brief Constructor that sets SFTP server hostname, SFTP username, and SFTP password.
+       *
+       * This sets the QProcess channel mode to forwarding so that output is directly
+       * echod to the terminal.
+       */
       PSCPSecureFileTransfer(String hostname, String username, String password);
+
+      /// @brief Deconstructor.
       ~PSCPSecureFileTransfer();
 
+      /** @brief Download a file from a SFTP server.
+       *
+       * @param fromFilename  The remote filename, including path.
+       * @param toFilename    The local filename, including path.
+       * @returns Bool indicating success.
+       */
       bool downloadFile(String fromFilename, String toFilename);
+
+      /** @brief Upload a file to a remote SFTP server.
+       *
+       * @param fromFilename  The local filename, including path.
+       * @param toFilename    The remote filename, including path.
+       * @returns Bool indicating success.
+       */
       bool uploadFile(String fromFilename, String toFileName);
 
     protected:
+      /// Display an error returned from the QProcess call to pscp.
       void displayPSCPError_(int error);
-      QProcess process_;
+
+      QProcess process_; ///< @brief Class used to make system call to pscp.
   };
 
 } //OpenMS
