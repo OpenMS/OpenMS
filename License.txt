@@ -52,3 +52,9 @@ MyriMatch:
   - URL and source code: http://fenchurch.mc.vanderbilt.edu/software.php
   - License available at: http://www.apache.org/licenses/LICENSE-2.0.txt
 
+PeakInvestigator dependencies:
+
+tarball.h and tarball.cpp:
+  - URL and source code: https://github.com/lindenb/cclindenb/blob/master/src/core/lindenb/io/tarball.cpp
+  - License available at: http://www.apache.org/licenses/LICENSE-2.0.html
+
