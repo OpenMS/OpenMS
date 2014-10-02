@@ -41,18 +41,18 @@ using namespace std;
 namespace OpenMS
 {
   BinnedSpectrum::BinnedSpectrum() :
-    raw_spec_(), bin_spread_(1), bin_size_(2.0), bins_()
+    bin_spread_(1), bin_size_(2.0), bins_(), raw_spec_()
   {
   }
 
   BinnedSpectrum::BinnedSpectrum(float size, UInt spread, PeakSpectrum ps) :
-    raw_spec_(ps), bin_spread_(spread), bin_size_(size), bins_()
+    bin_spread_(spread), bin_size_(size), bins_(), raw_spec_(ps)
   {
     setBinning();
   }
 
   BinnedSpectrum::BinnedSpectrum(const BinnedSpectrum& source) :
-    raw_spec_(source.raw_spec_), bin_spread_(source.getBinSpread()), bin_size_(source.getBinSize()), bins_(source.getBins())
+    bin_spread_(source.getBinSpread()), bin_size_(source.getBinSize()), bins_(source.getBins()), raw_spec_(source.raw_spec_)
   {
   }
 
