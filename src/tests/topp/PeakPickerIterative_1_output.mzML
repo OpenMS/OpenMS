@@ -45,7 +45,7 @@
 		<software id="so_dp_sp_0_pm_3" version="1.11.0" >
 			<cvParam cvRef="MS" accession="MS:1002133" name="NoiseFilterSGolay" />
 		</software>
-		<software id="so_dp_sp_0_pm_4" version="1.12.0" >
+		<software id="so_dp_sp_0_pm_4" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PeakPickerIterative" />
 		</software>
 	</softwareList>
@@ -148,25 +148,8 @@
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_4">
 				<cvParam cvRef="MS" accession="MS:1000035" name="peak picking" />
-				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2014-10-02+15:53" />
-				<userParam name="parameter: in" type="xsd:string" value="PeakPickerIterative_1_input.mzML"/>
-				<userParam name="parameter: out" type="xsd:string" value="PeakPickerIterative_1_output.mzML"/>
-				<userParam name="parameter: log" type="xsd:string" value=""/>
-				<userParam name="parameter: debug" type="xsd:integer" value="0"/>
-				<userParam name="parameter: threads" type="xsd:integer" value="1"/>
-				<userParam name="parameter: no_progress" type="xsd:string" value="false"/>
-				<userParam name="parameter: test" type="xsd:string" value="false"/>
-				<userParam name="parameter: ini" type="xsd:string" value="PeakPickerIterative_1.ini"/>
-				<userParam name="parameter: algorithm:signal_to_noise_" type="xsd:double" value="1"/>
-				<userParam name="parameter: algorithm:peak_width" type="xsd:double" value="0.04"/>
-				<userParam name="parameter: algorithm:spacing_difference" type="xsd:double" value="1.5"/>
-				<userParam name="parameter: algorithm:sn_bin_count_" type="xsd:integer" value="30"/>
-				<userParam name="parameter: algorithm:nr_iterations_" type="xsd:integer" value="5"/>
-				<userParam name="parameter: algorithm:sn_win_len_" type="xsd:double" value="20"/>
-				<userParam name="parameter: algorithm:check_width_internally" type="xsd:string" value="false"/>
-				<userParam name="parameter: algorithm:ms1_only" type="xsd:string" value="false"/>
-				<userParam name="parameter: algorithm:clear_meta_data" type="xsd:string" value="false"/>
-				<userParam name="parameter: algorithm:verbose" type="xsd:string" value="true"/>
+				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
+				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
 		<dataProcessing id="dp_sp_0_bi_0">
