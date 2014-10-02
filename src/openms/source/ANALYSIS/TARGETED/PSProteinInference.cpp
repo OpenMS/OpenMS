@@ -108,13 +108,8 @@ namespace OpenMS
     // first get all protein accessions:
     for (Size p = 0; p < peptide_ids.size(); ++p)
     {
-      const vector<String> & accs = peptide_ids[p].getHits()[0].getProteinAccessions();
-//         std::cout << peptide_ids[p].getHits()[0].getSequence()<<"Peptide Id with "
-//                   << accs.size() << " protein accs.\n";
-      for (Size a = 0; a < accs.size(); ++a)
-      {
-        all_accs.insert(accs[a]);
-      }
+      const set<String> accs = PeptideHit::extractProteinAccessions(peptide_ids[p].getHits()[0]);
+      all_accs.insert(accs.begin(), accs.end());
     }
 
     // add variable for each protein:
@@ -140,10 +135,12 @@ namespace OpenMS
 
       // get column indices for all corresponding proteins
       vector<Int> indices;
-      const vector<String> & accs = peptide_ids[p].getHits()[0].getProteinAccessions();
-      for (Size a = 0; a < accs.size(); ++a)
+
+      const std::set<String> accs = PeptideHit::extractProteinAccessions(peptide_ids[p].getHits()[0]);
+
+      for (std::set<String>::const_iterator accs_it = accs.begin(); accs_it != accs.end(); ++accs_it)
       {
-        indices.push_back((Int)problem.getColumnIndex(accs[a]));
+        indices.push_back((Int)problem.getColumnIndex(*accs_it));
       }
       vector<double> values(indices.size(), 1.);
 
@@ -182,16 +179,17 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide Id contains more than 1 peptide hit", String(ids[i].getHits().size()));
       }
 
-      const vector<String> & accs = ids[i].getHits()[0].getProteinAccessions();
+      const std::set<String> accs = PeptideHit::extractProteinAccessions(ids[i].getHits()[0]);
+
       String seq = ids[i].getHits()[0].getSequence().toUnmodifiedString();
       double score = ids[i].getHits()[0].getScore();
       bool higher_better = ids[i].isHigherScoreBetter();
-      for (Size a = 0; a < accs.size(); ++a)
+      for (std::set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
       {
         // first check if protein has already a peptide with the same sequence stored
-        std::vector<PeptideIdentification>::iterator it = pep_prot_map[accs[a]].begin();
+        std::vector<PeptideIdentification>::iterator it = pep_prot_map[*a_it].begin();
         bool insert = true;
-        for (; it != pep_prot_map[accs[a]].end(); ++it)
+        for (; it != pep_prot_map[*a_it].end(); ++it)
         {
           if (it->getHits()[0].getSequence().toUnmodifiedString() == seq)      // find peptide sequence
           {
@@ -213,7 +211,7 @@ namespace OpenMS
           }
         }
         if (insert)
-          pep_prot_map[accs[a]].push_back(ids[i]);
+          pep_prot_map[*a_it].push_back(ids[i]);
       }
     }
 

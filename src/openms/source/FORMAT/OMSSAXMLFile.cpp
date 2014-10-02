@@ -74,7 +74,7 @@ namespace OpenMS
     String identifier("OMSSA_" + now.get());
 
     // post-processing
-    vector<String> accessions;
+    set<String> accessions;
     for (vector<PeptideIdentification>::iterator it = peptide_identifications.begin(); it != peptide_identifications.end(); ++it)
     {
       it->setScoreType("OMSSA");
@@ -86,23 +86,20 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
         {
-          accessions.insert(accessions.end(), pit->getProteinAccessions().begin(), pit->getProteinAccessions().end());
+          set<String> hit_accessions = PeptideHit::extractProteinAccessions(*pit);
+          accessions.insert(hit_accessions.begin(), hit_accessions.end());
         }
       }
     }
 
     if (load_proteins)
     {
-      sort(accessions.begin(), accessions.end());
-      vector<String>::const_iterator end_unique = unique(accessions.begin(), accessions.end());
-
-      for (vector<String>::const_iterator it = accessions.begin(); it != end_unique; ++it)
+      for (set<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
       {
         ProteinHit hit;
         hit.setAccession(*it);
         protein_identification.insertHit(hit);
       }
-
 
       // E-values
       protein_identification.setHigherScoreBetter(false);
@@ -132,6 +129,9 @@ namespace OpenMS
     // end of peptide hit
     if (tag_ == "MSHits")
     {
+      actual_peptide_hit_.setPeptideEvidences(actual_peptide_evidences_);
+      actual_peptide_evidence_ = PeptideEvidence();
+      actual_peptide_evidences_.clear();
       actual_peptide_id_.insertHit(actual_peptide_hit_);
       actual_peptide_hit_ = PeptideHit();
     }
@@ -197,6 +197,7 @@ namespace OpenMS
     // <MSPepHit_defline>CRHU2 carbonate dehydratase (EC 4.2.1.1) II [validated] - human</MSPepHit_defline>
     // <MSPepHit_protlength>260</MSPepHit_protlength>
     // <MSPepHit_oid>6599</MSPepHit_oid>
+
     if (tag_ == "MSPepHit_start")
     {
       tag_ = "";
@@ -211,7 +212,7 @@ namespace OpenMS
     {
       if (load_proteins_)
       {
-        actual_peptide_hit_.addProteinAccession(value);
+        actual_peptide_evidence_.setProteinAccession(value);
       }
       tag_ = "";
       return;
@@ -230,6 +231,8 @@ namespace OpenMS
     else if (tag_ == "MSPepHit_oid")
     {
       tag_ = "";
+      // end of MSPepHit so we add the evidence
+      actual_peptide_evidences_.push_back(actual_peptide_evidence_);
       return;
     }
 
@@ -303,7 +306,7 @@ namespace OpenMS
     {
       if (value != "")
       {
-        actual_peptide_hit_.setAABefore(value[0]);
+        actual_peptide_evidence_.setAABefore(value[0]);
       }
       tag_ = "";
       return;
@@ -312,7 +315,7 @@ namespace OpenMS
     {
       if (value != "")
       {
-        actual_peptide_hit_.setAAAfter(value[0]);
+        actual_peptide_evidence_.setAAAfter(value[0]);
       }
       tag_ = "";
       return;

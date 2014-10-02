@@ -1487,7 +1487,8 @@ namespace OpenMS
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();
       Size index = new_feature.getMetaValue("variable_index");
-      const std::vector<String>& accs = new_feature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions();
+
+      std::set<String> accs = PeptideHit::extractProteinAccessions(new_feature.getPeptideIdentifications()[0].getHits()[0]);
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
@@ -1527,41 +1528,41 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "Now search for matching features for " << accs.size() << " proteins." << std::endl;
 #endif
-      for (Size prot = 0; prot < accs.size(); ++prot)
+      for (std::set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
       {
         // first enter the new feature to the corresponding proteins
-        std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(accs[prot]);
+        std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(*acc_it);
 #ifdef DEBUG_OPS
         std::cout << "now enter " << new_feature.getRT() << "  " << new_feature.getMZ()
                   << " with variable index "
                   << index
-                  << " to prot_variable_map " << accs[prot] << std::endl;
+                  << " to prot_variable_map " << acc_it << std::endl;
 #endif
         if (prot_var_iter == protein_feature_map.end())
         {
           std::vector<Size> vec;
           vec.push_back((Size)new_feature.getMetaValue("feature_index"));
-          protein_feature_map.insert(std::make_pair(accs[prot], vec));
+          protein_feature_map.insert(std::make_pair(*acc_it, vec));
         }
         else
           prot_var_iter->second.push_back((Size)new_feature.getMetaValue("feature_index"));
         // if protein prob exceeds min threshold
-        if ((prot_inference.getProteinProbability(accs[prot]) > min_protein_probability) && (prot_inference.isProteinInMinimalList(accs[prot])))
+        if ((prot_inference.getProteinProbability(*acc_it) > min_protein_probability) && (prot_inference.isProteinInMinimalList(*acc_it)))
         {
-          std::map<String, std::vector<double> >::const_iterator map_iter = preprocessed_db.getProteinPTMap().find(accs[prot]);
+          std::map<String, std::vector<double> >::const_iterator map_iter = preprocessed_db.getProteinPTMap().find(*acc_it);
           if (map_iter !=  preprocessed_db.getProteinPTMap().end())
           {
-            std::vector<String>::iterator prot_acc_iter = find(protein_accs.begin(), protein_accs.end(), accs[prot]);
+            std::vector<String>::iterator prot_acc_iter = find(protein_accs.begin(), protein_accs.end(), *acc_it);
             if (prot_acc_iter == protein_accs.end())
             {
               // enter new variable y_i
-              if (prot_inference.getProteinProbability(accs[prot]) >= min_prot_coverage)
+              if (prot_inference.getProteinProbability(*acc_it) >= min_prot_coverage)
               {
-                new_protein_accs.push_back(accs[prot]);
+                new_protein_accs.push_back(*acc_it);
                 if (double(param_.getValue("combined_ilp:k3")) > 0.000001)
-                  updateObjFunction_(accs[prot], features, preprocessed_db, variable_indices);
+                  updateObjFunction_(*acc_it, features, preprocessed_db, variable_indices);
               }
-              protein_accs.push_back(accs[prot]);
+              protein_accs.push_back(*acc_it);
               // insert protein to ILP
               // first add penalty
               // insert penalty variable
@@ -1584,7 +1585,7 @@ namespace OpenMS
 
 
               // now go through protein_feature_map and enter them to
-              std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(accs[prot]);
+              std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(*acc_it);
               if (prot_var_iter != protein_feature_map.end())
               {
                 // TODO: problem: they need not all correspond to the current feature
@@ -1786,17 +1787,17 @@ namespace OpenMS
             } //if(prot_acc_iter == protein_accs.end())
             else
             {
-              if (find(new_protein_accs.begin(), new_protein_accs.end(), accs[prot]) == new_protein_accs.end() &&
-                  prot_inference.getProteinProbability(accs[prot]) >= min_prot_coverage && double(param_.getValue("combined_ilp:k3")) > 0.000001)
+              if (find(new_protein_accs.begin(), new_protein_accs.end(), *acc_it) == new_protein_accs.end() &&
+                  prot_inference.getProteinProbability(*acc_it) >= min_prot_coverage && double(param_.getValue("combined_ilp:k3")) > 0.000001)
               {
-                new_protein_accs.push_back(accs[prot]);
-                updateObjFunction_(accs[prot], features, preprocessed_db, variable_indices);
+                new_protein_accs.push_back(*acc_it);
+                updateObjFunction_(*acc_it, features, preprocessed_db, variable_indices);
               }
             }
           }
           else
           {
-            std::cout << "Protein not present in preprocessed db: " << accs[prot] << std::endl;
+            std::cout << "Protein not present in preprocessed db: " << *acc_it << std::endl;
           }
         }
       }

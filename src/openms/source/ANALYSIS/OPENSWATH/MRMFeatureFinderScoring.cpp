@@ -55,9 +55,9 @@ void processFeatureForOutput(OpenMS::Feature & curr_feature, bool write_convex_h
     quantification_cutoff_, double & total_intensity, double & total_peak_apices, std::string ms_level)
 {
   // Save some space when writing out the featureXML
-  if (!write_convex_hull_) 
+  if (!write_convex_hull_)
   {
-    curr_feature.getConvexHulls().clear(); 
+    curr_feature.getConvexHulls().clear();
   }
 
   // Ensure a unique id is present
@@ -403,7 +403,9 @@ namespace OpenMS
         pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
       }
       pep_hit_.setSequence(AASequence::fromString(pep->sequence));
-      pep_hit_.addProteinAccession(protein_id);
+      PeptideEvidence pe;
+      pe.setProteinAccession(protein_id);
+      pep_hit_.addPeptideEvidence(pe);
       pep_id_.insertHit(pep_hit_);
       pep_id_.setIdentifier(run_identifier);
 

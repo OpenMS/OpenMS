@@ -917,12 +917,6 @@ protected:
                                                      it_pep!= peptide_ids_chunk.end();
                                                      ++it_pep)
         {
-          for (std::vector<PeptideHit>::iterator it_hit = it_pep->getHits().begin();
-                                                 it_hit!= it_pep->getHits().end();
-                                                 ++it_hit)
-          {
-            it_hit->setProteinAccessions(std::vector<String>());
-          }
           it_pep->setIdentifier(protein_identification.getIdentifier());
           peptide_ids.push_back(*it_pep);
         }

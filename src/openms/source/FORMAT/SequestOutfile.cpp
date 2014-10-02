@@ -209,6 +209,7 @@ namespace OpenMS
 
     for (Size viewed_peptides = 0; viewed_peptides < displayed_peptides; )
     {
+      PeptideEvidence peptide_evidence;
       PeptideHit peptide_hit;
       ProteinHit protein_hit;
 
@@ -244,7 +245,9 @@ namespace OpenMS
         substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
       }
       else
+      {
         proteins_per_peptide = 0;
+      }
 
       // get the peptide information and insert it
       if (p_value != pvalues.end() && (*p_value) <= p_value_threshold)
@@ -291,10 +294,16 @@ namespace OpenMS
         String sequence_with_mods = substrings[peptide_column];
         start = sequence_with_mods.find('.') + 1;
         end = sequence_with_mods.find_last_of('.');
+
         if (start >= 2)
-          peptide_hit.setAABefore(sequence_with_mods[start - 2]);
+        {
+          peptide_evidence.setAABefore(sequence_with_mods[start - 2]);
+        }
+
         if (end < sequence_with_mods.length() + 1)
-          peptide_hit.setAAAfter(sequence_with_mods[end + 1]);
+        {
+          peptide_evidence.setAAAfter(sequence_with_mods[end + 1]);
+        }
 
         //remove modifications (small characters and everything that's not in the alphabet)
         String sequence;
@@ -317,7 +326,8 @@ namespace OpenMS
         if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
           protein_hits.push_back(protein_hit);
 
-        peptide_hit.addProteinAccession(accession);
+        peptide_evidence.setProteinAccession(accession);
+        peptide_hit.addPeptideEvidence(peptide_evidence);
 
         if (!ignore_proteins_per_peptide)
         {
@@ -347,7 +357,9 @@ namespace OpenMS
             if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
               protein_hits.push_back(protein_hit);
 
-            peptide_hit.addProteinAccession(accession);
+            PeptideEvidence pe;
+            pe.setProteinAccession(accession);
+            peptide_hit.addPeptideEvidence(pe);
           }
         }
 

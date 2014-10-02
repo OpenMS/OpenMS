@@ -663,25 +663,11 @@ namespace OpenMS
     else if (tag == "PeptideHit")
     {
       pep_hit_ = PeptideHit();
+      vector<PeptideEvidence> peptide_evidences_;
 
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
       pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
-
-      //aa_before
-      String tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_before");
-      if (!tmp.empty())
-      {
-        pep_hit_.setAABefore(tmp[0]);
-      }
-      //aa_after
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty())
-      {
-        pep_hit_.setAAAfter(tmp[0]);
-      }
 
       //parse optional protein ids to determine accessions
       const XMLCh * refs = attributes.getValue(sm_.convert("protein_refs"));
@@ -700,7 +686,9 @@ namespace OpenMS
           Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
-            pep_hit_.addProteinAccession(it2->second);
+            PeptideEvidence pe;
+            pe.setProteinAccession(it2->second);
+            peptide_evidences_.push_back(pe);
           }
           else
           {
@@ -708,6 +696,26 @@ namespace OpenMS
           }
         }
       }
+
+      //aa_before
+      String tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "aa_before");
+
+      // store this information in first peptide evidence object
+      if (!tmp.empty() && !peptide_evidences_.empty())
+      {
+        peptide_evidences_[0].setAABefore(tmp[0]);
+      }
+
+      //aa_after
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "aa_after");
+      if (!tmp.empty() && !peptide_evidences_.empty())
+      {
+        peptide_evidences_[0].setAAAfter(tmp[0]);
+      }
+
+      pep_hit_.setPeptideEvidences(peptide_evidences_);
       last_meta_ = &pep_hit_;
     }
   }
@@ -986,23 +994,39 @@ namespace OpenMS
       os << " score=\"" << id.getHits()[j].getScore() << "\"";
       os << " sequence=\"" << id.getHits()[j].getSequence() << "\"";
       os << " charge=\"" << id.getHits()[j].getCharge() << "\"";
-      if (id.getHits()[j].getAABefore() != ' ')
+
+      vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
+
+      // do we have peptide evidence information? print information of the first one (featureXML only supports one evidence per hit)
+      if (!pes.empty())
       {
-        os << " aa_before=\"" << id.getHits()[j].getAABefore() << "\"";
-      }
-      if (id.getHits()[j].getAAAfter() != ' ')
-      {
-        os << " aa_after=\"" << id.getHits()[j].getAAAfter() << "\"";
-      }
-      if (id.getHits()[j].getProteinAccessions().size() != 0)
-      {
-        String accs = "";
-        for (Size m = 0; m < id.getHits()[j].getProteinAccessions().size(); ++m)
+        if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
         {
-          if (m)
+          os << " aa_before=\"" << pes[0].getAABefore() << "\"";
+        }
+      }
+
+      if (!pes.empty())
+      {
+        if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+        {
+          os << " aa_after=\"" << pes[0].getAAAfter() << "\"";
+        }
+      }
+
+      set<String> protein_accessions = PeptideHit::extractProteinAccessions(id.getHits()[j]);
+
+      if (!protein_accessions.empty())
+      {
+        String accs;
+        for (set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        {
+          if (s_it != protein_accessions.begin())
+          {
             accs += " ";
+          }
           accs += "PH_";
-          accs += String(accession_to_id_[id.getIdentifier() + "_" + id.getHits()[j].getProteinAccessions()[m]]);
+          accs += String(accession_to_id_[id.getIdentifier() + "_" + *s_it]);
         }
         os << " protein_refs=\"" << accs << "\"";
       }

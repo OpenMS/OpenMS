@@ -145,8 +145,11 @@ public:
     /// Returns if this PeptideIdentification result is empty
     bool empty() const;
 
-    ///@name Methods for linking peptide and protein hits
+    ///@name Helper methods for linking peptide and protein hits
     //@{
+
+    /// returns all peptide hits which reference to a given protein accession (aka filter by protein accession)
+    static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit> & , const std::set<String> & accession);
 
     /*
     /// finds and inserts all peptide hits which reference to a given protein accession

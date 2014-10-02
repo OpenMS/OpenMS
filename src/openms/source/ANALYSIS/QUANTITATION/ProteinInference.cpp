@@ -92,12 +92,14 @@ namespace OpenMS
           if (it_pepid->getIdentifier() != protein_ident.getIdentifier())
             continue;
 
-          std::vector<PeptideHit> peptide_hits_local;
-
-          it_pepid->getReferencingHits(accession, peptide_hits_local);
+          std::set<String> accessions;
+          accessions.insert(accession);
+          std::vector<PeptideHit> peptide_hits_local = PeptideIdentification::getReferencingHits(it_pepid->getHits(), accessions);
 
           if (peptide_hits_local.empty())
+          {
             continue;
+          }
 
           if (sortByUnique_(peptide_hits_local, it_pepid->isHigherScoreBetter())) // we found a unique peptide
           {
@@ -218,7 +220,8 @@ namespace OpenMS
     }
 
     //-> lets see if its unique:
-    if (peptide_hits_local[0].getProteinAccessions().size() != 1)
+    std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(peptide_hits_local[0]);
+    if (protein_accessions.size() != 1)
     {
       // this is a shared peptide --> do not use it
       return false;

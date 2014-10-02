@@ -179,8 +179,8 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    vector<String> protein_accessions(1);
     PeptideHit temp_peptide_hit;
+    PeptideEvidence temp_pe;
 
     protein_identifications[0].setSearchParameters(search_parameters);
     protein_identifications[0].setDateTime(date_time);
@@ -195,12 +195,12 @@ protected:
     {
       if (!has_FASTA_output)
       {
-        protein_accessions[0] = protein_data[i].identifier;
         ProteinHit temp_protein_hit;
         temp_protein_hit.setSequence(protein_data[i].sequence);
-        temp_protein_hit.setAccession(protein_accessions[0]);
+        temp_protein_hit.setAccession(protein_data[i].identifier);
         protein_identifications[0].insertHit(temp_protein_hit);
-        temp_peptide_hit.setProteinAccessions(protein_accessions);
+        temp_pe.setProteinAccession(protein_data[i].identifier);
+        temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, temp_pe));
       }
 
       vector<AASequence> temp_peptides;

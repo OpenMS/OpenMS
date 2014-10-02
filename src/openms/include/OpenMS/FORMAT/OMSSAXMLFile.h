@@ -86,10 +86,10 @@ public:
 
       @ingroup FileIO
     */
-    void load(const String & filename, 
-              ProteinIdentification & protein_identification, 
-              std::vector<PeptideIdentification> & id_data, 
-              bool load_proteins = true, 
+    void load(const String & filename,
+              ProteinIdentification & protein_identification,
+              std::vector<PeptideIdentification> & id_data,
+              bool load_proteins = true,
               bool load_empty_hits = true);
 
     /// sets the valid modifications
@@ -120,6 +120,10 @@ private:
     ProteinHit actual_protein_hit_;
 
     PeptideHit actual_peptide_hit_;
+
+    PeptideEvidence actual_peptide_evidence_;
+
+    std::vector<PeptideEvidence> actual_peptide_evidences_;
 
     PeptideIdentification actual_peptide_id_;
 

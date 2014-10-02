@@ -251,13 +251,12 @@ protected:
     if (!getFlag_("keep_protein_links"))
     {
       // remove protein links from peptides
-      std::vector<String> empty;
       for (Size i = 0; i < pep_ids.size(); ++i)
       {
         std::vector<PeptideHit> hits = pep_ids[i].getHits();
         for (Size h = 0; h < hits.size(); ++h)
         {
-          hits[h].setProteinAccessions(empty);
+          hits[h].setPeptideEvidences(vector<PeptideEvidence>());
         }
         pep_ids[i].setHits(hits);
       }

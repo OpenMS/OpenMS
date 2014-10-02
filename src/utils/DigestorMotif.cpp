@@ -143,15 +143,14 @@ protected:
     search_parameters.enzyme = ProteinIdentification::TRYPSIN;
     digestor.setMissedCleavages(missed_cleavages);
 
-    protein_accessions.resize(1, String(""));
     for (UInt i = 0; i < protein_data.size(); ++i)
     {
-      protein_accessions[0] = protein_data[i].identifier;
+      PeptideEvidence pe;
       temp_protein_hit.setSequence(protein_data[i].sequence);
-      temp_protein_hit.setAccession(protein_accessions[0]);
-
+      temp_protein_hit.setAccession(protein_data[i].identifier);
+      pe.setProteinAccession(protein_data[i].identifier);
       digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
-      temp_peptide_hit.setProteinAccessions(protein_accessions);
+      temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe));
       for (UInt j = 0; j < temp_peptides.size(); ++j)
       {
         if (temp_peptides[j].size() >= min_size)
@@ -201,10 +200,11 @@ protected:
 
       for (UInt i = 0; i < protein_data.size(); ++i)
       {
-        protein_accessions[0] = protein_data[i].identifier;
-        temp_protein_hit.setAccession(protein_accessions[0]);
+        PeptideEvidence pe;
+        pe.setProteinAccession(protein_data[i].identifier);
+        temp_protein_hit.setAccession(protein_data[i].identifier);
         digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
-        temp_peptide_hit.setProteinAccessions(protein_accessions);
+        temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe));
         for (UInt j = 0; j < temp_peptides.size(); ++j)
         {
           //vector<double> B_peptide, Y_peptide;

@@ -43,22 +43,23 @@ namespace OpenMS
   // default constructor
   PeptideHit::PeptideHit() :
     MetaInfoInterface(),
+    sequence_(),
     score_(0),
     rank_(0),
     charge_(0)
   {
   }
 
-  /*
   // values constructor
   PeptideHit::PeptideHit(double score, UInt rank, Int charge, const AASequence & sequence) :
     MetaInfoInterface(),
+    sequence_(sequence),
     score_(score),
     rank_(rank),
     charge_(charge)
   {
   }
-*/
+
   // copy constructor
   PeptideHit::PeptideHit(const PeptideHit & source) :
     MetaInfoInterface(source),
@@ -147,6 +148,11 @@ namespace OpenMS
   void PeptideHit::setPeptideEvidences(const std::vector<PeptideEvidence> & peptide_evidences)
   {
     peptide_evidences_ = peptide_evidences;
+  }
+
+  void PeptideHit::addPeptideEvidence(const PeptideEvidence & peptide_evidence)
+  {
+    peptide_evidences_.push_back(peptide_evidence);
   }
 
   // sets the score of the peptide hit

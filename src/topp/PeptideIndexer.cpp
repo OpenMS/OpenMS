@@ -40,6 +40,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 
 #include <algorithm>
 
@@ -119,6 +120,49 @@ using namespace std;
   @htmlinclude TOPP_PeptideIndexer.html
 */
 
+struct PeptideProteinMatchInformation
+{
+  /// index of the protein the peptide is contained in
+  OpenMS::Size protein_index;
+
+  /// the amino acid after the peptide in the protein
+  char AABefore;
+
+  /// the amino acid befor the peptide in the protein
+  char AAAfter;
+
+  /// the position of the peptide in the protein
+  OpenMS::Int position;
+
+  bool operator<(const PeptideProteinMatchInformation & other) const
+  {
+    if (protein_index != other.protein_index)
+    {
+      return protein_index < other.protein_index;
+    }
+    else if (position != other.position)
+    {
+      return position < other.position;
+    }
+    else if (AABefore != other.AABefore)
+    {
+      return AABefore < other.AABefore;
+    }
+    else if (AAAfter != other.AAAfter)
+    {
+      return AAAfter < other.AAAfter;
+    }
+    return false;
+  }
+
+  bool operator==(const PeptideProteinMatchInformation & other) const
+  {
+    return protein_index == other.protein_index &&
+           position == other.position &&
+           AABefore == other.AABefore &&
+           AAAfter == other.AAAfter;
+  }
+};
 
 namespace seqan
 {
@@ -126,21 +170,6 @@ namespace seqan
   struct FoundProteinFunctor
   {
   public:
-    struct PeptideProteinMatchInformation
-    {
-      /// index of the protein the peptide is contained in
-      OpenMS::Size protein_index;
-
-      /// the amino acid after the peptide in the protein
-      char AABefore;
-
-      /// the amino acid befor the peptide in the protein
-      char AAAfter;
-      
-      /// the position of the peptide in the protein
-      OpenMS::Int position;
-    };
-
     typedef OpenMS::Map<OpenMS::Size, std::set<PeptideProteinMatchInformation> > MapType;
 
     /// peptide index --> protein indices
@@ -196,7 +225,14 @@ namespace seqan
       if (enzyme_.isValidProduct(AASequence::fromString(protein), position, 
                                  seq_pep.length()))
       {
-        pep_to_prot[idx_pep].insert(idx_prot);
+        PeptideProteinMatchInformation match;
+        match.protein_index = idx_prot;
+        match.position = position;
+        /* TODO add this information
+        match.AABefore = ;
+        match.AAAfter = ;
+        */
+        pep_to_prot[idx_pep].insert(match);
         ++filter_passed;
       }
       else
@@ -723,16 +759,21 @@ protected:
       for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
       {
         // clear protein accessions
-        it2->setProteinAccessions(vector<String>());
+        it2->setPeptideEvidences(vector<PeptideEvidence>());
 
         // add new protein references
-        for (set<Size>::const_iterator it_i = func.pep_to_prot[pep_idx].begin();
+        for (set<PeptideProteinMatchInformation>::const_iterator it_i = func.pep_to_prot[pep_idx].begin();
              it_i != func.pep_to_prot[pep_idx].end();
              ++it_i)
         {
-          it2->addProteinAccession(proteins[*it_i].identifier);
+          PeptideEvidence pe;
+          pe.setProteinAccession(proteins[it_i->protein_index].identifier);
+          pe.setStart(it_i->position);
+          /* TODO add other inormation to pe
+           */
+          it2->addPeptideEvidence(pe);
 
-          runidx_to_protidx[run_idx].insert(*it_i); // fill protein hits
+          runidx_to_protidx[run_idx].insert(it_i->protein_index); // fill protein hits
 
           /*
           /// STATS
@@ -754,17 +795,30 @@ protected:
         bool matches_target(false);
         bool matches_decoy(false);
 
-        for (vector<String>::const_iterator it = it2->getProteinAccessions().begin(); it != it2->getProteinAccessions().end(); ++it)
+        set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
+        for (set<String>::const_iterator it = protein_accessions.begin(); it != protein_accessions.end(); ++it)
         {
           if (prefix)
           {
-            if (it->hasPrefix(decoy_string)) matches_decoy = true;
-            else matches_target = true;
+            if (it->hasPrefix(decoy_string))
+            {
+              matches_decoy = true;
+            }
+            else
+            {
+              matches_target = true;
+            }
           }
           else
           {
-            if (it->hasSuffix(decoy_string)) matches_decoy = true;
-            else matches_target = true;
+            if (it->hasSuffix(decoy_string))
+            {
+              matches_decoy = true;
+            }
+            else
+            {
+              matches_target = true;
+            }
           }
         }
         String target_decoy;
@@ -784,12 +838,13 @@ protected:
           ++stats_count_m_d;
         }
         it2->setMetaValue("target_decoy", target_decoy);
-        if (it2->getProteinAccessions().size() == 1)
+
+        if (protein_accessions.size() == 1)
         {
           it2->setMetaValue("protein_references", "unique");
           ++stats_matched_unique;
         }
-        else if (it2->getProteinAccessions().size() > 1)
+        else if (protein_accessions.size() > 1)
         {
           it2->setMetaValue("protein_references", "non-unique");
           ++stats_matched_multi;

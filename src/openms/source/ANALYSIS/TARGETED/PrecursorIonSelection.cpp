@@ -306,8 +306,9 @@ namespace OpenMS
         std::cout << hits[h].getScore() << " >= " << new_pep_ids[i].getSignificanceThreshold() << " "
                   << hits[h].getMetaValue("Rank") << std::endl;
 #endif
-        std::vector<String>::const_iterator acc_it = hits[h].getProteinAccessions().begin();
-        for (; acc_it != hits[h].getProteinAccessions().end(); ++acc_it)
+        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(hits[h]);
+        std::set<String>::const_iterator acc_it = protein_accessions.begin();
+        for (; acc_it != protein_accessions.end(); ++acc_it)
         {
 #ifdef PIS_DEBUG
           std::cout << *acc_it << std::endl;
@@ -804,7 +805,7 @@ namespace OpenMS
           for (UInt pep_hit = 0; pep_hit < pep_hits.size(); ++pep_hit)
           {
             // get their accessions
-            const std::vector<String> & accs = pep_hits[pep_hit].getProteinAccessions();
+            std::set<String> accs = PeptideHit::extractProteinAccessions(pep_hits[pep_hit]);
             //std::cout << accs.size() << std::endl;
             const std::vector<ProteinIdentification> & prot_ids = features.getProteinIdentifications();
             // get ProteinIds for accession and save them
@@ -1159,9 +1160,11 @@ namespace OpenMS
           std::cout << "score: " << pep_ids[0].getHits()[0].getScore() << " "
                     << pep_ids[0].getSignificanceThreshold() << " "
                     << pep_ids[0].getHits()[0].getMetaValue("Rank");
-          if (!pep_ids[0].getHits()[0].getProteinAccessions().empty())
+
+          std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(pep_ids[0].getHits()[0]);
+          if (!protein_accessions.empty())
           {
-            String acc = pep_ids[0].getHits()[0].getProteinAccessions()[0];
+            String acc = *protein_accessions.begin();
 
             const std::map<String, std::vector<String> > & sequence_map = preprocessed_db.getProteinPeptideSequenceMap();
             std::map<String, std::vector<String> >::const_iterator seq_map_iter = sequence_map.find(acc);

@@ -793,13 +793,16 @@ protected:
         pep2prot.find(q_it->first.toUnmodifiedString());
       if (pos == pep2prot.end()) // not proteotypic
       {
-        quantified_pep.back().setProteinAccessions(vector<String>());
+        quantified_pep.back().setPeptideEvidences(vector<PeptideEvidence>());
         quantified_pep.back().setMetaValue("mzTab:unique", "false");
       }
       else // proteotypic (therefore used for quantification)
       {
-        vector<String> accessions(1, pos->second);
-        quantified_pep.back().setProteinAccessions(accessions);
+        PeptideEvidence pe;
+        pe.setProteinAccession(pos->second);
+        vector<PeptideEvidence> evidences;
+        evidences.push_back(pe);
+        quantified_pep.back().setPeptideEvidences(evidences);
         quantified_pep.back().setMetaValue("mzTab:unique", "true");
       }
       if (algo_params_.getValue("filter_charge") != "true") // all charges

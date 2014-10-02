@@ -371,10 +371,11 @@ protected:
             LOG_DEBUG << "new peptide!" << endl;
             pep_it->getHits().resize(1); // restrict to best hit for simplicity
             peptides.push_back(*pep_it);
+
+            set<String> protein_accessions = PeptideHit::extractProteinAccessions(hit);
+
             // copy over proteins:
-            for (vector<String>::const_iterator acc_it = 
-                   hit.getProteinAccessions().begin(); acc_it !=
-                   hit.getProteinAccessions().end(); ++acc_it)
+            for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
             {
               LOG_DEBUG << "accession: " << *acc_it << endl;
               // skip ahead if accession is not new:

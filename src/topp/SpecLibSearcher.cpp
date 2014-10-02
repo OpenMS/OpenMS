@@ -405,7 +405,9 @@ protected:
                   hit.setMetaValue("RT", RT);
                   hit.setMetaValue("MZ", MZ);
                   hit.setScore(score);
-                  hit.addProteinAccession(pr_hit.getAccession());
+                  PeptideEvidence pe;
+                  pe.setProteinAccession(pr_hit.getAccession());
+                  hit.addPeptideEvidence(pe);
                   pid.insertHit(hit);
                 }
               }

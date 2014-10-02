@@ -256,7 +256,23 @@ namespace OpenMS
            && significance_threshold_ == 0.0
            && score_type_ == ""
            && higher_score_better_ == true
-           && base_name_ == "";
+        && base_name_ == "";
+  }
+
+  std::vector<PeptideHit> PeptideIdentification::getReferencingHits(const std::vector<PeptideHit> & hits, const std::set<String> & accession)
+  {
+    std::vector<PeptideHit> filtered;
+    for (std::vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
+    {
+      set<String> hit_accessions = PeptideHit::extractProteinAccessions(*h_it);
+      set<String> intersect;
+      set_intersection(hit_accessions.begin(), hit_accessions.end(), accession.begin(), accession.end(), std::inserter(intersect, intersect.begin()));
+      if (!intersect.empty())
+      {
+        filtered.push_back(*h_it);
+      }
+    }
+    return filtered;
   }
 
   /*

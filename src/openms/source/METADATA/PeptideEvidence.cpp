@@ -38,13 +38,34 @@
 namespace OpenMS
 {
 
+const char PeptideEvidence::UNKNOWN_AA = ' ';
+
+PeptideEvidence::PeptideEvidence(const PeptideEvidence & rhs)
+{
+  accession_ = rhs.accession_;
+  start_ = rhs.start_;
+  end_ = rhs.end_;
+  aa_before_ = rhs.aa_before_;
+  aa_after_ = rhs.aa_after_;
+}
+
+PeptideEvidence & PeptideEvidence::operator=(const PeptideEvidence & rhs)
+{
+  accession_ = rhs.accession_;
+  start_ = rhs.start_;
+  end_ = rhs.end_;
+  aa_before_ = rhs.aa_before_;
+  aa_after_ = rhs.aa_after_;
+  return *this;
+}
+
 bool PeptideEvidence::operator==(const PeptideEvidence & rhs) const
 {
-  return accession_ != rhs.accession_ &&
-         start_ != rhs.start_ &&
-         end_ != rhs.end_ &&
-         aa_before_ != rhs.aa_before_ &&
-         aa_after_ != rhs.aa_after_;
+  return accession_ == rhs.accession_ &&
+         start_ == rhs.start_ &&
+         end_ == rhs.end_ &&
+         aa_before_ == rhs.aa_before_ &&
+         aa_after_ == rhs.aa_after_;
 }
 
 bool PeptideEvidence::operator!=(const PeptideEvidence & rhs) const

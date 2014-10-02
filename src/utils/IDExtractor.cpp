@@ -230,7 +230,9 @@ protected:
           for (Size k = 0; k < temp_identifications.size(); ++k)
           {
             temp_peptide_hits.clear();
-            temp_identifications[k].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
+            set<String> accession;
+            accession.insert(temp_protein_hits[j].getAccession());
+            temp_peptide_hits = PeptideIdentification::getReferencingHits(temp_identifications[k].getHits(), accession);
             if (!temp_peptide_hits.empty() && !already_chosen)
             {
               chosen_protein_hits.push_back(temp_protein_hits[j]);

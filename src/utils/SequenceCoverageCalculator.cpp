@@ -164,8 +164,10 @@ protected:
                       << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
             return ILLEGAL_PARAMETERS;
           }
-          temp_hits.clear();
-          identifications[i].getReferencingHits(proteins[j].identifier, temp_hits);
+
+          set<String> accession;
+          accession.insert(proteins[j].identifier);
+          temp_hits = PeptideIdentification::getReferencingHits(identifications[i].getHits(), accession);
 
           if (temp_hits.size() == 1)
           {

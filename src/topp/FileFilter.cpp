@@ -205,8 +205,10 @@ private:
               sequen = true;
             }
           }
+
           //loop over all accessions of the peptideHits
-          for (vector<String>::const_iterator p_acc_it = pep_hit_it->getProteinAccessions().begin(); p_acc_it != pep_hit_it->getProteinAccessions().end(); ++p_acc_it)
+          set<String> protein_accessions = PeptideHit::extractProteinAccessions(*pep_hit_it);
+          for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList
             for (StringList::const_iterator acc_it = accessions.begin(); acc_it != accessions.end(); ++acc_it)
@@ -294,7 +296,7 @@ protected:
       mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
     }
     setValidStrings_("spectra:remove_mode", mode_list);
-    
+
     addEmptyLine_();
     registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
     StringList activation_list;
@@ -498,27 +500,27 @@ protected:
     npconfig_int.estimate_fixed_point = true; // critical
     npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
     npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
-    if (getStringOption_("peak_options:numpress:masstime") == "linear") 
+    if (getStringOption_("peak_options:numpress:masstime") == "linear")
     {
       npconfig_mz.np_compression = MSNumpressCoder::LINEAR;
     }
-    else if (getStringOption_("peak_options:numpress:masstime") == "pic") 
+    else if (getStringOption_("peak_options:numpress:masstime") == "pic")
     {
       npconfig_mz.np_compression = MSNumpressCoder::PIC;
     }
-    else if (getStringOption_("peak_options:numpress:masstime") == "slof") 
+    else if (getStringOption_("peak_options:numpress:masstime") == "slof")
     {
       npconfig_mz.np_compression = MSNumpressCoder::SLOF;
     }
-    if (getStringOption_("peak_options:numpress:intensity") == "linear") 
+    if (getStringOption_("peak_options:numpress:intensity") == "linear")
     {
       npconfig_int.np_compression = MSNumpressCoder::LINEAR;
     }
-    else if (getStringOption_("peak_options:numpress:intensity") == "pic") 
+    else if (getStringOption_("peak_options:numpress:intensity") == "pic")
     {
       npconfig_int.np_compression = MSNumpressCoder::PIC;
     }
-    else if (getStringOption_("peak_options:numpress:intensity") == "slof") 
+    else if (getStringOption_("peak_options:numpress:intensity") == "slof")
     {
       npconfig_int.np_compression = MSNumpressCoder::SLOF;
     }
@@ -603,10 +605,10 @@ protected:
       if (int32 == 32) { f.getOptions().setIntensity32Bit(true); }else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
 
       // set writing index (e.g. indexedmzML)
-      f.getOptions().setWriteIndex(indexed_file); 
+      f.getOptions().setWriteIndex(indexed_file);
       // numpress compression
-      f.getOptions().setNumpressConfigurationMassTime(npconfig_mz); 
-      f.getOptions().setNumpressConfigurationIntensity(npconfig_int); 
+      f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+      f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
 
       MapType exp;
       f.load(in, exp);

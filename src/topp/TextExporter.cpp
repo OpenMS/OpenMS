@@ -328,10 +328,15 @@ namespace OpenMS
   }
 
   // stream output operator for a PeptideHit
+  // TODO: output of multiple peptide evidences
   SVOutStream& operator<<(SVOutStream& out, const PeptideHit& hit)
   {
-    out << hit.getScore() << hit.getRank() << hit.getSequence()
-        << hit.getCharge() << hit.getAABefore() << hit.getAAAfter();
+    vector<PeptideEvidence> pes = hit.getPeptideEvidences();
+    if (!pes.empty())
+    {
+        out << hit.getScore() << hit.getRank() << hit.getSequence()
+            << hit.getCharge() << pes[0].getAABefore() << pes[0].getAAAfter();
+    }
     return out;
   }
 
@@ -350,11 +355,10 @@ namespace OpenMS
       else out << "-1";
       out << *hit_it << pid.getScoreType() << pid.getIdentifier();
       String accessions;
-      for (vector<String>::const_iterator acc_it =
-             hit_it->getProteinAccessions().begin(); acc_it !=
-             hit_it->getProteinAccessions().end(); ++acc_it)
+      set<String> protein_accessions = PeptideHit::extractProteinAccessions(*hit_it);
+      for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
       {
-        if (acc_it != hit_it->getProteinAccessions().begin())
+        if (acc_it != protein_accessions.begin())
         {
           accessions += ";";
         }
@@ -849,11 +853,9 @@ namespace OpenMS
                        getHits().begin(); hit_it != pep_it->getHits().end();
                      ++hit_it)
                 {
-                  peptides_by_source[index].insert(hit_it->getSequence().
-                                                   toString());
-                  proteins_by_source[index].insert(
-                    hit_it->getProteinAccessions().begin(),
-                    hit_it->getProteinAccessions().end());
+                  peptides_by_source[index].insert(hit_it->getSequence().toString());
+                  set<String> protein_accessions = PeptideHit::extractProteinAccessions(*hit_it);
+                  proteins_by_source[index].insert(protein_accessions.begin(), protein_accessions.end());
                 }
               }
               vector<set<String> >::iterator pep_it = peptides_by_source.begin(), prot_it = proteins_by_source.begin();
