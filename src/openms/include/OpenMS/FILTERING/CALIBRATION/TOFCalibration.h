@@ -41,8 +41,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-
-#include <OpenMS/MATH/MISC/Spline2d.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
 #include <map>
@@ -209,7 +208,7 @@ private:
     exp_masses_ = exp_masses;
     calculateCalibCoeffs_(calib_spectra);
 
-    Spline2d<double> spline (3, calib_masses_, error_medians_);
+    CubicSpline2d spline(calib_masses_, error_medians_);
 
 #ifdef DEBUG_CALIBRATION
     std::cout << "fehler nach spline fitting" << std::endl;
