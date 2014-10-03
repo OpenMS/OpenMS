@@ -36,6 +36,14 @@
 #include "test_config.h"
 
 ///////////////////////////
+#include <iostream>
+
+#include <QCryptographicHash>
+#include <QtCore/QByteArray>
+#include <QtCore/QFileInfo>
+#include <QtCore/QProcess>
+#include <QtCore/QStringList>
+#include <QtDebug>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -154,6 +162,70 @@ START_SECTION([EXTRA] load with scan mismatch)
 }
 END_SECTION
 
+MzMLFile mzML;
+MSExperiment<> data;
+mzML.load(PEAKINVESTIGATOR_GET_TEST_DATA_PATH("TarFile_1.mzML"), data);
+
+START_SECTION([EXTRA] verify that data has been loaded)
+{
+  TEST_EQUAL(data.size(), 4);
+  for (Size i = 0; i < data.size(); i++)
+  {
+    MSSpectrum<Peak1D> current = data[i];
+
+    TEST_EQUAL(current.size(), 14);
+    for (Size j = 0; j < current.size(); j++)
+    {
+      TEST_REAL_SIMILAR(current[j].getMZ(), j + 1);
+      TEST_REAL_SIMILAR(current[j].getIntensity(), 15.0 - double (j + 1) / double (i + 1));
+    }
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA] store with bad filename)
+{
+  file.store("", data);
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((void store(const String& filename, const MSExperiment<Peak1D>& experiment)))
+{
+  String tempFilename;
+  NEW_TMP_FILE(tempFilename);
+
+  file.store(tempFilename, data);
+  QFileInfo info(tempFilename.toQString());
+
+  // TarFile's implementation doesn't have as many NULL fields at end of file
+  // as bsdtar, so it's not the same size as TarFile_1.tar.gz. The compression
+  // also may change, depending on timestamps in the tar header.
+  TOLERANCE_ABSOLUTE(5.0);
+  TEST_REAL_SIMILAR((double) info.size(), 385.0);
+
+  // If we're only Mac/Linux, we can use system tar to decompress file to stdout, so
+  // skip remainder of test if we're on Windows.
+#ifdef Q_OS_WIN32
+  ABORT_IF(true);
+#endif
+
+  QProcess process;
+  QStringList arguments;
+  arguments << "-xzOf" << tempFilename.toQString();
+
+  process.start("tar", arguments);
+
+  TEST_EQUAL(process.waitForStarted(), true);
+  TEST_EQUAL(process.waitForFinished(), true);
+
+  QByteArray results = process.readAllStandardOutput();
+
+  QString hash = QCryptographicHash::hash(results, QCryptographicHash::Md5).toHex();
+  TEST_STRING_EQUAL(String(hash), "806491a268bfb415eeedfe352709b781");
+
+}
+END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
