@@ -417,7 +417,7 @@ protected:
       max_permgen_size_cmd = "-XX:MaxPermSize=" + String(max_permgen_size) + "m";
     }
 
-    String converter_executable("java " + max_permgen_size_cmd + " -cp " + getStringOption_("msgfplus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv ");
+    String converter_executable("java " + max_memory_size + max_permgen_size_cmd + " -cp " + getStringOption_("msgfplus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv ");
 
     parameters = "-i " +  msgfplus_output_filename;
     parameters += " -o " + mzidtotsv_output_filename;
