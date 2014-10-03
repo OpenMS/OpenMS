@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,28 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
+#ifndef OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
+#define OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
 
-namespace OpenMS
+#include <string>
+
+//optional namespace... however you like it
+namespace OpenMSExternal
 {
+
+  class ExampleLibraryFile
+  {
+public:
+    static std::string printSomething();
+
+    // just to have a dependency to OpenMS in the lib
+    void loadAndSaveFeatureXML();
+  };
+
 }
+
+#endif // OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H

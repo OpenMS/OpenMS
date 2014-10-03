@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,12 +28,60 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
+#ifndef OPENMS_VISUAL_GUIPROGRESSLOGGERIMPL_H
+#define OPENMS_VISUAL_GUIPROGRESSLOGGERIMPL_H
+
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+
+class QProgressDialog;
 
 namespace OpenMS
 {
+  /**
+    @brief Implements a GUI version of the ProgressLoggerImpl.
+  */
+  class OPENMS_GUI_DLLAPI GUIProgressLoggerImpl :
+    public ProgressLogger::ProgressLoggerImpl
+  {
+public:
+    /// create new object (needed by Factory)
+    static ProgressLogger::ProgressLoggerImpl* create();
+
+    /// name of the model (needed by Factory)
+    static const String getProductName();
+
+    /// default c'tor.
+    GUIProgressLoggerImpl();
+
+    /**
+      @brief Implement ProgressLoggerImpl::startProgress().
+    */
+    void startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const;
+
+    /**
+      @brief Implement ProgressLoggerImpl::setProgress().
+    */
+    void setProgress(const SignedSize value, const int /* current_recursion_depth */) const;
+
+    /**
+      @brief Implement ProgressLoggerImpl::endProgress().
+    */
+    void endProgress(const int /* current_recursion_depth */) const;
+
+    /// d'tor
+    ~GUIProgressLoggerImpl();
+
+private:
+    mutable QProgressDialog* dlg_;
+    mutable SignedSize begin_;
+    mutable SignedSize end_;
+  };
 }
+
+#endif

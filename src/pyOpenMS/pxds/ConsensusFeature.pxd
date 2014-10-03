@@ -67,6 +67,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         void setRatios(libcpp_vector[Ratio] rs) nogil except +
         libcpp_vector[Ratio] getRatios() nogil except +
 
+        void clear() nogil except +
+        bool empty() nogil except +
+
         # # Returns the position range of the contained elements
         # DRange2 getPositionRange() nogil except +
         # # Returns the intensity range of the contained elements

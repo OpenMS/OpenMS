@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<bo
   typedef std::set<boost::tuple<double, double, double> > Fwhm;
   Fwhm fwhm;
   PeakWidthEstimator::estimateSpectrumFWHM(input[0], fwhm);
-  TEST_EQUAL(fwhm.size(), 34);
+  TEST_EQUAL(fwhm.size(), 33);
   Fwhm::const_reverse_iterator it = fwhm.rbegin();
   TEST_REAL_SIMILAR(it->get<0>(), 70077.03125);
   TEST_REAL_SIMILAR(it->get<1>(), 373.233354572207);
@@ -64,8 +64,8 @@ END_SECTION
 START_SECTION(static Result estimateFWHM(const MSExperiment<> &))
 {
   PeakWidthEstimator::Result r(PeakWidthEstimator::estimateFWHM(input));
-  TEST_REAL_SIMILAR(r.c0, -13.3983270252558);
-  TEST_REAL_SIMILAR(r.c1, 1.3776281072285);
+  TEST_REAL_SIMILAR(r.c0, -13.5602655596606);
+  TEST_REAL_SIMILAR(r.c1, 1.40511597343351);
 }
 END_SECTION
 

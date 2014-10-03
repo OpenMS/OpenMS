@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -209,7 +209,7 @@ namespace OpenMS
       Precursor prec;
       prec.setMZ(features[i_f].getMZ());
       precomputed_MS2[i_f].setPrecursors(std::vector<Precursor>(1, prec));
-      precomputed_MS2[i_f].setMetaValue("FeatureID", (String)features[i_f].getUniqueId());
+      precomputed_MS2[i_f].setMetaValue("FeatureID", static_cast<String>(features[i_f].getUniqueId()));
 
 
       // validate features meta values exist and are valid:
@@ -234,7 +234,7 @@ namespace OpenMS
     }
 
     // creating the MS^E scan:
-    bool add_debug_spectra = ((String)param_.getValue("MS_E:add_single_spectra") == "true");
+    bool add_debug_spectra = static_cast<String>(param_.getValue("MS_E:add_single_spectra")) == "true";
 
     for (Size i = 0; i < experiment.size(); ++i) // create MS2 for every MS scan
     { // check which features elute in the current MS scan
@@ -313,7 +313,7 @@ namespace OpenMS
     param.remove("charge_filter");
     ps.setParameters(param);
     // different selection strategies for MALDI and ESI
-    bool is_MALDI = (String)param_.getValue("ionization_type") == "MALDI";
+    bool is_MALDI = static_cast<String>(param_.getValue("ionization_type")) == "MALDI";
 
     // fill 'ms2' with precursor information, but leave spectra empty
     ps.makePrecursorSelectionForKnownLCMSMap(features, experiment, ms2, qs_set, is_MALDI);

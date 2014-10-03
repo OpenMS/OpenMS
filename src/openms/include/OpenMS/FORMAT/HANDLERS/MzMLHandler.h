@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -256,8 +256,8 @@ protected:
 
       typedef MzMLHandlerHelper::BinaryData BinaryData;
 
-      void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s, 
-              Internal::MzMLValidator& validator, bool renew_native_ids, 
+      void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s,
+              Internal::MzMLValidator& validator, bool renew_native_ids,
               std::vector<std::vector<DataProcessing> > & dps);
 
       void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
@@ -265,7 +265,7 @@ protected:
       template <typename ContainerT>
       void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
       {
-      
+
         bool is32Bit = ( (array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
         if (! is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
         {
@@ -306,14 +306,14 @@ protected:
           }
           writeBinaryDataArray(os, pf_options_, data_to_encode, true, array_type);
         }
-      
+
       }
 
       /**
-          @brief Populate all spectra on the stack with data from input 
+          @brief Populate all spectra on the stack with data from input
 
           Will populate all spectra on the current work stack with data (using
-          multiple threads if available) and append them to the result. 
+          multiple threads if available) and append them to the result.
       */
       void populateSpectraWithData()
       {
@@ -330,11 +330,15 @@ protected:
             // parallel exception catching and re-throwing business
             if (!errCount) // no need to parse further if already an error was encountered
             {
-              try 
+              try
               {
                 populateSpectraWithData_(spectrum_data_[i].data ,
                         spectrum_data_[i].default_array_length, options_,
                         spectrum_data_[i].spectrum);
+                if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
+                {
+                  spectrum_data_[i].spectrum.sortByPosition();
+                }
               }
               catch (...)
               {
@@ -371,10 +375,10 @@ protected:
       }
 
       /**
-          @brief Populate all chromatograms on the stack with data from input 
+          @brief Populate all chromatograms on the stack with data from input
 
           Will populate all chromatograms on the current work stack with data (using
-          multiple threads if available) and append them to the result. 
+          multiple threads if available) and append them to the result.
       */
       void populateChromatogramsWithData()
       {
@@ -388,11 +392,15 @@ protected:
           for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
-            try 
+            try
             {
               populateChromatogramsWithData_(chromatogram_data_[i].data ,
                       chromatogram_data_[i].default_array_length, options_,
                       chromatogram_data_[i].chromatogram);
+              if (options_.getSortChromatogramsByRT() && !chromatogram_data_[i].chromatogram.isSorted())
+              {
+                chromatogram_data_[i].chromatogram.sortByPosition();
+              }
             }
             catch (...)
             {++errCount;}
@@ -426,7 +434,7 @@ protected:
       }
 
       /**
-          @brief Fill a single spectrum with data from input 
+          @brief Fill a single spectrum with data from input
 
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
@@ -607,7 +615,7 @@ protected:
 
 
       /**
-          @brief Fill a single chromatogram with data from input 
+          @brief Fill a single chromatogram with data from input
 
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
@@ -877,13 +885,13 @@ protected:
       String default_processing_;
 
       /**
-          @brief Data necessary to generate a single spectrum 
+          @brief Data necessary to generate a single spectrum
 
           Small struct holds all data necessary to populate a spectrum at a
           later timepoint (since reading of the base64 data and generation of
           spectra can be done at distinct timepoints).
       */
-      struct SpectrumData 
+      struct SpectrumData
       {
         std::vector<BinaryData> data;
         Size default_array_length;
@@ -895,7 +903,7 @@ protected:
       std::vector< SpectrumData > spectrum_data_;
 
       /**
-          @brief Data necessary to generate a single chromatogram 
+          @brief Data necessary to generate a single chromatogram
 
           Small struct holds all data necessary to populate a chromatogram at a
           later timepoint (since reading of the base64 data and generation of
@@ -1468,12 +1476,12 @@ protected:
         }
         */
 
-        if (!skip_spectrum_) 
+        if (!skip_spectrum_)
         {
           spectrum_data_.push_back(SpectrumData());
           spectrum_data_.back().default_array_length = default_array_length_;
           spectrum_data_.back().spectrum = spec_;
-          if (options_.getFillData()) 
+          if (options_.getFillData())
           {
             spectrum_data_.back().data = data_;
           }
@@ -1494,12 +1502,12 @@ protected:
       else if (equal_(qname, s_chromatogram))
       {
 
-        if (!skip_chromatogram_) 
+        if (!skip_chromatogram_)
         {
           chromatogram_data_.push_back(ChromatogramData());
           chromatogram_data_.back().default_array_length = default_array_length_;
           chromatogram_data_.back().chromatogram = chromatogram_;
-          if (options_.getFillData()) 
+          if (options_.getFillData())
           {
             chromatogram_data_.back().data = data_;
           }
@@ -1536,7 +1544,7 @@ protected:
         instruments_.clear();
         processing_.clear();
 
-        // Flush the remaining data 
+        // Flush the remaining data
         populateSpectraWithData();
         populateChromatogramsWithData();
       }
@@ -3933,7 +3941,7 @@ protected:
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeHeader_(std::ostream& os, const MapType& exp, 
+    void MzMLHandler<MapType>::writeHeader_(std::ostream& os, const MapType& exp,
             std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
@@ -4844,8 +4852,8 @@ protected:
 
     template <typename MapType>
     void MzMLHandler<MapType>::writeSpectrum_(std::ostream& os,
-            const SpectrumType& spec, Size s, 
-            Internal::MzMLValidator& validator, bool renew_native_ids, 
+            const SpectrumType& spec, Size s,
+            Internal::MzMLValidator& validator, bool renew_native_ids,
             std::vector<std::vector<DataProcessing> > & dps)
     {
         //native id
@@ -5093,7 +5101,7 @@ protected:
             std::vector<double> data64_to_encode(array.size());
             for (Size p = 0; p < array.size(); ++p)
               data64_to_encode[p] = array[p];
-            // TODO also encode float data arrays using numpress? 
+            // TODO also encode float data arrays using numpress?
             decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
             String data_processing_ref_string = "";
             if (array.getDataProcessing().size() != 0)
@@ -5246,7 +5254,7 @@ protected:
           std::vector<double> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data64_to_encode[p] = array[p];
-          // TODO also encode float data arrays using numpress? 
+          // TODO also encode float data arrays using numpress?
           decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
           String data_processing_ref_string = "";
           if (array.getDataProcessing().size() != 0)

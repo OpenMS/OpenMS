@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,37 +28,59 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow $
+// $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include "ExampleLibraryFile.h"
+#include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
 
-using namespace OpenMS;
-using namespace OpenMSExternal;
-
-int main(int argc, char * argv[])
+namespace OpenMS
 {
 
-  FeatureMap<> fm;
-  Feature feature;
-  fm.push_back(feature);
-  std::string s = ExampleLibraryFile::printSomething();
-  std::cout << "From external lib: " << s << "\n";
+  MSDataChainingConsumer::MSDataChainingConsumer() {}
 
-  MSExperiment<Peak1D,ChromatogramPeak> exp;
-  MzMLFile f;
-  String tmpfilename = "tmpfile.mzML";
+  MSDataChainingConsumer::MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer<> *> consumers) :
+    consumers_(consumers)
+  {}
 
-  f.store(tmpfilename,exp); 
-  f.load(tmpfilename,exp);
+  MSDataChainingConsumer::~MSDataChainingConsumer() {}
 
-  std::cout << "Loading and storing of mzML worked!\n";
+  void MSDataChainingConsumer::appendConsumer(Interfaces::IMSDataConsumer<> * consumer)
+  {
+    consumers_.push_back(consumer);
+  }
 
-  std::cout << "All good and well!\n";
-  return 0;
-}
+  void MSDataChainingConsumer::setExperimentalSettings(const ExperimentalSettings & settings)
+  {
+    for (Size i = 0; i < consumers_.size(); i++)
+    {
+      consumers_[i]->setExperimentalSettings(settings);
+    }
+  }
+
+  void MSDataChainingConsumer::setExpectedSize(Size s_size, Size c_size) 
+  {
+    for (Size i = 0; i < consumers_.size(); i++)
+    {
+      consumers_[i]->setExpectedSize(s_size, c_size);
+    }
+  }
+
+  void MSDataChainingConsumer::consumeSpectrum(SpectrumType & s)
+  {
+    for (Size i = 0; i < consumers_.size(); i++)
+    {
+      consumers_[i]->consumeSpectrum(s);
+    }
+  }
+
+  void MSDataChainingConsumer::consumeChromatogram(ChromatogramType & c)
+  {
+    for (Size i = 0; i < consumers_.size(); i++)
+    {
+      consumers_[i]->consumeChromatogram(c);
+    }
+  }
+
+} //end namespace OpenMS
+

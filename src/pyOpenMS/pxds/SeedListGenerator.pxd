@@ -9,9 +9,10 @@ from Peak1D cimport *
 from PeptideIdentification cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
+from DPosition cimport DPosition2
 
 
-ctypedef libcpp_vector[ DPosition2] SeedList
+ctypedef libcpp_vector[DPosition2] SeedList
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>" namespace "OpenMS":
 

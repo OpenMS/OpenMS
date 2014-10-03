@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,84 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl$
-// $Authors: $
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleSeeder.h>
+#include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <QProgressDialog>
+#include <iostream>
 
 namespace OpenMS
 {
+  /// create new object (needed by Factory)
+  ProgressLogger::ProgressLoggerImpl* GUIProgressLoggerImpl::create()
+  {
+    return new GUIProgressLoggerImpl();
+  }
 
+  /// name of the model (needed by Factory)
+  const String GUIProgressLoggerImpl::getProductName()
+  {
+    return "GUI";
+  }
+
+  GUIProgressLoggerImpl::GUIProgressLoggerImpl() :
+    dlg_(0),
+    begin_(0),
+    end_(0)
+  {
+  }
+
+  void GUIProgressLoggerImpl::startProgress(const SignedSize begin, const SignedSize end, const String& label, const int /* current_recursion_depth */) const
+  {
+    begin_ = begin;
+    end_ = end;
+    if (!dlg_)
+    {
+      dlg_ = new QProgressDialog(label.c_str(), QString(), int(begin), int(end));
+    }
+    dlg_->setWindowTitle(label.c_str());
+    dlg_->setWindowModality(Qt::WindowModal);
+    dlg_->show();
+  }
+
+  void GUIProgressLoggerImpl::setProgress(const SignedSize value, const int /* current_recursion_depth */) const
+  {
+    if (value < begin_ || value > end_)
+    {
+      std::cout << "ProgressLogger: Invalid progress value '" << value << "'. Should be between '" << begin_ << "' and '" << end_ << "'!" << std::endl;
+    }
+    else
+    {
+      if (dlg_)
+      {
+        dlg_->setValue((int)value);
+      }
+      else
+      {
+        std::cout << "ProgressLogger warning: 'setValue' called before 'startProgress'!" << std::endl;
+      }
+    }
+  }
+
+  void GUIProgressLoggerImpl::endProgress(const int /* current_recursion_depth */) const
+  {
+    if (dlg_)
+    {
+      dlg_->setValue((int)end_);
+    }
+    else
+    {
+      std::cout << "ProgressLogger warning: 'endProgress' called before 'startProgress'!" << std::endl;
+    }
+  }
+
+  GUIProgressLoggerImpl::~GUIProgressLoggerImpl()
+  {
+    delete dlg_;
+  }
 }

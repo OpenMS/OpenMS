@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -378,14 +378,7 @@ public:
             f.getConvexHulls().push_back(hull);
             f.setMetaValue("MZ", (double)first_it->getPrecursor().getMZ());
 
-
-            // add the model to the feature
-            ProductModel<2> prod_model;
-            prod_model.setModel(RT, model_rt);
-            f.setModelDescription(ModelDescription<2>(&prod_model));
-
-
-            feature_id++;
+            ++feature_id;
 
             // writes a feature plot using gnuplot (should be installed on computer)
             if (write_debug_files)

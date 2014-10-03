@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
@@ -53,7 +54,7 @@
 
 #include <QDir>
 #include <QFile>
-#include <QApplication>
+#include <QCoreApplication>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -126,7 +127,7 @@ namespace OpenMS
 #if  defined(__APPLE__)
     // we do not want to load plugins as this leads to serious problems
     // when shipping on mac os x
-    QApplication::setLibraryPaths(QStringList());
+    QCoreApplication::setLibraryPaths(QStringList());
 #endif
   }
 
@@ -599,14 +600,18 @@ namespace OpenMS
       if (!subsection.empty() && current_TOPP_subsection != subsection)
       {
         current_TOPP_subsection = subsection;
-        map<String, String>::const_iterator it = subsections_TOPP_.find(current_TOPP_subsection);
-        if (it == subsections_TOPP_.end())
+        map<String, String>::const_iterator subsec_it = subsections_TOPP_.find(current_TOPP_subsection);
+        if (subsec_it == subsections_TOPP_.end())
+        {
           throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'" + current_TOPP_subsection + "' (TOPP subsection not registered)");
+        }
         cerr << "\n"; // print newline for new subsection
 
-        String subsection_description = it->second;
+        String subsection_description = subsec_it->second;
         if (subsection_description.length() == 0)
+        {
           subsection_description = current_TOPP_subsection;
+        }
 
         cerr << ConsoleUtils::breakString(subsection_description, 0, 10) << ":\n"; // print subsection description
       }

@@ -22,7 +22,11 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #   FeatureMap := FeatureMap[Feature]
 
         FeatureMap() nogil except +
-        FeatureMap(FeatureMap[FeatureT] &) nogil except +
+        FeatureMap(FeatureMap &) nogil except +
+
+        bool operator==(FeatureMap[FeatureT]) nogil except +
+        bool operator!=(FeatureMap[FeatureT]) nogil except +
+
         int size()  nogil except +
         Feature operator[](int)      nogil except + #wrap-upper-limit:size()
         void push_back(FeatureT spec) nogil except +
@@ -35,6 +39,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         void sortByOverallQuality() nogil except +
 
         void swap(FeatureMap[FeatureT] &) nogil except +
+        void swapFeaturesOnly(FeatureMap[FeatureT] swapfrom) nogil except +
         void clear() nogil except +
         void clear(bool clear_meta_data) nogil except +
 
@@ -56,12 +61,5 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
         libcpp_vector[Feature].iterator begin() nogil except +    # wrap-iter-begin:__iter__(Feature)
         libcpp_vector[Feature].iterator end()   nogil except +    # wrap-iter-end:__iter__(Feature)
-
-
-
-
-
-
-
 
 

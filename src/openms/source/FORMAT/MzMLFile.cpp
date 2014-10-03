@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,4 +128,27 @@ namespace OpenMS
     options_.setSizeOnly(size_only_before_);
   }
 
+  void MzMLFile::safeParse_(const String & filename, Internal::XMLHandler * handler)
+  {
+    try
+    {
+      parse_(filename, handler);
+    }
+    catch (Exception::BaseException& e)
+    {
+      std::string expr;
+      expr.append(e.getFile());
+      expr.append("@");
+      std::stringstream ss;
+      ss << e.getLine(); // we need c++11!! maybe in 2012?
+      expr.append(ss.str());
+      expr.append("-");
+      expr.append(e.getFunction());
+      std::string mess = "- due to that error of type ";
+      mess.append(e.getName());
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, expr, mess);
+    }
+  }
+
 } // namespace OpenMS
+

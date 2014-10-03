@@ -223,9 +223,11 @@ PyOpenMSChecker:
         - readChromatogramFast
     OpenMS::ParamXMLFile:
         - writeXMLToStream
+    OpenMS::XMLFile:
+        - isValid
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    # Iterators
+    # Iterators / Streams
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::IsotopeWaveletTransform:
         - MZBegin
@@ -249,6 +251,11 @@ PyOpenMSChecker:
     OpenMS::SignalToNoiseEstimator:
         - init
         - getSignalToNoise
+    OpenMS::Internal::XMLFile:
+        - isValid
+    OpenMS::ConsensusFeature:
+        - getPositionRange
+        - getIntensityRange
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Others
@@ -283,6 +290,7 @@ PyOpenMSChecker:
     OpenMS::ConsensusMap:
         - swap
         - applyMemberFunction
+        - isMapConsistent
     OpenMS::Feature:
         - applyMemberFunction
         - getModelDescription
@@ -360,26 +368,12 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Raw pointers
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
-    OpenMS::EmpiricalFormula:
-        - getElement
-        - getElement
-        - getElementDB
-    OpenMS::ElementDB:
-        - getInstance
-        - getNames
-        - getSymbols
-        - getAtomicNumbers
-        - getElement
-        - getElement
-        - getElement
-        - getElement
     OpenMS::HiddenMarkovModel:
         - write # stream
-        - calculateEmissionProbabilities
-        - getState
     OpenMS::MarkerMower:
         - insertmarker
     OpenMS::ProteinResolver::ProteinEntry:
@@ -388,11 +382,9 @@ PyOpenMSChecker:
         - indis
         - type
     OpenMS::ResidueDB:
-        - getResidue
-        - getModifiedResidue
-        - getModifiedResidue
-        - getResidues
-        - getInstance
+        # iterator
+        - beginResidue
+        - endResidue
     # char pointer
     OpenMS::Peak2D:
         - shortDimensionName
@@ -407,14 +399,6 @@ PyOpenMSChecker:
         - fullDimensionUnit
         - fullDimensionUnitRT
         - fullDimensionUnitMZ
-
-    OpenMS::HMMState:
-        addPredecessorState
-        deletePredecessorState
-        addSuccessorState
-        deleteSuccessorState
-        getPredecessorStates
-        getSuccessorStates
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Factory pattern / create methods
@@ -526,6 +510,12 @@ PyOpenMSChecker:
         - getNumberOfChannels
         - getIsotopeCorrectionMatrix
         - getReferenceChannel
+    OpenMS::TMTTenPlexQuantitationMethod:
+        - getName
+        - getChannelInformation
+        - getNumberOfChannels
+        - getIsotopeCorrectionMatrix
+        - getReferenceChannel
     OpenMS::EdwardsLippertIterator:
         - setFastaFile
         - getFastaFile
@@ -568,6 +558,7 @@ PyOpenMSChecker:
     # Do not expose List, String and Utils methods - Python has better ones
     - OpenMS::String
     - OpenMS::StringUtils
+    - OpenMS::StringListUtils
     - OpenMS::ListUtils
 
     # External libraries
@@ -624,7 +615,8 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzIdentMLValidator
     - OpenMS::Internal::MzIterator
     - OpenMS::Internal::MzMLHandler
-    - OpenMS::Internal::MzMLHandler::BinaryData
+    - OpenMS::Internal::MzMLHandlerHelper
+    - OpenMS::Internal::MzMLHandlerHelper::BinaryData
     - OpenMS::Internal::MzMLValidator
     - OpenMS::Internal::MzQuantMLHandler
     - OpenMS::Internal::MzQuantMLValidator
@@ -686,6 +678,9 @@ PyOpenMSChecker:
     - OpenMS::BigString
     - OpenMS::TOPPBase
     - OpenMS::TraceFitter
+
+    # Abstract Base classes
+    - OpenMS::MSDataWritingConsumer
 
     # Exception classes
     - OpenMS::Exception::BaseException
@@ -874,6 +869,7 @@ PyOpenMSChecker:
     - OpenMS::StopWatch
     - OpenMS::StopFileWatcher
     - OpenMS::FileWatcher
+    - OpenMS::MSDataTransformingConsumer # not really useful since it uses function pointers
 
     # prduces compile error
     - OpenMS::IsotopeWaveletTransform::TransSpectrum
@@ -894,6 +890,8 @@ PyOpenMSChecker:
     - OpenMS::PoseClusteringShiftSuperimposer
     - OpenMS::Base64::Reinterpreter32_
     - OpenMS::Base64::Reinterpreter64_
+    - OpenMS::Base64::decodeSingleString
+    - OpenMS::BinnedSpectrum::getBins
     - OpenMS::ClusterFunctor
     - OpenMS::ClusterFunctor::InsufficientInput
     - OpenMS::CompNovoIdentificationBase
@@ -916,9 +914,6 @@ PyOpenMSChecker:
     - OpenMS::HashGrid
     - OpenMS::HashGrid::ConstIterator
     - OpenMS::HashGrid::Iterator
-    - OpenMS::SimpleExtender
-    - OpenMS::SimpleExtender::IndexWithPriority
-    - OpenMS::SimpleExtender::IndexWithPriority::PriorityLess
     - OpenMS::ims::IMSAlphabetParser
     - OpenMS::ims::IMSAlphabetTextParser
 
@@ -1018,7 +1013,6 @@ PyOpenMSChecker:
     - OpenMS::SpecArrayFile
     - OpenMS::PersistentObject
     - OpenMS::FastaIterator
-    - OpenMS::PepXMLFileMascot
     - OpenMS::MascotRemoteQuery
     - OpenMS::LibSVMEncoder
     - OpenMS::CsvFile
@@ -1108,6 +1102,10 @@ PyOpenMSChecker:
     - RNPxlReportRowHeader
     - OpenMS::ConsoleUtils
     - TOPPRNPxl
+    - OpenMS::OpenSwathWorkflow
+    - OpenMS::OpenSwathWindowLoader
+    - OpenMS::OpenSwathWorkflow::ChromExtractParams
+    - OpenMS::OpenSwathTSVWriter 
 
     # Comparators of all sorts
     - OpenMS::ReverseComparator
@@ -1132,9 +1130,7 @@ PyOpenMSChecker:
     - OpenMS::ExtendedIsotopeModel
     - OpenMS::PeakWidthEstimator::Result
     - OpenMS::LmaGaussModel
-    - OpenMS::FeatureFinderAlgorithmSimplest
     - OpenMS::FeatureFinderAlgorithm
-    - OpenMS::ModelFitter
     - OpenMS::FeatureFinderDefs::NoSuccessor
     - OpenMS::FeaFiModule
     - OpenMS::ProductModel< 2 >
@@ -1144,12 +1140,10 @@ PyOpenMSChecker:
     - OpenMS::FeatureFinderDefs
     - OpenMS::FeatureFinderAlgorithmMRM
     - OpenMS::ModelDescription
-    - OpenMS::FeatureFinderAlgorithmSimple
     - OpenMS::PeakWidthEstimator
     - OpenMS::Summary
     - OpenMS::IsotopeWaveletParallelFor
     - OpenMS::GaussFitter1D
-    - OpenMS::SimpleSeeder
     - OpenMS::EGHTraceFitter
     - OpenMS::GaussModel
     - OpenMS::ExtendedIsotopeFitter1D

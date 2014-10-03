@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,20 +32,32 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
-#define OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H
+#include "ExampleLibraryFile.h"
 
-#include <string>
+#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
-namespace OpenMSExternal //optional namespace... however you like it
+using namespace std;
+using namespace OpenMS;
+
+//optional namespace... however you like it
+namespace OpenMSExternal
 {
-
-  class ExampleLibraryFile
+  std::string ExampleLibraryFile::printSomething()
   {
-public:
-    static std::string printSomething();
-  };
+    return "this is the external library.";
+  }
 
+  void ExampleLibraryFile::loadAndSaveFeatureXML()
+  {
+    FeatureMap<> fm;
+    Feature feature;
+    fm.push_back(feature);
+    String tmpfilename = "tmpfile.featureXML";
+    FeatureXMLFile().store(tmpfilename, fm);
+
+    FeatureMap<> fm2;
+    FeatureXMLFile().store(tmpfilename, fm2);
+  }
 }
-
-#endif // OPENMSEXTERNAL_EXAMPLELIBRARYFILE_H

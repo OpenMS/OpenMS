@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -495,6 +495,10 @@ public:
       list.push_back(temp);
     }
 
+    // sort mass patterns
+    // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
+    std::sort(list.begin(), list.end());
+
     // generate additional mass shifts due to knock-outs
     if (knock_out_ && list[0].size()==1)
     {
@@ -814,13 +818,14 @@ public:
               // loop over peptides
               for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
               {
-                profile_intensities[peptide].push_back(result_raw.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + peak + 1]);                  // +1 due to zeroth peaks
-
-                std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-                double mz = result_raw.getMZ() + result_raw.getMZShifts()[(isotopes_per_peptide_max_ + 1) * peptide + peak + 1];
-                if (!(boost::math::isnan(mz)))
+                unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
+                profile_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
+                
+                double mz_shift = result_raw.getMZShifts()[index];
+                if (!(boost::math::isnan(mz_shift)))
                 {
-                  mass_traces[peptide_peak].enlarge(rt, mz);
+                  std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
+                  mass_traces[peptide_peak].enlarge(rt, result_raw.getMZ() + mz_shift);
                 }
               }
             }
@@ -869,8 +874,10 @@ public:
             if (mass_traces.count(peptide_peak) > 0)
             {
               ConvexHull2D hull;
-              hull.addPoint(mass_traces[peptide_peak].min_);
-              hull.addPoint(mass_traces[peptide_peak].max_);
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(),mass_traces[peptide_peak].minY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(),mass_traces[peptide_peak].maxY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(),mass_traces[peptide_peak].minY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(),mass_traces[peptide_peak].maxY()));
               feature.getConvexHulls().push_back(hull);
             }
           }
@@ -985,7 +992,7 @@ public:
     {
         ConsensusMap::FileDescription& desc = map.getFileDescriptions()[i];
         desc.filename = filename;
-        
+
         if (knock_out_)
         {
             // With knock-outs present, the correct labels can only be determined during ID mapping.
@@ -1150,7 +1157,7 @@ private:
     PeakPickerHiRes picker;
     Param param = picker.getParameters();
     picker.setLogType(log_type_);
-    param.setValue("ms1_only", DataValue("true"));
+    param.setValue("ms_levels", ListUtils::create<Int>("1"));
     param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
     picker.setParameters(param);
 

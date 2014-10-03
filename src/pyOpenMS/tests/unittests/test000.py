@@ -309,8 +309,7 @@ def testEmpiricalFormula():
     ins.toString()
     ins.isEmpty()
     ins.isCharged()
-    ins.hasElement(b"C")
-    ins.hasElement(6)
+    ins.hasElement( pyopenms.Element() )
 
 @report
 def testIdentificationHit():
@@ -1952,7 +1951,7 @@ def testFeatureMap():
     fm2.setUniqueIds()
 
     fm += fm
-    assert fm + fm != fm
+    assert fm + fm2 != fm
 
 
 @report
@@ -2626,7 +2625,7 @@ def testMSExperiment():
     mse_ = copy.deepcopy(mse)
     assert mse_ == mse
     mse_ = pyopenms.MSExperiment(mse)
-    assert mse_ == fm
+    assert mse_ == mse
 
     _testMetaInfoInterface(mse)
     mse.updateRanges()
@@ -2822,7 +2821,7 @@ def testMSChromatogram():
     assert chrom_ == chrom
     chrom_ = copy.deepcopy(chrom)
     assert chrom_ == chrom
-    chrom_ = pyopenms.MSSpectrum(chrom)
+    chrom_ = pyopenms.MSChromatogram(chrom)
     assert chrom_ == chrom
 
     _testMetaInfoInterface(chrom)
@@ -3800,7 +3799,8 @@ def testTransformationModels():
                 pyopenms.TransformationModelInterpolated]:
         mod = clz()
         p = pyopenms.Param()
-        clz.getDefaultParameters(p)
+        mod.getDefaultParameters(p)
+
 
 @report
 def testTransformationXMLFile():
@@ -4195,4 +4195,26 @@ def test_MapConversion():
     assert(cmap.size() == 2)
     assert(cmap[0].getIntensity() == 10.0)
     assert(cmap[0].getMZ() == 20.0)
+
+def test_BSpline2d():
+
+    x = [1.0, 6.0, 8.0, 10.0, 15.0]
+    y = [2.0, 5.0, 6.0, 12.0, 13.0]
+    spline = pyopenms.BSpline2d(x,y,0, pyopenms.BoundaryCondition.BC_ZERO_ENDPOINTS, 0)
+
+    assert spline.ok()
+    assert abs(spline.eval(6.0) - 5.0 < 0.01)
+    assert abs(spline.derivative(6.0) - 5.0 < 0.01)
+
+    # These are not theoretically motivated but just test that the functions
+    # can be called.
+    assert abs(spline.coefficient(2) + 1.06799045573 < 0.5)
+    assert spline.nX() == 5
+
+    y_new = [4.0, 5.0, 6.0, 12.0, 13.0]
+    spline.solve(y_new)
+
+    assert spline.ok()
+    assert abs(spline.eval(6.0) - 5.0 < 0.01)
+
 

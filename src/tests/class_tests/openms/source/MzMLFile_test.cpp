@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -783,6 +783,37 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 			MSExperiment<> exp_cor2;
 	TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
 
+        {
+          //Testing automated sorting of files
+          MSExperiment<> exp_inverse;
+          MSSpectrum<> spec;
+          MSChromatogram<> chrom;
+          Peak1D sp;
+          ChromatogramPeak cp;
+          // create spectrum and chromatogram in inversed order
+          for (Size i = 10; i != 0; --i)
+          {
+            sp.setMZ(i);
+            spec.push_back(sp);
+            cp.setRT(i);
+            chrom.push_back(cp);
+          }
+          exp_inverse.addSpectrum(spec); 
+          exp_inverse.addChromatogram(chrom);
+          MSExperiment<> exp_sorted(exp_inverse);
+          exp_sorted.sortSpectra(true);
+          exp_sorted.sortChromatograms(true);
+          MzMLFile file;
+          std::string tmp_filename;
+          NEW_TMP_FILE(tmp_filename);
+          TEST_EQUAL(exp_inverse.getSpectrum(0).isSorted(), false);
+          TEST_EQUAL(exp_inverse.getChromatogram(0).isSorted(), false);
+          file.store(tmp_filename, exp_inverse);
+          MSExperiment<> exp_sorted_on_load;
+          file.load(tmp_filename, exp_sorted_on_load);
+          TEST_EQUAL(exp_sorted_on_load.getSpectrum(0).isSorted(), true);
+          TEST_EQUAL(exp_sorted_on_load.getChromatogram(0).isSorted(), true);
+        }         
 END_SECTION
 
 START_SECTION([EXTRA] load only meta data)

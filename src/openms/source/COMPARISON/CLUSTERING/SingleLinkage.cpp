@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,20 @@
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 namespace OpenMS
 {
+  ClusterFunctor * SingleLinkage::create()
+  {
+    return new SingleLinkage();
+  }
+
+  const String SingleLinkage::getProductName()
+  {
+    return "SingleLinkage";
+  }
+
   SingleLinkage::SingleLinkage() :
     ClusterFunctor(), ProgressLogger()
   {

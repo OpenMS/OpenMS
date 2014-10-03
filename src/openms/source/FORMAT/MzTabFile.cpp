@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,9 +40,6 @@
 
 #include <fstream>
 
-using namespace OpenMS;
-using namespace std;
-
 namespace OpenMS
 {
 
@@ -66,9 +63,9 @@ namespace OpenMS
     MzTabPeptideSectionData mz_tab_peptide_section_data;
     MzTabSmallMoleculeSectionData mz_tab_small_molecule_section_data;
 
-    vector<String> protein_custom_opt_columns;
-    vector<String> peptide_custom_opt_columns;
-    vector<String> small_molecule_custom_opt_columns;
+    std::vector<String> protein_custom_opt_columns;
+    std::vector<String> peptide_custom_opt_columns;
+    std::vector<String> small_molecule_custom_opt_columns;
 
     for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit)
     {
@@ -164,7 +161,7 @@ namespace OpenMS
             String software_index_string = meta_key_fields[1];
             software_index_string.substitute("software", "").remove('[').remove(']');
             Int software_index = software_index_string.toInt() - 1;
-            if (mz_tab_metadata[unit_id].software_setting.size() < (Size)(software_index + 1))
+            if (mz_tab_metadata[unit_id].software_setting.size() < static_cast<Size>(software_index + 1))
             {
               mz_tab_metadata[unit_id].software_setting.resize(software_index + 1);
             }
@@ -902,7 +899,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabFile::generateMzTabProteinHeader_(Int n_subsamples, const vector<String>& optional_protein_columns) const
+  String MzTabFile::generateMzTabProteinHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns) const
   {
     StringList header;
     header << "PRH"
@@ -996,7 +993,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabFile::generateMzTabPeptideHeader_(Int n_subsamples, const vector<String>& optional_peptide_columns) const
+  String MzTabFile::generateMzTabPeptideHeader_(Int n_subsamples, const std::vector<String>& optional_peptide_columns) const
   {
     StringList header;
     header << "PEH"
@@ -1051,7 +1048,7 @@ namespace OpenMS
     return ListUtils::concatenate(s, "\t");
   }
 
-  String MzTabFile::generateMzTabSmallMoleculeHeader_(Int n_subsamples, const vector<String>& optional_smallmolecule_columns) const
+  String MzTabFile::generateMzTabSmallMoleculeHeader_(Int n_subsamples, const std::vector<String>& optional_smallmolecule_columns) const
   {
     StringList header;
     header << "SMH"
@@ -1176,11 +1173,11 @@ namespace OpenMS
   void MzTabFile::store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, String in, String document_id) const
   {
     // copy data as we are going to apply some filters
-    vector<ProteinIdentification> prot_ids = protein_ids;
-    vector<PeptideIdentification> pep_ids = peptide_ids;
+    std::vector<ProteinIdentification> prot_ids = protein_ids;
+    std::vector<PeptideIdentification> pep_ids = peptide_ids;
 
     // create tab separated output stream for MzTab file
-    ofstream txt_out(filename.c_str());
+    std::ofstream txt_out(filename.c_str());
     SVOutStream output(txt_out, "\t", "_", String::NONE);
 
     // pre-filter for best PSM
@@ -1198,13 +1195,13 @@ namespace OpenMS
     }
     catch (Exception::MissingInformation& e)
     {
-      cout << e.what() << "\n";
+      std::cout << e.what() << "\n";
       has_coverage = false;
     }
 
     // partition into runs (as this could be a merged idXML)
-    map<String, vector<PeptideIdentification> > map_run_to_pepids;
-    map<String, vector<ProteinIdentification> > map_run_to_proids;
+    std::map<String, std::vector<PeptideIdentification> > map_run_to_pepids;
+    std::map<String, std::vector<ProteinIdentification> > map_run_to_proids;
     partitionIntoRuns_(pep_ids, prot_ids, map_run_to_pepids, map_run_to_proids);
     // cout << "idXML contains: " << map_run_to_pepids.size() << " runs." << endl;
 
@@ -1216,14 +1213,14 @@ namespace OpenMS
     // write meta data for each run
     bool meta_info_printed = false;
     Size run_count = 0;
-    map<String, vector<ProteinIdentification> >::const_iterator mprot_it = map_run_to_proids.begin();
-    map<String, vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
+    std::map<String, std::vector<ProteinIdentification> >::const_iterator mprot_it = map_run_to_proids.begin();
+    std::map<String, std::vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
 
     for (; mprot_it != map_run_to_proids.end(); ++mprot_it) // iterate over runs
     {
       // extract ProteinIdentifications of this run (should be only 1)
-      const vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
-      for (vector<ProteinIdentification>::const_iterator it = local_prot_ids.begin(); it != local_prot_ids.end(); ++it)
+      const std::vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
+      for (std::vector<ProteinIdentification>::const_iterator it = local_prot_ids.begin(); it != local_prot_ids.end(); ++it)
       {
         String UNIT_ID = "OpenMS_" + String(run_count);
         String title = document_id;
@@ -1238,17 +1235,17 @@ namespace OpenMS
 
     if (meta_info_printed)
     {
-      output << endl;
+      output << std::endl;
     }
 
     // write protein table header
     if (meta_info_printed)
     {
-      output << endl;
+      output << std::endl;
     }
 
     // determine the number of sub samples in each run from protein ids (it is assumed that peptide ids don't introduce new sub sample categories)
-    map<String, Size> map_run_to_n_subsamples = extractNumberOfSubSamples_(map_run_to_proids);
+    std::map<String, Size> map_run_to_n_subsamples = extractNumberOfSubSamples_(map_run_to_proids);
     writeProteinHeader_(output, map_run_to_n_subsamples);
 
     // write protein table data
@@ -1258,8 +1255,8 @@ namespace OpenMS
     for (; mprot_it != map_run_to_proids.end(); ++mprot_it, ++mpep_it) // iterate over runs
     {
       // extract ProteinIdentifications of this run (should be only 1)
-      const vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
-      for (vector<ProteinIdentification>::const_iterator prot_id_it = local_prot_ids.begin();
+      const std::vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
+      for (std::vector<ProteinIdentification>::const_iterator prot_id_it = local_prot_ids.begin();
            prot_id_it != local_prot_ids.end(); ++prot_id_it, ++run_count)
       {
         writeProteinData_(output, *prot_id_it, run_count, in, has_coverage, map_run_accesion_to_peptides, map_run_to_n_subsamples);
@@ -1267,7 +1264,7 @@ namespace OpenMS
     }
 
     // write peptide header
-    output << endl;
+    output << std::endl;
 
     writePeptideHeader_(output, map_run_to_n_subsamples);
 
@@ -1277,11 +1274,11 @@ namespace OpenMS
     for (; mpep_it != map_run_to_pepids.end(); ++mprot_it, ++mpep_it, ++run_count) // iterate over runs
     {
       // extract ProteinIdentifications of this run (should be only 1)
-      const vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
+      const std::vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
       // extract PeptideIdentifications of this run
-      const vector<PeptideIdentification>& local_pep_ids = mpep_it->second;
+      const std::vector<PeptideIdentification>& local_pep_ids = mpep_it->second;
       // iterate over runs of peptide identifications
-      for (vector<PeptideIdentification>::const_iterator pep_id_it = local_pep_ids.begin();
+      for (std::vector<PeptideIdentification>::const_iterator pep_id_it = local_pep_ids.begin();
            pep_id_it != local_pep_ids.end(); ++pep_id_it)
       {
         // TODO: check if bad design of Protein/PeptideIdentification as search engine parameters are stored in prot.
@@ -1294,7 +1291,7 @@ namespace OpenMS
         database_String = "file://" + database_String;
         String database_version_String = (sp.db_version != "" ? sp.db_version : "--");
 
-        for (vector<PeptideHit>::const_iterator peptide_hit_it = pep_id_it->getHits().begin();
+        for (std::vector<PeptideHit>::const_iterator peptide_hit_it = pep_id_it->getHits().begin();
              peptide_hit_it != pep_id_it->getHits().end(); ++peptide_hit_it)
         {
           String sequence = peptide_hit_it->getSequence().toString();
@@ -1370,7 +1367,7 @@ namespace OpenMS
                  << mass_to_charge << uri << spectra_ref;
 
           // get number of sub samples for this run
-          map<String, Size>::const_iterator sub_it = map_run_to_n_subsamples.find(mpep_it->first);
+          std::map<String, Size>::const_iterator sub_it = map_run_to_n_subsamples.find(mpep_it->first);
 
           Size n_subsamples = 0;
           if (sub_it != map_run_to_n_subsamples.end())
@@ -1409,7 +1406,7 @@ namespace OpenMS
             }
           }
 
-          output << endl;
+          output << std::endl;
 
         }
       }
@@ -1418,10 +1415,10 @@ namespace OpenMS
   }
 
   /// Extract protein and peptide identifications for each run. maps are assumed empty.
-  void MzTabFile::partitionIntoRuns_(const vector<PeptideIdentification>& pep_ids,
-                                    const vector<ProteinIdentification>& pro_ids,
-                                    map<String, vector<PeptideIdentification> >& map_run_to_pepids,
-                                    map<String, vector<ProteinIdentification> >& map_run_to_proids
+  void MzTabFile::partitionIntoRuns_(const std::vector<PeptideIdentification>& pep_ids,
+                                    const std::vector<ProteinIdentification>& pro_ids,
+                                    std::map<String, std::vector<PeptideIdentification> >& map_run_to_pepids,
+                                    std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids
                                     )
   {
     {
@@ -1439,8 +1436,8 @@ namespace OpenMS
 
       // perform some sanity check (run ids should be identical)
       assert(map_run_to_proids.size() == map_run_to_pepids.size());
-      map<String, vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
-      map<String, vector<ProteinIdentification> >::const_iterator mprot_it = map_run_to_proids.begin();
+      std::map<String, std::vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
+      std::map<String, std::vector<ProteinIdentification> >::const_iterator mprot_it = map_run_to_proids.begin();
       for (; mpep_it != map_run_to_pepids.end(); ++mpep_it, ++mprot_it)
       {
         assert(mpep_it->first == mprot_it->first);
@@ -1448,15 +1445,15 @@ namespace OpenMS
     }
   }
 
-  void MzTabFile::createProteinToPeptideLinks_(const map<String, vector<PeptideIdentification> >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits)
+  void MzTabFile::createProteinToPeptideLinks_(const std::map<String, std::vector<PeptideIdentification> >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits)
   {
     // create links for each run
-    map<String, vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
+    std::map<String, std::vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
 
     for (; mpep_it != map_run_to_pepids.end(); ++mpep_it)
     {
       const String& run = mpep_it->first;
-      const vector<PeptideIdentification>& pids = mpep_it->second;
+      const std::vector<PeptideIdentification>& pids = mpep_it->second;
       for (Size i = 0; i != pids.size(); ++i)
       {
         const std::vector<PeptideHit>& phits = pids[i].getHits();
@@ -1550,7 +1547,7 @@ namespace OpenMS
         if (!modis.empty())
         {
           // all have the same unimod accession (=record_id) so just take the first one
-          set<const ResidueModification*>::const_iterator mit = modis.begin();
+          std::set<const ResidueModification*>::const_iterator mit = modis.begin();
           String unimod_accession = (*mit)->getUniModAccession();
           mods_string += position  + "-" + unimod_accession.c_str();
         }
@@ -1610,36 +1607,36 @@ namespace OpenMS
      */
   }
 
-  map<String, Size> MzTabFile::extractNumberOfSubSamples_(const map<String, vector<ProteinIdentification> >& map_run_to_proids)
+  std::map<String, Size> MzTabFile::extractNumberOfSubSamples_(const std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids)
   {
-    map<String, set<Size> > map_run_to_subsamples_id;
+    std::map<String, std::set<Size> > map_run_to_subsamples_id;
 
     // for each run...
-    for (map<String, vector<ProteinIdentification> >::const_iterator run_it = map_run_to_proids.begin();
+    for (std::map<String, std::vector<ProteinIdentification> >::const_iterator run_it = map_run_to_proids.begin();
          run_it != map_run_to_proids.end(); ++run_it)
     {
       String run = run_it->first;
-      const vector<ProteinIdentification>& protein_ids = run_it->second;
+      const std::vector<ProteinIdentification>& protein_ids = run_it->second;
       // note: per run there should only exist one protein identification
-      for (vector<ProteinIdentification>::const_iterator prot_it = protein_ids.begin();
+      for (std::vector<ProteinIdentification>::const_iterator prot_it = protein_ids.begin();
            prot_it != protein_ids.end(); ++prot_it)
       {
         const ProteinIdentification& protein_id = *prot_it;
-        const vector<ProteinHit>& protein_hits = protein_id.getHits();
+        const std::vector<ProteinHit>& protein_hits = protein_id.getHits();
         // for each ProteinHit...
-        for (vector<ProteinHit>::const_iterator pit = protein_hits.begin(); pit != protein_hits.end(); ++pit)
+        for (std::vector<ProteinHit>::const_iterator pit = protein_hits.begin(); pit != protein_hits.end(); ++pit)
         {
-          vector<String> metainfo_keys;
+          std::vector<String> metainfo_keys;
           pit->getKeys(metainfo_keys);
           // find meta values starting with mzTab:protein_abundance_sub
-          for (vector<String>::const_iterator s_it = metainfo_keys.begin(); s_it != metainfo_keys.end(); ++s_it)
+          for (std::vector<String>::const_iterator s_it = metainfo_keys.begin(); s_it != metainfo_keys.end(); ++s_it)
           {
             //cout << *s_it << endl;
             if (s_it->hasPrefix("mzTab:protein_abundance_sub"))
             {
               String s = *s_it;
               s = s.substitute("mzTab:protein_abundance_sub", "").remove('[').remove(']');
-              Size subsample_number = (Size) s.toInt();
+              Size subsample_number = static_cast<Size>(s.toInt());
               map_run_to_subsamples_id[run].insert(subsample_number);
             }
           }
@@ -1648,8 +1645,8 @@ namespace OpenMS
     }
 
     // count and return subsample set sizes
-    map<String, Size> map_run_to_nsubsamples;
-    for (map<String, set<Size> >::const_iterator sub_it = map_run_to_subsamples_id.begin();
+    std::map<String, Size> map_run_to_nsubsamples;
+    for (std::map<String, std::set<Size> >::const_iterator sub_it = map_run_to_subsamples_id.begin();
          sub_it != map_run_to_subsamples_id.end(); ++sub_it)
     {
       map_run_to_nsubsamples[sub_it->first] = sub_it->second.size();
@@ -1658,7 +1655,7 @@ namespace OpenMS
     return map_run_to_nsubsamples;
   }
 
-  void MzTabFile::writePeptideHeader_(SVOutStream& output, map<String, Size> n_sub_samples)
+  void MzTabFile::writePeptideHeader_(SVOutStream& output, std::map<String, Size> n_sub_samples)
   {
     output << "PEH" << "sequence" << "accession" << "unit_id" << "unique" << "database"
            << "database_version" << "search_engine" << "search_engine_score"
@@ -1667,7 +1664,7 @@ namespace OpenMS
 
     // to generate sufficient number of columns the maximum of sub samples in all runs is used
     Size max_subsamples = 0;
-    for (map<String, Size>::const_iterator run_it = n_sub_samples.begin();
+    for (std::map<String, Size>::const_iterator run_it = n_sub_samples.begin();
          run_it != n_sub_samples.end(); ++run_it)
     {
       if (run_it->second > max_subsamples)
@@ -1684,10 +1681,10 @@ namespace OpenMS
         String("peptide_abundance_std_error_sub[") + String(i) + String("]");
     }
 
-    output << endl;
+    output << std::endl;
   }
 
-  void MzTabFile::writeProteinHeader_(SVOutStream& output, map<String, Size> n_sub_samples)
+  void MzTabFile::writeProteinHeader_(SVOutStream& output, std::map<String, Size> n_sub_samples)
   {
     output << "PRH" << "accession" << "unit_id" << "description" << "taxid"
            << "species" << "database" << "database_version" << "search_engine"
@@ -1697,7 +1694,7 @@ namespace OpenMS
 
     // to generate sufficient number of columns the maximum of sub samples in all runs is used
     Size max_subsamples = 0;
-    for (map<String, Size>::const_iterator run_it = n_sub_samples.begin();
+    for (std::map<String, Size>::const_iterator run_it = n_sub_samples.begin();
          run_it != n_sub_samples.end(); ++run_it)
     {
       if (run_it->second > max_subsamples)
@@ -1714,7 +1711,7 @@ namespace OpenMS
         String("protein_abundance_std_error_sub[") + String(i) + String("]");
     }
 
-    output << endl;
+    output << std::endl;
   }
 
 // same as distinct but additional constraint of uniquenes (=maps to exactly one Protein)
@@ -1730,7 +1727,7 @@ namespace OpenMS
 
       // mzTab unambigous peptides are all peptides with different AA sequence OR Modifications
       std::set<String> sequences;
-      for (vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
+      for (std::vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
       {
         // only add sequences of unique peptides
         if (pet->getProteinAccessions().size() == 1)
@@ -1749,7 +1746,7 @@ namespace OpenMS
                                     String input_filename,
                                     bool has_coverage,
                                     const MapAccPepType& map_run_accesion_to_peptides,
-                                    const map<String, Size>& map_run_to_num_sub
+                                    const std::map<String, Size>& map_run_to_num_sub
                                     )
   {
     // TODO: maybe save these ProteinIdentification run properties in meta data
@@ -1779,7 +1776,7 @@ namespace OpenMS
     String search_engine_cvParams = mapSearchEngineToCvParam_(prot_id.getSearchEngine());
     String openms_search_engine_name = prot_id.getSearchEngine();
     //
-    for (vector<ProteinHit>::const_iterator protein_hit_it = prot_id.getHits().begin();
+    for (std::vector<ProteinHit>::const_iterator protein_hit_it = prot_id.getHits().begin();
          protein_hit_it != prot_id.getHits().end(); ++protein_hit_it)
     {
       String accession = protein_hit_it->getAccession();
@@ -1829,7 +1826,7 @@ namespace OpenMS
              << go_terms << protein_coverage;
 
       // get number of sub samples for this run
-      map<String, Size>::const_iterator sub_it = map_run_to_num_sub.find(prot_id.getIdentifier());
+      std::map<String, Size>::const_iterator sub_it = map_run_to_num_sub.find(prot_id.getIdentifier());
       Size n_subsamples = 0;
       if (sub_it != map_run_to_num_sub.end())
       {
@@ -1866,7 +1863,7 @@ namespace OpenMS
           output << abundancy_value;
         }
       }
-      output << endl;
+      output << std::endl;
     }
   }
 
@@ -1878,11 +1875,11 @@ namespace OpenMS
     MapAccPepType::const_iterator it = map_run_accesion_to_peptides.find(key);
     if (it != map_run_accesion_to_peptides.end())
     {
-      const vector<PeptideHit>& peptide_hits = it->second;
+      const std::vector<PeptideHit>& peptide_hits = it->second;
 
       // mzTab unambigous peptides are all peptides with different AA sequence OR Modifications
       std::set<String> sequences;
-      for (vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
+      for (std::vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
       {
         sequences.insert(pet->getSequence().toString()); // AASequence including Modifications
       }
@@ -1896,12 +1893,12 @@ namespace OpenMS
   String MzTabFile::extractNumPeptides_(const String& common_identifier, const String& protein_accession,
                                        const MapAccPepType& map_run_accesion_to_peptides)
   {
-    pair<String, String> key = make_pair(common_identifier, protein_accession);
+    std::pair<String, String> key = make_pair(common_identifier, protein_accession);
     String ret = "0";
     MapAccPepType::const_iterator it = map_run_accesion_to_peptides.find(key);
     if (it != map_run_accesion_to_peptides.end())
     {
-      const vector<PeptideHit>& peptide_hits = it->second;
+      const std::vector<PeptideHit>& peptide_hits = it->second;
       ret = String(peptide_hits.size());
     }
     return ret;
@@ -1976,18 +1973,18 @@ namespace OpenMS
      */
   }
 
-  void MzTabFile::sortPSM_(vector<PeptideIdentification>::iterator begin, vector<PeptideIdentification>::iterator end)
+  void MzTabFile::sortPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end)
   {
-    for (vector<PeptideIdentification>::iterator pep_id_it = begin; pep_id_it != end; ++pep_id_it)
+    for (std::vector<PeptideIdentification>::iterator pep_id_it = begin; pep_id_it != end; ++pep_id_it)
     {
       pep_id_it->assignRanks();
     }
   }
 
-  void MzTabFile::keepFirstPSM_(vector<PeptideIdentification>::iterator begin, vector<PeptideIdentification>::iterator end)
+  void MzTabFile::keepFirstPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end)
   {
     IDFilter id_filter;
-    for (vector<PeptideIdentification>::iterator pep_id_it = begin; pep_id_it != end; ++pep_id_it)
+    for (std::vector<PeptideIdentification>::iterator pep_id_it = begin; pep_id_it != end; ++pep_id_it)
     {
       PeptideIdentification new_pep_id;
       id_filter.filterIdentificationsByBestHits(*pep_id_it, new_pep_id, false);

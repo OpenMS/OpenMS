@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,35 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
-namespace OpenMS
+#include "ExampleLibraryFile.h"
+
+using namespace OpenMS;
+using namespace OpenMSExternal;
+
+int main(int argc, char * argv[])
 {
-  //FeatureFinderAlgorithmSimplest<Peak1D,Feature> default_featurefinderalgorithmsimplest;
+  std::cout << "Call OpenMS function from ExampleLibraryFile" << std::endl;
+  ExampleLibraryFile().loadAndSaveFeatureXML();
+
+  std::string s = ExampleLibraryFile::printSomething();
+  std::cout << "From external lib: " << s << "\n";
+
+  MSExperiment<Peak1D,ChromatogramPeak> exp;
+  MzMLFile f;
+  String tmpfilename = "tmpfile.mzML";
+
+  f.store(tmpfilename,exp);
+  f.load(tmpfilename,exp);
+
+  std::cout << "Loading and storing of mzML worked!\n";
+
+  std::cout << "All good and well!\n";
+  return 0;
 }

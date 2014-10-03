@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,69 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Stephan Aiche $
+// $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
-#include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/KERNEL/Peak1D.h>
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H
+#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H
+
+#include <OpenMS/config.h>
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 
 namespace OpenMS
 {
-  //FeatureFinderAlgorithmSimple<Peak1D,Feature> default_featurefinderalgorithmsimple;
-}
+
+  /**
+    @brief Linear model for transformations
+
+    The model can be inferred from data or specified using explicit parameters. If data is given, a least squares fit is used to find the model parameters (slope and intercept). Depending on parameter @p symmetric_regression, a normal regression (@e y on @e x) or symmetric regression (@f$ y - x @f$ on @f$ y + x @f$) is performed.
+
+    Without data, the model can be specified by giving the parameters @p slope and @p intercept explicitly.
+
+    @ingroup MapAlignment
+  */
+  class OPENMS_DLLAPI TransformationModelLinear :
+    public TransformationModel
+  {
+public:
+    /**
+      @brief Constructor
+
+      @exception IllegalArgument is thrown if neither data points nor explicit parameters (slope/intercept) are given.
+    */
+    TransformationModelLinear(const DataPoints& data, const Param& params);
+
+    /// Destructor
+    ~TransformationModelLinear();
+
+    /// Evaluates the model at the given value
+    virtual double evaluate(const double value) const;
+
+    using TransformationModel::getParameters;
+
+    /// Gets the "real" parameters
+    void getParameters(double& slope, double& intercept) const;
+
+    /// Gets the default parameters
+    static void getDefaultParameters(Param& params);
+
+    /**
+     @brief Computes the inverse
+
+     @exception DivisionByZero is thrown if the slope is zero.
+    */
+    void invert();
+
+protected:
+    /// Parameters of the linear model
+    double slope_, intercept_;
+    /// Was the model estimated from data?
+    bool data_given_;
+    /// Use symmetric regression?
+    bool symmetric_;
+  };
+} // namespace
+
+#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELLINEAR_H

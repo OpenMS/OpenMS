@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -197,7 +197,8 @@ namespace OpenMS
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, error);
       }
       EmpiricalFormula ef(adduct[0].remove('+'));
-      ef -= "H" + String(l_charge); ef.setCharge(l_charge); // effectively subtract electron masses
+      ef -= EmpiricalFormula("H" + String(l_charge));
+      ef.setCharge(l_charge); // effectively subtract electron masses
 
       // RT Shift:
       double rt_shift(0);

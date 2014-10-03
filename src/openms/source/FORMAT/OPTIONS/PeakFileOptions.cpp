@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,6 +56,8 @@ namespace OpenMS
     zlib_compression_(false),
     size_only_(false),
     always_append_data_(false),
+    sort_spectra_by_mz_(true),
+    sort_chromatograms_by_rt_(true),
     fill_data_(true),
     write_index_(false),
     np_config_mz_(),
@@ -79,6 +81,8 @@ namespace OpenMS
     zlib_compression_(options.zlib_compression_),
     size_only_(options.size_only_),
     always_append_data_(options.always_append_data_),
+    sort_spectra_by_mz_(options.sort_spectra_by_mz_),
+    sort_chromatograms_by_rt_(options.sort_chromatograms_by_rt_),
     fill_data_(options.fill_data_),
     write_index_(options.write_index_),
     np_config_mz_(options.np_config_mz_),
@@ -222,6 +226,26 @@ namespace OpenMS
   bool PeakFileOptions::getFillData() const
   {
     return fill_data_;
+  }
+
+  void PeakFileOptions::setSortSpectraByMZ(bool sort)
+  {
+    sort_spectra_by_mz_ = sort;
+  }
+
+  bool PeakFileOptions::getSortSpectraByMZ() const
+  {
+    return sort_spectra_by_mz_;
+  }
+
+  void PeakFileOptions::setSortChromatogramsByRT(bool sort)
+  {
+    sort_chromatograms_by_rt_ = sort;
+  }
+
+  bool PeakFileOptions::getSortChromatogramsByRT() const
+  {
+    return sort_chromatograms_by_rt_;
   }
 
   void PeakFileOptions::setFillData(bool fill_data)
