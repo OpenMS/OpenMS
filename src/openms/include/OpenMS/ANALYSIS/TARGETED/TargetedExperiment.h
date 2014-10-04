@@ -88,6 +88,8 @@ public:
     */
     //@{
     bool operator==(const TargetedExperiment & rhs) const;
+
+    bool operator!=(const TargetedExperiment & rhs) const;
     //@}
 
     /**
