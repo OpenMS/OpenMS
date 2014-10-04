@@ -46,8 +46,6 @@ namespace OpenMS
   /**
       @brief File adapter for HUPO PSI TraML files
 
-      If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
-
       @ingroup FileIO
   */
   class OPENMS_DLLAPI TraMLFile :
@@ -92,4 +90,5 @@ private:
 
 } // namespace OpenMS
 
-#endif // OPENMS_FOMAT_ANLYSISXMLFILE_H
+#endif // OPENMS_FOMAT_TRAMLFILE_H
+

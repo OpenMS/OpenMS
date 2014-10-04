@@ -723,14 +723,17 @@ namespace OpenMS
           }
           os << ">" << "\n";
 
-          // Precursor is required
+          // Precursor occurs exactly once (is required according to schema).
+          // CV term MS:1000827 MUST be supplied for the TransitionList path
           os << "      <Precursor>" << "\n";
-          os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
+          os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << 
+            precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
           writeCVParams_(os, it->getPrecursorCVTermList(), 4);
           writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 4);
           os << "      </Precursor>" << "\n";
 
-          for (ProductListType::const_iterator prod_it = it->getIntermediateProducts().begin(); prod_it != it->getIntermediateProducts().end(); ++prod_it)
+          for (ProductListType::const_iterator prod_it = it->getIntermediateProducts().begin();
+                prod_it != it->getIntermediateProducts().end(); ++prod_it)
           {
             os << "      <IntermediateProduct>" << "\n";
             writeProduct_(os, prod_it);
@@ -1354,3 +1357,4 @@ namespace OpenMS
 
   } //namespace Internal
 } // namespace OpenMS
+
