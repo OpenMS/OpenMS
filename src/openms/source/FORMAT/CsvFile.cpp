@@ -51,26 +51,26 @@ namespace OpenMS
   {
   }
 
-  CsvFile::CsvFile(const String & filename, char is, bool ie, Int first_n) :
+  CsvFile::CsvFile(const String& filename, char is, bool ie, Int first_n) :
     TextFile(), itemseperator_(is), itemenclosed_(ie)
   {
     load(filename, false, first_n);
   }
 
-  void CsvFile::fload(const String & filename, char is, bool ie, Int first_n)
+  void CsvFile::fload(const String& filename, char is, bool ie, Int first_n)
   {
     itemseperator_ = is;
     itemenclosed_ = ie;
     load(filename, true, first_n);
   }
 
-  bool CsvFile::getRow(Size row, StringList & list)
+  bool CsvFile::getRow(Size row, StringList& list)
   {
-    if (row > this->size())
+    if (row > TextFile::buffer_.size())
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
-    bool splitted = this->operator[](row).split(itemseperator_, list);
+    bool splitted = TextFile::buffer_.operator[](row).split(itemseperator_, list);
     if (!splitted)
     {
       return splitted;
@@ -83,6 +83,11 @@ namespace OpenMS
       }
     }
     return true;
+  }
+
+  std::vector<String>::size_type CsvFile::rowCount() const
+  {
+    return TextFile::buffer_.size();
   }
 
 } // namespace OpenMS

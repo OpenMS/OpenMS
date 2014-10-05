@@ -44,7 +44,7 @@ namespace OpenMS
   {
   }
 
-  CVTermList::CVTermList(const CVTermList & rhs) :
+  CVTermList::CVTermList(const CVTermList& rhs) :
     MetaInfoInterface(rhs),
     cv_terms_(rhs.cv_terms_)
   {
@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  CVTermList & CVTermList::operator=(const CVTermList & rhs)
+  CVTermList& CVTermList::operator=(const CVTermList& rhs)
   {
     if (this != &rhs)
     {
@@ -64,13 +64,13 @@ namespace OpenMS
     return *this;
   }
 
-  void CVTermList::addCVTerm(const CVTerm & cv_term)
+  void CVTermList::addCVTerm(const CVTerm& cv_term)
   {
     // TODO exception if empty
     cv_terms_[cv_term.getAccession()].push_back(cv_term);
   }
 
-  void CVTermList::setCVTerms(const vector<CVTerm> & cv_terms)
+  void CVTermList::setCVTerms(const vector<CVTerm>& cv_terms)
   {
     for (vector<CVTerm>::const_iterator it = cv_terms.begin(); it != cv_terms.end(); ++it)
     {
@@ -79,39 +79,39 @@ namespace OpenMS
     return;
   }
 
-  void CVTermList::replaceCVTerm(const CVTerm & cv_term)
+  void CVTermList::replaceCVTerm(const CVTerm& cv_term)
   {
     std::vector<CVTerm> tmp;
     tmp.push_back(cv_term);
     cv_terms_[cv_term.getAccession()] = tmp;
   }
 
-  void CVTermList::replaceCVTerms(const vector<CVTerm> & cv_terms, const String & accession)
+  void CVTermList::replaceCVTerms(const vector<CVTerm>& cv_terms, const String& accession)
   {
     cv_terms_[accession] = cv_terms;
   }
 
-  void CVTermList::replaceCVTerms(const Map<String, vector<CVTerm> > & cv_term_map)
+  void CVTermList::replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_map)
   {
     cv_terms_ = cv_term_map;
   }
 
-  const Map<String, vector<CVTerm> > & CVTermList::getCVTerms() const
+  const Map<String, vector<CVTerm> >& CVTermList::getCVTerms() const
   {
     return cv_terms_;
   }
 
-  bool CVTermList::hasCVTerm(const String & accession) const
+  bool CVTermList::hasCVTerm(const String& accession) const
   {
     return cv_terms_.has(accession);
   }
 
-  bool CVTermList::operator==(const CVTermList & cv_term_list) const
+  bool CVTermList::operator==(const CVTermList& cv_term_list) const
   {
-    return MetaInfoInterface::operator==(cv_term_list) && cv_terms_ == cv_term_list.cv_terms_;
+    return MetaInfoInterface::operator==(cv_term_list) && cv_terms_.equals(cv_term_list.cv_terms_);
   }
 
-  bool CVTermList::operator!=(const CVTermList & cv_term_list) const
+  bool CVTermList::operator!=(const CVTermList& cv_term_list) const
   {
     return !(*this == cv_term_list);
   }

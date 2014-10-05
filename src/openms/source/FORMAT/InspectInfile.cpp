@@ -59,7 +59,7 @@ namespace OpenMS
   }
 
   // copy constructor
-  InspectInfile::InspectInfile(const InspectInfile & inspect_infile) :
+  InspectInfile::InspectInfile(const InspectInfile& inspect_infile) :
     spectra_(inspect_infile.getSpectra()),
     enzyme_(inspect_infile.getEnzyme()),
     modifications_per_peptide_(inspect_infile.getModificationsPerPeptide()),
@@ -81,7 +81,7 @@ namespace OpenMS
   }
 
   // assignment operator
-  InspectInfile & InspectInfile::operator=(const InspectInfile & inspect_infile)
+  InspectInfile& InspectInfile::operator=(const InspectInfile& inspect_infile)
   {
     if (this != &inspect_infile)
     {
@@ -101,7 +101,7 @@ namespace OpenMS
   }
 
   // equality operator
-  bool InspectInfile::operator==(const InspectInfile & inspect_infile) const
+  bool InspectInfile::operator==(const InspectInfile& inspect_infile) const
   {
     if (this != &inspect_infile)
     {
@@ -122,7 +122,7 @@ namespace OpenMS
     return true;
   }
 
-  void InspectInfile::store(const String & filename)
+  void InspectInfile::store(const String& filename)
   {
     ofstream ofs(filename.c_str());
     if (!ofs)
@@ -143,7 +143,7 @@ namespace OpenMS
       file_content << "blind," << blind_ << "\n";
 
     //mod,+57,C,fix,carbamidomethylation
-    for (Map<String, vector<String> >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
+    for (std::map<String, vector<String> >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
     {
       // fix", "cterminal", "nterminal", and "opt
       mods_i->second[2].toLower();
@@ -179,15 +179,15 @@ namespace OpenMS
     ofs.clear();
   }
 
-  void InspectInfile::handlePTMs(const String & modification_line, const String & modifications_filename, const bool monoisotopic)
+  void InspectInfile::handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic)
   {
     PTMname_residues_mass_type_.clear();
     // to store the information about modifications from the ptm xml file
-    Map<String, pair<String, String> > ptm_informations;
-    if (!modification_line.empty())       // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
+    std::map<String, pair<String, String> > ptm_informations;
+    if (!modification_line.empty()) // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
     {
       vector<String> modifications, mod_parts;
-      modification_line.split(':', modifications);       // get the single modifications
+      modification_line.split(':', modifications); // get the single modifications
       if (modifications.empty())
         modifications.push_back(modification_line);
 
@@ -228,7 +228,7 @@ namespace OpenMS
             mass.erase(0, 1);
           if (mass.hasSuffix("+"))
             mass.erase(mass.length() - 1, 1);
-          if (mass.hasSuffix("-"))             // a - sign at the end will not be converted
+          if (mass.hasSuffix("-")) // a - sign at the end will not be converted
           {
             mass.erase(mass.length() - 1, 1);
             mass.insert(0, "-");
@@ -237,7 +237,7 @@ namespace OpenMS
           if (String(mass.toFloat()) == mass)
             mass_or_composition_or_name = 0;
         }
-        catch (Exception::ConversionError & /*c_e*/)
+        catch (Exception::ConversionError& /*c_e*/)
         {
           mass_or_composition_or_name = -1;
         }
@@ -245,7 +245,7 @@ namespace OpenMS
         // check whether it is a name (look it up in the corresponding file)
         if (mass_or_composition_or_name == -1)
         {
-          if (ptm_informations.empty())             // if the ptm xml file has not been read yet, read it
+          if (ptm_informations.empty()) // if the ptm xml file has not been read yet, read it
           {
             if (!File::exists(modifications_filename))
             {
@@ -262,9 +262,9 @@ namespace OpenMS
           // if the modification cannot be found
           if (ptm_informations.find(mod_parts.front()) != ptm_informations.end())
           {
-            mass = ptm_informations[mod_parts.front()].first;             // composition
-            residues = ptm_informations[mod_parts.front()].second;             // residues
-            name = mod_parts.front();             // name
+            mass = ptm_informations[mod_parts.front()].first; // composition
+            residues = ptm_informations[mod_parts.front()].second; // residues
+            name = mod_parts.front(); // name
 
             mass_or_composition_or_name = 2;
           }
@@ -296,7 +296,7 @@ namespace OpenMS
             if (mass_or_composition_or_name == -1)
               mass_or_composition_or_name = 1;
           }
-          catch (Exception::ParseError & /*pe*/)
+          catch (Exception::ParseError& /*pe*/)
           {
             PTMname_residues_mass_type_.clear();
             throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with this modification. Aborting!");
@@ -366,37 +366,37 @@ namespace OpenMS
     }
   }
 
-  const Map<String, vector<String> > & InspectInfile::getModifications() const
+  const std::map<String, vector<String> >& InspectInfile::getModifications() const
   {
     return PTMname_residues_mass_type_;
   }
 
-  const String & InspectInfile::getSpectra() const
+  const String& InspectInfile::getSpectra() const
   {
     return spectra_;
   }
 
-  void InspectInfile::setSpectra(const String & spectra)
+  void InspectInfile::setSpectra(const String& spectra)
   {
     spectra_ = spectra;
   }
 
-  const String & InspectInfile::getDb() const
+  const String& InspectInfile::getDb() const
   {
     return db_;
   }
 
-  void InspectInfile::setDb(const String & db)
+  void InspectInfile::setDb(const String& db)
   {
     db_ = db;
   }
 
-  const String & InspectInfile::getEnzyme() const
+  const String& InspectInfile::getEnzyme() const
   {
     return enzyme_;
   }
 
-  void InspectInfile::setEnzyme(const String & enzyme)
+  void InspectInfile::setEnzyme(const String& enzyme)
   {
     enzyme_ = enzyme;
   }
@@ -461,12 +461,12 @@ namespace OpenMS
     multicharge_ = multicharge;
   }
 
-  const String & InspectInfile::getInstrument() const
+  const String& InspectInfile::getInstrument() const
   {
     return instrument_;
   }
 
-  void InspectInfile::setInstrument(const String & instrument)
+  void InspectInfile::setInstrument(const String& instrument)
   {
     instrument_ = instrument;
   }

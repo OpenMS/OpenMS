@@ -7,7 +7,7 @@ from PeptideIdentification cimport *
 from FeatureMap cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>" namespace "OpenMS":
-    
+
     cdef cppclass InclusionExclusionList(DefaultParamHandler) :
         # wrap-inherits:
         #  DefaultParamHandler

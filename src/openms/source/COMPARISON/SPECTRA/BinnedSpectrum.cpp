@@ -41,18 +41,18 @@ using namespace std;
 namespace OpenMS
 {
   BinnedSpectrum::BinnedSpectrum() :
-    MSSpectrum<>(), bin_spread_(1), bin_size_(2.0), bins_()
+    bin_spread_(1), bin_size_(2.0), bins_(), raw_spec_()
   {
   }
 
   BinnedSpectrum::BinnedSpectrum(float size, UInt spread, PeakSpectrum ps) :
-    MSSpectrum<>(ps), bin_spread_(spread), bin_size_(size), bins_()
+    bin_spread_(spread), bin_size_(size), bins_(), raw_spec_(ps)
   {
     setBinning();
   }
 
-  BinnedSpectrum::BinnedSpectrum(const BinnedSpectrum & source) :
-    MSSpectrum<>(source), bin_spread_(source.getBinSpread()), bin_size_(source.getBinSize()), bins_(source.getBins())
+  BinnedSpectrum::BinnedSpectrum(const BinnedSpectrum& source) :
+    bin_spread_(source.getBinSpread()), bin_size_(source.getBinSize()), bins_(source.getBins()), raw_spec_(source.raw_spec_)
   {
   }
 
@@ -65,41 +65,41 @@ namespace OpenMS
 
   void BinnedSpectrum::setBinning()
   {
-    if (this->MSSpectrum<>::empty())
+    if (raw_spec_.empty())
     {
       throw BinnedSpectrum::NoSpectrumIntegrated(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
     bins_.clear();
 
     //make all necessary bins accessible
-    this->sortByPosition();
-    bins_ = SparseVector<float>((UInt)ceil(this->back().getMZ() / bin_size_) + bin_spread_, 0, 0);
+    raw_spec_.sortByPosition();
+    bins_ = SparseVector<float>((UInt)ceil(raw_spec_.back().getMZ() / bin_size_) + bin_spread_, 0, 0);
 
     //put all peaks into bins
     UInt bin_number;
-    for (Size i = 0; i < this->size(); ++i)
+    for (Size i = 0; i < raw_spec_.size(); ++i)
     {
       //bin_number counted form 0 -> floor
-      bin_number = (UInt)floor(this->operator[](i).getMZ() / bin_size_);
+      bin_number = (UInt)floor(raw_spec_[i].getMZ() / bin_size_);
       //e.g. bin_size_ = 1.5: first bin covers range [0,1.5] so peak at 1.5 falls in first bin (index 0)
 
-      if (this->operator[](i).getMZ() / bin_size_ == (double)bin_number)
+      if (raw_spec_[i].getMZ() / bin_size_ == (double)bin_number)
       {
         --bin_number;
       }
 
       //add peak to corresponding bin
-      bins_[bin_number] = bins_.at(bin_number) + this->operator[](i).getIntensity();
+      bins_[bin_number] = bins_.at(bin_number) + raw_spec_[i].getIntensity();
 
       //add peak to neighboring binspread many
       for (Size j = 0; j < bin_spread_; ++j)
       {
-        bins_[bin_number + j + 1] = bins_.at(bin_number + j + 1) + this->operator[](i).getIntensity();
+        bins_[bin_number + j + 1] = bins_.at(bin_number + j + 1) + raw_spec_[i].getIntensity();
         // we are not in one of the first bins (0 to bin_spread)
         //not working:  if (bin_number-j-1 >= 0)
         if (bin_number >= j + 1)
         {
-          bins_[bin_number - j - 1] = bins_.at(bin_number - j - 1) + this->operator[](i).getIntensity();
+          bins_[bin_number - j - 1] = bins_.at(bin_number - j - 1) + raw_spec_[i].getIntensity();
         }
       }
     }
@@ -107,19 +107,24 @@ namespace OpenMS
   }
 
   //yields false if given BinnedSpectrum size or spread differs from this one (comparing those might crash)
-  bool BinnedSpectrum::checkCompliance(const BinnedSpectrum & bs) const
+  bool BinnedSpectrum::checkCompliance(const BinnedSpectrum& bs) const
   {
     return (this->bin_size_ == bs.getBinSize()) &&
            (this->bin_spread_ == bs.getBinSpread());
   }
 
-  BinnedSpectrum::NoSpectrumIntegrated::NoSpectrumIntegrated(const char * file, int line, const char * function, const char * message) throw() :
+  BinnedSpectrum::NoSpectrumIntegrated::NoSpectrumIntegrated(const char* file, int line, const char* function, const char* message) throw() :
     BaseException(file, line, function, "BinnedSpectrum::NoSpectrumIntegrated", message)
   {
   }
 
   BinnedSpectrum::NoSpectrumIntegrated::~NoSpectrumIntegrated() throw()
   {
+  }
+
+  const PeakSpectrum& BinnedSpectrum::getRawSpectrum() const
+  {
+    return raw_spec_;
   }
 
 }

@@ -66,7 +66,7 @@ namespace OpenMS
          it_elements != cf.end();
          ++it_elements)
     {
-      if (consensus_map.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_name") == reference_channel_name_)
+      if (consensus_map.getFileDescriptions().find(it_elements->getMapIndex())->second.getMetaValue("channel_name") == reference_channel_name_)
       {
         return it_elements;
       }

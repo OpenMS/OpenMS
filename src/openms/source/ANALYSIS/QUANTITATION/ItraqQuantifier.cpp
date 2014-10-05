@@ -187,7 +187,7 @@ namespace OpenMS
 
 
           //find channel_id of current element
-          Int index = Int(consensus_map_in.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_id"));
+          Int index = Int(consensus_map_in.getFileDescriptions().find(it_elements->getMapIndex())->second.getMetaValue("channel_id"));
 #ifdef ITRAQ_DEBUG
           std::cout << "  map_index " << it_elements->getMapIndex() << "-> id " << index << " with intensity " << it_elements->getIntensity() << "\n" << std::endl;
 #endif

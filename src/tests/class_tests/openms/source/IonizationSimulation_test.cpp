@@ -55,7 +55,7 @@ TOPPBase::setMaxNumberOfThreads(1);
 IonizationSimulation* ptr = 0;
 IonizationSimulation* nullPointer = 0;
 const unsigned long rnd_gen_seed = 1;
-MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
 
 // init reproducible rnd_gen
 rnd_gen->initialize(false, false);
@@ -66,7 +66,7 @@ START_SECTION(IonizationSimulation())
 }
 END_SECTION
 
-START_SECTION((IonizationSimulation(const SimRandomNumberGenerator& )))
+START_SECTION((IonizationSimulation(const SimTypes::SimRandomNumberGenerator& )))
 {
   ptr = new IonizationSimulation(rnd_gen);
   TEST_NOT_EQUAL(ptr, nullPointer)
@@ -106,10 +106,10 @@ START_SECTION((IonizationSimulation& operator=(const IonizationSimulation &sourc
 }
 END_SECTION
 
-START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consensus, MSSimExperiment &experiment)))
+START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &charge_consensus, SimTypes::MSSimExperiment &experiment)))
 {
   // init rng
-  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
   rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
   rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
@@ -124,7 +124,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 
   esi_sim.setParameters(esi_param);
 
-  FeatureMapSim esi_features;
+  SimTypes::FeatureMapSim esi_features;
   ConsensusMap cm;
   StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
@@ -137,8 +137,8 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
     esi_features.push_back(f);
   }
 
-  MSSimExperiment exp;
-  MSSimExperiment::SpectrumType spec;
+  SimTypes::MSSimExperiment exp;
+  SimTypes::MSSimExperiment::SpectrumType spec;
   exp.addSpectrum(spec);
 
   esi_sim.ionize(esi_features, cm, exp);
@@ -200,7 +200,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   TEST_EQUAL(esi_features[17].getCharge(), 2)
   TEST_EQUAL(esi_features[17].getIntensity(), 1)
 
-  for(FeatureMapSim::const_iterator fmIt = esi_features.begin(); fmIt != esi_features.end();
+  for(SimTypes::FeatureMapSim::const_iterator fmIt = esi_features.begin(); fmIt != esi_features.end();
       ++fmIt)
   {
     std::cout << (*fmIt).getCharge() << " "
@@ -212,7 +212,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   }
 
 
-  MutableSimRandomNumberGeneratorPtr rnd_gen_maldi (new SimRandomNumberGenerator);
+  SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen_maldi (new SimTypes::SimRandomNumberGenerator);
   rnd_gen_maldi->setBiologicalRngSeed(rnd_gen_seed);
   rnd_gen_maldi->setTechnicalRngSeed(rnd_gen_seed);
 
@@ -224,7 +224,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 
   maldi_sim.setParameters(maldi_param);
 
-  FeatureMapSim maldi_features;
+  SimTypes::FeatureMapSim maldi_features;
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
     Feature f;
@@ -235,8 +235,8 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
     maldi_features.push_back(f);
   }
 
-  MSSimExperiment expt;
-  MSSimExperiment::SpectrumType spect;
+  SimTypes::MSSimExperiment expt;
+  SimTypes::MSSimExperiment::SpectrumType spect;
   expt.addSpectrum(spect);
   maldi_sim.ionize(maldi_features, cm, expt);
 
@@ -260,7 +260,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   TEST_EQUAL(maldi_features[5].getCharge(), 1)
   TEST_EQUAL(maldi_features[5].getIntensity(), 10)
 
-  for(FeatureMapSim::const_iterator fmIt = maldi_features.begin(); fmIt != maldi_features.end();
+  for(SimTypes::FeatureMapSim::const_iterator fmIt = maldi_features.begin(); fmIt != maldi_features.end();
       ++fmIt)
   {
     std::cout << (*fmIt).getCharge() << " " << (*fmIt).getIntensity() << " " << (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << std::endl;

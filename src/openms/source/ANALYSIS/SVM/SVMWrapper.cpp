@@ -61,19 +61,19 @@ namespace OpenMS
   {
   }
 
-  SVMData::SVMData(std::vector<std::vector<std::pair<Int, double> > > & seqs, std::vector<double> & lbls) :
+  SVMData::SVMData(std::vector<std::vector<std::pair<Int, double> > >& seqs, std::vector<double>& lbls) :
     sequences(seqs),
     labels(lbls)
   {
   }
 
-  bool SVMData::operator==(const SVMData & rhs) const
+  bool SVMData::operator==(const SVMData& rhs) const
   {
     return sequences == rhs.sequences
            && labels == rhs.labels;
   }
 
-  bool SVMData::store(const String & filename) const
+  bool SVMData::store(const String& filename) const
   {
     std::ofstream output_file(filename.c_str());
 
@@ -99,7 +99,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SVMData::load(const String & filename)
+  bool SVMData::load(const String& filename)
   {
     Size counter = 0;
     std::vector<String> parts;
@@ -119,13 +119,13 @@ namespace OpenMS
     }
 
     TextFile text_file(filename.c_str(), true);
-    TextFile::iterator it;
+    TextFile::ConstIterator it;
 
     it = text_file.begin();
 
-    sequences.resize(text_file.size(), std::vector<std::pair<Int, double> >());
-    labels.resize(text_file.size(), 0.);
-    while (counter < text_file.size() && it != text_file.end())
+    sequences.resize(text_file.end() - text_file.begin(), std::vector<std::pair<Int, double> >());
+    labels.resize(text_file.end() - text_file.begin(), 0.);
+    while (it != text_file.end())
     {
       it->split(' ', parts);
       labels[counter] = parts[0].trim().toFloat();
@@ -467,7 +467,7 @@ namespace OpenMS
   void SVMWrapper::loadModel(string model_filename)
   {
     TextFile file;
-    TextFile::iterator it;
+    TextFile::ConstIterator it;
     vector<String> parts;
 
     if (model_ != NULL)
@@ -822,18 +822,18 @@ namespace OpenMS
 
   */
   double SVMWrapper::performCrossValidation(svm_problem* problem_ul,
-                                                const SVMData& problem_l,
-                                                const bool                                   is_labeled,
-                                                const   map<SVM_parameter_type, double>& start_values_map,
-                                                const   map<SVM_parameter_type, double>& step_sizes_map,
-                                                const   map<SVM_parameter_type, double>& end_values_map,
-                                                Size                                                                             number_of_partitions,
-                                                Size                                                                             number_of_runs,
-                                                map<SVM_parameter_type, double>& best_parameters,
-                                                bool                                                                                 additive_step_sizes,
-                                                bool                                                                             output,
-                                                String                                                                           performances_file_name,
-                                                bool                                                                                 mcc_as_performance_measure)
+                                            const SVMData& problem_l,
+                                            const bool                                   is_labeled,
+                                            const   map<SVM_parameter_type, double>& start_values_map,
+                                            const   map<SVM_parameter_type, double>& step_sizes_map,
+                                            const   map<SVM_parameter_type, double>& end_values_map,
+                                            Size                                                                             number_of_partitions,
+                                            Size                                                                             number_of_runs,
+                                            map<SVM_parameter_type, double>& best_parameters,
+                                            bool                                                                                 additive_step_sizes,
+                                            bool                                                                             output,
+                                            String                                                                           performances_file_name,
+                                            bool                                                                                 mcc_as_performance_measure)
   {
     map<SVM_parameter_type, double>::const_iterator start_values_iterator;
     vector<pair<double, Size> > combined_parameters;
@@ -1074,7 +1074,7 @@ namespace OpenMS
         {
           performances.push_back(temp_performance);
         }
-        else               // 2nd+ run, add performance (will be averaged later)
+        else // 2nd+ run, add performance (will be averaged later)
         {
           performances[counter] = performances[counter] + temp_performance;
           counter++;
@@ -1414,9 +1414,9 @@ namespace OpenMS
   }
 
   double SVMWrapper::kernelOligo(const vector<pair<int, double> >& x,
-                                     const vector<pair<int, double> >& y,
-                                     const vector<double>& gauss_table,
-                                     int                                                                 max_distance)
+                                 const vector<pair<int, double> >& y,
+                                 const vector<double>& gauss_table,
+                                 int                                                                 max_distance)
   {
     double kernel = 0;
     Size i1     = 0;
@@ -1499,10 +1499,10 @@ namespace OpenMS
   }
 
   double SVMWrapper::kernelOligo(const svm_node* x,
-                                     const svm_node* y,
-                                     const vector<double>& gauss_table,
-                                     double                                 sigma_square,
-                                     Size                                           max_distance)
+                                 const svm_node* y,
+                                 const vector<double>& gauss_table,
+                                 double                                 sigma_square,
+                                 Size                                           max_distance)
   {
     double kernel = 0;
     Int    i1     = 0;
@@ -1902,8 +1902,8 @@ namespace OpenMS
   }
 
   double SVMWrapper::getPValue(double intercept,
-      double slope,
-      pair<double, double> point)
+                               double slope,
+                               pair<double, double> point)
   {
     double center = point.first;
     double distance = std::abs(point.second - center);
@@ -1914,7 +1914,7 @@ namespace OpenMS
     double sd_units = distance / actual_sigma;
 
     // getting only the inner part of the area [-1,1]
-    boost::math::normal dist (0, 1);
+    boost::math::normal dist(0, 1);
 
     return (boost::math::cdf(dist, sd_units) - 0.5) * 2;
   }

@@ -57,13 +57,13 @@ namespace OpenMS
 
   }
 
-  void LibSVMEncoder::encodeCompositionVector(const String & sequence,
-                                              vector<pair<Int, double> > & composition_vector,
-                                              const String & allowed_characters)
+  void LibSVMEncoder::encodeCompositionVector(const String& sequence,
+                                              vector<pair<Int, double> >& composition_vector,
+                                              const String& allowed_characters)
   {
 
     Size number_of_different_letters = allowed_characters.size();
-    Size * counts = new Size[number_of_different_letters];
+    Size* counts = new Size[number_of_different_letters];
     Size total_count = 0;
 
     composition_vector.clear();
@@ -93,9 +93,9 @@ namespace OpenMS
 
   }
 
-  void LibSVMEncoder::encodeCompositionVectors(const vector<String> & sequences,
-                                               const String & allowed_characters,
-                                               vector<vector<pair<Int, double> > > & composition_vectors)
+  void LibSVMEncoder::encodeCompositionVectors(const vector<String>& sequences,
+                                               const String& allowed_characters,
+                                               vector<vector<pair<Int, double> > >& composition_vectors)
   {
     vector<pair<Int, double> > composition_vector;
 
@@ -111,11 +111,11 @@ namespace OpenMS
 
   }
 
-  svm_node * LibSVMEncoder::encodeLibSVMVector(const vector<pair<Int, double> > & feature_vector)
+  svm_node* LibSVMEncoder::encodeLibSVMVector(const vector<pair<Int, double> >& feature_vector)
   {
 
     vector<pair<Int, double> >::const_iterator vector_iterator;
-    svm_node * nodes;
+    svm_node* nodes;
     UInt i = 0;
 
     nodes = new svm_node[feature_vector.size() + 1];
@@ -134,8 +134,8 @@ namespace OpenMS
     return nodes;
   }
 
-  void LibSVMEncoder::encodeLibSVMVectors(const vector<vector<pair<Int, double> > > & feature_vectors,
-                                          vector<svm_node *> & libsvm_vectors)
+  void LibSVMEncoder::encodeLibSVMVectors(const vector<vector<pair<Int, double> > >& feature_vectors,
+                                          vector<svm_node*>& libsvm_vectors)
   {
     libsvm_vectors.clear();
 
@@ -145,11 +145,11 @@ namespace OpenMS
     }
   }
 
-  svm_problem * LibSVMEncoder::encodeLibSVMProblem(const vector<svm_node *> & vectors,
-                                                   vector<double> & labels)
+  svm_problem* LibSVMEncoder::encodeLibSVMProblem(const vector<svm_node*>& vectors,
+                                                  vector<double>& labels)
   {
-    svm_problem * problem;
-    svm_node ** node_vectors;
+    svm_problem* problem;
+    svm_node** node_vectors;
 
     if (labels.size() != vectors.size())
     {
@@ -169,7 +169,7 @@ namespace OpenMS
       problem->y[i] = labels[i];
     }
 
-    node_vectors = new svm_node *[problem->l];
+    node_vectors = new svm_node*[problem->l];
 
     for (Size i = 0; i < vectors.size(); i++)
     {
@@ -182,29 +182,29 @@ namespace OpenMS
     return problem;
   }
 
-  svm_problem * LibSVMEncoder::encodeLibSVMProblemWithCompositionVectors(const vector<String> & sequences,
-                                                                         std::vector<double> & labels,
-                                                                         const String & allowed_characters)
+  svm_problem* LibSVMEncoder::encodeLibSVMProblemWithCompositionVectors(const vector<String>& sequences,
+                                                                        std::vector<double>& labels,
+                                                                        const String& allowed_characters)
   {
-    vector<svm_node *> vectors;
+    vector<svm_node*> vectors;
     vector<pair<Int, double> > encoded_vector;
 
     for (Size i = 0; i < sequences.size(); i++)
     {
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
-      svm_node * libsvm_vector = encodeLibSVMVector(encoded_vector);
+      svm_node* libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
 
     return encodeLibSVMProblem(vectors, labels);
   }
 
-  svm_problem * LibSVMEncoder::encodeLibSVMProblemWithCompositionAndLengthVectors(const vector<String> & sequences,
-                                                                                  std::vector<double> & labels,
-                                                                                  const String & allowed_characters,
-                                                                                  UInt                           maximum_sequence_length)
+  svm_problem* LibSVMEncoder::encodeLibSVMProblemWithCompositionAndLengthVectors(const vector<String>& sequences,
+                                                                                 std::vector<double>& labels,
+                                                                                 const String& allowed_characters,
+                                                                                 UInt                           maximum_sequence_length)
   {
-    vector<svm_node *> vectors;
+    vector<svm_node*> vectors;
     vector<pair<Int, double> > encoded_vector;
 
     for (Size i = 0; i < sequences.size(); i++)
@@ -212,18 +212,18 @@ namespace OpenMS
 
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
       encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), ((double) sequences[i].length()) / maximum_sequence_length));
-      svm_node * libsvm_vector = encodeLibSVMVector(encoded_vector);
+      svm_node* libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
 
     return encodeLibSVMProblem(vectors, labels);
   }
 
-  svm_problem * LibSVMEncoder::encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const vector<String> & sequences,
-                                                                                        std::vector<double> & labels,
-                                                                                        const String & allowed_characters)
+  svm_problem* LibSVMEncoder::encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const vector<String>& sequences,
+                                                                                       std::vector<double>& labels,
+                                                                                       const String& allowed_characters)
   {
-    vector<svm_node *> vectors;
+    vector<svm_node*> vectors;
     vector<pair<Int, double> > encoded_vector;
 
     for (Size i = 0; i < sequences.size(); i++)
@@ -232,14 +232,14 @@ namespace OpenMS
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
       encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), (double) sequences[i].length()));
       encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 2), AASequence::fromString(sequences[i]).getAverageWeight()));
-      svm_node * libsvm_vector = encodeLibSVMVector(encoded_vector);
+      svm_node* libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
 
     return encodeLibSVMProblem(vectors, labels);
   }
 
-  bool LibSVMEncoder::storeLibSVMProblem(const String & filename, const svm_problem * problem) const
+  bool LibSVMEncoder::storeLibSVMProblem(const String& filename, const svm_problem* problem) const
   {
     if (problem == NULL)
     {
@@ -273,9 +273,9 @@ namespace OpenMS
     return true;
   }
 
-  svm_problem * LibSVMEncoder::loadLibSVMProblem(const String & filename)
+  svm_problem* LibSVMEncoder::loadLibSVMProblem(const String& filename)
   {
-    svm_problem * data = NULL;
+    svm_problem* data = NULL;
     UInt counter = 0;
     vector<String> parts;
     vector<String> temp_parts;
@@ -294,15 +294,15 @@ namespace OpenMS
     }
 
     TextFile text_file(filename.c_str(), true);
-    TextFile::iterator it;
+    TextFile::ConstIterator it;
 
     it = text_file.begin();
 
     data = new svm_problem;
-    data->l = (Int)text_file.size();
-    data->x = new svm_node *[text_file.size()];
-    data->y = new double[text_file.size()];
-    while (counter < text_file.size() && it != text_file.end())
+    data->l = (Int)(text_file.end() - text_file.begin());
+    data->x = new svm_node*[(text_file.end() - text_file.begin())];
+    data->y = new double[(text_file.end() - text_file.begin())];
+    while (it != text_file.end())
     {
       it->split(' ', parts);
       data->y[counter] = parts[0].trim().toFloat();
@@ -328,9 +328,9 @@ namespace OpenMS
 
   void LibSVMEncoder::encodeOligoBorders(String sequence,
                                          UInt k_mer_length,
-                                         const String & allowed_characters,
+                                         const String& allowed_characters,
                                          UInt border_length,
-                                         vector<pair<Int, double> > & libsvm_vector,
+                                         vector<pair<Int, double> >& libsvm_vector,
                                          bool strict,
                                          bool unpaired,
                                          bool length_encoding)
@@ -522,33 +522,33 @@ namespace OpenMS
 
   }
 
-  svm_problem * LibSVMEncoder::encodeLibSVMProblemWithOligoBorderVectors(const vector<String> & sequences,
-                                                                         vector<double> & labels,
-                                                                         UInt                                            k_mer_length,
-                                                                         const String & allowed_characters,
-                                                                         UInt                                            border_length,
-                                                                         bool                                            strict,
-                                                                         bool                                            unpaired,
-                                                                         bool                                            length_encoding)
+  svm_problem* LibSVMEncoder::encodeLibSVMProblemWithOligoBorderVectors(const vector<String>& sequences,
+                                                                        vector<double>& labels,
+                                                                        UInt                                            k_mer_length,
+                                                                        const String& allowed_characters,
+                                                                        UInt                                            border_length,
+                                                                        bool                                            strict,
+                                                                        bool                                            unpaired,
+                                                                        bool                                            length_encoding)
   {
-    vector<svm_node *> vectors;
+    vector<svm_node*> vectors;
     vector<pair<Int, double> > encoded_vector;
 
     for (Size i = 0; i < sequences.size(); i++)
     {
       encodeOligoBorders(sequences[i], k_mer_length, allowed_characters, border_length, encoded_vector, strict, unpaired, length_encoding);
-      svm_node * libsvm_vector = encodeLibSVMVector(encoded_vector);
+      svm_node* libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
 
     return encodeLibSVMProblem(vectors, labels);
   }
 
-  void LibSVMEncoder::encodeProblemWithOligoBorderVectors(const vector<AASequence> & sequences,
+  void LibSVMEncoder::encodeProblemWithOligoBorderVectors(const vector<AASequence>& sequences,
                                                           UInt                                                                                k_mer_length,
-                                                          const String & allowed_characters,
+                                                          const String& allowed_characters,
                                                           UInt                                                                                border_length,
-                                                          vector<vector<pair<Int, double> > > & vectors)
+                                                          vector<vector<pair<Int, double> > >& vectors)
   {
     vector<pair<Int, double> > temp_encoded_vector_left;
     vector<pair<Int, double> > temp_encoded_vector_right;
@@ -572,7 +572,7 @@ namespace OpenMS
     }
   }
 
-  void LibSVMEncoder::libSVMVectorToString(svm_node * vector, String & output)
+  void LibSVMEncoder::libSVMVectorToString(svm_node* vector, String& output)
   {
     UInt i = 0;
 
@@ -584,7 +584,7 @@ namespace OpenMS
     }
   }
 
-  void LibSVMEncoder::libSVMVectorsToString(svm_problem * vector, String & output)
+  void LibSVMEncoder::libSVMVectorsToString(svm_problem* vector, String& output)
   {
     String temp_string = "";
 
@@ -600,10 +600,10 @@ namespace OpenMS
     }
   }
 
-  void LibSVMEncoder::encodeOligo(const AASequence & sequence,
+  void LibSVMEncoder::encodeOligo(const AASequence& sequence,
                                   UInt k_mer_length,
-                                  const String & allowed_characters,
-                                  vector<pair<Int, double> > & values,
+                                  const String& allowed_characters,
+                                  vector<pair<Int, double> >& values,
                                   bool is_right_border)
   {
     map<String, UInt> residue_values;
@@ -611,7 +611,7 @@ namespace OpenMS
     Size number_of_residues = allowed_characters.size();
     Size sequence_length = sequence.size();
     bool sequence_ok = true;
-    ModificationsDB * modifications = ModificationsDB::getInstance();
+    ModificationsDB* modifications = ModificationsDB::getInstance();
     Size number_of_modifications = modifications->getNumberOfModifications();
 
     // checking if sequence contains illegal characters
@@ -761,7 +761,7 @@ namespace OpenMS
     return (a.second == b.second) ? (a.first < b.first) : (a.second < b.second);
   }
 
-  void LibSVMEncoder::destroyProblem(svm_problem * problem)
+  void LibSVMEncoder::destroyProblem(svm_problem* problem)
   {
     if (problem != NULL)
     {

@@ -46,6 +46,8 @@
 // Members
 #include <OpenMS/METADATA/ProteinIdentification.h>
 
+#include <map>
+
 namespace OpenMS
 {
   /**
@@ -76,10 +78,10 @@ public:
     using privvec::iterator;
     using privvec::const_iterator;
     using privvec::size_type;
-    using privvec::pointer;          // ConstRefVector
-    using privvec::reference;        // ConstRefVector
-    using privvec::const_reference;  // ConstRefVector
-    using privvec::difference_type;  // ConstRefVector
+    using privvec::pointer; // ConstRefVector
+    using privvec::reference; // ConstRefVector
+    using privvec::const_reference; // ConstRefVector
+    using privvec::difference_type; // ConstRefVector
 
     // functions
     using privvec::begin;
@@ -90,8 +92,8 @@ public:
     using privvec::empty;
     using privvec::reserve;
     using privvec::operator[];
-    using privvec::at;          // UniqueIdIndexer
-    using privvec::back;     // source/ANALYSIS/DECHARGING/FeatureDeconvolution.cpp:977:
+    using privvec::at; // UniqueIdIndexer
+    using privvec::back; // source/ANALYSIS/DECHARGING/FeatureDeconvolution.cpp:977:
 
     using privvec::push_back;
 
@@ -103,7 +105,7 @@ public:
       FileDescription();
 
       /// Copy constructor
-      FileDescription(const FileDescription &);
+      FileDescription(const FileDescription&);
 
       /// File name of the file
       String filename;
@@ -120,7 +122,7 @@ public:
     //@{
     typedef std::vector<ConsensusFeature> Base;
     typedef RangeManager<2> RangeManagerType;
-    typedef Map<UInt64, FileDescription> FileDescriptions;
+    typedef std::map<UInt64, FileDescription> FileDescriptions;
     /// Mutable iterator
     typedef std::vector<ConsensusFeature>::iterator Iterator;
     /// Non-mutable iterator
@@ -135,7 +137,7 @@ public:
     OPENMS_DLLAPI ConsensusMap();
 
     /// Copy constructor
-    OPENMS_DLLAPI ConsensusMap(const ConsensusMap & source);
+    OPENMS_DLLAPI ConsensusMap(const ConsensusMap& source);
 
     /// Destructor
     OPENMS_DLLAPI ~ConsensusMap();
@@ -144,7 +146,7 @@ public:
     OPENMS_DLLAPI explicit ConsensusMap(Base::size_type n);
 
     /// Assignment operator
-    OPENMS_DLLAPI ConsensusMap & operator=(const ConsensusMap & source);
+    OPENMS_DLLAPI ConsensusMap& operator=(const ConsensusMap& source);
 
     /**
       @brief Add one consensus map to another.
@@ -155,7 +157,7 @@ public:
 
       @param rhs The consensus map.
     */
-    OPENMS_DLLAPI ConsensusMap & operator+=(const ConsensusMap & rhs);
+    OPENMS_DLLAPI ConsensusMap& operator+=(const ConsensusMap& rhs);
 
     /**
       @brief Clears all data and meta data
@@ -165,19 +167,19 @@ public:
     OPENMS_DLLAPI void clear(bool clear_meta_data = true);
 
     /// Non-mutable access to the file descriptions
-    OPENMS_DLLAPI const FileDescriptions & getFileDescriptions() const;
+    OPENMS_DLLAPI const FileDescriptions& getFileDescriptions() const;
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI FileDescriptions & getFileDescriptions();
+    OPENMS_DLLAPI FileDescriptions& getFileDescriptions();
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI void setFileDescriptions(const FileDescriptions & file_description);
+    OPENMS_DLLAPI void setFileDescriptions(const FileDescriptions& file_description);
 
     /// Non-mutable access to the experiment type
-    OPENMS_DLLAPI const String & getExperimentType() const;
+    OPENMS_DLLAPI const String& getExperimentType() const;
 
     /// Mutable access to the experiment type
-    OPENMS_DLLAPI void setExperimentType(const String & experiment_type);
+    OPENMS_DLLAPI void setExperimentType(const String& experiment_type);
 
     /**
       @name Sorting.
@@ -213,40 +215,40 @@ public:
     OPENMS_DLLAPI void updateRanges();
 
     /// Swaps the content of this map with the content of @p from
-    OPENMS_DLLAPI void swap(ConsensusMap & from);
+    OPENMS_DLLAPI void swap(ConsensusMap& from);
 
     /// non-mutable access to the protein identifications
-    OPENMS_DLLAPI const std::vector<ProteinIdentification> & getProteinIdentifications() const;
+    OPENMS_DLLAPI const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 
     /// mutable access to the protein identifications
-    OPENMS_DLLAPI std::vector<ProteinIdentification> & getProteinIdentifications();
+    OPENMS_DLLAPI std::vector<ProteinIdentification>& getProteinIdentifications();
 
     /// sets the protein identifications
-    OPENMS_DLLAPI void setProteinIdentifications(const std::vector<ProteinIdentification> & protein_identifications);
+    OPENMS_DLLAPI void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
     /// non-mutable access to the unassigned peptide identifications
-    OPENMS_DLLAPI const std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications() const;
+    OPENMS_DLLAPI const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
 
     /// mutable access to the unassigned peptide identifications
-    OPENMS_DLLAPI std::vector<PeptideIdentification> & getUnassignedPeptideIdentifications();
+    OPENMS_DLLAPI std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications();
 
     /// sets the unassigned peptide identifications
-    OPENMS_DLLAPI void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification> & unassigned_peptide_identifications);
+    OPENMS_DLLAPI void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
 
     /// returns a const reference to the description of the applied data processing
-    OPENMS_DLLAPI const std::vector<DataProcessing> & getDataProcessing() const;
+    OPENMS_DLLAPI const std::vector<DataProcessing>& getDataProcessing() const;
 
     /// returns a mutable reference to the description of the applied data processing
-    OPENMS_DLLAPI std::vector<DataProcessing> & getDataProcessing();
+    OPENMS_DLLAPI std::vector<DataProcessing>& getDataProcessing();
 
     /// sets the description of the applied data processing
-    OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing> & processing_method);
+    OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
     /// Equality operator
-    OPENMS_DLLAPI bool operator==(const ConsensusMap & rhs) const;
+    OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;
 
     /// Equality operator
-    OPENMS_DLLAPI bool operator!=(const ConsensusMap & rhs) const;
+    OPENMS_DLLAPI bool operator!=(const ConsensusMap& rhs) const;
 
     /**
       @brief Applies a member function of Type to the container itself and all consensus features.
@@ -319,7 +321,7 @@ protected:
   };
 
   ///Print the contents of a ConsensusMap to a stream.
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ConsensusMap & cons_map);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map);
 
 } // namespace OpenMS
 

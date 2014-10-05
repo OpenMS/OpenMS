@@ -297,7 +297,7 @@ namespace OpenMS
             mz_tab_metadata[unit_id].sub_id_data[0].disease.push_back(p);
           }
         }
-        else    // UNIT_ID-SUBID-SOMENAME
+        else // UNIT_ID-SUBID-SOMENAME
         {
           if (meta_key_fields[2].hasPrefix("species"))
           {
@@ -632,7 +632,7 @@ namespace OpenMS
     mz_tab.setSmallMoleculeSectionData(mz_tab_small_molecule_section_data);
   }
 
-  void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const
+  void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& map, TextFile& sl) const
   {
     for (MzTabMetaData::const_iterator it = map.begin(); it != map.end(); ++it)
     {
@@ -954,7 +954,7 @@ namespace OpenMS
     return ListUtils::concatenate(s, "\t");
   }
 
-  void MzTabFile::generateMzTabProteinSection_(const MzTabProteinSectionData& map, StringList& sl) const
+  void MzTabFile::generateMzTabProteinSection_(const MzTabProteinSectionData& map, TextFile& sl) const
   {
     for (MzTabProteinSectionData::const_iterator it = map.begin(); it != map.end(); ++it)
     {
@@ -968,7 +968,7 @@ namespace OpenMS
     sl << String("\n");
   }
 
-  void MzTabFile::generateMzTabPeptideSection_(const MzTabPeptideSectionData& map, StringList& sl) const
+  void MzTabFile::generateMzTabPeptideSection_(const MzTabPeptideSectionData& map, TextFile& sl) const
   {
     for (MzTabPeptideSectionData::const_iterator it = map.begin(); it != map.end(); ++it)
     {
@@ -981,7 +981,7 @@ namespace OpenMS
     sl << String("\n");
   }
 
-  void MzTabFile::generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData& map, StringList& sl) const
+  void MzTabFile::generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionData& map, TextFile& sl) const
   {
     for (MzTabSmallMoleculeSectionData::const_iterator it = map.begin(); it != map.end(); ++it)
     {
@@ -1110,7 +1110,7 @@ namespace OpenMS
   void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   {
     TextFile out;
-    out.push_back("MTD\tmzTab-version\t1.0.0");
+    out.addLine("MTD\tmzTab-version\t1.0.0");
 
     // standard says that these have to have the same number of subsections so just take from first one
     Size protein_subsamples = 0;
@@ -1152,19 +1152,19 @@ namespace OpenMS
 
     if (!protein_section.empty())
     {
-      out.push_back(generateMzTabProteinHeader_(protein_subsamples, mz_tab.getProteinOptionalColumnNames()));
+      out.addLine(generateMzTabProteinHeader_(protein_subsamples, mz_tab.getProteinOptionalColumnNames()));
       generateMzTabProteinSection_(mz_tab.getProteinSectionData(), out);
     }
 
     if (!peptide_section.empty())
     {
-      out.push_back(generateMzTabPeptideHeader_(peptide_subsamples, mz_tab.getPeptideOptionalColumnNames()));
+      out.addLine(generateMzTabPeptideHeader_(peptide_subsamples, mz_tab.getPeptideOptionalColumnNames()));
       generateMzTabPeptideSection_(mz_tab.getPeptideSectionData(), out);
     }
 
     if (!small_molecule_section.empty())
     {
-      out.push_back(generateMzTabSmallMoleculeHeader_(small_molecule_subsamples, mz_tab.getSmallMoleculeOptionalColumnNames()));
+      out.addLine(generateMzTabSmallMoleculeHeader_(small_molecule_subsamples, mz_tab.getSmallMoleculeOptionalColumnNames()));
       generateMzTabSmallMoleculeSection_(mz_tab.getSmallMoleculeSectionData(), out);
     }
     out.store(filename);
@@ -1416,10 +1416,10 @@ namespace OpenMS
 
   /// Extract protein and peptide identifications for each run. maps are assumed empty.
   void MzTabFile::partitionIntoRuns_(const std::vector<PeptideIdentification>& pep_ids,
-                                    const std::vector<ProteinIdentification>& pro_ids,
-                                    std::map<String, std::vector<PeptideIdentification> >& map_run_to_pepids,
-                                    std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids
-                                    )
+                                     const std::vector<ProteinIdentification>& pro_ids,
+                                     std::map<String, std::vector<PeptideIdentification> >& map_run_to_pepids,
+                                     std::map<String, std::vector<ProteinIdentification> >& map_run_to_proids
+                                     )
   {
     {
       // idXML can be merged so we have to deal with several runs
@@ -1716,7 +1716,7 @@ namespace OpenMS
 
 // same as distinct but additional constraint of uniquenes (=maps to exactly one Protein)
   String MzTabFile::extractNumPeptidesUnambiguous_(String common_identifier, String protein_accession,
-                                                  const MapAccPepType& map_run_accesion_to_peptides)
+                                                   const MapAccPepType& map_run_accesion_to_peptides)
   {
     std::pair<String, String> key = make_pair(common_identifier, protein_accession);
     String ret = "0";
@@ -1868,7 +1868,7 @@ namespace OpenMS
   }
 
   String MzTabFile::extractNumPeptidesDistinct_(String common_identifier, String protein_accession,
-                                               const MapAccPepType& map_run_accesion_to_peptides)
+                                                const MapAccPepType& map_run_accesion_to_peptides)
   {
     std::pair<String, String> key = make_pair(common_identifier, protein_accession);
     String ret = "0";
@@ -1891,7 +1891,7 @@ namespace OpenMS
   }
 
   String MzTabFile::extractNumPeptides_(const String& common_identifier, const String& protein_accession,
-                                       const MapAccPepType& map_run_accesion_to_peptides)
+                                        const MapAccPepType& map_run_accesion_to_peptides)
   {
     std::pair<String, String> key = make_pair(common_identifier, protein_accession);
     String ret = "0";

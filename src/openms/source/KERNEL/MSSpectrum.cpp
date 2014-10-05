@@ -35,11 +35,6 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
-
-using namespace std;
-
 namespace OpenMS
 {
-  MSSpectrum<> default_msspectrum_peak1d;
-  MSSpectrum<ChromatogramPeak> default_msspectrum_chromatogrampeak;
 }

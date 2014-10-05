@@ -44,8 +44,7 @@ namespace OpenMS
 
   @ingroup FileIO
   */
-  class OPENMS_DLLAPI TextFile :
-    public std::vector<String>
+  class OPENMS_DLLAPI TextFile
   {
 
 public:
@@ -61,8 +60,8 @@ public:
     /// Non-mutable reverse iterator
     typedef std::vector<String>::const_reverse_iterator ConstReverseIterator;
     //@}
-    
-    
+
+
     ///Default constructor
     TextFile();
 
@@ -87,8 +86,7 @@ public:
       @param filename The input file name
       @param trim_lines Whether or not the lines are trimmed when reading them from file
       @param first_n If set, only @p first_n lines the lines from the beginning of the file are read
-      @param skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count
-             towards the total number of read lines.
+      @param skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count towards the total number of read lines.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
@@ -102,14 +100,34 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String& filename);
-    
+
     /// Operator for appending entries with less code
     template <typename StringType>
-    TextFile & operator<<(const StringType& string)
+    TextFile& operator<<(const StringType& string)
     {
-      this->push_back(string);
+      buffer_.push_back(static_cast<String>(string));
       return *this;
     }
+
+    template <typename StringType>
+    void addLine(const StringType& line)
+    {
+      buffer_.push_back(static_cast<String>(line));
+    }
+
+    /**
+      @brief Gives access to the underlying text buffer.
+    */
+    ConstIterator begin() const;
+
+    /**
+     @brief Gives access to the underlying text buffer.
+     */
+    ConstIterator end() const;
+
+protected:
+    /// Internal buffer storing the lines before writing them to the file.
+    std::vector<String> buffer_;
   };
 
 } // namespace OpenMS

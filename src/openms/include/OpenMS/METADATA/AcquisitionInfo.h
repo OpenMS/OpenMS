@@ -35,7 +35,6 @@
 #ifndef OPENMS_METADATA_ACQUISITIONINFO_H
 #define OPENMS_METADATA_ACQUISITIONINFO_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/Acquisition.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
@@ -44,37 +43,56 @@
 namespace OpenMS
 {
   /**
-      @brief Description of the combination of raw data to a single spectrum
+    @brief Description of the combination of raw data to a single spectrum
 
-      Specification for combining raw scans ( Acquisition ) into a single spectrum.
-      A list of acquisitions from the original raw file can be specified.
+    Specification for combining raw scans ( Acquisition ) into a single spectrum.
+    A list of acquisitions from the original raw file can be specified.
 
-      @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI AcquisitionInfo :
-    public std::vector<Acquisition>,
+    private std::vector<Acquisition>,
     public MetaInfoInterface
   {
+private:
+    typedef std::vector<Acquisition> ContainerType;
+
 public:
     /// Constructor
     AcquisitionInfo();
     /// Copy constructor
-    AcquisitionInfo(const AcquisitionInfo & source);
+    AcquisitionInfo(const AcquisitionInfo& source);
     /// Destructor
     ~AcquisitionInfo();
 
     /// Assignment operator
-    AcquisitionInfo & operator=(const AcquisitionInfo & source);
+    AcquisitionInfo& operator=(const AcquisitionInfo& source);
 
     /// Equality operator
-    bool operator==(const AcquisitionInfo & rhs) const;
+    bool operator==(const AcquisitionInfo& rhs) const;
     /// Equality operator
-    bool operator!=(const AcquisitionInfo & rhs) const;
+    bool operator!=(const AcquisitionInfo& rhs) const;
 
     /// returns the method of combination
-    const String & getMethodOfCombination() const;
+    const String& getMethodOfCombination() const;
     /// sets the method of combination
-    void setMethodOfCombination(const String & method_of_combination);
+    void setMethodOfCombination(const String& method_of_combination);
+
+    ///@name Export methods from private base std::vector<Acquisition>
+    //@{
+    using ContainerType::operator[];
+    using ContainerType::begin;
+    using ContainerType::end;
+    using ContainerType::size;
+    using ContainerType::push_back;
+    using ContainerType::empty;
+    using ContainerType::back;
+    using ContainerType::insert;
+    using ContainerType::resize;
+
+    using ContainerType::iterator;
+    using ContainerType::const_iterator;
+    //@}
 
 protected:
     String method_of_combination_;

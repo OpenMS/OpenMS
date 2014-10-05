@@ -50,19 +50,22 @@ namespace OpenMS
 
   }
 
-  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap & map, const double & ratio_threshold)
+  vector<double> ConsensusMapNormalizerAlgorithmThreshold::computeCorrelation(const ConsensusMap& map, const double& ratio_threshold)
   {
     Size number_of_features = map.size();
     Size number_of_maps = map.getFileDescriptions().size();
     vector<vector<double> > feature_int(number_of_maps);
     //get map with most features, resize feature_int
-    UInt map_with_most_features = 0;
+    UInt map_with_most_features_idx = 0;
+    ConsensusMap::FileDescriptions::const_iterator map_with_most_features = map.getFileDescriptions().find(0);
     for (UInt i = 0; i < number_of_maps; i++)
     {
       feature_int[i].resize(number_of_features);
-      if (map.getFileDescriptions()[i].size > map.getFileDescriptions()[map_with_most_features].size)
+      ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().find(i);
+      if (it->second.size > map_with_most_features->second.size)
       {
-        map_with_most_features = i;
+        map_with_most_features = it;
+        map_with_most_features_idx = i;
       }
     }
     //fill feature_int with intensities
@@ -83,9 +86,9 @@ namespace OpenMS
       vector<double> ratios;
       for (UInt k = 0; k < number_of_features; ++k)
       {
-        if (feature_int[map_with_most_features][k] != 0.0 && feature_int[j][k] != 0.0)
+        if (feature_int[map_with_most_features_idx][k] != 0.0 && feature_int[j][k] != 0.0)
         {
-          double ratio = feature_int[map_with_most_features][k] / feature_int[j][k];
+          double ratio = feature_int[map_with_most_features_idx][k] / feature_int[j][k];
           if (ratio > ratio_threshold && ratio < 1 / ratio_threshold)
           {
             ratios.push_back(ratio);
@@ -97,7 +100,7 @@ namespace OpenMS
     return ratio_vector;
   }
 
-  void ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(ConsensusMap & map, const vector<double> & ratios)
+  void ConsensusMapNormalizerAlgorithmThreshold::normalizeMaps(ConsensusMap& map, const vector<double>& ratios)
   {
     ConsensusMap::Iterator cf_it;
     ProgressLogger progresslogger;

@@ -40,9 +40,10 @@ using namespace std;
 int main(int argc, const char** argv)
 {
   if (argc < 2) return 1;
+
   // the path to the data should be given on the command line
   String tutorial_data_path(argv[1]);
-  
+
   TOFCalibration ec;
   PeakMap exp_raw, calib_exp;
   MzMLFile mzml_file;
@@ -52,7 +53,7 @@ int main(int argc, const char** argv)
   vector<double> ref_masses;
   TextFile ref_file;
   ref_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_masses.txt", true);
-  for (TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+  for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
   {
     ref_masses.push_back(String(iter->c_str()).toDouble());
   }

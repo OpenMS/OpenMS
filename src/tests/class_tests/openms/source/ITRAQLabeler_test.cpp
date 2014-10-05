@@ -77,11 +77,11 @@ START_SECTION((void preCheck(Param &param) const ))
 }
 END_SECTION
 
-START_SECTION((void setUpHook(FeatureMapSimVector &)))
+START_SECTION((void setUpHook(SimTypes::FeatureMapSimVector &)))
 {
   ITRAQLabeler i;
   // check for correct number of channels
-  FeatureMapSimVector f_maps;
+  SimTypes::FeatureMapSimVector f_maps;
   f_maps.push_back(FeatureMap<>());
   i.setUpHook(f_maps);
 
@@ -98,11 +98,11 @@ START_SECTION((void setUpHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postDigestHook(FeatureMapSimVector &)))
+START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
 {
   ITRAQLabeler i;
 
-  FeatureMapSimVector f_maps;
+  SimTypes::FeatureMapSimVector f_maps;
   FeatureMap<> fm1, fm2, fm3;
 
   // create peptide
@@ -162,41 +162,41 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postRTHook(FeatureMapSimVector &)))
+START_SECTION((void postRTHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postDetectabilityHook(FeatureMapSimVector &)))
+START_SECTION((void postDetectabilityHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postIonizationHook(FeatureMapSimVector &)))
+START_SECTION((void postIonizationHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postRawMSHook(FeatureMapSimVector &)))
+START_SECTION((void postRawMSHook(SimTypes::FeatureMapSimVector &)))
 {
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
+START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimTypes::MSSimExperiment &)))
 {
   ITRAQLabeler i;
-  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen (new SimTypes::SimRandomNumberGenerator);
   rnd_gen->initialize(false, false);
   i.setRnd(rnd_gen);
 
-  FeatureMapSimVector f_maps;
+  SimTypes::FeatureMapSimVector f_maps;
   FeatureMap<> fm1;
 
-  MSSimExperiment exp;
+  SimTypes::MSSimExperiment exp;
   MSSpectrum<> spec;
   IntList il;
   il.push_back(0);
@@ -205,7 +205,7 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
   spec.setMSLevel(2);
   exp.addSpectrum(spec);
 
-  MSSimExperiment exp2=exp;
+  SimTypes::MSSimExperiment exp2=exp;
 
   std::vector<double> eb(4);
   DoubleList elution_bounds(eb);

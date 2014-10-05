@@ -41,7 +41,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include<QDir>
+#include <QDir>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -57,8 +57,8 @@ namespace OpenMS
   {
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
       DefaultParamHandler("PosteriorErrorProbabilityModel"),
-      incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1,-1,-1)),
-      correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1,-1,-1)),
+      incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
+      correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1, -1, -1)),
       negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
     {
       defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", ListUtils::create<String>("advanced,output file"));
@@ -76,7 +76,7 @@ namespace OpenMS
     {
     }
 
-    bool PosteriorErrorProbabilityModel::fit(std::vector<double> & search_engine_scores)
+    bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores)
     {
       if (search_engine_scores.empty())
       {
@@ -99,7 +99,7 @@ namespace OpenMS
       if (param_.getValue("incorrectly_assigned") == "Gumbel")
       {
         incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0 );
+        incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         //TODO: compute directly with gauss. Workaround:
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
@@ -115,8 +115,8 @@ namespace OpenMS
       }
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
       calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
-      Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7));   // if only one score is present, ceil(...) will yield 1, which is an invalid index
-      correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start];      //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
+      Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7)); // if only one score is present, ceil(...) will yield 1, which is an invalid index
+      correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start]; //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
       correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
       correctly_assigned_fit_param_.A = 1.0   / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
 
@@ -144,7 +144,7 @@ namespace OpenMS
           LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
           return false;
         }
-        // 
+        //
         file = initPlots(x_scores);
       }
       //-------------------------------------------------------------
@@ -205,11 +205,11 @@ namespace OpenMS
         if (output_plots)
         {
           String formula1, formula2, formula3;
-          formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + String(negative_prior_);         //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
-          formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")";         //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+          formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + String(negative_prior_); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+          formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
           formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
           // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-          file.push_back("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+          file.addLine("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         }
         //update maximum likelihood
         maxlike = new_maxlike;
@@ -227,18 +227,18 @@ namespace OpenMS
       max_correctly_ = ((this)->*(calc_correct_))(correctly_assigned_fit_param_.x0, correctly_assigned_fit_param_);
       if (output_plots)
       {
-        String formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "*" + String(negative_prior_);       //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
-        String formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")";       // String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+        String formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "*" + String(negative_prior_); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+        String formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; // String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
         String formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
         // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-        file.push_back("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+        file.addLine("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         file.store((String)param_.getValue("out_plot"));
         tryGnuplot((String)param_.getValue("out_plot"));
       }
       return true;
     }
 
-    bool PosteriorErrorProbabilityModel::fit(std::vector<double> & search_engine_scores, vector<double> & probabilities)
+    bool PosteriorErrorProbabilityModel::fit(std::vector<double>& search_engine_scores, vector<double>& probabilities)
     {
       bool return_value;
       return_value = fit(search_engine_scores);
@@ -254,7 +254,7 @@ namespace OpenMS
       return true;
     }
 
-    void PosteriorErrorProbabilityModel::fillDensities(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density)
+    void PosteriorErrorProbabilityModel::fillDensities(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
     {
       if (incorrect_density.size() != x_scores.size())
       {
@@ -270,7 +270,7 @@ namespace OpenMS
       }
     }
 
-    double PosteriorErrorProbabilityModel::computeMaxLikelihood(vector<double> & incorrect_density, vector<double> & correct_density)
+    double PosteriorErrorProbabilityModel::computeMaxLikelihood(vector<double>& incorrect_density, vector<double>& correct_density)
     {
       double maxlike(0);
       vector<double>::iterator incorrect = incorrect_density.begin();
@@ -281,7 +281,7 @@ namespace OpenMS
       return maxlike;
     }
 
-    double PosteriorErrorProbabilityModel::one_minus_sum_post(vector<double> & incorrect_density, vector<double> & correct_density)
+    double PosteriorErrorProbabilityModel::one_minus_sum_post(vector<double>& incorrect_density, vector<double>& correct_density)
     {
       double one_min(0);
       vector<double>::iterator incorrect = incorrect_density.begin();
@@ -292,7 +292,7 @@ namespace OpenMS
       return one_min;
     }
 
-    double PosteriorErrorProbabilityModel::sum_post(vector<double> & incorrect_density, vector<double> & correct_density)
+    double PosteriorErrorProbabilityModel::sum_post(vector<double>& incorrect_density, vector<double>& correct_density)
     {
       double post(0);
       vector<double>::iterator incorrect = incorrect_density.begin();
@@ -303,7 +303,7 @@ namespace OpenMS
       return post;
     }
 
-    double PosteriorErrorProbabilityModel::sum_pos_x0(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density)
+    double PosteriorErrorProbabilityModel::sum_pos_x0(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
     {
       double pos_x0(0);
       vector<double>::iterator the_x = x_scores.begin();
@@ -315,7 +315,7 @@ namespace OpenMS
       return pos_x0;
     }
 
-    double PosteriorErrorProbabilityModel::sum_neg_x0(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density)
+    double PosteriorErrorProbabilityModel::sum_neg_x0(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density)
     {
       double neg_x0(0);
       vector<double>::iterator the_x = x_scores.begin();
@@ -327,7 +327,7 @@ namespace OpenMS
       return neg_x0;
     }
 
-    double PosteriorErrorProbabilityModel::sum_pos_sigma(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density, double positive_mean)
+    double PosteriorErrorProbabilityModel::sum_pos_sigma(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density, double positive_mean)
     {
       double pos_sigma(0);
       vector<double>::iterator the_x = x_scores.begin();
@@ -339,7 +339,7 @@ namespace OpenMS
       return pos_sigma;
     }
 
-    double PosteriorErrorProbabilityModel::sum_neg_sigma(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density, double positive_mean)
+    double PosteriorErrorProbabilityModel::sum_neg_sigma(vector<double>& x_scores, vector<double>& incorrect_density, vector<double>& correct_density, double positive_mean)
     {
       double neg_sigma(0);
       vector<double>::iterator the_x = x_scores.begin();
@@ -377,7 +377,7 @@ namespace OpenMS
       return (negative_prior_ * x_neg) / ((negative_prior_ * x_neg) + (1 - negative_prior_) * x_pos);
     }
 
-    TextFile PosteriorErrorProbabilityModel::initPlots(vector<double> & x_scores)
+    TextFile PosteriorErrorProbabilityModel::initPlots(vector<double>& x_scores)
     {
       std::vector<DPosition<2> > points;
       Int number_of_bins = param_.getValue("number_of_bins");
@@ -428,14 +428,14 @@ namespace OpenMS
       file << "set key off";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
       file <<  "set output '" + (String)param_.getValue("out_plot") + ".pdf'";
-      String formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + String(negative_prior_);         //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
-      String formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")";         //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+      String formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + String(negative_prior_); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+      String formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")"; //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
       file << ("plot '" + (String)param_.getValue("out_plot") + "_scores.txt' with boxes, " + formula1 + " , " + formula2);
       return file;
     }
 
-    const String PosteriorErrorProbabilityModel::getGumbelGnuplotFormula(const GaussFitter::GaussFitResult & params) const
+    const String PosteriorErrorProbabilityModel::getGumbelGnuplotFormula(const GaussFitter::GaussFitResult& params) const
     {
       // build a formula with the fitted parameters for gnuplot
       stringstream formula;
@@ -443,21 +443,21 @@ namespace OpenMS
       return formula.str();
     }
 
-    const String PosteriorErrorProbabilityModel::getGaussGnuplotFormula(const GaussFitter::GaussFitResult & params) const
+    const String PosteriorErrorProbabilityModel::getGaussGnuplotFormula(const GaussFitter::GaussFitResult& params) const
     {
       stringstream formula;
       formula << params.A << " * exp(-(x - " << params.x0 << ") ** 2 / 2 / (" << params.sigma << ") ** 2)";
       return formula.str();
     }
 
-    const String PosteriorErrorProbabilityModel::getBothGnuplotFormula(const GaussFitter::GaussFitResult & incorrect, const GaussFitter::GaussFitResult & correct) const
+    const String PosteriorErrorProbabilityModel::getBothGnuplotFormula(const GaussFitter::GaussFitResult& incorrect, const GaussFitter::GaussFitResult& correct) const
     {
       stringstream formula;
       formula << negative_prior_ << "*" <<  ((this)->*(getNegativeGnuplotFormula_))(incorrect) << " + (1-" << negative_prior_ << ")*" << ((this)->*(getPositiveGnuplotFormula_))(correct);
       return formula.str();
     }
 
-    void PosteriorErrorProbabilityModel::plotTargetDecoyEstimation(vector<double> & target, vector<double> & decoy)
+    void PosteriorErrorProbabilityModel::plotTargetDecoyEstimation(vector<double>& target, vector<double>& decoy)
     {
       if (target.size() == 0 || decoy.size() == 0)
       {
@@ -548,27 +548,27 @@ namespace OpenMS
       //TODO: file<<"set title ";
       file << "set key off";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
-      file << String("set output '") +  (String)param_.getValue("out_plot") + "_target_decoy.pdf'";;
+      file << String("set output '") +  (String)param_.getValue("out_plot") + "_target_decoy.pdf'";
       String formula1, formula2;
-      formula1 = getGumbelGnuplotFormula(getIncorrectlyAssignedFitResult()) + "* " + String(getNegativePrior());         //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
-      formula2 = getGaussGnuplotFormula(getCorrectlyAssignedFitResult()) + "* (1 - " + String(getNegativePrior()) + ")";         //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
+      formula1 = getGumbelGnuplotFormula(getIncorrectlyAssignedFitResult()) + "* " + String(getNegativePrior()); //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
+      formula2 = getGaussGnuplotFormula(getCorrectlyAssignedFitResult()) + "* (1 - " + String(getNegativePrior()) + ")"; //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
       // important: use single quotes for paths, since otherwise backslashes will not be accepted on Windows!
       file << ("plot '" + (String)param_.getValue("out_plot") + "_target_decoy_scores.txt'   using 1:3  with boxes fill solid 0.8 noborder, \"" + (String)param_.getValue("out_plot") + "_target_decoy_scores.txt\"  using 1:2  with boxes, " + formula1 + " , " + formula2);
       file.store((String)param_.getValue("out_plot") + "_target_decoy");
       tryGnuplot((String)param_.getValue("out_plot") + "_target_decoy");
     }
 
-     void PosteriorErrorProbabilityModel::tryGnuplot(const String& gp_file)
-     {
-       LOG_INFO << "Attempting to call 'gnuplot' ...";
-       String cmd = String("gnuplot \"") + gp_file + "\"";
-       if (system(cmd.c_str())) // 0 is success!
-       {
-         LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;
-       }
-       else LOG_INFO << " success!" << std::endl;
+    void PosteriorErrorProbabilityModel::tryGnuplot(const String& gp_file)
+    {
+      LOG_INFO << "Attempting to call 'gnuplot' ...";
+      String cmd = String("gnuplot \"") + gp_file + "\"";
+      if (system(cmd.c_str()))  // 0 is success!
+      {
+        LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;
+      }
+      else LOG_INFO << " success!" << std::endl;
 
-     }
+    }
 
-  }   //namespace Math
+  } //namespace Math
 } // namespace OpenMS
