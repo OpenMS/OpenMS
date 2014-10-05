@@ -213,7 +213,7 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       // LOG_DEBUG << "Processing feature map..." << endl;
-      FeatureMap<> map;
+      FeatureMap map;
       FeatureXMLFile file;
       file.load(in, map);
 

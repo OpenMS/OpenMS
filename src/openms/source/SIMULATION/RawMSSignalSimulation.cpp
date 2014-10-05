@@ -381,7 +381,7 @@ namespace OpenMS
     // step
     if (experiment.size() == 1) // MS only
     {
-      for (FeatureMap<>::iterator feature_it = features.begin();
+      for (FeatureMap::iterator feature_it = features.begin();
            feature_it != features.end();
            ++feature_it, ++progress)
       {

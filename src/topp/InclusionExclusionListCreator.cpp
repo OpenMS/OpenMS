@@ -204,7 +204,7 @@ protected:
       if (in_type == FileTypes::FEATUREXML)
       {
         // load feature map
-        FeatureMap<> map;
+        FeatureMap map;
         FeatureXMLFile().load(include, map);
 
         if (strategy == "ALL")
@@ -234,7 +234,7 @@ protected:
 
           String raw_data_path = getStringOption_("raw_data");
           MSExperiment<> exp, ms2;
-          FeatureMap<> out_map;
+          FeatureMap out_map;
           MzMLFile().load(raw_data_path, exp);
           IntList levels;
           levels.push_back(1);
@@ -327,7 +327,7 @@ protected:
           param.removeAll("feature_based:");
           opis.setParameters(param);
 
-          FeatureMap<> precursors;
+          FeatureMap precursors;
           opis.createProteinSequenceBasedLPInclusionList(include, rt_model_file, pt_model_file, precursors);
           if (out.hasSuffix("featureXML"))
           {
@@ -376,7 +376,7 @@ protected:
         }
 
         // load feature map
-        FeatureMap<> map;
+        FeatureMap map;
         FeatureXMLFile().load(exclude, map);
 
         // convert to targeted experiment if traML output is selected

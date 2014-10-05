@@ -155,7 +155,7 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    FeatureMap<> all_mrm_features;
+    FeatureMap all_mrm_features;
     FeatureXMLFile().load(in, all_mrm_features);
 
     // read pair file
@@ -202,7 +202,7 @@ protected:
 
     // collect the different MRM XIC pairs for each SILAC pair as quantlets
     // then calculate the ratio over the quanlets and calculate some statistics
-    FeatureMap<> all_features;
+    FeatureMap all_features;
     for (Map<double, Map<double, vector<SILAC_pair> > >::ConstIterator it1 = pairs.begin(); it1 != pairs.end(); ++it1)
     {
       for (Map<double, vector<SILAC_pair> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
@@ -212,8 +212,8 @@ protected:
         Size idx = 0;
         for (vector<SILAC_pair>::const_iterator pit = it2->second.begin(); pit != it2->second.end(); ++pit, ++idx)
         {
-          FeatureMap<> feature_map_light, feature_map_heavy;
-          for (FeatureMap<>::const_iterator it = all_mrm_features.begin(); it != all_mrm_features.end(); ++it)
+          FeatureMap feature_map_light, feature_map_heavy;
+          for (FeatureMap::const_iterator it = all_mrm_features.begin(); it != all_mrm_features.end(); ++it)
           {
             if (fabs((double)it->getMetaValue("MZ") - it1->first) < mass_tolerance &&
                 fabs(it->getMZ() - pit->mz_light) < mass_tolerance &&
@@ -232,12 +232,12 @@ protected:
 
           // search if feature maps to m/z value of pair
           vector<MatchedFeature> light, heavy;
-          for (FeatureMap<>::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
+          for (FeatureMap::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
           {
             all_features.push_back(*fit);
             light.push_back(MatchedFeature(*fit, idx));
           }
-          for (FeatureMap<>::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
+          for (FeatureMap::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
           {
             all_features.push_back(*fit);
             heavy.push_back(MatchedFeature(*fit, idx));

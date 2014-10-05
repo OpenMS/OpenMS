@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
 
         void computeConsensus()    nogil except +
         void computeMonoisotopicConsensus()    nogil except +
-        void computeDechargeConsensus(FeatureMap[Feature], bool)    nogil except +
+        void computeDechargeConsensus(FeatureMap, bool)    nogil except +
 
         void insert(UInt64, Peak2D, UInt64) nogil except +
         void insert(UInt64, BaseFeature) nogil except +

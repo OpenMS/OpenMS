@@ -83,7 +83,7 @@ namespace OpenMS
 
     AnnotationStatistics& operator+=(BaseFeature::AnnotationState state)
     {
-      ++states[(Size)state];
+      ++states[static_cast<Size>(state)];
       return *this;
     }
 
@@ -93,6 +93,8 @@ namespace OpenMS
   /// Print content of an AnnotationStatistics object to a stream
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const AnnotationStatistics& ann);
 
+  // FEATUREREV
+  
   /**
     @brief A container for features.
 
@@ -107,29 +109,28 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  template <typename FeatureT = Feature>
   class FeatureMap :
-    private std::vector<FeatureT>,
+    private std::vector<Feature>,
     public RangeManager<2>,
     public DocumentIdentifier,
     public UniqueIdInterface,
-    public UniqueIdIndexer<FeatureMap<FeatureT> >
+    public UniqueIdIndexer<FeatureMap>
   {
 public:
     /**
       @name Type definitions
     */
-    typedef std::vector<FeatureT> privvec;
+    typedef std::vector<Feature> privvec;
 
     // types
-    using typename privvec::value_type;
-    using typename privvec::iterator;
-    using typename privvec::const_iterator;
-    using typename privvec::size_type;
-    using typename privvec::pointer;          // ConstRefVector
-    using typename privvec::reference;        // ConstRefVector
-    using typename privvec::const_reference;  // ConstRefVector
-    using typename privvec::difference_type;  // ConstRefVector
+    using privvec::value_type;
+    using privvec::iterator;
+    using privvec::const_iterator;
+    using privvec::size_type;
+    using privvec::pointer;          // ConstRefVector
+    using privvec::reference;        // ConstRefVector
+    using privvec::const_reference;  // ConstRefVector
+    using privvec::difference_type;  // ConstRefVector
 
     // functions
     using privvec::begin;
@@ -148,13 +149,13 @@ public:
     using privvec::erase;     // source/VISUAL/Spectrum2DCanvas.cpp 2871, FeatureMap_test 599
 
     //@{
-    typedef FeatureT FeatureType;
+    typedef Feature FeatureType;
     typedef RangeManager<2> RangeManagerType;
     typedef std::vector<FeatureType> Base;
-    typedef typename Base::iterator Iterator;
-    typedef typename Base::const_iterator ConstIterator;
-    typedef typename Base::reverse_iterator ReverseIterator;
-    typedef typename Base::const_reverse_iterator ConstReverseIterator;
+    typedef Base::iterator Iterator;
+    typedef Base::const_iterator ConstIterator;
+    typedef Base::reverse_iterator ReverseIterator;
+    typedef Base::const_reverse_iterator ConstReverseIterator;
     typedef FeatureType & Reference;
     typedef const FeatureType & ConstReference;
     //@}
@@ -170,7 +171,7 @@ public:
       RangeManagerType(),
       DocumentIdentifier(),
       UniqueIdInterface(),
-      UniqueIdIndexer<FeatureMap<FeatureT> >(),
+      UniqueIdIndexer<FeatureMap>(),
       protein_identifications_(),
       unassigned_peptide_identifications_(),
       data_processing_()
@@ -182,7 +183,7 @@ public:
       RangeManagerType(source),
       DocumentIdentifier(source),
       UniqueIdInterface(source),
-      UniqueIdIndexer<FeatureMap<FeatureT> >(source),
+      UniqueIdIndexer<FeatureMap>(source),
       protein_identifications_(source.protein_identifications_),
       unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
       data_processing_(source.data_processing_)
@@ -276,11 +277,11 @@ public:
       // consistency
       try
       {
-        UniqueIdIndexer<FeatureMap<FeatureT> >::updateUniqueIdToIndex();
+        UniqueIdIndexer<FeatureMap>::updateUniqueIdToIndex();
       }
       catch (Exception::Postcondition /*&e*/) // assign new UID's for conflicting entries
       {
-        Size replaced_uids =  UniqueIdIndexer<FeatureMap<FeatureT> >::resolveUniqueIdConflicts();
+        Size replaced_uids =  UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
         LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
       }
 
@@ -298,30 +299,30 @@ public:
     {
       if (reverse)
       {
-        std::sort(this->begin(), this->end(), reverseComparator(typename FeatureType::IntensityLess()));
+        std::sort(this->begin(), this->end(), reverseComparator(FeatureType::IntensityLess()));
       }
       else
       {
-        std::sort(this->begin(), this->end(), typename FeatureType::IntensityLess());
+        std::sort(this->begin(), this->end(), FeatureType::IntensityLess());
       }
     }
 
     ///Sort features by position. Lexicographical comparison (first RT then m/z) is done.
     void sortByPosition()
     {
-      std::sort(this->begin(), this->end(), typename FeatureType::PositionLess());
+      std::sort(this->begin(), this->end(), FeatureType::PositionLess());
     }
 
     ///Sort features by RT position.
     void sortByRT()
     {
-      std::sort(this->begin(), this->end(), typename FeatureType::RTLess());
+      std::sort(this->begin(), this->end(), FeatureType::RTLess());
     }
 
     ///Sort features by m/z position.
     void sortByMZ()
     {
-      std::sort(this->begin(), this->end(), typename FeatureType::MZLess());
+      std::sort(this->begin(), this->end(), FeatureType::MZLess());
     }
 
     ///Sort features by ascending overall quality.
@@ -329,11 +330,11 @@ public:
     {
       if (reverse)
       {
-        std::sort(this->begin(), this->end(), reverseComparator(typename FeatureType::OverallQualityLess()));
+        std::sort(this->begin(), this->end(), reverseComparator(FeatureType::OverallQualityLess()));
       }
       else
       {
-        std::sort(this->begin(), this->end(), typename FeatureType::OverallQualityLess());
+        std::sort(this->begin(), this->end(), FeatureType::OverallQualityLess());
       }
     }
 
@@ -374,6 +375,7 @@ public:
     }
 
     /// Swaps the feature content (plus its range information) of this map with the content of @p from
+    // FEATUREREV
     void swapFeaturesOnly(FeatureMap& from)
     {
       // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
@@ -398,7 +400,7 @@ public:
       UniqueIdInterface::swap(from);
 
       // swap unique id index
-      UniqueIdIndexer<FeatureMap<FeatureT> >::swap(from);
+      UniqueIdIndexer<FeatureMap>::swap(from);
 
       // swap the remaining members
       protein_identifications_.swap(from.protein_identifications_);
@@ -486,7 +488,7 @@ public:
 
       <b>Example:</b>  The following will print the number of features with invalid unique ids (plus 1 if the container has an invalid UID as well):
       @code
-      FeatureMap<> fm;
+      FeatureMap fm;
       (...)
       std::cout << fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId) << std::endl;
       @endcode
@@ -539,24 +541,7 @@ protected:
     std::vector<DataProcessing> data_processing_;
   };
 
-  /// Print content of a feature map to a stream.
-  template <typename FeatureType>
-  std::ostream & operator<<(std::ostream & os, const FeatureMap<FeatureType> & map)
-  {
-    os << "# -- DFEATUREMAP BEGIN --" << "\n";
-    os << "# POS \tINTENS\tOVALLQ\tCHARGE\tUniqueID" << "\n";
-    for (typename FeatureMap<FeatureType>::const_iterator iter = map.begin(); iter != map.end(); ++iter)
-    {
-      os << iter->getPosition() << '\t'
-      << iter->getIntensity() << '\t'
-      << iter->getOverallQuality() << '\t'
-      << iter->getCharge() << '\t'
-      << iter->getUniqueId() << "\n";
-    }
-    os << "# -- DFEATUREMAP END --" << std::endl;
-    return os;
-  }
-
+  std::ostream & operator<<(std::ostream & os, const FeatureMap & map);
 
 } // namespace OpenMS
 

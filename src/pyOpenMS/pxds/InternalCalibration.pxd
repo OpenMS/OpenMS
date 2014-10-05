@@ -31,11 +31,11 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>" namespac
                                   MSExperiment[Peak1D,ChromatogramPeak] & calibrated,
                                   libcpp_vector[PeptideIdentification] & ref_ids,
                                   String trafo_filename)      nogil except +
-        void calibrateMapGlobally(FeatureMap[Feature] & raw,
-                                  FeatureMap[Feature] & calibrated,
+        void calibrateMapGlobally(FeatureMap & raw,
+                                  FeatureMap & calibrated,
                                   libcpp_vector[PeptideIdentification] & ref_ids,
                                   String trafo_filename)      nogil except +
-        void calibrateMapGlobally(FeatureMap[Feature] & raw,
-                                  FeatureMap[Feature] & calibrated,
+        void calibrateMapGlobally(FeatureMap & raw,
+                                  FeatureMap & calibrated,
                                   String trafo_filename)      nogil except +
 

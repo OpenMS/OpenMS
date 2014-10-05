@@ -177,7 +177,7 @@ protected:
       }
       else if (in_type == FileTypes::FEATUREXML)
       {
-        FeatureMap<> features;
+        FeatureMap features;
         FeatureXMLFile().load(in, features);
         seed_gen.generateSeedList(
           features.getUnassignedPeptideIdentifications(), seed_lists[0]);
@@ -188,7 +188,7 @@ protected:
       for (Map<UInt64, SeedListGenerator::SeedList>::Iterator it =
              seed_lists.begin(); it != seed_lists.end(); ++it, ++num_maps)
       {
-        FeatureMap<> features;
+        FeatureMap features;
         seed_gen.convertSeedList(it->second, features);
         //annotate output with data processing info:
         addDataProcessing_(features, getProcessingInfo_(

@@ -110,7 +110,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector<MSExperiment<> >&, std::ve
 END_SECTION
 
 
-START_SECTION((virtual void alignFeatureMaps(std::vector<FeatureMap<> >&, std::vector<TransformationDescription>&)))
+START_SECTION((virtual void alignFeatureMaps(std::vector<FeatureMap >&, std::vector<TransformationDescription>&)))
 {
 	// largely the same as "alignPeptideIdentifications"
   NOT_TESTABLE;

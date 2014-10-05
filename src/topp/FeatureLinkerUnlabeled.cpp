@@ -172,7 +172,7 @@ protected:
       std::vector<PeptideIdentification> ref_pepids;
       std::vector<ProteinIdentification> ref_protids;
       {
-        FeatureMap<> map_ref;
+        FeatureMap map_ref;
         FeatureXMLFile f_fxml_tmp;
         f_fxml_tmp.getOptions().setLoadConvexHull(false);
         f_fxml_tmp.getOptions().setLoadSubordinates(false);
@@ -190,7 +190,7 @@ protected:
       {
 
         FeatureXMLFile f_fxml_tmp;
-        FeatureMap<> tmp_map;
+        FeatureMap tmp_map;
         f_fxml_tmp.getOptions().setLoadConvexHull(false);
         f_fxml_tmp.getOptions().setLoadSubordinates(false);
         f_fxml_tmp.load(ins[i], tmp_map);

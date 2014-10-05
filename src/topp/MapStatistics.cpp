@@ -158,7 +158,7 @@ public:
   {
   }
 
-  vector<double> sliceStatistics(const FeatureMap<>& map, Size begin, Size end) const
+  vector<double> sliceStatistics(const FeatureMap& map, Size begin, Size end) const
   {
     // If we are asked to produce stats for an empty set, return an empty vector.
     if (end <= begin || end > map.size())
@@ -248,7 +248,7 @@ protected:
     }
 
     MSExperiment<Peak1D> exp;
-    FeatureMap<> feat;
+    FeatureMap feat;
     ConsensusMap cons;
 
     if (in_type == FileTypes::FEATUREXML) //features

@@ -146,7 +146,7 @@ protected:
 
     writeDebug_("Loading input file", 1);
 
-    typedef FeatureMap<> FeatureMapType;
+    typedef FeatureMap FeatureMapType;
     FeatureMapType map_in, map_out;
     FeatureXMLFile().load(infile, map_in);
 

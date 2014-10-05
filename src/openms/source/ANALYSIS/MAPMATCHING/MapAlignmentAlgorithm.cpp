@@ -76,7 +76,7 @@ namespace OpenMS
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
 
-  void MapAlignmentAlgorithm::alignFeatureMaps(vector<FeatureMap<> > &, vector<TransformationDescription> &)
+  void MapAlignmentAlgorithm::alignFeatureMaps(vector<FeatureMap> &, vector<TransformationDescription> &)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
@@ -85,10 +85,10 @@ namespace OpenMS
   {
     LOG_WARN << "MapAlignmentAlgorithm::alignConsensusMaps() does not support ConsensusMaps directly. Converting to FeatureMaps." << endl;
 
-    vector<FeatureMap<> > maps_f;
+    vector<FeatureMap> maps_f;
     for (Size i = 0; i < cms.size(); ++i)
     {
-      FeatureMap<> fm;
+      FeatureMap fm;
       MapConversion::convert(cms[i], true, fm);
       maps_f.push_back(fm);
     }

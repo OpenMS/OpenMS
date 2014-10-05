@@ -74,10 +74,10 @@ public:
       @param keep_uids Shall the UID's of the elements and the container be kept or created anew
       @param output_map The resulting ConsensusMap.
     */
-    template <typename FeatureT>
+    // FEATUREREV
     static void convert(ConsensusMap const& input_map,
                         const bool keep_uids,
-                        FeatureMap<FeatureT>& output_map)
+                        FeatureMap& output_map)
     {
       output_map.clear(true);
       output_map.resize(input_map.size());
@@ -119,9 +119,9 @@ public:
       @param output_map The resulting ConsensusMap.
       @param n The maximum number of elements to be copied.
     */
-    template <typename FeatureT>
+    // FEATUREREV
     static void convert(UInt64 const input_map_index,
-                        FeatureMap<FeatureT> const& input_map,
+                        FeatureMap const& input_map,
                         ConsensusMap& output_map,
                         Size n = -1)
     {

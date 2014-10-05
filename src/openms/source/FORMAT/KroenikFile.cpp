@@ -56,13 +56,13 @@ namespace OpenMS
   {
   }
 
-  void KroenikFile::load(const String& filename, FeatureMap<>& feature_map)
+  void KroenikFile::load(const String& filename, FeatureMap& feature_map)
   {
     // load input
     TextFile input(filename);
 
     // reset map
-    FeatureMap<> fmap;
+    FeatureMap fmap;
     feature_map = fmap;
 
     TextFile::ConstIterator it = input.begin();

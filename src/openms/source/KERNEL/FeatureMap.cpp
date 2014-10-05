@@ -36,7 +36,7 @@
 
 namespace OpenMS
 {
-  FeatureMap<Feature> default_dfeaturemap_2;
+  FeatureMap default_dfeaturemap_2;
 
   std::ostream & operator<<(std::ostream & os, const AnnotationStatistics& ann)
   {
@@ -48,5 +48,22 @@ namespace OpenMS
     os << std::endl;
     return os;
   }
+  
+  std::ostream & operator<<(std::ostream & os, const FeatureMap & map)
+  {
+    os << "# -- DFEATUREMAP BEGIN --" << "\n";
+    os << "# POS \tINTENS\tOVALLQ\tCHARGE\tUniqueID" << "\n";
+    for (FeatureMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
+    {
+      os << iter->getPosition() << '\t'
+      << iter->getIntensity() << '\t'
+      << iter->getOverallQuality() << '\t'
+      << iter->getCharge() << '\t'
+      << iter->getUniqueId() << "\n";
+    }
+    os << "# -- DFEATUREMAP END --" << std::endl;
+    return os;
+  }
+
 
 }

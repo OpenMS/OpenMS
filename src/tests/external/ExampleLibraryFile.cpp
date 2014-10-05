@@ -51,13 +51,13 @@ namespace OpenMSExternal
 
   void ExampleLibraryFile::loadAndSaveFeatureXML()
   {
-    FeatureMap<> fm;
+    FeatureMap fm;
     Feature feature;
     fm.push_back(feature);
     String tmpfilename = "tmpfile.featureXML";
     FeatureXMLFile().store(tmpfilename, fm);
 
-    FeatureMap<> fm2;
+    FeatureMap fm2;
     FeatureXMLFile().store(tmpfilename, fm2);
   }
 }

@@ -53,13 +53,13 @@ namespace OpenMS
     Param tmp;
     if (algorithm_name != "none")
     {
-      FeatureFinderAlgorithm<Peak1D, Feature> * a = Factory<FeatureFinderAlgorithm<Peak1D, Feature> >::create(algorithm_name);
+      FeatureFinderAlgorithm<Peak1D> * a = Factory<FeatureFinderAlgorithm<Peak1D> >::create(algorithm_name);
       tmp.insert("", a->getDefaultParameters());
       delete(a);
     }
     return tmp;
   }
 
-  template OPENMS_DLLAPI void FeatureFinder::run<Peak1D,Feature>(const String &, MSExperiment<Peak1D> &, FeatureMap<Feature> &, const Param &, const FeatureMap<Feature> &);
+  template OPENMS_DLLAPI void FeatureFinder::run<Peak1D>(const String &, MSExperiment<Peak1D> &, FeatureMap &, const Param &, const FeatureMap &);
 
 }

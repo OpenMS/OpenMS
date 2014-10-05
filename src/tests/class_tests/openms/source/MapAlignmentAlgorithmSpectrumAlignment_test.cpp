@@ -133,9 +133,9 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 }
 END_SECTION
 
-START_SECTION([EXTRA] void alignFeatureMaps(std::vector< FeatureMap<> >&))
+START_SECTION([EXTRA] void alignFeatureMaps(std::vector< FeatureMap >&))
   MapAlignmentAlgorithmSpectrumAlignment ma;
-  std::vector< FeatureMap<> > maps;
+  std::vector< FeatureMap > maps;
 	std::vector<TransformationDescription> transformations;
   TEST_EXCEPTION(Exception::NotImplemented, ma.alignFeatureMaps(maps,transformations));
 END_SECTION

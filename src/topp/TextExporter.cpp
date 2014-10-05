@@ -478,7 +478,7 @@ namespace OpenMS
         // loading input
         //-------------------------------------------------------------
 
-        FeatureMap<> feature_map;
+        FeatureMap feature_map;
         FeatureXMLFile f;
         f.load(in, feature_map);
 
@@ -553,7 +553,7 @@ namespace OpenMS
           }
         }
 
-        for (FeatureMap<>::const_iterator citer = feature_map.begin();
+        for (FeatureMap::const_iterator citer = feature_map.begin();
              citer != feature_map.end(); ++citer)
         {
           if (!no_ids)

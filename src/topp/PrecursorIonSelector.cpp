@@ -244,7 +244,7 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    FeatureMap<> f_map;
+    FeatureMap f_map;
     FeatureXMLFile f_file;
     f_file.load(in, f_map);
 
@@ -266,7 +266,7 @@ protected:
     {
 
       pis.rescore(f_map, pep_ids, prot_ids, pisp);  // todo: add "rescoring" for LP selection
-      FeatureMap<> new_precursors;
+      FeatureMap new_precursors;
       pis.getNextPrecursors(f_map, new_precursors, prec_num);
 
       //-------------------------------------------------------------

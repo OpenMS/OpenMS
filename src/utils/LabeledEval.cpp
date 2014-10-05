@@ -96,7 +96,7 @@ protected:
   ExitCodes main_(int, const char **)
   {
     //load input features
-    FeatureMap<> input;
+    FeatureMap input;
     FeatureXMLFile().load(getStringOption_("in"), input);
 
     //load truth consensusXML

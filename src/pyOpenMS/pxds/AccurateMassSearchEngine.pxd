@@ -23,7 +23,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         void queryByFeature(Feature feature, Size feature_index, libcpp_vector[ AccurateMassSearchResult ] & ) nogil except +
         void queryByConsensusFeature(ConsensusFeature cfeat, Size cf_index, Size number_of_maps, libcpp_vector[AccurateMassSearchResult]& results) nogil except +
 
-        void run(FeatureMap[Feature] & , MzTab & ) nogil except +
+        void run(FeatureMap & , MzTab & ) nogil except +
         void run(ConsensusMap&, MzTab&) nogil except +
 
         String getInternalIonMode() nogil except +

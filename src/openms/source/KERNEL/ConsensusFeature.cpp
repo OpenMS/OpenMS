@@ -236,7 +236,7 @@ namespace OpenMS
     return;
   }
 
-  void ConsensusFeature::computeDechargeConsensus(const FeatureMap<> & fm, bool intensity_weighted_averaging)
+  void ConsensusFeature::computeDechargeConsensus(const FeatureMap & fm, bool intensity_weighted_averaging)
   {
     // for computing average position and intensity
     double rt = 0.0;

@@ -241,7 +241,7 @@ protected:
            << "file type" << "\t" << FileTypes::typeToName(in_type) << "\n";
 
     MSExperiment<Peak1D> exp;
-    FeatureMap<> feat;
+    FeatureMap feat;
     ConsensusMap cons;
     IdData id_data;
 
@@ -1070,7 +1070,7 @@ protected:
         vector<double> peak_widths(size);
 
         Size idx = 0;
-        for (FeatureMap<>::const_iterator fm_iter = feat.begin();
+        for (FeatureMap::const_iterator fm_iter = feat.begin();
              fm_iter != feat.end(); ++fm_iter, ++idx)
         {
           intensities[idx] = fm_iter->getIntensity();

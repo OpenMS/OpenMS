@@ -12,4 +12,4 @@ cdef extern from "<OpenMS/FORMAT/KroenikFile.h>" namespace "OpenMS":
         KroenikFile() nogil except +
 
         void store(String filename, MSSpectrum[Peak1D] & spectrum)  nogil except +
-        void load(String filename, FeatureMap[Feature] & feature_map) nogil except +
+        void load(String filename, FeatureMap & feature_map) nogil except +

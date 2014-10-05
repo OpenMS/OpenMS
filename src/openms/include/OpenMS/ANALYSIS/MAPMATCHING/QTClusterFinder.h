@@ -175,7 +175,7 @@ public:
 
          @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    void run(const std::vector<FeatureMap<> > & input_maps,
+    void run(const std::vector<FeatureMap > & input_maps,
              ConsensusMap & result_map);
 
     /// Returns an instance of this class

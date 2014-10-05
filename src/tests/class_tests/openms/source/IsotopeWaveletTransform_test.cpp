@@ -179,7 +179,7 @@ START_SECTION((virtual std::multimap<double, Box> getClosedBoxes ()))
 END_SECTION
 
 START_SECTION(FeatureMap< Feature > mapSeeds2Features(const MSExperiment< PeakType > &map, const UInt RT_votes_cutoff))
-	FeatureMap<Feature> f = iw->mapSeeds2Features(map, 0);
+	FeatureMap f = iw->mapSeeds2Features(map, 0);
 	TEST_EQUAL (f.size(), 1)
 END_SECTION
 

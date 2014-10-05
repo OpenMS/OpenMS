@@ -171,7 +171,7 @@ public:
     n_transitions_ = getIntOption_("transitions");
 
     LOG_DEBUG << "Loading input files..." << endl;
-    FeatureMap<> features;
+    FeatureMap features;
     FeatureXMLFile().load(in, features);
     TraMLFile().load(lib, library_);
 

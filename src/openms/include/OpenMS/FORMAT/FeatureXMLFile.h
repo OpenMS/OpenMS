@@ -78,7 +78,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, FeatureMap<> & feature_map);
+    void load(const String & filename, FeatureMap & feature_map);
 
     Size loadSize(const String & filename);
 
@@ -87,7 +87,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const FeatureMap<> & feature_map);
+    void store(const String & filename, const FeatureMap & feature_map);
 
     /// Mutable access to the options for loading/storing
     FeatureFileOptions & getOptions();
@@ -134,7 +134,7 @@ protected:
     /// points to the last open &lt;feature&gt; tag (possibly a subordinate feature)
     Feature * current_feature_;
     /// Feature map pointer for reading
-    FeatureMap<Feature> * map_;
+    FeatureMap* map_;
     /// Options that can be set
     FeatureFileOptions options_;
     /// only parse until "count" tag is reached (used in loadSize())

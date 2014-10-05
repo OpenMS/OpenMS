@@ -180,7 +180,7 @@ protected:
     }
     if (features)
     {
-      FeatureMap<> feature_map, calibrated_feature_map;
+      FeatureMap feature_map, calibrated_feature_map;
       FeatureXMLFile f_file;
       f_file.load(in, feature_map);
       if (ref == "")

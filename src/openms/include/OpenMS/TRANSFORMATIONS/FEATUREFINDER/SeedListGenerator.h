@@ -97,11 +97,11 @@ public:
 
 
     /// Convert a list of seed positions to a feature map (expected format for FeatureFinder)
-    void convertSeedList(const SeedList & seeds, FeatureMap<> & features);
+    void convertSeedList(const SeedList & seeds, FeatureMap & features);
 
 
     /// Convert a feature map with seed positions back to a simple list
-    void convertSeedList(const FeatureMap<> & features, SeedList & seeds);
+    void convertSeedList(const FeatureMap & features, SeedList & seeds);
 
   };
 

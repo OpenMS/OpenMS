@@ -37,7 +37,7 @@
 
 namespace OpenMS
 {
-  ConstRefVector<FeatureMap<Feature> > default_constrefvector;
-  ConstRefVector<FeatureMap<Feature> >::Iterator default_constrefvector_iterator;
-  ConstRefVector<FeatureMap<Feature> >::ConstIterator default_constrefvector_constiterator;
+  ConstRefVector<FeatureMap > default_constrefvector;
+  ConstRefVector<FeatureMap >::Iterator default_constrefvector_iterator;
+  ConstRefVector<FeatureMap >::ConstIterator default_constrefvector_constiterator;
 }

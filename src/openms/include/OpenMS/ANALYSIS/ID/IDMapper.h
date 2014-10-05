@@ -206,12 +206,12 @@ public:
 
 */
     template <typename PeakType>
-    void annotate(MSExperiment<PeakType>& map, FeatureMap<> fmap, const bool clear_ids = false, const bool mapMS1 = false)
+    void annotate(MSExperiment<PeakType>& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)
     {
       const std::vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
       std::vector<PeptideIdentification> peptide_ids;
 
-      for (FeatureMap<>::const_iterator it = fmap.begin(); it != fmap.end(); ++it)
+      for (FeatureMap::const_iterator it = fmap.begin(); it != fmap.end(); ++it)
       {
         const std::vector<PeptideIdentification>& pi = it->getPeptideIdentifications();
         for (std::vector<PeptideIdentification>::const_iterator itp = pi.begin(); itp != pi.end(); ++itp)
@@ -245,8 +245,8 @@ public:
       @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
 
     */
-    template <typename FeatureType>
-    void annotate(FeatureMap<FeatureType> & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false)
+    // FEATUREREV
+    void annotate(FeatureMap & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids, bool use_centroid_rt = false, bool use_centroid_mz = false)
     {
       // std::cout << "Starting annotation..." << std::endl;
       checkHits_(ids); // check RT and m/z are present
@@ -258,7 +258,7 @@ public:
       // if not, use the centroid and the given tolerances
       if (!(use_centroid_rt && use_centroid_mz))
       {
-        for (typename FeatureMap<FeatureType>::Iterator f_it = map.begin(); f_it != map.end(); ++f_it)
+        for (FeatureMap::Iterator f_it = map.begin(); f_it != map.end(); ++f_it)
         {
           if (f_it->getConvexHulls().empty())
           {
@@ -284,7 +284,7 @@ public:
       double max_rt = -std::numeric_limits<double>::max();
       // std::cout << "Precomputing bounding boxes..." << std::endl;
       boxes.reserve(map.size());
-      for (typename FeatureMap<FeatureType>::Iterator f_it = map.begin();
+      for (FeatureMap::Iterator f_it = map.begin();
            f_it != map.end(); ++f_it)
       {
         DBoundingBox<2> box;

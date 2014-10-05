@@ -79,9 +79,9 @@ START_SECTION((static const String getProductName()))
 }
 END_SECTION
 
-START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusMap& result_map)))
+START_SECTION((void run(const std::vector<FeatureMap >& input_maps, ConsensusMap& result_map)))
 {
-  vector<FeatureMap<> > input(2);
+  vector<FeatureMap > input(2);
   Feature feat1;
   Feature feat2;
   DPosition<2> pos1(0,0);

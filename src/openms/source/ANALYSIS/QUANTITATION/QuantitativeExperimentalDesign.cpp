@@ -121,7 +121,7 @@ namespace OpenMS
 
     if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> features;
+      FeatureMap features;
 
       for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
@@ -169,9 +169,9 @@ namespace OpenMS
     LOG_INFO << endl;
   }
 
-  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap<>& out, const String& experiment, StringList& file_paths)
+  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap& out, const String& experiment, StringList& file_paths)
   {
-    FeatureMap<> map;
+    FeatureMap map;
 
     LOG_INFO << "Merge feature maps: " << endl;
     UInt counter = 1;
@@ -179,7 +179,7 @@ namespace OpenMS
     {
       //load should clear the map
       FeatureXMLFile().load(*file_it, map);
-      for (FeatureMap<>::iterator it = map.begin(); it != map.end(); ++it)
+      for (FeatureMap::iterator it = map.begin(); it != map.end(); ++it)
       {
         it->setMetaValue("experiment", DataValue(experiment));
       }

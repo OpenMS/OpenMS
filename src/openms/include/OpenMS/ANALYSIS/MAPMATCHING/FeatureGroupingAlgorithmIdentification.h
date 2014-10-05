@@ -68,7 +68,7 @@ public:
      @exception IllegalArgument is thrown if less than two input maps are given.
      */
     virtual void
-    group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out);
+    group(const std::vector<FeatureMap > & maps, ConsensusMap & out);
 
     /// Creates a new instance of this class (for Factory)
     static FeatureGroupingAlgorithm *

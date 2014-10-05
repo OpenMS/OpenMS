@@ -74,7 +74,7 @@ namespace OpenMS
   {
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap<> & map, TransformationDescription & trafo)
+  void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap & map, TransformationDescription & trafo)
   {
     ConsensusMap map_scene;
     MapConversion::convert(1, map, map_scene, max_num_peaks_considered_);

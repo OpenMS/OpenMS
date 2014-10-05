@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>" na
 
         # not in FeatureGroupingAlgorithm, as cython has a problem with
         # overloaded methods in base classes
-        void group(libcpp_vector[FeatureMap[Feature]] & maps,
+        void group(libcpp_vector[FeatureMap] & maps,
                    ConsensusMap & out
                   ) nogil except +
 

@@ -821,8 +821,8 @@ protected:
     void addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for feature maps
-    template <typename FeatureType>
-    void addDataProcessing_(FeatureMap<FeatureType>& map, const DataProcessing& dp) const
+    // FEATUREREV
+    void addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
     {
       map.getDataProcessing().push_back(dp);
     }

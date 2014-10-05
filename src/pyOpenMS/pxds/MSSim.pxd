@@ -11,7 +11,7 @@ from MSExperiment cimport *
 from FeatureMap cimport *
 
 # SimTypes::MSSimExperiment = MSExperiment
-# SimTypes::FeatureMapSim = FeatureMap[Feature]
+# SimTypes::FeatureMapSim = FeatureMap
 cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
 
     cdef cppclass MSSim:
@@ -29,13 +29,13 @@ cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
         MSExperiment[Peak1D, ChromatogramPeak] getExperiment() nogil except +
 
         # Access the simulated features
-        FeatureMap[Feature] getSimulatedFeatures() nogil except +
+        FeatureMap getSimulatedFeatures() nogil except +
 
         # Access the charge consensus map of simulated features
         ConsensusMap getChargeConsensus() nogil except +
 
         # Access the contaminants feature map of simulated features
-        FeatureMap[Feature] getContaminants() nogil except +
+        FeatureMap getContaminants() nogil except +
 
         # Access the labeling consensus map of simulated features
         ConsensusMap getLabelingConsensus() nogil except +

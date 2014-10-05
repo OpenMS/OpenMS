@@ -78,7 +78,7 @@ public:
       @param feature_based If true the selection is feature based, if false it is scan based and the highest signals in each spectrum are chosen
     */
     template <typename InputPeakType>
-    void makePrecursorSelectionForKnownLCMSMap(const FeatureMap<>& features,
+    void makePrecursorSelectionForKnownLCMSMap(const FeatureMap& features,
                                                const MSExperiment<InputPeakType>& experiment,
                                                MSExperiment<InputPeakType>& ms2,
                                                std::set<Int>& charges_set,
@@ -92,11 +92,11 @@ public:
       @param indices The boundaries of the features as indices in the raw data
     */
     template <typename InputPeakType>
-    void getMassRanges(const FeatureMap<>& features,
+    void getMassRanges(const FeatureMap& features,
                        const MSExperiment<InputPeakType>& experiment,
                        std::vector<std::vector<std::pair<Size, Size> > >& indices);
 
-    void createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file, FeatureMap<>& precursors);
+    void createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file, FeatureMap& precursors);
 
     void setLPSolver(LPWrapper::SOLVER solver)
     {
@@ -114,7 +114,7 @@ private:
       @brief Calculate the sum of intensities of relevant features for each scan separately.
     */
     template <typename InputPeakType>
-    void calculateXICs_(const FeatureMap<>& features,
+    void calculateXICs_(const FeatureMap& features,
                         const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                         const MSExperiment<InputPeakType>& experiment,
                         const std::set<Int>& charges_set,
@@ -152,7 +152,7 @@ private:
   }
 
   template <typename InputPeakType>
-  void OfflinePrecursorIonSelection::getMassRanges(const FeatureMap<>& features,
+  void OfflinePrecursorIonSelection::getMassRanges(const FeatureMap& features,
                                                    const MSExperiment<InputPeakType>& experiment,
                                                    std::vector<std::vector<std::pair<Size, Size> > >& indices)
   {
@@ -303,7 +303,7 @@ private:
   }
 
   template <typename InputPeakType>
-  void OfflinePrecursorIonSelection::calculateXICs_(const FeatureMap<>& features,
+  void OfflinePrecursorIonSelection::calculateXICs_(const FeatureMap& features,
                                                     const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                                     const MSExperiment<InputPeakType>& experiment,
                                                     const std::set<Int>& charges_set,
@@ -340,7 +340,7 @@ private:
   }
 
   template <typename InputPeakType>
-  void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(const FeatureMap<>& features,
+  void OfflinePrecursorIonSelection::makePrecursorSelectionForKnownLCMSMap(const FeatureMap& features,
                                                                            const MSExperiment<InputPeakType>& experiment,
                                                                            MSExperiment<InputPeakType>& ms2,
                                                                            std::set<Int>& charges_set,

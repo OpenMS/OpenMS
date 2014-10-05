@@ -130,7 +130,7 @@ public:
 
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const FeatureMap<> & map) const;
+    void store(const String & filename, const FeatureMap & map) const;
   };
 } // namespace OpenMS
 

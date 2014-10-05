@@ -75,7 +75,7 @@ END_SECTION
 
 START_SECTION((Size loadSize(const String &filename)))
 {
-  FeatureMap<> e;
+  FeatureMap e;
   FeatureXMLFile dfmap_file;
   //test exception
   TEST_EXCEPTION(Exception::FileNotFound, dfmap_file.loadSize("dummy/dummy.MzData"))
@@ -88,11 +88,11 @@ START_SECTION((Size loadSize(const String &filename)))
 }
 END_SECTION
 
-START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
+START_SECTION((void load(const String &filename, FeatureMap&feature_map)))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
-  FeatureMap<> e;
+  FeatureMap e;
   FeatureXMLFile dfmap_file;
 
   //test exception
@@ -160,7 +160,7 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
   TEST_EQUAL(e[1].getMetaValue("myDoubleList") == ListUtils::create<double>("6.442"), true);
 
   //test if loading a second file works (initialization)
-  FeatureMap<> e2;
+  FeatureMap e2;
   dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e2);
   TEST_EQUAL(e == e2, true)
 
@@ -196,7 +196,7 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
   {
     // convex hulls:
     dfmap_file.getOptions() = FeatureFileOptions();
-    FeatureMap<> e_full;
+    FeatureMap e_full;
     dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e_full);
     dfmap_file.getOptions().setLoadConvexHull(false);
     dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e);
@@ -212,7 +212,7 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
   // subordinates:
   {
     dfmap_file.getOptions() = FeatureFileOptions();
-    FeatureMap<> e_full;
+    FeatureMap e_full;
     dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e_full);
     dfmap_file.getOptions().setLoadSubordinates(false);
     dfmap_file.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e);
@@ -225,12 +225,12 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
 }
 END_SECTION
 
-START_SECTION((void store(const String &filename, const FeatureMap<>&feature_map)))
+START_SECTION((void store(const String &filename, const FeatureMap&feature_map)))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
 
-  FeatureMap<> map, map2;
+  FeatureMap map, map2;
   FeatureXMLFile f;
 
   f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), map);
@@ -243,7 +243,7 @@ END_SECTION
 START_SECTION((FeatureFileOptions & getOptions()))
 {
   FeatureXMLFile f;
-  FeatureMap<> e;
+  FeatureMap e;
   f.getOptions().setRTRange(makeRange(1.5, 4.5));
   f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), e);
   TEST_EQUAL(e.size(), 5)
@@ -269,7 +269,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), std::cerr), true);
   TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), std::cerr), true);
 
-  FeatureMap<> e;
+  FeatureMap e;
   String filename;
 
   //test if empty file is valid
@@ -364,7 +364,7 @@ START_SECTION([EXTRA])
   String filename;
   NEW_TMP_FILE(filename);
   FeatureXMLFile f;
-  FeatureMap<> e;
+  FeatureMap e;
   e.push_back(f1);
   e.push_back(f2);
 
@@ -372,7 +372,7 @@ START_SECTION([EXTRA])
   STATUS(e.applyMemberFunction(&UniqueIdInterface::ensureUniqueId));
 
   f.store(filename, e);
-  FeatureMap<> e2;
+  FeatureMap e2;
   f.load(filename, e2);
   e.updateRanges();
   TEST_EQUAL(e == e2, true);

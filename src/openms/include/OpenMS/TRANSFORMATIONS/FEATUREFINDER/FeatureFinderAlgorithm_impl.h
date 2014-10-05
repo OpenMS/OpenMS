@@ -45,23 +45,23 @@
 namespace OpenMS
 {
 
-  template <class PeakType, class FeatureType>
-  void FeatureFinderAlgorithm<PeakType, FeatureType>::registerChildren()
+  template <class PeakType>
+  void FeatureFinderAlgorithm<PeakType>::registerChildren()
   {
-    Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::registerProduct
+    Factory<FeatureFinderAlgorithm<PeakType> >::registerProduct
     (
-      FeatureFinderAlgorithmPicked<PeakType, FeatureType>::getProductName(),
-      &FeatureFinderAlgorithmPicked<PeakType, FeatureType>::create
+      FeatureFinderAlgorithmPicked<PeakType>::getProductName(),
+      &FeatureFinderAlgorithmPicked<PeakType>::create
     );
-    Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::registerProduct
+    Factory<FeatureFinderAlgorithm<PeakType> >::registerProduct
     (
-      FeatureFinderAlgorithmIsotopeWavelet<PeakType, FeatureType>::getProductName(),
-      &FeatureFinderAlgorithmIsotopeWavelet<PeakType, FeatureType>::create
+      FeatureFinderAlgorithmIsotopeWavelet<PeakType>::getProductName(),
+      &FeatureFinderAlgorithmIsotopeWavelet<PeakType>::create
     );
-    Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::registerProduct
+    Factory<FeatureFinderAlgorithm<PeakType> >::registerProduct
     (
-      FeatureFinderAlgorithmMRM<PeakType, FeatureType>::getProductName(),
-      &FeatureFinderAlgorithmMRM<PeakType, FeatureType>::create
+      FeatureFinderAlgorithmMRM<PeakType>::getProductName(),
+      &FeatureFinderAlgorithmMRM<PeakType>::create
     );
 
   }

@@ -151,10 +151,10 @@ protected:
     }
     else if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> features;
+      FeatureMap features;
       FeatureXMLFile().load(in, features);
       features.getUnassignedPeptideIdentifications().swap(peptides);
-      for (FeatureMap<>::Iterator feat_it = features.begin();
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
         peptides.insert(peptides.end(),

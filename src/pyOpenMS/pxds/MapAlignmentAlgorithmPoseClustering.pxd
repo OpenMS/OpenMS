@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
 
         MapAlignmentAlgorithmPoseClustering() nogil except +
 
-        void align(FeatureMap[Feature],
+        void align(FeatureMap,
                    TransformationDescription &
                    ) nogil except +
 
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
                    TransformationDescription &
                    ) nogil except +
 
-        void setReference (FeatureMap[Feature]) nogil except +
+        void setReference (FeatureMap) nogil except +
         void setReference (MSExperiment[Peak1D,ChromatogramPeak]) nogil except +
         String getProductName() nogil except +
 

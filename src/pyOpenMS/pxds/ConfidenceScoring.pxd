@@ -13,5 +13,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>" namespace "Op
 
         void initialize(TargetedExperiment & targeted, Size n_decoys, Size n_transitions, TransformationDescription trafo) nogil except +
         void initializeGlm(double intercept, double rt_coef, double int_coef) nogil except +
-        void scoreMap(FeatureMap[Feature] & map) nogil except +
+        void scoreMap(FeatureMap & map) nogil except +
 

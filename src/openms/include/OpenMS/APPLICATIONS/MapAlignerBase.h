@@ -297,11 +297,11 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         progresslogger.setProgress(i);
-        FeatureMap<> feature_map;
+        FeatureMap feature_map;
         f.load(ins[i], feature_map);
         feat_maps[i].resize(feature_map.size());
 
-        FeatureMap<>::const_iterator it = feature_map.begin();
+        FeatureMap::const_iterator it = feature_map.begin();
         std::vector<Peak2D>::iterator c_it = feat_maps[i].begin();
         for (; it != feature_map.end(); ++it, ++c_it)
         {
@@ -332,7 +332,7 @@ protected:
       {
         progresslogger.setProgress(i);
 
-        FeatureMap<> feature_map;
+        FeatureMap feature_map;
         f.load(ins[i], feature_map);
 
         MapAlignmentTransformer::transformSingleFeatureMap(feature_map, transformations[i]);

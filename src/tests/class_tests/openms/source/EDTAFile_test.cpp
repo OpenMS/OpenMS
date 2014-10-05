@@ -124,9 +124,9 @@ START_SECTION((void store(const String& filename, const ConsensusMap& map) const
 }
 END_SECTION
 
- START_SECTION((void store(const String& filename, const FeatureMap<>& map) const))
+ START_SECTION((void store(const String& filename, const FeatureMap& map) const))
 {
-  FeatureMap<> fm;
+  FeatureMap fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("EDTAFile_test_out_1.featureXML"), fm);
 
   EDTAFile f;

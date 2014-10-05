@@ -87,7 +87,7 @@ private:
     ///Not implemented
     QuantitativeExperimentalDesign & operator=(const QuantitativeExperimentalDesign &);
 
-    void mergeFeatureMaps_(FeatureMap<> & map, const String & experiment, StringList & file_paths);
+    void mergeFeatureMaps_(FeatureMap & map, const String & experiment, StringList & file_paths);
 
     void mergeConsensusMaps_(ConsensusMap & map, const String & experiment, StringList & file_paths);
 
