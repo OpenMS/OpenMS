@@ -52,39 +52,19 @@ namespace OpenMS
 
   /// summary of the peptide identification assigned to each feature of this map.
   /// Each feature contributes one vote (=state)
-  struct AnnotationStatistics
+  struct OPENMS_DLLAPI AnnotationStatistics
   {
     std::vector<Size> states; //< count each state, indexing by BaseFeature::AnnotationState
 
-    AnnotationStatistics() :
-      states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0)   // initialize all with 0
-    {
-    }
+    AnnotationStatistics();
 
-    AnnotationStatistics(const AnnotationStatistics& rhs) :
-      states(rhs.states)
-    {
-    }
+    AnnotationStatistics(const AnnotationStatistics& rhs);
 
-    AnnotationStatistics& operator=(const AnnotationStatistics& rhs)
-    {
-      if (this == &rhs) return *this;
+    AnnotationStatistics& operator=(const AnnotationStatistics& rhs);
 
-      states = rhs.states;
-      return *this;
-    }
+    bool operator==(const AnnotationStatistics& rhs) const;
 
-    bool operator==(const AnnotationStatistics& rhs) const
-    {
-      return states == rhs.states;
-    }
-
-    AnnotationStatistics& operator+=(BaseFeature::AnnotationState state)
-    {
-      ++states[static_cast<Size>(state)];
-      return *this;
-    }
-
+    AnnotationStatistics& operator+=(BaseFeature::AnnotationState state);
   };
 
 
@@ -105,7 +85,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class FeatureMap :
+  class OPENMS_DLLAPI FeatureMap :
     private std::vector<Feature>,
     public RangeManager<2>,
     public DocumentIdentifier,
@@ -317,7 +297,7 @@ protected:
     std::vector<DataProcessing> data_processing_;
   };
 
-  std::ostream& operator<<(std::ostream& os, const FeatureMap& map);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const FeatureMap& map);
 
 } // namespace OpenMS
 

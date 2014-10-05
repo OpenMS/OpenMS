@@ -158,8 +158,6 @@ protected:
     public DefaultParamHandler
   {
 public:
-    ///Output feature map type
-    FeatureMap;
     ///Input map type
     typedef MSExperiment<PeakType> MapType;
     ///Input spectrum type
