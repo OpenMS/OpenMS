@@ -99,9 +99,6 @@ namespace OpenMS
          * @brief rough estimation of the peak width at m/z
          * 
          * Based on the peaks of the dataset (peak position & width), the typical peak width is estimated for arbitrary m/z.
-         * The peak width is assumed to be a linear funtion of m/z.
-         * 
-         * TO DO: Use Lowess instead of Linear Regression.
          */
         class OPENMS_DLLAPI PeakWidthEstimator_
         {

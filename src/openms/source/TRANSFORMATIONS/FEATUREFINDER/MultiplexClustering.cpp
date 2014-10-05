@@ -173,7 +173,7 @@ namespace OpenMS
   }
 
   MultiplexClustering::PeakWidthEstimator_::PeakWidthEstimator_(std::vector<double> peaks_mz, std::vector<double> peaks_width)
-  : bspline_(peaks_mz, peaks_width, 500, BSpline2d::BC_ZERO_SECOND, 1), mz_min_(peaks_mz.front()), mz_max_(peaks_mz.back())
+  : bspline_(peaks_mz, peaks_width, std::min(500.0, (peaks_mz.back() - peaks_mz.front())/2), BSpline2d::BC_ZERO_SECOND, 1), mz_min_(peaks_mz.front()), mz_max_(peaks_mz.back())
   {
     if (!bspline_.ok())
     {
