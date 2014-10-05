@@ -37,7 +37,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
@@ -109,12 +109,10 @@ namespace OpenMS
             /**
             * @brief constructor
             * 
-            * @param exp_picked    experimental data in centroid mode
-            * @param boundaries    peak boundaries for exp_picked
-            * 
-            * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
+            * @param peaks_mz    m/z positions of peaks
+            * @param peaks_width    corresponding peak widths
             */
-            PeakWidthEstimator_(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries);
+            PeakWidthEstimator_(std::vector<double> peaks_mz, std::vector<double> peaks_width);
         
             /**
             * @brief returns the estimated peak width at m/z
@@ -128,17 +126,16 @@ namespace OpenMS
             PeakWidthEstimator_();
         
             /**
+             * @brief B-spline for peak width interpolation
+             */
+            BSpline2d bspline_;
+        
+            /**
             * @brief m/z range of peak width interpolation
             */
             double mz_min_;
             double mz_max_;
             
-            /**
-             * @brief slope and intercept for peak width interpolation
-             */
-            double slope_;
-            double intercept_;
-        
         };
         
         /**
