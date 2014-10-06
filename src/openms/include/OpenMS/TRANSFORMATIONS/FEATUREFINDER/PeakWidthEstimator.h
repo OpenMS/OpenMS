@@ -69,7 +69,7 @@ namespace OpenMS
     /**
     * @brief destructor
     */
-    ~PeakWidthEstimator();
+    virtual ~PeakWidthEstimator();
 
     private:        
     /// hide default constructor
