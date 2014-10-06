@@ -43,31 +43,43 @@ using namespace OpenMS;
 
 START_TEST(PeakWidthEstimator, "$Id$")
 
-MSExperiment<> input;
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"), input);
+MSExperiment<> exp;
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"), exp);
 
-TOLERANCE_RELATIVE(1.001);
+PeakPickerHiRes picker;
+Param param = picker.getParameters();
+param.setValue("ms_levels", ListUtils::create<Int>("1"));
+param.setValue("signal_to_noise", 0.0);
+picker.setParameters(param);
 
-/*START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<boost::tuple<double, double, double> > &))
+std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;
+std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;
+
+MSExperiment<Peak1D> exp_picked;
+picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
+
+PeakWidthEstimator* nullPointer = 0;
+PeakWidthEstimator* ptr;
+
+START_SECTION(PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries))
 {
-  typedef std::set<boost::tuple<double, double, double> > Fwhm;
-  Fwhm fwhm;
-  PeakWidthEstimator::estimateSpectrumFWHM(input[0], fwhm);
-  TEST_EQUAL(fwhm.size(), 33);
-  Fwhm::const_reverse_iterator it = fwhm.rbegin();
-  TEST_REAL_SIMILAR(it->get<0>(), 70077.03125);
-  TEST_REAL_SIMILAR(it->get<1>(), 373.233354572207);
-  TEST_REAL_SIMILAR(it->get<2>(), 0.00534878671169281);
+  PeakWidthEstimator estimator(exp_picked, boundaries_exp_s);
+  TEST_REAL_SIMILAR(estimator.getPeakWidth(365.3),0.00886469661896705);
+  ptr = new PeakWidthEstimator(exp_picked, boundaries_exp_s);
+  TEST_NOT_EQUAL(ptr, nullPointer);
+  delete ptr;
 }
 END_SECTION
 
-START_SECTION(static Result estimateFWHM(const MSExperiment<> &))
+PeakWidthEstimator estimator2(exp_picked, boundaries_exp_s);
+
+START_SECTION(double getPeakWidth(double mz))
 {
-  PeakWidthEstimator::Result r(PeakWidthEstimator::estimateFWHM(input));
-  TEST_REAL_SIMILAR(r.c0, -13.5602655596606);
-  TEST_REAL_SIMILAR(r.c1, 1.40511597343351);
+  TEST_REAL_SIMILAR(estimator2.getPeakWidth(365.3),0.00886469661896705);
+  TEST_REAL_SIMILAR(estimator2.getPeakWidth(305.1),0.00886699447290451);    // outside m/z range
+  TEST_REAL_SIMILAR(estimator2.getPeakWidth(405.1),0.01184458329884600);    // outside m/z range
 }
-END_SECTION*/
+END_SECTION
 
 END_TEST
 
