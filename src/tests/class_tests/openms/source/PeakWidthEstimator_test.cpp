@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Bastian Blank $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -48,7 +48,7 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"), inpu
 
 TOLERANCE_RELATIVE(1.001);
 
-START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<boost::tuple<double, double, double> > &))
+/*START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<boost::tuple<double, double, double> > &))
 {
   typedef std::set<boost::tuple<double, double, double> > Fwhm;
   Fwhm fwhm;
@@ -67,7 +67,7 @@ START_SECTION(static Result estimateFWHM(const MSExperiment<> &))
   TEST_REAL_SIMILAR(r.c0, -13.5602655596606);
   TEST_REAL_SIMILAR(r.c1, 1.40511597343351);
 }
-END_SECTION
+END_SECTION*/
 
 END_TEST
 
