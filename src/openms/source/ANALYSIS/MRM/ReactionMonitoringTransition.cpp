@@ -41,7 +41,7 @@ namespace OpenMS
 
   ReactionMonitoringTransition::ReactionMonitoringTransition() :
     CVTermList(),
-    precursor_mz_(std::numeric_limits<double>::max()),
+    precursor_mz_(0.0),
     decoy_type_(UNKNOWN),
     library_intensity_(-101)
   {
