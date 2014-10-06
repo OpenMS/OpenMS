@@ -96,46 +96,6 @@ namespace OpenMS
         std::vector<std::map<int,GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
         
         /**
-         * @brief rough estimation of the peak width at m/z
-         * 
-         * Based on the peaks of the dataset (peak position & width), the typical peak width is estimated for arbitrary m/z.
-         */
-        class OPENMS_DLLAPI PeakWidthEstimator_
-        {
-            public:
-            /**
-            * @brief constructor
-            * 
-            * @param peaks_mz    m/z positions of peaks
-            * @param peaks_width    corresponding peak widths
-            */
-            PeakWidthEstimator_(std::vector<double> peaks_mz, std::vector<double> peaks_width);
-        
-            /**
-            * @brief returns the estimated peak width at m/z
-            * 
-            * @throw Exception::InvalidValue if the peak width estimation returns a negative value.
-            */
-            double getPeakWidth(double mz);
-        
-            private:        
-            /// hide default constructor
-            PeakWidthEstimator_();
-        
-            /**
-             * @brief B-spline for peak width interpolation
-             */
-            BSpline2d bspline_;
-        
-            /**
-            * @brief m/z range of peak width interpolation
-            */
-            double mz_min_;
-            double mz_max_;
-            
-        };
-        
-        /**
          * @brief scaled Euclidean distance for clustering
          */
         class OPENMS_DLLAPI MultiplexDistance

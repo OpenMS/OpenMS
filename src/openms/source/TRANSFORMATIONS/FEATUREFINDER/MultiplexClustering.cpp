@@ -42,6 +42,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
@@ -73,25 +74,7 @@ namespace OpenMS
     double rt_max = exp_profile.getMaxRT();
     
     // generate grid spacing
-    std::vector<double> peaks_mz;
-    std::vector<double> peaks_width;
-    MSExperiment<Peak1D>::Iterator it_rt;
-    vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-    for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
-         it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();
-         ++it_rt, ++it_rt_boundaries)
-    {
-      MSSpectrum<Peak1D>::Iterator it_mz;
-      vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
-      for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
-           it_mz < it_rt->end(), it_mz_boundary < it_rt_boundaries->end();
-           ++it_mz, ++it_mz_boundary)
-      {
-          peaks_mz.push_back(it_mz->getMZ());
-          peaks_width.push_back((*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min);
-      }
-    }
-    PeakWidthEstimator_ estimator(peaks_mz, peaks_width);
+    PeakWidthEstimator estimator(exp_picked, boundaries);
     // We assume that the jitter of the peak centres are less than <scaling> times the peak width.
     // This factor ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
     double scaling = 0.4;
@@ -109,6 +92,7 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
+    MSExperiment<Peak1D>::Iterator it_rt;
     for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
     {
       MSSpectrum<Peak1D>::Iterator it_mz;
@@ -170,40 +154,6 @@ namespace OpenMS
     endProgress();
 
     return cluster_results;
-  }
-
-  MultiplexClustering::PeakWidthEstimator_::PeakWidthEstimator_(std::vector<double> peaks_mz, std::vector<double> peaks_width)
-  : bspline_(peaks_mz, peaks_width, std::min(500.0, (peaks_mz.back() - peaks_mz.front())/2), BSpline2d::BC_ZERO_SECOND, 1), mz_min_(peaks_mz.front()), mz_max_(peaks_mz.back())
-  {
-    if (!bspline_.ok())
-    {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unable to fit B-spline to data.", "");
-    }
-  }
-
-  double MultiplexClustering::PeakWidthEstimator_::getPeakWidth(double mz)
-  {
-    double width;
-
-    if (mz < mz_min_)
-    {
-      width = bspline_.eval(mz_min_);
-    }
-    else if (mz > mz_max_)
-    {
-      width = bspline_.eval(mz_max_);
-    }
-    else
-    {
-      width = bspline_.eval(mz);
-    }
-
-    if (width < 0)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Estimated peak width is negative.", "");
-    }
-
-    return width;
   }
 
   MultiplexClustering::MultiplexDistance::MultiplexDistance(double rt_scaling)
