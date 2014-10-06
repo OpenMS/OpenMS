@@ -33,9 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
-  Map<String, UInt> default_hashmap;
 }

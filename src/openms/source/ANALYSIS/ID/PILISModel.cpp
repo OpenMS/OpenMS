@@ -124,7 +124,7 @@ namespace OpenMS
   {
   }
 
-  PILISModel::PILISModel(const PILISModel & model) :
+  PILISModel::PILISModel(const PILISModel& model) :
     DefaultParamHandler(model),
     hmm_(model.hmm_),
     prot_dist_(model.prot_dist_),
@@ -149,7 +149,7 @@ namespace OpenMS
   {
   }
 
-  PILISModel & PILISModel::operator=(const PILISModel & model)
+  PILISModel& PILISModel::operator=(const PILISModel& model)
   {
     if (this != &model)
     {
@@ -258,7 +258,7 @@ namespace OpenMS
     }
   }
 
-  void PILISModel::readFromFile(const String & filename)
+  void PILISModel::readFromFile(const String& filename)
   {
     // read the model
     if (!File::readable(filename))
@@ -275,7 +275,7 @@ namespace OpenMS
     TextFile file;
     file.load(filename, true);
 
-    TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
+    TextFile::ConstIterator it_begin(file.begin()), it_end(file.begin());
     it_begin = StringListUtils::searchPrefix(it_begin, file.end(), "BASE_MODEL_BEGIN");
     it_end = StringListUtils::searchPrefix(it_begin, file.end(), "BASE_MODEL_END");
     parseHMMModel_(++it_begin, it_end, hmm_, param_);
@@ -369,13 +369,13 @@ namespace OpenMS
     return;
   }
 
-  void PILISModel::writeGraphMLFile(const String & filename)
+  void PILISModel::writeGraphMLFile(const String& filename)
   {
     hmm_.writeGraphMLFile(filename);
     return;
   }
 
-  void PILISModel::writeToFile(const String & filename)
+  void PILISModel::writeToFile(const String& filename)
   {
 #ifdef SIM_DEBUG
     cerr << "writing to file '" << filename << "'" << endl;
@@ -440,7 +440,7 @@ namespace OpenMS
     return;
   }
 
-  void PILISModel::train(const RichPeakSpectrum & in_spec, const AASequence & peptide, UInt charge)
+  void PILISModel::train(const RichPeakSpectrum& in_spec, const AASequence& peptide, UInt charge)
   {
     if (!valid_)
     {
@@ -832,7 +832,7 @@ namespace OpenMS
     hmm_.estimateUntrainedTransitions();
   }
 
-  void PILISModel::getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, UInt charge)
+  void PILISModel::getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, UInt charge)
   {
     if (!valid_)
     {
@@ -1055,7 +1055,7 @@ namespace OpenMS
 
     //cerr << "Collecting peaks..." << endl;
 
-    Map<HMMState *, double> tmp;
+    Map<HMMState*, double> tmp;
     hmm_.calculateEmissionProbabilities(tmp);
 
     // clear peaks from last spectrum
@@ -1165,7 +1165,7 @@ namespace OpenMS
               avail_bb_sum_prefix = getAvailableBackboneCharge_(prefixes[i], Residue::BIon, z);
               if (avail_bb_sum_prefix <= charge_remote_threshold)
               {
-                if (i == 1)                 // second BB position
+                if (i == 1) // second BB position
                 {
                   b2_ion_losses_cr_.getIons(b_loss_peaks, prefixes[i], prefix_intensities[int_it][i][z - 1] * pre_path_intensities[int_it]);
                 }
@@ -1232,7 +1232,7 @@ namespace OpenMS
             }
           }
 
-          if (suffix_intensities[int_it][i][z - 1] > MIN_DECIMAL_VALUE && int_it != suf_path_intensities.size() - 1)           // no ay
+          if (suffix_intensities[int_it][i][z - 1] > MIN_DECIMAL_VALUE && int_it != suf_path_intensities.size() - 1) // no ay
           {
             vector<RichPeak1D> y_loss_peaks;
             double avail_bb_sum_suffix = getAvailableBackboneCharge_(suffixes[i], Residue::YIon, z);
@@ -1462,7 +1462,7 @@ namespace OpenMS
     return;
   }
 
-  double PILISModel::getAvailableBackboneCharge_(const AASequence & ion, Residue::ResidueType res_type, int charge)
+  double PILISModel::getAvailableBackboneCharge_(const AASequence& ion, Residue::ResidueType res_type, int charge)
   {
     double bb_sum(0);
     vector<double> bb_charges, sc_charges;
@@ -1495,13 +1495,13 @@ namespace OpenMS
     return bb_sum;
   }
 
-  bool PILISModel::getInitialTransitionProbabilities_(std::vector<double> & bb_init,
-                                                      std::vector<double> & cr_init,
-                                                      std::vector<double> & sc_init,
-                                                      double & precursor_init,
-                                                      const vector<double> & bb_charges,
-                                                      const vector<double> & sc_charges,
-                                                      const AASequence & peptide)
+  bool PILISModel::getInitialTransitionProbabilities_(std::vector<double>& bb_init,
+                                                      std::vector<double>& cr_init,
+                                                      std::vector<double>& sc_init,
+                                                      double& precursor_init,
+                                                      const vector<double>& bb_charges,
+                                                      const vector<double>& sc_charges,
+                                                      const AASequence& peptide)
   {
     bool is_charge_remote(false);
 
@@ -1571,7 +1571,7 @@ namespace OpenMS
         blocker_sum += 10.0 * sc_charges[i];
       }
 
-      bb_init.push_back(/*bb_charges[i+1]  **/ bb_sum * bb_enhance_factor / blocker_sum);
+      bb_init.push_back( /*bb_charges[i+1]  **/ bb_sum * bb_enhance_factor / blocker_sum);
       String aa(peptide[i].getOneLetterCode());
       if ((aa == "K" || aa == "R" || aa == "H"))
       {
@@ -1612,7 +1612,7 @@ namespace OpenMS
     return is_charge_remote;
   }
 
-  void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, RichPeakSpectrum & /*spectrum*/, const IsotopeDistribution & id, const String & name)
+  void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, RichPeakSpectrum& /*spectrum*/, const IsotopeDistribution& id, const String& name)
   {
     if (intensity < MIN_DECIMAL_VALUE)
     {
@@ -1644,7 +1644,7 @@ namespace OpenMS
     return;
   }
 
-  void PILISModel::parseHMMModel_(const TextFile::ConstIterator & begin, const TextFile::ConstIterator & end, HiddenMarkovModel & hmm, Param & param)
+  void PILISModel::parseHMMModel_(const TextFile::ConstIterator& begin, const TextFile::ConstIterator& end, HiddenMarkovModel& hmm, Param& param)
   {
     if (begin == end)
     {
@@ -1735,7 +1735,7 @@ namespace OpenMS
     return;
   }
 
-  void PILISModel::writeParameters_(ostream & os, const Param & param)
+  void PILISModel::writeParameters_(ostream& os, const Param& param)
   {
     for (Param::ParamIterator it = param.begin(); it != param.end(); ++it)
     {

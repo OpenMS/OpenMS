@@ -624,7 +624,7 @@ START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const Str
 	//Actually writing something to the file is not necessary, but on Mac all tmp files are called 'source_<line>.tmp'.
 	//So we have to make sure the file is empty. Otherwise the test might fail...
 	TextFile dummy;
-	dummy.resize(5);
+  dummy.addLine("");dummy.addLine("");dummy.addLine("");dummy.addLine("");dummy.addLine("");
 	dummy.store(filename);
 END_SECTION
 

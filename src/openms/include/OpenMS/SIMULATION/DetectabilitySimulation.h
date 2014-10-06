@@ -62,14 +62,14 @@ public:
     DetectabilitySimulation();
 
     /// Copy constructor
-    DetectabilitySimulation(const DetectabilitySimulation & source);
+    DetectabilitySimulation(const DetectabilitySimulation& source);
 
     /// Destructor
     virtual ~DetectabilitySimulation();
     //@}
 
     /// Assignment operator
-    DetectabilitySimulation & operator=(const DetectabilitySimulation & source);
+    DetectabilitySimulation& operator=(const DetectabilitySimulation& source);
 
     /**
      @brief Filters the given peptide features for detectability
@@ -79,11 +79,11 @@ public:
 
      @param features Feature map that will be filtered for detectability
      */
-    void filterDetectability(FeatureMapSim & features);
+    void filterDetectability(SimTypes::FeatureMapSim& features);
 
 
-    void predictDetectabilities(std::vector<String> & peptides_vector, std::vector<double> & labels,
-                                std::vector<double> & detectabilities);
+    void predictDetectabilities(std::vector<String>& peptides_vector, std::vector<double>& labels,
+                                std::vector<double>& detectabilities);
 private:
     /// Set default parameters
     void setDefaultParams_();
@@ -99,10 +99,10 @@ private:
 
 protected:
     /// Filter the feature map using a svm model
-    void svmFilter_(FeatureMapSim &);
+    void svmFilter_(SimTypes::FeatureMapSim&);
 
     /// Do not filter the feature map, just set the detectability to a default value
-    void noFilter_(FeatureMapSim &);
+    void noFilter_(SimTypes::FeatureMapSim&);
 
   };
 

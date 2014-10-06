@@ -55,9 +55,9 @@ using namespace std;
 
 
 /**
-    @page UTILS_MSSimulator MSSimulator
+  @page UTILS_MSSimulator MSSimulator
 
-    @brief A highly configurable simulator for mass spectrometry experiments.
+  @brief A highly configurable simulator for mass spectrometry experiments.
 
   This implementation is described in
   <p>
@@ -147,12 +147,12 @@ protected:
     registerOutputFile_("out_cntm", "<file>", "", "output: ground-truth features caused by contaminants", false);
     setValidFormats_("out_cntm", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_id", "<file>", "", "output: ground-truth MS2 peptide identifications", false);
-    setValidFormats_("out_id", ListUtils::create<String>("idXML")); 
+    setValidFormats_("out_id", ListUtils::create<String>("idXML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     Param tmp;
     tmp.insert("MSSim:", MSSim().getParameters());
@@ -168,7 +168,7 @@ protected:
   }
 
   // Load proteins from FASTA file
-  void loadFASTA_(const String & filename, SampleProteins & proteins)
+  void loadFASTA_(const String& filename, SimTypes::SampleProteins& proteins)
   {
     writeLog_(String("Loading sequence data from ") + filename +  String(" ..."));
 
@@ -226,20 +226,20 @@ protected:
         }
       }
 
-      proteins.push_back(make_pair(*it, data));
+      proteins.push_back(SimTypes::SimProtein(*it, data));
     }
 
     writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
 
     // check if at least one output file is
-    if (getStringOption_("out") == "" && 
+    if (getStringOption_("out") == "" &&
         getStringOption_("out_pm") == "" &&
         getStringOption_("out_fm") == "" &&
         getStringOption_("out_cm") == "" &&
@@ -255,11 +255,11 @@ protected:
     ms_simulation.setParameters(getParam_().copy("algorithm:MSSim:", true));
 
     // read proteins
-    SampleChannels channels;
+    SimTypes::SampleChannels channels;
     StringList input_files = getStringList_("in");
     for (Size i = 0; i < input_files.size(); ++i)
     {
-      SampleProteins proteins;
+      SimTypes::SampleProteins proteins;
       loadFASTA_(input_files[i], proteins);
       channels.push_back(proteins);
     }
@@ -267,7 +267,7 @@ protected:
     // initialize the random number generators
     bool biological_random = getParam_().getValue("algorithm:RandomNumberGenerators:biological") == "random";
     bool technical_random = getParam_().getValue("algorithm:RandomNumberGenerators:technical") == "random";
-    MutableSimRandomNumberGeneratorPtr rnd_gen ( new SimRandomNumberGenerator );
+    SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen(new SimTypes::SimRandomNumberGenerator);
     rnd_gen->initialize(biological_random, technical_random);
 
     ms_simulation.setLogType(this->log_type_);
@@ -307,7 +307,7 @@ protected:
     {
       writeLog_(String("Storing charged consensus features in: ") + cxml_out);
 
-      ConsensusMap & charge_consensus = ms_simulation.getChargeConsensus();
+      ConsensusMap& charge_consensus = ms_simulation.getChargeConsensus();
       charge_consensus.getFileDescriptions()[0].filename = fxml_out;
       charge_consensus.getFileDescriptions()[0].size = ms_simulation.getSimulatedFeatures().size();
       charge_consensus.getFileDescriptions()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
@@ -321,8 +321,8 @@ protected:
       writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
 
       // set file name for all (sub)feature maps
-      ConsensusMap & labeling_consensus = ms_simulation.getLabelingConsensus();
-      for (ConsensusMap::FileDescriptions::Iterator fdI = labeling_consensus.getFileDescriptions().begin();
+      ConsensusMap& labeling_consensus = ms_simulation.getLabelingConsensus();
+      for (ConsensusMap::FileDescriptions::iterator fdI = labeling_consensus.getFileDescriptions().begin();
            fdI != labeling_consensus.getFileDescriptions().end();
            ++fdI)
       {
@@ -355,7 +355,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMSSimulator tool;
   return tool.main(argc, argv);

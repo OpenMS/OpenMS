@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2014.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -68,7 +68,7 @@ BSpline2d* null_ptr = 0;
 CsvFile sinus_file(OPENMS_GET_TEST_DATA_PATH("BSpline2d_test_sinus.txt"), '\t');
 std::vector<double> x;
 std::vector<double> y;
-for (Size i = 0; i != sinus_file.size(); ++i)
+for (Size i = 0; i != sinus_file.rowCount(); ++i)
 {
   StringList sl;
   if (sinus_file.getRow(i, sl))
@@ -125,7 +125,7 @@ START_SECTION((double eval(double x)))
       mean_squared_error_smoothed += error * error;
     }
     mean_squared_error_smoothed /= (double)x.size();
- 
+
     // error of smoothed signal must be much lower (for this data it should be at least half of the unsmoothed one)
     TEST_EQUAL(mean_squared_error_smoothed < 0.5 * mean_squared_error_noisy, true)
   }
@@ -140,7 +140,7 @@ START_SECTION((double eval(double x)))
       mean_squared_error_smoothed += error * error;
     }
     mean_squared_error_smoothed /= (double)x.size();
- 
+
     // error of smoothed signal must be lower (for this data it should be at least half of the unsmoothed one)
     TEST_EQUAL(mean_squared_error_smoothed < 0.5 * mean_squared_error_noisy, true)
   }
@@ -150,7 +150,7 @@ END_SECTION
 START_SECTION((double derivative(double x)))
 {
   {
-    // calculate error on first derivative of smoothed points. 
+    // calculate error on first derivative of smoothed points.
     // preserve curvature - otherwise we get large errors on derivative
     BSpline2d b(x, y, 0, BSpline2d::BC_ZERO_SECOND);
     double mean_absolute_derivative_error(0.0);
@@ -160,11 +160,11 @@ START_SECTION((double derivative(double x)))
       mean_absolute_derivative_error += error;
     }
     mean_absolute_derivative_error /= (double)x.size();
- 
+
     //cout << mean_absolute_derivative_error << endl;
     TEST_EQUAL(mean_absolute_derivative_error < 10.0 * 0.2, true)
   }
-  
+
 }
 END_SECTION
 
@@ -177,7 +177,7 @@ START_SECTION((double coefficient(int n)))
     x2.push_back(i);
     y2.push_back(i);
   }
-  
+
   // b-spline coefficients should increase monotopically for this example (checked with R)
   BSpline2d b(x2, y2, 0, BSpline2d::BC_ZERO_SECOND, 100);
   bool coeff_mono_increase = true;

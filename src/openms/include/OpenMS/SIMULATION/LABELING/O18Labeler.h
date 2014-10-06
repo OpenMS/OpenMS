@@ -73,19 +73,19 @@ public:
     // redeclaration of virtual methods
     void preCheck(Param& param) const;
 
-    void setUpHook(FeatureMapSimVector& /* channels */);
+    void setUpHook(SimTypes::FeatureMapSimVector& /* channels */);
 
-    void postDigestHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRTHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postDetectabilityHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postIonizationHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawMSHook(FeatureMapSimVector& /* features_to_simulate */);
+    void postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */);
 
-    void postRawTandemMSHook(FeatureMapSimVector& /* features_to_simulate */, MSSimExperiment& /* simulated map */);
+    void postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */);
 
 protected:
     void addModificationToPeptideHit_(Feature& feature, const String& modification) const;

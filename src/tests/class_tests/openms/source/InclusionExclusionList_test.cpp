@@ -150,12 +150,7 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
   TextFile tf;
   tf.load(out);
 
-  TEST_EQUAL(tf.size(), 4);
-  for (Size ii=0; ii<tf.size(); ++ii)
-  {
-
-    std::cout << tf[ii] << "\n";
-  }
+  TEST_EQUAL((tf.end() - tf.begin()), 4);
 
   // test exact m/z matching (no deviation allowed)
   {
@@ -170,7 +165,7 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
   TextFile tf;
   tf.load(out);
 
-  TEST_EQUAL(tf.size(), 5);
+  TEST_EQUAL((tf.end() - tf.begin()), 5);
   }
 
   // now test window overlap
@@ -185,7 +180,7 @@ START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path
   TextFile tf;
   tf.load(out);
 
-  TEST_EQUAL(tf.size(), 5);
+  TEST_EQUAL((tf.end() - tf.begin()), 5);
   }
 
 

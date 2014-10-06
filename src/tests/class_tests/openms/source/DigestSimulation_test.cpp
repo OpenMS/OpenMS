@@ -88,9 +88,9 @@ START_SECTION((DigestSimulation& operator=(const DigestSimulation &source)))
 END_SECTION
 
 
-START_SECTION((void digest(FeatureMapSim & feature_map)))
+START_SECTION((void digest(SimTypes::FeatureMapSim & feature_map)))
 {
-  FeatureMapSim fm;
+  SimTypes::FeatureMapSim fm;
   ProteinIdentification protIdent;
   // add new ProteinHit to ProteinIdentification
   {

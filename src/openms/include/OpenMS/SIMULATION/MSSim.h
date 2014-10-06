@@ -38,12 +38,13 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
 
+  class BaseLabeler;
 
   /**
    @brief Central class for simulation of mass spectrometry experiments
@@ -87,25 +88,25 @@ public:
      @param rnd_gen random number generator which will be passed to the different classes
      @param peptides List of peptides and abundances that will be simulated
      */
-    void simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels& peptides);
+    void simulate(SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen, SimTypes::SampleChannels& peptides);
 
     /// Access the simulated experiment
-    const MSSimExperiment& getExperiment() const;
+    const SimTypes::MSSimExperiment& getExperiment() const;
 
     /// Access the simulated features
-    const FeatureMapSim& getSimulatedFeatures() const;
+    const SimTypes::FeatureMapSim& getSimulatedFeatures() const;
 
     /// Access the charge consensus map of simulated features
     ConsensusMap& getChargeConsensus();
 
     /// Access the contaminants feature map of simulated features
-    const FeatureMapSim& getContaminants() const;
+    const SimTypes::FeatureMapSim& getContaminants() const;
 
     /// Access the labeling consensus map of simulated features
     ConsensusMap& getLabelingConsensus();
 
     /// Access the picked (centroided) experiment
-    const MSSimExperiment& getPeakMap() const;
+    const SimTypes::MSSimExperiment& getPeakMap() const;
 
     /**
       @brief Access the simulated MS2 identifications (proteins and peptides)
@@ -123,26 +124,26 @@ protected:
     void syncParams_(Param& p, bool to_outer);
 
     /// Convert a list of peptides with given abundance values into a FeatureMap
-    void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features, Size map_index);
+    void createFeatureMap_(const SimTypes::SampleProteins& peptides, SimTypes::FeatureMapSim& features, Size map_index);
 
     /// Synchronize members with param class
     void updateMembers_();
 
 private:
     /// Holds the simulated data
-    MSSimExperiment experiment_;
+    SimTypes::MSSimExperiment experiment_;
 
     /// Holds the ground-truth on generated peaks positions and intensities
-    MSSimExperiment peak_map_;
+    SimTypes::MSSimExperiment peak_map_;
 
     /// Holds the ground-truth on generated features
-    FeatureMapSimVector feature_maps_;
+    SimTypes::FeatureMapSimVector feature_maps_;
 
     /// Holds consensus ground-truth about the charge associations
     ConsensusMap consensus_map_;
 
     /// Holds the ground-truth on generated contaminants
-    FeatureMapSim contaminants_map_;
+    SimTypes::FeatureMapSim contaminants_map_;
 
     /// Labeling functionality
     BaseLabeler* labeler_;

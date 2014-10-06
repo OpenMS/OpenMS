@@ -170,9 +170,9 @@ protected:
   typedef MSExperiment<Peak1D> PeakMap;
 
   // mapping: charge -> iterator to peptide
-  typedef Map<Int, vector<vector<PeptideIdentification>::iterator> > ChargeMap;
+  typedef std::map<Int, vector<vector<PeptideIdentification>::iterator> > ChargeMap;
   // mapping: sequence -> charge -> iterator to peptide
-  typedef Map<AASequence, ChargeMap> PeptideMap;
+  typedef std::map<AASequence, ChargeMap> PeptideMap;
   // mapping: assay ID -> RT begin/end
 
   PeakMap ms_data_; // input LC-MS data

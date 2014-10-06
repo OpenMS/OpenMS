@@ -52,14 +52,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  void verbosePrintFeatureMap(FeatureMapSimVector feature_maps, String stage)
+  void verbosePrintFeatureMap(SimTypes::FeatureMapSimVector feature_maps, String stage)
   {
 #ifdef OPENMS_DEBUG_SIM_
     cout << "############## DEBUG (" << stage << ") -- FEATURE MAPS ##############" << endl;
 
     Size map_count = 1;
     StringList keys;
-    for (FeatureMapSimVector::iterator map_iter = feature_maps.begin(); map_iter != feature_maps.end(); ++map_iter)
+    for (SimTypes::FeatureMapSimVector::iterator map_iter = feature_maps.begin(); map_iter != feature_maps.end(); ++map_iter)
     {
       cout << "FEATURE MAP #" << map_count << endl;
 
@@ -72,7 +72,7 @@ namespace OpenMS
         cout << "- " << proteinHit->getAccession() << endl;
       }
       cout << "----------------------------------------------" << endl;
-      for (FeatureMapSim::const_iterator feat = (*map_iter).begin();
+      for (SimTypes::FeatureMapSim::const_iterator feat = (*map_iter).begin();
            feat != (*map_iter).end();
            ++feat)
       {
@@ -157,7 +157,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void MSSim::simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels& channels)
+  void MSSim::simulate(SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen, SimTypes::SampleChannels& channels)
   {
     /*todo: move to a global config file or into INI file */
     Log_fatal.setPrefix("%S: ");
@@ -209,9 +209,9 @@ namespace OpenMS
     labeler_->preCheck(param_);
 
     // convert sample proteins into an empty FeatureMap with ProteinHits
-    for (SampleChannels::const_iterator channel_iterator = channels.begin(); channel_iterator != channels.end(); ++channel_iterator)
+    for (SimTypes::SampleChannels::const_iterator channel_iterator = channels.begin(); channel_iterator != channels.end(); ++channel_iterator)
     {
-      FeatureMapSim map;
+      SimTypes::FeatureMapSim map;
       createFeatureMap_(*channel_iterator, map, feature_maps_.size());
       feature_maps_.push_back(map);
     }
@@ -220,7 +220,7 @@ namespace OpenMS
     labeler_->setUpHook(feature_maps_);
 
     // digest
-    for (FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
+    for (SimTypes::FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
     {
       digest_sim.digest(*map_iterator);
     }
@@ -232,7 +232,7 @@ namespace OpenMS
     verbosePrintFeatureMap(feature_maps_, "digested");
 
     // RT prediction
-    for (FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
+    for (SimTypes::FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
     {
       rt_sim.predictRT(*map_iterator);
     }
@@ -247,7 +247,7 @@ namespace OpenMS
     verbosePrintFeatureMap(feature_maps_, "RT sim done");
 
     // Detectability prediction
-    for (FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
+    for (SimTypes::FeatureMapSimVector::iterator map_iterator = feature_maps_.begin(); map_iterator != feature_maps_.end(); ++map_iterator)
     {
       dt_sim.filterDetectability(*map_iterator);
     }
@@ -288,8 +288,8 @@ namespace OpenMS
       Feature& f = feature_maps_[0][i];
       PeptideIdentification& pi = f.getPeptideIdentifications()[0];
       // search for closest scan index:
-      MSSimExperiment::ConstIterator it_rt = experiment_.RTBegin(f.getRT());
-      SignedSize scan_index = distance<MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
+      SimTypes::MSSimExperiment::ConstIterator it_rt = experiment_.RTBegin(f.getRT());
+      SignedSize scan_index = distance<SimTypes::MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
       pi.setMetaValue("RT_index", scan_index);
       pi.setRT(f.getRT());
     }
@@ -304,7 +304,7 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, peak_map_.size() - experiment_.size());
     }
-    for (MSSimExperiment::Iterator it_e = experiment_.begin(), it_ep = peak_map_.begin(); it_e != experiment_.end(); ++it_e, ++it_ep)
+    for (SimTypes::MSSimExperiment::Iterator it_e = experiment_.begin(), it_ep = peak_map_.begin(); it_e != experiment_.end(); ++it_e, ++it_ep)
     {
       String spec_id = String("scan=") + id++;
       it_e->setNativeID(spec_id);
@@ -312,20 +312,20 @@ namespace OpenMS
     }
   }
 
-  void MSSim::createFeatureMap_(const SampleProteins& proteins, FeatureMapSim& feature_map, Size map_index)
+  void MSSim::createFeatureMap_(const SimTypes::SampleProteins& proteins, SimTypes::FeatureMapSim& feature_map, Size map_index)
   {
     // clear feature map
     feature_map.clear(true);
     ProteinIdentification protIdent;
 
-    for (SampleProteins::const_iterator it = proteins.begin(); it != proteins.end(); ++it)
+    for (SimTypes::SampleProteins::const_iterator it = proteins.begin(); it != proteins.end(); ++it)
     {
       // add new ProteinHit to ProteinIdentification
-      ProteinHit protHit(0.0, 1, (it->first).identifier, (it->first).sequence);
+      ProteinHit protHit(0.0, 1, (it->entry).identifier, (it->entry).sequence);
       // copy all meta values from FASTA file parsing
-      protHit = (it->second);
+      protHit = (it->meta);
       // additional meta values:
-      protHit.setMetaValue("description", it->first.description);
+      protHit.setMetaValue("description", it->entry.description);
       protHit.setMetaValue("map_index", map_index);
       protIdent.insertHit(protHit);
     }
@@ -381,12 +381,12 @@ namespace OpenMS
   {
   }
 
-  const MSSimExperiment& MSSim::getExperiment() const
+  const SimTypes::MSSimExperiment& MSSim::getExperiment() const
   {
     return experiment_;
   }
 
-  const FeatureMapSim& MSSim::getSimulatedFeatures() const
+  const SimTypes::FeatureMapSim& MSSim::getSimulatedFeatures() const
   {
     OPENMS_PRECONDITION(feature_maps_.size() == 1, "More than one feature map remains after simulation. The channels should however be merged by now. Check!")
     return feature_maps_[0];
@@ -402,12 +402,12 @@ namespace OpenMS
     return labeler_->getConsensus();
   }
 
-  const FeatureMapSim& MSSim::getContaminants() const
+  const SimTypes::FeatureMapSim& MSSim::getContaminants() const
   {
     return contaminants_map_;
   }
 
-  const MSSimExperiment& MSSim::getPeakMap() const
+  const SimTypes::MSSimExperiment& MSSim::getPeakMap() const
   {
     return peak_map_;
   }
@@ -425,7 +425,7 @@ namespace OpenMS
     set<String> accessions;
 
     // collect peptide identifications
-    for (MSSimExperiment::const_iterator ms_it = experiment_.begin();
+    for (SimTypes::MSSimExperiment::const_iterator ms_it = experiment_.begin();
          ms_it != experiment_.end();
          ++ms_it)
     {

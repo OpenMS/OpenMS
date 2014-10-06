@@ -164,13 +164,13 @@
 
 // those are only added if GUI is enabled
 #ifdef WITH_GUI
-  #include <QtGui/QApplication>
+#include <QtGui/QApplication>
 
-  #include <OpenMS/VISUAL/Spectrum1DCanvas.h>
-  #include <OpenMS/VISUAL/Spectrum2DCanvas.h>
-  #include <OpenMS/VISUAL/Spectrum3DCanvas.h>
-  #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
-  #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
+#include <OpenMS/VISUAL/Spectrum2DCanvas.h>
+#include <OpenMS/VISUAL/Spectrum3DCanvas.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #endif
 
 using namespace std;
@@ -179,7 +179,7 @@ using namespace OpenMS;
 //**********************************************************************************
 //Helper method - use this method to generate the actual parameter documentation
 //**********************************************************************************
-void writeParameters(const String & class_name, const Param & param, bool table_only = false)
+void writeParameters(const String& class_name, const Param& param, bool table_only = false)
 {
   ofstream f((String("output/OpenMS_") + class_name + ".parameters").c_str());
 
@@ -332,7 +332,7 @@ void writeParameters(const String & class_name, const Param & param, bool table_
 //**********************************************************************************
 //Main method - add your class here
 //**********************************************************************************
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
   //////////////////////////////////
   // Simple cases
@@ -357,7 +357,7 @@ int main(int argc, char ** argv)
   DOCME(FalseDiscoveryRate);
   DOCME(FeatureDeconvolution);
   DOCME(FeatureDistance);
-  DOCME(FeatureGroupingAlgorithmIdentification);   // deprecated
+  DOCME(FeatureGroupingAlgorithmIdentification); // deprecated
   DOCME(FeatureGroupingAlgorithmLabeled);
   DOCME(FeatureGroupingAlgorithmQT);
   DOCME(FeatureGroupingAlgorithmUnlabeled);
@@ -463,10 +463,10 @@ int main(int argc, char ** argv)
   DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
-  DOCME2(IonizationSimulation, IonizationSimulation(MutableSimRandomNumberGeneratorPtr()));
-  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()));
-  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()))
-  DOCME2(RTSimulation, RTSimulation(MutableSimRandomNumberGeneratorPtr()))
+  DOCME2(IonizationSimulation, IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
+  DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
   DOCME2(GaussTraceFitter, (GaussTraceFitter<Peak1D>()))
   DOCME2(EGHTraceFitter, (EGHTraceFitter<Peak1D>()))
 
@@ -488,4 +488,3 @@ int main(int argc, char ** argv)
 
   return 0;
 }
-

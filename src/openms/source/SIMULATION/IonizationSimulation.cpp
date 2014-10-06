@@ -64,13 +64,13 @@ namespace OpenMS
     esi_adducts_(),
     max_adduct_charge_(),
     maldi_probabilities_(),
-    rnd_gen_(new SimRandomNumberGenerator())
+    rnd_gen_(new SimTypes::SimRandomNumberGenerator())
   {
     setDefaultParams_();
     updateMembers_();
   }
 
-  IonizationSimulation::IonizationSimulation(MutableSimRandomNumberGeneratorPtr random_generator) :
+  IonizationSimulation::IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr random_generator) :
     DefaultParamHandler("IonizationSimulation"),
     ProgressLogger(),
     ionization_type_(),
@@ -120,7 +120,7 @@ namespace OpenMS
   {
   }
 
-  void IonizationSimulation::ionize(FeatureMapSim& features, ConsensusMap& charge_consensus, MSSimExperiment& experiment)
+  void IonizationSimulation::ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment)
   {
     LOG_INFO << "Ionization Simulation ... started" << std::endl;
 
@@ -263,7 +263,7 @@ public:
     bool operator()(const Compomer& x, const Compomer& y) const { return x.getAdductsAsString() < y.getAdductsAsString(); }
   };
 
-  void IonizationSimulation::ionizeEsi_(FeatureMapSim& features, ConsensusMap& charge_consensus)
+  void IonizationSimulation::ionizeEsi_(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus)
   {
     for (size_t i = 0; i < esi_impurity_probabilities_.size(); ++i)
       std::cout << "esi_impurity_probabilities_[" << i << "]: " << esi_impurity_probabilities_.at(i) << std::endl;
@@ -280,7 +280,7 @@ public:
     try
     {
       // map for charged features
-      FeatureMapSim copy_map = features;
+      SimTypes::FeatureMapSim copy_map = features;
       // but leave meta information & other stuff intact
       copy_map.clear(false);
 
@@ -507,7 +507,7 @@ public:
     return count;
   }
 
-  void IonizationSimulation::ionizeMaldi_(FeatureMapSim& features, ConsensusMap& charge_consensus)
+  void IonizationSimulation::ionizeMaldi_(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus)
   {
     std::vector<double> weights;
     std::transform(maldi_probabilities_.begin(),
@@ -522,7 +522,7 @@ public:
       Size undetected_features_count = 0;
       Size feature_index = 0;
 
-      FeatureMapSim copy_map(features);
+      SimTypes::FeatureMapSim copy_map(features);
       copy_map.clear(false);
       double h_mono_weight = Constants::PROTON_MASS_U;
 
@@ -600,8 +600,8 @@ public:
   void IonizationSimulation::setFeatureProperties_(Feature& f,
                                                    const double& adduct_mass,
                                                    const String& adduct_formula,
-                                                   const SimChargeType charge,
-                                                   const SimIntensityType new_intensity,
+                                                   const SimTypes::SimChargeType charge,
+                                                   const SimTypes::SimIntensityType new_intensity,
                                                    const Size parent_index)
   {
     EmpiricalFormula feature_ef = f.getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula();
@@ -612,7 +612,7 @@ public:
     hits[0].setCharge(charge);
     f.getPeptideIdentifications()[0].setHits(hits);
     // set "main" intensity
-    SimIntensityType old_intensity = f.getIntensity();
+    SimTypes::SimIntensityType old_intensity = f.getIntensity();
     f.setIntensity(new_intensity);
     double factor = new_intensity / old_intensity;
 
@@ -632,7 +632,7 @@ public:
       {
         if (it_key->hasPrefix("intensity"))
         {
-          f.setMetaValue(*it_key, SimIntensityType(f.getMetaValue(*it_key)) * factor);
+          f.setMetaValue(*it_key, SimTypes::SimIntensityType(f.getMetaValue(*it_key)) * factor);
         }
       }
     } // ! pragma

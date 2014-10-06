@@ -45,15 +45,14 @@ namespace OpenMS
 {
 
   /**
+    @brief Base class for compare functors of BinnedSpectra
 
-        @brief Base class for compare functors of BinnedSpectra
+    BinnedSpectrumCompareFunctor classes return a value for a pair of BinnedSpectrum objects (or a single one with itself).
+    Ideally the value should reflect the similarity of the pair. For methods of computing the similarity see the
+    documentation of the concrete functors.
+    Functors normalized in the range [0,1] are identifiable at the set "normalized" parameter of the ParameterHandler
 
-        BinnedSpectrumCompareFunctor classes return a value for a pair of BinnedSpectrum objects (or a single one with itself).
-        Ideally the value should reflect the similarity of the pair. For methods of computing the similarity see the
-        documentation of the concrete functors.
-        Functors normalized in the range [0,1] are identifiable at the set "normalized" parameter of the ParameterHandler
-
-        @ingroup SpectraComparison
+    @ingroup SpectraComparison
   */
   class OPENMS_DLLAPI BinnedSpectrumCompareFunctor :
     public DefaultParamHandler
@@ -63,16 +62,17 @@ private:
 
 public:
 
-    /** @brief Exception thrown if compared spectra are incompatible
+    /**
+      @brief Exception thrown if compared spectra are incompatible
 
-            the compared spectra have different settings in binsize and/or binspread
-            due to which comparison would fail
+      the compared spectra have different settings in binsize and/or binspread
+      due to which comparison would fail
     */
     class OPENMS_DLLAPI IncompatibleBinning :
       public Exception::BaseException
     {
 public:
-      IncompatibleBinning(const char * file, int line, const char * function, const char * message
+      IncompatibleBinning(const char* file, int line, const char* function, const char* message
                             = "compared spectra have different settings in binsize and/or binspread")  throw();
       virtual ~IncompatibleBinning() throw();
     };
@@ -81,19 +81,19 @@ public:
     BinnedSpectrumCompareFunctor();
 
     /// copy constructor
-    BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor & source);
+    BinnedSpectrumCompareFunctor(const BinnedSpectrumCompareFunctor& source);
 
     /// destructor
     virtual ~BinnedSpectrumCompareFunctor();
 
     /// assignment operator
-    BinnedSpectrumCompareFunctor & operator=(const BinnedSpectrumCompareFunctor & source);
+    BinnedSpectrumCompareFunctor& operator=(const BinnedSpectrumCompareFunctor& source);
 
     /// function call operator, calculates the similarity of the given arguments
-    virtual double operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const = 0;
+    virtual double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const = 0;
 
     /// function call operator, calculates self similarity
-    virtual double operator()(const BinnedSpectrum & spec) const = 0;
+    virtual double operator()(const BinnedSpectrum& spec) const = 0;
 
     /// registers all derived products
     static void registerChildren();
@@ -106,6 +106,6 @@ public:
 
   };
 
-
 }
+
 #endif // OPENMS_COMPARISON_SPECTRA_BINNEDSPECTRUMCOMPAREFUNCTOR_H

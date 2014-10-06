@@ -47,7 +47,7 @@ namespace OpenMS
   }
 
   // Copy constructor
-  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet & source) :
+  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet& source) :
     simulators_(source.simulators_)
   {
   }
@@ -58,7 +58,7 @@ namespace OpenMS
   }
 
   // Assignment operator
-  SvmTheoreticalSpectrumGeneratorSet & SvmTheoreticalSpectrumGeneratorSet::operator=(const SvmTheoreticalSpectrumGeneratorSet & rhs)
+  SvmTheoreticalSpectrumGeneratorSet& SvmTheoreticalSpectrumGeneratorSet::operator=(const SvmTheoreticalSpectrumGeneratorSet& rhs)
   {
     if (this != &rhs)
     {
@@ -68,7 +68,7 @@ namespace OpenMS
   }
 
   // Generate the MS/MS according to the given probabilistic model
-  void SvmTheoreticalSpectrumGeneratorSet::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorSet::simulate(RichPeakSpectrum& spectrum, const AASequence& peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
     std::map<Size, SvmTheoreticalSpectrumGenerator>::iterator it = simulators_.find(precursor_charge);
     if (it != simulators_.end())
@@ -88,19 +88,26 @@ namespace OpenMS
     {
       filename = File::find(filename);
     }
-    TextFile file(filename);
 
     Param sim_param = SvmTheoreticalSpectrumGenerator().getDefaults();
-    for (Size line_num = 1; line_num < file.size(); ++line_num)
+
+    TextFile file(filename);
+    TextFile::ConstIterator it = file.begin();
+
+    if (it == file.end()) return; // no data to load
+
+    // skip header line
+    ++it;
+    // process content
+    for (; it != file.end(); ++it)
     {
-      String line(file[line_num]);
       std::vector<String> spl;
-      line.split(":", spl);
+      it->split(":", spl);
       Int precursor_charge = spl[0].toInt();
 
       if (spl.size() != 2 || precursor_charge < 1)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file[line_num], " Invalid entry in SVM model File");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *it, " Invalid entry in SVM model File");
       }
 
       //load the model into the map
@@ -111,7 +118,7 @@ namespace OpenMS
   }
 
   //Return precursor charges for which a model is contained in the set
-  void SvmTheoreticalSpectrumGeneratorSet::getSupportedCharges(std::set<Size> & charges)
+  void SvmTheoreticalSpectrumGeneratorSet::getSupportedCharges(std::set<Size>& charges)
   {
     charges.clear();
     std::map<Size, SvmTheoreticalSpectrumGenerator>::const_iterator it;
@@ -122,7 +129,7 @@ namespace OpenMS
   }
 
   //return a modifiable reference to the SVM model with given charge. If charge is not supported throw exception
-  SvmTheoreticalSpectrumGenerator & SvmTheoreticalSpectrumGeneratorSet::getSvmModel(Size prec_charge)
+  SvmTheoreticalSpectrumGenerator& SvmTheoreticalSpectrumGeneratorSet::getSvmModel(Size prec_charge)
   {
     std::map<Size, SvmTheoreticalSpectrumGenerator>::iterator it = simulators_.find(prec_charge);
     if (it == simulators_.end())

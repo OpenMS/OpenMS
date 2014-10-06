@@ -10,8 +10,8 @@ from ConsensusMap cimport *
 from MSExperiment cimport *
 from FeatureMap cimport *
 
-# MSSimExperiment = MSExperiment
-# FeatureMapSim = FeatureMap[Feature]
+# SimTypes::MSSimExperiment = MSExperiment
+# SimTypes::FeatureMapSim = FeatureMap[Feature]
 cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
 
     cdef cppclass MSSim:

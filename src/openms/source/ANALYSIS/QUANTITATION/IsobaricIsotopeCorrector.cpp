@@ -47,11 +47,11 @@ namespace OpenMS
 
   IsobaricQuantifierStatistics
   IsobaricIsotopeCorrector::correctIsotopicImpurities(
-      const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
-      const IsobaricQuantitationMethod* quant_method)
+    const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
+    const IsobaricQuantitationMethod* quant_method)
   {
     OPENMS_PRECONDITION(consensus_map_in.size() == consensus_map_out.size(),
-        "The in- and output map need to have the same size.")
+                        "The in- and output map need to have the same size.")
 
     // the stats object to fill while correcting
     IsobaricQuantifierStatistics stats;
@@ -63,17 +63,17 @@ namespace OpenMS
     if (matrixIsIdentityMatrix(correction_matrix))
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-          "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
-          "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
+                                        "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
+                                        "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
     }
 
     // convert to Eigen matrix
-    EigenMatrixXdPtr m ( convertOpenMSMatrix2EigenMatrixXd( correction_matrix ) );
-    Eigen::FullPivLU<Eigen::MatrixXd> ludecomp (*m);
+    EigenMatrixXdPtr m(convertOpenMSMatrix2EigenMatrixXd(correction_matrix));
+    Eigen::FullPivLU<Eigen::MatrixXd> ludecomp(*m);
     Eigen::VectorXd b;
     b.resize(quant_method->getNumberOfChannels());
     b.setZero();
-    std::vector<double> x (quant_method->getNumberOfChannels(), 0);
+    std::vector<double> x(quant_method->getNumberOfChannels(), 0);
 
     if (!ludecomp.isInvertible())
     {
@@ -98,8 +98,8 @@ namespace OpenMS
       fillInputVector_(b, m_b, consensus_map_in[i], consensus_map_in);
 
       //solve
-      Eigen::MatrixXd e_mx = ludecomp.solve( b );
-      if (! ((*m) * e_mx).isApprox(b))
+      Eigen::MatrixXd e_mx = ludecomp.solve(b);
+      if (!((*m) * e_mx).isApprox(b))
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Cannot multiply!");
       }
@@ -117,14 +117,14 @@ namespace OpenMS
 
   void
   IsobaricIsotopeCorrector::fillInputVector_(Eigen::VectorXd& b,
-      Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm)
+                                             Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm)
   {
     for (ConsensusFeature::HandleSetType::const_iterator it_elements = cf.getFeatures().begin();
          it_elements != cf.getFeatures().end();
          ++it_elements)
     {
       //find channel_id of current element
-      Int index = Int(cm.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_id"));
+      Int index = Int(cm.getFileDescriptions().find(it_elements->getMapIndex())->second.getMetaValue("channel_id"));
 #ifdef ISOBARIC_QUANT_DEBUG
       std::cout << "  map_index " << it_elements->getMapIndex() << "-> id " << index << " with intensity " << it_elements->getIntensity() << "\n" << std::endl;
 #endif
@@ -136,7 +136,7 @@ namespace OpenMS
 
   void
   IsobaricIsotopeCorrector::solveNNLS_(const Matrix<double>& correction_matrix,
-      const Matrix<double>& m_b, Matrix<double>& m_x)
+                                       const Matrix<double>& m_b, Matrix<double>& m_x)
   {
     Int status = NonNegativeLeastSquaresSolver::solve(correction_matrix, m_b, m_x);
     if (status != NonNegativeLeastSquaresSolver::SOLVED)
@@ -147,8 +147,8 @@ namespace OpenMS
 
   void
   IsobaricIsotopeCorrector::computeStats_(const Matrix<double>& m_x,
-      const Eigen::MatrixXd& x, const ConsensusFeature::IntensityType cf_intensity,
-      const IsobaricQuantitationMethod* quant_method, IsobaricQuantifierStatistics& stats)
+                                          const Eigen::MatrixXd& x, const ConsensusFeature::IntensityType cf_intensity,
+                                          const IsobaricQuantitationMethod* quant_method, IsobaricQuantifierStatistics& stats)
   {
     Size s_negative(0);
     Size s_different_count(0); // happens when naive solution is negative in other channels
@@ -187,8 +187,8 @@ namespace OpenMS
 
   ConsensusFeature::IntensityType
   IsobaricIsotopeCorrector::updateOutpuMap_(
-      const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
-      ConsensusMap::size_type current_cf, const Matrix<double>& m_x)
+    const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
+    ConsensusMap::size_type current_cf, const Matrix<double>& m_x)
   {
     ConsensusFeature::IntensityType cf_intensity(0);
     for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[current_cf].begin();
