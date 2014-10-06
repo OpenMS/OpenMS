@@ -42,17 +42,17 @@
 namespace OpenMS
 {
 
-  PeakWidthEstimator::PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries)
+  PeakWidthEstimator::PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries)
   {
     std::vector<double> peaks_mz;
     std::vector<double> peaks_width;
-    MSExperiment<Peak1D>::Iterator it_rt;
+    MSExperiment<Peak1D>::ConstIterator it_rt;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
     for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
          it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();
          ++it_rt, ++it_rt_boundaries)
     {
-      MSSpectrum<Peak1D>::Iterator it_mz;
+      MSSpectrum<Peak1D>::ConstIterator it_mz;
       std::vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
       for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
            it_mz < it_rt->end(), it_mz_boundary < it_rt_boundaries->end();

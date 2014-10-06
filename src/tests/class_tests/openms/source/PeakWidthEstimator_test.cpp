@@ -61,7 +61,7 @@ picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
 PeakWidthEstimator* nullPointer = 0;
 PeakWidthEstimator* ptr;
 
-START_SECTION(PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries))
+START_SECTION(PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries))
 {
   PeakWidthEstimator estimator(exp_picked, boundaries_exp_s);
   TEST_REAL_SIMILAR(estimator.getPeakWidth(365.3),0.00886469661896705);

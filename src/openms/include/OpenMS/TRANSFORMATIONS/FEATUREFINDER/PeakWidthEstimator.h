@@ -57,7 +57,7 @@ namespace OpenMS
     *
     * @throw Exception::UnableToFit if the B-spline initialisation fails.
     */
-    PeakWidthEstimator(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries);
+    PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries);
 
     /**
     * @brief returns the estimated peak width at m/z
