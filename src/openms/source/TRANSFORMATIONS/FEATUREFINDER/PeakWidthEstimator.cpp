@@ -73,6 +73,11 @@ namespace OpenMS
     }
   }
   
+  PeakWidthEstimator::~PeakWidthEstimator()
+  {
+    delete bspline_;
+  }
+  
   double PeakWidthEstimator::getPeakWidth(double mz)
   {
     double width;

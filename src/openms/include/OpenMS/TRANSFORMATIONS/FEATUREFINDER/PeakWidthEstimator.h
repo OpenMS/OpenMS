@@ -66,6 +66,11 @@ namespace OpenMS
     */
     double getPeakWidth(double mz);
 
+    /**
+    * @brief destructor
+    */
+    ~PeakWidthEstimator();
+
     private:        
     /// hide default constructor
     PeakWidthEstimator();
