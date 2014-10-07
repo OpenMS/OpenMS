@@ -37,7 +37,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
@@ -94,52 +94,6 @@ namespace OpenMS
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
         std::vector<std::map<int,GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
-        
-        /**
-         * @brief rough estimation of the peak width at m/z
-         * 
-         * Based on the peaks of the dataset (peak position & width), the typical peak width is estimated for arbitrary m/z.
-         * The peak width is assumed to be a linear funtion of m/z.
-         * 
-         * TO DO: Use Lowess instead of Linear Regression.
-         */
-        class OPENMS_DLLAPI PeakWidthEstimator_
-        {
-            public:
-            /**
-            * @brief constructor
-            * 
-            * @param exp_picked    experimental data in centroid mode
-            * @param boundaries    peak boundaries for exp_picked
-            * 
-            * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
-            */
-            PeakWidthEstimator_(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries);
-        
-            /**
-            * @brief returns the estimated peak width at m/z
-            * 
-            * @throw Exception::InvalidValue if the peak width estimation returns a negative value.
-            */
-            double getPeakWidth(double mz);
-        
-            private:        
-            /// hide default constructor
-            PeakWidthEstimator_();
-        
-            /**
-            * @brief m/z range of peak width interpolation
-            */
-            double mz_min_;
-            double mz_max_;
-            
-            /**
-             * @brief slope and intercept for peak width interpolation
-             */
-            double slope_;
-            double intercept_;
-        
-        };
         
         /**
          * @brief scaled Euclidean distance for clustering

@@ -42,8 +42,9 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
 
@@ -73,10 +74,10 @@ namespace OpenMS
     double rt_max = exp_profile.getMaxRT();
     
     // generate grid spacing
-    PeakWidthEstimator_ estimator(exp_picked, boundaries);
+    PeakWidthEstimator estimator(exp_picked, boundaries);
     // We assume that the jitter of the peak centres are less than <scaling> times the peak width.
     // This factor ensures that two neighbouring peaks at the same RT cannot be in the same cluster.
-    double scaling = 0.2;
+    double scaling = 0.4;
     for (double mz = mz_min; mz < mz_max; mz = mz + scaling * estimator.getPeakWidth(mz))
     {
       grid_spacing_mz_.push_back(mz);
@@ -101,7 +102,6 @@ namespace OpenMS
       }
     }
     std::sort(mz.begin(), mz.end());
-    // RT scaling = peak width at the median of the m/z distribuation / RT threshold
     rt_scaling_ = estimator.getPeakWidth(mz[(int) mz.size() / 2]) / rt_typical_;
 
   }
@@ -154,71 +154,6 @@ namespace OpenMS
     endProgress();
 
     return cluster_results;
-  }
-
-  MultiplexClustering::PeakWidthEstimator_::PeakWidthEstimator_(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries)
-  {
-    if (exp_picked.size() != boundaries.size())
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
-    }
-
-    std::map<double, double> mz_peak_width;
-    MSExperiment<Peak1D>::Iterator it_rt;
-    vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
-    for (it_rt = exp_picked.begin(), it_rt_boundaries = boundaries.begin();
-         it_rt < exp_picked.end() && it_rt_boundaries < boundaries.end();
-         ++it_rt, ++it_rt_boundaries)
-    {
-      MSSpectrum<Peak1D>::Iterator it_mz;
-      vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
-      for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
-           it_mz < it_rt->end(), it_mz_boundary < it_rt_boundaries->end();
-           ++it_mz, ++it_mz_boundary)
-      {
-        mz_peak_width[it_mz->getMZ()] = (*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min;
-      }
-    }
-
-    std::vector<double> mz;
-    std::vector<double> peak_width;
-    for (std::map<double, double>::iterator it = mz_peak_width.begin(); it != mz_peak_width.end(); ++it)
-    {
-      mz.push_back(it->first);
-      peak_width.push_back(it->second);
-    }
-    mz_min_ = mz.front();
-    mz_max_ = mz.back();
-
-    Math::LinearRegression linreg;
-    linreg.computeRegression(0.95, mz.begin(), mz.end(), peak_width.begin());
-    slope_ = linreg.getSlope();
-    intercept_ = linreg.getIntercept();
-  }
-
-  double MultiplexClustering::PeakWidthEstimator_::getPeakWidth(double mz)
-  {
-    double width;
-
-    if (mz < mz_min_)
-    {
-      width = slope_ * mz_min_ + intercept_;
-    }
-    else if (mz > mz_max_)
-    {
-      width = slope_ * mz_max_ + intercept_;
-    }
-    else
-    {
-      width = slope_ * mz + intercept_;
-    }
-
-    if (width < 0)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Estimated peak width is negative.", "");
-    }
-
-    return width;
   }
 
   MultiplexClustering::MultiplexDistance::MultiplexDistance(double rt_scaling)
