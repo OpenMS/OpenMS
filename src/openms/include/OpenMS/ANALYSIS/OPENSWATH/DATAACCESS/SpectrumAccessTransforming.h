@@ -35,6 +35,7 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSTRANSFORMING_H
 #define OPENMS_ANALYSIS_OPENSWATH_DATAACCESS_SPECTRUMACCESSTRANSFORMING_H
 
+#include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenMS
@@ -44,42 +45,36 @@ namespace OpenMS
    * @brief An abstract base class implementing a transforming wrapper around spectrum access.
    *
    */
-  class SpectrumAccessTransforming :
+  class OPENMS_DLLAPI SpectrumAccessTransforming :
     public OpenSwath::ISpectrumAccess
   {
 public:
 
-    explicit SpectrumAccessTransforming(OpenSwath::SpectrumAccessPtr sptr) :
-      sptr_(sptr)
-    {}
+    explicit SpectrumAccessTransforming(OpenSwath::SpectrumAccessPtr sptr);
         
     virtual ~SpectrumAccessTransforming() = 0;
 
-    virtual OpenSwath::SpectrumPtr getSpectrumById(int id)
-    {return sptr_->getSpectrumById(id);}
+    virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
 
-    virtual OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const
-    {return sptr_->getSpectrumMetaById(id);}
+    virtual OpenSwath::SpectrumPtr getSpectrumById(int id);
 
-    virtual std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const
-    {return sptr_->getSpectraByRT(RT, deltaRT);}
+    virtual OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
 
-    virtual size_t getNrSpectra() const
-    {return sptr_->getNrSpectra();}
+    virtual std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const;
 
-    virtual OpenSwath::ChromatogramPtr getChromatogramById(int id)
-    {return sptr_->getChromatogramById(id);}
+    virtual size_t getNrSpectra() const;
 
-    virtual size_t getNrChromatograms() const
-    {return sptr_->getNrChromatograms();}
+    virtual OpenSwath::ChromatogramPtr getChromatogramById(int id);
 
-    virtual std::string getChromatogramNativeID(int id) const
-    {return sptr_->getChromatogramNativeID(id);}
+    virtual size_t getNrChromatograms() const;
+
+    virtual std::string getChromatogramNativeID(int id) const;
 
 protected:
     OpenSwath::SpectrumAccessPtr sptr_;
 
   };
+
 }
 
 #endif

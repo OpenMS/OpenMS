@@ -36,6 +36,48 @@
 
 namespace OpenMS
 {
+
+  SpectrumAccessTransforming::SpectrumAccessTransforming(OpenSwath::SpectrumAccessPtr sptr) :
+    sptr_(sptr)
+  {}
+
   SpectrumAccessTransforming::~SpectrumAccessTransforming() {}
+
+  size_t SpectrumAccessTransforming::getNrChromatograms() const
+  {
+    return sptr_->getNrChromatograms();
+  }
+
+
+  OpenSwath::SpectrumPtr SpectrumAccessTransforming::getSpectrumById(int id)
+  {
+    return sptr_->getSpectrumById(id);
+  }
+
+  OpenSwath::SpectrumMeta SpectrumAccessTransforming::getSpectrumMetaById(int id) const
+  {
+    return sptr_->getSpectrumMetaById(id);
+  }
+
+  std::vector<std::size_t> SpectrumAccessTransforming::getSpectraByRT(double RT, double deltaRT) const
+  {
+    return sptr_->getSpectraByRT(RT, deltaRT);
+  }
+
+  size_t SpectrumAccessTransforming::getNrSpectra() const
+  {
+    return sptr_->getNrSpectra();
+  }
+
+  OpenSwath::ChromatogramPtr SpectrumAccessTransforming::getChromatogramById(int id)
+  {
+    return sptr_->getChromatogramById(id);
+  }
+
+  std::string SpectrumAccessTransforming::getChromatogramNativeID(int id) const
+  {
+    return sptr_->getChromatogramNativeID(id);
+  }
+
 }
 
