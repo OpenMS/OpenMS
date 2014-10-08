@@ -323,14 +323,27 @@ namespace OpenMS
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
       simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt);
+
       // debug output of the iRT chromatograms
       if (debug_level > 1)
       {
-        MSExperiment<> exp;
-        exp.setChromatograms(irt_chromatograms);
-        MzMLFile().store("debug_irts.mzML", exp);
+        try
+        {
+          MSExperiment<> exp;
+          exp.setChromatograms(irt_chromatograms);
+          MzMLFile().store("debug_irts.mzML", exp);
+        }
+        catch (OpenMS::Exception::UnableToCreateFile& e)
+        {
+          LOG_DEBUG << "Error creating file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+        }
+        catch (OpenMS::Exception::BaseException& e)
+        {
+          LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+        }
       }
       LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
+
       // get RT normalization from data
       return RTNormalization(irt_transitions,
               irt_chromatograms, min_rsq, min_coverage, feature_finder_param);
