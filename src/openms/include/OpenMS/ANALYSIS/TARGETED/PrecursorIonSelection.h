@@ -118,10 +118,10 @@ public:
     /**
       @brief Sort features by total score.
     */
-    void sortByTotalScore(FeatureMap<> & features)
+    void sortByTotalScore(FeatureMap & features)
     {
-      FeatureMap<>::Iterator beg = features.begin();
-      FeatureMap<>::Iterator end  = features.end();
+      FeatureMap::Iterator beg = features.begin();
+      FeatureMap::Iterator end  = features.end();
       std::sort(beg, end, TotalScoreMore());
     }
 
@@ -132,10 +132,10 @@ public:
       @param next_features FeatureMap with next precursors
       @param number Number of features to be reported
     */
-    void getNextPrecursors(FeatureMap<> & features, FeatureMap<> & next_features, UInt number);
-    void getNextPrecursorsSeq(FeatureMap<> & features, FeatureMap<> & next_features, UInt number, double & rt);
+    void getNextPrecursors(FeatureMap & features, FeatureMap & next_features, UInt number);
+    void getNextPrecursorsSeq(FeatureMap & features, FeatureMap & next_features, UInt number, double & rt);
     void getNextPrecursors(std::vector<Int> & solution_indices, std::vector<PSLPFormulation::IndexTriple> & variable_indices, std::set<Int> & measured_variables,
-                           FeatureMap<> & features, FeatureMap<> & new_features, UInt step_size, PSLPFormulation & ilp);
+                           FeatureMap & features, FeatureMap & new_features, UInt step_size, PSLPFormulation & ilp);
 
 //      /**
 //        @brief Change scoring of features using peptide identifications only from spectra of the last
@@ -146,7 +146,7 @@ public:
 //        @param preprocessed_db Information from preprocessed database
 //
 //     */
-//     void rescoreIncremental(FeatureMap<>& features,std::vector<PeptideIdentification>& new_pep_ids,
+//     void rescoreIncremental(FeatureMap& features,std::vector<PeptideIdentification>& new_pep_ids,
 //                                                      std::vector<ProteinIdentification>& prot_ids,
 //                                                      PrecursorIonSelectionPreprocessing& preprocessed_db);
 
@@ -160,7 +160,7 @@ public:
       @param preprocessed_db Information from preprocessed database
       @param check_meta_values True if the FeatureMap should be checked for the presence of required meta values
     */
-    void rescore(FeatureMap<> & features, std::vector<PeptideIdentification> & new_pep_ids,
+    void rescore(FeatureMap & features, std::vector<PeptideIdentification> & new_pep_ids,
                  std::vector<ProteinIdentification> & prot_ids,
                  PrecursorIonSelectionPreprocessing & preprocessed_db, bool check_meta_values = true);
 
@@ -175,7 +175,7 @@ public:
       @param step_size Number of MS/MS spectra considered per iteration
       @param path Path to output file
     */
-    void simulateRun(FeatureMap<> & features, std::vector<PeptideIdentification> & pep_ids,
+    void simulateRun(FeatureMap & features, std::vector<PeptideIdentification> & pep_ids,
                      std::vector<ProteinIdentification> & prot_ids,
                      PrecursorIonSelectionPreprocessing & preprocessed_db,
                      String path, MSExperiment<> & experiment, String precursor_path = "");
@@ -199,24 +199,24 @@ public:
     }
 
 private:
-    void simulateILPBasedIPSRun_(FeatureMap<> & features, MSExperiment<> & experiment,
+    void simulateILPBasedIPSRun_(FeatureMap & features, MSExperiment<> & experiment,
                                  std::vector<PeptideIdentification> & pep_ids,
                                  std::vector<ProteinIdentification> & prot_ids,
                                  PrecursorIonSelectionPreprocessing & preprocessed_db,
                                  String output_path, String precursor_path = "");
 
-    void simulateRun_(FeatureMap<> & features, std::vector<PeptideIdentification> & pep_ids,
+    void simulateRun_(FeatureMap & features, std::vector<PeptideIdentification> & pep_ids,
                       std::vector<ProteinIdentification> & prot_ids,
                       PrecursorIonSelectionPreprocessing & preprocessed_db, String path, String precursor_path = "");
 
-    void shiftDown_(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, String protein_acc);
+    void shiftDown_(FeatureMap & features, PrecursorIonSelectionPreprocessing & preprocessed_db, String protein_acc);
 
-    void shiftUp_(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, String protein_acc);
+    void shiftUp_(FeatureMap & features, PrecursorIonSelectionPreprocessing & preprocessed_db, String protein_acc);
 
     /// update members method from DefaultParamHandler to update the members
     void updateMembers_();
 
-    void rescore_(FeatureMap<> & features, std::vector<PeptideIdentification> & new_pep_ids,
+    void rescore_(FeatureMap & features, std::vector<PeptideIdentification> & new_pep_ids,
                   PrecursorIonSelectionPreprocessing & preprocessed_db, PSProteinInference & protein_inference);
 
     /**
@@ -224,7 +224,7 @@ private:
 
       @param features FeatureMap with all possible precursors
     */
-    void checkForRequiredUserParams_(FeatureMap<> & features);
+    void checkForRequiredUserParams_(FeatureMap & features);
 
     /**
       @brief Groups protein identifications that cannot be distinguished by their peptide identifications.

@@ -57,7 +57,7 @@ namespace OpenMS
 /**@brief A base class for random access containers for classes derived from UniqueIdInterface
  * that adds functionality to convert a unique id into an index into the container.
  *
- * See FeatureMap<> and ConsensusMap for living examples.
+ * See FeatureMap and ConsensusMap for living examples.
  * The RandomAccessContainer must support operator[], at(), and size().
  */
   template <typename RandomAccessContainer>

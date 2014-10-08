@@ -105,10 +105,10 @@ public:
     static const std::string NamesOfLabelType[SIZE_OF_LABEL_TYPE];
 
     /// Features
-    typedef FeatureMap<> FeatureMapType;
+    typedef FeatureMap FeatureMapType;
 
     /// SharedPtr on feature map
-    typedef boost::shared_ptr<FeatureMap<> > FeatureMapSharedPtrType;
+    typedef boost::shared_ptr<FeatureMap > FeatureMapSharedPtrType;
 
     /// consensus features
     typedef ConsensusMap ConsensusMapType;

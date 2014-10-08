@@ -115,7 +115,7 @@ namespace OpenMS
   }
 
   void SeedListGenerator::convertSeedList(const SeedList& seeds,
-                                          FeatureMap<>& features)
+                                          FeatureMap& features)
   {
     features.clear(true); // "true" should really be a default value here...
     Size counter = 0;
@@ -132,11 +132,11 @@ namespace OpenMS
     // features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
   }
 
-  void SeedListGenerator::convertSeedList(const FeatureMap<>& features,
+  void SeedListGenerator::convertSeedList(const FeatureMap& features,
                                           SeedList& seeds)
   {
     seeds.clear();
-    for (FeatureMap<>::ConstIterator feat_it = features.begin();
+    for (FeatureMap::ConstIterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       DPosition<2> point(feat_it->getRT(), feat_it->getMZ());

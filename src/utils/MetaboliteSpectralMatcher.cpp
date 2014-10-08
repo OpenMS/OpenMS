@@ -143,7 +143,7 @@ protected:
             return INCOMPATIBLE_INPUT_DATA;
         }
 
-//        FeatureMap<> ms_feat_map;
+//        FeatureMap ms_feat_map;
         MzTab mztab_output;
 
 //        FeatureXMLFile().load(in, ms_feat_map);

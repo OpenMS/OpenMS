@@ -52,7 +52,7 @@ namespace OpenMS
 	 : public FeatureGroupingAlgorithm
 	{
 		public:
-			void group(const vector< FeatureMap<> >&, ConsensusMap& map)
+			void group(const vector< FeatureMap >&, ConsensusMap& map)
 			{
 			  map.getFileDescriptions()[0].filename = "bla";
 				map.getFileDescriptions()[0].size = 5;
@@ -76,9 +76,9 @@ START_SECTION((virtual ~FeatureGroupingAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void group(const vector< FeatureMap<> > &maps, ConsensusMap &out)=0))
+START_SECTION((virtual void group(const vector< FeatureMap > &maps, ConsensusMap &out)=0))
 	FGA fga;
-	vector< FeatureMap<> > in;
+	vector< FeatureMap > in;
 	ConsensusMap map;
 	fga.group(in,map);
 	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")

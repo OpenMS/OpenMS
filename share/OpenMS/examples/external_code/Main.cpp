@@ -38,7 +38,7 @@ using namespace OpenMSExternal;
 int main(int argc, char * argv[])
 {
 
-  FeatureMap<> fm;
+  FeatureMap fm;
   Feature feature;
   fm.push_back(feature);
   std::string s = ExampleLibraryFile::printSomething();

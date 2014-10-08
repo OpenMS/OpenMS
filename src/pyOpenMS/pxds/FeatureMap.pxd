@@ -11,7 +11,7 @@ from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
 
-    cdef cppclass FeatureMap[FeatureT](UniqueIdInterface, DocumentIdentifier, RangeManager2):
+    cdef cppclass FeatureMap(UniqueIdInterface, DocumentIdentifier, RangeManager2):
 
         # wrap-inherits:
         #   UniqueIdInterface
@@ -19,17 +19,17 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         #   RangeManager2
         #
         # wrap-instances:
-        #   FeatureMap := FeatureMap[Feature]
+        #   FeatureMap := FeatureMap
 
         FeatureMap() nogil except +
         FeatureMap(FeatureMap &) nogil except +
 
-        bool operator==(FeatureMap[FeatureT]) nogil except +
-        bool operator!=(FeatureMap[FeatureT]) nogil except +
+        bool operator==(FeatureMap) nogil except +
+        bool operator!=(FeatureMap) nogil except +
 
         int size()  nogil except +
         Feature operator[](int)      nogil except + #wrap-upper-limit:size()
-        void push_back(FeatureT spec) nogil except +
+        void push_back(Feature spec) nogil except +
 
         void sortByIntensity() nogil except +
         void sortByIntensity(bool reverse) nogil except +
@@ -38,13 +38,13 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         void sortByMZ() nogil except +
         void sortByOverallQuality() nogil except +
 
-        void swap(FeatureMap[FeatureT] &) nogil except +
-        void swapFeaturesOnly(FeatureMap[FeatureT] swapfrom) nogil except +
+        void swap(FeatureMap &) nogil except +
+        void swapFeaturesOnly(FeatureMap swapfrom) nogil except +
         void clear() nogil except +
         void clear(bool clear_meta_data) nogil except +
 
-        FeatureMap[FeatureT] operator+(FeatureMap[FeatureT]) nogil except +
-        FeatureMap[FeatureT] iadd(FeatureMap[FeatureT]) nogil except + # wrap-as:operator+=
+        FeatureMap operator+(FeatureMap) nogil except +
+        FeatureMap iadd(FeatureMap) nogil except + # wrap-as:operator+=
 
         void   updateRanges() nogil except +
 
@@ -55,7 +55,7 @@ cdef extern from "<OpenMS/KERNEL/FeatureMap.h>" namespace "OpenMS":
         void setUnassignedPeptideIdentifications(libcpp_vector[PeptideIdentification]) nogil except+
 
         Size applyMemberFunction(Size(* fun)()) nogil except +# wrap-ignore
- 
+
         libcpp_vector[DataProcessing] getDataProcessing() nogil except +
         void setDataProcessing(libcpp_vector[DataProcessing])   nogil except +
 

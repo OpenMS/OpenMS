@@ -380,7 +380,7 @@ protected:
 
     /// add annotations from an AccurateMassSearch to an MS1 spectrum
     /// @return true on success, otherwise false
-    bool annotateMS1FromMassFingerprinting_(const FeatureMap<>& identifications);
+    bool annotateMS1FromMassFingerprinting_(const FeatureMap& identifications);
      
     /// unique list of files referenced by all layers
     std::set<String> getFilenamesOfOpenFiles_();

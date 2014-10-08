@@ -129,13 +129,13 @@ START_SECTION((void generateSeedLists(const ConsensusMap& consensus, Map<UInt64,
 END_SECTION
 
 
-START_SECTION((void convertSeedList(const SeedList& seeds, FeatureMap<>& features)))
+START_SECTION((void convertSeedList(const SeedList& seeds, FeatureMap& features)))
 {
 	SeedListGenerator::SeedList seeds(3);
 	seeds[0] = DPosition<2>(1.1, 111.111);
 	seeds[1] = DPosition<2>(2.2, 222.222);
 	seeds[2] = DPosition<2>(3.3, 333.333);
-	FeatureMap<> features;
+	FeatureMap features;
 	SeedListGenerator().convertSeedList(seeds, features);
 	TEST_EQUAL(features.size(), 3);
 	TEST_EQUAL(features[0].getRT(), 1.1);
@@ -148,9 +148,9 @@ START_SECTION((void convertSeedList(const SeedList& seeds, FeatureMap<>& feature
 END_SECTION
 
 
-START_SECTION((void convertSeedList(const FeatureMap<>& features, SeedList& seeds)))
+START_SECTION((void convertSeedList(const FeatureMap& features, SeedList& seeds)))
 {
-	FeatureMap<> features;
+	FeatureMap features;
 	features.resize(3);
 	features[0].setRT(1.1);
 	features[0].setMZ(111.111);

@@ -61,7 +61,7 @@ public:
     static void transformPeakMaps(std::vector<MSExperiment<> > & maps, const std::vector<TransformationDescription> & given_trafos);
 
     /// Applies the <i>given</i> transformations to feature maps
-    static void transformFeatureMaps(std::vector<FeatureMap<> > & maps, const std::vector<TransformationDescription> & given_trafos);
+    static void transformFeatureMaps(std::vector<FeatureMap > & maps, const std::vector<TransformationDescription> & given_trafos);
 
     /// Applies the <i>given</i> transformations to consensus maps
     static void transformConsensusMaps(std::vector<ConsensusMap> & maps, const std::vector<TransformationDescription> & given_trafos);
@@ -74,7 +74,7 @@ public:
     static void transformSinglePeakMap(MSExperiment<> & msexp, const TransformationDescription & trafo);
 
     /// Applies the <i>given</i> transformations to a single feature map
-    static void transformSingleFeatureMap(FeatureMap<> & fmap, const TransformationDescription & trafo);
+    static void transformSingleFeatureMap(FeatureMap & fmap, const TransformationDescription & trafo);
 
     /// Applies the <i>given</i> transformations to a single consensus map
     static void transformSingleConsensusMap(ConsensusMap & cmap, const TransformationDescription & trafo);

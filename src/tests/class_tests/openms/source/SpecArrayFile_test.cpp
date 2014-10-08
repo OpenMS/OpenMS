@@ -69,7 +69,7 @@ END_SECTION
 START_SECTION((template < typename FeatureMapType > void load(const String &filename, FeatureMapType &feature_map)))
 {
   SpecArrayFile f;
-  FeatureMap<> fm;
+  FeatureMap fm;
   f.load(OPENMS_GET_TEST_DATA_PATH("SpecArrayFile_test_1.peplist"), fm);
   TEST_EQUAL(fm.size(),2)
   ABORT_IF(fm.size()!=2)

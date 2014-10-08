@@ -79,7 +79,7 @@ public:
                                std::vector<TransformationDescription> &);
 
     // Docu in base class
-    virtual void alignFeatureMaps(std::vector<FeatureMap<> > &,
+    virtual void alignFeatureMaps(std::vector<FeatureMap > &,
                                   std::vector<TransformationDescription> &);
 
     // Docu in base class

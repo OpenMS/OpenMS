@@ -206,7 +206,7 @@ END_SECTION
 
 START_SECTION((template <class FeatureType> bool loadFeatures(const String &filename, FeatureMap<FeatureType>&map, FileTypes::Type force_type = FileTypes::UNKNOWN)))
 FileHandler tmp;
-FeatureMap<> map;
+FeatureMap map;
 TEST_EQUAL(tmp.loadFeatures("test.bla", map), false)
 TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map), true)
 TEST_EQUAL(map.size(), 7);

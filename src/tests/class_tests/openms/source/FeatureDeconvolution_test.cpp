@@ -218,7 +218,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 	p.setValue("mass_max_diff", 0.1);
 	fd.setParameters(p);
 
-	FeatureMap<> fm_in, fm_out;
+	FeatureMap fm_in, fm_out;
 	ConsensusMap cm, cm2;
 	FeatureXMLFile fl;
 	fl.load(OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_input.featureXML"), fm_in);

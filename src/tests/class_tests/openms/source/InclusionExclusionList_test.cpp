@@ -94,10 +94,10 @@ START_SECTION((void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta
 }
 END_SECTION
 
-START_SECTION((void writeTargets(const FeatureMap<>& map, const String& out_path)))
+START_SECTION((void writeTargets(const FeatureMap& map, const String& out_path)))
 {
   InclusionExclusionList list;
-	FeatureMap<> map;
+	FeatureMap map;
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_2.featureXML"),map);
   Param p = list.getParameters();
   p.setValue("missed_cleavages", 0);
@@ -190,7 +190,7 @@ END_SECTION
 START_SECTION((void writeTargets(const std::vector<PeptideIdentification>& pep_ids, const String& out_path, const IntList& charges)))
 {
   InclusionExclusionList list;
-	FeatureMap<> map;
+	FeatureMap map;
 	vector<PeptideIdentification> pep_ids;
 	vector<ProteinIdentification> prot_ids;
 	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("InclusionExclusionList_3.idXML"),prot_ids,pep_ids);

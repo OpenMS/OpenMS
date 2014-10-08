@@ -471,7 +471,7 @@ START_SECTION((void computeMonoisotopicConsensus()))
 	TEST_REAL_SIMILAR(cons.getMZ(),2.0)
 END_SECTION
 
-START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm, bool intensity_weighted_averaging=false)))
+START_SECTION((void computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging=false)))
   
   double proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
   double natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
@@ -484,7 +484,7 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm, bool intens
   double m3_add = -0.5;
   double mz3 = (m+m3_add+4*proton_mass + natrium_mass) / 5;
   
-  FeatureMap<> fm;
+  FeatureMap fm;
   
   //one point  
   ConsensusFeature cons;

@@ -143,7 +143,7 @@ namespace OpenMS
     list = list_new;
   }
 
-//   void InclusionExclusionList::loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
+//   void InclusionExclusionList::loadTargets(FeatureMap& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
 //   {
 
 //   }
@@ -237,7 +237,7 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeTargets(const FeatureMap<>& map,
+  void InclusionExclusionList::writeTargets(const FeatureMap& map,
                                             const String& out_path)
   {
     WindowList result;

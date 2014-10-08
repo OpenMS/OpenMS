@@ -71,7 +71,7 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(FeatureGroupingAlgorithmUnlabeled::getProductName(),"unlabeled")
 END_SECTION
 
-START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
+START_SECTION((virtual void group(const std::vector< FeatureMap > &maps, ConsensusMap &out)))
 	// This is tested extensively in TEST/TOPP
 	NOT_TESTABLE;
 END_SECTION

@@ -104,7 +104,7 @@ public:
     const PeakFileOptions& getOptions() const;
 
     /// set options for loading/storing
-    void setOptions(const PeakFileOptions &);
+    void setOptions(const PeakFileOptions&);
 
     /**
       @brief Loads a file into an MSExperiment
@@ -324,51 +324,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    template <class FeatureType>
-    bool loadFeatures(const String& filename, FeatureMap<FeatureType>& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
-    {
-      //determine file type
-      FileTypes::Type type;
-      if (force_type != FileTypes::UNKNOWN)
-      {
-        type = force_type;
-      }
-      else
-      {
-        try
-        {
-          type = getType(filename);
-        }
-        catch (Exception::FileNotFound)
-        {
-          return false;
-        }
-      }
-
-      //load right file
-      if (type == FileTypes::FEATUREXML)
-      {
-        FeatureXMLFile().load(filename, map);
-      }
-      else if (type == FileTypes::TSV)
-      {
-        MsInspectFile().load(filename, map);
-      }
-      else if (type == FileTypes::PEPLIST)
-      {
-        SpecArrayFile().load(filename, map);
-      }
-      else if (type == FileTypes::KROENIK)
-      {
-        KroenikFile().load(filename, map);
-      }
-      else
-      {
-        return false;
-      }
-
-      return true;
-    }
+    bool loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
 
 private:
     PeakFileOptions options_;

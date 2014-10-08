@@ -437,4 +437,49 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return String((QString)crypto.result().toHex());
   }
 
+  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type)
+  {
+    //determine file type
+    FileTypes::Type type;
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      type = force_type;
+    }
+    else
+    {
+      try
+      {
+        type = getType(filename);
+      }
+      catch (Exception::FileNotFound)
+      {
+        return false;
+      }
+    }
+
+    //load right file
+    if (type == FileTypes::FEATUREXML)
+    {
+      FeatureXMLFile().load(filename, map);
+    }
+    else if (type == FileTypes::TSV)
+    {
+      MsInspectFile().load(filename, map);
+    }
+    else if (type == FileTypes::PEPLIST)
+    {
+      SpecArrayFile().load(filename, map);
+    }
+    else if (type == FileTypes::KROENIK)
+    {
+      KroenikFile().load(filename, map);
+    }
+    else
+    {
+      return false;
+    }
+
+    return true;
+  }
+
 } // namespace OpenMS

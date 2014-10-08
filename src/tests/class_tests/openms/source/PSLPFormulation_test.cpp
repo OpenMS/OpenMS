@@ -68,17 +68,17 @@ START_SECTION(~PSLPFormulation())
 END_SECTION
 
 
-START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap<> &features, const MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, std::vector< int > &solution_indices)))
+START_SECTION((template < typename InputPeakType > void createAndSolveILPForKnownLCMSMapFeatureBased(const FeatureMap &features, const MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, std::vector< int > &solution_indices)))
 {
 	std::set<Int> charges_set;
 	charges_set.insert(1);
 	
-	FeatureMap<> features;
+	FeatureMap features;
 	MSExperiment<> exp;
 	std::vector<PSLPFormulation::IndexTriple > variable_indices;
 	std::vector<std::vector<std::pair<Size,Size> > > mass_ranges;
 	PSLPFormulation wrapper;
-	FeatureMap<> map;
+	FeatureMap map;
 
   std::vector<int> solution_indices;
 
@@ -156,7 +156,7 @@ START_SECTION((LPWrapper::SOLVER getLPSolver()))
 }
 END_SECTION
 
-START_SECTION((void createAndSolveILPForInclusionListCreation(PrecursorIonSelectionPreprocessing & preprocessing, UInt ms2_spectra_per_rt_bin, UInt max_list_size, FeatureMap<> & precursors, bool solve_ILP = true)))
+START_SECTION((void createAndSolveILPForInclusionListCreation(PrecursorIonSelectionPreprocessing & preprocessing, UInt ms2_spectra_per_rt_bin, UInt max_list_size, FeatureMap & precursors, bool solve_ILP = true)))
 {
   Param param;
   param.setValue("precursor_mass_tolerance",0.9);
@@ -170,7 +170,7 @@ START_SECTION((void createAndSolveILPForInclusionListCreation(PrecursorIonSelect
   rt_pt_pp.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),
                            OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_rt.model"),
                            OPENMS_GET_TEST_DATA_PATH("DetectabilitySimulation.svm"),false);
-  FeatureMap<> precursors;
+  FeatureMap precursors;
   PSLPFormulation lp;
   lp.createAndSolveILPForInclusionListCreation(rt_pt_pp, 15, 10, precursors, true);
   TEST_EQUAL(precursors.size(),10)
@@ -179,7 +179,7 @@ START_SECTION((void createAndSolveILPForInclusionListCreation(PrecursorIonSelect
 }
 END_SECTION
 
-START_SECTION((template < typename InputPeakType > void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap<> &features, const MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< int > &solution_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, Size step_size=0, bool sequential_order=false)))
+START_SECTION((template < typename InputPeakType > void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(const FeatureMap &features, const MSExperiment< InputPeakType > &experiment, std::vector< IndexTriple > &variable_indices, std::vector< int > &solution_indices, std::vector< std::vector< std::pair< Size, Size > > > &mass_ranges, std::set< Int > &charges_set, UInt ms2_spectra_per_rt_bin, Size step_size=0, bool sequential_order=false)))
 {
   NOT_TESTABLE
 }
@@ -191,7 +191,7 @@ START_SECTION((void updateStepSizeConstraint(Size iteration, UInt step_size)))
 }
 END_SECTION
 
-START_SECTION((void updateFeatureILPVariables(FeatureMap<> & new_features, std::vector<IndexTriple> & variable_indices, std::map<Size,std::vector<String> > & feature_constraints_map)))
+START_SECTION((void updateFeatureILPVariables(FeatureMap & new_features, std::vector<IndexTriple> & variable_indices, std::map<Size,std::vector<String> > & feature_constraints_map)))
 {
   NOT_TESTABLE
 }
@@ -203,7 +203,7 @@ START_SECTION((void updateRTConstraintsForSequentialILP(Size & rt_index, UInt ms
 }
 END_SECTION
 
-START_SECTION((void updateCombinedILP(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple> & variable_indices, std::vector<String> & new_protein_accs, std::vector<String> & protein_accs, PSProteinInference & prot_inference, Size & variable_counter, std::map<String,std::vector<Size> > & protein_feature_map, Feature& new_feature, std::map<String,Size> & protein_variable_index_map, std::map<String,std::set<String> > & prot_id_counter)))
+START_SECTION((void updateCombinedILP(FeatureMap & features, PrecursorIonSelectionPreprocessing & preprocessed_db, std::vector<IndexTriple> & variable_indices, std::vector<String> & new_protein_accs, std::vector<String> & protein_accs, PSProteinInference & prot_inference, Size & variable_counter, std::map<String,std::vector<Size> > & protein_feature_map, Feature& new_feature, std::map<String,Size> & protein_variable_index_map, std::map<String,std::set<String> > & prot_id_counter)))
 {
   NOT_TESTABLE
 }

@@ -65,7 +65,7 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-typedef FeatureFinderAlgorithmSH<Peak1D, Feature> FFSH;
+typedef FeatureFinderAlgorithmSH<Peak1D> FFSH;
 
 class TOPPFeatureFinderSH :
   public TOPPBase
@@ -131,7 +131,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    FeatureMap<> output;
+    FeatureMap output;
 
     FeatureFinder ff;
     Param param = getParam_().copy("algorithm:", true);

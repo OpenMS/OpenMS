@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
 
         MapAlignmentAlgorithmIdentification() nogil except +
         void alignPeakMaps(libcpp_vector[MSExperiment[Peak1D,ChromatogramPeak]] & maps, libcpp_vector[TransformationDescription] & trafos) nogil except +
-        void alignFeatureMaps(libcpp_vector[FeatureMap[Feature]] & features, libcpp_vector[TransformationDescription] & trafos) nogil except +
+        void alignFeatureMaps(libcpp_vector[FeatureMap] & features, libcpp_vector[TransformationDescription] & trafos) nogil except +
         void alignConsensusMaps(libcpp_vector[ConsensusMap] & features, libcpp_vector[TransformationDescription] & trafos) nogil except +
         # TODO nested STL
         void alignPeptideIdentifications(libcpp_vector[libcpp_vector[PeptideIdentification]] & ids, libcpp_vector[TransformationDescription] & trafos) nogil except + #wrap-ignore
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
         void fitModel(String model_type, Param & params, libcpp_vector[TransformationDescription] & trafos) nogil except +
 
         # TEMPLATE
-        void alignMaps(libcpp_vector[ FeatureMap[Feature] ] & maps, libcpp_vector[ TransformationDescription ] & transformations) nogil except +
+        void alignMaps(libcpp_vector[ FeatureMap ] & maps, libcpp_vector[ TransformationDescription ] & transformations) nogil except +
         void alignMaps(libcpp_vector[ MSExperiment[Peak1D, ChromatogramPeak] ] & maps, libcpp_vector[ TransformationDescription ] & transformations) nogil except +
         void alignMaps(libcpp_vector[ ConsensusMap] & maps, libcpp_vector[ TransformationDescription ] & transformations) nogil except +
         String getProductName() nogil except +

@@ -66,13 +66,13 @@ std::vector<PeptideIdentification> pep_ids;
 std::vector<ProteinIdentification> prot_ids;
 //IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_ids.idXML"),prot_ids,pep_ids);
 
-FeatureMap<> map;
+FeatureMap map;
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_features.featureXML"),map);
 MSExperiment<> raw_data;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OfflinePrecursorIonSelection_raw_data.mzML"),raw_data);
 
 
-START_SECTION((template < typename InputPeakType > void makePrecursorSelectionForKnownLCMSMap(const FeatureMap<> &features, const MSExperiment< InputPeakType > &experiment, MSExperiment< InputPeakType > &ms2, std::set< Int > &charges_set, bool feature_based)))
+START_SECTION((template < typename InputPeakType > void makePrecursorSelectionForKnownLCMSMap(const FeatureMap &features, const MSExperiment< InputPeakType > &experiment, MSExperiment< InputPeakType > &ms2, std::set< Int > &charges_set, bool feature_based)))
 {
 	MSExperiment<Peak1D> ms2;
 	std::set<Int> charges_set;
@@ -116,13 +116,13 @@ START_SECTION((template < typename InputPeakType > void makePrecursorSelectionFo
 }
 END_SECTION	     
 
-START_SECTION((template < typename InputPeakType > void getMassRanges(const FeatureMap<> &features, const MSExperiment< InputPeakType > &experiment, std::vector< std::vector< std::pair< Size, Size > > > &indices)))
+START_SECTION((template < typename InputPeakType > void getMassRanges(const FeatureMap &features, const MSExperiment< InputPeakType > &experiment, std::vector< std::vector< std::pair< Size, Size > > > &indices)))
 {
 	Param param;
 	param.setValue("exclude_overlapping_peaks","false");
 	ptr->setParameters(param);
 	std::vector<std::vector<std::pair<Size,Size> > >  indices;
-  FeatureMap<> map2;
+  FeatureMap map2;
   map2.push_back(map[1]);
   /// test for empty experiment
   MSExperiment<> empty_map;
@@ -174,12 +174,12 @@ START_SECTION((LPWrapper::SOLVER getLPSolver()))
 }
 END_SECTION
 
-START_SECTION((void createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file, FeatureMap<> & precursors)))
+START_SECTION((void createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file, FeatureMap & precursors)))
 {
   String include = OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_db.fasta");
   String rt_model = OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_rt.model");
   String pt_model	= OPENMS_GET_TEST_DATA_PATH("DetectabilitySimulation.svm");
-  FeatureMap<> precursors;
+  FeatureMap precursors;
   ptr->createProteinSequenceBasedLPInclusionList(include,rt_model,pt_model,precursors);
   TEST_EQUAL(precursors.size(),5)
   TEST_EQUAL(precursors[0].getMetaValue("protein"),"P01008")

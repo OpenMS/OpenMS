@@ -71,11 +71,11 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(FeatureGroupingAlgorithmLabeled::getProductName(),"labeled")
 END_SECTION
 
-START_SECTION((virtual void group(const std::vector< FeatureMap<> > &maps, ConsensusMap &out)))
+START_SECTION((virtual void group(const std::vector< FeatureMap > &maps, ConsensusMap &out)))
 	TOLERANCE_ABSOLUTE(0.001)
 
 	FeatureGroupingAlgorithmLabeled fga;
-	std::vector< FeatureMap<> > in;
+	std::vector< FeatureMap > in;
 	ConsensusMap out;
 
 	//test exception (no input)

@@ -262,7 +262,7 @@ public:
       @param fm Input feature map, which provides additional information on the features
       @param intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
     */
-    void computeDechargeConsensus(const FeatureMap<> & fm, bool intensity_weighted_averaging = false);
+    void computeDechargeConsensus(const FeatureMap & fm, bool intensity_weighted_averaging = false);
 
     /**
       @brief Add a ratio.

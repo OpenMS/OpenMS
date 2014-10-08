@@ -310,7 +310,7 @@ protected:
         * @param map The original map containing the data set to be analyzed.
         * @param max_charge The maximal charge state under consideration.
         * @param RT_votes_cutoff See the IsotopeWaveletFF class.*/
-    FeatureMap<Feature> mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff);
+    FeatureMap mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff);
 
     /** @brief Returns the closed boxes. */
     virtual std::multimap<double, Box> getClosedBoxes()
@@ -1761,9 +1761,9 @@ protected:
   }
 
   template <typename PeakType>
-  FeatureMap<Feature> IsotopeWaveletTransform<PeakType>::mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff)
+  FeatureMap IsotopeWaveletTransform<PeakType>::mapSeeds2Features(const MSExperiment<PeakType>& map, const UInt RT_votes_cutoff)
   {
-    FeatureMap<Feature> feature_map;
+    FeatureMap feature_map;
     typename std::multimap<double, Box>::iterator iter;
     typename Box::iterator box_iter;
     UInt best_charge_index; double best_charge_score, c_mz, c_RT; UInt c_charge;

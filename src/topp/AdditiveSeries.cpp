@@ -143,13 +143,13 @@ protected:
     cout << "Reading from " << filename << endl;
 
     FeatureXMLFile map_file;
-    FeatureMap<> map;
+    FeatureMap map;
     map_file.load(filename, map);
 
     Feature * feat1 = 0;
     Feature * feat2 = 0;
 
-    FeatureMap<>::iterator iter = map.begin();
+    FeatureMap::iterator iter = map.begin();
     while (iter != map.end())
     {
 

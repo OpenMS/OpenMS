@@ -152,9 +152,9 @@ protected:
     FileTypes::Type in_type = FileHandler::getType(in);
     if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> features;
+      FeatureMap features;
       FeatureXMLFile().load(in, features);
-      for (FeatureMap<>::Iterator feat_it = features.begin();
+      for (FeatureMap::Iterator feat_it = features.begin();
            feat_it != features.end(); ++feat_it)
       {
         resolveConflict_(feat_it->getPeptideIdentifications());

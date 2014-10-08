@@ -36,7 +36,7 @@ using namespace std;
 
 Int main()
 {
-  FeatureMap<> map;
+  FeatureMap map;
 
   Feature feature;
   feature.setRT(15.0);
@@ -47,7 +47,7 @@ Int main()
   map.push_back(feature); //append feature 2
 
 
-  for (FeatureMap<>::Iterator it = map.begin(); it != map.end(); ++it)
+  for (FeatureMap::Iterator it = map.begin(); it != map.end(); ++it)
   {
     cout << it->getRT() << " - " << it->getMZ() << endl;
   }

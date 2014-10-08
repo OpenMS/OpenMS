@@ -65,51 +65,51 @@ END_SECTION
 
 START_SECTION((template <class PeakType, class FeatureType> void run(const String &algorithm_name, MSExperiment< PeakType > const &input_map, FeatureMap< FeatureType > &features, const Param &param, const FeatureMap<FeatureType>& seeds)))
 	FeatureFinder ff;
-	FeatureMap<Feature> features;
+	FeatureMap features;
 
 	//empty map works -> nothing to do
 	MSExperiment<Peak1D> map;
-	ff.run("none", map, features, Param(), FeatureMap<Feature>());
+	ff.run("none", map, features, Param(), FeatureMap());
 
 	//no updateRanges -> exception
 	map.resize(2);
 	map[0].resize(1);
 	map[1].resize(1);
-	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param(), FeatureMap<Feature>()))
+	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param(), FeatureMap()))
 
 	//updateRanges -> it works again
 	map.updateRanges();
-	ff.run("none", map, features, Param(), FeatureMap<Feature>());
+	ff.run("none", map, features, Param(), FeatureMap());
 
 	//MS2 scans -> exception
 	map[0].setMSLevel(1);
 	map[0].setMSLevel(2);
 	map.updateRanges();
-	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param(), FeatureMap<Feature>()))
+	TEST_EXCEPTION(Exception::IllegalArgument, ff.run("none", map, features, Param(), FeatureMap()))
 END_SECTION
 
 START_SECTION((const Flag& getPeakFlag(const IndexPair& index) const))
 	FeatureFinder ff;
-	FeatureMap<Feature> features;
+	FeatureMap features;
 	MSExperiment<Peak1D> map;
 	map.resize(2);
 	map[0].resize(1);
 	map[1].resize(1);
 	map.updateRanges();
-	ff.run("none", map, features, Param(), FeatureMap<Feature>());
+	ff.run("none", map, features, Param(), FeatureMap());
 	TEST_EQUAL(ff.getPeakFlag(make_pair(0,0)),FeatureFinderDefs::UNUSED)
 	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)
 END_SECTION
 
 START_SECTION((Flag& getPeakFlag(const IndexPair& index)))
 	FeatureFinder ff;
-	FeatureMap<Feature> features;
+	FeatureMap features;
 	MSExperiment<Peak1D> map;
 	map.resize(2);
 	map[0].resize(1);
 	map[1].resize(1);
 	map.updateRanges();
-	ff.run("none", map, features, Param(), FeatureMap<Feature>());
+	ff.run("none", map, features, Param(), FeatureMap());
 	ff.getPeakFlag(make_pair(0,0)) = FeatureFinderDefs::USED;
 	TEST_EQUAL(ff.getPeakFlag(make_pair(0,0)),FeatureFinderDefs::USED)
 	TEST_EQUAL(ff.getPeakFlag(make_pair(1,0)),FeatureFinderDefs::UNUSED)

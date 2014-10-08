@@ -131,7 +131,7 @@ public:
      * @param swath_map Optional SWATH-MS (DIA) map corresponding from which the chromatograms were extracted
      *
     */
-    void pickExperiment(MSExperiment<Peak1D> & chromatograms, FeatureMap<Feature>& output, TargetedExperiment& transition_exp,
+    void pickExperiment(MSExperiment<Peak1D> & chromatograms, FeatureMap& output, TargetedExperiment& transition_exp,
                         TransformationDescription trafo, MSExperiment<Peak1D>& swath_map);
 
     /** @brief Pick features in one experiment containing chromatogram
@@ -148,7 +148,7 @@ public:
      * @param transition_group_map Output mapping of transition groups
      *
     */
-    void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
+    void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
                         TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, TransitionGroupMapType& transition_group_map);
 
     /** @brief Prepares the internal mappings of peptides and proteins.
@@ -178,7 +178,7 @@ public:
      *
     */
     void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo,
-                         OpenSwath::SpectrumAccessPtr swath_map, FeatureMap<Feature>& output);
+                         OpenSwath::SpectrumAccessPtr swath_map, FeatureMap& output);
 
     /** @brief Set the flag for strict mapping
     */

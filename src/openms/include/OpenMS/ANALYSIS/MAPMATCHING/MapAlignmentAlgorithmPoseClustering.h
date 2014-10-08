@@ -74,7 +74,7 @@ public:
     /// Destructor
     virtual ~MapAlignmentAlgorithmPoseClustering();
 
-    void align(const FeatureMap<> & map, TransformationDescription & trafo);
+    void align(const FeatureMap & map, TransformationDescription & trafo);
     void align(const MSExperiment<> & map, TransformationDescription & trafo);
     void align(const ConsensusMap & map, TransformationDescription & trafo);
 

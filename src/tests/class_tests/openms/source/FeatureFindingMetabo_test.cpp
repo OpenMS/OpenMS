@@ -70,7 +70,7 @@ END_SECTION
 MSExperiment<Peak1D> input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_input1.mzML"), input);
 
-FeatureMap<> exp_fm, test_fm;
+FeatureMap exp_fm, test_fm;
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML"), exp_fm);
 // exp_fm.sortByMZ();
 
@@ -85,7 +85,7 @@ test_epd.detectPeaks(output_mt, splitted_mt);
 
 
 TOLERANCE_RELATIVE(1.01)
-START_SECTION((void run(std::vector< MassTrace > &, FeatureMap<> &)))
+START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &)))
 {
     FeatureFindingMetabo test_ffm;
     test_ffm.run(splitted_mt, test_fm);

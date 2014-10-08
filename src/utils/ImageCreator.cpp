@@ -163,7 +163,7 @@ protected:
     }
   }
 
-  void markFeatureLocations_(FeatureMap<> & feature_map, MSExperiment<> & exp, QImage & image, bool transpose, QColor color)
+  void markFeatureLocations_(FeatureMap & feature_map, MSExperiment<> & exp, QImage & image, bool transpose, QColor color)
   {
     double xcoef = image.width(), ycoef = image.height();
     if (transpose)
@@ -177,7 +177,7 @@ protected:
       ycoef /= exp.getMaxRT() - exp.getMinRT();
     }
 
-    for (FeatureMap<>::Iterator feat_iter = feature_map.begin();
+    for (FeatureMap::Iterator feat_iter = feature_map.begin();
          feat_iter != feature_map.end(); ++feat_iter)
     {
       const ConvexHull2D convex_hull = feat_iter->getConvexHull();
@@ -415,7 +415,7 @@ protected:
 
     if (!in_featureXML.empty())
     {
-      FeatureMap<> feature_map;
+      FeatureMap feature_map;
       FeatureXMLFile ff;
       ff.load(in_featureXML, feature_map);
       markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), feature_color);

@@ -91,14 +91,14 @@ START_SECTION((void initializeGlm(double intercept, double rt_coef, double int_c
   TEST_NOT_EQUAL(&scoring, confidence_scoring_nullPointer)
 END_SECTION
 
-START_SECTION((void scoreMap(FeatureMap<> & features)))
+START_SECTION((void scoreMap(FeatureMap & features)))
 {
   ConfidenceScoring scoring(true); // initialize with test mode
   TargetedExperiment library;
   TransformationDescription rt_trafo;
   scoring.initialize(library, 0, 0, rt_trafo);
   scoring.initializeGlm(0.0, -1.0, -1.0);
-  FeatureMap<> features;
+  FeatureMap features;
   TEST_EXCEPTION(Exception::IllegalArgument, scoring.scoreMap(features))
 
   // The input to the program is 
@@ -197,7 +197,7 @@ START_SECTION(([EXTRA] test exceptions))
   TransformationDescription rt_trafo;
   scoring.initialize(library, 0, 0, rt_trafo);
   scoring.initializeGlm(0.0, -1.0, -1.0);
-  FeatureMap<> features;
+  FeatureMap features;
 
   {
     TargetedExperiment::Peptide p;

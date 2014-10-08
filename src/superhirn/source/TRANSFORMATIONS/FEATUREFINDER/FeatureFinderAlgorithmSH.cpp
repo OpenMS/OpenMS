@@ -32,12 +32,11 @@
 // $Authors: Florian Zeller $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH.h>
 
 namespace OpenMS
 {
-  FeatureFinderAlgorithmSH<Peak1D, Feature> default_featurefinderalgorithmsh;
+  FeatureFinderAlgorithmSH<Peak1D> default_featurefinderalgorithmsh;
 }

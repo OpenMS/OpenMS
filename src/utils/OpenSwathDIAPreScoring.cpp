@@ -145,7 +145,7 @@ protected:
     {
       MzMLFile swath_file;
       MapTypePtr swath_map (new MapType);
-      FeatureMap<> featureFile;
+      FeatureMap featureFile;
       std::cout << "Loading file " << file_list[i] << std::endl;
 
       // no progress log on the console in parallel

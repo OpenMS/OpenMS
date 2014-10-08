@@ -213,7 +213,7 @@ private:
     if (in_type == FileTypes::FEATUREXML)
     {
       // load input
-      std::vector<FeatureMap<> > featureMaps(inputFiles.size());
+      std::vector<FeatureMap > featureMaps(inputFiles.size());
       FeatureXMLFile fxmlFile;
 
       // no need to store featureXML, thus we can load only minimum required information

@@ -67,7 +67,7 @@ public:
 
         @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    virtual void group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out);
+    virtual void group(const std::vector<FeatureMap > & maps, ConsensusMap & out);
 
     ///Creates a new instance of this class (for Factory)
     static FeatureGroupingAlgorithm * create()

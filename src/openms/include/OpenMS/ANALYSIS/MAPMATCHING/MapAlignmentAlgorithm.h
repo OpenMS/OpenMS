@@ -85,7 +85,7 @@ public:
 
     @exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
     */
-    virtual void alignFeatureMaps(std::vector<FeatureMap<> > &, std::vector<TransformationDescription> &);
+    virtual void alignFeatureMaps(std::vector<FeatureMap > &, std::vector<TransformationDescription> &);
 
     /**
     @brief Aligns consensus maps

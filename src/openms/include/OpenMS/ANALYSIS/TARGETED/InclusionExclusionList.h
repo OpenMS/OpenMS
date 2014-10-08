@@ -158,7 +158,7 @@ public:
 
     //@}
 
-//     void loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp);
+//     void loadTargets(FeatureMap& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp);
 
 //     void loadTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, std::vector<IncludeExcludeTarget>& targets,
 //                      TargetedExperiment& exp, Size missed_cleavages = 0);
@@ -179,7 +179,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
      */
-    void writeTargets(const FeatureMap<> & map,
+    void writeTargets(const FeatureMap & map,
                       const String & out_path);
 
     /**

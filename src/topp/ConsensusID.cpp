@@ -332,7 +332,7 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       //load map
-      FeatureMap<> map;
+      FeatureMap map;
       FeatureXMLFile().load(in, map);
 
       //compute consensus

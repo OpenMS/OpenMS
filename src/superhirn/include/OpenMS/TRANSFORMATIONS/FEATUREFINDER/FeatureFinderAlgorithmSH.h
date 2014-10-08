@@ -100,21 +100,20 @@ namespace OpenMS
 
       @ingroup FeatureFinder
   */
-  template <class PeakType, class FeatureType>
+  template <class PeakType>
   class FeatureFinderAlgorithmSH :
-    public FeatureFinderAlgorithm<PeakType, FeatureType>,
+    public FeatureFinderAlgorithm<PeakType>,
     public FeatureFinderDefs
   {
 
 public:
-    typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType; // MSExperiment
-    typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::FeatureMapType FeatureMapType;
+    typedef typename FeatureFinderAlgorithm<PeakType>::MapType MapType; // MSExperiment
     typedef typename MapType::SpectrumType SpectrumType;
 
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::features_;
+    using FeatureFinderAlgorithm<PeakType>::features_;
 
     FeatureFinderAlgorithmSH() :
-      FeatureFinderAlgorithm<PeakType, FeatureType>()
+      FeatureFinderAlgorithm<PeakType>()
     {
       // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue("centroiding:active", "false", "MS1 data centroid data");
@@ -232,7 +231,7 @@ public:
     {
       std::cout << "SuperHirn feature extraction...\n";
 
-      map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
+      map_ = *(FeatureFinderAlgorithm<PeakType>::map_);
 
       FeatureFinderAlgorithmSHCtrl::MyMap dummyMap;
       FeatureFinderAlgorithmSHCtrl::Vec datavec;
@@ -294,7 +293,7 @@ public:
         features_->push_back(thefeatures[i]);
     }
 
-    static FeatureFinderAlgorithm<Peak1D, Feature> * create()
+    static FeatureFinderAlgorithm<Peak1D> * create()
     {
       return new FeatureFinderAlgorithmSH();
     }

@@ -76,7 +76,7 @@ START_SECTION((static const String getProductName()))
   TEST_STRING_EQUAL(spf.getProductName(),"labeled_pair_finder")
 END_SECTION
 
-FeatureMap<> features;
+FeatureMap features;
 features.resize(10);
 //start
 features[0].setRT(1.0f);
@@ -171,7 +171,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	p2.setValue("mz_dev",0.2);
 	pm2.setParameters(p2);
 
-	FeatureMap<> features2;
+	FeatureMap features2;
 	FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("LabeledPairFinder.featureXML"),features2);
 
 	ConsensusMap output2;

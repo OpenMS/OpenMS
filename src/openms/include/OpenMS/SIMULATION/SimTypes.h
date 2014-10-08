@@ -59,7 +59,6 @@ namespace OpenMS
 
   namespace SimTypes
   {
-
     /// Coordinate type in mz and rt dimension
     typedef Peak2D::CoordinateType SimCoordinateType;
 
@@ -98,7 +97,7 @@ namespace OpenMS
     typedef std::vector<SampleProteins> SampleChannels;
 
     /// Sim FeatureMap
-    typedef FeatureMap<> FeatureMapSim;
+    typedef FeatureMap FeatureMapSim;
 
     /// Sim FeatureMap Vector
     typedef std::vector<FeatureMapSim> FeatureMapSimVector;

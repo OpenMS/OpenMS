@@ -36,7 +36,7 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS":
         # libcpp_map[String, Ratio] getRatios() nogil except + # wrap-ignore
         libcpp_vector[ConsensusMap] getConsensusMaps() nogil except +
         void setConsensusMaps(libcpp_vector[ConsensusMap]) nogil except +
-        libcpp_vector[FeatureMap[Feature] ] getFeatureMaps() nogil except +
+        libcpp_vector[FeatureMap ] getFeatureMaps() nogil except +
         AnalysisSummary getAnalysisSummary() nogil except +
         void setDataProcessingList(libcpp_vector[DataProcessing] dpl) nogil except +
         void setAnalysisSummaryQuantType(QUANT_TYPES r) nogil except +
@@ -75,6 +75,6 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
         String uid_ 
         libcpp_vector[libcpp_pair[String, double] ] mods_ # wrap-ignore
         libcpp_vector[ExperimentalSettings] raw_files_
-        libcpp_map[size_t, FeatureMap[Feature] ] feature_maps_ 
+        libcpp_map[size_t, FeatureMap ] feature_maps_ 
         # iTRAQ needs no FeatureMaps so ExperimentalSettings are not directly mapped to FeatureMaps
 

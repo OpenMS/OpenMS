@@ -765,7 +765,7 @@ public:
    * @param consensus_map    consensus map with peptide multiplets (to be filled)
    * @param feature_map    feature map with peptides (to be filled)
    */
-  void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap<>& feature_map)
+  void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
   {
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -1019,7 +1019,7 @@ public:
    * @param filename    name of featureXML file
    * @param map    feature map for output
    */
-  void writeFeatureMap_(const String& filename, FeatureMap<>& map) const
+  void writeFeatureMap_(const String& filename, FeatureMap& map) const
   {
     map.sortByPosition();
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -1188,7 +1188,7 @@ private:
      * write to output
      */
     ConsensusMap consensus_map;
-    FeatureMap<> feature_map;
+    FeatureMap feature_map;
     generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")
     {

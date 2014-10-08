@@ -46,23 +46,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_FFEval FFEval
+  @page UTILS_FFEval FFEval
 
-    @brief Evaluation tool for feature detection algorithms.
+  @brief Evaluation tool for feature detection algorithms.
 
 
   To plot the ROC curve you might use:
 
-@code
+  @code
   d = read.table("data.roc", skip=1, sep="\t")
   plot(d[,3],d[,4], xlim=c(0,1),ylim=c(0,1), xlab="FDR",ylab="TPR",main="ROC with varying intensity")
   lines(c(0,1),c(0,1))
-@endcode
+  @endcode
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_FFEval.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_FFEval.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_FFEval.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_FFEval.html
 */
 
 // We do not want this class to show up in the docu:
@@ -100,7 +100,7 @@ protected:
   }
 
   /// Counts the number of features with meta value @p name equal to @p value
-  UInt count(const FeatureMap<>& map, const String& name, const String& value = "")
+  UInt count(const FeatureMap& map, const String& name, const String& value = "")
   {
     UInt count = 0;
     for (Size i = 0; i < map.size(); ++i)
@@ -138,12 +138,12 @@ protected:
   ExitCodes main_(int, const char**)
   {
     //load data
-    FeatureMap<> features_in, features_truth;
+    FeatureMap features_in, features_truth;
     FeatureXMLFile().load(getStringOption_("in"), features_in);
     features_in.sortByPosition();
     FeatureXMLFile().load(getStringOption_("truth"), features_truth);
     features_truth.sortByPosition();
-    FeatureMap<> abort_reasons;
+    FeatureMap abort_reasons;
     if (getStringOption_("abort_reasons") != "")
     {
       FeatureXMLFile().load(getStringOption_("abort_reasons"), abort_reasons);

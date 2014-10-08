@@ -114,7 +114,7 @@ protected:
 
 
       /// Helper method that writes the featuremaps
-      void writeFeature_(String & feature_xml, const std::vector<FeatureMap<> >& fm, UInt indentation_level);
+      void writeFeature_(String & feature_xml, const std::vector<FeatureMap >& fm, UInt indentation_level);
 
       /// Helper method that writes a source file
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);

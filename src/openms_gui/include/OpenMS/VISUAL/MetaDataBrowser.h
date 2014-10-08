@@ -146,8 +146,7 @@ public:
     }
 
     /// Adds a feature map
-    template <class FeatureType>
-    void add(FeatureMap<FeatureType> & map)
+    void add(FeatureMap& map)
     {
       //identifier
       add(static_cast<DocumentIdentifier &>(map));

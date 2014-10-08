@@ -68,9 +68,9 @@ quantifier_features.setParameters(params);
 quantifier_consensus.setParameters(params);
 quantifier_identifications.setParameters(params);
 
-START_SECTION((void quantifyPeptides(FeatureMap<>& features)))
+START_SECTION((void quantifyPeptides(FeatureMap& features)))
 {
-  FeatureMap<> features;
+  FeatureMap features;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), features);
   TEST_EQUAL(quantifier_features.getPeptideResults().empty(), true);
   quantifier_features.quantifyPeptides(features);

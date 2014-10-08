@@ -2226,6 +2226,11 @@ namespace OpenMS
       }
     }
   }
+  
+  void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
+  {
+    map.getDataProcessing().push_back(dp);
+  }
 
   bool TOPPBase::writeCTD_()
   {

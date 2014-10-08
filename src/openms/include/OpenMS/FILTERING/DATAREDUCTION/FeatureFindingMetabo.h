@@ -230,7 +230,7 @@ public:
 
 
     /// main method of FeatureFindingMetabo
-    void run(std::vector<MassTrace> &, FeatureMap<> &);
+    void run(std::vector<MassTrace> &, FeatureMap &);
 
 
 protected:

@@ -80,24 +80,23 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  template <class PeakType, class FeatureType>
+  template <class PeakType>
   class FeatureFinderAlgorithmPicked :
-    public FeatureFinderAlgorithm<PeakType, FeatureType>,
+    public FeatureFinderAlgorithm<PeakType>,
     public FeatureFinderDefs
   {
 public:
     /// @name Type definitions
     //@{
-    typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType;
-    typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::FeatureMapType FeatureMapType;
+    typedef typename FeatureFinderAlgorithm<PeakType>::MapType MapType;
     typedef typename MapType::SpectrumType SpectrumType;
     typedef typename SpectrumType::FloatDataArrays FloatDataArrays;
     //@}
 
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::param_;
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::features_;
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::ff_;
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::defaults_;
+    using FeatureFinderAlgorithm<PeakType>::param_;
+    using FeatureFinderAlgorithm<PeakType>::features_;
+    using FeatureFinderAlgorithm<PeakType>::ff_;
+    using FeatureFinderAlgorithm<PeakType>::defaults_;
 
 protected:
     typedef FeatureFinderAlgorithmPickedHelperStructs::Seed Seed;
@@ -109,7 +108,7 @@ protected:
 public:
     /// default constructor
     FeatureFinderAlgorithmPicked() :
-      FeatureFinderAlgorithm<PeakType, FeatureType>(),
+      FeatureFinderAlgorithm<PeakType>(),
       map_(),
       log_()
     {
@@ -205,7 +204,7 @@ public:
     }
 
     // docu in base class
-    virtual void setSeeds(const FeatureMapType& seeds)
+    virtual void setSeeds(const FeatureMap& seeds)
     {
       seeds_ = seeds;
     }
@@ -265,7 +264,7 @@ public:
       trace_fitter_params.setValue("max_iteration", max_iterations);
 
       //copy the input map
-      map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
+      map_ = *(FeatureFinderAlgorithm<PeakType>::map_);
 
       //flag for user-specified seed mode
       bool user_seeds = (seeds_.size() > 0);
@@ -603,9 +602,9 @@ public:
               else if (user_seeds && overall_score >= user_seed_score)
               {
                 //only consider seeds, if they are near a user-specified seed
-                FeatureType tmp;
+                Feature tmp;
                 tmp.setMZ(map_[s][p].getMZ() - user_mz_tol);
-                for (typename FeatureMapType::const_iterator it = std::lower_bound(seeds_.begin(), seeds_.end(), tmp, typename FeatureType::MZLess()); it < seeds_.end(); ++it)
+                for (FeatureMap::const_iterator it = std::lower_bound(seeds_.begin(), seeds_.end(), tmp, Feature::MZLess()); it < seeds_.end(); ++it)
                 {
                   if (it->getMZ() > map_[s][p].getMZ() + user_mz_tol)
                   {
@@ -632,7 +631,7 @@ public:
         if (debug_)
         {
           //seeds
-          FeatureMap<> seed_map;
+          FeatureMap seed_map;
           seed_map.reserve(seeds.size());
           for (Size i = 0; i < seeds.size(); ++i)
           {
@@ -669,7 +668,7 @@ public:
         // decided whether they are contained within a seed of higher
         // intensity.
         std::map<Size, std::vector<Size> > seeds_in_features;
-        typedef std::map<Size, FeatureType> FeatureMapType;
+        typedef std::map<Size, Feature> FeatureMapType;
         FeatureMapType tmp_feature_map;
         gl_progress = 0;
         ff_->startProgress(0, seeds.size(), String("Extending seeds for charge ") + String(c));
@@ -915,7 +914,7 @@ public:
         // used in any feature with higher intensity, we can add it to the
         // features_ list.
         std::vector<Size> seeds_contained;
-        for (typename std::map<Size, FeatureType>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end(); ++iter)
+        for (std::map<Size, Feature>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end(); ++iter)
         {
           Size seed_nr = iter->first;
           bool is_used = false;
@@ -1037,7 +1036,7 @@ public:
       }
       LOG_INFO << "Removed " << removed << " overlapping features." << std::endl;
       //finally remove features with intensity 0
-      FeatureMap<> tmp;
+      FeatureMap tmp;
       tmp.reserve(features_->size());
       for (Size i = 0; i < features_->size(); ++i)
       {
@@ -1062,7 +1061,7 @@ public:
       if (debug_)
       {
         //store map of abort reasons for failed seeds
-        FeatureMap<> abort_map;
+        FeatureMap abort_map;
         abort_map.reserve(abort_reasons_.size());
         Size counter = 0;
         for (typename std::map<Seed, String>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
@@ -1088,7 +1087,7 @@ public:
 
     }
 
-    static FeatureFinderAlgorithm<PeakType, FeatureType>* create()
+    static FeatureFinderAlgorithm<PeakType>* create()
     {
       return new FeatureFinderAlgorithmPicked();
     }
@@ -1110,7 +1109,7 @@ protected:
     /// Array of abort reasons
     std::map<Seed, String> abort_reasons_;
     /// User-specified seed list
-    FeatureMapType seeds_;
+    FeatureMap seeds_;
 
     /// @name Members for parameters often needed in methods
     //@{

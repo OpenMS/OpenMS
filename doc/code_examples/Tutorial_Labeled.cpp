@@ -43,7 +43,7 @@ int main(int argc, const char** argv)
   // the path to the data should be given on the command line
   String tutorial_data_path(argv[1]);
   
-  vector<FeatureMap<> > maps;
+  vector<FeatureMap > maps;
   maps.resize(1);
 
   FeatureXMLFile feature_file;

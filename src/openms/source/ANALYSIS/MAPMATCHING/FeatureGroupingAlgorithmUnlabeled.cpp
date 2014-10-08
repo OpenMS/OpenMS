@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out)
+  void FeatureGroupingAlgorithmUnlabeled::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
   {
     // check that the number of maps is ok
     if (maps.size() < 2)
@@ -103,7 +103,7 @@ namespace OpenMS
 
     // add protein IDs and unassigned peptide IDs to the result map here,
     // to keep the same order as the input maps (useful for output later)
-    for (std::vector<FeatureMap<> >::const_iterator map_it = maps.begin();
+    for (std::vector<FeatureMap>::const_iterator map_it = maps.begin();
          map_it != maps.end(); ++map_it)
     {
       // add protein identifications to result map
@@ -131,7 +131,7 @@ namespace OpenMS
     return;
   }
 
-  void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap<> & feature_map)
+  void FeatureGroupingAlgorithmUnlabeled::addToGroup(int map_id, const FeatureMap& feature_map)
   {
     // create new PairFinder
     StablePairFinder pair_finder;

@@ -62,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  double ILPDCWrapper::compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level) const
+  double ILPDCWrapper::compute(const FeatureMap fm, PairsType& pairs, Size verbose_level) const
   {
     if (fm.empty())
     {
@@ -209,7 +209,7 @@ namespace OpenMS
 //#ifdef _OPENMP
 //#pragma omp parallel for schedule(dynamic, 1), reduction(+: score)
 //#endif
-    for (SignedSize i = 0; i < (SignedSize)bins.size(); ++i)
+    for (SignedSize i = 0; i < static_cast<SignedSize>(bins.size()); ++i)
     {
       score = computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
     }
@@ -226,7 +226,7 @@ namespace OpenMS
     f_set[rota_l].insert(v);
   }
 
-  double ILPDCWrapper::computeSlice_(const FeatureMap<> fm,
+  double ILPDCWrapper::computeSlice_(const FeatureMap fm,
                                      PairsType& pairs,
                                      const PairsIndex margin_left,
                                      const PairsIndex margin_right,
@@ -328,7 +328,7 @@ namespace OpenMS
 
   // old version, slower, as ILP has different layout (i.e, the same as described in paper)
 
-  double ILPDCWrapper::computeSliceOld_(const FeatureMap<> fm,
+  double ILPDCWrapper::computeSliceOld_(const FeatureMap fm,
                                             PairsType& pairs,
                                             const PairsIndex margin_left,
                                             const PairsIndex margin_right,
@@ -515,7 +515,7 @@ namespace OpenMS
     return opt_value;
   } // !compute_slice
 
-  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap<>& fm) const
+  double ILPDCWrapper::getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const
   {
     double score;
     String e;

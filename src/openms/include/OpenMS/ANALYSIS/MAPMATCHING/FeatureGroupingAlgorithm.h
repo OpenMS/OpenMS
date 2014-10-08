@@ -58,7 +58,7 @@ public:
     virtual ~FeatureGroupingAlgorithm();
 
     ///Applies the algorithm. The features in the input @p maps are grouped and the output is written to the consensus map @p out
-    virtual void group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out) = 0;
+    virtual void group(const std::vector<FeatureMap > & maps, ConsensusMap & out) = 0;
 
     ///Applies the algorithm. The consensus features in the input @p maps are grouped and the output is written to the consensus map @p out
     /// Algorithms not supporting ConsensusMap input should simply not override this method,

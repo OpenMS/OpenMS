@@ -865,7 +865,7 @@ protected:
 
     if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> features;
+      FeatureMap features;
       FeatureXMLFile().load(in, features);
       if (!mzTab_out.empty())
       {

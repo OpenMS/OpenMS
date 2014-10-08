@@ -38,5 +38,5 @@
 
 namespace OpenMS
 {
-  FeatureFinderAlgorithmPicked<Peak1D, Feature> default_featurefinderalgorithmpicked;
+  FeatureFinderAlgorithmPicked<Peak1D> default_featurefinderalgorithmpicked;
 }
