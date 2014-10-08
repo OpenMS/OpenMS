@@ -78,7 +78,7 @@
 
 #include <assert.h>
 
-// #define OPENSWATH_WORKFLOW_DEBUG
+#define OPENSWATH_WORKFLOW_DEBUG
 
 using namespace OpenMS;
 
@@ -101,10 +101,19 @@ namespace OpenMS
   {
 public:
 
+    /** @brief Constructor
+     *
+     * @param a Regression parameter 0
+     * @param b Regression parameter 1
+     * @param c Regression parameter 2
+     * @param ppm Whether the should be applied in ppm domain (if false, it is
+     *            applied directly in m/z domain)
+     *
+    */
     explicit SpectrumAccessQuadMZTransforming(OpenSwath::SpectrumAccessPtr sptr,
-        double a, double b, double c) :
+        double a, double b, double c, bool ppm) :
       SpectrumAccessTransforming(sptr)
-      , a_(a), b_(b), c_(c)
+      , a_(a), b_(b), c_(c), ppm_(ppm)
     {}
         
     ~SpectrumAccessQuadMZTransforming() {}
@@ -115,19 +124,29 @@ public:
       // SpectrumAccessQuadMZTransforming with a light clone of the underlying
       // SpectrumAccess object and the parameters.
       return boost::shared_ptr<SpectrumAccessQuadMZTransforming>(
-          new SpectrumAccessQuadMZTransforming(sptr_->lightClone(), a_, b_, c_));
+          new SpectrumAccessQuadMZTransforming(sptr_->lightClone(), a_, b_, c_, ppm_));
     }
 
     OpenSwath::SpectrumPtr getSpectrumById(int id)
     {
       OpenSwath::SpectrumPtr s = sptr_->getSpectrumById(id);
-      for(size_t i = 0; i < s->getMZArray()->data.size(); i++)
+      for (size_t i = 0; i < s->getMZArray()->data.size(); i++)
       {
         // mz = a + b * mz + c * mz^2
-        s->getMZArray()->data[i] = 
+        double predict = 
           a_ + 
           b_ * s->getMZArray()->data[i] +
           c_ * s->getMZArray()->data[i] * s->getMZArray()->data[i];
+
+        // If ppm is true, we predicted the ppm deviation, not the actual new mass
+        if (ppm_)
+        {
+          s->getMZArray()->data[i] = s->getMZArray()->data[i] - predict*s->getMZArray()->data[i]/1000000;
+        }
+        else
+        {
+          s->getMZArray()->data[i] = predict;
+        }
       }
       return s;
     }
@@ -137,6 +156,7 @@ private:
     double a_;
     double b_;
     double c_;
+    bool ppm_;
 
   };
 
@@ -839,14 +859,40 @@ private:
    df = read.csv("debug_ppmdiff.txt", sep="\t" , header=F)
    colnames(df) = c("mz", "theomz", "dppm", "int", "rt")
    df$absd = df$theomz-df$mz
-   plot(df$mz, df$absd)
-   plot(df$mz, df$dppm)
+   plot(df$mz, df$absd, main="m/z vs absolute deviation")
+   plot(df$mz, df$dppm, main="m/z vs ppm deviation")
 
    linm = lm(theomz ~ mz, df)
-   quadm = lm(theomz ~ mz + mz*mz, df)
-
    df$x2 = df$mz*df$mz
    quadm = lm(theomz ~ mz + x2, df)
+
+   df$ppmdiff_pred = (df$theomz - predict(quadm))/df$mz * 1e6
+
+   plot(df$mz, df$ppmdiff_pred, col="blue", cex=0.5)
+   points(df$mz, df$dppm, col="red", cex=0.5)
+   legend("bottomright", legend=c("original", "corrected") , col=c("red", "blue") )
+
+
+
+   plot(df$mz, df$dppm, col="red", cex=0.5)
+   quadm_ppm = lm(dppm ~ mz + x2, df)
+   
+   plot(df$mz, df$dppm, main="PPM difference and model fit")
+   points(df$mz, predict(quadm_ppm), cex=0.3, col="red")
+
+   points(df$mz, df$dppm - predict(quadm_ppm), col="blue")
+
+
+   plot(df$mz, df$ppmdiff_pred, col="red", main="Cmp two model approaches")
+   points(df$mz, df$dppm - predict(quadm_ppm), col="blue")
+
+   sd(df$dppm)
+   mean(df$dppm)
+   sd(df$ppmdiff_pred)
+   mean(df$ppmdiff_pred)
+   sd(df$dppm - predict(quadm_ppm))
+   mean(df$dppm - predict(quadm_ppm))
+
 
 
 */
@@ -856,6 +902,7 @@ private:
       std::vector<double> weights;
       std::vector<double> exp_mz;
       std::vector<double> theo_mz;
+      std::vector<double> delta_ppm;
       for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
           trgroup_it != transition_group_map.end(); ++trgroup_it)
       {
@@ -904,9 +951,10 @@ private:
           weights.push_back( log2(intensity) ); // regression weight is the log2 intensity
           exp_mz.push_back( mz );
           theo_mz.push_back( tr->product_mz ); // y = target = theoretical
+          double diff_ppm = (mz - tr->product_mz) * 1000000 / tr->product_mz;
+          delta_ppm.push_back(diff_ppm); // y = target = delta-ppm
 
 #ifdef OPENSWATH_WORKFLOW_DEBUG
-          double diff_ppm = (mz - tr->product_mz) * 1000000 / tr->product_mz;
           os << mz << "\t" << tr->product_mz << "\t" << diff_ppm << "\t" << log2(intensity) << "\t" << bestRT << std::endl;
 #endif
         }
@@ -944,12 +992,40 @@ private:
         regression_params.push_back(qr.getB());
         regression_params.push_back(qr.getC());
       }
+      else if (corr_type == "quadratic_regression_delta_ppm")
+      {
+        // Quadratic fit
+        Math::QuadraticRegression qr;
+        qr.computeRegression(exp_mz.begin(), exp_mz.end(), delta_ppm.begin());
+        regression_params.push_back(qr.getA());
+        regression_params.push_back(qr.getB());
+        regression_params.push_back(qr.getC());
+      }
       else 
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             "Unknown correction type " + corr_type);
       }
 
+/*
+
+
+# mz regression parameters: Y = -0.0156725 + 1.00005 X + -3.7127e-08 X^2
+ sum residual sq ppm before 394.0529252540293 / after 245.4905283249099
+rsq: 0.9993098240025888 points: 7
+
+# mz regression parameters: Y = 42.2354 + -0.107071 X + 6.87643e-05 X^2
+ sum residual sq ppm before 394.0529252540293 / after 205.778656429406
+rsq: 0.9993098240025888 points: 7
+
+
+-- done [took 4.53 s (CPU), 4.55 s (Wall)] -- 
+OpenSwathWorkflow took 23.92 s (wall), 23.73 s (CPU), 0.00 s (system), 23.73 s (user).
+
+-- done [took 1.41 s (CPU), 1.41 s (Wall)] -- 
+OpenSwathWorkflow took 21.07 s (wall), 20.90 s (CPU), 0.00 s (system), 20.90 s (user).
+
+*/
       printf("# mz regression parameters: Y = %g + %g X + %g X^2\n",
              regression_params[0],
              regression_params[1],
@@ -962,7 +1038,13 @@ private:
       for (TransformationDescription::DataPoints::iterator d = data_all.begin(); d != data_all.end(); d++)
       {
         double ppm_before = (d->first - d->second) * 1000000 / d->first;
-        double ppm_after = ((d->first*d->first*regression_params[2] + d->first*regression_params[1]+regression_params[0]) - d->second) * 1000000 / d->second;
+        double predict = d->first*d->first*regression_params[2] + d->first*regression_params[1]+regression_params[0];
+        double ppm_after = ( predict - d->second) * 1000000 / d->second;
+        if (corr_type == "quadratic_regression_delta_ppm")
+        {
+          double new_mz = d->first - predict*d->first/1000000; 
+          ppm_after = ( new_mz - d->second) * 1000000 / d->second;
+        }
         s_ppm_before += std::fabs(ppm_before);
         s_ppm_after += std::fabs(ppm_after);
       }
@@ -974,7 +1056,8 @@ private:
       {
         swath_maps[i].sptr = boost::shared_ptr<OpenSwath::ISpectrumAccess>(
           new SpectrumAccessQuadMZTransforming(swath_maps[i].sptr, 
-            regression_params[0], regression_params[1], regression_params[2]));
+            regression_params[0], regression_params[1], regression_params[2], 
+            corr_type == "quadratic_regression_delta_ppm"));
       }
 
     }
@@ -1362,7 +1445,7 @@ protected:
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache"));
 
     registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
-    setValidStrings_("mz_correction_function", ListUtils::create<String>("none,unweighted_regression,weighted_regression,quadratic_regression"));
+    setValidStrings_("mz_correction_function", ListUtils::create<String>("none,unweighted_regression,weighted_regression,quadratic_regression,quadratic_regression_delta_ppm"));
 
     // TODO terminal slash !
     registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
