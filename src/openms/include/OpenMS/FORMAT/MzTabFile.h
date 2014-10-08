@@ -35,14 +35,7 @@
 #ifndef OPENMS_FORMAT_MZTABFILE_H
 #define OPENMS_FORMAT_MZTABFILE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/MzTab.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/SVOutStream.h>
-#include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/FORMAT/SVOutStream.h>
-
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #include <vector>
@@ -51,10 +44,9 @@
 
 namespace OpenMS
 {
-  // forward decl
-  class TextFile;
-
-  /**
+  struct String;
+  struct SVOutStream;
+/**
     @brief File adapter for MzTab files
 
     @ingroup FileIO
@@ -70,7 +62,7 @@ public:
     typedef std::map<std::pair<String, String>, std::vector<PeptideHit> > MapAccPepType;
 
     // store MzTab file
-    void store(const String& filename, const MzTab& mz_tab) const;
+    void store(const String & filename, const MzTab & mz_tab) const;
 
     // Set store behaviour of optional "reliability" and "uri" columns (default=no)
     void storeProteinReliabilityColumn(bool store);

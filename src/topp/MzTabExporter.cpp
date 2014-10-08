@@ -42,6 +42,8 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <vector>
 #include <algorithm>
