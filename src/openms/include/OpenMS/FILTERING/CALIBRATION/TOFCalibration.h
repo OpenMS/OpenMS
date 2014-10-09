@@ -248,13 +248,42 @@ private:
 //    delete[] calib_masses;
 //    delete[] error_medians;
 
-    double m;
+    // get parameters for linear extrapolation to low mass
+    double m_min0 = calib_masses_[0];
+    double m_min1 = calib_masses_[1];
+    double y_min0 = spline.eval(m_min0);
+    double y_min1 = spline.eval(m_min1);
+    double min_slope = (y_min1 - y_min0) / (m_min1 - m_min0);
+
+    // get parameters for linear extrapolation to high mass
+    Size size = calib_masses_.size();
+    double m_max0 = calib_masses_[size - 1];
+    double m_max1 = calib_masses_[size - 2];
+    double y_max0 = spline.eval(m_max0); // in this case, the max0 is the right side
+    double y_max1 = spline.eval(m_max1);
+    double max_slope = (y_max0 - y_max1) / (m_max0 - m_max1);
+
+    double m, y;
     for (unsigned int spec = 0; spec <  exp.size(); ++spec)
     {
       for (unsigned int peak = 0; peak <  exp[spec].size(); ++peak)
       {
         m = mQAv_(exp[spec][peak].getMZ());
-        exp[spec][peak].setPos(m - spline.eval(m));
+
+        if (m < m_min0)
+        {
+          y = y_min0 + min_slope * (m - m_min0); 
+          exp[spec][peak].setPos(m - y);
+        }
+        else if (m > m_max0)
+        {
+          y = y_max0 + max_slope * (m - m_max0);
+          exp[spec][peak].setPos(m - y);
+        }
+        else
+        {
+          exp[spec][peak].setPos(m - spline.eval(m));
+        }
       }
     }
   }
