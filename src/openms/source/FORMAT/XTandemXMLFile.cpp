@@ -96,21 +96,21 @@ namespace OpenMS
         const vector<PeptideHit> & peptide_hits = it->second;
         if (!peptide_hits.empty())
         {
-          // copy the accession of all to the first hit
+          // store all peptide hits that identify the same sequence in a single peptide hit
           PeptideHit hit = peptide_hits[0];
           vector<PeptideEvidence> peptide_evidences;
           for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
           {
-            set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
-            for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
+            const vector<PeptideEvidence> evidences = it2->getPeptideEvidences();
+            for (vector<PeptideEvidence>::const_iterator e_it = evidences.begin(); e_it != evidences.end(); ++e_it)
             {
-              String new_acc = protein_hits_[*it3].getAccession();
-              PeptideEvidence pe;
+              // only rewrite accession and keep AABefore/AAAfter, start, stop information from peptide evidence
+              PeptideEvidence pe = *e_it;
+              String new_acc = protein_hits_[pe.getProteinAccession()].getAccession();
               pe.setProteinAccession(new_acc);
               peptide_evidences.push_back(pe);
             }
           }
-
           hit.setPeptideEvidences(peptide_evidences);
           id.insertHit(hit);
         }
@@ -214,7 +214,7 @@ namespace OpenMS
       hit.setCharge(actual_charge_);
 
       hit.addPeptideEvidence(pe);
-      peptide_hits_[id].push_back(hit);
+      peptide_hits_[actual_id_].push_back(hit);
       return;
     }
 
