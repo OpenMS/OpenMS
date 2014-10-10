@@ -29,7 +29,7 @@ import numpy as np
         assert len(peaks) == 2, "Input for set_peaks needs to be a tuple or a list of size 2 (rt and intensity vector)"
 
         rts, intensities = peaks
-        assert len(rts) == len(intensities), "Input vectors for set_peaks need to have the same length (rt and intensity vecgtor)"
+        assert len(rts) == len(intensities), "Input vectors for set_peaks need to have the same length (rt and intensity vector)"
 
         cdef _MSChromatogram[_ChromatogramPeak] * chrom_ = self.inst.get()
 
