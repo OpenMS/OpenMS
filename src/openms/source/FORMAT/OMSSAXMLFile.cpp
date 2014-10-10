@@ -304,18 +304,18 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstart")
     {
-      if (value != "")
+      if (value != "" && !actual_peptide_evidences_.empty())
       {
-        actual_peptide_evidence_.setAABefore(value[0]);
+        actual_peptide_evidences_[0].setAABefore(value[0]);
       }
       tag_ = "";
       return;
     }
     else if (tag_ == "MSHits_pepstop")
     {
-      if (value != "")
+      if (value != "" && !actual_peptide_evidences_.empty())
       {
-        actual_peptide_evidence_.setAAAfter(value[0]);
+        actual_peptide_evidences_[0].setAAAfter(value[0]);
       }
       tag_ = "";
       return;
