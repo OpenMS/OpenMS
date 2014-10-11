@@ -201,8 +201,11 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     set<String> accessions = PeptideHit::extractProteinAccessions(peptide_identifications[34].getHits()[0]);
     references = vector<String>(accessions.begin(), accessions.end()); // corresponds to <peptide query="35" ...>
     ABORT_IF(references.size() != 5);
-    TEST_EQUAL(references[0], "IPI00745872");
-    TEST_EQUAL(references[4], "IPI00878517");
+    TEST_EQUAL(references[0], "IPI00022434");
+    TEST_EQUAL(references[1], "IPI00384697");
+    TEST_EQUAL(references[2], "IPI00745872");
+    TEST_EQUAL(references[3], "IPI00878517");
+    TEST_EQUAL(references[4], "IPI00908876");
 
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 5.34);
     TEST_REAL_SIMILAR(peptide_identifications[49].getHits()[0].getScore(), 14.83);
