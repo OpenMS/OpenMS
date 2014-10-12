@@ -110,8 +110,6 @@ public:
     typedef typename FeatureFinderAlgorithm<PeakType>::MapType MapType; // MSExperiment
     typedef typename MapType::SpectrumType SpectrumType;
 
-    using FeatureFinderAlgorithm<PeakType>::features_;
-
     FeatureFinderAlgorithmSH() :
       FeatureFinderAlgorithm<PeakType>()
     {
@@ -290,7 +288,9 @@ public:
       std::vector<Feature> thefeatures = ctrl.extractPeaks(datavec);
 
       for (unsigned int i = 0; i < thefeatures.size(); ++i)
+      {
         features_->push_back(thefeatures[i]);
+      }
     }
 
     static FeatureFinderAlgorithm<Peak1D> * create()
@@ -305,6 +305,7 @@ public:
 
 protected:
     MapType map_;
+    using FeatureFinderAlgorithm<PeakType>::features_;
 
   };
 
