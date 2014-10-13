@@ -115,7 +115,7 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
   // --
   PeptideHit pep_hit2(1.0, 1, 0, AASequence::fromString("EEEEPPPK"));
   PeptideEvidence pe2;
-  pe1.setProteinAccession("p2");
+  pe2.setProteinAccession("p2");
   pep_hit2.setPeptideEvidences(vector<PeptideEvidence>(1, pe2));
 
   PeptideIdentification pep_id2;

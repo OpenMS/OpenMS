@@ -127,12 +127,11 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   // no use checking score, because implementation may still change
   TEST_EQUAL(pep_hit.getCharge(), 3);
-  set<String> accessions = PeptideHit::extractProteinAccessions(pep_hit);
-  vector<String> references = vector<String>(accessions.begin(), accessions.end());
-  TEST_EQUAL(references.size(), 3);
-  TEST_EQUAL(references[0], "ddb000449223");
-  TEST_EQUAL(pep_hit.getPeptideEvidences()[0].getAABefore(), 'R');
-  TEST_EQUAL(pep_hit.getPeptideEvidences()[0].getAAAfter(), 'E');
+  vector<PeptideEvidence> pes = pep_hit.getPeptideEvidences();
+  TEST_EQUAL(pes.size(), 3);
+  TEST_EQUAL(pes[0].getProteinAccession(), "ddb000449223");
+  TEST_EQUAL(pes[0].getAABefore(), 'R');
+  TEST_EQUAL(pes[0].getAAAfter(), 'E');
 
   TEST_EQUAL(first.getHits()[0].getSequence().isModified(), true);
   TEST_EQUAL(first.getHits()[0].getSequence().hasNTerminalModification(), true);

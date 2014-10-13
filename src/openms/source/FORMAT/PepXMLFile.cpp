@@ -287,15 +287,11 @@ namespace OpenMS
         f << "\t\t<search_hit hit_rank=\"1\" peptide=\""
           << seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
           << pe.getAABefore() << "\" peptide_next_aa=\"" << pe.getAAAfter()
-          << "\" protein=\" ";
+          << "\" protein=\"";
 
-        set<String> accessions = PeptideHit::extractProteinAccessions(h);
+        f << pe.getProteinAccession();
 
-        if (!accessions.empty())
-        {
-          f << *accessions.begin();
-        }
-        f <<  " \"num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
+        f << "\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
           << "\" massdiff=\"0.0\" num_tol_term=\"";
         Int num_tol_term = 1;
         if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.enzyme == ProteinIdentification::TRYPSIN)
@@ -310,7 +306,18 @@ namespace OpenMS
         {
           for (Size k = 1; k != pes.size(); ++k)
           {
-            f << "\t\t<alternative_protein protein=\"" << pes[k].getProteinAccession() << "\" num_tol_term=\"" << num_tol_term << "\" peptide_prev_aa=\"" << pes[k].getAABefore() << "\" peptide_next_aa=\"" << pes[k].getAAAfter() << "\"/>" << "\n";
+            f << "\t\t<alternative_protein protein=\"" << pes[k].getProteinAccession() << "\" num_tol_term=\"" << num_tol_term << "\"";
+
+            if (pes[k].getAABefore() != PeptideEvidence::UNKNOWN_AA)
+            {
+              f << " peptide_prev_aa=\"" << pes[k].getAABefore() << "\"";
+            }
+
+            if (pes[k].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+            {
+              f << " peptide_next_aa=\"" << pes[k].getAAAfter() << "\"";
+            }
+            f << "/>" << "\n";
           }
         }
         if (seq.isModified())

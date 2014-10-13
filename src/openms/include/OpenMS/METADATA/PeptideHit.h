@@ -148,7 +148,7 @@ public:
     void setRank(UInt newrank);
     //@}
 
-    /// helper that extracts the set of protein accessions from peptide evidences
+    /// helper that extracts the set of non-empty protein accessions from peptide evidences
     static std::set<String> extractProteinAccessions(const PeptideHit & ph);
 protected:
     AASequence sequence_;

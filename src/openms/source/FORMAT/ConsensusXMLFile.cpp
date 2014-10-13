@@ -493,6 +493,7 @@ namespace OpenMS
         {
           accessions.push_back(accession_string);
         }
+
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
           Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);

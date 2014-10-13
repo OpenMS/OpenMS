@@ -172,7 +172,11 @@ namespace OpenMS
     set<String> accessions;
     for (vector<PeptideEvidence>::const_iterator it = ph.peptide_evidences_.begin(); it != ph.peptide_evidences_.end(); ++it)
     {
-      accessions.insert(it->getProteinAccession());
+      // don't return empty accessions
+      if (!it->getProteinAccession().empty())
+      {
+        accessions.insert(it->getProteinAccession());
+      }
     }
     return accessions;
   }
