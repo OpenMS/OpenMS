@@ -87,7 +87,7 @@ namespace OpenMS
         
         /**
          * @brief cluster filter results
-         * Data points are grouped into clusteres. Each cluster contains data about one peptide multiplet.
+         * Data points are grouped into clusters. Each cluster contains data about one peptide multiplet.
          * 
          * @param filter_results    data points relevant for peptide multiplets i.e. output from multiplex filtering
          * 
