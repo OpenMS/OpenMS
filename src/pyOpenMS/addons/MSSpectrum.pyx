@@ -34,7 +34,7 @@ import numpy as np
         cdef _MSSpectrum[_Peak1D] * spec_ = self.inst.get()
 
         spec_.clear(0) # empty vector , keep meta data
-        spec_.reserve(<int>len(mzs)) # allocate space for incoming data
+        # spec_.reserve(<int>len(mzs)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
         cdef float I

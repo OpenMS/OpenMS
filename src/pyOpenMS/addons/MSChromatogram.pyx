@@ -34,7 +34,7 @@ import numpy as np
         cdef _MSChromatogram[_ChromatogramPeak] * chrom_ = self.inst.get()
 
         chrom_.clear(0) # empty vector, keep meta data
-        chrom_.reserve(<int>len(rts)) # allocate space for incoming data
+        # chrom_.reserve(<int>len(rts)) # allocate space for incoming data
         cdef _ChromatogramPeak p = _ChromatogramPeak()
         cdef double rt
         cdef float I
