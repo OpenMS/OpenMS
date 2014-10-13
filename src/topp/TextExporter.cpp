@@ -331,16 +331,22 @@ namespace OpenMS
   // TODO: output of multiple peptide evidences
   SVOutStream& operator<<(SVOutStream& out, const PeptideHit& hit)
   {
-    vector<PeptideEvidence> pes = hit.getPeptideEvidences();
+    vector<PeptideEvidence> pes = hit.getPeptideEvidences();    
+
     if (!pes.empty())
     {
-        out << hit.getScore() << hit.getRank() << hit.getSequence()
-            << hit.getCharge() << pes[0].getAABefore() << pes[0].getAAAfter();
+      out << hit.getScore() << hit.getRank() << hit.getSequence()
+          << hit.getCharge() << pes[0].getAABefore() << pes[0].getAAAfter();
+    }
+    else
+    {
+      out << hit.getScore() << hit.getRank() << hit.getSequence()
+          << hit.getCharge() << PeptideEvidence::UNKNOWN_AA << PeptideEvidence::UNKNOWN_AA;
     }
     return out;
   }
 
-  // write a protein identification to the output stream
+  // write a peptide identification to the output stream
   void writePeptideId(SVOutStream& out, const PeptideIdentification& pid,
                       const String& what = "PEPTIDE", bool incl_pred_rt = false, bool incl_pred_pt = false,
                       bool incl_first_dim = false)
@@ -348,12 +354,31 @@ namespace OpenMS
     for (vector<PeptideHit>::const_iterator hit_it = pid.getHits().begin();
          hit_it != pid.getHits().end(); ++hit_it)
     {
-      if (!what.empty()) out << what;
-      if (pid.hasRT()) out << pid.getRT();
-      else out << "-1";
-      if (pid.hasMZ()) out << pid.getMZ();
-      else out << "-1";
+      if (!what.empty())
+      {
+          out << what;
+      }
+
+      if (pid.hasRT())
+      {
+          out << pid.getRT();
+      }
+      else
+      {
+          out << "-1";
+      }
+
+      if (pid.hasMZ())
+      {
+          out << pid.getMZ();
+      }
+      else
+      {
+          out << "-1";
+      }
+
       out << *hit_it << pid.getScoreType() << pid.getIdentifier();
+
       String accessions;
       set<String> protein_accessions = PeptideHit::extractProteinAccessions(*hit_it);
       for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
@@ -365,6 +390,7 @@ namespace OpenMS
         accessions += *acc_it;
       }
       out << accessions;
+
       if (incl_pred_rt)
       {
         if (hit_it->metaValueExists("predicted_RT"))
