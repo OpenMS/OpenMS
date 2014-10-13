@@ -38,7 +38,5 @@
 
 namespace OpenMS
 {
-  // do not uncomment the default instance. 
-  // It triggers LNK2005 (duplicate symbol errors) on windows
-  //FeatureFinderAlgorithmSH<Peak1D> default_featurefinderalgorithmsh;
+  FeatureFinderAlgorithmSH<Peak1D> default_featurefinderalgorithmsh;
 }
