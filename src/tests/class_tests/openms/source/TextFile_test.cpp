@@ -54,8 +54,8 @@ TextFile* ptr = 0;
 TextFile* nullPointer = 0;
 
 START_SECTION((TextFile()))
-	ptr = new TextFile();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new TextFile();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((TextFile(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false) ))
@@ -74,67 +74,67 @@ START_SECTION((TextFile(const String& filename, bool trim_lines = false, Int fir
 END_SECTION
 
 START_SECTION((~TextFile()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 
 START_SECTION((void load(const String& filename, bool trim_lines = false, Int first_n = -1, bool skip_empty_lines = false) ))
-	TextFile file;
+  TextFile file;
 
-	TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))
+  TEST_EXCEPTION(Exception::FileNotFound, file.load("FileDoesNotExist.txt"))
 
-	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
-	TEST_EQUAL((file.end() - file.begin()), 11)
-	TextFile::ConstIterator file_it = file.begin();
+  file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"));
+  TEST_EQUAL((file.end() - file.begin()), 11)
+  TextFile::ConstIterator file_it = file.begin();
   TEST_EQUAL(String(*file_it).trim() == "first_line", true)
   file_it += 3;
   TEST_EQUAL(String(*file_it).trim() == "middle_line", true)
   file_it += 7;
   TEST_EQUAL(String(*file_it).trim() == "last_line", true)
 
-	//trimmed
-	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true);
-	TEST_EQUAL((file.end() - file.begin()), 11)
+  //trimmed
+  file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true);
+  TEST_EQUAL((file.end() - file.begin()), 11)
   file_it = file.begin();
-	TEST_EQUAL(String(*file_it).trim() == "first_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "first_line", true)
   file_it += 3;
-	TEST_EQUAL(String(*file_it).trim() == "middle_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "middle_line", true)
   file_it += 2;
-	TEST_EQUAL(String(*file_it).trim() == "space_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "space_line", true)
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "tab_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "tab_line", true)
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "back_space_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "back_space_line", true)
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "back_tab_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "back_tab_line", true)
   file_it += 2;
   TEST_EQUAL(String(*file_it).trim() == "last_line", true)
 
-	//only first few
-	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,1);
-	TEST_EQUAL((file.end() - file.begin()), 1)
+  //only first few
+  file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,1);
+  TEST_EQUAL((file.end() - file.begin()), 1)
   file_it = file.begin();
-	TEST_EQUAL(String(*file_it).trim() == "first_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "first_line", true)
 
-	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,3);
-	TEST_EQUAL((file.end() - file.begin()), 3)
+  file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,3);
+  TEST_EQUAL((file.end() - file.begin()), 3)
   file_it = file.begin();
-	TEST_EQUAL(String(*file_it).trim() == "first_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "first_line", true)
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "", true)
+  TEST_EQUAL(String(*file_it).trim() == "", true)
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "", true)
+  TEST_EQUAL(String(*file_it).trim() == "", true)
 
-	file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,4);
-	TEST_EQUAL((file.end() - file.begin()), 4)
+  file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true,4);
+  TEST_EQUAL((file.end() - file.begin()), 4)
   file_it = file.begin();
-	TEST_EQUAL(String(*file_it).trim() == "first_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "first_line", true)
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "", true)
+  TEST_EQUAL(String(*file_it).trim() == "", true)
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "", true)
+  TEST_EQUAL(String(*file_it).trim() == "", true)
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "middle_line", true)
+  TEST_EQUAL(String(*file_it).trim() == "middle_line", true)
 
   file.load(OPENMS_GET_TEST_DATA_PATH("TextFile_test_infile.txt"),true, -1, true);
   TEST_EQUAL((file.end() - file.begin()), 7)
@@ -157,27 +157,28 @@ START_SECTION((void load(const String& filename, bool trim_lines = false, Int fi
   TEST_EQUAL(String(*file_it).trim() == "space_line", true)
   ++file_it;
   TEST_EQUAL(String(*file_it).trim() == "tab_line", true)
-
 END_SECTION
 
 START_SECTION((void store(const String& filename) ))
-	TextFile file;
+  TextFile file;
 
-	TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/does/not/exist/FileDoesNotExist.txt"))
+  TEST_EXCEPTION(Exception::UnableToCreateFile, file.store("/does/not/exist/FileDoesNotExist.txt"))
 
-	file.addLine("line1");
-	file.addLine("line2\n");
-	file.addLine("line3\r\n");
-	String filename;
-	NEW_TMP_FILE(filename);
-	file.store(filename);
+  file.addLine("line1");
+  file.addLine("line2\n");
+  file.addLine("line3\r\n");
+  String filename;
+  NEW_TMP_FILE(filename);
+  file.store(filename);
+  file.load(filename);
+
+  // validate loaded content
   TextFile::ConstIterator file_it = file.begin();
-	file.load(filename);
-	TEST_EQUAL(String(*file_it).trim() == "line1",true);
+  TEST_EQUAL(String(*file_it).trim() == "line1",true);
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "line2",true);
+  TEST_EQUAL(String(*file_it).trim() == "line2",true);
   ++file_it;
-	TEST_EQUAL(String(*file_it).trim() == "line3",true);
+  TEST_EQUAL(String(*file_it).trim() == "line3",true);
 END_SECTION
 
 

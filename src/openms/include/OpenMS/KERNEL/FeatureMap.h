@@ -85,7 +85,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI FeatureMap :
+  class FeatureMap :
     private std::vector<Feature>,
     public RangeManager<2>,
     public DocumentIdentifier,
@@ -142,30 +142,30 @@ public:
     //@{
 
     /// Default constructor
-    FeatureMap();
+    OPENMS_DLLAPI FeatureMap();
 
     /// Copy constructor
-    FeatureMap(const FeatureMap& source);
+    OPENMS_DLLAPI FeatureMap(const FeatureMap& source);
 
     /// Destructor
-    virtual ~FeatureMap();
+    OPENMS_DLLAPI virtual ~FeatureMap();
     //@}
 
     /// Assignment operator
-    FeatureMap& operator=(const FeatureMap& rhs);
+    OPENMS_DLLAPI FeatureMap& operator=(const FeatureMap& rhs);
 
     /// Equality operator
-    bool operator==(const FeatureMap& rhs) const;
+    OPENMS_DLLAPI bool operator==(const FeatureMap& rhs) const;
 
     /// Equality operator
-    bool operator!=(const FeatureMap& rhs) const;
+    OPENMS_DLLAPI bool operator!=(const FeatureMap& rhs) const;
 
     /**
       @brief Joins two feature maps.
 
       Features are merged into one container (see operator+= for details).
     */
-    FeatureMap operator+(const FeatureMap& rhs) const;
+    OPENMS_DLLAPI FeatureMap operator+(const FeatureMap& rhs) const;
 
     /**
       @brief Add one feature map to another.
@@ -179,7 +179,7 @@ public:
 
       @param rhs The feature to add to this one.
     */
-    FeatureMap& operator+=(const FeatureMap& rhs);
+    OPENMS_DLLAPI FeatureMap& operator+=(const FeatureMap& rhs);
 
     /**
       @name Sorting.
@@ -188,63 +188,63 @@ public:
     */
     //@{
     /// Sorts the peaks according to ascending intensity.
-    void sortByIntensity(bool reverse = false);
+    OPENMS_DLLAPI void sortByIntensity(bool reverse = false);
 
     ///Sort features by position. Lexicographical comparison (first RT then m/z) is done.
-    void sortByPosition();
+    OPENMS_DLLAPI void sortByPosition();
 
     ///Sort features by RT position.
-    void sortByRT();
+    OPENMS_DLLAPI void sortByRT();
 
     ///Sort features by m/z position.
-    void sortByMZ();
+    OPENMS_DLLAPI void sortByMZ();
 
     ///Sort features by ascending overall quality.
-    void sortByOverallQuality(bool reverse = false);
+    OPENMS_DLLAPI void sortByOverallQuality(bool reverse = false);
 
     //@}
 
     // Docu in base class
-    void updateRanges();
+    OPENMS_DLLAPI void updateRanges();
 
     /// Swaps the feature content (plus its range information) of this map with the content of @p from
-    void swapFeaturesOnly(FeatureMap& from);
+    OPENMS_DLLAPI void swapFeaturesOnly(FeatureMap& from);
 
-    void swap(FeatureMap& from);
+    OPENMS_DLLAPI void swap(FeatureMap& from);
 
     /// non-mutable access to the protein identifications
-    const std::vector<ProteinIdentification>& getProteinIdentifications() const;
+    OPENMS_DLLAPI const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 
     /// mutable access to the protein identifications
-    std::vector<ProteinIdentification>& getProteinIdentifications();
+    OPENMS_DLLAPI std::vector<ProteinIdentification>& getProteinIdentifications();
 
     /// sets the protein identifications
-    void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
+    OPENMS_DLLAPI void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
     /// non-mutable access to the unassigned peptide identifications
-    const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
+    OPENMS_DLLAPI const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
 
     /// mutable access to the unassigned peptide identifications
-    std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications();
+    OPENMS_DLLAPI std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications();
 
     /// sets the unassigned peptide identifications
-    void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
+    OPENMS_DLLAPI void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
 
     /// returns a const reference to the description of the applied data processing
-    const std::vector<DataProcessing>& getDataProcessing() const;
+    OPENMS_DLLAPI const std::vector<DataProcessing>& getDataProcessing() const;
 
     /// returns a mutable reference to the description of the applied data processing
-    std::vector<DataProcessing>& getDataProcessing();
+    OPENMS_DLLAPI std::vector<DataProcessing>& getDataProcessing();
 
     /// sets the description of the applied data processing
-    void setDataProcessing(const std::vector<DataProcessing>& processing_method);
+    OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
     /**
       @brief Clears all data and meta data
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
-    void clear(bool clear_meta_data = true);
+    OPENMS_DLLAPI void clear(bool clear_meta_data = true);
 
     /**
       @brief Applies a member function of Type to the container itself and all features (including subordinates).
@@ -283,7 +283,7 @@ public:
       return assignments;
     }
 
-    AnnotationStatistics getAnnotationStatistics() const;
+    OPENMS_DLLAPI AnnotationStatistics getAnnotationStatistics() const;
 
 protected:
 
