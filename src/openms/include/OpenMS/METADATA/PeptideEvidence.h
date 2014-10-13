@@ -46,22 +46,22 @@ struct String;
 /**
   @brief Representation of a peptide evidence.
 
-  A peptide evidence object describes a peptide to protein match.
+  A peptide evidence object describes a single peptide to protein match.
 
   @ingroup Metadata
 */
 class OPENMS_DLLAPI PeptideEvidence
 {
   public:
-    static const int UNKNOWN_POSITION = -1;
+    static const int UNKNOWN_POSITION; // == -1
 
     // Note: we use 0 as position of the N-terminus while e.g. mzTab or other formats start counting at 1.
-    static const int N_TERMINAL_POSITION = 0;
+    static const int N_TERMINAL_POSITION;
     static const char UNKNOWN_AA; // PeptideEvidence::UNKNOWN_AA = ' ';
 
-    // Note: we use '-' as in mzTab specification
-    static const char N_TERMINAL_AA = '-';
-    static const char C_TERMINAL_AA = '-';
+    // Note: we use '[' and ']' instead of  e.g. '-' as in mzTab specification
+    static const char N_TERMINAL_AA;
+    static const char C_TERMINAL_AA;
 
     PeptideEvidence() :
       accession_(),
