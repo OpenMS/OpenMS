@@ -333,17 +333,17 @@ namespace OpenMS
       path_checked = isOpenMSDataPath_(path);
     }
 
-    // probe the OPENMS_DATA_PATH macro
-    if (!path_checked)
-    {
-      path = OPENMS_DATA_PATH;
-      path_checked = isOpenMSDataPath_(path);
-    }
-
     // probe the install path
     if (!path_checked)
     {
       path = OPENMS_INSTALL_DATA_PATH;
+      path_checked = isOpenMSDataPath_(path);
+    }
+
+    // probe the OPENMS_DATA_PATH macro
+    if (!path_checked)
+    {
+      path = OPENMS_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
     }
 
