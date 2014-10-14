@@ -41,19 +41,24 @@
 
 namespace OpenMS
 {
-    /**
-     * @brief rough estimation of the peak width at m/z
-     * 
-     * Based on the peaks of the dataset (peak position & width), the typical peak width is estimated for arbitrary m/z.
-     */
+  /**
+   * @brief Rough estimation of the peak width at m/z
+   *
+   * Based on the peaks of the dataset (peak position & width) and the peak
+   * boundaries as reported by the PeakPickerHiRes, the typical peak width is
+   * estimated for arbitrary m/z using a spline interpolation.
+   *
+   */
   class OPENMS_DLLAPI PeakWidthEstimator
   {
+
     public:
+
     /**
     * @brief constructor
     * 
-    * @param peaks_mz    m/z positions of peaks
-    * @param peaks_width    corresponding peak widths
+    * @param exp_picked m/z positions of picked peaks
+    * @param boundaries corresponding peak widths
     *
     * @throw Exception::UnableToFit if the B-spline initialisation fails.
     */
@@ -62,6 +67,9 @@ namespace OpenMS
     /**
     * @brief returns the estimated peak width at m/z
     * 
+    * @note If the mz value is outside the interpolation range, the peak width
+    *       value of the maximal/minimal value is used.
+    *
     * @throw Exception::InvalidValue if the peak width estimation returns a negative value.
     */
     double getPeakWidth(double mz);
@@ -72,6 +80,7 @@ namespace OpenMS
     virtual ~PeakWidthEstimator();
 
     private:        
+
     /// hide default constructor
     PeakWidthEstimator();
 
@@ -89,4 +98,4 @@ namespace OpenMS
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_PEAKWIDTHESTIMATOR_H
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKWIDTHESTIMATOR_H
