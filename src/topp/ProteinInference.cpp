@@ -113,7 +113,7 @@ protected:
     //registerSubsection_("algorithm","Consensus algorithm section");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
@@ -259,7 +259,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPProteinInference tool;
   return tool.main(argc, argv);

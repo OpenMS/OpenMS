@@ -391,13 +391,13 @@ protected:
                     SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
                     BinnedSpectrum quer_bin = sp->transform(quer);
                     BinnedSpectrum librar_bin = sp->transform(librar);
-                    score = (* sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
+                    score = (*sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
                     double dot_bias = sp->dot_bias(quer_bin, librar_bin, score);
                     hit.setMetaValue("DOTBIAS", dot_bias);
                   }
                   else
                   {
-                    score = (* comparor)(quer, librar);
+                    score = (*comparor)(quer, librar);
                   }
 
                   DataValue RT(library[i].getRT());

@@ -51,7 +51,7 @@ namespace OpenMS
   }
 
   // values constructor
-  PeptideHit::PeptideHit(double score, UInt rank, Int charge, const AASequence & sequence) :
+  PeptideHit::PeptideHit(double score, UInt rank, Int charge, const AASequence& sequence) :
     MetaInfoInterface(),
     sequence_(sequence),
     score_(score),
@@ -61,7 +61,7 @@ namespace OpenMS
   }
 
   // copy constructor
-  PeptideHit::PeptideHit(const PeptideHit & source) :
+  PeptideHit::PeptideHit(const PeptideHit& source) :
     MetaInfoInterface(source),
     sequence_(source.sequence_),
     score_(source.score_),
@@ -76,7 +76,7 @@ namespace OpenMS
   {
   }
 
-  PeptideHit & PeptideHit::operator=(const PeptideHit & source)
+  PeptideHit& PeptideHit::operator=(const PeptideHit& source)
   {
     if (this == &source)
     {
@@ -92,7 +92,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool PeptideHit::operator==(const PeptideHit & rhs) const
+  bool PeptideHit::operator==(const PeptideHit& rhs) const
   {
     return MetaInfoInterface::operator==(rhs)
            && sequence_ == rhs.sequence_
@@ -102,7 +102,7 @@ namespace OpenMS
            && peptide_evidences_ == rhs.peptide_evidences_;
   }
 
-  bool PeptideHit::operator!=(const PeptideHit & rhs) const
+  bool PeptideHit::operator!=(const PeptideHit& rhs) const
   {
     return !operator==(rhs);
   }
@@ -120,12 +120,12 @@ namespace OpenMS
   }
 
   // returns the peptide sequence without trailing or following spaces
-  const AASequence & PeptideHit::getSequence() const
+  const AASequence& PeptideHit::getSequence() const
   {
     return sequence_;
   }
 
-  void PeptideHit::setSequence(const AASequence & sequence)
+  void PeptideHit::setSequence(const AASequence& sequence)
   {
     sequence_ = sequence;
   }
@@ -140,17 +140,17 @@ namespace OpenMS
     charge_ = charge;
   }
 
-  const std::vector<PeptideEvidence> &PeptideHit::getPeptideEvidences() const
+  const std::vector<PeptideEvidence>& PeptideHit::getPeptideEvidences() const
   {
     return peptide_evidences_;
   }
 
-  void PeptideHit::setPeptideEvidences(const std::vector<PeptideEvidence> & peptide_evidences)
+  void PeptideHit::setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences)
   {
     peptide_evidences_ = peptide_evidences;
   }
 
-  void PeptideHit::addPeptideEvidence(const PeptideEvidence & peptide_evidence)
+  void PeptideHit::addPeptideEvidence(const PeptideEvidence& peptide_evidence)
   {
     peptide_evidences_.push_back(peptide_evidence);
   }
@@ -167,7 +167,7 @@ namespace OpenMS
     rank_ = newrank;
   }
 
-  std::set<String> PeptideHit::extractProteinAccessions(const PeptideHit & ph)
+  std::set<String> PeptideHit::extractProteinAccessions(const PeptideHit& ph)
   {
     set<String> accessions;
     for (vector<PeptideEvidence>::const_iterator it = ph.peptide_evidences_.begin(); it != ph.peptide_evidences_.end(); ++it)
@@ -180,4 +180,5 @@ namespace OpenMS
     }
     return accessions;
   }
+
 } // namespace OpenMS

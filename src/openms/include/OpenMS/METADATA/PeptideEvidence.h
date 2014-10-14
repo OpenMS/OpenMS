@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-struct String;
+  struct String;
 
 /**
   @brief Representation of a peptide evidence.
@@ -50,9 +50,9 @@ struct String;
 
   @ingroup Metadata
 */
-class OPENMS_DLLAPI PeptideEvidence
-{
-  public:
+  class OPENMS_DLLAPI PeptideEvidence
+  {
+public:
     static const int UNKNOWN_POSITION; // == -1
 
     // Note: we use 0 as position of the N-terminus while e.g. mzTab or other formats start counting at 1.
@@ -73,26 +73,26 @@ class OPENMS_DLLAPI PeptideEvidence
     }
 
     /// copy constructor
-    PeptideEvidence(const PeptideEvidence & source);
+    PeptideEvidence(const PeptideEvidence& source);
 
     /// destructor
     ~PeptideEvidence() {}
     //@}
 
     /// assignment operator
-    PeptideEvidence & operator=(const PeptideEvidence & source);
+    PeptideEvidence& operator=(const PeptideEvidence& source);
 
     /// Equality operator
-    bool operator==(const PeptideEvidence & rhs) const;
+    bool operator==(const PeptideEvidence& rhs) const;
 
     /// not equal
-    bool operator!=(const PeptideEvidence & rhs) const;
+    bool operator!=(const PeptideEvidence& rhs) const;
 
     /// get the protein accession the peptide matches to. If not available the empty string is returned.
-    const String & getProteinAccession() const;
+    const String& getProteinAccession() const;
 
     /// set the protein accession the peptide matches to. If not available set to empty string.
-    void setProteinAccession(const String & s);
+    void setProteinAccession(const String& s);
 
     /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set to UNKNOWN_POSITION. N-terminal positions must be marked with N_TERMINAL_AA
     void setStart(const Int a);
@@ -118,7 +118,7 @@ class OPENMS_DLLAPI PeptideEvidence
     /// returns the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, UNKNOWN_AA is returned. If C-terminal, C_TERMINAL_AA is returned.
     char getAAAfter() const;
 
-  protected:
+protected:
     String accession_;
 
     Int start_;
@@ -128,7 +128,7 @@ class OPENMS_DLLAPI PeptideEvidence
     char aa_before_;
 
     char aa_after_;
-};
+  };
 
 }
 

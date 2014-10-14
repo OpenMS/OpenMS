@@ -58,7 +58,7 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    
+
     @page TOPP_MascotAdapterOnline MascotAdapterOnline
 
     @brief Identifies peptides in MS/MS spectra via Mascot.
@@ -128,7 +128,7 @@ protected:
                                         " are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "Mascot_server")
     {
@@ -147,7 +147,7 @@ protected:
     return Param();
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int argc, const char** argv)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -189,9 +189,9 @@ protected:
     // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
     // QEventLoop to process the signals and slots and grab the results afterwards from
     // the MascotRemotQuery instance
-    char ** argv2 = const_cast<char **>(argv);
+    char** argv2 = const_cast<char**>(argv);
     QCoreApplication event_loop(argc, argv2);
-    MascotRemoteQuery * mascot_query = new MascotRemoteQuery(&event_loop);
+    MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
     Param mascot_query_param = getParam_().copy("Mascot_server:", true);
     writeDebug_("Setting parameters for Mascot query", 1);
     mascot_query->setParameters(mascot_query_param);
@@ -278,7 +278,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMascotAdapterOnline tool;
 

@@ -51,8 +51,8 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
   return left.first < right.first;
 }
 
-void processFeatureForOutput(OpenMS::Feature & curr_feature, bool write_convex_hull_, double
-    quantification_cutoff_, double & total_intensity, double & total_peak_apices, std::string ms_level)
+void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hull_, double
+                             quantification_cutoff_, double& total_intensity, double& total_peak_apices, std::string ms_level)
 {
   // Save some space when writing out the featureXML
   if (!write_convex_hull_)
@@ -136,9 +136,9 @@ namespace OpenMS
   {
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D> & chromatograms,
-        FeatureMap& output, TargetedExperiment& transition_exp_,
-        TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
+  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D>& chromatograms,
+                                               FeatureMap& output, TargetedExperiment& transition_exp_,
+                                               TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
@@ -154,9 +154,9 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
-        FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
-        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map,
-        TransitionGroupMapType& transition_group_map)
+                                               FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
+                                               TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map,
+                                               TransitionGroupMapType& transition_group_map)
   {
     updateMembers_();
 
@@ -236,8 +236,8 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
-        TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map,
-        FeatureMap& output)
+                                                TransformationDescription& trafo, OpenSwath::SpectrumAccessPtr swath_map,
+                                                FeatureMap& output)
   {
     typedef MRMTransitionGroupType::PeakType PeakT;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
@@ -247,7 +247,7 @@ namespace OpenMS
     unsigned int sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
     for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
     {
-      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_));
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS<PeakT>(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_));
       signal_noise_estimators.push_back(snptr);
     }
 
@@ -275,19 +275,19 @@ namespace OpenMS
       imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
 
       LOG_DEBUG << "scoring feature " << (*mrmfeature) << " == " << mrmfeature->getMetaValue("PeptideRef") <<
-      " [ expected RT " << PeptideRefMap_[mrmfeature->getMetaValue("PeptideRef")]->rt << " / " << expected_rt << " ]" <<
-      " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
+        " [ expected RT " << PeptideRefMap_[mrmfeature->getMetaValue("PeptideRef")]->rt << " / " << expected_rt << " ]" <<
+        " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
 
       int group_size = boost::numeric_cast<int>(transition_group.size());
       if (group_size == 0)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-          "Error: Transition group " + transition_group.getTransitionGroupID() + " has no chromatograms.");
+                                         "Error: Transition group " + transition_group.getTransitionGroupID() + " has no chromatograms.");
       }
       if (group_size < 2)
       {
         LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID()
-          << " has only one chromatogram." << std::endl;
+                  << " has only one chromatogram." << std::endl;
         delete imrmfeature; // free resources before continuing
         continue;
       }
@@ -307,23 +307,28 @@ namespace OpenMS
 
       OpenSwath_Scores scores;
       scorer.calculateChromatographicScores(imrmfeature, native_ids, normalized_library_intensity,
-        signal_noise_estimators, scores);
+                                            signal_noise_estimators, scores);
 
       double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
       scorer.calculateLibraryScores(imrmfeature, transition_group.getTransitions(), *pep, normalized_experimental_rt, scores);
       if (swath_map->getNrSpectra() > 0 && su_.use_dia_scores_)
       {
         scorer.calculateDIAScores(imrmfeature, transition_group.getTransitions(),
-            swath_map, ms1_map_, diascoring_, *pep, scores);
+                                  swath_map, ms1_map_, diascoring_, *pep, scores);
       }
 
-      if (su_.use_coelution_score_) {
+      if (su_.use_coelution_score_)
+      {
         mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
-        mrmfeature->addScore("var_xcorr_coelution_weighted", scores.weighted_coelution_score); }
-      if (su_.use_shape_score_) {
+        mrmfeature->addScore("var_xcorr_coelution_weighted", scores.weighted_coelution_score);
+      }
+      if (su_.use_shape_score_)
+      {
         mrmfeature->addScore("var_xcorr_shape", scores.xcorr_shape_score);
-        mrmfeature->addScore("var_xcorr_shape_weighted", scores.weighted_xcorr_shape); }
-      if (su_.use_library_score_) {
+        mrmfeature->addScore("var_xcorr_shape_weighted", scores.weighted_xcorr_shape);
+      }
+      if (su_.use_library_score_)
+      {
         mrmfeature->addScore("var_library_corr", scores.library_corr);
         mrmfeature->addScore("var_library_rmsd", scores.library_norm_manhattan);
         mrmfeature->addScore("var_library_sangle", scores.library_sangle);
@@ -331,21 +336,25 @@ namespace OpenMS
         mrmfeature->addScore("var_library_manhattan", scores.library_manhattan);
         mrmfeature->addScore("var_library_dotprod", scores.library_dotprod);
       }
-      if (su_.use_rt_score_) {
+      if (su_.use_rt_score_)
+      {
         mrmfeature->addScore("delta_rt", mrmfeature->getRT() - expected_rt);
         mrmfeature->addScore("assay_rt", expected_rt);
         mrmfeature->addScore("norm_RT", scores.normalized_experimental_rt);
         mrmfeature->addScore("rt_score", scores.raw_rt_score);
-        mrmfeature->addScore("var_norm_rt_score", scores.norm_rt_score); }
+        mrmfeature->addScore("var_norm_rt_score", scores.norm_rt_score);
+      }
       // TODO do we really want these intensity scores ?
       if (su_.use_intensity_score_) { mrmfeature->addScore("var_intensity_score", mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic")); }
       if (su_.use_total_xic_score_) { mrmfeature->addScore("total_xic", (double)mrmfeature->getMetaValue("total_xic")); }
       if (su_.use_nr_peaks_score_) { mrmfeature->addScore("nr_peaks", scores.nr_peaks); }
       if (su_.use_sn_score_) { mrmfeature->addScore("sn_ratio", scores.sn_ratio); mrmfeature->addScore("var_log_sn_score", scores.log_sn_score); }
       // TODO get it working with imrmfeature
-      if (su_.use_elution_model_score_) {
+      if (su_.use_elution_model_score_)
+      {
         scores.elution_model_fit_score = emgscoring_.calcElutionFitScore((*mrmfeature), transition_group);
-        mrmfeature->addScore("var_elution_model_fit_score", scores.elution_model_fit_score); }
+        mrmfeature->addScore("var_elution_model_fit_score", scores.elution_model_fit_score);
+      }
 
       double xx_lda_prescore = -scores.calculate_lda_prescore(scores);
       bool swath_present = (swath_map->getNrSpectra() > 0);
@@ -446,7 +455,7 @@ namespace OpenMS
 
     for (Size i = 0; i < feature_list.size(); i++)
     {
-      if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break;}
+      if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break; }
       output.push_back(feature_list[i]);
     }
   }
@@ -479,8 +488,8 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-         TargetedExpType& transition_exp, TransitionGroupMapType& transition_group_map,
-         TransformationDescription trafo, double rt_extraction_window)
+                                                              TargetedExpType& transition_exp, TransitionGroupMapType& transition_group_map,
+                                                              TransformationDescription trafo, double rt_extraction_window)
   {
     double rt_min, rt_max, expected_rt;
     trafo.invert();
@@ -503,7 +512,7 @@ namespace OpenMS
       if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
       {
         std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
-        transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
+          transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
         if (strict_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -541,7 +550,7 @@ namespace OpenMS
       if (chromatogram.empty())
       {
         std::cerr << "Error: Could not find any points for chromatogram " + transition->getNativeID() + \
-        ". Maybe your retention time transformation is off?" << std::endl;
+          ". Maybe your retention time transformation is off?" << std::endl;
         if (strict_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,

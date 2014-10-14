@@ -319,7 +319,7 @@ public:
 
   TOPPProteinQuantifier() :
     TOPPBase("ProteinQuantifier", "Compute peptide and protein abundances"),
-    algo_params_(), proteins_(), peptides_(), files_(), 
+    algo_params_(), proteins_(), peptides_(), files_(),
     spectral_counting_(false) {}
 
 protected:
@@ -392,7 +392,7 @@ protected:
     for (PeptideQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
          ++q_it)
     {
-      if (q_it->second.total_abundances.empty()) continue;  // not quantified
+      if (q_it->second.total_abundances.empty()) continue; // not quantified
 
       StringList accessions;
       for (set<String>::const_iterator acc_it =
@@ -562,7 +562,7 @@ protected:
     String what = (proteins ? "Protein" : "Peptide");
     bool old = out.modifyStrings(false);
     out << "# " + what + " abundances computed from file '" +
-    getStringOption_("in") + "'" << endl;
+      getStringOption_("in") + "'" << endl;
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
@@ -624,7 +624,7 @@ protected:
                << " quantified, " << stats.total_peptides
                << " identified (considering best hits only)";
     }
-    if (!getStringOption_("out").empty() || 
+    if (!getStringOption_("out").empty() ||
         !getStringOption_("mzTab_out").empty())
     {
       bool include_all = algo_params_.getValue("include_all") == "true";
@@ -660,7 +660,7 @@ protected:
       };
       double value = total_abundances[file_it->first];
       if (value > 0) hit.setMetaValue(field[0] + field[1], value);
-      else hit.setMetaValue(field[0] + field[1], "--");  // missing value
+      else hit.setMetaValue(field[0] + field[1], "--"); // missing value
       // TODO: compute std. deviations/std. errors (how?)
       // hit.setMetaValue(field[0] + "stdev_" + field[1], "--");
       // hit.setMetaValue(field[0] + "std_error_" + field[1], "--");
@@ -784,7 +784,7 @@ protected:
       {
         SequenceMap::iterator pos =
           sequence_map.find(q_it->first.toUnmodifiedString());
-        if (pos == sequence_map.end()) continue;  // not in list, skip
+        if (pos == sequence_map.end()) continue; // not in list, skip
         quantified_pep.push_back(*(pos->second));
       }
       quantified_pep.back().setSequence(q_it->first);
@@ -895,7 +895,7 @@ protected:
         files_[i].filename = proteins[i].getIdentifier();
       }
       // ProteinProphet results in the idXML?
-      if (protxml.empty() && (proteins.size() == 1) && 
+      if (protxml.empty() && (proteins.size() == 1) &&
           (!proteins[0].getHits().empty()))
       {
         proteins_ = proteins[0];

@@ -102,7 +102,7 @@ protected:
     registerFlag_("best_hits", "If this flag is set the best n peptides are chosen.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
@@ -260,7 +260,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDExtractor tool;
   return tool.main(argc, argv);

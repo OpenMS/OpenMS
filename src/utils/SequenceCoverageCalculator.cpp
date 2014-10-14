@@ -82,7 +82,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("txt"));
   }
 
-  void getStartAndEndIndex(const String & sequence, const String & substring, pair<Size, Size> & indices)
+  void getStartAndEndIndex(const String& sequence, const String& substring, pair<Size, Size>& indices)
   {
     indices.first = 0;
     indices.second = 0;
@@ -110,7 +110,7 @@ protected:
     }
   }
 
-  ExitCodes outputTo_(ostream & os)
+  ExitCodes outputTo_(ostream& os)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
@@ -179,7 +179,7 @@ protected:
             }
             if (indices.first != indices.second)
             {
-            // os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
+              // os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
             }
             ++spectrum_count;
             if (unique_peptides.find(temp_hits[0].getSequence().toString()) == unique_peptides.end())
@@ -251,7 +251,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String out = getStringOption_("out");
 
@@ -273,7 +273,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSequenceCoverageCalculator tool;
   return tool.main(argc, argv);

@@ -62,7 +62,7 @@ namespace OpenMS
     cv_terms_[0] = enzyme_names;
   }
 
-  void ProtXMLFile::load(const String & filename, ProteinIdentification & protein_ids, PeptideIdentification & peptide_ids)
+  void ProtXMLFile::load(const String& filename, ProteinIdentification& protein_ids, PeptideIdentification& peptide_ids)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -80,7 +80,7 @@ namespace OpenMS
     parse_(filename, this);
   }
 
-  void ProtXMLFile::store(const String & /*filename*/, const ProteinIdentification & /*protein_ids*/, const PeptideIdentification & /*peptide_ids*/, const String & /*document_id*/)
+  void ProtXMLFile::store(const String& /*filename*/, const ProteinIdentification& /*protein_ids*/, const PeptideIdentification& /*peptide_ids*/, const String& /*document_id*/)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     // resetMembers_();
@@ -95,7 +95,7 @@ namespace OpenMS
     protein_group_ = ProteinGroup();
   }
 
-  void ProtXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void ProtXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     String tag = sm_.convert(qname);
 
@@ -150,7 +150,7 @@ namespace OpenMS
       String protein_name = attributeAsString_(attributes, "protein_name");
       // open new "indistinguishable" group:
       prot_id_->insertIndistinguishableProteins(ProteinGroup());
-      registerProtein_(protein_name);       // create new protein
+      registerProtein_(protein_name); // create new protein
 
       // fill protein with life
       double pc_coverage;
@@ -193,7 +193,7 @@ namespace OpenMS
       }
 
       // add accessions of all indistinguishable proteins the peptide belongs to
-      ProteinIdentification::ProteinGroup & indist = prot_id_->getIndistinguishableProteins().back();
+      ProteinIdentification::ProteinGroup& indist = prot_id_->getIndistinguishableProteins().back();
       for (StringList::const_iterator accession = indist.accessions.begin(); accession != indist.accessions.end(); ++accession)
       {
         PeptideEvidence pe;
@@ -251,7 +251,7 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void ProtXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
 
@@ -267,7 +267,7 @@ namespace OpenMS
     }
   }
 
-  void ProtXMLFile::registerProtein_(const String & protein_name)
+  void ProtXMLFile::registerProtein_(const String& protein_name)
   {
     ProteinHit hit;
     hit.setAccession(protein_name);
@@ -278,7 +278,7 @@ namespace OpenMS
       protein_name);
   }
 
-  void ProtXMLFile::matchModification_(const double mass, const String & origin, String & modification_description)
+  void ProtXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
   {
     double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;

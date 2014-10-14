@@ -257,12 +257,12 @@ protected:
                 const Size nG = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'G');
                 const Size nL = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'L');
 
-                const ElementDB * db = ElementDB::getInstance();
-                const Element * C = db->getElement("C");
-                const Element * H = db->getElement("H");
-                const Element * N = db->getElement("N");
-                const Element * O = db->getElement("O");
-                const Element * S = db->getElement("S");
+                const ElementDB* db = ElementDB::getInstance();
+                const Element* C = db->getElement("C");
+                const Element* H = db->getElement("H");
+                const Element* N = db->getElement("N");
+                const Element* O = db->getElement("O");
+                const Element* S = db->getElement("S");
 
                 fp_out << counter << SEP << ">" << protein_accessions[0] << SEP << j << SEP << temp_peptides[j] << SEP
                        << EF.getNumberOf(C) << SEP << EF.getNumberOf(H) << SEP << EF.getNumberOf(N) << SEP << EF.getNumberOf(O) << SEP

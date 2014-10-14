@@ -79,7 +79,7 @@ namespace OpenMS
 
   }
 
-  Size FeatureXMLFile::loadSize(const String & filename)
+  Size FeatureXMLFile::loadSize(const String& filename)
   {
     size_only_ = true;
     file_ = filename;
@@ -95,7 +95,7 @@ namespace OpenMS
     return size_backup;
   }
 
-  void FeatureXMLFile::load(const String & filename, FeatureMap & feature_map)
+  void FeatureXMLFile::load(const String& filename, FeatureMap& feature_map)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -128,7 +128,7 @@ namespace OpenMS
     return;
   }
 
-  void FeatureXMLFile::store(const String & filename, const FeatureMap & feature_map)
+  void FeatureXMLFile::store(const String& filename, const FeatureMap& feature_map)
   {
     //open stream
     ofstream os(filename.c_str());
@@ -153,7 +153,7 @@ namespace OpenMS
     {
       feature_map.updateUniqueIdToIndex();
     }
-    catch (Exception::Postcondition & e)
+    catch (Exception::Postcondition& e)
     {
       LOG_FATAL_ERROR << e.getName() << ' ' << e.getMessage() << std::endl;
       throw;
@@ -178,7 +178,7 @@ namespace OpenMS
     //write data processing
     for (Size i = 0; i < feature_map.getDataProcessing().size(); ++i)
     {
-      const DataProcessing & processing = feature_map.getDataProcessing()[i];
+      const DataProcessing& processing = feature_map.getDataProcessing()[i];
       os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
       os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
       for (set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it != processing.getProcessingActions().end(); ++it)
@@ -193,7 +193,7 @@ namespace OpenMS
     Size prot_count = 0;
     for (Size i = 0; i < feature_map.getProteinIdentifications().size(); ++i)
     {
-      const ProteinIdentification & current_prot_id = feature_map.getProteinIdentifications()[i];
+      const ProteinIdentification& current_prot_id = feature_map.getProteinIdentifications()[i];
       os << "\t<IdentificationRun ";
       os << "id=\"PI_" << i << "\" ";
       identifier_id_[current_prot_id.getIdentifier()] = String("PI_") + i;
@@ -202,7 +202,7 @@ namespace OpenMS
       os << "search_engine_version=\"" << current_prot_id.getSearchEngineVersion() << "\">\n";
 
       //write search parameters
-      const ProteinIdentification::SearchParameters & search_param = current_prot_id.getSearchParameters();
+      const ProteinIdentification::SearchParameters& search_param = current_prot_id.getSearchParameters();
       os << "\t\t<SearchParameters "
          << "db=\"" << search_param.db << "\" "
          << "db_version=\"" << search_param.db_version << "\" "
@@ -313,34 +313,34 @@ namespace OpenMS
     identifier_id_.clear();
   }
 
-  FeatureFileOptions & FeatureXMLFile::getOptions()
+  FeatureFileOptions& FeatureXMLFile::getOptions()
   {
     return options_;
   }
 
-  const FeatureFileOptions & FeatureXMLFile::getOptions() const
+  const FeatureFileOptions& FeatureXMLFile::getOptions() const
   {
     return options_;
   }
 
-  void FeatureXMLFile::setOptions(const FeatureFileOptions & options)
+  void FeatureXMLFile::setOptions(const FeatureFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
 
-  void FeatureXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void FeatureXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
-    static const XMLCh * s_dim = xercesc::XMLString::transcode("dim");
-    static const XMLCh * s_name = xercesc::XMLString::transcode("name");
-    static const XMLCh * s_version = xercesc::XMLString::transcode("version");
-    static const XMLCh * s_value = xercesc::XMLString::transcode("value");
-    static const XMLCh * s_type = xercesc::XMLString::transcode("type");
-    static const XMLCh * s_completion_time = xercesc::XMLString::transcode("completion_time");
-    static const XMLCh * s_document_id = xercesc::XMLString::transcode("document_id");
-    static const XMLCh * s_id = xercesc::XMLString::transcode("id");
+    static const XMLCh* s_dim = xercesc::XMLString::transcode("dim");
+    static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+    static const XMLCh* s_version = xercesc::XMLString::transcode("version");
+    static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+    static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+    static const XMLCh* s_completion_time = xercesc::XMLString::transcode("completion_time");
+    static const XMLCh* s_document_id = xercesc::XMLString::transcode("document_id");
+    static const XMLCh* s_id = xercesc::XMLString::transcode("id");
 
     // TODO The next line should be removed in OpenMS 1.7 or so!
-    static const XMLCh * s_unique_id = xercesc::XMLString::transcode("unique_id");
+    static const XMLCh* s_unique_id = xercesc::XMLString::transcode("unique_id");
 
     String tag = sm_.convert(qname);
 
@@ -463,7 +463,7 @@ namespace OpenMS
       optionalAttributeAsString_(file_version, attributes, s_version);
       if (file_version == "")
       {
-        file_version = "1.0";       //default version is 1.0
+        file_version = "1.0"; //default version is 1.0
       }
       if (file_version.toDouble() > version_.toDouble())
       {
@@ -670,7 +670,7 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //parse optional protein ids to determine accessions
-      const XMLCh * refs = attributes.getValue(sm_.convert("protein_refs"));
+      const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
       if (refs != 0)
       {
         String accession_string = sm_.convert(refs);
@@ -720,7 +720,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void FeatureXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String tag = sm_.convert(qname);
 
@@ -763,7 +763,7 @@ namespace OpenMS
         }
         else
         {
-          Feature * f1(0);
+          Feature* f1(0);
           if (!map_->empty())
           {
             f1 = &(map_->back());
@@ -842,7 +842,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureXMLFile::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+  void FeatureXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     // handle skipping of whole sections
     if (disable_parsing_)
@@ -858,7 +858,7 @@ namespace OpenMS
     if (open_tags_.size() == 0)
       return;
 
-    String & current_tag = open_tags_.back();
+    String& current_tag = open_tags_.back();
     if (current_tag == "intensity")
     {
       current_feature_->setIntensity(asDouble_(sm_.convert(chars)));
@@ -885,7 +885,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureXMLFile::writeFeature_(const String & filename, ostream & os, const Feature & feat, const String & identifier_prefix, UInt64 identifier, UInt indentation_level)
+  void FeatureXMLFile::writeFeature_(const String& filename, ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');
 
@@ -955,7 +955,7 @@ namespace OpenMS
     os << indent << "\t\t</feature>\n";
   }
 
-  void FeatureXMLFile::writePeptideIdentification_(const String & filename, std::ostream & os, const PeptideIdentification & id, const String & tag_name, UInt indentation_level)
+  void FeatureXMLFile::writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level)
   {
     String indent = String(indentation_level, '\t');
 
@@ -1069,7 +1069,7 @@ namespace OpenMS
       return;
     }
 
-    Feature * f1 = 0;
+    Feature* f1 = 0;
     if (map_->empty())
     {
       // do NOT throw an exception here. this is a valid case! e.g. the

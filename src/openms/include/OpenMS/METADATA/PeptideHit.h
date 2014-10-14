@@ -64,7 +64,7 @@ public:
     {
 public:
       template <typename Arg>
-      bool operator()(const Arg & a, const Arg & b)
+      bool operator()(const Arg& a, const Arg& b)
       {
         return a.getScore() > b.getScore();
       }
@@ -76,7 +76,7 @@ public:
     {
 public:
       template <typename Arg>
-      bool operator()(const Arg & a, const Arg & b)
+      bool operator()(const Arg& a, const Arg& b)
       {
         return a.getScore() < b.getScore();
       }
@@ -93,32 +93,32 @@ public:
     PeptideHit(double score,
                UInt rank,
                Int charge,
-               const AASequence & sequence);
+               const AASequence& sequence);
 
     /// copy constructor
-    PeptideHit(const PeptideHit & source);
+    PeptideHit(const PeptideHit& source);
 
     /// destructor
     virtual ~PeptideHit();
     //@}
 
     /// assignment operator
-    PeptideHit & operator=(const PeptideHit & source);
+    PeptideHit& operator=(const PeptideHit& source);
 
     /// Equality operator
-    bool operator==(const PeptideHit & rhs) const;
+    bool operator==(const PeptideHit& rhs) const;
 
     /// Inequality operator
-    bool operator!=(const PeptideHit & rhs) const;
+    bool operator!=(const PeptideHit& rhs) const;
 
     /**	@name Accessors
     */
     //@{
     /// returns the peptide sequence without trailing or following spaces
-    const AASequence & getSequence() const;
+    const AASequence& getSequence() const;
 
     /// sets the peptide sequence
-    void setSequence(const AASequence & sequence);
+    void setSequence(const AASequence& sequence);
 
     /// returns the charge of the peptide
     Int getCharge() const;
@@ -127,13 +127,13 @@ public:
     void setCharge(Int charge);
 
     /// returns information on peptides (potentially) identified by this PSM
-    const std::vector<PeptideEvidence> & getPeptideEvidences() const;
+    const std::vector<PeptideEvidence>& getPeptideEvidences() const;
 
     /// set information on peptides (potentially) identified by this PSM
-    void setPeptideEvidences(const std::vector<PeptideEvidence> & peptide_evidences);
+    void setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences);
 
     /// adds information on a peptide that is (potentially) identified by this PSM
-    void addPeptideEvidence(const PeptideEvidence & peptide_evidence);
+    void addPeptideEvidence(const PeptideEvidence& peptide_evidence);
 
     /// returns the PSM score
     double getScore() const;
@@ -149,7 +149,7 @@ public:
     //@}
 
     /// helper that extracts the set of non-empty protein accessions from peptide evidences
-    static std::set<String> extractProteinAccessions(const PeptideHit & ph);
+    static std::set<String> extractProteinAccessions(const PeptideHit& ph);
 protected:
     AASequence sequence_;
 

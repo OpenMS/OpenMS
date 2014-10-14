@@ -38,93 +38,93 @@
 namespace OpenMS
 {
 
-const int PeptideEvidence::UNKNOWN_POSITION = -1;
-const int PeptideEvidence::N_TERMINAL_POSITION = 0;
-const char PeptideEvidence::UNKNOWN_AA = ' ';
-const char PeptideEvidence::N_TERMINAL_AA = '[';
-const char PeptideEvidence::C_TERMINAL_AA = ']';
+  const int PeptideEvidence::UNKNOWN_POSITION = -1;
+  const int PeptideEvidence::N_TERMINAL_POSITION = 0;
+  const char PeptideEvidence::UNKNOWN_AA = ' ';
+  const char PeptideEvidence::N_TERMINAL_AA = '[';
+  const char PeptideEvidence::C_TERMINAL_AA = ']';
 
-PeptideEvidence::PeptideEvidence(const PeptideEvidence & rhs)
-{
-  accession_ = rhs.accession_;
-  start_ = rhs.start_;
-  end_ = rhs.end_;
-  aa_before_ = rhs.aa_before_;
-  aa_after_ = rhs.aa_after_;
-}
+  PeptideEvidence::PeptideEvidence(const PeptideEvidence& rhs)
+  {
+    accession_ = rhs.accession_;
+    start_ = rhs.start_;
+    end_ = rhs.end_;
+    aa_before_ = rhs.aa_before_;
+    aa_after_ = rhs.aa_after_;
+  }
 
-PeptideEvidence & PeptideEvidence::operator=(const PeptideEvidence & rhs)
-{
-  accession_ = rhs.accession_;
-  start_ = rhs.start_;
-  end_ = rhs.end_;
-  aa_before_ = rhs.aa_before_;
-  aa_after_ = rhs.aa_after_;
-  return *this;
-}
+  PeptideEvidence& PeptideEvidence::operator=(const PeptideEvidence& rhs)
+  {
+    accession_ = rhs.accession_;
+    start_ = rhs.start_;
+    end_ = rhs.end_;
+    aa_before_ = rhs.aa_before_;
+    aa_after_ = rhs.aa_after_;
+    return *this;
+  }
 
-bool PeptideEvidence::operator==(const PeptideEvidence & rhs) const
-{
-  return accession_ == rhs.accession_ &&
-         start_ == rhs.start_ &&
-         end_ == rhs.end_ &&
-         aa_before_ == rhs.aa_before_ &&
-         aa_after_ == rhs.aa_after_;
-}
+  bool PeptideEvidence::operator==(const PeptideEvidence& rhs) const
+  {
+    return accession_ == rhs.accession_ &&
+           start_ == rhs.start_ &&
+           end_ == rhs.end_ &&
+           aa_before_ == rhs.aa_before_ &&
+           aa_after_ == rhs.aa_after_;
+  }
 
-bool PeptideEvidence::operator!=(const PeptideEvidence & rhs) const
-{
-  return !operator==(rhs);
-}
+  bool PeptideEvidence::operator!=(const PeptideEvidence& rhs) const
+  {
+    return !operator==(rhs);
+  }
 
-void PeptideEvidence::setProteinAccession(const String & s)
-{
-  accession_ = s;
-}
+  void PeptideEvidence::setProteinAccession(const String& s)
+  {
+    accession_ = s;
+  }
 
-const String & PeptideEvidence::getProteinAccession() const
-{
-  return accession_;
-}
+  const String& PeptideEvidence::getProteinAccession() const
+  {
+    return accession_;
+  }
 
-void PeptideEvidence::setStart(const Int a)
-{
-  start_ = a;
-}
+  void PeptideEvidence::setStart(const Int a)
+  {
+    start_ = a;
+  }
 
-Int PeptideEvidence::getStart() const
-{
-  return start_;
-}
+  Int PeptideEvidence::getStart() const
+  {
+    return start_;
+  }
 
-void PeptideEvidence::setEnd(const Int a)
-{
-  end_ = a;
-}
+  void PeptideEvidence::setEnd(const Int a)
+  {
+    end_ = a;
+  }
 
-Int PeptideEvidence::getEnd() const
-{
-  return end_;
-}
+  Int PeptideEvidence::getEnd() const
+  {
+    return end_;
+  }
 
-void PeptideEvidence::setAABefore(const char acid)
-{
-  aa_before_ = acid;
-}
+  void PeptideEvidence::setAABefore(const char acid)
+  {
+    aa_before_ = acid;
+  }
 
-char PeptideEvidence::getAABefore() const
-{
-  return aa_before_;
-}
+  char PeptideEvidence::getAABefore() const
+  {
+    return aa_before_;
+  }
 
-void PeptideEvidence::setAAAfter(const char acid)
-{
-  aa_after_ = acid;
-}
+  void PeptideEvidence::setAAAfter(const char acid)
+  {
+    aa_after_ = acid;
+  }
 
-char PeptideEvidence::getAAAfter() const
-{
-  return aa_after_;
-}
+  char PeptideEvidence::getAAAfter() const
+  {
+    return aa_after_;
+  }
 
 } // namespace OpenMS

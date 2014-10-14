@@ -300,7 +300,7 @@ namespace OpenMS
         // write peptide hits
         for (Size j = 0; j < peptide_ids[l].getHits().size(); ++j)
         {
-          const PeptideHit & p_hit = peptide_ids[l].getHits()[j];
+          const PeptideHit& p_hit = peptide_ids[l].getHits()[j];
           os << "\t\t\t<PeptideHit ";
           os << "score=\"" << precisionWrapper(p_hit.getScore()) << "\" ";
           os << "sequence=\"" << p_hit.getSequence() << "\" ";

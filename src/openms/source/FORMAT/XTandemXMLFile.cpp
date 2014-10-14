@@ -56,12 +56,12 @@ namespace OpenMS
   {
   }
 
-  void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet & rhs)
+  void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs)
   {
     mod_def_set_ = rhs;
   }
 
-  void XTandemXMLFile::load(const String & filename, ProteinIdentification & protein_identification, vector<PeptideIdentification> & peptide_ids)
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids)
   {
     //File name for error message in XMLHandler
     file_ = filename;
@@ -93,7 +93,7 @@ namespace OpenMS
       // }
       for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
       {
-        const vector<PeptideHit> & peptide_hits = it->second;
+        const vector<PeptideHit>& peptide_hits = it->second;
         if (!peptide_hits.empty())
         {
           // store all peptide hits that identify the same sequence in a single peptide hit
@@ -149,7 +149,7 @@ namespace OpenMS
     // TODO search parameters are also available
   }
 
-  void XTandemXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+  void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
     tag_ = String(sm_.convert(qname));
 
@@ -234,7 +234,7 @@ namespace OpenMS
 
       // try to find a mod in the given mods that fits
 
-      if (mod_pos == 0)       // can (!) be a N-terminal mod
+      if (mod_pos == 0) // can (!) be a N-terminal mod
       {
         ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::N_TERM);
       }
@@ -453,13 +453,13 @@ namespace OpenMS
 
   }
 
-  void XTandemXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname));
     return;
   }
 
-  void XTandemXMLFile::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+  void XTandemXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     if (tag_ == "note" && is_description_)
     {

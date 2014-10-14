@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void OMSSAXMLFile::load(const String & filename, ProteinIdentification & protein_identification, vector<PeptideIdentification> & peptide_identifications, bool load_proteins, bool load_empty_hits)
+  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications, bool load_proteins, bool load_empty_hits)
   {
     // clear input (in case load() is called more than once)
     protein_identification = ProteinIdentification();
@@ -115,12 +115,12 @@ namespace OpenMS
     // search parameters are also not available
   }
 
-  void OMSSAXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & /*attributes*/)
+  void OMSSAXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
   {
     tag_ = String(sm_.convert(qname)).trim();
   }
 
-  void OMSSAXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void OMSSAXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname)).trim();
 
@@ -185,7 +185,7 @@ namespace OpenMS
     tag_ = "";
   }
 
-  void OMSSAXMLFile::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+  void OMSSAXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     if (tag_.empty()) return;
 
@@ -235,7 +235,6 @@ namespace OpenMS
       actual_peptide_evidences_.push_back(actual_peptide_evidence_);
       return;
     }
-
     // MSHits section
     // <MSHits_evalue>0.00336753988893542</MSHits_evalue>
     // <MSHits_pvalue>1.30819399070598e-08</MSHits_pvalue>
@@ -270,7 +269,8 @@ namespace OpenMS
       try
       {
         seq = AASequence::fromString(value.trim());
-      } catch (Exception::ParseError &/* e */)
+      }
+      catch (Exception::ParseError& /* e */)
       {
         actual_peptide_hit_.setSequence(AASequence());
         tag_ = "";
@@ -350,7 +350,6 @@ namespace OpenMS
     {
       actual_mod_type_ = value.trim();
     }
-
     // m/z value and rt
     else if (tag_ == "MSHitSet_ids_E")
     {
@@ -408,7 +407,7 @@ namespace OpenMS
     }
   }
 
-  void OMSSAXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet & mod_set)
+  void OMSSAXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& mod_set)
   {
     mod_def_set_ = mod_set;
     UInt omssa_mod_num(119);

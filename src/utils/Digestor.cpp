@@ -108,7 +108,7 @@ protected:
     setValidStrings_("enzyme", ListUtils::create<String>("Trypsin,none"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     vector<ProteinIdentification> protein_identifications;
 
@@ -189,7 +189,7 @@ protected:
 
     std::vector<FASTAFile::FASTAEntry> all_peptides;
 
-    Size dropped_bylength(0);   // stats for removing candidates
+    Size dropped_bylength(0); // stats for removing candidates
 
     for (Size i = 0; i < protein_data.size(); ++i)
     {
@@ -223,9 +223,9 @@ protected:
             temp_peptide_hit.setSequence(temp_peptides[j]);
             peptide_identification.insertHit(temp_peptide_hit);
             identifications.push_back(peptide_identification);
-            peptide_identification.setHits(std::vector<PeptideHit>());   // clear
+            peptide_identification.setHits(std::vector<PeptideHit>()); // clear
           }
-          else   // for FASTA file output
+          else // for FASTA file output
           {
             FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, temp_peptides[j].toString());
             all_peptides.push_back(pep);
@@ -265,7 +265,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDigestor tool;
   return tool.main(argc, argv);

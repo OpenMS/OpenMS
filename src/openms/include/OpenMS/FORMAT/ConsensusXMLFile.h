@@ -76,7 +76,7 @@ public:
     @exception Exception::ParseError is thrown if an error occurs during parsing
     @exception Exception::MissingInformation is thrown if source files are missing/duplicated or map-IDs are referencing non-existing maps
     */
-    void load(const String & filename, ConsensusMap & map);
+    void load(const String& filename, ConsensusMap& map);
 
     /**
     @brief Stores a consensus map to file
@@ -85,28 +85,28 @@ public:
     @exception Exception::IllegalArgument is thrown if the consensus map is not valid
     @exception Exception::MissingInformation is thrown if source files are missing/duplicated or map-IDs are referencing non-existing maps
     */
-    void store(const String & filename, const ConsensusMap & consensus_map);
+    void store(const String& filename, const ConsensusMap& consensus_map);
 
     /// Mutable access to the options for loading/storing
-    PeakFileOptions & getOptions();
+    PeakFileOptions& getOptions();
 
     /// Non-mutable access to the options for loading/storing
-    const PeakFileOptions & getOptions() const;
+    const PeakFileOptions& getOptions() const;
 
 protected:
 
     // Docu in base class
-    virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
     // Docu in base class
-    virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     // Docu in base class
-    virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+    virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
 
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
-    void writePeptideIdentification_(const String & filename, std::ostream & os, const PeptideIdentification & id, const String & tag_name, UInt indentation_level);
+    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
 
 
     /// Options that can be set
@@ -114,14 +114,14 @@ protected:
 
     ///@name Temporary variables for parsing
     //@{
-    ConsensusMap * consensus_map_;
+    ConsensusMap* consensus_map_;
     ConsensusFeature act_cons_element_;
     DPosition<2> pos_;
     double it_;
     //@}
 
     /// Pointer to last read object as a MetaInfoInterface, or null.
-    MetaInfoInterface * last_meta_;
+    MetaInfoInterface* last_meta_;
     /// Temporary protein ProteinIdentification
     ProteinIdentification prot_id_;
     /// Temporary peptide ProteinIdentification

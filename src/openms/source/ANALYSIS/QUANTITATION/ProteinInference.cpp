@@ -44,16 +44,16 @@ namespace OpenMS
   {
   }
 
-  ProteinInference::ProteinInference(const ProteinInference & /*cp*/)
+  ProteinInference::ProteinInference(const ProteinInference& /*cp*/)
   {
   }
 
-  ProteinInference & ProteinInference::operator=(const ProteinInference & /*rhs*/)
+  ProteinInference& ProteinInference::operator=(const ProteinInference& /*rhs*/)
   {
     return *this;
   }
 
-  void ProteinInference::infer(ConsensusMap & consensus_map, const UInt reference_map)
+  void ProteinInference::infer(ConsensusMap& consensus_map, const UInt reference_map)
   {
     // we infer Proteins for every IdentificationRun separately. If you want this combined, then
     // do that before calling this function
@@ -66,12 +66,12 @@ namespace OpenMS
     }
   }
 
-  void ProteinInference::infer_(ConsensusMap & consensus_map,
+  void ProteinInference::infer_(ConsensusMap& consensus_map,
                                 const size_t protein_idenfication_index,
                                 const UInt reference_map)
   {
 
-    ProteinIdentification & protein_ident = consensus_map.getProteinIdentifications()[protein_idenfication_index];
+    ProteinIdentification& protein_ident = consensus_map.getProteinIdentifications()[protein_idenfication_index];
     for (size_t i = 0; i < protein_ident.getHits().size(); ++i)
     {
       // Protein Accession
@@ -122,7 +122,7 @@ namespace OpenMS
           }
         }
 
-      }       // ! ConsensusMap loop
+      } // ! ConsensusMap loop
 
       // no peptides found that match current Protein
       if (consensus_to_peptide.empty())
@@ -141,7 +141,7 @@ namespace OpenMS
            ++it_pephits)
       {
         coverage += it_pephits->second.getSequence().size();
-        const ConsensusFeature::HandleSetType & handles = consensus_map[it_pephits->first].getFeatures();
+        const ConsensusFeature::HandleSetType& handles = consensus_map[it_pephits->first].getFeatures();
         //search if reference is present
         ConsensusFeature::HandleSetType::const_iterator it_ref = handles.end();
         for (ConsensusFeature::HandleSetType::const_iterator it = handles.begin();
@@ -186,7 +186,7 @@ namespace OpenMS
           protein_ident.getHits()[i].setMetaValue(String("ratio_") + String(it_file->first), protein_ratio);
         }
 
-      }       // ! map loop
+      } // ! map loop
 
       // % coverage of protein by peptides
       coverage /= double(protein_ident.getHits()[i].getSequence().size()) / 100;
@@ -194,7 +194,7 @@ namespace OpenMS
       protein_ident.getHits()[i].setMetaValue("coverage", coverage);
       protein_ident.getHits()[i].setMetaValue("hits", coverage_count);
 
-    }     // ! Protein loop
+    } // ! Protein loop
 
 
 
@@ -203,7 +203,7 @@ namespace OpenMS
 
   }
 
-  bool ProteinInference::sortByUnique_(std::vector<PeptideHit> & peptide_hits_local, const bool is_higher_score_better)
+  bool ProteinInference::sortByUnique_(std::vector<PeptideHit>& peptide_hits_local, const bool is_higher_score_better)
   {
     if (peptide_hits_local.empty())
       return false;

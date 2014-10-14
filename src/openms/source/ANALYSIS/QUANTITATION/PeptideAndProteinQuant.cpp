@@ -204,7 +204,7 @@ namespace OpenMS
       all_medians.push_back(med_it->second);
     }
     double overall_median = Math::median(all_medians.begin(),
-                                             all_medians.end());
+                                         all_medians.end());
     SampleAbundances scale_factors;
     for (SampleAbundances::iterator med_it = medians.begin();
          med_it != medians.end(); ++med_it)
