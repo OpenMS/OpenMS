@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Hendrik Weisser, Stephan Aiche $
 // --------------------------------------------------------------------------
 
