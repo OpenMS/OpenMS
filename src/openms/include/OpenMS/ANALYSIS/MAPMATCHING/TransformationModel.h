@@ -64,7 +64,7 @@ public:
     virtual ~TransformationModel();
 
     /// Evaluates the model at the given value
-    virtual double evaluate(const double value) const;
+    virtual double evaluate(double value);
 
     /// Gets the (actual) parameters
     const Param& getParameters() const;

@@ -69,7 +69,7 @@ public:
     ~TransformationModelInterpolated();
 
     /// Evaluates the model at the given value
-    double evaluate(const double value) const;
+    double evaluate(double value);
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);
