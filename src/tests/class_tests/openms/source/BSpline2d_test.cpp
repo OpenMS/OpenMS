@@ -37,6 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/MATH/MISC/BSpline2d.h>
+// #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 ///////////////////////////
 
@@ -168,31 +169,6 @@ START_SECTION((double derivative(double x)))
 }
 END_SECTION
 
-START_SECTION((double coefficient(int n)))
-{
-  vector<double> x2;
-  vector<double> y2;
-  for (Size i = 0; i != 100; ++i)
-  {
-    x2.push_back(i);
-    y2.push_back(i);
-  }
-
-  // b-spline coefficients should increase monotopically for this example (checked with R)
-  BSpline2d b(x2, y2, 0, BSpline2d::BC_ZERO_SECOND, 100);
-  bool coeff_mono_increase = true;
-  for (Size i = 1; i < 100; ++i)
-  {
-    if (b.coefficient(i) <= b.coefficient(i - 1))
-    {
-      coeff_mono_increase = false;
-    }
-  }
-  TEST_EQUAL(coeff_mono_increase, true);
-}
-END_SECTION
-
-
 START_SECTION((bool ok()))
 {
   vector<double> x;
@@ -222,7 +198,7 @@ START_SECTION((bool ok()))
 END_SECTION
 
 
-START_SECTION((Size nX()))
+START_SECTION((void getParameters(Params& params)))
 {
   vector<double> x;
   vector<double> y;
@@ -231,8 +207,20 @@ START_SECTION((Size nX()))
     x.push_back(i);
     y.push_back(i);
   }
-  BSpline2d b(x, y);
-  TEST_EQUAL(b.nX(), 10)
+  BSpline2d b(x, y, 0, BSpline2d::BC_ZERO_SECOND, 5);
+  Param params;
+  b.getParameters(params);
+  TEST_EQUAL(params.getValue("nX"), 10);
+  TEST_EQUAL(params.getValue("Xmin"), 0.0);
+  TEST_EQUAL(params.getValue("Xmax"), 9.0);
+  TEST_EQUAL(params.getValue("nNodes"), 5);
+  TEST_REAL_SIMILAR(params.getValue("Alpha"), 2.5e-05);
+}
+END_SECTION
+
+START_SECTION((void debug(bool enable)))
+{
+  NOT_TESTABLE
 }
 END_SECTION
 

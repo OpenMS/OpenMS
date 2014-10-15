@@ -39,6 +39,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 // forward declaration of impl class BSpline
 namespace eol_bspline
@@ -70,27 +71,27 @@ public:
     /**
      * Create a single spline with the parameters required to set up
      * the domain and subsequently smooth the given set of y values.
-     * The y values must correspond to each of the values in the x array.
+     * The y values must correspond to each of the x values.
      * If either the domain setup fails or the spline cannot be solved,
-     * the state will be set to not ok.
+     * the state will be set to "not OK".
      *
      * @see ok().
      *
      * @param x		The array of x values in the domain.
      * @param y		The array of y values corresponding to each of the
-     *			nX() x values in the domain.
+     *			x values in the domain.
      * @param wavelength	The cutoff wavelength, in the same units as the
      *				@p x values.  A wavelength of zero disables
      *				the derivative constraint.
-     * @param bc_type	The enumerated boundary condition type.  If
+     * @param boundary_condition	The boundary condition type. If
      *			omitted it defaults to BC_ZERO_SECOND.
      * @param num_nodes The number of nodes to use for the cubic b-spline.
-     *			If less than 2 a "reasonable" number will be
+     *			If less than 2, a "reasonable" number will be
      *			calculated automatically, taking into account
      *			the given cutoff wavelength.
      * @pre x and y must be of the same dimensions.
      **/
-    BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wave_length = 0, BoundaryCondition boundary_condition = BC_ZERO_SECOND, Size num_nodes = 0);
+    BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wavelength = 0, BoundaryCondition boundary_condition = BC_ZERO_SECOND, Size num_nodes = 0);
 
     /**
      * Destructor
@@ -101,14 +102,14 @@ public:
      * Solve the spline curve for a new set of y values.  Returns false
      * if the solution fails.
      *
-     * @param y The array of y values corresponding to each of the nX()
+     * @param y The array of y values corresponding to each of the
      *		x values in the domain.
      */
     bool solve(const std::vector<double>& y);
 
     /**
      * Return the evaluation of the smoothed curve
-     * at a particular @p x value.  If current state is not ok(), returns 0.
+     * at a particular @p x value.  If current state is not ok(), returns zero.
      */
     double eval(double x);
 
@@ -119,29 +120,23 @@ public:
     double derivative(double x);
 
     /**
-     * Return the @p n-th basis coefficient, from 0 to M.  If the current
-     * state is not ok(), or @p n is out of range, the method returns zero.
-     */
-    double coefficient(int n);
-
-
-    /**
-     * Return if BSpline2d is in a valid state.
+     * Return whether the spline fit was successful.
      */
     bool ok();
 
     /**
-     * Return the number of x values in the domain.
+     * Get the (internal) parameters of the spline from the B-spline library.
      */
-    Size nX();
+    void getParameters(Param& params);
+
+    /**
+     * Enable or disable debug messages from the B-spline library.
+     */
+    static void debug(bool enable);
 
 private:
-    BSpline2d();
-    BSpline2d(const BSpline2d& other);
-    BSpline2d& operator=(const BSpline2d& other);
-
     // Pointer to actual implementation. Note: This class follows the PIMPL idiom hiding the actual 
-    // bspline implementation behind this pointer to avoid any dependency of the interface to the 
+    // B-spline implementation behind this pointer to avoid any dependency of the interface to the 
     // implementation. Thus, the eol splines are only required during compilation of OpenMS and 
     // not when linking against OpenMS.
     eol_bspline::BSpline<double>* spline_;
