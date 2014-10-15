@@ -30,6 +30,7 @@ SimplePairFinder.h
 StablePairFinder.h
 TransformationDescription.h
 TransformationModel.h
+TransformationModelBSpline.h
 TransformationModelLinear.h
 TransformationModelInterpolated.h
 )
