@@ -174,7 +174,7 @@ public:
         assay has transitions (mapped with MetaValue "native_id").
 
     */
-    void scoreMap(FeatureMap<> & features)
+    void scoreMap(FeatureMap & features)
     {
       // are there enough assays in the library?
       Size n_assays = library_.getPeptides().size();
@@ -221,7 +221,7 @@ public:
       LOG_DEBUG << "Scoring features..." << std::endl;
       startProgress(0, features.size(), "scoring features");
 
-      for (FeatureMap<>::Iterator feat_it = features.begin(); 
+      for (FeatureMap::Iterator feat_it = features.begin(); 
            feat_it != features.end(); ++feat_it)
       {
         LOG_DEBUG << "Feature " << feat_it - features.begin() + 1 

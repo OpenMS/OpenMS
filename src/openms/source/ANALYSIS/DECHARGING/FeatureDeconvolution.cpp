@@ -64,10 +64,10 @@ namespace OpenMS
 {
 
   /**
-      @brief 1-sided Compomer for a feature
+    @brief 1-sided Compomer for a feature
 
-      Holds information on an explicit (with H+) 1-sided Compomer of a feature.
-  **/
+    Holds information on an explicit (with H+) 1-sided Compomer of a feature.
+  */
   struct FeatureDeconvolution::CmpInfo_
   {
     String s_comp; //< formula as String

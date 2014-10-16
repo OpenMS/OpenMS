@@ -36,7 +36,7 @@ using namespace std;
 
 Int main()
 {
-  FeatureMap<> map;
+  FeatureMap map;
 
   Feature feature;
   feature.setIntensity(461.3f);

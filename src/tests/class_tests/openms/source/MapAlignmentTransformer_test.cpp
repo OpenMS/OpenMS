@@ -132,10 +132,10 @@ START_SECTION((static void transformPeakMaps(std::vector< MSExperiment<> > &maps
 }
 END_SECTION
 
-START_SECTION((static void transformFeatureMaps(std::vector< FeatureMap<> > &maps, const std::vector< TransformationDescription > &given_trafos)))
+START_SECTION((static void transformFeatureMaps(std::vector< FeatureMap > &maps, const std::vector< TransformationDescription > &given_trafos)))
 {
-  FeatureMap<>::FeatureType f;
-  FeatureMap<> featMap;
+  FeatureMap::FeatureType f;
+  FeatureMap featMap;
 
   f.setRT(11.1);
   featMap.push_back(f);
@@ -149,7 +149,7 @@ START_SECTION((static void transformFeatureMaps(std::vector< FeatureMap<> > &map
   f.setRT(12.5);
   featMap.push_back(f);
 
-  vector<FeatureMap<> > maps;
+  vector<FeatureMap > maps;
   maps.push_back(featMap);
   maps.push_back(featMap);
 
@@ -300,10 +300,10 @@ START_SECTION((static void transformSinglePeakMap(MSExperiment<> &msexp, const T
 }
 END_SECTION
 
-START_SECTION((static void transformSingleFeatureMap(FeatureMap<> &fmap, const TransformationDescription &trafo)))
+START_SECTION((static void transformSingleFeatureMap(FeatureMap &fmap, const TransformationDescription &trafo)))
 {
-  FeatureMap<>::FeatureType f;
-  FeatureMap<> featMap;
+  FeatureMap::FeatureType f;
+  FeatureMap featMap;
 
   f.setRT(11.1);
   featMap.push_back(f);

@@ -204,7 +204,7 @@ protected:
         else if (in_type == FileTypes::FEATUREXML)
         {
           FeatureXMLFile file;
-          FeatureMap<> map;
+          FeatureMap map;
           file.load(in_file, map);
           MapAlignmentTransformer::transformSingleFeatureMap(map, trafo);
           addDataProcessing_(map,

@@ -2917,6 +2917,34 @@ def testReactionMonitoringTransition():
     tr = pyopenms.ReactionMonitoringTransition()
 
 @report
+def testTargetedExperiment():
+    """
+    @tests: TargetedExperiment
+     """
+    m = pyopenms.TargetedExperiment()
+    m_ = copy.copy(m)
+    assert m_ == m
+    m_ = copy.deepcopy(m)
+    assert m_ == m
+    m_ = pyopenms.TargetedExperiment(m)
+    assert m_ == m
+
+    m.clear(True)
+    m.setCVs(m.getCVs())
+
+    targeted = m
+
+    targeted.setCVs(targeted.getCVs())
+    targeted.setTargetCVTerms(targeted.getTargetCVTerms())
+    targeted.setPeptides(targeted.getPeptides())
+    targeted.setProteins(targeted.getProteins())
+    targeted.setTransitions(targeted.getTransitions())
+
+    assert m == m
+    assert not m != m
+
+
+@report
 def testMapAlignment():
 
     """

@@ -27,6 +27,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>" namespace "OpenMS::PeakPickerHiRes":
     
     cdef cppclass PeakBoundary "OpenMS::PeakPickerHiRes::PeakBoundary":
+        PeakBoundary() nogil except +
         PeakBoundary(PeakBoundary) nogil except + #wrap-ignore
         double mz_min
         double mz_max

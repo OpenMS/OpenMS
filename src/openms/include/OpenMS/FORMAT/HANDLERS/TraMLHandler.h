@@ -167,4 +167,5 @@ private:
   } // namespace Internal
 } // namespace OpenMS
 
-#endif
+#endif // OPENMS_FORMAT_HANDLERS_TRAMLHANDLER_H
+

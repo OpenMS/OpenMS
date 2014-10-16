@@ -92,6 +92,48 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
 
   //test if everything worked
   TEST_EQUAL(exp == exp_original, true)
+
+  // Test storing a minimal example
+  {
+    TargetedExperiment minimal_exp;
+    NEW_TMP_FILE(tmp_filename);
+    file.store(tmp_filename, minimal_exp);
+
+    TargetedExperiment newexp;
+    file.load(tmp_filename, newexp);
+
+    // Test if everything worked
+    //
+    // The two objects are not exactly identical, while storing some CVs are
+    // added that are not present in the newly instantiated object but get
+    // added to the object when loaded.
+    minimal_exp.setCVs(newexp.getCVs());
+    TEST_EQUAL(newexp == minimal_exp, true)
+  }
+
+  // Test storing a minimal example (with one protein/peptide/transition)
+  {
+    TargetedExperiment minimal_exp;
+    TargetedExperimentHelper::Protein protein; 
+    TargetedExperimentHelper::Peptide peptide; 
+    ReactionMonitoringTransition tr; 
+    minimal_exp.addProtein(protein);
+    minimal_exp.addPeptide(peptide);
+    minimal_exp.addTransition(tr);
+    NEW_TMP_FILE(tmp_filename);
+    file.store(tmp_filename, minimal_exp);
+
+    TargetedExperiment newexp;
+    file.load(tmp_filename, newexp);
+
+    // Test if everything worked
+    //
+    // The two objects are not exactly identical, while storing some CVs are
+    // added that are not present in the newly instantiated object but get
+    // added to the object when loaded.
+    minimal_exp.setCVs(newexp.getCVs()); 
+    TEST_EQUAL(newexp == minimal_exp, true)
+  }
 }
 END_SECTION
 

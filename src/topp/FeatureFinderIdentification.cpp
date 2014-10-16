@@ -378,7 +378,7 @@ protected:
     }
   }
 
-  void fitElutionModels_(FeatureMap<>& features, bool asymmetric = true)
+  void fitElutionModels_(FeatureMap& features, bool asymmetric = true)
   {
     // assumptions:
     // - all features have subordinates (for the mass traces/transitions)
@@ -434,7 +434,7 @@ protected:
     // collect peaks that constitute mass traces:
     LOG_DEBUG << "Fitting elution models to features:" << endl;
     Size index = 0;
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it, ++index)
     {
       LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
@@ -677,10 +677,10 @@ protected:
 
     // impute approximate results for failed model fits:
     TransformationModel::DataPoints quant_values;
-    vector<FeatureMap<>::Iterator> failed_models;
+    vector<FeatureMap::Iterator> failed_models;
     Size model_successes = 0, model_failures = 0;
 
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it, ++index)
     {
       feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
@@ -715,7 +715,7 @@ protected:
       lm.getParameters(slope, intercept);
       LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept
                 << endl;
-      for (vector<FeatureMap<>::Iterator>::iterator it = failed_models.begin();
+      for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
            it != failed_models.end(); ++it)
       {
         double area = exp(lm.evaluate(log((*it)->getIntensity())));
@@ -916,7 +916,7 @@ protected:
     // find chromatographic peaks
     //-------------------------------------------------------------
     LOG_INFO << "Finding chromatographic peaks..." << endl;
-    FeatureMap<> features;
+    FeatureMap features;
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
     params.setValue("stop_report_after_feature", -1); // 1);
@@ -943,7 +943,7 @@ protected:
     // fill in missing feature data
     //-------------------------------------------------------------
     LOG_INFO << "Adapting feature data..." << endl;
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));

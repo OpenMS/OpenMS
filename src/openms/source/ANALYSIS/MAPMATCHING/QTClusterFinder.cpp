@@ -242,7 +242,7 @@ namespace OpenMS
     run_(input_maps, result_map);
   }
 
-  void QTClusterFinder::run(const std::vector<FeatureMap<> > & input_maps,
+  void QTClusterFinder::run(const std::vector<FeatureMap > & input_maps,
                             ConsensusMap & result_map)
   {
     run_(input_maps, result_map);

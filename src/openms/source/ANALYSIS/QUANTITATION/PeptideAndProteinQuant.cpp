@@ -405,13 +405,13 @@ namespace OpenMS
     }
   }
 
-  void PeptideAndProteinQuant::quantifyPeptides(FeatureMap<>& features)
+  void PeptideAndProteinQuant::quantifyPeptides(FeatureMap& features)
   {
     updateMembers_(); // clear data
     stats_.n_samples = 1;
     stats_.total_features = features.size();
 
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       if (feat_it->getPeptideIdentifications().empty())

@@ -134,7 +134,7 @@ public:
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void quantifyPeptides(FeatureMap<>& features);
+    void quantifyPeptides(FeatureMap& features);
 
     /**
          @brief Compute peptide abundances from data in a consensus map

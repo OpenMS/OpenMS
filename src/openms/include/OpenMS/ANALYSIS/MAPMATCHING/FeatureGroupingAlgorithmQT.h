@@ -64,7 +64,7 @@ public:
         @brief Applies the algorithm to feature maps
         @exception IllegalArgument is thrown if less than two input maps are given.
     */
-    virtual void group(const std::vector<FeatureMap<> > & maps,
+    virtual void group(const std::vector<FeatureMap > & maps,
                        ConsensusMap & out);
 
     /**

@@ -91,7 +91,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 }
 END_SECTION
 
-START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap<> > &, std::vector< TransformationDescription > &)))
+START_SECTION((virtual void alignFeatureMaps(std::vector< FeatureMap > &, std::vector< TransformationDescription > &)))
 {
   // Tested extensively in TEST/TOPP
   NOT_TESTABLE;

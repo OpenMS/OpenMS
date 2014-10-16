@@ -79,9 +79,9 @@ class TOPPOpenSwathRewriteToFeatureXML
     registerDoubleOption_("FDR_cutoff", "<double>", -1, "FDR cutoff (e.g. to remove all features with a an m_score above 0.05 use 0.05 here)", false);
   }
 
-  void applyFDRcutoff(FeatureMap<Feature> & feature_map, double cutoff, String fdr_name)
+  void applyFDRcutoff(FeatureMap & feature_map, double cutoff, String fdr_name)
   {
-    FeatureMap<Feature> out_feature_map = feature_map;
+    FeatureMap out_feature_map = feature_map;
     out_feature_map.clear(false);
     for (Size i = 0; i < feature_map.size(); i++)
     {
@@ -93,14 +93,14 @@ class TOPPOpenSwathRewriteToFeatureXML
     feature_map = out_feature_map;
   }
 
-  void processInput(const char * filename, FeatureMap<Feature> & feature_map)
+  void processInput(const char * filename, FeatureMap & feature_map)
   {
-    FeatureMap<Feature> out_feature_map = feature_map;
+    FeatureMap out_feature_map = feature_map;
     std::map<String, int> added_already;
     out_feature_map.clear(false);
 
     std::map<String, Feature*> feature_map_ref;
-    //for (FeatureMap<Feature>::iterator feature = feature_map.begin(); feature != feature_map.end(); feature++)
+    //for (FeatureMap::iterator feature = feature_map.begin(); feature != feature_map.end(); feature++)
     for (Size i = 0; i < feature_map.size(); i++)
     {
       feature_map_ref[feature_map[i].getUniqueId()] = &feature_map[i];
@@ -190,7 +190,7 @@ class TOPPOpenSwathRewriteToFeatureXML
   String out = getStringOption_("out");
   double fdr_cutoff = getDoubleOption_("FDR_cutoff");
 
-  FeatureMap<Feature> feature_map;
+  FeatureMap feature_map;
   FeatureXMLFile().load(feature_file, feature_map);
 
   if (csv.size() > 0)

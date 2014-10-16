@@ -98,7 +98,7 @@ TOFCalibration
 XTandemAdapter
 )
 
-## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
+## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib
 ExecutePipeline
 Resampler

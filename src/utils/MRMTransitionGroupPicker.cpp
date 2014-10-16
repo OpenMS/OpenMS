@@ -189,7 +189,7 @@ protected:
   };
 
   void run_(OpenSwath::SpectrumAccessPtr input,
-    FeatureMap<> & output, TargetedExpType& transition_exp)
+    FeatureMap & output, TargetedExpType& transition_exp)
   {
     MRMTransitionGroupPicker trgroup_picker;
     Param picker_param = getParam_().copy("algorithm:", true);
@@ -238,7 +238,7 @@ protected:
     TargetedExpType transition_exp;
     TraMLFile().load(tr_file, transition_exp);
 
-    FeatureMap<> output;
+    FeatureMap output;
     OpenSwath::SpectrumAccessPtr input = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
     run_(input, output, transition_exp);
 

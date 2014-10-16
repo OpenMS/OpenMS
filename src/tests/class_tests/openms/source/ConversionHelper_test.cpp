@@ -51,7 +51,7 @@ START_TEST(ConsensusMap, "$Id$")
 START_SECTION((template < typename FeatureT > static void convert(UInt64 const input_map_index, FeatureMap< FeatureT > const &input_map, ConsensusMap &output_map, Size n=-1)))
 {
 
-  FeatureMap<> fm;
+  FeatureMap fm;
   Feature f;
   for ( UInt i = 0; i < 3; ++i )
   {
@@ -129,7 +129,7 @@ MapConversion::convert(33,mse,cm,8);
 
 START_SECTION((template < typename FeatureT > static void convert(ConsensusMap const &input_map, const bool keep_uids, FeatureMap< FeatureT > &output_map)))
 {
-    FeatureMap<> out_fm;
+    FeatureMap out_fm;
     MapConversion::convert(cm, true, out_fm);
 
     TEST_EQUAL(cm.getUniqueId(), out_fm.getUniqueId());

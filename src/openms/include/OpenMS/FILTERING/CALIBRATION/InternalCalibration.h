@@ -123,7 +123,7 @@ public:
      @param calibrated_feature_map the calibrated feature map
      @param trafo_file_name file where the transformation function of the calibration is stored
     */
-    void calibrateMapGlobally(const FeatureMap<> & feature_map, FeatureMap<> & calibrated_feature_map, String trafo_file_name = "");
+    void calibrateMapGlobally(const FeatureMap & feature_map, FeatureMap & calibrated_feature_map, String trafo_file_name = "");
 
     /**
      @brief Calibrate a feature map using given reference ids with one calibration function for the whole map.
@@ -134,7 +134,7 @@ public:
      @param ref_ids the reference peptide identifications
      @param trafo_file_name file where the transformation function of the calibration is stored
     */
-    void calibrateMapGlobally(const FeatureMap<> & feature_map, FeatureMap<> & calibrated_feature_map, std::vector<PeptideIdentification> & ref_ids, String trafo_file_name = "");
+    void calibrateMapGlobally(const FeatureMap & feature_map, FeatureMap & calibrated_feature_map, std::vector<PeptideIdentification> & ref_ids, String trafo_file_name = "");
 
 
 
@@ -151,10 +151,10 @@ protected:
     void checkReferenceIds_(std::vector<PeptideIdentification> & pep_ids);
 
     /// check if reference ids contain RT and MZ information as meta values
-    void checkReferenceIds_(const FeatureMap<> & feature_map);
+    void checkReferenceIds_(const FeatureMap & feature_map);
 
     /// apply transformation to all features (including subordinates and convex hulls)
-    void applyTransformation_(const FeatureMap<> & feature_map, FeatureMap<> & calibrated_feature_map);
+    void applyTransformation_(const FeatureMap & feature_map, FeatureMap & calibrated_feature_map);
 
     /// here the transformation is stored
     TransformationDescription trafo_;

@@ -158,7 +158,7 @@ class TOPPBaseTest
       addDataProcessing_(map, dp);
 
       //additionally test FeatureMap and ConsensusMap
-      FeatureMap<> f_map;
+      FeatureMap f_map;
       addDataProcessing_(f_map, dp);
 
       ConsensusMap c_map;

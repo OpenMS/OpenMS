@@ -64,35 +64,35 @@ START_SECTION((~ConsensusMap()))
 END_SECTION
 
 START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),0)
 END_SECTION
 
 START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.getProteinIdentifications().resize(1);
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),1)
 END_SECTION
 
 START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.setProteinIdentifications(std::vector<ProteinIdentification>(2));
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
 END_SECTION
 
 START_SECTION((const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
 END_SECTION
 
 START_SECTION((std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.getUnassignedPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
 END_SECTION
 
 START_SECTION((void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.setUnassignedPeptideIdentifications(std::vector<PeptideIdentification>(2));
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION

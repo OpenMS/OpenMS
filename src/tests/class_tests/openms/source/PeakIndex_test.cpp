@@ -131,7 +131,7 @@ START_SECTION((bool operator!=(const PeakIndex &rhs) const))
 }
 END_SECTION
 
-FeatureMap<> map;
+FeatureMap map;
 map.resize(5);
 map[0].setMZ(1);
 map[1].setMZ(2);

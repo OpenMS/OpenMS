@@ -145,6 +145,11 @@ namespace OpenMS
            source_files_ == rhs.source_files_;
   }
 
+  bool TargetedExperiment::operator!=(const TargetedExperiment & rhs) const
+  {
+    return !(operator==(rhs));
+  }
+
   void TargetedExperiment::clear(bool clear_meta_data)
   {
     transitions_.clear();

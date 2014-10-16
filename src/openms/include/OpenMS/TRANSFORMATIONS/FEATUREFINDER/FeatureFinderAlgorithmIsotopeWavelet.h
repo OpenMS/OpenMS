@@ -64,13 +64,13 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  template <typename PeakType, typename FeatureType>
+  template <typename PeakType>
   class FeatureFinderAlgorithmIsotopeWavelet :
-    public FeatureFinderAlgorithm<PeakType, FeatureType>
+    public FeatureFinderAlgorithm<PeakType>
   {
 public:
 
-    typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
+    typedef FeatureFinderAlgorithm<PeakType> Base;
 
 
     /** @brief Default Constructor */
@@ -341,7 +341,7 @@ public:
       return "isotope_wavelet";
     }
 
-    static FeatureFinderAlgorithm<PeakType, FeatureType> * create()
+    static FeatureFinderAlgorithm<PeakType> * create()
     {
       return new FeatureFinderAlgorithmIsotopeWavelet();
     }

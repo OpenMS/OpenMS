@@ -136,14 +136,14 @@ protected:
     fh.loadExperiment(in, exp, in_type, log_type_);
     exp.sortSpectra();
 
-    FeatureMap<> feature_map;
+    FeatureMap feature_map;
     if (feature_in != "")
     {
       FeatureXMLFile().load(feature_in, feature_map);
     }
 
     // calculations
-    FeatureFinderAlgorithmIsotopeWavelet<Peak1D, Feature> iso_ff;
+    FeatureFinderAlgorithmIsotopeWavelet<Peak1D> iso_ff;
     Param ff_param(iso_ff.getParameters());
     ff_param.setValue("max_charge", getIntOption_("max_charge"));
     ff_param.setValue("intensity_threshold", getDoubleOption_("intensity_threshold"));
@@ -225,7 +225,7 @@ protected:
         }
         new_exp.addSpectrum(zoom_spec);
         new_exp.updateRanges();
-        FeatureMap<> features, seeds;
+        FeatureMap features, seeds;
         ff.run("isotope_wavelet", new_exp, features, ff_param, seeds);
         if (features.empty())
         {

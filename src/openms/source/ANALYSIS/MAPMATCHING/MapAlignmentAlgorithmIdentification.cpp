@@ -100,7 +100,7 @@ namespace OpenMS
     }
     else if (filetype == FileTypes::FEATUREXML)
     {
-      FeatureMap<> features;
+      FeatureMap features;
       FeatureXMLFile().load(reference_file, features);
       getRetentionTimes_(features, rt_data);
     }
@@ -185,7 +185,7 @@ namespace OpenMS
   }
 
   void MapAlignmentAlgorithmIdentification::alignFeatureMaps(
-    vector<FeatureMap<> >& maps,
+    vector<FeatureMap >& maps,
     vector<TransformationDescription>& transformations)
   {
     alignMaps(maps, transformations);
@@ -487,6 +487,6 @@ namespace OpenMS
   template OPENMS_DLLAPI void MapAlignmentAlgorithmIdentification::getRetentionTimes_(ConsensusMap& features, SeqToList& rt_data);
 
   // explicit template instantiation for windows dll
-  template void OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_(FeatureMap<>& features, SeqToList& rt_data);
+  template void OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_(FeatureMap& features, SeqToList& rt_data);
 
 } //namespace

@@ -236,7 +236,7 @@ protected:
     {
       boost::shared_ptr<MapType> swath_map (new MapType()); // the map with the extracted ion chromatograms
       boost::shared_ptr<MapType> xic_map (new MapType());
-      FeatureMap<> featureFile;
+      FeatureMap featureFile;
       std::cout << "RT Normalization working on " << file_list[i] << std::endl;
       f.load(file_list[i], *xic_map.get());
 

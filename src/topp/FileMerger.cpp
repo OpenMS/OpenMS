@@ -157,16 +157,16 @@ protected:
 
     if (force_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> out;
+      FeatureMap out;
       for (Size i = 0; i < file_list.size(); ++i)
       {
-        FeatureMap<> map;
+        FeatureMap map;
         FeatureXMLFile fh;
         fh.load(file_list[i], map);
 
         if (annotate_file_origin)
         {
-          for (FeatureMap<>::iterator it = map.begin(); it != map.end(); ++it)
+          for (FeatureMap::iterator it = map.begin(); it != map.end(); ++it)
           {
             it->setMetaValue("file_origin", DataValue(file_list[i]));
           }

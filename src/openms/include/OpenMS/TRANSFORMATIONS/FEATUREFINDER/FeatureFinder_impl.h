@@ -43,8 +43,8 @@
 namespace OpenMS
 {
   // This is documented in the declaration, see FeatureFinder.h
-  template <class PeakType, class FeatureType>
-  void FeatureFinder::run(const String & algorithm_name, MSExperiment<PeakType> & input_map, FeatureMap<FeatureType> & features, const Param & param, const FeatureMap<FeatureType> & seeds)
+  template <class PeakType>
+  void FeatureFinder::run(const String & algorithm_name, MSExperiment<PeakType> & input_map, FeatureMap& features, const Param & param, const FeatureMap& seeds)
   {
     // Nothing to do if there is no data
     if ((algorithm_name != "mrm" && input_map.empty()) || (algorithm_name == "mrm" && input_map.getChromatograms().empty()))
@@ -99,7 +99,7 @@ namespace OpenMS
     // do the work
     if (algorithm_name != "none")
     {
-      FeatureFinderAlgorithm<PeakType, FeatureType> * algorithm = Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::create(algorithm_name);
+      FeatureFinderAlgorithm<PeakType> * algorithm = Factory<FeatureFinderAlgorithm<PeakType> >::create(algorithm_name);
       algorithm->setParameters(param);
       algorithm->setData(input_map, features, *this);
       algorithm->setSeeds(seeds);

@@ -188,6 +188,7 @@ public:
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                          "Unknown or unsupported option " + readoptions);
       }
+      LOG_DEBUG << "Finished parsing Swath file " << std::endl; 
       std::vector<OpenSwath::SwathMap> swath_maps;
       dataConsumer->retrieveSwathMaps(swath_maps);
       delete dataConsumer;
@@ -239,6 +240,7 @@ public:
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                          "Unknown or unsupported option " + readoptions);
       }
+      LOG_DEBUG << "Finished parsing Swath file " << std::endl; 
       std::vector<OpenSwath::SwathMap> swath_maps;
       dataConsumer->retrieveSwathMaps(swath_maps);
       delete dataConsumer;

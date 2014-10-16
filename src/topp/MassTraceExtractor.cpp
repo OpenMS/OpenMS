@@ -273,7 +273,7 @@ protected:
       //-----------------------------------------------------------
 
       std::vector<double> stats_sd;
-      FeatureMap<> ms_feat_map;
+      FeatureMap ms_feat_map;
 
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {

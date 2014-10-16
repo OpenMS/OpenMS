@@ -118,7 +118,7 @@ protected:
     ConsensusMap out_map;
     if (file_type == FileTypes::FEATUREXML)
     {
-      vector<FeatureMap<> > maps(ins.size());
+      vector<FeatureMap > maps(ins.size());
       FeatureXMLFile f;
       for (Size i = 0; i < ins.size(); ++i)
       {
@@ -127,7 +127,7 @@ protected:
         out_map.getFileDescriptions()[i].size = maps[i].size();
         out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
         // to save memory, remove convex hulls and subordinates:
-        for (FeatureMap<>::Iterator it = maps[i].begin(); it != maps[i].end();
+        for (FeatureMap::Iterator it = maps[i].begin(); it != maps[i].end();
              ++it)
         {
           it->getSubordinates().clear();

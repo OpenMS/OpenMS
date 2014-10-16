@@ -325,7 +325,7 @@ namespace OpenMS
     tf.store(filename);
   }
 
-  void EDTAFile::store(const String& filename, const FeatureMap<>& map) const
+  void EDTAFile::store(const String& filename, const FeatureMap& map) const
   {
     TextFile tf;
     tf.addLine("RT\tm/z\tintensity\tcharge");
@@ -335,7 +335,6 @@ namespace OpenMS
       const Feature& f = map[i];
       tf.addLine(String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge());
     }
-
 
     tf.store(filename);
 
