@@ -717,7 +717,7 @@ add_test("TOPP_MapAlignerIdentification_5_out2" ${DIFF} -in1 MapAlignerIdentific
 set_tests_properties("TOPP_MapAlignerIdentification_5_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_5")
 
 #------------------------------------------------------------------------------
-# MapAlignerSpectrumAlignment tests:
+# MapAlignerSpectrum tests:
 add_test("TOPP_MapAlignerSpectrum_1" ${TOPP_BIN_PATH}/MapAlignerSpectrum -test -ini ${DATA_DIR_TOPP}/MapAlignerSpectrum_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input1.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input2.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input3.mzML -out MapAlignerSpectrum_1_output1.tmp MapAlignerSpectrum_1_output2.tmp MapAlignerSpectrum_1_output3.tmp)
 add_test("TOPP_MapAlignerSpectrum_1_out1" ${DIFF} -in1 MapAlignerSpectrum_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output1.mzML )
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
