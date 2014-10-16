@@ -211,7 +211,7 @@ private:
     //-------------------------------------------------------------
     if (in_type == FileTypes::FEATUREXML)
     {
-      vector<FeatureMap<> > feature_maps(input_files.size());
+      vector<FeatureMap> feature_maps(input_files.size());
       FeatureXMLFile fxml_file;
       if (output_files.empty())
       {
