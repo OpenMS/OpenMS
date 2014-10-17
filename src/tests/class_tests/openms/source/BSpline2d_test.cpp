@@ -197,27 +197,6 @@ START_SECTION((bool ok()))
 }
 END_SECTION
 
-
-START_SECTION((void getParameters(Params& params)))
-{
-  vector<double> x;
-  vector<double> y;
-  for (Size i = 0; i != 10; ++i)
-  {
-    x.push_back(i);
-    y.push_back(i);
-  }
-  BSpline2d b(x, y, 0, BSpline2d::BC_ZERO_SECOND, 5);
-  Param params;
-  b.getParameters(params);
-  TEST_EQUAL(params.getValue("nX"), 10);
-  TEST_EQUAL(params.getValue("Xmin"), 0.0);
-  TEST_EQUAL(params.getValue("Xmax"), 9.0);
-  TEST_EQUAL(params.getValue("nNodes"), 5);
-  TEST_REAL_SIMILAR(params.getValue("Alpha"), 2.5e-05);
-}
-END_SECTION
-
 START_SECTION((void debug(bool enable)))
 {
   NOT_TESTABLE

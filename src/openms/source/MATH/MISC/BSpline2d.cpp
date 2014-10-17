@@ -75,16 +75,6 @@ namespace OpenMS
     return spline_->ok();
   }
 
-  void BSpline2d::getParameters(Param& params)
-  {
-    params.clear();
-    params.setValue("nX", spline_->nX(), "Number of original x values");
-    params.setValue("Xmin", spline_->Xmin(), "Minimum x value found");
-    params.setValue("Xmax", spline_->Xmax(), "Maximum x value found");
-    params.setValue("nNodes", spline_->nNodes(), "Number of nodes of the B-spline");
-    params.setValue("Alpha", spline_->Alpha(), "Alpha value of the B-spline");
-  }
-
   void BSpline2d::debug(bool enable)
   {
     eol_bspline::BSplineBase<double>::Debug(int(enable));

@@ -125,11 +125,6 @@ public:
     bool ok();
 
     /**
-     * Get the (internal) parameters of the spline from the B-spline library.
-     */
-    void getParameters(Param& params);
-
-    /**
      * Enable or disable debug messages from the B-spline library.
      */
     static void debug(bool enable);
