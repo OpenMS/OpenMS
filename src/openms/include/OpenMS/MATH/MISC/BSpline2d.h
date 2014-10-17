@@ -110,39 +110,39 @@ public:
      * Return the evaluation of the smoothed curve
      * at a particular @p x value.  If current state is not ok(), returns 0.
      */
-    double eval(double x);
+    double eval(const double x) const;
 
     /**
      * Return the first derivative of the spline curve at the given @p x.
      * Returns zero if the current state is not ok().
      */
-    double derivative(double x);
+    double derivative(const double x) const;
 
     /**
      * Return the @p n-th basis coefficient, from 0 to M.  If the current
      * state is not ok(), or @p n is out of range, the method returns zero.
      */
-    double coefficient(int n);
+    double coefficient(const int n) const;
 
 
     /**
      * Return if BSpline2d is in a valid state.
      */
-    bool ok();
+    bool ok() const;
 
     /**
      * Return the number of x values in the domain.
      */
-    Size nX();
+    Size nX() const;
 
 private:
     BSpline2d();
     BSpline2d(const BSpline2d& other);
     BSpline2d& operator=(const BSpline2d& other);
 
-    // Pointer to actual implementation. Note: This class follows the PIMPL idiom hiding the actual 
-    // bspline implementation behind this pointer to avoid any dependency of the interface to the 
-    // implementation. Thus, the eol splines are only required during compilation of OpenMS and 
+    // Pointer to actual implementation. Note: This class follows the PIMPL idiom hiding the actual
+    // bspline implementation behind this pointer to avoid any dependency of the interface to the
+    // implementation. Thus, the eol splines are only required during compilation of OpenMS and
     // not when linking against OpenMS.
     eol_bspline::BSpline<double>* spline_;
   };
