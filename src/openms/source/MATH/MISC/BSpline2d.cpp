@@ -58,30 +58,30 @@ namespace OpenMS
     return spline_->solve(&y[0]);
   }
 
-  double BSpline2d::eval(double x)
+  double BSpline2d::eval(const double x) const
   {
     OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
     return spline_->evaluate(x);
   }
 
-  double BSpline2d::derivative(double x)
+  double BSpline2d::derivative(const double x) const
   {
     OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
     return spline_->slope(x);
   }
 
-  double BSpline2d::coefficient(int n)
+  double BSpline2d::coefficient(const int n) const
   {
     OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
     return spline_->coefficient(n);
   }
 
-  bool BSpline2d::ok()
+  bool BSpline2d::ok() const
   {
     return spline_->ok();
   }
 
-  Size BSpline2d::nX()
+  Size BSpline2d::nX() const
   {
     return spline_->nX();
   }
