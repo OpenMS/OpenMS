@@ -151,22 +151,6 @@ public:
     /// returns all peptide hits which reference to a given protein accession (aka filter by protein accession)
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
-    /*
-    /// finds and inserts all peptide hits which reference to a given protein accession
-    void getReferencingHits(const String & protein_accession, std::vector<PeptideHit> & peptide_hits) const;
-
-    /// finds and inserts all peptide hits which reference to a given list of protein accessions
-    void getReferencingHits(const std::vector<String> & accessions, std::vector<PeptideHit> & peptide_hits) const;
-
-    /// finds and inserts all peptide hits which reference to a given list of proteins (via their accessions)
-    void getReferencingHits(const std::vector<ProteinHit> & protein_hits, std::vector<PeptideHit> & peptide_hits) const;
-
-    /// the complement of the above
-    void getNonReferencingHits(const String & protein_accession, std::vector<PeptideHit> & peptide_hits) const;
-    void getNonReferencingHits(const std::vector<String> & accessions, std::vector<PeptideHit> & peptide_hits) const;
-    void getNonReferencingHits(const std::vector<ProteinHit> & protein_hits, std::vector<PeptideHit> & peptide_hits) const;
-    //@}
-*/
     /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
     /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
     const DataValue& getMetaValue(const String& name) const;

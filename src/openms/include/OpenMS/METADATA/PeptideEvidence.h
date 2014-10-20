@@ -36,12 +36,10 @@
 #define OPENMS_METADATA_PEPTIDEEVIDENCE_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
-
-  struct String;
 
 /**
   @brief Representation of a peptide evidence.
@@ -63,14 +61,8 @@ public:
     static const char N_TERMINAL_AA;
     static const char C_TERMINAL_AA;
 
-    PeptideEvidence() :
-      accession_(),
-      start_(UNKNOWN_POSITION),
-      end_(UNKNOWN_POSITION),
-      aa_before_(UNKNOWN_AA),
-      aa_after_(UNKNOWN_AA)
-    {
-    }
+    /// constructor
+    PeptideEvidence();
 
     /// copy constructor
     PeptideEvidence(const PeptideEvidence& source);

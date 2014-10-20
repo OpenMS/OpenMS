@@ -44,6 +44,15 @@ namespace OpenMS
   const char PeptideEvidence::N_TERMINAL_AA = '[';
   const char PeptideEvidence::C_TERMINAL_AA = ']';
 
+  PeptideEvidence::PeptideEvidence()
+   : accession_(),
+     start_(UNKNOWN_POSITION),
+     end_(UNKNOWN_POSITION),
+     aa_before_(UNKNOWN_AA),
+     aa_after_(UNKNOWN_AA)
+  {
+  }
+
   PeptideEvidence::PeptideEvidence(const PeptideEvidence& rhs)
   {
     accession_ = rhs.accession_;
