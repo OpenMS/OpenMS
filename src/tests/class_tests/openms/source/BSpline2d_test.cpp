@@ -37,7 +37,6 @@
 
 ///////////////////////////
 #include <OpenMS/MATH/MISC/BSpline2d.h>
-// #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 ///////////////////////////
 

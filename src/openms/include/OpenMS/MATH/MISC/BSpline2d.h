@@ -39,7 +39,6 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 
 // forward declaration of impl class BSpline
 namespace eol_bspline
