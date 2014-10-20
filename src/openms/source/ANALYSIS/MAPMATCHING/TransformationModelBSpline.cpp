@@ -93,7 +93,7 @@ namespace OpenMS
   }
 
 
-  double TransformationModelBSpline::evaluate(double value)
+  double TransformationModelBSpline::evaluate(double value) const
   {
     return spline_->eval(value); // does this work for extrapolation?
   }

@@ -64,7 +64,7 @@ public:
     ~TransformationModelBSpline();
 
     /// Evaluates the model at the given value
-    virtual double evaluate(double value);
+    virtual double evaluate(double value) const;
 
     using TransformationModel::getParameters;
 

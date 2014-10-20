@@ -74,7 +74,7 @@ START_SECTION((~TransformationModelInterpolated()))
 }
 END_SECTION
 
-START_SECTION((double evaluate(double value)))
+START_SECTION((double evaluate(double value) const))
 {
   // NOTE: This test ensure first of all the compatibility of the interpolation
   //       to the original GSL based implementation of TransformationModelInterpolated

@@ -72,7 +72,7 @@ START_SECTION((~TransformationModelLinear()))
 }
 END_SECTION
 
-START_SECTION((virtual double evaluate(double value)))
+START_SECTION((virtual double evaluate(double value) const))
 {
   ptr = new TransformationModelLinear(data, Param());
 

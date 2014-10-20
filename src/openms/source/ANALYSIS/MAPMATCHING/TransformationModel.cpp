@@ -46,7 +46,7 @@ namespace OpenMS
   {
   }
 
-  double TransformationModel::evaluate(double value)
+  double TransformationModel::evaluate(double value) const
   {
     return value;
   }

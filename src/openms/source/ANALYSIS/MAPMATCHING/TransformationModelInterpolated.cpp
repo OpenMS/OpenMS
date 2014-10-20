@@ -251,7 +251,7 @@ private:
     delete lm_;
   }
 
-  double TransformationModelInterpolated::evaluate(double value)
+  double TransformationModelInterpolated::evaluate(double value) const
   {
     if ((value < x_.front()) || (value > x_.back())) // extrapolate
     {
