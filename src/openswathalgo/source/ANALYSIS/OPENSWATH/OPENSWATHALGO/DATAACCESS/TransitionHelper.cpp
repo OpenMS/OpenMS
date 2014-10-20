@@ -33,13 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenSwath
 {
 
   void TransitionHelper::convert(LightTargetedExperiment& lte,
                                  std::map<std::string,
-                                          std::vector<OpenSwath::LightTransition> >& transmap)
+                                 std::vector<OpenSwath::LightTransition> >& transmap)
   {
 
     typedef std::pair<std::string, std::vector<OpenSwath::LightTransition> > Mpair;
