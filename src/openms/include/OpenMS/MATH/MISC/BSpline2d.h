@@ -111,18 +111,18 @@ public:
      * Return the evaluation of the smoothed curve
      * at a particular @p x value.  If current state is not ok(), returns zero.
      */
-    double eval(double x);
+    double eval(const double x) const;
 
     /**
      * Return the first derivative of the spline curve at the given @p x.
      * Returns zero if the current state is not ok().
      */
-    double derivative(double x);
+    double derivative(const double x) const;
 
     /**
      * Return whether the spline fit was successful.
      */
-    bool ok();
+    bool ok() const;
 
     /**
      * Enable or disable debug messages from the B-spline library.

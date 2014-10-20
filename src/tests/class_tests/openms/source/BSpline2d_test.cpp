@@ -103,7 +103,7 @@ START_SECTION((bool solve(const std::vector< double > &y)))
 }
 END_SECTION
 
-START_SECTION((double eval(double x)))
+START_SECTION((double eval(const double x) const))
 {
   // calculate error of noisy points
   double mean_squared_error_noisy(0.0);
@@ -148,7 +148,7 @@ START_SECTION((double eval(double x)))
 }
 END_SECTION
 
-START_SECTION((double derivative(double x)))
+START_SECTION((double derivative(const double x) const))
 {
   {
     // calculate error on first derivative of smoothed points.
@@ -169,7 +169,7 @@ START_SECTION((double derivative(double x)))
 }
 END_SECTION
 
-START_SECTION((bool ok()))
+START_SECTION((bool ok() const))
 {
   vector<double> x;
   vector<double> y;
