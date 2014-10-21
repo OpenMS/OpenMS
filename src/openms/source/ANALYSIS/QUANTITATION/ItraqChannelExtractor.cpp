@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

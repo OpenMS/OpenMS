@@ -37,4 +37,14 @@
 namespace OpenMS
 {
 
+  BaseSuperimposer::BaseSuperimposer() :
+    DefaultParamHandler("BaseSuperimposer"),
+    ProgressLogger()
+  {
+  }
+
+  BaseSuperimposer::~BaseSuperimposer()
+  {
+  }
+
 }

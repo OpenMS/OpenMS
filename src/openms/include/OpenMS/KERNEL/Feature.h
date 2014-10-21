@@ -35,9 +35,13 @@
 #ifndef OPENMS_KERNEL_FEATURE_H
 #define OPENMS_KERNEL_FEATURE_H
 
-#include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelDescription.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
+#include <vector>
 
 namespace OpenMS
 {
@@ -96,14 +100,6 @@ public:
     /// Compare by quality
     typedef QualityLess OverallQualityLess;
 
-    /// Non-mutable access to the model description
-    const ModelDescription<2> & getModelDescription() const;
-
-    /// Mutable access to the model description
-    ModelDescription<2> & getModelDescription();
-
-    /// Set the model description
-    void setModelDescription(const ModelDescription<2> & q);
     //@}
 
     ///@name Convex hulls and bounding box
@@ -194,7 +190,7 @@ protected:
 
     /// subordinate features (e.g. features that represent alternative explanations, usually with lower quality)
     std::vector<Feature> subordinates_;
-    
+
   };
 
 } // namespace OpenMS

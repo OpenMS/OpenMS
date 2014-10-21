@@ -42,6 +42,8 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 namespace OpenMS
 {
 

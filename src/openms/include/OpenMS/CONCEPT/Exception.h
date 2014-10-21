@@ -35,12 +35,11 @@
 #ifndef OPENMS_CONCEPT_EXCEPTION_H
 #define OPENMS_CONCEPT_EXCEPTION_H
 
-#include <OpenMS/config.h>
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
-
+#include <iosfwd>
 #include <new>
 #include <string>
-#include <iosfwd>
 
 namespace OpenMS
 {

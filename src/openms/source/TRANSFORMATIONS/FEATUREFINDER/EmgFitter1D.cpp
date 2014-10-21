@@ -36,6 +36,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Factory.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS

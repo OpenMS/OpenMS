@@ -34,6 +34,10 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 
+#include <OpenMS/CONCEPT/Macros.h> // for OPENMS_PRECONDITION
+#include <OpenMS/DATASTRUCTURES/ConvexHull2D.h> // for ConvexHull2D, etc
+#include <OpenMS/KERNEL/BaseFeature.h> // for BaseFeature::QualityType, etc
+
 using namespace std;
 
 namespace OpenMS

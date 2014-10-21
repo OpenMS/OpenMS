@@ -44,7 +44,9 @@
 
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
-using namespace std;
+#include <OpenMS/CONCEPT/Factory.h>
+
+using std::vector;
 
 namespace OpenMS
 {
@@ -83,7 +85,7 @@ namespace OpenMS
 
   void MapAlignmentAlgorithm::alignConsensusMaps(vector<ConsensusMap> & cms, vector<TransformationDescription> & tf)
   {
-    LOG_WARN << "MapAlignmentAlgorithm::alignConsensusMaps() does not support ConsensusMaps directly. Converting to FeatureMaps." << endl;
+    LOG_WARN << "MapAlignmentAlgorithm::alignConsensusMaps() does not support ConsensusMaps directly. Converting to FeatureMaps.\n";
 
     vector<FeatureMap> maps_f;
     for (Size i = 0; i < cms.size(); ++i)

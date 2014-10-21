@@ -43,6 +43,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 
+#include <OpenMS/CONCEPT/Factory.h>
+
 using namespace OpenMS;
 using namespace std;
 

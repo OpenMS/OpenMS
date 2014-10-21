@@ -64,6 +64,8 @@ public:
       update_();
     }
 
+    virtual ~BaseVisualizer() {}
+
 protected:
 
     /// Pointer to the object that is currently edited
