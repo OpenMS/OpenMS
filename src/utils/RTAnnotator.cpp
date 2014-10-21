@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -80,9 +81,9 @@ protected:
     registerInputFile_("in_msref", "<file>", "", "Mass spectra file as reference input for RT lookup");
     setValidFormats_("in_msref", ListUtils::create<String>("mzML"));
     registerInputFile_("in", "<file>", "", "Identifications without RT field");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
     registerOutputFile_("out", "<file>", "", "Output file (identifications).");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));
   }
 
   ExitCodes main_(int, const char **)
@@ -118,11 +119,15 @@ protected:
     {
       IdXMLFile().load(in, proteins, peptides);
     }
+    else if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(in, proteins, peptides);
+    }
     else
     {
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                                   __PRETTY_FUNCTION__,
-                                                   "wrong in fileformat");
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                                 __PRETTY_FUNCTION__,
+                                                 "wrong in fileformat");
     }
     //TODO check if idXML and mzML fit
 
@@ -144,8 +149,21 @@ protected:
     }
     writeLog_("Annotated " + String(c) + " peptides.");
 
-    IdXMLFile().store(out, proteins, peptides);
-
+    in_type = FileHandler::getType(out);
+    if (in_type == FileTypes::IDXML)
+    {
+      IdXMLFile().store(out, proteins, peptides);
+    }
+    else if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().store(out, proteins, peptides);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                                 __PRETTY_FUNCTION__,
+                                                 "wrong out fileformat");
+    }
     return EXECUTION_OK;
   }
 

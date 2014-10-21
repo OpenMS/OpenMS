@@ -597,7 +597,10 @@ namespace OpenMS
         String sidres;
         UInt64 sir =  UniqueIdGenerator::getUniqueId();
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"") + String(spd_ids.begin()->second) + String("\" spectrumID=\"") + sid + String("\" id=\"") + String(sir) + String("\"> \n");      //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
-
+        if (!ert.empty() && ert!="nan" && ert!="NaN")
+        {
+          sidres +=  "\t\t\t\t"+ cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
+        }
 
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
@@ -666,8 +669,9 @@ namespace OpenMS
               UInt64 pevid =  UniqueIdGenerator::getUniqueId();
               String dBSequence_ref = String(sen_ids.find(*at)->second);
 
-              String e;
               String idec(boost::lexical_cast<std::string>((String(jt->getMetaValue("target_decoy"))).hasSubstring("decoy")));
+
+              String e;
               e += "\t<PeptideEvidence id=\"" + String(pevid) + "\" peptide_ref=\"" + String(pepid) + "\" dBSequence_ref=\"" + dBSequence_ref;
 
               //~ TODO no '*' allowed!!
@@ -725,7 +729,7 @@ namespace OpenMS
           }
           else if (st == "Posterior Error Probability")
           {
-            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns, sc);        // 'percolaror' is not a typo.
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns, sc);        // 'percolaror' is not a typo in the code but in the cv.
           }
           else if (pie_ids[pro_pep_matchstring] == "OMSSA")
           {
@@ -752,9 +756,6 @@ namespace OpenMS
             sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("search engine specific score for peptides").toXMLString(cv_ns, sc);
           }
           sidres += "\n";
-
-          sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("retention time").toXMLString(cv_ns, ert) + "\n";
-
           writeMetaInfos_(sidres, *jt, 5);
 
           //~ sidres += "<cvParam accession=\"MS:1000796\" cvRef=\"PSI-MS\" value=\"55.835.842.3.dta\" name=\"spectrum title\"/>";

@@ -47,6 +47,7 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
+RTAnnotator
 #SimpleSearchEngine
 #RNPxlSearch
 )
