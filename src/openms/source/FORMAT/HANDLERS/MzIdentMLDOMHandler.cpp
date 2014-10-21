@@ -337,7 +337,8 @@ namespace OpenMS
                           String pep = ph->getSequence().toUnmodifiedString();
                           int start = 0;
                           db_sq_map_[*dBSequence_ref].sequence.toQString().indexOf(pep.toQString(), start); // TODO @ mths : make that safe, also finds only the first - no biggy
-                          pe_ev_map_.insert(std::make_pair(pepevref,PeptideEvidence{start,start+pep.length(),ph->getAABefore(),ph->getAAAfter()})); // TODO @ mths : double check start & end & chars for before & after
+                          bool idec = (String(ph->getMetaValue("target_decoy"))).hasSubstring("decoy");
+                          pe_ev_map_.insert(std::make_pair(pepevref,PeptideEvidence{start,start+pep.length(),ph->getAABefore(),ph->getAAAfter(),idec})); // TODO @ mths : double check start & end & chars for before & after
                       }
                       hit_pev_.push_back(pepevs);
 
@@ -692,7 +693,7 @@ namespace OpenMS
           try
           {
             String d = *XMLString::transcode(element_pev->getAttribute(XMLString::transcode("isDecoy")));
-            if (d.hasPrefix('t'))
+            if (d.hasPrefix('t') || d.hasPrefix('1'))
               idec = true;
           }
           catch (...)
@@ -1006,8 +1007,8 @@ namespace OpenMS
           std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(element_res->getChildNodes());
 
           pep_id_->push_back(PeptideIdentification());
-          pep_id_->back().setHigherScoreBetter(true);
-          pep_id_->back().setMetaValue("spectrum_id",spectrumID); // TODO @mths consider SpectrumIDFormat to get just a index number here
+          pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
+          pep_id_->back().setMetaValue("spectrum_reference",spectrumID); // TODO @mths consider SpectrumIDFormat to get just a index number here
           PeptideIdentification().setScoreType(search_engine_);
           //fill pep_id_->back() with content
 
@@ -1027,7 +1028,7 @@ namespace OpenMS
           //  setSignificanceThreshold
 
           pep_id_->back().setIdentifier(search_engine_); // TODO @mths: set name/date of search
-          pep_id_->back().setMetaValue("spectrum_id", spectrumID); //String scannr = substrings.back().reverse().chop(5);
+          pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
           //adopt cv s
           for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end() ; ++cvit)
           {
@@ -1093,86 +1094,154 @@ namespace OpenMS
 
       long double score = 0;
       std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
-      std::set<String> score_terms;
-      cv_.getAllChildTerms(score_terms, "MS:1001143"); //search engine specific score for peptides
-      for (std::set<String>::const_iterator scoreit = score_terms.begin(); scoreit != score_terms.end(); ++scoreit)
+      std::set<String> q_score_terms;
+      std::set<String> e_score_terms;
+      std::set<String> specific_score_terms;
+      cv_.getAllChildTerms(q_score_terms, "MS:1001868"); //q-value for peptides
+      cv_.getAllChildTerms(e_score_terms, "MS:1001872"); //E-value for peptides
+      cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for peptides
+      bool scoretype = false;
+      for (std::map<String, std::vector<OpenMS::CVTerm> >::const_iterator scoreit = params.first.getCVTerms().begin(); scoreit != params.first.getCVTerms().end(); ++scoreit)
       {
-          if (params.first.getCVTerms().has(*scoreit))
+          if (q_score_terms.find(scoreit->first) != q_score_terms.end())
           {
-             score = params.first.getCVTerms()[*scoreit].front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-//             std::cout << "using as score: " << *scoreit << "by value" << score << std::endl;
-            break;  // TODO @mths catch if an evalue (or any other SmallerIsBetter score appears first)
+              if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
+            {
+              score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+              spectrum_identification.setHigherScoreBetter(false);
+              spectrum_identification.setScoreType("q-value"); //higherIsBetter = false
+              scoretype = true;
+              break;
+            }
           }
-      }
-
-      //build the PeptideHit from a SpectrumIdentificationItem
-      PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
-      for (Map< String, std::vector< CVTerm > >::ConstIterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
-      {
-          for (std::vector< CVTerm >::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
+          else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
           {
-            hit.setMetaValue(cvs->first, cv->getValue());
+              score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+              spectrum_identification.setHigherScoreBetter(false);
+              spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
+              scoretype = true;
+              break;
           }
-      }
-      for (std::map<String,DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
-      {
-        hit.setMetaValue(up->first, up->second);
-      }
-      hit.setMetaValue("calcMZ", calculatedMassToCharge);
-      spectrum_identification.insertHit(hit);
-      spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
-
-      //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
-      std::pair<std::multimap<String,String>::iterator, std::multimap<String,String>::iterator > pev_its;
-      pev_its = p_pv_map_.equal_range(peptide_ref);
-      for (std::multimap<String,String>::iterator pev_it = pev_its.first; pev_it != pev_its.second; ++pev_it)
-      {
-          if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
+          else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
           {
-            PeptideEvidence& pv = pe_ev_map_[pev_it->second];
-            spectrum_identification.getHits().back().setAABefore(pv.pre);
-            spectrum_identification.getHits().back().setAAAfter(pv.post);
-
-            spectrum_identification.getHits().back().setMetaValue("start",pv.start);
-            spectrum_identification.getHits().back().setMetaValue("end",pv.stop);
-
-            if (pv.idec)
-              spectrum_identification.getHits().back().setMetaValue("target_decoy","decoy");
-            else
-              spectrum_identification.getHits().back().setMetaValue("target_decoy","target");
+              score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+              spectrum_identification.setHigherScoreBetter(false);
+              scoretype = true;
           }
-
-          String& dpv = pv_db_map_[pev_it->second];
-          DBSequence& db = db_sq_map_[dpv];
-          spectrum_identification.getHits().back().addProteinAccession(db.accession);
-
-          if (si_pro_map_[spectrumIdentificationList_ref]->findHit(db.accession)
-              == si_pro_map_[spectrumIdentificationList_ref]->getHits().end())
-          { // butt ugly! TODO @ mths for ProteinInference
-            si_pro_map_[spectrumIdentificationList_ref]->insertHit(ProteinHit());
-            si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setSequence(db.sequence);
-            si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setAccession(db.accession);
-          }
-
       }
+      if (scoretype) //else (i.e. no q/E/raw score) no hit will be read
+      {
+          //build the PeptideHit from a SpectrumIdentificationItem
+          PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
+          for (Map< String, std::vector< CVTerm > >::ConstIterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
+          {
+              for (std::vector< CVTerm >::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
+              {
+                hit.setMetaValue(cvs->first, cv->getValue());
+              }
+          }
+          for (std::map<String,DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
+          {
+            hit.setMetaValue(up->first, up->second);
+          }
+          hit.setMetaValue("calcMZ", calculatedMassToCharge);
+          spectrum_identification.insertHit(hit);
+          spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
 
-      //due to redundand references this is not needed! peptideref already maps to all those PeptideEvidence elements
-//      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
-//      while ( child )
-//      {
-//        if ((std::string)XMLString::transcode(child->getTagName()) == "PeptideEvidenceRef")
-//        {
-//          ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("peptideEvidence_ref")));
-//          //...
-//          spectrum_identification.getHits().back().setAABefore(char acid);
-//          spectrum_identification.getHits().back().setAAAfter (char acid);
-//          break;
-//        }
-//        child = child->getNextElementSibling();
-//      }
+          //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
+          std::pair<std::multimap<String,String>::iterator, std::multimap<String,String>::iterator > pev_its;
+          pev_its = p_pv_map_.equal_range(peptide_ref);
+          for (std::multimap<String,String>::iterator pev_it = pev_its.first; pev_it != pev_its.second; ++pev_it)
+          {
+              bool idec = false;
+              if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
+              {
+                PeptideEvidence& pv = pe_ev_map_[pev_it->second];
+                spectrum_identification.getHits().back().setAABefore(pv.pre);
+                spectrum_identification.getHits().back().setAAAfter(pv.post);
 
-//        <Fragmentation> omitted for the time being
+                spectrum_identification.getHits().back().setMetaValue("start",pv.start);
+                spectrum_identification.getHits().back().setMetaValue("end",pv.stop);
 
+                idec = pv.idec;
+                if (idec)
+                {
+                  if (spectrum_identification.getHits().back().metaValueExists("target_decoy"))
+                  {
+                    if (spectrum_identification.getHits().back().getMetaValue("target_decoy") != "decoy")
+                    {
+                      spectrum_identification.getHits().back().setMetaValue("target_decoy","target+decoy");
+                    }
+                    else
+                    {
+                      spectrum_identification.getHits().back().setMetaValue("target_decoy","decoy");
+                    }
+                  }
+                  else
+                  {
+                    spectrum_identification.getHits().back().setMetaValue("target_decoy","decoy");
+                  }
+                }
+                else
+                {
+                  if (spectrum_identification.getHits().back().metaValueExists("target_decoy"))
+                  {
+                      if (spectrum_identification.getHits().back().getMetaValue("target_decoy") != "target")
+                      {
+                        spectrum_identification.getHits().back().setMetaValue("target_decoy","target+decoy");
+                      }
+                      else
+                      {
+                        spectrum_identification.getHits().back().setMetaValue("target_decoy","target");
+                      }
+                  }
+                  else
+                  {
+                    spectrum_identification.getHits().back().setMetaValue("target_decoy","target");
+                  }
+                }
+              }
+
+              if (pv_db_map_.find(pev_it->second) != pv_db_map_.end())
+              {
+                  String& dpv = pv_db_map_[pev_it->second];
+                  DBSequence& db = db_sq_map_[dpv];
+                  spectrum_identification.getHits().back().addProteinAccession(db.accession);
+
+                  if (si_pro_map_[spectrumIdentificationList_ref]->findHit(db.accession)
+                      == si_pro_map_[spectrumIdentificationList_ref]->getHits().end())
+                  { // butt ugly! TODO @ mths for ProteinInference
+                    si_pro_map_[spectrumIdentificationList_ref]->insertHit(ProteinHit());
+                    si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setSequence(db.sequence);
+                    si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setAccession(db.accession);
+                    if (idec)
+                    {
+                      si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setMetaValue("isDecoy","true");
+                    }
+                    else
+                    {
+                      si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setMetaValue("isDecoy","false");
+                    }
+                  }
+              }
+          }
+
+          // due to redundand references this is not needed! peptideref already maps to all those PeptideEvidence elements
+          //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
+          //      while ( child )
+          //      {
+          //        if ((std::string)XMLString::transcode(child->getTagName()) == "PeptideEvidenceRef")
+          //        {
+          //          ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("peptideEvidence_ref")));
+          //          //...
+          //          spectrum_identification.getHits().back().setAABefore(char acid);
+          //          spectrum_identification.getHits().back().setAAAfter (char acid);
+          //          break;
+          //        }
+          //        child = child->getNextElementSibling();
+          //      }
+      }
+      // <Fragmentation> omitted for the time being
     }
 
     void MzIdentMLDOMHandler::parseProteinDetectionListElements_(DOMNodeList * proteinDetectionListElements)
