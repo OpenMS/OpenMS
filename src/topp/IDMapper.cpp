@@ -35,6 +35,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -129,7 +130,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
-    setValidFormats_("id", ListUtils::create<String>("idXML"));
+    setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,mzq"));
     registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
@@ -161,19 +162,33 @@ protected:
   ExitCodes main_(int, const char **)
   {
     // LOG_DEBUG << "Starting..." << endl;
-    String in = getStringOption_("in");
-    FileTypes::Type in_type = FileHandler::getType(in);
-    String out = getStringOption_("out");
 
     //----------------------------------------------------------------
-    // load idXML
+    // load ids
     //----------------------------------------------------------------
     // LOG_DEBUG << "Loading idXML..." << endl;
+    String id = getStringOption_("id");
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
-    String document_id;
-    IdXMLFile().load(getStringOption_("id"), protein_ids, peptide_ids, document_id);
+    FileTypes::Type in_type = FileHandler::getType(id);
+    if (in_type == FileTypes::IDXML)
+    {
+      IdXMLFile().load(id, protein_ids, peptide_ids);
+    }
+    else if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(id, protein_ids, peptide_ids);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                                 __PRETTY_FUNCTION__,
+                                                 "wrong id fileformat");
+    }
 
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    in_type = FileHandler::getType(in);
     //----------------------------------------------------------------
     //create mapper
     //----------------------------------------------------------------
