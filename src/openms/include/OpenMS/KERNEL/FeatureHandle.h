@@ -38,7 +38,7 @@
 #include <iosfwd>
 #include <vector>
 
-#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
 
 namespace OpenMS
 {

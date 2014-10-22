@@ -35,21 +35,28 @@
 #ifndef OPENMS_KERNEL_CONSENSUSMAP_H
 #define OPENMS_KERNEL_CONSENSUSMAP_H
 
-// Base classes
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-
-// Members
-#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <map>
+#include <vector>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {
+  class ProteinIdentification;
+  class DataProcessing;
+  namespace Logger {
+    class LogStream;
+  }
+  
   /**
     @brief A container for consensus elements.
 

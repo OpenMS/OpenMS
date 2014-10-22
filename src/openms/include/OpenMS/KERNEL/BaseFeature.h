@@ -36,10 +36,11 @@
 #define OPENMS_KERNEL_BASEFEATURE_H
 
 #include <OpenMS/KERNEL/RichPeak2D.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
+  
+  class PeptideIdentification;
 
   /**
     @brief A basic LC-MS feature.
