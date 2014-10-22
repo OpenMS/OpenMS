@@ -38,11 +38,15 @@
 #include <iosfwd>
 #include <vector>
 
-#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {
-  class ConsensusFeature;
+  class BaseFeature;
+  
   /**
     @brief Representation of a Peak2D, RichPeak2D or Feature .
 
