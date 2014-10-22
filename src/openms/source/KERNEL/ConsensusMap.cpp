@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/ComparatorUtils.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 namespace OpenMS
 {

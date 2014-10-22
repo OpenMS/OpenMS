@@ -34,6 +34,17 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
+
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/KERNEL/ComparatorUtils.h>
+
 namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& os, const AnnotationStatistics& ann)
