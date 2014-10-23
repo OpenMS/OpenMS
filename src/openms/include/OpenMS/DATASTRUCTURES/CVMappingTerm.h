@@ -36,6 +36,7 @@
 #define OPENMS_DATASTRUCTURES_CVMAPPINGTERM_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {

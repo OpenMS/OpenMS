@@ -35,12 +35,13 @@
 #ifndef OPENMS_DATASTRUCTURES_DPOSITION_H
 #define OPENMS_DATASTRUCTURES_DPOSITION_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <algorithm>
 #include <limits>
+#include <ostream>
 
 namespace OpenMS
 {

@@ -36,6 +36,7 @@
 #define OPENMS_DATASTRUCTURES_MAP_H
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/config.h>
 
 #include <map>
 

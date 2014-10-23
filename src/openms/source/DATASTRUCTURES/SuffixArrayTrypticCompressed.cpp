@@ -34,19 +34,23 @@
 
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
-#include <stack>
-#include <fstream>
-#include <cmath>
-#include <cstring>
-#include <algorithm>
-#include <iostream>
-#include <sstream>
 
-#include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModifierRep.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <stack>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
 
 using namespace std;
 

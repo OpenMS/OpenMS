@@ -33,10 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
-
-#include <QtCore/QDate>
-
 #include <ctime>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
 
 using namespace std;
 

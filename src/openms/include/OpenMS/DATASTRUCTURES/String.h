@@ -36,6 +36,7 @@
 #define OPENMS_DATASTRUCTURES_STRING_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
 
 #include <string>
 #include <vector>
@@ -45,6 +46,7 @@ class QString;
 namespace OpenMS
 {
   class DataValue;
+
   /**
       @brief A more convenient string class.
 

@@ -36,14 +36,18 @@
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYPEPTIDEFINDER_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYPEPTIDEFINDER_H
 
-#include <vector>
-#include <OpenMS/DATASTRUCTURES/BigString.h>
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/DATASTRUCTURES/BigString.h>
+#include <vector>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {
-  class String;
   class SuffixArray;
+
   /**
       @brief wrapper for easy use of sufArray
   */

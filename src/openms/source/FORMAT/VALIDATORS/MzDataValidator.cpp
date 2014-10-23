@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/VALIDATORS/MzDataValidator.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 
 using namespace xercesc;
 using namespace std;

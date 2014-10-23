@@ -34,9 +34,12 @@
 #ifndef OPENMS_DATASTRUCTURES_LPWRAPPER_H
 #define OPENMS_DATASTRUCTURES_LPWRAPPER_H
 
+#include <OpenMS/DATASTRUCTURES/String.h>  // for String
 #include <limits>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/config.h>
 
 // do NOT include glpk and CoinOr headers here, as they define bad stuff, which ripples through OpenMS then...
 // include them in LPWrapper.cpp where they do not harm

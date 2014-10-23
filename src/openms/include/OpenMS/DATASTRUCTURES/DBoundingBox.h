@@ -36,6 +36,7 @@
 #define OPENMS_DATASTRUCTURES_DBOUNDINGBOX_H
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {

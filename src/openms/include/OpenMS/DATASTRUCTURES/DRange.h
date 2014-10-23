@@ -36,6 +36,8 @@
 #define OPENMS_DATASTRUCTURES_DRANGE_H
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
+#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {

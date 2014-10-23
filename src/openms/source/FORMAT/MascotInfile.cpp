@@ -36,6 +36,7 @@
 #include <sstream>
 
 #include <OpenMS/FORMAT/MascotInfile.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 using namespace std;
 

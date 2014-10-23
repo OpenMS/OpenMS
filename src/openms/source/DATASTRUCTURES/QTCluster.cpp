@@ -34,8 +34,10 @@
 
 
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
+#include <numeric>
 
-#include <numeric> // for "accumulate"
+#include <OpenMS/DATASTRUCTURES/GridFeature.h>
+#include <OpenMS/CHEMISTRY/AASequence.h>
 
 using namespace std;
 

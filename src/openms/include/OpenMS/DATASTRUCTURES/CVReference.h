@@ -35,8 +35,8 @@
 #ifndef OPENMS_DATASTRUCTURES_CVREFERENCE_H
 #define OPENMS_DATASTRUCTURES_CVREFERENCE_H
 
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
 

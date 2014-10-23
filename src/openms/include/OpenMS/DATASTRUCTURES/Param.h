@@ -38,9 +38,11 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/OpenMSConfig.h>
 
-#include <set>
 #include <iosfwd>
+#include <set>
 
 namespace OpenMS
 {

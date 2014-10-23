@@ -36,6 +36,7 @@
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/BaseFeature.h>

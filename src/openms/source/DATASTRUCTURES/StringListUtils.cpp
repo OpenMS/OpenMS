@@ -33,10 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-
 #include <boost/mem_fn.hpp>
-
 #include <QStringList>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 using namespace std;
 

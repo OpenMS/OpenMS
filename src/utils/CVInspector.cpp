@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 
 using namespace OpenMS;
 using namespace std;

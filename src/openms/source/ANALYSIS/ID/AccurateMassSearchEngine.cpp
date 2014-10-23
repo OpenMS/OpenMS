@@ -49,6 +49,7 @@
 #include <numeric>
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 
 namespace OpenMS
 {

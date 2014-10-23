@@ -35,10 +35,9 @@
 #ifndef OPENMS_DATASTRUCTURES_ADDUCT_H
 #define OPENMS_DATASTRUCTURES_ADDUCT_H
 
-
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 namespace OpenMS
 {

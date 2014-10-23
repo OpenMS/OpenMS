@@ -38,6 +38,9 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
 class QString;
 
 namespace OpenMS

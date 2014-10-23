@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace std;
 

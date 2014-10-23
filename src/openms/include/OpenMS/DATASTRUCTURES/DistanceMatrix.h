@@ -37,10 +37,11 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/config.h>
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 

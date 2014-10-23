@@ -35,11 +35,12 @@
 #ifndef OPENMS_DATASTRUCTURES_CHARGEPAIR_H
 #define OPENMS_DATASTRUCTURES_CHARGEPAIR_H
 
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
 #include <iosfwd>
 #include <vector>
-
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
 
 namespace OpenMS
 {

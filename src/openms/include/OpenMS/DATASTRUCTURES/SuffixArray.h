@@ -37,17 +37,18 @@
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAY_H
 
 #include <vector>
-#include <OpenMS/CONCEPT/Exception.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
 
 
 namespace OpenMS
 {
   class String;
 
-/**
+  /**
     @brief abstract class for suffix array
-*/
-
+  */
   class OPENMS_DLLAPI SuffixArray
   {
 

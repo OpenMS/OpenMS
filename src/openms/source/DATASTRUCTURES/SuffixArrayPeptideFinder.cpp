@@ -32,18 +32,24 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
-#include <OpenMS/DATASTRUCTURES/SuffixArrayPeptideFinder.h>
 #include <OpenMS/CHEMISTRY/PepIterator.h>
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArray.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArrayPeptideFinder.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>
+
+#include <fstream>
+
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Factory.h>
+
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
-#include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>
-#include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
-#include <OpenMS/DATASTRUCTURES/SuffixArray.h>
-#include <fstream>
+
+#include <OpenMS/config.h>
 
 using namespace std;
 

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
 #include <iostream>

@@ -35,18 +35,21 @@
 #ifndef OPENMS_DATASTRUCTURES_GRIDFEATURE_H
 #define OPENMS_DATASTRUCTURES_GRIDFEATURE_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
+#include <set>
 
 namespace OpenMS
 {
+  class BaseFeature;
+  class AASequence;
 
-/**
- * @brief Representation of a feature in a hash grid.
- *
- * A GridFeature can be stored in a HashGrid and points to a BaseFeature (Feature or ConsensusFeature). Used for QT feature grouping (see QTClusterFinder).
- */
-
+  /**
+   * @brief Representation of a feature in a hash grid.
+   *
+   * A GridFeature can be stored in a HashGrid and points to a BaseFeature (Feature or ConsensusFeature). Used for QT feature grouping (see QTClusterFinder).
+   */
   class OPENMS_DLLAPI GridFeature
   {
 private:

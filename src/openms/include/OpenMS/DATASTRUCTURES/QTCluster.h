@@ -36,13 +36,17 @@
 #ifndef OPENMS_DATASTRUCTURES_QTCLUSTER_H
 #define OPENMS_DATASTRUCTURES_QTCLUSTER_H
 
-#include <OpenMS/DATASTRUCTURES/GridFeature.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/config.h>
+
 #include <boost/unordered_map.hpp>
 
 namespace OpenMS
 {
-
+  class GridFeature;
+  class AASequence;
+  
   // Boost switch since with 1.47 several classes got moved into a new
   // boost::unordered namespace (specifically unordered_map).
   namespace OpenMSBoost

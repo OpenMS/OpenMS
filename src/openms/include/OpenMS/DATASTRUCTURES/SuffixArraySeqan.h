@@ -37,14 +37,16 @@
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H
 
-#include <vector>
-#include <functional>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
-#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 
+#include <functional>
+#include <vector>
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {

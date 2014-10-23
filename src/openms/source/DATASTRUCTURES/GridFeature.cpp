@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 using namespace std;
 
@@ -42,7 +44,9 @@ namespace OpenMS
   GridFeature::GridFeature(const BaseFeature & feature, Size map_index,
                            Size feature_index) :
     feature_(feature),
-    map_index_(map_index), feature_index_(feature_index), annotations_()
+    map_index_(map_index),
+    feature_index_(feature_index),
+    annotations_()
   {
     const vector<PeptideIdentification> & peptides =
       feature.getPeptideIdentifications();

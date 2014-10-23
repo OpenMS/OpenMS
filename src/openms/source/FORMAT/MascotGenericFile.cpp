@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #define HIGH_PRECISION 8
 #define LOW_PRECISION 6

@@ -34,9 +34,13 @@
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
 #include <ctime>
+#include <iostream>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/config.h>
 
 using namespace std;
 

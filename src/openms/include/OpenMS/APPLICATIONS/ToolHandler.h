@@ -39,6 +39,8 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+class QStringList;
+
 namespace OpenMS
 {
   /**

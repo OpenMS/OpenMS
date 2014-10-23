@@ -34,6 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/BigString.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/config.h>
 
 #include <iostream>
 

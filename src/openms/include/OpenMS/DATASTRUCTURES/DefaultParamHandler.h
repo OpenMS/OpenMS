@@ -36,6 +36,8 @@
 #define OPENMS_DATASTRUCTURES_DEFAULTPARAMHANDLER_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
 
 #include <vector>
 

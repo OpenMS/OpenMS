@@ -36,8 +36,9 @@
 #define OPENMS_DATASTRUCTURES_DINTERVALBASE_H
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/CONCEPT/Types.h>
 
-#include <utility> // std::pair
+#include <utility>
 
 namespace OpenMS
 {

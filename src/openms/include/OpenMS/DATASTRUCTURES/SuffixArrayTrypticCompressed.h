@@ -36,9 +36,11 @@
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICCOMPRESSED_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICCOMPRESSED_H
 
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArray.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {

@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CVMappingFile.h>
+#include <OpenMS/DATASTRUCTURES/CVReference.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 #include <OpenMS/SYSTEM/File.h>
 
 using namespace xercesc;

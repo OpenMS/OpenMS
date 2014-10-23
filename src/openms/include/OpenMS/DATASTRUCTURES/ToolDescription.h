@@ -35,11 +35,11 @@
 #ifndef OPENMS_DATASTRUCTURES_TOOLDESCRIPTION_H
 #define OPENMS_DATASTRUCTURES_TOOLDESCRIPTION_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <map>
+
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {
