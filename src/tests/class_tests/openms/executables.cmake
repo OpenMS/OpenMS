@@ -220,6 +220,7 @@ set(math_executables_list
   AveragePosition_test
   BasicStatistics_test
   BilinearInterpolation_test
+  BSpline2d_test
   CubicSpline2d_test
   GammaDistributionFitter_test
   GaussFitter_test
@@ -434,6 +435,8 @@ set(analysis_executables_list
   StablePairFinder_test
   TransformationDescription_test
   TransformationModel_test
+  TransformationModelInterpolated_test
+  TransformationModelLinear_test
 )
 
 set(applications_executables_list
@@ -460,8 +463,6 @@ set(transformations_executables_list
   FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
-  # deprecated: FeatureFinderAlgorithmSimple_test
-  # deprecated: FeatureFinderAlgorithmSimplest_test
   FeatureFinderAlgorithm_test
   FeatureFinder_test
   Fitter1D_test
@@ -476,18 +477,15 @@ set(transformations_executables_list
   LevMarqFitter1D_test
   MaxLikeliFitter1D_test
   ModelDescription_test
-  ModelFitter_test
   OptimizePeakDeconvolution_test
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
   PeakPickerMaxima_test
-PeakWidthEstimator_test
+  PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test
   SeedListGenerator_test
-  SimpleExtender_test
-  SimpleSeeder_test
   TwoDOptimization_test
   TraceFitter_test
 )

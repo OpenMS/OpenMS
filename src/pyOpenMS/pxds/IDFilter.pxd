@@ -41,12 +41,16 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void filterIdentificationsByVariableModifications(PeptideIdentification& identification, libcpp_vector[String]& fixed_modifications, PeptideIdentification& filtered_identification) nogil except +
         void removeUnreferencedProteinHits(ProteinIdentification& identification, libcpp_vector[PeptideIdentification] peptide_identifications, ProteinIdentification& filtered_identification) nogil except +
+        void removeUnreferencedPeptideHits(ProteinIdentification identification, libcpp_vector[PeptideIdentification]& peptide_identifications, bool delete_unreferenced_peptide_hits) nogil except +
         void filterIdentificationsUnique(PeptideIdentification& identification, PeptideIdentification& filtered_identification) nogil except +
         void filterIdentificationsByMzError(PeptideIdentification& identification, double mass_error, bool unit_ppm, PeptideIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByRT(libcpp_vector[PeptideIdentification] identifications, double min_rt, double max_rt, libcpp_vector[PeptideIdentification]& filtered_identifications) nogil except +
+        void filterIdentificationsByMZ(libcpp_vector[PeptideIdentification] identifications, double min_mz, double max_mz, libcpp_vector[PeptideIdentification]& filtered_identifications) nogil except +
         void filterIdentificationsByRTPValues(PeptideIdentification& identification, PeptideIdentification& filtered_identification, double p_value) nogil except +
         void filterIdentificationsByRTFirstDimPValues(PeptideIdentification& identification, PeptideIdentification& filtered_identification, double p_value)  nogil except +
         void filterIdentificationsByThresholds(MSExperiment[Peak1D,ChromatogramPeak]& experiment, double peptide_threshold_fraction, double protein_threshold_fraction) nogil except +
         void filterIdentificationsByScores(MSExperiment[Peak1D,ChromatogramPeak]& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
         void filterIdentificationsByBestNHits(MSExperiment[Peak1D,ChromatogramPeak]& experiment, Size n) nogil except +
         void filterIdentificationsByProteins(MSExperiment[Peak1D,ChromatogramPeak]& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
+        bool filterIdentificationsByMetaValueRange(PeptideIdentification identification, String key, double low, double high, bool missing) nogil except +
 

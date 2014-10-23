@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,19 +55,19 @@ namespace OpenMS
 
     The following code demonstrates the use of this class:
     @code
-FeatureMap<> map;
-map.resize(10); //...fill map with data
+    FeatureMap<> map;
+    map.resize(10); //...fill map with data
 
-//Create pointer vector to the map
-ConstRefVector<FeatureMap<> > ref_vector(map);
-//Sort the pointer vector without changing the original data
-ref_vector.sortByIntensity();
+    //Create pointer vector to the map
+    ConstRefVector<FeatureMap<> > ref_vector(map);
+    //Sort the pointer vector without changing the original data
+    ref_vector.sortByIntensity();
     @endcode
 
-        @improvement Check if we can omit the iterator template arguments (Clemens)
+    @improvement Check if we can omit the iterator template arguments (Clemens)
 
-        @ingroup Datastructures
-    */
+    @ingroup Datastructures
+  */
   template <typename ContainerT>
   class ConstRefVector
   {
@@ -82,28 +82,28 @@ public:
 public:
       typedef ValueT ValueType;
       typedef ValueType value_type;
-      typedef typename std::vector<ValueType *>::difference_type difference_type;
-      typedef const value_type & reference;
-      typedef const value_type * pointer;
+      typedef typename std::vector<ValueType*>::difference_type difference_type;
+      typedef const value_type& reference;
+      typedef const value_type* pointer;
       typedef std::random_access_iterator_tag iterator_category;
 
       ConstRefVectorConstIterator()
       {
       }
 
-      ConstRefVectorConstIterator(const typename std::vector<ValueType *> * vec, unsigned int position)
+      ConstRefVectorConstIterator(const typename std::vector<ValueType*>* vec, unsigned int position)
       {
-        vector_ = (typename std::vector<ValueType *> *)vec;
+        vector_ = (typename std::vector<ValueType*>*)vec;
         position_ = position;
       }
 
-      ConstRefVectorConstIterator(typename std::vector<ValueType *> * vec, unsigned int position)
+      ConstRefVectorConstIterator(typename std::vector<ValueType*>* vec, unsigned int position)
       {
         vector_ = vec;
         position_ = position;
       }
 
-      ConstRefVectorConstIterator(const ConstRefVectorConstIterator & it)
+      ConstRefVectorConstIterator(const ConstRefVectorConstIterator& it)
       {
         vector_ = it.vector_;
         position_ = it.position_;
@@ -112,7 +112,7 @@ public:
       ~ConstRefVectorConstIterator()
       {}
 
-      ConstRefVectorConstIterator & operator=(const ConstRefVectorConstIterator & rhs)
+      ConstRefVectorConstIterator& operator=(const ConstRefVectorConstIterator& rhs)
       {
         if (this == &rhs) return *this;
 
@@ -122,37 +122,37 @@ public:
         return *this;
       }
 
-      bool operator<(const ConstRefVectorConstIterator & it) const
+      bool operator<(const ConstRefVectorConstIterator& it) const
       {
         return position_ < it.position_;
       }
 
-      bool operator>(const ConstRefVectorConstIterator & it) const
+      bool operator>(const ConstRefVectorConstIterator& it) const
       {
         return position_ > it.position_;
       }
 
-      bool operator<=(const ConstRefVectorConstIterator & it) const
+      bool operator<=(const ConstRefVectorConstIterator& it) const
       {
         return position_ < it.position_ || position_ == it.position_;
       }
 
-      bool operator>=(const ConstRefVectorConstIterator & it) const
+      bool operator>=(const ConstRefVectorConstIterator& it) const
       {
         return position_ > it.position_ || position_ == it.position_;
       }
 
-      bool operator==(const ConstRefVectorConstIterator & it) const
+      bool operator==(const ConstRefVectorConstIterator& it) const
       {
         return position_ == it.position_ && vector_ == it.vector_;
       }
 
-      bool operator!=(const ConstRefVectorConstIterator & it) const
+      bool operator!=(const ConstRefVectorConstIterator& it) const
       {
         return position_ != it.position_ || vector_ != it.vector_;
       }
 
-      ConstRefVectorConstIterator & operator++()
+      ConstRefVectorConstIterator& operator++()
       {
         position_ += 1;
         return *this;
@@ -165,7 +165,7 @@ public:
         return tmp;
       }
 
-      ConstRefVectorConstIterator & operator--()
+      ConstRefVectorConstIterator& operator--()
       {
         position_ -= 1;
         return *this;
@@ -192,24 +192,24 @@ public:
         return tmp;
       }
 
-      ConstRefVectorConstIterator & operator+=(difference_type n)
+      ConstRefVectorConstIterator& operator+=(difference_type n)
       {
         position_ += n;
         return *this;
       }
 
-      ConstRefVectorConstIterator & operator-=(difference_type n)
+      ConstRefVectorConstIterator& operator-=(difference_type n)
       {
         position_ -= n;
         return *this;
       }
 
-      friend difference_type operator-(const ConstRefVectorConstIterator & i1, const ConstRefVectorConstIterator & i2)
+      friend difference_type operator-(const ConstRefVectorConstIterator& i1, const ConstRefVectorConstIterator& i2)
       {
         return i1.position_ - i2.position_;
       }
 
-      friend ConstRefVectorConstIterator operator+(difference_type n, const ConstRefVectorConstIterator & i)
+      friend ConstRefVectorConstIterator operator+(difference_type n, const ConstRefVectorConstIterator& i)
       {
         ConstRefVectorConstIterator tmp(i);
         tmp.position_ += n;
@@ -233,7 +233,7 @@ public:
 
 protected:
 
-      typename std::vector<ValueType *> * vector_;
+      typename std::vector<ValueType*>* vector_;
       unsigned int position_;
     };
 
@@ -248,8 +248,8 @@ protected:
 public:
 
       typedef ValueT ValueType;
-      typedef typename ConstRefVectorConstIterator<ValueType>::value_type & reference;
-      typedef typename ConstRefVectorConstIterator<ValueType>::value_type * pointer;
+      typedef typename ConstRefVectorConstIterator<ValueType>::value_type& reference;
+      typedef typename ConstRefVectorConstIterator<ValueType>::value_type* pointer;
 
       using ConstRefVectorConstIterator<ValueType>::vector_;
       using ConstRefVectorConstIterator<ValueType>::position_;
@@ -259,12 +259,12 @@ public:
       {
       }
 
-      ConstRefVectorIterator(typename std::vector<ValueType *> * vec, unsigned int position) :
+      ConstRefVectorIterator(typename std::vector<ValueType*>* vec, unsigned int position) :
         ConstRefVectorConstIterator<ValueType>(vec, position)
       {
       }
 
-      ConstRefVectorIterator(const ConstRefVectorIterator<ValueType> & it) :
+      ConstRefVectorIterator(const ConstRefVectorIterator<ValueType>& it) :
         ConstRefVectorConstIterator<ValueType>(it)
       {
       }
@@ -288,7 +288,7 @@ public:
         return (*vector_)[position_];
       }
 
-      ConstRefVectorIterator & operator++()
+      ConstRefVectorIterator& operator++()
       {
         ConstRefVectorConstIterator<ValueType>::position_ += 1;
         return *this;
@@ -301,7 +301,7 @@ public:
         return tmp;
       }
 
-      ConstRefVectorIterator & operator--()
+      ConstRefVectorIterator& operator--()
       {
         ConstRefVectorConstIterator<ValueType>::position_ -= 1;
         return *this;
@@ -328,26 +328,26 @@ public:
         return tmp;
       }
 
-      friend ConstRefVectorIterator operator+(typename ConstRefVectorIterator::difference_type n, const ConstRefVectorIterator & i)
+      friend ConstRefVectorIterator operator+(typename ConstRefVectorIterator::difference_type n, const ConstRefVectorIterator& i)
       {
         ConstRefVectorIterator tmp(i);
         tmp.position_ += n;
         return tmp;
       }
 
-      ConstRefVectorIterator & operator+=(typename ConstRefVectorIterator::difference_type n)
+      ConstRefVectorIterator& operator+=(typename ConstRefVectorIterator::difference_type n)
       {
         ConstRefVectorConstIterator<ValueType>::position_ += n;
         return *this;
       }
 
-      ConstRefVectorIterator & operator-=(typename ConstRefVectorIterator::difference_type n)
+      ConstRefVectorIterator& operator-=(typename ConstRefVectorIterator::difference_type n)
       {
         ConstRefVectorConstIterator<ValueType>::position_ -= n;
         return *this;
       }
 
-      friend void swap(ConstRefVectorIterator & i1, ConstRefVectorIterator & i2)
+      friend void swap(ConstRefVectorIterator& i1, ConstRefVectorIterator& i2)
       {
         unsigned int tmp = i1.position_;
         i1.position_ = i2.position_;
@@ -385,9 +385,9 @@ public:
 
 
     /// See std::vector documentation.
-    void push_back(const ValueType & x)
+    void push_back(const ValueType& x)
     {
-      const ValueType * element = &x;
+      const ValueType* element = &x;
       vector_.push_back(element);
     }
 
@@ -430,25 +430,25 @@ public:
     /// See std::vector documentation.
     Iterator begin()
     {
-      return Iterator((std::vector<const ValueType *> *) & vector_, (unsigned int)0);
+      return Iterator((std::vector<const ValueType*>*) & vector_, (unsigned int)0);
     }
 
     /// See std::vector documentation.
     Iterator end()
     {
-      return Iterator((std::vector<const ValueType *> *) & vector_, (unsigned int)(vector_.size()));
+      return Iterator((std::vector<const ValueType*>*) & vector_, (unsigned int)(vector_.size()));
     }
 
     /// See std::vector documentation.
     ConstIterator begin() const
     {
-      return ConstIterator((const std::vector<const ValueType *> *) & vector_, (unsigned int)0);
+      return ConstIterator((const std::vector<const ValueType*>*) & vector_, (unsigned int)0);
     }
 
     /// See std::vector documentation.
     ConstIterator end() const
     {
-      return ConstIterator((const std::vector<const ValueType *> *) & vector_, (unsigned int)(vector_.size()));
+      return ConstIterator((const std::vector<const ValueType*>*) & vector_, (unsigned int)(vector_.size()));
     }
 
     /// See std::vector documentation.
@@ -483,7 +483,7 @@ public:
     }
 
     /// See std::vector documentation.
-    void resize(size_type new_size, const ValueType & t)
+    void resize(size_type new_size, const ValueType& t)
     {
       vector_.resize(new_size, &t);
       capacity_ = vector_.capacity();
@@ -520,7 +520,7 @@ public:
     }
 
     /// See std::vector documentation.
-    bool operator==(const ConstRefVector & array) const
+    bool operator==(const ConstRefVector& array) const
     {
       if (base_container_ptr_ != array.base_container_ptr_)
       {
@@ -545,60 +545,60 @@ public:
     }
 
     /// See std::vector documentation.
-    bool operator!=(const ConstRefVector & array) const
+    bool operator!=(const ConstRefVector& array) const
     {
       return !(operator==(array));
     }
 
     /// Comparison of container sizes
-    bool operator<(const ConstRefVector & array) const
+    bool operator<(const ConstRefVector& array) const
     {
       return size() < array.size();
     }
 
     /// Comparison of container sizes
-    bool operator>(const ConstRefVector & array) const
+    bool operator>(const ConstRefVector& array) const
     {
       return size() > array.size();
     }
 
     /// Comparison of container sizes
-    bool operator<=(const ConstRefVector & array) const
+    bool operator<=(const ConstRefVector& array) const
     {
       return operator<(array) || operator==(array);
     }
 
     /// Comparison of container sizes
-    bool operator>=(const ConstRefVector & array) const
+    bool operator>=(const ConstRefVector& array) const
     {
       return operator>(array) || operator==(array);
     }
 
     /// See std::vector documentation.
-    void swap(ConstRefVector & array)
+    void swap(ConstRefVector& array)
     {
       vector_.swap(array.vector_);
     }
 
     /// See std::vector documentation.
-    friend void swap(ConstRefVector & a1, ConstRefVector & a2)
+    friend void swap(ConstRefVector& a1, ConstRefVector& a2)
     {
       a1.vector_.swap(a2.vector_);
     }
 
     /// See std::vector documentation.
-    Iterator insert(Iterator pos, const ValueType & element)
+    Iterator insert(Iterator pos, const ValueType& element)
     {
-      const ValueType * pointer = &element;
+      const ValueType* pointer = &element;
       vector_.insert(vector_.begin() + pos.position_, pointer);
       return pos;
     }
 
     /// See std::vector documentation.
-    void insert(Iterator pos, size_type n, const ValueType & element)
+    void insert(Iterator pos, size_type n, const ValueType& element)
     {
-      const ValueType * pointer;
-      std::vector<const ValueType *> tmp;
+      const ValueType* pointer;
+      std::vector<const ValueType*> tmp;
       for (size_type i = 0; i < n; i++)
       {
         pointer = &element;
@@ -611,8 +611,8 @@ public:
     template <class InputIterator>
     void insert(Iterator pos, InputIterator f, InputIterator l)
     {
-      const ValueType * pointer;
-      std::vector<const ValueType *> tmp;
+      const ValueType* pointer;
+      std::vector<const ValueType*> tmp;
       for (InputIterator it = f; it != l; ++it)
       {
         pointer = &(*it);
@@ -649,23 +649,23 @@ public:
       capacity_(0),
       base_container_ptr_(0)
     {
-      vector_ = std::vector<const ValueType *>(n);
+      vector_ = std::vector<const ValueType*>(n);
     }
 
     /// See std::vector documentation.
-    ConstRefVector(size_type n, const ValueType & element) :
+    ConstRefVector(size_type n, const ValueType& element) :
       capacity_(0),
       base_container_ptr_(0)
     {
-      vector_ = std::vector<const ValueType *>(n, &element);
+      vector_ = std::vector<const ValueType*>(n, &element);
     }
 
     /// See std::vector documentation.
-    ConstRefVector(const ConstRefVector & p) :
+    ConstRefVector(const ConstRefVector& p) :
       capacity_(0),
       base_container_ptr_(p.base_container_ptr_)
     {
-      const ValueType * element;
+      const ValueType* element;
       for (ConstIterator it = p.begin(); it != p.end(); ++it)
       {
         element = &(*it);
@@ -679,7 +679,7 @@ public:
       capacity_(0),
       base_container_ptr_(0)
     {
-      const ValueType * pointer;
+      const ValueType* pointer;
       for (InputIterator it = f; it != l; ++it)
       {
         pointer = &(*it);
@@ -688,11 +688,11 @@ public:
     }
 
     /// See std::vector documentation.
-    ConstRefVector(ContainerType & p) :
+    ConstRefVector(ContainerType& p) :
       capacity_(0),
       base_container_ptr_(&p)
     {
-      const ValueType * element;
+      const ValueType* element;
       for (typename ContainerType::iterator it = p.begin(); it != p.end(); ++it)
       {
         element = &(*it);
@@ -708,14 +708,14 @@ public:
     //@}
 
     /// See std::vector documentation.
-    ConstRefVector & operator=(const ConstRefVector & rhs)
+    ConstRefVector& operator=(const ConstRefVector& rhs)
     {
       if (this == &rhs) return *this;
 
       base_container_ptr_ = rhs.base_container_ptr_;
       clear();
       reserve(rhs.size());
-      const ValueType * element;
+      const ValueType* element;
       for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
       {
         element = &(*it);
@@ -734,7 +734,7 @@ public:
     }
 
     /// See std::vector documentation.
-    void assign(size_type n, const ValueType & x)
+    void assign(size_type n, const ValueType& x)
     {
       clear();
       insert(end(), n, x);
@@ -784,7 +784,7 @@ public:
     */
     //@{
     template <typename ComparatorType>
-    void sortByComparator(ComparatorType const & comparator = ComparatorType())
+    void sortByComparator(ComparatorType const& comparator = ComparatorType())
     {
       std::sort(vector_.begin(), vector_.end(), pointerComparator(comparator));
     }
@@ -796,11 +796,11 @@ public:
 protected:
 
     ///the internal vector of ValueType pointers
-    std::vector<const ValueType *> vector_;
+    std::vector<const ValueType*> vector_;
     ///the current capacity
     size_type capacity_;
     /// Pointer to the base container
-    const ContainerType * base_container_ptr_;
+    const ContainerType* base_container_ptr_;
   };
 
 } // namespace OpenMS

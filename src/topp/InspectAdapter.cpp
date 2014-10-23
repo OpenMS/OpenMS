@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -190,8 +190,8 @@ protected:
 
     registerTOPPSubsection_("blind", "Options for blind search");
     registerFlag_("blind:blind", "perform a blind search (allowing arbitrary modification masses),\n"
-                           "is preceeded by a normal search to gain a smaller database.\n"
-                           "(in full mode only)");
+                                 "is preceeded by a normal search to gain a smaller database.\n"
+                                 "(in full mode only)");
     registerFlag_("blind:blind_only", "like blind but no prior search is performed to reduce the database size");
     registerDoubleOption_("blind:p_value_blind", "<prob>", 1.0, "used for generating the minimized database", false);
     registerStringOption_("blind:snd_db", "<file>", "", "name of the minimized trie database generated when using blind mode.", false);
@@ -203,7 +203,7 @@ protected:
     registerStringOption_("contact_info", "<info>", "unknown", "Some information about the contact", false);
   }
 
-  ExitCodes main_(Int, const char **)
+  ExitCodes main_(Int, const char**)
   {
     //-------------------------------------------------------------
     // (1) variables
@@ -213,7 +213,7 @@ protected:
     InspectOutfile inspect_outfile;
 
     vector<String>
-      trie_database_filenames,
+    trie_database_filenames,
       sequence_database_filenames,
       index_filenames;
 
@@ -236,7 +236,7 @@ protected:
       isotope_filename;
 
     bool
-    inspect_in(false),
+      inspect_in(false),
     inspect_out(false),
     blind_only(false),
     blind(false),
@@ -281,7 +281,7 @@ protected:
       {
         PTMXMLFile().load(modifications_filename, PTM_informations);
       }
-      catch (Exception::ParseError & pe)
+      catch (Exception::ParseError& pe)
       {
         writeLog_(pe.getMessage());
         return PARSE_ERROR;
@@ -359,9 +359,9 @@ protected:
         String type;
         try
         {
-          inspect_outfile.getExperiment(experiment, type, string_buffer);               // may throw an exception if the filetype could not be determined
+          inspect_outfile.getExperiment(experiment, type, string_buffer); // may throw an exception if the filetype could not be determined
         }
-        catch (Exception::ParseError & pe)
+        catch (Exception::ParseError& pe)
         {
           writeLog_(pe.getMessage());
           return PARSE_ERROR;
@@ -589,17 +589,17 @@ protected:
         {
           inspect_infile.handlePTMs(string_buffer, modifications_filename, monoisotopic);
         }
-        catch (Exception::FileNotFound & /*fnf_e*/)
+        catch (Exception::FileNotFound& /*fnf_e*/)
         {
           writeLog_("No modifications XML file given. Aborting!");
           return INPUT_FILE_NOT_FOUND;
         }
-        catch (Exception::FileNotReadable & /*fnr_e*/)
+        catch (Exception::FileNotReadable& /*fnr_e*/)
         {
           writeLog_("Modifications XML file is not readable. Aborting!");
           return INPUT_FILE_NOT_READABLE;
         }
-        catch (Exception::ParseError & p_e)
+        catch (Exception::ParseError& p_e)
         {
           writeLog_(String(p_e.getMessage()) + ". Aborting!");
           return PARSE_ERROR;
@@ -712,7 +712,7 @@ protected:
     // creating the input file and converting and merging the databases
     if (exit_code == EXECUTION_OK && inspect_in)
     {
-      if (!sequence_database_filenames.empty() || trie_database_filenames.size() != 1)             // don't do it, if only one trie database is given
+      if (!sequence_database_filenames.empty() || trie_database_filenames.size() != 1) // don't do it, if only one trie database is given
       {
         // merging the trie databases (all but the first databases are appended)
         vector<String>::const_iterator index_filenames_itt = index_filenames.begin();
@@ -752,7 +752,9 @@ protected:
       Int status = QProcess::execute((inspect_directory + "inspect").toQString(), QStringList(call.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
       if (status != 0)
       {
-        string_buffer = ListUtils::concatenate(TextFile(inspect_logfile));
+        TextFile tf(inspect_logfile);
+        string_buffer.clear();
+        string_buffer.concatenate(tf.begin(), tf.end());
         writeLog_("Inspect problem: " + string_buffer + " Aborting!");
 
         exit_code = EXTERNAL_PROGRAM_ERROR;
@@ -799,7 +801,9 @@ protected:
       Int status = QProcess::execute((inspect_directory + "inspect").toQString(), QStringList(call.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
       if (status != 0)
       {
-        string_buffer = ListUtils::concatenate(TextFile(inspect_logfile));
+        TextFile tf(inspect_logfile);
+        string_buffer.clear();
+        string_buffer.concatenate(tf.begin(), tf.end());
         writeLog_("Inspect problem: " + string_buffer + ". Aborting!");
         exit_code =  EXTERNAL_PROGRAM_ERROR;
       }
@@ -811,7 +815,7 @@ protected:
       ProteinIdentification protein_identification;
       IdXMLFile idXML_file;
 
-      if (inspect_in)             // the version can only be retrieved by running inspect without parameters
+      if (inspect_in) // the version can only be retrieved by running inspect without parameters
       {
         // first get the InsPecT version
         QProcess builder;
@@ -850,7 +854,7 @@ protected:
           {
             inspect_outfile.load(inspect_output_filename, peptide_identifications, protein_identification, p_value_threshold, inspect_infile.getDb());
           }
-          catch (Exception::ParseError & pe)
+          catch (Exception::ParseError& pe)
           {
             writeLog_(pe.getMessage());
             exit_code = INPUT_FILE_CORRUPT;
@@ -886,7 +890,7 @@ protected:
 
 };
 
-Int main(Int argc, const char ** argv)
+Int main(Int argc, const char** argv)
 {
   TOPPInspectAdapter tool;
 
@@ -894,4 +898,3 @@ Int main(Int argc, const char ** argv)
 }
 
 ///@endcond
-

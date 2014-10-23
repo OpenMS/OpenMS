@@ -38,6 +38,7 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         libcpp_vector[Feature] getSubordinates() nogil except +
         void setSubordinates(libcpp_vector[Feature]) nogil except +
 
+        bool encloses(double rt, double mz) nogil except +
         ConvexHull2D getConvexHull()                 nogil except +
         libcpp_vector[ConvexHull2D] getConvexHulls() nogil except +
         void setConvexHulls(libcpp_vector[ConvexHull2D]) nogil except +

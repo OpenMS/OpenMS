@@ -9,9 +9,10 @@ from Peak1D cimport *
 from PeptideIdentification cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
+from DPosition cimport DPosition2
 
 
-ctypedef libcpp_vector[ DPosition2] SeedList
+ctypedef libcpp_vector[DPosition2] SeedList
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>" namespace "OpenMS":
 
@@ -26,5 +27,5 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>" na
         void generateSeedList(ConsensusMap & consensus, Map[unsigned long, libcpp_vector[DPosition2] ] & seeds) nogil except +  # wrap-ignore
         # TODO nested STL
         # void generateSeedLists(ConsensusMap & consensus, Map[ UInt64, libcpp_vector[ DPosition2] ] & seed_lists) nogil except +
-        void convertSeedList(libcpp_vector[ DPosition2] & seeds, FeatureMap[Feature] & features) nogil except +
-        void convertSeedList(FeatureMap[Feature] & features, libcpp_vector[ DPosition2] & seeds) nogil except +
+        void convertSeedList(libcpp_vector[ DPosition2] & seeds, FeatureMap & features) nogil except +
+        void convertSeedList(FeatureMap & features, libcpp_vector[ DPosition2] & seeds) nogil except +

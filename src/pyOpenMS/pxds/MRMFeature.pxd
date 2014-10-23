@@ -20,3 +20,7 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
         libcpp_vector[Feature] getFeatures() nogil except +
         void getFeatureIDs(libcpp_vector[String] & result) nogil except +
 
+        Feature getPrecursorFeature(String key) nogil except +
+        void addPrecursorFeature(Feature & f, String key) nogil except +
+        void getPrecursorFeatureIDs(libcpp_vector[String] & result) nogil except +
+

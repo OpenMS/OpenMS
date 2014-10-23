@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -137,7 +137,7 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D> & chromatograms,
-        FeatureMap<Feature>& output, TargetedExperiment& transition_exp_,
+        FeatureMap& output, TargetedExperiment& transition_exp_,
         TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
@@ -154,7 +154,7 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
-        FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
+        FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
         TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map,
         TransitionGroupMapType& transition_group_map)
   {
@@ -237,7 +237,7 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
         TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map,
-        FeatureMap<Feature>& output)
+        FeatureMap& output)
   {
     typedef MRMTransitionGroupType::PeakType PeakT;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;

@@ -2,6 +2,7 @@ from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 from MSExperiment cimport *
 from MSSpectrum cimport *
+from MSChromatogram cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
 
@@ -12,9 +13,10 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/GaussFilter.h>" namespace "OpenMS"
         #    DefaultParamHandler
         #    ProgressLogger
 
-        GaussFilter()      nogil except +
-        GaussFilter(GaussFilter)      nogil except +
+        GaussFilter() nogil except +
+        GaussFilter(GaussFilter) nogil except +
 
-        void filter(MSSpectrum[Peak1D] & spectrum)      nogil except +
-        void filterExperiment(MSExperiment[Peak1D,ChromatogramPeak] & exp)      nogil except +
+        void filter(MSSpectrum[Peak1D] & spectrum) nogil except +
+        void filter(MSChromatogram[ChromatogramPeak] & chromatogram) nogil except +
+        void filterExperiment(MSExperiment[Peak1D,ChromatogramPeak] & exp) nogil except +
 

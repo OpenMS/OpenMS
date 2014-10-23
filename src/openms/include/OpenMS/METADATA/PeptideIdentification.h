@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -171,14 +171,15 @@ public:
 
 
 protected:
-    String id_;                                                          ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
+    String id_;                                  ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_;               ///< A list containing the peptide hits
     double significance_threshold_;              ///< the peptide significance threshold
-    String score_type_;                                      ///< The score type (Mascot, Sequest, e-value, p-value)
-    bool higher_score_better_;                       ///< The score orientation
+    String score_type_;                          ///< The score type (Mascot, Sequest, e-value, p-value)
+    bool higher_score_better_;                   ///< The score orientation
     String base_name_;
     double mz_;
     double rt_;
+
   };
 
 } //namespace OpenMS

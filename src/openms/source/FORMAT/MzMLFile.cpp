@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,28 +51,30 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions & MzMLFile::getOptions()
+  PeakFileOptions& MzMLFile::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions & MzMLFile::getOptions() const
+  const PeakFileOptions& MzMLFile::getOptions() const
   {
     return options_;
   }
 
-  void MzMLFile::setOptions(const PeakFileOptions & options)
+  void MzMLFile::setOptions(const PeakFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
 
   //reimplemented in order to handle index MzML
-  bool MzMLFile::isValid(const String & filename, std::ostream & os)
+  bool MzMLFile::isValid(const String& filename, std::ostream& os)
   {
     //determine if this is indexed mzML or not
     bool indexed = false;
     TextFile file(filename, true, 4);
-    if (ListUtils::concatenate(file).hasSubstring("<indexedmzML"))
+    String s;
+    s.concatenate(file.begin(), file.end());
+    if (s.hasSubstring("<indexedmzML"))
     {
       indexed = true;
     }
@@ -90,7 +92,7 @@ namespace OpenMS
     return XMLValidator().isValid(filename, current_location, os);
   }
 
-  bool MzMLFile::isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings)
+  bool MzMLFile::isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings)
   {
     //load mapping
     CVMappings mapping;
@@ -111,7 +113,7 @@ namespace OpenMS
     return result;
   }
 
-  void MzMLFile::loadSize(const String & filename, Size& scount, Size& ccount)
+  void MzMLFile::loadSize(const String& filename, Size& scount, Size& ccount)
   {
     typedef MSExperiment<> MapType;
 
@@ -128,7 +130,7 @@ namespace OpenMS
     options_.setSizeOnly(size_only_before_);
   }
 
-  void MzMLFile::safeParse_(const String & filename, Internal::XMLHandler * handler)
+  void MzMLFile::safeParse_(const String& filename, Internal::XMLHandler* handler)
   {
     try
     {
@@ -151,4 +153,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,74 +44,75 @@
 
 namespace OpenMS
 {
+  /**
+   * @brief data structure storing a single peak that passed all filters
+   * 
+   * Each peak filter result corresponds to a successful search for a particular
+   * peak pattern in the centroided data. The actual m/z shifts seen in the filter
+   * result might differ from the theoretical shifts listed in the peak pattern.
+   * 
+   * @see MultiplexPeakPattern
+   */
+  class OPENMS_DLLAPI MultiplexFilterResultPeak
+  {
+    public:
     /**
-     * @brief data structure storing a single peak that passed all filters
-     * 
-     * Each peak filter result corresponds to a successful search for a particular
-     * peak pattern in the centroided data. The actual m/z shifts seen in the filter
-     * result might differ from the theoretical shifts listed in the peak pattern.
-     * 
-     * @see MultiplexPeakPattern
+     * @brief constructor
      */
-    class OPENMS_DLLAPI MultiplexFilterResultPeak
-    {
-        public:
-        /**
-         * @brief constructor
-         */
-        MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts, std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> rawDataPoints);
+    MultiplexFilterResultPeak(double mz, double rt, std::vector<double> mz_shifts,
+                              std::vector<double> intensities, std::vector<MultiplexFilterResultRaw> rawDataPoints);
 
-         /**
-         * @brief returns m/z of the peak
-         */
-         double getMZ() const;
-         
-         /**
-         * @brief returns RT of the peak
-         */
-         double getRT() const;
-         
-        /**
-         * @brief returns m/z shifts
-         */
-        std::vector<double> getMZShifts() const;
+     /**
+     * @brief returns m/z of the peak
+     */
+     double getMZ() const;
+     
+     /**
+     * @brief returns RT of the peak
+     */
+     double getRT() const;
+     
+    /**
+     * @brief returns m/z shifts
+     */
+    std::vector<double> getMZShifts() const;
 
-        /**
-         * @brief returns intensities
-         */
-        std::vector<double> getIntensities() const;
-        
-        /**
-         * @brief returns the numer of raw data points belonging to the peak
-         */
-         int size() const;
-         
-         /**
-         * @brief returns a single raw data point belonging to the peak
-         */
-         MultiplexFilterResultRaw getFilterResultRaw(int i) const;
-         
-         private:
-        /**
-         * @brief position of the peak
-         */
-        double mz_;
-        double rt_;
- 
-        /**
-         * @brief m/z shifts at which peaks corresponding to a pattern were found
-         */
-        std::vector<double> mz_shifts_;
+    /**
+     * @brief returns intensities
+     */
+    std::vector<double> getIntensities() const;
+    
+    /**
+     * @brief returns the number of raw data points belonging to the peak
+     */
+     int size() const;
+     
+     /**
+     * @brief returns a single raw data point belonging to the peak
+     */
+     MultiplexFilterResultRaw getFilterResultRaw(int i) const;
+     
+     private:
+    /**
+     * @brief position of the peak
+     */
+    double mz_;
+    double rt_;
 
-        /**
-         * @brief peak intensities at mz_ + mz_shifts_
-         */
-        std::vector<double> intensities_;
+    /**
+     * @brief m/z shifts at which peaks corresponding to a pattern were found
+     */
+    std::vector<double> mz_shifts_;
 
-        /**
-         * @brief (optional) raw data points corresponding to the peak
-         */
-        std::vector<MultiplexFilterResultRaw> raw_data_points_;
+    /**
+     * @brief peak intensities at mz_ + mz_shifts_
+     */
+    std::vector<double> intensities_;
+
+    /**
+     * @brief (optional) raw data points corresponding to the peak
+     */
+    std::vector<MultiplexFilterResultRaw> raw_data_points_;
  
   };
   

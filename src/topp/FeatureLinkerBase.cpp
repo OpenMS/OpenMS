@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,7 +118,7 @@ protected:
     ConsensusMap out_map;
     if (file_type == FileTypes::FEATUREXML)
     {
-      vector<FeatureMap<> > maps(ins.size());
+      vector<FeatureMap > maps(ins.size());
       FeatureXMLFile f;
       for (Size i = 0; i < ins.size(); ++i)
       {
@@ -127,7 +127,7 @@ protected:
         out_map.getFileDescriptions()[i].size = maps[i].size();
         out_map.getFileDescriptions()[i].unique_id = maps[i].getUniqueId();
         // to save memory, remove convex hulls and subordinates:
-        for (FeatureMap<>::Iterator it = maps[i].begin(); it != maps[i].end();
+        for (FeatureMap::Iterator it = maps[i].begin(); it != maps[i].end();
              ++it)
         {
           it->getSubordinates().clear();

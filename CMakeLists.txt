@@ -51,6 +51,16 @@ if (NOT CMAKE_SIZEOF_VOID_P)
                       " CMake version.")
 endif()
 
+
+#------------------------------------------------------------------------------
+# -> used from VTK
+# Set a consistent MACOSX_RPATH default across all CMake versions.
+# When CMake 2.8.12 is required, change this default to 1.
+# When CMake 3.0.0 is required, remove this block (see CMP0042).
+if (NOT DEFINED CMAKE_MACOSX_RPATH)
+  set(CMAKE_MACOSX_RPATH 0)
+endif()
+
 #------------------------------------------------------------------------------
 # Include the standard Dart testing module
 # for Nightly Build log
@@ -70,6 +80,7 @@ option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
+option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 
 #------------------------------------------------------------------------------
 # Extend module path with our modules

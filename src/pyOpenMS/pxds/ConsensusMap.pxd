@@ -10,7 +10,6 @@ from ProteinIdentification cimport *
 from PeptideIdentification cimport *
 from DataProcessing cimport *
 from Types cimport *
-from Map cimport *
 from DocumentIdentifier cimport *
 from RangeManager cimport *
 
@@ -29,10 +28,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
     # ... forgot why Map[..] did not work
-    ctypedef Map[unsigned long int, FileDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
-    ctypedef Map[unsigned long int, FileDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
-
-
+    ctypedef libcpp_map[unsigned long int, FileDescription] FileDescriptions "OpenMS::ConsensusMap::FileDescriptions"
+    ctypedef libcpp_map[unsigned long int, FileDescription].iterator FileDescriptions_iterator "OpenMS::ConsensusMap::FileDescriptions::iterator"
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
@@ -97,4 +94,6 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         # wrapped in ../addons/ConsensusMap.pyx:
         void setFileDescriptions(FileDescriptions &)   #wrap-ignore
         FileDescriptions & getFileDescriptions()       #wrap-ignore
-  
+
+        String getExperimentType() nogil except +
+        void setExperimentType(String experiment_type) nogil except +

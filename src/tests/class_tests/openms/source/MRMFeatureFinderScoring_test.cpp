@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
 {
   MRMFeatureFinderScoring ff;
   MRMFeature feature;
-  FeatureMap<> featureFile;
+  FeatureMap featureFile;
   TransformationDescription trafo;
   boost::shared_ptr<PeakMap> swath_map (new PeakMap);
   TransitionGroupMapType transition_group_map;
@@ -169,7 +169,7 @@ START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr in
 {
   MRMFeatureFinderScoring ff;
   MRMFeature feature;
-  FeatureMap<> featureFile;
+  FeatureMap featureFile;
   TransformationDescription trafo;
   PeakMap swath_map;
   TransitionGroupMapType transition_group_map;
@@ -227,7 +227,7 @@ START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr in
 }
 END_SECTION
 
-START_SECTION( void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, FeatureMap<Feature>& output) ) 
+START_SECTION( void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, FeatureMap& output) ) 
 {
   NOT_TESTABLE // tested above
 }

@@ -51,15 +51,23 @@ foreach(i ${UTILS_executables})
   target_link_libraries(${i} ${OpenMS_LIBRARIES})
 endforeach(i)
 
+# some regular UTILS tools need the GUI lib, only build them when WITH_GUI is enabled
+if(WITH_GUI)
+  ## some regular UTILS need the GUI lib
+  include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
+  foreach(i ${UTILS_executables_with_GUIlib})
+    add_executable(${i} ${i}.cpp)
+    # we also want to install each util
+    install_tool(${i})
+    target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
+  endforeach()
+
+  set(UTILS_executables ${UTILS_executables} ${UTILS_executables_with_GUIlib})
+endif()
+
 # collection target
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
-
-## some regular UTILS need the GUI lib
-include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
-foreach(i ${UTILS_executables_with_GUIlib})
-  target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
-endforeach(i)
 
 # FFSuperHirn requires linking against SuperHirn
 include_directories(SYSTEM ${SuperHirn_INCLUDE_DIRECTORIES})

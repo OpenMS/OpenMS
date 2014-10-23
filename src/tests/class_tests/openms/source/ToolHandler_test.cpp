@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ END_SECTION
 START_SECTION((static ToolListType getUtilList()))
 {
   ToolListType list = ToolHandler::getUtilList();
-  TEST_EQUAL(list.has("ImageCreator"), true)
+  TEST_EQUAL(list.has("SemanticValidator"), true)
   TEST_EQUAL(list.has("FFEval"), true)
   TEST_EQUAL(list.size() > 10, true)  // assume we have over 10 tools in there
 }

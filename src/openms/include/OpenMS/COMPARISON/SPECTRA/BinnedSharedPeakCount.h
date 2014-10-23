@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,18 +44,18 @@ namespace OpenMS
 {
 
   /**
-      @brief Compare functor scoring the shared peaks for similarity measurement
+    @brief Compare functor scoring the shared peaks for similarity measurement
 
-        The details of the score can be found in:
-        K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from
-        similarity index to spectral contrast angle. Journal of the American Society
-        for Mass Spectrometry, 13(1):85{88, January 2002.
+    The details of the score can be found in:
+    K. Wan, I. Vidavsky, and M. Gross. Comparing similar spectra: from
+    similarity index to spectral contrast angle. Journal of the American Society
+    for Mass Spectrometry, 13(1):85{88, January 2002.
 
-        @htmlinclude OpenMS_BinnedSharedPeakCount.parameters
+    @htmlinclude OpenMS_BinnedSharedPeakCount.parameters
 
-        @see BinnedSpectrumCompareFunctor @see BinnedSpectrum
+    @see BinnedSpectrumCompareFunctor @see BinnedSpectrum
 
-        @ingroup SpectraComparison
+    @ingroup SpectraComparison
   */
 
   class OPENMS_DLLAPI BinnedSharedPeakCount :
@@ -67,27 +67,27 @@ public:
     BinnedSharedPeakCount();
 
     /// copy constructor
-    BinnedSharedPeakCount(const BinnedSharedPeakCount & source);
+    BinnedSharedPeakCount(const BinnedSharedPeakCount& source);
 
     /// destructor
     virtual ~BinnedSharedPeakCount();
 
     /// assignment operator
-    BinnedSharedPeakCount & operator=(const BinnedSharedPeakCount & source);
+    BinnedSharedPeakCount& operator=(const BinnedSharedPeakCount& source);
 
     /** function call operator, calculates the similarity of the given arguments
 
-                @param spec1 First spectrum given as a binned representation
-                @param spec2 Second spectrum given as a binned representation
-                @throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
-        */
-    double operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const;
+      @param spec1 First spectrum given as a binned representation
+      @param spec2 Second spectrum given as a binned representation
+      @throw IncompatibleBinning is thrown if the binning of the two input spectra are not the same
+    */
+    double operator()(const BinnedSpectrum& spec1, const BinnedSpectrum& spec2) const;
 
     /// function call operator, calculates self similarity
-    double operator()(const BinnedSpectrum & spec) const;
+    double operator()(const BinnedSpectrum& spec) const;
 
     ///
-    static BinnedSpectrumCompareFunctor * create() { return new BinnedSharedPeakCount(); }
+    static BinnedSpectrumCompareFunctor* create() { return new BinnedSharedPeakCount(); }
 
     /// get the identifier for this DefaultParamHandler
     static const String getProductName()
@@ -95,6 +95,9 @@ public:
       return "BinnedSharedPeakCount";
     }
 
+protected:
+    void updateMembers_();
+    double precursor_mass_tolerance_;
   };
 
 }

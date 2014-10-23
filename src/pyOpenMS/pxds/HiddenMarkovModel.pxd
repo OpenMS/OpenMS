@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         double getTransitionProbability(String & s1, String & s2) nogil except +
         void setTransitionProbability(String & s1, String & s2, double prob) nogil except +
         Size getNumberOfStates() nogil except +
-        # POINTER # void addNewState(HMMState * state) nogil except +
+        void addNewState(HMMState * state) nogil except +
         void addNewState(String & name) nogil except +
         void addSynonymTransition(String & name1, String & name2, String & synonym1, String & synonym2) nogil except +
         void evaluate() nogil except +
@@ -30,8 +30,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         void dump() nogil except +
         void forwardDump() nogil except +
         void estimateUntrainedTransitions() nogil except +
-        # POINTER # HMMState * getState(String & name) nogil except +
-        # POINTER # HMMState * getState(String & name) nogil except +
+        HMMState * getState(String & name) nogil except +
         void clear() nogil except +
         void setPseudoCounts(double pseudo_counts) nogil except +
         double getPseudoCounts() nogil except +
@@ -47,10 +46,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         String  getName() nogil except +
         void setHidden(bool hidden) nogil except +
         bool isHidden() nogil except +
-        # POINTER # void addPredecessorState(HMMState * state) nogil except +
-        # POINTER # void deletePredecessorState(HMMState * state) nogil except +
-        # POINTER # void addSuccessorState(HMMState * state) nogil except +
-        # POINTER # void deleteSuccessorState(HMMState * state) nogil except +
+        void addPredecessorState(HMMState * state) nogil except +
+        void deletePredecessorState(HMMState * state) nogil except +
+        void addSuccessorState(HMMState * state) nogil except +
+        void deleteSuccessorState(HMMState * state) nogil except +
         # POINTER # libcpp_set[ HMMState * ]  getPredecessorStates() nogil except +
         # POINTER # libcpp_set[ HMMState * ]  getSuccessorStates() nogil except +
 

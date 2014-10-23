@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ using namespace OpenMS;
 using namespace OpenMS::Math;
 using namespace std;
 
-typedef FeatureFinderAlgorithmSH<Peak1D,Feature> FFSH;
+typedef FeatureFinderAlgorithmSH<Peak1D> FFSH;
 
 FFSH* ptr = 0;
 FFSH* nullPtr = 0;
@@ -70,15 +70,15 @@ START_SECTION((~FeatureFinderAlgorithmSH()))
 	delete ptr;
 END_SECTION
 
-ptr = new FeatureFinderAlgorithmSH<Peak1D, Feature>();
+ptr = new FeatureFinderAlgorithmSH<Peak1D>();
 
 START_SECTION([EXTRA] FeatureFinderAlgorithmSH() - with RichPeak1D)
-	FeatureFinderAlgorithmSH<RichPeak1D,Feature> ffa;
+	FeatureFinderAlgorithmSH<RichPeak1D> ffa;
 	NOT_TESTABLE
 END_SECTION
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
-	FeatureFinderAlgorithm<Peak1D,Feature>* ptr2 = FFSH::create();
+	FeatureFinderAlgorithm<Peak1D>* ptr2 = FFSH::create();
 	TEST_NOT_EQUAL(ptr2,nullPtr)
 	delete ptr2;
 END_SECTION
@@ -95,7 +95,7 @@ START_SECTION((virtual void run()))
   mzdata_file.load(SUPERHIRN_GET_TEST_DATA_PATH("FeatureFinderAlgorithmSH_input.mzData"),input);
 
   input.updateRanges(1);
-  FeatureMap<> output;
+  FeatureMap output;
 
   //parameters
   Param param;

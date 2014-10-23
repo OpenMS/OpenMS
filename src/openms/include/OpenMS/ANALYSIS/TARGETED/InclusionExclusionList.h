@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,7 +158,7 @@ public:
 
     //@}
 
-//     void loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp);
+//     void loadTargets(FeatureMap& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp);
 
 //     void loadTargets(std::vector<FASTAFile::FASTAEntry>& fasta_entries, std::vector<IncludeExcludeTarget>& targets,
 //                      TargetedExperiment& exp, Size missed_cleavages = 0);
@@ -179,7 +179,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
      */
-    void writeTargets(const FeatureMap<> & map,
+    void writeTargets(const FeatureMap & map,
                       const String & out_path);
 
     /**

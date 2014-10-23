@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,18 +48,18 @@ namespace OpenMS
 {
 
   /**
-   @brief Simulates Protein ionization
+    @brief Simulates Protein ionization
 
-   Supports ESI and MALDI. The abundance values are distributed among
-   the charge states based on a binomial distribution for the ESI and
-   based on discrete distribution for MALDI.
-     In ESI mode, this class also supports different adduct types in addition to H+
-     (e.g. NH4+, K+) which can be specified by the user and influence
-     the mass and induce more charge variation.
+    Supports ESI and MALDI. The abundance values are distributed among
+    the charge states based on a binomial distribution for the ESI and
+    based on discrete distribution for MALDI.
+    In ESI mode, this class also supports different adduct types in addition to H+
+    (e.g. NH4+, K+) which can be specified by the user and influence
+    the mass and induce more charge variation.
 
-   @htmlinclude OpenMS_IonizationSimulation.parameters
+    @htmlinclude OpenMS_IonizationSimulation.parameters
 
-   @ingroup Simulation
+    @ingroup Simulation
   */
   class OPENMS_DLLAPI IonizationSimulation :
     public DefaultParamHandler,
@@ -81,48 +81,48 @@ public:
       */
     //@{
     ///
-    explicit IonizationSimulation(MutableSimRandomNumberGeneratorPtr);
+    explicit IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr);
 
     /// Copy constructor
-    IonizationSimulation(const IonizationSimulation & source);
+    IonizationSimulation(const IonizationSimulation& source);
 
     /// Destructor
     virtual ~IonizationSimulation();
     //@}
 
     /// Assignment operator
-    IonizationSimulation & operator=(const IonizationSimulation & source);
+    IonizationSimulation& operator=(const IonizationSimulation& source);
 
     /**
-     @brief Ionize all peptide features inside the Feature-Map
+      @brief Ionize all peptide features inside the Feature-Map
 
-     Depending on the parameters the passed peptide features are ionized by MALDI
-     or by ESI.
+      Depending on the parameters the passed peptide features are ionized by MALDI
+      or by ESI.
 
-     @param features FeatureMap which will be ionized
-         @param charge_consensus ConsensusMap which groups children(=charge variants) of input-features
-         @param experiment MSSimExperiment map which contains the simulated experiment
+      @param features FeatureMap which will be ionized
+      @param charge_consensus ConsensusMap which groups children(=charge variants) of input-features
+      @param experiment SimTypes::MSSimExperiment map which contains the simulated experiment
      */
-    void ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment);
+    void ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment);
 
 private:
     class CompareCmpByEF_;
 
     /// ionize using ESI
-    void ionizeEsi_(FeatureMapSim &, ConsensusMap & charge_consensus);
+    void ionizeEsi_(SimTypes::FeatureMapSim&, ConsensusMap& charge_consensus);
 
     /// ionize using MALDI
-    void ionizeMaldi_(FeatureMapSim &, ConsensusMap & charge_consensus);
+    void ionizeMaldi_(SimTypes::FeatureMapSim&, ConsensusMap& charge_consensus);
 
     /// check if feature is within mz bounds of detector
-    inline bool isFeatureValid_(const Feature & feature);
+    inline bool isFeatureValid_(const Feature& feature);
 
     /// set meta values, mz etc after adducts are ready
-    void setFeatureProperties_(Feature & f,
-                               const double & adduct_mass,
-                               const String & adduct_formula,
-                               const SimChargeType charge,
-                               const SimIntensityType new_intensity,
+    void setFeatureProperties_(Feature& f,
+                               const double& adduct_mass,
+                               const String& adduct_formula,
+                               const SimTypes::SimChargeType charge,
+                               const SimTypes::SimIntensityType new_intensity,
                                const Size parent_index);
 
     /// set defaults
@@ -136,7 +136,7 @@ private:
 
      The N-term contributes +1 always. All other ionizable residues (according to param "esi:ionized_residues") in the sequence are summed up.
     */
-    UInt countIonizedResidues_(const AASequence &) const;
+    UInt countIonizedResidues_(const AASequence&) const;
 
 
     // Members //
@@ -176,13 +176,13 @@ private:
     std::vector<double> maldi_probabilities_;
 
     /// Maximum m/z detected by mass analyser
-    SimCoordinateType maximal_mz_measurement_limit_;
+    SimTypes::SimCoordinateType maximal_mz_measurement_limit_;
     /// Minimum m/z detected by mass analyser
-    SimCoordinateType minimal_mz_measurement_limit_;
+    SimTypes::SimCoordinateType minimal_mz_measurement_limit_;
 
 protected:
     /// Random number generator
-    MutableSimRandomNumberGeneratorPtr rnd_gen_;
+    SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen_;
   };
 
 }

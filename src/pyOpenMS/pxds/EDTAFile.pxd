@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FORMAT/EDTAFile.h>" namespace "OpenMS":
         EDTAFile() nogil except +
         EDTAFile(EDTAFile) nogil except +
 
-        void store(String filename, FeatureMap[Feature] & map) nogil except +
+        void store(String filename, FeatureMap & map) nogil except +
         void store(String filename, ConsensusMap & map)  nogil except +
         void load(String filename, ConsensusMap & consensus_map) nogil except +
 

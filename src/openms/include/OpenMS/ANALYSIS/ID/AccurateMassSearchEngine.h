@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -163,9 +163,6 @@ public:
     /// Default constructor
     AccurateMassSearchEngine();
 
-    // Explicit constructor
-    // AccurateMassSearchEngine(const String& map_fname);
-
     /// Default destructor
     virtual ~AccurateMassSearchEngine();
 
@@ -179,7 +176,7 @@ public:
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
-    void run(FeatureMap<>&, MzTab&);
+    void run(FeatureMap&, MzTab&);
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results

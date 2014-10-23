@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -130,7 +130,7 @@ namespace OpenMS
 
     String prepareLine(const OpenSwath::LightPeptide& pep,
         const OpenSwath::LightTransition* transition,
-        FeatureMap<>& output, String id)
+        FeatureMap& output, String id)
     {
         String result = "";
         String decoy = "0"; // 0 = false
@@ -139,7 +139,7 @@ namespace OpenMS
           decoy = "1";
         }
 
-        for (FeatureMap<>::iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
+        for (FeatureMap::iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
         {
 
           char intensity_char[40];
@@ -323,14 +323,27 @@ namespace OpenMS
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
       simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt);
+
       // debug output of the iRT chromatograms
       if (debug_level > 1)
       {
-        MSExperiment<> exp;
-        exp.setChromatograms(irt_chromatograms);
-        MzMLFile().store("debug_irts.mzML", exp);
+        try
+        {
+          MSExperiment<> exp;
+          exp.setChromatograms(irt_chromatograms);
+          MzMLFile().store("debug_irts.mzML", exp);
+        }
+        catch (OpenMS::Exception::UnableToCreateFile& e)
+        {
+          LOG_DEBUG << "Error creating file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+        }
+        catch (OpenMS::Exception::BaseException& e)
+        {
+          LOG_DEBUG << "Error writint to file 'debug_irts.mzML', not writing out iRT chromatogram file"  << std::endl;
+        }
       }
       LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
+
       // get RT normalization from data
       return RTNormalization(irt_transitions,
               irt_chromatograms, min_rsq, min_coverage, feature_finder_param);
@@ -350,7 +363,7 @@ namespace OpenMS
       const TransformationDescription trafo,
       const ChromExtractParams & cp, const Param & feature_finder_param,
       const OpenSwath::LightTargetedExperiment& transition_exp,
-      FeatureMap<>& out_featureFile, String out,
+      FeatureMap& out_featureFile, String out,
       OpenSwathTSVWriter & tsv_writer, Interfaces::IMSDataConsumer<> * chromConsumer,
       int batchSize)
     {
@@ -458,7 +471,7 @@ namespace OpenMS
               OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(chrom_exp));
 
               // Step 3: score these extracted transitions
-              FeatureMap<> featureFile;
+              FeatureMap featureFile;
               scoreAllChromatograms(chromatogram_ptr, swath_maps[i].sptr, transition_exp_used,
                   feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, 
                   ms1_chromatograms);
@@ -479,7 +492,7 @@ namespace OpenMS
                 // write features to output if so desired
                 if (!out.empty())
                 {
-                  for (FeatureMap<Feature>::iterator feature_it = featureFile.begin();
+                  for (FeatureMap::iterator feature_it = featureFile.begin();
                        feature_it != featureFile.end(); ++feature_it)
                   {
                     out_featureFile.push_back(*feature_it);
@@ -644,7 +657,7 @@ namespace OpenMS
 
       featureFinder.setParameters(feature_finder_param);
 
-      FeatureMap<> featureFile; // also for results
+      FeatureMap featureFile; // also for results
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map; // for results
       boost::shared_ptr<MSExperiment<Peak1D> > swath_map(new MSExperiment<Peak1D>);
       OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
@@ -691,7 +704,7 @@ namespace OpenMS
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
         TransformationDescription trafo, const double rt_extraction_window,
-        FeatureMap<Feature>& output, OpenSwathTSVWriter & tsv_writer, 
+        FeatureMap& output, OpenSwathTSVWriter & tsv_writer, 
         std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms
         )
     {
@@ -1487,7 +1500,7 @@ protected:
     ///////////////////////////////////
     // Extract and score
     ///////////////////////////////////
-    FeatureMap<> out_featureFile;
+    FeatureMap out_featureFile;
 
     OpenSwathTSVWriter tsvwriter(out_tsv, file_list[0], use_ms1_traces);
     OpenSwathWorkflow wf(use_ms1_traces);

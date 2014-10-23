@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -495,6 +495,10 @@ public:
       list.push_back(temp);
     }
 
+    // sort mass patterns
+    // (from small mass shifts to larger ones, i.e. few miscleavages = simple explanation first)
+    std::sort(list.begin(), list.end());
+
     // generate additional mass shifts due to knock-outs
     if (knock_out_ && list[0].size()==1)
     {
@@ -761,7 +765,7 @@ public:
    * @param consensus_map    consensus map with peptide multiplets (to be filled)
    * @param feature_map    feature map with peptides (to be filled)
    */
-  void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap<>& feature_map)
+  void generateMaps_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
   {
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -814,13 +818,14 @@ public:
               // loop over peptides
               for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
               {
-                profile_intensities[peptide].push_back(result_raw.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + peak + 1]);                  // +1 due to zeroth peaks
-
-                std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-                double mz = result_raw.getMZ() + result_raw.getMZShifts()[(isotopes_per_peptide_max_ + 1) * peptide + peak + 1];
-                if (!(boost::math::isnan(mz)))
+                unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
+                profile_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
+                
+                double mz_shift = result_raw.getMZShifts()[index];
+                if (!(boost::math::isnan(mz_shift)))
                 {
-                  mass_traces[peptide_peak].enlarge(rt, mz);
+                  std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
+                  mass_traces[peptide_peak].enlarge(rt, result_raw.getMZ() + mz_shift);
                 }
               }
             }
@@ -1014,7 +1019,7 @@ public:
    * @param filename    name of featureXML file
    * @param map    feature map for output
    */
-  void writeFeatureMap_(const String& filename, FeatureMap<>& map) const
+  void writeFeatureMap_(const String& filename, FeatureMap& map) const
   {
     map.sortByPosition();
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
@@ -1183,7 +1188,7 @@ private:
      * write to output
      */
     ConsensusMap consensus_map;
-    FeatureMap<> feature_map;
+    FeatureMap feature_map;
     generateMaps_(patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")
     {
