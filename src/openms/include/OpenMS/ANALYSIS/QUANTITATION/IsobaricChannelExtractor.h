@@ -147,7 +147,7 @@ private:
 
     /// Flag if precursor purity will solely be computed based on the precursor scan (false), or interpolated between the precursor- and the following ms1 scan.
     bool interpolate_precursor_purity_;
-    
+
     /// add channel information to the map after it has been filled
     void registerChannelsInOutputMap_(ConsensusMap& consensus_map);
 
