@@ -151,7 +151,7 @@ namespace OpenMS
     defaults_.setValue("keep_unannotated_precursor", "true", "Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.");
     defaults_.setValidStrings("keep_unannotated_precursor", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intenesity of the individual reporter ions to be used extracted.");
+    defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intensity of the individual reporter ions to be used extracted.");
     defaults_.setMinFloat("min_reporter_intensity", 0.0);
 
     defaults_.setValue("discard_low_intensity_quantifications", "false", "Remove all reporter intensities if a single reporter is below the threshold given in min_reporter_intensity.");
@@ -210,7 +210,7 @@ namespace OpenMS
 
     typedef MSExperiment<>::SpectrumType::ConstIterator const_spec_iterator;
 
-    // compute the
+    // compute distance between isotopic peaks based on the precursor charge.
     const double charge_dist = Constants::NEUTRON_MASS_U / static_cast<double>(ms2_spec->getPrecursors()[0].getCharge());
 
     // the actual boundary values
@@ -238,7 +238,7 @@ namespace OpenMS
 
     while (expected_next_mz > fuzzy_lower_mz)
     {
-      // find nearest peak in precusor window
+      // find nearest peak in precursor window
       const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
 
       // handle border cases
@@ -296,7 +296,7 @@ namespace OpenMS
 
     while (expected_next_mz < fuzzy_upper_mz)
     {
-      // find nearest peak in precusor window
+      // find nearest peak in precursor window
       const_spec_iterator np_it = precursor_spec.MZBegin(lower_bound, expected_next_mz, upper_bound);
 
       // handle border cases
@@ -393,7 +393,7 @@ namespace OpenMS
       std::cerr << "------------------ analyzing " << ms2_spec->getNativeID() << std::endl;
 #endif
 
-      // compute purity of preceeding ms1 scan
+      // compute purity of preceding ms1 scan
       double early_scan_purity = computeSingleScanPrecursorPurity_(ms2_spec, *(pState.precursorScan));
 
       if (pState.hasFollowUpScan && interpolate_precursor_purity_)
@@ -402,10 +402,7 @@ namespace OpenMS
 
         // calculating the extrapolated, S2I value as a time weighted linear combination of the two scans
         // see: Savitski MM, Sweetman G, Askenazi M, Marto JA, Lang M, Zinn N, et al. (2011).
-        // Delayed fragmentation and optimized isolation width settings for improvement of protein
-        // identification and accuracy of isobaric mass tag quantification on Orbitrap-type mass
-        // spectrometers. Analytical chemistry 83: 8959–67.
-        // Available from: http://www.ncbi.nlm.nih.gov/pubmed/22017476
+        // Analytical chemistry 83: 8959–67. http://www.ncbi.nlm.nih.gov/pubmed/22017476
         return (ms2_spec->getRT() - pState.precursorScan->getRT()) *
                ((late_scan_purity - early_scan_purity) / (pState.followUpScan->getRT() - pState.precursorScan->getRT()))
                + early_scan_purity;
@@ -438,7 +435,7 @@ namespace OpenMS
     // --> assign peaks to channels
     UInt64 element_index(0);
 
-    // remember the current precusor spectrum
+    // remember the current precursor spectrum
     PuritySate_ pState(ms_exp_data);
 
     for (MSExperiment<Peak1D>::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)

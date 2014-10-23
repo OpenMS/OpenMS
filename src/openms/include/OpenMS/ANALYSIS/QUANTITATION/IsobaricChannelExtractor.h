@@ -47,6 +47,20 @@ namespace OpenMS
   /**
     @brief Extracts individual channels from MS/MS spectra for isobaric labeling experiments.
 
+    In addition to extracting the channel information this class can also filter the extracted channel
+    information according to several parameters, i.e., discard channel information if certain criteria
+    are not met.
+
+    @li %Precursor activation method (e.g., select only HCD scans).
+    @li Minimum precursor intensity.
+    @li Minimum reporter intensity (i.e., remove reporter channels below a certain intensity)
+    @li %Precursor purity (i.e., fraction of peaks in the precursor window that can be assigned to the precursor)
+
+    The precursor purity computation uses the interpolation approach described in:
+    Savitski MM, Sweetman G, Askenazi M, et al. (2011). Delayed fragmentation and optimized isolation width settings
+    for improvement of protein identification and accuracy of isobaric mass tag quantification on Orbitrap-type mass
+    spectrometers. Analytical chemistry 83: 8959-67. http://www.ncbi.nlm.nih.gov/pubmed/22017476
+
     @htmlinclude OpenMS_IsobaricChannelExtractor.parameters
   */
   class OPENMS_DLLAPI IsobaricChannelExtractor :
@@ -79,7 +93,7 @@ private:
       @brief Small struct to capture the current state of the purity computation.
 
       It basically contains two iterators pointing to the current potential
-      ms1 precursor scan of an ms2 scan and the ms1 scan immediatly
+      ms1 precursor scan of an ms2 scan and the ms1 scan immediately
       following the current ms2 scan.
     */
     struct PuritySate_
