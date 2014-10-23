@@ -376,10 +376,8 @@ protected:
         for (Size i = 0; i < protein_identifications.size(); ++i)
         {
             vector<ProteinHit> vph = protein_identifications[i].getHits();
-            cout << vph.size() << endl;
             vph.erase( std::remove_if( vph.begin(), vph.end(), is_decoy ), vph.end() );
             protein_identifications[i].setHits(vph);
-            cout << protein_identifications[i].getHits().size() << endl;
         }
     }
 
