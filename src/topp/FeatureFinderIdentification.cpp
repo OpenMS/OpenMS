@@ -140,15 +140,9 @@ protected:
     setMaxFloat_("extract:isotope_pmin", 1.0);
 
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
-    StringList algos = ListUtils::create<String>("OS_best,OS_all,iso_match");
-    registerStringOption_("detect:algorithm", "<choice>", algos[0], "Feature detection algorithm. 'OS_best': use OpenSWATH feature detection, return single best feature per charged peptide; 'OS_all': use OpenSWATH feature detection, return all features (requires further processing of results); 'iso_match': filter data according to expected isotope distribution, then detect elution peak (experimental).", false);
-    setValidStrings_("detect:algorithm", algos);
     registerDoubleOption_("detect:peak_width", "<value>", 30.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
     setMinFloat_("detect:peak_width", 0.0);
-    registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('iso_match' algorithm only); relative to the square root of the measured intensity", false);
-    setMinFloat_("detect:tolerance", 0.0);
-    registerDoubleOption_("detect:max_gap", "<value>", 0.5, "Maximum gap (region without matching isotope peaks) beyond which a feature won't be extended further ('iso_match' algorithm only); relative to 'peak_width'; '0' to disable", false, true);
-    setMinFloat_("detect:max_gap", 0.0);
+    registerFlag_("detect:all_features", "Return all features detected by OpenSWATH for an assay, instead of only the best one. (This requires further processing of the results.)", true);
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
     StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
@@ -187,7 +181,6 @@ protected:
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   String reference_rt_; // value of "reference_rt" parameter
   double rt_tolerance_; // half the RT window width
-  double max_gap_; // max. length (RT) of a gap in a feature
 
 
   // add transitions for a peptide ion to the library:
@@ -379,402 +372,6 @@ protected:
       library_.addPeptide(peptide);
       addTransitions_(peptide.id, mz, charge);
       peptide = copy; // reset
-    }
-  }
-
-
-  // detect features in extracted ion chromatograms (XICs):
-  void detectFeatures_(const PeakMap& chrom_data, FeatureMap<>& features,
-                       double peak_width)
-  {
-    GaussFilter gauss_filter;
-    Param params = gauss_filter.getParameters();
-    params.setValue("gaussian_width", peak_width);
-    gauss_filter.setParameters(params);
-    
-    ChromatogramMap chromatogram_groups;
-    for (vector<MSChromatogram<> >::const_iterator chrom_it =
-           chrom_data.getChromatograms().begin(); chrom_it !=
-           chrom_data.getChromatograms().end(); ++chrom_it)
-    {
-      String peptide_ref = chrom_it->getNativeID().prefix('_');
-      chromatogram_groups[peptide_ref].push_back(&(*chrom_it));
-    }
-
-    // mapping: transition (ID) -> theoretical intensity
-    map<String, double> theo_intensities;
-    // mapping: peptide (ID) -> mass-to-charge
-    map<String, double> precursor_mzs;
-    for (vector<ReactionMonitoringTransition>::const_iterator trans_it = 
-           library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
-    {
-      theo_intensities[trans_it->getNativeID()] = 
-        trans_it->getLibraryIntensity();
-      precursor_mzs[trans_it->getPeptideRef()] = trans_it->getPrecursorMZ();
-    }
-
-    trafo_.invert(); // to assign RTs to peptide IDs derived from assays
-    double tolerance = getDoubleOption_("detect:tolerance");
-    for (ChromatogramMap::iterator group_it = chromatogram_groups.begin();
-         group_it != chromatogram_groups.end(); ++group_it)
-    {
-      // @TODO: add proper progress counter
-      vector<double> current_theo_ints;
-      for (ChromatogramPtrs::const_iterator ptr_it = group_it->second.begin();
-           ptr_it != group_it->second.end(); ++ptr_it)
-      {
-        current_theo_ints.push_back(theo_intensities[(*ptr_it)->getNativeID()]);
-      }
-
-      String peptide_ref = group_it->first;
-      const TargetedExperiment::Peptide& peptide = 
-        library_.getPeptideByRef(peptide_ref);
-      PeptideHit hit;
-      hit.setSequence(AASequence::fromString(peptide.sequence));
-      hit.setProteinAccessions(peptide.protein_refs);
-      Int charge = peptide.getChargeState();
-      hit.setCharge(charge);
-      PeptideIdentification pep_id;
-      pep_id.insertHit(hit);
-      double mz = precursor_mzs[peptide_ref];
-      double rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().
-        toString().toDouble(); // yes, WTF
-      pep_id.setMZ(mz);
-      pep_id.setRT(trafo_.apply(rt));
-
-      Feature feature;
-      feature.setMetaValue("PeptideRef", peptide_ref);
-      detectFeature_(peptide_ref, group_it->second, feature, 
-                     current_theo_ints, gauss_filter, tolerance);
-
-      if (!feature.getSubordinates().empty())
-      {
-        feature.setMZ(mz);
-        feature.setCharge(charge);
-        feature.getPeptideIdentifications().push_back(pep_id);
-        features.push_back(feature);
-      }
-      else
-      {
-        features.getUnassignedPeptideIdentifications().push_back(pep_id);
-      }
-    }
-    trafo_.invert(); // revert the "invert" above (for consistency)
-
-    features.getProteinIdentifications().resize(1);
-    for (vector<TargetedExperiment::Protein>::const_iterator prot_it = 
-           library_.getProteins().begin(); prot_it != 
-           library_.getProteins().end(); ++prot_it)
-    {
-      ProteinHit hit;
-      hit.setAccession(prot_it->id);
-      hit.setSequence(prot_it->sequence);
-      features.getProteinIdentifications()[0].insertHit(hit);
-    }
-    features.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-  }
-
-
-  // find closest maximum/minimum in the XIC, to the left/right of the start;
-  // optionally only go up to a certain fraction of the start intensity,
-  // optionally don't extend past a given gap length (in RT):
-  pair<Size, double> findNextExtremum_(const MSChromatogram<>& data, Size start,
-                                       bool go_right=false, bool find_min=false,
-                                       double max_gap=0.0)
-  {
-    Int stop, step, index;
-    if (go_right)
-    {
-      stop = data.size() - 1;
-      step = 1;
-    }
-    else
-    {
-      stop = 0;
-      step = -1;
-    }
-
-    double previous_int = data[start].getIntensity();
-    double previous_rt = data[start].getRT();
-    Int min_max = find_min ? -1 : 1; // multiply by -1 to change "<" to ">"
-    for (index = start + step; index * step <= stop; index += step)
-    {
-      double current_int = data[index].getIntensity();
-      double current_rt = data[index].getRT();
-      if ((min_max * current_int < min_max * previous_int) || 
-          ((max_gap > 0.0) && (fabs(previous_rt - current_rt) > max_gap)))
-      {
-        index -= step; // went a step too far, go back
-        break;
-      }
-      previous_int = current_int;
-      previous_rt = current_rt;
-    }
-    if (index * step > stop) index -= step;
-    return make_pair(Size(index), previous_int);
-  }
-
-
-  // detect a feature corresponding to one identified peptide in XICs:
-  void detectFeature_(const String& peptide_ref, 
-                      const ChromatogramPtrs& chrom_ptrs, Feature& feature, 
-                      const vector<double>& theo_intensities, 
-                      GaussFilter& gauss_filter, double tolerance)
-  {
-    LOG_DEBUG << peptide_ref << ":" << endl;
-
-    Size n_traces = chrom_ptrs.size(); // number of mass traces/transitions
-    Size n_times = chrom_ptrs[0]->size(); // number of time points
-
-    LOG_DEBUG << "traces: " << n_traces << "\ntime steps: " << n_times << endl;
-
-    // extract raw intensities:
-    vector<vector<double> > intensities(n_traces);
-    for (Size i = 0; i < n_traces; ++i)
-    {
-      const MSChromatogram<>* chrom_ptr = chrom_ptrs[i];
-      for (MSChromatogram<>::ConstIterator peak_it = chrom_ptr->begin();
-           peak_it != chrom_ptr->end(); ++peak_it)
-      {
-        intensities[i].push_back(peak_it->getIntensity());
-      }
-    }
-    // (un)scale intensities according to isotope distribution:
-    vector<vector<double> > scaled(n_traces);
-    for (Size trace = 0; trace < n_traces; ++trace)
-    {
-      double theo_intensity = theo_intensities[trace];
-      scaled[trace].resize(n_times);
-      for (Size time = 0; time < n_times; ++time)
-      {
-        scaled[trace][time] = intensities[trace][time] / theo_intensity;
-      }
-    }
-    // find points where intensities match the theoretical values:
-    vector<vector<Size> > matches(n_times);
-    vector<Size> which_matches; // indexes (along time axis) of matches
-    // collect intermediate data in a format suitable for smoothing later:
-    MSChromatogram<> n_matches; // histogram of matching points
-    MSChromatogram<> medians; // median intensities of matches
-    for (Size time = 0; time < n_times; ++time) // for every time step...
-    {
-      vector<pair<double, Size> > points;
-      for (Size trace = 0; trace < n_traces; ++trace)
-      {
-        double intensity = scaled[trace][time];
-        if (intensity > 0.0) points.push_back(make_pair(intensity, trace));
-      }
-
-      sort(points.begin(), points.end());
-      vector<vector<Size> > regions;
-      vector<Size> region;
-      // iterate over pairs of points:
-      for (Size i = 0; i + 1 < points.size(); ++i)
-      {
-        double avg_intensity = (points[i].first + points[i + 1].first) * 0.5;
-        bool matching[2];
-        for (Size offset = 0; offset <= 1; ++offset)
-        {
-          Size index = points[i + offset].second;
-          double unscaled = avg_intensity * theo_intensities[index];
-          double measured = intensities[index][time];
-          double actual_tolerance = tolerance * sqrt(measured);
-          matching[offset] = fabs(unscaled - measured) <= actual_tolerance;
-        }
-        if (matching[0] && matching[1]) // start new or extend existing region
-        {
-          if (region.empty()) region.push_back(points[i].second);
-          region.push_back(points[i + 1].second);
-        }
-        else if (!region.empty()) // region not extended - store it
-        {
-          regions.push_back(region);
-          region.clear();
-        }
-      }
-      if (!region.empty()) regions.push_back(region);
-
-      ChromatogramPeak peak; // new point for "n_matches" and "medians"
-      peak.setRT((*chrom_ptrs[0])[time].getRT());
-      // find biggest region, breaking ties by sum of isotope probabilities:
-      if (!regions.empty())
-      {
-        Size best_region_index = 0;
-        double best_total_probability = 0.0;
-        for (Size i = 0; i < regions.size(); ++i)
-        {
-          if (regions[i].size() >= regions[best_region_index].size())
-          {
-            double total_probability = 0.0;
-            for (vector<Size>::iterator index_it = regions[i].begin();
-                 index_it != regions[i].end(); ++index_it)
-            {
-              total_probability += theo_intensities[*index_it];
-            }
-            if ((regions[i].size() > regions[best_region_index].size()) ||
-                (total_probability > best_total_probability))
-            {
-              best_region_index = i;
-              best_total_probability = total_probability;
-            } 
-          }
-        }
-
-        const vector<Size>& best_region = regions[best_region_index];
-        matches[time] = best_region;
-        which_matches.push_back(time);
-        vector<double> matching_intensities(best_region.size());
-        for (Size i = 0; i < best_region.size(); ++i)
-        {
-          matching_intensities[i] = scaled[best_region[i]][time];
-        }
-        if (debug_level_ >= 10)
-        {
-          // convert intensities to "float" to print fewer decimals:
-          String values = float(matching_intensities[0]);
-          for (Size i = 1; i < matching_intensities.size(); ++i)
-          {
-            values += " " + String(float(matching_intensities[i]));
-          }
-          LOG_DEBUG << "Matching intensities at step " << time << ": " << values
-                    << endl;
-        }
-        peak.setIntensity(Math::median(matching_intensities.begin(),
-                                       matching_intensities.end()));
-        medians.push_back(peak);
-        peak.setIntensity(matches[time].size());
-      }
-      else peak.setIntensity(0.0);
-      n_matches.push_back(peak);
-    }
-    if (!medians.empty())
-    {
-      // based on the groups of matching points, use the time point with the
-      // highest density of matches as starting point for finding "the" elution
-      // peak (that should later become a feature):
-
-      // apply smoothing to medians of matching scaled intensities:
-      MSChromatogram<> smoothed = medians;
-      gauss_filter.filter(smoothed);
-      if (debug_level_ >= 10)
-      {
-        LOG_DEBUG << "Medians of matching intensities (RT: raw/smoothed):"
-                  << endl;
-        for (Size i = 0; i < medians.size(); ++i)
-        {
-          LOG_DEBUG << medians[i].getRT() << ": " << medians[i].getIntensity()
-                    << " / " << smoothed[i].getIntensity() << endl;
-        }
-      }
-      // to estimate the density of matching intensities, apply smoothing to the
-      // histogram (in lieu of kernel density estimation):
-      MSChromatogram<> density = n_matches;
-      gauss_filter.filter(density);
-      // find apex of density:
-      Size max_index = 0;
-      double max_density = 0.0;
-      for (Size i = 0; i < which_matches.size(); ++i)
-      {
-        if (density[which_matches[i]].getIntensity() > max_density)
-        {
-          max_index = i;
-          max_density = density[which_matches[i]].getIntensity();
-        }
-      }
-
-      // now find the parameters (apex, left/right border) of the elution peak
-      // that contains the point of max. density:
-
-      // find nearest apex(es) of smoothed elution profile:
-      pair<Size, double> left_apex = findNextExtremum_(smoothed, max_index);
-      pair<Size, double> right_apex = findNextExtremum_(smoothed, max_index,
-                                                        true);
-      pair<Size, double> apex = ((left_apex.second > right_apex.second) ? 
-                                 left_apex : right_apex);
-      LOG_DEBUG << "apex: " << apex.first << ", RT "
-                << smoothed[apex.first].getRT() << ", int. " << apex.second
-                << endl;
-      // find left peak border:
-      pair<Size, double> left_border = 
-        findNextExtremum_(smoothed, apex.first, false, true, max_gap_);
-      LOG_DEBUG << "left border: " << left_border.first << " -> ";
-      // try to extend further based on original (non-smoothed) data:
-      double median_int = medians[left_border.first].getIntensity();
-      if ((median_int > 0.0) && 
-          (median_int <= smoothed[left_border.first].getIntensity()))
-      {
-        left_border = findNextExtremum_(medians, left_border.first, false, 
-                                        true, max_gap_);
-      }
-      LOG_DEBUG << left_border.first << endl;
-      // find right peak border:
-      pair<Size, double> right_border = 
-        findNextExtremum_(smoothed, apex.first, true, true, max_gap_);
-      // try to extend further based on original (non-smoothed) data:
-      LOG_DEBUG << "right border: " << right_border.first << " -> ";
-      median_int = medians[right_border.first].getIntensity();
-      if ((median_int > 0.0) && 
-          (median_int <= smoothed[right_border.first].getIntensity()))
-      {
-        right_border = findNextExtremum_(medians, right_border.first, true, 
-                                         true, max_gap_);
-      }
-      LOG_DEBUG << right_border.first << endl;
-
-      // need at least three time points:
-      if (right_border.first - left_border.first < 2) return;
-
-      // fill in (preliminary) feature data:
-      double apex_rt = medians[apex.first].getRT();
-      feature.setRT(apex_rt);
-      double rt_start = medians[left_border.first].getRT();
-      double rt_end = medians[right_border.first].getRT();
-      feature.setMetaValue("leftWidth", rt_start);
-      feature.setMetaValue("rightWidth", rt_end);
-      // approximate area under a Gaussian, assuming width is 5 sigma:
-      double intensity = 0.5 * apex.second * (rt_end - rt_start);
-      feature.setIntensity(intensity);
-      // see comment in "fitElutionModels_" for assumptions about features
-      vector<Feature> subordinates(n_traces);
-      for (Size trace = 0; trace < n_traces; ++trace)
-      {
-        subordinates[trace].setRT(apex_rt);
-        const MSChromatogram<>* chrom_ptr = chrom_ptrs[trace];
-        subordinates[trace].setMZ(chrom_ptr->getMZ());
-        subordinates[trace].getConvexHulls().resize(1);
-        String native_id = peptide_ref + "_i" + String(trace);
-        subordinates[trace].setMetaValue("native_id", native_id);
-        subordinates[trace].setMetaValue("isotope_probability", 
-                                         theo_intensities[trace]);
-      }
-      vector<ConvexHull2D::PointArrayType> hull_points(n_traces);
-      for (Size time = which_matches[left_border.first]; 
-           time <= which_matches[right_border.first]; ++time)
-      {
-        vector<double> current_intensities(n_traces);
-        for (vector<Size>::iterator index_it = matches[time].begin();
-             index_it != matches[time].end(); ++index_it)
-        {
-          current_intensities[*index_it] = intensities[*index_it][time];
-        }
-        double rt = (*chrom_ptrs[0])[time].getRT();
-        for (Size trace = 0; trace < n_traces; ++trace)
-        {
-          DPosition<2> point(rt, current_intensities[trace]);
-          hull_points[trace].push_back(point);
-        }
-      }
-      for (Size trace = 0; trace < n_traces; ++trace)
-      {
-        subordinates[trace].getConvexHulls()[0].setHullPoints(
-          hull_points[trace]);
-      }
-      feature.setSubordinates(subordinates);
-    }
-    else
-    {   
-      LOG_DEBUG << "--" << endl;
     }
   }
 
@@ -1171,10 +768,8 @@ protected:
     double mz_window = getDoubleOption_("extract:mz_window");
     bool mz_window_ppm = mz_window >= 1;
     double isotope_pmin = getDoubleOption_("extract:isotope_pmin");
-    String detection_algo = getStringOption_("detect:algorithm");
-    bool use_iso_match = detection_algo == "iso_match";
+    bool all_features = getFlag_("detect:all_features");
     double peak_width = getDoubleOption_("detect:peak_width");
-    max_gap_ = getDoubleOption_("detect:max_gap") * peak_width;
     String elution_model = getStringOption_("model:type");
 
     //-------------------------------------------------------------
@@ -1351,32 +946,22 @@ protected:
     //-------------------------------------------------------------
     LOG_INFO << "Finding chromatographic peaks..." << endl;
     FeatureMap<> features;
-
-    if (use_iso_match)
-    {
-      detectFeatures_(chrom_data, features, peak_width);
-    }
-    else // OpenSWATH
-    {
-      MRMFeatureFinderScoring mrm_finder;
-      Param params = mrm_finder.getParameters();
-      params.setValue("stop_report_after_feature", 
-                      (detection_algo == "OS_all") ? -1 : 1);
-      if (elution_model != "none") params.setValue("write_convex_hull", "true");
-      params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
-      params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-      params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
-      params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 
-                      peak_width);
-      params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
-      params.setValue("TransitionGroupPicker:PeakPickerMRM:method", 
-                      "corrected");
-      mrm_finder.setParameters(params);
-      mrm_finder.setLogType(log_type_);
-      mrm_finder.setStrictFlag(false);
-      mrm_finder.pickExperiment(chrom_data, features, library_, trafo_,
-                                ms_data_);
-    }
+    MRMFeatureFinderScoring mrm_finder;
+    Param params = mrm_finder.getParameters();
+    params.setValue("stop_report_after_feature", 
+                    all_features ? -1 : 1);
+    if (elution_model != "none") params.setValue("write_convex_hull", "true");
+    params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
+    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
+    params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 
+                    peak_width);
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
+    mrm_finder.setParameters(params);
+    mrm_finder.setLogType(log_type_);
+    mrm_finder.setStrictFlag(false);
+    mrm_finder.pickExperiment(chrom_data, features, library_, trafo_, ms_data_);
 
     // @TODO add method for resolving overlaps if "reference_rt" is "all"
     if (elution_model != "none")
@@ -1391,20 +976,18 @@ protected:
     for (FeatureMap<>::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
-      if (!use_iso_match)
-      {
-        feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
-        feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
-                           getCharge());
-        // OpenSWATH only includes one protein accession per petide in its
-        // output - fix that:
-        String peptide_ref = feat_it->getMetaValue("PeptideRef");
-        const TargetedExperiment::Peptide& peptide = 
-          library_.getPeptideByRef(peptide_ref);
-        PeptideHit& hit = feat_it->getPeptideIdentifications()[0].getHits()[0];
-        hit.setProteinAccessions(peptide.protein_refs);
-        // all the protein hits are already listed in the ProteinIdentification
-      }
+      feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
+      feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
+                         getCharge());
+      // OpenSWATH only includes one protein accession per petide in its
+      // output - fix that:
+      String peptide_ref = feat_it->getMetaValue("PeptideRef");
+      const TargetedExperiment::Peptide& peptide = 
+        library_.getPeptideByRef(peptide_ref);
+      PeptideHit& hit = feat_it->getPeptideIdentifications()[0].getHits()[0];
+      hit.setProteinAccessions(peptide.protein_refs);
+      // all the protein hits are already listed in the ProteinIdentification
+
       double rt_min = feat_it->getMetaValue("leftWidth");
       double rt_max = feat_it->getMetaValue("rightWidth");
       if (feat_it->getConvexHulls().empty()) // add hulls for mass traces
