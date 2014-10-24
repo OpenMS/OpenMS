@@ -84,7 +84,35 @@ using namespace std;
         </table>
         </CENTER>
 
-        This tool uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+        This tool detects quantitative features in MS1 data based on information from peptide identifications (derived from MS2 spectra). It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+
+        @note It is important that only high-confidence peptide identifications and centroided (peak-picked) LC-MS data are used as inputs!
+
+        For every distinct peptide ion (defined by sequence and charge) in the input (parameter @p id), an assay is generated, incorporating the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution of the peptide. The parameter @p reference_rt controls how the RT of the assay is determined if the peptide has been observed multiple times. The relative intensities of the isotopes together with their m/z values are calculated from the sequence and charge.
+
+        The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps: 
+
+        <B>1. Ion chromatogram extraction</B>
+
+        First ion chromatograms (XICs) are extracted from the data (parameter @p in). For every assay, the RT range of the XICs is given by @p extract:rt_window (around the reference RT of the assay) and the m/z ranges by @p extract:mz_window (around the m/z values of all included isotopes). As an exception to this, if @p extract:reference_rt is @p adapt, a more complex procedure is used to find the RT range: A range of size @p rt_window around every relevant peptide ID is considered, overlapping ranges are joined, and the largest resulting range is used for the extraction. In that case, the reference RT for the assay is the median RT of the peptide IDs within the range.
+
+        @see @ref TOPP_OpenSwathChromatogramExtractor
+
+        <B>2. Feature detection</B>
+        
+        Next feature candidates are detected in the XICs and scored. The best candidate per assay according to the OpenSWATH scoring is turned into a feature.
+
+        @see @ref TOPP_OpenSwathAnalyzer 
+
+        <B>3. Elution model fitting</B>
+
+        Elution models can be fitted to every feature to improve the quantification. For robustness, one model is fitted to all isotopic mass traces of a feature in parallel. A symmetric (Gaussian) and an asymmetric (exponential-Gaussian hybrid) model type are available. The fitted models are checked for plausibility before they are accepted.
+        
+        Finally the results (feature maps, parameter @p out) are returned.
+
+        @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
+
+
 
         <B>The command line parameters of this tool are:</B>
         @verbinclude TOPP_FeatureFinderIdentification.cli
@@ -129,7 +157,7 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
-    registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge. 'adapt': adapt RT windows based on IDs; 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs (requires further processing of results).", false);
+    registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge. 'adapt': adapt (extend) RT windows based on IDs; 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs (requires further processing of results).", false);
     setValidStrings_("extract:reference_rt", refs);
     registerDoubleOption_("extract:rt_window", "<value>", 60.0, "RT window size (in sec.) for chromatogram extraction.", false);
     setMinFloat_("extract:rt_window", 0.0);
