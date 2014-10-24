@@ -403,8 +403,8 @@ namespace OpenMS
         // calculating the extrapolated, S2I value as a time weighted linear combination of the two scans
         // see: Savitski MM, Sweetman G, Askenazi M, Marto JA, Lang M, Zinn N, et al. (2011).
         // Analytical chemistry 83: 8959–67. http://www.ncbi.nlm.nih.gov/pubmed/22017476
-        return (ms2_spec->getRT() - pState.precursorScan->getRT()) *
-               ((late_scan_purity - early_scan_purity) / (pState.followUpScan->getRT() - pState.precursorScan->getRT()))
+        return std::fabs(ms2_spec->getRT() - pState.precursorScan->getRT()) *
+               ((late_scan_purity - early_scan_purity) / std::fabs(pState.followUpScan->getRT() - pState.precursorScan->getRT()))
                + early_scan_purity;
       }
       else
