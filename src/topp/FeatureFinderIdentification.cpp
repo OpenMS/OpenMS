@@ -140,21 +140,21 @@ protected:
     setMaxFloat_("extract:isotope_pmin", 1.0);
 
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
-    StringList modes = ListUtils::create<String>("OS_best,OS_all,filtered");
-    registerStringOption_("detect:mode", "<choice>", modes[0], "Feature detection mode. 'OS_best': use OpenSWATH feature detection, return single best feature per charged peptide; 'OS_all': use OpenSWATH feature detection, return all features (requires further processing of results); 'filtered': filter data according to expected isotope distribution, then detect elution peak (experimental).", false);
-    setValidStrings_("detect:mode", modes);
+    StringList algos = ListUtils::create<String>("OS_best,OS_all,iso_match");
+    registerStringOption_("detect:algorithm", "<choice>", algos[0], "Feature detection algorithm. 'OS_best': use OpenSWATH feature detection, return single best feature per charged peptide; 'OS_all': use OpenSWATH feature detection, return all features (requires further processing of results); 'iso_match': filter data according to expected isotope distribution, then detect elution peak (experimental).", false);
+    setValidStrings_("detect:algorithm", algos);
     registerDoubleOption_("detect:peak_width", "<value>", 30.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
     setMinFloat_("detect:peak_width", 0.0);
-    registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('filtered' mode only); relative to the square root of the measured intensity", false);
+    registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('iso_match' algorithm only); relative to the square root of the measured intensity", false);
     setMinFloat_("detect:tolerance", 0.0);
-    registerDoubleOption_("detect:max_gap", "<value>", 0.5, "Maximum gap (region without matching isotope peaks) length beyond which a feature won't be extended further ('filtered' mode only); relative to 'peak_width'; '0' to disable", false, true);
+    registerDoubleOption_("detect:max_gap", "<value>", 0.5, "Maximum gap (region without matching isotope peaks) beyond which a feature won't be extended further ('iso_match' algorithm only); relative to 'peak_width'; '0' to disable", false, true);
     setMinFloat_("detect:max_gap", 0.0);
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
     StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
     registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
     setValidStrings_("model:type", models);
-    registerDoubleOption_("model:add_zeros", "<value>", 0.5, "Add zero-intensity points outside the feature range to constrain the model fit. This parameter sets the weight given to these points during model fitting; '0' to disable.", true);
+    registerDoubleOption_("model:add_zeros", "<value>", 0.2, "Add zero-intensity points outside the feature range to constrain the model fit. This parameter sets the weight given to these points during model fitting; '0' to disable.", false, true);
     setMinFloat_("model:add_zeros", 0.0);
     registerFlag_("model:unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
     registerFlag_("model:no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the initial intensity estimate", true);
@@ -481,7 +481,7 @@ protected:
   // optionally don't extend past a given gap length (in RT):
   pair<Size, double> findNextExtremum_(const MSChromatogram<>& data, Size start,
                                        bool go_right=false, bool find_min=false,
-                                       double fraction=0.0, double max_gap=0.0)
+                                       double max_gap=0.0)
   {
     Int stop, step, index;
     if (go_right)
@@ -497,14 +497,12 @@ protected:
 
     double previous_int = data[start].getIntensity();
     double previous_rt = data[start].getRT();
-    double threshold = fraction * previous_int;
     Int min_max = find_min ? -1 : 1; // multiply by -1 to change "<" to ">"
     for (index = start + step; index * step <= stop; index += step)
     {
       double current_int = data[index].getIntensity();
       double current_rt = data[index].getRT();
       if ((min_max * current_int < min_max * previous_int) || 
-          ((fraction > 0.0) && (min_max * current_int < min_max * threshold)) ||
           ((max_gap > 0.0) && (fabs(previous_rt - current_rt) > max_gap)))
       {
         index -= step; // went a step too far, go back
@@ -565,7 +563,7 @@ protected:
       for (Size trace = 0; trace < n_traces; ++trace)
       {
         double intensity = scaled[trace][time];
-        if (intensity > 0) points.push_back(make_pair(intensity, trace));
+        if (intensity > 0.0) points.push_back(make_pair(intensity, trace));
       }
 
       sort(points.begin(), points.end());
@@ -623,12 +621,24 @@ protected:
           }
         }
 
-        matches[time] = regions[best_region_index];
+        const vector<Size>& best_region = regions[best_region_index];
+        matches[time] = best_region;
         which_matches.push_back(time);
-        vector<double> matching_intensities(regions[best_region_index].size());
-        for (Size i = 0; i < regions[best_region_index].size(); ++i)
+        vector<double> matching_intensities(best_region.size());
+        for (Size i = 0; i < best_region.size(); ++i)
         {
-          matching_intensities[i] = scaled[i][time];
+          matching_intensities[i] = scaled[best_region[i]][time];
+        }
+        if (debug_level_ >= 10)
+        {
+          // convert intensities to "float" to print fewer decimals:
+          String values = float(matching_intensities[0]);
+          for (Size i = 1; i < matching_intensities.size(); ++i)
+          {
+            values += " " + String(float(matching_intensities[i]));
+          }
+          LOG_DEBUG << "Matching intensities at step " << time << ": " << values
+                    << endl;
         }
         peak.setIntensity(Math::median(matching_intensities.begin(),
                                        matching_intensities.end()));
@@ -646,7 +656,17 @@ protected:
 
       // apply smoothing to medians of matching scaled intensities:
       MSChromatogram<> smoothed = medians;
-      gauss_filter.filter(smoothed);     
+      gauss_filter.filter(smoothed);
+      if (debug_level_ >= 10)
+      {
+        LOG_DEBUG << "Medians of matching intensities (RT: raw/smoothed):"
+                  << endl;
+        for (Size i = 0; i < medians.size(); ++i)
+        {
+          LOG_DEBUG << medians[i].getRT() << ": " << medians[i].getIntensity()
+                    << " / " << smoothed[i].getIntensity() << endl;
+        }
+      }
       // to estimate the density of matching intensities, apply smoothing to the
       // histogram (in lieu of kernel density estimation):
       MSChromatogram<> density = n_matches;
@@ -677,26 +697,28 @@ protected:
                 << endl;
       // find left peak border:
       pair<Size, double> left_border = 
-        findNextExtremum_(smoothed, apex.first, false, true);
+        findNextExtremum_(smoothed, apex.first, false, true, max_gap_);
       LOG_DEBUG << "left border: " << left_border.first << " -> ";
       // try to extend further based on original (non-smoothed) data:
-      if (medians[left_border.first].getIntensity() <= 
-          smoothed[left_border.first].getIntensity())
+      double median_int = medians[left_border.first].getIntensity();
+      if ((median_int > 0.0) && 
+          (median_int <= smoothed[left_border.first].getIntensity()))
       {
         left_border = findNextExtremum_(medians, left_border.first, false, 
-                                        true);
+                                        true, max_gap_);
       }
       LOG_DEBUG << left_border.first << endl;
       // find right peak border:
       pair<Size, double> right_border = 
-        findNextExtremum_(smoothed, apex.first, true, true);
+        findNextExtremum_(smoothed, apex.first, true, true, max_gap_);
       // try to extend further based on original (non-smoothed) data:
       LOG_DEBUG << "right border: " << right_border.first << " -> ";
-      if (medians[right_border.first].getIntensity() <= 
-          smoothed[right_border.first].getIntensity())
+      median_int = medians[right_border.first].getIntensity();
+      if ((median_int > 0.0) && 
+          (median_int <= smoothed[right_border.first].getIntensity()))
       {
         right_border = findNextExtremum_(medians, right_border.first, true, 
-                                         true);
+                                         true, max_gap_);
       }
       LOG_DEBUG << right_border.first << endl;
 
@@ -796,7 +818,7 @@ protected:
     // store model parameters to find outliers later:
     double width_limit = getDoubleOption_("model:check:width");
     double asym_limit = (asymmetric ? 
-                             getDoubleOption_("model:check:asymmetry") : 0.0);
+                         getDoubleOption_("model:check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
     vector<double> widths_all, widths_good, asym_all, asym_good;
@@ -1149,8 +1171,8 @@ protected:
     double mz_window = getDoubleOption_("extract:mz_window");
     bool mz_window_ppm = mz_window >= 1;
     double isotope_pmin = getDoubleOption_("extract:isotope_pmin");
-    String detection_mode = getStringOption_("detect:mode");
-    bool filtered_detection = detection_mode == "filtered";
+    String detection_algo = getStringOption_("detect:algorithm");
+    bool use_iso_match = detection_algo == "iso_match";
     double peak_width = getDoubleOption_("detect:peak_width");
     max_gap_ = getDoubleOption_("detect:max_gap") * peak_width;
     String elution_model = getStringOption_("model:type");
@@ -1330,7 +1352,7 @@ protected:
     LOG_INFO << "Finding chromatographic peaks..." << endl;
     FeatureMap<> features;
 
-    if (filtered_detection)
+    if (use_iso_match)
     {
       detectFeatures_(chrom_data, features, peak_width);
     }
@@ -1339,7 +1361,7 @@ protected:
       MRMFeatureFinderScoring mrm_finder;
       Param params = mrm_finder.getParameters();
       params.setValue("stop_report_after_feature", 
-                      (detection_mode == "OS_all") ? -1 : 1);
+                      (detection_algo == "OS_all") ? -1 : 1);
       if (elution_model != "none") params.setValue("write_convex_hull", "true");
       params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
       params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
@@ -1369,7 +1391,7 @@ protected:
     for (FeatureMap<>::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
-      if (!filtered_detection)
+      if (!use_iso_match)
       {
         feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
         feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
