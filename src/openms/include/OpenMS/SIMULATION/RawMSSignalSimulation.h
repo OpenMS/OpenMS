@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,16 +71,16 @@ public:
     RawMSSignalSimulation();
 
     /// Constructor taking a random generator
-    explicit RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr rng);
+    explicit RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr rng);
 
     /// Copy constructor
-    RawMSSignalSimulation(const RawMSSignalSimulation & source);
+    RawMSSignalSimulation(const RawMSSignalSimulation& source);
 
     /// Destructor
     virtual ~RawMSSignalSimulation();
     //@}
 
-    RawMSSignalSimulation & operator=(const RawMSSignalSimulation & source);
+    RawMSSignalSimulation& operator=(const RawMSSignalSimulation& source);
 
     /// load the contaminants from contaminants:file param
     /// You do not have to call this function before calling generateRawSignals(), but it might
@@ -88,7 +88,10 @@ public:
     void loadContaminants();
 
     /// fill experiment with signals and noise
-    void generateRawSignals(FeatureMapSim & features, MSSimExperiment & experiment, MSSimExperiment & experiment_ct, FeatureMapSim & contaminants);
+    void generateRawSignals(SimTypes::FeatureMapSim& features,
+                            SimTypes::MSSimExperiment& experiment,
+                            SimTypes::MSSimExperiment& experiment_ct,
+                            SimTypes::FeatureMapSim& contaminants);
 
 protected:
 
@@ -109,7 +112,7 @@ protected:
      @param experiment The experiment to which the simulated signals should be added
      @param experiment_ct Ground truth for picked peaks
      */
-    void add1DSignal_(Feature & feature, MSSimExperiment & experiment, MSSimExperiment & experiment_ct);
+    void add1DSignal_(Feature& feature, SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& experiment_ct);
 
     /**
      @brief Add a 2D signal for a single feature
@@ -118,7 +121,7 @@ protected:
      @param experiment The experiment to which the simulated signals should be added
      @param experiment_ct Ground truth for picked peaks
      */
-    void add2DSignal_(Feature & feature, MSSimExperiment & experiment, MSSimExperiment & experiment_ct);
+    void add2DSignal_(Feature& feature, SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& experiment_ct);
 
     /**
      @brief Samples signals for the given 1D model
@@ -130,12 +133,12 @@ protected:
      @param experiment_ct Experiment to which the centroided Ground Truth sampled signals will be added
      @param activeFeature The current feature that is simulated
      */
-    void samplePeptideModel1D_(const IsotopeModel & iso,
-                               const SimCoordinateType mz_start,
-                               const SimCoordinateType mz_end,
-                               MSSimExperiment & experiment,
-                               MSSimExperiment & experiment_ct,
-                               Feature & activeFeature);
+    void samplePeptideModel1D_(const IsotopeModel& iso,
+                               const SimTypes::SimCoordinateType mz_start,
+                               const SimTypes::SimCoordinateType mz_end,
+                               SimTypes::MSSimExperiment& experiment,
+                               SimTypes::MSSimExperiment& experiment_ct,
+                               Feature& activeFeature);
 
     /**
      @brief Samples signals for the given 2D model
@@ -149,50 +152,57 @@ protected:
      @param experiment_ct Experiment to which the centroided Ground Truth sampled signals will be added
      @param activeFeature The current feature that is simulated
      */
-    void samplePeptideModel2D_(const ProductModel<2> & pm,
-                               const SimCoordinateType mz_start,
-                               const SimCoordinateType mz_end,
-                               SimCoordinateType rt_start,
-                               SimCoordinateType rt_end,
-                               MSSimExperiment & experiment,
-                               MSSimExperiment & experiment_ct,
-                               Feature & activeFeature);
+    void samplePeptideModel2D_(const ProductModel<2>& pm,
+                               const SimTypes::SimCoordinateType mz_start,
+                               const SimTypes::SimCoordinateType mz_end,
+                               SimTypes::SimCoordinateType rt_start,
+                               SimTypes::SimCoordinateType rt_end,
+                               SimTypes::MSSimExperiment& experiment,
+                               SimTypes::MSSimExperiment& experiment_ct,
+                               Feature& activeFeature);
 
     /**
      @brief Add the correct Elution profile to the passed ProductModel
      */
-    void chooseElutionProfile_(EGHModel * const elutionmodel, Feature & feature, const double scale, const double rt_sampling_rate, const MSSimExperiment & experiment);
+    void chooseElutionProfile_(EGHModel* const elutionmodel,
+                               Feature& feature,
+                               const double scale,
+                               const double rt_sampling_rate,
+                               const SimTypes::MSSimExperiment& experiment);
 
     /**
      @brief build contaminant feature map
     */
-    void createContaminants_(FeatureMapSim & contaminants, MSSimExperiment & exp, MSSimExperiment & exp_ct);
+    void createContaminants_(SimTypes::FeatureMapSim& contaminants, SimTypes::MSSimExperiment& exp, SimTypes::MSSimExperiment& exp_ct);
 
     /// Add shot noise to the experiment
-    void addShotNoise_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit);
+    void addShotNoise_(SimTypes::MSSimExperiment& experiment, SimTypes::SimCoordinateType minimal_mz_measurement_limit, SimTypes::SimCoordinateType maximal_mz_measurement_limit);
 
     /// Add white noise to the experiment
-    void addWhiteNoise_(MSSimExperiment & experiment);
+    void addWhiteNoise_(SimTypes::MSSimExperiment& experiment);
 
     /// Add detector noise to the experiment
-    void addDetectorNoise_(MSSimExperiment & experiment);
+    void addDetectorNoise_(SimTypes::MSSimExperiment& experiment);
 
     /// Add a base line to the experiment
-    void addBaseLine_(MSSimExperiment & experiment, SimCoordinateType minimal_mz_measurement_limit);
+    void addBaseLine_(SimTypes::MSSimExperiment& experiment, SimTypes::SimCoordinateType minimal_mz_measurement_limit);
 
     /// get the mz grid where all m/z values will be mapped to
-    void getSamplingGrid_(std::vector<SimCoordinateType> & grid, const SimCoordinateType mz_min, const SimCoordinateType mz_max, const Int step_Da);
+    void getSamplingGrid_(std::vector<SimTypes::SimCoordinateType>& grid,
+                          const SimTypes::SimCoordinateType mz_min,
+                          const SimTypes::SimCoordinateType mz_max,
+                          const Int step_Da);
 
     /// Compress signals in a single RT scan (to merge signals which were sampled overlapping)
-    void compressSignals_(MSSimExperiment & experiment);
+    void compressSignals_(SimTypes::MSSimExperiment& experiment);
 
     /// number of points sampled per peak's FWHM
     Int sampling_points_per_FWHM_;
 
     /// Mean of peak m/z error
-    SimCoordinateType mz_error_mean_;
+    SimTypes::SimCoordinateType mz_error_mean_;
     /// Standard deviation of peak m/z error
-    SimCoordinateType mz_error_stddev_;
+    SimTypes::SimCoordinateType mz_error_stddev_;
 
     /**
      * @brief Computes a rescaled feature intensity based on the set parameters for feature intensity scaling and the passed parameter @p natural_scaling_factor.
@@ -202,7 +212,8 @@ protected:
      *
      * @return Rescaled feature intensity.
      */
-    SimIntensityType getFeatureScaledIntensity_(const SimIntensityType feature_intensity, const SimIntensityType natural_scaling_factor);
+    SimTypes::SimIntensityType getFeatureScaledIntensity_(const SimTypes::SimIntensityType feature_intensity,
+                                                          const SimTypes::SimIntensityType natural_scaling_factor);
 
 
     /**
@@ -224,9 +235,9 @@ protected:
     double getPeakWidth_(const double mz, const bool is_gaussian) const;
 
     /// Scaling factor of peak intensities
-    SimIntensityType intensity_scale_;
+    SimTypes::SimIntensityType intensity_scale_;
     /// Standard deviation of peak intensity scaling
-    SimIntensityType intensity_scale_stddev_;
+    SimTypes::SimIntensityType intensity_scale_stddev_;
 
 
     /// model of how resolution behaves with increasing m/z
@@ -234,10 +245,10 @@ protected:
     /// base resolution at 400 Th
     double res_base_;
     /// m/z sampling grid for all signals
-    std::vector<SimCoordinateType> grid_;
+    std::vector<SimTypes::SimCoordinateType> grid_;
 
     /// Random number generator
-    MutableSimRandomNumberGeneratorPtr rnd_gen_;
+    SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen_;
 
     struct ContaminantInfo
     {

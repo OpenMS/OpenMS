@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,8 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXCLUSTERING_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
@@ -61,7 +62,8 @@ namespace OpenMS
      * @see MultiplexFiltering
      * @see LocalClustering
      */
-    class OPENMS_DLLAPI MultiplexClustering
+    class OPENMS_DLLAPI MultiplexClustering :
+        public ProgressLogger
     {        
         public:
         /**
@@ -77,67 +79,21 @@ namespace OpenMS
          * @param boundaries    peak boundaries for exp_picked
          * @param rt_typical    elution time of a characteristic peptide in the sample
          * @param rt_minimum    shortest elution time i.e. all peptides appearing for a shorter time are being ignored
-         * @param debug    debug mode
+         * @param out_debug    directory for debug output
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, bool debug);
+        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug);
         
         /**
          * @brief cluster filter results
-         * Data points are grouped into clusteres. Each cluster contains data about one peptide multiplet.
+         * Data points are grouped into clusters. Each cluster contains data about one peptide multiplet.
          * 
          * @param filter_results    data points relevant for peptide multiplets i.e. output from multiplex filtering
          * 
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
         std::vector<std::map<int,GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
-        
-        /**
-         * @brief rough estimation of the peak width at m/z
-         * 
-         * Based on the peaks of the dataset (peak position & width), the typical peak width is estimated for arbitrary m/z.
-         * The peak width is assumed to be a linear funtion of m/z.
-         * 
-         * TO DO: Use Lowess instead of Linear Regression.
-         */
-        class OPENMS_DLLAPI PeakWidthEstimator_
-        {
-            public:
-            /**
-            * @brief constructor
-            * 
-            * @param exp_picked    experimental data in centroid mode
-            * @param boundaries    peak boundaries for exp_picked
-            * 
-            * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
-            */
-            PeakWidthEstimator_(MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries);
-        
-            /**
-            * @brief returns the estimated peak width at m/z
-            * 
-            * @throw Exception::InvalidValue if the peak width estimation returns a negative value.
-            */
-            double getPeakWidth(double mz);
-        
-            private:        
-            /// hide default constructor
-            PeakWidthEstimator_();
-        
-            /**
-            * @brief m/z range of peak width interpolation
-            */
-            double mz_min_;
-            double mz_max_;
-            
-            /**
-             * @brief slope and intercept for peak width interpolation
-             */
-            double slope_;
-            double intercept_;
-        
-        };
         
         /**
          * @brief scaled Euclidean distance for clustering
@@ -223,6 +179,11 @@ namespace OpenMS
          * @brief minimum retention time
          */
         double rt_minimum_;
+        
+        /**
+         * @brief directory for debug output
+         */
+        String out_debug_;
         
         /**
          * @brief debug mode

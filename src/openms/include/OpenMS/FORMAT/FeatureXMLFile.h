@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, FeatureMap<> & feature_map);
+    void load(const String & filename, FeatureMap & feature_map);
 
     Size loadSize(const String & filename);
 
@@ -87,7 +87,7 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const FeatureMap<> & feature_map);
+    void store(const String & filename, const FeatureMap & feature_map);
 
     /// Mutable access to the options for loading/storing
     FeatureFileOptions & getOptions();
@@ -134,7 +134,7 @@ protected:
     /// points to the last open &lt;feature&gt; tag (possibly a subordinate feature)
     Feature * current_feature_;
     /// Feature map pointer for reading
-    FeatureMap<Feature> * map_;
+    FeatureMap* map_;
     /// Options that can be set
     FeatureFileOptions options_;
     /// only parse until "count" tag is reached (used in loadSize())
@@ -144,7 +144,6 @@ protected:
 
     /**@name temporary data structures to hold parsed data */
     //@{
-    ModelDescription<2> model_desc_;
     Param param_;
     ConvexHull2D::PointArrayType current_chull_;
     DPosition<2> hull_position_;

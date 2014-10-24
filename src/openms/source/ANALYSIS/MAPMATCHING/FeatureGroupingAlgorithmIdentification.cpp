@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -94,7 +94,7 @@ namespace OpenMS
   };
 
   void
-  FeatureGroupingAlgorithmIdentification::group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out)
+  FeatureGroupingAlgorithmIdentification::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
   {
     // check that the number of maps is ok
     if (maps.size() < 2)
@@ -125,7 +125,7 @@ namespace OpenMS
      * These filters are applied for each experiment separately.
      */
 
-    std::vector<FeatureMap<> > feature_maps = maps; // copy maps, so that they can be changed. // ???? größte map als erste!?
+    std::vector<FeatureMap> feature_maps = maps; // copy maps, so that they can be changed. // ???? größte map als erste!?
 
     for (Size i = 0; i < feature_maps.size(); ++i)   // feature maps
     {

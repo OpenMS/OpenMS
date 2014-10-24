@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ public:
 
     /// Destructor
     virtual ~PeakPickerHiRes();
-    
+
     /// structure for peak boundaries
     struct PeakBoundary
     {
@@ -94,7 +94,7 @@ public:
      * @brief Applies the peak-picking algorithm to a single spectrum
      * (MSSpectrum). The resulting picked peaks are written to the output
      * spectrum.
-     * 
+     *
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      */
@@ -109,7 +109,7 @@ public:
      * @brief Applies the peak-picking algorithm to a single spectrum
      * (MSSpectrum). The resulting picked peaks are written to the output
      * spectrum. Peak boundaries are written to a separate structure.
-     * 
+     *
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      * @param boundaries  boundaries of the picked peaks
@@ -213,9 +213,10 @@ public:
           Size missing_left(0);
           Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
 
-          while ( k <= i    //prevent underflow
+          while ( k <= i    // prevent underflow
                 && (i - k + 1) > 0
-                && (missing_left < 2)
+                && (missing_left <= missing_)
+                && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_gap_ * min_spacing
                 && !previous_zero_left
                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
@@ -227,15 +228,17 @@ public:
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
 
-
             if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
             }
             else
             {
-              peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
               ++missing_left;
+              if (missing_left <= missing_)
+              {
+                peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
+              }
             }
 
             previous_zero_left = (input[i - k].getIntensity() == 0);
@@ -247,13 +250,14 @@ public:
 
           // to the right
           k = 2;
-          
+
           bool previous_zero_right(false);    // no need to extend peak if previous intensity was zero
           Size missing_right(0);
           Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
-          
+
           while ((i + k) < input.size()
-                && (missing_right < 2)
+                && (missing_right <= missing_)
+                && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_gap_ * min_spacing
                 && !previous_zero_right
                 && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
           {
@@ -271,8 +275,11 @@ public:
             }
             else
             {
-              peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
               ++missing_right;
+              if (missing_right <= missing_)
+              {
+                peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
+              }
             }
 
             previous_zero_right = (input[i + k].getIntensity() == 0);
@@ -327,7 +334,7 @@ public:
           max_peak_mz = (lefthand + righthand) / 2;
           max_peak_int = peak_spline.eval( max_peak_mz );
 
-          // save picked pick into output spectrum
+          // save picked peak into output spectrum
           PeakType peak;
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
@@ -348,7 +355,7 @@ public:
      /**
      * @brief Applies the peak-picking algorithm to a single chromatogram
      * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     * 
+     *
      * @param input  input chromatogram in profile mode
      * @param output  output chromatogram with picked peaks
      */
@@ -358,11 +365,11 @@ public:
         std::vector<PeakBoundary> boundaries;
         pick(input, output, boundaries);
     }
-    
+
     /**
      * @brief Applies the peak-picking algorithm to a single chromatogram
      * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
-     * 
+     *
      * @param input  input chromatogram in profile mode
      * @param output  output chromatogram with picked peaks
      * @param boundaries  boundaries of the picked peaks
@@ -394,7 +401,7 @@ public:
      * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
      * method picks peaks for each scan in the map consecutively. The resulting
      * picked peaks are written to the output map.
-     * 
+     *
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
      */
@@ -410,7 +417,7 @@ public:
      * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
      * method picks peaks for each scan in the map consecutively. The resulting
      * picked peaks are written to the output map.
-     * 
+     *
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
      * @param boundaries_spec  boundaries of the picked peaks in spectra
@@ -428,13 +435,12 @@ public:
       // resize output with respect to input
       output.resize(input.size());
 
-      bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
 
       startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
-        if (ms1_only && (input[scan_idx].getMSLevel() != 1))
+        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
         {
           output[scan_idx] = input[scan_idx];
         }
@@ -480,13 +486,12 @@ public:
       // resize output with respect to input
       output.resize(input.size());
 
-      bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
 
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
-        if (ms1_only && (input[scan_idx].getMSLevel() != 1))
+        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
         {
           output[scan_idx] = input[scan_idx];
         }
@@ -515,8 +520,17 @@ protected:
     // signal-to-noise parameter
     double signal_to_noise_;
 
-    // maximal spacing difference
+    // maximal spacing difference defining a large gap
+    double spacing_difference_gap_;
+    
+    // maximal spacing difference defining a missing data point
     double spacing_difference_;
+    
+    // maximum number of missing points
+    unsigned missing_;
+
+    // ms levels to which peak picking is applied
+    std::vector<Int> ms_levels_;
 
     // docu in base class
     void updateMembers_();

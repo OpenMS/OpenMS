@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,11 +42,11 @@
 using namespace OpenMS;
 using namespace std;
 
-void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps, bool add3rd)
+void createTestFeatureMapSimVector_(SimTypes::FeatureMapSimVector& feature_maps, bool add3rd)
 {
   feature_maps.clear();
 
-  FeatureMapSim fm1,fm2,fm3;
+  SimTypes::FeatureMapSim fm1,fm2,fm3;
   ProteinHit prothit1,prothit2,prothit3,prothit4,prothit5,prothit6,prothit7,prothit8,prothit9,prothit10, prothit11, prothit12;
 
   // create first map
@@ -147,7 +147,7 @@ void createTestFeatureMapSimVector_(FeatureMapSimVector& feature_maps, bool add3
 }
 
 
-void digestFeaturesMapSimVector_(FeatureMapSimVector& feature_maps)
+void digestFeaturesMapSimVector_(SimTypes::FeatureMapSimVector& feature_maps)
 {
   // digest here
   DigestSimulation digest_sim;
@@ -156,7 +156,7 @@ void digestFeaturesMapSimVector_(FeatureMapSimVector& feature_maps)
   p.setValue("model_naive:missed_cleavages", 0);
   digest_sim.setParameters(p);
   std::cout << digest_sim.getParameters() << std::endl;
-  for(FeatureMapSimVector::iterator iter = feature_maps.begin() ; iter != feature_maps.end() ; ++iter)
+  for(SimTypes::FeatureMapSimVector::iterator iter = feature_maps.begin() ; iter != feature_maps.end() ; ++iter)
   {
     digest_sim.digest((*iter));
   }
@@ -182,13 +182,13 @@ START_SECTION(~ICPLLabeler())
 }
 END_SECTION
 
-START_SECTION((void setUpHook(FeatureMapSimVector &)))
+START_SECTION((void setUpHook(SimTypes::FeatureMapSimVector &)))
 {
   std::cerr << "*********************************setUpHook*************************************" ;
   ICPLLabeler labeler;
 
-  FeatureMapSim fm1,fm2,fm3,fm4;
-  FeatureMapSimVector fm_vec;
+  SimTypes::FeatureMapSim fm1,fm2,fm3,fm4;
+  SimTypes::FeatureMapSimVector fm_vec;
 
   fm_vec.push_back(fm1);
   TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, labeler.setUpHook(fm_vec),"We currently support only 2- or 3-channel ICPL")
@@ -201,10 +201,10 @@ START_SECTION((void setUpHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postDigestHook(FeatureMapSimVector &)))
+START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
 {
   std::cerr <<"*********************************postDigestHook****************************************";
-  FeatureMapSimVector feature_maps;
+  SimTypes::FeatureMapSimVector feature_maps;
 
 
 //*******************************Peptide-Labeling*******************************************
@@ -482,7 +482,7 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postRawMSHook(FeatureMapSimVector &)))
+START_SECTION((void postRawMSHook(SimTypes::FeatureMapSimVector &)))
 {
   // TODO
 }
@@ -490,7 +490,7 @@ END_SECTION
 
 // just to call the methods once
 ICPLLabeler dummyLabeler;
-FeatureMapSimVector empty;
+SimTypes::FeatureMapSimVector empty;
 
 START_SECTION((void preCheck(Param &param) const ))
 {
@@ -503,7 +503,7 @@ START_SECTION((void preCheck(Param &param) const ))
 END_SECTION
 
 
-START_SECTION((void postRTHook(FeatureMapSimVector &)))
+START_SECTION((void postRTHook(SimTypes::FeatureMapSimVector &)))
 {
   // we do not modify the map in this step
   dummyLabeler.postRTHook(empty);
@@ -511,7 +511,7 @@ START_SECTION((void postRTHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postDetectabilityHook(FeatureMapSimVector &)))
+START_SECTION((void postDetectabilityHook(SimTypes::FeatureMapSimVector &)))
 {
   // we do not modify the map in this step
   dummyLabeler.postDetectabilityHook(empty);
@@ -519,7 +519,7 @@ START_SECTION((void postDetectabilityHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-START_SECTION((void postIonizationHook(FeatureMapSimVector &)))
+START_SECTION((void postIonizationHook(SimTypes::FeatureMapSimVector &)))
 {
   // we do not modify the map in this step
   dummyLabeler.postIonizationHook(empty);
@@ -527,8 +527,8 @@ START_SECTION((void postIonizationHook(FeatureMapSimVector &)))
 }
 END_SECTION
 
-MSSimExperiment exp;
-START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
+SimTypes::MSSimExperiment exp;
+START_SECTION((void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimTypes::MSSimExperiment &)))
 {
   // we do not modify the map in this step
   dummyLabeler.postRawTandemMSHook(empty,exp);

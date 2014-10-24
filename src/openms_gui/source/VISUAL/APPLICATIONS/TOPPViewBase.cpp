@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -3023,7 +3023,7 @@ namespace OpenMS
     addDataFile(String(filename), true, false);
   }
 
-  bool TOPPViewBase::annotateMS1FromMassFingerprinting_(const FeatureMap<>& identifications)
+  bool TOPPViewBase::annotateMS1FromMassFingerprinting_(const FeatureMap& identifications)
   {
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
     if (layer.type == LayerData::DT_PEAK)
@@ -3060,7 +3060,7 @@ namespace OpenMS
     FileTypes::Type type = FileHandler::getType(fname);
     if (type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> fm;
+      FeatureMap fm;
       FeatureXMLFile().load(fname, fm);
 
       // last protein ID must be from AccurateMassSearch (it gets appended there)

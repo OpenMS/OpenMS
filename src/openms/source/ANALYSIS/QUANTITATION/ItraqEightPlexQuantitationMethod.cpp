@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,14 +47,14 @@ namespace OpenMS
     setName("ItraqFourPlexQuantitationMethod");
 
     // create the channel map
-    channels_.push_back(IsobaricChannelInformation(113, 0, "", 113.1078));
-    channels_.push_back(IsobaricChannelInformation(114, 1, "", 114.1112));
-    channels_.push_back(IsobaricChannelInformation(115, 2, "", 115.1082));
-    channels_.push_back(IsobaricChannelInformation(116, 3, "", 116.1116));
-    channels_.push_back(IsobaricChannelInformation(117, 4, "", 117.1149));
-    channels_.push_back(IsobaricChannelInformation(118, 5, "", 118.1120));
-    channels_.push_back(IsobaricChannelInformation(119, 6, "", 119.1153));
-    channels_.push_back(IsobaricChannelInformation(121, 7, "", 121.1220));
+    channels_.push_back(IsobaricChannelInformation("113", 0, "", 113.1078, -1, -1, 1, 2));
+    channels_.push_back(IsobaricChannelInformation("114", 1, "", 114.1112, -1, 0, 2, 3));
+    channels_.push_back(IsobaricChannelInformation("115", 2, "", 115.1082, 0, 1, 3, 4));
+    channels_.push_back(IsobaricChannelInformation("116", 3, "", 116.1116, 1, 2, 4, 5));
+    channels_.push_back(IsobaricChannelInformation("117", 4, "", 117.1149, 2, 3, 5, 6));
+    channels_.push_back(IsobaricChannelInformation("118", 5, "", 118.1120, 3, 4, 6, 7));
+    channels_.push_back(IsobaricChannelInformation("119", 6, "", 119.1153, 4, 5, -1, 7));
+    channels_.push_back(IsobaricChannelInformation("121", 7, "", 121.1220, 6, -1, -1, -1));
 
     // we assume 114 to be the reference
     reference_channel_ = 0;

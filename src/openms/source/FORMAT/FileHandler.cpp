@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -156,12 +156,42 @@ namespace OpenMS
     {
       //load first 5 lines
       TextFile file(filename, true, 5);
-      file.resize(5); // in case not enough lines are in the file
-      two_five = file[1] + ' ' + file[2] + ' ' + file[3] + ' ' + file[4];
-      two_five.substitute('\t', ' ');
-      all_simple = file[0] + ' ' + two_five;
-      first_line = file[0];
-      complete_file = file;
+      TextFile::ConstIterator file_it = file.begin();
+
+      // file could be empty
+      if (file_it == file.end())
+      {
+        two_five = " ";
+        all_simple = " ";
+        first_line = " ";
+      }
+      else
+      {
+        // concat elements 2 to 5
+        two_five = "";
+        ++file_it;
+        for (int i = 1; i < 5; ++i)
+        {
+          if (file_it != file.end())
+          {
+            two_five += *file_it;
+            ++file_it;
+          }
+          else
+          {
+            two_five += "";
+          }
+          two_five += " ";
+        }
+
+        // remove trailing space
+        two_five = two_five.chop(1);
+        two_five.substitute('\t', ' ');
+        all_simple = *(file.begin()) + ' ' + two_five;
+        first_line = *(file.begin());
+      }
+
+      complete_file.insert(complete_file.end(), file.begin(), file.end());
     }
     //std::cerr << "\n Line1:\n" << first_line << "\nLine2-5:\n" << two_five << "\nall:\n" << all_simple << "\n\n";
 
@@ -328,7 +358,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != complete_file.size(); ++i)
       {
-        if (complete_file[i].trim()=="FORMAT=Mascot generic" || complete_file[i].trim()=="BEGIN IONS")
+        if (complete_file[i].trim() == "FORMAT=Mascot generic" || complete_file[i].trim() == "BEGIN IONS")
         {
           return FileTypes::MGF;
         }
@@ -390,9 +420,9 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return options_;
   }
 
-  void FileHandler::setOptions(const PeakFileOptions & options)
+  void FileHandler::setOptions(const PeakFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
 
   String FileHandler::computeFileHash_(const String& filename) const
@@ -405,6 +435,51 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       crypto.addData(file.read(8192));
     }
     return String((QString)crypto.result().toHex());
+  }
+
+  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type)
+  {
+    //determine file type
+    FileTypes::Type type;
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      type = force_type;
+    }
+    else
+    {
+      try
+      {
+        type = getType(filename);
+      }
+      catch (Exception::FileNotFound)
+      {
+        return false;
+      }
+    }
+
+    //load right file
+    if (type == FileTypes::FEATUREXML)
+    {
+      FeatureXMLFile().load(filename, map);
+    }
+    else if (type == FileTypes::TSV)
+    {
+      MsInspectFile().load(filename, map);
+    }
+    else if (type == FileTypes::PEPLIST)
+    {
+      SpecArrayFile().load(filename, map);
+    }
+    else if (type == FileTypes::KROENIK)
+    {
+      KroenikFile().load(filename, map);
+    }
+    else
+    {
+      return false;
+    }
+
+    return true;
   }
 
 } // namespace OpenMS

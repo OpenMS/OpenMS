@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,31 +112,6 @@ START_SECTION((void setQuality(Size index, QualityType q)))
   TEST_PRECONDITION_VIOLATED(p.setQuality( 10, (QualityType)1.0))
 END_SECTION
 
-START_SECTION((const ModelDescription<2>& getModelDescription() const))
-	const Feature p;
-	TEST_EQUAL(p.getModelDescription().getName(), "")
-	TEST_EQUAL(p.getModelDescription().getParam().empty(), true)
-END_SECTION
-
-START_SECTION((ModelDescription<2>& getModelDescription()))
-	Feature p;
-	TEST_EQUAL(p.getModelDescription().getName(), "")
-	p.getModelDescription().setName("gauss");
-	TEST_EQUAL(p.getModelDescription().getName(), "gauss")
-	p.getModelDescription().setName("");
-  TEST_EQUAL(p.getModelDescription().getName(), "")
-END_SECTION
-
-START_SECTION((void setModelDescription(const ModelDescription< 2 > &q)))
-	Feature p;
-  ModelDescription<2> desc;
-  desc.setName("gauss");
-	p.setModelDescription(desc);
-	TEST_EQUAL(p.getModelDescription().getName(), "gauss")
-	p.setModelDescription(ModelDescription<2>());
-	TEST_EQUAL(p.getModelDescription().getName(), "")
-END_SECTION
-
 //do not change these datastructures, they are used in the following tests...
 std::vector< ConvexHull2D > hulls(2);
 hulls[0].addPoint(DPosition<2>(1.0,2.0));
@@ -232,9 +207,6 @@ START_SECTION((Feature(const Feature &feature)))
   p.setOverallQuality( (QualityType)0.9);
   p.setQuality( 0, (QualityType)0.1);
   p.setQuality( 1, (QualityType)0.2);
-  ModelDescription<2> desc;
-  desc.setName("gauss");
-  p.setModelDescription(desc);
   p.setConvexHulls(hulls);
 	p.getConvexHull(); //this pre-calculates the overall convex hull
 
@@ -259,7 +231,6 @@ START_SECTION((Feature(const Feature &feature)))
 	TEST_REAL_SIMILAR(q2, 0.1)
 	q2 = copy_of_p.getQuality(1);
 	TEST_REAL_SIMILAR(q2, 0.2)
-	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
 	TEST_EQUAL(copy_of_p.getConvexHull().getHullPoints().size(),p.getConvexHull().getHullPoints().size())
 	TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
 END_SECTION
@@ -274,9 +245,6 @@ START_SECTION((Feature& operator = (const Feature& rhs)))
   p.setOverallQuality( (QualityType)0.9);
   p.setQuality( 0, (QualityType)0.1);
   p.setQuality( 1, (QualityType)0.2);
-  ModelDescription<2> desc;
-  desc.setName("gauss");
-  p.setModelDescription(desc);
 	p.setMetaValue("cluster_id",4712);
   p.setConvexHulls(hulls);
 
@@ -301,15 +269,11 @@ START_SECTION((Feature& operator = (const Feature& rhs)))
 	TEST_REAL_SIMILAR(q2, 0.1)
 	q2 = copy_of_p.getQuality(1);
 	TEST_REAL_SIMILAR(q2, 0.2)
-	TEST_EQUAL(copy_of_p.getModelDescription().getName(), "gauss")
 	TEST_EQUAL(copy_of_p.getConvexHull().getHullPoints().size(),p.getConvexHull().getHullPoints().size())
 	TEST_EQUAL(copy_of_p.getConvexHulls().size(),p.getConvexHulls().size())
 END_SECTION
 
 START_SECTION((bool operator==(const Feature &rhs) const))
-  ModelDescription<2> desc;
-  desc.setName("gauss");
-
 	Feature p1;
 	Feature p2(p1);
 	TEST_EQUAL(p1==p2, true)
@@ -317,12 +281,10 @@ START_SECTION((bool operator==(const Feature &rhs) const))
 	p1.setIntensity(5.0f);
   p1.setOverallQuality( (QualityType)0.9);
   p1.setQuality(0, (QualityType)0.1);
-  p1.setModelDescription(desc);
 	TEST_EQUAL(p1==p2, false)
 	p2.setIntensity(5.0f);
   p2.setOverallQuality( (QualityType)0.9);
   p2.setQuality(0, (QualityType)0.1);
-  p2.setModelDescription(desc);
 	TEST_EQUAL(p1==p2, true)
 
 	p1.getPosition()[0]=5;

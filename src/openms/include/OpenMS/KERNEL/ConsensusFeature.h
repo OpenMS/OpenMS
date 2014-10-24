@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -262,7 +262,7 @@ public:
       @param fm Input feature map, which provides additional information on the features
       @param intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
     */
-    void computeDechargeConsensus(const FeatureMap<> & fm, bool intensity_weighted_averaging = false);
+    void computeDechargeConsensus(const FeatureMap & fm, bool intensity_weighted_averaging = false);
 
     /**
       @brief Add a ratio.

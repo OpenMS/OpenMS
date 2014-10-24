@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -326,7 +326,7 @@ public:
     static String substr(const String & this_s, size_t pos, size_t n)
     {
       Size begin = std::min(pos, this_s.size());
-      return (String) this_s.std::string::substr(begin, n);
+      return static_cast<String>(this_s.std::string::substr(begin, n));
     }
 
     static String chop(const String & this_s, Size n)
@@ -443,18 +443,18 @@ public:
       size_t random;
       for (Size i = 0; i < length; ++i)
       {
-        random = (size_t)floor(((double)rand() / (double(RAND_MAX) + 1)) * 62.0);
+        random = static_cast<size_t>(floor((static_cast<double>(rand()) / (double(RAND_MAX) + 1)) * 62.0));
         if (random < 10)
         {
-          tmp[i] = (char)(random + 48);
+          tmp[i] = static_cast<char>(random + 48);
         }
         else if (random < 36)
         {
-          tmp[i] = (char)(random + 55);
+          tmp[i] = static_cast<char>(random + 55);
         }
         else
         {
-          tmp[i] = (char)(random + 61);
+          tmp[i] = static_cast<char>(random + 61);
         }
       }
       return tmp;

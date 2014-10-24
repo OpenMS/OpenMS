@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
         PSLPFormulation() nogil except +
         PSLPFormulation(PSLPFormulation) nogil except + #wrap-ignore
         void createAndSolveILPForKnownLCMSMapFeatureBased(
-            FeatureMap[Feature] & features,
+            FeatureMap & features,
             MSExperiment[ Peak1D, ChromatogramPeak ] & experiment,
             libcpp_vector[ IndexTriple ] & variable_indices,
             libcpp_vector[ libcpp_vector[ libcpp_pair[ size_t, size_t ] ] ] & mass_ranges, 
@@ -29,18 +29,18 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
             libcpp_vector[ int ] & solution_indices) nogil except + 
         void createAndSolveILPForInclusionListCreation(
             PrecursorIonSelectionPreprocessing & preprocessing,
-            UInt ms2_spectra_per_rt_bin, UInt max_list_size, FeatureMap[Feature] & precursors, bool solve_ILP) nogil except +
-        void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(FeatureMap[Feature] & features, MSExperiment[ Peak1D, ChromatogramPeak ] & experiment, 
+            UInt ms2_spectra_per_rt_bin, UInt max_list_size, FeatureMap & precursors, bool solve_ILP) nogil except +
+        void createAndSolveCombinedLPForKnownLCMSMapFeatureBased(FeatureMap & features, MSExperiment[ Peak1D, ChromatogramPeak ] & experiment, 
             libcpp_vector[ IndexTriple ] & variable_indices, libcpp_vector[ int ] & solution_indices, 
             libcpp_vector[ libcpp_vector[ libcpp_pair[ size_t, size_t ] ] ] & mass_ranges, 
             libcpp_set[ Int ] & charges_set, UInt ms2_spectra_per_rt_bin, Size step_size, bool sequential_order) nogil except + # wrap-ignore
         void updateStepSizeConstraint(Size iteration, UInt step_size) nogil except +
         void updateFeatureILPVariables(
-          FeatureMap[Feature] & new_features,
+          FeatureMap & new_features,
           libcpp_vector[ IndexTriple ] & variable_indices,
           libcpp_map[ Size, libcpp_vector[ String ] ] & feature_constraints_map) nogil except + # wrap-ignore
         void updateRTConstraintsForSequentialILP(Size & rt_index, UInt ms2_spectra_per_rt_bin, Size max_rt_index) nogil except +
-        void updateCombinedILP(FeatureMap[Feature] & features,
+        void updateCombinedILP(FeatureMap & features,
                                PrecursorIonSelectionPreprocessing & preprocessed_db,
                                libcpp_vector[ IndexTriple ] & variable_indices,
                                libcpp_vector[ String ] & new_protein_accs,

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,24 +80,23 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  template <class PeakType, class FeatureType>
+  template <class PeakType>
   class FeatureFinderAlgorithmPicked :
-    public FeatureFinderAlgorithm<PeakType, FeatureType>,
+    public FeatureFinderAlgorithm<PeakType>,
     public FeatureFinderDefs
   {
 public:
     /// @name Type definitions
     //@{
-    typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType;
-    typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::FeatureMapType FeatureMapType;
+    typedef typename FeatureFinderAlgorithm<PeakType>::MapType MapType;
     typedef typename MapType::SpectrumType SpectrumType;
     typedef typename SpectrumType::FloatDataArrays FloatDataArrays;
     //@}
 
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::param_;
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::features_;
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::ff_;
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::defaults_;
+    using FeatureFinderAlgorithm<PeakType>::param_;
+    using FeatureFinderAlgorithm<PeakType>::features_;
+    using FeatureFinderAlgorithm<PeakType>::ff_;
+    using FeatureFinderAlgorithm<PeakType>::defaults_;
 
 protected:
     typedef FeatureFinderAlgorithmPickedHelperStructs::Seed Seed;
@@ -109,7 +108,7 @@ protected:
 public:
     /// default constructor
     FeatureFinderAlgorithmPicked() :
-      FeatureFinderAlgorithm<PeakType, FeatureType>(),
+      FeatureFinderAlgorithm<PeakType>(),
       map_(),
       log_()
     {
@@ -205,7 +204,7 @@ public:
     }
 
     // docu in base class
-    virtual void setSeeds(const FeatureMapType& seeds)
+    virtual void setSeeds(const FeatureMap& seeds)
     {
       seeds_ = seeds;
     }
@@ -265,7 +264,7 @@ public:
       trace_fitter_params.setValue("max_iteration", max_iterations);
 
       //copy the input map
-      map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
+      map_ = *(FeatureFinderAlgorithm<PeakType>::map_);
 
       //flag for user-specified seed mode
       bool user_seeds = (seeds_.size() > 0);
@@ -603,9 +602,9 @@ public:
               else if (user_seeds && overall_score >= user_seed_score)
               {
                 //only consider seeds, if they are near a user-specified seed
-                FeatureType tmp;
+                Feature tmp;
                 tmp.setMZ(map_[s][p].getMZ() - user_mz_tol);
-                for (typename FeatureMapType::const_iterator it = std::lower_bound(seeds_.begin(), seeds_.end(), tmp, typename FeatureType::MZLess()); it < seeds_.end(); ++it)
+                for (FeatureMap::const_iterator it = std::lower_bound(seeds_.begin(), seeds_.end(), tmp, Feature::MZLess()); it < seeds_.end(); ++it)
                 {
                   if (it->getMZ() > map_[s][p].getMZ() + user_mz_tol)
                   {
@@ -632,7 +631,7 @@ public:
         if (debug_)
         {
           //seeds
-          FeatureMap<> seed_map;
+          FeatureMap seed_map;
           seed_map.reserve(seeds.size());
           for (Size i = 0; i < seeds.size(); ++i)
           {
@@ -669,7 +668,7 @@ public:
         // decided whether they are contained within a seed of higher
         // intensity.
         std::map<Size, std::vector<Size> > seeds_in_features;
-        typedef std::map<Size, FeatureType> FeatureMapType;
+        typedef std::map<Size, Feature> FeatureMapType;
         FeatureMapType tmp_feature_map;
         gl_progress = 0;
         ff_->startProgress(0, seeds.size(), String("Extending seeds for charge ") + String(c));
@@ -915,7 +914,7 @@ public:
         // used in any feature with higher intensity, we can add it to the
         // features_ list.
         std::vector<Size> seeds_contained;
-        for (typename std::map<Size, FeatureType>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end(); ++iter)
+        for (std::map<Size, Feature>::iterator iter = tmp_feature_map.begin(); iter != tmp_feature_map.end(); ++iter)
         {
           Size seed_nr = iter->first;
           bool is_used = false;
@@ -1037,7 +1036,7 @@ public:
       }
       LOG_INFO << "Removed " << removed << " overlapping features." << std::endl;
       //finally remove features with intensity 0
-      FeatureMap<> tmp;
+      FeatureMap tmp;
       tmp.reserve(features_->size());
       for (Size i = 0; i < features_->size(); ++i)
       {
@@ -1062,7 +1061,7 @@ public:
       if (debug_)
       {
         //store map of abort reasons for failed seeds
-        FeatureMap<> abort_map;
+        FeatureMap abort_map;
         abort_map.reserve(abort_reasons_.size());
         Size counter = 0;
         for (typename std::map<Seed, String>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
@@ -1088,7 +1087,7 @@ public:
 
     }
 
-    static FeatureFinderAlgorithm<PeakType, FeatureType>* create()
+    static FeatureFinderAlgorithm<PeakType>* create()
     {
       return new FeatureFinderAlgorithmPicked();
     }
@@ -1110,7 +1109,7 @@ protected:
     /// Array of abort reasons
     std::map<Seed, String> abort_reasons_;
     /// User-specified seed list
-    FeatureMapType seeds_;
+    FeatureMap seeds_;
 
     /// @name Members for parameters often needed in methods
     //@{
@@ -1878,9 +1877,9 @@ protected:
       // Final score .. intensityScore in the surrounding bins, weighted by the distance of the
       // bin center to the peak
       double final = intensityScore_(rl, ml, intensity) * (d1 / d_sum)
-                         + intensityScore_(rh, ml, intensity) * (d2 / d_sum)
-                         + intensityScore_(rl, mh, intensity) * (d3 / d_sum)
-                         + intensityScore_(rh, mh, intensity) * (d4 / d_sum);
+                     + intensityScore_(rh, ml, intensity) * (d2 / d_sum)
+                     + intensityScore_(rl, mh, intensity) * (d3 / d_sum)
+                     + intensityScore_(rh, mh, intensity) * (d4 / d_sum);
 
       OPENMS_POSTCONDITION(final >= 0.0, (String("Internal error: Intensity score (") + final + ") should be >=0.0").c_str())
       OPENMS_POSTCONDITION(final <= 1.0001, (String("Internal error: Intensity score (") + final + ") should be <=1.0").c_str())
@@ -1933,7 +1932,7 @@ protected:
       }
 
       double final = bin_score +
-                         0.05 * ((it - quantiles20.begin()) - 1.0); // determine position of lower bound in the vector
+                     0.05 * ((it - quantiles20.begin()) - 1.0);     // determine position of lower bound in the vector
 
       //fix numerical problems
       if (final < 0.0) final = 0.0;
@@ -2168,61 +2167,70 @@ protected:
     {
 
       double pseudo_rt_shift = param_.getValue("debug:pseudo_rt_shift");
-      TextFile tf;
-      //gnuplot script
-      String script = String("plot \"") + path + plot_nr + ".dta\" title 'before fit (RT: " +  String::number(fitter->getCenter(), 2) + " m/z: " +  String::number(peak.getMZ(), 4) + ")' with points 1";
-      //feature before fit
-      for (Size k = 0; k < traces.size(); ++k)
+      String script;
       {
-        for (Size j = 0; j < traces[k].peaks.size(); ++j)
+        TextFile tf;
+        //gnuplot script
+        script = String("plot \"") + path + plot_nr + ".dta\" title 'before fit (RT: " +  String::number(fitter->getCenter(), 2) + " m/z: " +  String::number(peak.getMZ(), 4) + ")' with points 1";
+        //feature before fit
+        for (Size k = 0; k < traces.size(); ++k)
         {
-          tf.push_back(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "\t" + traces[k].peaks[j].second->getIntensity());
-        }
-      }
-      tf.store(path + plot_nr + ".dta");
-      //fitted feature
-      if (new_traces.getPeakCount() != 0)
-      {
-        tf.clear();
-        for (Size k = 0; k < new_traces.size(); ++k)
-        {
-          for (Size j = 0; j < new_traces[k].peaks.size(); ++j)
+          for (Size j = 0; j < traces[k].peaks.size(); ++j)
           {
-            tf.push_back(String(pseudo_rt_shift * k + new_traces[k].peaks[j].first) + "\t" + new_traces[k].peaks[j].second->getIntensity());
+            tf.addLine(String(pseudo_rt_shift * k + traces[k].peaks[j].first) + "\t" + traces[k].peaks[j].second->getIntensity());
           }
         }
-
-        tf.store(path + plot_nr + "_cropped.dta");
-        script = script + ", \"" + path + plot_nr + "_cropped.dta\" title 'feature ";
-
-        if (!feature_ok)
-        {
-          script = script + " - " + error_msg;
-        }
-        else
-        {
-          script = script + (features_->size() + 1) + " (score: " +  String::number(final_score, 3) + ")";
-        }
-        script = script + "' with points 3";
+        tf.store(path + plot_nr + ".dta");
       }
-      //fitted functions
-      tf.clear();
-      for (Size k = 0; k < traces.size(); ++k)
+
       {
-        char fun = 'f';
-        fun += (char)k;
-        tf.push_back(fitter->getGnuplotFormula(traces[k], fun, traces.baseline, pseudo_rt_shift * k));
-        //tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + fitter->getGnuplotFormula(traces[k], pseudo_rt_shift * k));
-        script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z: " + String::number(traces[k].getAvgMZ(), 4) + ")'";
+        //fitted feature
+        if (new_traces.getPeakCount() != 0)
+        {
+          TextFile tf_new_trace;
+          for (Size k = 0; k < new_traces.size(); ++k)
+          {
+            for (Size j = 0; j < new_traces[k].peaks.size(); ++j)
+            {
+              tf_new_trace.addLine(String(pseudo_rt_shift * k + new_traces[k].peaks[j].first) + "\t" + new_traces[k].peaks[j].second->getIntensity());
+            }
+          }
+
+          tf_new_trace.store(path + plot_nr + "_cropped.dta");
+          script = script + ", \"" + path + plot_nr + "_cropped.dta\" title 'feature ";
+
+          if (!feature_ok)
+          {
+            script = script + " - " + error_msg;
+          }
+          else
+          {
+            script = script + (features_->size() + 1) + " (score: " +  String::number(final_score, 3) + ")";
+          }
+          script = script + "' with points 3";
+        }
       }
 
-      //output
-      tf.push_back("set xlabel \"pseudo RT (mass traces side-by-side)\"");
-      tf.push_back("set ylabel \"intensity\"");
-      tf.push_back("set samples 1000");
-      tf.push_back(script);
-      tf.push_back("pause -1");
-      tf.store(path + plot_nr + ".plot");
+      {
+        //fitted functions
+        TextFile tf_fitted_func;
+        for (Size k = 0; k < traces.size(); ++k)
+        {
+          char fun = 'f';
+          fun += (char)k;
+          tf_fitted_func.addLine(fitter->getGnuplotFormula(traces[k], fun, traces.baseline, pseudo_rt_shift * k));
+          //tf.push_back(String(fun)+"(x)= " + traces.baseline + " + " + fitter->getGnuplotFormula(traces[k], pseudo_rt_shift * k));
+          script =  script + ", " + fun + "(x) title 'Trace " + k + " (m/z: " + String::number(traces[k].getAvgMZ(), 4) + ")'";
+        }
+
+        //output
+        tf_fitted_func.addLine("set xlabel \"pseudo RT (mass traces side-by-side)\"");
+        tf_fitted_func.addLine("set ylabel \"intensity\"");
+        tf_fitted_func.addLine("set samples 1000");
+        tf_fitted_func.addLine(script);
+        tf_fitted_func.addLine("pause -1");
+        tf_fitted_func.store(path + plot_nr + ".plot");
+      }
     }
 
     //@}

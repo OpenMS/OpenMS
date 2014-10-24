@@ -148,4 +148,8 @@
 
 #cmakedefine WITH_CRAWDAD 1
 
+// NOTE: This is a temporary hack. The aim is that OpenMS should not care
+//       but currently we need this information for the ToolHandler.
+#cmakedefine WITH_GUI 1
+
 #endif // OPENMS_CONFIG_H

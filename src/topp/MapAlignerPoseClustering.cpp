@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -182,7 +182,7 @@ protected:
     }
     if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> map_ref;
+      FeatureMap map_ref;
       FeatureXMLFile f_fxml_tmp; // for the reference, we never need CH or subordinates
       f_fxml_tmp.getOptions().setLoadConvexHull(false);
       f_fxml_tmp.getOptions().setLoadSubordinates(false);
@@ -210,7 +210,7 @@ protected:
       TransformationDescription trafo;
       if (in_type == FileTypes::FEATUREXML)
       {
-        FeatureMap<> map;
+        FeatureMap map;
         // workaround for loading: use temporary FeatureXMLFile since it is not thread-safe
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();

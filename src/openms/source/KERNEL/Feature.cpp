@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,6 @@ namespace OpenMS
 
   Feature::Feature(const Feature & feature) :
     BaseFeature(feature),
-    model_desc_(feature.model_desc_),
     convex_hulls_(feature.convex_hulls_),
     convex_hulls_modified_(feature.convex_hulls_modified_),
     convex_hull_(feature.convex_hull_),
@@ -85,20 +84,6 @@ namespace OpenMS
     qualities_[index] = q;
   }
 
-  const ModelDescription<2> & Feature::getModelDescription() const
-  {
-    return model_desc_;
-  }
-
-  ModelDescription<2> & Feature::getModelDescription()
-  {
-    return model_desc_;
-  }
-
-  void Feature::setModelDescription(const ModelDescription<2> & q)
-  {
-    model_desc_ = q;
-  }
 
   const std::vector<ConvexHull2D> & Feature::getConvexHulls() const
   {
@@ -180,7 +165,6 @@ namespace OpenMS
 
     BaseFeature::operator=(rhs);
     copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
-    model_desc_                         = rhs.model_desc_;
     convex_hulls_                       = rhs.convex_hulls_;
     convex_hulls_modified_  = rhs.convex_hulls_modified_;
     convex_hull_                = rhs.convex_hull_;
@@ -193,7 +177,6 @@ namespace OpenMS
   {
     return BaseFeature::operator==(rhs)
            && equal(qualities_, qualities_ + 2, rhs.qualities_)
-           && (model_desc_ == rhs.model_desc_)
            && (convex_hulls_ == rhs.convex_hulls_)
            && (subordinates_  == rhs.subordinates_);
   }

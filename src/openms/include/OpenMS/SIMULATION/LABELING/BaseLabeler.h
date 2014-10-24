@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ public:
       Internally a pointer to the RNG is stored.
 
     */
-    virtual void setRnd(MutableSimRandomNumberGeneratorPtr rng);
+    virtual void setRnd(SimTypes::MutableSimRandomNumberGeneratorPtr rng);
 
     /**
       @brief Checks the (simulation) params passed if they are consistent with
@@ -83,7 +83,7 @@ public:
       @param param Param object containing the simulation parameters
       @throws Exception::InvalidParameter if the given parameters are not consistent with the labeling technique
       */
-    virtual void preCheck(Param & param) const = 0;
+    virtual void preCheck(Param& param) const = 0;
 
     /**
     @name Labeling Hooks
@@ -91,36 +91,36 @@ public:
     //@{
 
     /// Hook to prepare the simulation process
-    virtual void setUpHook(FeatureMapSimVector & /* features */) = 0;
+    virtual void setUpHook(SimTypes::FeatureMapSimVector& /* features */) = 0;
 
     /// Labeling between digestion and rt simulation
-    virtual void postDigestHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
+    virtual void postDigestHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) = 0;
 
     /// Labeling after rt simulation
-    virtual void postRTHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
+    virtual void postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) = 0;
 
     /// Labeling after detectability simulation
-    virtual void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
+    virtual void postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) = 0;
 
     /// Labeling after ionization
-    virtual void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
+    virtual void postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) = 0;
 
     /// Labeling after raw signal generation
-    virtual void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */) = 0;
+    virtual void postRawMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */) = 0;
 
     /// Labeling after Tandem MS (e.g. iTRAQ)
-    virtual void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */) = 0;
+    virtual void postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */) = 0;
 
     //@}
 
-    ConsensusMap & getConsensus();
+    ConsensusMap& getConsensus();
 
     /**
       @brief Get short description of the labeler (e.g., channels used)
 
       Used to add a short description to the labeling section within the INI file.
     */
-    const String & getDescription() const;
+    const String& getDescription() const;
 
     /**
       @brief to ensure standardized meta value names across labelers for channel intensity
@@ -139,7 +139,7 @@ protected:
       @param maps       Vector of FeatureMaps containing the features that will be merged
       @return           A FeatureMap containing all ProteinIdentifications of the input maps
       */
-    FeatureMapSim mergeProteinIdentificationsMaps_(const FeatureMapSimVector & maps);
+    SimTypes::FeatureMapSim mergeProteinIdentificationsMaps_(const SimTypes::FeatureMapSimVector& maps);
 
     /**
       @brief join all protein references of two features
@@ -150,7 +150,7 @@ protected:
       @param target
       @param source
     */
-    void mergeProteinAccessions_(Feature & target, const Feature & source) const;
+    void mergeProteinAccessions_(Feature& target, const Feature& source) const;
 
     /**
       @brief Based on the stored consensus recompute the associations for the passed features, assuming
@@ -159,12 +159,12 @@ protected:
       @param simulated_features FeatureMap containing features derived from the ones, stored in the
                                 consensus
     */
-    void recomputeConsensus_(const FeatureMapSim & simulated_features);
+    void recomputeConsensus_(const SimTypes::FeatureMapSim& simulated_features);
 
 
     ConsensusMap consensus_;
 
-    MutableSimRandomNumberGeneratorPtr rng_;
+    SimTypes::MutableSimRandomNumberGeneratorPtr rng_;
 
     String channel_description_;
 

@@ -11,13 +11,13 @@ cdef extern from "<OpenMS/SIMULATION/LABELING/SILACLabeler.h>" namespace "OpenMS
         SILACLabeler() nogil except +
         SILACLabeler(SILACLabeler) nogil except + #wrap-ignore
         void preCheck(Param & param) nogil except +
-        ## void setUpHook(FeatureMapSimVector & ) nogil except +
-        ## void postDigestHook(FeatureMapSimVector & ) nogil except +
-        ## void postRTHook(FeatureMapSimVector & ) nogil except +
-        ## void postDetectabilityHook(FeatureMapSimVector & ) nogil except +
-        ## void postIonizationHook(FeatureMapSimVector & ) nogil except +
-        ## void postRawMSHook(FeatureMapSimVector & ) nogil except +
-        ## void postRawTandemMSHook(FeatureMapSimVector & , MSSimExperiment & ) nogil except +
+        ## void setUpHook(SimTypes::FeatureMapSimVector & ) nogil except +
+        ## void postDigestHook(SimTypes::FeatureMapSimVector & ) nogil except +
+        ## void postRTHook(SimTypes::FeatureMapSimVector & ) nogil except +
+        ## void postDetectabilityHook(SimTypes::FeatureMapSimVector & ) nogil except +
+        ## void postIonizationHook(SimTypes::FeatureMapSimVector & ) nogil except +
+        ## void postRawMSHook(SimTypes::FeatureMapSimVector & ) nogil except +
+        ## void postRawTandemMSHook(SimTypes::FeatureMapSimVector & , SimTypes::MSSimExperiment & ) nogil except +
         ## # POINTER # BaseLabeler * create() nogil except +
         String getProductName() nogil except +
 

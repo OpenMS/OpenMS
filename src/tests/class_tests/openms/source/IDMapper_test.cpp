@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,9 +106,9 @@ START_SECTION((IDMapper& operator = (const IDMapper& rhs)))
   TEST_EQUAL(m2.getParameters(), p);
 END_SECTION
 
-START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>& map, FeatureMap<> fmap, const bool clear_ids = false, const bool mapMS1 = false)))
+START_SECTION((template <typename PeakType> void annotate(MSExperiment<PeakType>& map, FeatureMap fmap, const bool clear_ids = false, const bool mapMS1 = false)))
   // create id
-  FeatureMap<> fm;
+  FeatureMap fm;
   Feature f;
   f.setMZ(900.0);
   f.setRT(9.0);
@@ -252,7 +252,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 
   //--------------------------------------------------------------------------------------
   //TEST MAPPING TO CONVEX HULLS
-  FeatureMap<> fm;
+  FeatureMap fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.featureXML"), fm);
 
   IDMapper mapper;
@@ -296,7 +296,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
 
   //--------------------------------------------------------------------------------------
   //TEST MAPPING TO CENTROIDS
-  FeatureMap<> fm2;
+  FeatureMap fm2;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_2.featureXML"), fm2);
   p.setValue("rt_tolerance", 4.0);
   p.setValue("mz_tolerance", 1.5);
@@ -366,7 +366,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
   // ******* PPM test *******
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_4.idXML"), protein_identifications, identifications);
 
-  FeatureMap<> fm_ppm;
+  FeatureMap fm_ppm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_4.featureXML"), fm_ppm);
   p.setValue("rt_tolerance", 4.0);
   p.setValue("mz_tolerance", 3.0);

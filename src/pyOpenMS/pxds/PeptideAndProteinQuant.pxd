@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         PeptideAndProteinQuant() nogil except +
         PeptideAndProteinQuant(PeptideAndProteinQuant) nogil except + #wrap-ignore
 
-        void quantifyPeptides(FeatureMap[Feature] & map_in) nogil except +
+        void quantifyPeptides(FeatureMap & map_in) nogil except +
         void quantifyPeptides(ConsensusMap & map_in) nogil except +
         void quantifyProteins(ProteinIdentification & proteins) nogil except +
 

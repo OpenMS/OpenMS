@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -148,8 +148,23 @@ namespace OpenMS
      */
     template <class PeakType>
     struct MassTraces :
-      public std::vector<MassTrace<PeakType> >
+      private std::vector<MassTrace<PeakType> >
     {
+      typedef std::vector<MassTrace<PeakType> > privvec;
+
+      // public exports of used mehtods
+      using privvec::size;
+      using privvec::at;
+      using privvec::reserve;
+      using privvec::push_back;
+      using privvec::operator[];
+      using privvec::back;
+      using privvec::clear;
+      using privvec::begin;
+      using privvec::end;
+      typedef typename privvec::iterator iterator;
+      typedef typename privvec::const_iterator const_iterator;
+
       /// Constructor
       MassTraces() :
         max_trace(0)
@@ -187,7 +202,7 @@ namespace OpenMS
       /**
         @brief Returns the theoretical maximum trace index
 
-        @exception Exception::Precondition is thrown if there are not mass traces (not only in debug mode)
+        @exception Exception::Precondition is thrown if there are no mass traces (not only in debug mode)
       */
       Size getTheoreticalmaxPosition() const
       {

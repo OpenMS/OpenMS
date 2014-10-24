@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -188,6 +188,7 @@ public:
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                          "Unknown or unsupported option " + readoptions);
       }
+      LOG_DEBUG << "Finished parsing Swath file " << std::endl; 
       std::vector<OpenSwath::SwathMap> swath_maps;
       dataConsumer->retrieveSwathMaps(swath_maps);
       delete dataConsumer;
@@ -239,6 +240,7 @@ public:
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                          "Unknown or unsupported option " + readoptions);
       }
+      LOG_DEBUG << "Finished parsing Swath file " << std::endl; 
       std::vector<OpenSwath::SwathMap> swath_maps;
       dataConsumer->retrieveSwathMaps(swath_maps);
       delete dataConsumer;
@@ -296,7 +298,8 @@ protected:
           {
             if (s.getPrecursors().empty())
             {
-              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Swath scan needs to have a precursor set.");
+              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                  "Found SWATH scan (MS level 2 scan) without a precursor. Cannot determine SWATH window.");
             }
             const std::vector<Precursor> prec = s.getPrecursors();
             double center = prec[0].getMZ();

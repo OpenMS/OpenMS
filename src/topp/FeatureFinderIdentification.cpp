@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -51,6 +52,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -112,8 +116,6 @@ using namespace std;
 
         @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
 
-
-
         <B>The command line parameters of this tool are:</B>
         @verbinclude TOPP_FeatureFinderIdentification.cli
 */
@@ -144,17 +146,16 @@ protected:
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file (features)");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("lib_out","<file>", "", "Output file (assay library)",
+    registerOutputFile_("lib_out", "<file>", "", "Output file (assay library)",
                         false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("chrom_out","<file>", "", "Output file (chromatograms)",
+    registerOutputFile_("chrom_out", "<file>", "", "Output file (chromatograms)",
                         false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("trafo_out","<file>", "",
+    registerOutputFile_("trafo_out", "<file>", "",
                         "Output file (RT transformation)", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
-    addEmptyLine_();
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
     registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge. 'adapt': adapt (extend) RT windows based on IDs; 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs (requires further processing of results).", false);
@@ -233,7 +234,6 @@ protected:
       library_.addTransition(transition);
     }
   }
-
 
   // add an assay (peptide and transitions) to the library:
   void addAssay_(TargetedExperiment::Peptide& peptide, const AASequence& seq,
@@ -405,7 +405,7 @@ protected:
 
 
   // fit models of elution profiles to all features:
-  void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true)
+  void fitElutionModels_(FeatureMap& features, bool asymmetric = true)
   {
     // assumptions:
     // - all features have subordinates (for the mass traces/transitions)
@@ -422,7 +422,7 @@ protected:
     map<String, const ReactionMonitoringTransition*> trans_ids;
     for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
            library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
+         library_.getTransitions().end(); ++trans_it)
     {
       trans_ids[trans_it->getNativeID()] = &(*trans_it);
     }
@@ -462,7 +462,7 @@ protected:
     // collect peaks that constitute mass traces:
     LOG_DEBUG << "Fitting elution models to features:" << endl;
     Size index = 0;
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it, ++index)
     {
       LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
@@ -481,7 +481,7 @@ protected:
       traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
       for (vector<Feature>::iterator sub_it =
              feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
+           feat_it->getSubordinates().end(); ++sub_it)
       {
         FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
         trace.peaks.reserve(points_per_hull);
@@ -498,7 +498,7 @@ protected:
         const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
         for (ConvexHull2D::PointArrayTypeConstIterator point_it =
                hull.getHullPoints().begin(); point_it !=
-               hull.getHullPoints().end(); ++point_it)
+             hull.getHullPoints().end(); ++point_it)
         {
           double intensity = point_it->getY();
           if (intensity > 0.0) // only use non-zero intensities for fitting
@@ -553,7 +553,7 @@ protected:
       }
       catch (Exception::UnableToFit& except)
       {
-        LOG_ERROR << "Error fitting model to feature '" 
+        LOG_ERROR << "Error fitting model to feature '"
                   << feat_it->getUniqueId() << "': " << except.getName()
                   << " - " << except.getMessage() << endl;
         fit_success = false;
@@ -586,15 +586,15 @@ protected:
       {
         mre = 0.0;
         double total_weights = 0.0;
-        double rt_start = max(fitter->getLowerRTBound(), 
-                                  traces[0].peaks[0].first);
-        double rt_end = min(fitter->getUpperRTBound(), 
-                                traces[0].peaks.rbegin()->first);
+        double rt_start = max(fitter->getLowerRTBound(),
+                              traces[0].peaks[0].first);
+        double rt_end = min(fitter->getUpperRTBound(),
+                            traces[0].peaks.rbegin()->first);
 
         for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>::
-               iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
+             iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
         {
-          for (vector<pair<double, const Peak1D*> >::iterator p_it = 
+          for (vector<pair<double, const Peak1D*> >::iterator p_it =
                  tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
           {
             double rt = p_it->first;
@@ -602,7 +602,7 @@ protected:
             {
               double model_value = fitter->getValue(rt);
               double diff = fabs(model_value * tr_it->theoretical_int -
-                                     p_it->second->getIntensity());
+                                 p_it->second->getIntensity());
               mre += diff / model_value;
               total_weights += tr_it->theoretical_int;
             }
@@ -639,7 +639,7 @@ protected:
         {
           double sigma = feat_it->getMetaValue("model_EGH_sigma");
           double abs_tau = fabs(double(feat_it->
-                                               getMetaValue("model_EGH_tau")));
+                                       getMetaValue("model_EGH_tau")));
           if (width_limit > 0)
           {
             // see implementation of "EGHTraceFitter::getArea":
@@ -668,7 +668,7 @@ protected:
     if (width_limit > 0)
     {
       double median_width = Math::median(widths_good.begin(),
-                                             widths_good.end());
+                                         widths_good.end());
       vector<double> abs_diffs(widths_good.size());
       for (Size i = 0; i < widths_good.size(); ++i)
       {
@@ -676,7 +676,7 @@ protected:
       }
       // median absolute deviation (constant factor to approximate std. dev.):
       double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
-                                                   abs_diffs.end());
+                                               abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -711,7 +711,7 @@ protected:
       }
       // median absolute deviation (constant factor to approximate std. dev.):
       double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
-                                                  abs_diffs.end());
+                                              abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -731,10 +731,10 @@ protected:
 
     // impute approximate results for failed model fits:
     TransformationModel::DataPoints quant_values;
-    vector<FeatureMap<>::Iterator> failed_models;
+    vector<FeatureMap::Iterator> failed_models;
     Size model_successes = 0, model_failures = 0;
 
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it, ++index)
     {
       feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
@@ -750,8 +750,8 @@ protected:
         if (impute)
         { // apply log-transform to weight down high outliers:
           double raw_intensity = feat_it->getIntensity();
-          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = " 
-                    << area << "; log(x) = " << log(raw_intensity) 
+          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
+                    << area << "; log(x) = " << log(raw_intensity)
                     << ", log(y) = " << log(area) << endl;
           quant_values.push_back(make_pair(log(raw_intensity), log(area)));
         }
@@ -759,7 +759,7 @@ protected:
         model_successes++;
       }
     }
-    LOG_INFO << "Model fitting: " << model_successes << " successes, " 
+    LOG_INFO << "Model fitting: " << model_successes << " successes, "
              << model_failures << " failures" << endl;
 
     if (impute) // impute results for cases where the model fit failed
@@ -767,9 +767,9 @@ protected:
       TransformationModelLinear lm(quant_values, Param());
       double slope, intercept;
       lm.getParameters(slope, intercept);
-      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept 
+      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept
                 << endl;
-      for (vector<FeatureMap<>::Iterator>::iterator it = failed_models.begin();
+      for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
            it != failed_models.end(); ++it)
       {
         double area = exp(lm.evaluate(log((*it)->getIntensity())));
@@ -777,7 +777,6 @@ protected:
       }
     }
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -915,7 +914,7 @@ protected:
       vector<ChromatogramExtractor::ExtractionCoordinates> coords;
       for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
              library_.getTransitions().begin(); trans_it !=
-             library_.getTransitions().end(); ++trans_it)
+           library_.getTransitions().end(); ++trans_it)
       {
         const TargetedExperiment::Peptide& peptide =
           library_.getPeptideByRef(trans_it->getPeptideRef());
@@ -931,7 +930,7 @@ protected:
         {
           // is this an intuitive way to store/access the RT?!
           double rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].
-            getValue().toString().toDouble();
+                      getValue().toString().toDouble();
           rt = trafo_.apply(rt); // reverse RT transformation
           double rt_win = rt_window;
           if (peptide.metaValueExists("rt_window"))
@@ -973,7 +972,7 @@ protected:
     // find chromatographic peaks
     //-------------------------------------------------------------
     LOG_INFO << "Finding chromatographic peaks..." << endl;
-    FeatureMap<> features;
+    FeatureMap features;
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
     params.setValue("stop_report_after_feature", 
@@ -1001,7 +1000,7 @@ protected:
     // fill in missing feature data
     //-------------------------------------------------------------
     LOG_INFO << "Adapting feature data..." << endl;
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
@@ -1022,7 +1021,7 @@ protected:
       {
         for (vector<Feature>::iterator sub_it =
                feat_it->getSubordinates().begin(); sub_it !=
-               feat_it->getSubordinates().end(); ++sub_it)
+             feat_it->getSubordinates().end(); ++sub_it)
         {
           double abs_mz_tol = mz_window / 2.0;
           if (mz_window_ppm) abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;

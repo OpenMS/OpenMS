@@ -61,10 +61,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="OlesModel">
-				<param name="a" value="5"/>
-				<param name="b" value="10"/>
-			</model>
 			<subordinate>
 				<feature id="f_1000_2000">
 					<position dim="0">24</position>
@@ -113,10 +109,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="OlesModel">
-				<param name="a" value="5"/>
-				<param name="b" value="10"/>
-			</model>
 			<convexhull nr="0">
 				<pt x="1.5" y="1.8" />
 				<pt x="2.5" y="2.8" />

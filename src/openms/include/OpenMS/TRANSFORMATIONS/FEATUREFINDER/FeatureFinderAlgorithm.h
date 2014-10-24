@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,7 @@ namespace OpenMS
 
   // forward declaration
   class FeatureFinder;
+  class FeatureMap;
 
   /// Summary of fitting results
   struct OPENMS_DLLAPI Summary
@@ -70,7 +71,7 @@ namespace OpenMS
       @brief Abstract base class for FeatureFinder algorithms
 
   */
-  template <class PeakType, class FeatureType>
+  template <class PeakType>
   class FeatureFinderAlgorithm :
     public DefaultParamHandler
   {
@@ -81,8 +82,6 @@ public:
     typedef typename MapType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef typename MapType::IntensityType IntensityType;
-    /// Output feature type
-    typedef FeatureMap<FeatureType> FeatureMapType;
 
     /// default constructor
     FeatureFinderAlgorithm() :
@@ -115,7 +114,7 @@ public:
     }
 
     /// Sets a reference to the calling FeatureFinder
-    void setData(const MapType & map, FeatureMapType & features, FeatureFinder & ff)
+    void setData(const MapType & map, FeatureMap & features, FeatureFinder & ff)
     {
       map_ = &map;
       features_ = &features;
@@ -127,7 +126,7 @@ public:
 
         @exception Exception::IllegalArgument is thrown if the algorithm does not support user-specified seed lists
     */
-    virtual void setSeeds(const FeatureMapType & seeds)
+    virtual void setSeeds(const FeatureMap & seeds)
     {
       if (seeds.size() != 0)
       {
@@ -141,7 +140,7 @@ protected:
     const MapType * map_;
 
     /// Output data pointer
-    FeatureMapType * features_;
+    FeatureMap * features_;
 
     /// Pointer to the calling FeatureFinder that is used to access the feature flags
     FeatureFinder * ff_;

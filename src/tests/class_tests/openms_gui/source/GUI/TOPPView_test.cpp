@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #endif
+
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 
 namespace OpenMS
 {
@@ -194,6 +198,9 @@ void TestTOPPView::simulateClick_()
 
 void TestTOPPView::testGui()
 {
+  // register a GUI logger
+  Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
+
 	TOPPViewBase tv;
 	tv.show();
 	QApplication::processEvents();

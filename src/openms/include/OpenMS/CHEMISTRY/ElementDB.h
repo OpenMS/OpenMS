@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -102,12 +102,6 @@ public:
 
     /// returns a pointer to the element of atomic number; if no element is found 0 is returned
     const Element * getElement(UInt atomic_number) const;
-
-    /// mutable access to the elements by name
-    Element * getElement(const String & name);
-
-    /// mutable access to the elements by atomic number
-    Element * getElement(UInt atomic_number);
 
     //@}
 

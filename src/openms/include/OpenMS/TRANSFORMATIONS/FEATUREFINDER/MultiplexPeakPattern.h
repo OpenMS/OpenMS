@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,91 +43,93 @@
 
 namespace OpenMS
 {
+  /**
+   * @brief data structure for pattern of isotopic peaks
+   * 
+   * Groups of peptides appear as characteristic patterns of isotopic peaks
+   * in MS1 spectra. For example, for an Arg6 labeled SILAC peptide pair
+   * of charge 2+ with three isotopic peaks we expect peaks
+   * at relative m/z shifts of 0, 0.5, 1, 3, 3.5 and 4 Th.
+   */
+  class OPENMS_DLLAPI MultiplexPeakPattern
+  {
+    public:
+
     /**
-     * @brief data structure for pattern of isotopic peaks
-     * 
-     * Groups of peptides appear as characteristic patterns of isotopic peaks
-     * in MS1 spectra. For example, for an Arg6 labeled SILAC peptide pair
-     * of charge 2+ with three isotopic peaks we expect peaks
-     * at relative m/z shifts of 0, 0.5, 1, 3, 3.5 and 4 Th.
+     * @brief constructor
      */
-    class OPENMS_DLLAPI MultiplexPeakPattern
-    {
-        public:
-       /**
-         * @brief constructor
-         */
-        MultiplexPeakPattern(int c, int ppp, std::vector<double> ms, int msi);
-        
-       /**
-         * @brief returns charge
-         */
-        int getCharge() const;
-         
-        /**
-         * @brief returns peaks per peptide
-         */
-        int getPeaksPerPeptide() const;
-        
-        /**
-         * @brief returns mass shifts
-         */
-        std::vector<double> getMassShifts() const;
-        
-        /**
-         * @brief returns mass shift index
-         */
-        int getMassShiftIndex() const;
-        
-        /**
-         * @brief returns number of mass shifts
-         */
-        unsigned getMassShiftCount() const;
-       
-       /**
-         * @brief returns mass shift at position i
-         */
-        double getMassShiftAt(int i) const;
-        
-       /**
-         * @brief returns m/z shift at position i
-         */
-        double getMZShiftAt(int i) const;
-        
-       /**
-         * @brief returns number of m/z shifts
-         */
-        unsigned getMZShiftCount() const;
-        
-        private:
-        /**
-         * @brief m/z shifts between isotopic peaks
-         * (number of mzSfifts_ = peaks_per_peptide_ * number of mass_shifts_)
-         */
-        std::vector<double> mz_shifts_;
- 
-        /**
-         * @brief charge
-         */
-        int charge_;
+    MultiplexPeakPattern(int c, int ppp, std::vector<double> ms, int msi);
+    
+    /**
+     * @brief returns charge
+     */
+    int getCharge() const;
+     
+    /**
+     * @brief returns peaks per peptide
+     */
+    int getPeaksPerPeptide() const;
+    
+    /**
+     * @brief returns mass shifts
+     */
+    std::vector<double> getMassShifts() const;
+    
+    /**
+     * @brief returns mass shift index
+     */
+    int getMassShiftIndex() const;
+    
+    /**
+     * @brief returns number of mass shifts
+     */
+    unsigned getMassShiftCount() const;
+   
+    /**
+     * @brief returns mass shift at position i
+     */
+    double getMassShiftAt(int i) const;
+    
+    /**
+     * @brief returns m/z shift at position i
+     */
+    double getMZShiftAt(int i) const;
+    
+    /**
+     * @brief returns number of m/z shifts
+     */
+    unsigned getMZShiftCount() const;
+    
+    private:
 
-        /**
-         * @brief number of isotopic peaks in each peptide
-         */
-        int peaks_per_peptide_;
-       
-        /**
-         * @brief mass shifts between peptides
-         * (including zero mass shift for first peptide)
-         */
-        std::vector<double> mass_shifts_;
+    /**
+     * @brief m/z shifts between isotopic peaks
+     * (number of mz_shifts_ = peaks_per_peptide_ * number of mass_shifts_)
+     */
+    std::vector<double> mz_shifts_;
 
-        /**
-         * @brief index in mass shift list
-         */
-        int mass_shift_index_;
-        
-   };
+    /**
+     * @brief charge
+     */
+    int charge_;
+
+    /**
+     * @brief number of isotopic peaks in each peptide
+     */
+    int peaks_per_peptide_;
+   
+    /**
+     * @brief mass shifts between peptides
+     * (including zero mass shift for first peptide)
+     */
+    std::vector<double> mass_shifts_;
+
+    /**
+     * @brief index in mass shift list
+     */
+    int mass_shift_index_;
+      
+ };
   
 }
 

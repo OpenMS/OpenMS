@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H_
 #define OPENMS_MATH_MISC_CUBICSPLINE2D_H_
 
+#include <OpenMS/config.h>
+
 #include <vector>
 #include <map>
 
@@ -48,11 +50,11 @@ namespace OpenMS
   class OPENMS_DLLAPI CubicSpline2d
   {
 
-    std::vector<double> a_;        // constant spline coefficients
-    std::vector<double> b_;        // linear spline coefficients
-    std::vector<double> c_;        // quadratic spline coefficients
-    std::vector<double> d_;        // cubic spline coefficients
-    std::vector<double> x_;        // knots
+    std::vector<double> a_; // constant spline coefficients
+    std::vector<double> b_; // linear spline coefficients
+    std::vector<double> c_; // quadratic spline coefficients
+    std::vector<double> d_; // cubic spline coefficients
+    std::vector<double> x_; // knots
 
 public:
 
