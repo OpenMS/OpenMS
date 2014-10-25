@@ -618,7 +618,7 @@ namespace OpenMS
           }
         }
       }
-//      std::cout << "DBSequences found: " << count  << " / " << db_sq_map_.size() << std::endl;
+      std::cout << "DBSequences found: " << count  << " / " << db_sq_map_.size() << std::endl;
     }
 
     void MzIdentMLDOMHandler::parsePeptideElements_(DOMNodeList * peptideElements)
@@ -643,8 +643,8 @@ namespace OpenMS
           pep_map_.insert(std::make_pair(id,aas));
         }
       }
-      //std::cout << "Peptides found: " << count << std::endl;
-      //std::cout << "example: " << pep_map_.begin()->first << " -> " << pep_map_.begin()->second.toString() << std::endl;
+//      std::cout << "Peptides found: " << count << std::endl;
+//      std::cout << "example: " << pep_map_.begin()->first << " -> " << pep_map_.begin()->second.toString() << std::endl;
     }
 
     void MzIdentMLDOMHandler::parsePeptideEvidenceElements_(DOMNodeList * peptideEvidenceElements)
@@ -705,7 +705,7 @@ namespace OpenMS
           pv_db_map_.insert(std::make_pair(id,dBSequence_ref));
         }
       }
-      //std::cout << "PeptideEvidences found: " << count << std::endl;
+//      std::cout << "PeptideEvidences found: " << count << std::endl;
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationElements_(DOMNodeList * spectrumIdentificationElements)
@@ -750,7 +750,7 @@ namespace OpenMS
           si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
         }
       }
-      //std::cout << "SpectrumIdentification found: " << count << std::endl;
+//      std::cout << "SpectrumIdentification found: " << count << std::endl;
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationProtocolElements_(DOMNodeList * spectrumIdentificationProtocolElements)
@@ -1097,7 +1097,7 @@ namespace OpenMS
       std::set<String> q_score_terms;
       std::set<String> e_score_terms;
       std::set<String> specific_score_terms;
-      cv_.getAllChildTerms(q_score_terms, "MS:1001868"); //q-value for peptides
+      cv_.getAllChildTerms(q_score_terms, "MS:1002354"); //q-value for peptides
       cv_.getAllChildTerms(e_score_terms, "MS:1001872"); //E-value for peptides
       cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for peptides
       bool scoretype = false;
@@ -1160,8 +1160,11 @@ namespace OpenMS
                 spectrum_identification.getHits().back().setAABefore(pv.pre);
                 spectrum_identification.getHits().back().setAAAfter(pv.post);
 
-                spectrum_identification.getHits().back().setMetaValue("start",pv.start);
-                spectrum_identification.getHits().back().setMetaValue("end",pv.stop);
+                if (pv.start != -1 && pv.stop != -1)
+                {
+                  spectrum_identification.getHits().back().setMetaValue("start",pv.start);
+                  spectrum_identification.getHits().back().setMetaValue("end",pv.stop);
+                }
 
                 idec = pv.idec;
                 if (idec)

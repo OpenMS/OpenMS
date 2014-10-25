@@ -382,7 +382,6 @@ namespace OpenMS
 
     void MzIdentMLHandler::writeTo(std::ostream & os)
     {
-      Residue::ResidueType res_type_ = Residue::Full;
       String cv_ns = cv_.name();
       String datacollection_element, analysissoftwarelist_element, analysisprotocolcollection_element, analysiscollection_element;
       String inputs_element, analysisdata_element;
@@ -455,7 +454,7 @@ namespace OpenMS
            //xml
            spectra_data += String("\t\t<SpectraData location=\"") + sdst + String("\" id=\"") + String(sdid) + String("\">");
            spectra_data += String("\n\t\t\t<FileFormat> \n\t\t\t");
-           spectra_data +=  cv_.getTermByName("mzML file").toXMLString(cv_ns);
+           spectra_data +=  cv_.getTermByName("mzML format").toXMLString(cv_ns);
            spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
            spectra_data +=  cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
            spectra_data += String("\n\t\t\t</SpectrumIDFormat> \n\t\t</SpectraData>\n");
@@ -549,9 +548,12 @@ namespace OpenMS
 
             entry += "\t<DBSequence accession=\"" + enst + "\" ";
             entry += "searchDatabase_ref=\"" + String(dbid) + "\" ";
-            entry += "length=\"" + String(jt->getSequence().length()) + "\" ";
-            entry += String("id=\"") + String(enid) + String("\">\n");
             String s = String(jt->getSequence());
+            if (!s.empty())
+            {
+                entry += "length=\"" + String(jt->getSequence().length()) + "\" ";
+            }
+            entry += String("id=\"") + String(enid) + String("\">\n");
             if (!s.empty())
             {
               entry += "\t<Seq>" + s + "</Seq>\n";
@@ -567,9 +569,7 @@ namespace OpenMS
           {
             enid = enit->second;
           }
-
         }
-
       }
       inputs_element += search_database;
       inputs_element += spectra_data;
@@ -617,17 +617,45 @@ namespace OpenMS
               ModificationsDB * mod_db = ModificationsDB::getInstance();
               if (!jt->getSequence().getNTerminalModification().empty())
               {
-                p += "\t\t<Modification location=\"0\"> \n\t\t\t<cvParam accession=\"";
-                p += jt->getSequence().getNTerminalModification();             // "UNIMOD:" prefix??
-                p += "\" cvRef=\"UNIMOD\"/> \n\t\t</Modification> \n";
+                p += "\t\t<Modification location=\"0\"> \n";
+                String mod_str = jt->getSequence().getNTerminalModification();
+                std::set<const ResidueModification *> mods;
+                mod_db->searchTerminalModifications(mods, mod_str, ResidueModification::N_TERM);
+                if (!mods.empty())
+                {
+                  String acc = (*mods.begin())->getUniModAccession();
+                  p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                  p += "\" name=\"" +  mod_str;
+                  p += "\" cvRef=\"UNIMOD\"/>";
+                }
+                else // TODO @mths file issue: as this appears to yield hodgepodge 'id's (sometimes e.g. Gln->pyro-Glu other times UNIMOD accessions) - issue is probably in some idXML writing code or xtandem xml consuming code
+                {
+                    p += "\t\t\t<cvParam accession=\"NA\" name=\"" +  mod_str + "\" cvRef=\"UNIMOD\"/>";
+                }
+                p += "\n\t\t</Modification> \n";  // "UNIMOD:" prefix??
               }
               if (!jt->getSequence().getCTerminalModification().empty())
               {
                 p += "\t\t<Modification location=\"";
                 p += String(jt->getSequence().size());
-                p += "\"> \n\t\t\t<cvParam accession=\"";
+                p += "\"> \n";
+                String mod_str = jt->getSequence().getCTerminalModification();
+                std::set<const ResidueModification *> mods;
+                mod_db->searchTerminalModifications(mods, mod_str, ResidueModification::C_TERM);
+                if (!mods.empty())
+                {
+                  String acc = (*mods.begin())->getUniModAccession();
+                  p += "\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');
+                  p += "\" name=\"" +  mod_str;
+                  p += "\" cvRef=\"UNIMOD\"/>";
+                }
+                else // TODO @mths file issue: as this appears to yield hodgepodge 'id's (sometimes e.g. Gln->pyro-Glu other times UNIMOD accessions) - issue is probably in some idXML writing code or xtandem xml consuming code
+                {
+                    p += "\t\t\t<cvParam accession=\"NA\" name=\"" +  mod_str + "\" cvRef=\"UNIMOD\"/>";
+                }
+
                 p += jt->getSequence().getCTerminalModification();             // "UNIMOD:" prefix??
-                p += "\" cvRef=\"UNIMOD\"/> \n\t\t</Modification> \n";
+                p += "\n\t\t</Modification> \n";
               }
               for (Size i = 0; i < jt->getSequence().size(); ++i)
               {
@@ -642,7 +670,7 @@ namespace OpenMS
                     p += "\t\t<Modification location=\"" + String(i + 1);
                     p += "\" residues=\"" + jt->getSequence()[i].getOneLetterCode();
                     String acc = (*mods.begin())->getUniModAccession();
-                    p += "\"> \n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');                //TODO repair ResidueModification which gives UniMod ... anyways do not exclusively use unimod ...
+                    p += "\"> \n\t\t\t<cvParam accession=\"UNIMOD:" + acc.suffix(':');                //TODO @all: do not exclusively use unimod ...
                     p += "\" name=\"" +  mod_str;
                     p += "\" cvRef=\"UNIMOD\"/>";
                     p += "\n\t\t</Modification> \n";
@@ -705,7 +733,7 @@ namespace OpenMS
             pevid_ids =  pep_evis[pepi];
           }
 
-          String cmz(jt->getSequence().getMonoWeight(res_type_, jt->getCharge()));       //calculatedMassToCharge
+          String cmz((jt->getSequence().getMonoWeight() +  jt->getCharge() * Constants::PROTON_MASS_U)/jt->getCharge());       //calculatedMassToCharge
           String r(jt->getRank());      //rank
           String sc(jt->getScore());       //score TODO what if there is no score?
           String c(jt->getCharge());       //charge
@@ -725,7 +753,7 @@ namespace OpenMS
           //~ TODO nicer cvParam handling!
           if (st == "q-value" || st == "FDR")
           {
-            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("pep:global FDR").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("PSM-level q-value").toXMLString(cv_ns, sc);
           }
           else if (st == "Posterior Error Probability")
           {
