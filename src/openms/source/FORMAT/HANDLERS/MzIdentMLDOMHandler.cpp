@@ -676,7 +676,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            std::cerr << "another derp0 in progress" << std::endl;
+            LOG_WARN << "PeptideEvidence without reference to the positional in originating sequence found." << std::endl;
           }
           char pre = '-';
           char post = '-';
@@ -687,7 +687,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            std::cerr << "another derp1 in progress" << std::endl;
+              LOG_WARN << "PeptideEvidence without reference to the bordering aminoacids in originating sequence found." << std::endl;
           }
           bool idec = false;
           try
@@ -698,7 +698,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            std::cerr << "another derp2 in progress" << std::endl;
+              LOG_WARN << "PeptideEvidence with unreadable isDecoy status found." << std::endl;
           }
           pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post,idec}));
           p_pv_map_.insert(std::make_pair(peptide_ref,id));
@@ -828,7 +828,7 @@ namespace OpenMS
                   }
                   catch (...)
                   {
-                    std::cerr << "another derp3 in progress" << std::endl;
+                      LOG_WARN << "Searchengines enzyme settings for missedCleavages unreadable." << std::endl;
                   }
 
                   String semiSpecific = XMLString::transcode(enzy->getAttribute(XMLString::transcode("semiSpecific"))); //xsd:boolean
@@ -841,7 +841,7 @@ namespace OpenMS
                   }
                   catch (...)
                   {
-                    std::cerr << "another derp4 in progress" << std::endl;
+                      LOG_WARN << "Searchengines settings for minDistance unreadable." << std::endl;
                   }
 
                   String enzymename = "UNKNOWN";
@@ -863,14 +863,13 @@ namespace OpenMS
                       else if ((std::string)XMLString::transcode(pren->getTagName()) == "userParam")
                       {
                           std::pair<String,DataValue> param;
-                          std::cout << "derp?" << std::endl;
                           try
                           {
                             param = parseUserParam_(pren->getFirstElementChild());
                           }
                           catch (...)
                           {
-                            std::cerr << "derp in progress" << std::endl;
+                              LOG_WARN << "Additional parameters for enzyme settings not readable." << std::endl;
                           }
                           enzymename = param.second.toString();
                       }
@@ -1048,8 +1047,8 @@ namespace OpenMS
           }
         }
       }
-      //std::cout << "SpectrumIdentificationResults found: " << count << std::endl;
-      //std::cout << "example: " << pep_id_->back().getHits().size() << std::endl;
+//      std::cout << "SpectrumIdentificationResults found: " << count << std::endl;
+//      std::cout << "example: " << pep_id_->back().getHits().size() << std::endl;
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationItemElement_(DOMElement * spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref)
@@ -1066,7 +1065,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        std::cerr << "another derp5 in progress" << std::endl;
+        LOG_WARN << "Found unreadable chargeState." << std::endl;
       }
       long double experimentalMassToCharge = String(XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("experimentalMassToCharge")))).toDouble();
       int rank = 0;
@@ -1076,7 +1075,7 @@ namespace OpenMS
       }
       catch (...)
       {
-        std::cerr << "another derp6 in progress" << std::endl;
+        LOG_WARN << "Found unreadable PSM rank." << std::endl;
       }
 
       String peptide_ref = XMLString::transcode(spectrumIdentificationItemElement->getAttribute(XMLString::transcode("peptide_ref")));
@@ -1091,6 +1090,7 @@ namespace OpenMS
         pass = val->fData.fValue.f_bool;
       }
       delete val;
+      // TODO @mths: store passThreshold value
 
       long double score = 0;
       std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
@@ -1103,7 +1103,7 @@ namespace OpenMS
       bool scoretype = false;
       for (std::map<String, std::vector<OpenMS::CVTerm> >::const_iterator scoreit = params.first.getCVTerms().begin(); scoreit != params.first.getCVTerms().end(); ++scoreit)
       {
-          if (q_score_terms.find(scoreit->first) != q_score_terms.end())
+          if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
           {
               if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
             {
@@ -1129,7 +1129,7 @@ namespace OpenMS
               scoretype = true;
           }
       }
-      if (scoretype) //else (i.e. no q/E/raw score) no hit will be read
+      if (scoretype) //else (i.e. no q/E/raw score) no hit will be read TODO @mths: yielding no peptide hits will be error prone!!! what to do? remove and warn peptideidentifications with no hits inside?!
       {
           //build the PeptideHit from a SpectrumIdentificationItem
           PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
@@ -1408,7 +1408,7 @@ namespace OpenMS
             }
             catch (...)
             {
-              std::cerr << "another derp7 in progress" << std::endl;
+              LOG_WARN << "Found unreadable modification location." << std::endl;
             }
 
             //double monoisotopicMassDelta = XMLString::transcode(element_dbs->getAttribute(XMLString::transcode("monoisotopicMassDelta")));
@@ -1435,8 +1435,7 @@ namespace OpenMS
                 }
                 catch (int e)
                 {
-                    std::cout << " res: " << aas.getResidue((SignedSize)index).getName() << String(index) << " mod: " << cv.getName() << std::endl;
-                    std::cout << "!!!as: " << as << "aas: " << aas.toString() <<  " res: " << aas.toString()[index] << String(index) << " mod: " << cv.getName() << std::endl;
+                    LOG_WARN << "Found unusable modification" << " @residue: " << aas.getResidue((SignedSize)index).getName() << String(index) << " mod: " << cv.getName() << std::endl;
                 }
               }
               cvp = cvp->getNextElementSibling();
