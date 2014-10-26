@@ -46,8 +46,9 @@ namespace OpenMS
   IsobaricChannelExtractor::PuritySate_::PuritySate_(const MSExperiment<>& targetExp) :
     baseExperiment(targetExp)
   {
+    // initialize precursorScan with end(), it will be updated later on
+    // from the calling method
     precursorScan = baseExperiment.end();
-    hasPrecursorScan = false;
 
     // find the first ms1 scan in the experiment
     followUpScan = baseExperiment.begin();
@@ -403,6 +404,7 @@ namespace OpenMS
         // calculating the extrapolated, S2I value as a time weighted linear combination of the two scans
         // see: Savitski MM, Sweetman G, Askenazi M, Marto JA, Lang M, Zinn N, et al. (2011).
         // Analytical chemistry 83: 8959–67. http://www.ncbi.nlm.nih.gov/pubmed/22017476
+        // std::fabs is applied to compensate for potentially negative RTs
         return std::fabs(ms2_spec->getRT() - pState.precursorScan->getRT()) *
                ((late_scan_purity - early_scan_purity) / std::fabs(pState.followUpScan->getRT() - pState.precursorScan->getRT()))
                + early_scan_purity;

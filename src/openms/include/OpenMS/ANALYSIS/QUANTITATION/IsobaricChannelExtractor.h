@@ -54,12 +54,14 @@ namespace OpenMS
     @li %Precursor activation method (e.g., select only HCD scans).
     @li Minimum precursor intensity.
     @li Minimum reporter intensity (i.e., remove reporter channels below a certain intensity)
-    @li %Precursor purity (i.e., fraction of peaks in the precursor window that can be assigned to the precursor)
+    @li %Precursor purity (i.e., fraction of TIC in the precursor window that can be assigned to the precursor)
 
     The precursor purity computation uses the interpolation approach described in:
     Savitski MM, Sweetman G, Askenazi M, et al. (2011). Delayed fragmentation and optimized isolation width settings
     for improvement of protein identification and accuracy of isobaric mass tag quantification on Orbitrap-type mass
     spectrometers. Analytical chemistry 83: 8959-67. http://www.ncbi.nlm.nih.gov/pubmed/22017476
+
+    @note Centroided MS and MS/MS data is required.
 
     @htmlinclude OpenMS_IsobaricChannelExtractor.parameters
   */
@@ -103,8 +105,6 @@ private:
       /// Iterator pointing to the potential follow up ms1 scan
       MSExperiment<Peak1D>::ConstIterator followUpScan;
 
-      /// Indicates if a precursor was found
-      bool hasPrecursorScan;
       /// Indicates if a follow up scan was found
       bool hasFollowUpScan;
       /// reference to the experiment to analyze
