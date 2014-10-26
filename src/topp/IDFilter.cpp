@@ -230,12 +230,19 @@ protected:
 
     registerFlag_("unique", "If a peptide hit occurs more than once per PSM, only one instance is kept.");
     registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
-    registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the idXML.");
-    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the idXML. Usually used in combination with 'score:prot' or 'thresh:prot'.");
+    registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the ids.");
+    registerFlag_("removeDecoys", "Remove Proteins with the idDecoy flag. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
+    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the ids. Usually used in combination with 'score:prot' or 'thresh:prot'.");
 
     //setSectionDescription("RT", "Filters peptides using meta-data annotated by RT predict. The criterion is always the p-value (for having a deviation between observed and predicted RT equal or bigger than allowed).");
 
   }
+
+  static bool is_decoy(ProteinHit& ph)
+  {
+    return (ph.metaValueExists("isDecoy") && (String)ph.getMetaValue("isDecoy") == "true");
+  }
+
 
   ExitCodes main_(int, const char**)
   {
@@ -319,6 +326,8 @@ protected:
     bool mz_error_filtering = (mz_error < 0) ? false : true;
     bool mz_error_unit_ppm = (getStringOption_("mz:unit") == "ppm") ? true : false;
 
+    bool remove_decoys = getFlag_("removeDecoys");
+
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -361,6 +370,17 @@ protected:
     //-------------------------------------------------------------
 
     std::set<String> applied_filters;
+
+    if (remove_decoys)
+    {
+        for (Size i = 0; i < protein_identifications.size(); ++i)
+        {
+            vector<ProteinHit> vph = protein_identifications[i].getHits();
+            vph.erase( std::remove_if( vph.begin(), vph.end(), is_decoy ), vph.end() );
+            protein_identifications[i].setHits(vph);
+        }
+    }
+
 
     // Filtering peptide identification according to set criteria
     if ((rt_high < double_max) || (rt_low > -double_max))
