@@ -3,7 +3,8 @@ from libcpp cimport bool
 from Types cimport *
 from String cimport *
 
-    cdef cppclass PeptideEvidence() :
+cdef extern from "<OpenMS/METADATA/PeptideEvidence.h>" namespace "OpenMS":
+    cdef cppclass PeptideEvidence :
         PeptideEvidence() nogil except +
         PeptideEvidence(PeptideEvidence) nogil except +
         void setStart(Int start) nogil except +
