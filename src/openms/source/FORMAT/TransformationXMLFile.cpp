@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  void TransformationXMLFile::load(const String & filename, TransformationDescription & transformation)
+  void TransformationXMLFile::load(const String & filename, TransformationDescription & transformation, bool fit_model)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -62,7 +62,11 @@ namespace OpenMS
     parse_(filename, this);
 
     transformation.setDataPoints(data_);
-    transformation.fitModel(model_type_, params_);
+
+    if (fit_model) 
+    {
+      transformation.fitModel(model_type_, params_);
+    }
   }
 
   void TransformationXMLFile::store(String filename, const TransformationDescription & transformation)
