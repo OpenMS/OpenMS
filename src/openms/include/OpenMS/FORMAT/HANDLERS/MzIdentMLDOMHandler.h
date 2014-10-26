@@ -38,8 +38,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-//#include <OpenMS/METADATA/IdentificationHit.h>
-//#include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
@@ -72,12 +70,12 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 // Error codes
-enum {
-   ERROR_ARGS = 1,
-   ERROR_XERCES_INIT,
-   ERROR_PARSE,
-   ERROR_EMPTY_DOCUMENT
-};
+//enum {
+//   ERROR_ARGS = 1,
+//   ERROR_XERCES_INIT,
+//   ERROR_PARSE,
+//   ERROR_EMPTY_DOCUMENT
+//};
 
 namespace OpenMS
 {

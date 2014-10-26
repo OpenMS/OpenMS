@@ -59,7 +59,6 @@ namespace OpenMS
 {
   namespace Internal
   {
-    //TODO add documentation, warning and logger integration
     //TODO care for casts, switch validation on
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
@@ -83,7 +82,7 @@ namespace OpenMS
       catch( XMLException& e )
       {
          char* message = XMLString::transcode( e.getMessage() );
-         cerr << "XML toolkit initialization error: " << message << endl;
+         LOG_ERROR << "XML toolkit initialization error: " << message << endl;
          XMLString::release( &message );
          // throw exception here to return ERROR_XERCES_INIT
       }
@@ -115,9 +114,8 @@ namespace OpenMS
       catch( XMLException& e )
       {
          char* message = XMLString::transcode( e.getMessage() );
-         cerr << "XML toolkit initialization error: " << message << endl;
+         LOG_ERROR << "XML toolkit initialization error: " << message << endl;
          XMLString::release( &message );
-         // throw exception here to return ERROR_XERCES_INIT
       }
 
       // Tags and attributes used in XML file.
@@ -145,7 +143,7 @@ namespace OpenMS
       }
       catch( ... )
       {
-         cerr << "Unknown exception encountered in TagNamesdtor" << endl;
+         LOG_ERROR << "Unknown exception encountered in TagNamesdtor" << endl;
       }
 
       // Terminate Xerces
@@ -157,7 +155,7 @@ namespace OpenMS
       catch( xercesc::XMLException& e )
       {
          char* message = xercesc::XMLString::transcode( e.getMessage() );
-         cerr << "XML toolkit teardown error: " << message << endl;
+         LOG_ERROR << "XML toolkit teardown error: " << message << endl;
          XMLString::release( &message );
       }
     }
@@ -261,8 +259,9 @@ namespace OpenMS
        catch( xercesc::XMLException& e )
        {
           char* message = xercesc::XMLString::transcode( e.getMessage() );
-          ostringstream errBuf;
-          errBuf << "Error parsing file: " << message << flush;
+//          ostringstream errBuf;
+//          errBuf << "Error parsing file: " << message << flush;
+          LOG_ERROR << "XERCES Error parsing file: " << message << flush << endl;
           XMLString::release( &message );
        }
     }
@@ -424,24 +423,23 @@ namespace OpenMS
           }
           catch (const OutOfMemoryException&)
           {
-              XERCES_STD_QUALIFIER cerr << "OutOfMemoryException" << XERCES_STD_QUALIFIER endl;
+            LOG_ERROR << "Xerces OutOfMemoryException" << endl;
           }
           catch (const DOMException& e)
           {
-              XERCES_STD_QUALIFIER cerr << "DOMException code is:  " << e.code << XERCES_STD_QUALIFIER endl;
+            LOG_ERROR << "DOMException code is:  " << e.code << endl;
           }
           catch (const std::exception &e)
           {
-              XERCES_STD_QUALIFIER cerr << "An error occurred creating the document: " << e.what() << XERCES_STD_QUALIFIER endl;
+            LOG_ERROR << "An error occurred creating the document: " << e.what() << endl;
           }
 
       }  // (inpl != NULL)
       else
       {
-          XERCES_STD_QUALIFIER cerr << "Requested implementation is not supported" << XERCES_STD_QUALIFIER endl;
+        LOG_ERROR << "Requested DOM implementation is not supported" << endl;
       }
     }
-
 
     std::pair<CVTermList, std::map<String,DataValue> > MzIdentMLDOMHandler::parseParamGroup_(DOMNodeList * paramGroup)
     {
@@ -1033,7 +1031,7 @@ namespace OpenMS
           {
             if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
             {
-                pep_id_->back().setRT(cvit->second.front().getValue()); // TODO convert if unit is minutes
+                pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
             }
             else
             {
@@ -1044,6 +1042,10 @@ namespace OpenMS
           for (std::map<String,DataValue>::const_iterator upit = params.second.begin(); upit != params.second.end(); ++upit)
           {
               pep_id_->back().setMetaValue(upit->first,upit->second);
+          }
+          if (pep_id_->back().getRT() != pep_id_->back().getRT())
+          {
+              LOG_WARN << "No retention time found for SpectrumIdentificationResult" << endl;
           }
         }
       }
