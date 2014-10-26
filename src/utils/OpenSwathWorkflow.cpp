@@ -1232,6 +1232,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
+      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
 
       // EMG Scoring - turn off by default since it is very CPU-intensive
       feature_finder_param.remove("Scores:use_elution_model_score");
@@ -1242,7 +1243,6 @@ protected:
       feature_finder_param.remove("EMGScoring:deltaAbsError");
 
       // remove these parameters
-      feature_finder_param.remove("stop_report_after_feature");
       feature_finder_param.remove("add_up_spectra");
       feature_finder_param.remove("spacing_for_spectra_resampling");
       feature_finder_param.remove("EMGScoring:statistics:mean");
