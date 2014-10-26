@@ -95,8 +95,8 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 # OpenMS Version Information
 #------------------------------------------------------------------------------
 
-set(OPENMS_PACKAGE_VERSION_MAJOR "1")
-set(OPENMS_PACKAGE_VERSION_MINOR "12")
+set(OPENMS_PACKAGE_VERSION_MAJOR "2")
+set(OPENMS_PACKAGE_VERSION_MINOR "0")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
 #------------------------------------------------------------------------------
