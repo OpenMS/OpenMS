@@ -1305,7 +1305,7 @@ protected:
     {
       // get read RT normalization file
       TransformationXMLFile trafoxml;
-      trafoxml.load(trafo_in, trafo_rtnorm);
+      trafoxml.load(trafo_in, trafo_rtnorm, false);
       Param model_params = getParam_().copy("model:", true);
       model_params.setValue("symmetric_regression", "false");
       String model_type = "linear";
