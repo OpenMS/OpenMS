@@ -328,6 +328,11 @@ protected:
       lines.erase(pos, lines.end());
       if (!lines.empty())
       {
+        if (lines[0].hasPrefix("caught an exception"))
+        {
+          LOG_ERROR << "Error running Fido: '" + lines[0] + "'" << endl;
+          return false;
+        }
         if (lines[0].hasPrefix("Warning:")) LOG_WARN << lines[0] << endl;
         if (lines.back().hasPrefix("Using best gamma, alpha, beta ="))
         {
