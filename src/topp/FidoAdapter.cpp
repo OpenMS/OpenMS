@@ -119,6 +119,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("exe", "<path>", "", "Path to the executable to use, or to the directory containing the 'Fido' and 'FidoChooseParameters' executables; may be empty if the executables are globally available.", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them");
+    registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
@@ -286,7 +287,8 @@ protected:
                 vector<PeptideIdentification>& peptides, bool choose_params,
                 const String& exe, QStringList& fido_params, 
                 double& prob_protein, double& prob_peptide, 
-                double& prob_spurious, const String& temp_dir, Size counter=0)
+                double& prob_spurious, const String& temp_dir,
+                bool keep_zero_group = false, Size counter = 0)
   {
     LOG_INFO << "Generating temporary files for Fido..." << endl;
     String num = counter ? "." + String(counter) : "";
@@ -369,7 +371,8 @@ protected:
       istringstream line(*line_it);
       ProteinIdentification::ProteinGroup group;
       line >> group.probability;
-      // parse accessions (won't work if accessions can contain spaces!):
+      if ((group.probability == 0.0) && !keep_zero_group) continue;
+      // parse accessions:
       String accession;
       line >> accession;
       while (line)
@@ -403,6 +406,7 @@ protected:
     String out = getStringOption_("out");
     String exe = getStringOption_("exe");
     bool separate_runs = getFlag_("separate_runs");
+    bool keep_zero_group = getFlag_("keep_zero_group");
     double prob_protein = getDoubleOption_("prob:protein");
     double prob_peptide = getDoubleOption_("prob:peptide");
     double prob_spurious = getDoubleOption_("prob:spurious");
@@ -489,7 +493,8 @@ protected:
         LOG_INFO << "Protein identification run " << counter << ":" << endl;
         fido_success = runFido_(*prot_it, peptides, choose_params, exe,
                                 fido_params, prob_protein, prob_peptide,
-                                prob_spurious, temp_dir, counter);
+                                prob_spurious, temp_dir, keep_zero_group, 
+                                counter);
       }
     }
     else // merge multiple protein ID runs
@@ -529,7 +534,7 @@ protected:
 
         fido_success = runFido_(all_proteins, peptides, choose_params, exe, 
                                 fido_params, prob_protein, prob_peptide,
-                                prob_spurious, temp_dir);
+                                prob_spurious, temp_dir, keep_zero_group);
         // write Fido probabilities into protein scores:
         for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
                all_proteins.getIndistinguishableProteins().begin(); group_it !=
@@ -548,7 +553,7 @@ protected:
       {
         fido_success = runFido_(proteins[0], peptides, choose_params, exe, 
                                 fido_params, prob_protein, prob_peptide,
-                                prob_spurious, temp_dir);
+                                prob_spurious, temp_dir, keep_zero_group);
       }
     }
 
