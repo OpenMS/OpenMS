@@ -33,8 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <cmath>
 
 // #define ISOBARIC_CHANNEL_EXTRACTOR_DEBUG

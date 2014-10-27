@@ -35,15 +35,16 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICCHANNELEXTRACTOR_H
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICCHANNELEXTRACTOR_H
 
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
+#include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
+  class IsobaricQuantitationMethod;
+  class ConsensusMap;
+  class ConsensusFeature;
+
   /**
     @brief Extracts individual channels from MS/MS spectra for isobaric labeling experiments.
 

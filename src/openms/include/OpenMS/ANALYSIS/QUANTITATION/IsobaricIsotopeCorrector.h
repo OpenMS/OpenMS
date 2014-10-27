@@ -35,18 +35,16 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICISOTOPECORRECTOR_H
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICISOTOPECORRECTOR_H
 
-#include <OpenMS/KERNEL/ConsensusMap.h>
-
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
-
 #include <Eigen/Core>
-
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 namespace OpenMS
 {
+  class IsobaricQuantitationMethod;
+  struct IsobaricQuantifierStatistics;
+  class ConsensusMap;
+  class ConsensusFeature;
+
   /**
     @brief Performs isotope impurity correction on the intensities extracted from an isobaric labeling experiment.
   */
@@ -88,16 +86,16 @@ private:
      */
     static void
     computeStats_(const Matrix<double>& m_x, const Eigen::MatrixXd& x,
-        const ConsensusFeature::IntensityType cf_intensity,
+        const float cf_intensity,
         const IsobaricQuantitationMethod* quant_method,
         IsobaricQuantifierStatistics& stats);
 
     /**
      @brief
      */
-    static ConsensusFeature::IntensityType
+    static float
     updateOutpuMap_(const ConsensusMap& consensus_map_in,
-        ConsensusMap& consensus_map_out, ConsensusMap::size_type current_cf,
+        ConsensusMap& consensus_map_out, Size current_cf,
         const Matrix<double>& m_x);
   };
 } // namespace
