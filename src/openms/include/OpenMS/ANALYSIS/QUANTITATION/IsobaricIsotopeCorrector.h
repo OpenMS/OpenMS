@@ -61,42 +61,41 @@ public:
      @throws Exception::FailedAPICall If the least-squares fit fails.
      @throws Exception::InvalidParameter If the given correction matrix is invalid.
      */
-    static IsobaricQuantifierStatistics
-    correctIsotopicImpurities(const ConsensusMap& consensus_map_in,
-        ConsensusMap& consensus_map_out,
-        const IsobaricQuantitationMethod* quant_method);
+    static IsobaricQuantifierStatistics correctIsotopicImpurities(const ConsensusMap& consensus_map_in,
+                                                                  ConsensusMap& consensus_map_out,
+                                                                  const IsobaricQuantitationMethod* quant_method);
 
 private:
     /**
      @brief Fills the input vector for the Eigen/NNLS step given the ConsensusFeature.
      */
-    static void
-    fillInputVector_(Eigen::VectorXd& b, Matrix<double>& m_b,
-        const ConsensusFeature& cf, const ConsensusMap& cm);
+    static void fillInputVector_(Eigen::VectorXd& b,
+                                 Matrix<double>& m_b,
+                                 const ConsensusFeature& cf,
+                                 const ConsensusMap& cm);
 
     /**
      @brief
      */
-    static void
-    solveNNLS_(const Matrix<double>& correction_matrix,
-        const Matrix<double>& m_b, Matrix<double>& m_x);
+    static void solveNNLS_(const Matrix<double>& correction_matrix,
+                           const Matrix<double>& m_b, Matrix<double>& m_x);
 
     /**
      @brief
      */
-    static void
-    computeStats_(const Matrix<double>& m_x, const Eigen::MatrixXd& x,
-        const float cf_intensity,
-        const IsobaricQuantitationMethod* quant_method,
-        IsobaricQuantifierStatistics& stats);
+    static void computeStats_(const Matrix<double>& m_x,
+                              const Eigen::MatrixXd& x,
+                              const float cf_intensity,
+                              const IsobaricQuantitationMethod* quant_method,
+                              IsobaricQuantifierStatistics& stats);
 
     /**
      @brief
      */
-    static float
-    updateOutpuMap_(const ConsensusMap& consensus_map_in,
-        ConsensusMap& consensus_map_out, Size current_cf,
-        const Matrix<double>& m_x);
+    static float updateOutpuMap_(const ConsensusMap& consensus_map_in,
+                                 ConsensusMap& consensus_map_out,
+                                 Size current_cf,
+                                 const Matrix<double>& m_x);
   };
 } // namespace
 
