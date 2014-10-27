@@ -199,12 +199,14 @@ protected:
                                             __PRETTY_FUNCTION__, msg);
       }
 
-      graph_out << "e " << hit.getSequence() << endl;
+      graph_out << "e " << hit.getSequence() << endl; // remove modifications?
       for (vector<String>::const_iterator acc_it = 
              hit.getProteinAccessions().begin(); acc_it != 
              hit.getProteinAccessions().end(); ++acc_it)
       {
-        graph_out << "r " << *acc_it << endl;
+        // no spaces in protein accessions allowed:
+        String accession = *acc_it;
+        graph_out << "r " << accession.substitute(' ', '_') << endl;
       }
       graph_out << "p " << score << endl;
     }
@@ -222,13 +224,15 @@ protected:
          hit_it != protein.getHits().end(); ++hit_it)
     {
       String target_decoy = hit_it->getMetaValue("target_decoy").toString();
+      String accession = hit_it->getAccession();
+      accession.substitute(' ', '_'); // no spaces in protein accessions allowed
       if (target_decoy == "target")
       {
-        targets.insert(hit_it->getAccession());
+        targets.insert(accession);
       }
       else if (target_decoy == "decoy")
       {
-        decoys.insert(hit_it->getAccession());
+        decoys.insert(accession);
       }
       else
       {
