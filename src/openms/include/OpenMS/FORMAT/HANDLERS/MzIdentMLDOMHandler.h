@@ -83,11 +83,14 @@ namespace OpenMS
 
   namespace Internal
   {
-
     /**
-        @brief XML handler for MzIdentMLFile
+        @brief XML DOM handler for MzIdentMLFile
+
+        In read-mode, this class will parse an MzIdentML XML file and append the input
+        identifications to the provided PeptideIdentifications and ProteinIdentifications.
 
         @note Do not use this class. It is only needed in MzIdentMLFile.
+        @note DOM and STREAM handler for MzIdentML have the same interface for legacy id structures.
     */
     class OPENMS_DLLAPI MzIdentMLDOMHandler
     {
@@ -118,17 +121,21 @@ protected:
       ///Controlled vocabulary for modifications (unimod from OpenMS/share/OpenMS/CV/unimod.obo)
       ControlledVocabulary unimod_;
 
-      ///internal Identification Item for proteins
+      ///Internal +w Identification Item for proteins
       std::vector<ProteinIdentification> * pro_id_;
-      ///Identification Item for peptides
+      ///Internal +w Identification Item for peptides
       std::vector<PeptideIdentification> * pep_id_;
 
+      ///Internal -w Identification Item for proteins
       const std::vector<ProteinIdentification> * cpro_id_;
+      ///Internal -w Identification Item for peptides
       const std::vector<PeptideIdentification> * cpep_id_;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;
 
+      /**@name Helper functions to build the internal id structures from the DOM tree */
+      //@{
       std::pair<CVTermList, std::map<String,DataValue> > parseParamGroup_( xercesc::DOMNodeList * paramGroup);
       CVTerm parseCvParam_( xercesc::DOMElement* param);
       std::pair<String, DataValue> parseUserParam_( xercesc::DOMElement* param );
@@ -145,7 +152,10 @@ protected:
       void parseProteinDetectionHypothesisElement_( xercesc::DOMElement * proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement * proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
       void parseProteinDetectionListElements_( xercesc::DOMNodeList * proteinDetectionListElements);
+      ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList,std::map<String,DataValue> > as_params);
+      //@}
 
+      /**@name Helper functions to build a DOM tree from the internal id structures*/
       void buildCvList_(xercesc::DOMElement * cvElements);
       void buildAnalysisSoftwareList_(xercesc::DOMElement * analysisSoftwareElements);
       void buildSequenceCollection_(xercesc::DOMElement * sequenceCollectionElements);
@@ -154,8 +164,8 @@ protected:
       void buildInputDataCollection_(xercesc::DOMElement * inputElements);
       void buildEnclosedCV_(xercesc::DOMElement * parentElement, String encel, String acc, String name, String cvref);
       void buildAnalysisDataCollection_(xercesc::DOMElement * analysisElements);
+      //@}
 
-      ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList,std::map<String,DataValue> > as_params);
 
 private:
       MzIdentMLDOMHandler();

@@ -46,6 +46,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <vector>
 
 namespace OpenMS
@@ -56,9 +58,13 @@ namespace OpenMS
   {
 
     /**
-        @brief XML handler for MzIdentMLFile
+        @brief XML STREAM handler for MzIdentMLFile
+
+        In read-mode, this class will parse an MzIdentML XML file and append the input
+        identifications to the provided PeptideIdentifications and ProteinIdentifications.
 
         @note Do not use this class. It is only needed in MzIdentMLFile.
+        @note DOM and STREAM handler for MzIdentML have the same interface for legacy id structures.
     */
     class OPENMS_DLLAPI MzIdentMLHandler :
       public XMLHandler
@@ -94,7 +100,6 @@ public:
       virtual void writeTo(std::ostream & os);
 
 protected:
-
       /// Progress logger
       const ProgressLogger & logger_;
 
@@ -140,6 +145,11 @@ protected:
       /// Helper method that writes a source file
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
+      /// Helper method that writes the Enzymes
+      void writeEnyzme_(String& s, ProteinIdentification::DigestionEnzyme enzy, UInt indent) const;
+
+      /// Helper method that writes the modification search params
+      void writeModParam_(String& s,const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const;
 
 private:
       MzIdentMLHandler();

@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
 // $Authors: Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
@@ -49,7 +49,14 @@ namespace OpenMS
   /**
       @brief File adapter for MzIdentML files
 
-      If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
+      This file adapter exposes the internal MzIdentML processing capabilities to the library. The file
+      adapter interface is kept the same as idXML file adapter for downward capability reasons.
+      For now, read-in will be performed with DOM write-out with STREAM
+
+      @note due to the limited capabilities of idXML/PeptideIdentification/ProteinIdentification not all
+        MzIdentML features can be supported. Development for these structures will be discontinued, a new
+        interface with appropriate structures will be provided.
+      @note If a critical error occurs due to the missing functionality, Exception::NotImplemented is thrown.
 
       @ingroup FileIO
   */

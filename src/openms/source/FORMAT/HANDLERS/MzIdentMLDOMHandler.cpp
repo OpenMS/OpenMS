@@ -616,7 +616,7 @@ namespace OpenMS
           }
         }
       }
-      std::cout << "DBSequences found: " << count  << " / " << db_sq_map_.size() << std::endl;
+//      std::cout << "DBSequences found: " << count  << " / " << db_sq_map_.size() << std::endl;
     }
 
     void MzIdentMLDOMHandler::parsePeptideElements_(DOMNodeList * peptideElements)

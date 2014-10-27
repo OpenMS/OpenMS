@@ -480,11 +480,11 @@ namespace OpenMS
         }
         else if (swcn == "Mascot")
         {
-          osecv = "MASCOT";
+          osecv = "Mascot";
         }
         else if (swcn == "XTandem")
         {
-          osecv = "X\\!Tandem"; //wtf escape from escape?
+          osecv = "X\\!Tandem";
         }
         else if (swcn == "SEQUEST")
         {
@@ -527,14 +527,25 @@ namespace OpenMS
           sip += String(" \n\t\t<SearchType>\n\t\t\t") + cv_.getTermByName("ms-ms search").toXMLString(cv_ns) + String(" \n\t\t</SearchType>");
           sip += String("\n\t\t<AdditionalSearchParams>\n");
           writeMetaInfos_(sip,it->getSearchParameters(),3);
+          sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
+          sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
           sip += String("\t\t</AdditionalSearchParams>");
+          sip += String("\t\t<FragmentTolerance>");
+          sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().peak_mass_tolerance) + "\"/>" + "\n";
+          sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().peak_mass_tolerance) + "\"/>" + "\n";
+          sip += String("\t\t</FragmentTolerance>");
+          sip += String("\t\t<ParentTolerance>");
+          sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
+          sip += String(3, '\t') + "<cvParam accession=\"MS:1001413\" name=\"search tolerance minus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().precursor_tolerance) + "\"/>" + "\n";
+          sip += String("\t\t</ParentTolerance>");
+          writeEnyzme_(sip,it->getSearchParameters().enzyme,3);
+          writeModParam_(sip,it->getSearchParameters().fixed_modifications,it->getSearchParameters().variable_modifications,3);
           sip += String("\n\t\t<Threshold>\n\t\t\t") + cv_.getTermByName("no threshold").toXMLString(cv_ns);
           sip += String("\n\t\t</Threshold>\n\t</SpectrumIdentificationProtocol>\n");
           sip_set.insert(sip);
           sip_ids.insert(std::pair<String, UInt64>(swcn, spid));
           sip_sdb.insert(std::make_pair(spid, dbid));
         }
-        //TODO @mths: FIXME missing enzyme modificationparams, parenttolerances, fragmenttolerances
 
         for (std::vector<ProteinHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
         {
@@ -757,7 +768,7 @@ namespace OpenMS
           }
           else if (st == "Posterior Error Probability")
           {
-            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("percolaror:PEP").toXMLString(cv_ns, sc);        // 'percolaror' is not a typo in the code but in the cv.
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("percolator:PEP").toXMLString(cv_ns, sc);        // 'percolaror' was not a typo in the code but in the cv.
           }
           else if (pie_ids[pro_pep_matchstring] == "OMSSA")
           {
@@ -765,7 +776,7 @@ namespace OpenMS
           }
           else if (pie_ids[pro_pep_matchstring] == "Mascot")
           {
-            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("MASCOT:score").toXMLString(cv_ns, sc);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("Mascot:score").toXMLString(cv_ns, sc);
           }
           else if (pie_ids[pro_pep_matchstring] == "XTandem")
           {
@@ -847,7 +858,7 @@ namespace OpenMS
       os <<   "<AnalysisCollection>\n";
       for (std::map<String, UInt64>::const_iterator sip = sip_ids.begin(); sip != sip_ids.end(); ++sip)
       {
-        //TODO @mths: FIXME WRITE inputspectraref and searchdatabaseref!!!
+        //TODO @mths: FIXME WRITE inputspectraref as soon we store that somewhere unambiguosly!!
         //~ TODO unsure when to create several lists instead of one SpectrumIdentificationList - for now only one list
         //~ for  (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
         //~ {
@@ -855,10 +866,9 @@ namespace OpenMS
         String entry = String("\t<SpectrumIdentification id=\"") + String(ss) + String("\" spectrumIdentificationProtocol_ref=\"")
                 + String(sip->second) + String("\" spectrumIdentificationList_ref=\"") + String(silly)
                 + String("\">\n")
-                + "\t\t<InputSpectra/>\n" //TODO FIXME
-                + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sip_sdb[sip->first] + "\"/>\n"
+                + "\t\t<InputSpectra/>\n" // spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
+                + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sip_sdb[sip->second] + "\"/>\n"
                 + "\t</SpectrumIdentification>\n";
-
         os <<   entry;
         //~ }
       }
@@ -916,35 +926,113 @@ namespace OpenMS
 
       for (Size i = 0; i != keys.size(); ++i)
       {
-          if (cv_.exists(keys[i]))
-          {
-              ControlledVocabulary::CVTerm a = cv_.getTerm(keys[i]);
-              s += String(indent, '\t') + a.toXMLString("PSI-MS",(String)(meta.getMetaValue(keys[i]))) + "\n";
-          }
-          else
-          {
-            s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
+        if (cv_.exists(keys[i]))
+        {
+            ControlledVocabulary::CVTerm a = cv_.getTerm(keys[i]);
+            s += String(indent, '\t') + a.toXMLString("PSI-MS",(String)(meta.getMetaValue(keys[i]))) + "\n";
+        }
+        else
+        {
+          s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-            DataValue d = meta.getMetaValue(keys[i]);
-            //determine type
-            if (d.valueType() == DataValue::INT_VALUE)
-            {
-              s += "xsd:integer";
-            }
-            else if (d.valueType() == DataValue::DOUBLE_VALUE)
-            {
-              s += "xsd:double";
-            }
-            else //string or lists are converted to string
-            {
-              s += "xsd:string";
-            }
-            s += "\" value=\"" + (String)(d) + "\"/>" + "\n";
+          DataValue d = meta.getMetaValue(keys[i]);
+          //determine type
+          if (d.valueType() == DataValue::INT_VALUE)
+          {
+            s += "xsd:integer";
           }
-
+          else if (d.valueType() == DataValue::DOUBLE_VALUE)
+          {
+            s += "xsd:double";
+          }
+          else //string or lists are converted to string
+          {
+            s += "xsd:string";
+          }
+          s += "\" value=\"" + (String)(d) + "\"/>" + "\n";
+        }
       }
     }
 
+    void MzIdentMLHandler::writeEnyzme_(String& s, ProteinIdentification::DigestionEnzyme enzy, UInt indent) const
+    {
+      String cv_ns = cv_.name();
+      s += String(indent, '\t') + "<Enzymes independent=\"true\">" + "\n";
+      s += String(indent, '\t') + "\t" + "<Enzyme id=\"" + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
+      s += String(indent, '\t') + "\t\t" + "<EnzymeName>" + "\n";
+      if (enzy == ProteinIdentification::TRYPSIN)
+      {
+          s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("Trypsin").toXMLString(cv_ns) + "\n";
+      }
+      if (enzy == ProteinIdentification::PEPSIN_A)
+      {
+          s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("PepsinA").toXMLString(cv_ns) + "\n";
+      }
+      if (enzy == ProteinIdentification::CHYMOTRYPSIN)
+      {
+          s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("Chymotrypsin").toXMLString(cv_ns) + "\n";
+      }
+      else if (enzy == ProteinIdentification::NO_ENZYME)
+      {
+          s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("NoEnzyme").toXMLString(cv_ns) + "\n";
+      }
+      else // if enzy == ProteinIdentification::UNKNOWN_ENZYME || PROTEASE_K
+      {
+          s += String(indent, '\t') + "\t\t\t" + cv_.getTermByName("cleavage agent details").toXMLString(cv_ns) + "\n";
+      }
+      s += String(indent, '\t') + "\t\t" + "</EnzymeName>" + "\n";
+      s += String(indent, '\t') + '\t' + "</Enzyme>" + "\n";
+      s += String(indent, '\t') + "</Enzymes>" + "\n";
+    }
+
+    void MzIdentMLHandler::writeModParam_(String& s, const std::vector<String> &fixed, const std::vector<String> &variable, UInt indent) const
+    {
+      String cv_ns = unimod_.name();
+      s += String(indent, '\t') + "<ModificationParams>" + "\n";
+      for (std::vector<String>::const_iterator it = fixed.begin(); it != fixed.end(); ++it)
+      {
+        std::set<const ResidueModification *> mods;
+        ModificationsDB::getInstance()->searchModifications(mods, *it, ResidueModification::ANYWHERE);
+        if (!mods.empty())
+        {
+          for (std::set<const ResidueModification *>::const_iterator mt = mods.begin(); mt!= mods.end(); ++mt)
+          {
+            s += String(indent, '\t') + '\t' + "<SearchModification fixedMod=\"true\" massDelta=\"" + String((*mt)->getMonoMass()) + "\" residues=\"" + String((*mt)->getOrigin()) + "\">" + "\n";
+            String ac = (*mt)->getUniModAccession();
+            if (ac.hasPrefix("UniMod:"))
+                ac = "UNIMOD:" + ac.suffix(':');
+            s += String(indent, '\t') + "\t\t" + unimod_.getTerm(ac).toXMLString(cv_ns) + "\n";
+            s += String(indent, '\t') + '\t' + "</SearchModification>" + "\n";
+          }
+        }
+        else
+        {
+            LOG_WARN << "Registered fixed modification not writable, unknown or unable to convert to cv parameter." << std::endl;
+        }
+      }
+      for (std::vector<String>::const_iterator it = variable.begin(); it != variable.end(); ++it)
+      {
+        std::set<const ResidueModification *> mods;
+        ModificationsDB::getInstance()->searchModifications(mods, *it, ResidueModification::ANYWHERE);
+        if (!mods.empty())
+        {
+          for (std::set<const ResidueModification *>::const_iterator mt = mods.begin(); mt!= mods.end(); ++mt)
+          {
+            s += String(indent, '\t') + '\t' + "<SearchModification fixedMod=\"false\" massDelta=\"" + String((*mt)->getMonoMass()) + "\" residues=\"" + String((*mt)->getOrigin()) + "\">" + "\n";
+            String ac = (*mt)->getUniModAccession();
+            if (ac.hasPrefix("UniMod:"))
+                    ac = "UNIMOD:" + ac.suffix(':');
+            s += String(indent, '\t') + "\t\t" + unimod_.getTerm(ac).toXMLString(cv_ns) + "\n";
+            s += String(indent, '\t') + '\t' + "</SearchModification>" + "\n";
+          }
+        }
+        else
+        {
+            LOG_WARN << "Registered variable modification not writable, unknown or unable to convert to cv parameter." << std::endl;
+        }
+      }
+      s += String(indent, '\t') + "</ModificationParams>" + "\n";
+    }
 
   }   //namespace Internal
 } // namespace OpenMS
