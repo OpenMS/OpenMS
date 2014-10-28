@@ -400,11 +400,9 @@ protected:
     bool choose_params = ((prob_protein == 0.0) && (prob_peptide == 0.0) &&
                           (prob_spurious == 0.0)); // use FidoChooseParameters?
 
-    bool check_exe = true;
     if (exe.empty()) // expect executables in PATH
     {
       exe = choose_params ? "FidoChooseParameters" : "Fido";
-      check_exe = false;
     }
     else if (File::isDirectory(exe)) // expect executables in directory
     {
@@ -412,9 +410,6 @@ protected:
         (choose_params ? "FidoChooseParameters" : "Fido");
     }
     // else: expect full path to correct executable
-
-    if (check_exe) inputFileReadable_(exe, "exe");
-    // could check now whether exe is callable, but we'll find out later anyway
 
     // input data:
     vector<ProteinIdentification> proteins;
