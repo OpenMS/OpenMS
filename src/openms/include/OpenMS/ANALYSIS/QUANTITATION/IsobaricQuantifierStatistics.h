@@ -36,12 +36,13 @@
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIERSTATISTICS_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <map>
 
 namespace OpenMS
 {
+  class String;
+
   /**
     @brief Statistics for quantitation performance and comparison of NNLS vs. naive method (aka matrix inversion)
    */
