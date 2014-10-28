@@ -125,7 +125,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
-  //TEST_EQUAL((UInt)(peptide_ids[0].getMetaValue("spectrum_reference")),17)
+  TEST_EQUAL((peptide_ids[0].getMetaValue("spectrum_reference")),"17")
   TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
   TEST_EQUAL(peptide_ids[0].getHits().size(),2)
   //peptide hit 1
