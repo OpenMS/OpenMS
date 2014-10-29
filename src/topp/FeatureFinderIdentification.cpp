@@ -199,10 +199,6 @@ protected:
   // mapping: sequence -> charge -> pointer to peptide
   typedef map<AASequence, ChargeMap> PeptideMap;
 
-  typedef vector<const MSChromatogram<>*> ChromatogramPtrs;
-  // mapping: charged peptide (ID) -> list of associated chromatograms
-  typedef map<String, ChromatogramPtrs> ChromatogramMap;
-
   PeakMap ms_data_; // input LC-MS data
   TargetedExperiment library_; // assay library
   CVTerm rt_term_; // controlled vocabulary term for reference RT
