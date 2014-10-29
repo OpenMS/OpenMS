@@ -368,7 +368,7 @@ protected:
         double pre_mz(0.0);
         if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
         it->setMZ(pre_mz);
-        it->removeMetaValue("spectrum_id");
+        //it->removeMetaValue("spectrum_id");
       }
       else
       {
