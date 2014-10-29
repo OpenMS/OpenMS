@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,7 +127,7 @@ namespace OpenMS
     //delete model_;
   }
 
-  void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features, std::vector<std::vector<double> >& intensity_weights,
+  void PSLPFormulation::createAndSolveILP_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
                                            std::set<Int>& charges_set, std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                            std::vector<IndexTriple>& variable_indices, std::vector<int>& solution_indices,
                                            UInt ms2_spectra_per_rt_bin,
@@ -432,7 +432,7 @@ namespace OpenMS
   void PSLPFormulation::createAndSolveILPForInclusionListCreation(PrecursorIonSelectionPreprocessing& preprocessing,
                                                                   UInt ms2_spectra_per_rt_bin,
                                                                   UInt max_list_size,
-                                                                  FeatureMap<>& precursors,
+                                                                  FeatureMap& precursors,
                                                                   bool solve_ILP)
   {
     const std::map<String, std::vector<double> >& pt_prot_map = preprocessing.getProteinPTMap();
@@ -453,7 +453,7 @@ namespace OpenMS
     std::map<String, Size> protein_penalty_index_map;
     Size pep_counter = 0;
 #ifdef DEBUG_OPS
-    FeatureMap<> test_map;
+    FeatureMap test_map;
 #endif
     //  std::cout << "add proteins to LP"<<std::endl;
     for (; map_iter != pt_prot_map.end(); ++map_iter)
@@ -499,7 +499,7 @@ namespace OpenMS
                                          Size& counter, Size& pep_counter, Size& feature_counter,
                                          std::vector<IndexTriple>& variable_indices,
                                          std::map<String, Size>& protein_variable_index_map,
-                                         FeatureMap<>& precursors)
+                                         FeatureMap& precursors)
   {
     double min_rt = param_.getValue("rt:min_rt");
     double max_rt = param_.getValue("rt:max_rt");
@@ -929,7 +929,7 @@ namespace OpenMS
     }
   }
 
-  void PSLPFormulation::assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple>& variable_indices, FeatureMap<>& precursors,
+  void PSLPFormulation::assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple>& variable_indices, FeatureMap& precursors,
                                                                 std::vector<int>& solution_indices,
                                                                 PrecursorIonSelectionPreprocessing& preprocessing)
   {
@@ -1020,7 +1020,7 @@ namespace OpenMS
     precursors.ensureUniqueId();
   }
 
-  void PSLPFormulation::createAndSolveCombinedLPFeatureBased_(const FeatureMap<>& features, std::vector<std::vector<double> >& intensity_weights,
+  void PSLPFormulation::createAndSolveCombinedLPFeatureBased_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
                                                               std::set<Int>& charges_set, std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                                               std::vector<IndexTriple>& variable_indices, std::vector<Int>& solution_indices,
                                                               UInt ms2_spectra_per_rt_bin, Size number_of_scans, Size step_size, bool sequential_order)
@@ -1236,7 +1236,7 @@ namespace OpenMS
 #endif
   }
 
-  void PSLPFormulation::updateFeatureILPVariables(FeatureMap<>& new_features, std::vector<IndexTriple>& variable_indices, std::map<Size, std::vector<String> >& feature_constraints_map)
+  void PSLPFormulation::updateFeatureILPVariables(FeatureMap& new_features, std::vector<IndexTriple>& variable_indices, std::map<Size, std::vector<String> >& feature_constraints_map)
   {
 #ifdef DEBUG_OPS
     std::cout << "update feature ilp variables" << std::endl;
@@ -1342,7 +1342,7 @@ namespace OpenMS
       model_->setRowBounds(idx, 0., (double)ms2_spectra_per_rt_bin, LPWrapper::UPPER_BOUND_ONLY);
   }
 
-  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap<>& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
+  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
   {
 #ifdef DEBUG_OPS
     std::cout << "Update Obj. function of combined ILP." << std::endl;
@@ -1449,7 +1449,7 @@ namespace OpenMS
 #endif
   }
 
-  void PSLPFormulation::updateCombinedILP(FeatureMap<>& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices,
+  void PSLPFormulation::updateCombinedILP(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices,
                                           std::vector<String>& new_protein_accs, std::vector<String>& protein_accs, PSProteinInference& prot_inference,
                                           Size& variable_counter, std::map<String, std::vector<Size> >& protein_feature_map, Feature& new_feature,
                                           std::map<String, Size>& protein_variable_index_map, std::map<String, std::set<String> >& /*prot_id_counter*/)

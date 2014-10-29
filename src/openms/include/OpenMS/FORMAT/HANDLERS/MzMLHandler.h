@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -256,8 +256,8 @@ protected:
 
       typedef MzMLHandlerHelper::BinaryData BinaryData;
 
-      void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s, 
-              Internal::MzMLValidator& validator, bool renew_native_ids, 
+      void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s,
+              Internal::MzMLValidator& validator, bool renew_native_ids,
               std::vector<std::vector<DataProcessing> > & dps);
 
       void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
@@ -265,7 +265,7 @@ protected:
       template <typename ContainerT>
       void writeContainerData(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type)
       {
-      
+
         bool is32Bit = ( (array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
         if (! is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
         {
@@ -306,14 +306,14 @@ protected:
           }
           writeBinaryDataArray(os, pf_options_, data_to_encode, true, array_type);
         }
-      
+
       }
 
       /**
-          @brief Populate all spectra on the stack with data from input 
+          @brief Populate all spectra on the stack with data from input
 
           Will populate all spectra on the current work stack with data (using
-          multiple threads if available) and append them to the result. 
+          multiple threads if available) and append them to the result.
       */
       void populateSpectraWithData()
       {
@@ -330,11 +330,15 @@ protected:
             // parallel exception catching and re-throwing business
             if (!errCount) // no need to parse further if already an error was encountered
             {
-              try 
+              try
               {
                 populateSpectraWithData_(spectrum_data_[i].data ,
                         spectrum_data_[i].default_array_length, options_,
                         spectrum_data_[i].spectrum);
+                if (options_.getSortSpectraByMZ() && !spectrum_data_[i].spectrum.isSorted())
+                {
+                  spectrum_data_[i].spectrum.sortByPosition();
+                }
               }
               catch (...)
               {
@@ -371,10 +375,10 @@ protected:
       }
 
       /**
-          @brief Populate all chromatograms on the stack with data from input 
+          @brief Populate all chromatograms on the stack with data from input
 
           Will populate all chromatograms on the current work stack with data (using
-          multiple threads if available) and append them to the result. 
+          multiple threads if available) and append them to the result.
       */
       void populateChromatogramsWithData()
       {
@@ -388,11 +392,15 @@ protected:
           for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
-            try 
+            try
             {
               populateChromatogramsWithData_(chromatogram_data_[i].data ,
                       chromatogram_data_[i].default_array_length, options_,
                       chromatogram_data_[i].chromatogram);
+              if (options_.getSortChromatogramsByRT() && !chromatogram_data_[i].chromatogram.isSorted())
+              {
+                chromatogram_data_[i].chromatogram.sortByPosition();
+              }
             }
             catch (...)
             {++errCount;}
@@ -426,7 +434,7 @@ protected:
       }
 
       /**
-          @brief Fill a single spectrum with data from input 
+          @brief Fill a single spectrum with data from input
 
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
@@ -607,7 +615,7 @@ protected:
 
 
       /**
-          @brief Fill a single chromatogram with data from input 
+          @brief Fill a single chromatogram with data from input
 
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
@@ -877,13 +885,13 @@ protected:
       String default_processing_;
 
       /**
-          @brief Data necessary to generate a single spectrum 
+          @brief Data necessary to generate a single spectrum
 
           Small struct holds all data necessary to populate a spectrum at a
           later timepoint (since reading of the base64 data and generation of
           spectra can be done at distinct timepoints).
       */
-      struct SpectrumData 
+      struct SpectrumData
       {
         std::vector<BinaryData> data;
         Size default_array_length;
@@ -895,7 +903,7 @@ protected:
       std::vector< SpectrumData > spectrum_data_;
 
       /**
-          @brief Data necessary to generate a single chromatogram 
+          @brief Data necessary to generate a single chromatogram
 
           Small struct holds all data necessary to populate a chromatogram at a
           later timepoint (since reading of the base64 data and generation of
@@ -1468,12 +1476,12 @@ protected:
         }
         */
 
-        if (!skip_spectrum_) 
+        if (!skip_spectrum_)
         {
           spectrum_data_.push_back(SpectrumData());
           spectrum_data_.back().default_array_length = default_array_length_;
           spectrum_data_.back().spectrum = spec_;
-          if (options_.getFillData()) 
+          if (options_.getFillData())
           {
             spectrum_data_.back().data = data_;
           }
@@ -1494,12 +1502,12 @@ protected:
       else if (equal_(qname, s_chromatogram))
       {
 
-        if (!skip_chromatogram_) 
+        if (!skip_chromatogram_)
         {
           chromatogram_data_.push_back(ChromatogramData());
           chromatogram_data_.back().default_array_length = default_array_length_;
           chromatogram_data_.back().chromatogram = chromatogram_;
-          if (options_.getFillData()) 
+          if (options_.getFillData())
           {
             chromatogram_data_.back().data = data_;
           }
@@ -1536,7 +1544,7 @@ protected:
         instruments_.clear();
         processing_.clear();
 
-        // Flush the remaining data 
+        // Flush the remaining data
         populateSpectraWithData();
         populateChromatogramsWithData();
       }
@@ -3450,10 +3458,7 @@ protected:
       String cvTerm = "<cvParam cvRef=\"" + c.id.prefix(':') + "\" accession=\"" + c.id + "\" name=\"" + c.name;
       if (!metaValue.isEmpty())
       {
-        String stringMetaValue = (String)metaValue;
-        stringMetaValue.substitute("\"", "&quot;");
-        cvTerm += "\" value=\"" + stringMetaValue;
-
+        cvTerm += "\" value=\"" + writeXMLEscape(metaValue.toString());
         if (metaValue.hasUnit())
         {
           //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
@@ -3526,10 +3531,7 @@ protected:
             {
               userParam += "xsd:string";
             }
-            String s = (String)(d);
-            s.substitute("\"", "&quot;");
-            userParam += "\" value=\"" + s + "\"/>" + "\n";
-
+            userParam += "\" value=\"" + writeXMLEscape(d.toString()) + "\"/>" + "\n";
             userParams.push_back(userParam);
           }
         }
@@ -3573,11 +3575,11 @@ protected:
       }
       else if (so_term.id != "")
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << so_term.name << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << writeXMLEscape(so_term.name) << "\" />\n";
       }
       else
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"" << software.getName() << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"" << writeXMLEscape(software.getName()) << "\" />\n";
       }
       writeUserParam_(os, software, 3, "/mzML/Software/cvParam/@accession", validator);
       os << "\t\t</software>\n";
@@ -3586,7 +3588,7 @@ protected:
     template <typename MapType>
     void MzMLHandler<MapType>::writeSourceFile_(std::ostream& os, const String& id, const SourceFile& source_file, Internal::MzMLValidator& validator)
     {
-      os << "\t\t\t<sourceFile id=\"" << id << "\" name=\"" << source_file.getNameOfFile() << "\" location=\"" << source_file.getPathToFile() << "\">\n";
+      os << "\t\t\t<sourceFile id=\"" << id << "\" name=\"" << writeXMLEscape(source_file.getNameOfFile()) << "\" location=\"" << writeXMLEscape(source_file.getPathToFile()) << "\">\n";
       //checksum
       if (source_file.getChecksumType() == SourceFile::SHA1)
       {
@@ -3939,7 +3941,7 @@ protected:
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeHeader_(std::ostream& os, const MapType& exp, 
+    void MzMLHandler<MapType>::writeHeader_(std::ostream& os, const MapType& exp,
             std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
@@ -3948,7 +3950,7 @@ protected:
       {
         os << "<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd\">\n";
       }
-      os << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"" << version_ << "\">\n";
+      os << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << writeXMLEscape(exp.getIdentifier()) << "\" version=\"" << version_ << "\">\n";
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
@@ -4031,6 +4033,7 @@ protected:
       }
       // writeUserParam_(os, exp, 3, "/mzML/fileDescription/fileContent/cvParam/@accession", validator);
       os << "\t\t</fileContent>\n";
+
       //--------------------------------------------------------------------------------------------
       // source file list
       //--------------------------------------------------------------------------------------------
@@ -4039,16 +4042,20 @@ protected:
       for (Size i = 0; i < exp.size(); ++i)
       {
         if (exp[i].getSourceFile() != SourceFile())
+        {
           ++sf_sp_count;
+        }
       }
       if (exp.getSourceFiles().size() > 0 || sf_sp_count > 0)
       {
         os << "\t\t<sourceFileList count=\"" << exp.getSourceFiles().size() + sf_sp_count << "\">\n";
+
         //write source file of run
         for (Size i=0; i<exp.getSourceFiles().size(); ++i)
         {
           writeSourceFile_(os, String("sf_ru_") + String(i), exp.getSourceFiles()[i], validator);
         }
+
         // write source files of spectra
         if (sf_sp_count > 0 )
         {
@@ -4061,8 +4068,10 @@ protected:
             }
           }
         }
+
         os << "\t\t</sourceFileList>\n";
       }
+
       //--------------------------------------------------------------------------------------------
       // contacts
       //--------------------------------------------------------------------------------------------
@@ -4070,38 +4079,39 @@ protected:
       {
         const ContactPerson& cp = exp.getContacts()[i];
         os << "\t\t<contact>\n";
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << cp.getLastName() << ", " << cp.getFirstName() << "\" />\n";
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << cp.getInstitution() << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000586\" name=\"contact name\" value=\"" << writeXMLEscape(cp.getLastName()) << ", " << writeXMLEscape(cp.getFirstName()) << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000590\" name=\"contact organization\" value=\"" << writeXMLEscape(cp.getInstitution()) << "\" />\n";
 
         if (cp.getAddress() != "")
         {
-          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << cp.getAddress() << "\" />\n";
+          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000587\" name=\"contact address\" value=\"" << writeXMLEscape(cp.getAddress()) << "\" />\n";
         }
         if (cp.getURL() != "")
         {
-          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << cp.getURL() << "\" />\n";
+          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000588\" name=\"contact URL\" value=\"" << writeXMLEscape(cp.getURL()) << "\" />\n";
         }
         if (cp.getEmail() != "")
         {
-          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << cp.getEmail() << "\" />\n";
+          os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000589\" name=\"contact email\" value=\"" << writeXMLEscape(cp.getEmail()) << "\" />\n";
         }
         if (cp.getContactInfo() != "")
         {
-          os << "\t\t\t<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << cp.getContactInfo() << "\" />\n";
+          os << "\t\t\t<userParam name=\"contact_info\" type=\"xsd:string\" value=\"" << writeXMLEscape(cp.getContactInfo()) << "\" />\n";
         }
         writeUserParam_(os, cp, 3, "/mzML/fileDescription/contact/cvParam/@accession", validator);
         os << "\t\t</contact>\n";
       }
       os << "\t</fileDescription>\n";
+
       //--------------------------------------------------------------------------------------------
       // sample
       //--------------------------------------------------------------------------------------------
       const Sample& sa = exp.getSample();
       os << "\t<sampleList count=\"1\">\n";
-      os << "\t\t<sample id=\"sa_0\" name=\"" << sa.getName() << "\">\n";
+      os << "\t\t<sample id=\"sa_0\" name=\"" << writeXMLEscape(sa.getName()) << "\">\n";
       if (sa.getNumber() != "")
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << sa.getNumber() << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000001\" name=\"sample number\" value=\"" << writeXMLEscape(sa.getNumber()) << "\" />\n";
       }
       os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000004\" name=\"sample mass\" value=\"" << sa.getMass() << "\" unitAccession=\"UO:0000021\" unitName=\"gram\" unitCvRef=\"UO\" />\n";
       os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000005\" name=\"sample volume\" value=\"" << sa.getVolume() << "\" unitAccession=\"UO:0000098\" unitName=\"milliliter\" unitCvRef=\"UO\" />\n";
@@ -4132,7 +4142,7 @@ protected:
       }
       if (sa.getComment() != "")
       {
-        os << "\t\t\t<userParam name=\"comment\" type=\"xsd:string\" value=\"" << sa.getComment() << "\" />\n";
+        os << "\t\t\t<userParam name=\"comment\" type=\"xsd:string\" value=\"" << writeXMLEscape(sa.getComment()) << "\" />\n";
       }
       writeUserParam_(os, sa, 3, "/mzML/sampleList/sample/cvParam/@accession", validator);
       os << "\t\t</sample>\n";
@@ -4213,7 +4223,7 @@ protected:
       ControlledVocabulary::CVTerm in_term = getChildWithName_("MS:1000031", in.getName());
       if (in_term.id != "")
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << in_term.id << "\" name=\"" << in_term.name << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << in_term.id << "\" name=\"" << writeXMLEscape(in_term.name) << "\" />\n";
       }
       else
       {
@@ -4222,7 +4232,7 @@ protected:
 
       if (in.getCustomizations() != "")
       {
-        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << in.getCustomizations() << "\" />\n";
+        os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000032\" name=\"customization\" value=\"" << writeXMLEscape(in.getCustomizations()) << "\" />\n";
       }
 
       //ion optics
@@ -4842,8 +4852,8 @@ protected:
 
     template <typename MapType>
     void MzMLHandler<MapType>::writeSpectrum_(std::ostream& os,
-            const SpectrumType& spec, Size s, 
-            Internal::MzMLValidator& validator, bool renew_native_ids, 
+            const SpectrumType& spec, Size s,
+            Internal::MzMLValidator& validator, bool renew_native_ids,
             std::vector<std::vector<DataProcessing> > & dps)
     {
         //native id
@@ -4855,7 +4865,7 @@ protected:
         spectra_offsets.push_back(make_pair(native_id, offset+3));
 
         // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
-        os << "\t\t\t<spectrum id=\"" << native_id << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
+        os << "\t\t\t<spectrum id=\"" << writeXMLEscape(native_id) << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
         if (spec.getSourceFile() != SourceFile())
         {
           os << " sourceFileRef=\"sf_sp_" << s << "\"";
@@ -5091,7 +5101,7 @@ protected:
             std::vector<double> data64_to_encode(array.size());
             for (Size p = 0; p < array.size(); ++p)
               data64_to_encode[p] = array[p];
-            // TODO also encode float data arrays using numpress? 
+            // TODO also encode float data arrays using numpress?
             decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
             String data_processing_ref_string = "";
             if (array.getDataProcessing().size() != 0)
@@ -5180,7 +5190,7 @@ protected:
 
         // TODO native id with chromatogram=?? prefix?
         // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag
-        os << "      <chromatogram id=\"" << chromatogram.getNativeID() << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
+        os << "      <chromatogram id=\"" << writeXMLEscape(chromatogram.getNativeID()) << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
 
         // write cvParams (chromatogram type)
         if (chromatogram.getChromatogramType() == ChromatogramSettings::MASS_CHROMATOGRAM)
@@ -5244,7 +5254,7 @@ protected:
           std::vector<double> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data64_to_encode[p] = array[p];
-          // TODO also encode float data arrays using numpress? 
+          // TODO also encode float data arrays using numpress?
           decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
           String data_processing_ref_string = "";
           if (array.getDataProcessing().size() != 0)

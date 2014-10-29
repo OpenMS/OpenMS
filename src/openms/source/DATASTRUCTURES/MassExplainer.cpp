@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -373,7 +373,7 @@ namespace OpenMS
 
     EmpiricalFormula ef(formula);
     //effectively subtract charge electron masses: (-H plus one Proton)*charge
-    ef -= ("H" + String(charge)); // subtracts x hydrogen
+    ef -= EmpiricalFormula("H" + String(charge)); // subtracts x hydrogen
     ef.setCharge(charge); // adds x protons
 
     Adduct a(charge, 1, ef.getMonoWeight(), formula, log(p), 0);

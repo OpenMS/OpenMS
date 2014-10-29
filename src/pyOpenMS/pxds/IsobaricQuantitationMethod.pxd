@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>" n
         #  DefaultParamHandler
         IsobaricQuantitationMethod() nogil except +
         IsobaricQuantitationMethod(IsobaricQuantitationMethod) nogil except + #wrap-ignore
-        # String  getName() nogil except +
+        String getName() nogil except +
         libcpp_vector[IsobaricChannelInformation]  getChannelInformation() nogil except +
         Size getNumberOfChannels() nogil except +
         Matrix[ double ] getIsotopeCorrectionMatrix() nogil except +

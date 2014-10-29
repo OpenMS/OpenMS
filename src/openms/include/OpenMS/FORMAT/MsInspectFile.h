@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ public:
               @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename FeatureMapType>
-    void load(const String & filename, FeatureMapType & feature_map)
+    void load(const String& filename, FeatureMapType& feature_map)
     {
       // load input
       TextFile input(filename);
@@ -85,9 +85,9 @@ public:
       feature_map = fmap;
 
       bool first_line = true;
-      for (Size i = 0; i < input.size(); ++i)
+      for (TextFile::ConstIterator it = input.begin(); it != input.end(); ++it)
       {
-        String line = input[i];
+        String line = *it;
 
         //ignore comment lines
         if (line.empty() || line[0] == '#') continue;
@@ -105,7 +105,7 @@ public:
 
         if (parts.size() < 18)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert line ")  + String(i + 1) + ". Not enough columns (expected 18 or more, got " + String(parts.size()) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert line ")  + String((it - input.begin()) + 1) + ". Not enough columns (expected 18 or more, got " + String(parts.size()) + ")");
         }
 
         //create feature
@@ -149,7 +149,7 @@ public:
         }
         catch (Exception::BaseException /*&e*/)
         {
-          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert value in column ") + String(column_to_convert + 1) + " into a number (line '" + (i + 1) + ")");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Failed to convert value in column ") + String(column_to_convert + 1) + " into a number (line '" + String((it - input.begin()) + 1) + ")");
         }
         f.setMetaValue("description", parts[17]);
         feature_map.push_back(f);
@@ -165,7 +165,7 @@ public:
               @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename SpectrumType>
-    void store(const String & filename, const SpectrumType & spectrum) const
+    void store(const String& filename, const SpectrumType& spectrum) const
     {
       std::cerr << "Store() for MsInspectFile not implemented. Filename was: " << filename << ", spec of size " << spectrum.size() << "\n";
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -52,6 +53,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
@@ -63,31 +67,31 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_FeatureFinderIdentification FeatureFinderIdentification
+  @page TOPP_FeatureFinderIdentification FeatureFinderIdentification
 
-        @brief Detects features in MS1 data based on peptide identifications.
+  @brief Detects features in MS1 data based on peptide identifications.
 
-        <CENTER>
-        <table>
-        <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIdentification \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-        </tr>
-        </table>
-        </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIdentification \f$ \longrightarrow \f$</td>
+  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+  </tr>
+  </table>
+  </CENTER>
 
-        This tool uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+  This tool uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_FeatureFinderIdentification.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_FeatureFinderIdentification.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -116,13 +120,13 @@ protected:
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file (features)");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("lib_out","<file>", "", "Output file (assay library)",
+    registerOutputFile_("lib_out", "<file>", "", "Output file (assay library)",
                         false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("chrom_out","<file>", "", "Output file (chromatograms)",
+    registerOutputFile_("chrom_out", "<file>", "", "Output file (chromatograms)",
                         false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("trafo_out","<file>", "",
+    registerOutputFile_("trafo_out", "<file>", "",
                         "Output file (RT transformation)", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
@@ -166,9 +170,9 @@ protected:
   typedef MSExperiment<Peak1D> PeakMap;
 
   // mapping: charge -> iterator to peptide
-  typedef Map<Int, vector<vector<PeptideIdentification>::iterator> > ChargeMap;
+  typedef std::map<Int, vector<vector<PeptideIdentification>::iterator> > ChargeMap;
   // mapping: sequence -> charge -> iterator to peptide
-  typedef Map<AASequence, ChargeMap> PeptideMap;
+  typedef std::map<AASequence, ChargeMap> PeptideMap;
   // mapping: assay ID -> RT begin/end
 
   PeakMap ms_data_; // input LC-MS data
@@ -203,7 +207,6 @@ protected:
     }
   }
 
-
   // add an assay (peptide and transitions) to the library:
   void addAssay_(TargetedExperiment::Peptide& peptide, const AASequence& seq,
                  const ChargeMap::value_type& charge_data)
@@ -220,7 +223,7 @@ protected:
 
       // Initialization value does not matter here since we set the values in
       // the first run anyways.
-      double best_score = 0; 
+      double best_score = 0;
       for (ChargeMap::mapped_type::const_iterator pi_it =
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
@@ -375,8 +378,7 @@ protected:
     }
   }
 
-
-  void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true)
+  void fitElutionModels_(FeatureMap& features, bool asymmetric = true)
   {
     // assumptions:
     // - all features have subordinates (for the mass traces/transitions)
@@ -392,7 +394,7 @@ protected:
     map<String, vector<ReactionMonitoringTransition>::const_iterator> trans_ids;
     for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
            library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
+         library_.getTransitions().end(); ++trans_it)
     {
       trans_ids[trans_it->getNativeID()] = trans_it;
     }
@@ -412,8 +414,8 @@ protected:
 
     // store model parameters to find outliers later:
     double width_limit = getDoubleOption_("model_check:width");
-    double asym_limit = (asymmetric ? 
-                             getDoubleOption_("model_check:asymmetry") : 0.0);
+    double asym_limit = (asymmetric ?
+                         getDoubleOption_("model_check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
     vector<double> widths_all, widths_good, asym_all, asym_good;
@@ -432,21 +434,21 @@ protected:
     // collect peaks that constitute mass traces:
     LOG_DEBUG << "Fitting elution models to features:" << endl;
     Size index = 0;
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it, ++index)
     {
       LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
       vector<Peak1D> peaks;
       // reserve space once, to avoid copying and invalidating pointers:
       Size points_per_hull = feat_it->
-        getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
+                             getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
       peaks.reserve(feat_it->getSubordinates().size() * points_per_hull);
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> traces;
       traces.max_trace = 0;
       traces.reserve(feat_it->getSubordinates().size());
       for (vector<Feature>::iterator sub_it =
              feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
+           feat_it->getSubordinates().end(); ++sub_it)
       {
         const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
         String native_id = sub_it->getMetaValue("native_id");
@@ -456,7 +458,7 @@ protected:
         trace.peaks.reserve(points_per_hull);
         for (ConvexHull2D::PointArrayTypeConstIterator point_it =
                hull.getHullPoints().begin(); point_it !=
-               hull.getHullPoints().end(); ++point_it)
+             hull.getHullPoints().end(); ++point_it)
         {
           double intensity = point_it->getY();
           if (intensity > 0) // only use non-zero intensities for fitting
@@ -495,7 +497,7 @@ protected:
       }
       catch (Exception::UnableToFit& except)
       {
-        LOG_ERROR << "Error fitting model to feature '" 
+        LOG_ERROR << "Error fitting model to feature '"
                   << feat_it->getUniqueId() << "': " << except.getName()
                   << " - " << except.getMessage() << endl;
         fit_success = false;
@@ -528,15 +530,15 @@ protected:
       {
         mre = 0.0;
         double total_weights = 0.0;
-        double rt_start = max(fitter->getLowerRTBound(), 
-                                  traces[0].peaks[0].first);
-        double rt_end = min(fitter->getUpperRTBound(), 
-                                traces[0].peaks.rbegin()->first);
+        double rt_start = max(fitter->getLowerRTBound(),
+                              traces[0].peaks[0].first);
+        double rt_end = min(fitter->getUpperRTBound(),
+                            traces[0].peaks.rbegin()->first);
 
         for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>::
-               iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
+             iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
         {
-          for (vector<pair<double, const Peak1D*> >::iterator p_it = 
+          for (vector<pair<double, const Peak1D*> >::iterator p_it =
                  tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
           {
             double rt = p_it->first;
@@ -544,7 +546,7 @@ protected:
             {
               double model_value = fitter->getValue(rt);
               double diff = fabs(model_value * tr_it->theoretical_int -
-                                     p_it->second->getIntensity());
+                                 p_it->second->getIntensity());
               mre += diff / model_value;
               total_weights += tr_it->theoretical_int;
             }
@@ -583,7 +585,7 @@ protected:
         {
           double sigma = feat_it->getMetaValue("model_EGH_sigma");
           double abs_tau = fabs(double(feat_it->
-                                               getMetaValue("model_EGH_tau")));
+                                       getMetaValue("model_EGH_tau")));
           if (width_limit > 0)
           {
             // see implementation of "EGHTraceFitter::getArea":
@@ -612,7 +614,7 @@ protected:
     if (width_limit > 0)
     {
       double median_width = Math::median(widths_good.begin(),
-                                             widths_good.end());
+                                         widths_good.end());
       vector<double> abs_diffs(widths_good.size());
       for (Size i = 0; i < widths_good.size(); ++i)
       {
@@ -620,7 +622,7 @@ protected:
       }
       // median absolute deviation (constant factor to approximate std. dev.):
       double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
-                                                   abs_diffs.end());
+                                               abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -655,7 +657,7 @@ protected:
       }
       // median absolute deviation (constant factor to approximate std. dev.):
       double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
-                                                  abs_diffs.end());
+                                              abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -675,10 +677,10 @@ protected:
 
     // impute approximate results for failed model fits:
     TransformationModel::DataPoints quant_values;
-    vector<FeatureMap<>::Iterator> failed_models;
+    vector<FeatureMap::Iterator> failed_models;
     Size model_successes = 0, model_failures = 0;
 
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it, ++index)
     {
       feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
@@ -694,8 +696,8 @@ protected:
         if (impute)
         { // apply log-transform to weight down high outliers:
           double raw_intensity = feat_it->getIntensity();
-          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = " 
-                    << area << "; log(x) = " << log(raw_intensity) 
+          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
+                    << area << "; log(x) = " << log(raw_intensity)
                     << ", log(y) = " << log(area) << endl;
           quant_values.push_back(make_pair(log(raw_intensity), log(area)));
         }
@@ -703,7 +705,7 @@ protected:
         model_successes++;
       }
     }
-    LOG_INFO << "Model fitting: " << model_successes << " successes, " 
+    LOG_INFO << "Model fitting: " << model_successes << " successes, "
              << model_failures << " failures" << endl;
 
     if (impute)
@@ -711,9 +713,9 @@ protected:
       TransformationModelLinear lm(quant_values, Param());
       double slope, intercept;
       lm.getParameters(slope, intercept);
-      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept 
+      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept
                 << endl;
-      for (vector<FeatureMap<>::Iterator>::iterator it = failed_models.begin();
+      for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
            it != failed_models.end(); ++it)
       {
         double area = exp(lm.evaluate(log((*it)->getIntensity())));
@@ -721,7 +723,6 @@ protected:
       }
     }
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -857,7 +858,7 @@ protected:
       vector<ChromatogramExtractor::ExtractionCoordinates> coords;
       for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
              library_.getTransitions().begin(); trans_it !=
-             library_.getTransitions().end(); ++trans_it)
+           library_.getTransitions().end(); ++trans_it)
       {
         const TargetedExperiment::Peptide& peptide =
           library_.getPeptideByRef(trans_it->getPeptideRef());
@@ -873,7 +874,7 @@ protected:
         {
           // is this an intuitive way to store/access the RT?!
           double rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].
-            getValue().toString().toDouble();
+                      getValue().toString().toDouble();
           rt = trafo_.apply(rt); // reverse RT transformation
           double rt_win = rt_window;
           if (peptide.metaValueExists("rt_window"))
@@ -915,7 +916,7 @@ protected:
     // find chromatographic peaks
     //-------------------------------------------------------------
     LOG_INFO << "Finding chromatographic peaks..." << endl;
-    FeatureMap<> features;
+    FeatureMap features;
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
     params.setValue("stop_report_after_feature", -1); // 1);
@@ -942,7 +943,7 @@ protected:
     // fill in missing feature data
     //-------------------------------------------------------------
     LOG_INFO << "Adapting feature data..." << endl;
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
@@ -954,7 +955,7 @@ protected:
       {
         for (vector<Feature>::iterator sub_it =
                feat_it->getSubordinates().begin(); sub_it !=
-               feat_it->getSubordinates().end(); ++sub_it)
+             feat_it->getSubordinates().end(); ++sub_it)
         {
           double abs_mz_tol = mz_window / 2.0;
           if (mz_window_ppm) abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;

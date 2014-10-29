@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -143,7 +143,7 @@ namespace OpenMS
     list = list_new;
   }
 
-//   void InclusionExclusionList::loadTargets(FeatureMap<>& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
+//   void InclusionExclusionList::loadTargets(FeatureMap& map, std::vector<IncludeExcludeTarget>& targets,TargetedExperiment& exp)
 //   {
 
 //   }
@@ -237,7 +237,7 @@ namespace OpenMS
     writeToFile_(out_path, result);
   }
 
-  void InclusionExclusionList::writeTargets(const FeatureMap<>& map,
+  void InclusionExclusionList::writeTargets(const FeatureMap& map,
                                             const String& out_path)
   {
     WindowList result;

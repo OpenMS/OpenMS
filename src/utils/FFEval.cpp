@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,23 +46,23 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_FFEval FFEval
+  @page UTILS_FFEval FFEval
 
-    @brief Evaluation tool for feature detection algorithms.
+  @brief Evaluation tool for feature detection algorithms.
 
 
   To plot the ROC curve you might use:
 
-@code
+  @code
   d = read.table("data.roc", skip=1, sep="\t")
   plot(d[,3],d[,4], xlim=c(0,1),ylim=c(0,1), xlab="FDR",ylab="TPR",main="ROC with varying intensity")
   lines(c(0,1),c(0,1))
-@endcode
+  @endcode
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_FFEval.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_FFEval.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_FFEval.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_FFEval.html
 */
 
 // We do not want this class to show up in the docu:
@@ -100,7 +100,7 @@ protected:
   }
 
   /// Counts the number of features with meta value @p name equal to @p value
-  UInt count(const FeatureMap<> & map, const String & name, const String & value = "")
+  UInt count(const FeatureMap& map, const String& name, const String& value = "")
   {
     UInt count = 0;
     for (Size i = 0; i < map.size(); ++i)
@@ -135,15 +135,15 @@ protected:
     return String::number(a[0], decimal_places) + " " + String::number(a[a.size() / 4], decimal_places) + " " + String::number(a[a.size() / 2], decimal_places) + " " + String::number(a[(3 * a.size()) / 4], decimal_places) + " " + String::number(a.back(), decimal_places);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //load data
-    FeatureMap<> features_in, features_truth;
+    FeatureMap features_in, features_truth;
     FeatureXMLFile().load(getStringOption_("in"), features_in);
     features_in.sortByPosition();
     FeatureXMLFile().load(getStringOption_("truth"), features_truth);
     features_truth.sortByPosition();
-    FeatureMap<> abort_reasons;
+    FeatureMap abort_reasons;
     if (getStringOption_("abort_reasons") != "")
     {
       FeatureXMLFile().load(getStringOption_("abort_reasons"), abort_reasons);
@@ -192,14 +192,14 @@ protected:
 
     for (Size m = 0; m < features_truth.size(); ++m)
     {
-      Feature & f_t =  features_truth[m];
+      Feature& f_t =  features_truth[m];
       UInt match_count = 0;
       bool correct_charge = false;
       bool exact_centroid_match = false;
       Size last_match_index = features_in.size() + 1;
       for (Size a = 0; a < features_in.size(); ++a)
       {
-        const Feature & f_i =  features_in[a];
+        const Feature& f_i =  features_in[a];
         //RT match
         if (fabs(f_i.getRT() - f_t.getRT()) < rt_tol)
         {
@@ -237,7 +237,7 @@ protected:
         {
           f_t.setMetaValue("correct_charge", String("true"));
           f_t.setMetaValue("intensity_ratio", features_in[last_match_index].getIntensity() / f_t.getIntensity());
-          features_in[last_match_index].setMetaValue("correct_hit", "true");           //flag the feature for ROC curve
+          features_in[last_match_index].setMetaValue("correct_hit", "true"); //flag the feature for ROC curve
         }
         else
         {
@@ -269,7 +269,7 @@ protected:
         String reason = "";
         for (Size b = 0; b < abort_reasons.size(); ++b)
         {
-          const Feature & f_ab =  abort_reasons[b];
+          const Feature& f_ab =  abort_reasons[b];
           if (fabs(f_ab.getRT() - f_t.getRT()) <= rt_tol
              && fabs(f_ab.getMZ() - f_t.getMZ()) <= mz_tol)
           {
@@ -385,7 +385,7 @@ protected:
     if (getStringOption_("out_roc") != "")
     {
       TextFile tf;
-      tf.push_back("false\tcorrect\tFDR\tTPR");
+      tf.addLine("false\tcorrect\tFDR\tTPR");
 
       features_in.sortByIntensity(true);
       UInt f_correct = 0;
@@ -402,7 +402,7 @@ protected:
         {
           ++f_false;
         }
-        tf.push_back(String(f_false) + "\t"+ f_correct + "\t"+ String::number(f_false / found, 3) + "\t"+ String::number(f_correct / correct, 3));
+        tf.addLine(String(f_false) + "\t" + f_correct + "\t" + String::number(f_false / found, 3) + "\t" + String::number(f_correct / correct, 3));
       }
       tf.store(getStringOption_("out_roc"));
     }
@@ -412,7 +412,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFFEval tool;
   return tool.main(argc, argv);

@@ -12,14 +12,16 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
 
     cdef cppclass TargetedExperiment:
 
-        TargetedExperiment()                  nogil except +
-        TargetedExperiment(TargetedExperiment)   nogil except +
-        void clear(bool clear_meta_data)  nogil except +
+        TargetedExperiment() nogil except +
+        TargetedExperiment(TargetedExperiment &) nogil except +
 
-        void sortTransitionsByProductMZ()  nogil except +
-
+        bool operator==(TargetedExperiment) nogil except +
+        bool operator!=(TargetedExperiment) nogil except +
         TargetedExperiment operator+(TargetedExperiment)    nogil except +
         TargetedExperiment iadd(TargetedExperiment)   nogil except + # wrap-as:operator+=
+
+        void clear(bool clear_meta_data)  nogil except +
+        void sortTransitionsByProductMZ()  nogil except +
 
         # cv list
         void setCVs(libcpp_vector[CV] cvs) nogil except +

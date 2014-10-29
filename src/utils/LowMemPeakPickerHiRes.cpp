@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ using namespace std;
   @page TOPP_PeakPickerHiRes PeakPickerHiRes
 
   @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerHiRes "high_res" algorithm.
- 
+
   <center>
   <table>
   <tr>
@@ -122,35 +122,35 @@ public:
 protected:
 
   class PPHiResMzMLConsumer :
-    public MSDataWritingConsumer 
+    public MSDataWritingConsumer
   {
 
   public:
 
     PPHiResMzMLConsumer(String filename, PeakPickerHiRes pp) :
-      MSDataWritingConsumer(filename) 
+      MSDataWritingConsumer(filename),
+      ms1_levels_(pp.getParameters().getValue("ms_levels").toIntList())
     {
       pp_ = pp;
-      ms1_only_ = pp.getParameters().getValue("ms1_only").toBool();
     }
 
     void processSpectrum_(MapType::SpectrumType & s)
     {
-      if (ms1_only_ && (s.getMSLevel() != 1)) {return;}
+      if (!ListUtils::contains(ms1_levels_, s.getMSLevel())) {return;}
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
       s = sout;
     }
 
-    void processChromatogram_(MapType::ChromatogramType & /* c */) 
+    void processChromatogram_(MapType::ChromatogramType & /* c */)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
         "Cannot handle chromatograms yet.");
     }
 
     PeakPickerHiRes pp_;
-    bool ms1_only_;
+    std::vector<Int> ms1_levels_;
   };
 
   void registerOptionsAndFlags_()
@@ -178,7 +178,7 @@ protected:
     String out = getStringOption_("out");
 
 
-    // We could write out this warning in the constructor if no spectra have come our way ... 
+    // We could write out this warning in the constructor if no spectra have come our way ...
     /*
     if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
     {
@@ -226,7 +226,7 @@ protected:
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
-    
+
     ///////////////////////////////////
     // Create PeakPickerHiRes and hand it to the PPHiResMzMLConsumer
     ///////////////////////////////////

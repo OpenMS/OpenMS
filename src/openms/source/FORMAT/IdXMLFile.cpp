@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,9 +42,6 @@
 #include <fstream>
 #include <limits>
 
-using namespace std;
-using namespace OpenMS::Internal;
-
 namespace OpenMS
 {
 
@@ -57,14 +54,14 @@ namespace OpenMS
   {
   }
 
-  void IdXMLFile::load(const String& filename, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids)
+  void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids)
   {
     String document_id;
     load(filename, protein_ids, peptide_ids, document_id);
   }
 
-  void IdXMLFile::load(const String& filename, vector<ProteinIdentification>& protein_ids,
-                       vector<PeptideIdentification>& peptide_ids, String& document_id)
+  void IdXMLFile::load(const String& filename, std::vector<ProteinIdentification>& protein_ids,
+                       std::vector<PeptideIdentification>& peptide_ids, String& document_id)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -92,7 +89,7 @@ namespace OpenMS
     proteinid_to_accession_.clear();
   }
 
-  void IdXMLFile::store(String filename, const vector<ProteinIdentification>& protein_ids, const vector<PeptideIdentification>& peptide_ids, const String& document_id)
+  void IdXMLFile::store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, const String& document_id)
   {
     //open stream
     std::ofstream os(filename.c_str());
@@ -114,8 +111,8 @@ namespace OpenMS
 
 
     //look up different search parameters
-    vector<ProteinIdentification::SearchParameters> params;
-    for (vector<ProteinIdentification>::const_iterator it = protein_ids.begin(); it != protein_ids.end(); ++it)
+    std::vector<ProteinIdentification::SearchParameters> params;
+    for (std::vector<ProteinIdentification>::const_iterator it = protein_ids.begin(); it != protein_ids.end(); ++it)
     {
       if (find(params.begin(), params.end(), it->getSearchParameters()) == params.end())
       {
@@ -192,10 +189,10 @@ namespace OpenMS
     }
 
     UInt prot_count = 0;
-    map<String, UInt> accession_to_id;
+    std::map<String, UInt> accession_to_id;
 
     //Identifiers of protein identifications that are already written
-    vector<String> done_identifiers;
+    std::vector<String> done_identifiers;
 
     //write ProteinIdentification Runs
     for (Size i = 0; i < protein_ids.size(); ++i)
@@ -561,16 +558,16 @@ namespace OpenMS
       pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
 
       //MZ
-      double tmp2 = -numeric_limits<double>::max();
+      double tmp2 = -std::numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "MZ");
-      if (tmp2 != -numeric_limits<double>::max())
+      if (tmp2 != -std::numeric_limits<double>::max())
       {
         pep_id_.setMZ(tmp2);
       }
       //RT
-      tmp2 = -numeric_limits<double>::max();
+      tmp2 = -std::numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "RT");
-      if (tmp2 != -numeric_limits<double>::max())
+      if (tmp2 != -std::numeric_limits<double>::max())
       {
         pep_id_.setRT(tmp2);
       }
@@ -612,15 +609,15 @@ namespace OpenMS
       {
         String accession_string = sm_.convert(refs);
         accession_string.trim();
-        vector<String> accessions;
+        std::vector<String> accessions;
         accession_string.split(' ', accessions);
         if (accession_string != "" && accessions.empty())
         {
           accessions.push_back(accession_string);
         }
-        for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
+        for (std::vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             pep_hit_.addProteinAccession(it2->second);
@@ -728,8 +725,8 @@ namespace OpenMS
   }
 
   void IdXMLFile::addProteinGroups_(
-    MetaInfoInterface& meta, const vector<ProteinIdentification::ProteinGroup>&
-    groups, const String& group_name, const map<String, UInt>& accession_to_id)
+    MetaInfoInterface& meta, const std::vector<ProteinIdentification::ProteinGroup>&
+    groups, const String& group_name, const std::map<String, UInt>& accession_to_id)
   {
     for (Size g = 0; g < groups.size(); ++g)
     {
@@ -744,7 +741,7 @@ namespace OpenMS
       {
         if (acc_it != groups[g].accessions.begin())
           accessions += ",";
-        map<String, UInt>::const_iterator pos = accession_to_id.find(*acc_it);
+        std::map<String, UInt>::const_iterator pos = accession_to_id.find(*acc_it);
         if (pos != accession_to_id.end())
         {
           accessions += "PH_" + String(pos->second);
@@ -759,7 +756,7 @@ namespace OpenMS
     }
   }
 
-  void IdXMLFile::getProteinGroups_(vector<ProteinIdentification::ProteinGroup>&
+  void IdXMLFile::getProteinGroups_(std::vector<ProteinIdentification::ProteinGroup>&
                                     groups, const String& group_name)
   {
     groups.clear();

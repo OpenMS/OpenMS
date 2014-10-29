@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,9 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERING_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_MULTIPLEXFILTERING_H
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexPeakPattern.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
@@ -61,7 +62,8 @@ namespace OpenMS
      * @see MultiplexPeakPattern
      * @see MultiplexFilterResult
      */
-    class OPENMS_DLLAPI MultiplexFiltering
+    class OPENMS_DLLAPI MultiplexFiltering :
+        public ProgressLogger
     {        
         public:
         /**

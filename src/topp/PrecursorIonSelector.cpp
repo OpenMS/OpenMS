@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -244,7 +244,7 @@ protected:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    FeatureMap<> f_map;
+    FeatureMap f_map;
     FeatureXMLFile f_file;
     f_file.load(in, f_map);
 
@@ -266,7 +266,7 @@ protected:
     {
 
       pis.rescore(f_map, pep_ids, prot_ids, pisp);  // todo: add "rescoring" for LP selection
-      FeatureMap<> new_precursors;
+      FeatureMap new_precursors;
       pis.getNextPrecursors(f_map, new_precursors, prec_num);
 
       //-------------------------------------------------------------

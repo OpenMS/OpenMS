@@ -51,6 +51,12 @@ else()
 endif()
 set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 
+
+#------------------------------------------------------------------------------
+# 3rd party libs shipped with OpenMS directly
+#------------------------------------------------------------------------------
+add_subdirectory(3rdparty)
+
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
 #------------------------------------------------------------------------------
@@ -105,6 +111,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include
                                      ${PROJECT_BINARY_DIR}/include
+									 PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES ${QT_INCLUDES}
                                      ${GSL_INCLUDE_DIRS}
                                      ${Boost_INCLUDE_DIRS}

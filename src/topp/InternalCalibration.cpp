@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ using namespace std;
   @page TOPP_InternalCalibration InternalCalibration
 
   @brief Performs an internal calibration on an MS experiment.
- 
+
   <CENTER>
   <table>
   <tr>
@@ -67,7 +67,7 @@ using namespace std;
   </tr>
   </table>
   </CENTER>
- 
+
   This a simple calibration method: given a list of reference masses and an MS experiment or a feature map,
   the relative errors of the peaks in the data are approximated by linear regression and
   subtracted from the data. The user can choose whether the calibration function shall be
@@ -115,14 +115,14 @@ protected:
     registerSubsection_("algorithm", "Settings for the internal calibration.");
   }
 
-  Param getSubsectionDefaults_(const String & /* section*/) const
+  Param getSubsectionDefaults_(const String& /* section*/) const
   {
     Param tmp;
     tmp.insert("", InternalCalibration().getDefaults());
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -160,7 +160,7 @@ protected:
       {
         TextFile ref_file;
         ref_file.load(ref, true);
-        for (TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
+        for (TextFile::ConstIterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
         {
           ref_masses.push_back(String(iter->c_str()).toDouble());
         }
@@ -180,7 +180,7 @@ protected:
     }
     if (features)
     {
-      FeatureMap<> feature_map, calibrated_feature_map;
+      FeatureMap feature_map, calibrated_feature_map;
       FeatureXMLFile f_file;
       f_file.load(in, feature_map);
       if (ref == "")
@@ -226,7 +226,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPInternalCalibration tool;
   return tool.main(argc, argv);

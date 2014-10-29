@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -243,7 +243,7 @@ START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const
 }
 END_SECTION
 
-FeatureMap<> exp_fm;
+FeatureMap exp_fm;
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
 MzTab test_mztab;
 
@@ -260,7 +260,7 @@ sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
 
 
-START_SECTION((void run(FeatureMap<>& fmap, MzTab& mztab_out)))
+START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
 {
     ams_feat_test.run(exp_fm, test_mztab);
 
@@ -381,7 +381,7 @@ END_SECTION
 START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map))
 {
 
-  FeatureMap<> fm_p = exp_fm;
+  FeatureMap fm_p = exp_fm;
   AccurateMassSearchEngine ams;
   MzTab mzt;
   Param p;

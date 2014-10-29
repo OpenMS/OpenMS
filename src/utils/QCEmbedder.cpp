@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,17 +82,17 @@ using namespace std;
     </CENTER>
 
     If there is additional data from external tools to a certain quality control parameter (qp) in the qcml file at @p in, it can be attached in tabluar (csv) format or as png image file.
-        
+
     - @p qp_att_acc defines the qp cv accession of the qp to which the table/image is attached.
     - @p cv_acc defines the cv accession of the attachment.
     - @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
     - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
-    
+
     - @p plot if a plot image is to be attached to a qp, this has to be specified here.
     - @p table if a table is to be attached to a qp, this has to be specified here.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
-    
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox).
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCEmbedder.cli
     <B>INI file documentation of this tool:</B>
@@ -114,7 +114,7 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input qcml file",false);
+    registerInputFile_("in", "<file>", "", "Input qcml file", false);
     setValidFormats_("in", ListUtils::create<String>("qcML"));
     registerStringOption_("qp_att_acc", "<string>", "", "Defines the qp cv accession of the qp to which the table/image is attached.", false);
     registerStringOption_("cv_acc", "<string>", "", "Defines the cv accession of the attachment.");
@@ -145,11 +145,11 @@ protected:
 
     //-------------------------------------------------------------
     // fetch vocabularies
-    //------------------------------------------------------------    
+    //------------------------------------------------------------
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
-    
+
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
@@ -178,7 +178,7 @@ protected:
         cerr << "Error: You have to give at least one of the following parameter (in ascending precedence): name, run. Aborting!" << endl;
         return ILLEGAL_PARAMETERS;
       }
-    }    
+    }
 
     QFile f(plot_file.c_str());
     String plot_b64;
@@ -188,7 +188,7 @@ protected:
       f.close();
       plot_b64 = String(QString(ba.toBase64()));
     }
-    
+
     QcMLFile::Attachment at;
     at.cvAcc = target_acc;
     at.id = String(UniqueIdGenerator::getUniqueId());
@@ -201,7 +201,7 @@ protected:
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(target_acc);
-          at.name = term.name; ///< Name          
+          at.name = term.name; ///< Name
           //~ at.unitRef; //TODO MIME type
           //~ at.unitAcc;
         }
@@ -213,7 +213,7 @@ protected:
         at.binary = plot_b64;
       }
       else if (tab != "")
-      {        
+      {
         try
         {
           const ControlledVocabulary::CVTerm& term = cv.getTerm(target_acc);
@@ -226,9 +226,9 @@ protected:
           cerr << "Error: You have to give the accession of a existing cv term. Aborting!" << endl;
           return ILLEGAL_PARAMETERS;
         }
-        
+
         CsvFile csv_file(tab);
-        if (csv_file.size()>1)
+        if (csv_file.rowCount() > 1)
         {
           StringList li;
           csv_file.getRow(0, li);
@@ -236,7 +236,7 @@ protected:
           {
             at.colTypes.push_back(li[i]);
           }
-          for (UInt i = 1; i < csv_file.size(); ++i)
+          for (UInt i = 1; i < csv_file.rowCount(); ++i)
           {
             StringList li;
             std::vector<String> v;

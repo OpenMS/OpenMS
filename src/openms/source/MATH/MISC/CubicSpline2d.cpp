@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,9 +44,14 @@ namespace OpenMS
 {
   CubicSpline2d::CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y)
   {
-    if (x.empty() || x.size() != y.size())
+    if (x.size() != y.size())
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors either not of the same size or empty.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors are not of the same size.");
+    }
+
+    if (x.size() < 2)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors need to contain two or more elements.");
     }
 
     // assert spectrum is sorted
@@ -60,9 +65,9 @@ namespace OpenMS
 
   CubicSpline2d::CubicSpline2d(const std::map<double, double>& m)
   {
-    if (m.empty())
+    if (m.size() < 2)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Map is empty.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Map needs to contain two or more elements.");
     }
 
     std::vector<double> x;

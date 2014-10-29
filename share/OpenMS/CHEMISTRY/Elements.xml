@@ -502,6 +502,37 @@
         </NODE>
       </NODE>
     </NODE>
+    <NODE name="Palladium">
+      <ITEM name="Name" value="Palladium" type="string" />
+      <ITEM name="Symbol" value="Pd" type="string" />
+      <ITEM name="AtomicNumber" value="46" type="int" />
+      <NODE name="Isotopes">
+        <NODE name="102">
+          <ITEM name="RelativeAbundance" value="1.02" type="float" />
+          <ITEM name="AtomicMass" value="101.905609" type="float" />
+        </NODE>
+        <NODE name="104">
+          <ITEM name="RelativeAbundance" value="11.14" type="float" />
+          <ITEM name="AtomicMass" value="103.904036" type="float" />
+        </NODE>
+        <NODE name="105">
+          <ITEM name="RelativeAbundance" value="22.33" type="float" />
+          <ITEM name="AtomicMass" value="104.905085" type="float" />
+        </NODE>
+        <NODE name="106">
+          <ITEM name="RelativeAbundance" value="27.33" type="float" />
+          <ITEM name="AtomicMass" value="105.903486" type="float" />
+        </NODE>
+        <NODE name="108">
+          <ITEM name="RelativeAbundance" value="26.46" type="float" />
+          <ITEM name="AtomicMass" value="107.903892" type="float" />
+        </NODE>
+        <NODE name="110">
+          <ITEM name="RelativeAbundance" value="11.72" type="float" />
+          <ITEM name="AtomicMass" value="109.905153" type="float" />
+        </NODE>
+      </NODE>
+    </NODE>
     <NODE name="Silver">
       <ITEM name="Name" value="Silver" type="string" />
       <ITEM name="Symbol" value="Ag" type="string" />

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -174,7 +174,7 @@ public:
         assay has transitions (mapped with MetaValue "native_id").
 
     */
-    void scoreMap(FeatureMap<> & features)
+    void scoreMap(FeatureMap & features)
     {
       // are there enough assays in the library?
       Size n_assays = library_.getPeptides().size();
@@ -221,7 +221,7 @@ public:
       LOG_DEBUG << "Scoring features..." << std::endl;
       startProgress(0, features.size(), "scoring features");
 
-      for (FeatureMap<>::Iterator feat_it = features.begin(); 
+      for (FeatureMap::Iterator feat_it = features.begin(); 
            feat_it != features.end(); ++feat_it)
       {
         LOG_DEBUG << "Feature " << feat_it - features.begin() + 1 

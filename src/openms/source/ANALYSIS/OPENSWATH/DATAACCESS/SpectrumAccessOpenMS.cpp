@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,12 +38,21 @@ namespace OpenMS
 {
   SpectrumAccessOpenMS::SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment)
   {
-    // store raw ptr to the experiment
+    // store shared pointer to the actual MSExperiment
     ms_experiment_ = ms_experiment;
   }
 
   SpectrumAccessOpenMS::~SpectrumAccessOpenMS()
   {
+  }
+
+  SpectrumAccessOpenMS::SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs) :
+    ms_experiment_(rhs.ms_experiment_)
+  {}
+
+  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMS::lightClone() const
+  {
+    return boost::shared_ptr<SpectrumAccessOpenMS>( new SpectrumAccessOpenMS(*this));
   }
 
   OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id)

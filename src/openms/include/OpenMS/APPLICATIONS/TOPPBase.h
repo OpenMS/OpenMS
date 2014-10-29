@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -821,11 +821,7 @@ protected:
     void addDataProcessing_(ConsensusMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for feature maps
-    template <typename FeatureType>
-    void addDataProcessing_(FeatureMap<FeatureType>& map, const DataProcessing& dp) const
-    {
-      map.getDataProcessing().push_back(dp);
-    }
+    void addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const;
 
     ///Data processing setter for peak maps
     template <typename PeakType, typename CT>

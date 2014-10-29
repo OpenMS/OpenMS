@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.6" id="fm_13797899526047680311" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.6" id="fm_12999979801269632061" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="OpenSwathAnalyzer" version="version_string" />
 		<processingAction name="Quantitation" />
@@ -14,7 +14,7 @@
 		</ProteinIdentification>
 	</IdentificationRun>
 	<featureList count="3">
-		<feature id="f_16627578304933075941">
+		<feature id="f_5233264595117471314">
 			<position dim="0">3119.09196821988</position>
 			<position dim="1">0</position>
 			<intensity>3338.31</intensity>
@@ -23,7 +23,7 @@
 			<overallquality>-21994.8</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_16627578304933075941_13229490167902618598">
+				<feature id="f_5233264595117471314_4835329514588776807">
 					<position dim="0">3119.09196821988</position>
 					<position dim="1">628.435</position>
 					<intensity>752.598</intensity>
@@ -34,8 +34,9 @@
 					<userParam type="float" name="MZ" value="628.435"/>
 					<userParam type="string" name="native_id" value="tr1"/>
 					<userParam type="float" name="peak_apex_int" value="169.79216003418"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_16627578304933075941_5024549519481199379">
+				<feature id="f_5233264595117471314_17749660155506638460">
 					<position dim="0">3119.09196821988</position>
 					<position dim="1">654.38</position>
 					<intensity>2585.71</intensity>
@@ -46,10 +47,11 @@
 					<userParam type="float" name="MZ" value="654.38"/>
 					<userParam type="string" name="native_id" value="tr2"/>
 					<userParam type="float" name="peak_apex_int" value="577.326416015625"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21994.850321541" sequence="PEPTIDEA" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-21994.8503216533" sequence="PEPTIDEA" charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr1"/>
@@ -76,11 +78,11 @@
 			<userParam type="float" name="nr_peaks" value="2"/>
 			<userParam type="float" name="sn_ratio" value="86.0041379995282"/>
 			<userParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
-			<userParam type="float" name="var_elution_model_fit_score" value="0.985403060913086"/>
-			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21994.850321541"/>
+			<userParam type="float" name="var_elution_model_fit_score" value="0.985403120517731"/>
+			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21994.8503216533"/>
 			<userParam type="float" name="PrecursorMZ" value="500"/>
 		</feature>
-		<feature id="f_2727934422266510952">
+		<feature id="f_15004869347769368353">
 			<position dim="0">3055.58404744804</position>
 			<position dim="1">0</position>
 			<intensity>119.414</intensity>
@@ -89,7 +91,7 @@
 			<overallquality>-21551.9</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_2727934422266510952_177690319544281384">
+				<feature id="f_15004869347769368353_15157403601844400700">
 					<position dim="0">3055.58404744804</position>
 					<position dim="1">618.31</position>
 					<intensity>76.7596</intensity>
@@ -100,8 +102,9 @@
 					<userParam type="float" name="MZ" value="618.31"/>
 					<userParam type="string" name="native_id" value="tr3"/>
 					<userParam type="float" name="peak_apex_int" value="35.5928192138672"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_2727934422266510952_9192101947877554093">
+				<feature id="f_15004869347769368353_6408859317243173796">
 					<position dim="0">3055.58404744804</position>
 					<position dim="1">628.435</position>
 					<intensity>0.472367</intensity>
@@ -112,8 +115,9 @@
 					<userParam type="float" name="MZ" value="628.435"/>
 					<userParam type="string" name="native_id" value="tr4"/>
 					<userParam type="float" name="peak_apex_int" value="0"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_2727934422266510952_12521488001836564298">
+				<feature id="f_15004869347769368353_474525871221756682">
 					<position dim="0">3055.58404744804</position>
 					<position dim="1">651.3</position>
 					<intensity>42.1823</intensity>
@@ -124,10 +128,11 @@
 					<userParam type="float" name="MZ" value="651.3"/>
 					<userParam type="string" name="native_id" value="tr5"/>
 					<userParam type="float" name="peak_apex_int" value="17.0996685028076"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21551.904068589" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-21551.904073606" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -154,11 +159,11 @@
 			<userParam type="float" name="nr_peaks" value="3"/>
 			<userParam type="float" name="sn_ratio" value="3.27205298324225"/>
 			<userParam type="float" name="var_log_sn_score" value="1.18541761153185"/>
-			<userParam type="float" name="var_elution_model_fit_score" value="0.88344677289327"/>
-			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21551.904068589"/>
+			<userParam type="float" name="var_elution_model_fit_score" value="0.88344943523407"/>
+			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21551.904073606"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
 		</feature>
-		<feature id="f_6211693768620736135">
+		<feature id="f_7804704400743266335">
 			<position dim="0">3119.06301134765</position>
 			<position dim="1">0</position>
 			<intensity>847.874</intensity>
@@ -167,7 +172,7 @@
 			<overallquality>-22000.5</overallquality>
 			<charge>0</charge>
 			<subordinate>
-				<feature id="f_6211693768620736135_3318143123566627610">
+				<feature id="f_7804704400743266335_3332699010107892018">
 					<position dim="0">3119.06301134765</position>
 					<position dim="1">618.31</position>
 					<intensity>0</intensity>
@@ -178,8 +183,9 @@
 					<userParam type="float" name="MZ" value="618.31"/>
 					<userParam type="string" name="native_id" value="tr3"/>
 					<userParam type="float" name="peak_apex_int" value="5.24326848983765"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_6211693768620736135_16086848624660428181">
+				<feature id="f_7804704400743266335_13440783915218733453">
 					<position dim="0">3119.06301134765</position>
 					<position dim="1">628.435</position>
 					<intensity>752.598</intensity>
@@ -190,8 +196,9 @@
 					<userParam type="float" name="MZ" value="628.435"/>
 					<userParam type="string" name="native_id" value="tr4"/>
 					<userParam type="float" name="peak_apex_int" value="169.79216003418"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
-				<feature id="f_6211693768620736135_12945392992539867993">
+				<feature id="f_7804704400743266335_15916652588957785155">
 					<position dim="0">3119.06301134765</position>
 					<position dim="1">651.3</position>
 					<intensity>95.2763</intensity>
@@ -202,10 +209,11 @@
 					<userParam type="float" name="MZ" value="651.3"/>
 					<userParam type="string" name="native_id" value="tr5"/>
 					<userParam type="float" name="peak_apex_int" value="14.4544172286987"/>
+					<userParam type="string" name="FeatureLevel" value="MS2"/>
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-22000.5497599087" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-22000.5491811191" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -232,8 +240,8 @@
 			<userParam type="float" name="nr_peaks" value="3"/>
 			<userParam type="float" name="sn_ratio" value="30.180081980405"/>
 			<userParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
-			<userParam type="float" name="var_elution_model_fit_score" value="0.902421613534292"/>
-			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-22000.5497599087"/>
+			<userParam type="float" name="var_elution_model_fit_score" value="0.902114470799764"/>
+			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-22000.5491811191"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
 		</feature>
 	</featureList>

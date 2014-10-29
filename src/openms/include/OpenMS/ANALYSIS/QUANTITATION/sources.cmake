@@ -3,22 +3,23 @@ set(directory include/OpenMS/ANALYSIS/QUANTITATION)
 
 ### list all header files of the directory here
 set(sources_list_h
+IsobaricChannelExtractor.h
+IsobaricIsotopeCorrector.h
+IsobaricNormalizer.h
+IsobaricQuantifier.h
+IsobaricQuantifierStatistics.h
+IsobaricQuantitationMethod.h
 ItraqChannelExtractor.h
 ItraqConstants.h
+ItraqEightPlexQuantitationMethod.h
+ItraqFourPlexQuantitationMethod.h
 ItraqQuantifier.h
 PeptideAndProteinQuant.h
 ProteinInference.h
 ProteinResolver.h
 QuantitativeExperimentalDesign.h
-IsobaricQuantitationMethod.h
-IsobaricChannelExtractor.h
-ItraqFourPlexQuantitationMethod.h
-IsobaricQuantifier.h
-IsobaricNormalizer.h
-IsobaricQuantifierStatistics.h
-IsobaricIsotopeCorrector.h
-ItraqEightPlexQuantitationMethod.h
 TMTSixPlexQuantitationMethod.h
+TMTTenPlexQuantitationMethod.h
 )
 
 ### add path to the filenames

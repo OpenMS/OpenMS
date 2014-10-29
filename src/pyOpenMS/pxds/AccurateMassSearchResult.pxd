@@ -37,4 +37,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         double getIsotopesSimScore() nogil except +
         void setIsotopesSimScore(double & sim_score) nogil except +
         void outputResults() nogil except +
+        libcpp_vector[double] getIndividualIntensities() nogil except +
+        void setIndividualIntensities(libcpp_vector[double]) nogil except +
+        Size getSourceFeatureIndex() nogil except +
+        void setSourceFeatureIndex(Size) nogil except +
 

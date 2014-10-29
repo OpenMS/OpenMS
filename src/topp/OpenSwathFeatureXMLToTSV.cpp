@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ using namespace OpenMS;
 
 std::map<String, std::vector<const ReactionMonitoringTransition *> > peptide_transition_map;
 
-void write_out_header(std::ostream &os, FeatureMap<Feature> &feature_map, /* String main_var_name,  */ std::vector<String> &meta_value_names, bool short_format)
+void write_out_header(std::ostream &os, FeatureMap &feature_map, /* String main_var_name,  */ std::vector<String> &meta_value_names, bool short_format)
 {
   std::vector<String> meta_value_names_tmp;
 
@@ -305,7 +305,7 @@ Feature *find_best_feature(const std::vector<Feature *> &features, String score_
   return best_feature;
 }
 
-void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_map,
+void write_out_body_best_score(std::ostream &os, FeatureMap &feature_map,
                                TargetedExperiment &transition_exp, std::vector<String> &meta_value_names,
                                int run_id, bool short_format, String best_score, String filename)
 {
@@ -313,7 +313,7 @@ void write_out_body_best_score(std::ostream &os, FeatureMap<Feature> &feature_ma
   // for each peptide reference search for the best feature
   typedef std::map<String, std::vector<Feature *> > PeptideFeatureMapType;
   PeptideFeatureMapType peptide_feature_map;
-  for (FeatureMap<Feature>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
+  for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
   {
     String peptide_ref = feature_it->getMetaValue("PeptideRef");
     peptide_feature_map[peptide_ref].push_back(&(*feature_it));
@@ -370,14 +370,14 @@ protected:
     registerStringOption_("best_scoring_peptide", "<varname>", "", "If only the best scoring feature per peptide should be printed, give the variable name", false);
   }
 
-  void write_out_body(std::ostream &os, FeatureMap<Feature> &feature_map,
+  void write_out_body(std::ostream &os, FeatureMap &feature_map,
                       TargetedExperiment &transition_exp, std::vector<String> &meta_value_names,
                       int run_id, bool short_format, String filename)
   {
 
     Size progress = 0;
     startProgress(0, feature_map.size(), "writing out features");
-    for (FeatureMap<Feature>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
+    for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
     {
       setProgress(progress++);
       write_out_body_(os, &(*feature_it), transition_exp, meta_value_names, run_id, short_format, feature_map.getIdentifier(), filename);
@@ -426,7 +426,7 @@ protected:
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No input files given ");
     }
-    FeatureMap<Feature> feature_map;
+    FeatureMap feature_map;
     FeatureXMLFile feature_file;
     feature_file.setLogType(log_type_);
     feature_file.load(file_list[0], feature_map);

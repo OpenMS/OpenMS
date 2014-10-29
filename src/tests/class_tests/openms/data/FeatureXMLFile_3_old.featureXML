@@ -119,10 +119,6 @@
 			<quality dim="1">0</quality>
 			<overallquality>0</overallquality>
 			<charge>0</charge>
-			<model name="OlesModel">
-				<param name="a" value="5"/>
-				<param name="b" value="10"/>
-			</model>
 		</feature>
 	</featureList>
 </featureMap>

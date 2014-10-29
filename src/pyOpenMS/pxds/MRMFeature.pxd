@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
     cdef cppclass MRMFeature:
 
         MRMFeature() nogil except +
-        MRMFeature(MRMFeature) nogil except +
+        MRMFeature(MRMFeature &) nogil except +
 
         # TODO STL map with wrapped key
         # libcpp_map[String, double] getScores() nogil except +
@@ -19,4 +19,8 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
         void addFeature(Feature & f, String key) nogil except +
         libcpp_vector[Feature] getFeatures() nogil except +
         void getFeatureIDs(libcpp_vector[String] & result) nogil except +
+
+        Feature getPrecursorFeature(String key) nogil except +
+        void addPrecursorFeature(Feature & f, String key) nogil except +
+        void getPrecursorFeatureIDs(libcpp_vector[String] & result) nogil except +
 
