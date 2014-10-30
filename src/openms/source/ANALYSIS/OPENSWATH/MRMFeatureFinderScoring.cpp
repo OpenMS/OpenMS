@@ -228,11 +228,6 @@ namespace OpenMS
     {
       PeptideRefMap_[transition_exp.getPeptides()[i].id] = &transition_exp.getPeptides()[i];
     }
-
-    for (Size i = 0; i < transition_exp.getProteins().size(); i++)
-    {
-      ProteinRefMap_[transition_exp.getProteins()[i].id] = &transition_exp.getProteins()[i];
-    }
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
@@ -251,14 +246,8 @@ namespace OpenMS
       signal_noise_estimators.push_back(snptr);
     }
 
-    const PeptideType* pep = PeptideRefMap_[transition_group.getTransitionGroupID()];
-    String protein_id = "";
-    if (!pep->protein_ref.empty())
-    {
-      protein_id = ProteinRefMap_[pep->protein_ref]->id;
-    }
-
     // get the expected rt value for this peptide
+    const PeptideType* pep = PeptideRefMap_[transition_group.getTransitionGroupID()];
     double expected_rt = pep->rt;
     TransformationDescription newtr = trafo;
     newtr.invert();
@@ -403,7 +392,12 @@ namespace OpenMS
         pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
       }
       pep_hit_.setSequence(AASequence::fromString(pep->sequence));
-      pep_hit_.addProteinAccession(protein_id);
+
+      // set protein accession numbers (needs to be OpenMS String vector)
+      std::vector<String> tmp;
+      tmp.insert( tmp.begin(), pep->protein_refs.begin(), pep->protein_refs.end() ); 
+      pep_hit_.setProteinAccessions(tmp);
+
       pep_id_.insertHit(pep_hit_);
       pep_id_.setIdentifier(run_identifier);
 
@@ -412,6 +406,8 @@ namespace OpenMS
 
       mrmfeature->setMetaValue("PrecursorMZ", transition_group.getTransitions()[0].getPrecursorMZ());
 
+      // Prepare the subordinates for the mrmfeature (process all current
+      // features and then append all precursor subordinate features)
       std::vector<Feature> allFeatures = mrmfeature->getFeatures();
       double total_intensity = 0, total_peak_apices = 0;
       for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
