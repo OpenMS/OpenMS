@@ -571,7 +571,6 @@ namespace OpenMS
       {
         pep_id_.setRT(tmp2);
       }
-      
       String tmp3;
       optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
       if (!tmp3.empty())
