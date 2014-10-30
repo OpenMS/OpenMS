@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -242,7 +242,7 @@ protected:
            << "file type" << "\t" << FileTypes::typeToName(in_type) << "\n";
 
     MSExperiment<Peak1D> exp;
-    FeatureMap<> feat;
+    FeatureMap feat;
     ConsensusMap cons;
     IdData id_data;
 
@@ -399,7 +399,14 @@ protected:
       FeatureXMLFile ff;
       ff.getOptions().setLoadConvexHull(false); // CH's currently not needed here
       ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
+      size_t mem1, mem2;
+      SysInfo::getProcessMemoryConsumption(mem1);
+
+      // reading input
       ff.load(in, feat);
+
+      SysInfo::getProcessMemoryConsumption(mem2);
+      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
       feat.updateRanges();
 
       os << "Number of features: " << feat.size() << "\n"
@@ -425,7 +432,15 @@ protected:
     }
     else if (in_type == FileTypes::CONSENSUSXML) //consensus features
     {
+      size_t mem1, mem2;
+      SysInfo::getProcessMemoryConsumption(mem1);
+
+      // reading input
       ConsensusXMLFile().load(in, cons);
+
+      SysInfo::getProcessMemoryConsumption(mem2);
+      std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
+
       cons.updateRanges();
 
       map<Size, UInt> num_consfeat_of_size;
@@ -1065,7 +1080,7 @@ protected:
         vector<double> peak_widths(size);
 
         Size idx = 0;
-        for (FeatureMap<>::const_iterator fm_iter = feat.begin();
+        for (FeatureMap::const_iterator fm_iter = feat.begin();
              fm_iter != feat.end(); ++fm_iter, ++idx)
         {
           intensities[idx] = fm_iter->getIntensity();

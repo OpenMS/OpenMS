@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -114,7 +114,7 @@ protected:
 
   Param getSubsectionDefaults_(const String & /*section*/) const
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM<Peak1D, Feature>::getProductName());
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM<Peak1D>::getProductName());
   }
 
   ExitCodes main_(int, const char **)
@@ -139,7 +139,7 @@ protected:
     f.load(in, exp);
 
     //no seeds supported
-    FeatureMap<> seeds;
+    FeatureMap seeds;
 
     //prevent loading of everything except MRM MS/MS spectra
     //exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasScanMode<PeakMap::SpectrumType>(InstrumentSettings::SRM, true)), exp.end());
@@ -147,16 +147,16 @@ protected:
     exp.getSpectra().erase(exp.begin(), exp.end());
 
     // A map for the resulting features
-    FeatureMap<> features;
+    FeatureMap features;
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmMRM<Peak1D, Feature>::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(FeatureFinderAlgorithmMRM<Peak1D>::getProductName(), exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG
     if (debug_level_ > 10)
     {
-      FeatureMap<>::Iterator it;
+      FeatureMap::Iterator it;
       for (it = features.begin(); it != features.end(); ++it)
       {
         if (!it->isMetaEmpty())

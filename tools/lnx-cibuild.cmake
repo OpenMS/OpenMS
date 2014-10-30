@@ -1,15 +1,5 @@
 # define build name&co for easier identification on cdassh
-set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_REPO_SLUG}-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
-
-# add style to build name if requested
-if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "On")
-  set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-coding-style")
-endif()
-
-# add unity to build name if requested
-if("$ENV{ENABLE_UNITYBUILD}" STREQUAL "On")
-  set(CTEST_BUILD_NAME "${CTEST_BUILD_NAME}-unity-build")
-endif()
+set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}")
 
 set(CTEST_SITE "travis-ci-build-server")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
@@ -25,7 +15,8 @@ CMAKE_BUILD_TYPE=Release
 ENABLE_TUTORIALS=Off
 ENABLE_GCC_WERROR=On
 ENABLE_UNITYBUILD=$ENV{ENABLE_UNITYBUILD}
-ENABLE_STYLE_TESTING=$ENV{ENABLE_STYLE_TESTING}"
+ENABLE_STYLE_TESTING=$ENV{ENABLE_STYLE_TESTING}
+WITH_GUI=$ENV{WITH_GUI}"
 )
 
 # create cache
@@ -47,7 +38,7 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     )
 
 # try to speed up the builds so we don't get killed
-set(CTEST_BUILD_FLAGS -j4)
+set(CTEST_BUILD_FLAGS -j3)
 
 # we want makefiles
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")

@@ -111,7 +111,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 3, 2))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 5, 1))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -126,7 +126,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.3.2 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.5.1 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,10 @@ namespace OpenMS
 {
   String FileTypes::typeToName(FileTypes::Type type)
   {
-    if (name_of_types_.find(type) != name_of_types_.end())
+    std::map<Type, String>::const_iterator it = name_of_types_.find(type);
+    if (it != name_of_types_.end())
     {
-      return name_of_types_.find(type)->second;
+      return it->second;
     }
     else
     {
@@ -50,10 +51,10 @@ namespace OpenMS
 
   String FileTypes::typeToMZML(FileTypes::Type type)
   {
-    if (name_of_MZMLtypes_.find(type) != name_of_MZMLtypes_.end())
+    std::map<Type, String>::const_iterator it = name_of_MZMLtypes_.find(type);
+    if (it != name_of_MZMLtypes_.end())
     {
-      //std::cerr << "found type: " << name_of_MZMLtypes_.find(type)->second << "\n";
-      return name_of_MZMLtypes_.find(type)->second;
+      return it->second;
     }
     else
     {
@@ -135,7 +136,7 @@ namespace OpenMS
   {
     std::map<Type, String> targetMap;
     targetMap[FileTypes::DTA] = "DTA file";
-    targetMap[FileTypes::DTA2D] = "DTA file";   // technically not correct, but closer than just a random CV term (currently mzData) - entry cannot be left empty
+    targetMap[FileTypes::DTA2D] = "DTA file"; // technically not correct, but closer than just a random CV term (currently mzData) - entry cannot be left empty
     targetMap[FileTypes::MZML] = "mzML file";
     targetMap[FileTypes::MZDATA] = "PSI mzData file";
     targetMap[FileTypes::MZXML] = "ISB mzXML file";
@@ -144,4 +145,5 @@ namespace OpenMS
 
     return targetMap;
   }
+
 }

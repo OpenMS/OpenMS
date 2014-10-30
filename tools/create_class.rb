@@ -54,10 +54,10 @@ def isOpenMS(openms_path)
   elsif not File.exist?("#{openms_path}/CMakeLists.txt")
     puts "Given path is not the OpenMS root. Abort!"
     isOpenMS = FALSE
-  elsif not File.exist?("#{openms_path}/source/")
+  elsif not File.exist?("#{openms_path}/src/openms/source/")
     puts "Given path is not the OpenMS root. Abort!"
     isOpenMS = FALSE
-  elsif not File.exist?("#{openms_path}/include/OpenMS/")
+  elsif not File.exist?("#{openms_path}/src/openms/include/OpenMS/")
     puts "Given path is not the OpenMS root. Abort!"
     isOpenMS = FALSE
   end
@@ -65,14 +65,28 @@ def isOpenMS(openms_path)
   return isOpenMS
 end
 
+def libExists(openms_path, lib_name)
+	libExists = TRUE
+
+	if not File.directory?("#{openms_path}/src/#{lib_name}")
+		puts "The given lib #{lib_name} doesn't exist. Abort!"
+		libExists = FALSE
+	elsif not File.exist?("#{openms_path}/src/#{lib_name}/CMakeLists.txt")
+		puts "The given lib #{lib_name} is not a valid OpenMS sub-lib. Abort!"
+		libExists = FALSE
+	end
+
+	return libExists
+end
+
 def getLicense(openms_path)
 	license = File.read("#{openms_path}/LICENSE")
 	return license.gsub(/^/, "// ").chop()
 end
 
-def create_header_sources(openms_path, path)
+def create_header_sources(openms_path, lib_name, path)
 	# create directory
-	new_dir = "#{openms_path}/include/OpenMS/#{path}"
+	new_dir = "#{openms_path}/src/#{lib_name}/include/OpenMS/#{path}"
 	Dir.mkdir(new_dir)
 
 	# template variables
@@ -88,9 +102,9 @@ def create_header_sources(openms_path, path)
 	puts "include(#{sources_cmake.sub(openms_path, "").sub("/","")})"
 end
 
-def create_source_sources(openms_path, path)
+def create_source_sources(openms_path, lib_name, path)
 	# create directory
-	new_dir = "#{openms_path}/source/#{path}"
+	new_dir = "#{openms_path}/src/#{lib_name}/source/#{path}"
 	Dir.mkdir(new_dir)
 
 	# template variables
@@ -106,7 +120,7 @@ def create_source_sources(openms_path, path)
 	puts "include(#{sources_cmake.sub(openms_path, "").sub("/","")})"
 end
 
-def create_sources(openms_path, path, clazz, maintainer)
+def create_sources(openms_path, lib_name, path, clazz, maintainer)
 
 	license = getLicense(openms_path)
 
@@ -115,7 +129,7 @@ def create_sources(openms_path, path, clazz, maintainer)
 	template = ERB.new(getTemplate("header"))
 
 	doc = template.result(binding)
-	header_file = "#{openms_path}/include/OpenMS/#{path}/#{clazz}.h"
+	header_file = "#{openms_path}/src/#{lib_name}/include/OpenMS/#{path}/#{clazz}.h"
 	File.open(header_file, 'w') {|f| f.write(doc) }
 
 	# write the source file
@@ -123,7 +137,7 @@ def create_sources(openms_path, path, clazz, maintainer)
 	template = ERB.new(getTemplate("source"))
 
 	doc = template.result(binding)
-	source_file = "#{openms_path}/source/#{path}/#{clazz}.cpp"
+	source_file = "#{openms_path}/src/#{lib_name}/source/#{path}/#{clazz}.cpp"
 	File.open(source_file, 'w') {|f| f.write(doc) }
 end
 
@@ -151,9 +165,9 @@ def register_file(sources_cmake, filename)
 	end
 end
 
-def register(openms_path, path, clazz)
-	include_cmake = "#{openms_path}/include/OpenMS/#{path}/sources.cmake"
-	source_cmake = "#{openms_path}/source/#{path}/sources.cmake"
+def register(openms_path, lib_name, path, clazz)
+	include_cmake = "#{openms_path}/src/#{lib_name}/include/OpenMS/#{path}/sources.cmake"
+	source_cmake = "#{openms_path}/src/#{lib_name}/source/#{path}/sources.cmake"
 
 	register_file(include_cmake, "#{clazz}.h")
 	register_file(source_cmake, "#{clazz}.cpp")
@@ -167,13 +181,13 @@ opts = GetoptLong.new(
 
 maintainer = ""
 
-usage = "#{File.basename($0)} --maintainer \"Maintainer Line\" OPENMS_SOURCE CLAZZNAME_W_PATH
+usage = "#{File.basename($0)} --maintainer \"Maintainer Line\" OPENMS_SOURCE LIBNAME CLAZZNAME_W_PATH
 
 -h, --help:
   show help
 -v, --verbose:
   increase verbosity
--m, --maintainer:
+--maintainer:
 	set the maintainer of the generated class
 "
 
@@ -188,8 +202,8 @@ opts.each do |opt, arg|
   end
 end
 
-if ARGV.length != 2
-	puts "Missing openms path and class name. Abort!"
+if ARGV.length != 3
+	puts "Missing openms path, lib name and class name. Abort!"
 	exit 1
 elsif maintainer == ""
   puts "Missing maintainer/author information. Abort!"
@@ -197,10 +211,15 @@ elsif maintainer == ""
 end
 
 openms_path = ARGV.shift
+lib_name = ARGV.shift
 clazz_w_path = ARGV.shift
 
 if not isOpenMS(openms_path)
   exit 1
+end
+
+if not libExists(openms_path, lib_name)
+	exit 1
 end
 
 # check if the required path already exists
@@ -211,18 +230,18 @@ clazz=path_elements[path_elements.length-1]
 path=path_elements[0..path_elements.length-2] * "/"
 
 # create missing directories
-if not File.exist?("#{openms_path}/include/OpenMS/#{path}")
-	create_header_sources(openms_path, path)
+if not File.exist?("#{openms_path}/src/#{lib_name}/include/OpenMS/#{path}")
+	create_header_sources(openms_path, lib_name, path)
 end
 
-if not File.exist?("#{openms_path}/source/#{path}")
-	create_source_sources(openms_path, path)
+if not File.exist?("#{openms_path}/src/#{lib_name}/source/#{path}")
+	create_source_sources(openms_path, lib_name, path)
 end
 
 # create header / source
-create_sources(openms_path, path, clazz, maintainer)
+create_sources(openms_path, lib_name, path, clazz, maintainer)
 
 # register in sources.cmake
-register(openms_path, path, clazz)
+register(openms_path, lib_name, path, clazz)
 
 puts "Successfully added class \"#{clazz}\" to OpenMS. Do not forget to add the corresponding test."

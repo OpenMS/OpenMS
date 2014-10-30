@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -844,7 +844,7 @@ protected:
         // loading input
         //-------------------------------------------------------------
 
-        FeatureMap<> feature_map;
+        FeatureMap feature_map;
         FeatureXMLFile f;
         //f.setLogType(log_type_);
         // this does not work yet implicitly - not supported by FeatureXMLFile
@@ -859,12 +859,12 @@ protected:
         //-------------------------------------------------------------
 
         //copy all properties
-        FeatureMap<> map_sm = feature_map;
+        FeatureMap map_sm = feature_map;
         //.. but delete feature information
         map_sm.clear(false);
 
         // only keep charge ch_l:ch_u   (WARNING: feature files without charge information have charge=0, see Ctor of KERNEL/Feature.h)
-        for (FeatureMap<>::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
+        for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
         {
           bool const rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm_it->getRT()));
           bool const mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm_it->getMZ()));
@@ -964,7 +964,7 @@ protected:
         {
           if (maps.size() == 1) // When extracting a feature map from a consensus map, only one map ID should be specified. Hence 'maps' should contain only one integer.
           {
-            FeatureMap<> feature_map_filtered;
+            FeatureMap feature_map_filtered;
             FeatureXMLFile ff;
 
             for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it)

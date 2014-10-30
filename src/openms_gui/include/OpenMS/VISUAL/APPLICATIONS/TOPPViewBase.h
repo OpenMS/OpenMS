@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -380,7 +380,7 @@ protected:
 
     /// add annotations from an AccurateMassSearch to an MS1 spectrum
     /// @return true on success, otherwise false
-    bool annotateMS1FromMassFingerprinting_(const FeatureMap<>& identifications);
+    bool annotateMS1FromMassFingerprinting_(const FeatureMap& identifications);
      
     /// unique list of files referenced by all layers
     std::set<String> getFilenamesOfOpenFiles_();

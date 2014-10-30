@@ -5,32 +5,39 @@ set(directory source/APPLICATIONS/UTILS)
 set(UTILS_executables
 AccurateMassSearch
 CVInspector
-DeMeanderize
 DecoyDatabase
+DeMeanderize
 Digestor
 DigestorMotif
 ERPairFinder
 FeatureFinderSuperHirn
 FFEval
 FuzzyDiff
-IDEvaluator
+IDDecoyProbability
 IDExtractor
 IDMassAccuracy
 IDSplitter
-IDDecoyProbability
-RTEvaluation
-ImageCreator
-INIUpdater
 LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess
+MapAlignmentEvaluation
 MassCalculator
 MetaboliteSpectralMatcher
 MRMPairFinder
 MSSimulator
-MapAlignmentEvaluation
 OpenMSInfo
 PeakPickerIterative
+QCCalculator
+QCEmbedder
+QCExporter
+QCExtractor
+QCImporter
+QCMerger
+QCShrinker
+RNPxl
+RNPxlXICFilter
+RTAnnotator
+RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
 SimpleSearchEngine
@@ -38,16 +45,6 @@ SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
 XMLValidator
-QCCalculator
-QCImporter
-QCEmbedder
-QCExporter
-QCExtractor
-QCMerger
-QCShrinker
-RNPxl
-RNPxlXICFilter
-RTAnnotator
 #SimpleSearchEngine
 #RNPxlSearch
 )
@@ -66,7 +63,7 @@ if(NOT DISABLE_OPENSWATH)
 endif(NOT DISABLE_OPENSWATH)
 
 
-## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
+## all targets requiring OpenMS_GUI
 set(UTILS_executables_with_GUIlib
 IDEvaluator
 ImageCreator
@@ -75,7 +72,8 @@ INIUpdater
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
-foreach(i ${UTILS_executables})
+foreach(i ${UTILS_executables} ${UTILS_executables_with_GUIlib})
 	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
+
 source_group("" FILES ${sources_VS})

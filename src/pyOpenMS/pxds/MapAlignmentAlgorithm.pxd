@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>" namespa
         MapAlignmentAlgorithm(MapAlignmentAlgorithm) nogil except + #wrap-ignore
         void alignPeakMaps(libcpp_vector[ MSExperiment[Peak1D, ChromatogramPeak] ] & , libcpp_vector[ TransformationDescription ] & ) nogil except +
         void alignCompactFeatureMaps(libcpp_vector[ libcpp_vector[ Peak2D ] ] & , libcpp_vector[ TransformationDescription ] & ) nogil except +
-        void alignFeatureMaps(libcpp_vector[ FeatureMap[Feature] ] & , libcpp_vector[ TransformationDescription ] & ) nogil except +
+        void alignFeatureMaps(libcpp_vector[ FeatureMap ] & , libcpp_vector[ TransformationDescription ] & ) nogil except +
         void alignConsensusMaps(libcpp_vector[ ConsensusMap ] & , libcpp_vector[ TransformationDescription ] & ) nogil except +
         void alignPeptideIdentifications(libcpp_vector[ libcpp_vector[ PeptideIdentification ] ] & , libcpp_vector[ TransformationDescription ] & ) nogil except +
         void setReference(Size reference_index, String & reference_file) nogil except +

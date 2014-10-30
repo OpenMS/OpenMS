@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,11 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
+
 #include <cmath>
 #include <boost/numeric/conversion/cast.hpp>
-
-#ifdef OPENMS_ASSERTIONS
-#define OPENMS_PRECONDITION(condition, message)\
- if (!(condition))\
-    { throw std::runtime_error(message); }
-#else
-#define OPENMS_PRECONDITION(condition, message)
-#endif
 
 namespace OpenSwath
 {
@@ -64,7 +58,7 @@ namespace OpenSwath
 
     double NormalizedManhattanDist(double x[], double y[], int n)
     {
-      OPENMS_PRECONDITION(n > 0, "Need at least one element");
+      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
 
       double delta_ratio_sum = 0;
       normalize_sum(x, n);
@@ -78,7 +72,7 @@ namespace OpenSwath
 
     double RootMeanSquareDeviation(double x[], double y[], int n)
     {
-      OPENMS_PRECONDITION(n > 0, "Need at least one element");
+      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
 
       double result = 0;
       for (int i = 0; i < n; i++)
@@ -91,7 +85,7 @@ namespace OpenSwath
 
     double SpectralAngle(double x[], double y[], int n)
     {
-      OPENMS_PRECONDITION(n > 0, "Need at least one element");
+      OPENSWATH_PRECONDITION(n > 0, "Need at least one element");
 
       double dotprod = 0;
       double x_len = 0;
@@ -110,7 +104,7 @@ namespace OpenSwath
 
     XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType & array)
     {
-      OPENMS_PRECONDITION(array.size() > 0, "Cannot get highest apex from empty array.");
+      OPENSWATH_PRECONDITION(array.size() > 0, "Cannot get highest apex from empty array.");
 
       XCorrArrayType::iterator max_it = array.begin();
       double max = array.begin()->second;
@@ -127,7 +121,7 @@ namespace OpenSwath
 
     void standardize_data(std::vector<double> & data)
     {
-      OPENMS_PRECONDITION(data.size() > 0, "Need non-empty array.");
+      OPENSWATH_PRECONDITION(data.size() > 0, "Need non-empty array.");
 
       // subtract the mean and divide by the standard deviation
       double mean = std::accumulate(data.begin(), data.end(), 0.0) / (double) data.size();
@@ -147,7 +141,7 @@ namespace OpenSwath
     XCorrArrayType normalizedCrossCorrelation(std::vector<double> & data1,
       std::vector<double> & data2, int maxdelay, int lag = 1)
     {
-      OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       // normalize the data
       standardize_data(data1);
@@ -163,7 +157,7 @@ namespace OpenSwath
     XCorrArrayType calculateCrossCorrelation(std::vector<double> & data1,
       std::vector<double> & data2, int maxdelay, int lag)
     {
-      OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
       XCorrArrayType result;
       int datasize = boost::numeric_cast<int>(data1.size());
@@ -189,7 +183,7 @@ namespace OpenSwath
     XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double> & data1,
       std::vector<double> & data2, bool normalize)
     {
-      OPENMS_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");
+      OPENSWATH_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");
       int maxdelay = boost::numeric_cast<int>(data1.size());
       int lag = 1;
 

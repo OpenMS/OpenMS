@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,16 +82,26 @@ void fill_mock_objects(MockMRMFeature * imrmfeature, std::vector<std::string>& n
     121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
   };
   std::vector<double> intensity2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+  static const double arr3[] = 
+  {
+    0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0
+  };
+  std::vector<double> ms1intensity (arr3, arr3 + sizeof(arr3) / sizeof(arr3[0]) );
 
   boost::shared_ptr<MockFeature> f1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
   boost::shared_ptr<MockFeature> f2_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
+  boost::shared_ptr<MockFeature> ms1_ptr = boost::shared_ptr<MockFeature>(new MockFeature());
   f1_ptr->m_intensity_vec = intensity1;
   f2_ptr->m_intensity_vec = intensity2;
+  ms1_ptr->m_intensity_vec = ms1intensity;
   std::map<std::string, boost::shared_ptr<MockFeature> > features;
   features["group1"] = f1_ptr;
   features["group2"] = f2_ptr;
-  imrmfeature->m_features = features;
+  imrmfeature->m_features = features; // add features
 
+  std::map<std::string, boost::shared_ptr<MockFeature> > ms1_features;
+  ms1_features["ms1trace"] = ms1_ptr;
+  imrmfeature->m_precursor_features = ms1_features; // add ms1 feature
 }
 
 ///////////////////////////
@@ -132,8 +142,10 @@ data1 = [5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5
        8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392]
 data2 = [15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
        121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108]
+ms1data = [0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0]
 data1 = (data1 - mean(data1) ) / std(data1)
 data2 = (data2 - mean(data2) ) / std(data2)
+ms1data = (ms1data - mean(ms1data) ) / std(ms1data)
 xcorrmatrix_0_0 = correlate(data1, data1, "same") / len(data1)
 xcorrmatrix_0_1 = correlate(data1, data2, "same") / len(data1)
 
@@ -147,6 +159,20 @@ mean(xcorr_deltas) + std(xcorr_deltas, ddof=1) # coelution score
 # 2.7320508075688772
 mean(xcorr_max) # shape score
 # 0.13232774079239637
+
+# MS1 level
+
+xcorrvector_1 = correlate(ms1data, data1, "same") / len(data1)
+xcorrvector_2 = correlate(ms1data, data2, "same") / len(data2)
+max_el0 = max(enumerate(xcorrvector_1), key= lambda x: x[1])
+max_el1 = max(enumerate(xcorrvector_2), key= lambda x: x[1])
+xcorr_deltas = [0, abs(max_el0[0] - max_el1[0])]
+xcorr_max = [max_el0[1], max_el1[1]]
+
+mean(xcorr_deltas) + std(xcorr_deltas, ddof=1) # coelution score
+# 1.8213672050459184
+mean(xcorr_max) # shape score
+# 0.54120799790227003
 
  *
 */
@@ -189,6 +215,21 @@ BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
 }
 END_SECTION
 
+BOOST_AUTO_TEST_CASE(initializeMS1XCorr)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+
+  //initialize the XCorr vector
+  mrmscore.initializeMS1XCorr(imrmfeature, native_ids, "ms1trace");
+
+  TEST_EQUAL(mrmscore.getXCorrMatrix().size(), 0)
+}
+END_SECTION
+
 BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
@@ -223,7 +264,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score(), (1+0.3969832+1)/3.0) // mean + std deviation
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score(), (1.0 + 0.3969832 + 1.0)/3.0) // mean + std deviation
 }
 END_SECTION
 
@@ -240,6 +281,36 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score_weighted)
   // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)
   TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score_weighted(weights), 0.6984916)
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(calcMS1XcorrCoelutionScore)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+
+  //initialize the XCorr vector
+  mrmscore.initializeMS1XCorr(imrmfeature, native_ids, "ms1trace");
+
+  TEST_REAL_SIMILAR(mrmscore.calcMS1XcorrCoelutionScore(), 1 + std::sqrt(2.0) ) // mean + std deviation
+}
+END_SECTION
+
+BOOST_AUTO_TEST_CASE(calcMS1XcorrShape_score)
+{
+  MockMRMFeature * imrmfeature = new MockMRMFeature();
+  MRMScoring mrmscore;
+
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
+
+  //initialize the XCorr vector
+  mrmscore.initializeMS1XCorr(imrmfeature, native_ids, "ms1trace");
+
+  TEST_REAL_SIMILAR(mrmscore.calcMS1XcorrShape_score(), (0.4657062259416978 + 0.61670976986284221 ) / 2.0 ) // mean + std deviation
 }
 END_SECTION
 

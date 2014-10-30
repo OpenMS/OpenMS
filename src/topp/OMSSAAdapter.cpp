@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -426,6 +426,14 @@ protected:
     String db_name = String(getStringOption_("database"));
     // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
+    //-------------------------------------------------------------
+    // Validate user parameters
+    //-------------------------------------------------------------
+    if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
+    {
+      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      return ILLEGAL_PARAMETERS;
+    }
 
     if (db_name.suffix('.') != "psq")
     {
@@ -485,6 +493,7 @@ protected:
       }
       parameters << "-teppm";   // only from OMSSA 2.1.8 on
     }
+
     parameters << "-zl" << String(getIntOption_("min_precursor_charge"));         //String(getIntOption_("zl"));
     parameters << "-zh" <<  String(getIntOption_("max_precursor_charge"));         //String(getIntOption_("zh"));
     parameters << "-zt" <<  String(getIntOption_("zt"));

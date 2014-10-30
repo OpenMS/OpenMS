@@ -62,6 +62,7 @@ AxisPainter.h
 AxisWidget.h
 ColorSelector.h
 EnhancedTabBar.h
+GUIProgressLoggerImpl.h
 HistogramWidget.h
 LayerData.h
 MetaDataBrowser.h

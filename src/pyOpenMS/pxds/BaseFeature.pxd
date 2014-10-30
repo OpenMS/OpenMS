@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
         #    UniqueIdInterface
 
         BaseFeature()  nogil except +
-        BaseFeature(BaseFeature &) # wrap-ignore
+        BaseFeature(BaseFeature &) nogil except +
 
         float getQuality()  nogil except +
         void setQuality(float q) nogil except +

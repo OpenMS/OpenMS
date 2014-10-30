@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -448,7 +448,7 @@ namespace OpenMS
         // if (mt_quality >= 1.2)
         //      {
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
 #endif
         single_mtraces.push_back(mt);
 
@@ -539,7 +539,7 @@ namespace OpenMS
           // if ((new_mt_length >= min_trace_length_) && (new_mt_length <= max_trace_length_))
           //{
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (OPENMS_ElutionPeakDetection_mtraces)
 #endif
           single_mtraces.push_back(new_mt);
         }

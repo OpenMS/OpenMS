@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,9 +46,11 @@ namespace OpenMS
   /**
     @brief This class stores a SRM/MRM transition
 
-    The default values for precursor and product m/z values are
-    set to numeric_limits<double>::max(). Default values for
-    precursor an product charge is set to numeric_limits<Int>::max().
+    This class is capable of representing a <Transition> tag in a TraML
+    document completely and contains all associated information.
+
+    The default values for precursor m/z is 0.0 which indicates that it is
+    uninitialized.
   */
   class OPENMS_DLLAPI ReactionMonitoringTransition :
     public CVTermList
@@ -205,8 +207,9 @@ protected:
     // Prediction
     // cvparam / userParam
 
-    // A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z
+    // A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z)
     double precursor_mz_;
+
     CVTermList precursor_cv_terms_;
 
     Product product_;

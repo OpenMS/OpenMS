@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -542,6 +542,10 @@ namespace OpenMS
       if (remove_CNterminal_mods && MRMDecoy::has_CNterminal_mods(peptide)) {continue;}
       peptide.id = decoy_tag + peptide.id;
       OpenMS::String original_sequence = peptide.sequence;
+      if (!peptide.getPeptideGroupLabel().empty()) 
+      {
+          peptide.setPeptideGroupLabel(decoy_tag + peptide.getPeptideGroupLabel());
+      }
 
       if (method == "pseudo-reverse")
       {

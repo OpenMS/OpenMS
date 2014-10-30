@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -147,14 +147,15 @@ protected:
   void loadStrings_(String filename, std::vector<String>& sequences)
   {
     TextFile text_file(filename.c_str(), true);
-    TextFile::iterator it;
+    TextFile::ConstIterator it;
 
     sequences.clear();
 
     it = text_file.begin();
     while (it != text_file.end())
     {
-      sequences.push_back((*it).trim());
+      sequences.push_back(*it);
+      sequences.back().trim();
       ++it;
     }
   }

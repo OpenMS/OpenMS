@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,8 +38,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimplest.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSimple.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
@@ -47,34 +45,23 @@
 namespace OpenMS
 {
 
-  template <class PeakType, class FeatureType>
-  void FeatureFinderAlgorithm<PeakType, FeatureType>::registerChildren()
+  template <class PeakType>
+  void FeatureFinderAlgorithm<PeakType>::registerChildren()
   {
-    // deprecated:
-    // Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
-    //  (
-    //   FeatureFinderAlgorithmSimplest<PeakType,FeatureType>::getProductName(),
-    //   &FeatureFinderAlgorithmSimplest<PeakType,FeatureType>::create
-    //  );
-    // Factory<FeatureFinderAlgorithm<PeakType,FeatureType> >::registerProduct
-    //  (
-    //   FeatureFinderAlgorithmSimple<PeakType,FeatureType>::getProductName(),
-    //   &FeatureFinderAlgorithmSimple<PeakType,FeatureType>::create
-    //  );
-    Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::registerProduct
+    Factory<FeatureFinderAlgorithm<PeakType> >::registerProduct
     (
-      FeatureFinderAlgorithmPicked<PeakType, FeatureType>::getProductName(),
-      &FeatureFinderAlgorithmPicked<PeakType, FeatureType>::create
+      FeatureFinderAlgorithmPicked<PeakType>::getProductName(),
+      &FeatureFinderAlgorithmPicked<PeakType>::create
     );
-    Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::registerProduct
+    Factory<FeatureFinderAlgorithm<PeakType> >::registerProduct
     (
-      FeatureFinderAlgorithmIsotopeWavelet<PeakType, FeatureType>::getProductName(),
-      &FeatureFinderAlgorithmIsotopeWavelet<PeakType, FeatureType>::create
+      FeatureFinderAlgorithmIsotopeWavelet<PeakType>::getProductName(),
+      &FeatureFinderAlgorithmIsotopeWavelet<PeakType>::create
     );
-    Factory<FeatureFinderAlgorithm<PeakType, FeatureType> >::registerProduct
+    Factory<FeatureFinderAlgorithm<PeakType> >::registerProduct
     (
-      FeatureFinderAlgorithmMRM<PeakType, FeatureType>::getProductName(),
-      &FeatureFinderAlgorithmMRM<PeakType, FeatureType>::create
+      FeatureFinderAlgorithmMRM<PeakType>::getProductName(),
+      &FeatureFinderAlgorithmMRM<PeakType>::create
     );
 
   }

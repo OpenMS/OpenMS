@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,30 +64,30 @@ public:
     RawTandemMSSignalSimulation();
 
     /// Constructor taking a random generator
-    explicit RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr rng);
+    explicit RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr rng);
 
     /// Copy constructor
-    RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation & source);
+    RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation& source);
 
     /// Destructor
     virtual ~RawTandemMSSignalSimulation();
     //@}
 
-    RawTandemMSSignalSimulation & operator=(const RawTandemMSSignalSimulation & source);
+    RawTandemMSSignalSimulation& operator=(const RawTandemMSSignalSimulation& source);
 
     /**
 
      */
-    void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &, MSSimExperiment &);
+    void generateRawTandemSignals(const SimTypes::FeatureMapSim&, SimTypes::MSSimExperiment&, SimTypes::MSSimExperiment&);
 
 
 protected:
-    void generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
+    void generateMSESpectra_(const SimTypes::FeatureMapSim& features, const SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& ms2);
 
-    void generatePrecursorSpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
+    void generatePrecursorSpectra_(const SimTypes::FeatureMapSim& features, const SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& ms2);
 
     /// Random number generator
-    MutableSimRandomNumberGeneratorPtr  rnd_gen_;
+    SimTypes::MutableSimRandomNumberGeneratorPtr  rnd_gen_;
   };
 
 }
