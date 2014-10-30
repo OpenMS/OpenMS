@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MzIdentML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://psidev.info/psi/pi/mzIdentML/1.1 http://psi-pi.googlecode.com/svn/trunk/schema/mzIdentML1.1.0.xsd"
+	xmlns="http://psidev.info/psi/pi/mzIdentML/1.1"
+	version="1.1.0"
+	id="OpenMS_866149981052773223"
+	creationDate="2014-10-26 16:47:28">
+<cvList> 
+ 	<cv id="PSI-MS" fullName="Proteomics Standards Initiative Mass Spectrometry Vocabularies"  uri="http://psidev.cvs.sourceforge.net/viewvc/*checkout*/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo" version="3.15.0"></cv> 
+ 	<cv id="UNIMOD" fullName="UNIMOD"        uri="http://www.unimod.org/obo/unimod.obo"></cv> 
+ 	<cv id="UO"     fullName="UNIT-ONTOLOGY" uri="http://obo.cvs.sourceforge.net/*checkout*/obo/obo/ontology/phenotype/unit.obo"></cv>
+</cvList>
+<AnalysisSoftwareList>
+	<AnalysisSoftware version="" name="XTandem" id="9789565454363393397"> 
+		<SoftwareName> 
+ 			<cvParam accession="MS:1001476" cvRef="PSI-MS" name="X\!Tandem"/>
+		</SoftwareName> 
+	</AnalysisSoftware> 
+	<AnalysisSoftware version="OpenMS TOPP v1.9" name="TOPP software" id="10940322185299572668"> 
+		<SoftwareName> 
+			<cvParam accession="MS:1000752" cvRef="PSI-MS" name="TOPP software"/> 
+		</SoftwareName> 
+	</AnalysisSoftware> 
+</AnalysisSoftwareList>
+<SequenceCollection>
+	<Peptide id="11173222678184835367"> 
+		<PeptideSequence>YIPLHLYLNR</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="12983049174635334650"> 
+		<PeptideSequence>FEPCAQLPLK</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="15851552407550078102"> 
+		<PeptideSequence>DKNASLQLLQKEK</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="1605347966742745625"> 
+		<PeptideSequence>WPPVHLLPGCDK</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="17044888714768812864"> 
+		<PeptideSequence>QVDGQKIHSSTMNNRR</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="2147027543568582784"> 
+		<PeptideSequence>VTAFIPPWVK</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="2765290291069155737"> 
+		<PeptideSequence>TPEVDDEALEK</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="4176306186017393615"> 
+		<PeptideSequence>LFVRLAWSDR</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="7399153755940907836"> 
+		<PeptideSequence>AQSCDKLEPDRR</PeptideSequence> 
+	</Peptide> 
+ 	<Peptide id="7543961793621177255"> 
+		<PeptideSequence>GDFGADAQGAMTK</PeptideSequence> 
+	</Peptide> 
+ </SequenceCollection>
+<AnalysisCollection>
+	<SpectrumIdentification id="1604437514165643590" spectrumIdentificationProtocol_ref="8269315978033368480" spectrumIdentificationList_ref="593445282485102000">
+		<InputSpectra/>
+		<SearchDatabaseRef searchDatabase_ref=""/>
+	</SpectrumIdentification>
+</AnalysisCollection>
+<AnalysisProtocolCollection>
+	<SpectrumIdentificationProtocol id="8269315978033368480" analysisSoftware_ref="9789565454363393397"> 
+		<SearchType>
+			<cvParam accession="MS:1001083" cvRef="PSI-MS" name="ms-ms search"/> 
+		</SearchType>
+		<AdditionalSearchParams>
+		</AdditionalSearchParams>
+		<Threshold>
+			<cvParam accession="MS:1001494" cvRef="PSI-MS" name="no threshold"/>
+		</Threshold>
+	</SpectrumIdentificationProtocol>
+</AnalysisProtocolCollection>
+<DataCollection>
+	<Inputs>
+		<SearchDatabase location="uniprot_sprot.fasta.pro" id="17493926453973814457" > 
+			<FileFormat> 
+ <cvParam accession="MS:1001348" cvRef="PSI-MS" name="FASTA format"/>
+			</FileFormat>
+			<DatabaseName>
+				<userParam name="uniprot_sprot.fasta.pro"/>
+			</DatabaseName>
+		</SearchDatabase> 
+		<SpectraData location="UNKNOWN" id="11709933626427219209">
+			<FileFormat> 
+			<cvParam accession="MS:1000584" cvRef="PSI-MS" name="mzML format"/>
+			</FileFormat>
+			<SpectrumIDFormat> 
+ <cvParam accession="MS:1000774" cvRef="PSI-MS" name="multiple peak list nativeID format"/>
+			</SpectrumIDFormat> 
+		</SpectraData>
+</Inputs>
+	<AnalysisData>
+		<SpectrumIdentificationList id="593445282485102000"> 
+			<FragmentationTable>
+				<Measure id="Measure_MZ">
+					<cvParam accession="MS:1001225" cvRef="PSI-MS" unitCvRef="PSI-MS" unitName="m/z" unitAccession="MS:1000040" name="product ion m/z"/>
+				</Measure>
+			</FragmentationTable>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:579.74@RT:1" id="2361000720682577780"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="1"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="2147027543568582784" calculatedMassToCharge="579.339511870371" experimentalMassToCharge="579.74" chargeState="2" id="808647949834284702"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="27.1"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:650.777@RT:2" id="18100507750771536772"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="2"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="11173222678184835367" calculatedMassToCharge="651.371874997971" experimentalMassToCharge="650.777" chargeState="2" id="12837118912066371937"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="29.3"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:623.746@RT:3" id="2787781383983586622"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="3"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="2765290291069155737" calculatedMassToCharge="623.295894306571" experimentalMassToCharge="623.746" chargeState="2" id="5678045003727843004"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="42.4"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:573.228@RT:4" id="4849702468630246906"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="4"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="12983049174635334650" calculatedMassToCharge="573.304812171571" experimentalMassToCharge="573.228" chargeState="2" id="10470594117742704509"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="24.2"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:759.895@RT:5" id="17199742333460489218"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="5"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="15851552407550078102" calculatedMassToCharge="757.930483801021" experimentalMassToCharge="759.895" chargeState="2" id="2658749211663263146"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="27"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:708.457@RT:6" id="5595954281095202223"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="6"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="1605347966742745625" calculatedMassToCharge="681.355367862971" experimentalMassToCharge="708.457" chargeState="2" id="1655302385150345964"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="24.7"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:631.228@RT:7" id="7978306594087023913"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="7"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="4176306186017393615" calculatedMassToCharge="631.853849418221" experimentalMassToCharge="631.228" chargeState="2" id="11003681611552641014"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="22.6"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:635.672@RT:8" id="13494464894100374137"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="8"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="7543961793621177255" calculatedMassToCharge="634.782430623721" experimentalMassToCharge="635.672" chargeState="2" id="1626808351050731449"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="39.4"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:934.053@RT:9" id="12555568082562549377"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="9"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="17044888714768812864" calculatedMassToCharge="935.968669357421" experimentalMassToCharge="934.053" chargeState="2" id="14227792816104567323"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="28.9"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+			<SpectrumIdentificationResult spectraData_ref="11709933626427219209" spectrumID="MZ:707.895@RT:10" id="4908944546298858933"> 
+				<cvParam accession="MS:1000894" cvRef="PSI-MS" name="retention time" value="10"/>
+				<SpectrumIdentificationItem passThreshold="1" rank="0" peptide_ref="7399153755940907836" calculatedMassToCharge="709.346260862971" experimentalMassToCharge="707.895" chargeState="2" id="1481611935744170452"> 
+					<cvParam accession="MS:1001330" cvRef="PSI-MS" name="X\!Tandem:expect" value="24.6"/>
+				</SpectrumIdentificationItem>
+			</SpectrumIdentificationResult>
+		</SpectrumIdentificationList>
+	</AnalysisData>
+</DataCollection>
+</MzIdentML>
