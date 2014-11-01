@@ -316,7 +316,8 @@ namespace OpenMS
                   for(std::vector<ProteinHit>::const_iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
                   {
                       CVTermList cvs;
-                      db_sq_map_.insert(std::make_pair(ph->getAccession(), DBSequence{ph->getSequence(),dbref,ph->getAccession(),cvs}));
+                      DBSequence temp_struct = {ph->getSequence(),dbref,ph->getAccession(),cvs};
+                      db_sq_map_.insert(std::make_pair(ph->getAccession(), temp_struct));
                   }
               }
 
@@ -336,7 +337,9 @@ namespace OpenMS
                           int start = 0;
                           db_sq_map_[*dBSequence_ref].sequence.toQString().indexOf(pep.toQString(), start); // TODO @ mths : make that safe, also finds only the first - no biggy
                           bool idec = (String(ph->getMetaValue("target_decoy"))).hasSubstring("decoy");
-                          pe_ev_map_.insert(std::make_pair(pepevref,PeptideEvidence{start,start+pep.length(),ph->getAABefore(),ph->getAAAfter(),idec})); // TODO @ mths : double check start & end & chars for before & after
+                          int stop = start+pep.length();
+                          PeptideEvidence temp_struct = {start,stop,ph->getAABefore(),ph->getAAAfter(),idec};
+                          pe_ev_map_.insert(std::make_pair(pepevref, temp_struct)); // TODO @ mths : double check start & end & chars for before & after
                       }
                       hit_pev_.push_back(pepevs);
 
@@ -461,7 +464,9 @@ namespace OpenMS
             ret_up.insert(parseUserParam_(element_param));
           }
           else
-          {}// something else
+          {
+            LOG_WARN << "Misplaced Elements ignored in ParamGroup" << endl;
+          }// something else
         }
       }
       return std::make_pair(ret_cv,ret_up);
@@ -507,7 +512,14 @@ namespace OpenMS
         dv.setUnit(unitAcc+":"+unitName);
         if ( type == "xsd:float" || type == "xsd:double")
         {
-          dv = value.toDouble();
+          try
+          {
+            dv = value.toDouble();
+          }
+          catch (...)
+          {
+            LOG_ERROR << "Found float parameter not convertable to float type." << std::endl;
+          }
         }
         else if ( type == "xsd:int" || type == "xsd:unsignedInt")
         {
@@ -544,12 +556,10 @@ namespace OpenMS
         {
           // Found element node: re-cast as element
           DOMElement* element_AnalysisSoftware = dynamic_cast< xercesc::DOMElement* >( current_as );
-          //std::cout << "analysis software found: " << element_AnalysisSoftware->getAttribute(XMLString::transcode("version")) << std::endl;
 
           DOMElement* child = element_AnalysisSoftware->getFirstElementChild();
           while ( child )
           {
-            //std::cout << "as child: " << XMLString::transcode(child->getTagName()) << std::endl;
             if ((std::string)XMLString::transcode(child->getTagName()) == "SoftwareName")
             {
               DOMElement* element_cv = child->getFirstElementChild();
@@ -558,15 +568,12 @@ namespace OpenMS
                   if ((std::string)XMLString::transcode(element_cv->getTagName()) == "cvParam") // cave: might also be a UserParam
                   {
                     CVTerm swcv = parseCvParam_(element_cv);
-                    //std::cout << "as child cv: " << swcv.getName() << std::endl;
                     if (search_engine_ == "" && search_engine_version_ == "") // TODO @mths check if cv is search engine cv!
                     {
                       search_engine_ = swcv.getName();
                       search_engine_version_ = XMLString::transcode(element_AnalysisSoftware->getAttribute(XMLString::transcode("version")));
-                      //std::cout << "engine found: " << search_engine_ << std::endl;
-                      //std::cout << "version found: " << search_engine_version_ << std::endl;
                     }
-                    //else what?! refactor software in OpenMS!!
+                    //else what?! refactor software structure in OpenMS!!
                   }
               }
             }
@@ -598,7 +605,6 @@ namespace OpenMS
           DOMElement* child = element_dbs->getFirstElementChild();
           while ( child )
           {
-//            std::cout << "DBSequences child" << std::endl;
             if ((std::string)XMLString::transcode(child->getTagName()) == "Seq")
             {
               seq = (std::string)XMLString::transcode(child->getTextContent());
@@ -611,11 +617,11 @@ namespace OpenMS
           }
           if (acc != "")
           {
-            db_sq_map_.insert(std::make_pair(id, DBSequence{seq,dbref,acc,cvs}));
+            DBSequence temp_struct = {seq,dbref,acc,cvs};
+            db_sq_map_.insert(std::make_pair(id, temp_struct));
           }
         }
       }
-//      std::cout << "DBSequences found: " << count  << " / " << db_sq_map_.size() << std::endl;
     }
 
     void MzIdentMLDOMHandler::parsePeptideElements_(DOMNodeList * peptideElements)
@@ -635,7 +641,15 @@ namespace OpenMS
 
 
           DOMNodeList* pep_sib = element_pep->getChildNodes();
-          AASequence aas = parsePeptideSiblings_(pep_sib);
+          AASequence aas;
+          try
+          {
+            aas = parsePeptideSiblings_(pep_sib);
+          }
+          catch (...)
+          {
+              LOG_ERROR << "No amino acid seequence readable from Peptide" << endl;
+          }
 
           pep_map_.insert(std::make_pair(id,aas));
         }
@@ -739,7 +753,8 @@ namespace OpenMS
             }
             child = child->getNextElementSibling();
           }
-          si_map_.insert(std::make_pair(id,SpectrumIdentification{spectra_data_ref, searchDatabase_ref, spectrumIdentificationProtocol_ref, spectrumIdentificationList_ref}));
+          SpectrumIdentification temp_struct = {spectra_data_ref, searchDatabase_ref, spectrumIdentificationProtocol_ref, spectrumIdentificationList_ref};
+          si_map_.insert(std::make_pair(id, temp_struct));
 
           pro_id_->push_back(ProteinIdentification());
           ProteinIdentification::SearchParameters sp;
@@ -750,7 +765,6 @@ namespace OpenMS
           si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
         }
       }
-//      std::cout << "SpectrumIdentification found: " << count << std::endl;
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationProtocolElements_(DOMNodeList * spectrumIdentificationProtocolElements)
@@ -806,15 +820,15 @@ namespace OpenMS
                 }
                 delete val;
 
-                double massDelta = 0;
-                try
-                {
-                  massDelta = boost::lexical_cast<double>(XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta"))));
-                }
-                catch (...)
-                {
-                    LOG_ERROR << "Could not cast ModificationParam massDelta from " << XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta")));
-                }
+//                double massDelta = 0;
+//                try
+//                {
+//                  massDelta = boost::lexical_cast<double>(XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta"))));
+//                }
+//                catch (...)
+//                {
+//                    LOG_ERROR << "Could not cast ModificationParam massDelta from " << XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta")));
+//                }
 
                 CVTermList specificity_rules;
                 DOMElement* sub = sm->getFirstElementChild();
@@ -957,7 +971,8 @@ namespace OpenMS
             //      <DatabaseTranslation> omitted for now, not reflectable by our member structures
             //      <Masstable> omitted for now, not reflectable by our member structures
           }
-          sp_map_.insert(std::make_pair(id,SpectrumIdentificationProtocol{searchtype,enzymename,param_cv,param_up,modparam,p_tol,f_tol,tcv,tup})); //still needed??
+          SpectrumIdentificationProtocol temp_struct = {searchtype,enzymename,param_cv,param_up,modparam,p_tol,f_tol,tcv,tup};
+          sp_map_.insert(std::make_pair(id,temp_struct)); //still needed??
 
           //TODO @mths : FIXME from <SpectrumIdentification> a omnidirectional mapping of protocol, searchdb, specinput, and specidlist
 
@@ -975,7 +990,6 @@ namespace OpenMS
           }
         }
       }
-//      std::cout << "SpectrumIdentificationProtocol found: " << count << std::endl;
     }
 
     void MzIdentMLDOMHandler::parseInputElements_(DOMNodeList * inputElements)
@@ -1010,7 +1024,6 @@ namespace OpenMS
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
             DateTime releaseDate;
-//            TODO check befor cast
 //            releaseDate.set(String(XMLString::transcode(element_in->getAttribute(XMLString::transcode("releaseDate")))));
             String version = XMLString::transcode(element_in->getAttribute(XMLString::transcode("version")));
             //assumed that <DatabaseName> is the first child, following cv omitted for now
@@ -1026,10 +1039,10 @@ namespace OpenMS
               std::pair<String,DataValue> param = parseUserParam_(pren->getFirstElementChild());
               dbname = param.second.toString();
             }
-            input_dbs_.insert(std::make_pair(id, DatabaseInput{dbname,location,version,releaseDate}));
+            DatabaseInput temp_struct = {dbname,location,version,releaseDate};
+            input_dbs_.insert(std::make_pair(id, temp_struct));
           }
         }
-        //std::cout << "InputFiles found: " << count << std::endl;
       }
     }
 
@@ -1101,8 +1114,6 @@ namespace OpenMS
           }
         }
       }
-//      std::cout << "SpectrumIdentificationResults found: " << count << std::endl;
-//      std::cout << "example: " << pep_id_->back().getHits().size() << std::endl;
     }
 
     void MzIdentMLDOMHandler::parseSpectrumIdentificationItemElement_(DOMElement * spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref)
@@ -1144,7 +1155,7 @@ namespace OpenMS
         pass = val->fData.fValue.f_bool;
       }
       delete val;
-
+      LOG_DEBUG << "passThreshold value " << pass;
       // TODO @all: where to store passThreshold value?
 
       long double score = 0;
@@ -1403,7 +1414,6 @@ namespace OpenMS
             }
             else
             {
-              //std::cout << "going to throw up from <PeptideSequence>" << std::endl;
               throw "ERROR : Non Text Node";
             }
           }
@@ -1490,7 +1500,7 @@ namespace OpenMS
                 }
                 catch (int e)
                 {
-                    LOG_WARN << "Found unusable modification" << " @residue: " << aas.getResidue((SignedSize)index).getName() << String(index) << " mod: " << cv.getName() << std::endl;
+                  LOG_WARN << "Found unusable modification" << " @residue: " << aas.getResidue((SignedSize)index).getName() << String(index) << " mod: " << cv.getName() << std::endl;
                 }
               }
               cvp = cvp->getNextElementSibling();
