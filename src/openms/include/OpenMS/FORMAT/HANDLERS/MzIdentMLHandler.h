@@ -146,7 +146,7 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnyzme_(String& s, ProteinIdentification::DigestionEnzyme enzy, UInt indent) const;
+      void writeEnyzme_(String& s, ProteinIdentification::DigestionEnzyme enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params
       void writeModParam_(String& s,const std::vector<String>& fixed, const std::vector<String>& variable, UInt indent) const;

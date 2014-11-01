@@ -697,7 +697,8 @@ namespace OpenMS
           {
               LOG_WARN << "PeptideEvidence with unreadable isDecoy status found." << std::endl;
           }
-          pe_ev_map_.insert(std::make_pair(id,PeptideEvidence{start,end,pre,post,idec}));
+          PeptideEvidence temp_struct = {start,end,pre,post,idec};
+          pe_ev_map_.insert(std::make_pair(id,temp_struct));
           p_pv_map_.insert(std::make_pair(peptide_ref,id));
           pv_db_map_.insert(std::make_pair(id,dBSequence_ref));
         }
@@ -777,10 +778,6 @@ namespace OpenMS
           double f_tol = 0;
           CVTermList tcv;
           std::map<String, DataValue> tup;
-
-          //            std::vector< String > 	sp.fixed_modifications
-          //            std::vector< String > 	sp.variable_modifications
-
           DOMElement* child = element_sip->getFirstElementChild();
           while ( child )
           {
@@ -791,58 +788,97 @@ namespace OpenMS
             else if ((std::string)XMLString::transcode(child->getTagName()) == "AdditionalSearchParams")
             {
               std::pair<CVTermList,std::map<String,DataValue> > as_params = parseParamGroup_(child->getChildNodes());
-              sp = findSearchParameters_(as_params);
+              sp = findSearchParameters_(as_params); // this must be renamed!!
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "ModificationParams") // TODO @all where to store the specificities?
             {
+              std::vector<String> fix,var;
               DOMElement* sm = child->getFirstElementChild();
               while ( sm )
               {
-                  // TODO @mths: check availability before cast
-//                String fixedMod = XMLString::transcode(child->getAttribute(XMLString::transcode("fixedMod")));
-//                long double massDelta = String(XMLString::transcode(child->getAttribute(XMLString::transcode("massDelta")))).toDouble();
-//                String residues = XMLString::transcode(child->getAttribute(XMLString::transcode("residues")));
-                CVTermList specificities;
-
-                DOMElement* rule = sm->getFirstElementChild();
-                while ( rule )
+                String residues = XMLString::transcode(sm->getAttribute(XMLString::transcode("residues")));
+                bool fixedMod = false;
+                XSValue::Status status;
+                XSValue *val = XSValue::getActualValue(sm->getAttribute(XMLString::transcode("fixedMod")), XSValue::dt_boolean, status);
+                if ( status == XSValue::st_Init )
                 {
-                  specificities.consumeCVTerms(parseParamGroup_(rule->getChildNodes()).first.getCVTerms());
-                  rule = rule->getNextElementSibling();
+                  fixedMod = val->fData.fValue.f_bool;
+                }
+                delete val;
+
+                double massDelta = 0;
+                try
+                {
+                  massDelta = boost::lexical_cast<double>(XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta"))));
+                }
+                catch (...)
+                {
+                    LOG_ERROR << "Could not cast ModificationParam massDelta from " << XMLString::transcode(sm->getAttribute(XMLString::transcode("massDelta")));
+                }
+
+                CVTermList specificity_rules;
+                DOMElement* sub = sm->getFirstElementChild();
+                while ( sub )
+                {
+                  if ((std::string)XMLString::transcode(sub->getTagName()) == "cvParam")
+                  {
+                    String mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
+//                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname);
+//                    String mod = m.getName();
+                    String mod = mname + " (" + residues + ")";
+                    if (fixedMod)
+                    {
+                      fix.push_back(mod);
+                    }
+                    else
+                    {
+                      var.push_back(mod);
+                    }
+                  }
+                  else if ((std::string)XMLString::transcode(sub->getTagName()) == "SpecificityRules")
+                  {
+                    specificity_rules.consumeCVTerms(parseParamGroup_(sub->getChildNodes()).first.getCVTerms());
+                    // this is further ignored for now - nowhere to store
+                  }
+                  else
+                  {
+                    LOG_ERROR << "Misplaced information in ModificationParams ignored." << std::endl;
+                  }
+                  sub = sub->getNextElementSibling();
                 }
                 sm = sm->getNextElementSibling();
               }
-              modparam = parseParamGroup_(child->getChildNodes()).first;
+              sp.fixed_modifications = fix;
+              sp.variable_modifications = var;
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "Enzymes") // TODO @all : where store multiple enzymes for one identificationrun?
             {
-              LOG_WARN << "E:" << (std::string)XMLString::transcode(child->getAttribute(XMLString::transcode("independent"))); //delete me
               DOMElement* enzyme = child->getFirstElementChild(); //Enzyme elements
               while ( enzyme )
               {
                 int missedCleavages = -1;
                 try
                 {
-                  missedCleavages = boost::lexical_cast<int>(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages"))));
+                  missedCleavages = boost::lexical_cast<int>(std::string(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))));
                 }
-                catch (...)
+                catch (exception e)
                 {
-                    LOG_WARN << "Searchengines enzyme settings for missedCleavages unreadable." << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << std::endl;
+                    LOG_WARN << "Searchengines enzyme settings for missedCleavages unreadable: " << e.what()  << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << std::endl;
                 }
                 sp.missed_cleavages = missedCleavages;
 
 //                String semiSpecific = XMLString::transcode(enzyme->getAttribute(XMLString::transcode("semiSpecific"))); //xsd:boolean
 //                String cTermGain = XMLString::transcode(enzyme->getAttribute(XMLString::transcode("cTermGain")));
 //                String nTermGain = XMLString::transcode(enzyme->getAttribute(XMLString::transcode("nTermGain")));
-                int minDistance = -1;
-                try
-                {
-                  minDistance = String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("minDistance")))).toInt();
-                }
-                catch (...)
-                {
-                    LOG_WARN << "Searchengines settings for minDistance unreadable." << std::endl;
-                }
+//                int minDistance = -1;
+//                try
+//                {
+//                  minDistance = String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("minDistance")))).toInt();
+//                }
+//                catch (...)
+//                {
+//                    LOG_WARN << "Searchengines settings for minDistance unreadable." << std::endl;
+//                }
                 enzymename = "UNKNOWN";
                 DOMElement* sub = enzyme->getFirstElementChild();
                 while ( sub )
@@ -1108,7 +1144,8 @@ namespace OpenMS
         pass = val->fData.fValue.f_bool;
       }
       delete val;
-      // TODO @mths: store passThreshold value
+
+      // TODO @all: where to store passThreshold value?
 
       long double score = 0;
       std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(spectrumIdentificationItemElement->getChildNodes());
@@ -1340,8 +1377,7 @@ namespace OpenMS
       protein_identification.getHits().back().setSequence(db.sequence);
       protein_identification.getHits().back().setAccession(db.accession);
 //      protein_identification.getHits().back().setCoverage((long double)params.first.getCVTerms()["MS:1001093"].front().getValue()); //TODO @ mths: calc percent
-      protein_identification.getHits().back().setScore(boost::lexical_cast<double>(params.first.getCVTerms()["MS:1001171"].front().getValue())); //or any other score
-
+//      protein_identification.getHits().back().setScore(boost::lexical_cast<double>(params.first.getCVTerms()["MS:1001171"].front().getValue())); //or any other score
     }
 
     AASequence MzIdentMLDOMHandler::parsePeptideSiblings_(DOMNodeList * peptideSiblings)
@@ -1758,10 +1794,6 @@ namespace OpenMS
         else if (upit->first == "charges")
         {
           sp.charges = upit->second.toString();
-        }
-        else if (upit->first == "missed_cleavages")
-        {
-          sp.missed_cleavages = boost::lexical_cast<int>(upit->second.toString()); //TODO @mths: this belongs in <Enzymes> (also in writing)
         }
         else
         {

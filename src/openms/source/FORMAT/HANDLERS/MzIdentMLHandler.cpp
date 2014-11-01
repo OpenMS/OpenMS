@@ -529,7 +529,7 @@ namespace OpenMS
           sip += String("\n\t\t<AdditionalSearchParams>\n");
           writeMetaInfos_(sip,it->getSearchParameters(),3);
           sip += String(3, '\t') + "<userParam name=\"" + "charges" + "\" unitName=\"" + "xsd:string" + "\" value=\"" + it->getSearchParameters().charges + "\"/>" + "\n";
-          sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
+//          sip += String(3, '\t') + "<userParam name=\"" + "missed_cleavages" + "\" unitName=\"" + "xsd:integer" + "\" value=\"" + String(it->getSearchParameters().missed_cleavages) + "\"/>" + "\n";
           sip += String("\t\t</AdditionalSearchParams>\n");
           sip += String("\t\t<FragmentTolerance>\n");
           sip += String(3, '\t') + "<cvParam accession=\"MS:1001412\" name=\"search tolerance plus value\" cvRef=\"PSI-MS\" value=\"" + String(it->getSearchParameters().peak_mass_tolerance) + "\"/>" + "\n";
@@ -541,8 +541,8 @@ namespace OpenMS
           sip += String("\t\t</ParentTolerance>\n");
           sip += String("\t\t<Threshold>\n\t\t\t") + cv_.getTermByName("no threshold").toXMLString(cv_ns) + "\n";
           sip += String("\t\t</Threshold>\n");
-          writeEnyzme_(sip,it->getSearchParameters().enzyme,3);
-          writeModParam_(sip,it->getSearchParameters().fixed_modifications,it->getSearchParameters().variable_modifications,3);
+          writeModParam_(sip,it->getSearchParameters().fixed_modifications,it->getSearchParameters().variable_modifications,2);
+          writeEnyzme_(sip,it->getSearchParameters().enzyme, it->getSearchParameters().missed_cleavages, 2);
           sip += String("\t</SpectrumIdentificationProtocol>\n");
           sip_set.insert(sip);
           sip_ids.insert(std::pair<String, UInt64>(swcn, spid));
@@ -995,11 +995,11 @@ namespace OpenMS
       }
     }
 
-    void MzIdentMLHandler::writeEnyzme_(String& s, ProteinIdentification::DigestionEnzyme enzy, UInt indent) const
+    void MzIdentMLHandler::writeEnyzme_(String& s, ProteinIdentification::DigestionEnzyme enzy, UInt miss, UInt indent) const
     {
       String cv_ns = cv_.name();
       s += String(indent, '\t') + "<Enzymes independent=\"false\">" + "\n";
-      s += String(indent, '\t') + "\t" + "<Enzyme id=\"" + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
+      s += String(indent, '\t') + "\t" + "<Enzyme missedCleavages=\"" + String(miss) + "\" id=\"" + String(UniqueIdGenerator::getUniqueId()) + "\">" + "\n";
       s += String(indent, '\t') + "\t\t" + "<EnzymeName>" + "\n";
       if (enzy == ProteinIdentification::TRYPSIN)
       {
