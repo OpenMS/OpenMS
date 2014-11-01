@@ -59,7 +59,6 @@ namespace OpenMS
 {
   namespace Internal
   {
-    //TODO care for casts, switch validation on
     //TODO remodel CVTermList
     //TODO extend CVTermlist with CVCollection functionality for complete replacement??
     //TODO general id openms struct for overall parameter for one id run
@@ -285,7 +284,7 @@ namespace OpenMS
               rootElem->setAttribute(XMLString::transcode("xsi:schemaLocation"),
                                      XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1 ../../schema/mzIdentML1.1.0.xsd"));
               rootElem->setAttribute(XMLString::transcode("creationDate"),
-                                     XMLString::transcode("2011-03-25T13:16:49")); // TODO set date
+                                     XMLString::transcode(String(DateTime::now().getDate() + "T" + DateTime::now().getTime()).c_str()));
 
               // * cvList *
               DOMElement* cvl_p = xmlDoc->createElement(XMLString::transcode("cvList")); // TODO add generically
@@ -413,7 +412,7 @@ namespace OpenMS
                 XMLString::release(&message);
               }
               catch (...) {
-                cout << "Unexpected Exception \n" ;
+                LOG_ERROR << "Unexpected exception building the document tree." << std::endl;
               }
 
               dom_output->release();
@@ -518,7 +517,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            std::cout << "derp" << std::endl;
+            LOG_ERROR << "Found integer parameter not convertable to integer type." << std::endl;
           }
         }
         else
@@ -529,7 +528,7 @@ namespace OpenMS
       }
       else
       {
-        std::cout << "derp!" << std::endl;
+        LOG_ERROR << "No parameters found at given position." << std::endl;
         throw invalid_argument("no user param here");
       }
     }
@@ -722,6 +721,7 @@ namespace OpenMS
           String id = XMLString::transcode(element_si->getAttribute(XMLString::transcode("id")));
           String spectrumIdentificationProtocol_ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("spectrumIdentificationProtocol_ref")));
           String spectrumIdentificationList_ref = XMLString::transcode(element_si->getAttribute(XMLString::transcode("spectrumIdentificationList_ref")));
+          String spectrumIdentification_date = XMLString::transcode(element_si->getAttribute(XMLString::transcode("activityDate")));
 
           String searchDatabase_ref = "";
           String spectra_data_ref = "";
@@ -745,6 +745,7 @@ namespace OpenMS
           sp.db = input_dbs_[searchDatabase_ref].location;
           pro_id_->back().setSearchParameters(sp);
           pro_id_->back().setMetaValue("spectra_data",input_spectra_data_[spectra_data_ref]);//TODO @mths FIXME whilst reading mzid set spectra_data and spectrum_reference (ProteinIdentification, PeptideIdentification)
+          pro_id_->back().setDateTime(DateTime::fromString(spectrumIdentification_date.toQString(), "yyyy-MM-ddThh:mm:ss"));
           si_pro_map_.insert(std::make_pair(spectrumIdentificationList_ref,&pro_id_->back()));
         }
       }
@@ -768,14 +769,17 @@ namespace OpenMS
           String id = XMLString::transcode(element_sip->getAttribute(XMLString::transcode("id")));
 
           CVTerm searchtype;
-          String enzyme;
+          String enzymename;
           CVTermList param_cv;
           std::map<String, DataValue> param_up;
           CVTermList modparam;
-          long double p_tol = 0;
-          long double f_tol = 0;
+          double p_tol = 0;
+          double f_tol = 0;
           CVTermList tcv;
           std::map<String, DataValue> tup;
+
+          //            std::vector< String > 	sp.fixed_modifications
+          //            std::vector< String > 	sp.variable_modifications
 
           DOMElement* child = element_sip->getFirstElementChild();
           while ( child )
@@ -812,71 +816,79 @@ namespace OpenMS
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "Enzymes") // TODO @all : where store multiple enzymes for one identificationrun?
             {
-              if ((std::string)XMLString::transcode(child->getAttribute(XMLString::transcode("independent"))) == "0")
+              LOG_WARN << "E:" << (std::string)XMLString::transcode(child->getAttribute(XMLString::transcode("independent"))); //delete me
+              DOMElement* enzyme = child->getFirstElementChild(); //Enzyme elements
+              while ( enzyme )
               {
-                DOMElement* enzy = child->getFirstElementChild();
-                while ( enzy )
+                int missedCleavages = -1;
+                try
                 {
-                  String id = XMLString::transcode(enzy->getAttribute(XMLString::transcode("id")));
-                  String name = XMLString::transcode(enzy->getAttribute(XMLString::transcode("name")));
-                  int missedCleavages = -1;
-                  try
-                  {
-                    missedCleavages = String(XMLString::transcode(enzy->getAttribute(XMLString::transcode("missedCleavages")))).toInt();
-                  }
-                  catch (...)
-                  {
-                      LOG_WARN << "Searchengines enzyme settings for missedCleavages unreadable." << std::endl;
-                  }
+                  missedCleavages = boost::lexical_cast<int>(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages"))));
+                }
+                catch (...)
+                {
+                    LOG_WARN << "Searchengines enzyme settings for missedCleavages unreadable." << String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("missedCleavages")))) << std::endl;
+                }
+                sp.missed_cleavages = missedCleavages;
 
-                  String semiSpecific = XMLString::transcode(enzy->getAttribute(XMLString::transcode("semiSpecific"))); //xsd:boolean
-                  String cTermGain = XMLString::transcode(enzy->getAttribute(XMLString::transcode("cTermGain")));
-                  String nTermGain = XMLString::transcode(enzy->getAttribute(XMLString::transcode("nTermGain")));
-                  int minDistance = -1;
-                  try
+//                String semiSpecific = XMLString::transcode(enzyme->getAttribute(XMLString::transcode("semiSpecific"))); //xsd:boolean
+//                String cTermGain = XMLString::transcode(enzyme->getAttribute(XMLString::transcode("cTermGain")));
+//                String nTermGain = XMLString::transcode(enzyme->getAttribute(XMLString::transcode("nTermGain")));
+                int minDistance = -1;
+                try
+                {
+                  minDistance = String(XMLString::transcode(enzyme->getAttribute(XMLString::transcode("minDistance")))).toInt();
+                }
+                catch (...)
+                {
+                    LOG_WARN << "Searchengines settings for minDistance unreadable." << std::endl;
+                }
+                enzymename = "UNKNOWN";
+                DOMElement* sub = enzyme->getFirstElementChild();
+                while ( sub )
+                {
+                  //SiteRegex unstorable just now
+                  if ((std::string)XMLString::transcode(sub->getTagName()) == "EnzymeName")
                   {
-                    minDistance = String(XMLString::transcode(enzy->getAttribute(XMLString::transcode("minDistance")))).toInt();
-                  }
-                  catch (...)
-                  {
-                      LOG_WARN << "Searchengines settings for minDistance unreadable." << std::endl;
-                  }
-
-                  String enzymename = "UNKNOWN";
-                  DOMElement* sub = enzy->getFirstElementChild();
-                  if ( sub )
-                  {
-                    //SiteRegex unstorable just now
-                    if ((std::string)XMLString::transcode(sub->getTagName()) != "EnzymeName")
-                      sub = sub->getNextElementSibling();
-                    if ( sub )
+                    std::set<String> enzymes_terms;
+                    cv_.getAllChildTerms(enzymes_terms, "MS:1001045"); // cleavage agent name
+                    std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(sub->getChildNodes());
+                    for (std::map<String,std::vector<CVTerm> >::const_iterator it=params.first.getCVTerms().begin(); it!=params.first.getCVTerms().end(); ++it)
                     {
-                      //take the first param for name
-                      DOMElement* pren = sub->getFirstElementChild();
-                      if ((std::string)XMLString::transcode(pren->getTagName()) == "cvParam")
+                      if (enzymes_terms.find(it->first) != enzymes_terms.end())
                       {
-                        CVTerm param = parseCvParam_(pren->getFirstElementChild());
-                        enzymename = param.getValue();
+                        enzymename = it->second.front().getName();
                       }
-                      else if ((std::string)XMLString::transcode(pren->getTagName()) == "userParam")
+                      else
                       {
-                          std::pair<String,DataValue> param;
-                          try
-                          {
-                            param = parseUserParam_(pren->getFirstElementChild());
-                          }
-                          catch (...)
-                          {
-                              LOG_WARN << "Additional parameters for enzyme settings not readable." << std::endl;
-                          }
-                          enzymename = param.second.toString();
+                        LOG_WARN << "Additional parameters for enzyme settings not readable." << std::endl;
                       }
                     }
                   }
-                  enzyme = enzymename;
-                  enzy = enzy->getNextElementSibling();
+                  sub = sub->getNextElementSibling();
                 }
-              } // else uhoh?! what nao?
+                if (enzymename == "Trypsin")
+                {
+                  sp.enzyme = ProteinIdentification::TRYPSIN;
+                }
+                else if (enzymename == "PepsinA")
+                {
+                  sp.enzyme = ProteinIdentification::PEPSIN_A;
+                }
+                else if (enzymename == "Chymotrypsin")
+                {
+                  sp.enzyme = ProteinIdentification::CHYMOTRYPSIN;
+                }
+                else if (enzymename == "NoEnzyme")
+                {
+                  sp.enzyme = ProteinIdentification::NO_ENZYME;
+                }
+                else // if enzymename ==  || PROTEASE_K
+                {
+                  sp.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
+                }
+                enzyme = enzyme->getNextElementSibling();
+              }
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "FragmentTolerance")
             {
@@ -884,7 +896,8 @@ namespace OpenMS
               //+- take the numerically greater
               for (std::map<String,std::vector<CVTerm> >::const_iterator it=params.first.getCVTerms().begin(); it!=params.first.getCVTerms().end(); ++it)
               {
-                f_tol = std::max(f_tol, (long double)it->second.front().getValue());
+                f_tol = std::max(f_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
+                sp.peak_mass_tolerance = f_tol;
               }
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "ParentTolerance")
@@ -893,7 +906,8 @@ namespace OpenMS
               //+- take the numerically greater
               for (std::map<String,std::vector<CVTerm> >::const_iterator it=params.first.getCVTerms().begin(); it!=params.first.getCVTerms().end(); ++it)
               {
-                p_tol = std::max(p_tol, (long double)it->second.front().getValue());
+                p_tol = std::max(p_tol, boost::lexical_cast<double>(it->second.front().getValue().toString()));
+                sp.precursor_tolerance = p_tol;
               }
             }
             else if ((std::string)XMLString::transcode(child->getTagName()) == "Threshold")
@@ -907,7 +921,7 @@ namespace OpenMS
             //      <DatabaseTranslation> omitted for now, not reflectable by our member structures
             //      <Masstable> omitted for now, not reflectable by our member structures
           }
-          sp_map_.insert(std::make_pair(id,SpectrumIdentificationProtocol{searchtype,enzyme,param_cv,param_up,modparam,p_tol,f_tol,tcv,tup}));
+          sp_map_.insert(std::make_pair(id,SpectrumIdentificationProtocol{searchtype,enzymename,param_cv,param_up,modparam,p_tol,f_tol,tcv,tup})); //still needed??
 
           //TODO @mths : FIXME from <SpectrumIdentification> a omnidirectional mapping of protocol, searchdb, specinput, and specidlist
 
@@ -919,7 +933,7 @@ namespace OpenMS
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngine(search_engine_);
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngineVersion(search_engine_version_);
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setIdentifier(search_engine_); // TODO @mths: name/date of search
-              sp.db = si_pro_map_[si_it->second.spectrum_identification_list_ref]->getSearchParameters().db;
+              sp.db = si_pro_map_[si_it->second.spectrum_identification_list_ref]->getSearchParameters().db; // was previously set, but main parts of sp are set here
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchParameters(sp);
             }
           }
@@ -1006,7 +1020,7 @@ namespace OpenMS
           pep_id_->push_back(PeptideIdentification());
           pep_id_->back().setHigherScoreBetter(false); //either a q-value or an e-value, only if neither available there will be another
           pep_id_->back().setMetaValue("spectrum_reference",spectrumID); // TODO @mths consider SpectrumIDFormat to get just a index number here
-          PeptideIdentification().setScoreType(search_engine_);
+
           //fill pep_id_->back() with content
 
           //butt ugly!
@@ -1022,10 +1036,12 @@ namespace OpenMS
             }
             child = child->getNextElementSibling();
           }
-          //  setSignificanceThreshold
+          // TODO @mths: setSignificanceThreshold, but from where?
 
           pep_id_->back().setIdentifier(search_engine_); // TODO @mths: set name/date of search
           pep_id_->back().setMetaValue("spectrum_reference", spectrumID); //String scannr = substrings.back().reverse().chop(5);
+          //pep_id_->back().setScoreType(); #set in parseSpectrumIdentificationItemElement_
+
           //adopt cv s
           for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end() ; ++cvit)
           {
@@ -1107,7 +1123,7 @@ namespace OpenMS
       {
           if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
           {
-              if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
+            if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
             {
               score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
               spectrum_identification.setHigherScoreBetter(false);
@@ -1124,10 +1140,11 @@ namespace OpenMS
               scoretype = true;
               break;
           }
-          else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
+          else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
           {
               score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-              spectrum_identification.setHigherScoreBetter(false);
+              spectrum_identification.setHigherScoreBetter(true);
+              spectrum_identification.setScoreType(scoreit->second.front().getName());
               scoretype = true;
           }
       }
@@ -1323,7 +1340,7 @@ namespace OpenMS
       protein_identification.getHits().back().setSequence(db.sequence);
       protein_identification.getHits().back().setAccession(db.accession);
 //      protein_identification.getHits().back().setCoverage((long double)params.first.getCVTerms()["MS:1001093"].front().getValue()); //TODO @ mths: calc percent
-      protein_identification.getHits().back().setScore((long double)params.first.getCVTerms()["MS:1001171"].front().getValue()); //or any other score
+      protein_identification.getHits().back().setScore(boost::lexical_cast<double>(params.first.getCVTerms()["MS:1001171"].front().getValue())); //or any other score
 
     }
 
@@ -1617,7 +1634,7 @@ namespace OpenMS
       current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("PSI-MS"));
       current_st->appendChild(current_cv);
 
-      //for now no <AdditionalSearchParams>, <ModificationParams>, <Enzymes independent="0">, <MassTable id="MT" msLevel="1 2">, <FragmentTolerance>, <ParentTolerance>, <DatabaseFilters>, <DatabaseTranslations>
+      //for now no <AdditionalSearchParams>, <ModificationParams>, <MassTable id="MT" msLevel="1 2">, <FragmentTolerance>, <ParentTolerance>, <DatabaseFilters>, <DatabaseTranslations>
 
       DOMElement* current_th = current_sp->getOwnerDocument()->createElement(XMLString::transcode("Threshold"));
       DOMElement* current_up = current_th->getOwnerDocument()->createElement(XMLString::transcode("userParam"));
@@ -1729,25 +1746,28 @@ namespace OpenMS
       {
         for (std::vector< CVTerm >::const_iterator cvit = cvs->second.begin(); cvit != cvs->second.end(); ++cvit)
         {
-//            ???:
-//            String sp.db
-//            String sp.db_version
-//            String sp.taxonomy
-//            PeakMassType 	sp.mass_type
-//            std::vector< String > 	sp.fixed_modifications
-//            std::vector< String > 	sp.variable_modifications
-//            UInt 	missed_cleavages
           sp.setMetaValue(cvs->first, cvit->getValue());
         }
       }
       for (std::map<String,DataValue>::const_iterator upit = as_params.second.begin(); upit != as_params.second.end(); ++upit)
       {
-//            String sp.charges:
-//            <userParam value="2" name="MinCharge"/>
-//            <userParam value="3" name="MaxCharge"/>
-        sp.setMetaValue(upit->first,upit->second);
-      }
-      
+        if (upit->first == "taxonomy")
+        {
+          sp.taxonomy = upit->second.toString();
+        }
+        else if (upit->first == "charges")
+        {
+          sp.charges = upit->second.toString();
+        }
+        else if (upit->first == "missed_cleavages")
+        {
+          sp.missed_cleavages = boost::lexical_cast<int>(upit->second.toString()); //TODO @mths: this belongs in <Enzymes> (also in writing)
+        }
+        else
+        {
+          sp.setMetaValue(upit->first,upit->second);
+        }
+      }  
       return sp;
     }
   }   //namespace Internal
