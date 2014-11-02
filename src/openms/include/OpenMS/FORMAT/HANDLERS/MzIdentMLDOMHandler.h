@@ -131,6 +131,9 @@ protected:
       ///Internal -w Identification Item for peptides
       const std::vector<PeptideIdentification> * cpep_id_;
 
+      ///Internal version keeping
+      const String schema_version_;
+
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
       ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;
 

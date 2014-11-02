@@ -69,6 +69,7 @@ namespace OpenMS
       pep_id_(0),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id),
+      schema_version_(version),
       mzid_parser_()
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -101,6 +102,7 @@ namespace OpenMS
       pep_id_(&pep_id),
       cpro_id_(0),
       cpep_id_(0),
+      schema_version_(version),
       mzid_parser_()
     {
       cv_.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -280,7 +282,7 @@ namespace OpenMS
 
               DOMElement* rootElem = xmlDoc->getDocumentElement();
               rootElem->setAttribute(XMLString::transcode("version"),
-                                     XMLString::transcode("1.1.0"));
+                                     XMLString::transcode(schema_version_.c_str()));
               rootElem->setAttribute(XMLString::transcode("xsi:schemaLocation"),
                                      XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1 ../../schema/mzIdentML1.1.0.xsd"));
               rootElem->setAttribute(XMLString::transcode("creationDate"),
@@ -463,10 +465,16 @@ namespace OpenMS
           {
             ret_up.insert(parseUserParam_(element_param));
           }
+          else if ((std::string)XMLString::transcode(element_param->getTagName()) == "PeptideEvidence"
+                   || (std::string)XMLString::transcode(element_param->getTagName()) == "PeptideEvidenceRef"
+                   || (std::string)XMLString::transcode(element_param->getTagName()) == "SpectrumIdentificationItem")
+          {
+            //here it's okay to do nothing
+          }
           else
           {
-            LOG_WARN << "Misplaced Elements ignored in ParamGroup" << endl;
-          }// something else
+            LOG_WARN << "Misplaced Elements ignored in ParamGroup in " << (std::string)XMLString::transcode(element_param->getTagName()) << endl;
+          }
         }
       }
       return std::make_pair(ret_cv,ret_up);
@@ -1060,9 +1068,9 @@ namespace OpenMS
           DOMElement* element_res = dynamic_cast< xercesc::DOMElement* >( current_res );
           ++count;
 
-          String id = XMLString::transcode(element_res->getAttribute(XMLString::transcode("id")));
-          String name = XMLString::transcode(element_res->getAttribute(XMLString::transcode("name")));
-          String spectra_data_ref = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectraData_ref")));
+//          String id = XMLString::transcode(element_res->getAttribute(XMLString::transcode("id")));
+//          String name = XMLString::transcode(element_res->getAttribute(XMLString::transcode("name")));
+          String spectra_data_ref = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectraData_ref"))); //where to store that?
           String spectrumID = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectrumID")));
           std::pair<CVTermList,std::map<String,DataValue> > params = parseParamGroup_(element_res->getChildNodes());
 
@@ -1165,7 +1173,7 @@ namespace OpenMS
       std::set<String> specific_score_terms;
       cv_.getAllChildTerms(q_score_terms, "MS:1002354"); //q-value for peptides
       cv_.getAllChildTerms(e_score_terms, "MS:1001872"); //E-value for peptides
-      cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for peptides
+      cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for PSMs
       bool scoretype = false;
       for (std::map<String, std::vector<OpenMS::CVTerm> >::const_iterator scoreit = params.first.getCVTerms().begin(); scoreit != params.first.getCVTerms().end(); ++scoreit)
       {

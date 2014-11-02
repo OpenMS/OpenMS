@@ -774,7 +774,7 @@ namespace OpenMS
           }
 
           std::set<String> peptide_result_details;
-          cv_.getAllChildTerms(peptide_result_details, "MS:1001105"); // peptide result details
+          cv_.getAllChildTerms(peptide_result_details, "MS:1001143"); // search engine specific score for PSMs
           MetaInfoInterface copy_jt = *jt;
           String st(it->getScoreType());       //scoretype
 
@@ -810,8 +810,8 @@ namespace OpenMS
           }
           else if (st == "XTandem")
           {
-            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("X\\!Tandem:expect").toXMLString(cv_ns, sc);
-            copy_jt.removeMetaValue(cv_.getTermByName("X\\!Tandem:expect").id);
+            sidres +=  "\t\t\t\t\t"+ cv_.getTermByName("X\\!Tandem:hyperscore").toXMLString(cv_ns, sc);
+            copy_jt.removeMetaValue(cv_.getTermByName("X\\!Tandem:hyperscore").id);
           }
           else if (st == "SEQUEST")
           {
