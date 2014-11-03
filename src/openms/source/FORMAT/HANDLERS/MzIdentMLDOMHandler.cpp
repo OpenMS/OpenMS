@@ -254,7 +254,14 @@ namespace OpenMS
           if( !parseProteinDetectionListElements ) throw(std::runtime_error( "No ProteinDetectionList nodes" ));
           parseProteinDetectionListElements_(parseProteinDetectionListElements);
 
-          //std::cout << "I'm done. " << std::endl << "You have " << pep_id_->size() << " PeptideIdentifications and " << pro_id_->size() << " ProteinIdentifications" << std::endl; //wtf?! 8458800 PeptideIdentifications in idxml vs. Have 5936PeptideIdentifications and 1425ProteinIdentifications
+          for (std::vector<ProteinIdentification>::iterator it = pro_id_->begin(); it != pro_id_->end(); ++it)
+          {
+            it->sort();
+          }
+          for (std::vector<PeptideIdentification>::iterator it = pep_id_->begin(); it != pep_id_->end(); ++it)
+          {
+            it->sort();
+          }
 
        }
        catch( xercesc::XMLException& e )
@@ -767,6 +774,7 @@ namespace OpenMS
           pro_id_->push_back(ProteinIdentification());
           ProteinIdentification::SearchParameters sp;
           sp.db = input_dbs_[searchDatabase_ref].location;
+          sp.db_version = input_dbs_[searchDatabase_ref].version;
           pro_id_->back().setSearchParameters(sp);
           pro_id_->back().setMetaValue("spectra_data",input_spectra_data_[spectra_data_ref]);//TODO @mths FIXME whilst reading mzid set spectra_data and spectrum_reference (ProteinIdentification, PeptideIdentification)
           pro_id_->back().setDateTime(DateTime::fromString(spectrumIdentification_date.toQString(), "yyyy-MM-ddThh:mm:ss"));
@@ -993,6 +1001,7 @@ namespace OpenMS
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchEngineVersion(search_engine_version_);
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setIdentifier(search_engine_); // TODO @mths: name/date of search
               sp.db = si_pro_map_[si_it->second.spectrum_identification_list_ref]->getSearchParameters().db; // was previously set, but main parts of sp are set here
+              sp.db_version = si_pro_map_[si_it->second.spectrum_identification_list_ref]->getSearchParameters().db_version; // was previously set, but main parts of sp are set here
               si_pro_map_[si_it->second.spectrum_identification_list_ref]->setSearchParameters(sp);
             }
           }
@@ -1301,8 +1310,12 @@ namespace OpenMS
                       si_pro_map_[spectrumIdentificationList_ref]->getHits().back().setMetaValue("isDecoy","false");
                     }
                   }
-              }
+              }   
           }
+          //sort necessary for tests, as DOM children are obviously randomly ordered.
+          std::vector<String> temp = spectrum_identification.getHits().back().getProteinAccessions();
+          std::sort(temp.begin(),temp.end());
+          spectrum_identification.getHits().back().setProteinAccessions(temp);
 
           // due to redundand references this is not needed! peptideref already maps to all those PeptideEvidence elements
           //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();

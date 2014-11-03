@@ -427,10 +427,13 @@ namespace OpenMS
 
           search_database += String("\t\t<SearchDatabase ");
           search_database += String("location=\"") + dbst + "\" ";
-          //TODO get version db += String("version=\"") + String(it->getSearchParameters().version) + "\" ";
+          if (!String(it->getSearchParameters().db_version).empty())
+          {
+            search_database += String("version=\"") + String(it->getSearchParameters().db_version) + "\" ";
+          }
           search_database += String("id=\"") + String(dbid) + String("\" > \n\t\t\t<FileFormat> \n ");
           //TODO Searchdb file format type cvParam handling
-          search_database += cv_.getTermByName("FASTA format").toXMLString(cv_ns);
+          search_database += String(4, '\t') + cv_.getTermByName("FASTA format").toXMLString(cv_ns);
           search_database += String("\n\t\t\t</FileFormat>\n\t\t\t<DatabaseName>\n\t\t\t\t<userParam name=\"") + dbst + String("\"/>\n\t\t\t</DatabaseName>\n");
           search_database += "\t\t</SearchDatabase> \n";
 
@@ -454,7 +457,7 @@ namespace OpenMS
 
            //xml
            spectra_data += String("\t\t<SpectraData location=\"") + sdst + String("\" id=\"") + String(sdid) + String("\">");
-           spectra_data += String("\n\t\t\t<FileFormat> \n\t\t\t");
+           spectra_data += String("\n\t\t\t<FileFormat> \n");
            spectra_data += String(4, '\t') + cv_.getTermByName("mzML format").toXMLString(cv_ns);
            spectra_data += String("\n\t\t\t</FileFormat>\n\t\t\t<SpectrumIDFormat> \n ");
            spectra_data += String(4, '\t') + cv_.getTermByName("multiple peak list nativeID format").toXMLString(cv_ns);
