@@ -146,7 +146,7 @@ protected:
                       }
                       else
                       {
-                          cout << "Stdeverrortop7 is NaN" << endl;
+                          LOG_WARN << "Stdeverrortop7 is NaN" << endl;
                       }
 
                       meanErrorTop7 = rescaleFragmentFeature(meanErrorTop7, NumMatchedMainIons);
@@ -193,7 +193,7 @@ protected:
                       out_sep + ss.str() + String(enzN) + out_sep + String(enzC) +out_sep + String(enzInt) + out_sep + peptide_with_modifications + out_sep + protein + out_sep;
 
                       // peptide Spectrum Hit pushed to the output file
-                      txt.push_back(lis);
+                      txt.addLine(lis);
                   }
               }
           }
@@ -329,11 +329,6 @@ protected:
     vector<PeptideIdentification> peptide_ids_d;
     vector<ProteinIdentification> protein_ids_d;
 
-    // instance specific location of settings in INI file (e.g. 'TOPP_Skeleton:1:')
-    String ini_location;
-    // path to the log file
-    String logfile(getStringOption_("log"));
-
     //-------------------------------------------------------------
     // parsing parameters and crashing if mandatory parameters are missing
     //-------------------------------------------------------------
@@ -364,10 +359,6 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    String var = "";
-    ProgressLogger progresslogger;
-
-
     // get the file extension of the input files to start the correct converter
     vector<String> input_target_file;
     vector<String> input_decoy_file;
@@ -390,7 +381,7 @@ protected:
         // Both input files are read in
         MzIdentMLFile().load(inputfile_target_name, protein_ids, peptide_ids);
         MzIdentMLFile().load(inputfile_decoy_name, protein_ids_d, peptide_ids_d);
-        cout << protein_ids.back().getSearchEngine() << endl;
+        LOG_INFO << "Using IDs from" << protein_ids.back().getSearchEngine() << endl;
 
         // Open File and check if the Identifier is MSGF+
         if(peptide_ids.front().getIdentifier() == "MS-GF+" && peptide_ids_d.front().getIdentifier() == "MS-GF+") {
@@ -421,14 +412,13 @@ protected:
             // Create header for the features
             string featureset = "SpecId, Label,ScanNr, RawScore, DeNovoScore,ScoreRatio, Energy,lnEValue,IsotopeError, lnExplainedIonCurrentRatio,lnNTermIonCurrentRatio,lnCTermIonCurrentRatio,lnMS2IonCurrent,Mass,PepLen,dM,absdM,MeanErrorTop7,sqMeanErrorTop7,StdevErrorTop7," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
             StringList txt_header0 = ListUtils::create<String>(featureset);
-
-            cout << "consuming target file" << endl;
+            txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
+            LOG_INFO << "consuming target file" << endl;
             // get all the features from the target file
             preparePIN(peptide_ids, false, txt, minCharge, maxCharge);
-            cout << "consuming decoy file" << endl;
+            LOG_INFO << "consuming decoy file" << endl;
             // get all the features from the decoy file
-            preparePIN(peptide_ids_d, true, txt, minCharge, maxCharge);
-            txt.insert(txt.begin(), ListUtils::concatenate(txt_header0, out_sep));
+            preparePIN(peptide_ids_d, true, txt, minCharge, maxCharge);            
         }
         else if(peptide_ids.front().getIdentifier() == "Mascot" && peptide_ids_d.front().getIdentifier() == "Mascot")
         {
@@ -438,7 +428,7 @@ protected:
     // converter for XTandem-Files
     // TODO IN FUTURE DEVELOPMENT: IMPLEMENT MZID READER FOR XTANDEMFILES
     else if(data_target == "idXML" && data_decoy == "idXML") {
-    datab = "XTANDEM";
+        datab = "XTANDEM";
         IdXMLFile file;
         IdXMLFile decoy_file;
         file.load(getStringOption_("in_target"), protein_ids, peptide_ids);
@@ -487,8 +477,10 @@ protected:
         // Create header for the features
         String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() + ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
         StringList txt_header0 = ListUtils::create<String>(featureset);
+        // Insert the header with the features names to the file
+        txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
 
-        cout << "read in target file" << endl;
+        LOG_INFO << "read in target file" << endl;
          // get all the features from the target file
         for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
         {
@@ -558,11 +550,11 @@ protected:
                 + String(mh) + out_sep + String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + ss.str() + String(enzN) + out_sep + String(enzC) +out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
 
                 // peptide Spectrum Hit pushed to the output file
-                txt.push_back(lis);
+                txt.addLine(lis);
             }
         }
 
-        cout << "read in decoy file" << endl;
+        LOG_INFO << "read in decoy file" << endl;
          // get all the features from the decoy file
         for (vector<PeptideIdentification>::iterator it = peptide_ids_d.begin(); it != peptide_ids_d.end(); ++it)
         {
@@ -632,17 +624,16 @@ protected:
                 + String(mh) + out_sep + String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + ss.str() + out_sep + String(enzN) + out_sep + String(enzC) +out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
 
                 // peptide Spectrum Hit pushed to the output file
-                txt.push_back(lis);
+                txt.addLine(lis);
             }
         }
-        // Insert the header with the features names to the file
-        txt.insert(txt.begin(), ListUtils::concatenate(txt_header0, out_sep));
-}
-    else {
-    cout << "target and decoy files are not of the same type" << endl;
+    }
+    else
+    {
+        LOG_INFO << "target and decoy files are not of the same type" << endl;
     }
 
-    cout << "Executing percolator" << endl;
+    LOG_INFO << "Executing percolator" << endl;
 
     // create temp directory to store percolator in file pin.tab temporarily
     QDir qdir_temp(File::getTempDirectory().toQString());
@@ -714,7 +705,7 @@ protected:
     map<String, vector<String> > pep_map;
     StringList row;
 
-    for (UInt i = 1; i < csv_file.size(); ++i)
+    for (UInt i = 1; i < csv_file.rowCount(); ++i)
     {
       csv_file.getRow(i, row);
       vector<String> row_values;
@@ -780,7 +771,7 @@ protected:
     // Storing the PeptideHits with calculated q-value, pep and svm score
     MzIdentMLFile().store(getStringOption_("out").toQString().toStdString(), protein_ids, peptide_ids);
 
-    cout << "TopPerc finished successfully!" << endl;
+    LOG_INFO << "TopPerc finished successfully!" << endl;
 
     // As the percolator poutput file is not needed anymore, the temporary directory is going to be deleted
 //    File::removeDirRecursively(temp_data_directory);
