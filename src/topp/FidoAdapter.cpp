@@ -36,6 +36,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <boost/bimap.hpp>
+
 #include <QtCore/QProcess>
 #include <QDir>
 
@@ -110,6 +112,10 @@ public:
   }
 
 protected:
+
+  typedef boost::bimap<String, String> StringBimap;
+
+  StringBimap sanitized_accessions_; // protein accessions
 
   void registerOptionsAndFlags_()
   {
@@ -205,9 +211,8 @@ protected:
              hit.getProteinAccessions().begin(); acc_it != 
              hit.getProteinAccessions().end(); ++acc_it)
       {
-        // no spaces in protein accessions allowed:
-        String accession = *acc_it;
-        graph_out << "r " << accession.substitute(' ', '_') << endl;
+        graph_out << "r " << sanitized_accessions_.left.find(*acc_it)->second
+                  << endl;
       }
       graph_out << "p " << score << endl;
     }
@@ -226,14 +231,14 @@ protected:
     {
       String target_decoy = hit_it->getMetaValue("target_decoy").toString();
       String accession = hit_it->getAccession();
-      accession.substitute(' ', '_'); // no spaces in protein accessions allowed
+      String sanitized = sanitized_accessions_.left.find(accession)->second;
       if (target_decoy == "target")
       {
-        targets.insert(accession);
+        targets.insert(sanitized);
       }
       else if (target_decoy == "decoy")
       {
-        decoys.insert(accession);
+        decoys.insert(sanitized);
       }
       else
       {
@@ -379,6 +384,8 @@ protected:
       {
         if (accession.size() > 1) // skip braces and commas
         {
+          // de-sanitize:
+          accession = sanitized_accessions_.right.find(accession)->second;
           group.accessions.push_back(accession);
         }
         line >> accession;
@@ -437,6 +444,28 @@ protected:
       return INPUT_FILE_EMPTY;
     }
     
+    // sanitize protein accessions:
+    set<String> accessions;
+    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin(); 
+         prot_it != proteins.end(); ++prot_it)
+    {
+      for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
+           hit_it != prot_it->getHits().end(); ++hit_it)
+      {
+        accessions.insert(hit_it->getAccession());
+      }
+    }
+    Size counter = 1;
+    for (set<String>::iterator it = accessions.begin(); it != accessions.end();
+         ++it, ++counter)
+    {
+      // take valid prefix (= accession) and add number to ensure uniqueness:
+      Size pos = it->find_first_of(" \t,{}");
+      // using "it->prefix(pos)" doesn't work if none of the chars was found:
+      String sanitized = it->substr(0, pos) + "_" + String(counter);
+      sanitized_accessions_.insert(StringBimap::value_type(*it, sanitized));
+    }
+
     // create temporary directory:
     String temp_dir = File::getTempDirectory() + "/" + File::getUniqueName() +
       "/";
