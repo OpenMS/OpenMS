@@ -48,13 +48,13 @@ namespace OpenMS
     defaults_.setValue("signal_to_noise", 1.0, "Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!)");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
-    defaults_.setValue("spacing_difference_gap", 4.0, "Maximum allowed m/z distance between data points in multiples of the minimal difference, above which a data point no longer belongs to the peak.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("spacing_difference_gap", 4.0, "The extension of a peak is stopped, if the spacing between two subsequent data points exceeds (spacing_difference_gap * min_spacing). min_spacing is the smaller of the two spacing from the peak seed to its two neighbouring points.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("spacing_difference_gap", std::numeric_limits<unsigned>::min()); //must be > 0
 
-    defaults_.setValue("spacing_difference", 1.5, "Maximum allowed distance between peaks in multiples of the minimal difference. A higher value is implies a less stringent peak definition since individual signals within the peaks are allowed to further apart. E.g. if the value is set to 1.5 and in a peak the minimal spacing between peaks is 10 mDa, then only signals at most 15 mDa apart will be added to the peak.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("spacing_difference", 1.5, "Maximum allowed distance between peaks in multiples of the minimal difference (min_spacing). A higher value is implies a less stringent peak definition since individual signals within the peaks are allowed to further apart. E.g. if the value is set to 1.5 and in a peak the minimal spacing between peaks is 10 mDa, then only signals at most 15 mDa apart will be added to the peak.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("spacing_difference", std::numeric_limits<unsigned>::min()); //must be > 0
 
-    defaults_.setValue("missing", 1, "Maximum number of missing points.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("missing", 1, "Maximum number of missing points allowed when extending the peak to the left or the right. (Only useful for roughly equi-spaced data, since 'missing point' is ill defined otherwise.)", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("missing", 0);
 
     defaults_.setValue("ms_levels", ListUtils::create<Int>("1,2"), "List of MS levels for which the peak picking is applied. Other scans are copied to the output without changes.");
