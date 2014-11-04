@@ -19,6 +19,9 @@
     <DBSequence accession="sp|P0A9K9|SLYD_ECOLI" searchDatabase_ref="SearchDB_1" length="196" id="DBSeq857296">
         <cvParam accession="MS:1001088" cvRef="PSI-MS" value="sp|P0A9K9|SLYD_ECOLI FKBP-type peptidyl-prolyl cis-trans isomerase SlyD OS=Escherichia coli (strain K12) GN=slyD PE=1 SV=1" name="protein description"/>
     </DBSequence>
+    <DBSequence accession="sp|ABC|xyz" searchDatabase_ref="SearchDB_99" length="99" id="DBSeq99">
+        <cvParam accession="MS:1001088" cvRef="PSI-MS" value="some bla" name="protein description"/>
+    </DBSequence>
     <Peptide id="Pep1">
         <PeptideSequence>LATEFSGNVPVLNAGDGSNQHPTQTLLDLFTIQETQGR</PeptideSequence>
     </Peptide>
@@ -31,12 +34,20 @@
             <cvParam accession="UNIMOD:4" cvRef="UNIMOD" name="Carbamidomethyl"/>
         </Modification>
     </Peptide>
+    <Peptide id="Pep99">
+        <PeptideSequence>RIPLRIPLRIPLRIPLRIPLRIPLRIPLRIPL</PeptideSequence>
+    </Peptide>
     <PeptideEvidence isDecoy="false" post="L" pre="R" end="152" start="115" peptide_ref="Pep1" dBSequence_ref="DBSeq737845" id="PepEv_737959_1_115"/>
     <PeptideEvidence isDecoy="false" post="F" pre="R" end="131" start="96" peptide_ref="Pep2" dBSequence_ref="DBSeq857296" id="PepEv_857391_2_96"/>
     <PeptideEvidence isDecoy="true" post="K" pre="K" end="445" start="422" peptide_ref="Pep3" dBSequence_ref="DBSeq737845" id="PepEv_213263_3_422"/>
+    <PeptideEvidence isDecoy="true" post="K" pre="K" end="445" start="422" peptide_ref="Pep99" dBSequence_ref="DBSeq99" id="PepEv_99"/>
 </SequenceCollection>
 <AnalysisCollection xmlns="http://psidev.info/psi/pi/mzIdentML/1.1">
     <SpectrumIdentification spectrumIdentificationList_ref="SI_LIST_1" spectrumIdentificationProtocol_ref="SearchProtocol_1" id="SpecIdent_1">
+        <InputSpectra spectraData_ref="SID_1"/>
+        <SearchDatabaseRef searchDatabase_ref="SearchDB_1"/>
+    </SpectrumIdentification>
+    <SpectrumIdentification spectrumIdentificationList_ref="SI_LIST_99" spectrumIdentificationProtocol_ref="SearchProtocol_99" id="SpecIdent_99">
         <InputSpectra spectraData_ref="SID_1"/>
         <SearchDatabaseRef searchDatabase_ref="SearchDB_1"/>
     </SpectrumIdentification>
@@ -188,6 +199,38 @@
             <SpectrumIdentificationResult spectraData_ref="SID_1" spectrumID="controllerType=0 controllerNumber=1 scan=15094" id="SIR_15094">
                 <SpectrumIdentificationItem passThreshold="true" rank="1" peptide_ref="Pep3" calculatedMassToCharge="885.1036376953125" experimentalMassToCharge="885.1090087890625" chargeState="3" id="SII_15094_1">
                     <PeptideEvidenceRef peptideEvidence_ref="PepEv_213263_3_422"/>
+                    <cvParam accession="MS:1002049" cvRef="PSI-MS" value="211" name="MS-GF:RawScore"/>
+                    <cvParam accession="MS:1002050" cvRef="PSI-MS" value="212" name="MS-GF:DeNovoScore"/>
+                    <cvParam accession="MS:1002052" cvRef="PSI-MS" value="1.3307773E-29" name="MS-GF:SpecEValue"/>
+                    <cvParam accession="MS:1002053" cvRef="PSI-MS" value="1.7844179E-23" name="MS-GF:EValue"/>
+                    <userParam value="0" name="IsotopeError"/>
+                    <userParam value="CID" name="AssumedDissociationMethod"/>
+                    <userParam value="0.7054312" name="ExplainedIonCurrentRatio"/>
+                    <userParam value="0.16492341" name="NTermIonCurrentRatio"/>
+                    <userParam value="0.5405078" name="CTermIonCurrentRatio"/>
+                    <userParam value="20345.201" name="MS2IonCurrent"/>
+                    <userParam value="29" name="NumMatchedMainIons"/>
+                    <userParam value="138.9799" name="MeanErrorAll"/>
+                    <userParam value="145.13113" name="StdevErrorAll"/>
+                    <userParam value="35.887447" name="MeanErrorTop7"/>
+                    <userParam value="26.87175" name="StdevErrorTop7"/>
+                    <userParam value="36.86019" name="MeanRelErrorAll"/>
+                    <userParam value="197.53427" name="StdevRelErrorAll"/>
+                    <userParam value="-25.863285" name="MeanRelErrorTop7"/>
+                    <userParam value="36.6209" name="StdevRelErrorTop7"/>
+                </SpectrumIdentificationItem>
+                <cvParam accession="MS:1001115" cvRef="PSI-MS" value="15094" name="scan number(s)"/>
+            </SpectrumIdentificationResult>
+        </SpectrumIdentificationList>
+        <SpectrumIdentificationList id="SI_LIST_99">
+            <FragmentationTable>
+                <Measure id="Measure_MZ">
+                    <cvParam accession="MS:1001225" cvRef="PSI-MS" unitCvRef="PSI-MS" unitName="m/z" unitAccession="MS:1000040" name="product ion m/z"/>
+                </Measure>
+            </FragmentationTable>
+            <SpectrumIdentificationResult spectraData_ref="SID_1" spectrumID="controllerType=0 controllerNumber=1 scan=99" id="SIR_99">
+                <SpectrumIdentificationItem passThreshold="true" rank="1" peptide_ref="Pep99" calculatedMassToCharge="99.1036376953125" experimentalMassToCharge="99.1090087890625" chargeState="4" id="SII_99">
+                    <PeptideEvidenceRef peptideEvidence_ref="PepEv_99"/>
                     <cvParam accession="MS:1002049" cvRef="PSI-MS" value="211" name="MS-GF:RawScore"/>
                     <cvParam accession="MS:1002050" cvRef="PSI-MS" value="212" name="MS-GF:DeNovoScore"/>
                     <cvParam accession="MS:1002052" cvRef="PSI-MS" value="1.3307773E-29" name="MS-GF:SpecEValue"/>

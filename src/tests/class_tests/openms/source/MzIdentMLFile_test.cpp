@@ -68,18 +68,21 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   fm.push_back("Carbamidomethyl (C)");
   MzIdentMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzIdentMLFile_msgf_mini.mzid"), protein_ids, peptide_ids);
 
-  TEST_EQUAL(protein_ids.size(),1)
+  TEST_EQUAL(protein_ids.size(),2)
   TEST_EQUAL(protein_ids[0].getHits().size(),2)
-  TEST_EQUAL(peptide_ids.size(),4)
+  TEST_EQUAL(protein_ids[1].getHits().size(),1)
+  TEST_EQUAL(peptide_ids.size(),5)
   TEST_EQUAL(peptide_ids[0].getHits().size(),1)
   TEST_EQUAL(peptide_ids[1].getHits().size(),1)
   TEST_EQUAL(peptide_ids[2].getHits().size(),1)
+  TEST_EQUAL(peptide_ids[3].getHits().size(),1)
+  TEST_EQUAL(peptide_ids[4].getHits().size(),1)
 
   /////////////// protein id 1 //////////////////
   TEST_EQUAL(protein_ids[0].getSearchEngine(),"MS-GF+")
   TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"Beta (v9979)")
-  TEST_EQUAL(protein_ids[0].getDateTime().getDate(),"0000-00-00")
-  TEST_EQUAL(protein_ids[0].getDateTime().getTime(),"00:00:00")
+  TEST_NOT_EQUAL(protein_ids[0].getDateTime().getDate(),"0000-00-00")
+  TEST_NOT_EQUAL(protein_ids[0].getDateTime().getTime(),"00:00:00")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"database.fasta")
   TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme, ProteinIdentification::TRYPSIN)
   TEST_EQUAL(protein_ids[0].getSearchParameters().missed_cleavages, 1000)
@@ -117,8 +120,6 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[3].getHits()[0].getSequence().toString(),"VGAGPFPTELFDETGEFLC(Carbamidomethyl)K")
   TEST_EQUAL(peptide_ids[3].getMetaValue("spectrum_reference"),"controllerType=0 controllerNumber=1 scan=15094")
 
-  // meta_values
-
 END_SECTION
 
 START_SECTION(void store(String filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids) )
@@ -145,7 +146,6 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),protein_ids2[0].getSearchEngineVersion())
   TEST_EQUAL(protein_ids[0].getDateTime().getDate(),protein_ids2[0].getDateTime().getDate())
   TEST_EQUAL(protein_ids[0].getDateTime().getTime(),protein_ids2[0].getDateTime().getTime())
-  TEST_EQUAL(protein_ids[0].getIdentifier(),protein_ids2[0].getIdentifier())
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,protein_ids2[0].getSearchParameters().db)
   TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,protein_ids2[0].getSearchParameters().db_version)
   TEST_EQUAL(protein_ids[0].getSearchParameters().enzyme,protein_ids2[0].getSearchParameters().enzyme)
@@ -168,7 +168,6 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   //peptide id 1
   TEST_EQUAL(peptide_ids[0].getScoreType(),peptide_ids2[0].getScoreType())
   TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),peptide_ids2[0].isHigherScoreBetter())
-  TEST_EQUAL(peptide_ids[0].getIdentifier(),peptide_ids2[0].getIdentifier())
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),peptide_ids2[0].getMZ())
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),peptide_ids2[0].getRT())
   TEST_EQUAL(peptide_ids[0].getMetaValue("spectrum_reference"),peptide_ids2[0].getMetaValue("spectrum_reference"))
@@ -194,7 +193,6 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   //peptide id 2
   TEST_EQUAL(peptide_ids[1].getScoreType(),peptide_ids2[1].getScoreType())
   TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),peptide_ids2[1].isHigherScoreBetter())
-  TEST_EQUAL(peptide_ids[1].getIdentifier(),peptide_ids2[1].getIdentifier())
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),peptide_ids2[0].getMZ())
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),peptide_ids2[0].getRT())
   //peptide hit 1
@@ -215,7 +213,6 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   //peptide id 3
   TEST_EQUAL(peptide_ids[2].getScoreType(),peptide_ids2[2].getScoreType())
   TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),peptide_ids2[2].isHigherScoreBetter())
-  TEST_EQUAL(peptide_ids[2].getIdentifier(),peptide_ids2[2].getIdentifier())
   TEST_REAL_SIMILAR(peptide_ids[2].getMZ(),peptide_ids2[2].getMZ())
   TEST_REAL_SIMILAR(peptide_ids[2].getRT(),peptide_ids2[2].getRT())
   //peptide hit 1

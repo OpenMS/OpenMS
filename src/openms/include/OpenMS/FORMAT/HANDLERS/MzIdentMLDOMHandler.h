@@ -150,7 +150,7 @@ protected:
       void parseSpectrumIdentificationElements_( xercesc::DOMNodeList * spectrumIdentificationElements);
       void parseSpectrumIdentificationProtocolElements_( xercesc::DOMNodeList * spectrumIdentificationProtocolElements);
       void parseInputElements_( xercesc::DOMNodeList * inputElements);
-      void parseSpectrumIdentificationResultElements_( xercesc::DOMNodeList * spectrumIdentificationResultElements);
+      void parseSpectrumIdentificationListElements_( xercesc::DOMNodeList * spectrumIdentificationListElements);
       void parseSpectrumIdentificationItemElement_(xercesc::DOMElement * spectrumIdentificationItemElement, PeptideIdentification &spectrum_identification, String& spectrumIdentificationList_ref);
       void parseProteinDetectionHypothesisElement_( xercesc::DOMElement * proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
       void parseProteinAmbiguityGroupElement_(xercesc::DOMElement * proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
@@ -175,6 +175,13 @@ private:
       MzIdentMLDOMHandler(const MzIdentMLDOMHandler & rhs);
       MzIdentMLDOMHandler & operator=(const MzIdentMLDOMHandler & rhs);
 
+
+
+      struct AnalysisSoftware
+      {
+        String name;
+        String version;
+      };
       struct PeptideEvidence
       {
         int start;
@@ -232,20 +239,31 @@ private:
 
       xercesc::XercesDOMParser mzid_parser_;
 
+      //from AnalysisSoftware
       String search_engine_;
       String search_engine_version_;
+      //mapping from AnalysisSoftware
+      std::map<String, AnalysisSoftware> as_map_; //mapping AnalysisSoftware id -> AnalysisSoftware
 
-      std::map<String, AASequence> pep_map_; //holding Peptide
-      std::map<String, PeptideEvidence> pe_ev_map_; //holding PeptideEvidence
-      std::map<String, String> pv_db_map_; //mapping PeptideEvidence to DBSequence
-      std::multimap<String, String> p_pv_map_; //mapping Peptide(reference) -> PeptideEvidence(ID)
-      std::map<String, DBSequence> db_sq_map_; //holding DBSequence
-      std::map<String, SpectrumIdentification> si_map_; //holding the reference connections of db, hits, spectra - SpectrumIdentification will be the new IdentificationRuns
-      std::map<String, ProteinIdentification*> si_pro_map_; //Proteinidentification for each SI list
-      std::map<String, SpectrumIdentificationProtocol> sp_map_; //holding DBSequence
-      std::map<String, String > input_source_; //holding sourcefiles location
-      std::map<String, String > input_spectra_data_; //holding spectradata files location
-      std::map<String, DatabaseInput> input_dbs_; //holding used databases location
+      //mapping from DataCollection Inputs
+      std::map<String, String > sr_map_; //mapping sourcefile id -> sourcefile location
+      std::map<String, String > sd_map_; //mapping spectradata id -> spectradata location
+      std::map<String, DatabaseInput> db_map_; //mapping database id -> DatabaseInput
+
+      //mapping from SpectrumIdentification - SpectrumIdentification will be the new IdentificationRuns
+      std::map<String, SpectrumIdentification> si_map_; //mapping SpectrumIdentification id -> SpectrumIdentification (id refs)
+      std::map<String, size_t> si_pro_map_; //mapping SpectrumIdentificationList id -> index to ProteinIdentification in pro_id_
+
+      //mapping from SpectrumIdentificationProtocol
+      std::map<String, SpectrumIdentificationProtocol> sp_map_; //mapping SpectrumIdentificationProtocol id -> SpectrumIdentificationProtocol
+
+      //mapping from SequenceCollection
+      std::map<String, AASequence> pep_map_; //mapping Peptide id -> Sequence
+      std::map<String, PeptideEvidence> pe_ev_map_; //mapping PeptideEvidence id -> PeptideEvidence
+      std::map<String, String> pv_db_map_; //mapping PeptideEvidence id -> DBSequence id
+      std::multimap<String, String> p_pv_map_; //mapping Peptide id -> PeptideEvidence id, multiple PeptideEvidences can have equivalent Peptides.
+      std::map<String, DBSequence> db_sq_map_; //mapping DBSequence id -> Sequence
+
       std::list<std::list<String> > hit_pev_; //writing help only
 
     };
