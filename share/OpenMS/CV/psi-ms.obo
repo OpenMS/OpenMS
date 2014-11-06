@@ -1,8 +1,6 @@
-
-<!-- saved from url=(0095)http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo -->
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style type="text/css"></style><style type="text/css"></style></head><body data-feedly-mini="yes"><pre style="word-wrap: break-word; white-space: pre-wrap;">format-version: 1.2
-data-version: 3.69.0
-date: 10:10:2014 10:26
+format-version: 1.2
+data-version: 3.70.1
+date: 03:11:2014 14:22
 saved-by: Gerhard Mayer
 auto-generated-by: OBO-Edit 2.3
 import: http://pato.googlecode.com/svn/trunk/quality.obo
@@ -10,16 +8,16 @@ import: http://unit-ontology.googlecode.com/svn/trunk/unit.obo
 default-namespace: MS
 namespace-id-rule: * MS:$sequence(7,0,9999999)$
 remark: namespace: MS
-remark: version: 3.69.0
-remark: release date: 2014-10-10
+remark: version: 3.70.1
+remark: release date: 2014-11-03
 remark: coverage: Mass spectrometer output files and spectra interpretation
-remark: creator: Matt Chambers &lt;matt.chambers &lt;-at-&gt; vanderbilt.edu&gt;
-remark: creator: Andreas Bertsch &lt;bertsch &lt;-at-&gt; informatik.uni-tuebingen.de&gt;
-remark: creator: Marius Kallhardt &lt;Marius.Kallhardt &lt;-at-&gt; bdal.de&gt;
-remark: creator: Eric Deutsch &lt;edeutsch &lt;-at-&gt; systemsbiology.org&gt;
-remark: creator: Fredrik Levander &lt;fredrik.levander &lt;-at-&gt; immun.lth.se&gt;
-remark: creator: Pierre-Alain Binz &lt;pierre-alain.binz &lt;-at-&gt; chuv.ch&gt;
-remark: creator: Gerhard Mayer &lt;mayerg97 &lt;-at-&gt; rub.de&gt;
+remark: creator: Matt Chambers <matt.chambers <-at-> vanderbilt.edu>
+remark: creator: Andreas Bertsch <bertsch <-at-> informatik.uni-tuebingen.de>
+remark: creator: Marius Kallhardt <Marius.Kallhardt <-at-> bdal.de>
+remark: creator: Eric Deutsch <edeutsch <-at-> systemsbiology.org>
+remark: creator: Fredrik Levander <fredrik.levander <-at-> immun.lth.se>
+remark: creator: Pierre-Alain Binz <pierre-alain.binz <-at-> chuv.ch>
+remark: creator: Gerhard Mayer <mayerg97 <-at-> rub.de>
 remark: publisher: HUPO Proteomics Standards Initiative Mass Spectrometry Standards Working Group and HUPO Proteomics Standards Initiative Proteomics Informatics Working Group
 remark: When appropriate the definition and synonyms of a term are reported exactly as in the chapter 12 of IUPAC orange book. See http://www.iupac.org/projects/2003/2003-056-2-500.html and http://mass-spec.lsu.edu/msterms/index.php/Main_Page
 remark: This work is licensed under the Creative Commons Attribution 3.0 Unported License.
@@ -372,7 +370,7 @@ is_a: UO:0000000 ! unit
 id: MS:1000044
 name: dissociation method
 def: "Fragmentation method used for dissociation or fragmentation." [PSI:MS]
-xref: value-type:xsd\:string "The allowed value-type for this CV term."
+#xref: value-type:xsd\:string "The allowed value-type for this CV term."
 synonym: "Activation Method" RELATED []
 relationship: part_of MS:1000456 ! precursor activation
 
@@ -1628,7 +1626,7 @@ is_obsolete: true
 [Term]
 id: MS:1000233
 name: proton affinity
-def: "OBSOLETE The proton affinity of a species M is defined as the negative of the enthalpy change for the reaction M + H+ -&gt;[M+H]+, where all species are in their ground rotational, vibrational and electronic states." [PSI:MS]
+def: "OBSOLETE The proton affinity of a species M is defined as the negative of the enthalpy change for the reaction M + H+ ->[M+H]+, where all species are in their ground rotational, vibrational and electronic states." [PSI:MS]
 synonym: "PA" EXACT [PSI:MS]
 comment: This child of the former purgatory term ion attribute was made obsolete.
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
@@ -2435,7 +2433,7 @@ is_obsolete: true
 [Term]
 id: MS:1000344
 name: progeny ion
-def: "OBSOLETE A charged product of a series of consecutive reactions that includes product ions, 1st generation product ions, 2nd generation product ions, etc. Given the sequential fragmentation scheme: M1+ -&gt; M2+ -&gt; M3+ -&gt; M4+ -&gt; M5+. M4+ is the precursor ion of M5+, a 1st generation product ion of M3+, a 2nd generation product ion of M2+ and a 3rd generation product ion of M1+." [PSI:MS]
+def: "OBSOLETE A charged product of a series of consecutive reactions that includes product ions, 1st generation product ions, 2nd generation product ions, etc. Given the sequential fragmentation scheme: M1+ -> M2+ -> M3+ -> M4+ -> M5+. M4+ is the precursor ion of M5+, a 1st generation product ion of M3+, a 2nd generation product ion of M2+ and a 3rd generation product ion of M1+." [PSI:MS]
 comment: This child of the former purgatory term ion chemical type was made obsolete.
 synonym: "Progeny Fragment Ion" EXACT []
 is_obsolete: true
@@ -4026,7 +4024,7 @@ is_a: MS:1000524 ! data file content
 [Term]
 id: MS:1000580
 name: MSn spectrum
-def: "MSn refers to multi-stage MS2 experiments designed to record product ion spectra where n is the number of product ion stages (progeny ions). For ion traps, sequential MS/MS experiments can be undertaken where n &gt; 2 whereas for a simple triple quadrupole system n=2. Use the term ms level (MS:1000511) for specifying n." [PSI:MS]
+def: "MSn refers to multi-stage MS2 experiments designed to record product ion spectra where n is the number of product ion stages (progeny ions). For ion traps, sequential MS/MS experiments can be undertaken where n > 2 whereas for a simple triple quadrupole system n=2. Use the term ms level (MS:1000511) for specifying n." [PSI:MS]
 synonym: "multiple-stage mass spectrometry spectrum" EXACT []
 synonym: "nth generation product ion spectrum" EXACT []
 synonym: "product ion spectrum" EXACT []
@@ -7553,7 +7551,7 @@ is_a: MS:1001127 ! peptide sharing details
 
 [Term]
 id: MS:1001176
-name: (?&lt;=[KR])(?\!P)
+name: (?<=[KR])(?\!P)
 def:"Regular expression for Trypsin." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
@@ -7972,7 +7970,7 @@ id: MS:1001251
 name: Trypsin
 def: "Enzyme trypsin." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001176 ! (?&lt;=[KR])(?!P)
+relationship: has_regexp MS:1001176 ! (?<=[KR])(?!P)
 
 [Term]
 id: MS:1001252
@@ -8087,7 +8085,7 @@ is_a: MS:1001266 ! role type
 
 [Term]
 id: MS:1001272
-name: (?&lt;=R)(?\!P)
+name: (?<=R)(?\!P)
 def:"Regular expression for Arg-C." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
@@ -8255,7 +8253,7 @@ name: Arg-C
 def: "Endoproteinase Arg-C." [PSI:PI]
 synonym: "Clostripain" EXACT []
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001272 ! (?&lt;=R)(?!P)
+relationship: has_regexp MS:1001272 ! (?<=R)(?!P)
 
 [Term]
 id: MS:1001304
@@ -8276,70 +8274,70 @@ id: MS:1001306
 name: Chymotrypsin
 def: "Enzyme chymotrypsin." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001332 ! (?&lt;=[FYWL])(?!P)
+relationship: has_regexp MS:1001332 ! (?<=[FYWL])(?!P)
 
 [Term]
 id: MS:1001307
 name: CNBr
 def: "Cyanogen bromide." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001333 ! (?&lt;=M)
+relationship: has_regexp MS:1001333 ! (?<=M)
 
 [Term]
 id: MS:1001308
 name: Formic_acid
 def: "Formic acid." [PubChem_Compound:284]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001334 ! ((?&lt;=D))|((?=D))
+relationship: has_regexp MS:1001334 ! ((?<=D))|((?=D))
 
 [Term]
 id: MS:1001309
 name: Lys-C
 def: "Endoproteinase Lys-C." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001335 ! (?&lt;=K)(?!P)
+relationship: has_regexp MS:1001335 ! (?<=K)(?!P)
 
 [Term]
 id: MS:1001310
 name: Lys-C/P
 def: "Proteinase Lys-C/P." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001336 ! (?&lt;=K)
+relationship: has_regexp MS:1001336 ! (?<=K)
 
 [Term]
 id: MS:1001311
 name: PepsinA
 def: "PepsinA proteinase." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001337 ! (?&lt;=[FL])
+relationship: has_regexp MS:1001337 ! (?<=[FL])
 
 [Term]
 id: MS:1001312
 name: TrypChymo
 def: "Cleavage agent TrypChymo." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001338 ! (?&lt;=[FYWLKR])(?!P)
+relationship: has_regexp MS:1001338 ! (?<=[FYWLKR])(?!P)
 
 [Term]
 id: MS:1001313
 name: Trypsin/P
 def: "Cleavage agent Trypsin/P." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001339 ! (?&lt;=[KR])
+relationship: has_regexp MS:1001339 ! (?<=[KR])
 
 [Term]
 id: MS:1001314
 name: V8-DE
 def: "Cleavage agent V8-DE." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001340 ! (?&lt;=[BDEZ])(?!P)
+relationship: has_regexp MS:1001340 ! (?<=[BDEZ])(?!P)
 
 [Term]
 id: MS:1001315
 name: V8-E
 def: "Cleavage agent V8-E." [PSI:PI]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001341 ! (?&lt;=[EZ])(?!P)
+relationship: has_regexp MS:1001341 ! (?<=[EZ])(?!P)
 
 [Term]
 id: MS:1001316
@@ -8455,61 +8453,61 @@ is_a: MS:1001153 ! search engine specific score
 
 [Term]
 id: MS:1001332
-name: (?&lt;=[FYWL])(?\!P)
+name: (?<=[FYWL])(?\!P)
 def:"Regular expression for Chymotrypsin." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001333
-name: (?&lt;=M)
+name: (?<=M)
 def:"Regular expression for CNBr." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001334
-name: ((?&lt;=D))|((?=D))
+name: ((?<=D))|((?=D))
 def:"Regular expression for formic acid." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001335
-name: (?&lt;=K)(?\!P)
+name: (?<=K)(?\!P)
 def:"Regular expression for Lys-C." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001336
-name: (?&lt;=K)
+name: (?<=K)
 def:"Regular expression for Lys-C/P." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001337
-name: (?&lt;=[FL])
+name: (?<=[FL])
 def:"Regular expression for PepsinA." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001338
-name: (?&lt;=[FYWLKR])(?\!P)
+name: (?<=[FYWLKR])(?\!P)
 def:"Regular expression for TrypChymo." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001339
-name: (?&lt;=[KR])
+name: (?<=[KR])
 def:"Regular expression for Trypsin/P." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001340
-name: (?&lt;=[BDEZ])(?\!P)
+name: (?<=[BDEZ])(?\!P)
 def:"Regular expression for V8-DE." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001341
-name: (?&lt;=[EZ])(?\!P)
+name: (?<=[EZ])(?\!P)
 def:"Regular expression for V8-E." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
@@ -10339,7 +10337,7 @@ is_obsolete: true
 [Term]
 id: MS:1001612
 name: ProteomeDiscoverer:Spectrum Selector:Precursor Selection
-def: "Determines which precursor mass to use for a given MSn scan. This option applies only to higher-order MSn scans (n &gt;= 3)." [PSI:MS]
+def: "Determines which precursor mass to use for a given MSn scan. This option applies only to higher-order MSn scans (n >= 3)." [PSI:MS]
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 
@@ -11034,7 +11032,7 @@ is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 [Term]
 id: MS:1001707
 name: ProteomeDiscoverer:SEQUEST:Std High Confidence XCorr Charge4
-def: "Standard high confidence XCorr parameter for charge &gt;= 4." [PSI:MS]
+def: "Standard high confidence XCorr parameter for charge >= 4." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 
@@ -11062,7 +11060,7 @@ is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 [Term]
 id: MS:1001711
 name: ProteomeDiscoverer:SEQUEST:Std Medium Confidence XCorr Charge4
-def: "Standard medium confidence XCorr parameter for charge &gt;= 4." [PSI:MS]
+def: "Standard medium confidence XCorr parameter for charge >= 4." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 
@@ -11090,7 +11088,7 @@ is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 [Term]
 id: MS:1001715
 name: ProteomeDiscoverer:SEQUEST:FT High Confidence XCorr Charge4
-def: "FT high confidence XCorr parameter for charge &gt;= 4." [PSI:MS]
+def: "FT high confidence XCorr parameter for charge >= 4." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 
@@ -11118,7 +11116,7 @@ is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 [Term]
 id: MS:1001719
 name: ProteomeDiscoverer:SEQUEST:FT Medium Confidence XCorr Charge4
-def: "FT medium confidence XCorr parameter for charge &gt;= 4." [PSI:MS]
+def: "FT medium confidence XCorr parameter for charge >= 4." [PSI:MS]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 is_a: MS:1002101 ! ProteomeDiscoverer input parameter
 
@@ -11825,7 +11823,7 @@ is_a: MS:1001825 ! feature list attribute
 [Term]
 id: MS:1001827
 name: mass trace reporting: polygons
-def: "The mass trace of the features of this feature list specifies polygons. Each mass trace has the syntax (RT_1, MZ_1, RT_2, MZ_2, ... , RT_i, MZ_i, ... , RT_n, MZ_n), where the line (RT_n, MZ_n)-&gt;(RT_1, MZ_1) is implicit." [PSI:MS]
+def: "The mass trace of the features of this feature list specifies polygons. Each mass trace has the syntax (RT_1, MZ_1, RT_2, MZ_2, ... , RT_i, MZ_i, ... , RT_n, MZ_n), where the line (RT_n, MZ_n)->(RT_1, MZ_1) is implicit." [PSI:MS]
 is_a: MS:1001825 ! feature list attribute
 
 [Term]
@@ -12150,7 +12148,7 @@ relationship: has_domain MS:1002306 ! value greater than zero
 [Term]
 id: MS:1001874
 name: FDRScore
-def: "OBSOLETE A smoothing of the distribution of q-values calculated for PSMs from individual search engines, such that ordering of result quality is maintained and all FDRScore values are guaranteed to have a value &gt; 0." [PMID:19253293]
+def: "OBSOLETE A smoothing of the distribution of q-values calculated for PSMs from individual search engines, such that ordering of result quality is maintained and all FDRScore values are guaranteed to have a value > 0." [PMID:19253293]
 comment: This term was made obsolete because it was split into the more specific terms for PSM-level FDRScore (1002355), distinct peptide-level FDRScore (MS:1002360), protein-level FDRScore (MS:1002365) and protein group-level FDRScore (MS:1002374).
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
 is_a: MS:1001143 ! search engine specific score for PSMs
@@ -12442,14 +12440,14 @@ id: MS:1001915
 name: leukocyte elastase
 def: "Enzyme leukocyte elastase (EC 3.4.21.37)." [BRENDA:3.4.21.37]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001957 ! (?&lt;=[ALIV])(?!P)
+relationship: has_regexp MS:1001957 ! (?<=[ALIV])(?!P)
 
 [Term]
 id: MS:1001916
 name: proline endopeptidase
 def: "Enzyme proline endopeptidase (EC 3.4.21.26)." [BRENDA:3.4.21.26]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001958 ! (?&lt;=[HKR]P)(?!P)
+relationship: has_regexp MS:1001958 ! (?<=[HKR]P)(?!P)
 
 [Term]
 id: MS:1001917
@@ -12458,14 +12456,14 @@ def: "Enzyme glutamyl endopeptidase (EC 3.4.21.19)." [BRENDA:3.4.21.19]
 synonym: "staphylococcal protease" EXACT []
 synonym: "Glu-C" EXACT []
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001959 ! (?&lt;=[^E]E)
+relationship: has_regexp MS:1001959 ! (?<=[^E]E)
 
 [Term]
 id: MS:1001918
 name: 2-iodobenzoate
 def: "Chemical iodobenzoate. Cleaves after W." [PubChem_Compound:4739928]
 is_a: MS:1001045 ! cleavage agent name
-relationship: has_regexp MS:1001960 ! (?&lt;=W)
+relationship: has_regexp MS:1001960 ! (?<=W)
 
 [Term]
 id: MS:1001919
@@ -12487,7 +12485,7 @@ name: Digital Object Identifier (DOI)
 def: "DOI unique identifier of a publication." [PSI:PI, http://dx.doi.org]
 synonym: "doi" EXACT []
 is_a: MS:1000878 ! external reference identifier
-relationship: has_regexp MS:1002480 ! (10[.][0-9]\{4,\}(?:[.][0-9]+)*/(?:(?![\"&amp;\'&lt;&gt;])[^ \t\\r\n\\v\\f])+)
+relationship: has_regexp MS:1002480 ! (10[.][0-9]\{4,\}(?:[.][0-9]+)*/(?:(?![\"&\'<>])[^ \t\\r\n\\v\\f])+)
 
 [Term]
 id: MS:1001923
@@ -12724,25 +12722,25 @@ is_a: MS:1001045 ! cleavage agent name
 
 [Term]
 id: MS:1001957
-name: (?&lt;=[ALIV])(?!P)
+name: (?<=[ALIV])(?!P)
 def:"Regular expression for leukocyte elastase." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001958
-name: (?&lt;=[HKR]P)(?!P)
+name: (?<=[HKR]P)(?!P)
 def:"Regular expression for proline endopeptidase." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001959
-name: (?&lt;=[^E]E)
+name: (?<=[^E]E)
 def:"Regular expression for glutamyl endopeptidase." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
 [Term]
 id: MS:1001960
-name: (?&lt;=W)
+name: (?<=W)
 def:"Regular expression for 2-iodobenzoate." [PSI:PI]
 is_a: MS:1001180 ! Cleavage agent regular expression
 
@@ -12966,7 +12964,7 @@ is_a: MS:1000833 ! matrix application type
 [Term]
 id: MS:1001991
 name: sandwich MALDI sample preparation
-def: "Sandwich MALDI sample preparation method." [DOI:10.1002/(SICI)1096-9888(199706)32:6&lt;593::AID-JMS511&gt;3.3.CO;2-4]
+def: "Sandwich MALDI sample preparation method." [DOI:10.1002/(SICI)1096-9888(199706)32:6<593::AID-JMS511>3.3.CO;2-4]
 is_a: MS:1000833 ! matrix application type
 
 [Term]
@@ -12978,7 +12976,7 @@ is_a: MS:1000833 ! matrix application type
 [Term]
 id: MS:1001993
 name: quick and dirty MALDI sample preparation
-def: "Quick &amp; dirty (Q&amp;D) sample preparation separating matrix handling from sample handling." [PSI:MS]
+def: "Quick & dirty (Q&D) sample preparation separating matrix handling from sample handling." [PSI:MS]
 is_a: MS:1000833 ! matrix application type
 
 [Term]
@@ -14436,7 +14434,7 @@ id: MS:1002218
 name: percent collision energy ramp start
 def: "Collision energy at the start of the collision energy ramp in percent, normalized to the mass of the ion." [PSI:PI]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-is_a: MS:1000138 ! percent collision energy
+is_a: MS:1000138 ! normalized collision energy
 relationship: has_units UO:0000187 ! percent
 
 [Term]
@@ -14444,7 +14442,7 @@ id: MS:1002219
 name: percent collision energy ramp end
 def: "Collision energy at the end of the collision energy ramp in percent, normalized to the mass of the ion." [PSI:PI]
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
-is_a: MS:1000138 ! percent collision energy
+is_a: MS:1000138 ! normalized collision energy
 relationship: has_units UO:0000187 ! percent
 
 [Term]
@@ -15447,7 +15445,7 @@ id: MS:1002362
 name: distinct peptide-level probability
 def: "Probability that the reported distinct peptide sequence (irrespective of mass modifications) has been correctly identified via the referenced PSMs." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001192 ! peptide identification confidence metric
+is_a: MS:1001092 ! peptide identification confidence metric
 relationship: has_domain MS:1002305 ! value between 0 and 1 inclusive
 
 [Term]
@@ -15486,7 +15484,7 @@ id: MS:1002367
 name: probability for proteins
 def: "Probability that a specific protein sequence has been correctly identified from the PSM and distinct peptide evidence, and based on the available protein sequences presented to the analysis software." [PSI:PI]
 xref: value-type:xsd\:double "The allowed value-type for this CV term."
-is_a: MS:1001192 ! protein identification confidence metric
+is_a: MS:1001198 ! protein identification confidence metric 
 relationship: has_domain MS:1002305 ! value between 0 and 1 inclusive
 
 [Term]
@@ -16263,7 +16261,7 @@ relationship: part_of MS:0000000 ! Proteomics Standards Initiative Mass Spectrom
 [Term]
 id: MS:1002480
 name: regular expression for a digital object identifier (DOI)
-def: "(10[.][0-9]\{4,\}(?:[.][0-9]+)*/(?:(?![\"&amp;\'&lt;&gt;])[^ \t\\r\n\\v\\f])+)." [PSI:PI, http://dx.doi.org/]
+def: "(10[.][0-9]\{4,\}(?:[.][0-9]+)*/(?:(?![\"&\'<>])[^ \t\\r\n\\v\\f])+)." [PSI:PI, http://dx.doi.org/]
 is_a: MS:1002479 ! regular expression
 
 [Term]
@@ -16600,4 +16598,9 @@ id: MS:1002532
 name: UIMF nativeID format
 def: "Native format defined by frame=xsd:nonNegativeInteger scan=xsd:nonNegativeInteger frameType=xsd:nonNegativeInteger." [PSI:MS]
 is_a: MS:1000767 ! native spectrum identifier format
-</pre><div id="feedly-mini" title="feedly Mini tookit"></div></body></html>
+
+[Term]
+id: MS:1002533
+name: TripleTOF 6600
+def: "AB SCIEX TripleTOF 6600, a quadrupole - quadrupole - time-of-flight mass spectrometer." [PSI:MS]
+is_a: MS:1000121 ! AB SCIEX instrument model

@@ -242,8 +242,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL(exp.getContacts()[0].getEmail(),"wpennington@higglesworth.edu")
   TEST_STRING_EQUAL(exp.getContacts()[0].getURL(),"http://www.higglesworth.edu/")
   TEST_STRING_EQUAL(exp.getContacts()[0].getAddress(),"Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA")
-  TEST_STRING_EQUAL(exp.getContacts()[1].getFirstName(),"")
-  TEST_STRING_EQUAL(exp.getContacts()[1].getLastName(),"Drek'Thar")
+  TEST_STRING_EQUAL(exp.getContacts()[1].getFirstName(),"Guybrush")
+  TEST_STRING_EQUAL(exp.getContacts()[1].getLastName(),"Threepwood")
   TEST_STRING_EQUAL(exp.getContacts()[1].getEmail(),"")
   TEST_STRING_EQUAL(exp.getContacts()[1].getURL(),"")
   TEST_STRING_EQUAL(exp.getContacts()[1].getAddress(),"")
@@ -253,7 +253,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
   TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(),SourceFile::SHA1)
-  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(),"Thermo RAW file")
+  TEST_STRING_EQUAL(exp.getSourceFiles()[0].getFileType(),"Thermo RAW format")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNativeIDType(),"multiple peak list nativeID format")
   //sample
   TEST_STRING_EQUAL(exp.getSample().getName(),"Sample1")
@@ -342,7 +342,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
     TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
     TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
-    TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
+    TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard software")
     TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
     TEST_EQUAL(spec.getDataProcessing()[1].getProcessingActions().size(),1)
     TEST_EQUAL(spec.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
@@ -433,7 +433,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
     TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
     TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
-    TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
+    TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard software")
     TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
     TEST_EQUAL(spec.getDataProcessing()[1].getProcessingActions().size(),1)
     TEST_EQUAL(spec.getDataProcessing()[1].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
@@ -519,7 +519,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     TEST_EQUAL(spec.getProducts().size(),0)
     //data processing
     TEST_EQUAL(spec.getDataProcessing().size(),1)
-    TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getName(),"ProteoWizard")
+    TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getName(),"ProteoWizard software")
     TEST_EQUAL(spec.getDataProcessing()[0].getSoftware().getVersion(),"1.0")
     TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().size(),1)
     TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CONVERSION_MZML),1)
@@ -554,7 +554,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("cellular quality"),"11.11")
   //contact
   TEST_STRING_EQUAL((String)exp.getContacts()[0].getMetaValue("name"),"contact1")
-  TEST_STRING_EQUAL((String)exp.getContacts()[1].getMetaValue("name"),"contact2")
+  TEST_STRING_EQUAL((String)exp.getContacts()[1].getMetaValue("name"),"Pirate")
   //spectrum
   TEST_STRING_EQUAL((String)exp[0].getMetaValue("sdname"),"spectrumdescription1")
   TEST_STRING_EQUAL((String)exp[1].getMetaValue("sdname"),"spectrumdescription2")
@@ -1055,7 +1055,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 
   //invalid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
-  TEST_EQUAL(errors.size(),8)
+  TEST_EQUAL(errors.size(),14)
   TEST_EQUAL(warnings.size(),1)
 //  for (Size i=0; i<errors.size(); ++i)
 //  {
