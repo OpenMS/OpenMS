@@ -103,12 +103,12 @@ namespace OpenMS
     mz_max_ = mz.back();
 
     // remove unnecessary zeros, i.e. zero intensity data points with zeros to the left and right
-    std::vector<double> mz_slim;
-    std::vector<double> intensity_slim;
+    std::vector<double> mz_Slim;
+    std::vector<double> intensity_Slim;
     if (intensity[0] != 0 || intensity[1] != 0)
     {
-      mz_slim.push_back(mz[0]);
-      intensity_slim.push_back(intensity[0]);
+      mz_Slim.push_back(mz[0]);
+      intensity_Slim.push_back(intensity[0]);
     }
     bool last_intensity_zero = (intensity[0] == 0);
     bool current_intensity_zero = (intensity[0] == 0);
@@ -120,14 +120,36 @@ namespace OpenMS
       next_intensity_zero = (intensity[i + 1] == 0);
       if (!last_intensity_zero || !current_intensity_zero || !next_intensity_zero)
       {
-        mz_slim.push_back(mz[i]);
-        intensity_slim.push_back(intensity[i]);
+        mz_Slim.push_back(mz[i]);
+        intensity_Slim.push_back(intensity[i]);
       }
     }
     if (intensity[mz.size() - 1] != 0 || intensity[mz.size() - 2] != 0)
     {
-      mz_slim.push_back(mz[mz.size() - 1]);
-      intensity_slim.push_back(intensity[mz.size() - 1]);
+      mz_Slim.push_back(mz[mz.size() - 1]);
+      intensity_Slim.push_back(intensity[mz.size() - 1]);
+    }
+    
+    // remove Thermo bug zeros
+    // (In some Thermo data appear odd zero intensity data points. Normal data points are sometimes quickly followed by a zero.
+    // These zeros are clearly not part of the profile, but bugs. The following code snippet removes them.)
+    std::vector<double> mz_slim;
+    std::vector<double> intensity_slim;
+    mz_slim.push_back(mz_Slim[0]);
+    mz_slim.push_back(mz_Slim[1]);
+    intensity_slim.push_back(intensity_Slim[0]);
+    intensity_slim.push_back(intensity_Slim[1]);
+    for (unsigned i = 2; i < mz_Slim.size(); ++i)
+    {
+      if (intensity_Slim[i] == 0)
+      {
+        if ((mz_Slim[i] - mz_Slim[i-1]) < (mz_Slim[i-1] - mz_Slim[i-2])/50)
+        {
+          continue;
+        }
+      }
+      mz_slim.push_back(mz_Slim[i]);
+      intensity_slim.push_back(intensity_Slim[i]);
     }
 
     // subdivide spectrum into packages
