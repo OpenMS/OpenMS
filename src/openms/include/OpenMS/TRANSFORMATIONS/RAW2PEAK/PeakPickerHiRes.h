@@ -150,8 +150,8 @@ public:
         if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
 
         // MZ spacing sanity checks
-        double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
-        double central_to_right = std::fabs(right_neighbor_mz - central_peak_mz);
+        double left_to_central = central_peak_mz - left_neighbor_mz;
+        double central_to_right = right_neighbor_mz - central_peak_mz;
         double min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
 
         double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
@@ -185,13 +185,13 @@ public:
           }
 
           // checking signal-to-noise?
-          if (std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
-              && left_neighbor_int < input[i - 2].getIntensity()
-              && act_snt_l2 >= signal_to_noise_
-              && (i + 2) < input.size()
-              && std::fabs(input[i + 2].getMZ() - right_neighbor_mz) < spacing_difference_ * min_spacing
-              && right_neighbor_int < input[i + 2].getIntensity()
-              && act_snt_r2 >= signal_to_noise_)
+          if ((i + 2 < input.size()) &&
+              (left_neighbor_int < input[i - 2].getIntensity()) &&
+              (right_neighbor_int < input[i + 2].getIntensity()) &&
+              (act_snt_l2 >= signal_to_noise_) &&
+              (act_snt_r2 >= signal_to_noise_) &&
+              (left_neighbor_mz - input[i - 2].getMZ() < spacing_difference_ * min_spacing) && 
+              (input[i + 2].getMZ() - right_neighbor_mz < spacing_difference_ * min_spacing))
           {
             ++i;
             continue;
@@ -209,14 +209,14 @@ public:
 
           bool previous_zero_left(false); // no need to extend peak if previous intensity was zero
           Size missing_left(0);
-          Size left_boundary(i-1); // index of the left boundary for the spline interpolation
-
+          Size left_boundary(i - 1); // index of the left boundary for the spline interpolation
+          
           while ((k <= i) && // prevent underflow
                  (i - k + 1 > 0) && 
-                 (missing_left <= missing_) && 
-                 (std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_gap_ * min_spacing) && 
                  !previous_zero_left && 
-                 (input[i - k].getIntensity() <= peak_raw_data.begin()->second))
+                 (missing_left <= missing_) && 
+                 (input[i - k].getIntensity() <= peak_raw_data.begin()->second) &&
+                 (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_gap_ * min_spacing))
           {
             double act_snt_lk = 0.0;
 
@@ -225,7 +225,7 @@ public:
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
 
-            if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
+            if ((act_snt_lk >= signal_to_noise_) && (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_ * min_spacing))
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
             }
@@ -251,10 +251,10 @@ public:
           Size right_boundary(i+1); // index of the right boundary for the spline interpolation
 
           while ((i + k < input.size()) && 
-                 (missing_right <= missing_) && 
-                 (std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_gap_ * min_spacing) && 
                  !previous_zero_right && 
-                 (input[i + k].getIntensity() <= peak_raw_data.rbegin()->second))
+                 (missing_right <= missing_) && 
+                 (input[i + k].getIntensity() <= peak_raw_data.rbegin()->second) &&
+                 (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_gap_ * min_spacing))
           {
             double act_snt_rk = 0.0;
 
@@ -263,7 +263,7 @@ public:
               act_snt_rk = snt.getSignalToNoise(input[i + k]);
             }
 
-            if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing)
+            if ((act_snt_rk >= signal_to_noise_) && (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_ * min_spacing))
             {
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
             }
@@ -300,7 +300,7 @@ public:
           // bisection
           do
           {
-            double mid = (lefthand + righthand) / 2;
+            double mid = (lefthand + righthand) / 2.0;
             double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
 
             // if deriv nearly zero then maximum already found
@@ -320,11 +320,11 @@ public:
               lefthand = mid;
             }
           }
-          while (std::fabs(lefthand - righthand) > threshold);
+          while (righthand - lefthand > threshold);
 
           // sanity check?
           max_peak_mz = (lefthand + righthand) / 2;
-          max_peak_int = peak_spline.eval( max_peak_mz );
+          max_peak_int = peak_spline.eval(max_peak_mz);
 
           // save picked peak into output spectrum
           PeakType peak;
