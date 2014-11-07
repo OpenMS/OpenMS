@@ -113,9 +113,10 @@ public:
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      * @param boundaries  boundaries of the picked peaks
+     * @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries) const
+      void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
@@ -150,12 +151,15 @@ public:
         if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
 
         // MZ spacing sanity checks
-        double left_to_central = central_peak_mz - left_neighbor_mz;
-        double central_to_right = right_neighbor_mz - central_peak_mz;
-        double min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
+        double left_to_central = 0.0, central_to_right = 0.0, min_spacing = 0.0;
+        if (check_spacings)
+        {
+          left_to_central = central_peak_mz - left_neighbor_mz;
+          central_to_right = right_neighbor_mz - central_peak_mz;
+          min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
+        }
 
         double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
-
         if (signal_to_noise_ > 0.0)
         {
           act_snt = snt.getSignalToNoise(input[i]);
@@ -169,8 +173,9 @@ public:
             (act_snt >= signal_to_noise_) && 
             (act_snt_l1 >= signal_to_noise_) && 
             (act_snt_r1 >= signal_to_noise_) &&
-            (left_to_central < spacing_difference_ * min_spacing) && 
-            (central_to_right < spacing_difference_ * min_spacing))
+            (!check_spacings || 
+             ((left_to_central < spacing_difference_ * min_spacing) && 
+              (central_to_right < spacing_difference_ * min_spacing))))
         {
           // special case: if a peak core is surrounded by more intense
           // satellite peaks (indicates oscillation rather than
@@ -190,8 +195,9 @@ public:
               (right_neighbor_int < input[i + 2].getIntensity()) &&
               (act_snt_l2 >= signal_to_noise_) &&
               (act_snt_r2 >= signal_to_noise_) &&
-              (left_neighbor_mz - input[i - 2].getMZ() < spacing_difference_ * min_spacing) && 
-              (input[i + 2].getMZ() - right_neighbor_mz < spacing_difference_ * min_spacing))
+              (!check_spacings ||
+               ((left_neighbor_mz - input[i - 2].getMZ() < spacing_difference_ * min_spacing) && 
+                (input[i + 2].getMZ() - right_neighbor_mz < spacing_difference_ * min_spacing))))
           {
             ++i;
             continue;
@@ -216,7 +222,8 @@ public:
                  !previous_zero_left && 
                  (missing_left <= missing_) && 
                  (input[i - k].getIntensity() <= peak_raw_data.begin()->second) &&
-                 (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_gap_ * min_spacing))
+                 (!check_spacings || 
+                  (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_gap_ * min_spacing)))
           {
             double act_snt_lk = 0.0;
 
@@ -225,7 +232,9 @@ public:
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
 
-            if ((act_snt_lk >= signal_to_noise_) && (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_ * min_spacing))
+            if ((act_snt_lk >= signal_to_noise_) && 
+                (!check_spacings ||
+                 (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_ * min_spacing)))
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
             }
@@ -254,7 +263,8 @@ public:
                  !previous_zero_right && 
                  (missing_right <= missing_) && 
                  (input[i + k].getIntensity() <= peak_raw_data.rbegin()->second) &&
-                 (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_gap_ * min_spacing))
+                 (!check_spacings ||
+                  (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_gap_ * min_spacing)))
           {
             double act_snt_rk = 0.0;
 
@@ -263,7 +273,9 @@ public:
               act_snt_rk = snt.getSignalToNoise(input[i + k]);
             }
 
-            if ((act_snt_rk >= signal_to_noise_) && (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_ * min_spacing))
+            if ((act_snt_rk >= signal_to_noise_) && 
+                (!check_spacings ||
+                 (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_ * min_spacing)))
             {
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
             }
@@ -354,8 +366,8 @@ public:
     template <typename PeakType>
     void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output) const
     {
-        std::vector<PeakBoundary> boundaries;
-        pick(input, output, boundaries);
+      std::vector<PeakBoundary> boundaries;
+      pick(input, output, boundaries);
     }
 
     /**
@@ -381,12 +393,11 @@ public:
       {
         input_spectrum.push_back(*it);
       }
-      pick(input_spectrum, output_spectrum, boundaries);
+      pick(input_spectrum, output_spectrum, boundaries, false); // no spacing checks!
       for (typename MSSpectrum<PeakType>::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
       {
         output.push_back(*it);
       }
-
     }
 
     /**
@@ -513,6 +524,9 @@ protected:
     
     // maximal spacing difference defining a missing data point
     double spacing_difference_;
+
+    // Check spacing constraints? (Only do so for spectra, not chromatograms.)
+    bool check_spacings_;
     
     // maximum number of missing points
     unsigned missing_;
