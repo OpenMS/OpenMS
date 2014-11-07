@@ -113,7 +113,7 @@ START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>
   }
 END_SECTION
 
-START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries) const))
+START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const))
   MSSpectrum<Peak1D> tmp_spec;
   std::vector<PeakPickerHiRes::PeakBoundary> tmp_boundaries;
   pp_hires.pick(input[0], tmp_spec, tmp_boundaries);
@@ -451,7 +451,7 @@ param.setValue("missing", 1);
 param.setValue("spacing_difference_gap", 4.0);
 pp_hires.setParameters(param);
 
-START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries) const)
+START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const)
     MSExperiment<Peak1D> tmp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c; // peak boundaries for chromatograms
@@ -504,7 +504,7 @@ param.setValue("missing", 1);
 param.setValue("spacing_difference_gap", 4.0);
 pp_hires.setParameters(param);
 
-START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries) const)
+START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const)
     MSExperiment<Peak1D> tmp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c; // peak boundaries for chromatograms
