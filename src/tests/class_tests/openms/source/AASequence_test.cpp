@@ -592,6 +592,10 @@ START_SECTION(bool operator<(const AASequence &rhs) const)
   // if N-terminal mods. are the same, check the sequence
   TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))AMA") < AASequence::fromString("(ICPL:2H(4))MAA"), true)
   TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))MAA") < AASequence::fromString("(ICPL:2H(4))AMA"), false)
+  // if everything else is the same, check the C-terminal mods.
+  TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))AMA(Amidated)") < AASequence::fromString("(ICPL:2H(4))AMA(Label:18O(2))"), true)
+  TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))AMA(Label:18O(2))") < AASequence::fromString("(ICPL:2H(4))AMA(Amidated)"), false)
+
 END_SECTION
 
 START_SECTION(bool operator!=(const AASequence& rhs) const)
