@@ -13,7 +13,7 @@
 		</fileContent>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value=", " />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="" />
 		</contact>
 	</fileDescription>
 	<sampleList count="1">
@@ -37,7 +37,7 @@
 			<cvParam cvRef="MS" accession="MS:1000756" name="FileConverter" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1002136" name="PeakPickerWavelet" />
+			<cvParam cvRef="MS" accession="MS:1002136" name="TOPP PeakPickerWavelet" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -142,7 +142,7 @@
 						<binary>3DYqHBBSiUAswwPXWFWJQGOceoOiWYlA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>WcGyRzzpWEcdQppG</binary>

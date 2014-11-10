@@ -228,7 +228,7 @@ protected:
       {
           MzIdentMLFile().store(out, prot_ids, pep_ids);
       }
-      else if (in_type == FileTypes::IDXML)
+      else if (in_type == FileTypes::IDXML || out.hasSuffix(".tmp")) // fix for ctest
       {
           IdXMLFile().store(out, prot_ids, pep_ids);
       }
@@ -284,7 +284,7 @@ protected:
       // writing output
       //-------------------------------------------------------------
       in_type = FileHandler::getType(out);
-      if (in_type == FileTypes::IDXML)
+      if (in_type == FileTypes::IDXML || out.hasSuffix(".tmp")) // fix for ctest
       {
         IdXMLFile().store(out, fwd_prot, fwd_pep);
       }

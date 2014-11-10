@@ -1055,7 +1055,7 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 
   //invalid file
   TEST_EQUAL(file.isSemanticallyValid(OPENMS_GET_TEST_DATA_PATH("MzMLFile_3_invalid.mzML"), errors, warnings),false)
-  TEST_EQUAL(errors.size(),14)
+  TEST_EQUAL(errors.size(),8)
   TEST_EQUAL(warnings.size(),1)
 //  for (Size i=0; i<errors.size(); ++i)
 //  {

@@ -405,7 +405,7 @@ protected:
     {
         MzIdentMLFile().store(outputfile_name, protein_ids, peptide_ids);
     }
-    else if (in_type == FileTypes::IDXML)
+    else if (in_type == FileTypes::IDXML || outputfile_name.hasSuffix(".tmp")) // fix for ctest
     {
         IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
     }

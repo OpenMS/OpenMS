@@ -15,20 +15,20 @@
 		<sourceFileList count="2">
 			<sourceFile id="sf_ru_0" name="tiny1.RAW" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1" />
-				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW file" />
+				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW format" />
 				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
 				<userParam name="name" type="xsd:string" value="sourcefile1"/>
 			</sourceFile>
 			<sourceFile id="sf_sp_1" name="tiny1.dta" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
-				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
 				<userParam name="name" type="xsd:string" value="sourcefile4"/>
 			</sourceFile>
 		</sourceFileList>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Pennington, William" />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="dort" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="dort" />
 			<cvParam cvRef="MS" accession="MS:1000587" name="contact address" value="Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA" />
 			<cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.higglesworth.edu/" />
 			<cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="wpennington@higglesworth.edu" />
@@ -36,7 +36,7 @@
 		</contact>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Drek&apos;Thar, " />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="da" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="da" />
 			<userParam name="name" type="xsd:string" value="contact2"/>
 		</contact>
 	</fileDescription>
@@ -65,7 +65,7 @@
 			<cvParam cvRef="MS" accession="MS:1000532" name="Xcalibur" />
 		</software>
 		<software id="so_dp_sp_0_pm_1" version="1.0" >
-			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard" />
+			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000757" name="FileFilter" />
@@ -200,7 +200,7 @@
 				<cvParam cvRef="MS" accession="MS:1000619" name="lowest observed wavelength" value="500.39" unitAccession="UO:0000018" unitName="nanometer" unitCvRef="UO"/>
 				<cvParam cvRef="MS" accession="MS:1000618" name="highest observed wavelength" value="795.56" unitAccession="UO:0000018" unitName="nanometer" unitCvRef="UO"/>
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120054" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120054" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
 				<cvParam cvRef="MS" accession="MS:1000796" name="spectrum title" value="title"/>
 				<cvParam cvRef="MS" accession="MS:1000797" name="peak list scans" value="15 scans"/>
@@ -245,7 +245,7 @@
 						<binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="80">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABwQQAAYEEAAFBBAABAQQAAMEEAACBBAAAQQQAAAEEAAOBAAADAQAAAoEAAAIBAAABAQAAAAEAAAIA/</binary>
@@ -260,7 +260,7 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="320.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1003.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="456.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="23433" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
 				<userParam name="maldi_spot_id" type="xsd:string" value="M1"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription2"/>
@@ -349,7 +349,7 @@
 						<binary>AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="56">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>
@@ -379,7 +379,7 @@
 				<cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1795.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120054" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120054" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
 				<userParam name="maldi_spot_id" type="xsd:string" value="M2"/>
 				<userParam name="sdname" type="xsd:string" value="spectrumdescription3"/>
@@ -428,7 +428,7 @@
 						<binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="80">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABwQQAAYEEAAFBBAABAQQAAMEEAACBBAAAQQQAAAEEAAOBAAADAQAAAoEAAAIBAAABAQAAAAEAAAIA/</binary>

@@ -14,7 +14,7 @@
 		<sourceFileList count="1">
 			<sourceFile id="sf_ru_0" name="FileConverter_2_input.someInputDTA2D" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="ceb081c5241c5cc9aedf0dd9f705b7620a7c2267" />
-				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
@@ -72,7 +72,7 @@
 						<binary>AAAAAABAf0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABIQg==</binary>
@@ -97,7 +97,7 @@
 						<binary>AAAAAADAgkA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQg==</binary>
@@ -122,7 +122,7 @@
 						<binary>AAAAAADghUA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABIQw==</binary>
@@ -147,7 +147,7 @@
 						<binary>AAAAAAAAiUA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQw==</binary>
@@ -172,7 +172,7 @@
 						<binary>AAAAAAAgjEA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABIQw==</binary>
@@ -197,7 +197,7 @@
 						<binary>AAAAAABAj0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AADIQg==</binary>
@@ -222,7 +222,7 @@
 						<binary>AAAAAAAwkUA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABIQg==</binary>
@@ -247,7 +247,7 @@
 						<binary>AAAAAAAgjEA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABIQw==</binary>

@@ -101,6 +101,8 @@ namespace OpenMS
         @note Only upon destruction of this class it can be guaranteed that all
         data has been appended to the appropriate consumer of the data. Do not
         try to access the data before that.
+
+        @todo replace hardcoded cv stuff with more flexible handling via obo r/w.
     */
     template <typename MapType>
     class MzMLHandler :
@@ -798,7 +800,7 @@ protected:
         }
         else if (array_type == "intensity")
         {
-          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+          cv_term_type = "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of detector counts\" unitCvRef=\"MS\"/>\n";
           compression_term = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), true);
           compression_term_no_np = MzMLHandlerHelper::getCompressionTerm_(pf_options_, pf_options_.getNumpressConfigurationIntensity(), false);
           np_config = pf_options_.getNumpressConfigurationIntensity();
@@ -3569,7 +3571,15 @@ protected:
     {
       os << "\t\t<software id=\"" << id << "\" version=\"" << software.getVersion() << "\" >\n";
       ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531", software.getName());
-      if (so_term.id == "MS:1000799")
+      if (so_term.id == "")
+      {
+        so_term = getChildWithName_("MS:1000531", software.getName()+ " software"); //act of desparation to find the right cv and keep compatible with older cv mzmls
+      }
+      if (so_term.id == "")
+      {
+          so_term = getChildWithName_("MS:1000531", "TOPP " + software.getName()); //act of desparation to find the right cv and keep compatible with older cv mzmls
+        }
+        if (so_term.id == "MS:1000799")
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"\" />\n";
       }
@@ -3578,7 +3588,7 @@ protected:
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"" << so_term.id << "\" name=\"" << writeXMLEscape(so_term.name) << "\" />\n";
       }
       else
-      {
+      {       
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"" << writeXMLEscape(software.getName()) << "\" />\n";
       }
       writeUserParam_(os, software, 3, "/mzML/Software/cvParam/@accession", validator);
@@ -3604,6 +3614,10 @@ protected:
       }
       //file type
       ControlledVocabulary::CVTerm ft_term = getChildWithName_("MS:1000560", source_file.getFileType());
+      if (ft_term.id.empty() && source_file.getFileType().hasSuffix("file"))
+      {
+          ft_term = getChildWithName_("MS:1000560", source_file.getFileType().chop(4) + "format"); // this is born out of desparation that sourcefile has a string interface for its filetype and not the enum, which could have been easily manipulated to the updated cv
+      }
       if (ft_term.id != "")
       {
         os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"" << ft_term.id << "\" name=\"" << ft_term.name << "\" />\n";

@@ -5250,7 +5250,7 @@ is_a: MS:1000752 ! TOPP software
 id: MS:1000760
 name: MapAligner
 def: "OBSOLETE Corrects retention time distortions between maps." [PSI:MS]
-comment: This term was made obsolete, because it is replaced by the terms under the 'TOPP map aligner' (MS:1002147) branch.
+comment: This term was made obsolete, because it is replaced by the terms under the 'TOPP MapAligner' (MS:1002147) branch.
 is_a: MS:1000752 ! TOPP software
 is_obsolete: true
 
@@ -13998,7 +13998,7 @@ is_a: MS:1002137 ! TOPP spectra filter
 
 [Term]
 id: MS:1002147
-name: TOPP map aligner
+name: TOPP MapAligner
 def: "Map aligner component of the TOPP software." [PSI:PI]
 is_a: MS:1000752 ! TOPP software
 
@@ -14006,19 +14006,19 @@ is_a: MS:1000752 ! TOPP software
 id: MS:1002148
 name: TOPP MapAlignerIdentification
 def: "Corrects retention time distortions between maps based on common peptide identifications." [PSI:PI]
-is_a: MS:1002147 ! TOPP map aligner
+is_a: MS:1002147 ! TOPP MapAligner
 
 [Term]
 id: MS:1002149
 name: TOPP MapAlignerPoseClustering
 def: "Corrects retention time distortions between maps using a pose clustering approach." [PSI:PI]
-is_a: MS:1002147 ! TOPP map aligner
+is_a: MS:1002147 ! TOPP MapAligner
 
 [Term]
 id: MS:1002150
 name: TOPP MapAlignerSpectrum
 def: "Corrects retention time distortions between maps by spectrum alignment." [PSI:PI]
-is_a: MS:1002147 ! TOPP map aligner
+is_a: MS:1002147 ! TOPP MapAligner
 
 [Term]
 id: MS:1002151
