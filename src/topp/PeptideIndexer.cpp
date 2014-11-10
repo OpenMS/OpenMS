@@ -898,8 +898,8 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    in_type = FileHandler::getType(out);
-    if (in_type == FileTypes::IDXML)
+    in_type = FileHandler::getTypeByFileName(out);
+    if (in_type == FileTypes::IDXML || out.hasSuffix(".tmp")) // fix for ctest
     {
       IdXMLFile().store(out, prot_ids, pep_ids);
     }
