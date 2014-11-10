@@ -3577,9 +3577,9 @@ protected:
       }
       if (so_term.id == "")
       {
-          so_term = getChildWithName_("MS:1000531", "TOPP " + software.getName()); //act of desparation to find the right cv and keep compatible with older cv mzmls
-        }
-        if (so_term.id == "MS:1000799")
+        so_term = getChildWithName_("MS:1000531", "TOPP " + software.getName()); //act of desparation to find the right cv and keep compatible with older cv mzmls
+      }
+      if (so_term.id == "MS:1000799")
       {
         os << "\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000799\" name=\"custom unreleased software tool\" value=\"\" />\n";
       }
