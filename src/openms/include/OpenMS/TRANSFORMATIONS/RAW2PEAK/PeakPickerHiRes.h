@@ -130,6 +130,13 @@ public:
       // don't pick a spectrum with less than 5 data points
       if (input.size() < 5) return;
 
+      // if both spacing constraints are disabled, don't check spacings at all:
+      if ((spacing_difference_ == std::numeric_limits<double>::infinity()) &&
+          (spacing_difference_gap_ == std::numeric_limits<double>::infinity()))
+      {
+        check_spacings = false;
+      }
+
       // signal-to-noise estimation
       SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
       snt.setParameters(param_.copy("SignalToNoise:", true));
