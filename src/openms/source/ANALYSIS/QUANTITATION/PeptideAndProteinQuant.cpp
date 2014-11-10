@@ -52,7 +52,7 @@ namespace OpenMS
     defaults_.setMinInt("top", 0);
 
     defaults_.setValue("average", "median", "Averaging method used to compute protein abundances from peptide abundances");
-    defaults_.setValidStrings("average", ListUtils::create<String>("median,mean,sum"));
+    defaults_.setValidStrings("average", ListUtils::create<String>("median,mean,intensity weighted mean,sum"));
 
     StringList true_false = ListUtils::create<String>("true,false");
 
@@ -389,6 +389,10 @@ namespace OpenMS
           result = Math::median(ab_it->second.begin(), ab_it->second.end());
         }
         else if (average == "mean")
+        {
+          result = Math::mean(ab_it->second.begin(), ab_it->second.end());
+        }
+        else if (average == "intensity weighted mean")
         {
           result = Math::mean(ab_it->second.begin(), ab_it->second.end());
         }
