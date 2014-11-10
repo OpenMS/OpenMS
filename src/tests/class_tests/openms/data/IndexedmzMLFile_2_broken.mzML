@@ -44,3 +44,15 @@
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 	</run>
 </mzML>
+  <indexList count="2">
+    <index name="spectrum">
+      <offset idRef="controllerType=0 controllerNumber=1 scan=1">10581</offset>
+      <offset idRef="controllerType=0 controllerNumber=1 scan=2">332162</offset>
+    </index>
+    <index name="chromatogram">
+      <offset idRef="TIC">651965</offset>
+    </index>
+  </indexList>
+  <indexListOffset>18446744073709551616</indexListOffset>
+<fileChecksum>0</fileChecksum>
+</indexedmzML>
