@@ -36,14 +36,13 @@
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIER_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <OpenMS/KERNEL/ConsensusMap.h>
-
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 
 namespace OpenMS
 {
+  class IsobaricQuantitationMethod;
+  class ConsensusMap;
+
   /**
     @brief Given the extracted channel intensities the IsobaricQuantifier corrects and normalizes
            the intensities for further processing.

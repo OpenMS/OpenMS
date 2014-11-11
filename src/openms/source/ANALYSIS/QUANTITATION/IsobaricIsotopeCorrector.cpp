@@ -33,7 +33,11 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
+
 #include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
@@ -106,7 +110,7 @@ namespace OpenMS
       solveNNLS_(correction_matrix, m_b, m_x);
 
       // update the ouput consensus map with the corrected intensities
-      ConsensusFeature::IntensityType cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
+      float cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency
       computeStats_(m_x, e_mx, cf_intensity, quant_method, stats);
@@ -147,7 +151,7 @@ namespace OpenMS
 
   void
   IsobaricIsotopeCorrector::computeStats_(const Matrix<double>& m_x,
-                                          const Eigen::MatrixXd& x, const ConsensusFeature::IntensityType cf_intensity,
+                                          const Eigen::MatrixXd& x, const float cf_intensity,
                                           const IsobaricQuantitationMethod* quant_method, IsobaricQuantifierStatistics& stats)
   {
     Size s_negative(0);
@@ -185,12 +189,12 @@ namespace OpenMS
     }
   }
 
-  ConsensusFeature::IntensityType
+  float
   IsobaricIsotopeCorrector::updateOutpuMap_(
     const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
     ConsensusMap::size_type current_cf, const Matrix<double>& m_x)
   {
-    ConsensusFeature::IntensityType cf_intensity(0);
+    float cf_intensity(0);
     for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[current_cf].begin();
          it_elements != consensus_map_in[current_cf].end();
          ++it_elements)
@@ -198,7 +202,7 @@ namespace OpenMS
       FeatureHandle handle = *it_elements;
       //find channel_id of current element
       Int index = Int(consensus_map_out.getFileDescriptions()[it_elements->getMapIndex()].getMetaValue("channel_id"));
-      handle.setIntensity(ConsensusFeature::IntensityType(m_x(index, 0)));
+      handle.setIntensity(float(m_x(index, 0)));
 
       consensus_map_out[current_cf].insert(handle);
       cf_intensity += handle.getIntensity(); // sum up all channels for CF
