@@ -384,10 +384,6 @@ protected:
     parameters += " -addFeatures " + String(getIntOption_("add_features"));
     parameters += " -thread " + String(getIntOption_("threads"));
 
-    // TODO: forward thread number from OpenMS param, since the default might not be what the user wants when processing multiple files in parallel
-    // [-thread NumThreads] (Number of concurrent threads to be executed, Default: Number of available cores)
-
-
     // TODO: create mod database on the fly from fixed and variable mod params
     String modfile_name = getStringOption_("mod");
     if(modfile_name != "") 
@@ -430,7 +426,7 @@ protected:
     parameters += " -showQValue 1";
     parameters += " -showDecoy 1";
     parameters += " -unroll 1";
-    // TODO: same as above: use QStringList for execute() !
+    // TODO: same as above: use QStringList for execute()!
     status = process.execute((converter_executable + " " + parameters).toQString());
     if (status != 0)
     {
@@ -479,7 +475,7 @@ protected:
     search_parameters.mass_type = mass_type;
     //search_parameters.fixed_modifications = getStringList_("fixed_modifications"); // TODO: Parse mod config file
     //search_parameters.variable_modifications = getStringList_("variable_modifications"); // TODO: Parse mod config file
-    search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance"); // TODO: convert values to dalton if not already dalton
+    search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance"); // TODO: convert values to Dalton if not already Dalton
     search_parameters.enzyme = enzyme_type;
 
     // create idXML file
