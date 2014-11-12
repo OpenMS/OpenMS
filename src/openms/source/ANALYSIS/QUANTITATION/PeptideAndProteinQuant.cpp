@@ -396,13 +396,12 @@ namespace OpenMS
         {
           double sum_intensities = 0;
           double sum_intensities_squared = 0;
-          DoubleList::const_iterator it_intensities;
-          for (it_intensities = ab_it->second.begin(); it_intensities < ab_it->second.end(); ++it_intensities)
+          for (DoubleList::const_iterator it_intensities = ab_it->second.begin(); it_intensities != ab_it->second.end(); ++it_intensities)
           {
             sum_intensities += (*it_intensities);
-            sum_intensities_squared += (*it_intensities)*(*it_intensities);
+            sum_intensities_squared += (*it_intensities) * (*it_intensities);
           }
-          result = sum_intensities_squared/sum_intensities;
+          result = sum_intensities_squared / sum_intensities;
         }
         else // "sum"
         {
