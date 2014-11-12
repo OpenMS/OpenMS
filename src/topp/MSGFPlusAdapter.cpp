@@ -164,8 +164,8 @@ protected:
     setMinInt_("add_features", 0);
     setMaxInt_("add_features", 1);
 
-    registerIntOption_("java_memory_size", "<num>", 3500, "Maximum Java heap size (in MB)", false);
-    registerIntOption_("java_permgen_size", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false);
+    registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
+    registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false);
   }
 
   // The following sequence modification methods are used to modify the sequence stored in the TSV such that it can be used by AASequence
@@ -346,31 +346,36 @@ protected:
       remove_output_suffix = true;
     }
 
-    String  parameters = "";
-    parameters += "-s " + inputfile_name;
-    parameters += " -o " + msgfplus_output_filename;
-    parameters += " -d " + db_name;
-    parameters += " -t " + String(getDoubleOption_("precursor_mass_tolerance")) + getStringOption_("precursor_error_units");
-    parameters += " -ti " + getStringOption_("isotope_error_range");
-    parameters += " -tda " + String(getIntOption_("decoy"));
-    parameters += " -m " + String(getIntOption_("fragment_method"));
-    parameters += " -inst " + String(getIntOption_("instrument"));
-    parameters += " -e " + String(getIntOption_("enzyme"));
-    parameters += " -protocol " + String(getIntOption_("protocol"));
-    parameters += " -ntt " + String(getIntOption_("tolerable_termini"));
-    parameters += " -minLength " + String(getIntOption_("min_peptide_length"));
-    parameters += " -maxLength " + String(getIntOption_("max_peptide_length"));
-    parameters += " -minCharge " + String(getIntOption_("min_precursor_charge"));
-    parameters += " -maxCharge " + String(getIntOption_("max_precursor_charge"));
-    parameters += " -n " + String(getIntOption_("matches_per_spec"));
-    parameters += " -addFeatures " + String(getIntOption_("add_features"));
-    parameters += " -thread " + String(getIntOption_("threads"));
+    QString java_memory = "-Xmx" + QString(getIntOption_("java_memory")) + "m";
+    QString msgfplus_exe = getStringOption_("msgfplus_executable").toQString();
+    QString precursor_tol = QString::number(getDoubleOption_("precursor_mass_tolerance")) + getStringOption_("precursor_error_units").toQString();
+    QStringList process_params; // the actual process is Java, not MS-GF+!
+    process_params << java_memory
+                   << "-jar" << msgfplus_exe
+                   << "-s" << inputfile_name.toQString()
+                   << "-o" << msgfplus_output_filename.toQString()
+                   << "-d" << db_name.toQString()
+                   << "-t" << precursor_tol
+                   << "-ti" << getStringOption_("isotope_error_range").toQString()
+                   << "-tda" << QString(getIntOption_("decoy"))
+                   << "-m" << QString(getIntOption_("fragment_method"))
+                   << "-inst" << QString(getIntOption_("instrument"))
+                   << "-e" << QString(getIntOption_("enzyme"))
+                   << "-protocol" << QString(getIntOption_("protocol"))
+                   << "-ntt" << QString(getIntOption_("tolerable_termini"))
+                   << "-minLength" << QString(getIntOption_("min_peptide_length"))
+                   << "-maxLength" << QString(getIntOption_("max_peptide_length"))
+                   << "-minCharge" << QString(getIntOption_("min_precursor_charge"))
+                   << "-maxCharge" << QString(getIntOption_("max_precursor_charge"))
+                   << "-n" << QString(getIntOption_("matches_per_spec"))
+                   << "-addFeatures" << QString(getIntOption_("add_features"))
+                   << "-thread" << QString(getIntOption_("threads"));
 
     // TODO: create mod database on the fly from fixed and variable mod params
     String modfile_name = getStringOption_("mod");
-    if(modfile_name != "") 
+    if (!modfile_name.empty())
     {
-      parameters += " -mod " + getStringOption_("mod");
+      process_params << "-mod" << getStringOption_("mod").toQString();
     }
 
     //-------------------------------------------------------------
@@ -378,15 +383,10 @@ protected:
     //-------------------------------------------------------------
    
     // run MS-GF+ process and create the .mzid file
-    String max_memory_size = "-Xmx" + String(getIntOption_("java_memory_size")) + "M";
-    // TODO: This is not safe against spaces in paths. Better use QStringList for arguments and the respective execute() function overload
-    String msgf_executable("java " + max_memory_size + " -jar " + getStringOption_("msgfplus_executable"));
-
-    QProcess process;
-    int status = process.execute((msgf_executable + " " + parameters).toQString());
+    int status = QProcess::execute("java", process_params);
     if (status != 0)
     {
-      writeLog_("MSGFPlus problem. Aborting! Calling command was: '" + msgf_executable + " \"" + inputfile_name + "\"'.\nDoes the MS-GF+ executable (.jar file) exist?");
+      writeLog_("Fatal error: Running MS-GF+ returned an error code. Does the MS-GF+ executable (.jar file) exist?");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -394,26 +394,24 @@ protected:
     // execute TSV converter
     //------------------------------------------------------------- 
 
-    String mzidtotsv_output_filename(temp_directory + "svFile.tsv");
-    int max_permgen_size = getIntOption_("java_permgen_size");
-    String max_permgen_size_cmd = "";
-    if (max_permgen_size != 0) 
+    String mzidtotsv_output_filename = temp_directory + "svFile.tsv";
+    int java_permgen = getIntOption_("java_permgen");
+    process_params.clear();
+    process_params << java_memory;
+    if (java_permgen > 0) 
     {
-      max_permgen_size_cmd = "-XX:MaxPermSize=" + String(max_permgen_size) + "m";
+      process_params << "-XX:MaxPermSize=" + QString(java_permgen) + "m";
     }
-
-    String converter_executable("java " + max_memory_size + max_permgen_size_cmd + " -cp " + getStringOption_("msgfplus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv");
-
-    parameters = " -i " +  msgfplus_output_filename;
-    parameters += " -o " + mzidtotsv_output_filename;
-    parameters += " -showQValue 1";
-    parameters += " -showDecoy 1";
-    parameters += " -unroll 1";
-    // TODO: same as above - use QStringList for execute()
-    status = process.execute((converter_executable + parameters).toQString());
+    process_params << "-cp" << msgfplus_exe << "edu.ucsd.msjava.ui.MzIDToTsv"
+                   << "-i" << msgfplus_output_filename.toQString()
+                   << "-o" << mzidtotsv_output_filename.toQString()
+                   << "-showQValue" << "1"
+                   << "-showDecoy" << "1"
+                   << "-unroll" << "1";
+    status = QProcess::execute("java", process_params);
     if (status != 0)
     {
-      writeLog_("MzIDToTSVConverter problem. Aborting!");
+      writeLog_("Fatal error: Running MzIDToTSVConverter returned an error code.");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -535,9 +533,9 @@ protected:
       else 
       {
         p_hits = peptide_identifications[scanNumber].getHits();
-        for(vector<PeptideHit>::iterator p_it = p_hits.begin(); p_it != p_hits.end(); ++ p_it)
+        for (vector<PeptideHit>::iterator p_it = p_hits.begin(); p_it != p_hits.end(); ++ p_it)
         {
-          if(p_it -> getSequence() == sequence) 
+          if (p_it -> getSequence() == sequence) 
           {
             p_it -> addProteinAccession(prot_accession);
           }
@@ -547,7 +545,7 @@ protected:
     }
 
     vector<ProteinHit> prot_hits;
-    for(set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++ it) 
+    for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++ it) 
     {
       ProteinHit prot_hit = ProteinHit();
       prot_hit.setAccession(*it);
@@ -560,7 +558,7 @@ protected:
     map<int, PeptideIdentification>::iterator it;
     vector<PeptideIdentification> peptide_ids;
     PeptideIdentification pep;
-    for(map<int,PeptideIdentification>::iterator it = peptide_identifications.begin(); 
+    for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin(); 
         it != peptide_identifications.end(); ++ it)
     {
       pep = it->second;
@@ -570,7 +568,7 @@ protected:
     
     IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
 
-    if(remove_output_suffix) 
+    if (remove_output_suffix) 
     {
       QFile::rename(msgfplus_output_filename.toQString(), msgfplus_output_filename_ori.toQString());
     }
