@@ -77,26 +77,13 @@
     </table>
 </CENTER>
 
-    @em MSGF+ must be installed before this wrapper can be used. This wrapper
-    has been successfully tested. Please be sure that Java and MSGF+ are working.
+    @em MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.
 
     This adapter supports relative database filenames, which (when not found in the 
-    current working directory) is looked up in the directories specified by 
+    current working directory) are looked up in the directories specified by 
     'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 		
-    The adapter has four input parameters. The input file is a spectrum file, the database
-    is the used database file for the search usually as FASTA file,
-    the name of the output file as idXML and the MSGF+ executable.
-    Other parameters are set in the implementation and cannot be changed by the user
-    in the moment. 
-    First using the input spectrum file and the default parameters MSGF+ is started.
-    MSGF+ muss be installed in the same folder as the executable MSGF+Adapter. 
-    The output of the MSGF+Adapter is stored in a temporary directory using the file name
-    "msgfplus_output_file.mzid".
-    This file is then used and converted in a second QProcess run into a tsv file.
-    For this part the process "java -cp MSGFPlus.jar edu.ucsd.msjava.ui.MzIDToTsv" is used 
-    and the parameters are again fixed in the implementation yet.
-    In the last step the created tsv file is parsed in and an idXML file is created.  
+    The adapter works in three steps: First MS-GF+ is run on the input MS data and the sequence database, producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool. Finally, the .tsv file is parsed and a result in idXML format is generated.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MSGFplusAdapter.cli
@@ -115,7 +102,7 @@ class MSGFPlusAdapter :
 {
 public:
   MSGFPlusAdapter() :
-    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MSGFPlus.", false)
+    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", false)
   {
   }
 
@@ -126,39 +113,41 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,mgf,ms2"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerOutputFile_("mzid_out", "<file>", "", "Alternative output file", false);
+    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
 
-    registerInputFile_("database", "<file>", "", "FASTA file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
-    registerInputFile_("msgfplus_executable", "<executable>", "", "MSGFPlus jar file, e.g. 'c:\\program files\\MSGFPlus.jar'");
+    registerInputFile_("msgfplus_executable", "<executable>", "", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'");
 
-    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 20, "Precursor mono mass tolerance.", false);
+    registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 20, "Precursor monoisotopic mass tolerance.", false);
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Unit to be used for precursor mass tolerance.", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
 
-    registerStringOption_("isotope_error_range", "<range>", "0,1", "Range of allowed isotope peak errors. Takes into account of the error introduced by chooosing a non-monoisotopic peak for fragmentation. The combination of -t and -ti determins the precursor mass tolerance. E.g. -precursor_mass_tolerance 20 -precursor_error_units ppm -isotope_error_range -1,2 tests abs(exp-calc-n*1.00335Da)<20ppm for n=-1, 0, 1, 2", false);
+    registerStringOption_("isotope_error_range", "<range>", "0,1", "Range of allowed isotope peak errors. Takes into account the error introduced by choosing a non-monoisotopic peak for fragmentation. Combined with 'precursor_mass_tolerance'/'precursor_error_units', this determines the actual precursor mass tolerance. E.g. for experimental mass 'exp' and calculated mass 'calc', '-precursor_mass_tolerance 20 -precursor_error_units ppm -isotope_error_range -1,2' tests '|exp - calc - n * 1.00335 Da| < 20 ppm' for n = -1, 0, 1, 2.", false);
 
     registerIntOption_("decoy", "<0/1>", 0, "0: don't search decoy database, 1: search decoy database", false);
     setMinInt_("decoy", 0);
     setMaxInt_("decoy", 1);
 
-    registerIntOption_("fragment_method", "<method>", 0, "0: As written in the spectrum or CID if no info, 1: CID, 2: ETD, 3: HCD", false);
+    registerIntOption_("fragment_method", "<method>", 0, "0: as written in the spectrum (or CID if no info), 1: CID, 2: ETD, 3: HCD", false);
     setMinInt_("fragment_method", 0);
     setMaxInt_("fragment_method", 3);
 
-    registerIntOption_("instrument", "<instrument>", 0, "0: Low-res LCQ/LTQ, 1: High-res LTQ, 2: TOF, 3: Q-Exactive", false);
+    registerIntOption_("instrument", "<instrument>", 0, "0: low-res LCQ/LTQ, 1: high-res LTQ, 2: TOF, 3: Q Exactive", false);
     setMinInt_("instrument", 0);
     setMaxInt_("instrument", 3);
 
-    registerIntOption_("enzyme", "<enzyme>", 1, "0: unspecific cleavage, 1: Trypsin, 2: Chymotrypsin, 3: Lys-C, 4: Lys-N, 5: glutamyl endopeptidase, 6: Arg-C, 7: Asp-N, 8: alphaLP, 9: no cleavage", false);
+    registerIntOption_("enzyme", "<enzyme>", 1, "0: unspecific cleavage, 1: trypsin, 2: chymotrypsin, 3: Lys-C, 4: Lys-N, 5: glutamyl endopeptidase, 6: Arg-C, 7: Asp-N, 8: alphaLP, 9: no cleavage", false);
     setMinInt_("enzyme", 0);
     setMaxInt_("enzyme", 9);
 
-    registerIntOption_("protocol", "<protocol>", 0, "0: NoProtocol, 1: Phosphorylation, 2: iTRAQ, 3: iTRAQPhospho, 4: TMT", false);
+    registerIntOption_("protocol", "<protocol>", 0, "0: No protocol, 1: phosphorylation, 2: iTRAQ, 3: iTRAQPhospho, 4: TMT", false);
     setMinInt_("protocol", 0);
     setMaxInt_("protocol", 4);
 
-    registerIntOption_("tolerable_termini", "<num>", 2, "For trypsin, 0: non-tryptic, 1: semi-tryptic, 2: fully-tryptic peptides only.", false);
+    registerIntOption_("tolerable_termini", "<num>", 2, "For trypsin, 0: non-tryptic, 1: semi-tryptic, 2: fully-tryptic peptides only", false);
     setMinInt_("tolerable_termini", 0);
     setMaxInt_("tolerable_termini", 2);
     
@@ -175,14 +164,11 @@ protected:
     setMinInt_("add_features", 0);
     setMaxInt_("add_features", 1);
 
-    registerOutputFile_("mzid_out", "<file>", "", "mzIdentML outputfile", false);
-    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-
-    registerIntOption_("java_memory_size", "<num>", 3500, "Maximum Java heap size", false);
-    registerIntOption_("java_permgen_size", "<num>", 0, "Maximum permanent generation space size; only for Java 7 and below", false);
+    registerIntOption_("java_memory_size", "<num>", 3500, "Maximum Java heap size (in MB)", false);
+    registerIntOption_("java_permgen_size", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false);
   }
 
-  // The following sequence modification methods are used to modify the sequence stored in the tsv such that it can be used by AASequence
+  // The following sequence modification methods are used to modify the sequence stored in the TSV such that it can be used by AASequence
 
   // Method to cut the first and last character of the sequence.
   // The sequences in the tsv file has the form K.AAAA.R (AAAA stands for any amino acid sequence.
@@ -274,12 +260,9 @@ protected:
     return modifiedSequence;
   }
 
-  //-------------------------------------------------------------
   // Parse mzML and create RTMapping
-  // get RT: it doesn't exist in output from MSGFPlus
-  // get MZ: it is rounded after converting to tsv
-  //-------------------------------------------------------------
-  
+  // get RT: it doesn't exist in output from MS-GF+
+  // get m/z: it is rounded after converting to TSV
   void generateInputfileMapping(Map<String, vector<float> >& rt_mapping)
   {
     String exp_name = getStringOption_("in");
@@ -343,7 +326,7 @@ protected:
       db_name = full_db_name;
     }
 
-    // write the msgf output file in the temporary directory
+    // write the MS-GF+ output file to the temporary directory
     String temp_directory = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
     {
       QDir d;
@@ -392,24 +375,24 @@ protected:
     }
 
     //-------------------------------------------------------------
-    // execute MSGFPlus
+    // execute MS-GF+
     //-------------------------------------------------------------
    
-    // run MSGFPlus process and create the mzid file
+    // run MS-GF+ process and create the .mzid file
     String max_memory_size = "-Xmx" + String(getIntOption_("java_memory_size")) + "M";
-    // TODO: this is not safe against spaces in paths. Better use QStringList for arguments and the respective execute() function overload
+    // TODO: This is not safe against spaces in paths. Better use QStringList for arguments and the respective execute() function overload
     String msgf_executable("java " + max_memory_size + " -jar " + getStringOption_("msgfplus_executable"));
 
     QProcess process;
     int status = process.execute((msgf_executable + " " + parameters).toQString());
     if (status != 0)
     {
-      writeLog_("MSGFPlus problem. Aborting! Calling command was: '" + msgf_executable + " \"" + inputfile_name + "\"'.\nDoes the MSGFPlus executable exist?");
+      writeLog_("MSGFPlus problem. Aborting! Calling command was: '" + msgf_executable + " \"" + inputfile_name + "\"'.\nDoes the MS-GF+ executable (.jar file) exist?");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
     //-------------------------------------------------------------
-    // execute tsv converter
+    // execute TSV converter
     //------------------------------------------------------------- 
     String mzidtotsv_output_filename(temp_directory + "svFile.tsv");
     int max_permgen_size = getIntOption("java_permgen_size");
@@ -426,7 +409,7 @@ protected:
     parameters += " -showQValue 1";
     parameters += " -showDecoy 1";
     parameters += " -unroll 1";
-    // TODO: same as above: use QStringList for execute()!
+    // TODO: same as above - use QStringList for execute()
     status = process.execute((converter_executable + " " + parameters).toQString());
     if (status != 0)
     {
@@ -530,7 +513,7 @@ protected:
       if (peptide_identifications.find(scanNumber) == peptide_identifications.end()) 
       {
         score = elements[12].toDouble();
-        rank = 0; //set to 0 in the moment
+        rank = 0; // set to 0 at the moment
         charge = elements[7].toInt();
         
         PeptideHit p_hit(score, rank, charge, sequence);
@@ -571,8 +554,8 @@ protected:
     protein_id.setHits(prot_hits);
     protein_ids.push_back(protein_id);
 
-    // iterate over map and create a vector<PeptideIdentification>
-    map<int,PeptideIdentification>::iterator it;
+    // iterate over map and create a vector of peptide identifications
+    map<int, PeptideIdentification>::iterator it;
     vector<PeptideIdentification> peptide_ids;
     PeptideIdentification pep;
     for(map<int,PeptideIdentification>::iterator it = peptide_identifications.begin(); 
