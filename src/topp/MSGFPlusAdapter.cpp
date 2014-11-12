@@ -213,8 +213,7 @@ protected:
 
     for (vector<pair<String, char> >::const_iterator iter = massShiftList.begin(); iter != massShiftList.end(); iter++)
     {
-      string modMassShift(iter->first);
-      char aa = iter->second;
+      string modMassShift = iter->first;
       size_t found = modifiedSequence.find(modMassShift);
 
       if (found != string::npos)
@@ -278,7 +277,7 @@ protected:
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         String id = it->getNativeID(); // expected format: "... scan=#"
-        if ( id != "") 
+        if (id != "") 
         {
           rt_mapping[id].push_back(it->getRT());
           rt_mapping[id].push_back(it->getPrecursors()[0].getMZ());
@@ -394,23 +393,24 @@ protected:
     //-------------------------------------------------------------
     // execute TSV converter
     //------------------------------------------------------------- 
+
     String mzidtotsv_output_filename(temp_directory + "svFile.tsv");
-    int max_permgen_size = getIntOption("java_permgen_size");
+    int max_permgen_size = getIntOption_("java_permgen_size");
     String max_permgen_size_cmd = "";
     if (max_permgen_size != 0) 
     {
       max_permgen_size_cmd = "-XX:MaxPermSize=" + String(max_permgen_size) + "m";
     }
 
-    String converter_executable("java " + max_memory_size + max_permgen_size_cmd + " -cp " + getStringOption_("msgfplus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv ");
+    String converter_executable("java " + max_memory_size + max_permgen_size_cmd + " -cp " + getStringOption_("msgfplus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv");
 
-    parameters = "-i " +  msgfplus_output_filename;
+    parameters = " -i " +  msgfplus_output_filename;
     parameters += " -o " + mzidtotsv_output_filename;
     parameters += " -showQValue 1";
     parameters += " -showDecoy 1";
     parameters += " -unroll 1";
     // TODO: same as above - use QStringList for execute()
-    status = process.execute((converter_executable + " " + parameters).toQString());
+    status = process.execute((converter_executable + parameters).toQString());
     if (status != 0)
     {
       writeLog_("MzIDToTSVConverter problem. Aborting!");
@@ -425,8 +425,7 @@ protected:
     Map<String, vector<float> > rt_mapping;
     generateInputfileMapping(rt_mapping);
 
-    CsvFile tsvfile;
-    tsvfile.load(mzidtotsv_output_filename, "\t");
+    CsvFile tsvfile(mzidtotsv_output_filename, '\t');
 
     // handle the search parameters
     ProteinIdentification::DigestionEnzyme enzyme_type;
@@ -467,30 +466,34 @@ protected:
 
     DateTime now = DateTime::now();
     String date_string = now.getDate();
-    String identifier("MSGFPlus_" + date_string);
+    String identifier("MS-GF+_" + date_string);
 
     protein_id.setIdentifier(identifier);
     protein_id.setDateTime(now);
     protein_id.setSearchParameters(search_parameters);
     protein_id.setSearchEngineVersion("");
-    protein_id.setSearchEngine("MSGFPlus");
-    protein_id.setScoreType("MSGFPlus");
+    protein_id.setSearchEngine("MS-GF+");
+    protein_id.setScoreType("MS-GF+");
 
     // store all peptide identifications in a map, the key is the scan number
-    map<int,PeptideIdentification> peptide_identifications;
+    map<int, PeptideIdentification> peptide_identifications;
     set<String> prot_accessions;
 
-    double score; //use SpecEValue from the tsv file
+    double score; // use SpecEValue from the TSV file
     UInt rank; 
     Int charge;
     AASequence sequence;
     int scanNumber;
 
-    // iterate over the rows of the tsv file
-    for (CsvFile::Iterator it = tsvfile.begin() + 1 ; it != tsvfile.end(); ++it)
+    // iterate over the rows of the TSV file
+    for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count)
     {
-      vector<String> elements; 
-      it->split("\t", elements);
+      vector<String> elements;
+      if (!tsvfile.getRow(row_count, elements))
+      {
+        writeLog_("Error: could not split row " + String(row_count) + " of file '" + mzidtotsv_output_filename + "'");
+        return PARSE_ERROR;
+      }
 
       if ((elements[2] == "") || (elements[2] == "-1")) 
       {
@@ -528,7 +531,6 @@ protected:
         peptide_identifications[scanNumber].setScoreType("SpecEValue");
         peptide_identifications[scanNumber].setHigherScoreBetter(false);
         peptide_identifications[scanNumber].setIdentifier(identifier);
-        
       } 
       else 
       {
