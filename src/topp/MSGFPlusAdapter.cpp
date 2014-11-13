@@ -327,9 +327,8 @@ protected:
     Int min_precursor_charge = getIntOption_("min_precursor_charge");
     Int max_precursor_charge = getIntOption_("max_precursor_charge");
     // parameters only needed for MS-GF+:
-    QString java_memory = "-Xmx" + QString(getIntOption_("java_memory")) + "m";
+    QString java_memory = "-Xmx" + QString::number(getIntOption_("java_memory")) + "m";
     QString executable = getStringOption_("executable").toQString();
-    QString precursor_tol = QString::number(precursor_mass_tol) + precursor_error_units.toQString();
     // no need to handle "not found" case - would have given error during parameter parsing:
     Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
@@ -343,21 +342,21 @@ protected:
                    << "-s" << in.toQString()
                    << "-o" << mzid_out.toQString()
                    << "-d" << db_name.toQString()
-                   << "-t" << precursor_tol
+                   << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
                    << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-tda" << QString(int(getFlag_("add_decoys")))
-                   << "-m" << QString(fragment_method_code)
-                   << "-inst" << QString(instrument_code)
-                   << "-e" << QString(enzyme_code)
-                   << "-protocol" << QString(protocol_code)
-                   << "-ntt" << QString(tryptic_code)
-                   << "-minLength" << QString(getIntOption_("min_peptide_length"))
-                   << "-maxLength" << QString(getIntOption_("max_peptide_length"))
-                   << "-minCharge" << QString(min_precursor_charge)
-                   << "-maxCharge" << QString(max_precursor_charge)
-                   << "-n" << QString(getIntOption_("matches_per_spec"))
-                   << "-addFeatures" << QString(int(getFlag_("add_features")))
-                   << "-thread" << QString(getIntOption_("threads"));
+                   << "-tda" << QString::number(int(getFlag_("add_decoys")))
+                   << "-m" << QString::number(fragment_method_code)
+                   << "-inst" << QString::number(instrument_code)
+                   << "-e" << QString::number(enzyme_code)
+                   << "-protocol" << QString::number(protocol_code)
+                   << "-ntt" << QString::number(tryptic_code)
+                   << "-minLength" << QString::number(getIntOption_("min_peptide_length"))
+                   << "-maxLength" << QString::number(getIntOption_("max_peptide_length"))
+                   << "-minCharge" << QString::number(min_precursor_charge)
+                   << "-maxCharge" << QString::number(max_precursor_charge)
+                   << "-n" << QString::number(getIntOption_("matches_per_spec"))
+                   << "-addFeatures" << QString::number(int(getFlag_("add_features")))
+                   << "-thread" << QString::number(getIntOption_("threads"));
 
     // TODO: create mod database on the fly from fixed and variable mod params
     String mod = getStringOption_("mod");
@@ -390,7 +389,7 @@ protected:
     process_params << java_memory;
     if (java_permgen > 0) 
     {
-      process_params << "-XX:MaxPermSize=" + QString(java_permgen) + "m";
+      process_params << "-XX:MaxPermSize=" + QString::number(java_permgen) + "m";
     }
     process_params << "-cp" << executable << "edu.ucsd.msjava.ui.MzIDToTsv"
                    << "-i" << mzid_out.toQString()
