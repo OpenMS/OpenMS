@@ -178,42 +178,23 @@ protected:
 
   // The following sequence modification methods are used to modify the sequence stored in the TSV such that it can be used by AASequence
 
-  // Method to cut the first and last character of the sequence.
-  // The sequences in the tsv file has the form K.AAAA.R (AAAA stands for any amino acid sequence.
-  // After this method is used the sequence AAAA results
-  String cutSequence_(String sequence)
+  // Method to cut the amino acids before/after the peptide (splice sites) off the sequence.
+  // The sequences in the TSV file have the format 'K.AAAA.R' (where AAAA is the actual peptide sequence).
+  // After this method is used the sequence 'AAAA' results
+  String cutSequence_(const String& sequence)
   {
-    String modifiedSequence = sequence;
-
-    //search for the first and last occurence of .
-    std::size_t findFirst = sequence.find_first_of(".");
-    std::size_t findLast = sequence.find_last_of(".");
-       
-    //used the found positions and cut the sequence 
-    if (findFirst!=std::string::npos && findLast!=std::string::npos && findFirst != findLast)
-    {
-      modifiedSequence = sequence.substr(findFirst+1, findLast-2);
-    }
-		
-    return modifiedSequence;
+    size_t len = sequence.size();
+    if (len < 4) return sequence; // in 'X.Y', which side would we cut off?
+    size_t start = 0, count = string::npos;
+    if (sequence[1] == '.') start = 2;
+    if (sequence[len - 2] == '.') count = len - start - 2;
+    return sequence.substr(start, count);
   }
 
-  // Method to replace comma by point.
-  // This is used as point should be used as separator of decimals instead of comma
-  String fixDecimalSeparator_(String seq)
+  String modifyNTermAASpecificSequence_(const String& seq)
   {
-    std::size_t found = seq.find_first_of(".,");
-    while (found!=std::string::npos) 
-    {
-      seq[found]='.';
-      found=seq.find_first_of(".,",found+1);
-    }
-    return seq;
-  }
-
-  String modifyNTermAASpecificSequence_(String seq) {
-    String swap = "";
-    string modifiedSequence(seq);
+    String swap;
+    string modifiedSequence = seq;
     vector<pair<String, char> > massShiftList;
 
     massShiftList.push_back(make_pair("-18.011", 'E'));
@@ -227,7 +208,7 @@ protected:
       if (found != string::npos)
       {
         String tmp = modifiedSequence.substr(0, found + modMassShift.length() + 1);
-        size_t foundAA  = tmp.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        size_t foundAA = tmp.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
         if ((foundAA > found) && (tmp[foundAA] == iter->second)) // no AA at the begin
         {
@@ -243,24 +224,24 @@ protected:
   }
 	
   // Method to replace the mass representation of modifications.
-  // Modifications in the tsv file has the form M+15.999 e.g.
-  // After using this method the sequence should look like this: M[+15.999] 
-  String modifySequence_(String seq)
+  // Modifications in the TSV file have the format 'M+15.999'
+  // After using this method the sequence should look like this: 'M[+15.999]'
+  String modifySequence_(const String& seq)
   {
     String modifiedSequence = seq;
-	std::size_t found = modifiedSequence.find_first_of("+-");
-    while (found!=std::string::npos)
+    size_t found1 = modifiedSequence.find_first_of("+-");
+    while (found1 != string::npos)
     {
-      modifiedSequence = modifiedSequence.insert(found, "[");
-      std::size_t found1 = modifiedSequence.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ", found);
-      if (found1!=std::string::npos)
+      modifiedSequence = modifiedSequence.insert(found1, 1, '[');
+      size_t found2 = modifiedSequence.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ", found1);
+      if (found2 != string::npos)
       {
-        modifiedSequence.insert(found1, "]");
-        found = modifiedSequence.find_first_of("+-", found1+2);
+        modifiedSequence.insert(found2, 1, ']');
+        found1 = modifiedSequence.find_first_of("+-", found2 + 2);
       } 
-      else 
-      { //if last amino acid is modified
-        modifiedSequence = modifiedSequence + "]";
+      else // last amino acid is modified
+      { 
+        modifiedSequence = modifiedSequence + ']';
         return modifiedSequence;
       }
     }
@@ -505,7 +486,9 @@ protected:
         scanNumber = elements[2].toInt();
       }
       
-      sequence = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(fixDecimalSeparator_(cutSequence_(elements[8])))));
+      String seq = cutSequence_(elements[8]);
+      seq.substitute(',', '.'); // decimal separator should be dot, not comma
+      sequence = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(seq)));
       vector<PeptideHit> p_hits;
       String prot_accession = elements[9];
 
