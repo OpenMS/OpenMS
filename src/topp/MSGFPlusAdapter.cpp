@@ -330,6 +330,7 @@ protected:
     if (!out.empty()) // 'out' and 'mzid_out' can't both be empty
     {
       temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
+      writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
       QDir d;
       d.mkpath(temp_dir.toQString());
       if (mzid_out.empty())
@@ -338,15 +339,22 @@ protected:
       }
     }
 
+    // parameters also used by OpenMS (see idXML creation below):
+    String enzyme = getStringOption_("enzyme");
+    double precursor_mass_tol = getDoubleOption_("precursor_mass_tolerance");
+    String precursor_error_units = getStringOption_("precursor_error_units");
+    Int min_precursor_charge = getIntOption_("min_precursor_charge");
+    Int max_precursor_charge = getIntOption_("max_precursor_charge");
+    // parameters only needed for MS-GF+:
     QString java_memory = "-Xmx" + QString(getIntOption_("java_memory")) + "m";
     QString executable = getStringOption_("executable").toQString();
-    QString precursor_tol = QString::number(getDoubleOption_("precursor_mass_tolerance")) + getStringOption_("precursor_error_units").toQString();
+    QString precursor_tol = QString::number(precursor_mass_tol) + precursor_error_units.toQString();
     // no need to handle "not found" case - would have given error during parameter parsing:
-    Int fragment_method = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
-    Int instrument = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
-    Int enzyme = ListUtils::getIndex<String>(enzymes_, getStringOption_("enzyme"));
-    Int protocol = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
-    Int tryptic = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));      
+    Int fragment_method_code = ListUtils::getIndex<String>(fragment_methods_, getStringOption_("fragment_method"));
+    Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
+    Int enzyme_code = ListUtils::getIndex<String>(enzymes_, enzyme);
+    Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
+    Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));      
 
     QStringList process_params; // the actual process is Java, not MS-GF+!
     process_params << java_memory
@@ -357,24 +365,24 @@ protected:
                    << "-t" << precursor_tol
                    << "-ti" << getStringOption_("isotope_error_range").toQString()
                    << "-tda" << QString(int(getFlag_("add_decoys")))
-                   << "-m" << QString(fragment_method)
-                   << "-inst" << QString(instrument)
-                   << "-e" << QString(enzyme)
-                   << "-protocol" << QString(protocol)
-                   << "-ntt" << QString(tryptic)
+                   << "-m" << QString(fragment_method_code)
+                   << "-inst" << QString(instrument_code)
+                   << "-e" << QString(enzyme_code)
+                   << "-protocol" << QString(protocol_code)
+                   << "-ntt" << QString(tryptic_code)
                    << "-minLength" << QString(getIntOption_("min_peptide_length"))
                    << "-maxLength" << QString(getIntOption_("max_peptide_length"))
-                   << "-minCharge" << QString(getIntOption_("min_precursor_charge"))
-                   << "-maxCharge" << QString(getIntOption_("max_precursor_charge"))
+                   << "-minCharge" << QString(min_precursor_charge)
+                   << "-maxCharge" << QString(max_precursor_charge)
                    << "-n" << QString(getIntOption_("matches_per_spec"))
                    << "-addFeatures" << QString(int(getFlag_("add_features")))
                    << "-thread" << QString(getIntOption_("threads"));
 
     // TODO: create mod database on the fly from fixed and variable mod params
-    String modfile_name = getStringOption_("mod");
-    if (!modfile_name.empty())
+    String mod = getStringOption_("mod");
+    if (!mod.empty())
     {
-      process_params << "-mod" << getStringOption_("mod").toQString();
+      process_params << "-mod" << mod.toQString();
     }
 
     //-------------------------------------------------------------
@@ -424,39 +432,32 @@ protected:
     Map<String, vector<float> > rt_mapping;
     generateInputfileMapping(rt_mapping);
 
-    CsvFile tsvfile(tsv_out, '\t');
-
     // handle the search parameters
-    ProteinIdentification::DigestionEnzyme enzyme_type;
-    Int enzyme_code = getIntOption_("enzyme");
-
-    if (enzyme_code == 0) 
+    ProteinIdentification::SearchParameters search_parameters;
+    search_parameters.db = getStringOption_("database");
+    search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
+    search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    //search_parameters.fixed_modifications = getStringList_("fixed_modifications"); // TODO: Parse mod config file
+    //search_parameters.variable_modifications = getStringList_("variable_modifications"); // TODO: Parse mod config file
+    search_parameters.precursor_tolerance = precursor_mass_tol;
+    if (precursor_error_units == "ppm") // convert to Da (at m/z 666: 0.01 Da ~ 15 ppm)
     {
-      enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
+      search_parameters.precursor_tolerance *= 2.0 / 3000.0;
     }
-    else if (enzyme_code == 1) 
+
+    ProteinIdentification::DigestionEnzyme enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
+    if (enzyme == "trypsin")
     {
       enzyme_type = ProteinIdentification::TRYPSIN;
     } 
-    else if (enzyme_code == 2) 
+    else if (enzyme == "chymotrypsin")
     {
       enzyme_type = ProteinIdentification::CHYMOTRYPSIN;
     }
-    else if (enzyme_code == 9) 
+    else if (enzyme == "no_cleavage") 
     {
       enzyme_type = ProteinIdentification::NO_ENZYME ;     
     }
-    else enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
-
-    ProteinIdentification::SearchParameters search_parameters;
-    search_parameters.db = getStringOption_("database");
-    search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
-
-    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
-    search_parameters.mass_type = mass_type;
-    //search_parameters.fixed_modifications = getStringList_("fixed_modifications"); // TODO: Parse mod config file
-    //search_parameters.variable_modifications = getStringList_("variable_modifications"); // TODO: Parse mod config file
-    search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance"); // TODO: convert values to Dalton if not already Dalton
     search_parameters.enzyme = enzyme_type;
 
     // create idXML file
@@ -485,6 +486,7 @@ protected:
     int scanNumber;
 
     // iterate over the rows of the TSV file
+    CsvFile tsvfile(tsv_out, '\t');
     for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count)
     {
       vector<String> elements;
