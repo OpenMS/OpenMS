@@ -571,6 +571,17 @@ protected:
     
     IdXMLFile().store(out, protein_ids, peptide_ids);
 
+    // delete temporary data?
+    if (debug_level_ >= 2)
+    {
+      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
+    }
+    else
+    {
+      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+      File::removeDirRecursively(temp_dir);
+    }
+
     return EXECUTION_OK;
   }	
 };
