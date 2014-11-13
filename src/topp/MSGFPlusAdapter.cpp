@@ -181,7 +181,7 @@ protected:
   // Method to cut the first and last character of the sequence.
   // The sequences in the tsv file has the form K.AAAA.R (AAAA stands for any amino acid sequence.
   // After this method is used the sequence AAAA results
-  String cutSequence (String sequence)
+  String cutSequence_(String sequence)
   {
     String modifiedSequence = sequence;
 
@@ -200,7 +200,7 @@ protected:
 
   // Method to replace comma by point.
   // This is used as point should be used as separator of decimals instead of comma
-  String fixDecimalSeparator (String seq)
+  String fixDecimalSeparator_(String seq)
   {
     std::size_t found = seq.find_first_of(".,");
     while (found!=std::string::npos) 
@@ -211,7 +211,7 @@ protected:
     return seq;
   }
 
-  String modifyNTermAASpecificSequence (String seq) {
+  String modifyNTermAASpecificSequence_(String seq) {
     String swap = "";
     string modifiedSequence(seq);
     vector<pair<String, char> > massShiftList;
@@ -245,7 +245,7 @@ protected:
   // Method to replace the mass representation of modifications.
   // Modifications in the tsv file has the form M+15.999 e.g.
   // After using this method the sequence should look like this: M[+15.999] 
-  String modifySequence (String seq)
+  String modifySequence_(String seq)
   {
     String modifiedSequence = seq;
 	std::size_t found = modifiedSequence.find_first_of("+-");
@@ -270,7 +270,7 @@ protected:
   // Parse mzML and create RTMapping
   // get RT: it doesn't exist in output from MS-GF+
   // get m/z: it is rounded after converting to TSV
-  void generateInputfileMapping(Map<String, vector<float> >& rt_mapping)
+  void generateInputfileMapping_(Map<String, vector<float> >& rt_mapping)
   {
     String exp_name = getStringOption_("in");
 
@@ -430,7 +430,7 @@ protected:
 
     // initialize map
     Map<String, vector<float> > rt_mapping;
-    generateInputfileMapping(rt_mapping);
+    generateInputfileMapping_(rt_mapping);
 
     // handle the search parameters
     ProteinIdentification::SearchParameters search_parameters;
@@ -466,7 +466,7 @@ protected:
 
     DateTime now = DateTime::now();
     String date_string = now.getDate();
-    String identifier("MS-GF+_" + date_string);
+    String identifier = "MS-GF+_" + date_string;
 
     protein_id.setIdentifier(identifier);
     protein_id.setDateTime(now);
@@ -505,7 +505,7 @@ protected:
         scanNumber = elements[2].toInt();
       }
       
-      sequence = AASequence::fromString(modifySequence(modifyNTermAASpecificSequence(fixDecimalSeparator(cutSequence(elements[8])))));
+      sequence = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(fixDecimalSeparator_(cutSequence_(elements[8])))));
       vector<PeptideHit> p_hits;
       String prot_accession = elements[9];
 
