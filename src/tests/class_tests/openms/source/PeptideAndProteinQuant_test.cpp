@@ -283,6 +283,37 @@ START_SECTION(([PeptideAndProteinQuant::Statistics] Statistics()))
 }
 END_SECTION
 
+START_SECTION((const ProteinQuant& getProteinResults()))
+{
+  FeatureMap f;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), f);
+  
+  PeptideAndProteinQuant quantifier;
+  PeptideAndProteinQuant::ProteinQuant quant;
+  PeptideAndProteinQuant::ProteinData protein;
+
+  Param parameters;
+  parameters.setValue("include_all", "true");
+  parameters.setValue("average", "weighted_mean");
+  quantifier.setParameters(params);
+  
+  quantifier.quantifyPeptides(f);
+  quantifier.quantifyProteins();
+  
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein0"];
+  TEST_EQUAL(protein.abundances.size(), 3);
+  TEST_EQUAL(protein.total_abundances.size(), 1);
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 5555);
+  TEST_EQUAL(protein.id_count, 6);
+  protein = quant["Protein1"];
+  TEST_EQUAL(protein.abundances.size(), 1);
+  TEST_EQUAL(protein.total_abundances.size(), 1);
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 8888);
+  TEST_EQUAL(protein.id_count, 2);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
