@@ -229,7 +229,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   prot_data = prot_quant["Protein0"];
   TEST_EQUAL(prot_data.abundances.size(), 3);
   TEST_EQUAL(prot_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 5555);
+  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 4711);
   TEST_EQUAL(prot_data.id_count, 6);
   prot_data = prot_quant["Protein1"];
   TEST_EQUAL(prot_data.abundances.size(), 1);
@@ -294,7 +294,8 @@ START_SECTION((const ProteinQuant& getProteinResults()))
 
   Param parameters;
   parameters.setValue("include_all", "true");
-  parameters.setValue("average", "weighted_mean");
+  parameters.setValue("top", "0");
+  parameters.setValue("average", "sum");
   quantifier.setParameters(params);
   
   quantifier.quantifyPeptides(f);
@@ -304,7 +305,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   protein = quant["Protein0"];
   TEST_EQUAL(protein.abundances.size(), 3);
   TEST_EQUAL(protein.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(protein.total_abundances[0], 5555);
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 4711);
   TEST_EQUAL(protein.id_count, 6);
   protein = quant["Protein1"];
   TEST_EQUAL(protein.abundances.size(), 1);
