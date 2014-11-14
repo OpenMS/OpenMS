@@ -87,21 +87,9 @@ namespace OpenMS
   void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
   {
 
-    if (mz.size() != intensity.size())
+    if (!(mz.size() == intensity.size() && mz.size() > 2))
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors not of the same size.");
-    }
-
-    if (mz.empty())
-    {
-      return;
-    }
-    
-    if (mz.size() < 4)
-    {
-      // In the case of three or fewer data points per spectrum, simple generate a single spline package.
-      packages_.push_back(SplinePackage(mz, intensity, scaling));
-      return;
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors either not of the same size or too short.");
     }
 
     const double new_package = 2; // start a new package if delta m/z is greater than new_package times previous one
