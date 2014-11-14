@@ -96,6 +96,13 @@ namespace OpenMS
     {
       return;
     }
+    
+    if (mz.size() < 4)
+    {
+      // In the case of three or fewer data points per spectrum, simple generate a single spline package.
+      packages_.push_back(SplinePackage(mz, intensity, scaling));
+      return;
+    }
 
     const double new_package = 2; // start a new package if delta m/z is greater than new_package times previous one
 
