@@ -283,6 +283,7 @@ START_SECTION(([PeptideAndProteinQuant::Statistics] Statistics()))
 }
 END_SECTION
 
+// testing various averaging strategies
 START_SECTION((const ProteinQuant& getProteinResults()))
 {
   FeatureMap f;
@@ -293,8 +294,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   PeptideAndProteinQuant::ProteinData protein;
 
   Param parameters;
-  parameters.setValue("include_all", "true");
-  parameters.setValue("top", "0");
+  parameters.setValue("top", 0);
   parameters.setValue("average", "sum");
   quantifier.setParameters(params);
   
