@@ -122,25 +122,21 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file (MS-GF+ parameter '-s')");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML,mgf,ms2"));
-    registerInputFile_("mod", "<file>", "", "Modification configuration file (MS-GF+ parameter '-mod')", false);
-
     registerOutputFile_("out", "<file>", "", "Output file", false);
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-
+    registerInputFile_("executable", "<file>", "", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'");
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
-    registerInputFile_("executable", "<file>", "", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'");
+    registerFlag_("add_decoys", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.");
 
     registerDoubleOption_("precursor_mass_tolerance", "<value>", 20, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
     setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
 
     registerStringOption_("isotope_error_range", "<range>", "0,1", "Range of allowed isotope peak errors (MS-GF+ parameter '-ti'). Takes into account the error introduced by choosing a non-monoisotopic peak for fragmentation. Combined with 'precursor_mass_tolerance'/'precursor_error_units', this determines the actual precursor mass tolerance. E.g. for experimental mass 'exp' and calculated mass 'calc', '-precursor_mass_tolerance 20 -precursor_error_units ppm -isotope_error_range -1,2' tests '|exp - calc - n * 1.00335 Da| < 20 ppm' for n = -1, 0, 1, 2.", false);
-
-    registerFlag_("add_decoys", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.");
 
     registerStringOption_("fragment_method", "<choice>", fragment_methods_[0], "Fragmentation method ('from_spectrum' relies on spectrum meta data and uses CID as fallback option; MS-GF+ parameter '-m')", false);
     setValidStrings_("fragment_method", fragment_methods_);
@@ -171,6 +167,16 @@ protected:
     setMinInt_("matches_per_spec", 1);
 
     registerFlag_("add_features", "Output additional features (default: basic scores only; MS-GF+ parameter '-addFeatures')?", false);
+
+    registerIntOption_("max_mods", "<num>", 2, "Maximum number of modifications per peptide. If this value is large, the search may take very long.", false);
+    setMinInt_("max_mods", 0);
+
+    vector<String> all_mods;
+    ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    setValidStrings_("fixed_modifications", all_mods);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    setValidStrings_("variable_modifications", all_mods);
 
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
     registerIntOption_("java_permgen", "<num>", 0, "Maximum Java permanent generation space (in MB); only for Java 7 and below", false, true);
@@ -273,7 +279,63 @@ protected:
         }
       }     
     }
-  }  
+  }
+
+  String makeModString_(const String& mod_name, bool fixed=true)
+  {
+    ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
+    String residue = mod.getOrigin();
+    if (residue.size() != 1) residue = "*"; // specificity groups, e.g. "Deamidated (NQ)", are not supported by OpenMS
+    String position = mod.getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
+    if (position == "none") position = "any";
+    return String(mod.getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod.getId() + "    # " + mod_name;
+  }
+
+  void writeModificationsFile_(const String& out_path, const vector<String>& fixed_mods, const vector<String>& variable_mods, Size max_mods)
+  {
+    ofstream output(out_path.c_str());
+    output << "# MS-GF+ modifications file written by MSGFPlusAdapter (part of OpenMS)\n"
+           << "NumMods=" << max_mods
+           << "\n\n# Fixed modifications:\n";
+    if (fixed_mods.empty()) 
+    {
+      output << "# (none)\n";
+    }
+    else
+    {
+      for (vector<String>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
+      {
+        output << makeModString_(*it) << "\n";
+      }
+    }
+    output << "\n# Variable modifications:\n";
+    if (variable_mods.empty()) 
+    {
+      output << "# (none)\n";
+    }
+    else
+    {
+      for (vector<String>::const_iterator it = variable_mods.begin(); it != variable_mods.end(); ++it)
+      {
+        output << makeModString_(*it, false) << "\n";
+      }
+    }
+  }
+
+  void removeTempDir_(const String& temp_dir)
+  {
+    if (temp_dir.empty()) return; // no temp. dir. created
+
+    if (debug_level_ >= 2)
+    {
+      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
+    }
+    else
+    {
+      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
+      File::removeDirRecursively(temp_dir);
+    }
+  }
 
   ExitCodes main_(int, const char**)
   {
@@ -306,9 +368,18 @@ protected:
       db_name = full_db_name;
     }
 
-    // create temporary directory for MS-GF+ outputs, if necessary:
-    String temp_dir;
-    if (!out.empty()) // 'out' and 'mzid_out' can't both be empty
+    vector<String> fixed_mods = getStringList_("fixed_modifications");
+    vector<String> variable_mods = getStringList_("variable_modifications");
+    bool no_mods = fixed_mods.empty() && variable_mods.empty();
+    Int max_mods = getIntOption_("max_mods");
+    if ((max_mods == 0) && !no_mods)
+    {
+      writeLog_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
+    }
+
+    // create temporary directory and modifications file, if necessary:
+    String temp_dir, mod_file;
+    if (!(out.empty() && no_mods)) // 'out' and 'mzid_out' can't both be empty
     {
       temp_dir = QDir::toNativeSeparators((File::getTempDirectory() + "/" + File::getUniqueName() + "/").toQString());
       writeDebug_("Creating temporary directory '" + temp_dir + "'", 1);
@@ -318,7 +389,14 @@ protected:
       {
         mzid_out = temp_dir + "msgfplus_output.mzid";
       }
+      if (!no_mods)
+      {
+        mod_file = temp_dir + "msgfplus_mods.txt";
+        writeModificationsFile_(mod_file, fixed_mods, variable_mods, max_mods);
+      }
     }
+
+    return EXECUTION_OK;
 
     // parameters also used by OpenMS (see idXML creation below):
     String enzyme = getStringOption_("enzyme");
@@ -358,11 +436,9 @@ protected:
                    << "-addFeatures" << QString::number(int(getFlag_("add_features")))
                    << "-thread" << QString::number(getIntOption_("threads"));
 
-    // TODO: create mod database on the fly from fixed and variable mod params
-    String mod = getStringOption_("mod");
-    if (!mod.empty())
+    if (!mod_file.empty())
     {
-      process_params << "-mod" << mod.toQString();
+      process_params << "-mod" << mod_file.toQString();
     }
 
     //-------------------------------------------------------------
@@ -377,7 +453,11 @@ protected:
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    if (out.empty()) return EXECUTION_OK; // no idXML required? -> we're finished now
+    if (out.empty()) 
+    {
+      removeTempDir_(temp_dir);
+      return EXECUTION_OK; // no idXML required? -> we're finished now
+    }
 
     //-------------------------------------------------------------
     // execute TSV converter
@@ -552,17 +632,8 @@ protected:
     }
     
     IdXMLFile().store(out, protein_ids, peptide_ids);
-
-    // delete temporary data?
-    if (debug_level_ >= 2)
-    {
-      writeDebug_("Keeping temporary files in directory '" + temp_dir + "'. Set debug level to 1 or lower to remove them.", 2);
-    }
-    else
-    {
-      if (debug_level_ == 1) writeDebug_("Deleting temporary directory '" + temp_dir + "'. Set debug level to 2 or higher to keep it.", 1);
-      File::removeDirRecursively(temp_dir);
-    }
+    
+    removeTempDir_(temp_dir);
 
     return EXECUTION_OK;
   }	
