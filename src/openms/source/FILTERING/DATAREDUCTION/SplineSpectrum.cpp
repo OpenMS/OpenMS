@@ -105,6 +105,8 @@ namespace OpenMS
     // remove unnecessary zeros, i.e. zero intensity data points with zeros to the left and right
     std::vector<double> mz_slim1;
     std::vector<double> intensity_slim1;
+    mz_slim1.reserve(mz.size());
+    intensity_slim1.reserve(intensity.size());
     if (intensity[0] != 0 || intensity[1] != 0)
     {
       mz_slim1.push_back(mz[0]);
@@ -135,6 +137,8 @@ namespace OpenMS
     // These zeros are clearly not part of the profile, but bugs. The following code snippet removes them.)
     std::vector<double> mz_slim2;
     std::vector<double> intensity_slim2;
+    mz_slim2.reserve(mz_slim1.size());
+    intensity_slim2.reserve(intensity_slim1.size());
     mz_slim2.push_back(mz_slim1[0]);
     mz_slim2.push_back(mz_slim1[1]);
     intensity_slim2.push_back(intensity_slim1[0]);
