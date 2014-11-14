@@ -292,26 +292,41 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   PeptideAndProteinQuant quantifier;
   PeptideAndProteinQuant::ProteinQuant quant;
   PeptideAndProteinQuant::ProteinData protein;
-
   Param parameters;
   parameters.setValue("top", 0);
-  parameters.setValue("average", "sum");
-  quantifier.setParameters(params);
   
+  parameters.setValue("average", "median");
+  quantifier.setParameters(parameters);
   quantifier.quantifyPeptides(f);
   quantifier.quantifyProteins();
-  
   quant = quantifier.getProteinResults();
   protein = quant["Protein0"];
-  TEST_EQUAL(protein.abundances.size(), 3);
-  TEST_EQUAL(protein.total_abundances.size(), 1);
   TEST_REAL_SIMILAR(protein.total_abundances[0], 4711);
-  TEST_EQUAL(protein.id_count, 6);
-  protein = quant["Protein1"];
-  TEST_EQUAL(protein.abundances.size(), 1);
-  TEST_EQUAL(protein.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(protein.total_abundances[0], 8888);
-  TEST_EQUAL(protein.id_count, 2);
+
+  parameters.setValue("average", "mean");
+  quantifier.setParameters(parameters);
+  quantifier.quantifyPeptides(f);
+  quantifier.quantifyProteins();
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein0"];
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 5273.666666);
+
+  parameters.setValue("average", "weighted_mean");
+  quantifier.setParameters(parameters);
+  quantifier.quantifyPeptides(f);
+  quantifier.quantifyProteins();
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein0"];
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 5927.82624360028);
+
+  parameters.setValue("average", "sum");
+  quantifier.setParameters(parameters);
+  quantifier.quantifyPeptides(f);
+  quantifier.quantifyProteins();
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein0"];
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 15821);
+
 }
 END_SECTION
 
