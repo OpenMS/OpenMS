@@ -193,4 +193,13 @@ START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
   TEST_EQUAL(spectrum3.getNavigator().eval(408),10);    // One might expect zero, but 407.5 is part of the second package.
 END_SECTION
 
+SplineSpectrum* ptr4;
+std::vector<double> mz4;
+std::vector<double> intensity4;
+mz4.push_back(407.5);
+intensity4.push_back(10.0);
+START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
+  TEST_EXCEPTION(Exception::IllegalArgument,ptr4 = new SplineSpectrum(mz4,intensity4));
+END_SECTION
+
 END_TEST
