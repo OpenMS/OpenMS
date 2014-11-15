@@ -110,7 +110,7 @@ namespace OpenMS
     bool last_intensity_zero = (intensity[0] == 0);
     bool current_intensity_zero = (intensity[0] == 0);
     bool next_intensity_zero = (intensity[1] == 0);
-    for (unsigned i = 1; i < mz.size() - 1; ++i)
+    for (size_t i = 1; i < mz.size() - 1; ++i)
     {
       last_intensity_zero = current_intensity_zero;
       current_intensity_zero = next_intensity_zero;
@@ -138,7 +138,7 @@ namespace OpenMS
     mz_slim2.push_back(mz_slim1[1]);
     intensity_slim2.push_back(intensity_slim1[0]);
     intensity_slim2.push_back(intensity_slim1[1]);
-    for (unsigned i = 2; i < mz_slim1.size(); ++i)
+    for (size_t i = 2; i < mz_slim1.size(); ++i)
     {
       if (intensity_slim1[i] == 0)
       {
@@ -155,7 +155,7 @@ namespace OpenMS
     std::vector<bool> start_package;
     start_package.push_back(true);
     start_package.push_back(false);
-    for (unsigned i = 2; i < mz_slim2.size(); ++i)
+    for (size_t i = 2; i < mz_slim2.size(); ++i)
     {
       start_package.push_back((mz_slim2[i] - mz_slim2[i - 1]) / (mz_slim2[i - 1] - mz_slim2[i - 2]) > new_package);
     }
@@ -163,7 +163,7 @@ namespace OpenMS
     // fill the packages
     std::vector<double> mz_package;
     std::vector<double> intensity_package;
-    for (unsigned i = 0; i < mz_slim2.size(); ++i)
+    for (size_t i = 0; i < mz_slim2.size(); ++i)
     {
       if (start_package[i] && i > 0)
       {
@@ -196,7 +196,7 @@ namespace OpenMS
     return mz_max_;
   }
 
-  unsigned SplineSpectrum::getSplineCount() const
+  size_t SplineSpectrum::getSplineCount() const
   {
     return packages_.size();
   }
@@ -242,7 +242,7 @@ namespace OpenMS
     }
     else
     { // look right
-      for (unsigned i = last_package_; i < (unsigned)(*packages_).size(); ++i)
+      for (size_t i = last_package_; i < (size_t)(*packages_).size(); ++i)
       {
         if (mz < (*packages_)[i].getMzMin())
         {

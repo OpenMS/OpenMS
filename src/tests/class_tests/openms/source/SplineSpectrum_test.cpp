@@ -70,7 +70,7 @@ for (int i=0; i < 11; ++i)
 MSSpectrum<Peak1D> spectrum;
 Peak1D peak;
 spectrum.setRT(1789.0714);
-for (unsigned i=0; i < mz.size(); ++i)
+for (size_t i=0; i < mz.size(); ++i)
 {
     peak.setMZ(mz[i]);
     peak.setIntensity(intensity[i]);
@@ -122,7 +122,7 @@ START_SECTION(double getMzMax() const)
   TEST_EQUAL(spectrum2.getMzMax(), 419.2);
 END_SECTION
 
-START_SECTION(unsigned getSplineCount() const)
+START_SECTION(size_t getSplineCount() const)
   TEST_EQUAL(spectrum2.getSplineCount(), 2)
 END_SECTION
 
@@ -163,14 +163,14 @@ END_SECTION
 // In the example below, a single data point @ 407.5 is placed between two packages. It does not form a SplinePackage on its own, but is instead part of the second SplinePackage.
 std::vector<double> mz3;
 std::vector<double> intensity3;
-for (unsigned i=0; i<4; ++i)
+for (size_t i=0; i<4; ++i)
 {
     mz3.push_back(400+i*0.5);
     intensity3.push_back(10.0);
 }
 mz3.push_back(407.5);
 intensity3.push_back(10.0);
-for (unsigned i=0; i<4; ++i)
+for (size_t i=0; i<4; ++i)
 {
     mz3.push_back(410+i*0.5);
     intensity3.push_back(10.0);
