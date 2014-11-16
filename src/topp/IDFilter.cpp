@@ -240,9 +240,8 @@ protected:
 
   static bool is_decoy(ProteinHit& ph)
   {
-    return (ph.metaValueExists("isDecoy") && (String)ph.getMetaValue("isDecoy") == "true");
+    return ph.metaValueExists("isDecoy") && (String)ph.getMetaValue("isDecoy") == "true";
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -357,11 +356,11 @@ protected:
 
     if (in_type == FileTypes::MZIDENTML)
     {
-        MzIdentMLFile().load(inputfile_name, protein_identifications, identifications); //, document_id);
+      MzIdentMLFile().load(inputfile_name, protein_identifications, identifications);   //, document_id);
     }
     else
     {
-        IdXMLFile().load(inputfile_name, protein_identifications, identifications, document_id);
+      IdXMLFile().load(inputfile_name, protein_identifications, identifications, document_id);
     }
 
 
@@ -373,12 +372,12 @@ protected:
 
     if (remove_decoys)
     {
-        for (Size i = 0; i < protein_identifications.size(); ++i)
-        {
-            vector<ProteinHit> vph = protein_identifications[i].getHits();
-            vph.erase( std::remove_if( vph.begin(), vph.end(), is_decoy ), vph.end() );
-            protein_identifications[i].setHits(vph);
-        }
+      for (Size i = 0; i < protein_identifications.size(); ++i)
+      {
+        vector<ProteinHit> vph = protein_identifications[i].getHits();
+        vph.erase(std::remove_if(vph.begin(), vph.end(), is_decoy), vph.end());
+        protein_identifications[i].setHits(vph);
+      }
     }
 
 
@@ -625,11 +624,11 @@ protected:
 
     if (out_type == FileTypes::MZIDENTML)
     {
-        MzIdentMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications); //, document_id);
+      MzIdentMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);   //, document_id);
     }
     else
     {
-        IdXMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
+      IdXMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
     }
 
     return EXECUTION_OK;

@@ -56,12 +56,12 @@ namespace OpenMS
   {
   }
 
-  void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet & rhs)
+  void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs)
   {
     mod_def_set_ = rhs;
   }
 
-  void XTandemXMLFile::load(const String & filename, ProteinIdentification & protein_identification, vector<PeptideIdentification> & peptide_ids)
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids)
   {
     //File name for error message in XMLHandler
     file_ = filename;
@@ -149,7 +149,7 @@ namespace OpenMS
     // TODO search parameters are also available
   }
 
-  void XTandemXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+  void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
     tag_ = String(sm_.convert(qname));
 
@@ -174,47 +174,71 @@ namespace OpenMS
       hit.setMetaValue("delta", delta);
 
       // try to get a, b, c, x, y, z score. If no available catch exception, but no handling necessary.
-      try {
+      try
+      {
         double a_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("a_score"))))).toDouble());
         hit.setMetaValue("a_score", a_score);
         int a_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("a_ions"))))).toInt());
         hit.setMetaValue("a_ions", a_ions);
-      } catch(const std::exception& e){}
+      }
+      catch (const std::exception& e)
+      {
+      }
 
-      try {
+      try
+      {
         double b_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("b_score"))))).toDouble());
         hit.setMetaValue("b_score", b_score);
         int b_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("b_ions"))))).toInt());
         hit.setMetaValue("b_ions", b_ions);
-      } catch(const std::exception& e){}
+      }
+      catch (const std::exception& e)
+      {
+      }
 
-      try {
+      try
+      {
         double c_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("c_score"))))).toDouble());
         hit.setMetaValue("c_score", c_score);
         int c_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("c_ions"))))).toInt());
         hit.setMetaValue("c_ions", c_ions);
-      } catch(const std::exception& e){}
+      }
+      catch (const std::exception& e)
+      {
+      }
 
-      try {
+      try
+      {
         double x_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("x_score"))))).toDouble());
         hit.setMetaValue("x_score", x_score);
         int x_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("x_ions"))))).toInt());
         hit.setMetaValue("x_ions", x_ions);
-      } catch(const std::exception& e){}
+      }
+      catch (const std::exception& e)
+      {
+      }
 
-      try {
+      try
+      {
         double y_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("y_score"))))).toDouble());
         hit.setMetaValue("y_score", y_score);
         int y_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("y_ions"))))).toInt());
         hit.setMetaValue("y_ions", y_ions);
-      } catch(const std::exception& e){}
+      }
+      catch (const std::exception& e)
+      {
+      }
 
-      try {
+      try
+      {
         double z_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("z_score"))))).toDouble());
         hit.setMetaValue("z_score", z_score);
         int z_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("z_ions"))))).toInt());
         hit.setMetaValue("z_ions", z_ions);
-      } catch(const std::exception& e){}
+      }
+      catch (const std::exception& e)
+      {
+      }
 
       // get sequence of peptide
       String seq(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("seq")))));
@@ -237,7 +261,7 @@ namespace OpenMS
       // get expectation value
       double expect(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
       hit.setMetaValue("E-Value", expect);
-      
+
       // get precursor m/z
       //double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
       //hit.setMetaValue("MZ", mh); // not needed, set by the XTandem Adapter itself
@@ -281,7 +305,7 @@ namespace OpenMS
 
       // try to find a mod in the given mods that fits
 
-      if (mod_pos == 0)       // can (!) be a N-terminal mod
+      if (mod_pos == 0) // can (!) be a N-terminal mod
       {
         ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::N_TERM);
       }
@@ -500,13 +524,13 @@ namespace OpenMS
 
   }
 
-  void XTandemXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname));
     return;
   }
 
-  void XTandemXMLFile::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+  void XTandemXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     if (tag_ == "note" && is_description_)
     {

@@ -76,7 +76,7 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, Identification &id);
+    void load(const String& filename, Identification& id);
 
     /**
         @brief Loads a map from a MzIdentML file.
@@ -84,21 +84,21 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, std::vector<ProteinIdentification> &poid, std::vector<PeptideIdentification> &peid);
+    void load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid);
 
     /**
         @brief Stores a map in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const std::vector<ProteinIdentification> & poid, const std::vector<PeptideIdentification> & peid) const;
+    void store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const;
 
     /**
         @brief Stores a map in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const Identification & id) const;
+    void store(const String& filename, const Identification& id) const;
 
     /**
         @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
@@ -109,7 +109,7 @@ public:
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
     */
-    bool isSemanticallyValid(const String & filename, StringList & errors, StringList & warnings);
+    bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
 private:
 

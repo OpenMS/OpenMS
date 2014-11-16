@@ -102,7 +102,7 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return FalseDiscoveryRate().getDefaults();
   }
@@ -110,8 +110,8 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Identification input file which contains a search against "
-                       "a concatenated sequence database. "
-                       "Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input.", false);
+                                           "a concatenated sequence database. "
+                                           "Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input.", false);
     setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
 
     registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward run.", false);
@@ -130,7 +130,7 @@ protected:
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -177,35 +177,35 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    if (combined)         // -in was given
+    if (combined) // -in was given
     {
       vector<PeptideIdentification> pep_ids;
       vector<ProteinIdentification> prot_ids;
       FileTypes::Type in_type = FileHandler::getTypeByFileName(getStringOption_("in"));
       if (in_type == FileTypes::MZIDENTML)
       {
-          MzIdentMLFile().load(in, prot_ids, pep_ids);
-          writeDebug_("Reading with MzIdentMLFile (combine)",1);
+        MzIdentMLFile().load(in, prot_ids, pep_ids);
+        writeDebug_("Reading with MzIdentMLFile (combine)", 1);
       }
       else if (in_type == FileTypes::IDXML)
       {
-          IdXMLFile().load(in, prot_ids, pep_ids);
+        IdXMLFile().load(in, prot_ids, pep_ids);
       }
       else
       {
-          writeLog_("Error, unknown format in 'in'.");
-          return ILLEGAL_PARAMETERS;
+        writeLog_("Error, unknown format in 'in'.");
+        return ILLEGAL_PARAMETERS;
       }
 
       try
       {
         if (!proteins_only)
         {
-            fdr.apply(pep_ids);
+          fdr.apply(pep_ids);
         }
         if (!peptides_only)
         {
-            fdr.apply(prot_ids);
+          fdr.apply(prot_ids);
         }
       }
       catch (Exception::MissingInformation)
@@ -226,48 +226,48 @@ protected:
       in_type = FileHandler::getTypeByFileName(getStringOption_("out"));
       if (in_type == FileTypes::MZIDENTML)
       {
-          MzIdentMLFile().store(out, prot_ids, pep_ids);
+        MzIdentMLFile().store(out, prot_ids, pep_ids);
       }
       else if (in_type == FileTypes::IDXML || out.hasSuffix(".tmp")) // fix for ctest
       {
-          IdXMLFile().store(out, prot_ids, pep_ids);
+        IdXMLFile().store(out, prot_ids, pep_ids);
       }
       else
       {
-          writeLog_("Error, unknown format in 'out'.");
-          return ILLEGAL_PARAMETERS;
+        writeLog_("Error, unknown format in 'out'.");
+        return ILLEGAL_PARAMETERS;
       }
 
     }
     else         // -fw_in & rev_in given
     {
       vector<PeptideIdentification> fwd_pep, rev_pep;
-      vector<ProteinIdentification> fwd_prot, rev_prot;  
+      vector<ProteinIdentification> fwd_prot, rev_prot;
       FileTypes::Type in_type = FileHandler::getTypeByFileName(getStringOption_("fwd_in"));
-      writeDebug_("Reading - in_type is: "+String(in_type),1);
+      writeDebug_("Reading - in_type is: " + String(in_type), 1);
 
       if (in_type == FileTypes::MZIDENTML)
       {
-          MzIdentMLFile().load(fwd_in, fwd_prot, fwd_pep);
-          MzIdentMLFile().load(rev_in, rev_prot, rev_pep);
-          writeDebug_("Reading with MzIdentMLFile (fwd & rev)",1);
+        MzIdentMLFile().load(fwd_in, fwd_prot, fwd_pep);
+        MzIdentMLFile().load(rev_in, rev_prot, rev_pep);
+        writeDebug_("Reading with MzIdentMLFile (fwd & rev)", 1);
       }
       else if (in_type == FileTypes::IDXML)
       {
-          IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
-          IdXMLFile().load(rev_in, rev_prot, rev_pep);
+        IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
+        IdXMLFile().load(rev_in, rev_prot, rev_pep);
       }
       else
       {
-          writeLog_("Error, unknown format in 'fwd_in' or 'rev_in'.");
-          return ILLEGAL_PARAMETERS;
+        writeLog_("Error, unknown format in 'fwd_in' or 'rev_in'.");
+        return ILLEGAL_PARAMETERS;
       }
 
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
 
-      writeDebug_("Starting calculations with "+String(fwd_pep.size())+"/"+String(rev_pep.size())+" read peptide IDs", 1);
+      writeDebug_("Starting calculations with " + String(fwd_pep.size()) + "/" + String(rev_pep.size()) + " read peptide IDs", 1);
 
       if (!proteins_only)
       {
@@ -295,8 +295,8 @@ protected:
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                                   __PRETTY_FUNCTION__,
-                                                   "wrong out fileformat");
+                                         __PRETTY_FUNCTION__,
+                                         "wrong out fileformat");
       }
     }
 
@@ -305,11 +305,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFalseDiscoveryRate tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

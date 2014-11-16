@@ -243,7 +243,7 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2);     // only load msLevel 2
+    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -403,16 +403,16 @@ protected:
     FileTypes::Type in_type = FileHandler::getTypeByFileName(outputfile_name);
     if (in_type == FileTypes::MZIDENTML)
     {
-        MzIdentMLFile().store(outputfile_name, protein_ids, peptide_ids);
+      MzIdentMLFile().store(outputfile_name, protein_ids, peptide_ids);
     }
     else if (in_type == FileTypes::IDXML || outputfile_name.hasSuffix(".tmp")) // fix for ctest
     {
-        IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
+      IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
     }
     else
     {
-        writeLog_("Error: Could not determine output file type!");
-        return PARSE_ERROR;
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
     }
 
     /// Deletion of temporary files
@@ -428,7 +428,7 @@ protected:
 
     // some stats
     LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size() ) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size()) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }

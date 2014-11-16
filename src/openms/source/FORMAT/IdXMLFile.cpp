@@ -392,7 +392,7 @@ namespace OpenMS
 
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
-        file_version = "1.0"; //default version is 1.0
+        file_version = "1.0";  //default version is 1.0
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -700,7 +700,7 @@ namespace OpenMS
     else if (tag == "IdentificationRun")
     {
       if (prot_ids_->size() == 0)
-        prot_ids_->push_back(prot_id_); // add empty <ProteinIdentification> if there was none so far (thats where the IdentificationRun parameters are stored)
+        prot_ids_->push_back(prot_id_);  // add empty <ProteinIdentification> if there was none so far (thats where the IdentificationRun parameters are stored)
       prot_id_ = ProteinIdentification();
       last_meta_ = 0;
       prot_id_in_run_ = false;

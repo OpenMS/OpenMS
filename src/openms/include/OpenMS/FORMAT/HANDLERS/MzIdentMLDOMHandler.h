@@ -98,23 +98,23 @@ public:
       /**@name Constructors and destructor */
       //@{
       /// Constructor for a write-only handler for internal identification structures
-      MzIdentMLDOMHandler(const std::vector<ProteinIdentification> & pro_id, const std::vector<PeptideIdentification> & pep_id, const String & version, const ProgressLogger & logger);
+      MzIdentMLDOMHandler(const std::vector<ProteinIdentification>& pro_id, const std::vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger);
 
       /// Constructor for a read-only handler for internal identification structures
-      MzIdentMLDOMHandler(std::vector<ProteinIdentification> & pro_id, std::vector<PeptideIdentification> & pep_id, const String & version, const ProgressLogger & logger);
+      MzIdentMLDOMHandler(std::vector<ProteinIdentification>& pro_id, std::vector<PeptideIdentification>& pep_id, const String& version, const ProgressLogger& logger);
 
       /// Destructor
       virtual ~MzIdentMLDOMHandler();
       //@}
 
       /// Provides the functionality of reading a mzid with a handler object
-      void readMzIdentMLFile(const std::string &mzid_file) throw(std::runtime_error);
+      void readMzIdentMLFile(const std::string& mzid_file) throw(std::runtime_error);
       /// Providese the functionality to write a mzid with a handler object
-      void writeMzIdentMLFile(const std::string &mzid_file) throw(std::runtime_error);
+      void writeMzIdentMLFile(const std::string& mzid_file) throw(std::runtime_error);
 
 protected:
       /// Progress logger
-      const ProgressLogger & logger_;
+      const ProgressLogger& logger_;
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
@@ -122,58 +122,58 @@ protected:
       ControlledVocabulary unimod_;
 
       ///Internal +w Identification Item for proteins
-      std::vector<ProteinIdentification> * pro_id_;
+      std::vector<ProteinIdentification>* pro_id_;
       ///Internal +w Identification Item for peptides
-      std::vector<PeptideIdentification> * pep_id_;
+      std::vector<PeptideIdentification>* pep_id_;
 
       ///Internal -w Identification Item for proteins
-      const std::vector<ProteinIdentification> * cpro_id_;
+      const std::vector<ProteinIdentification>* cpro_id_;
       ///Internal -w Identification Item for peptides
-      const std::vector<PeptideIdentification> * cpep_id_;
+      const std::vector<PeptideIdentification>* cpep_id_;
 
       ///Internal version keeping
       const String schema_version_;
 
       /// Looks up a child CV term of @p parent_accession with the name @p name. If no such term is found, an empty term is returned.
-      ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;
+      ControlledVocabulary::CVTerm getChildWithName_(const String& parent_accession, const String& name) const;
 
       /**@name Helper functions to build the internal id structures from the DOM tree */
       //@{
-      std::pair<CVTermList, std::map<String,DataValue> > parseParamGroup_( xercesc::DOMNodeList * paramGroup);
-      CVTerm parseCvParam_( xercesc::DOMElement* param);
-      std::pair<String, DataValue> parseUserParam_( xercesc::DOMElement* param );
-      void parseAnalysisSoftwareList_( xercesc::DOMNodeList * analysisSoftwareElements);
-      void parseDBSequenceElements_( xercesc::DOMNodeList * dbSequenceElements);
-      void parsePeptideElements_( xercesc::DOMNodeList * peptideElements);
-      AASequence parsePeptideSiblings_( xercesc::DOMNodeList * peptideSiblings);
-      void parsePeptideEvidenceElements_( xercesc::DOMNodeList * peptideEvidenceElements);
-      void parseSpectrumIdentificationElements_( xercesc::DOMNodeList * spectrumIdentificationElements);
-      void parseSpectrumIdentificationProtocolElements_( xercesc::DOMNodeList * spectrumIdentificationProtocolElements);
-      void parseInputElements_( xercesc::DOMNodeList * inputElements);
-      void parseSpectrumIdentificationListElements_( xercesc::DOMNodeList * spectrumIdentificationListElements);
-      void parseSpectrumIdentificationItemElement_(xercesc::DOMElement * spectrumIdentificationItemElement, PeptideIdentification &spectrum_identification, String& spectrumIdentificationList_ref);
-      void parseProteinDetectionHypothesisElement_( xercesc::DOMElement * proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
-      void parseProteinAmbiguityGroupElement_(xercesc::DOMElement * proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
-      void parseProteinDetectionListElements_( xercesc::DOMNodeList * proteinDetectionListElements);
-      ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList,std::map<String,DataValue> > as_params);
+      std::pair<CVTermList, std::map<String, DataValue> > parseParamGroup_(xercesc::DOMNodeList* paramGroup);
+      CVTerm parseCvParam_(xercesc::DOMElement* param);
+      std::pair<String, DataValue> parseUserParam_(xercesc::DOMElement* param);
+      void parseAnalysisSoftwareList_(xercesc::DOMNodeList* analysisSoftwareElements);
+      void parseDBSequenceElements_(xercesc::DOMNodeList* dbSequenceElements);
+      void parsePeptideElements_(xercesc::DOMNodeList* peptideElements);
+      AASequence parsePeptideSiblings_(xercesc::DOMNodeList* peptideSiblings);
+      void parsePeptideEvidenceElements_(xercesc::DOMNodeList* peptideEvidenceElements);
+      void parseSpectrumIdentificationElements_(xercesc::DOMNodeList* spectrumIdentificationElements);
+      void parseSpectrumIdentificationProtocolElements_(xercesc::DOMNodeList* spectrumIdentificationProtocolElements);
+      void parseInputElements_(xercesc::DOMNodeList* inputElements);
+      void parseSpectrumIdentificationListElements_(xercesc::DOMNodeList* spectrumIdentificationListElements);
+      void parseSpectrumIdentificationItemElement_(xercesc::DOMElement* spectrumIdentificationItemElement, PeptideIdentification& spectrum_identification, String& spectrumIdentificationList_ref);
+      void parseProteinDetectionHypothesisElement_(xercesc::DOMElement* proteinDetectionHypothesisElement, ProteinIdentification& protein_identification);
+      void parseProteinAmbiguityGroupElement_(xercesc::DOMElement* proteinAmbiguityGroupElement, ProteinIdentification& protein_identification);
+      void parseProteinDetectionListElements_(xercesc::DOMNodeList* proteinDetectionListElements);
+      static ProteinIdentification::SearchParameters findSearchParameters_(std::pair<CVTermList, std::map<String, DataValue> > as_params);
       //@}
 
       /**@name Helper functions to build a DOM tree from the internal id structures*/
-      void buildCvList_(xercesc::DOMElement * cvElements);
-      void buildAnalysisSoftwareList_(xercesc::DOMElement * analysisSoftwareElements);
-      void buildSequenceCollection_(xercesc::DOMElement * sequenceCollectionElements);
-      void buildAnalysisCollection_(xercesc::DOMElement * analysisCollectionElements);
-      void buildAnalysisProtocolCollection_(xercesc::DOMElement * protocolElements);
-      void buildInputDataCollection_(xercesc::DOMElement * inputElements);
-      void buildEnclosedCV_(xercesc::DOMElement * parentElement, String encel, String acc, String name, String cvref);
-      void buildAnalysisDataCollection_(xercesc::DOMElement * analysisElements);
+      void buildCvList_(xercesc::DOMElement* cvElements);
+      void buildAnalysisSoftwareList_(xercesc::DOMElement* analysisSoftwareElements);
+      void buildSequenceCollection_(xercesc::DOMElement* sequenceCollectionElements);
+      void buildAnalysisCollection_(xercesc::DOMElement* analysisCollectionElements);
+      void buildAnalysisProtocolCollection_(xercesc::DOMElement* protocolElements);
+      void buildInputDataCollection_(xercesc::DOMElement* inputElements);
+      void buildEnclosedCV_(xercesc::DOMElement* parentElement, String encel, String acc, String name, String cvref);
+      void buildAnalysisDataCollection_(xercesc::DOMElement* analysisElements);
       //@}
 
 
 private:
       MzIdentMLDOMHandler();
-      MzIdentMLDOMHandler(const MzIdentMLDOMHandler & rhs);
-      MzIdentMLDOMHandler & operator=(const MzIdentMLDOMHandler & rhs);
+      MzIdentMLDOMHandler(const MzIdentMLDOMHandler& rhs);
+      MzIdentMLDOMHandler& operator=(const MzIdentMLDOMHandler& rhs);
 
 
 
@@ -246,8 +246,8 @@ private:
       std::map<String, AnalysisSoftware> as_map_; //mapping AnalysisSoftware id -> AnalysisSoftware
 
       //mapping from DataCollection Inputs
-      std::map<String, String > sr_map_; //mapping sourcefile id -> sourcefile location
-      std::map<String, String > sd_map_; //mapping spectradata id -> spectradata location
+      std::map<String, String> sr_map_; //mapping sourcefile id -> sourcefile location
+      std::map<String, String> sd_map_; //mapping spectradata id -> spectradata location
       std::map<String, DatabaseInput> db_map_; //mapping database id -> DatabaseInput
 
       //mapping from SpectrumIdentification - SpectrumIdentification will be the new IdentificationRuns
@@ -267,7 +267,7 @@ private:
       std::list<std::list<String> > hit_pev_; //writing help only
 
     };
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS
 
 #endif

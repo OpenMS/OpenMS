@@ -100,10 +100,10 @@ using namespace std;
 
     On the peptide side, two sources for m/z values are possible (see parameter @p mz_reference): 1. m/z of the precursor of the MS2 spectrum that gave rise to the peptide identification;
     2. theoretical masses computed from the amino acid sequences of peptide hits.
-    (When using theoretical masses, make sure that peptide modifications were identified correctly. OpenMS currently "forgets" mass shifts that it can't assign to modifications - if that 
+    (When using theoretical masses, make sure that peptide modifications were identified correctly. OpenMS currently "forgets" mass shifts that it can't assign to modifications - if that
     happens, masses computed from peptide sequences will be off.)
 
-    @deprecated The parameter handling of this tool has been reworked. For greater consistency with other tools, the parameters @p rt_delta and @p mz_delta have been renamed to @p rt_tolerance 
+    @deprecated The parameter handling of this tool has been reworked. For greater consistency with other tools, the parameters @p rt_delta and @p mz_delta have been renamed to @p rt_tolerance
     and @p mz_tolerance. The possible values of the @p mz_reference parameter have also been renamed. The default value of @p mz_tolerance has been increased from 1 ppm to a more realistic 20 ppm.\n
     Most importantly, the @p use_centroids parameter from previous versions has been split into two parameters, @p feature:use_centroid_rt and @p feature:use_centroid_mz. In OpenMS 1.6, peptide
     identifications would be matched only against monoisotopic mass traces of features if @p mz_reference was @p PeptideMass; otherwise, all mass traces would be used. This implicit behaviour has
@@ -159,7 +159,7 @@ protected:
     registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // LOG_DEBUG << "Starting..." << endl;
 
@@ -182,8 +182,8 @@ protected:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                                 __PRETTY_FUNCTION__,
-                                                 "wrong id fileformat");
+                                       __PRETTY_FUNCTION__,
+                                       "wrong id fileformat");
     }
 
     String in = getStringOption_("in");
@@ -273,7 +273,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDMapper tool;
   return tool.main(argc, argv);

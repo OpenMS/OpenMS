@@ -366,7 +366,7 @@ protected:
         if (in.size() == 1)
         {
           out.getSpectra().back().setSourceFile(in.getSourceFiles()[0]);
-          in.getSourceFiles().clear();   // delete source file annotated from source file (its in the spectrum anyways)
+          in.getSourceFiles().clear(); // delete source file annotated from source file (its in the spectrum anyways)
         }
         // copy experimental settings from first file
         if (i == 0)

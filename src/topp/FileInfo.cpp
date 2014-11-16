@@ -493,8 +493,6 @@ protected:
       if (in_type == FileTypes::MZIDENTML)
       {
           MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
-//          std::cout << "store..." << std::endl;
-//          MzIdentMLFile().store("/tmp/test.mzid", id_data.proteins, id_data.peptides);
       }
       else
       {

@@ -127,7 +127,7 @@ namespace seqan
 
   struct FoundProteinFunctor
   {
-  public:
+public:
     typedef OpenMS::Map<OpenMS::Size, std::set<OpenMS::Size> > MapType;
 
     /// peptide index --> protein indices
@@ -139,10 +139,10 @@ namespace seqan
     /// number of rejected hits (not passing addHit())
     OpenMS::Size filter_rejected;
 
-  private:
+private:
     EnzymaticDigestion enzyme_;
 
-  public:
+public:
     explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
       pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
     {
@@ -152,7 +152,7 @@ namespace seqan
     void operator()(const TIter1& iter_pep, const TIter2& iter_prot)
     {
       // the peptide sequence (will not change)
-      const OpenMS::String tmp_pep(begin(representative(iter_pep)), 
+      const OpenMS::String tmp_pep(begin(representative(iter_pep)),
                                    end(representative(iter_pep)));
 
       // remember mapping of proteins to peptides and vice versa
@@ -167,20 +167,20 @@ namespace seqan
           // the protein sequence (will change for every Occurrence -- hitting
           // multiple proteins)
           const OpenMS::String tmp_prot(
-            begin(indexText(container(iter_prot))[getSeqNo(prot_occ)]), 
+            begin(indexText(container(iter_prot))[getSeqNo(prot_occ)]),
             end(indexText(container(iter_prot))[getSeqNo(prot_occ)]));
           // check if hit is valid and add (if valid)
-          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot, 
+          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot,
                  getSeqOffset(prot_occ));
         }
       }
     }
 
     void addHit(OpenMS::Size idx_pep, OpenMS::Size idx_prot,
-                const OpenMS::String& seq_pep, const OpenMS::String& protein, 
+                const OpenMS::String& seq_pep, const OpenMS::String& protein,
                 OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(AASequence::fromString(protein), position, 
+      if (enzyme_.isValidProduct(AASequence::fromString(protein), position,
                                  seq_pep.length()))
       {
         pep_to_prot[idx_pep].insert(idx_prot);
@@ -198,7 +198,7 @@ namespace seqan
     {
       if (pep_to_prot.size() != rhs.pep_to_prot.size())
       {
-        LOG_ERROR << "Size " << pep_to_prot.size() << " " 
+        LOG_ERROR << "Size " << pep_to_prot.size() << " "
                   << rhs.pep_to_prot.size() << std::endl;
         return false;
       }
@@ -209,13 +209,13 @@ namespace seqan
       {
         if (it1->first != it2->first)
         {
-          LOG_ERROR << "Index of " << it1->first << " " << it2->first 
+          LOG_ERROR << "Index of " << it1->first << " " << it2->first
                     << std::endl;
           return false;
         }
         if (it1->second.size() != it2->second.size())
         {
-          LOG_ERROR << "Size of " << it1->first << " " << it1->second.size() 
+          LOG_ERROR << "Size of " << it1->first << " " << it1->second.size()
                     << "--" << it2->second.size() << std::endl;
           return false;
         }
@@ -281,17 +281,18 @@ namespace seqan
 
 
   template <bool enumerateA, bool enumerateB, typename TOnFoundFunctor,
-            typename TTreeIteratorA, typename TIterPosA, 
+            typename TTreeIteratorA, typename TIterPosA,
             typename TTreeIteratorB, typename TIterPosB, typename TErrors>
   inline void _approximateAminoAcidTreeSearch(TOnFoundFunctor& onFoundFunctor,
-                                              TTreeIteratorA iterA, 
-                                              TIterPosA iterPosA, 
-                                              TTreeIteratorB iterB_, 
-                                              TIterPosB iterPosB, 
-                                              TErrors errorsLeft, 
+                                              TTreeIteratorA iterA,
+                                              TIterPosA iterPosA,
+                                              TTreeIteratorB iterB_,
+                                              TIterPosB iterPosB,
+                                              TErrors errorsLeft,
                                               TErrors classErrorsLeft)
   {
     if (enumerateA && !goDown(iterA)) return;
+
     if (enumerateB && !goDown(iterB_)) return;
 
     do
@@ -337,7 +338,7 @@ namespace seqan
             }
           }
 
-          if (_charComparator(representative(iterA)[ipA], 
+          if (_charComparator(representative(iterA)[ipA],
                               representative(iterB)[ipB],
                               EquivalenceClassAA_<char>::VALUE))
           {
@@ -375,7 +376,7 @@ namespace seqan
   }
 
   template <typename TEquivalenceTable>
-  inline bool _charComparator(AminoAcid charA, AminoAcid charB, 
+  inline bool _charComparator(AminoAcid charA, AminoAcid charB,
                               TEquivalenceTable equivalence)
   {
     const unsigned a_index = ordValue(charA);
@@ -394,7 +395,7 @@ class TOPPPeptideIndexer :
 {
 public:
   TOPPPeptideIndexer() :
-    TOPPBase("PeptideIndexer", 
+    TOPPBase("PeptideIndexer",
              "Refreshes the protein references for all peptide hits.")
   {
   }
@@ -421,9 +422,9 @@ protected:
     setValidStrings_("enzyme:name", enzymes);
 
     registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                                                                            "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage-sites must match."
-                                                                            "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage-sites must match."
-                                                                            "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
+                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage-sites must match."
+                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage-sites must match."
+                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
     setValidStrings_("enzyme:specificity", spec);
@@ -487,17 +488,17 @@ protected:
     FileTypes::Type in_type = FileHandler::getType(in);
     if (in_type == FileTypes::MZIDENTML)
     {
-        MzIdentMLFile().load(in, prot_ids, pep_ids);
+      MzIdentMLFile().load(in, prot_ids, pep_ids);
     }
     else if (in_type == FileTypes::IDXML)
     {
-        IdXMLFile().load(in, prot_ids, pep_ids);
+      IdXMLFile().load(in, prot_ids, pep_ids);
     }
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                                 __PRETTY_FUNCTION__,
-                                                 "wrong in fileformat");
+                                       __PRETTY_FUNCTION__,
+                                       "wrong in fileformat");
     }
 
 
@@ -910,8 +911,8 @@ protected:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                                 __PRETTY_FUNCTION__,
-                                                 "wrong out fileformat");
+                                       __PRETTY_FUNCTION__,
+                                       "wrong out fileformat");
     }
 
     if ((!allow_unmatched) && (stats_unmatched > 0))
