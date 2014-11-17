@@ -51,9 +51,31 @@ using namespace std;
 /**
     @page UTILS_RTAnnotator RTAnnotator
 
-    @brief Splits protein/peptide identifications off of annotated data files.
+    @brief Adds RT information to identifications in mzid.
 
-    This performs the reverse operation as IDMapper.
+    <CENTER>
+      <table>
+        <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCCalculator \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapterOnline </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCCalculator </td>
+        </tr>
+      </table>
+    </CENTER>
+
+    RT is no mandatory attribute in a PSM representation of MzIdentML. Some identification
+    engines do omit this information. Though, as the RT will be crucial for further
+    analyses, all @TOPPTool (e.g. @FileInfo) reading MzIdentML will warn you about
+    missing RT. This tool performs the annotation of the identification given the
+    source file to the identification process.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_RTAnnotator.cli
@@ -86,11 +108,11 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in_msref = getStringOption_("in_msref"),
-            out = getStringOption_("out"),
-            in = getStringOption_("in");
+           out = getStringOption_("out"),
+           in = getStringOption_("in");
 
     if (out.empty() || in_msref.empty() || in.empty())
     {
@@ -110,9 +132,9 @@ protected:
     }
     else
     {
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                                   __PRETTY_FUNCTION__,
-                                                   "wrong in_msref fileformat");
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       __PRETTY_FUNCTION__,
+                                       "wrong in_msref fileformat");
     }
     in_type = FileHandler::getType(in);
     if (in_type == FileTypes::IDXML)
@@ -126,8 +148,8 @@ protected:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                                 __PRETTY_FUNCTION__,
-                                                 "wrong in fileformat");
+                                       __PRETTY_FUNCTION__,
+                                       "wrong in fileformat");
     }
     //TODO check if idXML and mzML fit
 
@@ -137,14 +159,14 @@ protected:
     {
       String scannumber = String(id_it->getMetaValue("spectrum_reference"));
       for (MSExperiment<>::Iterator exp_it = experiment.begin();
-         exp_it != experiment.end(); ++exp_it)
+           exp_it != experiment.end(); ++exp_it)
       {
-          if (exp_it->getNativeID() == scannumber)
-          {
-              id_it->setRT(exp_it->getRT());
-              ++c;
-              break;
-          }
+        if (exp_it->getNativeID() == scannumber)
+        {
+          id_it->setRT(exp_it->getRT());
+          ++c;
+          break;
+        }
       }
     }
     writeLog_("Annotated " + String(c) + " peptides.");
@@ -161,8 +183,8 @@ protected:
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                                 __PRETTY_FUNCTION__,
-                                                 "wrong out fileformat");
+                                       __PRETTY_FUNCTION__,
+                                       "wrong out fileformat");
     }
     return EXECUTION_OK;
   }
@@ -170,7 +192,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPRTAnnotator tool;
   return tool.main(argc, argv);
