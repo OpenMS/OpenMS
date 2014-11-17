@@ -592,7 +592,7 @@ namespace OpenMS
                     break;
                   }
                 }
-              } //@AS setting of search_engine_ & search_engine_version_ removed
+              }
               else if (!swn.second.empty())
               {
                 for (std::map<String, DataValue>::const_iterator up = swn.second.begin(); up != swn.second.end(); ++up)
@@ -609,10 +609,6 @@ namespace OpenMS
                   }
                 }
               }
-              else
-              {
-                LOG_ERROR << "No name for AnalysisSoftware found." << std::endl;
-              }
             }
             child = child->getNextElementSibling();
           }
@@ -623,7 +619,7 @@ namespace OpenMS
           }
           else
           {
-            LOG_ERROR << "No AnalysisSoftware found." << std::endl;
+            LOG_ERROR << "No name/version found for AnalysisSoftware:" << id << "." << std::endl;
           }
         }
       }
