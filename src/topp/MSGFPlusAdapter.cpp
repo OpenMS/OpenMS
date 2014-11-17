@@ -32,20 +32,21 @@
 // $Authors: Dilek Dere, Mathias Walzer, Petra Gutenbrunner, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
+#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/JavaInfo.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -56,7 +57,7 @@
 #include <cstddef>
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -362,7 +363,6 @@ protected:
       }
       catch (...)
       {
-        printUsage_();
         return ILLEGAL_PARAMETERS;
       }
       db_name = full_db_name;
@@ -375,6 +375,12 @@ protected:
     if ((max_mods == 0) && !no_mods)
     {
       writeLog_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
+    }
+
+    if (!JavaInfo::canRun("java"))
+    {
+      writeLog_("Fatal error: Java not found. Java is needed to run MS-GF+. Make sure that it can be executed by calling 'java', e.g. add the directory containing the Java binary to your PATH variable.");
+      return EXTERNAL_PROGRAM_ERROR;
     }
 
     // create temporary directory and modifications file, if necessary:
@@ -395,8 +401,6 @@ protected:
         writeModificationsFile_(mod_file, fixed_mods, variable_mods, max_mods);
       }
     }
-
-    return EXECUTION_OK;
 
     // parameters also used by OpenMS (see idXML creation below):
     String enzyme = getStringOption_("enzyme");
