@@ -207,9 +207,9 @@ protected:
     massShiftList.push_back(make_pair("-18.011", 'E'));
     massShiftList.push_back(make_pair("-17.027", 'Q'));
 
-    for (vector<pair<String, char> >::const_iterator iter = massShiftList.begin(); iter != massShiftList.end(); iter++)
+    for (vector<pair<String, char> >::const_iterator it = massShiftList.begin(); it != massShiftList.end(); ++it)
     {
-      string modMassShift = iter->first;
+      string modMassShift = it->first;
       size_t found = modifiedSequence.find(modMassShift);
 
       if (found != string::npos)
@@ -217,7 +217,7 @@ protected:
         String tmp = modifiedSequence.substr(0, found + modMassShift.length() + 1);
         size_t foundAA = tmp.find_first_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-        if ((foundAA > found) && (tmp[foundAA] == iter->second)) // no AA at the begin
+        if ((foundAA > found) && (tmp[foundAA] == it->second)) // no AA at the begin
         {
           if (found > 0)
           {
@@ -604,7 +604,7 @@ protected:
       else
       {
         p_hits = peptide_identifications[scanNumber].getHits();
-        for (vector<PeptideHit>::iterator p_it = p_hits.begin(); p_it != p_hits.end(); ++ p_it)
+        for (vector<PeptideHit>::iterator p_it = p_hits.begin(); p_it != p_hits.end(); ++p_it)
         {
           if (p_it -> getSequence() == sequence)
           {
@@ -616,7 +616,7 @@ protected:
     }
 
     vector<ProteinHit> prot_hits;
-    for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++ it)
+    for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
     {
       ProteinHit prot_hit = ProteinHit();
       prot_hit.setAccession(*it);
@@ -626,11 +626,9 @@ protected:
     protein_ids.push_back(protein_id);
 
     // iterate over map and create a vector of peptide identifications
-    map<int, PeptideIdentification>::iterator it;
     vector<PeptideIdentification> peptide_ids;
     PeptideIdentification pep;
-    for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin();
-         it != peptide_identifications.end(); ++ it)
+    for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin(); it != peptide_identifications.end(); ++it)
     {
       pep = it->second;
       pep.sort();
