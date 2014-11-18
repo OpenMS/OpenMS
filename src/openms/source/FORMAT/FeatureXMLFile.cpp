@@ -651,9 +651,9 @@ namespace OpenMS
       {
         pep_id_.setRT(tmp2);
       }
-      Int tmp3 = -numeric_limits<Int>::max();
-      optionalAttributeAsInt_(tmp3, attributes, "spectrum_reference");
-      if (tmp3 != -numeric_limits<Int>::max())
+      String tmp3;
+      optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
+      if (!tmp3.empty())
       {
         pep_id_.setMetaValue("spectrum_reference", tmp3);
       }
@@ -975,7 +975,7 @@ namespace OpenMS
     DataValue dv = id.getMetaValue("spectrum_reference");
     if (dv != DataValue::EMPTY)
     {
-      os << "spectrum_reference=\"" << dv.toString() << "\" ";
+      os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
     }
     os << ">\n";
 
