@@ -258,7 +258,7 @@ protected:
   // Parse mzML and create RTMapping
   // get RT: it doesn't exist in output from MS-GF+
   // get m/z: it is rounded after converting to TSV
-  void generateInputfileMapping_(Map<String, vector<float> >& rt_mapping)
+  void generateInputfileMapping_(map<String, vector<float> >& rt_mapping)
   {
     String exp_name = getStringOption_("in");
 
@@ -493,7 +493,7 @@ protected:
     //-------------------------------------------------------------
 
     // initialize map
-    Map<String, vector<float> > rt_mapping;
+    map<String, vector<float> > rt_mapping;
     generateInputfileMapping_(rt_mapping);
 
     // handle the search parameters
