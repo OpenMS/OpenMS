@@ -63,7 +63,7 @@
 /**
    @page TOPP_MSGFPlusAdapter MSGFPlusAdapter
 
-   @brief 
+   @brief
 <CENTER>
     <table>
         <tr>
@@ -82,10 +82,8 @@
 
     Input spectra for MS-GF+ have to be centroided; profile spectra are ignored.
 
-    This adapter supports relative database filenames, which (when not found in the 
-    current working directory) are looked up in the directories specified by 
-    'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
-		
+    This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
+
     The adapter works in three steps: First MS-GF+ is run on the input MS data and the sequence database, producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool. Finally, the .tsv file is parsed and a result in idXML format is generated.
 
     This adapter has been tested mostly with the following MS-GF+ version: MS-GF+ Beta (v10089) (7/31/2014)
@@ -155,7 +153,7 @@ protected:
 
     registerStringOption_("tryptic", "<choice>", tryptic_[2], "Level of cleavage specificity required (MS-GF+ parameter '-ntt')", false);
     setValidStrings_("tryptic", tryptic_);
-    
+
     registerIntOption_("min_precursor_charge", "<num>", 2, "Minimum precursor ion charge (MS-GF+ parameter '-minCharge')", false);
     setMinInt_("min_precursor_charge", 1);
     registerIntOption_("max_precursor_charge", "<num>", 3, "Maximum precursor ion charge (MS-GF+ parameter '-maxCharge')", false);
@@ -163,7 +161,7 @@ protected:
 
     registerIntOption_("min_peptide_length", "<num>", 6, "Minimum peptide length to consider (MS-GF+ parameter '-minLength')", false);
     setMinInt_("min_peptide_length", 1);
-    registerIntOption_("max_peptide_length", "<num>", 40, "Maximum peptide length to consider (MS-GF+ parameter '-maxLength')", false);   
+    registerIntOption_("max_peptide_length", "<num>", 40, "Maximum peptide length to consider (MS-GF+ parameter '-maxLength')", false);
     setMinInt_("max_peptide_length", 1);
 
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported (MS-GF+ parameter '-n')", false);
@@ -224,14 +222,14 @@ protected:
           if (found > 0)
           {
             swap = modifiedSequence.substr(0, found);
-          }          
+          }
           return swap += *tmp.rbegin() + modMassShift + modifiedSequence.substr(found + modMassShift.length() + 1);
         }
       }
     }
     return  modifiedSequence;
   }
-	
+
   // Method to replace the mass representation of modifications.
   // Modifications in the TSV file have the format 'M+15.999'
   // After using this method the sequence should look like this: 'M[+15.999]'
@@ -247,9 +245,9 @@ protected:
       {
         modifiedSequence.insert(found2, 1, ']');
         found1 = modifiedSequence.find_first_of("+-", found2 + 2);
-      } 
+      }
       else // last amino acid is modified
-      { 
+      {
         modifiedSequence = modifiedSequence + ']';
         return modifiedSequence;
       }
@@ -275,12 +273,12 @@ protected:
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         String id = it->getNativeID(); // expected format: "... scan=#"
-        if (id != "") 
+        if (id != "")
         {
           rt_mapping[id].push_back(it->getRT());
           rt_mapping[id].push_back(it->getPrecursors()[0].getMZ());
         }
-      }     
+      }
     }
   }
 
@@ -300,7 +298,7 @@ protected:
     output << "# MS-GF+ modifications file written by MSGFPlusAdapter (part of OpenMS)\n"
            << "NumMods=" << max_mods
            << "\n\n# Fixed modifications:\n";
-    if (fixed_mods.empty()) 
+    if (fixed_mods.empty())
     {
       output << "# (none)\n";
     }
@@ -312,7 +310,7 @@ protected:
       }
     }
     output << "\n# Variable modifications:\n";
-    if (variable_mods.empty()) 
+    if (variable_mods.empty())
     {
       output << "# (none)\n";
     }
@@ -418,7 +416,7 @@ protected:
     Int instrument_code = ListUtils::getIndex<String>(instruments_, getStringOption_("instrument"));
     Int enzyme_code = ListUtils::getIndex<String>(enzymes_, enzyme);
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
-    Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));      
+    Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
     QStringList process_params; // the actual process is Java, not MS-GF+!
     process_params << java_memory
@@ -450,7 +448,7 @@ protected:
     //-------------------------------------------------------------
     // execute MS-GF+
     //-------------------------------------------------------------
-   
+
     // run MS-GF+ process and create the .mzid file
     int status = QProcess::execute("java", process_params);
     if (status != 0)
@@ -459,7 +457,7 @@ protected:
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    if (out.empty()) 
+    if (out.empty())
     {
       removeTempDir_(temp_dir);
       return EXECUTION_OK; // no idXML required? -> we're finished now
@@ -467,13 +465,13 @@ protected:
 
     //-------------------------------------------------------------
     // execute TSV converter
-    //------------------------------------------------------------- 
+    //-------------------------------------------------------------
 
     String tsv_out = temp_dir + "msgfplus_converted.tsv";
     int java_permgen = getIntOption_("java_permgen");
     process_params.clear();
     process_params << java_memory;
-    if (java_permgen > 0) 
+    if (java_permgen > 0)
     {
       process_params << "-XX:MaxPermSize=" + QString::number(java_permgen) + "m";
     }
@@ -492,7 +490,7 @@ protected:
 
     //-------------------------------------------------------------
     // create idXML
-    //------------------------------------------------------------- 
+    //-------------------------------------------------------------
 
     // initialize map
     Map<String, vector<float> > rt_mapping;
@@ -515,14 +513,14 @@ protected:
     if (enzyme == "trypsin")
     {
       enzyme_type = ProteinIdentification::TRYPSIN;
-    } 
+    }
     else if (enzyme == "chymotrypsin")
     {
       enzyme_type = ProteinIdentification::CHYMOTRYPSIN;
     }
-    else if (enzyme == "no_cleavage") 
+    else if (enzyme == "no_cleavage")
     {
-      enzyme_type = ProteinIdentification::NO_ENZYME ;     
+      enzyme_type = ProteinIdentification::NO_ENZYME;
     }
     search_parameters.enzyme = enzyme_type;
 
@@ -552,8 +550,10 @@ protected:
     int scanNumber;
 
     // iterate over the rows of the TSV file
+    // columns: #SpecFile, SpecID, ScanNum, FragMethod, Precursor, IsotopeError, PrecursorError(ppm), Charge, Peptide, Protein, DeNovoScore, MSGFScore, SpecEValue, EValue, QValue, PepQValue
+    // maybe TODO: replace column indexes ("elements[N]") by something more expressive
     CsvFile tsvfile(tsv_out, '\t');
-    for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count)
+    for (Size row_count = 1; row_count < tsvfile.rowCount(); ++row_count) // skip header line
     {
       vector<String> elements;
       if (!tsvfile.getRow(row_count, elements))
@@ -562,32 +562,32 @@ protected:
         return PARSE_ERROR;
       }
 
-      if ((elements[2] == "") || (elements[2] == "-1")) 
+      if ((elements[2] == "") || (elements[2] == "-1"))
       {
         scanNumber = elements[1].suffix('=').toInt();
-      } 
-      else 
+      }
+      else
       {
         scanNumber = elements[2].toInt();
       }
-      
+
       String seq = cutSequence_(elements[8]);
       seq.substitute(',', '.'); // decimal separator should be dot, not comma
       sequence = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(seq)));
       vector<PeptideHit> p_hits;
       String prot_accession = elements[9];
 
-      if (prot_accessions.find(prot_accession) == prot_accessions.end()) 
+      if (prot_accessions.find(prot_accession) == prot_accessions.end())
       {
         prot_accessions.insert(prot_accession);
       }
 
-      if (peptide_identifications.find(scanNumber) == peptide_identifications.end()) 
+      if (peptide_identifications.find(scanNumber) == peptide_identifications.end())
       {
         score = elements[12].toDouble();
         rank = 0; // set to 0 at the moment
         charge = elements[7].toInt();
-        
+
         PeptideHit p_hit(score, rank, charge, sequence);
         p_hit.addProteinAccession(prot_accession);
         p_hits.push_back(p_hit);
@@ -596,17 +596,17 @@ protected:
         peptide_identifications[scanNumber].setRT(rt_mapping[spec_id][0]);
         peptide_identifications[scanNumber].setMZ(rt_mapping[spec_id][1]);
 
-        peptide_identifications[scanNumber].setMetaValue("ScanNumber", scanNumber);        
+        peptide_identifications[scanNumber].setMetaValue("ScanNumber", scanNumber);
         peptide_identifications[scanNumber].setScoreType("SpecEValue");
         peptide_identifications[scanNumber].setHigherScoreBetter(false);
         peptide_identifications[scanNumber].setIdentifier(identifier);
-      } 
-      else 
+      }
+      else
       {
         p_hits = peptide_identifications[scanNumber].getHits();
         for (vector<PeptideHit>::iterator p_it = p_hits.begin(); p_it != p_hits.end(); ++ p_it)
         {
-          if (p_it -> getSequence() == sequence) 
+          if (p_it -> getSequence() == sequence)
           {
             p_it -> addProteinAccession(prot_accession);
           }
@@ -616,7 +616,7 @@ protected:
     }
 
     vector<ProteinHit> prot_hits;
-    for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++ it) 
+    for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++ it)
     {
       ProteinHit prot_hit = ProteinHit();
       prot_hit.setAccession(*it);
@@ -629,20 +629,20 @@ protected:
     map<int, PeptideIdentification>::iterator it;
     vector<PeptideIdentification> peptide_ids;
     PeptideIdentification pep;
-    for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin(); 
+    for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin();
          it != peptide_identifications.end(); ++ it)
     {
       pep = it->second;
       pep.sort();
       peptide_ids.push_back(pep);
     }
-    
+
     IdXMLFile().store(out, protein_ids, peptide_ids);
-    
+
     removeTempDir_(temp_dir);
 
     return EXECUTION_OK;
-  }	
+  }
 };
 
 
