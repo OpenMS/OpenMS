@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Dilek Dere, Mathias Walzer, Petra Gutenbrunner, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
