@@ -72,13 +72,13 @@
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes @n (or another centroiding tool)</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter or @n any protein/peptide processing tool</td>
         </tr>
     </table>
 </CENTER>
 
-    @em MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.
+    MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.
 
     Input spectra for MS-GF+ have to be centroided; profile spectra are ignored.
 
@@ -87,6 +87,8 @@
     'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 		
     The adapter works in three steps: First MS-GF+ is run on the input MS data and the sequence database, producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool. Finally, the .tsv file is parsed and a result in idXML format is generated.
+
+    This adapter has been tested mostly with the following MS-GF+ version: MS-GF+ Beta (v10089) (7/31/2014)
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MSGFplusAdapter.cli
