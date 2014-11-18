@@ -501,8 +501,8 @@ protected:
     search_parameters.db = getStringOption_("database");
     search_parameters.charges = "+" + String(min_precursor_charge) + "-+" + String(max_precursor_charge);
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
-    //search_parameters.fixed_modifications = getStringList_("fixed_modifications"); // TODO: Parse mod config file
-    //search_parameters.variable_modifications = getStringList_("variable_modifications"); // TODO: Parse mod config file
+    search_parameters.fixed_modifications = fixed_mods;
+    search_parameters.variable_modifications = variable_mods;
     search_parameters.precursor_tolerance = precursor_mass_tol;
     if (precursor_error_units == "ppm") // convert to Da (at m/z 666: 0.01 Da ~ 15 ppm)
     {
@@ -544,7 +544,7 @@ protected:
     set<String> prot_accessions;
 
     double score; // use SpecEValue from the TSV file
-    UInt rank; 
+    UInt rank;
     Int charge;
     AASequence sequence;
     int scanNumber;
