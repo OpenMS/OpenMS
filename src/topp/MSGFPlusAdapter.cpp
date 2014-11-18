@@ -536,8 +536,8 @@ protected:
     protein_id.setDateTime(now);
     protein_id.setSearchParameters(search_parameters);
     protein_id.setSearchEngineVersion("");
-    protein_id.setSearchEngine("MS-GF+");
-    protein_id.setScoreType("MS-GF+");
+    protein_id.setSearchEngine("MSGFPlus");
+    protein_id.setScoreType(""); // MS-GF+ doesn't assign protein scores
 
     // store all peptide identifications in a map, the key is the scan number
     map<int, PeptideIdentification> peptide_identifications;
