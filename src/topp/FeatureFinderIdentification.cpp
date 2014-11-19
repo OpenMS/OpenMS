@@ -798,11 +798,12 @@ protected:
 
       // keep track of protein accessions:
       const PeptideHit& hit = pm_it->second.begin()->second[0]->getHits()[0];
-      vector<String> current_accessions = hit.getProteinAccessions();
+
+      set<String> current_accessions = PeptideHit::extractProteinAccessions(hit);
       // missing protein accession would crash OpenSwath algorithms:
       if (current_accessions.empty())
       {
-        current_accessions.push_back("not_available");
+        current_accessions.insert("not_available");
       }
       protein_accessions.insert(current_accessions.begin(),
                                 current_accessions.end());
@@ -816,7 +817,7 @@ protected:
       // create assay for current peptide (fill in charge etc. later):
       TargetedExperiment::Peptide peptide;
       peptide.sequence = seq.toString();
-      peptide.protein_refs = current_accessions;
+      peptide.protein_refs = vector<String>(current_accessions.begin(), current_accessions.end());
 
       // go through different charge states:
       for (ChargeMap::iterator cm_it = pm_it->second.begin();

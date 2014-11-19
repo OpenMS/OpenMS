@@ -115,8 +115,9 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
     TEST_EQUAL(peptides.getHits()[0].getSequence(), aa_seq);
     TEST_EQUAL(peptides.getHits()[0].getCharge(), 2);
     TEST_EQUAL(peptides.getHits()[0].getScore(), 0.8633);
-    TEST_EQUAL(peptides.getHits()[0].getProteinAccessions().size(), 1);
-    TEST_EQUAL(peptides.getHits()[0].getProteinAccessions()[0], "P02787|TRFE_HUMAN");
+    set<String> protein_accessions = PeptideHit::extractProteinAccessions(peptides.getHits()[0]);
+    TEST_EQUAL(protein_accessions.size(), 1);
+    TEST_EQUAL(*protein_accessions.begin(), "P02787|TRFE_HUMAN");
     TEST_EQUAL(peptides.getHits()[0].getMetaValue("is_unique"), true);
     TEST_EQUAL(peptides.getHits()[0].getMetaValue("is_contributing"), true);
 

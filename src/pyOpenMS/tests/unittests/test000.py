@@ -3265,8 +3265,20 @@ def testPeptideHit():
 
     ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
     _testMetaInfoInterface(ph)
-    ph.addProteinAccession(b"A")
-    assert ph.getProteinAccessions() == [b"A"]
+
+    assert len(ph.getPeptideEvidences()) == 0
+    assert ph.getPeptideEvidences() == []
+
+    pe = pyopenms.PeptideEvidence()
+    pe.setProteinAccession(b'B_id')
+
+    ph.addPeptideEvidence(pe)
+    assert len(ph.getPeptideEvidences()) == 1
+    assert ph.getPeptideEvidences()[0].getProteinAccession() == b'B_id'
+
+    ph.setPeptideEvidences([pe,pe])
+    assert len(ph.getPeptideEvidences()) == 2
+    assert ph.getPeptideEvidences()[0].getProteinAccession() == b'B_id'
 
     assert ph.getScore() == 1.0
     assert ph.getRank() == 1
@@ -3279,13 +3291,34 @@ def testPeptideHit():
     ph.setSequence(pyopenms.AASequence.fromString(b"AAA", True))
     assert ph.getSequence().toString() == b"AAA"
 
-    ph.setAABefore(b'B')
-    assert ph.getAABefore() == "B"
-    ph.setAAAfter(b'C')
-    assert ph.getAAAfter() == 'C'
-
     assert ph == ph
     assert not ph != ph
+
+@report
+def testPeptideEvidence():
+    """
+    @tests:
+     PeptideEvidence.__init__
+    """
+    pe = pyopenms.PeptideEvidence()
+    assert pe == pe
+    assert not pe != pe
+
+    pe.setProteinAccession(b'B_id')
+    assert pe.getProteinAccession() == b"B_id"
+
+    pe.setAABefore(b'B')
+    assert pe.getAABefore() == b"B"
+    pe.setAAAfter(b'C')
+    assert pe.getAAAfter() == b'C'
+
+    pe.setStart(5)
+    assert pe.getStart() == 5
+    pe.setEnd(9)
+    assert pe.getEnd() == 9
+
+    assert pe == pe
+    assert not pe != pe
 
 
 @report
@@ -3328,7 +3361,11 @@ def testPeptideIdentification():
     assert pi == pi
     assert not pi != pi
 
+    pe = pyopenms.PeptideEvidence()
+    pe.setProteinAccession(b'B_id')
+
     ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
+    ph.addPeptideEvidence(pe)
     pi.insertHit(ph)
     phx, = pi.getHits()
     assert phx == ph
@@ -3336,6 +3373,11 @@ def testPeptideIdentification():
     pi.setHits([ph])
     phx, = pi.getHits()
     assert phx == ph
+
+    rv = set([])
+    peptide_hits = pi.getReferencingHits(pi.getHits(), rv)
+    assert rv == set([])
+    # assert len(peptide_hits) == 1
 
     assert isinstance(pi.getSignificanceThreshold(), float)
     assert isinstance(pi.getScoreType(), bytes)
@@ -3346,37 +3388,6 @@ def testPeptideIdentification():
     pi.assignRanks()
     pi.sort()
     assert not pi.empty()
-
-    rv = []
-    pi.getReferencingHits(b"A", rv)
-    assert rv == []
-    pi.getNonReferencingHits(b"A", rv)
-    hit, = rv
-    assert hit.getSequence().toString()== b"A"
-    assert hit.getScore() == 1.0
-    assert hit.getRank() == 1
-
-    rv = []
-    pi.getReferencingHits([b"A"], rv)
-    assert rv == []
-    pi.getNonReferencingHits([b"A"], rv)
-    hit, = rv
-    assert hit.getSequence().toString()== b"A"
-    assert hit.getScore() == 1.0
-    assert hit.getRank() == 1
-
-    ph = pyopenms.ProteinHit()
-    pi.getReferencingHits([ph], rv)
-    hit, = rv
-    assert hit.getSequence().toString()== b"A"
-    assert hit.getScore() == 1.0
-    assert hit.getRank() == 1
-    rv = []
-    pi.getNonReferencingHits([ph], rv)
-    hit, = rv
-    assert hit.getSequence().toString()== b"A"
-    assert hit.getScore() == 1.0
-    assert hit.getRank() == 1
 
     pi.setSignificanceThreshold(6.0)
 
