@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         void       sort() nogil except +
         bool       empty() nogil except +
 
-        void       getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) nogil except +
+        libcpp_vector[PeptideHit] getReferencingHits(libcpp_vector[PeptideHit], libcpp_set[String] &) nogil except +
 
         # cython has a problem with inheritance of overloaded methods,
         # so we do not declare them here, but separately in each derived
