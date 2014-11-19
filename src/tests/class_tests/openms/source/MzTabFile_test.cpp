@@ -90,12 +90,12 @@ START_SECTION(void store(const String& filename, MzTab& mzTab) )
     std::sort(file1.begin(), file1.end());
     std::sort(file2.begin(), file2.end());
 
-    for (TextFile::iterator it = file1.begin(); it != file1.end(); ++it)
+    for (TextFile::Iterator it = file1.begin(); it != file1.end(); ++it)
     {
       it->substitute(" ","");
     }
 
-    for (TextFile::iterator it = file2.begin(); it != file2.end(); ++it)
+    for (TextFile::Iterator it = file2.begin(); it != file2.end(); ++it)
     {
       it->substitute(" ","");
     }

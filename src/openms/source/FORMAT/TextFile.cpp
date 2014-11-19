@@ -157,4 +157,13 @@ namespace OpenMS
     return buffer_.end();
   }
 
+  TextFile::Iterator TextFile::begin()
+  {
+    return buffer_.begin();
+  }
+
+  TextFile::Iterator TextFile::end()
+  {
+    return buffer_.end();
+  }
 } // namespace OpenMS

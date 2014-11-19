@@ -38,6 +38,8 @@
 #include <boost/regex.hpp>
 #include <fstream>
 
+using namespace std;
+
 namespace OpenMS
 {
 
@@ -1989,7 +1991,6 @@ String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& 
     s.push_back(it->second.toCellString());
   }
 
-  String MzTabFile::generateMzTabProteinHeader_(Int n_subsamples, const std::vector<String>& optional_protein_columns) const
   for (std::map<Size, MzTabInteger>::const_iterator it = row.num_peptides_unique_ms_run.begin(); it != row.num_peptides_unique_ms_run.end(); ++it)
   {
     s.push_back(it->second.toCellString());
@@ -2435,7 +2436,7 @@ String MzTabFile::generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMolecule
 
 void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
 {
-  TextFile out;
+  StringList out;
 
   generateMzTabMetaDataSection_(mz_tab.getMetaData(), out);
 
@@ -2557,25 +2558,30 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
 
   if (empty_rows.empty() && comment_rows.empty())
   {
-    out.store(filename);
+    TextFile tmp_out;
+    for (TextFile::ConstIterator it = out.begin(); it != out.end(); )
+    {
+      tmp_out.addLine(*it);
+    }
+    tmp_out.store(filename);
   } else
   {
     TextFile tmp_out;
-    for (TextFile::const_iterator it = out.begin(); it != out.end(); )
+    for (TextFile::ConstIterator it = out.begin(); it != out.end(); )
     {
       if (std::binary_search(empty_rows.begin(), empty_rows.end(), line))  // check if current line was orignally an empty line
       {
-        tmp_out.push_back("\n");
+        tmp_out.addLine("\n");
         ++line;
       }
       else if (comment_rows.find(line) != comment_rows.end()) // check if current line was originally a comment line
       {
-        tmp_out.push_back(comment_rows[line]);
+        tmp_out.addLine(comment_rows[line]);
         ++line;
       }
       else   // no empty line, no comment => add row
       {
-        tmp_out.push_back(*it);
+        tmp_out.addLine(*it);
         ++line;
         ++it;
       }

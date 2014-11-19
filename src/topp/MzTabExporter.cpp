@@ -128,7 +128,7 @@ protected:
         // but only at the (single) study variable variable level.
 
         // load featureXML
-        FeatureMap<> feature_map;
+        FeatureMap feature_map;
         FeatureXMLFile f;
         f.load(in_feature, feature_map);
 
