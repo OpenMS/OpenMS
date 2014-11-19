@@ -53,6 +53,7 @@ sh -e /etc/init.d/xvfb start
 export PATH=${SOURCE_DIRECTORY}/_searchengines/MyriMatch:$PATH
 export PATH=${SOURCE_DIRECTORY}/_searchengines/OMSSA:$PATH
 export PATH=${SOURCE_DIRECTORY}/_searchengines/XTandem:$PATH
+export PATH=${SOURCE_DIRECTORY}/_searchengines/MSGFPlus:$PATH
 
 # if we perform style tests, add cppcheck to path
 if [ $ENABLE_STYLE_TESTING == "On" ]; then
