@@ -532,9 +532,6 @@ protected:
     // maximal spacing difference defining a missing data point
     double spacing_difference_;
 
-    // Check spacing constraints? (Only do so for spectra, not chromatograms.)
-    bool check_spacings_;
-    
     // maximum number of missing points
     unsigned missing_;
 
