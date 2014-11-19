@@ -4245,11 +4245,6 @@ def test_BSpline2d():
     assert abs(spline.eval(6.0) - 5.0 < 0.01)
     assert abs(spline.derivative(6.0) - 5.0 < 0.01)
 
-    # These are not theoretically motivated but just test that the functions
-    # can be called.
-    assert abs(spline.coefficient(2) + 1.06799045573 < 0.5)
-    assert spline.nX() == 5
-
     y_new = [4.0, 5.0, 6.0, 12.0, 13.0]
     spline.solve(y_new)
 
