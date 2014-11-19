@@ -129,9 +129,11 @@ namespace OpenMS
     
     // remove Thermo bug zeros
     // (In some Thermo data appear odd zero intensity data points. Normal data points are sometimes quickly followed by a zero.
-    // These zeros are clearly not part of the profile, but bugs. The following code snippet removes them.)
+    // These zeros are clearly not part of the profile, but bugs. The following code snippet removes them. A datapoint is
+    // "quickly followed" by a second one, if the m/z step is shorter than scaling_Thermo_bug times the previous m/z step.)
     std::vector<double> mz_slim2;
     std::vector<double> intensity_slim2;
+    double scaling_Thermo_bug = 1/50;    // scaling factor for Thermo bug
     mz_slim2.reserve(mz_slim1.size());
     intensity_slim2.reserve(intensity_slim1.size());
     mz_slim2.push_back(mz_slim1[0]);
@@ -142,7 +144,7 @@ namespace OpenMS
     {
       if (intensity_slim1[i] == 0)
       {
-        if ((mz_slim1[i] - mz_slim1[i-1]) < (mz_slim1[i-1] - mz_slim1[i-2])/50)
+        if ((mz_slim1[i] - mz_slim1[i-1]) < (mz_slim1[i-1] - mz_slim1[i-2]) * scaling_Thermo_bug)
         {
           continue;
         }
