@@ -249,4 +249,5 @@ private:
 }
 
 #undef run_identifier
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
+
