@@ -174,9 +174,9 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    registerStringList_("fixed_modifications", "<mods>", vector<String>(), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", vector<String>(), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     registerIntOption_("java_memory", "<num>", 3500, "Maximum Java heap size (in MB)", false);
