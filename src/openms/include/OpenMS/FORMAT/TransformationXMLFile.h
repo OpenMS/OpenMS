@@ -72,7 +72,7 @@ public:
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, TransformationDescription & transformation);
+    void load(const String & filename, TransformationDescription & transformation, bool fit_model=true);
 
     /**
     @brief Stores the data in an TransformationXML file

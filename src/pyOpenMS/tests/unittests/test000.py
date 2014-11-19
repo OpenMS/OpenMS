@@ -3841,7 +3841,7 @@ def testTransformationXMLFile():
     fh = pyopenms.TransformationXMLFile()
     td = pyopenms.TransformationDescription()
     fh.store(b"test.transformationXML", td)
-    fh.load(b"test.transformationXML", td)
+    fh.load(b"test.transformationXML", td, True)
     assert td.getDataPoints() == []
 
 @report
