@@ -105,14 +105,14 @@ class MSGFPlusAdapter :
 {
 public:
   MSGFPlusAdapter() :
-    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", false)
-  {
+    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", false),
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
-    fragment_methods_ = ListUtils::create<String>("from_spectrum,CID,ETD,HCD");
-    instruments_ = ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive");
-    enzymes_ = ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage");
-    protocols_ = ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT");
-    tryptic_ = ListUtils::create<String>("non,semi,fully");
+    fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
+    instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
+    enzymes_(ListUtils::create<String>("unspecific,trypsin,chymotrypsin,LysC,LysN,GluC,ArgC,AspN,alphaLP,no_cleavage")),
+    protocols_(ListUtils::create<String>("none,phospho,iTRAQ,iTRAQ_phospho,TMT")),
+    tryptic_(ListUtils::create<String>("non,semi,fully"))
+  {
   }
 
 protected:
