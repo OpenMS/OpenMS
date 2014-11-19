@@ -435,6 +435,7 @@ set(analysis_executables_list
   StablePairFinder_test
   TransformationDescription_test
   TransformationModel_test
+  TransformationModelBSpline_test
   TransformationModelInterpolated_test
   TransformationModelLinear_test
 )
