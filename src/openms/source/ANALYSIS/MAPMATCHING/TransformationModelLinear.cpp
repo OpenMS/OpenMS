@@ -87,7 +87,7 @@ namespace OpenMS
   {
   }
 
-  double TransformationModelLinear::evaluate(const double value) const
+  double TransformationModelLinear::evaluate(double value) const
   {
     return slope_ * value + intercept_;
   }

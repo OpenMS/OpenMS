@@ -56,7 +56,7 @@
 				<element map="2" id="1" rt="3611.39772" mz="116.1116" it="279413"/>
 				<element map="3" id="1" rt="3611.39772" mz="117.1149" it="319817"/>
 			</groupedElementList>
-			<userParam type="float" name="precursor_purity" value="0.654721856117249"/>
+			<userParam type="float" name="precursor_purity" value="0.692433623198553"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=4"/>
 			<userParam type="float" name="precursor_intensity" value="7365030"/>
 			<userParam type="int" name="precursor_charge" value="3"/>
@@ -69,7 +69,7 @@
 				<element map="2" id="2" rt="3611.7015" mz="116.1116" it="362616"/>
 				<element map="3" id="2" rt="3611.7015" mz="117.1149" it="350856"/>
 			</groupedElementList>
-			<userParam type="float" name="precursor_purity" value="0.775739431381226"/>
+			<userParam type="float" name="precursor_purity" value="0.824560653224408"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=6"/>
 			<userParam type="float" name="precursor_intensity" value="6835636"/>
 			<userParam type="int" name="precursor_charge" value="3"/>
@@ -82,7 +82,7 @@
 				<element map="2" id="3" rt="3612.0051" mz="116.1116" it="220018"/>
 				<element map="3" id="3" rt="3612.0051" mz="117.1149" it="192754"/>
 			</groupedElementList>
-			<userParam type="float" name="precursor_purity" value="0.720097899436951"/>
+			<userParam type="float" name="precursor_purity" value="0.731295499808224"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=8"/>
 			<userParam type="float" name="precursor_intensity" value="6762358"/>
 			<userParam type="int" name="precursor_charge" value="3"/>

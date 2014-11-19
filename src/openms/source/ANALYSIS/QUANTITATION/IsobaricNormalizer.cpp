@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
+
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {

@@ -127,15 +127,15 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   // no use checking score, because implementation may still change
   TEST_EQUAL(pep_hit.getCharge(), 3);
-  TEST_EQUAL(pep_hit.getProteinAccessions().size(), 3);
-  TEST_EQUAL(pep_hit.getProteinAccessions()[0], "ddb000449223");
-  TEST_EQUAL(pep_hit.getAABefore(), 'R');
-  TEST_EQUAL(pep_hit.getAAAfter(), 'E');
+  vector<PeptideEvidence> pes = pep_hit.getPeptideEvidences();
+  TEST_EQUAL(pes.size(), 3);
+  TEST_EQUAL(pes[0].getProteinAccession(), "ddb000449223");
+  TEST_EQUAL(pes[0].getAABefore(), 'R');
+  TEST_EQUAL(pes[0].getAAAfter(), 'E');
 
   TEST_EQUAL(first.getHits()[0].getSequence().isModified(), true);
   TEST_EQUAL(first.getHits()[0].getSequence().hasNTerminalModification(), true);
-  TEST_EQUAL(first.getHits()[0].getSequence().hasCTerminalModification(),
-             false);
+  TEST_EQUAL(first.getHits()[0].getSequence().hasCTerminalModification(), false);
 
   TEST_EQUAL(peptides[1].getHits()[0].getSequence().isModified(), true);
   TEST_EQUAL(peptides[1].getHits()[0].getSequence().hasNTerminalModification(), true);
@@ -161,16 +161,16 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   vector<ProteinHit> prot_hits = proteins[0].getHits();
   TEST_EQUAL(prot_hits.size(), 20);
-  StringList accessions;
+  StringList accessions_string;
   for (std::vector<ProteinHit>::iterator it = prot_hits.begin();
        it != prot_hits.end(); ++it)
   {
-    accessions << it->getAccession();
+    accessions_string << it->getAccession();
   }
   // check a sample of the IDs that should be present:
-  TEST_EQUAL(ListUtils::contains(accessions, "ddb000449223"), true);
-  TEST_EQUAL(ListUtils::contains(accessions, "ddb000626346"), true);
-  TEST_EQUAL(ListUtils::contains(accessions, "rev000409159"), true);
+  TEST_EQUAL(ListUtils::contains(accessions_string, "ddb000449223"), true);
+  TEST_EQUAL(ListUtils::contains(accessions_string, "ddb000626346"), true);
+  TEST_EQUAL(ListUtils::contains(accessions_string, "rev000409159"), true);
 
   // search parameters:
   ProteinIdentification::SearchParameters params = proteins[0].getSearchParameters();
