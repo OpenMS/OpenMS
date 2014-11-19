@@ -98,8 +98,8 @@ namespace OpenMS
     mz_max_ = mz.back();
 
     // remove unnecessary zeros, i.e. zero intensity data points with zeros to the left and right
-    std::vector<double> mz_slim1;
-    std::vector<double> intensity_slim1;
+    std::vector<double> mz_slim1;    // slimmer vector after removal of zero-intensity datapoints from mz
+    std::vector<double> intensity_slim1;    // slimmer vector after removal of zero-intensity datapoints from intensity
     mz_slim1.reserve(mz.size());
     intensity_slim1.reserve(intensity.size());
     if (intensity[0] != 0 || intensity[1] != 0)
@@ -131,8 +131,8 @@ namespace OpenMS
     // (In some Thermo data appear odd zero intensity data points. Normal data points are sometimes quickly followed by a zero.
     // These zeros are clearly not part of the profile, but bugs. The following code snippet removes them. A datapoint is
     // "quickly followed" by a second one, if the m/z step is shorter than scaling_Thermo_bug times the previous m/z step.)
-    std::vector<double> mz_slim2;
-    std::vector<double> intensity_slim2;
+    std::vector<double> mz_slim2;    // slimmer vector after removal of Thermo bugs from mz_slim1
+    std::vector<double> intensity_slim2;    // slimmer vector after removal of Thermo bugs from intensity_slim1
     double scaling_Thermo_bug = 1/50;    // scaling factor for Thermo bug
     mz_slim2.reserve(mz_slim1.size());
     intensity_slim2.reserve(intensity_slim1.size());
