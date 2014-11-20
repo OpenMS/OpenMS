@@ -163,9 +163,11 @@ namespace OpenMS
     p.charge = pep.getChargeState();
     p.sequence = pep.sequence;
     p.peptide_group_label = pep.getPeptideGroupLabel();
+
+    p.protein_refs.clear();
     if (!pep.protein_refs.empty())
     {
-      p.protein_ref = pep.protein_refs[0];
+      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() ); 
     }
 
     // Mapping of peptide modifications
