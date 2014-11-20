@@ -11,13 +11,13 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="PEPTIDE" charge="2" protein_refs="PH_0 PH_1" >
+			<PeptideHit score="40" sequence="PEPTIDE" charge="2" aa_before="[" aa_after="]" protein_refs="PH_0 PH_1" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="0" RT="0" >
-			<PeptideHit score="30" sequence="PEPTLDE" charge="2" protein_refs="PH_0 PH_1" >
+			<PeptideHit score="30" sequence="PEPTLDE" charge="2" aa_before="[" aa_after="]" protein_refs="PH_0 PH_1" >
 				<UserParam type="string" name="target_decoy" value="target+decoy"/>
 				<UserParam type="string" name="protein_references" value="non-unique"/>
 			</PeptideHit>
