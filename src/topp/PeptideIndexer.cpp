@@ -770,7 +770,7 @@ protected:
           PeptideEvidence pe;
           pe.setProteinAccession(proteins[it_i->protein_index].identifier);
           pe.setStart(it_i->position);
-          pe.setEnd(it_i->position + it2->getSequence().toUnmodifiedString().size() - 1);
+          pe.setEnd(it_i->position + it2->getSequence().size() - 1);
           pe.setAABefore(it_i->AABefore);
           pe.setAAAfter(it_i->AAAfter);
           it2->addPeptideEvidence(pe);
