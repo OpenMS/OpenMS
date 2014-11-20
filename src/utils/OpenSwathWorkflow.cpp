@@ -210,7 +210,7 @@ namespace OpenMS
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz
             + "\t" + (String)feature_it->getIntensity()
-            + "\t" + pep.protein_ref
+            + "\t" + pep.protein_refs[0] // TODO what about other proteins?
             + "\t" + decoy
             // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
