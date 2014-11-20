@@ -66,7 +66,7 @@ enum MzTabCellStateType
 };
 
 // basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
-class MzTabNullAbleInterface
+class OPENMS_DLLAPI MzTabNullAbleInterface
 {
   public:
     virtual ~MzTabNullAbleInterface() {}
@@ -77,7 +77,7 @@ class MzTabNullAbleInterface
 };
 
 // interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
-class MzTabNullNaNAndInfAbleInterface :
+class OPENMS_DLLAPI MzTabNullNaNAndInfAbleInterface :
     public MzTabNullAbleInterface
 {
   public:
@@ -89,7 +89,7 @@ class MzTabNullNaNAndInfAbleInterface :
 };
 
 // base class for atomic, non-container types (Double, Int)
-class MzTabNullAbleBase :
+class OPENMS_DLLAPI MzTabNullAbleBase :
     public MzTabNullAbleInterface
 {
   public:
@@ -117,7 +117,7 @@ class MzTabNullAbleBase :
 };
 
 // base class for the atomic non-container like MzTab data types (Double, Int)
-class MzTabNullNaNAndInfAbleBase :
+class OPENMS_DLLAPI MzTabNullNaNAndInfAbleBase :
     public MzTabNullNaNAndInfAbleInterface
 {
   public:
@@ -162,7 +162,7 @@ class MzTabNullNaNAndInfAbleBase :
     MzTabCellStateType state_;
 };
 
-class MzTabDouble :
+class OPENMS_DLLAPI MzTabDouble :
     public MzTabNullNaNAndInfAbleBase
 {
   public:
@@ -239,7 +239,7 @@ class MzTabDouble :
     double value_;
 };
 
-class MzTabDoubleList :
+class OPENMS_DLLAPI MzTabDoubleList :
     public MzTabNullAbleBase
 {
   public:
@@ -319,7 +319,7 @@ class MzTabDoubleList :
     std::vector<MzTabDouble> entries_;
 };
 
-class MzTabInteger :
+class OPENMS_DLLAPI MzTabInteger :
     public MzTabNullNaNAndInfAbleBase
 {
   public:
@@ -398,7 +398,7 @@ class MzTabInteger :
     Int value_;
 };
 
-class MzTabIntegerList :
+class OPENMS_DLLAPI MzTabIntegerList :
     public MzTabNullAbleBase
 {
   public:
@@ -476,7 +476,7 @@ class MzTabIntegerList :
     std::vector<MzTabInteger> entries_;
 };
 
-class MzTabBoolean :
+class OPENMS_DLLAPI MzTabBoolean :
     public MzTabNullAbleBase
 {
   public:
@@ -552,7 +552,7 @@ class MzTabBoolean :
     bool value_;
 };
 
-class MzTabString :
+class OPENMS_DLLAPI MzTabString :
     public MzTabNullAbleInterface
 {
   public:
@@ -622,7 +622,7 @@ class MzTabString :
     String value_;
 };
 
-class MzTabParameter :
+class OPENMS_DLLAPI MzTabParameter :
     public MzTabNullAbleInterface
 {
   public:
@@ -785,7 +785,7 @@ class MzTabParameter :
     String value_;
 };
 
-class MzTabParameterList :
+class OPENMS_DLLAPI MzTabParameterList :
     public MzTabNullAbleInterface
 {
   public:
@@ -869,7 +869,7 @@ class MzTabParameterList :
     std::vector<MzTabParameter> parameters_;
 };
 
-class MzTabStringList :
+class OPENMS_DLLAPI MzTabStringList :
     public MzTabNullAbleInterface
 {
   public:
@@ -1106,7 +1106,7 @@ struct MzTabModification :
     MzTabString mod_identifier_;
 };
 
-class MzTabModificationList :
+class OPENMS_DLLAPI MzTabModificationList :
     public MzTabNullAbleBase
 {
   public:
@@ -1236,7 +1236,7 @@ class MzTabModificationList :
 
 };
 
-class MzTabSpectraRef :
+class OPENMS_DLLAPI MzTabSpectraRef :
     public MzTabNullAbleInterface
 {
   public:
