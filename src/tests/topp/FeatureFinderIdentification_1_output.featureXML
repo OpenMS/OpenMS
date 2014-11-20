@@ -4248,7 +4248,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="1.95161239330116" sequence="LAADDFR" charge="2" protein_refs="PH_6 PH_1 PH_2 PH_0 PH_8 PH_7 PH_5">
+				<PeptideHit score="1.95161239330116" sequence="LAADDFR" charge="2" protein_refs="PH_0 PH_1 PH_2 PH_5 PH_6 PH_7 PH_8">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="potentialOutlier" value="LAADDFR/2_i2"/>

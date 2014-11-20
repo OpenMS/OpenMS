@@ -1003,15 +1003,6 @@ protected:
       feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
       feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
                          getCharge());
-      // OpenSWATH only includes one protein accession per petide in its
-      // output - fix that:
-      String peptide_ref = feat_it->getMetaValue("PeptideRef");
-      const TargetedExperiment::Peptide& peptide = 
-        library_.getPeptideByRef(peptide_ref);
-      PeptideHit& hit = feat_it->getPeptideIdentifications()[0].getHits()[0];
-      hit.setProteinAccessions(peptide.protein_refs);
-      // all the protein hits are already listed in the ProteinIdentification
-
       double rt_min = feat_it->getMetaValue("leftWidth");
       double rt_max = feat_it->getMetaValue("rightWidth");
       if (feat_it->getConvexHulls().empty()) // add hulls for mass traces
