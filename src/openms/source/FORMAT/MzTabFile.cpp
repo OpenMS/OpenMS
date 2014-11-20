@@ -1323,7 +1323,8 @@ namespace OpenMS
           else // no uniqueness annotation
           {
             // if unique protein is present peptide can be assigned
-            if (peptide_hit_it->getProteinAccessions().size() == 1)
+            std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(*peptide_hit_it);
+            if (protein_accessions.size() == 1)
             {
               unique = "1";
             }
@@ -1459,10 +1460,10 @@ namespace OpenMS
         const std::vector<PeptideHit>& phits = pids[i].getHits();
         if (phits.size() == 1)
         {
-          const std::vector<String>& accessions = phits[0].getProteinAccessions();
-          for (Size k = 0; k != accessions.size(); ++k)
+          const std::set<String>& accessions = PeptideHit::extractProteinAccessions(phits[0]);
+          for (std::set<String>::const_iterator a_it = accessions.begin(); a_it != accessions.end(); ++a_it)
           {
-            const String& accession = accessions[k];
+            const String& accession = *a_it;
             std::pair<String, String> key = make_pair(run, accession);
             map_run_accession_to_pephits[key].push_back(phits[0]);
           }
@@ -1475,16 +1476,15 @@ namespace OpenMS
   String MzTabFile::extractProteinAccession_(const PeptideHit& peptide_hit)
   {
     // if unique protein is present peptide can be assigned
-    String accession;
-    if (peptide_hit.getProteinAccessions().size() == 1)
+    const std::set<String>& accessions = PeptideHit::extractProteinAccessions(peptide_hit);
+    if (accessions.size() == 1)
     {
-      accession = peptide_hit.getProteinAccessions()[0];
+      return *accessions.begin();
     }
     else
     {
-      accession = "NA"; // no unique accession
+      return "NA"; // no unique accession
     }
-    return accession;
   }
 
   String MzTabFile::extractPeptideModifications_(const PeptideHit& peptide_hit)
@@ -1730,7 +1730,8 @@ namespace OpenMS
       for (std::vector<PeptideHit>::const_iterator pet = peptide_hits.begin(); pet != peptide_hits.end(); ++pet)
       {
         // only add sequences of unique peptides
-        if (pet->getProteinAccessions().size() == 1)
+        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(*pet);
+        if (protein_accessions.size() == 1)
         {
           sequences.insert(pet->getSequence().toString()); // AASequence with Modifications
         }

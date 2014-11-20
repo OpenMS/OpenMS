@@ -53,9 +53,9 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 
 
 #------------------------------------------------------------------------------
-# 3rd party libs shipped with OpenMS directly
+# third party libs shipped with OpenMS directly
 #------------------------------------------------------------------------------
-add_subdirectory(3rdparty)
+add_subdirectory(thirdparty)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)

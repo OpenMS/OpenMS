@@ -108,7 +108,7 @@ protected:
     setValidStrings_("enzyme", ListUtils::create<String>("Trypsin,none"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     vector<ProteinIdentification> protein_identifications;
 
@@ -179,8 +179,8 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    vector<String> protein_accessions(1);
     PeptideHit temp_peptide_hit;
+    PeptideEvidence temp_pe;
 
     protein_identifications[0].setSearchParameters(search_parameters);
     protein_identifications[0].setDateTime(date_time);
@@ -189,18 +189,18 @@ protected:
 
     std::vector<FASTAFile::FASTAEntry> all_peptides;
 
-    Size dropped_bylength(0);   // stats for removing candidates
+    Size dropped_bylength(0); // stats for removing candidates
 
     for (Size i = 0; i < protein_data.size(); ++i)
     {
       if (!has_FASTA_output)
       {
-        protein_accessions[0] = protein_data[i].identifier;
         ProteinHit temp_protein_hit;
         temp_protein_hit.setSequence(protein_data[i].sequence);
-        temp_protein_hit.setAccession(protein_accessions[0]);
+        temp_protein_hit.setAccession(protein_data[i].identifier);
         protein_identifications[0].insertHit(temp_protein_hit);
-        temp_peptide_hit.setProteinAccessions(protein_accessions);
+        temp_pe.setProteinAccession(protein_data[i].identifier);
+        temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, temp_pe));
       }
 
       vector<AASequence> temp_peptides;
@@ -223,9 +223,9 @@ protected:
             temp_peptide_hit.setSequence(temp_peptides[j]);
             peptide_identification.insertHit(temp_peptide_hit);
             identifications.push_back(peptide_identification);
-            peptide_identification.setHits(std::vector<PeptideHit>());   // clear
+            peptide_identification.setHits(std::vector<PeptideHit>()); // clear
           }
-          else   // for FASTA file output
+          else // for FASTA file output
           {
             FASTAFile::FASTAEntry pep(protein_data[i].identifier, protein_data[i].description, temp_peptides[j].toString());
             all_peptides.push_back(pep);
@@ -265,7 +265,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDigestor tool;
   return tool.main(argc, argv);

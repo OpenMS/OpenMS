@@ -210,7 +210,7 @@ namespace OpenMS
             + "\t" + (String)pep.charge
             + "\t" + (String)transition->precursor_mz
             + "\t" + (String)feature_it->getIntensity()
-            + "\t" + pep.protein_ref
+            + "\t" + pep.protein_refs[0] // TODO what about other proteins?
             + "\t" + decoy
             // Note: missing MetaValues will just produce a DataValue::EMPTY which lead to an empty column
             + "\t" + (String)feature_it->getMetaValue("assay_rt")
@@ -1232,6 +1232,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
+      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:stop_after_feature");
 
       // EMG Scoring - turn off by default since it is very CPU-intensive
       feature_finder_param.remove("Scores:use_elution_model_score");
@@ -1242,7 +1243,6 @@ protected:
       feature_finder_param.remove("EMGScoring:deltaAbsError");
 
       // remove these parameters
-      feature_finder_param.remove("stop_report_after_feature");
       feature_finder_param.remove("add_up_spectra");
       feature_finder_param.remove("spacing_for_spectra_resampling");
       feature_finder_param.remove("EMGScoring:statistics:mean");
@@ -1305,7 +1305,7 @@ protected:
     {
       // get read RT normalization file
       TransformationXMLFile trafoxml;
-      trafoxml.load(trafo_in, trafo_rtnorm);
+      trafoxml.load(trafo_in, trafo_rtnorm, false);
       Param model_params = getParam_().copy("model:", true);
       model_params.setValue("symmetric_regression", "false");
       String model_type = "linear";

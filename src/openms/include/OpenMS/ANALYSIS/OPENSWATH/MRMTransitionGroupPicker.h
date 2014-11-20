@@ -802,4 +802,5 @@ protected:
   };
 }
 
-#endif
+#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMTRANSITIONGROUPPICKER_H
+

@@ -304,7 +304,7 @@ using namespace std;
 
     With @p filter_charge and @p average, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
     Setting @p filter_charge may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
-    For @p average, there is a qualitative difference between @p mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
+    For @p average, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
 
 */
 
@@ -319,7 +319,7 @@ public:
 
   TOPPProteinQuantifier() :
     TOPPBase("ProteinQuantifier", "Compute peptide and protein abundances"),
-    algo_params_(), proteins_(), peptides_(), files_(), 
+    algo_params_(), proteins_(), peptides_(), files_(),
     spectral_counting_(false) {}
 
 protected:
@@ -392,7 +392,7 @@ protected:
     for (PeptideQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
          ++q_it)
     {
-      if (q_it->second.total_abundances.empty()) continue;  // not quantified
+      if (q_it->second.total_abundances.empty()) continue; // not quantified
 
       StringList accessions;
       for (set<String>::const_iterator acc_it =
@@ -562,7 +562,7 @@ protected:
     String what = (proteins ? "Protein" : "Peptide");
     bool old = out.modifyStrings(false);
     out << "# " + what + " abundances computed from file '" +
-    getStringOption_("in") + "'" << endl;
+      getStringOption_("in") + "'" << endl;
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
@@ -624,7 +624,7 @@ protected:
                << " quantified, " << stats.total_peptides
                << " identified (considering best hits only)";
     }
-    if (!getStringOption_("out").empty() || 
+    if (!getStringOption_("out").empty() ||
         !getStringOption_("mzTab_out").empty())
     {
       bool include_all = algo_params_.getValue("include_all") == "true";
@@ -660,7 +660,7 @@ protected:
       };
       double value = total_abundances[file_it->first];
       if (value > 0) hit.setMetaValue(field[0] + field[1], value);
-      else hit.setMetaValue(field[0] + field[1], "--");  // missing value
+      else hit.setMetaValue(field[0] + field[1], "--"); // missing value
       // TODO: compute std. deviations/std. errors (how?)
       // hit.setMetaValue(field[0] + "stdev_" + field[1], "--");
       // hit.setMetaValue(field[0] + "std_error_" + field[1], "--");
@@ -784,7 +784,7 @@ protected:
       {
         SequenceMap::iterator pos =
           sequence_map.find(q_it->first.toUnmodifiedString());
-        if (pos == sequence_map.end()) continue;  // not in list, skip
+        if (pos == sequence_map.end()) continue; // not in list, skip
         quantified_pep.push_back(*(pos->second));
       }
       quantified_pep.back().setSequence(q_it->first);
@@ -793,13 +793,16 @@ protected:
         pep2prot.find(q_it->first.toUnmodifiedString());
       if (pos == pep2prot.end()) // not proteotypic
       {
-        quantified_pep.back().setProteinAccessions(vector<String>());
+        quantified_pep.back().setPeptideEvidences(vector<PeptideEvidence>());
         quantified_pep.back().setMetaValue("mzTab:unique", "false");
       }
       else // proteotypic (therefore used for quantification)
       {
-        vector<String> accessions(1, pos->second);
-        quantified_pep.back().setProteinAccessions(accessions);
+        PeptideEvidence pe;
+        pe.setProteinAccession(pos->second);
+        vector<PeptideEvidence> evidences;
+        evidences.push_back(pe);
+        quantified_pep.back().setPeptideEvidences(evidences);
         quantified_pep.back().setMetaValue("mzTab:unique", "true");
       }
       if (algo_params_.getValue("filter_charge") != "true") // all charges
@@ -892,7 +895,7 @@ protected:
         files_[i].filename = proteins[i].getIdentifier();
       }
       // ProteinProphet results in the idXML?
-      if (protxml.empty() && (proteins.size() == 1) && 
+      if (protxml.empty() && (proteins.size() == 1) &&
           (!proteins[0].getHits().empty()))
       {
         proteins_ = proteins[0];

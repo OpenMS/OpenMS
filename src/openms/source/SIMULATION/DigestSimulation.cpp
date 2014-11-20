@@ -110,9 +110,9 @@ namespace OpenMS
       {
         // generate a PeptideHit hit with the correct link to the protein
         PeptideHit pep_hit(1.0, 1, 0, AASequence::fromString(protein_hit->getSequence()));
-        std::vector<String> prot_accessions;
-        prot_accessions.push_back(protein_hit->getAccession());
-        pep_hit.setProteinAccessions(prot_accessions);
+        PeptideEvidence pe;
+        pe.setProteinAccession(protein_hit->getAccession());
+        pep_hit.addPeptideEvidence(pe);
 
         // add the PeptideHit to the PeptideIdentification
         PeptideIdentification pep_id;
@@ -139,9 +139,9 @@ namespace OpenMS
     }
 
 
-    UInt min_peptide_length     = param_.getValue("min_peptide_length");
-    bool use_log_model          = param_.getValue("model") == "trained" ? true : false;
-    UInt missed_cleavages       = param_.getValue("model_naive:missed_cleavages");
+    UInt min_peptide_length = param_.getValue("min_peptide_length");
+    bool use_log_model = param_.getValue("model") == "trained" ? true : false;
+    UInt missed_cleavages = param_.getValue("model_naive:missed_cleavages");
     double cleave_threshold = param_.getValue("model_trained:threshold");
 
     EnzymaticDigestion digestion;
@@ -250,14 +250,20 @@ namespace OpenMS
 
         // add current protein accession
         // existing proteins accessions ...
-        std::vector<String> prot_accessions(generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
+        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0]);
 
         // ... add accession of current protein
-        prot_accessions.push_back(protein_hit->getAccession());
+        protein_accessions.insert(protein_hit->getAccession());
 
         std::vector<PeptideIdentification> pep_idents = generated_features[*dp_it].getPeptideIdentifications();
         std::vector<PeptideHit> pep_hits = pep_idents[0].getHits();
-        pep_hits[0].setProteinAccessions(prot_accessions);
+
+        for (std::set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        {
+          PeptideEvidence pe;
+          pe.setProteinAccession(*s_it);
+          pep_hits[0].addPeptideEvidence(pe);
+        }
         pep_idents[0].setHits(pep_hits);
         generated_features[*dp_it].setPeptideIdentifications(pep_idents);
       }

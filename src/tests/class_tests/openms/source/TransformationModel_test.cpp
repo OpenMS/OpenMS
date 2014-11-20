@@ -71,7 +71,7 @@ START_SECTION((~TransformationModel()))
 }
 END_SECTION
 
-START_SECTION((virtual double evaluate(const double value) const))
+START_SECTION((virtual double evaluate(double value) const))
 {
   // null model (identity):
   TransformationModel tm;

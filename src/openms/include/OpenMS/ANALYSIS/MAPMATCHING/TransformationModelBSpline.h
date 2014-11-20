@@ -28,55 +28,53 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
-#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#ifndef OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
+#define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/config.h> // is this needed?
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/MATH/MISC/BSpline2d.h>
 
 namespace OpenMS
 {
-  /**
-    @brief Base class for transformation models
 
-    Implements the identity (no transformation). Parameters and data are ignored.
+  /**
+    @brief B-spline (non-linear) model for transformations
 
     @ingroup MapAlignment
   */
-  class OPENMS_DLLAPI TransformationModel
+  class OPENMS_DLLAPI TransformationModelBSpline :
+    public TransformationModel
   {
 public:
-    /// Coordinate pair
-    typedef std::pair<double, double> DataPoint;
-    /// Vector of coordinate pairs
-    typedef std::vector<DataPoint> DataPoints;
+    /**
+      @brief Constructor
 
-    /// Constructor
-    TransformationModel() {}
-
-    /// Alternative constructor (derived classes should implement this one!)
-    TransformationModel(const TransformationModel::DataPoints&, const Param&);
+      @exception IllegalArgument is thrown if a parameter isn't valid.
+      @exception UnableToFit is thrown if the B-spline fit fails.
+    */
+    TransformationModelBSpline(const DataPoints& data, const Param& params);
 
     /// Destructor
-    virtual ~TransformationModel();
+    ~TransformationModelBSpline();
 
     /// Evaluates the model at the given value
     virtual double evaluate(double value) const;
 
-    /// Gets the (actual) parameters
-    const Param& getParameters() const;
+    using TransformationModel::getParameters;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);
 
 protected:
-    /// Parameters
-    Param params_;
+    /// Pointer to the actual B-spline
+    BSpline2d* spline_;
   };
+} // namespace
 
-} // end of namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODELBSPLINE_H
