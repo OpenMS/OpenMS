@@ -26,6 +26,7 @@ MetaboliteSpectralMatcher
 MRMPairFinder
 MSSimulator
 OpenMSInfo
+PeakInvestigator
 PeakPickerIterative
 QCCalculator
 QCEmbedder

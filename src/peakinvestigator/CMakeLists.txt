@@ -28,59 +28,52 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Stephan Aiche, Chris Bielow, Hannes Röst $
+# $Authors: Hannes Röst, Stephan Aiche $
 # --------------------------------------------------------------------------
 
+project("PeakInvestigator")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
-project("OpenMS_src")
 
 #------------------------------------------------------------------------------
-# OpenSWATHAlgo lib
+# Find Boost lib
 #------------------------------------------------------------------------------
-add_subdirectory(openswathalgo)
+find_boost()
 
-#------------------------------------------------------------------------------
-# OpenMS core lib
-#------------------------------------------------------------------------------
-add_subdirectory(openms)
-
-#------------------------------------------------------------------------------
-# SuperHirn lib
-#------------------------------------------------------------------------------
-add_subdirectory(superhirn)
-
-#------------------------------------------------------------------------------
-# PeakInvestigator lib
-#------------------------------------------------------------------------------
-add_subdirectory(peakinvestigator)
-
-#------------------------------------------------------------------------------
-# pyOpenMS
-#------------------------------------------------------------------------------
-option(PYOPENMS "setup build system for pyOpenMS" OFF)
-if(PYOPENMS)
-  add_subdirectory(pyOpenMS)
-endif()
-
-if(WITH_GUI)
-  #------------------------------------------------------------------------------
-  # OpenMS gui lib
-  #------------------------------------------------------------------------------
-  add_subdirectory(openms_gui)
+if(NOT Boost_FOUND)
+  message(FATAL_ERROR "Boost was not found!")
 endif()
 
 #------------------------------------------------------------------------------
-# TOPP tools
+# Find Qt
 #------------------------------------------------------------------------------
-add_subdirectory(topp)
+find_package(Qt4 REQUIRED)
 
 #------------------------------------------------------------------------------
-# UTILS tools
-#------------------------------------------------------------------------------
-add_subdirectory(utils)
 
 #------------------------------------------------------------------------------
-# Tests
+# Find LibSSH2 on Mac/Linux
 #------------------------------------------------------------------------------
-add_subdirectory(tests)
+if(UNIX AND NOT CYGWIN)
+  find_package(LibSSH2 REQUIRED)
+  if(NOT LIBSSH2_FOUND)
+    message(FATAL_ERROR "LibSSH2 was not found, which is required for Mac/Linux!")
+  endif(NOT LIBSSH2_FOUND)
+endif()
+#------------------------------------------------------------------------------
+
+# get information regarding the openswath files
+include(source/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/PeakInvestigator.cmake)
+
+#------------------------------------------------------------------------------
+# add the library
+openms_add_library(TARGET_NAME PeakInvestigatorImpl
+                   SOURCE_FILES ${PeakInvestigatorFiles}
+                   HEADER_FILES ${PeakInvestigatorHeaders}
+                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include 
+                                     ${PROJECT_BINARY_DIR}/include
+                   EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS} ${OpenMS_INCLUDE_DIRECTORIES}
+                   LINK_LIBRARIES OpenMS ${LIBSSH2_LIBRARIES}
+                   DLL_EXPORT_PATH "OpenMS/TRANSFORMATIONS/RAW2PEAK/PEAKINVESTIGATOR/")
+
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")

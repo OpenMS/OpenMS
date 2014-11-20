@@ -28,59 +28,37 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: $
+# $Authors: Adam Tenderholt $
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
-project("OpenMS_src")
+project("OpenMS_class_tests_peakinvestigator")
 
 #------------------------------------------------------------------------------
-# OpenSWATHAlgo lib
-#------------------------------------------------------------------------------
-add_subdirectory(openswathalgo)
+# Configure test file to get the TEST_DATA_PATH into the tests
+set(CF_PEAKINVESTIGATOR_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
+set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/test_config.h")
+configure_file(${PROJECT_SOURCE_DIR}/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
 
-#------------------------------------------------------------------------------
-# OpenMS core lib
-#------------------------------------------------------------------------------
-add_subdirectory(openms)
+# --------------------------------------------------------------------------
+# add include directories
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES}
+                           ${PeakInvestigatorImpl_INCLUDE_DIRECTORIES}
+                           ${PROJECT_BINARY_DIR})
 
-#------------------------------------------------------------------------------
-# SuperHirn lib
-#------------------------------------------------------------------------------
-add_subdirectory(superhirn)
+# --------------------------------------------------------------------------
+set(peakinvestigator_tests
+  # peakinvestigator classes
+  TarFile_test
+  # superhirn featurefinder
+  #  FeatureFinderAlgorithmSH_test
+)
 
-#------------------------------------------------------------------------------
-# PeakInvestigator lib
-#------------------------------------------------------------------------------
-add_subdirectory(peakinvestigator)
-
-#------------------------------------------------------------------------------
-# pyOpenMS
-#------------------------------------------------------------------------------
-option(PYOPENMS "setup build system for pyOpenMS" OFF)
-if(PYOPENMS)
-  add_subdirectory(pyOpenMS)
-endif()
-
-if(WITH_GUI)
-  #------------------------------------------------------------------------------
-  # OpenMS gui lib
-  #------------------------------------------------------------------------------
-  add_subdirectory(openms_gui)
-endif()
-
-#------------------------------------------------------------------------------
-# TOPP tools
-#------------------------------------------------------------------------------
-add_subdirectory(topp)
-
-#------------------------------------------------------------------------------
-# UTILS tools
-#------------------------------------------------------------------------------
-add_subdirectory(utils)
-
-#------------------------------------------------------------------------------
-# Tests
-#------------------------------------------------------------------------------
-add_subdirectory(tests)
+# --------------------------------------------------------------------------
+# add targets for the executables
+foreach(i ${peakinvestigator_tests})
+  add_executable(${i} source/${i}.cpp)
+  target_link_libraries(${i} PeakInvestigatorImpl OpenMS)
+  add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+endforeach(i)

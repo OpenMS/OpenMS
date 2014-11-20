@@ -73,6 +73,10 @@ add_dependencies(UTILS ${UTILS_executables})
 include_directories(SYSTEM ${SuperHirn_INCLUDE_DIRECTORIES})
 target_link_libraries(FeatureFinderSuperHirn SuperHirn)
 
+# PeakInvestigator requires linking against PeakInvestigatorImpl
+include_directories(SYSTEM ${PeakInvestigatorImpl_INCLUDE_DIRECTORIES})
+target_link_libraries(PeakInvestigator PeakInvestigatorImpl)
+
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}
     CACHE INTERNAL "OpenMS' UTILS tools" FORCE)

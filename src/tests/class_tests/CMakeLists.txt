@@ -52,6 +52,10 @@ add_subdirectory(openms)
 # add OpenMS specific tests
 add_subdirectory(superhirn)
 
+#------------------------------------------------------------------------------
+# add PeakInvestigator specific tests
+add_subdirectory(peakinvestigator)
+
 if(WITH_GUI)
   #------------------------------------------------------------------------------
   # add OpenMS_GUI specific tests
