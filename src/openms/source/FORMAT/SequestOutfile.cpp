@@ -108,7 +108,7 @@ namespace OpenMS
     // if no p_values were computed take all peptides
     bool no_pvalues = pvalues.empty();
     if (no_pvalues)
-      pvalues.push_back(0.0);                   // to make sure pvalues.end() is never reached
+      pvalues.push_back(0.0); // to make sure pvalues.end() is never reached
 
     // generally used variables
     String
@@ -138,7 +138,7 @@ namespace OpenMS
     DateTime datetime;
     double precursor_mz_value(0.0);
     Size
-    precursor_mass_type(0),
+      precursor_mass_type(0),
     ion_mass_type(0),
     number_of_columns(0),
     displayed_peptides(0),
@@ -146,7 +146,7 @@ namespace OpenMS
     line_number(0);
 
     Int
-    charge(-1),
+      charge(-1),
     number_column(-1),
     rank_sp_column(-1),
     id_column(-1),
@@ -161,7 +161,7 @@ namespace OpenMS
     score_column(-1);
 
     String::size_type
-    start(0),
+      start(0),
     end(0);
 
     readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
@@ -209,6 +209,7 @@ namespace OpenMS
 
     for (Size viewed_peptides = 0; viewed_peptides < displayed_peptides; )
     {
+      PeptideEvidence peptide_evidence;
       PeptideHit peptide_hit;
       ProteinHit protein_hit;
 
@@ -220,7 +221,7 @@ namespace OpenMS
         line.resize(line.length() - 1);
       line.trim();
       if (line.empty())
-        continue;                       // skip empty lines
+        continue; // skip empty lines
       ++viewed_peptides;
 
       getColumns(line, substrings, number_of_columns, reference_column);
@@ -244,7 +245,9 @@ namespace OpenMS
         substrings[reference_column].resize(substrings[reference_column].find_last_of('+'));
       }
       else
+      {
         proteins_per_peptide = 0;
+      }
 
       // get the peptide information and insert it
       if (p_value != pvalues.end() && (*p_value) <= p_value_threshold)
@@ -291,10 +294,16 @@ namespace OpenMS
         String sequence_with_mods = substrings[peptide_column];
         start = sequence_with_mods.find('.') + 1;
         end = sequence_with_mods.find_last_of('.');
+
         if (start >= 2)
-          peptide_hit.setAABefore(sequence_with_mods[start - 2]);
+        {
+          peptide_evidence.setAABefore(sequence_with_mods[start - 2]);
+        }
+
         if (end < sequence_with_mods.length() + 1)
-          peptide_hit.setAAAfter(sequence_with_mods[end + 1]);
+        {
+          peptide_evidence.setAAAfter(sequence_with_mods[end + 1]);
+        }
 
         //remove modifications (small characters and everything that's not in the alphabet)
         String sequence;
@@ -317,7 +326,8 @@ namespace OpenMS
         if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
           protein_hits.push_back(protein_hit);
 
-        peptide_hit.addProteinAccession(accession);
+        peptide_evidence.setProteinAccession(accession);
+        peptide_hit.addPeptideEvidence(peptide_evidence);
 
         if (!ignore_proteins_per_peptide)
         {
@@ -347,13 +357,15 @@ namespace OpenMS
             if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
               protein_hits.push_back(protein_hit);
 
-            peptide_hit.addProteinAccession(accession);
+            PeptideEvidence pe;
+            pe.setProteinAccession(accession);
+            peptide_hit.addPeptideEvidence(pe);
           }
         }
 
         peptide_identification.insertHit(peptide_hit);
       }
-      else       // if the pvalue is higher than allowed
+      else // if the pvalue is higher than allowed
       {
         if (!ignore_proteins_per_peptide)
         {
@@ -802,7 +814,7 @@ namespace OpenMS
         displayed_peptides = substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides)).toInt();
       }
       else if (line.hasPrefix("#"))
-        break;                                     // the header is read
+        break; // the header is read
     }
 
     if (datetime == datetime_empty)

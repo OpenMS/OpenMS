@@ -102,7 +102,7 @@ protected:
     registerFlag_("best_hits", "If this flag is set the best n peptides are chosen.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
@@ -230,7 +230,9 @@ protected:
           for (Size k = 0; k < temp_identifications.size(); ++k)
           {
             temp_peptide_hits.clear();
-            temp_identifications[k].getReferencingHits(temp_protein_hits[j].getAccession(), temp_peptide_hits);
+            set<String> accession;
+            accession.insert(temp_protein_hits[j].getAccession());
+            temp_peptide_hits = PeptideIdentification::getReferencingHits(temp_identifications[k].getHits(), accession);
             if (!temp_peptide_hits.empty() && !already_chosen)
             {
               chosen_protein_hits.push_back(temp_protein_hits[j]);
@@ -258,7 +260,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDExtractor tool;
   return tool.main(argc, argv);

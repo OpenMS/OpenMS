@@ -40,10 +40,10 @@
 namespace OpenMS
 {
 
-  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wave_length, BoundaryCondition boundary_condition, Size num_nodes)
+  BSpline2d::BSpline2d(const std::vector<double>& x, const std::vector<double>& y, double wavelength, BoundaryCondition boundary_condition, Size num_nodes)
   {
-    OPENMS_PRECONDITION(x.size() == y.size(), "x and y vector passed to BSpline constructor must match.")
-    spline_ = new eol_bspline::BSpline<double>(&x[0], x.size(), &y[0], wave_length, boundary_condition, num_nodes);
+    OPENMS_PRECONDITION(x.size() == y.size(), "x and y vectors passed to BSpline2d constructor must have the same size.")
+    spline_ = new eol_bspline::BSpline<double>(&x[0], x.size(), &y[0], wavelength, boundary_condition, num_nodes);
   }
 
   BSpline2d::~BSpline2d()
@@ -53,7 +53,7 @@ namespace OpenMS
 
   bool BSpline2d::solve(const std::vector<double>& y)
   {
-    OPENMS_PRECONDITION(spline_->nX() == y.size(), "y vector passed to BSpline solve must match size of x.")
+    OPENMS_PRECONDITION(spline_->nX() == y.size(), "y vector passed to 'BSpline2d::solve' must match size of x.")
     // pass vector as array
     return spline_->solve(&y[0]);
   }
@@ -70,20 +70,14 @@ namespace OpenMS
     return spline_->slope(x);
   }
 
-  double BSpline2d::coefficient(const int n) const
-  {
-    OPENMS_PRECONDITION(ok(), "Spline was not initialized properly.")
-    return spline_->coefficient(n);
-  }
-
   bool BSpline2d::ok() const
   {
     return spline_->ok();
   }
 
-  Size BSpline2d::nX() const
+  void BSpline2d::debug(bool enable)
   {
-    return spline_->nX();
+    eol_bspline::BSplineBase<double>::Debug(int(enable));
   }
 
 }

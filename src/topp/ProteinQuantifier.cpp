@@ -390,7 +390,7 @@ protected:
     for (PeptideQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
          ++q_it)
     {
-      if (q_it->second.total_abundances.empty()) continue;  // not quantified
+      if (q_it->second.total_abundances.empty()) continue; // not quantified
 
       StringList accessions;
       for (set<String>::const_iterator acc_it =
@@ -560,7 +560,7 @@ protected:
     String what = (proteins ? "Protein" : "Peptide");
     bool old = out.modifyStrings(false);
     out << "# " + what + " abundances computed from file '" +
-    getStringOption_("in") + "'" << endl;
+      getStringOption_("in") + "'" << endl;
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
