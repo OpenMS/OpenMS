@@ -466,7 +466,7 @@ namespace OpenMS
           item = table_widget_->itemPrototype()->clone();
           item->setTextAlignment(Qt::AlignLeft);
 
-          set<String> protein_accessions = PeptideHit::extractProteinAccessions(best_ph);
+          set<String> protein_accessions = best_ph.extractProteinAccessions();
           String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
           item->setText(accessions.toQString());
           item->setBackgroundColor(c);

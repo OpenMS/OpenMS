@@ -303,7 +303,7 @@ namespace OpenMS
       }
       else // filter by protein accessions
       {
-        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(identification.getHits()[i]);
+        std::set<String> protein_accessions = identification.getHits()[i].extractProteinAccessions();
         for (set<String>::const_iterator ac_it = protein_accessions.begin(); ac_it != protein_accessions.end(); ++ac_it)
         {
           if (accession_sequences.find("*" + *ac_it) != String::npos)
@@ -460,7 +460,7 @@ namespace OpenMS
         // extract protein accessions of each peptide hit
         for (Size j = 0; j != tmp_pep_hits.size(); ++j)
         {
-          const std::set<String>& protein_accessions = PeptideHit::extractProteinAccessions(tmp_pep_hits[j]);
+          const std::set<String>& protein_accessions = tmp_pep_hits[j].extractProteinAccessions();
           proteinaccessions_with_peptides.insert(protein_accessions.begin(), protein_accessions.end());
         }
       }
