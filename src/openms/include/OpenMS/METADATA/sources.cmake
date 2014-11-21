@@ -25,6 +25,7 @@ MetaInfoRegistry.h
 Modification.h
 MSQuantifications.h
 PeptideHit.h
+PeptideEvidence.h
 PeptideIdentification.h
 Precursor.h
 ProteinHit.h
@@ -37,7 +38,6 @@ SpectrumSettings.h
 Tagging.h
 ScanWindow.h
 Product.h
-PeptideEvidence.h
 Identification.h
 SpectrumIdentification.h
 IdentificationHit.h

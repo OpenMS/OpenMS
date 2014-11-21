@@ -120,10 +120,13 @@ public:
     */
     ConstIterator begin() const;
 
+    Iterator begin();
     /**
      @brief Gives access to the underlying text buffer.
      */
     ConstIterator end() const;
+
+    Iterator end();
 
 protected:
     /// Internal buffer storing the lines before writing them to the file.

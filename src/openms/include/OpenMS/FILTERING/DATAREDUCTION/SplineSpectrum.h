@@ -95,7 +95,7 @@ class OPENMS_DLLAPI SplineSpectrum
      *  has some usable data to work on.
      *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
      */
-    unsigned getSplineCount() const;
+    size_t getSplineCount() const;
 
     /**
     * @brief iterator class for access of spline packages
@@ -139,7 +139,7 @@ class OPENMS_DLLAPI SplineSpectrum
         /**
         * @brief index of spline package last accessed
         */
-        unsigned last_package_;
+        size_t last_package_;
 
         /**
         * @brief m/z limits of the spectrum

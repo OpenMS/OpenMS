@@ -238,14 +238,13 @@ namespace OpenMS
       else
       {
         // protein name:
-        if (cFeature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size() != 1)
+        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(cFeature.getPeptideIdentifications()[0].getHits()[0]);
+        if (protein_accessions.size() != 1)
         {
           if (!allow_non_unique) continue; // we only want unique peptides
         }
 
-        for (std::vector<String>::const_iterator prot_ac = cFeature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
-             prot_ac != cFeature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
-             ++prot_ac)
+        for (std::set<String>::const_iterator prot_ac = protein_accessions.begin(); prot_ac != protein_accessions.end(); ++prot_ac)
         {
           IdCSV entry;
           entry.charge = cFeature.getPeptideIdentifications()[0].getHits()[0].getCharge();
