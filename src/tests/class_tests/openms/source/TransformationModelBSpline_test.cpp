@@ -96,6 +96,7 @@ START_SECTION((virtual double evaluate(double value) const))
   Param params;
   params.setValue("wavelength", 0.0);
   params.setValue("num_nodes", 5);
+  params.setValue("extrapolate", "b_spline");
   TransformationModelBSpline tm(data, params);
   
   vector<double> results;
@@ -105,6 +106,22 @@ START_SECTION((virtual double evaluate(double value) const))
     // cout << v << ", " << tm.evaluate(v) << ", ";
     TEST_REAL_SIMILAR(tm.evaluate(v), pred[index]);
   }
+
+  // test extrapolation:
+  params.setValue("extrapolate", "linear");
+  TransformationModelBSpline tm_lin(data, params);
+  TEST_REAL_SIMILAR(tm_lin.evaluate(-4.0), 0.947997);
+  TEST_REAL_SIMILAR(tm_lin.evaluate(4.0), -0.807806);
+
+  params.setValue("extrapolate", "constant");
+  TransformationModelBSpline tm_const(data, params);
+  TEST_REAL_SIMILAR(tm_const.evaluate(-4.0), 0.0150243);
+  TEST_REAL_SIMILAR(tm_const.evaluate(4.0), -0.00429613);
+
+  params.setValue("extrapolate", "identity");
+  TransformationModelBSpline tm_ident(data, params);
+  TEST_REAL_SIMILAR(tm_ident.evaluate(-4.0), -4.0);
+  TEST_REAL_SIMILAR(tm_ident.evaluate(4.0), 4.0);
 }
 END_SECTION
 
