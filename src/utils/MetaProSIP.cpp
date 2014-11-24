@@ -51,7 +51,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
@@ -375,22 +374,22 @@ class MetaProSIPReporting
       }
 
       // plot heatmap
-      current_script.push_back("library(gplots)");
+      current_script.addLine("library(gplots)");
       String ria_list_string;
       ria_list_string.concatenate(ria_list.begin(), ria_list.end(), ",");
-      current_script.push_back("mdat <- matrix(c(" + ria_list_string + "), ncol=" + String(binned_ria[0].size()) + ", byrow=TRUE)");
+      current_script.addLine("mdat <- matrix(c(" + ria_list_string + "), ncol=" + String(binned_ria[0].size()) + ", byrow=TRUE)");
 
       if (file_extension == "png")
       {
-        current_script.push_back("png('" + tmp_path + "/" + filename + "', width=1000, height=" + String(10 * binned_ria.size()) + ")");
+        current_script.addLine("png('" + tmp_path + "/" + filename + "', width=1000, height=" + String(10 * binned_ria.size()) + ")");
       }
       else if (file_extension == "svg")
       {
-        current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+        current_script.addLine("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
       }
       else if (file_extension == "pdf")
       {
-        current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+        current_script.addLine("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
       }
 
       String labRowString;
@@ -408,9 +407,9 @@ class MetaProSIPReporting
       String col_labels_string;
       col_labels_string.concatenate(col_labels.begin(), col_labels.end(), "\",\"");
 
-      current_script.push_back("heatmap.2(mdat, dendrogram=\"none\", col=colorRampPalette(c(\"black\",\"red\")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=" + labRowString + ",labCol=c(\"" + col_labels_string + "\"),trace=\"none\", density.info=\"none\")");
+      current_script.addLine("heatmap.2(mdat, dendrogram=\"none\", col=colorRampPalette(c(\"black\",\"red\")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=" + labRowString + ",labCol=c(\"" + col_labels_string + "\"),trace=\"none\", density.info=\"none\")");
 
-      current_script.push_back("tmp<-dev.off()");
+      current_script.addLine("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
 
       QProcess p;
@@ -469,31 +468,31 @@ class MetaProSIPReporting
         String intensity_list_string;
         intensity_list_string.concatenate(intensity_list.begin(), intensity_list.end(), ",");
 
-        current_script.push_back("mz<-c(" + mz_list_string + ")");
-        current_script.push_back("int<-c(" + intensity_list_string + ")");
-        current_script.push_back("x0=mz; x1=mz; y0=rep(0, length(x0)); y1=int");
+        current_script.addLine("mz<-c(" + mz_list_string + ")");
+        current_script.addLine("int<-c(" + intensity_list_string + ")");
+        current_script.addLine("x0=mz; x1=mz; y0=rep(0, length(x0)); y1=int");
 
         if (file_extension == "png")
         {
-          current_script.push_back("png('" + tmp_path + "/" + filename + "')");
+          current_script.addLine("png('" + tmp_path + "/" + filename + "')");
         }
         else  if (file_extension == "svg")
         {
-          current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+          current_script.addLine("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
         }
         else if (file_extension == "pdf")
         {
-          current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+          current_script.addLine("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
         }
 
-        current_script.push_back("plot.new()");
-        current_script.push_back("plot.window(xlim=c(min(mz),max(mz)), ylim=c(0,max(int)))");
-        current_script.push_back("axis(1); axis(2)");
-        current_script.push_back("title(xlab=\"m/z\")");
-        current_script.push_back("title(ylab=\"intensity\")");
-        current_script.push_back("box()");
-        current_script.push_back("segments(x0,y0,x1,y1)");
-        current_script.push_back("tmp<-dev.off()");
+        current_script.addLine("plot.new()");
+        current_script.addLine("plot.window(xlim=c(min(mz),max(mz)), ylim=c(0,max(int)))");
+        current_script.addLine("axis(1); axis(2)");
+        current_script.addLine("title(xlab=\"m/z\")");
+        current_script.addLine("title(ylab=\"intensity\")");
+        current_script.addLine("box()");
+        current_script.addLine("segments(x0,y0,x1,y1)");
+        current_script.addLine("tmp<-dev.off()");
         current_script.store(tmp_path + "/" + script_filename);
 
         QProcess p;
@@ -528,119 +527,119 @@ class MetaProSIPReporting
       TextFile current_script;
 
       // html header
-      current_script.push_back("<!DOCTYPE html>\n<html>\n<body>\n");
+      current_script.addLine("<!DOCTYPE html>\n<html>\n<body>\n");
 
       // peptide heat map plot
-      current_script.push_back(String("<h1>") + "peptide heat map</h1>");
+      current_script.addLine(String("<h1>") + "peptide heat map</h1>");
       String peptide_heatmap_plot_filename = String("heatmap_peptide") + file_suffix + String(".") + file_extension;
-      current_script.push_back("<p> <img src=\"" + peptide_heatmap_plot_filename + "\" alt=\"graphic\"></p>");
+      current_script.addLine("<p> <img src=\"" + peptide_heatmap_plot_filename + "\" alt=\"graphic\"></p>");
 
       for (Size i = 0; i != sip_peptides.size(); ++i)
       {
         // heading
-        current_script.push_back(String("<h1>") + "RT: " + String(sip_peptides[i].feature_rt) + "</h1>");
+        current_script.addLine(String("<h1>") + "RT: " + String(sip_peptides[i].feature_rt) + "</h1>");
 
-        current_script.push_back("<table border=\"1\">");
+        current_script.addLine("<table border=\"1\">");
         // sequence table row
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>sequence</td>");
-        current_script.push_back(String("<td>") + sip_peptides[i].sequence.toString() + "</td>");
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>sequence</td>");
+        current_script.addLine(String("<td>") + sip_peptides[i].sequence.toString() + "</td>");
+        current_script.addLine("</tr>");
 
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>rt (min.)</td>");
-        current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_rt / 60.0, 2) + "</td>"));
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>rt (min.)</td>");
+        current_script.addLine(String("<td>" + String::number(sip_peptides[i].feature_rt / 60.0, 2) + "</td>"));
+        current_script.addLine("</tr>");
 
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>rt (sec.)</td>");
-        current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_rt, 2) + "</td>"));
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>rt (sec.)</td>");
+        current_script.addLine(String("<td>" + String::number(sip_peptides[i].feature_rt, 2) + "</td>"));
+        current_script.addLine("</tr>");
 
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>mz</td>");
-        current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_mz, 4) + "</td>"));
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>mz</td>");
+        current_script.addLine(String("<td>" + String::number(sip_peptides[i].feature_mz, 4) + "</td>"));
+        current_script.addLine("</tr>");
 
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>theo. mz</td>");
-        current_script.push_back(String("<td>" + String::number(sip_peptides[i].mz_theo, 4) + "</td>"));
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>theo. mz</td>");
+        current_script.addLine(String("<td>" + String::number(sip_peptides[i].mz_theo, 4) + "</td>"));
+        current_script.addLine("</tr>");
 
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>charge</td>");
-        current_script.push_back(String("<td>" + String(sip_peptides[i].charge) + "</td>"));
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>charge</td>");
+        current_script.addLine(String("<td>" + String(sip_peptides[i].charge) + "</td>"));
+        current_script.addLine("</tr>");
 
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>feature type</td>");
-        current_script.push_back(String("<td>" + String(sip_peptides[i].feature_type) + "</td>"));
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>feature type</td>");
+        current_script.addLine(String("<td>" + String(sip_peptides[i].feature_type) + "</td>"));
+        current_script.addLine("</tr>");
 
         if (!sip_peptides[i].accessions.empty())
         {
-          current_script.push_back(String("<tr>"));
-          current_script.push_back("<td>accessions</td>");
-          current_script.push_back(String("<td>" + sip_peptides[i].accessions[0] + "</td>"));
-          current_script.push_back(String("</tr>"));
+          current_script.addLine(String("<tr>"));
+          current_script.addLine("<td>accessions</td>");
+          current_script.addLine(String("<td>" + *sip_peptides[i].accessions.begin() + "</td>"));
+          current_script.addLine(String("</tr>"));
 
-          current_script.push_back(String("<tr>"));
-          current_script.push_back("<td>unique</td>");
-          current_script.push_back(String("<td>" + String(sip_peptides[i].unique) + "</td>"));
-          current_script.push_back(String("</tr>"));
+          current_script.addLine(String("<tr>"));
+          current_script.addLine("<td>unique</td>");
+          current_script.addLine(String("<td>" + String(sip_peptides[i].unique) + "</td>"));
+          current_script.addLine(String("</tr>"));
         }
 
-        current_script.push_back(String("<tr>"));
-        current_script.push_back("<td>search score</td>");
-        current_script.push_back(String("<td>") + String(sip_peptides[i].score) + "</td>");
-        current_script.push_back("</tr>");
+        current_script.addLine(String("<tr>"));
+        current_script.addLine("<td>search score</td>");
+        current_script.addLine(String("<td>") + String(sip_peptides[i].score) + "</td>");
+        current_script.addLine("</tr>");
 
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>global labeling ratio</td>");
-        current_script.push_back(String("<td>") + String::number(sip_peptides[i].global_LR, 2) + "</td>");
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>global labeling ratio</td>");
+        current_script.addLine(String("<td>") + String::number(sip_peptides[i].global_LR, 2) + "</td>");
+        current_script.addLine("</tr>");
 
-        current_script.push_back("<tr>");
-        current_script.push_back("<td>R squared</td>");
-        current_script.push_back(String("<td>") + String::number(sip_peptides[i].RR, 2) + "</td>");
-        current_script.push_back("</tr>");
+        current_script.addLine("<tr>");
+        current_script.addLine("<td>R squared</td>");
+        current_script.addLine(String("<td>") + String::number(sip_peptides[i].RR, 2) + "</td>");
+        current_script.addLine("</tr>");
 
-        current_script.push_back("</table>");
+        current_script.addLine("</table>");
 
         // table header of incorporations
-        current_script.push_back("<p>");
-        current_script.push_back("<table border=\"1\">");
-        current_script.push_back("<tr>");
+        current_script.addLine("<p>");
+        current_script.addLine("<table border=\"1\">");
+        current_script.addLine("<tr>");
         for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
         {
-          current_script.push_back(String("<td>RIA") + String(k + 1) + "</td>");
-          current_script.push_back(String("<td>CORR.") + String(k + 1) + "</td>");
-          current_script.push_back(String("<td>INT") + String(k + 1) + "</td>");
+          current_script.addLine(String("<td>RIA") + String(k + 1) + "</td>");
+          current_script.addLine(String("<td>CORR.") + String(k + 1) + "</td>");
+          current_script.addLine(String("<td>INT") + String(k + 1) + "</td>");
         }
-        current_script.push_back("</tr>");
+        current_script.addLine("</tr>");
 
         // table of incorporations
-        current_script.push_back("<tr>");
+        current_script.addLine("<tr>");
         for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
         {
           SIPIncorporation p = sip_peptides[i].incorporations[k];
-          current_script.push_back(String("<td>") + String::number(p.rate, 2) + "</td>");
-          current_script.push_back(String("<td>") + String::number(p.correlation, 2) + "</td>");
-          current_script.push_back(String("<td>") + String::number(p.abundance, 0) + "</td>");
+          current_script.addLine(String("<td>") + String::number(p.rate, 2) + "</td>");
+          current_script.addLine(String("<td>") + String::number(p.correlation, 2) + "</td>");
+          current_script.addLine(String("<td>") + String::number(p.abundance, 0) + "</td>");
         }
-        current_script.push_back("</tr>");
+        current_script.addLine("</tr>");
 
-        current_script.push_back("</table>");
+        current_script.addLine("</table>");
 
         // spectrum plot
         String spectrum_filename = String("spectrum") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension;
-        current_script.push_back("<p> <img src=\"" + spectrum_filename + "\" alt=\"graphic\"></p>");
+        current_script.addLine("<p> <img src=\"" + spectrum_filename + "\" alt=\"graphic\"></p>");
 
         // score plot
         String score_filename = String("scores") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension;
-        current_script.push_back("<p> <img src=\"" + score_filename + "\" alt=\"graphic\"></p>");
+        current_script.addLine("<p> <img src=\"" + score_filename + "\" alt=\"graphic\"></p>");
       }
-      current_script.push_back("\n</body>\n</html>");
+      current_script.addLine("\n</body>\n</html>");
       current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
     }
 
@@ -684,40 +683,40 @@ class MetaProSIPReporting
         String corr_list_string;
         corr_list_string.concatenate(corr_list.begin(), corr_list.end(), ",");
 
-        current_script.push_back("rate_dec<-c(" + rate_dec_list_string + ")");
-        current_script.push_back("dec<-c(" + weights_list_string + ")");
-        current_script.push_back("if (max(dec)!=0) {dec<-dec/max(dec)}");
-        current_script.push_back("rate_corr<-c(" + rate_corr_list_string + ")");
-        current_script.push_back("corr<-c(" + corr_list_string + ")");
+        current_script.addLine("rate_dec<-c(" + rate_dec_list_string + ")");
+        current_script.addLine("dec<-c(" + weights_list_string + ")");
+        current_script.addLine("if (max(dec)!=0) {dec<-dec/max(dec)}");
+        current_script.addLine("rate_corr<-c(" + rate_corr_list_string + ")");
+        current_script.addLine("corr<-c(" + corr_list_string + ")");
 
         if (score_plot_yaxis_min >= 0)
         {
-          current_script.push_back("corr[corr<0]=0"); // truncate at 0 for better drawing
+          current_script.addLine("corr[corr<0]=0"); // truncate at 0 for better drawing
         }
 
-        current_script.push_back("x0=rate_dec; x1=rate_dec; y0=rep(0, length(x0)); y1=dec");  // create R segments for decomposition score (vertical bars)
+        current_script.addLine("x0=rate_dec; x1=rate_dec; y0=rep(0, length(x0)); y1=dec");  // create R segments for decomposition score (vertical bars)
         if (file_extension == "png")
         {
-          current_script.push_back("png('" + tmp_path + "/" + score_filename + "')");
+          current_script.addLine("png('" + tmp_path + "/" + score_filename + "')");
         }
         else if (file_extension == "svg")
         {
-          current_script.push_back("svg('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
+          current_script.addLine("svg('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
         }
         else if (file_extension == "pdf")
         {
-          current_script.push_back("pdf('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
+          current_script.addLine("pdf('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
         }
-        current_script.push_back("plot.new()");
-        current_script.push_back("plot.window(xlim=c(0,100), ylim=c(" + String(score_plot_yaxis_min) + ",1))");
-        current_script.push_back("axis(1); axis(2)");
-        current_script.push_back("title(xlab=\"RIA\")");
-        current_script.push_back("title(ylab=\"normalized weight / corr.\")");
-        current_script.push_back("box()");
-        current_script.push_back("segments(x0,y0,x1,y1, col='red')");
-        current_script.push_back("lines(x=rate_corr, y=corr, col='blue')");
-        current_script.push_back("legend('bottomright', horiz=FALSE, xpd=TRUE, col=c('red', 'blue'), lwd=2, c('weights', 'correlation'))");
-        current_script.push_back("tmp<-dev.off()");
+        current_script.addLine("plot.new()");
+        current_script.addLine("plot.window(xlim=c(0,100), ylim=c(" + String(score_plot_yaxis_min) + ",1))");
+        current_script.addLine("axis(1); axis(2)");
+        current_script.addLine("title(xlab=\"RIA\")");
+        current_script.addLine("title(ylab=\"normalized weight / corr.\")");
+        current_script.addLine("box()");
+        current_script.addLine("segments(x0,y0,x1,y1, col='red')");
+        current_script.addLine("lines(x=rate_corr, y=corr, col='blue')");
+        current_script.addLine("legend('bottomright', horiz=FALSE, xpd=TRUE, col=c('red', 'blue'), lwd=2, c('weights', 'correlation'))");
+        current_script.addLine("tmp<-dev.off()");
         current_script.store(tmp_path + "/" + script_filename);
 
         QProcess p;
@@ -803,7 +802,8 @@ class MetaProSIPReporting
           String seq = current_SIPpeptide.sequence.toUnmodifiedString();
           if (current_SIPpeptide.unique)
           {
-            unambigous_proteins[current_SIPpeptide.accessions[0]][seq].push_back(current_SIPpeptide);
+	    String first_accession = *current_SIPpeptide.accessions.begin();
+            unambigous_proteins[first_accession][seq].push_back(current_SIPpeptide);
           }
           else
           {
@@ -1312,17 +1312,16 @@ class MetaProSIPDecomposition
       const Element * e1 = ElementDB::getInstance()->getElement("Carbon");
       Element * e2 = const_cast<Element *>(e1);
 
-
       EmpiricalFormula peptide_ef = peptide.getFormula();
-      Size MAXISOTOPES = (Size)peptide_ef.getNumberOf("Carbon");
+      Size MAXISOTOPES = (Size)peptide_ef.getNumberOf(e1);
 
       // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
       AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
       EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
-      UInt max_labeling_carbon = (UInt)unmodified_peptide_ef.getNumberOf("Carbon"); // max. number of atoms that can be labeled
+      UInt max_labeling_carbon = (UInt)unmodified_peptide_ef.getNumberOf(e1); // max. number of atoms that can be labeled
       EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef;  // difference formula for modifications (note that it can contain positive/negative numbers)
 
-      if (modifications_ef.getNumberOf("Carbon") > 0)  // modification adds additional (unlabeled) carbon atoms
+      if (modifications_ef.getNumberOf(e1) > 0)  // modification adds additional (unlabeled) carbon atoms
       {
         IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
         for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_carbon)
@@ -1380,19 +1379,18 @@ class MetaProSIPDecomposition
 
     static Size getNumberOfLabelingElements(bool use_N15, const AASequence& peptide)
     {
-      Size n_labeling_elements;
       AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
       EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
 
       if (use_N15)
       {
-        n_labeling_elements = (UInt)unmodified_peptide_ef.getNumberOf("Nitrogen");
+        const Element * e = ElementDB::getInstance()->getElement("Nitrogen");
+        return (Size)unmodified_peptide_ef.getNumberOf(e);
       } else
       {
-        n_labeling_elements = (UInt)unmodified_peptide_ef.getNumberOf("Carbon");
+        const Element * e = ElementDB::getInstance()->getElement("Carbon");
+        return (Size)unmodified_peptide_ef.getNumberOf(e);
       } 
-
-      return n_labeling_elements;
     }
 
     ///> Given a peptide sequence calculate the theoretical isotopic patterns given all incorporations rate (15C Version)
@@ -1405,15 +1403,15 @@ class MetaProSIPDecomposition
       Element * e2 = const_cast<Element *>(e1);
 
       EmpiricalFormula peptide_ef = peptide.getFormula();
-      UInt MAXISOTOPES = (UInt)peptide_ef.getNumberOf("Nitrogen");
+      UInt MAXISOTOPES = (UInt)peptide_ef.getNumberOf(e1);
 
       // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
       AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
       EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
-      UInt max_labeling_nitrogens = (UInt)unmodified_peptide_ef.getNumberOf("Nitrogen"); // max. number of nitrogen atoms that can be labeled
+      UInt max_labeling_nitrogens = (UInt)unmodified_peptide_ef.getNumberOf(e1); // max. number of nitrogen atoms that can be labeled
       EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef;  // difference formula for modifications (note that it can contain positive/negative numbers)
 
-      if (modifications_ef.getNumberOf("Nitrogen") > 0)  // modification adds additional (unlabeled) nitrogen atoms
+      if (modifications_ef.getNumberOf(e1) > 0)  // modification adds additional (unlabeled) nitrogen atoms
       {
         IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
         for (double abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_nitrogens)
@@ -1656,7 +1654,7 @@ class RIntegration
 
       // check if R in path and can be executed
       TextFile checkRInPath;
-      checkRInPath.push_back("q()");
+      checkRInPath.addLine("q()");
       checkRInPath.store(script_filename);
 
       LOG_INFO << "Checking R...";
@@ -1684,24 +1682,24 @@ class RIntegration
       // check dependencies
       LOG_INFO << "Checking R dependencies. If package is not found we will try to install it in your temp directory...";
       TextFile current_script;
-      current_script.push_back("LoadOrInstallPackage <-function(x)");
-      current_script.push_back("{");
-      current_script.push_back("  x <-as.character(substitute(x))");
-      current_script.push_back("  if (isTRUE(x %in%.packages(all.available = TRUE)))");
-      current_script.push_back("  {");
-      current_script.push_back("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
-      current_script.push_back("  }");
-      current_script.push_back("  else");
-      current_script.push_back("  {");
-      current_script.push_back("    options(repos = structure(c(CRAN = \"http://cran.rstudio.com/\")))");
-      current_script.push_back("    update.packages()");
-      current_script.push_back("    eval(parse(text = paste(\"install.packages('\", x, \"')\", sep = \"\")))");
-      current_script.push_back("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
-      current_script.push_back("  }");
-      current_script.push_back("}");
+      current_script.addLine("LoadOrInstallPackage <-function(x)");
+      current_script.addLine("{");
+      current_script.addLine("  x <-as.character(substitute(x))");
+      current_script.addLine("  if (isTRUE(x %in%.packages(all.available = TRUE)))");
+      current_script.addLine("  {");
+      current_script.addLine("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
+      current_script.addLine("  }");
+      current_script.addLine("  else");
+      current_script.addLine("  {");
+      current_script.addLine("    options(repos = structure(c(CRAN = \"http://cran.rstudio.com/\")))");
+      current_script.addLine("    update.packages()");
+      current_script.addLine("    eval(parse(text = paste(\"install.packages('\", x, \"')\", sep = \"\")))");
+      current_script.addLine("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
+      current_script.addLine("  }");
+      current_script.addLine("}");
       for (StringList::const_iterator it = package_names.begin(); it != package_names.end(); ++it)
       {
-        current_script.push_back("LoadOrInstallPackage(" + *it + ")");
+        current_script.addLine("LoadOrInstallPackage(" + *it + ")");
       }
 
       current_script.store(script_filename);
@@ -1721,9 +1719,9 @@ class RIntegration
       if (status != 0)
       {
         LOG_ERROR << "\nProblem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
-        for (Size i = 0; i != current_script.size(); ++i)
+        for (TextFile::ConstIterator line_it = current_script.begin(); line_it != current_script.end(); ++line_it)
         {
-          LOG_ERROR << current_script[i] << std::endl;
+          LOG_ERROR << *line_it  << std::endl;
         }
         QString s = p.readAllStandardOutput();
         LOG_ERROR << s.toStdString() << std::endl;
@@ -2168,7 +2166,7 @@ class TOPPMetaProSIP : public TOPPBase
     // Used to compensate for slight RT shifts (e.g. important if features of a different map are used)
     // n_scans corresponds to the number of neighboring scan rts that should be extracted
     // n_scan = 2 -> vector size = 1 + 2 + 2
-    vector<double> findApexRT(const FeatureMap<>::iterator feature_it, double hit_rt, const MSExperiment<Peak1D>& peak_map, Size n_scans)
+    vector<double> findApexRT(const FeatureMap::iterator feature_it, double hit_rt, const MSExperiment<Peak1D>& peak_map, Size n_scans)
     {
       vector<double> seeds_rt;
       vector<Peak2D> mono_trace;
@@ -2666,11 +2664,11 @@ class TOPPMetaProSIP : public TOPPBase
 
       LOG_INFO << "loading feature map..." << endl;
       FeatureXMLFile fh;
-      FeatureMap<> feature_map;
+      FeatureMap feature_map;
       fh.load(in_features, feature_map);
 
       // annotate as features found using feature finding (to distinguish them from averagine features oder id based features ... see below)
-      for (FeatureMap<>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
+      for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
       {
         feature_it->setMetaValue("feature_type", FEATURE_STRING);
       }
@@ -2724,7 +2722,7 @@ class TOPPMetaProSIP : public TOPPBase
         // extract rt and mz of all identified precursors and store them in blacklist
         vector<Peak2D> blacklisted_precursors;
         // in features
-        for (FeatureMap<>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
+        for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
         {
           const vector<PeptideIdentification> & f_ids = feature_it->getPeptideIdentifications();
           for (vector<PeptideIdentification>::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
@@ -2825,7 +2823,7 @@ class TOPPMetaProSIP : public TOPPBase
 
       Size nPSMs = 0; ///< number of PSMs. If 0 IDMapper has not been called.
 
-      for (FeatureMap<>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
+      for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
       {
         const double feature_hit_center_rt = feature_it->getRT();
 
@@ -2886,7 +2884,8 @@ class TOPPMetaProSIP : public TOPPBase
           feature_hit_theoretical_mz = feature_hit_center_mz;
         }
 
-        sip_peptide.accessions = feature_hit.getProteinAccessions();
+	const set<String> protein_accessions = feature_hit.extractProteinAccessions();
+        sip_peptide.accessions = vector<String>(protein_accessions.begin(), protein_accessions.end());
         sip_peptide.sequence = feature_hit_aaseq;
         sip_peptide.mz_theo = feature_hit_theoretical_mz;
         sip_peptide.mass_theo = feature_hit_theoretical_mz * feature_hit_charge - feature_hit_charge * Constants::PROTON_MASS_U;
@@ -3009,8 +3008,6 @@ class TOPPMetaProSIP : public TOPPBase
 
         // determine maximum correlations
         sip_peptide.correlation_maxima = MetaProSIPInterpolation::getHighPoints(correlation_threshold, map_rate_to_correlation_score);
-
-        vector<String> feature_protein_accessions = feature_hit.getProteinAccessions();
 
         // FOR REPORTING: store incorporation information like e.g. theoretical spectrum for best correlations
         if (getStringOption_("collect_method") == "correlation_maximum")
