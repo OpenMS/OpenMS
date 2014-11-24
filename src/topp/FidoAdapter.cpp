@@ -161,7 +161,8 @@ protected:
       }
       pep_it->sort();
       const PeptideHit& hit = pep_it->getHits()[0];
-      if (hit.getSequence().empty() || hit.getProteinAccessions().empty()) 
+      if (hit.getSequence().empty() ||
+          hit.extractProteinAccessions(hit).empty()) 
       {
         continue;
       }
@@ -207,11 +208,13 @@ protected:
       }
 
       graph_out << "e " << hit.getSequence() << endl; // remove modifications?
-      for (vector<String>::const_iterator acc_it = 
-             hit.getProteinAccessions().begin(); acc_it != 
-             hit.getProteinAccessions().end(); ++acc_it)
+      for (vector<PeptideEvidence>::const_iterator pe_it = 
+             hit.getPeptideEvidences().begin(); pe_it != 
+             hit.getPeptideEvidences().end(); ++pe_it)
       {
-        graph_out << "r " << sanitized_accessions_.left.find(*acc_it)->second
+        const String& accession = pe_it->getProteinAccession();
+        if (accession.empty()) continue;
+        graph_out << "r " << sanitized_accessions_.left.find(accession)->second
                   << endl;
       }
       graph_out << "p " << score << endl;
