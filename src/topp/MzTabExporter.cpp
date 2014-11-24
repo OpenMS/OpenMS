@@ -303,7 +303,7 @@ protected:
           mod_list.set(mods);
           row.modifications = mod_list;
 
-          const set<String>& accessions = PeptideHit::extractProteinAccessions(best_ph);
+          const set<String>& accessions = best_ph.extractProteinAccessions();
           const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
 
           row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
@@ -504,7 +504,7 @@ protected:
           mod_list.set(mods);
           row.modifications = mod_list;
 
-          const set<String>& accessions = PeptideHit::extractProteinAccessions(best_ph);
+          const set<String>& accessions = best_ph.extractProteinAccessions();
           const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
 
           // determine if peptide unique (TODO: move to static helper)

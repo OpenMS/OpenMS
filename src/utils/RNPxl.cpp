@@ -657,7 +657,7 @@ protected:
         ppm_difference = absolute_difference / theo_mz * 1000000;
 
         String protein_accessions;
-        set<String> accs = PeptideHit::extractProteinAccessions(*hit);
+        set<String> accs = hit->extractProteinAccessions();
 
         for (set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
         {
@@ -793,7 +793,7 @@ protected:
       {
         double rt = (double)pit->getMetaValue("RT");
 
-        set<String> accessions = PeptideHit::extractProteinAccessions(*hit);
+        set<String> accessions = hit->extractProteinAccessions();
 
         String accession_string;
         Size j = 0;

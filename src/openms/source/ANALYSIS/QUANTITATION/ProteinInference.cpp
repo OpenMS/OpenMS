@@ -220,7 +220,7 @@ namespace OpenMS
     }
 
     //-> lets see if its unique:
-    std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(peptide_hits_local[0]);
+    std::set<String> protein_accessions = peptide_hits_local[0].extractProteinAccessions();
     if (protein_accessions.size() != 1)
     {
       // this is a shared peptide --> do not use it

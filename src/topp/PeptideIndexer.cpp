@@ -797,7 +797,7 @@ protected:
         bool matches_target(false);
         bool matches_decoy(false);
 
-        set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
+        set<String> protein_accessions = it2->extractProteinAccessions();
         for (set<String>::const_iterator it = protein_accessions.begin(); it != protein_accessions.end(); ++it)
         {
           if (prefix)
