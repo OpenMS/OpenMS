@@ -116,6 +116,15 @@ public:
   }
 
 protected:
+  /// parts of a sequence of the form "K.AAAA.R"
+  struct SequenceParts
+  {
+    char aa_before, aa_after; // may be '\0' if not given
+    String peptide;
+
+    SequenceParts(): aa_before(0), aa_after(0) {}
+  };
+
   // lists of allowed parameter values:
   vector<String> fragment_methods_, instruments_, enzymes_, protocols_, tryptic_;
 
@@ -186,16 +195,27 @@ protected:
   // The following sequence modification methods are used to modify the sequence stored in the TSV such that it can be used by AASequence
 
   // Method to cut the amino acids before/after the peptide (splice sites) off the sequence.
-  // The sequences in the TSV file have the format 'K.AAAA.R' (where AAAA is the actual peptide sequence).
-  // After this method is used the sequence 'AAAA' results
-  String cutSequence_(const String& sequence)
+  // The sequences in the TSV file have the format 'K.XXXR.X' (where XXXR is the actual peptide sequence).
+  // This method returns the sequence split into its three parts (e.g. "K", "XXXR", "X").
+  struct SequenceParts splitSequence_(const String& sequence)
   {
-    size_t len = sequence.size();
-    if (len < 4) return sequence; // in 'X.Y', which side would we cut off?
-    size_t start = 0, count = string::npos;
-    if (sequence[1] == '.') start = 2;
-    if (sequence[len - 2] == '.') count = len - start - 2;
-    return sequence.substr(start, count);
+    struct SequenceParts parts;
+    size_t len = sequence.size(), start = 0, count = string::npos;
+    if (len > 3) // in 'X.Y', which side would we cut off? 
+    {
+      if (sequence[1] == '.')
+      {
+        start = 2;
+        parts.aa_before = sequence[0];
+      }
+      if (sequence[len - 2] == '.')
+      {
+        count = len - start - 2;
+        parts.aa_after = sequence[len - 1];
+      }
+    }
+    parts.peptide = sequence.substr(start, count);
+    return parts;
   }
 
   String modifyNTermAASpecificSequence_(const String& seq)
@@ -543,12 +563,6 @@ protected:
     map<int, PeptideIdentification> peptide_identifications;
     set<String> prot_accessions;
 
-    double score; // use SpecEValue from the TSV file
-    UInt rank;
-    Int charge;
-    AASequence sequence;
-    int scanNumber;
-
     // iterate over the rows of the TSV file
     // columns: #SpecFile, SpecID, ScanNum, FragMethod, Precursor, IsotopeError, PrecursorError(ppm), Charge, Peptide, Protein, DeNovoScore, MSGFScore, SpecEValue, EValue, QValue, PepQValue
     // maybe TODO: replace column indexes ("elements[N]") by something more expressive
@@ -562,62 +576,95 @@ protected:
         return PARSE_ERROR;
       }
 
+      int scan_number = 0;
       if ((elements[2] == "") || (elements[2] == "-1"))
       {
-        scanNumber = elements[1].suffix('=').toInt();
+        scan_number = elements[1].suffix('=').toInt();
       }
       else
       {
-        scanNumber = elements[2].toInt();
+        scan_number = elements[2].toInt();
       }
 
-      String seq = cutSequence_(elements[8]);
-      seq.substitute(',', '.'); // decimal separator should be dot, not comma
-      sequence = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(seq)));
-      vector<PeptideHit> p_hits;
-      String prot_accession = elements[9];
+      struct SequenceParts parts = splitSequence_(elements[8]);
+      parts.peptide.substitute(',', '.'); // decimal separator should be dot, not comma
+      AASequence seq = AASequence::fromString(modifySequence_(modifyNTermAASpecificSequence_(parts.peptide)));
 
-      if (prot_accessions.find(prot_accession) == prot_accessions.end())
+      String accession = elements[9];
+      // @BUG If there's a space before the protein accession in the FASTA file (e.g. "> accession ..."),
+      // the "Protein" field in the TSV file will be empty, leading to an empty accession and no protein
+      // reference in the idXML output file! (The mzIdentML output is not affected by this.)
+      prot_accessions.insert(accession);
+
+      PeptideEvidence evidence;
+      evidence.setProteinAccession(accession);
+      if ((parts.aa_before == 0) && (parts.aa_after == 0))
       {
-        prot_accessions.insert(prot_accession);
+        evidence.setAABefore(PeptideEvidence::UNKNOWN_AA);
+        evidence.setAAAfter(PeptideEvidence::UNKNOWN_AA);
       }
-
-      if (peptide_identifications.find(scanNumber) == peptide_identifications.end())
+      else // if one cleavage site is given, assume the other side is terminal
       {
-        score = elements[12].toDouble();
-        rank = 0; // set to 0 at the moment
-        charge = elements[7].toInt();
-
-        PeptideHit p_hit(score, rank, charge, sequence);
-        p_hit.addProteinAccession(prot_accession);
-        p_hits.push_back(p_hit);
-
-        String spec_id = elements[1];
-        peptide_identifications[scanNumber].setRT(rt_mapping[spec_id][0]);
-        peptide_identifications[scanNumber].setMZ(rt_mapping[spec_id][1]);
-
-        peptide_identifications[scanNumber].setMetaValue("ScanNumber", scanNumber);
-        peptide_identifications[scanNumber].setScoreType("SpecEValue");
-        peptide_identifications[scanNumber].setHigherScoreBetter(false);
-        peptide_identifications[scanNumber].setIdentifier(identifier);
-      }
-      else
-      {
-        p_hits = peptide_identifications[scanNumber].getHits();
-        for (vector<PeptideHit>::iterator p_it = p_hits.begin(); p_it != p_hits.end(); ++p_it)
+        if (parts.aa_before != 0)
         {
-          if (p_it -> getSequence() == sequence)
+          evidence.setAABefore(parts.aa_before);
+        }
+        else
+        {
+          evidence.setAABefore(PeptideEvidence::N_TERMINAL_AA);
+        }
+        if (parts.aa_after != 0)
+        {
+          evidence.setAAAfter(parts.aa_after);
+        }
+        else
+        {
+          evidence.setAAAfter(PeptideEvidence::C_TERMINAL_AA);
+        }
+      }
+
+      bool hit_exists = false;
+      // if the PeptideIdentification doesn't exist yet, a new one will be created:
+      PeptideIdentification& pep_ident = peptide_identifications[scan_number];
+      if (!pep_ident.getHits().empty()) // previously existing PeptideIdentification
+      {
+        // do we have a peptide hit with this sequence already?
+        for (vector<PeptideHit>::iterator hit_it = pep_ident.getHits().begin();
+             hit_it != pep_ident.getHits().end(); ++hit_it)
+        {
+          if (hit_it->getSequence() == seq) // yes!
           {
-            p_it -> addProteinAccession(prot_accession);
+            hit_exists = true;
+            hit_it->addPeptideEvidence(evidence);
+            break;
           }
         }
       }
-      peptide_identifications[scanNumber].setHits(p_hits);
+      else // new PeptideIdentification
+      {
+        String spec_id = elements[1];       
+        pep_ident.setRT(rt_mapping[spec_id][0]);
+        pep_ident.setMZ(rt_mapping[spec_id][1]);
+        pep_ident.setMetaValue("ScanNumber", scan_number);
+        pep_ident.setScoreType("SpecEValue");
+        pep_ident.setHigherScoreBetter(false);
+        pep_ident.setIdentifier(identifier);
+      }
+      if (!hit_exists) // add new PeptideHit
+      {
+        double score = elements[12].toDouble();
+        UInt rank = 0; // set to 0 at the moment
+        Int charge = elements[7].toInt();
+        PeptideHit hit(score, rank, charge, seq);
+        hit.addPeptideEvidence(evidence);
+        pep_ident.insertHit(hit);
+      }
     }
 
     vector<ProteinHit> prot_hits;
     for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
     {
+      if (it->empty()) continue; // don't write a protein hit without accession (see @BUG above)
       ProteinHit prot_hit = ProteinHit();
       prot_hit.setAccession(*it);
       prot_hits.push_back(prot_hit);
@@ -628,7 +675,8 @@ protected:
     // iterate over map and create a vector of peptide identifications
     vector<PeptideIdentification> peptide_ids;
     PeptideIdentification pep;
-    for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin(); it != peptide_identifications.end(); ++it)
+    for (map<int, PeptideIdentification>::iterator it = peptide_identifications.begin();
+         it != peptide_identifications.end(); ++it)
     {
       pep = it->second;
       pep.sort();
