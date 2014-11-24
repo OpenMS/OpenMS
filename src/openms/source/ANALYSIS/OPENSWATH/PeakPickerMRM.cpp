@@ -91,7 +91,7 @@ namespace OpenMS
     if (chromatogram.empty())
     {
         LOG_DEBUG << std::endl; 
-        LOG_DEBUG << " - Error:  chromatogram is empty, abort picking."  << std::endl;
+        LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
         return;
     }
     LOG_DEBUG << "(start at RT " << chromatogram[0].getMZ() << " to RT " << chromatogram[ chromatogram.size() -1].getMZ() << ") "
@@ -129,6 +129,9 @@ namespace OpenMS
     PeakPickerHiRes pp;
     Param pepi_param = PeakPickerHiRes().getDefaults();
     pepi_param.setValue("signal_to_noise", signal_to_noise_);
+    // disable spacing constraints, since we're dealing with chromatograms
+    pepi_param.setValue("spacing_difference", 0.0);
+    pepi_param.setValue("spacing_difference_gap", 0.0);
     pp.setParameters(pepi_param);
     pp.pick(smoothed_chrom, picked_chrom);
 

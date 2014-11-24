@@ -237,7 +237,6 @@ private:
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
-    std::map<OpenMS::String, const ProteinType*> ProteinRefMap_;
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;
@@ -249,4 +248,5 @@ private:
 }
 
 #undef run_identifier
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_MRMFEATUREFINDERSCORING_H
+

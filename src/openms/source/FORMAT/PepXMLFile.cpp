@@ -274,18 +274,27 @@ namespace OpenMS
 
         f << ">\n";
         f << "\t<search_result>" << "\n";
+
+        vector<PeptideEvidence> pes = h.getPeptideEvidences();
+
+        // select first one if multiple are present as "leader"
+        PeptideEvidence pe;
+        if (!h.getPeptideEvidences().empty())
+        {
+          pe = pes[0];
+        }
+
         f << "\t\t<search_hit hit_rank=\"1\" peptide=\""
           << seq.toUnmodifiedString() << "\" peptide_prev_aa=\""
-          << h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter()
-          << "\" protein=\" ";
-        if (h.getProteinAccessions().size() > 0)
-        {
-          f << h.getProteinAccessions()[0];
-        }
-        f <<  " \"num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
+          << pe.getAABefore() << "\" peptide_next_aa=\"" << pe.getAAAfter()
+          << "\" protein=\"";
+
+        f << pe.getProteinAccession();
+
+        f << "\" num_tot_proteins=\"1\" num_matched_ions=\"0\" tot_num_ions=\"0\" calc_neutral_pep_mass=\"" << precisionWrapper(precursor_neutral_mass)
           << "\" massdiff=\"0.0\" num_tol_term=\"";
         Int num_tol_term = 1;
-        if ((h.getAABefore() == 'R' || h.getAABefore() == 'K') && search_params.enzyme == ProteinIdentification::TRYPSIN)
+        if ((pe.getAABefore() == 'R' || pe.getAABefore() == 'K') && search_params.enzyme == ProteinIdentification::TRYPSIN)
         {
           num_tol_term = 2;
         }
@@ -293,11 +302,22 @@ namespace OpenMS
         f << "\" num_missed_cleavages=\"0\" is_rejected=\"0\" protein_descr=\"Protein No. 1\">" << "\n";
 
         // multiple protein hits: <alternative_protein protein="sp|P0CZ86|GLS24_STRP3" num_tol_term="2" peptide_prev_aa="K" peptide_next_aa="-"/>
-        if (h.getProteinAccessions().size() > 1)
+        if (pes.size() > 1)
         {
-          for (Size j = 1; j < h.getProteinAccessions().size(); ++j)
+          for (Size k = 1; k != pes.size(); ++k)
           {
-            f << "\t\t<alternative_protein protein=\"" << h.getProteinAccessions()[j] << "\" num_tol_term=\"" << num_tol_term << "\" peptide_prev_aa=\"" << h.getAABefore() << "\" peptide_next_aa=\"" << h.getAAAfter() << "\"/>" << "\n";
+            f << "\t\t<alternative_protein protein=\"" << pes[k].getProteinAccession() << "\" num_tol_term=\"" << num_tol_term << "\"";
+
+            if (pes[k].getAABefore() != PeptideEvidence::UNKNOWN_AA)
+            {
+              f << " peptide_prev_aa=\"" << pes[k].getAABefore() << "\"";
+            }
+
+            if (pes[k].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+            {
+              f << " peptide_next_aa=\"" << pes[k].getAAAfter() << "\"";
+            }
+            f << "/>" << "\n";
           }
         }
         if (seq.isModified())
@@ -309,14 +329,14 @@ namespace OpenMS
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
             f << " mod_nterm_mass=\"" <<
-            precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
+              precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
             f << "mod_cterm_mass=\"" <<
-            precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
+              precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           f << ">" << "\n";
@@ -329,7 +349,7 @@ namespace OpenMS
               // the modification position is 1-based
               f << "\t\t\t\t<mod_aminoacid_mass position=\"" << (i + 1)
                 << "\" mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
+                precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
             }
           }
 
@@ -749,16 +769,23 @@ namespace OpenMS
     { // creates a new PeptideHit
       current_sequence_ = attributeAsString_(attributes, "peptide");
       current_modifications_.clear();
+      PeptideEvidence pe;
       peptide_hit_ = PeptideHit();
       peptide_hit_.setRank(attributeAsInt_(attributes, "hit_rank"));
       peptide_hit_.setCharge(charge_); // from parent "spectrum_query" tag
       String prev_aa, next_aa;
       if (optionalAttributeAsString_(prev_aa, attributes, "peptide_prev_aa"))
-        peptide_hit_.setAABefore(prev_aa[0]);
+      {
+        pe.setAABefore(prev_aa[0]);
+      }
+
       if (optionalAttributeAsString_(next_aa, attributes, "peptide_next_aa"))
-        peptide_hit_.setAAAfter(next_aa[0]);
+      {
+        pe.setAAAfter(next_aa[0]);
+      }
       String protein = attributeAsString_(attributes, "protein");
-      peptide_hit_.addProteinAccession(protein);
+      pe.setProteinAccession(protein);
+      peptide_hit_.addPeptideEvidence(pe);
       ProteinHit hit;
       hit.setAccession(protein);
       // depending on the numbering scheme used in the pepXML, "search_id_"
@@ -861,7 +888,9 @@ namespace OpenMS
     else if (element == "alternative_protein") // parent: "search_hit"
     {
       String protein = attributeAsString_(attributes, "protein");
-      peptide_hit_.addProteinAccession(protein);
+      PeptideEvidence pe;
+      pe.setProteinAccession(protein);
+      peptide_hit_.addPeptideEvidence(pe);
       ProteinHit hit;
       hit.setAccession(protein);
       // depending on the numbering scheme used in the pepXML, "search_id_"

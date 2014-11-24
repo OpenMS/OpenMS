@@ -125,29 +125,20 @@ namespace OpenMS
 
   void BaseLabeler::mergeProteinAccessions_(Feature& target, const Feature& source) const
   {
-    std::vector<String> target_acc(target.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
-    std::vector<String> source_acc(source.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions());
+    std::set<String> target_acc = PeptideHit::extractProteinAccessions(target.getPeptideIdentifications()[0].getHits()[0]);
+    std::set<String> source_acc = PeptideHit::extractProteinAccessions(source.getPeptideIdentifications()[0].getHits()[0]);
 
-    std::set<String> unique_acc;
-
-    // all from 'target'
-    for (vector<String>::iterator target_acc_iterator = target_acc.begin(); target_acc_iterator != target_acc.end(); ++target_acc_iterator)
-    {
-      unique_acc.insert(*target_acc_iterator);
-    }
-
-    //  + some from 'source', which are not present yet
-    for (vector<String>::iterator source_acc_iterator = source_acc.begin(); source_acc_iterator != source_acc.end(); ++source_acc_iterator)
-    {
-      std::pair<std::set<String>::iterator, bool> result = unique_acc.insert(*source_acc_iterator);
-      if (result.second)
-      {
-        target_acc.push_back(*source_acc_iterator);
-      }
-    }
+    // merge
+    target_acc.insert(source_acc.begin(), source_acc.end());
 
     PeptideHit pepHit(target.getPeptideIdentifications()[0].getHits()[0]);
-    pepHit.setProteinAccessions(target_acc);
+
+    for (std::set<String>::const_iterator a_it = target_acc.begin(); a_it != target_acc.end(); ++a_it)
+    {
+      PeptideEvidence pe;
+      pe.setProteinAccession(*a_it);
+      pepHit.addPeptideEvidence(pe);
+    }
 
     std::vector<PeptideHit> pepHits;
     pepHits.push_back(pepHit);

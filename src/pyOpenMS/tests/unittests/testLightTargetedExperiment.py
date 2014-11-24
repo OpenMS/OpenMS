@@ -25,7 +25,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
         lpep.rt = 12.0
         lpep.charge =  2
         lpep.sequence =  b"SEQ"
-        lpep.protein_ref =  b"REF"
+        lpep.protein_refs =  [b"REF"]
 
 
         lpep.modifications = [lm]
@@ -65,7 +65,7 @@ class TestLightTargetedExperiment(unittest.TestCase):
         assert lpep.rt == 12.0
         assert lpep.charge ==  2
         assert lpep.sequence ==  b"SEQ"
-        assert lpep.protein_ref ==  b"REF"
+        assert lpep.protein_refs ==  [b"REF"]
 
         mod, = lpep.modifications
         TestLightTargetedExperiment._test_light_modification(mod)
