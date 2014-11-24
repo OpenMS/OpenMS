@@ -71,20 +71,38 @@ include(doxygen/parameters/executables.cmake)
 set(OPENMS_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doxygen/parameters")
 
-# add OpenMS includes
-include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
-include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
+# check wether OpenMS_GUI is available or not
+set(_doc_progs_include )
+set(_doc_progs_link_libraries )
+if(WITH_GUI)
+  set(_doc_progs_include ${OpenMS_GUI_INCLUDE_DIRECTORIES})
+  set(_doc_progs_link_libraries ${OpenMS_GUI_LIBRARIES})
+else()
+  set(_doc_progs_include ${OpenMS_INCLUDE_DIRECTORIES})
+  set(_doc_progs_link_libraries ${OpenMS_LIBRARIES})
+endif()
+
+include_directories(SYSTEM ${_doc_progs_include})
 add_definitions(/DBOOST_ALL_NO_LIB)
 
 # build doc executables
 foreach(i ${OpenMS_doc_executables})
 	add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
-	target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
+  target_link_libraries(${i} ${_doc_progs_link_libraries})
+
+  # let the doc progs decide how to handle a missing OpenMS_GUI library
+  if(WITH_GUI)
+    set_target_properties(${i} PROPERTIES COMPILE_DEFINITIONS "WITH_GUI=1")
+  endif()
 endforeach(i)
 
 # collection target
 add_custom_target(doc_progs)
-add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
+add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS)
+
+if(WITH_GUI)
+  add_dependencies(doc_progs GUI)
+endif()
 
 #------------------------------------------------------------------------------
 # Intialize variables needed for a proper doxygen configuration

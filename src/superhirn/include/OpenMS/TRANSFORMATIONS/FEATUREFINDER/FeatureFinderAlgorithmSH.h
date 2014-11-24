@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,21 +100,18 @@ namespace OpenMS
 
       @ingroup FeatureFinder
   */
-  template <class PeakType, class FeatureType>
+  template <class PeakType>
   class FeatureFinderAlgorithmSH :
-    public FeatureFinderAlgorithm<PeakType, FeatureType>,
+    public FeatureFinderAlgorithm<PeakType>,
     public FeatureFinderDefs
   {
 
 public:
-    typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::MapType MapType; // MSExperiment
-    typedef typename FeatureFinderAlgorithm<PeakType, FeatureType>::FeatureMapType FeatureMapType;
+    typedef typename FeatureFinderAlgorithm<PeakType>::MapType MapType; // MSExperiment
     typedef typename MapType::SpectrumType SpectrumType;
 
-    using FeatureFinderAlgorithm<PeakType, FeatureType>::features_;
-
     FeatureFinderAlgorithmSH() :
-      FeatureFinderAlgorithm<PeakType, FeatureType>()
+      FeatureFinderAlgorithm<PeakType>()
     {
       // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue("centroiding:active", "false", "MS1 data centroid data");
@@ -232,7 +229,7 @@ public:
     {
       std::cout << "SuperHirn feature extraction...\n";
 
-      map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
+      map_ = *(FeatureFinderAlgorithm<PeakType>::map_);
 
       FeatureFinderAlgorithmSHCtrl::MyMap dummyMap;
       FeatureFinderAlgorithmSHCtrl::Vec datavec;
@@ -291,10 +288,12 @@ public:
       std::vector<Feature> thefeatures = ctrl.extractPeaks(datavec);
 
       for (unsigned int i = 0; i < thefeatures.size(); ++i)
+      {
         features_->push_back(thefeatures[i]);
+      }
     }
 
-    static FeatureFinderAlgorithm<Peak1D, Feature> * create()
+    static FeatureFinderAlgorithm<Peak1D> * create()
     {
       return new FeatureFinderAlgorithmSH();
     }
@@ -306,6 +305,7 @@ public:
 
 protected:
     MapType map_;
+    using FeatureFinderAlgorithm<PeakType>::features_;
 
   };
 

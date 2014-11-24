@@ -53,15 +53,23 @@ foreach(i ${TOPP_executables})
   endif()
 endforeach(i)
 
+# some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
+if(WITH_GUI)
+  ## some regular TOPP tools need the GUI lib
+  include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
+  foreach(i ${TOPP_executables_with_GUIlib})
+    add_executable(${i} ${i}.cpp)
+    # we also want to install each topp tool
+    install_tool(${i})
+    target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
+  endforeach(i)
+
+  set(TOPP_executables ${TOPP_executables} ${TOPP_executables_with_GUIlib})
+endif()
+
 # collection target
 add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_executables})
-
-## some regular TOPP tools need the GUI lib
-include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
-foreach(i ${TOPP_executables_with_GUIlib})
-  target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
-endforeach(i)
 
 ## export the list of TOPP tools into CACHE
 set(TOPP_TOOLS ${TOPP_executables}

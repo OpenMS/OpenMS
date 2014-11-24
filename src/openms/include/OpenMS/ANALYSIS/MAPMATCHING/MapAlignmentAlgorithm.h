@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,7 +85,7 @@ public:
 
     @exception Exception::NotImplemented is thrown if an algorithm cannot align feature maps
     */
-    virtual void alignFeatureMaps(std::vector<FeatureMap<> > &, std::vector<TransformationDescription> &);
+    virtual void alignFeatureMaps(std::vector<FeatureMap > &, std::vector<TransformationDescription> &);
 
     /**
     @brief Aligns consensus maps

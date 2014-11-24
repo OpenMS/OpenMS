@@ -47,7 +47,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21994.8526298809" sequence="PEPTIDEA" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-21994.8526298809" sequence="PEPTIDEA" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr1"/>
@@ -70,7 +70,7 @@
 			<userParam type="float" name="var_elution_model_fit_score" value="0.985403060913086"/>
 			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21994.8526298809"/>
 			<userParam type="float" name="PrecursorMZ" value="500"/>
-			<userParam type="float" name="GLM_score" value="0.872315146325541"/>
+			<userParam type="float" name="GLM_score" value="0.872315146320375"/>
 			<userParam type="float" name="local_FDR" value="0"/>
 		</feature>
 		<feature id="f_7884611628099393896">
@@ -117,7 +117,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-22000.3232536088" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-22000.3232536088" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -140,7 +140,7 @@
 			<userParam type="float" name="var_elution_model_fit_score" value="0.902421613534292"/>
 			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-22000.3232536088"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
-			<userParam type="float" name="GLM_score" value="1.04381975292511e-120"/>
+			<userParam type="float" name="GLM_score" value="1.04381975446958e-120"/>
 			<userParam type="float" name="local_FDR" value="1"/>
 		</feature>
 		<feature id="f_10748767151299728218">
@@ -187,7 +187,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21551.916238951" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-21551.916238951" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -210,7 +210,7 @@
 			<userParam type="float" name="var_elution_model_fit_score" value="0.88344677289327"/>
 			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21551.916238951"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
-			<userParam type="float" name="GLM_score" value="2.88582807255205e-165"/>
+			<userParam type="float" name="GLM_score" value="2.88582806758491e-165"/>
 			<userParam type="float" name="local_FDR" value="0"/>
 		</feature>
 		<feature id="f_6301837921792215032">
@@ -257,7 +257,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21822.7123758505" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-21822.7123758505" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -280,7 +280,7 @@
 			<userParam type="float" name="var_elution_model_fit_score" value="0.966414709885915"/>
 			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21822.7123758505"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
-			<userParam type="float" name="GLM_score" value="0.280631793823094"/>
+			<userParam type="float" name="GLM_score" value="0.280631793862595"/>
 			<userParam type="float" name="local_FDR" value="0"/>
 		</feature>
 		<feature id="f_17643807565115098230">
@@ -327,7 +327,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-22208.0561597968" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="-22208.0561597968" sequence="PEPTIDEB" charge="0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr2"/>

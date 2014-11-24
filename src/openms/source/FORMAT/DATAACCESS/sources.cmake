@@ -6,6 +6,7 @@ set(sources_list
   MSDataWritingConsumer.cpp
   MSDataTransformingConsumer.cpp
   MSDataCachedConsumer.cpp
+  MSDataChainingConsumer.cpp
   NoopMSDataConsumer.cpp
   SwathFileConsumer.cpp
 )

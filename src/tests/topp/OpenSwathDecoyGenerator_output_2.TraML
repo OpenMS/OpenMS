@@ -156,7 +156,7 @@
     </Peptide>
     <Peptide id="DECOY_ADVTPADFSEWSK" sequence="SWESFDAPTVDAK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="ADVTPADFSEWSK"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -167,7 +167,7 @@
     </Peptide>
     <Peptide id="DECOY_DGLDAASYYAPVR" sequence="VPAYYSAADLGDR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="DGLDAASYYAPVR"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -178,7 +178,7 @@
     </Peptide>
     <Peptide id="DECOY_GAGSSEPVTGLDAK" sequence="ADLGTVPESSGAGK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="GAGSSEPVTGLDAK"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -189,7 +189,7 @@
     </Peptide>
     <Peptide id="DECOY_GTFIIDPAAVIR" sequence="IVAAPDIIFTGR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="GTFIIDPAAVIR"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -200,7 +200,7 @@
     </Peptide>
     <Peptide id="DECOY_GTFIIDPGGVIR" sequence="IVGGPDIIFTGR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="GTFIIDPGGVIR"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -211,7 +211,7 @@
     </Peptide>
     <Peptide id="DECOY_LFLQFGAQGSPFLK" sequence="LFPSGQAGFQLFLK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="LFLQFGAQGSPFLK"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -222,7 +222,7 @@
     </Peptide>
     <Peptide id="DECOY_LGGNEQVTR" sequence="TVQENGGLR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="LGGNEQVTR"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -233,7 +233,7 @@
     </Peptide>
     <Peptide id="DECOY_TPVISGGPYEYR" sequence="YEYPGGSIVPTR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="TPVISGGPYEYR"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -244,7 +244,7 @@
     </Peptide>
     <Peptide id="DECOY_TPVITGAPYEYR" sequence="YEYPAGTIVPTR">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="TPVITGAPYEYR"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -255,7 +255,7 @@
     </Peptide>
     <Peptide id="DECOY_VEATFGVDESNAK" sequence="ANSEDVGFTAEVK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="VEATFGVDESNAK"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -266,7 +266,7 @@
     </Peptide>
     <Peptide id="DECOY_YILAGVENSK" sequence="SNEVGALIYK">
       <cvParam cvRef="MS" accession="MS:1000041" name="charge state" value="2"/>
-      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="light"/>
+      <cvParam cvRef="MS" accession="MS:1000893" name="peptide group label" value="DECOY_light"/>
       <cvParam cvRef="" accession="" name="full_peptide_name" value="YILAGVENSK"/>
       <ProteinRef ref="DECOY_AQRT"/>
       <RetentionTimeList>
@@ -282,7 +282,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="722.685" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="458.720914804721"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="458.720914788771"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="-1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2714"/>

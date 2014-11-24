@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,6 +57,7 @@ namespace OpenMS
       id_data_(id_data),
       actual_protein_hit_(),
       actual_peptide_hit_(),
+      actual_peptide_evidence_(),
       peptide_identification_index_(0),
       tag_(),
       date_(),
@@ -84,7 +85,7 @@ namespace OpenMS
           // <...>File773 Spectrum198145 scans: 6094</...> -> 6094
           // <...>6860: Scan 10668 (rt=5380.57)</...> -> 10668
           // <pep_scan_title>Scan Number: 1460</pep_scan_title> -> 1460
-          re.assign(primary_scan_regex, boost::regex::perl|boost::regex::icase);
+          re.assign(primary_scan_regex, boost::regex::perl | boost::regex::icase);
           scan_regex_.push_back(re);
           // - with .dta input to Mascot:
           // <...>/path/to/FTAC05_13.673.673.2.dta</...> -> 673
@@ -156,17 +157,14 @@ namespace OpenMS
       {
         id_data_.resize(character_buffer_.trim().toInt());
       }
-
       else if (tag_ == "prot_score")
       {
         actual_protein_hit_.setScore(character_buffer_.trim().toInt());
       }
-
       else if (tag_ == "pep_exp_mz")
       {
         id_data_[peptide_identification_index_].setMZ(character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "pep_scan_title")
       {
         // extract RT (and possibly m/z, if not already set) from title:
@@ -194,7 +192,7 @@ namespace OpenMS
                   id_data_[peptide_identification_index_].setRT(rt_mapping_[scan_no]);
                 }
               }
-              if (match["MZ"].matched && 
+              if (match["MZ"].matched &&
                   !id_data_[peptide_identification_index_].hasMZ())
               {
                 double mz = String(match["MZ"].str()).toDouble();
@@ -207,8 +205,8 @@ namespace OpenMS
         catch (Exception::ConversionError&)
         {
           String msg = "<pep_scan_title> element has unexpected format '" +
-            title + "'. The regular expression '" + re_it->str() + "' matched, "
-            "but the extracted information could not be converted to a number.";
+                       title + "'. The regular expression '" + re_it->str() + "' matched, "
+                                                                              "but the extracted information could not be converted to a number.";
           error(LOAD, msg);
         }
         // did it work?
@@ -219,34 +217,29 @@ namespace OpenMS
             String msg = "Could not extract RT value ";
             if (!rt_mapping_.empty()) msg += "or a matching scan number ";
             msg += "from <pep_scan_title> element with format '" + title +
-              "'. Try adjusting the 'scan_regex' parameter.";
+                   "'. Try adjusting the 'scan_regex' parameter.";
             error(LOAD, msg);
           }
           no_rt_error_ = true;
         }
       }
-
       else if (tag_ == "pep_exp_z")
       {
         actual_peptide_hit_.setCharge(character_buffer_.trim().toInt());
       }
-
       else if (tag_ == "pep_score")
       {
         actual_peptide_hit_.setScore(character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "pep_expect")
       {
         actual_peptide_hit_.metaRegistry().registerName("EValue", "E-value of e.g. Mascot searches", ""); // @todo what E-value flag? (andreas)
         actual_peptide_hit_.setMetaValue("EValue", character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "pep_homol")
       {
         id_data_[peptide_identification_index_].setSignificanceThreshold(character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "pep_ident")
       {
         double temp_homology = 0;
@@ -264,7 +257,6 @@ namespace OpenMS
           id_data_[peptide_identification_index_].setSignificanceThreshold(temp_identity);
         }
       }
-
       else if (tag_ == "pep_seq")
       {
         AASequence temp_aa_sequence = AASequence::fromString(character_buffer_.trim());
@@ -318,25 +310,22 @@ namespace OpenMS
         }
         actual_peptide_hit_.setSequence(temp_aa_sequence);
       }
-
       else if (tag_ == "pep_res_before")
       {
         String temp_string = character_buffer_.trim();
         if (temp_string != "")
         {
-          actual_peptide_hit_.setAABefore(temp_string[0]);
+          actual_peptide_evidence_.setAABefore(temp_string[0]);
         }
       }
-
       else if (tag_ == "pep_res_after")
       {
         String temp_string = character_buffer_.trim();
         if (temp_string != "")
         {
-          actual_peptide_hit_.setAAAfter(temp_string[0]);
+          actual_peptide_evidence_.setAAAfter(temp_string[0]);
         }
       }
-
       else if (tag_ == "pep_var_mod_pos")
       {
         AASequence temp_aa_sequence = actual_peptide_hit_.getSequence();
@@ -410,7 +399,6 @@ namespace OpenMS
           actual_peptide_hit_.setSequence(temp_aa_sequence);
         }
       }
-
       else if (tag_ == "Date")
       {
         vector<String> parts;
@@ -424,7 +412,6 @@ namespace OpenMS
         }
         protein_identification_.setDateTime(date_);
       }
-
       else if (tag_ == "StringTitle")
       {
         String title = character_buffer_.trim();
@@ -433,7 +420,7 @@ namespace OpenMS
         actual_title_ = title;
         if (modified_peptides_.find(title) != modified_peptides_.end())
         {
-          vector<AASequence> & temp_hits = modified_peptides_[title];
+          vector<AASequence>& temp_hits = modified_peptides_[title];
           vector<PeptideHit> temp_peptide_hits = id_data_[actual_query_ - 1].getHits();
 
           if (temp_hits.size() != temp_peptide_hits.size())
@@ -466,42 +453,34 @@ namespace OpenMS
           }
         }
       }
-
       else if (tag_ == "RTINSECONDS")
       {
         id_data_[actual_query_ - 1].setRT(character_buffer_.trim().toDouble());
       }
-
       else if (tag_ == "MascotVer")
       {
         protein_identification_.setSearchEngineVersion(character_buffer_.trim());
       }
-
       else if (tag_ == "DB")
       {
         search_parameters_.db = (character_buffer_.trim());
       }
-
       else if (tag_ == "FastaVer")
       {
         search_parameters_.db_version = (character_buffer_.trim());
       }
-
       else if (tag_ == "TAXONOMY")
       {
         search_parameters_.taxonomy = (character_buffer_.trim());
       }
-
       else if (tag_ == "CHARGE")
       {
         search_parameters_.charges = (character_buffer_.trim());
       }
-
       else if (tag_ == "PFA")
       {
         search_parameters_.missed_cleavages = character_buffer_.trim().toInt();
       }
-
       else if (tag_ == "MASS")
       {
         String temp_string = (character_buffer_.trim());
@@ -514,7 +493,6 @@ namespace OpenMS
           search_parameters_.mass_type = ProteinIdentification::AVERAGE;
         }
       }
-
       else if (tag_ == "MODS")
       {
         // if the modifications are listed in the "fixed_mods" section,
@@ -525,7 +503,6 @@ namespace OpenMS
           temp_string.split(',', search_parameters_.fixed_modifications);
         }
       }
-
       else if (tag_ == "IT_MODS")
       {
         // if the modifications are listed in the "variable_mods" section,
@@ -538,7 +515,6 @@ namespace OpenMS
           temp_string.split(',', search_parameters_.variable_modifications);
         }
       }
-
       else if (tag_ == "CLE")
       {
         String temp_string = (character_buffer_.trim());
@@ -563,24 +539,21 @@ namespace OpenMS
           search_parameters_.enzyme = ProteinIdentification::UNKNOWN_ENZYME;
         }
       }
-
       else if (tag_ == "TOL")
       {
         search_parameters_.precursor_tolerance = (character_buffer_.trim()).toDouble();
       }
-
       else if (tag_ == "ITOL")
       {
         search_parameters_.peak_mass_tolerance = (character_buffer_.trim()).toDouble();
       }
-
       else if (tag_ == "name")
       {
         // cerr << "name tag: " << character_buffer_.trim() << "\n";
         if ((major_version_ == "1")
             // new since Mascot XML version 2.1 (at least): <fixed_mods> also have a subtag called <name>, thus we need to ensure we are in <variable_mods>
-            || (tags_open_.size() >= 2 &&
-                tags_open_[tags_open_.size() - 2] == "variable_mods"))
+           || (tags_open_.size() >= 2 &&
+               tags_open_[tags_open_.size() - 2] == "variable_mods"))
         {
           search_parameters_.variable_modifications.push_back(character_buffer_.trim());
           // cerr << "var. mod. added: " << search_parameters_.variable_modifications.back() << "\n";
@@ -592,19 +565,16 @@ namespace OpenMS
           // cerr << "fixed mod. added: " << search_parameters_.fixed_modifications.back() << "\n";
         }
       }
-
       else if (tag_ == "warning")
       {
         warning(LOAD, String("Warnings were present: '") + character_buffer_ + String("'"));
       }
-
       else if (tag_ == "protein")
       {
         protein_identification_.setScoreType("Mascot");
         protein_identification_.insertHit(actual_protein_hit_);
         actual_protein_hit_ = ProteinHit();
       }
-
       else if (tag_ == "peptide")
       {
         bool already_stored(false);
@@ -621,29 +591,32 @@ namespace OpenMS
           }
           ++it;
         }
+
         if (!already_stored)
         {
           id_data_[peptide_identification_index_].setIdentifier(identifier_);
           id_data_[peptide_identification_index_].setScoreType("Mascot");
-          actual_peptide_hit_.addProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_evidence_.setProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_hit_.addPeptideEvidence(actual_peptide_evidence_);
           id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
         }
         else
         {
-          it->addProteinAccession(actual_protein_hit_.getAccession());
+          actual_peptide_evidence_.setProteinAccession(actual_protein_hit_.getAccession());
+          it->addPeptideEvidence(actual_peptide_evidence_);
           id_data_[peptide_identification_index_].setHits(temp_peptide_hits);
         }
+        actual_peptide_evidence_ = PeptideEvidence();
         actual_peptide_hit_ = PeptideHit();
       }
-
       else if (tag_ == "u_peptide" || tag_ == "q_peptide")
       {
         id_data_[peptide_identification_index_].setIdentifier(identifier_);
         id_data_[peptide_identification_index_].setScoreType("Mascot");
         id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
+        actual_peptide_evidence_ = PeptideEvidence();
         actual_peptide_hit_ = PeptideHit();
       }
-
       else if (tag_ == "mascot_search_results")
       {
         protein_identification_.setSearchEngine("Mascot");
@@ -655,7 +628,7 @@ namespace OpenMS
       character_buffer_.clear();
     }
 
-    void MascotXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void MascotXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
       // do not care about chars after internal tags, e.g.
       // <header>
@@ -667,6 +640,5 @@ namespace OpenMS
       character_buffer_ += String(sm_.convert(chars));
     }
 
-
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

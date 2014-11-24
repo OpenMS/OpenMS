@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,8 @@ namespace OpenMS
 
   ProteinIdentification::ProteinGroup::ProteinGroup() :
     probability(0.0), accessions()
-  {}
+  {
+  }
 
   bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup rhs) const
   {
@@ -74,7 +75,7 @@ namespace OpenMS
   {
   }
 
-  bool ProteinIdentification::SearchParameters::operator==(const SearchParameters & rhs) const
+  bool ProteinIdentification::SearchParameters::operator==(const SearchParameters& rhs) const
   {
     return db == rhs.db &&
            db_version == rhs.db_version &&
@@ -89,7 +90,7 @@ namespace OpenMS
            precursor_tolerance == rhs.precursor_tolerance;
   }
 
-  bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters & rhs) const
+  bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const
   {
     return !(*this == rhs);
   }
@@ -110,7 +111,7 @@ namespace OpenMS
   {
   }
 
-  ProteinIdentification::ProteinIdentification(const ProteinIdentification & source) :
+  ProteinIdentification::ProteinIdentification(const ProteinIdentification& source) :
     MetaInfoInterface(source),
     id_(source.id_),
     search_engine_(source.search_engine_),
@@ -130,27 +131,27 @@ namespace OpenMS
   {
   }
 
-  void ProteinIdentification::setDateTime(const DateTime & date)
+  void ProteinIdentification::setDateTime(const DateTime& date)
   {
     date_ = date;
   }
 
-  const DateTime & ProteinIdentification::getDateTime() const
+  const DateTime& ProteinIdentification::getDateTime() const
   {
     return date_;
   }
 
-  const vector<ProteinHit> & ProteinIdentification::getHits() const
+  const vector<ProteinHit>& ProteinIdentification::getHits() const
   {
     return protein_hits_;
   }
 
-  vector<ProteinHit> & ProteinIdentification::getHits()
+  vector<ProteinHit>& ProteinIdentification::getHits()
   {
     return protein_hits_;
   }
 
-  void ProteinIdentification::setHits(const vector<ProteinHit> & protein_hits)
+  void ProteinIdentification::setHits(const vector<ProteinHit>& protein_hits)
   {
     // groups might become invalid by this operation
     if (!protein_groups_.empty() || !indistinguishable_proteins_.empty())
@@ -161,7 +162,7 @@ namespace OpenMS
   }
 
   vector<ProteinHit>::iterator ProteinIdentification::findHit(
-    const String & accession)
+    const String& accession)
   {
     vector<ProteinHit>::iterator pos = protein_hits_.begin();
     for (; pos != protein_hits_.end(); ++pos)
@@ -172,35 +173,35 @@ namespace OpenMS
     return pos;
   }
 
-  const vector<ProteinIdentification::ProteinGroup> & ProteinIdentification::getProteinGroups() const
+  const vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups() const
   {
     return protein_groups_;
   }
 
-  vector<ProteinIdentification::ProteinGroup> & ProteinIdentification::getProteinGroups()
+  vector<ProteinIdentification::ProteinGroup>& ProteinIdentification::getProteinGroups()
   {
     return protein_groups_;
   }
 
-  void ProteinIdentification::insertProteinGroup(const ProteinIdentification::ProteinGroup & group)
+  void ProteinIdentification::insertProteinGroup(const ProteinIdentification::ProteinGroup& group)
   {
     protein_groups_.push_back(group);
   }
 
-  const vector<ProteinIdentification::ProteinGroup> &
+  const vector<ProteinIdentification::ProteinGroup>&
   ProteinIdentification::getIndistinguishableProteins() const
   {
     return indistinguishable_proteins_;
   }
 
-  vector<ProteinIdentification::ProteinGroup> &
+  vector<ProteinIdentification::ProteinGroup>&
   ProteinIdentification::getIndistinguishableProteins()
   {
     return indistinguishable_proteins_;
   }
 
   void ProteinIdentification::insertIndistinguishableProteins(
-    const ProteinIdentification::ProteinGroup & group)
+    const ProteinIdentification::ProteinGroup& group)
   {
     indistinguishable_proteins_.push_back(group);
   }
@@ -217,22 +218,22 @@ namespace OpenMS
     protein_significance_threshold_ = value;
   }
 
-  void ProteinIdentification::setScoreType(const String & type)
+  void ProteinIdentification::setScoreType(const String& type)
   {
     protein_score_type_ = type;
   }
 
-  const String & ProteinIdentification::getScoreType() const
+  const String& ProteinIdentification::getScoreType() const
   {
     return protein_score_type_;
   }
 
-  void ProteinIdentification::insertHit(const ProteinHit & protein_hit)
+  void ProteinIdentification::insertHit(const ProteinHit& protein_hit)
   {
     protein_hits_.push_back(protein_hit);
   }
 
-  ProteinIdentification & ProteinIdentification::operator=(const ProteinIdentification & source)
+  ProteinIdentification& ProteinIdentification::operator=(const ProteinIdentification& source)
   {
     if (this == &source)
     {
@@ -254,7 +255,7 @@ namespace OpenMS
   }
 
   // Equality operator
-  bool ProteinIdentification::operator==(const ProteinIdentification & rhs) const
+  bool ProteinIdentification::operator==(const ProteinIdentification& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
            id_ == rhs.id_ &&
@@ -272,7 +273,7 @@ namespace OpenMS
   }
 
   // Inequality operator
-  bool ProteinIdentification::operator!=(const ProteinIdentification & rhs) const
+  bool ProteinIdentification::operator!=(const ProteinIdentification& rhs) const
   {
     return !operator==(rhs);
   }
@@ -310,7 +311,7 @@ namespace OpenMS
     }
   }
 
-  Size ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification> & pep_ids)
+  Size ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
   {
     // todo: we currently ignore overlapping peptides, i.e. the coverage could be > 100%
 
@@ -340,8 +341,9 @@ namespace OpenMS
       vector<PeptideHit> peptide_hits = it1->getHits();
       for (vector<PeptideHit>::iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
       {
+        set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
         // matched proteins for hit
-        for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+        for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
         {
           if (protein_index.has(*it3))
           {
@@ -386,42 +388,42 @@ namespace OpenMS
     higher_score_better_ = value;
   }
 
-  const String & ProteinIdentification::getIdentifier() const
+  const String& ProteinIdentification::getIdentifier() const
   {
     return id_;
   }
 
-  void ProteinIdentification::setIdentifier(const String & id)
+  void ProteinIdentification::setIdentifier(const String& id)
   {
     id_ = id;
   }
 
-  void ProteinIdentification::setSearchEngine(const String & search_engine)
+  void ProteinIdentification::setSearchEngine(const String& search_engine)
   {
     search_engine_ = search_engine;
   }
 
-  const String & ProteinIdentification::getSearchEngine() const
+  const String& ProteinIdentification::getSearchEngine() const
   {
     return search_engine_;
   }
 
-  void ProteinIdentification::setSearchEngineVersion(const String & search_engine_version)
+  void ProteinIdentification::setSearchEngineVersion(const String& search_engine_version)
   {
     search_engine_version_ = search_engine_version;
   }
 
-  const String & ProteinIdentification::getSearchEngineVersion() const
+  const String& ProteinIdentification::getSearchEngineVersion() const
   {
     return search_engine_version_;
   }
 
-  void ProteinIdentification::setSearchParameters(const SearchParameters & search_parameters)
+  void ProteinIdentification::setSearchParameters(const SearchParameters& search_parameters)
   {
     search_parameters_ = search_parameters;
   }
 
-  const ProteinIdentification::SearchParameters & ProteinIdentification::getSearchParameters() const
+  const ProteinIdentification::SearchParameters& ProteinIdentification::getSearchParameters() const
   {
     return search_parameters_;
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,8 +42,8 @@ int main(int argc, const char** argv)
   // the path to the data should be given on the command line
   String tutorial_data_path(argv[1]);
   
-  FeatureMap<> reference;
-  FeatureMap<> toAlign;
+  FeatureMap reference;
+  FeatureMap toAlign;
 
   FeatureXMLFile xml_file;
   xml_file.load(tutorial_data_path + "/data/Tutorial_MapAlignment_1.featureXML", reference);

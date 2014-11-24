@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ END_SECTION
 START_SECTION((template < typename FeatureMapType > void load(const String &filename, FeatureMapType &feature_map)))
 {
   KroenikFile f;
-  FeatureMap<> fm;
+  FeatureMap fm;
   f.load(OPENMS_GET_TEST_DATA_PATH("KroenikFile_test_1.krf"), fm);
   TEST_EQUAL(fm.size(),3)
   ABORT_IF(fm.size()!=3)

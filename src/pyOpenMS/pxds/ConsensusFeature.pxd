@@ -19,14 +19,14 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         #    Peak2D
 
         ConsensusFeature() nogil except +
-        ConsensusFeature(ConsensusFeature) nogil except +  #wrap-ignore
+        ConsensusFeature(ConsensusFeature &) nogil except +
         ConsensusFeature(UInt64, Peak2D, UInt64) nogil except +
         ConsensusFeature(UInt64, BaseFeature) nogil except +
         ConsensusFeature(UInt64, ConsensusFeature) nogil except +
 
         void computeConsensus()    nogil except +
         void computeMonoisotopicConsensus()    nogil except +
-        void computeDechargeConsensus(FeatureMap[Feature], bool)    nogil except +
+        void computeDechargeConsensus(FeatureMap, bool)    nogil except +
 
         void insert(UInt64, Peak2D, UInt64) nogil except +
         void insert(UInt64, BaseFeature) nogil except +
@@ -66,6 +66,9 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         void addRatio(Ratio r) nogil except +
         void setRatios(libcpp_vector[Ratio] rs) nogil except +
         libcpp_vector[Ratio] getRatios() nogil except +
+
+        void clear() nogil except +
+        bool empty() nogil except +
 
         # # Returns the position range of the contained elements
         # DRange2 getPositionRange() nogil except +

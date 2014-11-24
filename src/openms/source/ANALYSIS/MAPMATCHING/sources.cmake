@@ -30,6 +30,9 @@ SimplePairFinder.cpp
 StablePairFinder.cpp
 TransformationDescription.cpp
 TransformationModel.cpp
+TransformationModelBSpline.cpp
+TransformationModelLinear.cpp
+TransformationModelInterpolated.cpp
 )
 
 ### add path to the filenames

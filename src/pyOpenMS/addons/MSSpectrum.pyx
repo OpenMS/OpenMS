@@ -25,15 +25,16 @@ import numpy as np
 
     def set_peaks(self, peaks):
 
-        assert isinstance(peaks, (tuple, list))
-        assert len(peaks) == 2
+        assert isinstance(peaks, (tuple, list)), "Input for set_peaks needs to be a tuple or a list of size 2 (mz and intensity vector)"
+        assert len(peaks) == 2, "Input for set_peaks needs to be a tuple or a list of size 2 (mz and intensity vector)"
 
         mzs, intensities = peaks
-        assert len(mzs) == len(intensities)
+        assert len(mzs) == len(intensities), "Input vectors for set_peaks need to have the same length (mz and intensity vector)"
 
         cdef _MSSpectrum[_Peak1D] * spec_ = self.inst.get()
 
-        spec_.clear(0) # emtpy vector , keep meta data
+        spec_.clear(0) # empty vector , keep meta data
+        # spec_.reserve(<int>len(mzs)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
         cdef float I

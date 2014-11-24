@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -164,8 +164,8 @@ START_SECTION((void getTerminalModificationsByDiffMonoMass(std::vector< String >
 	{
 		uniq_mods.insert(*it);
 	}
-	TEST_EQUAL(mods.size(), 16)
-	TEST_EQUAL(uniq_mods.size(), 16)
+	TEST_EQUAL(mods.size(), 18)
+	TEST_EQUAL(uniq_mods.size(), 18)
 	TEST_EQUAL(uniq_mods.find("Acetyl (N-term)") != uniq_mods.end(), true)
 
   // something exotic.. mods should return empty (without clearing it before)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,7 +127,7 @@ namespace OpenMS
     //delete model_;
   }
 
-  void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features, std::vector<std::vector<double> >& intensity_weights,
+  void PSLPFormulation::createAndSolveILP_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
                                            std::set<Int>& charges_set, std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                            std::vector<IndexTriple>& variable_indices, std::vector<int>& solution_indices,
                                            UInt ms2_spectra_per_rt_bin,
@@ -252,7 +252,7 @@ namespace OpenMS
       std::cout << "\nadd row " << std::endl;
 #endif
       model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"),
-      LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
+                     LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
 
 #ifdef DEBUG_OPS
       std::cout << stop - start << " PREC_ACQU_LIMIT_" << String(i) << std::endl;
@@ -432,7 +432,7 @@ namespace OpenMS
   void PSLPFormulation::createAndSolveILPForInclusionListCreation(PrecursorIonSelectionPreprocessing& preprocessing,
                                                                   UInt ms2_spectra_per_rt_bin,
                                                                   UInt max_list_size,
-                                                                  FeatureMap<>& precursors,
+                                                                  FeatureMap& precursors,
                                                                   bool solve_ILP)
   {
     const std::map<String, std::vector<double> >& pt_prot_map = preprocessing.getProteinPTMap();
@@ -453,7 +453,7 @@ namespace OpenMS
     std::map<String, Size> protein_penalty_index_map;
     Size pep_counter = 0;
 #ifdef DEBUG_OPS
-    FeatureMap<> test_map;
+    FeatureMap test_map;
 #endif
     //  std::cout << "add proteins to LP"<<std::endl;
     for (; map_iter != pt_prot_map.end(); ++map_iter)
@@ -499,7 +499,7 @@ namespace OpenMS
                                          Size& counter, Size& pep_counter, Size& feature_counter,
                                          std::vector<IndexTriple>& variable_indices,
                                          std::map<String, Size>& protein_variable_index_map,
-                                         FeatureMap<>& precursors)
+                                         FeatureMap& precursors)
   {
     double min_rt = param_.getValue("rt:min_rt");
     double max_rt = param_.getValue("rt:max_rt");
@@ -929,7 +929,7 @@ namespace OpenMS
     }
   }
 
-  void PSLPFormulation::assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple>& variable_indices, FeatureMap<>& precursors,
+  void PSLPFormulation::assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple>& variable_indices, FeatureMap& precursors,
                                                                 std::vector<int>& solution_indices,
                                                                 PrecursorIonSelectionPreprocessing& preprocessing)
   {
@@ -1020,7 +1020,7 @@ namespace OpenMS
     precursors.ensureUniqueId();
   }
 
-  void PSLPFormulation::createAndSolveCombinedLPFeatureBased_(const FeatureMap<>& features, std::vector<std::vector<double> >& intensity_weights,
+  void PSLPFormulation::createAndSolveCombinedLPFeatureBased_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
                                                               std::set<Int>& charges_set, std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                                               std::vector<IndexTriple>& variable_indices, std::vector<Int>& solution_indices,
                                                               UInt ms2_spectra_per_rt_bin, Size number_of_scans, Size step_size, bool sequential_order)
@@ -1236,7 +1236,7 @@ namespace OpenMS
 #endif
   }
 
-  void PSLPFormulation::updateFeatureILPVariables(FeatureMap<>& new_features, std::vector<IndexTriple>& variable_indices, std::map<Size, std::vector<String> >& feature_constraints_map)
+  void PSLPFormulation::updateFeatureILPVariables(FeatureMap& new_features, std::vector<IndexTriple>& variable_indices, std::map<Size, std::vector<String> >& feature_constraints_map)
   {
 #ifdef DEBUG_OPS
     std::cout << "update feature ilp variables" << std::endl;
@@ -1342,7 +1342,7 @@ namespace OpenMS
       model_->setRowBounds(idx, 0., (double)ms2_spectra_per_rt_bin, LPWrapper::UPPER_BOUND_ONLY);
   }
 
-  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap<>& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
+  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
   {
 #ifdef DEBUG_OPS
     std::cout << "Update Obj. function of combined ILP." << std::endl;
@@ -1449,7 +1449,7 @@ namespace OpenMS
 #endif
   }
 
-  void PSLPFormulation::updateCombinedILP(FeatureMap<>& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices,
+  void PSLPFormulation::updateCombinedILP(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices,
                                           std::vector<String>& new_protein_accs, std::vector<String>& protein_accs, PSProteinInference& prot_inference,
                                           Size& variable_counter, std::map<String, std::vector<Size> >& protein_feature_map, Feature& new_feature,
                                           std::map<String, Size>& protein_variable_index_map, std::map<String, std::set<String> >& /*prot_id_counter*/)
@@ -1487,7 +1487,8 @@ namespace OpenMS
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();
       Size index = new_feature.getMetaValue("variable_index");
-      const std::vector<String>& accs = new_feature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions();
+
+      std::set<String> accs = PeptideHit::extractProteinAccessions(new_feature.getPeptideIdentifications()[0].getHits()[0]);
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
@@ -1527,41 +1528,41 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "Now search for matching features for " << accs.size() << " proteins." << std::endl;
 #endif
-      for (Size prot = 0; prot < accs.size(); ++prot)
+      for (std::set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
       {
         // first enter the new feature to the corresponding proteins
-        std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(accs[prot]);
+        std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(*acc_it);
 #ifdef DEBUG_OPS
         std::cout << "now enter " << new_feature.getRT() << "  " << new_feature.getMZ()
                   << " with variable index "
                   << index
-                  << " to prot_variable_map " << accs[prot] << std::endl;
+                  << " to prot_variable_map " << acc_it << std::endl;
 #endif
         if (prot_var_iter == protein_feature_map.end())
         {
           std::vector<Size> vec;
           vec.push_back((Size)new_feature.getMetaValue("feature_index"));
-          protein_feature_map.insert(std::make_pair(accs[prot], vec));
+          protein_feature_map.insert(std::make_pair(*acc_it, vec));
         }
         else
           prot_var_iter->second.push_back((Size)new_feature.getMetaValue("feature_index"));
         // if protein prob exceeds min threshold
-        if ((prot_inference.getProteinProbability(accs[prot]) > min_protein_probability) && (prot_inference.isProteinInMinimalList(accs[prot])))
+        if ((prot_inference.getProteinProbability(*acc_it) > min_protein_probability) && (prot_inference.isProteinInMinimalList(*acc_it)))
         {
-          std::map<String, std::vector<double> >::const_iterator map_iter = preprocessed_db.getProteinPTMap().find(accs[prot]);
+          std::map<String, std::vector<double> >::const_iterator map_iter = preprocessed_db.getProteinPTMap().find(*acc_it);
           if (map_iter !=  preprocessed_db.getProteinPTMap().end())
           {
-            std::vector<String>::iterator prot_acc_iter = find(protein_accs.begin(), protein_accs.end(), accs[prot]);
+            std::vector<String>::iterator prot_acc_iter = find(protein_accs.begin(), protein_accs.end(), *acc_it);
             if (prot_acc_iter == protein_accs.end())
             {
               // enter new variable y_i
-              if (prot_inference.getProteinProbability(accs[prot]) >= min_prot_coverage)
+              if (prot_inference.getProteinProbability(*acc_it) >= min_prot_coverage)
               {
-                new_protein_accs.push_back(accs[prot]);
+                new_protein_accs.push_back(*acc_it);
                 if (double(param_.getValue("combined_ilp:k3")) > 0.000001)
-                  updateObjFunction_(accs[prot], features, preprocessed_db, variable_indices);
+                  updateObjFunction_(*acc_it, features, preprocessed_db, variable_indices);
               }
-              protein_accs.push_back(accs[prot]);
+              protein_accs.push_back(*acc_it);
               // insert protein to ILP
               // first add penalty
               // insert penalty variable
@@ -1584,7 +1585,7 @@ namespace OpenMS
 
 
               // now go through protein_feature_map and enter them to
-              std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(accs[prot]);
+              std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(*acc_it);
               if (prot_var_iter != protein_feature_map.end())
               {
                 // TODO: problem: they need not all correspond to the current feature
@@ -1786,17 +1787,17 @@ namespace OpenMS
             } //if(prot_acc_iter == protein_accs.end())
             else
             {
-              if (find(new_protein_accs.begin(), new_protein_accs.end(), accs[prot]) == new_protein_accs.end() &&
-                  prot_inference.getProteinProbability(accs[prot]) >= min_prot_coverage && double(param_.getValue("combined_ilp:k3")) > 0.000001)
+              if (find(new_protein_accs.begin(), new_protein_accs.end(), *acc_it) == new_protein_accs.end() &&
+                  prot_inference.getProteinProbability(*acc_it) >= min_prot_coverage && double(param_.getValue("combined_ilp:k3")) > 0.000001)
               {
-                new_protein_accs.push_back(accs[prot]);
-                updateObjFunction_(accs[prot], features, preprocessed_db, variable_indices);
+                new_protein_accs.push_back(*acc_it);
+                updateObjFunction_(*acc_it, features, preprocessed_db, variable_indices);
               }
             }
           }
           else
           {
-            std::cout << "Protein not present in preprocessed db: " << accs[prot] << std::endl;
+            std::cout << "Protein not present in preprocessed db: " << *acc_it << std::endl;
           }
         }
       }

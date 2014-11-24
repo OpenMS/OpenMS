@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,9 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/LogConfigHandler.h>
-#include <QRegExpValidator>
 ///////////////////////////
+
+#include <boost/regex.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -116,18 +117,14 @@ START_SECTION((void configure(const Param &param)))
   TEST_EQUAL(info_warn_result.size() , 3)
 
   // check output with regex
-
-  int pos(0);
+  String pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] ");
+  boost::regex rx(pattern);
 
   int i = 1;
   for(StringList::const_iterator it = info_warn_result.begin() ; it != info_warn_result.end(); ++it)
   {
-    QString pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] ");
-    pattern.append(QString::number(i));
-    QRegExp rx(pattern);
-    QRegExpValidator v(rx, 0);
-    QString to_validate = it->toQString();
-    TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+    boost::regex rx(pattern + i);
+    TEST_EQUAL(regex_match(*it, rx), true)
     ++i;
   }
   ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("only_error_string_stream"));
@@ -138,11 +135,9 @@ START_SECTION((void configure(const Param &param)))
 
   TEST_EQUAL(error_result.size(), 1)
 
-  QString pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] 4");
-  QRegExp rx(pattern);
-  QRegExpValidator v(rx, 0);
-  QString to_validate = error_result[0].toQString();
-  TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  String pattern2("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] 4");
+  boost::regex rx2(pattern2);
+  TEST_EQUAL(regex_match(error_result[0], rx2), true)
 }
 END_SECTION
 
@@ -167,13 +162,9 @@ START_SECTION((ostream& getStream(const String &stream_name)))
   TEST_EQUAL(info_result.size() , 1)
 
   // check if everything landed in the stream we wanted
-  int pos(0);
-
-  QString pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] getStream 1");
-  QRegExp rx(pattern);
-  QRegExpValidator v(rx, 0);
-  QString to_validate = info_result[0].toQString();
-  TEST_EQUAL(v.validate(to_validate,pos)==QValidator::Acceptable, true)
+  String pattern("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] getStream 1");
+  boost::regex rx(pattern);
+  TEST_EQUAL(regex_match(info_result[0], rx), true)
 }
 END_SECTION
 

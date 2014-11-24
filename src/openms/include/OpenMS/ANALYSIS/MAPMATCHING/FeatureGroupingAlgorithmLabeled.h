@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ public:
 
         @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    virtual void group(const std::vector<FeatureMap<> > & maps, ConsensusMap & out);
+    virtual void group(const std::vector<FeatureMap > & maps, ConsensusMap & out);
 
     ///Creates a new instance of this class (for Factory)
     static FeatureGroupingAlgorithm * create()

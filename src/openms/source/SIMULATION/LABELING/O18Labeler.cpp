@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 
 using std::vector;
 
-// TODO: change postRawHook to FeatureMapSim?
+// TODO: change postRawHook to SimTypes::FeatureMapSim?
 // TODO: implement correct consensus in postRaw
 
 
@@ -74,7 +74,7 @@ namespace OpenMS
     }
   }
 
-  void O18Labeler::setUpHook(FeatureMapSimVector& features)
+  void O18Labeler::setUpHook(SimTypes::FeatureMapSimVector& features)
   {
     // no action here .. just check for 2 channels
     if (features.size() != 2)
@@ -84,18 +84,18 @@ namespace OpenMS
   }
 
   /// Labeling between digestion and rt simulation
-  void O18Labeler::postDigestHook(FeatureMapSimVector& features_to_simulate)
+  void O18Labeler::postDigestHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
-    SimIntensityType labeling_efficiency = param_.getValue("labeling_efficiency");
+    SimTypes::SimIntensityType labeling_efficiency = param_.getValue("labeling_efficiency");
 
     // index unlabeled map
     // merge channel one and two into a single feature map
-    FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
-    FeatureMapSim& unlabeled_features = features_to_simulate[0];
+    SimTypes::FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
+    SimTypes::FeatureMapSim& unlabeled_features = features_to_simulate[0];
 
     std::map<AASequence, Feature> unlabeled_features_index;
 
-    for (FeatureMapSim::iterator unlabeled_features_iter = unlabeled_features.begin();
+    for (SimTypes::FeatureMapSim::iterator unlabeled_features_iter = unlabeled_features.begin();
          unlabeled_features_iter != unlabeled_features.end();
          ++unlabeled_features_iter)
     {
@@ -109,9 +109,9 @@ namespace OpenMS
     }
 
     // iterate over second map
-    FeatureMapSim& labeled_features = features_to_simulate[1];
+    SimTypes::FeatureMapSim& labeled_features = features_to_simulate[1];
 
-    for (FeatureMapSim::iterator lf_iter = labeled_features.begin(); lf_iter != labeled_features.end(); ++lf_iter)
+    for (SimTypes::FeatureMapSim::iterator lf_iter = labeled_features.begin(); lf_iter != labeled_features.end(); ++lf_iter)
     {
       AASequence unmodified_sequence = (*lf_iter).getPeptideIdentifications()[0].getHits()[0].getSequence();
 
@@ -133,7 +133,7 @@ namespace OpenMS
           Feature b2(*lf_iter);
           b2.ensureUniqueId();
 
-          SimIntensityType total_intensity = (*lf_iter).getIntensity();
+          SimTypes::SimIntensityType total_intensity = (*lf_iter).getIntensity();
 
           // di-labled
           addModificationToPeptideHit_(b2, "UniMod:193");
@@ -258,27 +258,27 @@ namespace OpenMS
   }
 
   /// Labeling between RT and Detectability
-  void O18Labeler::postRTHook(FeatureMapSimVector& /* features_to_simulate */)
+  void O18Labeler::postRTHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Detectability and Ionization
-  void O18Labeler::postDetectabilityHook(FeatureMapSimVector& /* features_to_simulate */)
+  void O18Labeler::postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling between Ionization and RawMS
-  void O18Labeler::postIonizationHook(FeatureMapSimVector& /* features_to_simulate */)
+  void O18Labeler::postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
   }
 
   /// Labeling after RawMS
-  void O18Labeler::postRawMSHook(FeatureMapSimVector& features_to_simulate)
+  void O18Labeler::postRawMSHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
     recomputeConsensus_(features_to_simulate[0]);
   }
 
-  void O18Labeler::postRawTandemMSHook(FeatureMapSimVector&, MSSimExperiment&)
+  void O18Labeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector&, SimTypes::MSSimExperiment&)
   {
   }
 

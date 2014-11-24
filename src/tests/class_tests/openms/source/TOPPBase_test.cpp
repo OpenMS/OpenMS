@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,7 +158,7 @@ class TOPPBaseTest
       addDataProcessing_(map, dp);
 
       //additionally test FeatureMap and ConsensusMap
-      FeatureMap<> f_map;
+      FeatureMap f_map;
       addDataProcessing_(f_map, dp);
 
       ConsensusMap c_map;
@@ -624,7 +624,7 @@ START_SECTION(([EXTRA]void outputFileWritable_(const String& filename, const Str
 	//Actually writing something to the file is not necessary, but on Mac all tmp files are called 'source_<line>.tmp'.
 	//So we have to make sure the file is empty. Otherwise the test might fail...
 	TextFile dummy;
-	dummy.resize(5);
+  dummy.addLine("");dummy.addLine("");dummy.addLine("");dummy.addLine("");dummy.addLine("");
 	dummy.store(filename);
 END_SECTION
 

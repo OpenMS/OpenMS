@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,6 +54,18 @@ intensity.push_back(20.3);
 intensity.push_back(2000.4);
 intensity.push_back(4.3);
 
+std::vector<double> mz1;
+mz1.push_back(413.9);
+std::vector<double> intensity1;
+intensity1.push_back(100.2);
+
+std::vector<double> mz2;
+mz2.push_back(413.8);
+mz2.push_back(413.9);
+std::vector<double> intensity2;
+intensity2.push_back(0.0);
+intensity2.push_back(100.2);
+
 SplinePackage sp1(mz, intensity, 0.7);
 
 SplinePackage* nullPointer = 0;
@@ -81,6 +93,16 @@ END_SECTION
 
 START_SECTION(eval(double mz))
   TEST_REAL_SIMILAR(sp1.eval(414.05), 1134.08593750018);
+END_SECTION
+
+START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling))
+  TEST_EXCEPTION(Exception::IllegalArgument, SplinePackage(mz1, intensity1, 0.7));
+END_SECTION
+
+START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling))
+  SplinePackage* sp4 = new SplinePackage(mz2, intensity2, 0.7);
+  TEST_NOT_EQUAL(sp4, nullPointer);
+  TEST_REAL_SIMILAR((*sp4).eval(413.85), 50.1);
 END_SECTION
 
 END_TEST

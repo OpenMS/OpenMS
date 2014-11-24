@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,13 +64,13 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  template <typename PeakType, typename FeatureType>
+  template <typename PeakType>
   class FeatureFinderAlgorithmIsotopeWavelet :
-    public FeatureFinderAlgorithm<PeakType, FeatureType>
+    public FeatureFinderAlgorithm<PeakType>
   {
 public:
 
-    typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
+    typedef FeatureFinderAlgorithm<PeakType> Base;
 
 
     /** @brief Default Constructor */
@@ -341,7 +341,7 @@ public:
       return "isotope_wavelet";
     }
 
-    static FeatureFinderAlgorithm<PeakType, FeatureType> * create()
+    static FeatureFinderAlgorithm<PeakType> * create()
     {
       return new FeatureFinderAlgorithmIsotopeWavelet();
     }

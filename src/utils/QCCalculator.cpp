@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -393,23 +393,26 @@ protected:
     Size below_10k = 0;
     for (Size i = 0; i < exp.size(); ++i)
     {
-      UInt sum = 0;
-      for (Size j = 0; j < exp[i].size(); ++j)
+      if (exp[i].getMSLevel() == 1)
       {
-        sum += exp[i][j].getIntensity();
+        UInt sum = 0;
+        for (Size j = 0; j < exp[i].size(); ++j)
+        {
+          sum += exp[i][j].getIntensity();
+        }
+        if (sum > max)
+        {
+          max = sum;
+        }
+        if (sum < 10000)
+        {
+          ++below_10k;
+        }
+        std::vector<String> row;
+        row.push_back(exp[i].getRT());
+        row.push_back(sum);
+        at.tableRows.push_back(row);
       }
-      if (sum > max)
-      {
-        max = sum;
-      }
-      if (sum < 10000)
-      {
-        ++below_10k;
-      }
-      std::vector<String> row;
-      row.push_back(exp[i].getRT());
-      row.push_back(sum);
-      at.tableRows.push_back(row);
     }
     qcmlfile.addRunAttachment(base_name, at);
     
@@ -761,7 +764,7 @@ protected:
     //-------------------------------------------------------------
     // MS quantitation
     //------------------------------------------------------------
-    FeatureMap<> map;
+    FeatureMap map;
     String msqu_ref = base_name + "_msqu";
     if (inputfile_feature != "")
     {
@@ -872,14 +875,14 @@ protected:
       at.colTypes.push_back("RT");
       at.colTypes.push_back("Intensity");
       at.colTypes.push_back("Charge");
-      FeatureMap<> map, map_out;
+      FeatureMap map, map_out;
       FeatureXMLFile f;
       f.load(inputfile_feature, map);
       UInt fiter = 0;
       map.sortByRT();
       while (fiter < map.size())
       {
-        FeatureMap<> map_tmp;
+        FeatureMap map_tmp;
         for (UInt k = fiter; k <= map.size(); ++k)
         {
           if (abs(map[fiter].getRT() - map[k].getRT()) < 0.1)

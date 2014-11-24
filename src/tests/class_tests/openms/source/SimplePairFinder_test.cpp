@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,7 +80,7 @@ START_SECTION((static const String getProductName()))
 END_SECTION
 
 START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, ConsensusMap &result_map)))
-  FeatureMap<> scene;
+  FeatureMap scene;
   Feature feat1;
   Feature feat2;
   Feature feat3;
@@ -100,7 +100,7 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, C
   scene.push_back(feat2);
   scene.push_back(feat3);
   
-  FeatureMap<> model;
+  FeatureMap model;
   Feature feat4;
   Feature feat5;
   Feature feat6;

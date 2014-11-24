@@ -5,6 +5,7 @@ set(directory source/SYSTEM)
 set(sources_list
 File.cpp
 FileWatcher.cpp
+JavaInfo.cpp
 StopWatch.cpp
 SysInfo.cpp
 )

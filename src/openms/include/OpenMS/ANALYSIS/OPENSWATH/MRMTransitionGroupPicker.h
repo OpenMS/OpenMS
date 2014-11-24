@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -107,7 +107,7 @@ public:
       - PeptideRef
       - leftWidth
       - rightWidth
-      - total_xic
+      - total_xic (fragment trace XIC sum)
       - peak_apices_sum
 
     */
@@ -212,7 +212,7 @@ public:
       remove_overlapping_features(picked_chroms, best_left, best_right);
 
       // Check for minimal peak width -> return empty feature (Intensity zero)
-      if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) {return mrmFeature; }
+      if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) {return mrmFeature;}
 
       if (compute_peak_quality_)
       {
@@ -318,6 +318,57 @@ public:
         total_intensity += intensity_sum;
         total_peak_apices += peak_apex_int;
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
+      }
+
+      // Also pick the precursor chromatogram (note total_xic is not extracted here, only for fragment traces)
+      if (transition_group.hasPrecursorChromatogram("Precursor_i0"))
+      {
+        const SpectrumT& chromatogram = transition_group.getPrecursorChromatogram("Precursor_i0");
+
+        // resample the current chromatogram
+        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left, best_right);
+
+        Feature f;
+        double quality = 0;
+        f.setQuality(0, quality);
+        f.setOverallQuality(quality);
+
+        ConvexHull2D::PointArrayType hull_points;
+        double intensity_sum(0.0), rt_sum(0.0);
+        double peak_apex_int = -1;
+        double peak_apex_dist = std::fabs(used_chromatogram.begin()->getMZ() - peak_apex);
+        // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
+        for (typename SpectrumT::const_iterator it = used_chromatogram.begin(); it != used_chromatogram.end(); it++)
+        {
+          if (it->getMZ() > best_left && it->getMZ() < best_right)
+          {
+            DPosition<2> p;
+            p[0] = it->getMZ();
+            p[1] = it->getIntensity();
+            hull_points.push_back(p);
+            if (std::fabs(it->getMZ() - peak_apex) <= peak_apex_dist)
+            {
+              peak_apex_int = p[1];
+              peak_apex_dist = std::fabs(it->getMZ() - peak_apex);
+            }
+            rt_sum += it->getMZ();
+            intensity_sum += it->getIntensity();
+          }
+        }
+
+        if (chromatogram.metaValueExists("precursor_mz")) 
+        {
+          f.setMZ(chromatogram.getMetaValue("precursor_mz"));
+        }
+        f.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
+        f.setIntensity(intensity_sum);
+        ConvexHull2D hull;
+        hull.setHullPoints(hull_points);
+        f.getConvexHulls().push_back(hull);
+        f.setMetaValue("native_id", chromatogram.getNativeID());
+        f.setMetaValue("peak_apex_int", peak_apex_int);
+
+        mrmFeature.addPrecursorFeature(f, "Precursor_i0");
       }
 
       mrmFeature.setRT(peak_apex);
@@ -751,4 +802,5 @@ protected:
   };
 }
 
-#endif
+#endif //  OPENMS_ANALYSIS_OPENSWATH_MRMTRANSITIONGROUPPICKER_H
+

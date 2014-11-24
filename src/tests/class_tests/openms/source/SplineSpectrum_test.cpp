@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,7 +70,7 @@ for (int i=0; i < 11; ++i)
 MSSpectrum<Peak1D> spectrum;
 Peak1D peak;
 spectrum.setRT(1789.0714);
-for (unsigned i=0; i < mz.size(); ++i)
+for (size_t i=0; i < mz.size(); ++i)
 {
     peak.setMZ(mz[i]);
     peak.setIntensity(intensity[i]);
@@ -122,23 +122,13 @@ START_SECTION(double getMzMax() const)
   TEST_EQUAL(spectrum2.getMzMax(), 419.2);
 END_SECTION
 
-MSSpectrum<> empty_spec;
-SplineSpectrum ss_empty(empty_spec);
-
-START_SECTION(unsigned getSplineCount() const)
+START_SECTION(size_t getSplineCount() const)
   TEST_EQUAL(spectrum2.getSplineCount(), 2)
-  
-  // this should be used before getNavigator()
-  TEST_EQUAL(ss_empty.getSplineCount(), 0)
 END_SECTION
 
 START_SECTION(SplineSpectrum::Navigator getNavigator())
   // just to test if it can be called
   SplineSpectrum::Navigator nav = spectrum2.getNavigator();
-
-  // test exception on empty spectrum
-  TEST_EXCEPTION(Exception::InvalidSize, ss_empty.getNavigator())
-
 END_SECTION
 
 START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
@@ -169,7 +159,36 @@ START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
   TEST_REAL_SIMILAR(spectrum2.getNavigator().getNextMz(500.0), 419.2);
 END_SECTION
 
+// Each SplinePackage in a SplineSpectrum must contain two or more data points. If this is not the case, the interpolation might lead to unexpected results.
+// In the example below, a single data point @ 407.5 is placed between two packages. It does not form a SplinePackage on its own, but is instead part of the second SplinePackage.
+std::vector<double> mz3;
+std::vector<double> intensity3;
+for (size_t i=0; i<4; ++i)
+{
+    mz3.push_back(400+i*0.5);
+    intensity3.push_back(10.0);
+}
+mz3.push_back(407.5);
+intensity3.push_back(10.0);
+for (size_t i=0; i<4; ++i)
+{
+    mz3.push_back(410+i*0.5);
+    intensity3.push_back(10.0);
+}
+SplineSpectrum spectrum3(mz3, intensity3);
 
+START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
+  TEST_EQUAL(spectrum3.getSplineCount(),2);
+  TEST_EQUAL(spectrum3.getNavigator().eval(405),0);    // Zero as expected, since 405 is between packages.
+  TEST_EQUAL(spectrum3.getNavigator().eval(408),10);    // One might expect zero, but 407.5 is part of the second package.
+END_SECTION
 
+std::vector<double> mz4;
+std::vector<double> intensity4;
+mz4.push_back(407.5);
+intensity4.push_back(10.0);
+START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
+  TEST_EXCEPTION(Exception::IllegalArgument, new SplineSpectrum(mz4,intensity4));
+END_SECTION
 
 END_TEST

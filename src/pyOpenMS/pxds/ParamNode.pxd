@@ -19,8 +19,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         bool operator==(ParamNode & rhs) nogil except +
         # EntryIterator findEntry(String & name) nogil except +
         # NodeIterator findNode(String & name) nogil except +
-        # POINTER # ParamNode * findParentOf(String & name) nogil except +
-        # POINTER # ParamEntry * findEntryRecursive(String & name) nogil except +
+        ParamNode * findParentOf(String & name) nogil except +
+        ParamEntry * findEntryRecursive(String & name) nogil except +
         void insert(ParamNode & node, String & prefix) nogil except +
         void insert(ParamEntry & entry, String & prefix) nogil except +
         Size size() nogil except +

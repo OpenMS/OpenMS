@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,11 +48,17 @@ namespace OpenMS
     defaults_.setValue("signal_to_noise", 1.0, "Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!)");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
-    defaults_.setValue("spacing_difference", 1.5, "Maximum allowed distance between peaks in multiples of the minimal difference. A higher value is implies a less stringent peak definition since individual signals within the peaks are allowed to further apart. E.g. if the value is set to 1.5 and in a peak the minimal spacing between peaks is 10 mDa, then only signals at most 15 mDa apart will be added to the peak.", ListUtils::create<String>("advanced"));
-    defaults_.setMinFloat("spacing_difference", std::numeric_limits<unsigned>::min()); //must be > 0
+    defaults_.setValue("spacing_difference_gap", 4.0, "The extension of a peak is stopped if the spacing between two subsequent data points exceeds 'spacing_difference_gap * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. '0' to disable the constraint. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
+    defaults_.setMinFloat("spacing_difference_gap", 0.0);
 
-    defaults_.setValue("ms1_only", "false", "If true, peak picking is only applied to MS1 scans. Other scans are copied to the output without changes.");
-    defaults_.setValidStrings("ms1_only", ListUtils::create<String>("true,false"));
+    defaults_.setValue("spacing_difference", 1.5, "Maximum allowed difference between points during peak extension, in multiples of the minimal difference between the peak apex and its two neighboring points. If this difference is exceeded a missing point is assumed (see parameter 'missing'). A higher value implies a less stringent peak definition, since individual signals within the peak are allowed to be further apart. '0' to disable the constraint. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
+    defaults_.setMinFloat("spacing_difference", 0.0);
+
+    defaults_.setValue("missing", 1, "Maximum number of missing points allowed when extending a peak to the left or to the right. A missing data point occurs if the spacing between two subsequent data points exceeds 'spacing_difference * min_spacing'. 'min_spacing' is the smaller of the two spacings from the peak apex to its two neighboring points. Not applicable to chromatograms.", ListUtils::create<String>("advanced"));
+    defaults_.setMinInt("missing", 0);
+
+    defaults_.setValue("ms_levels", ListUtils::create<Int>("1,2"), "List of MS levels for which the peak picking is applied. Other scans are copied to the output without changes.");
+    defaults_.setMinInt("ms_levels", 1);
 
     // parameters for SNT estimator
     defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum<Peak1D> >().getDefaults());
@@ -69,7 +75,13 @@ namespace OpenMS
   void PeakPickerHiRes::updateMembers_()
   {
     signal_to_noise_ = param_.getValue("signal_to_noise");
+    spacing_difference_gap_ = param_.getValue("spacing_difference_gap");
+    if (spacing_difference_gap_ == 0.0) spacing_difference_gap_ = std::numeric_limits<double>::infinity();
     spacing_difference_ = param_.getValue("spacing_difference");
+    if (spacing_difference_ == 0.0) spacing_difference_ = std::numeric_limits<double>::infinity();
+    missing_ = param_.getValue("missing");
+
+    ms_levels_ = getParameters().getValue("ms_levels");
   }
 
 }

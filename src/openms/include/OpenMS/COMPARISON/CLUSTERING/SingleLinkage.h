@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -85,17 +85,10 @@ public:
     void operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold = 1) const;
 
     /// creates a new instance of a SingleLinkage object
-    static ClusterFunctor * create()
-    {
-      return new SingleLinkage();
-    }
+    static ClusterFunctor * create();
 
     /// get the identifier for this object
-    static const String getProductName()
-    {
-      return "SingleLinkage";
-    }
-
+    static const String getProductName();
   };
 
 

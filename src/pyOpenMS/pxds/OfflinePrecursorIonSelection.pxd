@@ -19,12 +19,12 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>" nam
         #  DefaultParamHandler
         OfflinePrecursorIonSelection() nogil except +
         OfflinePrecursorIonSelection(OfflinePrecursorIonSelection) nogil except + #wrap-ignore
-        void makePrecursorSelectionForKnownLCMSMap(FeatureMap[Feature] & features, MSExperiment[ Peak1D, ChromatogramPeak ] & experiment, MSExperiment[ Peak1D, ChromatogramPeak ] & ms2, libcpp_set[ int ] & charges_set, bool feature_based) nogil except +
+        void makePrecursorSelectionForKnownLCMSMap(FeatureMap & features, MSExperiment[ Peak1D, ChromatogramPeak ] & experiment, MSExperiment[ Peak1D, ChromatogramPeak ] & ms2, libcpp_set[ int ] & charges_set, bool feature_based) nogil except +
         # TODO nested STL
-        void getMassRanges(FeatureMap[Feature] & features, 
+        void getMassRanges(FeatureMap & features, 
                            MSExperiment[ Peak1D, ChromatogramPeak ] & experiment,
                            libcpp_vector[ libcpp_vector[ libcpp_pair[ Size, Size ] ] ] & indices) nogil except + # wrap-ignore
-        void createProteinSequenceBasedLPInclusionList(String include_, String rt_model_file, String pt_model_file, FeatureMap[Feature] & precursors) nogil except +
+        void createProteinSequenceBasedLPInclusionList(String include_, String rt_model_file, String pt_model_file, FeatureMap & precursors) nogil except +
         void setLPSolver(SOLVER solver) nogil except +
         SOLVER getLPSolver() nogil except +
 

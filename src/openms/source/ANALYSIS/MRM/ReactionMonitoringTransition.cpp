@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,7 +41,7 @@ namespace OpenMS
 
   ReactionMonitoringTransition::ReactionMonitoringTransition() :
     CVTermList(),
-    precursor_mz_(std::numeric_limits<double>::max()),
+    precursor_mz_(0.0),
     decoy_type_(UNKNOWN),
     library_intensity_(-101)
   {

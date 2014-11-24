@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ namespace OpenMS
   {
   }
 
-  void QuantitativeExperimentalDesign::applyDesign2Resolver(ProteinResolver & resolver, TextFile & file, StringList & file_paths)
+  void QuantitativeExperimentalDesign::applyDesign2Resolver(ProteinResolver& resolver, TextFile& file, StringList& file_paths)
   {
 
     //create mapping from experimental setting to all respective file names
@@ -106,7 +106,7 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::applyDesign2Quantifier(PeptideAndProteinQuant & quantifier, TextFile & file, StringList & file_paths)
+  void QuantitativeExperimentalDesign::applyDesign2Quantifier(PeptideAndProteinQuant& quantifier, TextFile& file, StringList& file_paths)
   {
     //        vector< pair<PeptideAndProteinQuant::PeptideData,PeptideAndProteinQuant::ProteinQuant> >& result)
     //create mapping from experimental setting to all respective file names
@@ -121,14 +121,14 @@ namespace OpenMS
 
     if (in_type == FileTypes::FEATUREXML)
     {
-      FeatureMap<> features;
+      FeatureMap features;
 
       for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
       {
         mergeFeatureMaps_(features, iter->first, iter->second);
       }
       LOG_INFO << "Number of proteinIdentifications: " << features.getProteinIdentifications().size() << endl;
-      ProteinIdentification & proteins = features.getProteinIdentifications()[0];
+      ProteinIdentification& proteins = features.getProteinIdentifications()[0];
 
       quantifier.quantifyPeptides(features);
       quantifier.quantifyProteins(proteins);
@@ -143,14 +143,14 @@ namespace OpenMS
       }
 
       LOG_INFO << "Number of proteinIdentifications: " << consensus.getProteinIdentifications().size() << endl;
-      ProteinIdentification & proteins = consensus.getProteinIdentifications()[0];
+      ProteinIdentification& proteins = consensus.getProteinIdentifications()[0];
 
       quantifier.quantifyPeptides(consensus);
       quantifier.quantifyProteins(proteins);
     }
   }
 
-  void QuantitativeExperimentalDesign::mergeConsensusMaps_(ConsensusMap & out, const String & experiment, StringList & file_paths)
+  void QuantitativeExperimentalDesign::mergeConsensusMaps_(ConsensusMap& out, const String& experiment, StringList& file_paths)
   {
     ConsensusMap map;
 
@@ -169,9 +169,9 @@ namespace OpenMS
     LOG_INFO << endl;
   }
 
-  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap<> & out, const String & experiment, StringList & file_paths)
+  void QuantitativeExperimentalDesign::mergeFeatureMaps_(FeatureMap& out, const String& experiment, StringList& file_paths)
   {
-    FeatureMap<> map;
+    FeatureMap map;
 
     LOG_INFO << "Merge feature maps: " << endl;
     UInt counter = 1;
@@ -179,7 +179,7 @@ namespace OpenMS
     {
       //load should clear the map
       FeatureXMLFile().load(*file_it, map);
-      for (FeatureMap<>::iterator it = map.begin(); it != map.end(); ++it)
+      for (FeatureMap::iterator it = map.begin(); it != map.end(); ++it)
       {
         it->setMetaValue("experiment", DataValue(experiment));
       }
@@ -187,7 +187,7 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::mergeIDFiles_(vector<ProteinIdentification> & proteins, vector<PeptideIdentification> & peptides, const String & experiment, StringList & file_paths)
+  void QuantitativeExperimentalDesign::mergeIDFiles_(vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides, const String& experiment, StringList& file_paths)
   {
     set<String> used_ids;
     vector<ProteinIdentification> additional_proteins;
@@ -250,7 +250,7 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::findRelevantFilePaths_(map<String, StringList> & design2FileBaseName, map<String, StringList> & design2FilePath, StringList & filePaths)
+  void QuantitativeExperimentalDesign::findRelevantFilePaths_(map<String, StringList>& design2FileBaseName, map<String, StringList>& design2FilePath, StringList& filePaths)
   {
     //find all file from the input file that belong to an experimental setting
     // files without a mapping are ignored
@@ -258,7 +258,7 @@ namespace OpenMS
     // for every experimental setup
     for (map<String, StringList>::iterator iter =  design2FileBaseName.begin(); iter != design2FileBaseName.end(); ++iter)
     {
-      StringList & files_base_name_design = iter->second;
+      StringList& files_base_name_design = iter->second;
 
       StringList existing_files_input;
 
@@ -284,7 +284,7 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::analyzeHeader_(UInt & expCol, UInt & fileCol, StringList & header)
+  void QuantitativeExperimentalDesign::analyzeHeader_(UInt& expCol, UInt& fileCol, StringList& header)
   {
     // read parameter
     String experiment = param_.getValue("designer:experiment");
@@ -316,7 +316,7 @@ namespace OpenMS
     }
   }
 
-  void QuantitativeExperimentalDesign::getSeparator_(String & separator)
+  void QuantitativeExperimentalDesign::getSeparator_(String& separator)
   {
     // get separator from parameter setting
     String sep = param_.getValue("designer:separator");
@@ -332,7 +332,7 @@ namespace OpenMS
       separator = " ";
   }
 
-  void QuantitativeExperimentalDesign::mapFiles2Design_(map<String, StringList> & experiments, TextFile & file)
+  void QuantitativeExperimentalDesign::mapFiles2Design_(map<String, StringList>& experiments, TextFile& file)
   {
     // get the defined separator from the parameter setting
     String separator;
@@ -340,7 +340,7 @@ namespace OpenMS
 
     // read the header and split according separator
     StringList header;
-    TextFile::Iterator titer = file.begin();
+    TextFile::ConstIterator titer = file.begin();
     titer->split(separator, header);
     ++titer;
 
@@ -373,7 +373,7 @@ namespace OpenMS
       // if experimental setting is already present, add file name
       if (it != experiments.end())
       {
-        StringList & list = it->second;
+        StringList& list = it->second;
         list.push_back(fileName);
       }
       // otherwise create new list

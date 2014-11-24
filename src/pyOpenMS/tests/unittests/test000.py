@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import pyopenms
+import copy
 
 print(b"IMPORTED b", pyopenms.__file__)
 
@@ -18,8 +19,6 @@ def report(f):
         print(b"run b", f.__name__)
         f(*a, **kw)
     return wrapper
-
-
 
 @report
 def _testMetaInfoInterface(what):
@@ -310,8 +309,7 @@ def testEmpiricalFormula():
     ins.toString()
     ins.isEmpty()
     ins.isCharged()
-    ins.hasElement(b"C")
-    ins.hasElement(6)
+    ins.hasElement( pyopenms.Element() )
 
 @report
 def testIdentificationHit():
@@ -592,6 +590,13 @@ def testConsensusFeature():
 
 
     f = pyopenms.ConsensusFeature()
+    f_ = copy.copy(f)
+    assert f_ == f
+    f_ = copy.deepcopy(f)
+    assert f_ == f
+    f_ = pyopenms.ConsensusFeature(f)
+    assert f_ == f
+
     _testUniqueIdInterface(f)
     _testMetaInfoInterface(f)
 
@@ -655,6 +660,12 @@ def testConsensusMap():
      ConsensusMap.updateRanges
      """
     m = pyopenms.ConsensusMap()
+    m_ = copy.copy(m)
+    assert m_ == m
+    m_ = copy.deepcopy(m)
+    assert m_ == m
+    m_ = pyopenms.ConsensusMap(m)
+    assert m_ == m
 
     m.clear()
     m.clearUniqueId()
@@ -1858,6 +1869,13 @@ def testFeatureMap():
      FeatureMap.updateRanges
     """
     fm = pyopenms.FeatureMap()
+    fm_ = copy.copy(fm)
+    assert fm_ == fm
+    fm_ = copy.deepcopy(fm)
+    assert fm_ == fm
+    fm_ = pyopenms.FeatureMap(fm)
+    assert fm_ == fm
+
     _testUniqueIdInterface(fm)
     fm.clear()
     fm.clearUniqueId()
@@ -1933,7 +1951,7 @@ def testFeatureMap():
     fm2.setUniqueIds()
 
     fm += fm
-    assert fm + fm != fm
+    assert fm + fm2 != fm
 
 
 @report
@@ -2602,6 +2620,13 @@ def testMSExperiment():
      MSExperiment.isSorted
     """
     mse = pyopenms.MSExperiment()
+    mse_ = copy.copy(mse)
+    assert mse_ == mse
+    mse_ = copy.deepcopy(mse)
+    assert mse_ == mse
+    mse_ = pyopenms.MSExperiment(mse)
+    assert mse_ == mse
+
     _testMetaInfoInterface(mse)
     mse.updateRanges()
     mse.sortSpectra(True)
@@ -2637,7 +2662,6 @@ def testMSExperiment():
     assert mse.getSize() >= 0
     assert int(mse.isSorted()) in (0,1)
 
-    import copy
     mse2 = copy.copy(mse)
 
     assert mse.getSize() == mse2.getSize()
@@ -2737,6 +2761,13 @@ def testMSSpectrum():
      MSSpectrum.__ne__
      """
     spec = pyopenms.MSSpectrum()
+    spec_ = copy.copy(spec)
+    assert spec_ == spec
+    spec_ = copy.deepcopy(spec)
+    assert spec_ == spec
+    spec_ = pyopenms.MSSpectrum(spec)
+    assert spec_ == spec
+
     _testMetaInfoInterface(spec)
 
     testSpectrumSetting(spec)
@@ -2777,6 +2808,56 @@ def testMSSpectrum():
     assert ii0 == ii
 
     assert int(spec.isSorted()) in  (0,1)
+
+@report
+def testMSChromatogram():
+    """
+    @tests:
+     MSChromatogram.__init__
+     MSChromatogram.__copy__
+     """
+    chrom = pyopenms.MSChromatogram()
+    chrom_ = copy.copy(chrom)
+    assert chrom_ == chrom
+    chrom_ = copy.deepcopy(chrom)
+    assert chrom_ == chrom
+    chrom_ = pyopenms.MSChromatogram(chrom)
+    assert chrom_ == chrom
+
+    _testMetaInfoInterface(chrom)
+
+    chrom.setName(b"chrom")
+    assert chrom.getName() == b"chrom"
+
+    p = pyopenms.ChromatogramPeak()
+    p.setRT(1000.0)
+    p.setIntensity(200.0)
+
+    chrom.push_back(p)
+    assert chrom.size() == 1
+    assert chrom[0] == p
+
+    chrom.updateRanges()
+    assert isinstance(chrom.findNearest(0.0), int)
+
+    assert isinstance(chrom.getMin()[0], float)
+    assert isinstance(chrom.getMax()[0], float)
+    assert isinstance(chrom.getMinInt(), float)
+    assert isinstance(chrom.getMaxInt(), float)
+
+    assert chrom == chrom
+    assert not chrom != chrom
+
+    mz, ii = chrom.get_peaks()
+    assert len(mz) == len(ii)
+    assert len(mz) == 1
+
+    chrom.set_peaks((mz, ii))
+    mz0, ii0 = chrom.get_peaks()
+    assert mz0 == mz
+    assert ii0 == ii
+
+    assert int(chrom.isSorted()) in  (0,1)
 
 @report
 def testMRMFeature():
@@ -2834,6 +2915,34 @@ def testReactionMonitoringTransition():
     @tests:
      """
     tr = pyopenms.ReactionMonitoringTransition()
+
+@report
+def testTargetedExperiment():
+    """
+    @tests: TargetedExperiment
+     """
+    m = pyopenms.TargetedExperiment()
+    m_ = copy.copy(m)
+    assert m_ == m
+    m_ = copy.deepcopy(m)
+    assert m_ == m
+    m_ = pyopenms.TargetedExperiment(m)
+    assert m_ == m
+
+    m.clear(True)
+    m.setCVs(m.getCVs())
+
+    targeted = m
+
+    targeted.setCVs(targeted.getCVs())
+    targeted.setTargetCVTerms(targeted.getTargetCVTerms())
+    targeted.setPeptides(targeted.getPeptides())
+    targeted.setProteins(targeted.getProteins())
+    targeted.setTransitions(targeted.getTransitions())
+
+    assert m == m
+    assert not m != m
+
 
 @report
 def testMapAlignment():
@@ -3156,8 +3265,20 @@ def testPeptideHit():
 
     ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
     _testMetaInfoInterface(ph)
-    ph.addProteinAccession(b"A")
-    assert ph.getProteinAccessions() == [b"A"]
+
+    assert len(ph.getPeptideEvidences()) == 0
+    assert ph.getPeptideEvidences() == []
+
+    pe = pyopenms.PeptideEvidence()
+    pe.setProteinAccession(b'B_id')
+
+    ph.addPeptideEvidence(pe)
+    assert len(ph.getPeptideEvidences()) == 1
+    assert ph.getPeptideEvidences()[0].getProteinAccession() == b'B_id'
+
+    ph.setPeptideEvidences([pe,pe])
+    assert len(ph.getPeptideEvidences()) == 2
+    assert ph.getPeptideEvidences()[0].getProteinAccession() == b'B_id'
 
     assert ph.getScore() == 1.0
     assert ph.getRank() == 1
@@ -3170,13 +3291,34 @@ def testPeptideHit():
     ph.setSequence(pyopenms.AASequence.fromString(b"AAA", True))
     assert ph.getSequence().toString() == b"AAA"
 
-    ph.setAABefore(b'B')
-    assert ph.getAABefore() == "B"
-    ph.setAAAfter(b'C')
-    assert ph.getAAAfter() == 'C'
-
     assert ph == ph
     assert not ph != ph
+
+@report
+def testPeptideEvidence():
+    """
+    @tests:
+     PeptideEvidence.__init__
+    """
+    pe = pyopenms.PeptideEvidence()
+    assert pe == pe
+    assert not pe != pe
+
+    pe.setProteinAccession(b'B_id')
+    assert pe.getProteinAccession() == b"B_id"
+
+    pe.setAABefore(b'B')
+    assert pe.getAABefore() == b"B"
+    pe.setAAAfter(b'C')
+    assert pe.getAAAfter() == b'C'
+
+    pe.setStart(5)
+    assert pe.getStart() == 5
+    pe.setEnd(9)
+    assert pe.getEnd() == 9
+
+    assert pe == pe
+    assert not pe != pe
 
 
 @report
@@ -3219,7 +3361,11 @@ def testPeptideIdentification():
     assert pi == pi
     assert not pi != pi
 
+    pe = pyopenms.PeptideEvidence()
+    pe.setProteinAccession(b'B_id')
+
     ph = pyopenms.PeptideHit(1.0, 1, 0, pyopenms.AASequence.fromString(b"A", True))
+    ph.addPeptideEvidence(pe)
     pi.insertHit(ph)
     phx, = pi.getHits()
     assert phx == ph
@@ -3227,6 +3373,11 @@ def testPeptideIdentification():
     pi.setHits([ph])
     phx, = pi.getHits()
     assert phx == ph
+
+    rv = set([])
+    peptide_hits = pi.getReferencingHits(pi.getHits(), rv)
+    assert rv == set([])
+    # assert len(peptide_hits) == 1
 
     assert isinstance(pi.getSignificanceThreshold(), float)
     assert isinstance(pi.getScoreType(), bytes)
@@ -3237,37 +3388,6 @@ def testPeptideIdentification():
     pi.assignRanks()
     pi.sort()
     assert not pi.empty()
-
-    rv = []
-    pi.getReferencingHits(b"A", rv)
-    assert rv == []
-    pi.getNonReferencingHits(b"A", rv)
-    hit, = rv
-    assert hit.getSequence().toString()== b"A"
-    assert hit.getScore() == 1.0
-    assert hit.getRank() == 1
-
-    rv = []
-    pi.getReferencingHits([b"A"], rv)
-    assert rv == []
-    pi.getNonReferencingHits([b"A"], rv)
-    hit, = rv
-    assert hit.getSequence().toString()== b"A"
-    assert hit.getScore() == 1.0
-    assert hit.getRank() == 1
-
-    ph = pyopenms.ProteinHit()
-    pi.getReferencingHits([ph], rv)
-    hit, = rv
-    assert hit.getSequence().toString()== b"A"
-    assert hit.getScore() == 1.0
-    assert hit.getRank() == 1
-    rv = []
-    pi.getNonReferencingHits([ph], rv)
-    hit, = rv
-    assert hit.getSequence().toString()== b"A"
-    assert hit.getScore() == 1.0
-    assert hit.getRank() == 1
 
     pi.setSignificanceThreshold(6.0)
 
@@ -3718,7 +3838,8 @@ def testTransformationModels():
                 pyopenms.TransformationModelInterpolated]:
         mod = clz()
         p = pyopenms.Param()
-        clz.getDefaultParameters(p)
+        mod.getDefaultParameters(p)
+
 
 @report
 def testTransformationXMLFile():
@@ -3731,7 +3852,7 @@ def testTransformationXMLFile():
     fh = pyopenms.TransformationXMLFile()
     td = pyopenms.TransformationDescription()
     fh.store(b"test.transformationXML", td)
-    fh.load(b"test.transformationXML", td)
+    fh.load(b"test.transformationXML", td, True)
     assert td.getDataPoints() == []
 
 @report
@@ -4113,4 +4234,21 @@ def test_MapConversion():
     assert(cmap.size() == 2)
     assert(cmap[0].getIntensity() == 10.0)
     assert(cmap[0].getMZ() == 20.0)
+
+def test_BSpline2d():
+
+    x = [1.0, 6.0, 8.0, 10.0, 15.0]
+    y = [2.0, 5.0, 6.0, 12.0, 13.0]
+    spline = pyopenms.BSpline2d(x,y,0, pyopenms.BoundaryCondition.BC_ZERO_ENDPOINTS, 0)
+
+    assert spline.ok()
+    assert abs(spline.eval(6.0) - 5.0 < 0.01)
+    assert abs(spline.derivative(6.0) - 5.0 < 0.01)
+
+    y_new = [4.0, 5.0, 6.0, 12.0, 13.0]
+    spline.solve(y_new)
+
+    assert spline.ok()
+    assert abs(spline.eval(6.0) - 5.0 < 0.01)
+
 

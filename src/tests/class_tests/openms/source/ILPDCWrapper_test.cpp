@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,14 +65,14 @@ START_SECTION(virtual ~ILPDCWrapper())
 END_SECTION
 
 
-START_SECTION((double compute(const FeatureMap<> fm, PairsType &pairs, Size verbose_level) const))
+START_SECTION((double compute(const FeatureMap fm, PairsType &pairs, Size verbose_level) const))
 {
   EmpiricalFormula ef("H1");
   Adduct a(+1, 1, ef.getMonoWeight(), "H1", 0.1, 0, "");
   MassExplainer::AdductsType potential_adducts_;
   potential_adducts_.push_back(a);
   MassExplainer me(potential_adducts_, 1, 3, 2, 0, 0);
-  FeatureMap<> fm;
+  FeatureMap fm;
   ILPDCWrapper::PairsType pairs;
 
   ILPDCWrapper iw;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1318,7 +1318,7 @@ namespace OpenMS
       }
     }
 
-    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap<> >& fm, UInt indentation_level)
+    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap >& fm, UInt indentation_level)
     {
       //TODO: remove dummy
       //os << "\n featurewriter: " << identifier_prefix << "-" << String(identifier) << "-" << String(indentation_level) << "\n";
@@ -1331,7 +1331,7 @@ namespace OpenMS
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());
 
-      for (std::vector<FeatureMap<> >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
+      for (std::vector<FeatureMap >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
       {
         for (std::vector<Feature>::const_iterator fit = fat->begin(); fit != fat->end(); ++fit)
         {

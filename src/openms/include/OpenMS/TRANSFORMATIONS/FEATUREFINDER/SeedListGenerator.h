@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -97,11 +97,11 @@ public:
 
 
     /// Convert a list of seed positions to a feature map (expected format for FeatureFinder)
-    void convertSeedList(const SeedList & seeds, FeatureMap<> & features);
+    void convertSeedList(const SeedList & seeds, FeatureMap & features);
 
 
     /// Convert a feature map with seed positions back to a simple list
-    void convertSeedList(const FeatureMap<> & features, SeedList & seeds);
+    void convertSeedList(const FeatureMap & features, SeedList & seeds);
 
   };
 

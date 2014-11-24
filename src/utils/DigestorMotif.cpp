@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/CHEMISTRY/ElementDB.h>
+#include <OpenMS/CHEMISTRY/Element.h>
 
 #include <map>
 
@@ -141,15 +143,14 @@ protected:
     search_parameters.enzyme = ProteinIdentification::TRYPSIN;
     digestor.setMissedCleavages(missed_cleavages);
 
-    protein_accessions.resize(1, String(""));
     for (UInt i = 0; i < protein_data.size(); ++i)
     {
-      protein_accessions[0] = protein_data[i].identifier;
+      PeptideEvidence pe;
       temp_protein_hit.setSequence(protein_data[i].sequence);
-      temp_protein_hit.setAccession(protein_accessions[0]);
-
+      temp_protein_hit.setAccession(protein_data[i].identifier);
+      pe.setProteinAccession(protein_data[i].identifier);
       digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
-      temp_peptide_hit.setProteinAccessions(protein_accessions);
+      temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe));
       for (UInt j = 0; j < temp_peptides.size(); ++j)
       {
         if (temp_peptides[j].size() >= min_size)
@@ -199,10 +200,11 @@ protected:
 
       for (UInt i = 0; i < protein_data.size(); ++i)
       {
-        protein_accessions[0] = protein_data[i].identifier;
-        temp_protein_hit.setAccession(protein_accessions[0]);
+        PeptideEvidence pe;
+        pe.setProteinAccession(protein_data[i].identifier);
+        temp_protein_hit.setAccession(protein_data[i].identifier);
         digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
-        temp_peptide_hit.setProteinAccessions(protein_accessions);
+        temp_peptide_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe));
         for (UInt j = 0; j < temp_peptides.size(); ++j)
         {
           //vector<double> B_peptide, Y_peptide;
@@ -255,9 +257,16 @@ protected:
                 const Size nG = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'G');
                 const Size nL = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'L');
 
+                const ElementDB* db = ElementDB::getInstance();
+                const Element* C = db->getElement("C");
+                const Element* H = db->getElement("H");
+                const Element* N = db->getElement("N");
+                const Element* O = db->getElement("O");
+                const Element* S = db->getElement("S");
+
                 fp_out << counter << SEP << ">" << protein_accessions[0] << SEP << j << SEP << temp_peptides[j] << SEP
-                       << EF.getNumberOf("C") << SEP << EF.getNumberOf("H") << SEP << EF.getNumberOf("N") << SEP << EF.getNumberOf("O") << SEP
-                       << EF.getNumberOf("S") << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP
+                       << EF.getNumberOf(C) << SEP << EF.getNumberOf(H) << SEP << EF.getNumberOf(N) << SEP << EF.getNumberOf(O) << SEP
+                       << EF.getNumberOf(S) << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP
                        << precisionWrapper(min_mass) << SEP << precisionWrapper(max_mass) << SEP << temp_peptides[j].getFormula() << SEP
                        << nD << SEP << nE << SEP << nK << SEP << nR << SEP << nH << SEP << nY << SEP << nW << SEP << nF << SEP << nC << SEP
                        << nM << SEP << nS << SEP << nT << SEP << nN << SEP << nQ << SEP << nG << SEP << nA << SEP << nV << SEP << nL << SEP

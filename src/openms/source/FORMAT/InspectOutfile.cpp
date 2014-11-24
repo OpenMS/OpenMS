@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -240,10 +240,18 @@ namespace OpenMS
       sequence_with_mods = substrings[peptide_column];
       start = sequence_with_mods.find('.') + 1;
       end = sequence_with_mods.find_last_of('.');
+
+      PeptideEvidence pe;
+
       if (start >= 2)
-        peptide_hit.setAABefore(sequence_with_mods[start - 2]);
+      {
+        pe.setAABefore(sequence_with_mods[start - 2]);
+      }
+
       if (end < sequence_with_mods.length() + 1)
-        peptide_hit.setAAAfter(sequence_with_mods[end + 1]);
+      {
+        pe.setAAAfter(sequence_with_mods[end + 1]);
+      }
 
       //remove modifications (small characters and anything that's not in the alphabet)
       sequence_with_mods = substrings[peptide_column].substr(start, end - start);
@@ -254,7 +262,8 @@ namespace OpenMS
       }
 
       peptide_hit.setSequence(AASequence::fromString(sequence));
-      peptide_hit.addProteinAccession(accession);
+      pe.setProteinAccession(accession);
+      peptide_hit.addPeptideEvidence(pe);
 
       peptide_identification.insertHit(peptide_hit);
     }

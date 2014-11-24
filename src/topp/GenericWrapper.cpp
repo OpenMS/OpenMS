@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,12 +121,12 @@ using namespace std;
   All tokens therein will be replaced and the result will be patched into the <tt>cloptions</tt> string.
   Allowed tokens are:
   <ul>
-  <li>%TMP  --> The current temp directory, fetched using File::getTempDirectory()
-  <li>%DIR --> directory prefix, e.g.:, c:/tmp/mzfile.mzML gives 'c:/tmp'
-  <li>%BASENAME[file] --> the basename of a file, e.g. c:/tmp/myfile.mzML gives 'myfile'
-  <li>%RND --> generates a long random number, which can be used to generate unique filenames in a &lt;file_pre&gt; tag
-  <li>%WORKINGDIR --> expands to the current working directory (default is '.'), settable by &lt;workingdirectory&gt; tag in the .ttd file.
-  <li>%%&lt;param&gt; --> any param registered in the ini_param section, e.g. '%%in'
+  <li>\%TMP  --> The current temp directory, fetched using File::getTempDirectory()
+  <li>\%DIR --> directory prefix, e.g.:, c:/tmp/mzfile.mzML gives 'c:/tmp'
+  <li>\%BASENAME[file] --> the basename of a file, e.g. c:/tmp/myfile.mzML gives 'myfile'
+  <li>\%RND --> generates a long random number, which can be used to generate unique filenames in a &lt;file_pre&gt; tag
+  <li>\%WORKINGDIR --> expands to the current working directory (default is '.'), settable by &lt;workingdirectory&gt; tag in the .ttd file.
+  <li>\%\%&lt;param&gt; --> any param registered in the ini_param section, e.g. '\%\%in'
   </ul>
 
   Example:

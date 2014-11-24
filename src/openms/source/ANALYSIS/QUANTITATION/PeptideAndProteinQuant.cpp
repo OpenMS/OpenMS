@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,7 +52,7 @@ namespace OpenMS
     defaults_.setMinInt("top", 0);
 
     defaults_.setValue("average", "median", "Averaging method used to compute protein abundances from peptide abundances");
-    defaults_.setValidStrings("average", ListUtils::create<String>("median,mean,sum"));
+    defaults_.setValidStrings("average", ListUtils::create<String>("median,mean,weighted_mean,sum"));
 
     StringList true_false = ListUtils::create<String>("true,false");
 
@@ -87,8 +87,8 @@ namespace OpenMS
         data.id_count++;
         data.abundances[hit.getCharge()]; // insert empty element for charge
         // add protein accessions:
-        data.accessions.insert(hit.getProteinAccessions().begin(),
-                               hit.getProteinAccessions().end());
+        set<String> protein_accessions = PeptideHit::extractProteinAccessions(hit);
+        data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
       }
     }
   }
@@ -204,7 +204,7 @@ namespace OpenMS
       all_medians.push_back(med_it->second);
     }
     double overall_median = Math::median(all_medians.begin(),
-                                             all_medians.end());
+                                         all_medians.end());
     SampleAbundances scale_factors;
     for (SampleAbundances::iterator med_it = medians.begin();
          med_it != medians.end(); ++med_it)
@@ -392,6 +392,17 @@ namespace OpenMS
         {
           result = Math::mean(ab_it->second.begin(), ab_it->second.end());
         }
+        else if (average == "weighted_mean")
+        {
+          double sum_intensities = 0;
+          double sum_intensities_squared = 0;
+          for (DoubleList::const_iterator it_intensities = ab_it->second.begin(); it_intensities != ab_it->second.end(); ++it_intensities)
+          {
+            sum_intensities += (*it_intensities);
+            sum_intensities_squared += (*it_intensities) * (*it_intensities);
+          }
+          result = sum_intensities_squared / sum_intensities;
+        }
         else // "sum"
         {
           result = Math::sum(ab_it->second.begin(), ab_it->second.end());
@@ -405,13 +416,13 @@ namespace OpenMS
     }
   }
 
-  void PeptideAndProteinQuant::quantifyPeptides(FeatureMap<>& features)
+  void PeptideAndProteinQuant::quantifyPeptides(FeatureMap& features)
   {
     updateMembers_(); // clear data
     stats_.n_samples = 1;
     stats_.total_features = features.size();
 
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       if (feat_it->getPeptideIdentifications().empty())

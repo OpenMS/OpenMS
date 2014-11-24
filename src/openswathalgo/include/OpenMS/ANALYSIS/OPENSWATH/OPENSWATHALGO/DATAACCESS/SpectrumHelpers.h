@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,6 +49,8 @@ namespace OpenSwath
     value.
 
     @note If there is no signal, mz will be set to -1 and intensity to 0
+    @return Returns true if a signal was found (and false if no signal was found)
+
   */
 //integrate Window
   OPENSWATHALGO_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,

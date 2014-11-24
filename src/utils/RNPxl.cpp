@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -657,13 +657,15 @@ protected:
         ppm_difference = absolute_difference / theo_mz * 1000000;
 
         String protein_accessions;
-        if (hit->getProteinAccessions().size() != 0)
+        set<String> accs = PeptideHit::extractProteinAccessions(*hit);
+
+        for (set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
         {
-          protein_accessions += hit->getProteinAccessions()[0];
-        }
-        for (Size acc = 1; acc < hit->getProteinAccessions().size(); ++acc)
-        {
-          protein_accessions += "," + hit->getProteinAccessions()[acc];
+          if (a_it != accs.begin())
+          {
+            protein_accessions += ",";
+          }
+          protein_accessions += *a_it;
         }
 
         row.no_id = false;
@@ -790,14 +792,16 @@ protected:
       for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
       {
         double rt = (double)pit->getMetaValue("RT");
-        vector<String> accessions = hit->getProteinAccessions();
+
+        set<String> accessions = PeptideHit::extractProteinAccessions(*hit);
 
         String accession_string;
-        for (Size j = 0; j != accessions.size(); ++j)
+        Size j = 0;
+        for (set<String>::const_iterator a_it = accessions.begin(); a_it != accessions.end(); ++a_it, ++j)
         {
           if (j < 3)
           {
-            accession_string += accessions[j] + " ";
+            accession_string += *a_it + " ";
           }
           else
           {

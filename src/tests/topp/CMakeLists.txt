@@ -248,6 +248,16 @@ add_test("TOPP_FeatureFinderMRM_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFin
 set_tests_properties("TOPP_FeatureFinderMRM_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMRM_1")
 
 #------------------------------------------------------------------------------
+# FeatureFinderMultiplex test
+add_test("TOPP_FeatureFinderMultiplex_1" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_parameters.ini -out FeatureFinderMultiplex_1.tmp -out_features FeatureFinderMultiplex_2.tmp -out_mzq FeatureFinderMultiplex_3.tmp)
+add_test("TOPP_FeatureFinderMultiplex_1_out1" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_1_out1" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_1")
+add_test("TOPP_FeatureFinderMultiplex_1_out2" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_1_out2" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_1")
+add_test("TOPP_FeatureFinderMultiplex_1_out3" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_3.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.mzq )
+set_tests_properties("TOPP_FeatureFinderMultiplex_1_out3" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_1")
+
+#------------------------------------------------------------------------------
 # FileConverter tests
 add_test("TOPP_FileConverter_1" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_1_input.mzData -out FileConverter_1.tmp -out_type mzML)
 add_test("TOPP_FileConverter_1_out1" ${DIFF} -whitelist "id=" "location=" "href=" -in1 FileConverter_1.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_1_output.mzML )
@@ -311,6 +321,10 @@ set_tests_properties("TOPP_FileConverter_17_out1" PROPERTIES DEPENDS "TOPP_FileC
 add_test("TOPP_FileConverter_18" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_17_input.consensusXML -no_progress -out FileConverter_18.tmp -out_type csv)
 add_test("TOPP_FileConverter_18_out1" ${DIFF} -in1 FileConverter_18.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_17_output.ibspectra.csv )
 set_tests_properties("TOPP_FileConverter_18_out1" PROPERTIES DEPENDS "TOPP_FileConverter_18")
+# Purpose: test the -write_mzML_index and the -process_lowmemory options 
+add_test("TOPP_FileConverter_19" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_19.tmp  -write_mzML_index true -process_lowmemory -in_type mzML -out_type mzML)
+add_test("TOPP_FileConverter_19_out" ${DIFF} -in1 FileConverter_19.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_19_output.mzML )
+set_tests_properties("TOPP_FileConverter_19_out" PROPERTIES DEPENDS "TOPP_FileConverter_19")
 
 #------------------------------------------------------------------------------
 # FileFilter tests
@@ -454,9 +468,12 @@ add_test("TOPP_FileFilter_42" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_42_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_42.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_42_output.mzML)
 set_tests_properties("TOPP_FileFilter_42_out1" PROPERTIES DEPENDS "TOPP_FileFilter_42")
 # Test XML escaping of our XML handlers
-add_test("TOPP_FileFilter_43" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_43_input.mzML -out FileFilter_43.tmp  -in_type mzML -out_type mzML)
-add_test("TOPP_FileFilter_43_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_43.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_43_output.mzML)
+add_test("TOPP_FileFilter_43" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_43_input.mzML -out FileFilter_43.tmp.mzML -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_43_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileFilter_43.tmp.mzML -in2 ${DATA_DIR_TOPP}/FileFilter_43_output.mzML)
+# We check whether the XML we just produced can be read again
+add_test("TOPP_FileFilter_43_read_again" ${TOPP_BIN_PATH}/FileFilter -test -in FileFilter_43.tmp.mzML -out FileFilter_43.dummy.tmp  -in_type mzML -out_type mzML)
 set_tests_properties("TOPP_FileFilter_43_out1" PROPERTIES DEPENDS "TOPP_FileFilter_43")
+set_tests_properties("TOPP_FileFilter_43_read_again" PROPERTIES DEPENDS "TOPP_FileFilter_43")
 
 #------------------------------------------------------------------------------
 # FileInfo tests
@@ -700,7 +717,7 @@ add_test("TOPP_MapAlignerIdentification_5_out2" ${DIFF} -in1 MapAlignerIdentific
 set_tests_properties("TOPP_MapAlignerIdentification_5_out2" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_5")
 
 #------------------------------------------------------------------------------
-# MapAlignerSpectrumAlignment tests:
+# MapAlignerSpectrum tests:
 add_test("TOPP_MapAlignerSpectrum_1" ${TOPP_BIN_PATH}/MapAlignerSpectrum -test -ini ${DATA_DIR_TOPP}/MapAlignerSpectrum_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input1.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input2.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input3.mzML -out MapAlignerSpectrum_1_output1.tmp MapAlignerSpectrum_1_output2.tmp MapAlignerSpectrum_1_output3.tmp)
 add_test("TOPP_MapAlignerSpectrum_1_out1" ${DIFF} -in1 MapAlignerSpectrum_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output1.mzML )
 set_tests_properties("TOPP_MapAlignerSpectrum_1_out1" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1")
@@ -861,11 +878,24 @@ OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods -te
   add_test("UTILS_MRMTransitionGroupPicker_test_1_out" ${DIFF} -whitelist "id=" -in1 MRMTransitionGroupPicker_test_1.featureXML.tmp -in2 ${DATA_DIR_TOPP}/MRMTransitionGroupPicker_1_output.featureXML)
   set_tests_properties("UTILS_MRMTransitionGroupPicker_test_1_out" PROPERTIES DEPENDS "UTILS_MRMTransitionGroupPicker_test_1")
 
-  add_test("TOPP_OpenSwathWorkflow_1" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_1.chrom.mzML.tmp -out_features OpenSwathWorkflow_1.featureXML.tmp  -test) ## -ini ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_backgroundSubtraction.ini
+  add_test("TOPP_OpenSwathWorkflow_1" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_1.chrom.mzML.tmp -out_features OpenSwathWorkflow_1.featureXML.tmp -test)
   add_test("TOPP_OpenSwathWorkflow_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.featureXML)
   add_test("TOPP_OpenSwathWorkflow_1_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_1.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
+
+  ## Currently not working (due to cubic spline issue) 
+  add_test("TOPP_OpenSwathWorkflow_2" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.mzXML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_input.trafoXML -out_chrom OpenSwathWorkflow_2.chrom.mzML.tmp -out_features OpenSwathWorkflow_2.featureXML.tmp  -test) 
+  add_test("TOPP_OpenSwathWorkflow_2_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_2.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_2_out2" ${DIFF} -in1 OpenSwathWorkflow_2.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_2_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_2_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_2")
+  set_tests_properties("TOPP_OpenSwathWorkflow_2_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_2")
+
+  add_test("TOPP_OpenSwathWorkflow_3" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.TraML -rt_norm ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_input.trafoXML -out_chrom OpenSwathWorkflow_3.chrom.mzML.tmp -out_features OpenSwathWorkflow_3.featureXML.tmp -test -use_ms1_traces)
+  add_test("TOPP_OpenSwathWorkflow_3_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_3.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_3_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_3.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_3_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
+  set_tests_properties("TOPP_OpenSwathWorkflow_3_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_3")
 endif(NOT DISABLE_OPENSWATH)
 
 #------------------------------------------------------------------------------
@@ -918,7 +948,7 @@ add_test("TOPP_PeakPickerWavelet_5" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -i
 add_test("TOPP_PeakPickerWavelet_5_out1" ${DIFF} -in1 PeakPickerWavelet_5.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output_noMetaData.mzML)
 set_tests_properties("TOPP_PeakPickerWavelet_5_out1" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_5")
 
-# "high_res" algorithm with "ms1_only" option:
+# "high_res" algorithm with "ms_levels" option set to only 1:
 add_test("TOPP_PeakPickerHiRes_1" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_input.mzML -out PeakPickerHiRes_1.tmp)
 add_test("TOPP_PeakPickerHiRes_1_out1" ${DIFF} -in1 PeakPickerHiRes_1.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_output.mzML)
 set_tests_properties("TOPP_PeakPickerHiRes_1_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_1")
@@ -935,6 +965,11 @@ set_tests_properties("TOPP_PeakPickerHiRes_3_out1" PROPERTIES DEPENDS "TOPP_Peak
 add_test("TOPP_PeakPickerHiRes_4" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_2_input.mzML -out PeakPickerHiRes_4.tmp -processOption lowmemory)
 add_test("TOPP_PeakPickerHiRes_4_out1" ${DIFF} -in1 PeakPickerHiRes_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_2_output.mzML)
 set_tests_properties("TOPP_PeakPickerHiRes_4_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_4")
+
+# peak picking of a smoothed chromatogram (like in PeakPickerMRM; requires disabling of spacing constraints):
+add_test("TOPP_PeakPickerHiRes_5" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -in ${DATA_DIR_TOPP}/PeakPickerHiRes_5_input.mzML -out PeakPickerHiRes_5.tmp)
+add_test("TOPP_PeakPickerHiRes_5_out1" ${DIFF} -in1 PeakPickerHiRes_5.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_5_output.mzML)
+set_tests_properties("TOPP_PeakPickerHiRes_5_out1" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_5")
 
 #------------------------------------------------------------------------------
 # UTILS_PeakPickerIterative
@@ -953,11 +988,13 @@ add_test("TOPP_LowMemPeakPickerHiRes_RandomAccess_1" ${TOPP_BIN_PATH}/LowMemPeak
 add_test("TOPP_LowMemPeakPickerHiRes_RandomAccess_1_out1" ${DIFF} -in1 LowMemPeakPickerHiRes_RandomAccess_1.tmp -in2 ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_RandomAccess_output.mzML)
 set_tests_properties("TOPP_LowMemPeakPickerHiRes_RandomAccess_1_out1" PROPERTIES DEPENDS "TOPP_LowMemPeakPickerHiRes_RandomAccess_1")
 
-#------------------------------------------------------------------------------
-# Resampler tests
-add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.mzML -sampling_rate 0.3)
-add_test("TOPP_Resampler_1_out1" ${DIFF} -in1 Resampler.mzML -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzML )
-set_tests_properties("TOPP_Resampler_1_out1" PROPERTIES DEPENDS "TOPP_Resampler_1")
+if(WITH_GUI)
+  #------------------------------------------------------------------------------
+  # Resampler tests
+  add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.mzML -sampling_rate 0.3)
+  add_test("TOPP_Resampler_1_out1" ${DIFF} -in1 Resampler.mzML -in2 ${DATA_DIR_TOPP}/Resampler_1_output.mzML )
+  set_tests_properties("TOPP_Resampler_1_out1" PROPERTIES DEPENDS "TOPP_Resampler_1")
+endif()
 
 #------------------------------------------------------------------------------
 # RTModel tests
@@ -1419,25 +1456,29 @@ add_test("TOPP_PeptideIndexer_12_out" ${DIFF} -in1 PeptideIndexer_12_out.tmp -in
 set_tests_properties("TOPP_PeptideIndexer_12_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_12")
 
 
-#------------------------------------------------------------------------------
-# ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
-add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPP}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf -out_dir .)
-set_tests_properties("TOPP_ExecutePipeline_1" PROPERTIES WILL_FAIL 1)
+if(WITH_GUI)
+  #------------------------------------------------------------------------------
+  # ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
+  add_test("TOPP_ExecutePipeline_1" ${TOPP_BIN_PATH}/ExecutePipeline -test -in ${DATA_DIR_TOPP}/ExecutePipeline_1.toppas -resource_file ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf -out_dir .)
+  set_tests_properties("TOPP_ExecutePipeline_1" PROPERTIES WILL_FAIL 1)
+endif()
 
 #------------------------------------------------------------------------------
 # search engine tests (might be optional, depending on presence of external binaries, e.g., omssacl.exe)
 #------------------------------------------------------------------------------
 include(SEARCHENGINES/search_engine_tests.cmake)
 
-#------------------------------------------------------------------------------
-# UTILS tests (if this becomes too much, we should create a separate directory)
-add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.bmp -width 20 -height 15)
-add_test("UTILS_ImageCreator_1_out1" ${DIFF} -in1 ImageCreator1.bmp -in2 ${DATA_DIR_TOPP}/ImageCreator_1_output.bmp )
-set_tests_properties("UTILS_ImageCreator_1_out1" PROPERTIES DEPENDS "UTILS_ImageCreator_1")
-# testing forced out_type
-add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_2_input.mzML -out ImageCreator2.png -out_type bmp -width 20 -height 15 -precursors -precursor_size 3 -precursor_color green -log_intensity)
-add_test("UTILS_ImageCreator_2_out1" ${DIFF} -in1 ImageCreator2.png -in2 ${DATA_DIR_TOPP}/ImageCreator_2_output.bmp )
-set_tests_properties("UTILS_ImageCreator_2_out1" PROPERTIES DEPENDS "UTILS_ImageCreator_2")
+if(WITH_GUI)
+  #------------------------------------------------------------------------------
+  # UTILS tests (if this becomes too much, we should create a separate directory)
+  add_test("UTILS_ImageCreator_1" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_1_input.mzML -out ImageCreator1.bmp -width 20 -height 15)
+  add_test("UTILS_ImageCreator_1_out1" ${DIFF} -in1 ImageCreator1.bmp -in2 ${DATA_DIR_TOPP}/ImageCreator_1_output.bmp )
+  set_tests_properties("UTILS_ImageCreator_1_out1" PROPERTIES DEPENDS "UTILS_ImageCreator_1")
+  # testing forced out_type
+  add_test("UTILS_ImageCreator_2" ${TOPP_BIN_PATH}/ImageCreator -test -in ${DATA_DIR_TOPP}/ImageCreator_2_input.mzML -out ImageCreator2.png -out_type bmp -width 20 -height 15 -precursors -precursor_size 3 -precursor_color green -log_intensity)
+  add_test("UTILS_ImageCreator_2_out1" ${DIFF} -in1 ImageCreator2.png -in2 ${DATA_DIR_TOPP}/ImageCreator_2_output.bmp )
+  set_tests_properties("UTILS_ImageCreator_2_out1" PROPERTIES DEPENDS "UTILS_ImageCreator_2")
+endif()
 
 add_test("UTILS_IDSplitter_1" ${TOPP_BIN_PATH}/IDSplitter -test -in ${DATA_DIR_TOPP}/IDMapper_1_output.featureXML -out IDSplitter_1_output1.tmp -id_out IDSplitter_1_output2.tmp)
 add_test("UTILS_IDSplitter_1_out1" ${DIFF} -in1 IDSplitter_1_output1.tmp -in2 ${DATA_DIR_TOPP}/IDSplitter_1_output.featureXML )
@@ -1452,18 +1493,18 @@ add_test("UTILS_MassCalculator_2" ${TOPP_BIN_PATH}/MassCalculator -test -in_seq 
 add_test("UTILS_MassCalculator_2_out1" ${DIFF} -in1 MassCalculator_2_output.tmp -in2 ${DATA_DIR_TOPP}/MassCalculator_2_output.txt )
 set_tests_properties("UTILS_MassCalculator_2_out1" PROPERTIES DEPENDS "UTILS_MassCalculator_2")
 
+if(WITH_GUI)
+  add_test("UTILS_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out INIUpdater_1_noupdate.toppas.tmp)
+  add_test("UTILS_INIUpdater_1_out" ${DIFF} -in1 INIUpdater_1_noupdate.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas )
+  set_tests_properties("UTILS_INIUpdater_1_out" PROPERTIES DEPENDS "UTILS_INIUpdater_1")
 
-add_test("UTILS_INIUpdater_1" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas -out INIUpdater_1_noupdate.toppas.tmp)
-add_test("UTILS_INIUpdater_1_out" ${DIFF} -in1 INIUpdater_1_noupdate.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_1_noupdate.toppas )
-set_tests_properties("UTILS_INIUpdater_1_out" PROPERTIES DEPENDS "UTILS_INIUpdater_1")
+  add_test("UTILS_INIUpdater_2" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_2_broken.toppas -out INIUpdater_2_broken.toppas.tmp)
+  set_tests_properties("UTILS_INIUpdater_2" PROPERTIES WILL_FAIL 1)
 
-add_test("UTILS_INIUpdater_2" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_2_broken.toppas -out INIUpdater_2_broken.toppas.tmp)
-set_tests_properties("UTILS_INIUpdater_2" PROPERTIES WILL_FAIL 1)
-
-add_test("UTILS_INIUpdater_3" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_3_old.toppas -out INIUpdater_3_old.toppas.tmp)
-add_test("UTILS_INIUpdater_3_out" ${DIFF} -in1 INIUpdater_3_old.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas )
-set_tests_properties("UTILS_INIUpdater_3_out" PROPERTIES DEPENDS "UTILS_INIUpdater_3")
-
+  add_test("UTILS_INIUpdater_3" ${TOPP_BIN_PATH}/INIUpdater -test -in ${DATA_DIR_TOPP}/INIUpdater_3_old.toppas -out INIUpdater_3_old.toppas.tmp)
+  add_test("UTILS_INIUpdater_3_out" ${DIFF} -in1 INIUpdater_3_old.toppas.tmp -in2 ${DATA_DIR_TOPP}/INIUpdater_3_old_out.toppas )
+  set_tests_properties("UTILS_INIUpdater_3_out" PROPERTIES DEPENDS "UTILS_INIUpdater_3")
+endif()
 
 add_test("UTILS_DecoyDatabase_1" ${TOPP_BIN_PATH}/DecoyDatabase -test -in ${DATA_DIR_TOPP}/DecoyDatabase_1.fasta -out DecoyDatabase_1.fasta.tmp)
 add_test("UTILS_DecoyDatabase_1_out" ${DIFF} -in1 DecoyDatabase_1.fasta.tmp -in2 ${DATA_DIR_TOPP}/DecoyDatabase_1_out.fasta )
@@ -1476,7 +1517,7 @@ set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_Decoy
 add_test("UTILS_SimpleSearchEngine_1" ${TOPP_BIN_PATH}/SimpleSearchEngine
 -test -ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
 ${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out SimpleSearchEngine_1_out.tmp
--database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta) 
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
 add_test("UTILS_SimpleSearchEngine_1_out" ${DIFF} -in1 SimpleSearchEngine_1_out.tmp -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
 set_tests_properties("UTILS_SimpleSearchEngine_1_out" PROPERTIES DEPENDS
 "UTILS_SimpleSearchEngine_1")
@@ -1490,6 +1531,3 @@ set_tests_properties("UTILS_FeatureFinderSuperHirn_1_out1" PROPERTIES DEPENDS "U
 add_test("UTILS_FeatureFinderSuperHirn_2" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_2.mzML -out FeatureFinderSuperHirn_2_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_2_parameters.ini)
 add_test("UTILS_FeatureFinderSuperHirn_2_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderSuperHirn_2_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_2_output.featureXML )
 set_tests_properties("UTILS_FeatureFinderSuperHirn_2_out1" PROPERTIES DEPENDS "UTILS_FeatureFinderSuperHirn_2")
-
-
-

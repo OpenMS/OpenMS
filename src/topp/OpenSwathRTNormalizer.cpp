@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -236,7 +236,7 @@ protected:
     {
       boost::shared_ptr<MapType> swath_map (new MapType()); // the map with the extracted ion chromatograms
       boost::shared_ptr<MapType> xic_map (new MapType());
-      FeatureMap<> featureFile;
+      FeatureMap featureFile;
       std::cout << "RT Normalization working on " << file_list[i] << std::endl;
       f.load(file_list[i], *xic_map.get());
 

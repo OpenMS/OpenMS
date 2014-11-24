@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace
         FeatureDeconvolution()                  nogil except +
         FeatureDeconvolution(FeatureDeconvolution)   nogil except + #wrap-ignore
 
-        void compute(FeatureMap[Feature] & input, FeatureMap[Feature] & output, ConsensusMap & cmap1, ConsensusMap & cmap2) nogil except +
+        void compute(FeatureMap & input, FeatureMap & output, ConsensusMap & cmap1, ConsensusMap & cmap2) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>" namespace "OpenMS::FeatureDeconvolution":
     

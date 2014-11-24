@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -218,7 +218,7 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 	p.setValue("mass_max_diff", 0.1);
 	fd.setParameters(p);
 
-	FeatureMap<> fm_in, fm_out;
+	FeatureMap fm_in, fm_out;
 	ConsensusMap cm, cm2;
 	FeatureXMLFile fl;
 	fl.load(OPENMS_GET_TEST_DATA_PATH("FeatureDeconvolution_easy_input.featureXML"), fm_in);

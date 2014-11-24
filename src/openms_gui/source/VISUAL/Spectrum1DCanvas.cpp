@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1118,7 +1118,7 @@ namespace OpenMS
 
     if (isMzToXAxis() ^ is_swapped_) // XOR
     { // only if either one of the conditions holds
-      text = "RT: ";
+      text = "RT:  "; // two spaces, ensuring same indentation as "m/z: " and "int: "
       precision = 2;
     }
     else // only if none or both are true
@@ -1126,8 +1126,8 @@ namespace OpenMS
       text = "m/z: ";
       precision = 8;
     }
-    lines.push_back(text.c_str() + QString::number(mz, 'f', precision));
-    lines.push_back("Int: " + QString::number(it, 'f', 2));
+    lines.push_back(text.c_str() +  QLocale::c().toString(mz, 'f', precision));  // adds group separators (consistency with intensity)
+    lines.push_back("Int: " + QLocale::c().toString(it, 'f', 2));                // adds group separators (every 1e3), to better visualize large numbers (e.g. 23.009.646.54,3));
     drawText_(painter, lines);
   }
 
@@ -1531,11 +1531,11 @@ namespace OpenMS
         ExperimentType out;
         getVisiblePeakData(out);
         addDataProcessing_(out, DataProcessing::FILTERING);
-        FileHandler().storeExperiment(file_name, out);
+        FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
       }
       else
       {
-        FileHandler().storeExperiment(file_name, *layer.getPeakData());
+        FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
       }
     }
   }
