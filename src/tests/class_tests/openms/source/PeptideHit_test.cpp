@@ -186,36 +186,28 @@ END_SECTION
 
         ;
 START_SECTION((void setPeptideEvidences(const vector<PeptideEvidence> & peptide_evidences)))
-	PeptideHit hit;
-    vector<PeptideEvidence> pes(2, PeptideEvidence());
-    pes[0].setProteinAccession("ACC392");
-    pes[1].setProteinAccession("ACD392");
-    hit.setPeptideEvidences(pes);
+     PeptideHit hit;
+     vector<PeptideEvidence> pes(2, PeptideEvidence());
+     pes[0].setProteinAccession("ACC392");
+     pes[1].setProteinAccession("ACD392");
+     hit.setPeptideEvidences(pes);
     TEST_EQUAL(hit.getPeptideEvidences().size(), 2)
     TEST_EQUAL(hit.getPeptideEvidences()[0].getProteinAccession() == String("ACC392"), true)
     TEST_EQUAL(hit.getPeptideEvidences()[1].getProteinAccession() == String("ACD392"), true)
 END_SECTION
 
-    /* TODO implement missing
-START_SECTION((void setProteinAccessions(const std::vector< String > &accessions)))
-	vector<String> vec;
-	vec.push_back("ACC392");
-	vec.push_back("ACD392");
-	PeptideHit hit;
-	hit.addProteinAccession("ACC392");
-	hit.addProteinAccession("ACD392");
-	TEST_EQUAL(vec == hit.getProteinAccessions(), true)
+
+START_SECTION((const std::set<String>& extractProteinAccessions() const))
+     PeptideHit hit;
+     vector<PeptideEvidence> pes(2, PeptideEvidence());
+     pes[0].setProteinAccession("ACC392");
+     pes[1].setProteinAccession("ACD392");
+     hit.setPeptideEvidences(pes);
+     TEST_EQUAL(hit.extractProteinAccessions().size(), 2)
+     TEST_EQUAL(*hit.extractProteinAccessions().begin(), "ACC392")
+     TEST_EQUAL(*hit.extractProteinAccessions().rbegin(), "ACD392")
 END_SECTION
 
-START_SECTION((const std::vector<String>& getProteinAccessions() const))
-	PeptideHit hit;
-	hit.addProteinAccession("ACC392");
-	hit.addProteinAccession("ACD392");
-	TEST_EQUAL(hit.getProteinAccessions().size(), 2)
-	TEST_EQUAL(hit.getProteinAccessions()[0], "ACC392")
-	TEST_EQUAL(hit.getProteinAccessions()[1], "ACD392")
-END_SECTION
-*/
 START_SECTION((Int getCharge() const))
 	PeptideHit hit;
 	

@@ -156,10 +156,10 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
 
   TEST_EQUAL(f_maps[0].size(), 2)
 
-  set<String> protein_accessions1 = PeptideHit::extractProteinAccessions(f_maps[0][0].getPeptideIdentifications()[0].getHits()[0]);
+  set<String> protein_accessions1 = f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
   TEST_EQUAL(protein_accessions1.size(), 1)
 
-  set<String> protein_accessions2 = PeptideHit::extractProteinAccessions(f_maps[0][1].getPeptideIdentifications()[0].getHits()[0]);
+  set<String> protein_accessions2 = f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
   TEST_EQUAL(protein_accessions2.size(), 2)
 }
 END_SECTION

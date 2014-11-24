@@ -373,7 +373,7 @@ protected:
             pep_it->getHits().resize(1); // restrict to best hit for simplicity
             peptides.push_back(*pep_it);
 
-            set<String> protein_accessions = PeptideHit::extractProteinAccessions(hit);
+            set<String> protein_accessions = hit.extractProteinAccessions();
 
             // copy over proteins:
             for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)

@@ -324,7 +324,7 @@ namespace OpenMS
             }
           }
 
-          std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(p_hit);
+          std::set<String> protein_accessions = p_hit.extractProteinAccessions();
           std::set<UInt> ids;
           for (std::set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
           {

@@ -851,7 +851,7 @@ protected:
       // keep track of protein accessions:
       const PeptideHit& hit = pm_it->second.begin()->second[0]->getHits()[0];
 
-      set<String> current_accessions = PeptideHit::extractProteinAccessions(hit);
+      set<String> current_accessions = hit.extractProteinAccessions();
       // missing protein accession would crash OpenSwath algorithms:
       if (current_accessions.empty())
       {

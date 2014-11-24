@@ -87,7 +87,7 @@ namespace OpenMS
         data.id_count++;
         data.abundances[hit.getCharge()]; // insert empty element for charge
         // add protein accessions:
-        set<String> protein_accessions = PeptideHit::extractProteinAccessions(hit);
+        set<String> protein_accessions = hit.extractProteinAccessions();
         data.accessions.insert(protein_accessions.begin(), protein_accessions.end());
       }
     }

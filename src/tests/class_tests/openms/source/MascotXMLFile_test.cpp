@@ -118,18 +118,18 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     TEST_EQUAL(peptide_identifications[0].getHits().size(), 2);
 
     peptide_hit = peptide_identifications[0].getHits()[0];
-    set<String> ref_set = PeptideHit::extractProteinAccessions(peptide_hit);
+    set<String> ref_set = peptide_hit.extractProteinAccessions();
     vector<String> references(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 2);
     TEST_EQUAL(references[0], "AAN17824");
     TEST_EQUAL(references[1], "GN1736");
     peptide_hit = peptide_identifications[0].getHits()[1];
-    ref_set = PeptideHit::extractProteinAccessions(peptide_hit);
+    ref_set = peptide_hit.extractProteinAccessions();
     references = vector<String>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "AAN17824");
     peptide_hit = peptide_identifications[1].getHits()[0];
-    ref_set = PeptideHit::extractProteinAccessions(peptide_hit);
+    ref_set = peptide_hit.extractProteinAccessions();
     references = vector<String>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "GN1736");
@@ -198,7 +198,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     vector<PeptideEvidence> pes = peptide_hit.getPeptideEvidences();
     TEST_EQUAL(pes.size(), 0);
     pes = peptide_identifications[34].getHits()[0].getPeptideEvidences();
-    set<String> accessions = PeptideHit::extractProteinAccessions(peptide_identifications[34].getHits()[0]);
+    set<String> accessions = peptide_identifications[34].getHits()[0].extractProteinAccessions();
     references = vector<String>(accessions.begin(), accessions.end()); // corresponds to <peptide query="35" ...>
     ABORT_IF(references.size() != 5);
     TEST_EQUAL(references[0], "IPI00022434");
@@ -289,18 +289,18 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 
   peptide_hit = peptide_identifications[0].getHits()[0];  
-  set<String> accessions = PeptideHit::extractProteinAccessions(peptide_hit);
+  set<String> accessions = peptide_hit.extractProteinAccessions();
   references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 2)
   TEST_EQUAL(references[0], "AAN17824")
   TEST_EQUAL(references[1], "GN1736")  
   peptide_hit = peptide_identifications[0].getHits()[1];
-  accessions = PeptideHit::extractProteinAccessions(peptide_hit);
+  accessions = peptide_hit.extractProteinAccessions();
   references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "AAN17824")
   peptide_hit = peptide_identifications[1].getHits()[0];
-  accessions = PeptideHit::extractProteinAccessions(peptide_hit);
+  accessions = peptide_hit.extractProteinAccessions();
   references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "GN1736")

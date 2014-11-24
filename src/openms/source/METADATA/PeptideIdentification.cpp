@@ -264,7 +264,7 @@ namespace OpenMS
     std::vector<PeptideHit> filtered;
     for (std::vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
     {
-      set<String> hit_accessions = PeptideHit::extractProteinAccessions(*h_it);
+      set<String> hit_accessions = h_it->extractProteinAccessions();
       set<String> intersect;
       set_intersection(hit_accessions.begin(), hit_accessions.end(), accession.begin(), accession.end(), std::inserter(intersect, intersect.begin()));
       if (!intersect.empty())
