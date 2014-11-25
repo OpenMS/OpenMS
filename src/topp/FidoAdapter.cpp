@@ -394,9 +394,11 @@ protected:
       if (!group.accessions.empty())
       {
         protein_counter += group.accessions.size();
+        sort(group.accessions.begin(), group.accessions.end());
         groups.push_back(group);
       }
     }
+    sort(groups.begin(), groups.end());
     protein.getIndistinguishableProteins() = groups;
     protein.setMetaValue("Fido_prob_protein", prob_protein);
     protein.setMetaValue("Fido_prob_peptide", prob_peptide);
