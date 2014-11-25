@@ -454,7 +454,7 @@ namespace OpenMS
         // store m/z value, eases matching
         pep_ident.getHits().back().setMetaValue("MZ", ms_it->getPrecursors()[prec_idx].getMZ());
 
-        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(pep_ident.getHits().back());
+        std::set<String> protein_accessions = pep_ident.getHits().back().extractProteinAccessions();
         // store protein accessions
         accessions.insert(protein_accessions.begin(), protein_accessions.end());
 

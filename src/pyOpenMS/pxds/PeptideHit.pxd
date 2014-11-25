@@ -1,4 +1,6 @@
 from libcpp cimport bool
+from libcpp.vector cimport vector as libcpp_vector
+from libcpp.set cimport set as libcpp_set
 from Types cimport *
 from DataValue cimport *
 from Feature cimport *
@@ -28,6 +30,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         libcpp_vector[PeptideEvidence] getPeptideEvidences() nogil except +
         void setPeptideEvidences(libcpp_vector[PeptideEvidence]) nogil except +
         void addPeptideEvidence(PeptideEvidence) nogil except +
+        libcpp_set[String] extractProteinAccessions() nogil except +
 
         void setScore(float ) nogil except +
         void setRank(UInt) nogil except +
