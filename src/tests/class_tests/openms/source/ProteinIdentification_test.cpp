@@ -559,7 +559,7 @@ START_SECTION(([ProteinIdentification::ProteinGroup] ProteinGroup()))
 END_SECTION
 
 
-START_SECTION(([ProteinIdentification::ProteinGroup] bool operator==(const ProteinGroup rhs) const))
+START_SECTION(([ProteinIdentification::ProteinGroup] bool operator==(const ProteinGroup& rhs) const))
   ProteinIdentification::ProteinGroup p, p_c;
 
   p.probability = 0.5;
@@ -571,6 +571,40 @@ START_SECTION(([ProteinIdentification::ProteinGroup] bool operator==(const Prote
 
   p_c = p;
   TEST_EQUAL(p == p_c, true)
+END_SECTION
+
+
+START_SECTION(([ProteinIdentification::ProteinGroup] bool operator<(const ProteinGroup& rhs) const))
+{
+  ProteinIdentification::ProteinGroup p1, p2;
+
+  // both are equal:
+  TEST_EQUAL(p1 < p2, false);
+  TEST_EQUAL(p2 < p1, false);
+
+  // different probabilities:
+  p1.probability = 0.1;
+  p2.probability = 0.2;
+  TEST_EQUAL(p2 < p1, true); // yes! (see documentation)
+  TEST_EQUAL(p1 < p2, false);
+  
+  // equal again:
+  p2.probability = 0.1;
+  p1.accessions.push_back("bla");
+  p2.accessions.push_back("bla");
+  TEST_EQUAL(p1 < p2, false);
+  TEST_EQUAL(p2 < p1, false);
+
+  // different numbers of accessions:
+  p2.accessions.push_back("blubb");
+  TEST_EQUAL(p1 < p2, true);
+  TEST_EQUAL(p2 < p1, false);
+
+  // different accessions:
+  p1.accessions.push_back("laber");
+  TEST_EQUAL(p1 < p2, false);
+  TEST_EQUAL(p2 < p1, true);
+}
 END_SECTION
 
 
@@ -629,7 +663,7 @@ START_SECTION((vector<ProteinGroup>& getProteinGroups()))
 	
 	TEST_EQUAL(id.getProteinGroups().size(), 1);
 	TEST_EQUAL(id.getProteinGroups()[0] == g, true);  
-  TEST_EQUAL(id.getProteinGroups()[0].probability = 0.1, 0.1);
+  TEST_EQUAL(id.getProteinGroups()[0].probability, 0.99);
 END_SECTION
 
 
