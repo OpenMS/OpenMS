@@ -4873,7 +4873,9 @@ protected:
       //native id
       String native_id = spec.getNativeID();
       if (renew_native_ids)
+      {
         native_id = String("spectrum=") + s;
+      }
 
       long offset = os.tellp();
       spectra_offsets.push_back(make_pair(native_id, offset + 3));
