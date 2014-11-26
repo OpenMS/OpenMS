@@ -2439,7 +2439,6 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   StringList out;
 
   generateMzTabMetaDataSection_(mz_tab.getMetaData(), out);
-
   bool complete = (mz_tab.getMetaData().mz_tab_mode.toCellString() == "Complete");
   bool quantification = (mz_tab.getMetaData().mz_tab_type.toCellString() == "Quantification");
   Size ms_runs = mz_tab.getMetaData().ms_run.size();
@@ -2448,7 +2447,6 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   const MzTabPeptideSectionRows& peptide_section = mz_tab.getPeptideSectionRows();
   const MzTabPSMSectionRows& psm_section = mz_tab.getPSMSectionRows();
   const MzTabSmallMoleculeSectionRows& smallmolecule_section = mz_tab.getSmallMoleculeSectionRows();
-
   if (!protein_section.empty())
   {
     Size search_ms_runs;
@@ -2527,7 +2525,6 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
     {
       // TODO warn
     }
-
     out.push_back(generateMzTabPSMHeader_(n_search_engine_scores, mz_tab.getPSMOptionalColumnNames()));
     generateMzTabPSMSection_(mz_tab.getPSMSectionRows(), out);
   }
@@ -2559,7 +2556,7 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
   if (empty_rows.empty() && comment_rows.empty())
   {
     TextFile tmp_out;
-    for (TextFile::ConstIterator it = out.begin(); it != out.end(); )
+    for (TextFile::ConstIterator it = out.begin(); it != out.end(); ++it)
     {
       tmp_out.addLine(*it);
     }
