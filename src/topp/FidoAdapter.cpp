@@ -367,7 +367,7 @@ protected:
     }
     output.split("\n", lines);
 
-    Size protein_counter = 0;
+    Size protein_counter = 0, zero_proteins = 0;
     vector<ProteinIdentification::ProteinGroup> groups;
     for (vector<String>::iterator line_it = lines.begin(); 
          line_it != lines.end(); ++line_it)
@@ -377,19 +377,22 @@ protected:
       istringstream line(*line_it);
       ProteinIdentification::ProteinGroup group;
       line >> group.probability;
-      if ((group.probability == 0.0) && !keep_zero_group) continue;
       // parse accessions:
       String accession;
-      line >> accession;
       while (line)
       {
+        line >> accession;
         if (accession.size() > 1) // skip braces and commas
         {
+          if (group.probability == 0.0)
+          {
+            ++zero_proteins;
+            if (!keep_zero_group) continue;
+          }
           // de-sanitize:
           accession = sanitized_accessions_.right.find(accession)->second;
           group.accessions.push_back(accession);
         }
-        line >> accession;
       }
       if (!group.accessions.empty())
       {
@@ -404,8 +407,10 @@ protected:
     protein.setMetaValue("Fido_prob_peptide", prob_peptide);
     protein.setMetaValue("Fido_prob_spurious", prob_spurious);
     LOG_INFO << "Inferred " << protein_counter << " proteins in "
-             << groups.size() << " groups." << endl;
- 
+             << groups.size() << " groups ("
+             << (keep_zero_group ? "including " : "") << zero_proteins
+             << " proteins with probability zero"
+             << (keep_zero_group ? ")." : " not included).") << endl; 
     return true;
   }
 
