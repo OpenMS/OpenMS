@@ -124,6 +124,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("exe", "<path>", "", "Path to the executable to use, or to the directory containing the 'Fido' and 'FidoChooseParameters' executables; may be empty if the executables are globally available.", false);
+    registerStringOption_("prob_param", "<string>", "Peptide Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
@@ -147,7 +148,8 @@ protected:
   // write a PSM graph file for Fido based on the given peptide identifications;
   // optionally only use IDs with given identifier (filter by protein ID run):
   void writePSMGraph_(vector<PeptideIdentification>& peptides, 
-                      const String& out_path, const String& identifier="")
+                      const String& out_path, const String& prob_param = "",
+                      const String& identifier = "")
   {
     ofstream graph_out(out_path.c_str());
     bool warned_once = false;
@@ -165,29 +167,41 @@ protected:
       {
         continue;
       }
-      double score = hit.getScore();
 
+      double score = 0.0;
       String error_reason;
-      if (!pep_it->isHigherScoreBetter())
+      if (prob_param.empty() || !hit.metaValueExists(prob_param))
       {
-        // workaround for important TOPP tools:
-        String score_type = pep_it->getScoreType();
-        score_type.toLower();
-        if ((score_type == "posterior error probability") || 
-            score_type.hasPrefix("consensus_"))
+        score = hit.getScore();
+        if (!pep_it->isHigherScoreBetter())
         {
-          if (!warned_once)
+          // workaround for important TOPP tools:
+          String score_type = pep_it->getScoreType();
+          score_type.toLower();
+          if ((score_type == "posterior error probability") || 
+              score_type.hasPrefix("consensus_"))
           {
-            LOG_WARN << "Warning: Scores of peptide hits seem to be posterior "
-              "error probabilities. Converting to (positive) posterior "
-              "probabilities." << endl;
-            warned_once = true;
+            if (!warned_once)
+            {
+              LOG_WARN << "Warning: Scores of peptide hits seem to be posterior"
+                " error probabilities. Converting to (positive) posterior"
+                " probabilities." << endl;
+              warned_once = true;
+            }
+            score = 1.0 - score;
           }
-          score = 1.0 - score;
+          else
+          {
+            error_reason = "lower scores are better";
+          }
         }
-        else error_reason = "lower scores are better";
       }
-      else if (score < 0.0)
+      else
+      {
+        score = hit.getMetaValue(prob_param);
+      }
+
+      if (score < 0.0)
       {
         error_reason = "score < 0";
       }
@@ -195,6 +209,7 @@ protected:
       {
         error_reason = "score > 1";
       }
+
       if (!error_reason.empty())
       {
         String msg = "Error: Unsuitable score type for peptide-spectrum "
@@ -300,7 +315,8 @@ protected:
     String num = counter ? "." + String(counter) : "";
     String input_graph = temp_dir + "fido_input_graph" + num + ".txt";
     fido_params.replaceInStrings("INPUT_GRAPH", input_graph.toQString());
-    writePSMGraph_(peptides, input_graph, protein.getIdentifier());
+    writePSMGraph_(peptides, input_graph, getStringOption_("prob_param"),
+                   protein.getIdentifier());
     if (choose_params)
     {
       String input_proteins = temp_dir + "fido_input_proteins" + num + ".txt";
@@ -420,6 +436,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String exe = getStringOption_("exe");
+    String prob_param = getStringOption_("prob_param");
     bool separate_runs = getFlag_("separate_runs");
     bool keep_zero_group = getFlag_("keep_zero_group");
     double prob_protein = getDoubleOption_("prob:protein");
