@@ -118,10 +118,10 @@ START_SECTION((virtual double evaluate(double value) const))
   TEST_REAL_SIMILAR(tm_const.evaluate(-4.0), 0.0150243);
   TEST_REAL_SIMILAR(tm_const.evaluate(4.0), -0.00429613);
 
-  params.setValue("extrapolate", "identity");
-  TransformationModelBSpline tm_ident(data, params);
-  TEST_REAL_SIMILAR(tm_ident.evaluate(-4.0), -4.0);
-  TEST_REAL_SIMILAR(tm_ident.evaluate(4.0), 4.0);
+  params.setValue("extrapolate", "global_linear");
+  TransformationModelBSpline tm_global(data, params);
+  TEST_REAL_SIMILAR(tm_global.evaluate(-4.0), -0.959617);
+  TEST_REAL_SIMILAR(tm_global.evaluate(4.0), 1.10039);
 }
 END_SECTION
 

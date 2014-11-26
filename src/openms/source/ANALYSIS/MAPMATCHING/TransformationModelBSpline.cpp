@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 using namespace std;
 
@@ -92,9 +93,15 @@ namespace OpenMS
     {
       extrapolate_ = EX_BSPLINE;
     }
-    else if (extrapolate == "identity")
+    else if (extrapolate == "global_linear")
     {
-      extrapolate_ = EX_IDENTITY;
+      extrapolate_ = EX_GLOBAL_LINEAR;
+      TransformationModelLinear lm(data, Param());
+      lm.getParameters(slope_min_, offset_min_);
+      slope_max_ = slope_min_;
+      // extrapolation (left/right) considers xmin_/xmax_ as the origin (x = 0):
+      offset_min_ = lm.evaluate(xmin_);
+      offset_max_ = lm.evaluate(xmax_);
     }
     else // "linear" or "constant"
     {
@@ -124,27 +131,25 @@ namespace OpenMS
   {
     if ((value < xmin_) && (extrapolate_ != EX_BSPLINE)) // extrapolate (left)
     {
-      if (extrapolate_ == EX_LINEAR)
-      {
-        return offset_min_ - slope_min_ * (xmin_ - value);
-      }
       if (extrapolate_ == EX_CONSTANT)
       {
         return offset_min_;
       }
-      return value; // "EX_IDENTITY"
+      else // "EX_LINEAR" or "EX_GLOBAL_LINEAR"
+      {
+        return offset_min_ - slope_min_ * (xmin_ - value);
+      }
     }
     if ((value > xmax_) && (extrapolate_ != EX_BSPLINE)) // extrapolate (right)
     {
-      if (extrapolate_ == EX_LINEAR)
-      {
-        return offset_max_ + slope_max_ * (value - xmax_);
-      }
       if (extrapolate_ == EX_CONSTANT)
       {
         return offset_max_;
       }
-      return value; // "EX_IDENTITY"
+      else // "EX_LINEAR" or "EX_GLOBAL_LINEAR"
+      {
+        return offset_max_ + slope_max_ * (value - xmax_);
+      }
     }
     return spline_->eval(value);
   }
@@ -157,8 +162,8 @@ namespace OpenMS
     params.setMinFloat("wavelength", 0.0);
     params.setValue("num_nodes", 5, "Number of nodes for B-spline fitting. Overrides 'wavelength' if set (to two or greater). A lower value means more smoothing.");
     params.setMinInt("num_nodes", 0);
-    params.setValue("extrapolate", "linear", "Method to use for extrapolation beyond the original data range. 'linear': Linear extrapolation using the slope of the B-spline at the corresponding endpoint. 'b_spline': Use the B-spline (as for interpolation). 'constant': Use the constant value of the B-spline at the corresponding endpoint. 'identity': Return the input value, i.e. f(x) = x.");
-    params.setValidStrings("extrapolate", ListUtils::create<String>("linear,b_spline,constant,identity"));
+    params.setValue("extrapolate", "linear", "Method to use for extrapolation beyond the original data range. 'linear': Linear extrapolation using the slope of the B-spline at the corresponding endpoint. 'b_spline': Use the B-spline (as for interpolation). 'constant': Use the constant value of the B-spline at the corresponding endpoint. 'global_linear': Use a linear fit through the data (which will most probably introduce discontinuities at the ends of the data range).");
+    params.setValidStrings("extrapolate", ListUtils::create<String>("linear,b_spline,constant,global_linear"));
     params.setValue("boundary_condition", 2, "Boundary condition at B-spline endpoints: 0 (value zero), 1 (first derivative zero) or 2 (second derivative zero)");
     params.setMinInt("boundary_condition", 0);
     params.setMaxInt("boundary_condition", 2);

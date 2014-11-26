@@ -79,7 +79,7 @@ protected:
     double xmin_, xmax_;
 
     /// Method to use for extrapolation (beyond 'xmin_'/'xmax_')
-    enum { EX_LINEAR, EX_BSPLINE, EX_CONSTANT, EX_IDENTITY } extrapolate_;
+    enum { EX_LINEAR, EX_BSPLINE, EX_CONSTANT, EX_GLOBAL_LINEAR } extrapolate_;
 
     /// Parameters for constant or linear extrapolation 
     double offset_min_, offset_max_, slope_min_, slope_max_;
