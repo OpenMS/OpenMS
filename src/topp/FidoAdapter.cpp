@@ -124,7 +124,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("exe", "<path>", "", "Path to the executable to use, or to the directory containing the 'Fido' and 'FidoChooseParameters' executables; may be empty if the executables are globally available.", false);
-    registerStringOption_("prob_param", "<string>", "Peptide Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
+    registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
@@ -424,9 +424,10 @@ protected:
     protein.setMetaValue("Fido_prob_spurious", prob_spurious);
     LOG_INFO << "Inferred " << protein_counter << " proteins in "
              << groups.size() << " groups ("
-             << (keep_zero_group ? "including " : "") << zero_proteins
-             << " proteins with probability zero"
-             << (keep_zero_group ? ")." : " not included).") << endl; 
+             << ((keep_zero_group && zero_proteins) ? "including " : "")
+             << zero_proteins << " proteins with probability zero"
+             << ((keep_zero_group || !zero_proteins) ? ")." : " not included).")
+              << endl; 
     return true;
   }
 
