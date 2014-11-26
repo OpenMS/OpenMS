@@ -889,7 +889,12 @@ namespace OpenMS
                     String mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
 //                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname);
 //                    String mod = m.getName();
-                    String mod = mname + " (" + residues + ")";
+
+                    String mod = mname;
+                    if (residues != ".")
+                    {
+                      mod += " (" + residues + ")";
+                    }
                     if (fixedMod)
                     {
                       fix.push_back(mod);
@@ -1544,9 +1549,13 @@ namespace OpenMS
                 continue;
               }
               if (index == 0)
+              {
                 aas.setNTerminalModification(cv.getName());
+              }
               else if (index == int(aas.size()) + 1)
+              {
                 aas.setCTerminalModification(cv.getName());
+              }
               else
               {
                 try

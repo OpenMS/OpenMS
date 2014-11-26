@@ -91,6 +91,8 @@ namespace OpenMS
 
         @note Do not use this class. It is only needed in MzIdentMLFile.
         @note DOM and STREAM handler for MzIdentML have the same interface for legacy id structures.
+        @note Only upon destruction of this class it can be guaranteed that all
+        data has been appended to the appropriate containers. Do not try to access the data before that.
     */
     class OPENMS_DLLAPI MzIdentMLDOMHandler
     {
