@@ -380,7 +380,7 @@ namespace OpenMS
       out << *hit_it << pid.getScoreType() << pid.getIdentifier();
 
       String accessions;
-      set<String> protein_accessions = PeptideHit::extractProteinAccessions(*hit_it);
+      set<String> protein_accessions = hit_it->extractProteinAccessions();
       for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
       {
         if (acc_it != protein_accessions.begin())
@@ -880,7 +880,7 @@ protected:
                      ++hit_it)
                 {
                   peptides_by_source[index].insert(hit_it->getSequence().toString());
-                  set<String> protein_accessions = PeptideHit::extractProteinAccessions(*hit_it);
+                  set<String> protein_accessions = hit_it->extractProteinAccessions();
                   proteins_by_source[index].insert(protein_accessions.begin(), protein_accessions.end());
                 }
               }

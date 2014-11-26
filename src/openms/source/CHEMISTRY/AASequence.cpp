@@ -693,7 +693,7 @@ namespace OpenMS
   {
     if (position >= peptide_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide_.size(), position);
+      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, peptide_.size());
     }
 
     return peptide_[position]->isModified();

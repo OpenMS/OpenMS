@@ -223,16 +223,15 @@ public:
                 const OpenMS::String& seq_pep, const OpenMS::String& protein,
                 OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(AASequence::fromString(protein), position,
+      AASequence protein_sequence = AASequence::fromString(protein);
+      if (enzyme_.isValidProduct(protein_sequence, position,
                                  seq_pep.length()))
       {
         PeptideProteinMatchInformation match;
         match.protein_index = idx_prot;
         match.position = position;
-        /* TODO add this information
-        match.AABefore = ;
-        match.AAAfter = ;
-        */
+        match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : protein[position - 1];
+        match.AAAfter = (position + seq_pep.length() >= protein.size()) ? PeptideEvidence::C_TERMINAL_AA : protein[position + seq_pep.length()];
         pep_to_prot[idx_pep].insert(match);
         ++filter_passed;
       }
@@ -771,8 +770,9 @@ protected:
           PeptideEvidence pe;
           pe.setProteinAccession(proteins[it_i->protein_index].identifier);
           pe.setStart(it_i->position);
-          /* TODO add other inormation to pe
-           */
+          pe.setEnd(it_i->position + it2->getSequence().size() - 1);
+          pe.setAABefore(it_i->AABefore);
+          pe.setAAAfter(it_i->AAAfter);
           it2->addPeptideEvidence(pe);
 
           runidx_to_protidx[run_idx].insert(it_i->protein_index); // fill protein hits
@@ -797,7 +797,7 @@ protected:
         bool matches_target(false);
         bool matches_decoy(false);
 
-        set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
+        set<String> protein_accessions = it2->extractProteinAccessions();
         for (set<String>::const_iterator it = protein_accessions.begin(); it != protein_accessions.end(); ++it)
         {
           if (prefix)

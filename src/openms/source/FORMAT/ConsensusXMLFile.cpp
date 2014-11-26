@@ -942,7 +942,7 @@ namespace OpenMS
         }
       }
 
-      set<String> protein_accessions = PeptideHit::extractProteinAccessions(id.getHits()[j]);
+      set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
 
       if (!protein_accessions.empty() && !accession_to_id_.empty())
       {
