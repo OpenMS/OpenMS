@@ -47,6 +47,8 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
+
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
@@ -56,6 +58,9 @@
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringBase.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
@@ -1150,22 +1155,27 @@ private:
 
     // sort according to RT and MZ
     exp.sortSpectra();
+    
+    // determine type of spectral data (profile or centroided)
+    bool centroided = (PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS);
 
     /**
      * pick peaks
      */
-    PeakPickerHiRes picker;
-    Param param = picker.getParameters();
-    picker.setLogType(log_type_);
-    param.setValue("ms_levels", ListUtils::create<Int>("1"));
-    param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
-    picker.setParameters(param);
-
+    MSExperiment<Peak1D> exp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;    // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;    // peak boundaries for chromatograms
-
-    MSExperiment<Peak1D> exp_picked;
-    picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
+    if (!centroided)
+    {
+      PeakPickerHiRes picker;
+      Param param = picker.getParameters();
+      picker.setLogType(log_type_);
+      param.setValue("ms_levels", ListUtils::create<Int>("1"));
+      param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
+      picker.setParameters(param);
+    
+      picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
+    }
 
     /**
      * filter for peak patterns
@@ -1173,9 +1183,24 @@ private:
     bool missing_peaks_ = false;
     std::vector<MassPattern> masses = generateMassPatterns_();
     std::vector<MultiplexPeakPattern> patterns = generatePeakPatterns_(charge_min_, charge_max_, isotopes_per_peptide_max_, masses);
-    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
-    filtering.setLogType(log_type_);
-    std::vector<MultiplexFilterResult> filter_results = filtering.filter();
+
+    std::vector<MultiplexFilterResult> filter_results;
+    if (centroided)
+    {
+      // centroided data
+      std::cout << "Centroided data detected.\n";
+      MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
+      filtering.setLogType(log_type_);
+      filter_results = filtering.filter();
+    }
+    else
+    {
+      // profile data
+      std::cout << "Profile data detected.\n";
+      MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
+      filtering.setLogType(log_type_);
+      filter_results = filtering.filter();
+    }
 
     /**
      * cluster filter results

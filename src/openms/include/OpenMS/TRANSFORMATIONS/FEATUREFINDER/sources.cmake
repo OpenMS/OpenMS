@@ -38,6 +38,9 @@ MaxLikeliFitter1D.h
 ModelDescription.h
 MultiplexClustering.h
 MultiplexFiltering.h
+MultiplexFilteringBase.h
+MultiplexFilteringCentroided.h
+MultiplexFilteringProfile.h
 MultiplexFilterResult.h
 MultiplexFilterResultPeak.h
 MultiplexFilterResultRaw.h
