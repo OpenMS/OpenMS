@@ -113,6 +113,50 @@ protected:
       setValidFormats_("out", ListUtils::create<String>("csv"));
     }
 
+    map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(vector<String> mods)
+    {
+      map<Size, MzTabModificationMetaData> mods_mztab;
+      for (vector<String>::iterator sit = mods.begin(); sit != mods.end(); ++sit)
+      {
+        Size index = (sit - mods.begin()) + 1;
+        MzTabModificationMetaData mod;
+        MzTabParameter mp;
+        mp.setCVLabel("UNIMOD");
+        ModificationsDB* mod_db = ModificationsDB::getInstance();
+        // MzTab standard is to just report Unimod accession.
+        ResidueModification m = mod_db->getModification(*sit);
+        String unimod_accession = m.getUniModAccession();
+        mp.setAccession(unimod_accession.toUpper());
+        mp.setName(m.getId());
+        mod.modification = mp;
+
+        if (m.getTermSpecificity() == ResidueModification::C_TERM)
+        {
+          mod.position = MzTabString("Any C-term");
+        }
+        else if (m.getTermSpecificity() == ResidueModification::N_TERM)
+        {
+          mod.position = MzTabString("Any N-term");
+        }
+        else if (m.getTermSpecificity() == ResidueModification::ANYWHERE)
+        {
+          mod.position = MzTabString("Anywhere");
+        }
+        else if (m.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+        {
+          mod.position = MzTabString("Protein C-term");
+        }
+        else if (m.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+        {
+          mod.position = MzTabString("Protein N-term");
+        }
+
+        mod.site = MzTabString(m.getOrigin());
+        mods_mztab[index] = mod;
+      }
+      return mods_mztab;
+    }
+
     ExitCodes main_(int, const char **)
     {
       // parameter handling
@@ -133,8 +177,14 @@ protected:
         FeatureXMLFile f;
         f.load(in_feature, feature_map);
 
-        // compute protein coverage
         vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
+        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+        vector<String> var_mods = sp.variable_modifications;
+        vector<String> fixed_mods = sp.fixed_modifications;
+
+        meta_data.variable_mod = generateMzTabStringFromModifications(var_mods);
+        meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
+
         vector<PeptideIdentification> pep_ids;
 
         for (Size i = 0; i < feature_map.size(); ++i) // collect all (assigned and unassigned to a feature) peptide ids
@@ -168,10 +218,7 @@ protected:
         meta_data.uri[1] = MzTabString(in_feature);
         meta_data.psm_search_engine_score[1] = MzTabParameter();  // TODO: we currently only support psm search engine scores annotated to the identification run
         meta_data.peptide_search_engine_score[1] = MzTabParameter();
-        MzTabModificationMetaData meta_fixed_mod;
-        meta_data.fixed_mod[1] = meta_fixed_mod;  // TODO: find out where IdentificationRun / SearchParameters are stored
-        MzTabModificationMetaData meta_variable_mod;
-        meta_data.variable_mod[1] = meta_variable_mod;
+
         mztab.setMetaData(meta_data);
 
         // pre-analyze data for occuring meta values at feature and peptide hit level
@@ -375,83 +422,8 @@ protected:
         meta_data.mz_tab_mode = MzTabString("Summary");
         meta_data.description = MzTabString("Export from idXML");
 
-        for (vector<String>::iterator sit = var_mods.begin(); sit != var_mods.end(); ++sit)
-        {
-          Size index = (sit - var_mods.begin()) + 1;
-          MzTabModificationMetaData mod;
-          MzTabParameter mp;
-          mp.setCVLabel("UNIMOD");
-          ModificationsDB* mod_db = ModificationsDB::getInstance();
-          // MzTab standard is to just report Unimod accession.
-          ResidueModification m = mod_db->getModification(*sit);
-          String unimod_accession = m.getUniModAccession();
-          mp.setAccession(unimod_accession.toUpper());
-          mp.setName(m.getId());
-          mod.modification = mp;
-
-          if (m.getTermSpecificity() == ResidueModification::C_TERM)
-          {
-            mod.position = MzTabString("Any C-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::N_TERM)
-          {
-            mod.position = MzTabString("Any N-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::ANYWHERE)
-          {
-           mod.position = MzTabString("Anywhere");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
-          {
-            mod.position = MzTabString("Protein C-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-          {
-            mod.position = MzTabString("Protein N-term");
-          }
-
-          mod.site = MzTabString(m.getOrigin());
-          meta_data.variable_mod[index] = mod;
-        }
-
-        for (vector<String>::iterator sit = fixed_mods.begin(); sit != fixed_mods.end(); ++sit)
-        {
-          Size index = (sit - fixed_mods.begin()) + 1;
-          MzTabModificationMetaData mod;
-          MzTabParameter mp;
-          mp.setCVLabel("UNIMOD");
-          ModificationsDB* mod_db = ModificationsDB::getInstance();
-          // MzTab standard is to just report Unimod accession.
-          ResidueModification m = mod_db->getModification(*sit);
-          String unimod_accession = m.getUniModAccession();
-          mp.setAccession(unimod_accession.toUpper());
-          mp.setName(m.getId()); // e.g. "Oxidation"
-          mod.modification = mp;
-
-          if (m.getTermSpecificity() == ResidueModification::C_TERM)
-          {
-            mod.position = MzTabString("Any C-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::N_TERM)
-          {
-            mod.position = MzTabString("Any N-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::ANYWHERE)
-          {
-           mod.position = MzTabString("Anywhere");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
-          {
-            mod.position = MzTabString("Protein C-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-          {
-            mod.position = MzTabString("Protein N-term");
-          }
-
-          mod.site = MzTabString(m.getOrigin());
-          meta_data.fixed_mod[index] = mod;
-        }
+        meta_data.variable_mod = generateMzTabStringFromModifications(var_mods);
+        meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
 
         meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
         MzTabMSRunMetaData ms_run;
@@ -648,83 +620,9 @@ protected:
 
         // For consensusXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
         // but only at the study variable variable level.
-        for (vector<String>::iterator sit = var_mods.begin(); sit != var_mods.end(); ++sit)
-        {
-          Size index = (sit - var_mods.begin()) + 1;
-          MzTabModificationMetaData mod;
-          MzTabParameter mp;
-          mp.setCVLabel("UNIMOD");
-          ModificationsDB* mod_db = ModificationsDB::getInstance();
-          // MzTab standard is to just report Unimod accession.
-          ResidueModification m = mod_db->getModification(*sit);
-          String unimod_accession = m.getUniModAccession();
-          mp.setAccession(unimod_accession.toUpper());
-          mp.setName(m.getId());
-          mod.modification = mp;
 
-          if (m.getTermSpecificity() == ResidueModification::C_TERM)
-          {
-            mod.position = MzTabString("Any C-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::N_TERM)
-          {
-            mod.position = MzTabString("Any N-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::ANYWHERE)
-          {
-           mod.position = MzTabString("Anywhere");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
-          {
-            mod.position = MzTabString("Protein C-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-          {
-            mod.position = MzTabString("Protein N-term");
-          }
-
-          mod.site = MzTabString(m.getOrigin());
-          meta_data.variable_mod[index] = mod;
-        }
-
-        for (vector<String>::iterator sit = fixed_mods.begin(); sit != fixed_mods.end(); ++sit)
-        {
-          Size index = (sit - fixed_mods.begin()) + 1;
-          MzTabModificationMetaData mod;
-          MzTabParameter mp;
-          mp.setCVLabel("UNIMOD");
-          ModificationsDB* mod_db = ModificationsDB::getInstance();
-          // MzTab standard is to just report Unimod accession.
-          ResidueModification m = mod_db->getModification(*sit);
-          String unimod_accession = m.getUniModAccession();
-          mp.setAccession(unimod_accession.toUpper());
-          mp.setName(m.getId()); // e.g. "Oxidation"
-          mod.modification = mp;
-
-          if (m.getTermSpecificity() == ResidueModification::C_TERM)
-          {
-            mod.position = MzTabString("Any C-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::N_TERM)
-          {
-            mod.position = MzTabString("Any N-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::ANYWHERE)
-          {
-           mod.position = MzTabString("Anywhere");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
-          {
-            mod.position = MzTabString("Protein C-term");
-          }
-          else if (m.getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
-          {
-            mod.position = MzTabString("Protein N-term");
-          }
-
-          mod.site = MzTabString(m.getOrigin());
-          meta_data.fixed_mod[index] = mod;
-        }
+        meta_data.variable_mod = generateMzTabStringFromModifications(var_mods);
+        meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
 
         meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
         MzTabMSRunMetaData ms_run;
