@@ -86,6 +86,20 @@ namespace OpenMS
         MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug);
         
         /**
+         * @brief constructor
+         * 
+         * @param exp    experimental data in centroid mode
+         * @param mz_tolerance    margin in m/z with which the centres of the same peak in different spectra my shift (or 'jitter')
+         * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
+         * @param rt_typical    elution time of a characteristic peptide in the sample
+         * @param rt_minimum    shortest elution time i.e. all peptides appearing for a shorter time are being ignored
+         * @param out_debug    directory for debug output
+         * 
+         * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
+         */
+        MultiplexClustering(MSExperiment<Peak1D> exp_picked, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum, String out_debug);
+        
+        /**
          * @brief cluster filter results
          * Data points are grouped into clusters. Each cluster contains data about one peptide multiplet.
          * 
@@ -164,7 +178,7 @@ namespace OpenMS
          */
         std::vector<double> grid_spacing_mz_;
         std::vector<double> grid_spacing_rt_;
-        
+                
         /**
          * @brief scaling in y-direction for clustering
          */
