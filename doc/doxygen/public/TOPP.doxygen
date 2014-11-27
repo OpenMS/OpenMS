@@ -110,7 +110,6 @@
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
 
-
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
   - @subpage TOPP_CompNovoCID - Performs a peptide/protein identification with the CompNovo engine in CID mode.
@@ -127,6 +126,7 @@
   <b>Protein/Peptide Processing</b>
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
+  - @subpage TOPP_FidoAdapter - Runs the protein inference engine Fido.
   - @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.

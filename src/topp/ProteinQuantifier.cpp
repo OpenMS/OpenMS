@@ -84,7 +84,7 @@ using namespace std;
     The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
     Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938).
 
-    Only features/feature groups with unambiguous peptide annotation are used for peptide quantification, and generally only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. As an exception to this rule, if ProteinProphet results for the whole sample set are provided with the @p protxml option, or are already included in a featureXML input, also groups of indistinguishable proteins will be quantified. The reported quantity then refers to the total for the whole group.
+    Only features/feature groups with unambiguous peptide annotation are used for peptide quantification, and generally only proteotypic peptides (i.e. those matching to exactly one protein) are used for protein quantification. As an exception to this rule, if protein inference results (ProteinProphet: convert protXML to idXML using @ref TOPP_IDFileConverter; Fido: use @ref TOPP_FidoAdapter) for the whole sample set are provided with the @p protein_groups option, or are already included in a featureXML input, also groups of indistinguishable proteins will be quantified. The reported quantity then refers to the total for the whole group.
 
     Peptide/protein IDs from multiple identification runs can be handled, but will not be differentiated (i.e. protein accessions for a peptide will be accumulated over all identification runs).
 
@@ -330,8 +330,8 @@ protected:
   typedef PeptideAndProteinQuant::Statistics Statistics;
 
   Param algo_params_; // parameters for PeptideAndProteinQuant algorithm
-  ProteinIdentification proteins_; // ProteinProphet results (proteins)
-  PeptideIdentification peptides_; // ProteinProphet results (peptides)
+  ProteinIdentification proteins_; // protein inference results (proteins)
+  PeptideIdentification peptides_; // protein inference results (peptides)
   ConsensusMap::FileDescriptions files_; // information about files involved
   bool spectral_counting_; // quantification based on spectral counting?
 
@@ -339,8 +339,8 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
-    registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
-    setValidFormats_("protxml", ListUtils::create<String>("idXML"));
+    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter or Fido via FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+    setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
     setValidFormats_("out", ListUtils::create<String>("csv"));
     registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances", false);
@@ -476,21 +476,22 @@ protected:
 
     out << endl;
 
-    map<String, StringList> leader_to_accessions;
+    // mapping: accession of leader -> (accessions of grouped proteins, score)
+    map<String, pair<StringList, double> > leader_to_group;
     if (!proteins_.getIndistinguishableProteins().empty())
     {
       for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
              proteins_.getIndistinguishableProteins().begin(); group_it !=
-           proteins_.getIndistinguishableProteins().end(); ++group_it)
+             proteins_.getIndistinguishableProteins().end(); ++group_it)
       {
-        StringList& accessions = leader_to_accessions[group_it->
-                                                      accessions[0]];
+        StringList& accessions = leader_to_group[group_it->accessions[0]].first;
         accessions = group_it->accessions;
         for (StringList::iterator acc_it = accessions.begin();
              acc_it != accessions.end(); ++acc_it)
         {
           acc_it->substitute('/', '_'); // to allow concatenation later
         }
+        leader_to_group[group_it->accessions[0]].second = group_it->probability;
       }
     }
 
@@ -499,23 +500,21 @@ protected:
     {
       if (q_it->second.total_abundances.empty()) continue; // not quantified
 
-      if (leader_to_accessions.empty())
+      if (leader_to_group.empty())
       {
         out << q_it->first << 1;
+        if (proteins_.getHits().empty()) out << 0;
+        else
+        {
+          vector<ProteinHit>::iterator pos = proteins_.findHit(q_it->first);
+          out << pos->getScore();
+        }
       }
       else
       {
-        out << ListUtils::concatenate(leader_to_accessions[q_it->first], '/')
-            << leader_to_accessions[q_it->first].size();
-      }
-      if (proteins_.getHits().empty())
-      {
-        out << 0;
-      }
-      else
-      {
-        vector<ProteinHit>::iterator pos = proteins_.findHit(q_it->first);
-        out << pos->getScore();
+        pair<StringList, double>& group = leader_to_group[q_it->first];
+        out << ListUtils::concatenate(group.first, '/') << group.first.size()
+            << group.second;
       }
       Size n_peptide = q_it->second.abundances.size();
       out << n_peptide;
@@ -565,10 +564,14 @@ protected:
     if (proteins) // parameters relevant only for protein output
     {
       relevant_params.push_back("top");
-      relevant_params.push_back("average");
-      relevant_params.push_back("include_all");
+      Size top = algo_params_.getValue("top");
+      if (top != 1)
+      {
+        relevant_params.push_back("average");
+        if (top != 0) relevant_params.push_back("include_all");
+      }
     }
-    relevant_params.push_back("filter_charge"); // also relevant for peptide output
+    relevant_params.push_back("filter_charge"); // also for peptide output
     if (files_.size() > 1) // flags only for consensusXML input
     {
       relevant_params.push_back("consensus:normalize");
@@ -641,6 +644,7 @@ protected:
     LOG_INFO << endl;
   }
 
+
   ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
@@ -654,7 +658,7 @@ protected:
                                                  "out/peptide_out/mzTab_out");
     }
 
-    String protxml = getStringOption_("protxml");
+    String protein_groups = getStringOption_("protein_groups");
 
     PeptideAndProteinQuant quantifier;
     // algo_params_ = getParam_().copy("algorithm:", true);
@@ -672,8 +676,8 @@ protected:
       FeatureMap features;
       FeatureXMLFile().load(in, features);
       files_[0].filename = in;
-      // ProteinProphet results in the featureXML?
-      if (protxml.empty() &&
+      // protein inference results in the featureXML?
+      if (protein_groups.empty() &&
           (features.getProteinIdentifications().size() == 1) &&
           (!features.getProteinIdentifications()[0].getHits().empty()))
       {
@@ -691,8 +695,8 @@ protected:
       {
         files_[i].filename = proteins[i].getIdentifier();
       }
-      // ProteinProphet results in the idXML?
-      if (protxml.empty() && (proteins.size() == 1) &&
+      // protein inference results in the idXML?
+      if (protein_groups.empty() && (proteins.size() == 1) && 
           (!proteins[0].getHits().empty()))
       {
         proteins_ = proteins[0];
@@ -704,8 +708,8 @@ protected:
       ConsensusMap consensus;
       ConsensusXMLFile().load(in, consensus);
       files_ = consensus.getFileDescriptions();
-      // ProteinProphet results in the consensusXML?
-      if (protxml.empty() &&
+      // protein inference results in the consensusXML?
+      if (protein_groups.empty() &&
           (consensus.getProteinIdentifications().size() == 1) &&
           (!consensus.getProteinIdentifications()[0].getHits().empty()))
       {
@@ -716,20 +720,18 @@ protected:
 
     if (!out.empty()) // quantify on protein level
     {
-      if (!protxml.empty()) // read ProteinProphet data
+      if (!protein_groups.empty()) // read protein inference data
       {
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
-        IdXMLFile().load(protxml, proteins, peptides);
-        if ((proteins.size() == 1) && (peptides.size() == 1))
+        IdXMLFile().load(protein_groups, proteins, peptides);
+        if (proteins.empty() || 
+            proteins[0].getIndistinguishableProteins().empty())
         {
-          proteins_ = proteins[0];
-          peptides_ = peptides[0];
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
         }
-        else
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Expected a converted protXML file (with only one 'ProteinIdentification' and one 'PeptideIdentification' instance) in file '" + protxml + "'");
-        }
+        proteins_ = proteins[0]; // inference data is attached to first ID run
+        if (peptides.size() == 1) peptides_ = peptides[0];
       }
       quantifier.quantifyProteins(proteins_);
     }
