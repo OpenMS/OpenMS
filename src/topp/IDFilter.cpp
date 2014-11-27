@@ -566,6 +566,28 @@ protected:
         // remove non-existant protein references from peptides (and optionally: remove peptides with no proteins)
         filter.removeUnreferencedPeptideHits(filtered_protein_identification, filtered_peptide_identifications, delete_unreferenced_peptide_hits);
 
+        // update groupings if necessary:
+        if (!filtered_protein_identification.getProteinGroups().empty())
+        {
+          vector<ProteinIdentification::ProteinGroup> filtered_groups;
+          bool changed = filter.updateProteinGroups(filtered_protein_identification.getProteinGroups(), filtered_protein_identification.getHits(), filtered_groups);
+          if (changed)
+          {
+            writeLog_("Warning: Updated protein groups due to removal of protein hits. The new grouping (especially the group probabilities) may not be completely valid any more.");
+            filtered_protein_identification.getProteinGroups() = filtered_groups;
+          }
+        }
+        if (!filtered_protein_identification.getIndistinguishableProteins().empty())
+        {
+          vector<ProteinIdentification::ProteinGroup> filtered_groups;
+          bool changed = filter.updateProteinGroups(filtered_protein_identification.getIndistinguishableProteins(), filtered_protein_identification.getHits(), filtered_groups);
+          if (changed)
+          {
+            writeLog_("Warning: Updated indistinguishable proteins due to removal of protein hits. The new grouping (especially the group probabilities) may not be completely valid any more.");
+            filtered_protein_identification.getIndistinguishableProteins() = filtered_groups;
+          }
+        }
+
         // might have empty proteinHits
         filtered_protein_identifications.push_back(filtered_protein_identification);
       }
