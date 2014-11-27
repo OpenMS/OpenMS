@@ -476,6 +476,17 @@ public:
       }
     }
 
+    /**
+       @brief Update protein groups after protein hits were filtered
+
+       @param groups Input protein groups
+       @param hits Available protein hits (all others are removed from the groups)
+       @param filtered_groups Output protein groups
+
+       @return Returns whether any changes were made to the groups.
+    */
+    bool updateProteinGroups(const std::vector<ProteinIdentification::ProteinGroup>& groups, const std::vector<ProteinHit>& hits, std::vector<ProteinIdentification::ProteinGroup>& filtered_groups);
+
   };
 
 } // namespace OpenMS
