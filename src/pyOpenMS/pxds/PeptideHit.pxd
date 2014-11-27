@@ -1,9 +1,12 @@
 from libcpp cimport bool
+from libcpp.vector cimport vector as libcpp_vector
+from libcpp.set cimport set as libcpp_set
 from Types cimport *
 from DataValue cimport *
 from Feature cimport *
 from ProteinIdentification cimport *
 from AASequence cimport *
+from PeptideEvidence cimport *
 
 cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
 
@@ -24,21 +27,15 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         UInt getRank() nogil except +
         AASequence getSequence() nogil except +
         Int getCharge() nogil except +
-        libcpp_vector[String] getProteinAccessions() nogil except +
-        void setProteinAccessions(libcpp_vector[String]) nogil except +
-
+        libcpp_vector[PeptideEvidence] getPeptideEvidences() nogil except +
+        void setPeptideEvidences(libcpp_vector[PeptideEvidence]) nogil except +
+        void addPeptideEvidence(PeptideEvidence) nogil except +
+        libcpp_set[String] extractProteinAccessions() nogil except +
 
         void setScore(float ) nogil except +
         void setRank(UInt) nogil except +
         void setSequence(AASequence) nogil except +
         void setCharge(Int) nogil except +
-
-        void addProteinAccession(String) nogil except +
-        void setAABefore(char) nogil except +
-        char getAABefore() nogil except +
-        void setAAAfter(char) nogil except +
-        char getAAAfter() nogil except +
-
 
         bool operator==(PeptideHit) nogil except +
         bool operator!=(PeptideHit) nogil except +

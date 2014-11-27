@@ -36,6 +36,7 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <boost/noncopyable.hpp> // to prevent copy/assignment
 
 namespace OpenMS
 {
@@ -44,11 +45,13 @@ namespace OpenMS
 
     Implements the identity (no transformation). Parameters and data are ignored.
 
+    Note that this class and its derived classes do not allow copying/assignment, due to the need for internal memory management associated with some of the transformation models.
+
     @ingroup MapAlignment
   */
-  class OPENMS_DLLAPI TransformationModel
+  class OPENMS_DLLAPI TransformationModel : boost::noncopyable
   {
-public:
+  public:
     /// Coordinate pair
     typedef std::pair<double, double> DataPoint;
     /// Vector of coordinate pairs
@@ -64,7 +67,7 @@ public:
     virtual ~TransformationModel();
 
     /// Evaluates the model at the given value
-    virtual double evaluate(const double value) const;
+    virtual double evaluate(double value) const;
 
     /// Gets the (actual) parameters
     const Param& getParameters() const;
@@ -72,7 +75,7 @@ public:
     /// Gets the default parameters
     static void getDefaultParameters(Param& params);
 
-protected:
+  protected:
     /// Parameters
     Param params_;
   };

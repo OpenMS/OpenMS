@@ -109,7 +109,10 @@ namespace OpenMS
       if (matching_peptides.find(targeted_exp.peptides[i].id) != matching_peptides.end())
       {
         transition_exp_used.peptides.push_back( targeted_exp.peptides[i] );
-        matching_proteins.insert(targeted_exp.peptides[i].protein_ref);
+        for (Size j = 0; j < targeted_exp.peptides[i].protein_refs.size(); j++)
+        {
+          matching_proteins.insert(targeted_exp.peptides[i].protein_refs[j]);
+        }
       }
     }
     for (Size i = 0; i < targeted_exp.proteins.size(); i++)

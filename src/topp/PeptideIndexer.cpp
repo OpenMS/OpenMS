@@ -40,6 +40,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 
 #include <algorithm>
 
@@ -108,9 +109,9 @@ using namespace std;
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
   By default, we demand that the peptide is fully tryptic (i.e. the enzyme parameter is set to "trypsin" and specificity is "full").
   So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
-  We make one exception for peptides which start at the second amino acid of the protein where the first amino acid of the protein is methionin (M), which is usually cleaved off in vivo, e.g., the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
+  We make one exception for peptides starting at the second amino acid of a protein if the first amino acid of that protein is methionine (M), which is usually cleaved off in vivo. For example, the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
 
-  You can relax the requirements further by chosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) or <tt>none</tt> (essentially allowing all hits, no matter their context).
+  You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) or <tt>none</tt> (essentially allowing all hits, no matter their context).
 
 
   <B>The command line parameters of this tool are:</B>
@@ -119,14 +120,58 @@ using namespace std;
   @htmlinclude TOPP_PeptideIndexer.html
 */
 
+struct PeptideProteinMatchInformation
+{
+  /// index of the protein the peptide is contained in
+  OpenMS::Size protein_index;
+
+  /// the amino acid after the peptide in the protein
+  char AABefore;
+
+  /// the amino acid befor the peptide in the protein
+  char AAAfter;
+
+  /// the position of the peptide in the protein
+  OpenMS::Int position;
+
+  bool operator<(const PeptideProteinMatchInformation& other) const
+  {
+    if (protein_index != other.protein_index)
+    {
+      return protein_index < other.protein_index;
+    }
+    else if (position != other.position)
+    {
+      return position < other.position;
+    }
+    else if (AABefore != other.AABefore)
+    {
+      return AABefore < other.AABefore;
+    }
+    else if (AAAfter != other.AAAfter)
+    {
+      return AAAfter < other.AAAfter;
+    }
+    return false;
+  }
+
+  bool operator==(const PeptideProteinMatchInformation& other) const
+  {
+    return protein_index == other.protein_index &&
+           position == other.position &&
+           AABefore == other.AABefore &&
+           AAAfter == other.AAAfter;
+  }
+
+};
 
 namespace seqan
 {
 
   struct FoundProteinFunctor
   {
-  public:
-    typedef OpenMS::Map<OpenMS::Size, std::set<OpenMS::Size> > MapType;
+public:
+    typedef OpenMS::Map<OpenMS::Size, std::set<PeptideProteinMatchInformation> > MapType;
 
     /// peptide index --> protein indices
     MapType pep_to_prot;
@@ -137,10 +182,10 @@ namespace seqan
     /// number of rejected hits (not passing addHit())
     OpenMS::Size filter_rejected;
 
-  private:
+private:
     EnzymaticDigestion enzyme_;
 
-  public:
+public:
     explicit FoundProteinFunctor(const EnzymaticDigestion& enzyme) :
       pep_to_prot(), filter_passed(0), filter_rejected(0), enzyme_(enzyme)
     {
@@ -150,7 +195,7 @@ namespace seqan
     void operator()(const TIter1& iter_pep, const TIter2& iter_prot)
     {
       // the peptide sequence (will not change)
-      const OpenMS::String tmp_pep(begin(representative(iter_pep)), 
+      const OpenMS::String tmp_pep(begin(representative(iter_pep)),
                                    end(representative(iter_pep)));
 
       // remember mapping of proteins to peptides and vice versa
@@ -165,23 +210,29 @@ namespace seqan
           // the protein sequence (will change for every Occurrence -- hitting
           // multiple proteins)
           const OpenMS::String tmp_prot(
-            begin(indexText(container(iter_prot))[getSeqNo(prot_occ)]), 
+            begin(indexText(container(iter_prot))[getSeqNo(prot_occ)]),
             end(indexText(container(iter_prot))[getSeqNo(prot_occ)]));
           // check if hit is valid and add (if valid)
-          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot, 
+          addHit(idx_pep, prot_occ.i1, tmp_pep, tmp_prot,
                  getSeqOffset(prot_occ));
         }
       }
     }
 
     void addHit(OpenMS::Size idx_pep, OpenMS::Size idx_prot,
-                const OpenMS::String& seq_pep, const OpenMS::String& protein, 
+                const OpenMS::String& seq_pep, const OpenMS::String& protein,
                 OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(AASequence::fromString(protein), position, 
+      AASequence protein_sequence = AASequence::fromString(protein);
+      if (enzyme_.isValidProduct(protein_sequence, position,
                                  seq_pep.length()))
       {
-        pep_to_prot[idx_pep].insert(idx_prot);
+        PeptideProteinMatchInformation match;
+        match.protein_index = idx_prot;
+        match.position = position;
+        match.AABefore = (position == 0) ? PeptideEvidence::N_TERMINAL_AA : protein[position - 1];
+        match.AAAfter = (position + seq_pep.length() >= protein.size()) ? PeptideEvidence::C_TERMINAL_AA : protein[position + seq_pep.length()];
+        pep_to_prot[idx_pep].insert(match);
         ++filter_passed;
       }
       else
@@ -196,7 +247,7 @@ namespace seqan
     {
       if (pep_to_prot.size() != rhs.pep_to_prot.size())
       {
-        LOG_ERROR << "Size " << pep_to_prot.size() << " " 
+        LOG_ERROR << "Size " << pep_to_prot.size() << " "
                   << rhs.pep_to_prot.size() << std::endl;
         return false;
       }
@@ -207,13 +258,13 @@ namespace seqan
       {
         if (it1->first != it2->first)
         {
-          LOG_ERROR << "Index of " << it1->first << " " << it2->first 
+          LOG_ERROR << "Index of " << it1->first << " " << it2->first
                     << std::endl;
           return false;
         }
         if (it1->second.size() != it2->second.size())
         {
-          LOG_ERROR << "Size of " << it1->first << " " << it1->second.size() 
+          LOG_ERROR << "Size of " << it1->first << " " << it1->second.size()
                     << "--" << it2->second.size() << std::endl;
           return false;
         }
@@ -279,17 +330,18 @@ namespace seqan
 
 
   template <bool enumerateA, bool enumerateB, typename TOnFoundFunctor,
-            typename TTreeIteratorA, typename TIterPosA, 
+            typename TTreeIteratorA, typename TIterPosA,
             typename TTreeIteratorB, typename TIterPosB, typename TErrors>
   inline void _approximateAminoAcidTreeSearch(TOnFoundFunctor& onFoundFunctor,
-                                              TTreeIteratorA iterA, 
-                                              TIterPosA iterPosA, 
-                                              TTreeIteratorB iterB_, 
-                                              TIterPosB iterPosB, 
-                                              TErrors errorsLeft, 
+                                              TTreeIteratorA iterA,
+                                              TIterPosA iterPosA,
+                                              TTreeIteratorB iterB_,
+                                              TIterPosB iterPosB,
+                                              TErrors errorsLeft,
                                               TErrors classErrorsLeft)
   {
     if (enumerateA && !goDown(iterA)) return;
+
     if (enumerateB && !goDown(iterB_)) return;
 
     do
@@ -335,7 +387,7 @@ namespace seqan
             }
           }
 
-          if (_charComparator(representative(iterA)[ipA], 
+          if (_charComparator(representative(iterA)[ipA],
                               representative(iterB)[ipB],
                               EquivalenceClassAA_<char>::VALUE))
           {
@@ -373,7 +425,7 @@ namespace seqan
   }
 
   template <typename TEquivalenceTable>
-  inline bool _charComparator(AminoAcid charA, AminoAcid charB, 
+  inline bool _charComparator(AminoAcid charA, AminoAcid charB,
                               TEquivalenceTable equivalence)
   {
     const unsigned a_index = ordValue(charA);
@@ -392,7 +444,7 @@ class TOPPPeptideIndexer :
 {
 public:
   TOPPPeptideIndexer() :
-    TOPPBase("PeptideIndexer", 
+    TOPPBase("PeptideIndexer",
              "Refreshes the protein references for all peptide hits.")
   {
   }
@@ -402,35 +454,36 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input idXML file containing the identifications.");
     setValidFormats_("in", ListUtils::create<String>("idXML"));
-    registerInputFile_("fasta", "<file>", "", "Input sequence database in FASTA format. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("fasta", "<file>", "", "Input sequence database in FASTA format. Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("fasta", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accession of the protein database to indicate a decoy protein.", false);
-    registerFlag_("prefix", "Set if 'decoy_string' (see above) appears as a prefix of the decoy protein accessions in the database.");
+    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
     registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
     setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
 
-    registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage-sites and the cleavage specificity set by the user determines how these are enforced.");
+    registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage sites; cleavage specificity determines to what extent validity is enforced.");
 
-    registerStringOption_("enzyme:name", "", EnzymaticDigestion::NamesOfEnzymes[0], "Enzyme which determines valid cleavage sites, e.g., for trypsin it should (unless at protein terminus) end on K or R and the AA-before should also be K or R, and not followed by proline.", false);
+    registerStringOption_("enzyme:name", "", EnzymaticDigestion::NamesOfEnzymes[0], "Enzyme which determines valid cleavage sites - e.g. trypsin cleaves after lysine (K) or arginine (R), but not before proline (P).", false);
     StringList enzymes;
     enzymes.assign(EnzymaticDigestion::NamesOfEnzymes, EnzymaticDigestion::NamesOfEnzymes + EnzymaticDigestion::SIZE_OF_ENZYMES);
     setValidStrings_("enzyme:name", enzymes);
 
     registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                                                                            "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage-sites must match."
-                                                                            "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage-sites must match."
-                                                                            "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
+                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
+                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
+                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
     setValidStrings_("enzyme:specificity", spec);
 
+    registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
+    registerFlag_("annotate_proteins", "If set, add target/decoy information to proteins (as well as peptides).");
     registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
     registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
-    registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. this flag is not set) the program terminates with error status on unmatched peptides.");
-    registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous AA's) are associated. This is much slower!");
-    registerIntOption_("aaa_max", "<AA count>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein DB with AAA's. AAA's are 'B', 'Z' and 'X'", false);
+    registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
+    registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
+    registerIntOption_("aaa_max", "<number>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z', and 'X'", false);
     setMinInt_("aaa_max", 0);
     registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
   }
@@ -612,8 +665,8 @@ protected:
       /// check if every peptide was found:
       if (func.pep_to_prot.size() != length(pep_DB))
       {
-        /** search using SA, which supports mismatches (introduced by resolving ambiguous AA's by, e.g. Mascot) -- expensive! */
-        writeLog_(String("Using SA to find ambiguous matches ..."));
+        /** search using SA, which supports mismatches (introduced by resolving ambiguous AA's by e.g. Mascot) -- expensive! */
+        writeLog_(String("Using suffix array to find ambiguous matches..."));
 
         // search peptides which remained unidentified during Aho-Corasick (might be all if 'full_tolerant_search' is enabled)
         seqan::StringSet<seqan::Peptide> pep_DB_SA;
@@ -627,7 +680,7 @@ protected:
           }
         }
 
-        writeLog_(String("    for ") + length(pep_DB_SA) + " peptides.");
+        writeLog_(String("... for ") + length(pep_DB_SA) + " peptide(s).");
 
         seqan::FoundProteinFunctor func_SA(enzyme);
 
@@ -666,19 +719,16 @@ protected:
           func.pep_to_prot[missed_pep[it->first]] = it->second;
         }
 
-
       }
 
     } // end local scope
 
     // write some stats
-    LOG_INFO << "Peptide hits which passed enzyme filter: " << func.filter_passed << "\n"
-             << "                   rejected  by  filter: " << func.filter_rejected << std::endl;
+    LOG_INFO << "Peptide hits passing enzyme filter: " << func.filter_passed << "\n"
+             << "     ... rejected by enzyme filter: " << func.filter_rejected << std::endl;
 
     /* do mapping */
-
     writeDebug_("Reindexing peptide/protein matches...", 1);
-
 
     /// index existing proteins
     Map<String, Size> runid_to_runidx; // identifier to index
@@ -687,6 +737,8 @@ protected:
       runid_to_runidx[prot_ids[run_idx].getIdentifier()] = run_idx;
     }
 
+    /// store target/decoy status of proteins
+    Map<String, bool> protein_is_decoy; // accession -> is decoy?
 
     /// for peptides --> proteins
     Size stats_matched_unique(0);
@@ -700,24 +752,36 @@ protected:
     Size pep_idx(0);
     for (vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
     {
-      vector<PeptideHit> hits = it1->getHits();
-
       // which ProteinIdentification does the peptide belong to?
       Size run_idx = runid_to_runidx[it1->getIdentifier()];
+
+      vector<PeptideHit> hits = it1->getHits();
 
       for (vector<PeptideHit>::iterator it2 = hits.begin(); it2 != hits.end(); ++it2)
       {
         // clear protein accessions
-        it2->setProteinAccessions(vector<String>());
+        it2->setPeptideEvidences(vector<PeptideEvidence>());
 
         // add new protein references
-        for (set<Size>::const_iterator it_i = func.pep_to_prot[pep_idx].begin();
+        for (set<PeptideProteinMatchInformation>::const_iterator it_i = func.pep_to_prot[pep_idx].begin();
              it_i != func.pep_to_prot[pep_idx].end();
              ++it_i)
         {
-          it2->addProteinAccession(proteins[*it_i].identifier);
+          const String& accession = proteins[it_i->protein_index].identifier;
+          PeptideEvidence pe;
+          pe.setProteinAccession(accession);
+          pe.setStart(it_i->position);
+          pe.setEnd(it_i->position + it2->getSequence().size() - 1);
+          pe.setAABefore(it_i->AABefore);
+          pe.setAAAfter(it_i->AAAfter);
+          it2->addPeptideEvidence(pe);
 
-          runidx_to_protidx[run_idx].insert(*it_i); // fill protein hits
+          runidx_to_protidx[run_idx].insert(it_i->protein_index); // fill protein hits
+
+          if (!protein_is_decoy.has(accession))
+          {
+            protein_is_decoy[accession] = (prefix && accession.hasPrefix(decoy_string)) || (!prefix && accession.hasSuffix(decoy_string));
+          }
 
           /*
           /// STATS
@@ -739,18 +803,22 @@ protected:
         bool matches_target(false);
         bool matches_decoy(false);
 
-        for (vector<String>::const_iterator it = it2->getProteinAccessions().begin(); it != it2->getProteinAccessions().end(); ++it)
+        set<String> protein_accessions = it2->extractProteinAccessions();
+        for (set<String>::const_iterator it = protein_accessions.begin(); it != protein_accessions.end(); ++it)
         {
-          if (prefix)
+          if (protein_is_decoy[*it])
           {
-            if (it->hasPrefix(decoy_string)) matches_decoy = true;
-            else matches_target = true;
+            matches_decoy = true;
           }
           else
           {
-            if (it->hasSuffix(decoy_string)) matches_decoy = true;
-            else matches_target = true;
+            matches_target = true;
           }
+          // this is rare in practice, so the test may not really save time:
+          // if (matches_decoy && matches_target)
+          // {
+          //   break; // no need to check remaining accessions
+          // }
         }
         String target_decoy;
         if (matches_decoy && matches_target)
@@ -769,12 +837,13 @@ protected:
           ++stats_count_m_d;
         }
         it2->setMetaValue("target_decoy", target_decoy);
-        if (it2->getProteinAccessions().size() == 1)
+
+        if (protein_accessions.size() == 1)
         {
           it2->setMetaValue("protein_references", "unique");
           ++stats_matched_unique;
         }
-        else if (it2->getProteinAccessions().size() > 1)
+        else if (protein_accessions.size() > 1)
         {
           it2->setMetaValue("protein_references", "non-unique");
           ++stats_matched_multi;
@@ -783,8 +852,8 @@ protected:
         {
           it2->setMetaValue("protein_references", "unmatched");
           ++stats_unmatched;
-          if (stats_unmatched < 5) LOG_INFO << "  unmatched peptide: " << it2->getSequence() << "\n";
-          else if (stats_unmatched == 5) LOG_INFO << "  unmatched peptide: ...\n";
+          if (stats_unmatched < 5) LOG_INFO << "Unmatched peptide: " << it2->getSequence() << "\n";
+          else if (stats_unmatched == 5) LOG_INFO << "Unmatched peptide: ...\n";
         }
 
         ++pep_idx; // next hit
@@ -797,8 +866,7 @@ protected:
     LOG_INFO << "  match to decoy DB only : " << stats_count_m_d << "\n";
     LOG_INFO << "  match to both          : " << stats_count_m_td << "\n";
 
-
-    LOG_INFO << "Statistics of peptides (to protein mapping):\n";
+    LOG_INFO << "Statistics of peptides (mapping to proteins):\n";
     LOG_INFO << "  no match (to 0 protein)         : " << stats_unmatched << "\n";
     LOG_INFO << "  unique match (to 1 protein)     : " << stats_matched_unique << "\n";
     LOG_INFO << "  non-unique match (to >1 protein): " << stats_matched_multi << std::endl;
@@ -817,8 +885,6 @@ protected:
       {
         LOG_WARN << "Warn: " << msg << "\nSet 'missing_decoy_action' to 'error' if you want to elevate this to an error!" << std::endl;
       }
-
-
     }
 
     /// for proteins --> peptides
@@ -832,13 +898,13 @@ protected:
       set<Size> masterset = runidx_to_protidx[run_idx]; // all found protein matches
 
       vector<ProteinHit> new_protein_hits;
-      // go through existing hits and update (do not create from anew, as there might be other information [score, rank] etc which
-      //   we want to preserve
+      // go through existing hits and update (do not create from anew, as there might be other information (score, rank, etc.) which
+      // we want to preserve
       for (vector<ProteinHit>::iterator p_hit = prot_ids[run_idx].getHits().begin(); p_hit != prot_ids[run_idx].getHits().end(); ++p_hit)
       {
         const String& acc = p_hit->getAccession();
         if (acc_to_prot.has(acc) // accession needs to exist in new FASTA file
-           && masterset.find(acc_to_prot[acc]) != masterset.end())
+            && masterset.find(acc_to_prot[acc]) != masterset.end())
         { // this accession was there already
           new_protein_hits.push_back(*p_hit);
           String seq;
@@ -866,11 +932,23 @@ protected:
         ++stats_new_proteins;
       }
 
-
       prot_ids[run_idx].setHits(new_protein_hits);
     }
 
-    LOG_INFO << "Statistics (proteins):\n";
+    /// if requested, store target/decoy status of proteins
+    if (getFlag_("annotate_proteins"))
+    {
+      for (vector<ProteinIdentification>::iterator id_it = prot_ids.begin(); id_it != prot_ids.end(); ++id_it)
+      {
+        for (vector<ProteinHit>::iterator hit_it = id_it->getHits().begin(); hit_it != id_it->getHits().end(); ++hit_it)
+        {
+          if (protein_is_decoy[hit_it->getAccession()]) hit_it->setMetaValue("target_decoy", "decoy");
+          else hit_it->setMetaValue("target_decoy", "target");
+        }
+      }
+    }
+
+    LOG_INFO << "Statistics of proteins:\n";
     LOG_INFO << "  new proteins: " << stats_new_proteins << "\n";
     LOG_INFO << "  orphaned proteins: " << stats_orphaned_proteins << (keep_unreferenced_proteins ? " (all kept)" : " (all removed)") << "\n";
 
@@ -885,19 +963,18 @@ protected:
     if ((!allow_unmatched) && (stats_unmatched > 0))
     {
       LOG_WARN << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
-               << "Either:\n"
+               << "Potential solutions:\n"
                << "   - check your FASTA database for completeness\n"
-               << "   - set 'enzyme:specificity' to match the identification parameters of search engine\n"
-               << "   - some engines (e.g. X!Tandem) employ loose cutting rules generating non-tryptic peptides\n"
-               << "     If you trust them, disable enzyme specificity\n"
-               << "   - increase 'aaa_max' to allow more ambiguous AA\n"
-               << "   - as a last resort: use 'allow_unmatched' flag if unmatched peptides are ok\n"
-               << "     Note that these peptides cannot be used for FDR or Quantification\n";
+               << "   - set 'enzyme:specificity' to match the identification parameters of the search engine\n"
+               << "   - some engines (e.g. X! Tandem) employ loose cutting rules generating non-tryptic peptides;\n"
+               << "     if you trust them, disable enzyme specificity\n"
+               << "   - increase 'aaa_max' to allow more ambiguous amino acids\n"
+               << "   - as a last resort: use the 'allow_unmatched' option to accept unmatched peptides\n"
+               << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
 
-      LOG_WARN << "Result files were written, but program will return with error code" << std::endl;
+      LOG_WARN << "Result files were written, but program will exit with error code" << std::endl;
       return UNEXPECTED_RESULT;
     }
-
 
     return EXECUTION_OK;
   }

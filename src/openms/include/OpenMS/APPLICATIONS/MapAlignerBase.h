@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Marc Sturm, Clemens Groepl, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
@@ -95,7 +95,9 @@ public:
     TransformationModelLinear::getDefaultParameters(model_params);
     params.insert("linear:", model_params);
     params.setSectionDescription("linear", "Parameters for 'linear' model");
-    // TODO: re-add b-spline model here
+    TransformationModelBSpline::getDefaultParameters(model_params);
+    params.insert("b_spline:", model_params);
+    params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
     TransformationModelInterpolated::getDefaultParameters(model_params);
     params.insert("interpolated:", model_params);
     params.setSectionDescription("interpolated",

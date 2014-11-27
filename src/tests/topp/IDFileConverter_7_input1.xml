@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="tandem-style.xsl"?>
-<bioml xmlns:GAML="http://www.bioml.com/gaml/" label="models from 'SEARCHENGINES/OMSSAAdapter_1.mzML'">
+<bioml xmlns:GAML="http://www.bioml.com/gaml/" label="models from 'THIRDPARTY/OMSSAAdapter_1.mzML'">
 <group id="1" mh="1558.773900" z="3" rt="" expect="5.6e-11" label=" test2_rev ##1" type="model" sumI="5.08" maxI="28222.1" fI="282.221" act="0" >
 <protein expect="-10.3" id="1.1" uid="2" label=" test2_rev ##1" sumI="5.08" >
 <note label="description"> test2_rev ##1</note>

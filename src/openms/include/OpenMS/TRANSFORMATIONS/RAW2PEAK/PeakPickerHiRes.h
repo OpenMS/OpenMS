@@ -99,10 +99,10 @@ public:
      * @param output  output spectrum with picked peaks
      */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output) const
+    void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output) const
     {
-        std::vector<PeakBoundary> boundaries;
-        pick(input, output, boundaries);
+      std::vector<PeakBoundary> boundaries;
+      pick(input, output, boundaries);
     }
 
     /**
@@ -113,9 +113,10 @@ public:
      * @param input  input spectrum in profile mode
      * @param output  output spectrum with picked peaks
      * @param boundaries  boundaries of the picked peaks
+     * @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const
+      void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
@@ -128,6 +129,13 @@ public:
 
       // don't pick a spectrum with less than 5 data points
       if (input.size() < 5) return;
+
+      // if both spacing constraints are disabled, don't check spacings at all:
+      if ((spacing_difference_ == std::numeric_limits<double>::infinity()) &&
+          (spacing_difference_gap_ == std::numeric_limits<double>::infinity()))
+      {
+        check_spacings = false;
+      }
 
       // signal-to-noise estimation
       SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
@@ -145,19 +153,20 @@ public:
         double left_neighbor_mz = input[i - 1].getMZ(), left_neighbor_int = input[i - 1].getIntensity();
         double right_neighbor_mz = input[i + 1].getMZ(), right_neighbor_int = input[i + 1].getIntensity();
 
-        //do not interpolate when the left or right support is a zero-data-point
-        if(std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon() )
-          continue;
-        if(std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon() )
-          continue;
+        // do not interpolate when the left or right support is a zero-data-point
+        if (std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
+        if (std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon()) continue;
 
         // MZ spacing sanity checks
-        double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
-        double central_to_right = std::fabs(right_neighbor_mz - central_peak_mz);
-        double min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
+        double left_to_central = 0.0, central_to_right = 0.0, min_spacing = 0.0;
+        if (check_spacings)
+        {
+          left_to_central = central_peak_mz - left_neighbor_mz;
+          central_to_right = right_neighbor_mz - central_peak_mz;
+          min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
+        }
 
         double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
-
         if (signal_to_noise_ > 0.0)
         {
           act_snt = snt.getSignalToNoise(input[i]);
@@ -166,13 +175,14 @@ public:
         }
 
         // look for peak cores meeting MZ and intensity/SNT criteria
-        if (act_snt >= signal_to_noise_
-           && left_to_central < spacing_difference_ * min_spacing
-           && central_peak_int > left_neighbor_int
-           && act_snt_l1 >= signal_to_noise_
-           && central_to_right < spacing_difference_ * min_spacing
-           && central_peak_int > right_neighbor_int
-           && act_snt_r1 >= signal_to_noise_)
+        if ((central_peak_int > left_neighbor_int) && 
+            (central_peak_int > right_neighbor_int) && 
+            (act_snt >= signal_to_noise_) && 
+            (act_snt_l1 >= signal_to_noise_) && 
+            (act_snt_r1 >= signal_to_noise_) &&
+            (!check_spacings || 
+             ((left_to_central < spacing_difference_ * min_spacing) && 
+              (central_to_right < spacing_difference_ * min_spacing))))
         {
           // special case: if a peak core is surrounded by more intense
           // satellite peaks (indicates oscillation rather than
@@ -186,14 +196,15 @@ public:
             act_snt_r2 = snt.getSignalToNoise(input[i + 2]);
           }
 
-          //checking signal-to-noise?
-          if (std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
-              && left_neighbor_int < input[i - 2].getIntensity()
-              && act_snt_l2 >= signal_to_noise_
-              && (i + 2) < input.size()
-              && std::fabs(input[i + 2].getMZ() - right_neighbor_mz) < spacing_difference_ * min_spacing
-              && right_neighbor_int < input[i + 2].getIntensity()
-              && act_snt_r2 >= signal_to_noise_)
+          // checking signal-to-noise?
+          if ((i + 2 < input.size()) &&
+              (left_neighbor_int < input[i - 2].getIntensity()) &&
+              (right_neighbor_int < input[i + 2].getIntensity()) &&
+              (act_snt_l2 >= signal_to_noise_) &&
+              (act_snt_r2 >= signal_to_noise_) &&
+              (!check_spacings ||
+               ((left_neighbor_mz - input[i - 2].getMZ() < spacing_difference_ * min_spacing) && 
+                (input[i + 2].getMZ() - right_neighbor_mz < spacing_difference_ * min_spacing))))
           {
             ++i;
             continue;
@@ -209,18 +220,18 @@ public:
           // to the left
           Size k = 2;
 
-          bool previous_zero_left(false);    // no need to extend peak if previous intensity was zero
+          bool previous_zero_left(false); // no need to extend peak if previous intensity was zero
           Size missing_left(0);
-          Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
-
-          while ( k <= i    // prevent underflow
-                && (i - k + 1) > 0
-                && (missing_left <= missing_)
-                && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_gap_ * min_spacing
-                && !previous_zero_left
-                && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
+          Size left_boundary(i - 1); // index of the left boundary for the spline interpolation
+          
+          while ((k <= i) && // prevent underflow
+                 (i - k + 1 > 0) && 
+                 !previous_zero_left && 
+                 (missing_left <= missing_) && 
+                 (input[i - k].getIntensity() <= peak_raw_data.begin()->second) &&
+                 (!check_spacings || 
+                  (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_gap_ * min_spacing)))
           {
-
             double act_snt_lk = 0.0;
 
             if (signal_to_noise_ > 0.0)
@@ -228,7 +239,9 @@ public:
               act_snt_lk = snt.getSignalToNoise(input[i - k]);
             }
 
-            if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
+            if ((act_snt_lk >= signal_to_noise_) && 
+                (!check_spacings ||
+                 (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_ * min_spacing)))
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
             }
@@ -242,26 +255,24 @@ public:
             }
 
             previous_zero_left = (input[i - k].getIntensity() == 0);
-
             left_boundary = i - k;
             ++k;
-
           }
 
           // to the right
           k = 2;
 
-          bool previous_zero_right(false);    // no need to extend peak if previous intensity was zero
+          bool previous_zero_right(false); // no need to extend peak if previous intensity was zero
           Size missing_right(0);
-          Size right_boundary(i+1);    // index of the right boundary for the spline interpolation
+          Size right_boundary(i+1); // index of the right boundary for the spline interpolation
 
-          while ((i + k) < input.size()
-                && (missing_right <= missing_)
-                && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_gap_ * min_spacing
-                && !previous_zero_right
-                && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
+          while ((i + k < input.size()) && 
+                 !previous_zero_right && 
+                 (missing_right <= missing_) && 
+                 (input[i + k].getIntensity() <= peak_raw_data.rbegin()->second) &&
+                 (!check_spacings ||
+                  (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_gap_ * min_spacing)))
           {
-
             double act_snt_rk = 0.0;
 
             if (signal_to_noise_ > 0.0)
@@ -269,7 +280,9 @@ public:
               act_snt_rk = snt.getSignalToNoise(input[i + k]);
             }
 
-            if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing)
+            if ((act_snt_rk >= signal_to_noise_) && 
+                (!check_spacings ||
+                 (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_ * min_spacing)))
             {
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
             }
@@ -283,14 +296,12 @@ public:
             }
 
             previous_zero_right = (input[i + k].getIntensity() == 0);
-
             right_boundary = i + k;
             ++k;
           }
 
           //skip if the minimal number of 3 points for fitting is not reached
-          if(peak_raw_data.size() < 4)
-            continue;
+          if (peak_raw_data.size() < 4) continue;
 
           CubicSpline2d peak_spline (peak_raw_data);
 
@@ -308,7 +319,7 @@ public:
           // bisection
           do
           {
-            double mid = (lefthand + righthand) / 2;
+            double mid = (lefthand + righthand) / 2.0;
             double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
 
             // if deriv nearly zero then maximum already found
@@ -328,11 +339,11 @@ public:
               lefthand = mid;
             }
           }
-          while (std::fabs(lefthand - righthand) > threshold);
+          while (righthand - lefthand > threshold);
 
           // sanity check?
           max_peak_mz = (lefthand + righthand) / 2;
-          max_peak_int = peak_spline.eval( max_peak_mz );
+          max_peak_int = peak_spline.eval(max_peak_mz);
 
           // save picked peak into output spectrum
           PeakType peak;
@@ -360,10 +371,10 @@ public:
      * @param output  output chromatogram with picked peaks
      */
     template <typename PeakType>
-    void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output) const
+    void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output) const
     {
-        std::vector<PeakBoundary> boundaries;
-        pick(input, output, boundaries);
+      std::vector<PeakBoundary> boundaries;
+      pick(input, output, boundaries);
     }
 
     /**
@@ -375,7 +386,7 @@ public:
      * @param boundaries  boundaries of the picked peaks
      */
     template <typename PeakType>
-    void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output, std::vector<PeakBoundary> & boundaries) const
+    void pick(const MSChromatogram<PeakType>& input, MSChromatogram<PeakType>& output, std::vector<PeakBoundary>& boundaries) const
     {
       // copy meta data of the input chromatogram
       output.clear(true);
@@ -389,12 +400,11 @@ public:
       {
         input_spectrum.push_back(*it);
       }
-      pick(input_spectrum, output_spectrum, boundaries);
+      pick(input_spectrum, output_spectrum, boundaries, false); // no spacing checks!
       for (typename MSSpectrum<PeakType>::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
       {
         output.push_back(*it);
       }
-
     }
 
     /**
@@ -406,7 +416,7 @@ public:
      * @param output  output map with picked peaks
      */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output) const
+    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const
     {
         std::vector<std::vector<PeakBoundary> > boundaries_spec;
         std::vector<std::vector<PeakBoundary> > boundaries_chrom;
@@ -424,7 +434,7 @@ public:
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
      */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output, std::vector<std::vector<PeakBoundary> > & boundaries_spec, std::vector<std::vector<PeakBoundary> > & boundaries_chrom) const
+    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -436,7 +446,6 @@ public:
       output.resize(input.size());
 
       Size progress = 0;
-
       startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
@@ -446,7 +455,7 @@ public:
         }
         else
         {
-          std::vector<PeakBoundary> boundaries_s;    // peak boundaries of a single spectrum
+          std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
           pick(input[scan_idx], output[scan_idx], boundaries_s);
           boundaries_spec.push_back(boundaries_s);
         }
@@ -455,13 +464,12 @@ public:
       for (Size i = 0; i < input.getChromatograms().size(); ++i)
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;
-        std::vector<PeakBoundary> boundaries_c;    // peak boundaries of a single chromatogram
+        std::vector<PeakBoundary> boundaries_c; // peak boundaries of a single chromatogram
         pick(input.getChromatograms()[i], chromatogram, boundaries_c);
         output.addChromatogram(chromatogram);
         boundaries_chrom.push_back(boundaries_c);
         setProgress(++progress);
       }
-
       endProgress();
 
       return;
@@ -475,7 +483,7 @@ public:
       Currently we have to give up const-correctness but we know that everything on disc is constant
     */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output) const
+    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -487,7 +495,6 @@ public:
       output.resize(input.size());
 
       Size progress = 0;
-
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
@@ -510,7 +517,6 @@ public:
         output.addChromatogram(chromatogram);
         setProgress(++progress);
       }
-
       endProgress();
 
       return;
@@ -525,11 +531,11 @@ protected:
     
     // maximal spacing difference defining a missing data point
     double spacing_difference_;
-    
+
     // maximum number of missing points
     unsigned missing_;
 
-    // ms levels to which peak picking is applied
+    // MS levels to which peak picking is applied
     std::vector<Int> ms_levels_;
 
     // docu in base class

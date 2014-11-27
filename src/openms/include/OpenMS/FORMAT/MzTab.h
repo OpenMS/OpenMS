@@ -41,64 +41,66 @@
 #include <vector>
 #include <list>
 #include <algorithm>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wnon-virtual-dtor"
 
 namespace OpenMS
 {
-  /**
+/**
       @brief Data model of MzTab files.
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
   */
 
-  // MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
-  enum MzTabCellStateType
-  {
-    MZTAB_CELLSTATE_DEFAULT,
-    MZTAB_CELLSTATE_NULL,
-    MZTAB_CELLSTATE_NAN,
-    MZTAB_CELLSTATE_INF,
-    SIZE_OF_MZTAB_CELLTYPE
-  };
+// MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
+enum MzTabCellStateType
+{
+  MZTAB_CELLSTATE_DEFAULT,
+  MZTAB_CELLSTATE_NULL,
+  MZTAB_CELLSTATE_NAN,
+  MZTAB_CELLSTATE_INF,
+  SIZE_OF_MZTAB_CELLTYPE
+};
 
-  // basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
-  class MzTabNullAbleInterface
-  {
-public:
+// basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
+class OPENMS_DLLAPI MzTabNullAbleInterface
+{
+  public:
     virtual ~MzTabNullAbleInterface() {}
     virtual bool isNull() const = 0;
     virtual void setNull(bool b) = 0;
     virtual String toCellString() const = 0;
     virtual void fromCellString(const String&) = 0;
-  };
+};
 
-  // interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
-  class MzTabNullNaNAndInfAbleInterface :
+// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
+class OPENMS_DLLAPI MzTabNullNaNAndInfAbleInterface :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
     virtual ~MzTabNullNaNAndInfAbleInterface() {}
     virtual bool isNaN() const = 0;
     virtual void setNaN() = 0;
     virtual bool isInf() const = 0;
     virtual void setInf() = 0;
-  };
+};
 
-  // base class for the atomic non-container like MzTab data types (Double, Int)
-  class MzTabNullAbleBase :
+// base class for atomic, non-container types (Double, Int)
+class OPENMS_DLLAPI MzTabNullAbleBase :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
     MzTabNullAbleBase() :
       null_(true)
     {
     }
 
-    virtual ~MzTabNullAbleBase() {}
+    virtual ~MzTabNullAbleBase()
+    {
+    }
 
     bool isNull() const
     {
@@ -110,15 +112,15 @@ public:
       null_ = b;
     }
 
-protected:
+  protected:
     bool null_;
-  };
+};
 
-  // base class for the atomic non-container like MzTab data types (Double, Int)
-  class MzTabNullNaNAndInfAbleBase :
+// base class for the atomic non-container like MzTab data types (Double, Int)
+class OPENMS_DLLAPI MzTabNullNaNAndInfAbleBase :
     public MzTabNullNaNAndInfAbleInterface
-  {
-public:
+{
+  public:
     MzTabNullNaNAndInfAbleBase() :
       state_(MZTAB_CELLSTATE_NULL)
     {
@@ -156,14 +158,23 @@ public:
       state_ = MZTAB_CELLSTATE_INF;
     }
 
-protected:
+  protected:
     MzTabCellStateType state_;
-  };
+};
 
-  class MzTabDouble :
+class OPENMS_DLLAPI MzTabDouble :
     public MzTabNullNaNAndInfAbleBase
-  {
-public:
+{
+  public:
+    MzTabDouble()
+      : value_(0.0)
+    {
+    }
+
+    explicit MzTabDouble(const double v)
+    {
+      set(v);
+    }
 
     virtual ~MzTabDouble() {}
 
@@ -175,14 +186,12 @@ public:
 
     double get() const
     {
-      if (state_ == MZTAB_CELLSTATE_DEFAULT)
-      {
-        return value_;
-      }
-      else
+      if (state_ != MZTAB_CELLSTATE_DEFAULT)
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
       }
+
+      return value_;
     }
 
     String toCellString() const
@@ -226,14 +235,14 @@ public:
       }
     }
 
-protected:
+  protected:
     double value_;
-  };
+};
 
-  class MzTabDoubleList :
+class OPENMS_DLLAPI MzTabDoubleList :
     public MzTabNullAbleBase
-  {
-public:
+{
+  public:
     MzTabDoubleList()
     {
     }
@@ -266,7 +275,7 @@ public:
         {
           if (it != entries_.begin())
           {
-            ret += ",";
+            ret += "|";
           }
           ret += it->toCellString();
         }
@@ -286,7 +295,7 @@ public:
       {
         String ss = s;
         std::vector<String> fields;
-        ss.split(",", fields);
+        ss.split("|", fields);
         for (Size i = 0; i != fields.size(); ++i)
         {
           MzTabDouble ds;
@@ -306,14 +315,23 @@ public:
       entries_ = entries;
     }
 
-protected:
+  protected:
     std::vector<MzTabDouble> entries_;
-  };
+};
 
-  class MzTabInteger :
+class OPENMS_DLLAPI MzTabInteger :
     public MzTabNullNaNAndInfAbleBase
-  {
-public:
+{
+  public:
+    MzTabInteger()
+      : value_(0)
+    {
+    }
+
+    explicit MzTabInteger(const int v)
+    {
+      set(v);
+    }
 
     virtual ~MzTabInteger() {}
 
@@ -376,14 +394,103 @@ public:
       }
     }
 
-protected:
+  protected:
     Int value_;
-  };
+};
 
-  class MzTabBoolean :
+class OPENMS_DLLAPI MzTabIntegerList :
     public MzTabNullAbleBase
-  {
-public:
+{
+  public:
+    MzTabIntegerList()
+    {
+    }
+
+    bool isNull() const
+    {
+      return entries_.empty();
+    }
+
+    void setNull(bool b)
+    {
+      if (b)
+      {
+        entries_.clear();
+      }
+    }
+
+    String toCellString() const
+    {
+      if (isNull())
+      {
+        return "null";
+      }
+      else
+      {
+        String ret;
+        for (std::vector<MzTabInteger>::const_iterator it = entries_.begin(); it != entries_.end(); ++it)
+        {
+          if (it != entries_.begin())
+          {
+            ret += ",";
+          }
+          ret += it->toCellString();
+        }
+        return ret;
+      }
+    }
+
+    void fromCellString(const String& s)
+    {
+      String lower = s;
+      lower.toLower().trim();
+      if (lower == "null")
+      {
+        setNull(true);
+      }
+      else
+      {
+        String ss = s;
+        std::vector<String> fields;
+        ss.split(",", fields);
+        for (Size i = 0; i != fields.size(); ++i)
+        {
+          MzTabInteger ds;
+          ds.fromCellString(fields[i]);
+          entries_.push_back(ds);
+        }
+      }
+    }
+
+    std::vector<MzTabInteger> get() const
+    {
+      return entries_;
+    }
+
+    void set(const std::vector<MzTabInteger>& entries)
+    {
+      entries_ = entries;
+    }
+
+  protected:
+    std::vector<MzTabInteger> entries_;
+};
+
+class OPENMS_DLLAPI MzTabBoolean :
+    public MzTabNullAbleBase
+{
+  public:
+    MzTabBoolean()
+      :value_(false)
+    {
+
+    }
+
+    explicit MzTabBoolean(bool v)
+    {
+      set(v);
+    }
+
     virtual ~MzTabBoolean() {}
 
     void set(const bool& value)
@@ -441,14 +548,25 @@ public:
       }
     }
 
-protected:
+  protected:
     bool value_;
-  };
+};
 
-  class MzTabString :
+class OPENMS_DLLAPI MzTabString :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
+
+    MzTabString()
+      :value_()
+    {
+    }
+
+    explicit MzTabString(const String& s)
+    {
+      set(s);
+    }
+
     virtual ~MzTabString() {}
 
     void set(const String& value)
@@ -500,14 +618,14 @@ public:
       set(s);
     }
 
-protected:
+  protected:
     String value_;
-  };
+};
 
-  class MzTabParameter :
+class OPENMS_DLLAPI MzTabParameter :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
 
     virtual ~MzTabParameter() {}
 
@@ -580,16 +698,27 @@ public:
       else
       {
         String ret = "[";
-        ret += CV_label_ + ",";
-        ret += accession_ + ",";
-        if (!name_.empty())
+        ret += CV_label_ + ", ";
+        ret += accession_ + ", ";
+
+        if (name_.hasSubstring(", "))
         {
-          ret += String("\"") + name_ + String("\""); // always quote non empty name
+          ret += String("\"") + name_ + String("\""); // quote name if it contains a ","
+        } else
+        {
+          ret += name_;
         }
 
-        ret += String(",");
+        ret += String(", ");
 
-        ret += value_;
+        if (value_.hasSubstring(", "))
+        {
+          ret += String("\"") + value_ + String("\""); // quote value if it contains a ","
+        } else
+        {
+          ret += value_;
+        }
+
         ret += "]";
         return ret;
       }
@@ -605,71 +734,60 @@ public:
       }
       else
       {
-        String ss = s;
-
-        // quotes (around name) so possibly a comma inside the CV name.
-        if (s.hasSubstring("\""))
+        StringList fields;
+        String field;
+        bool in_quotes = false;
+        for (String::const_iterator sit = s.begin(); sit != s.end(); ++sit)
         {
-          std::vector<String> quoted_fields;
-          ss.split("\"", quoted_fields);
-
-          if (quoted_fields.size() != 3)
+          if (*sit == '\"')  // start or end of quotes
           {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert quoted fields in '") + s + "' to MzTabParameter");
-          }
-
-          name_ = quoted_fields[1];
-          ss.substitute(String("\"") + name_ + String("\""), ""); // remove CV name that possibly contains comma
-
-          std::vector<String> comma_fields;
-          ss.split(",", comma_fields);
-          if (comma_fields.size() != 4)
+            in_quotes = !in_quotes;
+          } else if (*sit == ',')   // , encountered
           {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
-          }
-          else
+            if (in_quotes)  // case 1: , in quote
+            {
+              field += ','; // add , (no split)
+            } else // split at , if not in quotes
+            {
+              fields.push_back(field.trim());
+              field.clear();
+            }
+          } else if (*sit != '[' && *sit != ']')
           {
-
-            comma_fields[0].remove('[');
-            comma_fields[3].remove(']');
-            CV_label_ = comma_fields[0];
-            accession_ = comma_fields[1];
-            value_ = comma_fields[3];
+            // skip leading ws
+            if (*sit == ' ' && field.empty())
+            {
+              continue;
+            }
+            field += *sit;
           }
         }
-        else // no quotes (around name) => no extra comma expected
-        {
-          std::vector<String> fields;
-          ss.split(",", fields);
-          if (fields.size() != 4)
-          {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
-          }
-          else
-          {
 
-            fields[0].remove('[');
-            fields[3].remove(']');
-            CV_label_ = fields[0];
-            accession_ = fields[1];
-            name_ = fields[2].remove('"');
-            value_ = fields[3];
-          }
+        fields.push_back(field.trim());
+
+        if (fields.size() != 4)
+        {
+          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
         }
+
+        CV_label_ = fields[0];
+        accession_ = fields[1];
+        name_ = fields[2];
+        value_ = fields[3];
       }
     }
 
-protected:
+  protected:
     String CV_label_;
     String accession_;
     String name_;
     String value_;
-  };
+};
 
-  class MzTabParameterList :
+class OPENMS_DLLAPI MzTabParameterList :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
 
     virtual ~MzTabParameterList() {}
 
@@ -725,7 +843,7 @@ public:
         {
           MzTabParameter p;
           lower = fields[i];
-          lower.toLower();
+          lower.toLower().trim();
           if (lower == "null")
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MzTabParameter in MzTabParameterList must not be null '") + s);
@@ -746,14 +864,14 @@ public:
       parameters_ = parameters;
     }
 
-protected:
+  protected:
     std::vector<MzTabParameter> parameters_;
-  };
+};
 
-  class MzTabStringList :
+class OPENMS_DLLAPI MzTabStringList :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
     MzTabStringList() :
       sep_('|')
     {
@@ -834,21 +952,21 @@ public:
       entries_ = entries;
     }
 
-protected:
+  protected:
     std::vector<MzTabString> entries_;
     char sep_;
-  };
+};
 
-  struct MzTabModification :
+struct MzTabModification :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
 
     virtual ~MzTabModification() {}
 
     bool isNull() const
     {
-      return pos_param_pairs_.empty() && mod_or_subst_identifier_.isNull();
+      return pos_param_pairs_.empty() && mod_identifier_.isNull();
     }
 
     void setNull(bool b)
@@ -856,30 +974,30 @@ public:
       if (b)
       {
         pos_param_pairs_.clear();
-        mod_or_subst_identifier_.setNull(true);
+        mod_identifier_.setNull(true);
       }
     }
 
     // set (potentially ambiguous) position(s) with associated parameter (might be null if not set)
-    void setPositionsAndParameters(const std::vector<std::pair<Int, MzTabParameter> >& ppp)
+    void setPositionsAndParameters(const std::vector<std::pair<Size, MzTabParameter> >& ppp)
     {
       pos_param_pairs_ = ppp;
     }
 
-    std::vector<std::pair<Int, MzTabParameter> > getPositionsAndParameters() const
+    std::vector<std::pair<Size, MzTabParameter> > getPositionsAndParameters() const
     {
       return pos_param_pairs_;
     }
 
-    void setModOrSubstIdentifier(const MzTabString& mod_id)
+    void setModificationIdentifier(const MzTabString& mod_id)
     {
-      mod_or_subst_identifier_ = mod_id;
+      mod_identifier_ = mod_id;
     }
 
     MzTabString getModOrSubstIdentifier() const
     {
       assert(!isNull());
-      return mod_or_subst_identifier_;
+      return mod_identifier_;
     }
 
     String toCellString() const
@@ -910,7 +1028,7 @@ public:
         }
 
         // quick sanity check
-        if (mod_or_subst_identifier_.isNull())
+        if (mod_identifier_.isNull())
         {
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Modification or Substitution identifier MUST NOT be null or empty in MzTabModification"));
         }
@@ -919,11 +1037,11 @@ public:
         // only add '-' if we have position information
         if (!pos_param_string.empty())
         {
-          res = pos_param_string + "-" + mod_or_subst_identifier_.toCellString();
+          res = pos_param_string + "-" + mod_identifier_.toCellString();
         }
         else
         {
-          res = mod_or_subst_identifier_.toCellString();
+          res = mod_identifier_.toCellString();
         }
         return res;
       }
@@ -941,7 +1059,7 @@ public:
       {
         if (!lower.hasSubstring("-")) // no positions? simply use s as mod identifier
         {
-          mod_or_subst_identifier_.set(String(s).trim());
+          mod_identifier_.set(String(s).trim());
         }
         else
         {
@@ -954,7 +1072,7 @@ public:
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Can't convert to MzTabModification from '") + s);
           }
-          mod_or_subst_identifier_.fromCellString(fields[1].trim());
+          mod_identifier_.fromCellString(fields[1].trim());
 
           std::vector<String> position_fields;
           fields[0].split("|", position_fields);
@@ -982,15 +1100,15 @@ public:
       }
     }
 
-protected:
-    std::vector<std::pair<Int, MzTabParameter> > pos_param_pairs_;
-    MzTabString mod_or_subst_identifier_;
-  };
+  protected:
+    std::vector<std::pair<Size, MzTabParameter> > pos_param_pairs_;
+    MzTabString mod_identifier_;
+};
 
-  class MzTabModificationList :
+class OPENMS_DLLAPI MzTabModificationList :
     public MzTabNullAbleBase
-  {
-public:
+{
+  public:
     virtual ~MzTabModificationList() {}
 
     bool isNull() const
@@ -1090,12 +1208,7 @@ public:
 
           // now the split at comma is save
           ss.split(",", fields);
-          /*
-          for (Size i = 0; i != fields.size(); ++i)
-          {
-        std::cout << "Modification list field[" + String(i) + "]=" << fields[i] << std::endl;
-      }
-          */
+
           for (Size i = 0; i != fields.size(); ++i)
           {
             fields[i].substitute(((char)007), ','); // resubstitute comma after split
@@ -1117,17 +1230,17 @@ public:
       entries_ = entries;
     }
 
-protected:
+  protected:
     std::vector<MzTabModification> entries_;
 
-  };
+};
 
-  class MzTabSpectraRef :
+class OPENMS_DLLAPI MzTabSpectraRef :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
     MzTabSpectraRef() :
-      ms_file_(0)
+      ms_run_(0)
     {
     }
 
@@ -1135,14 +1248,14 @@ public:
 
     bool isNull() const
     {
-      return (ms_file_ < 1) || (spec_ref_.empty());
+      return (ms_run_ < 1) || (spec_ref_.empty());
     }
 
     void setNull(bool b)
     {
       if (b)
       {
-        ms_file_ = 0;
+        ms_run_ = 0;
         spec_ref_.clear();
       }
     }
@@ -1152,7 +1265,7 @@ public:
       assert(index >= 1);
       if (index >= 1)
       {
-        ms_file_ = index;
+        ms_run_ = index;
       }
     }
 
@@ -1174,7 +1287,7 @@ public:
     Size getMSFile() const
     {
       assert(!isNull());
-      return ms_file_;
+      return ms_run_;
     }
 
     void setSpecRefFile(const String& spec_ref)
@@ -1194,7 +1307,7 @@ public:
       }
       else
       {
-        return String("ms_file[") + String(ms_file_) + "]:" + spec_ref_;
+        return String("ms_run[") + String(ms_run_) + "]:" + spec_ref_;
       }
     }
 
@@ -1217,72 +1330,153 @@ public:
         }
 
         spec_ref_ = fields[1];
-        ms_file_ = (Size)(fields[0].substitute("ms_file[", "").remove(']').toInt());
+        ms_run_ = (Size)(fields[0].substitute("ms_run[", "").remove(']').toInt());
       }
     }
 
-protected:
-    Size ms_file_; // number is specified in the meta data section.
+  protected:
+    Size ms_run_; // number is specified in the meta data section.
     String spec_ref_;
-  };
+};
 
-  // MTD - Metadata section (Key-value)
+// MTD
 
-  // all meta data belonging to a (potentially empty) sub unit id
-  struct MzTabSubIdMetaData
-  {
-    // ranges denote multiplicity as specified in the specification document
-    std::vector<MzTabParameter> species; // 0..* Species of the unit / subsample.
-    std::vector<MzTabParameter> tissue; // 0..* Tissue of the unit / subsample.
-    std::vector<MzTabParameter> cell_type; // 0..* Parameter  Cell type of the unit / subsample.
-    std::vector<MzTabParameter> disease; // 0..* Disease state of the unit / subsample.
-    std::vector<MzTabString> description; // 0..* Description of the subsample.
-    std::vector<MzTabParameter> quantification_reagent; // 0..* Quantification reagent used to label the subsample.
-    std::vector<MzTabParameter> custom; // 0..* Additional parameters for the subsample.
-  };
+struct MzTabSampleMetaData
+{
+    MzTabString description;
+    std::map<Size, MzTabParameter> species;
+    std::map<Size, MzTabParameter> tissue;
+    std::map<Size, MzTabParameter> cell_type;
+    std::map<Size, MzTabParameter> disease;
+    std::map<Size, MzTabParameter> custom;
+};
 
-  // all meta data belonging to one unit id
-  struct MzTabUnitIdMetaData
-  {
-    // version string is not explicitly modelled but written at top
-    MzTabString title; // 0..1 The unit’s title
-    MzTabString description; // 0..1
-    std::vector<MzTabParameterList> sample_processing; // 0..* Description of the sample processing.
-    std::vector<MzTabParameter> instrument_name; // 0..* The instrument’s name
-    std::vector<MzTabParameter> instrument_source; // 0..* The instrument’s source
-    std::vector<MzTabParameter> instrument_analyzer; // 0..* The instrument’s analyzer
-    std::vector<MzTabParameter> instrument_detector; // 0..* The instrument’s detector
-    std::vector<MzTabParameter> software; // 0..* Analysis software used in the order it was used.
-    std::vector<std::vector<String> > software_setting; // 0..* A software setting used. This field MAY occur multiple times for a single software (=same index).
-    MzTabParameterList false_discovery_rate; // 0..1 False discovery rate(s)for the experiment.
-    std::vector<MzTabStringList> publication; // 0..* Publication ids (pubmed / doi).
-    std::vector<MzTabString> contact_name; // 0..* Contact name.
-    std::vector<MzTabString> contact_affiliation; // 0..* Contact affiliation.
-    std::vector<MzTabString> contact_email; // 0..* Contact’s e-mail address.
-    std::vector<MzTabString> uri; // 0..* Points to the unit’s source data.
-    MzTabParameterList mod; // 0..1 Modifications reported in the unit.
-    MzTabParameter quantification_method; // 0..1 Quantification method used.
-    MzTabParameter protein_quantification_unit; // 0..1 Unit of protein quantification results.
-    MzTabParameter peptide_quantification_unit; // 0..1 Unit of peptide quantification results.
-    MzTabParameter small_molecule_quantification_unit; // 0..1 Unit of small molecule quantification results.
-    std::vector<MzTabParameter> ms_file_format; // // 0..* Data format of the external MS data file.
-    std::vector<MzTabParameter> ms_file_location; // 0..* Location of the external MS data file.
-    std::vector<MzTabParameter> ms_file_id_format; // 0..* Identifier format of the external MS data file.
-    std::vector<MzTabParameter> custom; // 0..*  Additional parameters.
-    std::vector<MzTabSubIdMetaData> sub_id_data; // can contain none, one or multiple sub ids
+struct MzTabSoftwareMetaData
+{
+    MzTabParameter software;
+    std::map<Size, MzTabString> setting;
+};
 
-    // Units: The format of the value has to be {column name}={Parameter defining the unit}
-    // This field MUST NOT be used to define a unit for quantification columns.
-    std::vector<String> colunit_protein; // 0..* Defines the used unit for a column in the protein section.
-    std::vector<String> colunit_peptide; // 0..* Defines the used unit for a column in the peptide section.
-    std::vector<String> colunit_small_molecule; // 0..* Defines the used unit for a column in the small molecule section.
-  };
+struct MzTabModificationMetaData
+{
+    MzTabParameter modification;
+    MzTabString site;
+    MzTabString position;
+};
 
-  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not null able), value (null able)
+struct MzTabAssayMetaData
+{
+    MzTabParameter quantification_reagent;
+    std::map<Size, MzTabModificationMetaData> quantification_mod;
+    MzTabString sample_ref;
+    MzTabString ms_run_ref;
+};
 
-  // PRT - Protein section (Table based)
-  struct MzTabProteinSectionRow
-  {
+struct MzTabCVMetaData
+{
+    MzTabString label;
+    MzTabString full_name;
+    MzTabString version;
+    MzTabString url;
+};
+
+struct MzTabInstrumentMetaData
+{
+    MzTabParameter name;
+    MzTabParameter source;
+    std::map<Size, MzTabParameter> analyzer;
+    MzTabParameter detector;
+};
+
+struct MzTabContactMetaData
+{
+    MzTabString name;
+    MzTabString affiliation;
+    MzTabString email;
+};
+
+struct MzTabMSRunMetaData
+{
+    MzTabParameter format;
+    MzTabString location;
+    MzTabParameter id_format;
+    MzTabParameterList fragmentation_method;
+};
+
+struct MzTabStudyVariableMetaData
+{
+    MzTabIntegerList assay_refs;
+    MzTabIntegerList sample_refs;
+    MzTabString description;
+};
+
+// all meta data of a mzTab file. Please refer to specification for documentation.
+struct MzTabMetaData
+{
+    MzTabMetaData()
+    {
+      mz_tab_version.fromCellString(String("1.0.0"));
+    }
+
+    MzTabString mz_tab_version;
+    MzTabString mz_tab_mode;
+    MzTabString mz_tab_type;
+    MzTabString mz_tab_id;
+    MzTabString title;
+    MzTabString description;
+
+    std::map<Size, MzTabParameter> protein_search_engine_score;
+    std::map<Size, MzTabParameter> peptide_search_engine_score;
+    std::map<Size, MzTabParameter> psm_search_engine_score;
+    std::map<Size, MzTabParameter> smallmolecule_search_engine_score;
+
+    std::map<Size, MzTabParameterList> sample_processing;
+
+    std::map<Size, MzTabInstrumentMetaData> instrument;
+
+    std::map<Size, MzTabSoftwareMetaData> software;
+
+    MzTabParameterList false_discovery_rate;
+
+    std::map<Size, MzTabString> publication;
+
+    std::map<Size, MzTabContactMetaData> contact;
+
+    std::map<Size, MzTabString> uri;
+
+    std::map<Size, MzTabModificationMetaData> fixed_mod;
+
+    std::map<Size, MzTabModificationMetaData> variable_mod;
+
+    MzTabParameter quantification_method;
+
+    MzTabParameter protein_quantification_unit;
+    MzTabParameter peptide_quantification_unit;
+    MzTabParameter small_molecule_quantification_unit;
+
+    std::map<Size, MzTabMSRunMetaData> ms_run;
+
+    std::map<Size, MzTabParameter> custom;
+
+    std::map<Size, MzTabSampleMetaData> sample;
+
+    std::map<Size, MzTabAssayMetaData> assay;
+
+    std::map<Size, MzTabStudyVariableMetaData> study_variable;
+
+    std::map<Size, MzTabCVMetaData> cv;
+
+    std::vector<String> colunit_protein;
+    std::vector<String> colunit_peptide;
+    std::vector<String> colunit_psm;
+    std::vector<String> colunit_small_molecule;
+};
+
+typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not null able), value (null able)
+
+// PRT - Protein section (Table based)
+struct MzTabProteinSectionRow
+{
     MzTabProteinSectionRow()
     {
       // use "," as list separator because "|" can be used for go terms and protein accessions
@@ -1291,62 +1485,92 @@ protected:
     }
 
     MzTabString accession; // The protein’s accession.
-    //String unit_id; // The unit’s id. not null able!
     MzTabString description; // Human readable description (i.e. the name)
     MzTabInteger taxid; // NEWT taxonomy for the species.
     MzTabString species; // Human readable name of the species
     MzTabString database; // Name of the protein database.
     MzTabString database_version; // String Version of the protein database.
     MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-    MzTabParameterList search_engine_score; // Search engine(s) reliability score(s).
-    MzTabInteger reliability; // (1-3) Identification reliability.
-    MzTabInteger num_peptides; // Number of PSMs assigned to the protein.
-    MzTabInteger num_peptides_distinct; // Distinct (sequence + modifications) # of peptides.
-    MzTabInteger num_peptides_unambiguous; // Distinct number of unambiguous peptides.
+    std::map<Size, MzTabDouble>  best_search_engine_score;  // best_search_engine_score[1-n]
+    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
+    MzTabInteger reliability;
+    std::map<Size, MzTabInteger> num_psms_ms_run;
+    std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
+    std::map<Size, MzTabInteger> num_peptides_unique_ms_run;
     MzTabStringList ambiguity_members; // Alternative protein identifications.
     MzTabModificationList modifications; // Modifications identified in the protein.
     MzTabString uri; // Location of the protein’s source entry.
     MzTabStringList go_terms; // List of GO terms for the protein.
     MzTabDouble protein_coverage; // (0-1) Amount of protein sequence identified.
-    std::vector<MzTabDouble> protein_abundance_sub; // Protein abundance in the subsample.
-    std::vector<MzTabDouble> protein_abundance_stdev_sub; // Standard deviation of the protein abundance.
-    std::vector<MzTabDouble> protein_abundance_std_error_sub; // Standard error of the protein abundance.
+    std::map<Size, MzTabDouble> protein_abundance_assay;
+    std::map<Size, MzTabDouble> protein_abundance_study_variable;
+    std::map<Size, MzTabDouble> protein_abundance_stdev_study_variable;
+    std::map<Size, MzTabDouble> protein_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
-  };
+};
 
-  // PEP - Peptide section (Table based)
-  struct MzTabPeptideSectionRow
-  {
+// PEP - Peptide section (Table based)
+struct MzTabPeptideSectionRow
+{
     MzTabString sequence; // The peptide’s sequence.
     MzTabString accession; // The protein’s accession.
-    //String unit_id; // The unit’s id.
     MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
     MzTabString database; // Name of the sequence database.
     MzTabString database_version; // Version (and optionally # of entries).
     MzTabParameterList search_engine; // Search engine(s) that identified the peptide.
-    MzTabParameterList search_engine_score; // Search engine(s) score(s) for the peptide.
+    std::map<Size, MzTabDouble> best_search_engine_score; // Search engine(s) score(s) for the peptide.
+    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
     MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
     MzTabModificationList modifications; // Modifications identified in the peptide.
     MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
-    MzTabDouble charge; // Precursor ion’s charge.
+    MzTabDoubleList retention_time_window;
+    MzTabInteger charge; // Precursor ion’s charge.
     MzTabDouble mass_to_charge; // Precursor ion’s m/z.
     MzTabString uri; // Location of the PSMs source entry.
     MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
-    std::vector<MzTabDouble> peptide_abundance_sub; // Peptide abundance in the subsample;
-    std::vector<MzTabDouble> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
-    std::vector<MzTabDouble> peptide_abundance_std_error_sub; // Peptide abundance standard error.
+    std::map<Size, MzTabDouble> peptide_abundance_assay;
+    std::map<Size, MzTabDouble> peptide_abundance_study_variable;
+    std::map<Size, MzTabDouble> peptide_abundance_stdev_study_variable;
+    std::map<Size, MzTabDouble> peptide_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
-  };
+};
 
-  // SML Small molecule section (table based)
-  struct MzTabSmallMoleculeSectionRow
-  {
+// PSM - PSM section (Table based)
+struct MzTabPSMSectionRow
+{
+    MzTabString sequence; // The peptide’s sequence.
+    MzTabInteger PSM_ID;
+    MzTabString accession; // The protein’s accession.
+    MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
+    MzTabString database; // Name of the sequence database.
+    MzTabString database_version; // Version (and optionally # of entries).
+    MzTabParameterList search_engine; // Search engine(s) that identified the peptide.
+    std::map<Size, MzTabDouble> search_engine_score; // Search engine(s) score(s) for the peptide.
+    MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
+    MzTabModificationList modifications; // Modifications identified in the peptide.
+    MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
+    MzTabInteger charge; // The charge of the experimental precursor ion.
+    MzTabDouble exp_mass_to_charge; // The m/z ratio of the experimental precursor ion.
+    MzTabDouble calc_mass_to_charge;
+    MzTabString uri; // Location of the PSM’s source entry.
+    MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
+    MzTabString pre;
+    MzTabString post;
+    MzTabString start;
+    MzTabString end;
+    std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
+};
+
+// SML Small molecule section (table based)
+struct MzTabSmallMoleculeSectionRow
+{
     MzTabStringList identifier; // The small molecule’s identifier.
     MzTabString chemical_formula; // Chemical formula of the identified compound.
     MzTabString smiles; // Molecular structure in SMILES format.
     MzTabString inchi_key; // InChi Key of the identified compound.
     MzTabString description; // Human readable description (i.e. the name)
-    MzTabDouble mass_to_charge; // Precursor ion’s m/z.
+    MzTabDouble exp_mass_to_charge; // Precursor ion’s m/z.
+    MzTabDouble calc_mass_to_charge; // Precursor ion’s m/z.
     MzTabDouble charge; // Precursor ion’s charge.
     MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
     MzTabInteger taxid; // NEWT taxonomy for the species.
@@ -1357,37 +1581,30 @@ protected:
     MzTabString uri; // The source entry’s location.
     MzTabSpectraRef spectra_ref; // Spectra identifying the small molecule.
     MzTabParameterList search_engine; // Search engine(s) identifying the small molecule.
-    MzTabParameterList search_engine_score; // Search engine(s) identifications score(s).
-    MzTabModificationList modifications; // Modifications identified on the small molecule.
-    std::vector<MzTabDouble> smallmolecule_abundance_sub; // Abundance in the subsample;
-    std::vector<MzTabDouble> smallmolecule_abundance_stdev_sub; // Standard deviation of the abundance.
-    std::vector<MzTabDouble> smallmolecule_abundance_std_error_sub; // Standard errpr of the abundance.
+    std::map<Size, MzTabDouble> best_search_engine_score; // Search engine(s) identifications score(s).
+    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
+    MzTabString modifications; // Modifications identified on the small molecule.
+    std::map<Size, MzTabDouble> smallmolecule_abundance_assay;
+    std::map<Size, MzTabDouble> smallmolecule_abundance_study_variable;
+    std::map<Size, MzTabDouble> smallmolecule_abundance_stdev_study_variable;
+    std::map<Size, MzTabDouble> smallmolecule_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
-  };
+};
 
-  typedef std::vector<MzTabProteinSectionRow> MzTabProteinSectionRows;
+typedef std::vector<MzTabProteinSectionRow> MzTabProteinSectionRows;
+typedef std::vector<MzTabPeptideSectionRow> MzTabPeptideSectionRows;
+typedef std::vector<MzTabPSMSectionRow> MzTabPSMSectionRows;
+typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
 
-  typedef std::vector<MzTabPeptideSectionRow> MzTabPeptideSectionRows;
-
-  typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
-
-  typedef std::map<String, MzTabUnitIdMetaData> MzTabMetaData;
-
-  typedef std::map<String, MzTabProteinSectionRows> MzTabProteinSectionData;
-
-  typedef std::map<String, MzTabPeptideSectionRows> MzTabPeptideSectionData;
-
-  typedef std::map<String, MzTabSmallMoleculeSectionRows> MzTabSmallMoleculeSectionData;
-
-  /**
+/**
       @brief Data model of MzTab files.
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
  */
-  class OPENMS_DLLAPI MzTab
-  {
-public:
+class OPENMS_DLLAPI MzTab
+{
+  public:
     /// Default constructor
     MzTab() {}
 
@@ -1396,110 +1613,143 @@ public:
 
     const MzTabMetaData& getMetaData() const
     {
-      return map_unitid_to_meta_data_;
+      return meta_data_;
     }
 
     void setMetaData(const MzTabMetaData& md)
     {
-      map_unitid_to_meta_data_ = md;
+      meta_data_ = md;
     }
 
-    const MzTabProteinSectionData& getProteinSectionData() const
+    const MzTabProteinSectionRows& getProteinSectionRows() const
     {
-      return map_unitid_to_protein_data_;
+      return protein_data_;
     }
 
-    void setProteinSectionData(const MzTabProteinSectionData& psd)
+    void setProteinSectionRows(const MzTabProteinSectionRows& psd)
     {
-      map_unitid_to_protein_data_ = psd;
+      protein_data_ = psd;
     }
 
-    const MzTabPeptideSectionData& getPeptideSectionData() const
+    const MzTabPeptideSectionRows& getPeptideSectionRows() const
     {
-      return map_unitid_to_peptide_data_;
+      return peptide_data_;
     }
 
-    void setPeptideSectionData(const MzTabPeptideSectionData& psd)
+    void setPeptideSectionRows(const MzTabPeptideSectionRows& psd)
     {
-      map_unitid_to_peptide_data_ = psd;
+      peptide_data_ = psd;
     }
 
-    const MzTabSmallMoleculeSectionData& getSmallMoleculeSectionData() const
+    const MzTabPSMSectionRows& getPSMSectionRows() const
     {
-      return map_unitid_to_small_molecule_data_;
+      return psm_data_;
     }
 
-    void setSmallMoleculeSectionData(const MzTabSmallMoleculeSectionData& smsd)
+    void setPSMSectionRows(const MzTabPSMSectionRows& psd)
     {
-      map_unitid_to_small_molecule_data_ = smsd;
+      psm_data_ = psd;
     }
 
-    // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
+    void setCommentRows(const std::map<Size, String> & com)
+    {
+      comment_rows_ = com;
+    }
+
+    void setEmptyRows(const std::vector<Size> & empty)
+    {
+      empty_rows_ = empty;
+    }
+
+    const std::vector<Size>& getEmptyRows() const
+    {
+      return empty_rows_;
+    }
+
+    const std::map<Size, String>& getCommentRows() const
+    {
+      return comment_rows_;
+    }
+
+    const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const
+    {
+      return small_molecule_data_;
+    }
+
+    void setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd)
+    {
+      small_molecule_data_ = smsd;
+    }
+
+    // Extract opt_ (custom, optional column names)
     std::vector<String> getProteinOptionalColumnNames() const
     {
       std::vector<String> names;
-      const MzTabProteinSectionData& protein_section = map_unitid_to_protein_data_;
-      if (!protein_section.empty())
+      if (!protein_data_.empty())
       {
-        const MzTabProteinSectionRows& protein_rows = protein_section.begin()->second;
-        if (!protein_rows.empty())
+        const std::vector<MzTabOptionalColumnEntry>& opt_ = protein_data_[0].opt_;
+        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
         {
-          const std::vector<MzTabOptionalColumnEntry>& opt_ = protein_rows[0].opt_;
-          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
-          {
-            names.push_back(it->first);
-          }
+          names.push_back(it->first);
         }
       }
       return names;
     }
 
-    // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
+    // Extract opt_ (custom, optional column names)
     std::vector<String> getPeptideOptionalColumnNames() const
     {
       std::vector<String> names;
-      const MzTabPeptideSectionData& peptide_section = map_unitid_to_peptide_data_;
-      if (!peptide_section.empty())
+      if (!peptide_data_.empty())
       {
-        const MzTabPeptideSectionRows& peptide_rows = peptide_section.begin()->second;
-        if (!peptide_rows.empty())
+        const std::vector<MzTabOptionalColumnEntry>& opt_ = peptide_data_[0].opt_;
+        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
         {
-          const std::vector<MzTabOptionalColumnEntry>& opt_ = peptide_rows[0].opt_;
-          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
-          {
-            names.push_back(it->first);
-          }
+          names.push_back(it->first);
         }
       }
       return names;
     }
 
-    // Extract opt_ (custom, optional column names. Note: opt_ column names must be the same for all unitids so just take from first
+    // Extract opt_ (custom, optional column names)
+    std::vector<String> getPSMOptionalColumnNames() const
+    {
+      std::vector<String> names;
+      if (!psm_data_.empty())
+      {
+        const std::vector<MzTabOptionalColumnEntry>& opt_ = psm_data_[0].opt_;
+        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
+        {
+          names.push_back(it->first);
+        }
+      }
+      return names;
+    }
+
+    // Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const
     {
       std::vector<String> names;
-      const MzTabSmallMoleculeSectionData& small_molecule_section = map_unitid_to_small_molecule_data_;
-      if (!small_molecule_section.empty())
+      if (!small_molecule_data_.empty())
       {
-        const MzTabSmallMoleculeSectionRows& small_molecule_rows = small_molecule_section.begin()->second;
-        if (!small_molecule_rows.empty())
+        const std::vector<MzTabOptionalColumnEntry>& opt_ = small_molecule_data_[0].opt_;
+        for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
         {
-          const std::vector<MzTabOptionalColumnEntry>& opt_ = small_molecule_rows[0].opt_;
-          for (std::vector<MzTabOptionalColumnEntry>::const_iterator it = opt_.begin(); it != opt_.end(); ++it)
-          {
-            names.push_back(it->first);
-          }
+          names.push_back(it->first);
         }
       }
       return names;
     }
 
-protected:
-    MzTabMetaData map_unitid_to_meta_data_;
-    MzTabProteinSectionData map_unitid_to_protein_data_;
-    MzTabPeptideSectionData map_unitid_to_peptide_data_;
-    MzTabSmallMoleculeSectionData map_unitid_to_small_molecule_data_;
-  };
+  protected:
+    MzTabMetaData meta_data_;
+    MzTabProteinSectionRows protein_data_;
+    MzTabPeptideSectionRows peptide_data_;
+    MzTabPSMSectionRows psm_data_;
+    MzTabSmallMoleculeSectionRows small_molecule_data_;
+    std::vector<Size> empty_rows_;  // index of empty rows
+    std::map<Size, String> comment_rows_; // comments
+};
 
 } // namespace OpenMS
 

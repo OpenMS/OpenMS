@@ -107,23 +107,24 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
 
   // create peptide
   PeptideHit pep_hit(1.0, 1, 0, AASequence::fromString("AAHJK"));
-  std::vector<String> prot_accessions;
-  prot_accessions.push_back("p1");
-  pep_hit.setProteinAccessions(prot_accessions);
+  PeptideEvidence pe1;
+  pe1.setProteinAccession("p1");
+  pep_hit.setPeptideEvidences(vector<PeptideEvidence>(1, pe1));
   PeptideIdentification pep_id;
   pep_id.insertHit(pep_hit);
   // --
   PeptideHit pep_hit2(1.0, 1, 0, AASequence::fromString("EEEEPPPK"));
-  std::vector<String> prot_accessions2;
-  prot_accessions2.push_back("p2");
-  pep_hit2.setProteinAccessions(prot_accessions2);
+  PeptideEvidence pe2;
+  pe2.setProteinAccession("p2");
+  pep_hit2.setPeptideEvidences(vector<PeptideEvidence>(1, pe2));
+
   PeptideIdentification pep_id2;
   pep_id2.insertHit(pep_hit2);
   // --
   PeptideHit pep_hit3(1.0, 1, 0, AASequence::fromString("EEEEPPPK")); // same peptide as #2, but from different protein
-  std::vector<String> prot_accessions3;
-  prot_accessions3.push_back("p3");
-  pep_hit3.setProteinAccessions(prot_accessions3);
+  PeptideEvidence pe3;
+  pe3.setProteinAccession("p3");
+  pep_hit3.setPeptideEvidences(vector<PeptideEvidence>(1, pe3));
   PeptideIdentification pep_id3;
   pep_id3.insertHit(pep_hit3);
 
@@ -150,15 +151,16 @@ START_SECTION((void postDigestHook(SimTypes::FeatureMapSimVector &)))
 
   i.postDigestHook(f_maps);
 
-
   // one merged map
   TEST_EQUAL(f_maps.size(), 1)
 
   TEST_EQUAL(f_maps[0].size(), 2)
 
-  TEST_EQUAL(f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size(), 1)
-  TEST_EQUAL(f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size(), 2)
+  set<String> protein_accessions1 = f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+  TEST_EQUAL(protein_accessions1.size(), 1)
 
+  set<String> protein_accessions2 = f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+  TEST_EQUAL(protein_accessions2.size(), 2)
 }
 END_SECTION
 
