@@ -273,47 +273,13 @@ namespace OpenMS
           }
           
           // add the peak to the result
-          //result.addFilterResultPeak(peak_position[peak], rt_picked, mz_shifts_actual, intensities_actual, results_raw);
+          vector<MultiplexFilterResultRaw> results_raw;
+          result.addFilterResultPeak(peak_position[peak], rt_picked, mz_shifts_actual, intensities_actual, results_raw);
           
           // blacklist peaks in the current spectrum and the two neighbouring ones
           blacklistPeaks(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_centroided);
 
-            // add raw data point to list that passed all filters
-            /*MultiplexFilterResultRaw result_raw(mz, mz_shifts_actual, intensities_actual);
-            results_raw.push_back(result_raw);
-
-            // blacklist peaks in the current spectrum and the two neighbouring ones
-            if (!blacklisted)
-            {
-              blacklistPeaks(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_spline);
-              blacklisted = true;
-            }
-
-          }
-
-          // add the peak with its corresponding raw data to the result
-          if (results_raw.size() > 2)
-          {
-            // Scanning over the profile of the peak, we want at least three raw data points to pass all filters.
-            vector<double> intensities_actual;
-            for (unsigned i = 0; i < mz_shifts_actual_indices.size(); ++i)
-            {
-              int index = mz_shifts_actual_indices[i];
-              if (index == -1)
-              {
-                // no peak found
-                intensities_actual.push_back(std::numeric_limits<double>::quiet_NaN());
-              }
-              else
-              {
-                intensities_actual.push_back(peak_intensity[mz_shifts_actual_indices[i]]);
-              }
-            }
-            result.addFilterResultPeak(peak_position[peak], rt_picked, mz_shifts_actual, intensities_actual, results_raw);
-          }*/
-
         }
-
       }
 
       // add results of this pattern to list

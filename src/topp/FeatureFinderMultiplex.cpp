@@ -1192,6 +1192,7 @@ private:
       MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
+      std::cout << "After filtering of centroided data.\n";
     }
     else
     {
