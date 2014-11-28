@@ -529,6 +529,50 @@ START_SECTION((bool filterIdentificationsByMetaValueRange(const PeptideIdentific
 }
 END_SECTION
 
+START_SECTION((bool updateProteinGroups(const vector<ProteinIdentification::ProteinGroup>& groups, const vector<ProteinHit>& hits, vector<ProteinIdentification::ProteinGroup>& filtered_groups)))
+{
+  vector<ProteinIdentification::ProteinGroup> groups(2);
+  groups[0].accessions.push_back("A");
+  groups[0].probability = 0.1;
+  groups[1].accessions.push_back("B");
+  groups[1].accessions.push_back("C");
+  groups[1].probability = 0.2;
+
+  vector<ProteinHit> hits(3);
+  hits[0].setAccession("C");
+  hits[1].setAccession("B");
+  hits[2].setAccession("A");
+
+  IDFilter filter;
+  vector<ProteinIdentification::ProteinGroup> filtered_groups;
+
+  // no protein to remove:
+  bool valid = filter.updateProteinGroups(groups, hits, filtered_groups);
+  TEST_EQUAL(valid, true);
+  TEST_EQUAL(filtered_groups.size(), 2);
+  TEST_EQUAL(filtered_groups == groups, true);
+  
+  // remove full protein group:
+  hits.pop_back();
+  valid = filter.updateProteinGroups(groups, hits, filtered_groups);
+  TEST_EQUAL(valid, true);
+  TEST_EQUAL(filtered_groups.size(), 1);
+  TEST_EQUAL(filtered_groups[0].accessions.size(), 2);
+  TEST_EQUAL(filtered_groups[0].accessions[0], "B");
+  TEST_EQUAL(filtered_groups[0].accessions[1], "C");
+  TEST_EQUAL(filtered_groups[0].probability, 0.2);
+  
+  // remove part of a protein group:
+  hits.pop_back();
+  valid = filter.updateProteinGroups(groups, hits, filtered_groups);
+  TEST_EQUAL(valid, false);
+  TEST_EQUAL(filtered_groups.size(), 1);
+  TEST_EQUAL(filtered_groups[0].accessions.size(), 1);
+  TEST_EQUAL(filtered_groups[0].accessions[0], "C");
+  TEST_EQUAL(filtered_groups[0].probability, 0.2);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
