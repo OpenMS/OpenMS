@@ -447,7 +447,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::removeUnreferencedProteinHits(const ProteinIdentification& identification, const vector<PeptideIdentification> peptide_identifications, ProteinIdentification& filtered_identification)
+  void IDFilter::removeUnreferencedProteinHits(const ProteinIdentification& identification, const vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& filtered_identification)
   {
     const String& run_identifier = identification.getIdentifier();
 
