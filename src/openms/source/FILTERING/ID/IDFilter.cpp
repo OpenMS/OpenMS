@@ -585,7 +585,7 @@ namespace OpenMS
 
   bool IDFilter::updateProteinGroups(const vector<ProteinIdentification::ProteinGroup>& groups, const vector<ProteinHit>& hits, vector<ProteinIdentification::ProteinGroup>& filtered_groups)
   {
-    bool changed = false;
+    bool valid = true;
 
     // we'll do lots of look-ups, so use a suitable data structure:
     set<String> accessions;
@@ -609,19 +609,19 @@ namespace OpenMS
         {
           filtered.accessions.push_back(*acc_it);
         }
-        else
-        {
-          changed = true;
-        }
       }
       if (!filtered.accessions.empty())
       {
+        if (filtered.accessions.size() < group_it->accessions.size())
+        {
+          valid = false; // some proteins removed from group
+        }
         filtered.probability = group_it->probability;
         filtered_groups.push_back(filtered);
       }
     }
     
-    return changed;
+    return valid;
   }
 
 } // namespace OpenMS

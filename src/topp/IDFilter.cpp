@@ -570,22 +570,22 @@ protected:
         if (!filtered_protein_identification.getProteinGroups().empty())
         {
           vector<ProteinIdentification::ProteinGroup> filtered_groups;
-          bool changed = filter.updateProteinGroups(filtered_protein_identification.getProteinGroups(), filtered_protein_identification.getHits(), filtered_groups);
-          if (changed)
+          bool valid = filter.updateProteinGroups(filtered_protein_identification.getProteinGroups(), filtered_protein_identification.getHits(), filtered_groups);
+          if (!valid)
           {
-            writeLog_("Warning: Updated protein groups due to removal of protein hits. The new grouping (especially the group probabilities) may not be completely valid any more.");
-            filtered_protein_identification.getProteinGroups() = filtered_groups;
+            writeLog_("Warning: While updating protein groups, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more.");
           }
+          filtered_protein_identification.getProteinGroups() = filtered_groups; // this may be unnecessary (if nothing changed)
         }
         if (!filtered_protein_identification.getIndistinguishableProteins().empty())
         {
           vector<ProteinIdentification::ProteinGroup> filtered_groups;
-          bool changed = filter.updateProteinGroups(filtered_protein_identification.getIndistinguishableProteins(), filtered_protein_identification.getHits(), filtered_groups);
-          if (changed)
+          bool valid = filter.updateProteinGroups(filtered_protein_identification.getIndistinguishableProteins(), filtered_protein_identification.getHits(), filtered_groups);
+          if (!valid)
           {
-            writeLog_("Warning: Updated indistinguishable proteins due to removal of protein hits. The new grouping (especially the group probabilities) may not be completely valid any more.");
-            filtered_protein_identification.getIndistinguishableProteins() = filtered_groups;
+            writeLog_("Warning: While updating indistinguishable proteins, some proteins were removed from groups that are still present. The new grouping (especially the group probabilities) may not be completely valid any more.");
           }
+          filtered_protein_identification.getIndistinguishableProteins() = filtered_groups; // this may be unnecessary (if nothing changed)
         }
 
         // might have empty proteinHits

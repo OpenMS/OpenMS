@@ -483,7 +483,7 @@ public:
        @param hits Available protein hits (all others are removed from the groups)
        @param filtered_groups Output protein groups
 
-       @return Returns whether any changes were made to the groups.
+       @return Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed).
     */
     bool updateProteinGroups(const std::vector<ProteinIdentification::ProteinGroup>& groups, const std::vector<ProteinHit>& hits, std::vector<ProteinIdentification::ProteinGroup>& filtered_groups);
 
