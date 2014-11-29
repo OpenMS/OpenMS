@@ -51,7 +51,7 @@
 namespace OpenMS
 {
     /**
-     * @brief filters peak and profile data for peak patterns
+     * @brief base class for filtering centroided and profile data for peak patterns
      * 
      * The algorithm searches for patterns of multiple peptides in the data.
      * The peptides appear as characteristic patterns of isotopic peaks in
@@ -61,6 +61,8 @@ namespace OpenMS
      * 
      * @see MultiplexPeakPattern
      * @see MultiplexFilterResult
+     * @see MultiplexFilgeringCentroided
+     * @see MultiplexFilgeringProfile
      */
     class OPENMS_DLLAPI MultiplexFiltering :
         public ProgressLogger
