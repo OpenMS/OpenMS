@@ -861,31 +861,6 @@ public:
               }
             }
           }
-
-          // iterate over profile data
-          // (We use the (spline-interpolated) profile intensities for a very accurate ratio determination.)
-          for (int i = 0; i < result_peak.size(); ++i)
-          {
-            MultiplexFilterResultRaw result_raw = result_peak.getFilterResultRaw(i);
-
-            // loop over isotopic peaks in peptide
-            for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
-            {
-              // loop over peptides
-              for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-              {
-                unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
-                all_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
-                
-                double mz_shift = result_raw.getMZShifts()[index];
-                if (!(boost::math::isnan(mz_shift)))
-                {
-                  std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-                  mass_traces[peptide_peak].enlarge(rt, result_raw.getMZ() + mz_shift);
-                }
-              }
-            }
-          }
           
         }
 
