@@ -93,7 +93,7 @@ for (int c = charge_max; c >= charge_min; --c)
     patterns.push_back(pattern2);
 }
 
-MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
+/*MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
 std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 
 MultiplexClustering* nullPointer = 0;
@@ -119,6 +119,6 @@ START_SECTION(std::vector<std::map<int GridBasedCluster> > cluster(std::vector<M
     TEST_EQUAL(cluster_results[5].size(), 0);
     TEST_EQUAL(cluster_results[6].size(), 0);
     TEST_EQUAL(cluster_results[7].size(), 0);
-END_SECTION
+END_SECTION*/
 
 END_TEST

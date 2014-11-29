@@ -33,7 +33,6 @@ MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 MultiplexClustering.cpp
 MultiplexFiltering.cpp
-MultiplexFilteringBase.cpp
 MultiplexFilteringCentroided.cpp
 MultiplexFilteringProfile.cpp
 MultiplexFilterResult.cpp

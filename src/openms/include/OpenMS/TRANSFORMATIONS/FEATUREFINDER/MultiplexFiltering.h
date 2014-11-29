@@ -97,37 +97,10 @@ namespace OpenMS
 
         /**
          * @brief constructor
-         * 
-         * @param exp_profile    experimental data in profile mode
-         * @param exp_picked    experimental data in centroid mode
-         * @param boundaries    peak boundaries for exp_picked
-         * @param patterns    patterns of isotopic peaks to be searched for
-         * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
-         * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
-         * @param missing_peaks    flag for missing peaks
-         * @param intensity_cutoff    intensity cutoff
-         * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
-         * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
-         * @param peptide_similarity    similarity score for two peptides in the same multiplet
-         * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
-         * @param out_debug    directory for debug output
-         * 
-         * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
-         * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
+        MultiplexFiltering(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
         
-        /**
-         * @brief filter for patterns
-         * (generates a filter result for each of the patterns)
-         * 
-         * @throw Exception::IllegalArgument if number of peaks and number of peak boundaries differ
-         * 
-         * @see MultiplexPeakPattern, MultiplexFilterResult
-         */
-        std::vector<MultiplexFilterResult> filter();
-        
-        private:
+        protected:
         /**
          * @brief position and blacklist filter
          * 
@@ -160,24 +133,6 @@ namespace OpenMS
         bool monoIsotopicPeakIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int> & mz_shifts_actual_indices) const;
         
         /**
-         * @brief non-local intensity filter
-         * 
-         * Checks if the intensities at the pattern positions are above the intensity cutoff.
-         * We check not only at m/z but at all pattern positions i.e. non-locally.
-         * 
-         * @param pattern    pattern of isotopic peaks to be searched for
-         * @param mz_shifts_actual    actual m/z shifts seen in the spectrum (will differ slightly from expected m/z shifts in pattern)
-         * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
-         * @param nav    navigator for moving on the spline-interpolated spectrum
-         * @param intensities_actual    output for the spline-interpolated intensities at the actual m/z shift positions
-         * @param peaks_found_in_all_peptides    number of isotopic peaks seen for each peptide (peaks)
-         * @param mz    reference m/z position of the pattern (mono-isotopic peak of the lightest peptide)
-         * 
-         * @return number of isotopic peaks seen for each peptide (profile)
-         */
-        int nonLocalIntensityFilter(MultiplexPeakPattern pattern, const std::vector<double> & mz_shifts_actual, const std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz) const;
-        
-        /**
          * @brief zeroth peak filter
          * 
          * The mono-isotopic peak is the first peak of each peptide. A peak one m/z shift to the left (e.g. 0.5Th for 2+) 
@@ -206,7 +161,7 @@ namespace OpenMS
          * 
          * @return true if peptide isotope patterns are similar
          */
-        bool peptideSimilarityFilter(MultiplexPeakPattern pattern, const std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> isotope_pattern_1, std::vector<double> isotope_pattern_2) const;
+        bool peptideSimilarityFilter(MultiplexPeakPattern pattern, const std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline) const;
         
         /**
          * @brief averagine similarity filter
@@ -247,18 +202,6 @@ namespace OpenMS
         
         /**
          * @brief returns the index of a peak at m/z
-         * (for initialisation of peak registry)
-         * 
-         * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-         * @param mz    m/z position of the peak
-         * @param scaling    rescaling of the peak boundaries
-         * 
-         * @return index of the peak in spectrum
-         */
-        int getPeakIndex(int spectrum_index, double mz, double scaling) const;
-        
-        /**
-         * @brief returns the index of a peak at m/z
          * (finds not only a valid peak, i.e. within certain m/z deviation, but the best of the valid peaks)
          * 
          * @param peak_position    m/z position of the peaks
@@ -291,12 +234,10 @@ namespace OpenMS
          */
         double getAveragineSimilarity(std::vector<double> pattern, double m) const;
         
-        /**
-         * @brief profile and centroided experimental data
+         /**
+         * @brief centroided experimental data
          */
-        MSExperiment<Peak1D> exp_profile_;
         MSExperiment<Peak1D> exp_picked_;
-        std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
         
          /**
          * @brief auxiliary structs for navigation and blacklisting 
@@ -339,7 +280,7 @@ namespace OpenMS
          */
         bool mz_tolerance_unit_;
         
-        /**
+       /**
          * @brief peptide similarity
          */
         double peptide_similarity_;
@@ -354,11 +295,11 @@ namespace OpenMS
          */
         String out_debug_;
         
-        /**
+         /**
          * @brief debug mode
          */
         bool debug_;
-        
+               
    };
   
 }
