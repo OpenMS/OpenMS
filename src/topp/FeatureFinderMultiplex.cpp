@@ -678,22 +678,22 @@ public:
   /**
    * @brief calculate peptide intensities
    *
-   * @param profile_intensities    vectors of profile intensities for each of the peptides (first index: peptide 0=L, 1=M, 2=H etc, second index: raw data point)
+   * @param all_intensities    vectors of profile intensities for each of the peptides (first index: peptide 0=L, 1=M, 2=H etc, second index: raw data point)
    * @return vector with intensities for each peptide
    */
-  std::vector<double> getPeptideIntensities(std::vector<std::vector<double> >& profile_intensities)
+  std::vector<double> getPeptideIntensities(std::vector<std::vector<double> >& all_intensities)
   {
-    OPENMS_PRECONDITION(!profile_intensities.empty(), "The entire profile intensity vector should not be empty.");
+    OPENMS_PRECONDITION(!all_intensities.empty(), "The entire profile intensity vector should not be empty.");
     bool empty_intensities = false;
-    for (unsigned i = 0; i < profile_intensities.size(); ++i)
+    for (unsigned i = 0; i < all_intensities.size(); ++i)
     {
-      empty_intensities = empty_intensities || profile_intensities[i].empty();
+      empty_intensities = empty_intensities || all_intensities[i].empty();
     }
     OPENMS_PRECONDITION(!empty_intensities, "None of the individual profile intensity vectors should be empty.");
-    unsigned count = profile_intensities[0].size();
-    for (unsigned i = 0; i < profile_intensities.size(); ++i)
+    unsigned count = all_intensities[0].size();
+    for (unsigned i = 0; i < all_intensities.size(); ++i)
     {
-      if (profile_intensities[i].size() != count)
+      if (all_intensities[i].size() != count)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The profile intensity vectors for each peptide are not of the same size.");
       }
@@ -704,7 +704,7 @@ public:
     std::vector<double> ratios;        // L:L, M:L, H:L etc.
     std::vector<double> intensities;        // L, M, H etc.
     // loop over peptides
-    for (unsigned i = 0; i < profile_intensities.size(); ++i)
+    for (unsigned i = 0; i < all_intensities.size(); ++i)
     {
       // filter for non-NaN intensities
       std::vector<double> intensities1;
@@ -712,11 +712,11 @@ public:
       double intensity = 0;
       for (unsigned j = 0; j < count; ++j)
       {
-        if (!(boost::math::isnan(profile_intensities[0][j])) && !(boost::math::isnan(profile_intensities[i][j])))
+        if (!(boost::math::isnan(all_intensities[0][j])) && !(boost::math::isnan(all_intensities[i][j])))
         {
-          intensities1.push_back(profile_intensities[0][j]);
-          intensities2.push_back(profile_intensities[i][j]);
-          intensity += profile_intensities[i][j];
+          intensities1.push_back(all_intensities[0][j]);
+          intensities2.push_back(all_intensities[i][j]);
+          intensity += all_intensities[i][j];
         }
       }
 
@@ -734,20 +734,20 @@ public:
     // from linear regression is the more accurate one, we correct the two peptide intensities by projecting them onto the ratio.
     // In the end, both peptide ratio from linear regression and the quotient of the peptide intensities are identical.
     std::vector<double> corrected_intensities;
-    if (profile_intensities.size() == 2)
+    if (all_intensities.size() == 2)
     {
       double intensity1 = (intensities[0] + ratios[1] * intensities[1]) / (1 + ratios[1] * ratios[1]);
       double intensity2 = ratios[1] * intensity1;
       corrected_intensities.push_back(intensity1);
       corrected_intensities.push_back(intensity2);
     }
-    else if (profile_intensities.size() > 2)
+    else if (all_intensities.size() > 2)
     {
       // Now with n instead of two peptide intensities, one needs to project the peptide intensities onto the hyperplane defined
       // by the set of all peptide ratios (TODO). Instead, it is simpler to keep the lightest peptide intensity fixed, and correct
       // only the remaining ones. The correct peptide ratio (from linear regression) is reported on both cases.
       corrected_intensities.push_back(intensities[0]);
-      for (unsigned i = 1; i < profile_intensities.size(); ++i)
+      for (unsigned i = 1; i < all_intensities.size(); ++i)
       {
         corrected_intensities.push_back(ratios[i] * intensities[0]);
       }
@@ -764,13 +764,14 @@ public:
   /**
    * @brief generates consensus and feature maps containing all peptide multiplets
    *
+   * @param centroided    type of spectral input data (profile or centroided)
    * @param patterns    patterns of isotopic peaks we have been searching for
    * @param filter_results    filter results for each of the patterns
    * @param cluster_results    clusters of filter results
    * @param consensus_map    consensus map with peptide multiplets (to be filled)
    * @param feature_map    feature map with peptides (to be filled)
    */
-  void generateMapsCentroided_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
+  void generateMaps_(bool centroided, std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
   {
     // loop over peak patterns
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
@@ -786,9 +787,11 @@ public:
         std::vector<double> sum_intensity_mz(number_of_peptides,0);
         std::vector<double> sum_intensity_rt(number_of_peptides,0);
         std::vector<double> sum_intensity(number_of_peptides,0);
-        // (Spline-interpolated) profile intensities for accurate ratio determination.
+        // intensities for ratio determination.
+        // For centroided input data, these intensities are peak intensities.
+        // For profile input data, these intensities are the spline-interpolated profile intensities.
         // First index is the peptide, second is just the profile intensities collected
-        std::vector<std::vector<double> > profile_intensities(patterns[pattern].getMassShiftCount(), std::vector<double>());
+        std::vector<std::vector<double> > all_intensities(patterns[pattern].getMassShiftCount(), std::vector<double>());
         // bounding boxes of mass traces for each peptide multiplet
         // First index is the peptide, second is the mass trace within the peptide.
         std::map<std::pair<unsigned, unsigned>, DBoundingBox<2> > mass_traces;
@@ -811,12 +814,8 @@ public:
             sum_intensity[peptide]  += result_peak.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + 1];
           }
 
-          // iterate over profile data
-          // (We use the (spline-interpolated) profile intensities for a very accurate ratio determination.)
-          for (int i = 0; i < result_peak.size(); ++i)
+          if (centroided)
           {
-            MultiplexFilterResultRaw result_raw = result_peak.getFilterResultRaw(i);
-
             // loop over isotopic peaks in peptide
             for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
             {
@@ -824,127 +823,43 @@ public:
               for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
               {
                 unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
-                profile_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
+                all_intensities[peptide].push_back(result_peak.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
                 
-                double mz_shift = result_raw.getMZShifts()[index];
+                double mz_shift = result_peak.getMZShifts()[index];
                 if (!(boost::math::isnan(mz_shift)))
                 {
                   std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-                  mass_traces[peptide_peak].enlarge(rt, result_raw.getMZ() + mz_shift);
+                  mass_traces[peptide_peak].enlarge(rt, result_peak.getMZ() + mz_shift);
+                }
+              }
+            }            
+          }
+          else
+          {
+            // iterate over profile data
+            // (We use the (spline-interpolated) profile intensities for a very accurate ratio determination.)
+            for (int i = 0; i < result_peak.size(); ++i)
+            {
+              MultiplexFilterResultRaw result_raw = result_peak.getFilterResultRaw(i);
+  
+              // loop over isotopic peaks in peptide
+              for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
+              {
+                // loop over peptides
+                for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
+                {
+                  unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
+                  all_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
+                  
+                  double mz_shift = result_raw.getMZShifts()[index];
+                  if (!(boost::math::isnan(mz_shift)))
+                  {
+                    std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
+                    mass_traces[peptide_peak].enlarge(rt, result_raw.getMZ() + mz_shift);
+                  }
                 }
               }
             }
-          }
-        }
-
-        // calculate intensities for each of the peptides from profile data
-        std::vector<double> peptide_intensities = getPeptideIntensities(profile_intensities);
-
-        // average peptide intensity (= consensus intensity)
-        double average_peptide_intensity = 0;
-        for (unsigned i = 0; i < peptide_intensities.size(); ++i)
-        {
-          average_peptide_intensity += peptide_intensities[i];
-        }
-        average_peptide_intensity /= peptide_intensities.size();
-
-        // fill map with consensuses and its features
-        consensus.setMZ(sum_intensity_mz[0] / sum_intensity[0]);
-        consensus.setRT(sum_intensity_rt[0] / sum_intensity[0]);
-        consensus.setIntensity(average_peptide_intensity);
-        consensus.setCharge(patterns[pattern].getCharge());
-        consensus.setQuality(1 - 1 / points.size());          // rough quality score in [0,1]
-
-        for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-        {
-          FeatureHandle feature_handle;
-          feature_handle.setMZ(sum_intensity_mz[peptide] / sum_intensity[peptide]);
-          feature_handle.setRT(sum_intensity_rt[peptide] / sum_intensity[peptide]);
-          feature_handle.setIntensity(peptide_intensities[peptide]);
-          feature_handle.setCharge(patterns[pattern].getCharge());
-          feature_handle.setMapIndex(peptide);
-          //feature_handle.setUniqueId(&UniqueIdInterface::setUniqueId);    // TODO: Do we need to set unique ID?
-          consensus_map.getFileDescriptions()[peptide].size++;
-          consensus.insert(feature_handle);
-
-          Feature feature;
-          feature.setMZ(sum_intensity_mz[peptide] / sum_intensity[peptide]);
-          feature.setRT(sum_intensity_rt[peptide] / sum_intensity[peptide]);
-          feature.setIntensity(peptide_intensities[peptide]);
-          feature.setCharge(patterns[pattern].getCharge());
-          feature.setOverallQuality(1 - 1 / points.size());
-          for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
-          {
-            std::pair<unsigned, unsigned> peptide_peak(peptide, peak);
-            if (mass_traces.count(peptide_peak) > 0)
-            {
-              ConvexHull2D hull;
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(),mass_traces[peptide_peak].minY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(),mass_traces[peptide_peak].maxY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(),mass_traces[peptide_peak].minY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(),mass_traces[peptide_peak].maxY()));
-              feature.getConvexHulls().push_back(hull);
-            }
-          }
-
-          feature_map.push_back(feature);
-        }
-
-        consensus_map.push_back(consensus);
-      }
-
-    }
-
-  }
-
-  /**
-   * @brief generates consensus and feature maps containing all peptide multiplets
-   *
-   * @param patterns    patterns of isotopic peaks we have been searching for
-   * @param filter_results    filter results for each of the patterns
-   * @param cluster_results    clusters of filter results
-   * @param consensus_map    consensus map with peptide multiplets (to be filled)
-   * @param feature_map    feature map with peptides (to be filled)
-   */
-  void generateMapsProfile_(std::vector<MultiplexPeakPattern> patterns, std::vector<MultiplexFilterResult> filter_results, std::vector<std::map<int, GridBasedCluster> > cluster_results, ConsensusMap& consensus_map, FeatureMap& feature_map)
-  {
-    // loop over peak patterns
-    for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
-    {
-      // loop over clusters
-      for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
-      {
-        ConsensusFeature consensus;
-
-        // The position (m/z, RT) of the peptide features is the centre-of-mass of the mass trace of the lightest isotope.
-        // The centre-of-mass is the intensity-weighted average of the peak positions.
-        unsigned number_of_peptides = patterns[pattern].getMassShiftCount();
-        std::vector<double> sum_intensity_mz(number_of_peptides,0);
-        std::vector<double> sum_intensity_rt(number_of_peptides,0);
-        std::vector<double> sum_intensity(number_of_peptides,0);
-        // (Spline-interpolated) profile intensities for accurate ratio determination.
-        // First index is the peptide, second is just the profile intensities collected
-        std::vector<std::vector<double> > profile_intensities(patterns[pattern].getMassShiftCount(), std::vector<double>());
-        // bounding boxes of mass traces for each peptide multiplet
-        // First index is the peptide, second is the mass trace within the peptide.
-        std::map<std::pair<unsigned, unsigned>, DBoundingBox<2> > mass_traces;
-
-        GridBasedCluster cluster = cluster_it->second;
-        std::vector<int> points = cluster.getPoints();
-
-        // loop over points in cluster
-        for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
-        {
-          int index = (*point_it);
-
-          MultiplexFilterResultPeak result_peak = filter_results[pattern].getFilterResultPeak(index);
-          double rt = result_peak.getRT();
-
-          for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
-          {
-            sum_intensity_mz[peptide] += (result_peak.getMZ() + result_peak.getMZShifts()[(isotopes_per_peptide_max_ + 1) * peptide + 1]) * result_peak.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + 1];
-            sum_intensity_rt[peptide] += result_peak.getRT() * result_peak.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + 1];
-            sum_intensity[peptide]  += result_peak.getIntensities()[(isotopes_per_peptide_max_ + 1) * peptide + 1];
           }
 
           // iterate over profile data
@@ -960,7 +875,7 @@ public:
               for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
               {
                 unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
-                profile_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
+                all_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
                 
                 double mz_shift = result_raw.getMZShifts()[index];
                 if (!(boost::math::isnan(mz_shift)))
@@ -971,10 +886,11 @@ public:
               }
             }
           }
+          
         }
 
         // calculate intensities for each of the peptides from profile data
-        std::vector<double> peptide_intensities = getPeptideIntensities(profile_intensities);
+        std::vector<double> peptide_intensities = getPeptideIntensities(all_intensities);
 
         // average peptide intensity (= consensus intensity)
         double average_peptide_intensity = 0;
@@ -1366,7 +1282,7 @@ private:
      */
     ConsensusMap consensus_map;
     FeatureMap feature_map;
-    generateMapsProfile_(patterns, filter_results, cluster_results, consensus_map, feature_map);
+    generateMaps_(centroided, patterns, filter_results, cluster_results, consensus_map, feature_map);
     if (out_ != "")
     {
       writeConsensusMap_(out_, consensus_map);
