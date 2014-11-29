@@ -1215,20 +1215,16 @@ private:
     if (centroided)
     {
       // centroided data
-      std::cout << "Centroided data detected.\n";
       MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
-      std::cout << "After filtering of centroided data.\n";
     }
     else
     {
       // profile data
-      std::cout << "Profile data detected.\n";
       MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
-      std::cout << "After filtering of profile data.\n";
    }
 
     /**
@@ -1241,7 +1237,6 @@ private:
       MultiplexClustering clustering(exp, mz_tolerance_, mz_unit_, rt_typical_, rt_min_, out_debug_);
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
-      std::cout << "After clustering of centroided data.\n";
     }
     else
     {
@@ -1249,7 +1244,6 @@ private:
       MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, out_debug_);
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
-      std::cout << "After clustering of profile data.\n";
    }
 
     /**
