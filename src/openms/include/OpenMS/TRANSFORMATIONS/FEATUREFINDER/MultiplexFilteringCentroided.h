@@ -69,6 +69,18 @@ namespace OpenMS
         public:
         /**
          * @brief constructor
+         * 
+         * @param exp_picked    experimental data in centroid mode
+         * @param patterns    patterns of isotopic peaks to be searched for
+         * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
+         * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
+         * @param missing_peaks    flag for missing peaks
+         * @param intensity_cutoff    intensity cutoff
+         * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
+         * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
+         * @param peptide_similarity    similarity score for two peptides in the same multiplet
+         * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
+         * @param out_debug    directory for debug output
          */
         MultiplexFilteringCentroided(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
        
