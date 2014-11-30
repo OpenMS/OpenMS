@@ -52,7 +52,7 @@
 #include <iostream>
 #include <QDir>
 
-#include<QDir>
+#include <QDir>
 
 using namespace std;
 using namespace boost::math;
@@ -61,10 +61,10 @@ namespace OpenMS
 {
 
   MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug) :
-  exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
+    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
   {
   }
-  
+
   int MultiplexFiltering::positionsAndBlacklistFilter(MultiplexPeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double>& mz_shifts_actual, vector<int>& mz_shifts_actual_indices) const
   {
     // Try to find peaks at the expected m/z positions
@@ -97,12 +97,12 @@ namespace OpenMS
     // i.e. the isotopic peak of one peptide lies to the right of the mono-isotopic peak of the next one
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount() - 1; ++peptide)
     {
-      double mz_shift_next_peptide = mz_shifts_actual[(peptide + 1) * (peaks_per_peptide_max_ + 1) + 1];          // m/z shift of the mono-isotopic peak of the following peptide
+      double mz_shift_next_peptide = mz_shifts_actual[(peptide + 1) * (peaks_per_peptide_max_ + 1) + 1]; // m/z shift of the mono-isotopic peak of the following peptide
       if (!(boost::math::isnan)(mz_shift_next_peptide))
       {
         for (int isotope = 0; isotope < peaks_per_peptide_max_; ++isotope)
         {
-          int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1;              // index in m/z shift list
+          int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1; // index in m/z shift list
           if (mz_shifts_actual[mz_position] >= mz_shift_next_peptide)
           {
             mz_shifts_actual[mz_position] = std::numeric_limits<double>::quiet_NaN();
@@ -119,8 +119,8 @@ namespace OpenMS
       // loop over peptides
       for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
       {
-        int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1;            // index in m/z shift list
-        int peak_index = mz_shifts_actual_indices[mz_position];            // index of the peak in the spectrum
+        int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1; // index in m/z shift list
+        int peak_index = mz_shifts_actual_indices[mz_position]; // index of the peak in the spectrum
         if (peak_index != -1)
         {
           bool black = blacklist_[spectrum][peak_index].black;
@@ -144,8 +144,8 @@ namespace OpenMS
       bool missing_peak_seen = false;
       for (int isotope = 0; isotope < peaks_per_peptide_max_; ++isotope)
       {
-        int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1;           // index in m/z shift list
-        int index = mz_shifts_actual_indices[mz_position];            // peak index in spectrum
+        int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1; // index in m/z shift list
+        int index = mz_shifts_actual_indices[mz_position]; // peak index in spectrum
         if (index == -1)
         {
           missing_peak_seen = true;
@@ -279,7 +279,7 @@ namespace OpenMS
     {
       for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
       {
-        int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1;            // index in m/z shift list
+        int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1; // index in m/z shift list
         int peak_index;
 
         // blacklist peaks in this spectrum
@@ -360,25 +360,25 @@ namespace OpenMS
     QDir dir(out_debug_.toQString());
     if (!dir.cdUp())
     {
-        std::stringstream stream;
-        stream << "Could not navigate to directory for debug output '" << String(dir.dirName()) << "'.";
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+      std::stringstream stream;
+      stream << "Could not navigate to directory for debug output '" << String(dir.dirName()) << "'.";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
     }
     if (!dir.exists() && !dir.mkpath("."))
     {
-        std::stringstream stream;
-        stream << "Could not create directory for debug output '" << String(dir.dirName()) << "'.";
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
+      std::stringstream stream;
+      stream << "Could not create directory for debug output '" << String(dir.dirName()) << "'.";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
     }
-    file_name = out_debug_ + "/" + file_name + pattern + ".mzML";    // Correct way of writing to absolute path?
+    file_name = out_debug_ + "/" + file_name + pattern + ".mzML"; // Correct way of writing to absolute path?
     fileSpline.store(file_name, exp_debug);
 
   }
 
   int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling) const
   {
-    vector<int> valid_index;        // indices of valid peaks that lie within the ppm range of the expected peak
-    vector<double> valid_deviation;        // ppm deviations between expected and (valid) actual peaks
+    vector<int> valid_index; // indices of valid peaks that lie within the ppm range of the expected peak
+    vector<double> valid_deviation; // ppm deviations between expected and (valid) actual peaks
 
     if (peak_position[start] < mz)
     {

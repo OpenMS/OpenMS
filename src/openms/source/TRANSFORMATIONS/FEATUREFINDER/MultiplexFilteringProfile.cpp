@@ -52,7 +52,7 @@
 #include <iostream>
 #include <QDir>
 
-#include<QDir>
+#include <QDir>
 
 using namespace std;
 using namespace boost::math;
@@ -61,7 +61,7 @@ namespace OpenMS
 {
 
   MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug) :
-  MultiplexFiltering::MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug), exp_profile_(exp_profile), boundaries_(boundaries)
+    MultiplexFiltering::MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug), exp_profile_(exp_profile), boundaries_(boundaries)
   {
     if (exp_profile_.size() != exp_picked_.size())
     {
@@ -122,13 +122,13 @@ namespace OpenMS
     }
 
   }
-  
+
   vector<MultiplexFilterResult> MultiplexFilteringProfile::filter()
   {
     // progress logger
     unsigned progress = 0;
     startProgress(0, patterns_.size() * exp_profile_.size(), "filtering LC-MS data");
-      
+
     // list of filter results for each peak pattern
     vector<MultiplexFilterResult> filter_results;
 
@@ -154,12 +154,12 @@ namespace OpenMS
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Number of peaks and number of peak boundaries differ.");
         }
-        
+
         setProgress(++progress);
 
-        int spectrum = it_rt_profile - exp_profile_.begin();            // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
+        int spectrum = it_rt_profile - exp_profile_.begin(); // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
         double rt_picked = it_rt_picked->getRT();
-        
+
         // spline fit profile data
         SplineSpectrum spline(*it_rt_profile);
         SplineSpectrum::Navigator nav = spline.getNavigator();
@@ -189,8 +189,8 @@ namespace OpenMS
            * Filter (1): m/z position and blacklist filter
            * Are there non-black peaks with the expected relative m/z shifts?
            */
-          vector<double> mz_shifts_actual;              // actual m/z shifts (differ slightly from expected m/z shifts)
-          vector<int> mz_shifts_actual_indices;              // peak indices in the spectrum corresponding to the actual m/z shifts
+          vector<double> mz_shifts_actual; // actual m/z shifts (differ slightly from expected m/z shifts)
+          vector<int> mz_shifts_actual_indices; // peak indices in the spectrum corresponding to the actual m/z shifts
           int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
@@ -199,7 +199,7 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(1);                  // filter 1 failed
+              data_point.setIntensity(1); // filter 1 failed
               debug_rejected.push_back(data_point);
             }
             continue;
@@ -217,22 +217,22 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(2);                  // filter 2 failed
+              data_point.setIntensity(2); // filter 2 failed
               debug_rejected.push_back(data_point);
             }
             continue;
           }
 
           // Arrangement of peaks looks promising. Now scan through the spline fitted data.
-          vector<MultiplexFilterResultRaw> results_raw;              // raw data points of this peak that will pass the remaining filters
-          bool blacklisted = false;              // Has this peak already been blacklisted?
+          vector<MultiplexFilterResultRaw> results_raw; // raw data points of this peak that will pass the remaining filters
+          bool blacklisted = false; // Has this peak already been blacklisted?
           for (double mz = peak_min[peak]; mz < peak_max[peak]; mz = nav.getNextMz(mz))
           {
             /**
              * Filter (3): non-local intensity filter
              * Are the spline interpolated intensities at m/z above the threshold?
              */
-            vector<double> intensities_actual;                // spline interpolated intensities @ m/z + actual m/z shift
+            vector<double> intensities_actual; // spline interpolated intensities @ m/z + actual m/z shift
             int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
             if (peaks_found_in_all_peptides_spline < peaks_per_peptide_min_)
             {
@@ -241,7 +241,7 @@ namespace OpenMS
                 Peak2D data_point;
                 data_point.setRT(rt_picked);
                 data_point.setMZ(mz);
-                data_point.setIntensity(3);                    // filter 3 failed
+                data_point.setIntensity(3); // filter 3 failed
                 debug_rejected.push_back(data_point);
               }
               continue;
@@ -260,7 +260,7 @@ namespace OpenMS
                 Peak2D data_point;
                 data_point.setRT(rt_picked);
                 data_point.setMZ(mz);
-                data_point.setIntensity(4);                    // filter 4 failed
+                data_point.setIntensity(4); // filter 4 failed
                 debug_rejected.push_back(data_point);
               }
               continue;
@@ -278,7 +278,7 @@ namespace OpenMS
                 Peak2D data_point;
                 data_point.setRT(rt_picked);
                 data_point.setMZ(mz);
-                data_point.setIntensity(5);                    // filter 5 failed
+                data_point.setIntensity(5); // filter 5 failed
                 debug_rejected.push_back(data_point);
               }
               continue;
@@ -296,7 +296,7 @@ namespace OpenMS
                 Peak2D data_point;
                 data_point.setRT(rt_picked);
                 data_point.setMZ(mz);
-                data_point.setIntensity(6);                    // filter 6 failed
+                data_point.setIntensity(6); // filter 6 failed
                 debug_rejected.push_back(data_point);
               }
               continue;
@@ -310,7 +310,7 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(mz);
-              data_point.setIntensity(intensities_actual[1]);                  // all filters passed
+              data_point.setIntensity(intensities_actual[1]); // all filters passed
               debug_filtered.push_back(data_point);
             }
 
@@ -370,7 +370,7 @@ namespace OpenMS
 
     return filter_results;
   }
-  
+
   int MultiplexFilteringProfile::nonLocalIntensityFilter(MultiplexPeakPattern pattern, const vector<double>& mz_shifts_actual, const vector<int>& mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides, double mz) const
   {
     // calculate intensities

@@ -52,7 +52,7 @@
 #include <iostream>
 #include <QDir>
 
-#include<QDir>
+#include <QDir>
 
 using namespace std;
 using namespace boost::math;
@@ -61,7 +61,7 @@ namespace OpenMS
 {
 
   MultiplexFilteringCentroided::MultiplexFilteringCentroided(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug) :
-  MultiplexFiltering::MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug)
+    MultiplexFiltering::MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug)
   {
 
     // fill peak registry and initialise blacklist
@@ -107,13 +107,13 @@ namespace OpenMS
     }
 
   }
-  
+
   vector<MultiplexFilterResult> MultiplexFilteringCentroided::filter()
   {
     // progress logger
     unsigned progress = 0;
     startProgress(0, patterns_.size() * exp_picked_.size(), "filtering LC-MS data");
-      
+
     // list of filter results for each peak pattern
     vector<MultiplexFilterResult> filter_results;
 
@@ -132,7 +132,7 @@ namespace OpenMS
       {
         setProgress(++progress);
 
-        int spectrum = it_rt_picked - exp_picked_.begin();            // index of the spectrum in exp_picked_
+        int spectrum = it_rt_picked - exp_picked_.begin(); // index of the spectrum in exp_picked_
         double rt_picked = it_rt_picked->getRT();
 
         // vectors of peak details
@@ -152,8 +152,8 @@ namespace OpenMS
            * Filter (1): m/z position and blacklist filter
            * Are there non-black peaks with the expected relative m/z shifts?
            */
-          vector<double> mz_shifts_actual;              // actual m/z shifts (differ slightly from expected m/z shifts)
-          vector<int> mz_shifts_actual_indices;              // peak indices in the spectrum corresponding to the actual m/z shifts
+          vector<double> mz_shifts_actual; // actual m/z shifts (differ slightly from expected m/z shifts)
+          vector<int> mz_shifts_actual_indices; // peak indices in the spectrum corresponding to the actual m/z shifts
           int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
@@ -162,7 +162,7 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(1);                  // filter 1 failed
+              data_point.setIntensity(1); // filter 1 failed
               debug_rejected.push_back(data_point);
             }
             continue;
@@ -180,7 +180,7 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(2);                  // filter 2 failed
+              data_point.setIntensity(2); // filter 2 failed
               debug_rejected.push_back(data_point);
             }
             continue;
@@ -190,7 +190,7 @@ namespace OpenMS
            * Filter (3): non-local intensity filter
            * Are the peak intensities of all peptides above the cutoff?
            */
-          std::vector<double> intensities_actual;    // peak intensities @ m/z peak position + actual m/z shift
+          std::vector<double> intensities_actual; // peak intensities @ m/z peak position + actual m/z shift
           int peaks_found_in_all_peptides_centroided = nonLocalIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices, intensities_actual, peaks_found_in_all_peptides);
           if (peaks_found_in_all_peptides_centroided < peaks_per_peptide_min_)
           {
@@ -199,12 +199,12 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(3);                    // filter 3 failed
+              data_point.setIntensity(3); // filter 3 failed
               debug_rejected.push_back(data_point);
             }
             continue;
           }
-          
+
           /**
            * Filter (4): zeroth peak filter
            * There should not be a significant peak to the left of the mono-isotopic
@@ -218,12 +218,12 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(4);                    // filter 4 failed
+              data_point.setIntensity(4); // filter 4 failed
               debug_rejected.push_back(data_point);
             }
             continue;
           }
-            
+
           /**
            * Filter (5): peptide similarity filter
            * How similar are the isotope patterns of the peptides?
@@ -236,7 +236,7 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(5);                    // filter 5 failed
+              data_point.setIntensity(5); // filter 5 failed
               debug_rejected.push_back(data_point);
             }
             continue;
@@ -254,12 +254,12 @@ namespace OpenMS
               Peak2D data_point;
               data_point.setRT(rt_picked);
               data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(6);                    // filter 6 failed
+              data_point.setIntensity(6); // filter 6 failed
               debug_rejected.push_back(data_point);
             }
             continue;
           }
-          
+
           /**
            * All filters passed.
            */
@@ -268,14 +268,14 @@ namespace OpenMS
             Peak2D data_point;
             data_point.setRT(rt_picked);
             data_point.setMZ(peak_position[peak]);
-            data_point.setIntensity(intensities_actual[1]);                  // all filters passed
+            data_point.setIntensity(intensities_actual[1]); // all filters passed
             debug_filtered.push_back(data_point);
           }
-          
+
           // add the peak to the result
           vector<MultiplexFilterResultRaw> results_raw;
           result.addFilterResultPeak(peak_position[peak], rt_picked, mz_shifts_actual, intensities_actual, results_raw);
-          
+
           // blacklist peaks in the current spectrum and the two neighbouring ones
           blacklistPeaks(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_centroided);
 
@@ -300,11 +300,11 @@ namespace OpenMS
 
     return filter_results;
   }
-  
-  int MultiplexFilteringCentroided::nonLocalIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides) const
+
+  int MultiplexFilteringCentroided::nonLocalIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const
   {
     MSExperiment<Peak1D>::ConstIterator it_rt = exp_picked_.begin() + spectrum_index;
-    
+
     // read out peak intensities
     for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
     {
@@ -318,7 +318,7 @@ namespace OpenMS
         intensities_actual.push_back(std::numeric_limits<double>::quiet_NaN());
       }
     }
-    
+
     for (int isotope = 0; isotope < peaks_found_in_all_peptides; ++isotope)
     {
       bool seen_in_all_peptides = true;
@@ -337,12 +337,12 @@ namespace OpenMS
           seen_in_all_peptides = false;
           break;
         }
-      }  
+      }
       if (!seen_in_all_peptides)
       {
         return isotope;
       }
-     
+
     }
 
     return peaks_found_in_all_peptides;
@@ -371,7 +371,7 @@ namespace OpenMS
       {
         return it_mz - it_rt->begin();
       }
-      
+
       if (mz < mz_min)
       {
         return -1;
@@ -380,6 +380,5 @@ namespace OpenMS
 
     return -1;
   }
-
 
 }

@@ -51,80 +51,80 @@
 
 namespace OpenMS
 {
+  /**
+   * @brief filters centroided data for peak patterns
+   *
+   * The algorithm searches for patterns of multiple peptides in the data.
+   * The peptides appear as characteristic patterns of isotopic peaks in
+   * MS1 spectra. We search the centroided data for such patterns.
+   * For each peak pattern the algorithm generates a filter result.
+   *
+   * @see MultiplexPeakPattern
+   * @see MultiplexFilterResult
+   * @see MultiplexFiltering
+   */
+  class OPENMS_DLLAPI MultiplexFilteringCentroided :
+    public MultiplexFiltering
+  {
+public:
     /**
-     * @brief filters centroided data for peak patterns
-     * 
-     * The algorithm searches for patterns of multiple peptides in the data.
-     * The peptides appear as characteristic patterns of isotopic peaks in
-     * MS1 spectra. We search the centroided data for such patterns.
-     * For each peak pattern the algorithm generates a filter result.
-     * 
-     * @see MultiplexPeakPattern
-     * @see MultiplexFilterResult
-     * @see MultiplexFiltering
+     * @brief constructor
+     *
+     * @param exp_picked    experimental data in centroid mode
+     * @param patterns    patterns of isotopic peaks to be searched for
+     * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
+     * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
+     * @param missing_peaks    flag for missing peaks
+     * @param intensity_cutoff    intensity cutoff
+     * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
+     * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
+     * @param peptide_similarity    similarity score for two peptides in the same multiplet
+     * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
+     * @param out_debug    directory for debug output
      */
-    class OPENMS_DLLAPI MultiplexFilteringCentroided :
-        public MultiplexFiltering
-    {        
-        public:
-        /**
-         * @brief constructor
-         * 
-         * @param exp_picked    experimental data in centroid mode
-         * @param patterns    patterns of isotopic peaks to be searched for
-         * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
-         * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
-         * @param missing_peaks    flag for missing peaks
-         * @param intensity_cutoff    intensity cutoff
-         * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
-         * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
-         * @param peptide_similarity    similarity score for two peptides in the same multiplet
-         * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
-         * @param out_debug    directory for debug output
-         */
-        MultiplexFilteringCentroided(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
-       
-        /**
-         * @brief filter for patterns
-         * (generates a filter result for each of the patterns)
-         * 
-         * @see MultiplexPeakPattern, MultiplexFilterResult
-         */
-        std::vector<MultiplexFilterResult> filter();
+    MultiplexFilteringCentroided(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
 
-        private:
-        /**
-         * @brief non-local intensity filter
-         * 
-         * Checks if the intensities at the pattern positions are above the intensity cutoff.
-         * We check not only at m/z but at all pattern positions i.e. non-locally.
-         * (In filter 1 we checked that peaks do exist at these positions.
-         *  In filter 2 we checked that the mono-isotopic peak intensities are above the threshold.)
-         * 
-         * @param pattern    pattern of isotopic peaks to be searched for
-         * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-         * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
-         * @param intensities_actual    output for the spline-interpolated intensities at the actual m/z shift positions
-         * @param peaks_found_in_all_peptides    number of isotopic peaks seen for each peptide (peaks)
-         * 
-         * @return number of isotopic peaks seen for each peptide (profile)
-         */
-        int nonLocalIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides) const;
+    /**
+     * @brief filter for patterns
+     * (generates a filter result for each of the patterns)
+     *
+     * @see MultiplexPeakPattern, MultiplexFilterResult
+     */
+    std::vector<MultiplexFilterResult> filter();
 
-        /**
-         * @brief returns the index of a peak at m/z
-         * (for initialisation of peak registry)
-         * 
-         * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
-         * @param mz    m/z position of the peak
-         * @param scaling    rescaling of the peak boundaries
-         * 
-         * @return index of the peak in spectrum
-         */
-        int getPeakIndex(int spectrum_index, double mz, double scaling) const;
-         
-   };
-  
+private:
+    /**
+     * @brief non-local intensity filter
+     *
+     * Checks if the intensities at the pattern positions are above the intensity cutoff.
+     * We check not only at m/z but at all pattern positions i.e. non-locally.
+     * (In filter 1 we checked that peaks do exist at these positions.
+     *  In filter 2 we checked that the mono-isotopic peak intensities are above the threshold.)
+     *
+     * @param pattern    pattern of isotopic peaks to be searched for
+     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
+     * @param mz_shifts_actual_indices    indices of peaks corresponding to the pattern
+     * @param intensities_actual    output for the spline-interpolated intensities at the actual m/z shift positions
+     * @param peaks_found_in_all_peptides    number of isotopic peaks seen for each peptide (peaks)
+     *
+     * @return number of isotopic peaks seen for each peptide (profile)
+     */
+    int nonLocalIntensityFilter(MultiplexPeakPattern pattern, int spectrum_index, const std::vector<int>& mz_shifts_actual_indices, std::vector<double>& intensities_actual, int peaks_found_in_all_peptides) const;
+
+    /**
+     * @brief returns the index of a peak at m/z
+     * (for initialisation of peak registry)
+     *
+     * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
+     * @param mz    m/z position of the peak
+     * @param scaling    rescaling of the peak boundaries
+     *
+     * @return index of the peak in spectrum
+     */
+    int getPeakIndex(int spectrum_index, double mz, double scaling) const;
+
+  };
+
 }
 
 #endif /* MULTIPLEXFILTERINGCENTROIDED_H_ */
