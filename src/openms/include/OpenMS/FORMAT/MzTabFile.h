@@ -93,7 +93,7 @@ protected:
 
     void generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl) const;
 
-    String generateMzTabProteinHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size num_psms_ms_runs, Size num_peptides_distinct_ms_runs, Size num_peptides_unique_ms_run, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
+    String generateMzTabProteinHeader_(const MzTabProteinSectionRow& reference_row, const Size n_best_search_engine_scores, const std::vector<String>& optional_columns) const;
 
     String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row) const;
 

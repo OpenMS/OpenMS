@@ -737,7 +737,6 @@ class OPENMS_DLLAPI MzTabParameter :
         StringList fields;
         String field;
         bool in_quotes = false;
-        String::const_iterator quote_start = s.begin();
         for (String::const_iterator sit = s.begin(); sit != s.end(); ++sit)
         {
           if (*sit == '\"')  // start or end of quotes

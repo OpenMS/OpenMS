@@ -54,11 +54,21 @@ namespace OpenMS
   {
   }
 
-  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup rhs) const
+  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
   {
-    return probability == rhs.probability &&
-           accessions == rhs.accessions;
+    return (probability == rhs.probability) && (accessions == rhs.accessions);
   }
+
+  bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
+  {
+    // comparison of probabilities is intentionally "the wrong way around":
+    if (probability > rhs.probability) return true;
+    if (probability < rhs.probability) return false;
+    if (accessions.size() < rhs.accessions.size()) return true;
+    if (accessions.size() > rhs.accessions.size()) return false;
+    return accessions < rhs.accessions;
+  }
+
 
   ProteinIdentification::SearchParameters::SearchParameters() :
     db(),

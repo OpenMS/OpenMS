@@ -72,12 +72,21 @@ public:
     {
       /// Probability of this group
       double probability;
+
       /// Accessions of (indistinguishable) proteins that belong to the same group
-      StringList accessions;
+      std::vector<String> accessions;
 
       ProteinGroup();
 
-      bool operator==(const ProteinGroup rhs) const;
+      /// Equality operator
+      bool operator==(const ProteinGroup& rhs) const;
+
+      /*
+        @brief Comparison operator (for sorting)
+
+        This operator is intended for sorting protein groups in a "best first" manner. That means higher probabilities are "less" than lower probabilities (!); smaller groups are "less" than larger groups; everything else being equal, accessions are compared lexicographically.
+      */
+      bool operator<(const ProteinGroup& rhs) const;
     };
 
     /// Peak mass type
