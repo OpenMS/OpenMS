@@ -56,9 +56,8 @@ namespace OpenMS
      * 
      * The algorithm searches for patterns of multiple peptides in the data.
      * The peptides appear as characteristic patterns of isotopic peaks in
-     * MS1 spectra. We first search the centroided data, and optionally in
-     * a second step the spline interpolated profile data. For each
-     * peak pattern the algorithm generates a filter result.
+     * MS1 spectra. We search the centroided data for such patterns.
+     * For each peak pattern the algorithm generates a filter result.
      * 
      * @see MultiplexPeakPattern
      * @see MultiplexFilterResult
@@ -86,6 +85,7 @@ namespace OpenMS
          * @brief non-local intensity filter
          * 
          * Checks if the intensities at the pattern positions are above the intensity cutoff.
+         * We check not only at m/z but at all pattern positions i.e. non-locally.
          * (In filter 1 we checked that peaks do exist at these positions.
          *  In filter 2 we checked that the mono-isotopic peak intensities are above the threshold.)
          * 

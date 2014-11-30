@@ -79,7 +79,8 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if number of peaks and number of peak boundaries differ
          * 
-         * @see MultiplexPeakPattern, MultiplexFilterResult
+         * @see MultiplexPeakPattern
+         * @see MultiplexFilterResult
          */
         std::vector<MultiplexFilterResult> filter();
 

@@ -59,6 +59,11 @@ namespace OpenMS
      * a second step the spline interpolated profile data. For each
      * peak pattern the algorithm generates a filter result.
      * 
+     * The algorithm differs slightly for centroided and profile input data.
+     * This base class comprises code common to both. The two child classes
+     * MultiplexFilteringCentroided and MultiplexFilteringProfile contain
+     * specific functions and the primary filter() method.
+     * 
      * @see MultiplexPeakPattern
      * @see MultiplexFilterResult
      * @see MultiplexFilgeringCentroided
