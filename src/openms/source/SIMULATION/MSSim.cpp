@@ -454,9 +454,9 @@ namespace OpenMS
         // store m/z value, eases matching
         pep_ident.getHits().back().setMetaValue("MZ", ms_it->getPrecursors()[prec_idx].getMZ());
 
+        std::set<String> protein_accessions = pep_ident.getHits().back().extractProteinAccessions();
         // store protein accessions
-        accessions.insert(pep_ident.getHits().back().getProteinAccessions().begin(),
-                          pep_ident.getHits().back().getProteinAccessions().end());
+        accessions.insert(protein_accessions.begin(), protein_accessions.end());
 
         // compute total intensity to score the individual hits
         total_intensity += ms_it->getPrecursors()[prec_idx].getIntensity();

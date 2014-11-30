@@ -20,7 +20,7 @@
 			</sourceFile>
 		</sourceFileList>
 		<contact>
-			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Drek'Thar, " />
+			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Drek&apos;Thar, " />
 			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="" />
 		</contact>
 	</fileDescription>
@@ -593,20 +593,20 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="1">5578</offset>
-		<offset idRef="2">8682</offset>
-		<offset idRef="3">11786</offset>
-		<offset idRef="4">14890</offset>
-		<offset idRef="5">17994</offset>
-		<offset idRef="6">21098</offset>
-		<offset idRef="7">24202</offset>
-		<offset idRef="8">27306</offset>
-		<offset idRef="9">30410</offset>
-		<offset idRef="10">33514</offset>
-		<offset idRef="11">36619</offset>
-		<offset idRef="12">39725</offset>
+		<offset idRef="1">5583</offset>
+		<offset idRef="2">8687</offset>
+		<offset idRef="3">11791</offset>
+		<offset idRef="4">14895</offset>
+		<offset idRef="5">17999</offset>
+		<offset idRef="6">21103</offset>
+		<offset idRef="7">24207</offset>
+		<offset idRef="8">27311</offset>
+		<offset idRef="9">30415</offset>
+		<offset idRef="10">33519</offset>
+		<offset idRef="11">36624</offset>
+		<offset idRef="12">39730</offset>
 	</index>
 </indexList>
-<indexListOffset>42862</indexListOffset>
+<indexListOffset>42867</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

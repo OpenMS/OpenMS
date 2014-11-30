@@ -303,9 +303,8 @@ namespace OpenMS
       }
       else // filter by protein accessions
       {
-        for (vector<String>::const_iterator ac_it = identification.getHits()[i].getProteinAccessions().begin();
-             ac_it != identification.getHits()[i].getProteinAccessions().end();
-             ++ac_it)
+        std::set<String> protein_accessions = identification.getHits()[i].extractProteinAccessions();
+        for (set<String>::const_iterator ac_it = protein_accessions.begin(); ac_it != protein_accessions.end(); ++ac_it)
         {
           if (accession_sequences.find("*" + *ac_it) != String::npos)
           {
@@ -461,12 +460,8 @@ namespace OpenMS
         // extract protein accessions of each peptide hit
         for (Size j = 0; j != tmp_pep_hits.size(); ++j)
         {
-          const std::vector<String>& protein_accessions = tmp_pep_hits[j].getProteinAccessions();
-          for (Size k = 0; k != protein_accessions.size(); ++k)
-          {
-            String key = protein_accessions[k];
-            proteinaccessions_with_peptides.insert(key);
-          }
+          const std::set<String>& protein_accessions = tmp_pep_hits[j].extractProteinAccessions();
+          proteinaccessions_with_peptides.insert(protein_accessions.begin(), protein_accessions.end());
         }
       }
     }
@@ -516,28 +511,33 @@ namespace OpenMS
         // check protein accessions of each peptide hit
         for (Size j = 0; j != tmp_pep_hits.size(); ++j)
         {
-          const std::vector<String>& acc = tmp_pep_hits[j].getProteinAccessions();
-          std::vector<String> valid_prots;
-          for (Size k = 0; k != acc.size(); ++k)
-          { // find valid proteins
-            if (all_prots.find(acc[k]) != all_prots.end())
+          vector<PeptideEvidence> hit_peptide_evidences = tmp_pep_hits[j].getPeptideEvidences();
+          vector<PeptideEvidence> valid_peptide_evidence;
+
+          for (vector<PeptideEvidence>::const_iterator pe_it = hit_peptide_evidences.begin(); pe_it != hit_peptide_evidences.end(); ++pe_it)
+          {
+            // find valid proteins
+            if (all_prots.find(pe_it->getProteinAccession()) != all_prots.end())
             {
-              valid_prots.push_back(acc[k]);
+              valid_peptide_evidence.push_back(*pe_it);
             }
           }
-          if (valid_prots.size() > 0 || !delete_unreferenced_peptide_hits)
-          { // if present, copy the hit
+
+          if (!valid_peptide_evidence.empty() || !delete_unreferenced_peptide_hits)
+          {
+            // if present, copy the hit
             filtered_pep_hits.push_back(tmp_pep_hits[j]);
-            filtered_pep_hits.back().setProteinAccessions(valid_prots);
+            filtered_pep_hits.back().setPeptideEvidences(valid_peptide_evidence);
           }
         }
         // if the peptide has hits, we use it
-        if (filtered_pep_hits.size() > 0)
+        if (!filtered_pep_hits.empty())
         {
           filtered_peptide_identifications.push_back(peptide_identifications[i]);
           filtered_peptide_identifications.back().setHits(filtered_pep_hits);
         }
-      } else  // peptide is from another run, let it pass the filter‏
+      }
+      else    // peptide is from another run, let it pass the filter‏
       {
         filtered_peptide_identifications.push_back(peptide_identifications[i]);
       }

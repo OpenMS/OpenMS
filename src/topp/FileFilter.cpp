@@ -122,12 +122,12 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPFileFilter :
-    public TOPPBase
+  public TOPPBase
 {
 public:
 
   TOPPFileFilter() :
-      TOPPBase("FileFilter", "Extracts or manipulates portions of data from peak, feature or consensus-feature files.")
+    TOPPBase("FileFilter", "Extracts or manipulates portions of data from peak, feature or consensus-feature files.")
   {
   }
 
@@ -200,13 +200,15 @@ private:
           for (StringList::const_iterator seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
           {
             if (pep_hit_it->getSequence().toString().hasSubstring(*seq_it)
-              || pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it))
-              {
+               || pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it))
+            {
               sequen = true;
             }
           }
+
           //loop over all accessions of the peptideHits
-          for (vector<String>::const_iterator p_acc_it = pep_hit_it->getProteinAccessions().begin(); p_acc_it != pep_hit_it->getProteinAccessions().end(); ++p_acc_it)
+          set<String> protein_accessions = pep_hit_it->extractProteinAccessions();
+          for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList
             for (StringList::const_iterator acc_it = accessions.begin(); acc_it != accessions.end(); ++acc_it)
@@ -294,7 +296,7 @@ protected:
       mode_list.push_back(InstrumentSettings::NamesOfScanMode[i]);
     }
     setValidStrings_("spectra:remove_mode", mode_list);
-    
+
     addEmptyLine_();
     registerStringOption_("spectra:remove_activation", "<activation>", "", "Remove MSn scans where any of its precursors features a certain activation method", false);
     StringList activation_list;
@@ -340,8 +342,8 @@ protected:
     setValidStrings_("consensus:blackorwhitelist:blacklist", ListUtils::create<String>("false,true"));
 
     registerInputFile_("consensus:blackorwhitelist:file", "<file>", "", "Input file containing consensus features whose corresponding MS2 spectra should be removed from the mzML file!\n"
-                       "Matching tolerances are taken from 'consensus:blackorwhitelist:rt' and 'consensus:blackorwhitelist:mz' options.\n"
-                       "If consensus:blackorwhitelist:maps is specified, only these will be used.\n", false);
+                                                                        "Matching tolerances are taken from 'consensus:blackorwhitelist:rt' and 'consensus:blackorwhitelist:mz' options.\n"
+                                                                        "If consensus:blackorwhitelist:maps is specified, only these will be used.\n", false);
     setValidFormats_("consensus:blackorwhitelist:file", ListUtils::create<String>("consensusXML"));
     registerIntList_("consensus:blackorwhitelist:maps", "i j ...", ListUtils::create<Int>(""), "Maps used for black/white list filtering", false);
 
@@ -370,8 +372,8 @@ protected:
     registerFlag_("id:remove_unannotated_features", "Remove features without annotations");
     registerFlag_("id:remove_unassigned_ids", "Remove unassigned peptide identifications");
     registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS2 identifications whose corresponding MS2 spectra should be removed from the mzML file!\n"
-                       "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
-                       "This tool will require all IDs to be matched to an MS2 spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
+                                                     "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
+                                                     "This tool will require all IDs to be matched to an MS2 spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
     setValidFormats_("id:blacklist", ListUtils::create<String>("idXML"));
     registerDoubleOption_("id:rt", "tolerance", 0.1, "Retention tolerance [s] for precursor to id position", false);
     registerDoubleOption_("id:mz", "tolerance", 0.001, "m/z tolerance [Th] for precursor to id position", false);
@@ -489,8 +491,8 @@ protected:
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
     bool indexed_file;
-    if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true;}
-    else {indexed_file = false;}
+    if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true; }
+    else {indexed_file = false; }
 
     MSNumpressCoder::NumpressConfig npconfig_mz;
     MSNumpressCoder::NumpressConfig npconfig_int;
@@ -498,27 +500,27 @@ protected:
     npconfig_int.estimate_fixed_point = true; // critical
     npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
     npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
-    if (getStringOption_("peak_options:numpress:masstime") == "linear") 
+    if (getStringOption_("peak_options:numpress:masstime") == "linear")
     {
       npconfig_mz.np_compression = MSNumpressCoder::LINEAR;
     }
-    else if (getStringOption_("peak_options:numpress:masstime") == "pic") 
+    else if (getStringOption_("peak_options:numpress:masstime") == "pic")
     {
       npconfig_mz.np_compression = MSNumpressCoder::PIC;
     }
-    else if (getStringOption_("peak_options:numpress:masstime") == "slof") 
+    else if (getStringOption_("peak_options:numpress:masstime") == "slof")
     {
       npconfig_mz.np_compression = MSNumpressCoder::SLOF;
     }
-    if (getStringOption_("peak_options:numpress:intensity") == "linear") 
+    if (getStringOption_("peak_options:numpress:intensity") == "linear")
     {
       npconfig_int.np_compression = MSNumpressCoder::LINEAR;
     }
-    else if (getStringOption_("peak_options:numpress:intensity") == "pic") 
+    else if (getStringOption_("peak_options:numpress:intensity") == "pic")
     {
       npconfig_int.np_compression = MSNumpressCoder::PIC;
     }
-    else if (getStringOption_("peak_options:numpress:intensity") == "slof") 
+    else if (getStringOption_("peak_options:numpress:intensity") == "slof")
     {
       npconfig_int.np_compression = MSNumpressCoder::SLOF;
     }
@@ -603,10 +605,10 @@ protected:
       if (int32 == 32) { f.getOptions().setIntensity32Bit(true); }else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
 
       // set writing index (e.g. indexedmzML)
-      f.getOptions().setWriteIndex(indexed_file); 
+      f.getOptions().setWriteIndex(indexed_file);
       // numpress compression
-      f.getOptions().setNumpressConfigurationMassTime(npconfig_mz); 
-      f.getOptions().setNumpressConfigurationIntensity(npconfig_int); 
+      f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+      f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
 
       MapType exp;
       f.load(in, exp);
@@ -1138,13 +1140,13 @@ protected:
       if (!blacklist_imperfect)
       {
         LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
-            << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
+                  << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
       {
         LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
-            << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
+                 << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
       }
     }
 
@@ -1192,11 +1194,11 @@ protected:
     // sort by rt to use binary search
     std::sort(feature_pos.begin(), feature_pos.end(), Peak2D::RTLess());
     set<Size> list_idx;
-    for ( Size i = 0; i != exp.size(); ++i )
+    for (Size i = 0; i != exp.size(); ++i)
     {
-      if ( exp[i].getMSLevel() == 2 )
+      if (exp[i].getMSLevel() == 2)
       {
-        if ( !exp[i].getPrecursors().empty() )
+        if (!exp[i].getPrecursors().empty())
         {
           double pc_mz = exp[i].getPrecursors()[0].getMZ();
           double pc_rt = exp[i].getRT(); // use rt of MS2
@@ -1221,8 +1223,8 @@ protected:
     }
 
     // create new experiment
-    MSExperiment<> exp2 = exp;  // copy meta data
-    exp2.clear(false);   // clear spectra
+    MSExperiment<> exp2 = exp; // copy meta data
+    exp2.clear(false); // clear spectra
 
     for (Size i = 0; i != exp.size(); ++i)
     {
@@ -1234,7 +1236,8 @@ protected:
         {
           exp2.addSpectrum(exp[i]);
         }
-      } else // whitelist: add all non MS2 spectra, and MS2 only if in list
+      }
+      else   // whitelist: add all non MS2 spectra, and MS2 only if in list
       {
         if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
         {

@@ -11,69 +11,69 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="DFIANGER" charge="2" protein_refs="PH_0" >
+			<PeptideHit score="40" sequence="DFIANGER" charge="2" aa_before="[" aa_after="]" protein_refs="PH_0" >
 				<UserParam type="string" name="target_decoy" value="decoy"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="MBCDEFGK" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="MBCDEFGK" charge="2" aa_before="[" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="MBCDEFGKABCR" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="MBCDEFGKABCR" charge="2" aa_before="[" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="MBCDEFGKABCRA" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="MBCDEFGKABCRA" charge="2" aa_before="[" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="MBCDEFGKABCRAAAKAAR" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="MBCDEFGKABCRAAAKAAR" charge="2" aa_before="[" aa_after="P" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="40" sequence="MBCDEFGKABCRAAAKAARPBBBB" charge="2" protein_refs="PH_1" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="protein_references" value="unique"/>
-			</PeptideHit>
-		</PeptideIdentification>
-		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="BCDEFGK" charge="2" protein_refs="PH_1" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="protein_references" value="unique"/>
-			</PeptideHit>
-			<PeptideHit score="40" sequence="BCDEFGKABCR" charge="2" protein_refs="PH_1" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="protein_references" value="unique"/>
-			</PeptideHit>
-			<PeptideHit score="40" sequence="BCDEFGKABCRA" charge="2" protein_refs="PH_1" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="protein_references" value="unique"/>
-			</PeptideHit>
-			<PeptideHit score="40" sequence="BCDEFGKABCRAAAKAAR" charge="2" protein_refs="PH_1" >
-				<UserParam type="string" name="target_decoy" value="target"/>
-				<UserParam type="string" name="protein_references" value="unique"/>
-			</PeptideHit>
-			<PeptideHit score="40" sequence="BCDEFGKABCRAAAKAARPBBBB" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="MBCDEFGKABCRAAAKAARPBBBB" charge="2" aa_before="[" aa_after="]" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
-			<PeptideHit score="0.0001" sequence="ABCR" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="BCDEFGK" charge="2" aa_before="M" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="0.0001" sequence="ABCRAAAK" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="BCDEFGKABCR" charge="2" aa_before="M" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="0.0001" sequence="DEFGK" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="BCDEFGKABCRA" charge="2" aa_before="M" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
-			<PeptideHit score="0.0001" sequence="GKABCRAA" charge="2" protein_refs="PH_1" >
+			<PeptideHit score="40" sequence="BCDEFGKABCRAAAKAAR" charge="2" aa_before="M" aa_after="P" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<PeptideHit score="40" sequence="BCDEFGKABCRAAAKAARPBBBB" charge="2" aa_before="M" aa_after="]" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="31.8621" MZ="0" RT="0" >
+			<PeptideHit score="0.0001" sequence="ABCR" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="ABCRAAAK" charge="2" aa_before="K" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="DEFGK" charge="2" aa_before="C" aa_after="A" protein_refs="PH_1" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<PeptideHit score="0.0001" sequence="GKABCRAA" charge="2" aa_before="F" aa_after="A" protein_refs="PH_1" >
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>

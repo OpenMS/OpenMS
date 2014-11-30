@@ -23,6 +23,7 @@ MetaInfoDescription.cpp
 MetaInfoInterface.cpp
 MetaInfoRegistry.cpp
 Modification.cpp
+PeptideEvidence.cpp
 PeptideHit.cpp
 PeptideIdentification.cpp
 Precursor.cpp
@@ -36,7 +37,6 @@ SpectrumSettings.cpp
 Tagging.cpp
 ScanWindow.cpp
 Product.cpp
-PeptideEvidence.cpp
 Identification.cpp
 SpectrumIdentification.cpp
 IdentificationHit.cpp

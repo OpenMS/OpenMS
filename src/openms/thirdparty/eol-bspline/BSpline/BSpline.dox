@@ -1,0 +1,190 @@
+
+HTML documentation, including the contents of this file, can be found in
+doc/index.html.  Otherwise, read the plain text documentation in this file
+and in the BSpline/BSpline.h header file, especially the comments for the
+BSplineBase class.
+
+/**
+@mainpage Cubic B-Spline
+@version Version_1_5
+@author Gary Granger (http://www.eol.ucar.edu/homes/granger)
+@date September 30, 2009
+
+@section download Download
+
+This software is copyright 2009 by the University Corporation for
+Atmospheric Research (UCAR).  It is licensed for use according to the
+standard BSD license:
+
+- http://www.opensource.org/licenses/bsd-license.html
+
+When citing this software, here is a suggested reference:
+
+@verbatim
+This software is written by Gary Granger of the National Center for
+Atmospheric Research (NCAR), sponsored by the National Science Foundation
+(NSF).  The algorithm is based on the cubic spline described by Katsuyuki
+Ooyama in Montly Weather Review, Vol 115, October 1987.  This
+implementation has benefited from comparisons with a previous FORTRAN
+implementation by James L. Franklin, NOAA/Hurricane Research Division.
+@endverbatim
+
+The source should be available for download from here:
+
+- http://www.eol.ucar.edu/homes/granger/bspline/
+
+This documentation is also online here:
+
+- http://www.eol.ucar.edu/homes/granger/bspline/doc/
+
+@section documentation Documentation
+
+For an overview of the library and its usage, see the documentation for the
+BSplineBase class.
+
+There is no documentation (as yet) on any of the mathematical details of
+the implementation.  Refer to the Ooyama article, and there may be some
+notes in the source.
+
+The HTML documentation is generated from the source files by Doxygen
+(http://www.doxygen.org).  Thanks to Dimitri for a great tool.
+
+@section releasenotes Release Notes
+
+<h2>Release 1.5</h2>
+
+Change the license to BSD and update some of the documentation.
+
+<h2>Release 1_4</h2>
+
+The source tree was rearranged to make it a little more comprehensible to 
+outside users. The DLL build functionality was removed, as it just doesn't 
+seem necessary to add this complication. The Makefile build system was replaced 
+with Scons (http://www.scons.org).
+
+The driver program was renamed to bspline.
+
+<h2>Release 1_3</h2>
+
+This release builds against GCC 4.0.  Names in the BSplineBase template
+base class needed to be declared in the BSpline subclass scope, now that
+GCC enforces the standard rule about non-template-type-dependent names
+being resolved when templates are declared.
+
+The driver program now takes an optional third command-line argument for
+setting the boundary condition type.
+
+There is an R script for generating plots of several combinations of the
+cutoff and boundary condition options to the driver program.  See @ref 
+samples for details.
+
+<h2>Release 1_2</h2>
+
+This release updates the code to compile with GCC 3.2, which enforces more
+standards compliance like the use of 'typename'.  Also the GNU libstdc++ no
+longer uses pointers as vector iterators, so occurences of
+vector<>::begin() have been replaced with &(vector[0])
+
+Lastly, in this release the C++ filename extension has been changed from
+cxx to cpp.
+
+@section samples Samples
+
+The Tests/Data directory contains several sample data files for the driver
+program.  The sample.txt file contains an example of dropsonde data.  From
+that file, three fields have been extracted into separate files:
+
+- sample.wdir	Wind direction
+- sample.wspd Wind speed
+- sample.temps Temperature
+
+Each file is a simple text format with two columns.  The first column is
+time, the second is the field measurement.  This is the format which the
+example driver program expects.  Any text file with alternating X and Y
+values will work in the driver program.
+
+To run the driver program, pipe the data into the standard input, and pass
+the @p step, @p cutoff, and @p boundary-condition options on the command
+line.
+
+@code
+Usage: ./driver <step> <cutoff> [<bc>]
+  <step> is the number of points to skip in the input.
+  <cutoff> is the cutoff wavelength.
+  <bc> is the boundary condition--0, 1, or 2--meaning zero
+       the 0th, 1st, or 2nd derivative at the end points.
+@endcode
+
+For example:
+
+@code
+./driver 1 5 2 < sample.temps
+@endcode
+
+The driver produces two output files:
+
+- spline.out:	The computed spline function evaluated at 2000 evenly-spaced
+		points along the X domain.  The first column is the X value,
+		the second is the spline evaluation at that point, and the 
+		third is the evaluation of the spline's first derivative.
+- input.out:	This output contains the original input data in the first
+		and second columns, and the third column holds the spline
+		function evaluated on the original X values.
+
+The R (http://www.r-project.org) script runs the driver program on the
+sample temperatures over a range of boundary conditions and cutoff
+frequencies.  The results are plotted in 6 PNG images.
+
+<table border='2'>
+<tr><th>Cutoff</th><th>BC 0</th><th>BC 1</th><th>BC 2</th></tr>
+<tr><td>5</td><td><a href='plot-1.png'>plot-1.png</a></td>
+              <td><a href='plot-2.png'>plot-2.png</a></td>
+              <td><a href='plot-3.png'>plot-3.png</a></td></tr>
+<tr><td>30</td><td><a href='plot-4.png'>plot-4.png</a></td>
+              <td><a href='plot-5.png'>plot-5.png</a></td>
+              <td><a href='plot-6.png'>plot-6.png</a></td></tr>
+</table>
+
+Note that for boundary condition 0, the endpoints are not at zero as might
+be expected.  The spline algorithm first removes the mean from the input
+data to improve the matrix calculations, and the mean is added back in when
+evaluating the spline at any point.  Thus the endpoints for boundary
+condition 0 will actually be the mean value of the input range.  If you
+need to force the endpoints to be zero, remove the mean from the data
+before computing the spline, or else change the source code for computing
+the spline.
+
+@section background Background
+
+This is a C++ implementation of a cubic b-spline least squares and
+derivative constraint algorithm.  See the documentation for the BSplineBase
+class (in BSpline/BSplineBase.h) for details.
+
+This work was done for meteorological research at the University
+Corporation for Atmospheric Research (http://www.ucar.edu/).  There is no
+warranty of any kind.  Please see the COPYRIGHT file.
+
+@section installation Installation
+
+As the implementation itself is entirely template code, it is not necessary
+to build the library separately.  The template implementation can be
+included directly.  The templates can also be compiled for the usual float
+and double types into their own object modules and library (DLL on Win32).
+See the documentation for details.
+
+The distribution contains two parts.  The b-spline code itself is contained
+in the BSpline/ directory, while test data and the C++ test driver program
+are under the Tests directory.  There are MS Studio solution and projects
+files which should build the library for floats and doubles. On UNIX, the
+software is compiled with SCons (http://www.scons.org/).  Run `scons -u` to
+build the library and also the C++ driver program.
+
+To install the code into an include directory, all of the *.cpp and *.h
+files in BSpline/ must be copied into the include directory.
+
+@section questions Questions
+
+I'd be happy to try to answer any questions, and certainly happy to hear
+about any bugs or improvements.
+
+**/

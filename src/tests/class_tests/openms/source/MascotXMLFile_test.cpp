@@ -118,16 +118,19 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     TEST_EQUAL(peptide_identifications[0].getHits().size(), 2);
 
     peptide_hit = peptide_identifications[0].getHits()[0];
-    references = peptide_hit.getProteinAccessions();
+    set<String> ref_set = peptide_hit.extractProteinAccessions();
+    vector<String> references(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 2);
     TEST_EQUAL(references[0], "AAN17824");
     TEST_EQUAL(references[1], "GN1736");
     peptide_hit = peptide_identifications[0].getHits()[1];
-    references = peptide_hit.getProteinAccessions();
+    ref_set = peptide_hit.extractProteinAccessions();
+    references = vector<String>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "AAN17824");
     peptide_hit = peptide_identifications[1].getHits()[0];
-    references = peptide_hit.getProteinAccessions();
+    ref_set = peptide_hit.extractProteinAccessions();
+    references = vector<String>(ref_set.begin(), ref_set.end());
     TEST_EQUAL(references.size(), 1);
     TEST_EQUAL(references[0], "GN1736");
 
@@ -192,11 +195,17 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     TEST_EQUAL(peptide_identifications[0].getHits().size(), 1);
 
     peptide_hit = peptide_identifications[0].getHits()[0];
-    TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions().size(), 0);
-    references = peptide_identifications[34].getHits()[0].getProteinAccessions(); // corresponds to <peptide query="35" ...>
+    vector<PeptideEvidence> pes = peptide_hit.getPeptideEvidences();
+    TEST_EQUAL(pes.size(), 0);
+    pes = peptide_identifications[34].getHits()[0].getPeptideEvidences();
+    set<String> accessions = peptide_identifications[34].getHits()[0].extractProteinAccessions();
+    references = vector<String>(accessions.begin(), accessions.end()); // corresponds to <peptide query="35" ...>
     ABORT_IF(references.size() != 5);
-    TEST_EQUAL(references[0], "IPI00745872");
-    TEST_EQUAL(references[4], "IPI00878517");
+    TEST_EQUAL(references[0], "IPI00022434");
+    TEST_EQUAL(references[1], "IPI00384697");
+    TEST_EQUAL(references[2], "IPI00745872");
+    TEST_EQUAL(references[3], "IPI00878517");
+    TEST_EQUAL(references[4], "IPI00908876");
 
     TEST_REAL_SIMILAR(peptide_identifications[0].getHits()[0].getScore(), 5.34);
     TEST_REAL_SIMILAR(peptide_identifications[49].getHits()[0].getScore(), 14.83);
@@ -279,17 +288,20 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), 31.8621)
   TEST_EQUAL(peptide_identifications[0].getHits().size(), 2)
 
-  peptide_hit = peptide_identifications[0].getHits()[0];
-  references = peptide_hit.getProteinAccessions();
+  peptide_hit = peptide_identifications[0].getHits()[0];  
+  set<String> accessions = peptide_hit.extractProteinAccessions();
+  references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 2)
   TEST_EQUAL(references[0], "AAN17824")
-  TEST_EQUAL(references[1], "GN1736")
+  TEST_EQUAL(references[1], "GN1736")  
   peptide_hit = peptide_identifications[0].getHits()[1];
-  references = peptide_hit.getProteinAccessions();
+  accessions = peptide_hit.extractProteinAccessions();
+  references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "AAN17824")
   peptide_hit = peptide_identifications[1].getHits()[0];
-  references = peptide_hit.getProteinAccessions();
+  accessions = peptide_hit.extractProteinAccessions();
+  references = vector<String>(accessions.begin(), accessions.end());
   TEST_EQUAL(references.size(), 1)
   TEST_EQUAL(references[0], "GN1736")
 

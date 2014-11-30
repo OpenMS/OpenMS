@@ -93,25 +93,25 @@ namespace OpenMS
       // }
       for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
       {
-        if (it1->second.size() > 0)
+        const vector<PeptideHit>& peptide_hits = it->second;
+        if (!peptide_hits.empty())
         {
-          // copy the accession of all to the first hit
-          PeptideHit hit = *it1->second.begin();
-          vector<String> accessions;
-          for (vector<PeptideHit>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+          // store all peptide hits that identify the same sequence in a single peptide hit
+          PeptideHit hit = peptide_hits[0];
+          vector<PeptideEvidence> peptide_evidences;
+          for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
           {
-            for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+            const vector<PeptideEvidence> evidences = it2->getPeptideEvidences();
+            for (vector<PeptideEvidence>::const_iterator e_it = evidences.begin(); e_it != evidences.end(); ++e_it)
             {
-              String new_acc = protein_hits_[*it3].getAccession();
-              if (find(accessions.begin(), accessions.end(), new_acc) == accessions.end())
-              {
-                accessions.push_back(new_acc);
-              }
-              //accessions.push_back(*it3);
+              // only rewrite accession and keep AABefore/AAAfter, start, stop information from peptide evidence
+              PeptideEvidence pe = *e_it;
+              String new_acc = protein_hits_[pe.getProteinAccession()].getAccession();
+              pe.setProteinAccession(new_acc);
+              peptide_evidences.push_back(pe);
             }
           }
-
-          hit.setProteinAccessions(accessions);
+          hit.setPeptideEvidences(peptide_evidences);
           id.insertHit(hit);
         }
       }
@@ -155,6 +155,7 @@ namespace OpenMS
 
     if (tag_ == "domain")
     {
+      PeptideEvidence pe;
       PeptideHit hit;
       hit.metaRegistry().registerName("E-Value", "E-Value of hit");
       hit.metaRegistry().registerName("nextscore", "next_score of hit");
@@ -248,14 +249,14 @@ namespace OpenMS
       String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
       if (!pre.empty())
       {
-        hit.setAABefore(pre[pre.size() - 1]);
+        pe.setAABefore(pre[pre.size() - 1]);
       }
 
       // get amino acid after
       String post(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("post")))));
       if (!post.empty())
       {
-        hit.setAAAfter(post[0]);
+        pe.setAAAfter(post[0]);
       }
 
       // get expectation value
@@ -277,15 +278,18 @@ namespace OpenMS
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "start");
       actual_start_ = tmp.toInt();
+      pe.setStart(actual_start_);
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "end");
       actual_stop_ = tmp.toInt();
+      pe.setEnd(actual_stop_);
 
       // add the actual protein accession
-      hit.addProteinAccession(actual_protein_id_);
+      pe.setProteinAccession(actual_protein_id_);
       hit.setCharge(actual_charge_);
 
-      peptide_hits_[id].push_back(hit);
+      hit.addPeptideEvidence(pe);
+      peptide_hits_[actual_id_].push_back(hit);
       return;
     }
 
