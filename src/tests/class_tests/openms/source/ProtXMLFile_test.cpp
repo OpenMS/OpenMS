@@ -100,10 +100,11 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
     TEST_EQUAL(proteins.getHits()[0].getAccession(), "P02787|TRFE_HUMAN");
     TEST_EQUAL(proteins.getHits()[0].getCoverage(), 8.6);
     TEST_EQUAL(proteins.getHits()[0].getScore(), 0.9990);
-    // this one is indistinguishable... therefore it should have minimal infos
+    // this one is indistinguishable... therefore no coverage (but the score
+    // got transferred from the "leader" protein):
     TEST_EQUAL(proteins.getHits()[6].getAccession(), "P00739|HPTR_HUMAN");
     TEST_EQUAL(proteins.getHits()[6].getCoverage(), -1);
-    TEST_EQUAL(proteins.getHits()[6].getScore(), -1);
+    TEST_EQUAL(proteins.getHits()[6].getScore(), 0.2663);
 
     TEST_EQUAL(proteins.getHits()[8].getAccession(), "P04217|A1BG_HUMAN");
     TEST_EQUAL(proteins.getHits()[8].getCoverage(), 2.0);
