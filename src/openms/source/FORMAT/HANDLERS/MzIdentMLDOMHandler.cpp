@@ -329,19 +329,14 @@ namespace OpenMS
           {
             for (std::vector<PeptideHit>::const_iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
             {
-              std::vector<String> dbrefs = ph->getProteinAccessions();
               std::list<String> pepevs;
-              for (std::vector<String>::const_iterator dBSequence_ref = dbrefs.begin(); dBSequence_ref != dbrefs.end(); ++dBSequence_ref)
+              for (std::vector<OpenMS::PeptideEvidence>::const_iterator pev = ph->getPeptideEvidences().begin(); pev != ph->getPeptideEvidences().end(); ++pev)
               {
                 String pepevref = String("OpenMS") + String(UniqueIdGenerator::getUniqueId());
-                pv_db_map_.insert(std::make_pair(pepevref, *dBSequence_ref));
+                pv_db_map_.insert(std::make_pair(pepevref, pev->getProteinAccession()));
                 pepevs.push_back(pepevref);
-                String pep = ph->getSequence().toUnmodifiedString();
-                int start = 0;
-                db_sq_map_[*dBSequence_ref].sequence.toQString().indexOf(pep.toQString(), start);           // TODO @ mths : make that safe, also finds only the first - no biggy
                 bool idec = (String(ph->getMetaValue("target_decoy"))).hasSubstring("decoy");
-                int stop = start + pep.length();
-                PeptideEvidence temp_struct = {start, stop, ph->getAABefore(), ph->getAAAfter(), idec};
+                PeptideEvidence temp_struct = {pev->getStart(), pev->getEnd(), pev->getAABefore(), pev->getAAAfter(), idec}; //TODO @ mths : completely switch to PeptideEvidence
                 pe_ev_map_.insert(std::make_pair(pepevref, temp_struct));           // TODO @ mths : double check start & end & chars for before & after
               }
               hit_pev_.push_back(pepevs);
@@ -1278,7 +1273,6 @@ namespace OpenMS
           hit.setMetaValue(up->first, up->second);
         }
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
-        spectrum_identification.insertHit(hit);
         spectrum_identification.setMZ(experimentalMassToCharge);   // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
@@ -1287,53 +1281,54 @@ namespace OpenMS
         for (std::multimap<String, String>::iterator pev_it = pev_its.first; pev_it != pev_its.second; ++pev_it)
         {
           bool idec = false;
+          OpenMS::PeptideEvidence pev;
           if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
-          {
-            PeptideEvidence& pv = pe_ev_map_[pev_it->second];
-            spectrum_identification.getHits().back().setAABefore(pv.pre);
-            spectrum_identification.getHits().back().setAAAfter(pv.post);
+          {            
+            MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
+            pev.setAABefore(pv.pre);
+            pev.setAAAfter(pv.post);
 
-            if (pv.start != -1 && pv.stop != -1)
+            if (pv.start != OpenMS::PeptideEvidence::UNKNOWN_POSITION && pv.stop != OpenMS::PeptideEvidence::UNKNOWN_POSITION)
             {
-              spectrum_identification.getHits().back().setMetaValue("start", pv.start);
-              spectrum_identification.getHits().back().setMetaValue("end", pv.stop);
+              hit.setMetaValue("start", pv.start);
+              hit.setMetaValue("end", pv.stop);
             }
 
             idec = pv.idec;
             if (idec)
             {
-              if (spectrum_identification.getHits().back().metaValueExists("target_decoy"))
+              if (hit.metaValueExists("target_decoy"))
               {
-                if (spectrum_identification.getHits().back().getMetaValue("target_decoy") != "decoy")
+                if (hit.getMetaValue("target_decoy") != "decoy")
                 {
-                  spectrum_identification.getHits().back().setMetaValue("target_decoy", "target+decoy");
+                  hit.setMetaValue("target_decoy", "target+decoy");
                 }
                 else
                 {
-                  spectrum_identification.getHits().back().setMetaValue("target_decoy", "decoy");
+                  hit.setMetaValue("target_decoy", "decoy");
                 }
               }
               else
               {
-                spectrum_identification.getHits().back().setMetaValue("target_decoy", "decoy");
+                hit.setMetaValue("target_decoy", "decoy");
               }
             }
             else
             {
-              if (spectrum_identification.getHits().back().metaValueExists("target_decoy"))
+              if (hit.metaValueExists("target_decoy"))
               {
-                if (spectrum_identification.getHits().back().getMetaValue("target_decoy") != "target")
+                if (hit.getMetaValue("target_decoy") != "target")
                 {
-                  spectrum_identification.getHits().back().setMetaValue("target_decoy", "target+decoy");
+                  hit.setMetaValue("target_decoy", "target+decoy");
                 }
                 else
                 {
-                  spectrum_identification.getHits().back().setMetaValue("target_decoy", "target");
+                  hit.setMetaValue("target_decoy", "target");
                 }
               }
               else
               {
-                spectrum_identification.getHits().back().setMetaValue("target_decoy", "target");
+                hit.setMetaValue("target_decoy", "target");
               }
             }
           }
@@ -1342,7 +1337,7 @@ namespace OpenMS
           {
             String& dpv = pv_db_map_[pev_it->second];
             DBSequence& db = db_sq_map_[dpv];
-            spectrum_identification.getHits().back().addProteinAccession(db.accession);
+            pev.setProteinAccession(db.accession);
 
             if (pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).findHit(db.accession)
                 == pro_id_->at(si_pro_map_[spectrumIdentificationList_ref]).getHits().end())
@@ -1360,11 +1355,13 @@ namespace OpenMS
               }
             }
           }
+          hit.addPeptideEvidence(pev);
         }
         //sort necessary for tests, as DOM children are obviously randomly ordered.
-        std::vector<String> temp = spectrum_identification.getHits().back().getProteinAccessions();
-        std::sort(temp.begin(), temp.end());
-        spectrum_identification.getHits().back().setProteinAccessions(temp);
+//        std::vector<String> temp = spectrum_identification.getHits().back().getPeptideEvidences().back().getProteinAccessions();
+//        std::sort(temp.begin(), temp.end());
+//        spectrum_identification.getHits().back().setProteinAccessions(temp);
+        spectrum_identification.insertHit(hit);
 
         // due to redundand references this is not needed! peptideref already maps to all those PeptideEvidence elements
         //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();

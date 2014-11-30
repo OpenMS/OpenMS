@@ -208,8 +208,8 @@ protected:
               }
               i++;
             }
-            char aaBefore = hit->getAABefore();
-            char aaAfter = hit->getAAAfter();
+            char aaBefore = hit->getPeptideEvidences().front().getAABefore();
+            char aaAfter = hit->getPeptideEvidences().front().getAAAfter();
 
             // sequence without modification: "ABC" instead of "ABC[UNIMOD:4]"
             String peptide_without_modifications = aaBefore + string(".") + hit->getSequence().toUnmodifiedString() + string(".") + aaAfter;
@@ -220,7 +220,7 @@ protected:
             int enzInt = countEnzymatic(hit->getSequence().toUnmodifiedString(), getStringOption_("enzyme"));
 
             String peptide_with_modifications = aaBefore + string(".") + hit->getSequence().toString() + string(".") + aaAfter;
-            String protein = hit->getProteinAccessions().front();
+            String protein = hit->getPeptideEvidences().front().getProteinAccession();
 
             // One PeptideSpectrumHit with all its features
             String lis = SpecId + out_sep + String(label) + out_sep + scan_id[1] + out_sep + (String)rawScore + out_sep +
@@ -627,8 +627,8 @@ protected:
             i++;
           }
 
-          char aaBefore = it->getHits().front().getAABefore();
-          char aaAfter = it->getHits().front().getAAAfter();
+          char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
+          char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
 
           String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
 
@@ -636,7 +636,7 @@ protected:
           bool enzN = isEnz(peptide.at(0), peptide.at(2), getStringOption_("enzyme"));
           bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), getStringOption_("enzyme"));
           int enzInt = countEnzymatic(sequence, getStringOption_("enzyme"));
-          String protein = it->getHits().front().getProteinAccessions().front();
+          String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
 
           // One PeptideSpectrumHit with all its features
           String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str()
@@ -711,8 +711,8 @@ protected:
             i++;
           }
 
-          char aaBefore = it->getHits().front().getAABefore();
-          char aaAfter = it->getHits().front().getAAAfter();
+          char aaBefore = it->getHits().front().getPeptideEvidences().front().getAABefore();
+          char aaAfter = it->getHits().front().getPeptideEvidences().front().getAAAfter();
 
           String peptide = aaBefore + string(".") + sequence + string(".") + aaAfter;
 
@@ -720,7 +720,7 @@ protected:
           bool enzN = isEnz(peptide.at(0), peptide.at(2), getStringOption_("enzyme"));
           bool enzC = isEnz(peptide.at(peptide.size() - 3), peptide.at(peptide.size() - 1), getStringOption_("enzyme"));
           int enzInt = countEnzymatic(sequence, getStringOption_("enzyme"));
-          String protein = it->getHits().front().getProteinAccessions().front();
+          String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
 
           // One PeptideSpectrumHit with all its features
           String lis = "_tandem_output_file_decoy_" + scannumber + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str() + out_sep

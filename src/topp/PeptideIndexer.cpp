@@ -225,12 +225,7 @@ public:
                 const OpenMS::String& seq_pep, const OpenMS::String& protein,
                 OpenMS::Size position)
     {
-<<<<<<< HEAD
       if (enzyme_.isValidProduct(AASequence::fromString(protein), position,
-=======
-      AASequence protein_sequence = AASequence::fromString(protein);
-      if (enzyme_.isValidProduct(protein_sequence, position,
->>>>>>> develop
                                  seq_pep.length()))
       {
         PeptideProteinMatchInformation match;

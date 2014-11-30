@@ -175,41 +175,33 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),peptide_ids2[0].getHits()[0].getScore())
   TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(),peptide_ids2[0].getHits()[0].getSequence())
   TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(),peptide_ids2[0].getHits()[0].getCharge())
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getAABefore(),peptide_ids2[0].getHits()[0].getAABefore())
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getAAAfter(),peptide_ids2[0].getHits()[0].getAAAfter())
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions().size(),peptide_ids2[0].getHits()[0].getProteinAccessions().size())
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[0],peptide_ids2[0].getHits()[0].getProteinAccessions()[0])
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[1],peptide_ids2[0].getHits()[0].getProteinAccessions()[1])
+  for (size_t i = 0; i < peptide_ids[0].getHits()[0].getPeptideEvidences().size(); ++i)
+   TEST_EQUAL(peptide_ids[0].getHits()[0].getPeptideEvidences()[i]==peptide_ids2[0].getHits()[0].getPeptideEvidences()[i],true)
+  //AA before/after tested by peptide evidences vector equality check
   //peptide hit 2
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[1].getScore(),peptide_ids2[0].getHits()[1].getScore())
   TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(),peptide_ids2[0].getHits()[1].getSequence())
   TEST_EQUAL(peptide_ids[0].getHits()[1].getCharge(),peptide_ids2[0].getHits()[1].getCharge())
-  TEST_EQUAL(peptide_ids[0].getHits()[1].getProteinAccessions().size(),peptide_ids2[0].getHits()[1].getProteinAccessions().size())
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[0],peptide_ids2[0].getHits()[1].getProteinAccessions()[0])
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getProteinAccessions()[1],peptide_ids2[0].getHits()[1].getProteinAccessions()[1])
-  TEST_EQUAL(peptide_ids[0].getHits()[1].getAABefore(),peptide_ids2[0].getHits()[1].getAABefore())
-  TEST_EQUAL(peptide_ids[0].getHits()[1].getAAAfter(),peptide_ids2[0].getHits()[1].getAAAfter())
+  for (size_t i = 0; i < peptide_ids[0].getHits()[1].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[0].getHits()[1].getPeptideEvidences()[i]==peptide_ids2[0].getHits()[1].getPeptideEvidences()[i],true)
 
   //peptide id 2
   TEST_EQUAL(peptide_ids[1].getScoreType(),peptide_ids2[1].getScoreType())
   TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),peptide_ids2[1].isHigherScoreBetter())
-  TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),peptide_ids2[0].getMZ())
-  TEST_REAL_SIMILAR(peptide_ids[0].getRT(),peptide_ids2[0].getRT())
+  TEST_REAL_SIMILAR(peptide_ids[1].getMZ(),peptide_ids2[1].getMZ())
+  TEST_REAL_SIMILAR(peptide_ids[1].getRT(),peptide_ids2[1].getRT())
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),peptide_ids2[1].getHits()[0].getScore())
   TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence(),peptide_ids2[1].getHits()[0].getSequence())
   TEST_EQUAL(peptide_ids[1].getHits()[0].getCharge(),peptide_ids2[1].getHits()[0].getCharge())
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getProteinAccessions().size(),peptide_ids2[1].getHits()[0].getProteinAccessions().size())
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getAABefore(),peptide_ids2[1].getHits()[0].getAABefore())
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getAAAfter(),peptide_ids2[1].getHits()[0].getAAAfter())
+  for (size_t i = 0; i < peptide_ids[1].getHits()[0].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[1].getHits()[0].getPeptideEvidences()[i]==peptide_ids2[1].getHits()[0].getPeptideEvidences()[i],true)
   //peptide hit 2
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[1].getScore(),peptide_ids2[1].getHits()[1].getScore())
   TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence(),peptide_ids2[1].getHits()[1].getSequence())
   TEST_EQUAL(peptide_ids[1].getHits()[1].getCharge(),peptide_ids2[1].getHits()[1].getCharge())
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getProteinAccessions().size(),peptide_ids2[1].getHits()[1].getProteinAccessions().size())
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getAABefore(),peptide_ids2[1].getHits()[1].getAABefore())
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getAAAfter(),peptide_ids2[1].getHits()[1].getAAAfter())
-
+  for (size_t i = 0; i < peptide_ids[1].getHits()[1].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[1].getHits()[1].getPeptideEvidences()[i]==peptide_ids2[1].getHits()[1].getPeptideEvidences()[i],true)
   //peptide id 3
   TEST_EQUAL(peptide_ids[2].getScoreType(),peptide_ids2[2].getScoreType())
   TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),peptide_ids2[2].isHigherScoreBetter())
@@ -219,16 +211,14 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),peptide_ids2[2].getHits()[0].getScore())
   TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence(),peptide_ids2[2].getHits()[0].getSequence())
   TEST_EQUAL(peptide_ids[2].getHits()[0].getCharge(),peptide_ids2[2].getHits()[0].getCharge())
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions().size(),peptide_ids2[2].getHits()[0].getProteinAccessions().size())
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getAABefore(),peptide_ids2[2].getHits()[0].getAABefore())
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getAAAfter(),peptide_ids2[2].getHits()[0].getAAAfter())
+  for (size_t i = 0; i < peptide_ids[2].getHits()[0].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[2].getHits()[0].getPeptideEvidences()[i]==peptide_ids2[2].getHits()[0].getPeptideEvidences()[i],true)
   //peptide hit 2
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[1].getScore(),peptide_ids2[1].getHits()[1].getScore())
   TEST_EQUAL(peptide_ids[2].getHits()[1].getSequence(),peptide_ids2[2].getHits()[1].getSequence())
   TEST_EQUAL(peptide_ids[2].getHits()[1].getCharge(),peptide_ids2[2].getHits()[1].getCharge())
-  TEST_EQUAL(peptide_ids[2].getHits()[1].getProteinAccessions().size(),peptide_ids2[2].getHits()[1].getProteinAccessions().size())
-  TEST_EQUAL(peptide_ids[2].getHits()[1].getAABefore(),peptide_ids2[2].getHits()[1].getAABefore())
-  TEST_EQUAL(peptide_ids[2].getHits()[1].getAAAfter(),peptide_ids2[2].getHits()[1].getAAAfter())
+  for (size_t i = 0; i < peptide_ids[2].getHits()[1].getPeptideEvidences().size(); ++i)
+    TEST_EQUAL(peptide_ids[2].getHits()[1].getPeptideEvidences()[i]==peptide_ids2[2].getHits()[1].getPeptideEvidences()[i],true)
 
 END_SECTION
 
