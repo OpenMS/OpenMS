@@ -163,11 +163,6 @@ namespace OpenMS
 
   void ProteinIdentification::setHits(const vector<ProteinHit>& protein_hits)
   {
-    // groups might become invalid by this operation
-    if (!protein_groups_.empty() || !indistinguishable_proteins_.empty())
-    {
-      LOG_ERROR << "New protein hits set while (indistinguishable) proteins groups are non-empty! This might invalidate groups. Delete groups before setting new hits.\n";
-    }
     protein_hits_ = protein_hits;
   }
 

@@ -162,8 +162,14 @@ public:
     std::vector<ProteinHit> & getHits();
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
-    /// Sets the protein hits
+
+    /** 
+        @brief Sets the protein hits
+        
+        @note This may invalidate (indistinguishable) protein groups! If necessary, use e.g. @p IDFilter::updateProteinGroups to update the groupings.
+     */
     void setHits(const std::vector<ProteinHit> & hits);
+
     /// Finds a protein hit by accession (returns past-the-end iterator if not found)
     std::vector<ProteinHit>::iterator findHit(const String & accession);
 
