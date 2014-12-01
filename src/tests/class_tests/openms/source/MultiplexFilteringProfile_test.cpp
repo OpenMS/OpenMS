@@ -39,7 +39,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 
 using namespace OpenMS;
 
@@ -47,7 +46,7 @@ START_TEST(MultiplexFilteringProfile, "$Id$")
 
 // read data
 MSExperiment<Peak1D> exp;
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexClustering.mzML"), exp);
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MultiplexFiltering.mzML"), exp);
 exp.updateRanges();
 
 // pick data
@@ -73,8 +72,6 @@ double peptide_similarity = 0.8;
 double averagine_similarity = 0.75;
 double mz_tolerance = 40;
 bool mz_tolerance_unit = true;    // ppm (true), Da (false)
-double rt_typical = 90;
-double rt_minimum = 5;
 String out_debug = "";
 
 // construct list of peak patterns
@@ -93,32 +90,28 @@ for (int c = charge_max; c >= charge_min; --c)
     patterns.push_back(pattern2);
 }
 
-MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
-std::vector<MultiplexFilterResult> filter_results = filtering.filter();
+MultiplexFilteringProfile* nullPointer = 0;
+MultiplexFilteringProfile* ptr;
 
-MultiplexClustering* nullPointer = 0;
-MultiplexClustering* ptr;
-
-START_SECTION(MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug))
-    MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
-    std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
-    ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
+START_SECTION(MultiplexFilteringProfile(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool out_debug))
+    MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
+    ptr = new MultiplexFilteringProfile(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
 END_SECTION
 
-MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
+MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
 
-START_SECTION(std::vector<std::map<int GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results))
-    std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
-    TEST_EQUAL(cluster_results[0].size(), 0);
-    TEST_EQUAL(cluster_results[1].size(), 0);
-    TEST_EQUAL(cluster_results[2].size(), 0);
-    TEST_EQUAL(cluster_results[3].size(), 0);
-    TEST_EQUAL(cluster_results[4].size(), 2);
-    TEST_EQUAL(cluster_results[5].size(), 0);
-    TEST_EQUAL(cluster_results[6].size(), 0);
-    TEST_EQUAL(cluster_results[7].size(), 0);
+START_SECTION(std::vector<MultiplexFilterResult> filter())
+    std::vector<MultiplexFilterResult> results = filtering.filter();
+    TEST_EQUAL(results[0].size(), 0);
+    TEST_EQUAL(results[1].size(), 0);
+    TEST_EQUAL(results[2].size(), 0);
+    TEST_EQUAL(results[3].size(), 0);
+    TEST_EQUAL(results[4].size(), 4);
+    TEST_EQUAL(results[5].size(), 3);
+    TEST_EQUAL(results[6].size(), 2);
+    TEST_EQUAL(results[7].size(), 0);
 END_SECTION
 
 END_TEST

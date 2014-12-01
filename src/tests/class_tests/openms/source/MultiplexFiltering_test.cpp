@@ -93,25 +93,11 @@ for (int c = charge_max; c >= charge_min; --c)
 MultiplexFiltering* nullPointer = 0;
 MultiplexFiltering* ptr;
 
-START_SECTION(MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool out_debug))
-    MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
-    ptr = new MultiplexFiltering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
+START_SECTION(MultiplexFiltering(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool out_debug))
+    MultiplexFiltering filtering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
+    ptr = new MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
     TEST_NOT_EQUAL(ptr, nullPointer);
     delete ptr;
-END_SECTION
-
-MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
-
-START_SECTION(std::vector<MultiplexFilterResult> filter())
-    std::vector<MultiplexFilterResult> results = filtering.filter();
-    TEST_EQUAL(results[0].size(), 0);
-    TEST_EQUAL(results[1].size(), 0);
-    TEST_EQUAL(results[2].size(), 0);
-    TEST_EQUAL(results[3].size(), 0);
-    TEST_EQUAL(results[4].size(), 4);
-    TEST_EQUAL(results[5].size(), 3);
-    TEST_EQUAL(results[6].size(), 2);
-    TEST_EQUAL(results[7].size(), 0);
 END_SECTION
 
 END_TEST

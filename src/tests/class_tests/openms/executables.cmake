@@ -261,6 +261,8 @@ set(filtering_executables_list
   MorphologicalFilter_test
   MultiplexClustering_test
   MultiplexFiltering_test
+  MultiplexFilteringCentroided_test
+  MultiplexFilteringProfile_test
   MultiplexFilterResult_test
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test

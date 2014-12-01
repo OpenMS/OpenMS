@@ -106,6 +106,64 @@ namespace OpenMS
 
   }
 
+  MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum, String out_debug) :
+    rt_typical_(rt_typical), rt_minimum_(rt_minimum), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
+  {
+    // ranges of the experiment
+    double mz_min = exp.getMinMZ();
+    double mz_max = exp.getMaxMZ();
+    double rt_min = exp.getMinRT();
+    double rt_max = exp.getMaxRT();
+    
+    // generate grid spacing
+    // We assume that the jitter of the peak centres are less than <scaling> times the user specified m/z tolerance.
+    double scaling = 1.0;
+    
+    if (mz_tolerance_unit)
+    {
+      for (double mz = mz_min; mz < mz_max; mz = mz * (1 + scaling * mz_tolerance/1000000))
+      {
+        grid_spacing_mz_.push_back(mz);
+      }
+    }
+    else
+    {
+      for (double mz = mz_min; mz < mz_max; mz = mz + scaling * mz_tolerance)
+      {
+        grid_spacing_mz_.push_back(mz);
+      }
+    }
+    grid_spacing_mz_.push_back(mz_max);
+
+    for (double rt = rt_min; rt < rt_max; rt = rt + rt_typical)
+    {
+      grid_spacing_rt_.push_back(rt);
+    }
+    grid_spacing_rt_.push_back(rt_max);
+
+    // determine RT scaling
+    std::vector<double> mz;
+    MSExperiment<Peak1D>::Iterator it_rt;
+    for (it_rt = exp.begin(); it_rt < exp.end(); ++it_rt)
+    {
+      MSSpectrum<Peak1D>::Iterator it_mz;
+      for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      {
+        mz.push_back(it_mz->getMZ());
+      }
+    }
+    std::sort(mz.begin(), mz.end());
+    if (mz_tolerance_unit)
+    {
+      rt_scaling_ = (mz[(int) mz.size() / 2] * mz_tolerance/1000000) / rt_typical_;
+    }
+    else
+    {
+      rt_scaling_ = mz_tolerance / rt_typical_;
+    }
+
+  }
+
   std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(std::vector<MultiplexFilterResult> filter_results)
   {
     // progress logger
