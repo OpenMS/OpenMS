@@ -35,12 +35,14 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
@@ -122,7 +124,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance", false);
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
@@ -241,7 +243,7 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2);     // only load msLevel 2
+    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -368,7 +370,7 @@ protected:
         double pre_mz(0.0);
         if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
         it->setMZ(pre_mz);
-        it->removeMetaValue("spectrum_id");
+        //it->removeMetaValue("spectrum_id");
       }
       else
       {
@@ -398,9 +400,20 @@ protected:
     protein_id.setSearchEngine("XTandem");
 
     protein_ids.push_back(protein_id);
-
-    IdXMLFile id_output;
-    id_output.store(outputfile_name, protein_ids, peptide_ids);
+    FileTypes::Type in_type = FileHandler::getTypeByFileName(outputfile_name);
+    if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().store(outputfile_name, protein_ids, peptide_ids);
+    }
+    else if (in_type == FileTypes::IDXML || outputfile_name.hasSuffix(".tmp")) // fix for ctest
+    {
+      IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
+    }
+    else
+    {
+      writeLog_("Error: Could not determine output file type!");
+      return PARSE_ERROR;
+    }
 
     /// Deletion of temporary files
     if (this->debug_level_ < 2)
@@ -415,7 +428,7 @@ protected:
 
     // some stats
     LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size() ) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size()) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }

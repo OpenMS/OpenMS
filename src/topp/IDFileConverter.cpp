@@ -316,6 +316,12 @@ protected:
       {
         IdXMLFile().load(in, protein_identifications, peptide_identifications);
       }
+      else if (in_type == FileTypes::MZIDENTML)
+      {
+        MzIdentMLFile().load(in, protein_identifications, peptide_identifications);
+        LOG_WARN << "Converting from mzid: you might experience loss of information"
+                 << " depending on the capabilities of the target format." << std::endl;
+      }
       else if (in_type == FileTypes::PROTXML)
       {
         protein_identifications.resize(1);

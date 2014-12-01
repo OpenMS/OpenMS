@@ -166,6 +166,81 @@ namespace OpenMS
       double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
       hit.setScore(hyperscore);
 
+      // get mass
+      double mass(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
+      hit.setMetaValue("mass", mass);
+
+      // get delta
+      double delta(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("delta"))))).toDouble());
+      hit.setMetaValue("delta", delta);
+
+      // try to get a, b, c, x, y, z score. If no available catch exception, but no handling necessary.
+      try
+      {
+        double a_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("a_score"))))).toDouble());
+        hit.setMetaValue("a_score", a_score);
+        int a_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("a_ions"))))).toInt());
+        hit.setMetaValue("a_ions", a_ions);
+      }
+      catch (const std::exception& e)
+      {
+      }
+
+      try
+      {
+        double b_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("b_score"))))).toDouble());
+        hit.setMetaValue("b_score", b_score);
+        int b_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("b_ions"))))).toInt());
+        hit.setMetaValue("b_ions", b_ions);
+      }
+      catch (const std::exception& e)
+      {
+      }
+
+      try
+      {
+        double c_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("c_score"))))).toDouble());
+        hit.setMetaValue("c_score", c_score);
+        int c_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("c_ions"))))).toInt());
+        hit.setMetaValue("c_ions", c_ions);
+      }
+      catch (const std::exception& e)
+      {
+      }
+
+      try
+      {
+        double x_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("x_score"))))).toDouble());
+        hit.setMetaValue("x_score", x_score);
+        int x_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("x_ions"))))).toInt());
+        hit.setMetaValue("x_ions", x_ions);
+      }
+      catch (const std::exception& e)
+      {
+      }
+
+      try
+      {
+        double y_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("y_score"))))).toDouble());
+        hit.setMetaValue("y_score", y_score);
+        int y_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("y_ions"))))).toInt());
+        hit.setMetaValue("y_ions", y_ions);
+      }
+      catch (const std::exception& e)
+      {
+      }
+
+      try
+      {
+        double z_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("z_score"))))).toDouble());
+        hit.setMetaValue("z_score", z_score);
+        int z_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("z_ions"))))).toInt());
+        hit.setMetaValue("z_ions", z_ions);
+      }
+      catch (const std::exception& e)
+      {
+      }
+
       // get sequence of peptide
       String seq(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("seq")))));
       hit.setSequence(AASequence::fromString(seq));

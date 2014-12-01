@@ -36,9 +36,11 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
 
@@ -223,8 +225,7 @@ public:
                 const OpenMS::String& seq_pep, const OpenMS::String& protein,
                 OpenMS::Size position)
     {
-      AASequence protein_sequence = AASequence::fromString(protein);
-      if (enzyme_.isValidProduct(protein_sequence, position,
+      if (enzyme_.isValidProduct(AASequence::fromString(protein), position,
                                  seq_pep.length()))
       {
         PeptideProteinMatchInformation match;
@@ -534,7 +535,23 @@ protected:
 
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
-    IdXMLFile().load(in, prot_ids, pep_ids);
+
+    FileTypes::Type in_type = FileHandler::getType(in);
+    if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(in, prot_ids, pep_ids);
+    }
+    else if (in_type == FileTypes::IDXML)
+    {
+      IdXMLFile().load(in, prot_ids, pep_ids);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       __PRETTY_FUNCTION__,
+                                       "wrong in fileformat");
+    }
+
 
     //-------------------------------------------------------------
     // calculations
@@ -958,7 +975,21 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    IdXMLFile().store(out, prot_ids, pep_ids);
+    in_type = FileHandler::getTypeByFileName(out);
+    if (in_type == FileTypes::IDXML || out.hasSuffix(".tmp")) // fix for ctest
+    {
+      IdXMLFile().store(out, prot_ids, pep_ids);
+    }
+    else if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().store(out, prot_ids, pep_ids);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       __PRETTY_FUNCTION__,
+                                       "wrong out fileformat");
+    }
 
     if ((!allow_unmatched) && (stats_unmatched > 0))
     {

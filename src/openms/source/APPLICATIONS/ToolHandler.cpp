@@ -147,6 +147,7 @@ namespace OpenMS
     tools_map["TextExporter"] = Internal::ToolDescription("TextExporter", "File Handling");
     tools_map["TMTAnalyzer"] = Internal::ToolDescription("TMTAnalyzer", "Quantitation");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
+    tools_map["TopPerc"] = Internal::ToolDescription("TopPerc", "Identification");
     tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Identification");
     // STOP! insert your tool in alphabetical order for easier maintenance (only tools requiring the GUI lib should be added below)
 
@@ -220,6 +221,7 @@ namespace OpenMS
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);
     util_map["RNPxlXICFilter"] = Internal::ToolDescription("RNPxlXICFilter", util_category);
+    util_map["RTAnnotator"] = Internal::ToolDescription("post hoc RTAnnotation for mzid", util_category);
     util_map["RTEvaluation"] = Internal::ToolDescription("RTEvaluation", util_category);
     util_map["SemanticValidator"] = Internal::ToolDescription("SemanticValidator", util_category);
     util_map["SequenceCoverageCalculator"] = Internal::ToolDescription("SequenceCoverageCalculator", util_category);

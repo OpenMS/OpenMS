@@ -17,19 +17,40 @@
 			<PeptideHit score="56.5" sequence="DFASSGGYVLHLHR" charge="3" aa_before="[" aa_after="E" protein_refs="PH_2" >
 				<UserParam type="float" name="E-Value" value="5.6e-11"/>
 				<UserParam type="float" name="nextscore" value="8"/>
+				<UserParam type="float" name="mass" value="1558.7761"/>
+				<UserParam type="float" name="delta" value="-0.0022"/>
+				<UserParam type="float" name="b_score" value="7.7"/>
+				<UserParam type="int" name="b_ions" value="2"/>
+				<UserParam type="float" name="y_score" value="10.3"/>
+				<UserParam type="int" name="y_ions" value="18"/>
 			</PeptideHit>
+			<UserParam type="int" name="spectrum_id" value="1"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
 			<PeptideHit score="77.9" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="[" aa_after="E" protein_refs="PH_1" >
 				<UserParam type="float" name="E-Value" value="1.4e-15"/>
 				<UserParam type="float" name="nextscore" value="8"/>
+				<UserParam type="float" name="mass" value="3187.6132"/>
+				<UserParam type="float" name="delta" value="0.0017"/>
+				<UserParam type="float" name="b_score" value="14.4"/>
+				<UserParam type="int" name="b_ions" value="16"/>
+				<UserParam type="float" name="y_score" value="11.1"/>
+				<UserParam type="int" name="y_ions" value="10"/>
 			</PeptideHit>
+			<UserParam type="int" name="spectrum_id" value="2"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="XTandem" higher_score_better="true" significance_threshold="0" MZ="775.38720703125" RT="4923.77734375" >
 			<PeptideHit score="86.6" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="[" aa_after="A" protein_refs="PH_0" >
 				<UserParam type="float" name="E-Value" value="1e-15"/>
 				<UserParam type="float" name="nextscore" value="8"/>
+				<UserParam type="float" name="mass" value="2324.1418"/>
+				<UserParam type="float" name="delta" value="0.0053"/>
+				<UserParam type="float" name="b_score" value="11.8"/>
+				<UserParam type="int" name="b_ions" value="16"/>
+				<UserParam type="float" name="y_score" value="12.1"/>
+				<UserParam type="int" name="y_ions" value="13"/>
 			</PeptideHit>
+			<UserParam type="int" name="spectrum_id" value="3"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

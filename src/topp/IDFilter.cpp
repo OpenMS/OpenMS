@@ -38,6 +38,8 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <limits>
 #include <cmath>
@@ -170,9 +172,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));
 
     registerTOPPSubsection_("precursor", "Filtering by precursor RT or m/z");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
@@ -228,11 +230,17 @@ protected:
 
     registerFlag_("unique", "If a peptide hit occurs more than once per PSM, only one instance is kept.");
     registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
-    registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the idXML.");
-    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the idXML. Usually used in combination with 'score:prot' or 'thresh:prot'.");
+    registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the ids.");
+    registerFlag_("removeDecoys", "Remove Proteins with the idDecoy flag. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
+    registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the ids. Usually used in combination with 'score:prot' or 'thresh:prot'.");
 
     //setSectionDescription("RT", "Filters peptides using meta-data annotated by RT predict. The criterion is always the p-value (for having a deviation between observed and predicted RT equal or bigger than allowed).");
 
+  }
+
+  static bool is_decoy(ProteinHit& ph)
+  {
+    return ph.metaValueExists("isDecoy") && (String)ph.getMetaValue("isDecoy") == "true";
   }
 
   ExitCodes main_(int, const char**)
@@ -317,11 +325,11 @@ protected:
     bool mz_error_filtering = (mz_error < 0) ? false : true;
     bool mz_error_unit_ppm = (getStringOption_("mz:unit") == "ppm") ? true : false;
 
+    bool remove_decoys = getFlag_("removeDecoys");
+
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-
-
     if (sequences_file_name != "")
     {
       FASTAFile().load(sequences_file_name, sequences);
@@ -331,7 +339,7 @@ protected:
     if (exclusion_peptides_file_name  != "")
     {
       String document_id;
-      idXML_file.load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion, document_id);
+      IdXMLFile().load(exclusion_peptides_file_name, protein_identifications, identifications_exclusion, document_id);
       for (Size i = 0; i < identifications_exclusion.size(); i++)
       {
         for (vector<PeptideHit>::const_iterator it = identifications_exclusion[i].getHits().begin();
@@ -343,13 +351,35 @@ protected:
       }
     }
     String document_id;
-    idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+
+    FileTypes::Type in_type = FileHandler::getTypeByFileName(getStringOption_("in"));
+
+    if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(inputfile_name, protein_identifications, identifications);   //, document_id);
+    }
+    else
+    {
+      IdXMLFile().load(inputfile_name, protein_identifications, identifications, document_id);
+    }
+
 
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
 
     std::set<String> applied_filters;
+
+    if (remove_decoys)
+    {
+      for (Size i = 0; i < protein_identifications.size(); ++i)
+      {
+        vector<ProteinHit> vph = protein_identifications[i].getHits();
+        vph.erase(std::remove_if(vph.begin(), vph.end(), is_decoy), vph.end());
+        protein_identifications[i].setHits(vph);
+      }
+    }
+
 
     // Filtering peptide identification according to set criteria
     if ((rt_high < double_max) || (rt_low > -double_max))
@@ -609,8 +639,16 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+    FileTypes::Type out_type = FileHandler::getTypeByFileName(getStringOption_("out"));
 
-    idXML_file.store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
+    if (out_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);   //, document_id);
+    }
+    else
+    {
+      IdXMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
+    }
 
     return EXECUTION_OK;
   }

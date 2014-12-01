@@ -30,7 +30,7 @@
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
 		<software id="so_dp_sp_0_pm_1" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1002133" name="NoiseFilterSGolay" />
+			<cvParam cvRef="MS" accession="MS:1002133" name="TOPP NoiseFilterSGolay" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -94,7 +94,7 @@
 						<binary>SOF6FK5wp0DXo3A9inenQHsUrkdhfqdACtejcD2Fp0CamZmZGYynQD0K16PwkqdAzczMzMyZp0Bcj8L1qKCnQAAAAACAp6dAj8L1KFyup0AzMzMzM7WnQMP1KFwPvKdAUrgehevCp0D2KFyPwsmnQIXrUbie0KdAFK5H4XrXp0C4HoXrUd6nQEjhehQu5adA16NwPQrsp0B7FK5H4fKnQArXo3C9+adArkfhepQAqEA9CtejcAeoQM3MzMxMDqhAcT0K1yMVqEAAAAAAAByoQI/C9SjcIqhAMzMzM7MpqEDD9ShcjzCoQGZmZmZmN6hA9ihcj0I+qECF61G4HkWoQClcj8L1S6hAuB6F69FSqEBI4XoUrlmoQOxRuB6FYKhAexSuR2FnqEAfhetROG6oQK5H4XoUdahAPQrXo/B7qEDNzMzMzIKoQHE9CtejiahAAAAAAICQqECPwvUoXJeoQDMzMzMznqhAw/UoXA+lqEBmZmZm5quoQPYoXI/CsqhAhetRuJ65qEApXI/CdcCoQLgehetRx6hAXI/C9SjOqEDsUbgeBdWoQHsUrkfh26hACtejcL3iqECuR+F6lOmoQD0K16Nw8KhAzczMzEz3qEBxPQrXI/6oQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="316">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>OE0HPAAAAAA4TQc8OE2HPTRl6T04TQc+oeLkPV5SkD0AAAAAXlIQPAAAAABeUpA9oeLkPQJzET6sJbI97guFPThNhzwZo6092IVqPTzfpj190So+nHuEPu2RnT5AIp4+lL2KPmk0cz7RH889AAAAAAAAAABnB2lAHwSvQUF2IEKdTI5CDzPcQmYxB0NBZglD0nDrQnwepEKCKTNCApJ/QQaNOUFbCf9Ajyd3QLVdTUDmTrs/AAAAAPPfAD/nvtE+P+DBPuH/pz3Zheo8soBhPa7uwTzNmBs+B9pxPmNelz7ohZY+AH9CPgAAAAA=</binary>
@@ -135,7 +135,7 @@
 						<binary>SOF6FK5wp0DXo3A9inenQHsUrkdhfqdACtejcD2Fp0CamZmZGYynQD0K16PwkqdAzczMzMyZp0Bcj8L1qKCnQAAAAACAp6dAj8L1KFyup0AzMzMzM7WnQMP1KFwPvKdAUrgehevCp0D2KFyPwsmnQIXrUbie0KdAFK5H4XrXp0C4HoXrUd6nQEjhehQu5adA16NwPQrsp0B7FK5H4fKnQArXo3C9+adArkfhepQAqEA9CtejcAeoQM3MzMxMDqhAcT0K1yMVqEAAAAAAAByoQI/C9SjcIqhAMzMzM7MpqEDD9ShcjzCoQGZmZmZmN6hA9ihcj0I+qECF61G4HkWoQClcj8L1S6hAuB6F69FSqEBI4XoUrlmoQOxRuB6FYKhAexSuR2FnqEAfhetROG6oQK5H4XoUdahAPQrXo/B7qEDNzMzMzIKoQHE9CtejiahAAAAAAICQqECPwvUoXJeoQDMzMzMznqhAw/UoXA+lqEBmZmZm5quoQPYoXI/CsqhAhetRuJ65qEApXI/CdcCoQLgehetRx6hAXI/C9SjOqEDsUbgeBdWoQHsUrkfh26hACtejcL3iqECuR+F6lOmoQD0K16Nw8KhAzczMzEz3qEBxPQrXI/6oQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="316">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>m6TgQKvPv0AA0q1A8SqkQNqbnUAZKJZAf6F4QJpLZ0D2kWdAWawUQF9z8j8+V6I/b1vFPwnvy0CLy4BBCFLKQV9Z7UEPGdVBifKTQd4RDEG54lpAWw4jQKDcVkAeiz9AON+BQMbX1ECrTxRBgDImQXErH0HgDwNBLeWxQGbNcUA9P15AkG6UQCp3pEAbErFAVNLEQG/JykB7dr1AdcCoQKAlt0ASj95Am+vpQO8dDkGtwhRBbFv3QHkavUBHb4tAlqJkQNKaF0CXLCtAmvE9QDiGQkAv8WpAXKqoQN356EB/yRNBpnUnQQBhIUE=</binary>
@@ -176,7 +176,7 @@
 						<binary>SOF6FK5wp0DXo3A9inenQHsUrkdhfqdACtejcD2Fp0CamZmZGYynQD0K16PwkqdAzczMzMyZp0Bcj8L1qKCnQAAAAACAp6dAj8L1KFyup0AzMzMzM7WnQMP1KFwPvKdAUrgehevCp0D2KFyPwsmnQIXrUbie0KdAFK5H4XrXp0C4HoXrUd6nQEjhehQu5adA16NwPQrsp0B7FK5H4fKnQArXo3C9+adArkfhepQAqEA9CtejcAeoQM3MzMxMDqhAcT0K1yMVqEAAAAAAAByoQI/C9SjcIqhAMzMzM7MpqEDD9ShcjzCoQGZmZmZmN6hA9ihcj0I+qECF61G4HkWoQClcj8L1S6hAuB6F69FSqEBI4XoUrlmoQOxRuB6FYKhAexSuR2FnqEAfhetROG6oQK5H4XoUdahAPQrXo/B7qEDNzMzMzIKoQHE9CtejiahAAAAAAICQqECPwvUoXJeoQDMzMzMznqhAw/UoXA+lqEBmZmZm5quoQPYoXI/CsqhAhetRuJ65qEApXI/CdcCoQLgehetRx6hAXI/C9SjOqEDsUbgeBdWoQHsUrkfh26hACtejcL3iqECuR+F6lOmoQD0K16Nw8KhAzczMzEz3qEBxPQrXI/6oQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="316">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>vTG0QEFnO0DV69A/YpuVPzKEjD/od44/Wb1dP4FcjD/3L0Q/fdEqP1YPLj+OkUU/c5r5Pi5Z4j5R2Gc/vUnHPxoG7D8RL/4/ssPtPyQE1j+h3q0/6GevP0gKmz/opoQ/3CusPyctY0BmY+k/kPcWQFUkAEH3zIdBHlCEQrpg+kLO/WxDlPa8Qyod6UMthu1DKknJQ3DTjEMKPyNDiuuQQo2XTkKBNedBIx4CQab4AkFbXOpAsgiXQK2IcECmsilAI/4NQAWjoj9vmpo/8S6+P0bxpj/l1NM/2ULeP1XY0j9gZLo/w4ypPwnOwD8=</binary>
@@ -217,7 +217,7 @@
 						<binary>SOF6FK5wp0DXo3A9inenQHsUrkdhfqdACtejcD2Fp0CamZmZGYynQD0K16PwkqdAzczMzMyZp0Bcj8L1qKCnQAAAAACAp6dAj8L1KFyup0AzMzMzM7WnQMP1KFwPvKdAUrgehevCp0D2KFyPwsmnQIXrUbie0KdAFK5H4XrXp0C4HoXrUd6nQEjhehQu5adA16NwPQrsp0B7FK5H4fKnQArXo3C9+adArkfhepQAqEA9CtejcAeoQM3MzMxMDqhAcT0K1yMVqEAAAAAAAByoQI/C9SjcIqhAMzMzM7MpqEDD9ShcjzCoQGZmZmZmN6hA9ihcj0I+qECF61G4HkWoQClcj8L1S6hAuB6F69FSqEBI4XoUrlmoQOxRuB6FYKhAexSuR2FnqEAfhetROG6oQK5H4XoUdahAPQrXo/B7qEDNzMzMzIKoQHE9CtejiahAAAAAAICQqECPwvUoXJeoQDMzMzMznqhAw/UoXA+lqEBmZmZm5quoQPYoXI/CsqhAhetRuJ65qEApXI/CdcCoQLgehetRx6hAXI/C9SjOqEDsUbgeBdWoQHsUrkfh26hACtejcL3iqECuR+F6lOmoQD0K16Nw8KhAzczMzEz3qEBxPQrXI/6oQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="316">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>OE0HPAAAAAA4TQc8OE2HPTRl6T04TQc+oeLkPV5SkD0AAAAAXlIQPAAAAABeUpA9oeLkPQJzET6sJbI97guFPThNhzwZo6092IVqPTzfpj190So+nHuEPu2RnT5AIp4+lL2KPmk0cz7RH889AAAAAAAAAABnB2lAHwSvQUF2IEKdTI5CDzPcQmYxB0NBZglD0nDrQnwepEKCKTNCApJ/QQaNOUFbCf9Ajyd3QLVdTUDmTrs/AAAAAPPfAD/nvtE+P+DBPuH/pz3Zheo8soBhPa7uwTzNmBs+B9pxPmNelz7ohZY+AH9CPgAAAAA=</binary>
@@ -258,7 +258,7 @@
 						<binary>SOF6FK5wp0DXo3A9inenQHsUrkdhfqdACtejcD2Fp0CamZmZGYynQD0K16PwkqdAzczMzMyZp0Bcj8L1qKCnQAAAAACAp6dAj8L1KFyup0AzMzMzM7WnQMP1KFwPvKdAUrgehevCp0D2KFyPwsmnQIXrUbie0KdAFK5H4XrXp0C4HoXrUd6nQEjhehQu5adA16NwPQrsp0B7FK5H4fKnQArXo3C9+adArkfhepQAqEA9CtejcAeoQM3MzMxMDqhAcT0K1yMVqEAAAAAAAByoQI/C9SjcIqhAMzMzM7MpqEDD9ShcjzCoQGZmZmZmN6hA9ihcj0I+qECF61G4HkWoQClcj8L1S6hAuB6F69FSqEBI4XoUrlmoQOxRuB6FYKhAexSuR2FnqEAfhetROG6oQK5H4XoUdahAPQrXo/B7qEDNzMzMzIKoQHE9CtejiahAAAAAAICQqECPwvUoXJeoQDMzMzMznqhAw/UoXA+lqEBmZmZm5quoQPYoXI/CsqhAhetRuJ65qEApXI/CdcCoQLgehetRx6hAXI/C9SjOqEDsUbgeBdWoQHsUrkfh26hACtejcL3iqECuR+F6lOmoQD0K16Nw8KhAzczMzEz3qEBxPQrXI/6oQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="316">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>bxKrQOvVn0DuxY5ANWB2QPOMT0D5Pi1AywcXQOZUD0D+7u0/bMjpPyWwAEBpd+o/hCIVQKCxXUDA/edAdlRNQZa6h0ElWo5Br6NxQfTDJkEkrqlA0PkzQG5sGkBzpxdAbCUmQELlWUCXCHBAOydgQJb7hkAapaFAuSSaQJmLlUAl2I9AzmysQA0eEEGBYXNBTkOoQXdcsEG3H59BFb55QcMrMkGclgFBLLvLQIg8pED5em9AQEoQQIg5HUBtVuc/HxwKQONNIED/CFhAGCZ5QFoWgEDbqzZA7Ew6QFMYgUComdpAo3E/QSo+oUE=</binary>

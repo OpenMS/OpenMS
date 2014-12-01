@@ -246,7 +246,8 @@ protected:
       // we might want to combine different types, thus we only
       // query in_type (which applies to all files)
       // and not the suffix or content of a single file
-      force_type = FileTypes::nameToType(getStringOption_("in_type"));
+      //... well, what was coded here did a) nothing what was not done already in the code and b) nothing what the above comment kind of claims
+      // instead, type assesment for loading has to be done for each file in the list
 
       //rt
       bool rt_auto_number = getFlag_("raw:rt_auto");
@@ -277,8 +278,10 @@ protected:
         String filename = file_list[i];
 
         //load file
+        force_type = fh.getType(file_list[i]);
         MSExperiment<> in;
         fh.loadExperiment(filename, in, force_type, log_type_);
+
         if (in.empty() && in.getChromatograms().empty())
         {
           writeLog_(String("Warning: Empty file '") + filename + "'!");
@@ -363,7 +366,7 @@ protected:
         if (in.size() == 1)
         {
           out.getSpectra().back().setSourceFile(in.getSourceFiles()[0]);
-          in.getSourceFiles().clear();   // delete source file annotated from source file (its in the spectrum anyways)
+          in.getSourceFiles().clear(); // delete source file annotated from source file (its in the spectrum anyways)
         }
         // copy experimental settings from first file
         if (i == 0)
