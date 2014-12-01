@@ -328,7 +328,7 @@ add_test("TOPP_FileConverter_18" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_18_out1" ${DIFF} -in1 FileConverter_18.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_17_output.ibspectra.csv )
 set_tests_properties("TOPP_FileConverter_18_out1" PROPERTIES DEPENDS "TOPP_FileConverter_18")
 # Purpose: test the -write_mzML_index and the -process_lowmemory options 
-add_test("TOPP_FileConverter_19" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_19.tmp  -write_mzML_index true -process_lowmemory -in_type mzML -out_type mzML)
+add_test("TOPP_FileConverter_19" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_19.tmp  -write_mzML_index -process_lowmemory -in_type mzML -out_type mzML)
 add_test("TOPP_FileConverter_19_out" ${DIFF} -in1 FileConverter_19.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_19_output.mzML )
 set_tests_properties("TOPP_FileConverter_19_out" PROPERTIES DEPENDS "TOPP_FileConverter_19")
 
