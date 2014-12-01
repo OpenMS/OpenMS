@@ -852,7 +852,7 @@ namespace OpenMS
           else
           {
             sidres +=  "\t\t\t\t\t" + cv_.getTermByName("search engine specific score for PSMs").toXMLString(cv_ns, sc);
-            LOG_WARN << "Converting unknown score type to search engine specific score CV." << std::endl;
+            LOG_WARN << "Converting unknown score type to search engine specific score from PSI controlled vocabulary." << std::endl;
           }
           sidres += "\n";
 
