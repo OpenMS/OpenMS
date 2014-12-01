@@ -192,7 +192,7 @@ private:
   double rt_typical_;
   double rt_min_;
   double mz_tolerance_;
-  bool mz_unit_;    // ppm (true), Da (false)
+  bool mz_unit_; // ppm (true), Da (false)
   double intensity_cutoff_;
   double peptide_similarity_;
   double averagine_similarity_;
@@ -203,13 +203,13 @@ private:
 
 public:
   TOPPFeatureFinderMultiplex() :
-  TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true),
-  debug_(false), charge_min_(1), charge_max_(1), missed_cleavages_(0), isotopes_per_peptide_min_(1), isotopes_per_peptide_max_(1), rt_typical_(0.0), rt_min_(0.0),
-  mz_tolerance_(0.0), mz_unit_(true), intensity_cutoff_(0.0), peptide_similarity_(0.0), averagine_similarity_(0.0), knock_out_(false)
+    TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true),
+    debug_(false), charge_min_(1), charge_max_(1), missed_cleavages_(0), isotopes_per_peptide_min_(1), isotopes_per_peptide_max_(1), rt_typical_(0.0), rt_min_(0.0),
+    mz_tolerance_(0.0), mz_unit_(true), intensity_cutoff_(0.0), peptide_similarity_(0.0), averagine_similarity_(0.0), knock_out_(false)
   {
   }
 
-  typedef std::vector<double> MassPattern;    // list of mass shifts
+  typedef std::vector<double> MassPattern; // list of mass shifts
 
   void registerOptionsAndFlags_()
   {
@@ -447,7 +447,7 @@ public:
 
               for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
               {
-                bool Arg6There = (samples_labels_[i][j].find("Arg6") != std::string::npos);    // Is Arg6 in the SILAC label?
+                bool Arg6There = (samples_labels_[i][j].find("Arg6") != std::string::npos); // Is Arg6 in the SILAC label?
                 bool Arg10There = (samples_labels_[i][j].find("Arg10") != std::string::npos);
                 bool Lys4There = (samples_labels_[i][j].find("Lys4") != std::string::npos);
                 bool Lys6There = (samples_labels_[i][j].find("Lys6") != std::string::npos);
@@ -503,15 +503,15 @@ public:
     std::sort(list.begin(), list.end());
 
     // generate additional mass shifts due to knock-outs
-    if (knock_out_ && list[0].size()==1)
+    if (knock_out_ && list[0].size() == 1)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for singlet detection not relevant.");
     }
-    else if (knock_out_ && list[0].size()<=4)
+    else if (knock_out_ && list[0].size() <= 4)
     {
       generateKnockoutMassShifts(list);
     }
-    else if (knock_out_ && list[0].size()>4)
+    else if (knock_out_ && list[0].size() > 4)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Knock-outs for multiplex experiments with more than 4 samples not supported.");
     }
@@ -539,9 +539,9 @@ public:
    *
    * @param list of mass shifts to be extended
    */
-  void generateKnockoutMassShifts(std::vector<MassPattern> &list)
+  void generateKnockoutMassShifts(std::vector<MassPattern>& list)
   {
-    unsigned n = list[0].size();        // n=2 for doublets, n=3 for triplets, n=4 for quadruplets
+    unsigned n = list[0].size(); // n=2 for doublets, n=3 for triplets, n=4 for quadruplets
     if (knock_out_ && n == 4)
     {
       unsigned m = list.size();
@@ -628,13 +628,13 @@ public:
   {
     std::vector<std::vector<String> > samples_labels;
     std::vector<String> temp_samples;
-    boost::split(temp_samples, labels_, boost::is_any_of("[](){}"));       // any bracket allowed to separate samples
+    boost::split(temp_samples, labels_, boost::is_any_of("[](){}")); // any bracket allowed to separate samples
     for (unsigned i = 0; i < temp_samples.size(); ++i)
     {
       if (!temp_samples[i].empty())
       {
         vector<String> temp_labels;
-        boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: "));         // various separators allowed to separate labels
+        boost::split(temp_labels, temp_samples[i], boost::is_any_of(",;: ")); // various separators allowed to separate labels
         samples_labels.push_back(temp_labels);
       }
     }
@@ -699,8 +699,8 @@ public:
 
     // determine ratios through linear regression
     // of all (spline-interpolated) profile intensities that passed all multiplex filters, @see MultiplexFiltering
-    std::vector<double> ratios;        // L:L, M:L, H:L etc.
-    std::vector<double> intensities;        // L, M, H etc.
+    std::vector<double> ratios; // L:L, M:L, H:L etc.
+    std::vector<double> intensities; // L, M, H etc.
     // loop over peptides
     for (unsigned i = 0; i < all_intensities.size(); ++i)
     {
@@ -782,9 +782,9 @@ public:
         // The position (m/z, RT) of the peptide features is the centre-of-mass of the mass trace of the lightest isotope.
         // The centre-of-mass is the intensity-weighted average of the peak positions.
         unsigned number_of_peptides = patterns[pattern].getMassShiftCount();
-        std::vector<double> sum_intensity_mz(number_of_peptides,0);
-        std::vector<double> sum_intensity_rt(number_of_peptides,0);
-        std::vector<double> sum_intensity(number_of_peptides,0);
+        std::vector<double> sum_intensity_mz(number_of_peptides, 0);
+        std::vector<double> sum_intensity_rt(number_of_peptides, 0);
+        std::vector<double> sum_intensity(number_of_peptides, 0);
         // intensities for ratio determination.
         // For centroided input data, these intensities are peak intensities.
         // For profile input data, these intensities are the spline-interpolated profile intensities.
@@ -820,9 +820,9 @@ public:
               // loop over peptides
               for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
               {
-                unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
-                all_intensities[peptide].push_back(result_peak.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
-                
+                unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1; // +1 due to zeroth peaks
+                all_intensities[peptide].push_back(result_peak.getIntensities()[index]); // Note that the intensity can be NaN. To be checked later.
+
                 double mz_shift = result_peak.getMZShifts()[index];
                 if (!(boost::math::isnan(mz_shift)))
                 {
@@ -830,7 +830,7 @@ public:
                   mass_traces[peptide_peak].enlarge(rt, result_peak.getMZ() + mz_shift);
                 }
               }
-            }            
+            }
           }
           else
           {
@@ -839,16 +839,16 @@ public:
             for (int i = 0; i < result_peak.size(); ++i)
             {
               MultiplexFilterResultRaw result_raw = result_peak.getFilterResultRaw(i);
-  
+
               // loop over isotopic peaks in peptide
               for (unsigned peak = 0; peak < isotopes_per_peptide_max_; ++peak)
               {
                 // loop over peptides
                 for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
                 {
-                  unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1;    // +1 due to zeroth peaks
-                  all_intensities[peptide].push_back(result_raw.getIntensities()[index]);    // Note that the intensity can be NaN. To be checked later.
-                  
+                  unsigned index = (isotopes_per_peptide_max_ + 1) * peptide + peak + 1; // +1 due to zeroth peaks
+                  all_intensities[peptide].push_back(result_raw.getIntensities()[index]); // Note that the intensity can be NaN. To be checked later.
+
                   double mz_shift = result_raw.getMZShifts()[index];
                   if (!(boost::math::isnan(mz_shift)))
                   {
@@ -859,7 +859,7 @@ public:
               }
             }
           }
-          
+
         }
 
         // calculate intensities for each of the peptides from profile data
@@ -878,7 +878,7 @@ public:
         consensus.setRT(sum_intensity_rt[0] / sum_intensity[0]);
         consensus.setIntensity(average_peptide_intensity);
         consensus.setCharge(patterns[pattern].getCharge());
-        consensus.setQuality(1 - 1 / points.size());          // rough quality score in [0,1]
+        consensus.setQuality(1 - 1 / points.size()); // rough quality score in [0,1]
 
         for (unsigned peptide = 0; peptide < patterns[pattern].getMassShiftCount(); ++peptide)
         {
@@ -904,10 +904,10 @@ public:
             if (mass_traces.count(peptide_peak) > 0)
             {
               ConvexHull2D hull;
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(),mass_traces[peptide_peak].minY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(),mass_traces[peptide_peak].maxY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(),mass_traces[peptide_peak].minY()));
-              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(),mass_traces[peptide_peak].maxY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(), mass_traces[peptide_peak].minY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].minX(), mass_traces[peptide_peak].maxY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(), mass_traces[peptide_peak].minY()));
+              hull.addPoint(DPosition<2>(mass_traces[peptide_peak].maxX(), mass_traces[peptide_peak].maxY()));
               feature.getConvexHulls().push_back(hull);
             }
           }
@@ -990,18 +990,18 @@ public:
       const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
       if (feature_handles.size() > 1)
       {
-        std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin();                 // this is unlabeled
+        std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin(); // this is unlabeled
         ++fit;
         for (; fit != feature_handles.end(); ++fit)
         {
           Size ri = std::distance(feature_handles.begin(), fit);
-          rts[ri - 1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity();                 // a proper algo should never have 0-intensities so no 0devison ...
+          rts[ri - 1].ratio_value_ =  feature_handles.begin()->getIntensity() / fit->getIntensity(); // a proper algo should never have 0-intensities so no 0devison ...
         }
       }
 
       cit->setRatios(rts);
     }
-    quantifications.addConsensusMap(numap);            //add FeatureFinderMultiplex result
+    quantifications.addConsensusMap(numap); //add FeatureFinderMultiplex result
 
   }
 
@@ -1020,23 +1020,23 @@ public:
     // annotate maps
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
     {
-        ConsensusMap::FileDescription& desc = map.getFileDescriptions()[i];
-        desc.filename = filename;
+      ConsensusMap::FileDescription& desc = map.getFileDescriptions()[i];
+      desc.filename = filename;
 
-        if (knock_out_)
+      if (knock_out_)
+      {
+        // With knock-outs present, the correct labels can only be determined during ID mapping.
+        desc.label = "";
+      }
+      else
+      {
+        String label_string;
+        for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
         {
-            // With knock-outs present, the correct labels can only be determined during ID mapping.
-            desc.label = "";
+          label_string.append(samples_labels_[i][j]);
         }
-        else
-        {
-            String label_string;
-            for (unsigned j = 0; j < samples_labels_[i].size(); ++j)
-            {
-                label_string.append(samples_labels_[i][j]);
-            }
-            desc.label = label_string;
-        }
+        desc.label = label_string;
+      }
     }
 
     ConsensusXMLFile file;
@@ -1121,7 +1121,7 @@ public:
     {
       if (n_ < 2)
       {
-        return std::numeric_limits<double>::quiet_NaN();            // not enough data
+        return std::numeric_limits<double>::quiet_NaN(); // not enough data
       }
       return sum_xy_ / sum_xx_;
     }
@@ -1175,7 +1175,7 @@ private:
 
     // sort according to RT and MZ
     exp.sortSpectra();
-    
+
     // determine type of spectral data (profile or centroided)
     bool centroided = (PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS);
 
@@ -1183,17 +1183,17 @@ private:
      * pick peaks
      */
     MSExperiment<Peak1D> exp_picked;
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s;    // peak boundaries for spectra
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c;    // peak boundaries for chromatograms
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
     if (!centroided)
     {
       PeakPickerHiRes picker;
       Param param = picker.getParameters();
       picker.setLogType(log_type_);
       param.setValue("ms_levels", ListUtils::create<Int>("1"));
-      param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
+      param.setValue("signal_to_noise", 0.0); // signal-to-noise estimation switched off
       picker.setParameters(param);
-    
+
       picker.pickExperiment(exp, exp_picked, boundaries_exp_s, boundaries_exp_c);
     }
 
@@ -1218,7 +1218,7 @@ private:
       MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
-   }
+    }
 
     /**
      * cluster filter results
@@ -1233,11 +1233,11 @@ private:
     }
     else
     {
-       // profile data
+      // profile data
       MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, out_debug_);
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
-   }
+    }
 
     /**
      * write to output
