@@ -1161,12 +1161,10 @@ private:
     MzMLFile file;
     MSExperiment<Peak1D> exp;
 
-    // only read MS1 spectra ...
-    /*
+    // only read MS1 spectra
     std::vector<int> levels;
     levels.push_back(1);
     file.getOptions().setMSLevels(levels);
-    */
 
     LOG_DEBUG << "Loading input..." << endl;
     file.setLogType(log_type_);
@@ -1174,9 +1172,6 @@ private:
 
     // update m/z and RT ranges
     exp.updateRanges();
-
-    // extract level 1 spectra
-    exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<MSExperiment<Peak1D>::SpectrumType>(ListUtils::create<Int>("1"), true)), exp.end());
 
     // sort according to RT and MZ
     exp.sortSpectra();
