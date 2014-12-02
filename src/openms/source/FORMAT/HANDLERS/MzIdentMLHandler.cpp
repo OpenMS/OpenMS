@@ -793,7 +793,7 @@ namespace OpenMS
           //TODO @mths: passThreshold attr.
           if (pevid_ids.empty())
           {
-            LOG_WARN << "PSM without peptide evidences reigstered in the given search database found. This will cause an invalid MzIdentML file (which OpenMS still can consume)." << std::endl;
+            LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
           }
           for (std::vector<UInt64>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {
