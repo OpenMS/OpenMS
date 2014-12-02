@@ -199,7 +199,7 @@ protected:
           try
           {
             num_and_rt[NativeID[1].toInt()] = spectra_it->getRT();
-            // std::cout << "num_and_rt: " << NativeID[1] << " = " << NativeID[1].toInt() << " : " << num_and_rt[NativeID[1].toInt()] << std::endl; // CG debuggging 2009-07-01
+            // cout << "num_and_rt: " << NativeID[1] << " = " << NativeID[1].toInt() << " : " << num_and_rt[NativeID[1].toInt()] << endl; // CG debuggging 2009-07-01
           }
           catch (Exception::ConversionError& e)
           {
@@ -251,7 +251,7 @@ protected:
               {
                 writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
               }
-              catch (std::exception& e)
+              catch (exception& e)
               {
                 writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
@@ -317,9 +317,8 @@ protected:
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
+        LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
         MzIdentMLFile().load(in, protein_identifications, peptide_identifications);
-        LOG_WARN << "Converting from mzid: you might experience loss of information"
-                 << " depending on the capabilities of the target format." << std::endl;
       }
       else if (in_type == FileTypes::PROTXML)
       {
@@ -426,7 +425,7 @@ protected:
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
-      std::ofstream fasta(out.c_str(), std::ios::out);
+      ofstream fasta(out.c_str(), ios::out);
       for (Size i = 0; i < peptide_identifications.size(); ++i)
       {
         for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
@@ -439,7 +438,7 @@ protected:
           for (Size j = 0; j < seq.size(); j += 60)
           {
             Size k = min(j + 60, seq.size());
-            fasta << std::string(seq[j], seq[k]) << endl;
+            fasta << string(seq[j], seq[k]) << endl;
           }
         }
       }
