@@ -56,43 +56,43 @@ namespace OpenMS
   */
 
 // MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
-enum MzTabCellStateType
-{
-  MZTAB_CELLSTATE_DEFAULT,
-  MZTAB_CELLSTATE_NULL,
-  MZTAB_CELLSTATE_NAN,
-  MZTAB_CELLSTATE_INF,
-  SIZE_OF_MZTAB_CELLTYPE
-};
+  enum MzTabCellStateType
+  {
+    MZTAB_CELLSTATE_DEFAULT,
+    MZTAB_CELLSTATE_NULL,
+    MZTAB_CELLSTATE_NAN,
+    MZTAB_CELLSTATE_INF,
+    SIZE_OF_MZTAB_CELLTYPE
+  };
 
 // basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
-class OPENMS_DLLAPI MzTabNullAbleInterface
-{
-  public:
+  class OPENMS_DLLAPI MzTabNullAbleInterface
+  {
+public:
     virtual ~MzTabNullAbleInterface();
     virtual bool isNull() const = 0;
     virtual void setNull(bool b) = 0;
     virtual String toCellString() const = 0;
     virtual void fromCellString(const String&) = 0;
-};
+  };
 
 // interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
-class OPENMS_DLLAPI MzTabNullNaNAndInfAbleInterface :
+  class OPENMS_DLLAPI MzTabNullNaNAndInfAbleInterface :
     public MzTabNullAbleInterface
-{
-  public:
+  {
+public:
     virtual ~MzTabNullNaNAndInfAbleInterface();
     virtual bool isNaN() const = 0;
     virtual void setNaN() = 0;
     virtual bool isInf() const = 0;
     virtual void setInf() = 0;
-};
+  };
 
 // base class for atomic, non-container types (Double, Int)
-class OPENMS_DLLAPI MzTabNullAbleBase :
+  class OPENMS_DLLAPI MzTabNullAbleBase :
     public MzTabNullAbleInterface
-{
-  public:
+  {
+public:
     MzTabNullAbleBase();
 
     virtual ~MzTabNullAbleBase();
@@ -101,15 +101,15 @@ class OPENMS_DLLAPI MzTabNullAbleBase :
 
     void setNull(bool b);
 
-  protected:
+protected:
     bool null_;
-};
+  };
 
 // base class for the atomic non-container like MzTab data types (Double, Int)
-class OPENMS_DLLAPI MzTabNullNaNAndInfAbleBase :
+  class OPENMS_DLLAPI MzTabNullNaNAndInfAbleBase :
     public MzTabNullNaNAndInfAbleInterface
-{
-  public:
+  {
+public:
     MzTabNullNaNAndInfAbleBase();
 
     virtual ~MzTabNullNaNAndInfAbleBase();
@@ -126,14 +126,14 @@ class OPENMS_DLLAPI MzTabNullNaNAndInfAbleBase :
 
     void setInf();
 
-  protected:
+protected:
     MzTabCellStateType state_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabDouble :
+  class OPENMS_DLLAPI MzTabDouble :
     public MzTabNullNaNAndInfAbleBase
-{
-  public:
+  {
+public:
     MzTabDouble();
 
     explicit MzTabDouble(const double v);
@@ -148,14 +148,14 @@ class OPENMS_DLLAPI MzTabDouble :
 
     void fromCellString(const String& s);
 
-  protected:
+protected:
     double value_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabDoubleList :
+  class OPENMS_DLLAPI MzTabDoubleList :
     public MzTabNullAbleBase
-{
-  public:
+  {
+public:
     MzTabDoubleList();
 
     virtual ~MzTabDoubleList();
@@ -172,14 +172,14 @@ class OPENMS_DLLAPI MzTabDoubleList :
 
     void set(const std::vector<MzTabDouble>& entries);
 
-  protected:
+protected:
     std::vector<MzTabDouble> entries_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabInteger :
+  class OPENMS_DLLAPI MzTabInteger :
     public MzTabNullNaNAndInfAbleBase
-{
-  public:
+  {
+public:
     MzTabInteger();
 
     explicit MzTabInteger(const int v);
@@ -194,14 +194,14 @@ class OPENMS_DLLAPI MzTabInteger :
 
     void fromCellString(const String& s);
 
-  protected:
+protected:
     Int value_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabIntegerList :
+  class OPENMS_DLLAPI MzTabIntegerList :
     public MzTabNullAbleBase
-{
-  public:
+  {
+public:
     MzTabIntegerList();
 
     bool isNull() const;
@@ -216,14 +216,14 @@ class OPENMS_DLLAPI MzTabIntegerList :
 
     void set(const std::vector<MzTabInteger>& entries);
 
-  protected:
+protected:
     std::vector<MzTabInteger> entries_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabBoolean :
+  class OPENMS_DLLAPI MzTabBoolean :
     public MzTabNullAbleBase
-{
-  public:
+  {
+public:
     MzTabBoolean();
 
     explicit MzTabBoolean(bool v);
@@ -238,14 +238,14 @@ class OPENMS_DLLAPI MzTabBoolean :
 
     void fromCellString(const String& s);
 
-  protected:
+protected:
     bool value_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabString :
+  class OPENMS_DLLAPI MzTabString :
     public MzTabNullAbleInterface
-{
-  public:
+  {
+public:
     MzTabString();
 
     explicit MzTabString(const String& s);
@@ -264,14 +264,14 @@ class OPENMS_DLLAPI MzTabString :
 
     void fromCellString(const String& s);
 
-  protected:
+protected:
     String value_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabParameter :
+  class OPENMS_DLLAPI MzTabParameter :
     public MzTabNullAbleInterface
-{
-  public:
+  {
+public:
     MzTabParameter();
 
     virtual ~MzTabParameter();
@@ -300,17 +300,17 @@ class OPENMS_DLLAPI MzTabParameter :
 
     void fromCellString(const String& s);
 
-  protected:
+protected:
     String CV_label_;
     String accession_;
     String name_;
     String value_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabParameterList :
+  class OPENMS_DLLAPI MzTabParameterList :
     public MzTabNullAbleInterface
-{
-  public:
+  {
+public:
 
     virtual ~MzTabParameterList();
 
@@ -326,14 +326,14 @@ class OPENMS_DLLAPI MzTabParameterList :
 
     void set(const std::vector<MzTabParameter>& parameters);
 
-  protected:
+protected:
     std::vector<MzTabParameter> parameters_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabStringList :
+  class OPENMS_DLLAPI MzTabStringList :
     public MzTabNullAbleInterface
-{
-  public:
+  {
+public:
     MzTabStringList();
 
     virtual ~MzTabStringList();
@@ -353,15 +353,15 @@ class OPENMS_DLLAPI MzTabStringList :
 
     void set(const std::vector<MzTabString>& entries);
 
-  protected:
+protected:
     std::vector<MzTabString> entries_;
     char sep_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabModification :
+  class OPENMS_DLLAPI MzTabModification :
     public MzTabNullAbleInterface
-{
-  public:
+  {
+public:
     MzTabModification();
 
     virtual ~MzTabModification();
@@ -383,15 +383,15 @@ class OPENMS_DLLAPI MzTabModification :
 
     void fromCellString(const String& s);
 
-  protected:
+protected:
     std::vector<std::pair<Size, MzTabParameter> > pos_param_pairs_;
     MzTabString mod_identifier_;
-};
+  };
 
-class OPENMS_DLLAPI MzTabModificationList :
+  class OPENMS_DLLAPI MzTabModificationList :
     public MzTabNullAbleBase
-{
-  public:
+  {
+public:
     virtual ~MzTabModificationList();
 
     bool isNull() const;
@@ -406,15 +406,15 @@ class OPENMS_DLLAPI MzTabModificationList :
 
     void set(const std::vector<MzTabModification>& entries);
 
-  protected:
+protected:
     std::vector<MzTabModification> entries_;
 
-};
+  };
 
-class OPENMS_DLLAPI MzTabSpectraRef :
+  class OPENMS_DLLAPI MzTabSpectraRef :
     public MzTabNullAbleInterface
-{
-  public:
+  {
+public:
     MzTabSpectraRef();
 
     virtual ~MzTabSpectraRef();
@@ -437,86 +437,86 @@ class OPENMS_DLLAPI MzTabSpectraRef :
 
     void fromCellString(const String& s);
 
-  protected:
+protected:
     Size ms_run_; // number is specified in the meta data section.
     String spec_ref_;
-};
+  };
 
 // MTD
 
-struct OPENMS_DLLAPI MzTabSampleMetaData
-{
+  struct OPENMS_DLLAPI MzTabSampleMetaData
+  {
     MzTabString description;
     std::map<Size, MzTabParameter> species;
     std::map<Size, MzTabParameter> tissue;
     std::map<Size, MzTabParameter> cell_type;
     std::map<Size, MzTabParameter> disease;
     std::map<Size, MzTabParameter> custom;
-};
+  };
 
-struct OPENMS_DLLAPI MzTabSoftwareMetaData
-{
+  struct OPENMS_DLLAPI MzTabSoftwareMetaData
+  {
     MzTabParameter software;
     std::map<Size, MzTabString> setting;
-};
+  };
 
-struct OPENMS_DLLAPI MzTabModificationMetaData
-{
+  struct OPENMS_DLLAPI MzTabModificationMetaData
+  {
     MzTabParameter modification;
     MzTabString site;
     MzTabString position;
-};
+  };
 
-struct OPENMS_DLLAPI MzTabAssayMetaData
-{
+  struct OPENMS_DLLAPI MzTabAssayMetaData
+  {
     MzTabParameter quantification_reagent;
     std::map<Size, MzTabModificationMetaData> quantification_mod;
     MzTabString sample_ref;
     MzTabString ms_run_ref;
-};
+  };
 
-struct OPENMS_DLLAPI MzTabCVMetaData
-{
+  struct OPENMS_DLLAPI MzTabCVMetaData
+  {
     MzTabString label;
     MzTabString full_name;
     MzTabString version;
     MzTabString url;
-};
+  };
 
-struct OPENMS_DLLAPI MzTabInstrumentMetaData
-{
+  struct OPENMS_DLLAPI MzTabInstrumentMetaData
+  {
     MzTabParameter name;
     MzTabParameter source;
     std::map<Size, MzTabParameter> analyzer;
     MzTabParameter detector;
-};
+  };
 
-struct OPENMS_DLLAPI MzTabContactMetaData
-{
+  struct OPENMS_DLLAPI MzTabContactMetaData
+  {
     MzTabString name;
     MzTabString affiliation;
     MzTabString email;
-};
+  };
 
-struct OPENMS_DLLAPI MzTabMSRunMetaData
-{
+  struct OPENMS_DLLAPI MzTabMSRunMetaData
+  {
     MzTabParameter format;
     MzTabString location;
     MzTabParameter id_format;
     MzTabParameterList fragmentation_method;
-};
+  };
 
-struct OPENMS_DLLAPI MzTabStudyVariableMetaData
-{
+  struct OPENMS_DLLAPI MzTabStudyVariableMetaData
+  {
     MzTabIntegerList assay_refs;
     MzTabIntegerList sample_refs;
     MzTabString description;
-};
+  };
 
 // all meta data of a mzTab file. Please refer to specification for documentation.
-class OPENMS_DLLAPI MzTabMetaData
-{
-  public:
+  class OPENMS_DLLAPI MzTabMetaData
+  {
+public:
     MzTabMetaData();
 
     MzTabString mz_tab_version;
@@ -571,13 +571,13 @@ class OPENMS_DLLAPI MzTabMetaData
     std::vector<String> colunit_peptide;
     std::vector<String> colunit_psm;
     std::vector<String> colunit_small_molecule;
-};
+  };
 
-typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not null able), value (null able)
+  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not null able), value (null able)
 
 // PRT - Protein section (Table based)
-struct OPENMS_DLLAPI MzTabProteinSectionRow
-{
+  struct OPENMS_DLLAPI MzTabProteinSectionRow
+  {
     MzTabProteinSectionRow();
     MzTabString accession; // The protein’s accession.
     MzTabString description; // Human readable description (i.e. the name)
@@ -586,7 +586,7 @@ struct OPENMS_DLLAPI MzTabProteinSectionRow
     MzTabString database; // Name of the protein database.
     MzTabString database_version; // String Version of the protein database.
     MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-    std::map<Size, MzTabDouble>  best_search_engine_score;  // best_search_engine_score[1-n]
+    std::map<Size, MzTabDouble>  best_search_engine_score; // best_search_engine_score[1-n]
     std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
     MzTabInteger reliability;
     std::map<Size, MzTabInteger> num_psms_ms_run;
@@ -602,11 +602,11 @@ struct OPENMS_DLLAPI MzTabProteinSectionRow
     std::map<Size, MzTabDouble> protein_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> protein_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
-};
+  };
 
 // PEP - Peptide section (Table based)
-struct OPENMS_DLLAPI MzTabPeptideSectionRow
-{
+  struct OPENMS_DLLAPI MzTabPeptideSectionRow
+  {
     MzTabString sequence; // The peptide’s sequence.
     MzTabString accession; // The protein’s accession.
     MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
@@ -628,11 +628,11 @@ struct OPENMS_DLLAPI MzTabPeptideSectionRow
     std::map<Size, MzTabDouble> peptide_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> peptide_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
-};
+  };
 
 // PSM - PSM section (Table based)
-struct OPENMS_DLLAPI MzTabPSMSectionRow
-{
+  struct OPENMS_DLLAPI MzTabPSMSectionRow
+  {
     MzTabString sequence; // The peptide’s sequence.
     MzTabInteger PSM_ID;
     MzTabString accession; // The protein’s accession.
@@ -654,11 +654,11 @@ struct OPENMS_DLLAPI MzTabPSMSectionRow
     MzTabString start;
     MzTabString end;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
-};
+  };
 
 // SML Small molecule section (table based)
-struct OPENMS_DLLAPI MzTabSmallMoleculeSectionRow
-{
+  struct OPENMS_DLLAPI MzTabSmallMoleculeSectionRow
+  {
     MzTabStringList identifier; // The small molecule’s identifier.
     MzTabString chemical_formula; // Chemical formula of the identified compound.
     MzTabString smiles; // Molecular structure in SMILES format.
@@ -684,12 +684,12 @@ struct OPENMS_DLLAPI MzTabSmallMoleculeSectionRow
     std::map<Size, MzTabDouble> smallmolecule_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> smallmolecule_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
-};
+  };
 
-typedef std::vector<MzTabProteinSectionRow> MzTabProteinSectionRows;
-typedef std::vector<MzTabPeptideSectionRow> MzTabPeptideSectionRows;
-typedef std::vector<MzTabPSMSectionRow> MzTabPSMSectionRows;
-typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
+  typedef std::vector<MzTabProteinSectionRow> MzTabProteinSectionRows;
+  typedef std::vector<MzTabPeptideSectionRow> MzTabPeptideSectionRows;
+  typedef std::vector<MzTabPSMSectionRow> MzTabPSMSectionRows;
+  typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
 
 /**
       @brief Data model of MzTab files.
@@ -697,9 +697,9 @@ typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
 
       @ingroup FileIO
  */
-class OPENMS_DLLAPI MzTab
-{
-  public:
+  class OPENMS_DLLAPI MzTab
+  {
+public:
     /// Default constructor
     MzTab();
 
@@ -722,9 +722,9 @@ class OPENMS_DLLAPI MzTab
 
     void setPSMSectionRows(const MzTabPSMSectionRows& psd);
 
-    void setCommentRows(const std::map<Size, String> & com);
+    void setCommentRows(const std::map<Size, String>& com);
 
-    void setEmptyRows(const std::vector<Size> & empty);
+    void setEmptyRows(const std::vector<Size>& empty);
 
     const std::vector<Size>& getEmptyRows() const;
 
@@ -746,15 +746,15 @@ class OPENMS_DLLAPI MzTab
     // Extract opt_ (custom, optional column names)
     std::vector<String> getSmallMoleculeOptionalColumnNames() const;
 
-  protected:
+protected:
     MzTabMetaData meta_data_;
     MzTabProteinSectionRows protein_data_;
     MzTabPeptideSectionRows peptide_data_;
     MzTabPSMSectionRows psm_data_;
     MzTabSmallMoleculeSectionRows small_molecule_data_;
-    std::vector<Size> empty_rows_;  // index of empty rows
+    std::vector<Size> empty_rows_; // index of empty rows
     std::map<Size, String> comment_rows_; // comments
-};
+  };
 
 } // namespace OpenMS
 

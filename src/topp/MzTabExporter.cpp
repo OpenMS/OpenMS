@@ -190,8 +190,7 @@ protected:
       }
     }
 
-
-    ExitCodes main_(int, const char **)
+    ExitCodes main_(int, const char**)
     {
       // parameter handling
       String in_feature = getStringOption_("in_feature");
@@ -236,7 +235,7 @@ protected:
             prot_ids[i].computeCoverage(pep_ids);
           }
         }
-        catch (Exception::MissingInformation & e)
+        catch (Exception::MissingInformation& e)
         {
           LOG_WARN << "Non-critical exception: " << e.what() << "\n";
         }
@@ -251,7 +250,7 @@ protected:
         ms_run.location = MzTabString("null"); // TODO: file origin of ms run (e.g. mzML) not stored in featureXML so far
         meta_data.ms_run[1] = ms_run;
         meta_data.uri[1] = MzTabString(in_feature);
-        meta_data.psm_search_engine_score[1] = MzTabParameter();  // TODO: we currently only support psm search engine scores annotated to the identification run
+        meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
         meta_data.peptide_search_engine_score[1] = MzTabParameter();
 
         mztab.setMetaData(meta_data);
@@ -264,7 +263,7 @@ protected:
         {
           const Feature& f = feature_map[i];
           vector<String> keys;
-          f.getKeys(keys);  //TODO: why not just return it?
+          f.getKeys(keys); //TODO: why not just return it?
           feature_user_value_keys.insert(keys.begin(), keys.end());
 
           const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
@@ -586,7 +585,7 @@ protected:
             }
             else
             {
-              row.start = MzTabString(String(peptide_evidences[0].getStart() + 1));  // counting in mzTab starts at 1
+              row.start = MzTabString(String(peptide_evidences[0].getStart() + 1)); // counting in mzTab starts at 1
             }
 
             if (peptide_evidences[0].getEnd() == PeptideEvidence::UNKNOWN_POSITION)
@@ -712,7 +711,7 @@ protected:
   };
 }
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMzTabExporter t;
   return t.main(argc, argv);
