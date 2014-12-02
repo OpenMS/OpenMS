@@ -583,7 +583,7 @@ namespace OpenMS
               entry += "\t<Seq>" + s + "</Seq>\n";
             }
             entry += "\t\t" + cv_.getTermByName("protein description").toXMLString(cv_ns, enst);
-            entry += "</DBSequence>\n";
+            entry += "\n\t</DBSequence>\n";
 
             sen_ids.insert(std::pair<String, UInt64>(enst, enid));
             sen_set.insert(entry);
@@ -597,7 +597,7 @@ namespace OpenMS
       }
       inputs_element += search_database;
       inputs_element += spectra_data;
-      inputs_element += "</Inputs>\n";
+      inputs_element += "\t</Inputs>\n";
 
       /*
       2nd: iterate over peptideidentification vector
@@ -713,7 +713,8 @@ namespace OpenMS
           std::vector<UInt64> pevid_ids;
           if (pit == pep_ids.end())
           {        
-            std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();  //TODO idxml allows peptidehits without protein_refs!!! Fails in that case run peptideindexer first
+            std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();
+            // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
             for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
             {
               UInt64 pevid =  UniqueIdGenerator::getUniqueId();
@@ -744,7 +745,7 @@ namespace OpenMS
               }
               else
               {
-                LOG_WARN << "No found no start position to PeptideHit in sequence." << std::endl;
+                LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
               }
               if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
               {
@@ -756,7 +757,7 @@ namespace OpenMS
               }
               else
               {
-                LOG_WARN << "No found no end position to PeptideHit in sequence." << std::endl;
+                LOG_WARN << "Found no end position of peptide hit in protein sequence." << std::endl;
               }
               e += "\" isDecoy=\"" + String(idec) + "\"/> \n";
               sen_set.insert(e);
@@ -792,7 +793,7 @@ namespace OpenMS
           //TODO @mths: passThreshold attr.
           if (pevid_ids.empty())
           {
-            LOG_WARN << "PSM without peptide evidences reigstered in the given search database found. This will cause an invalid MzIdentML file (which OpenMS still can consume)." << std::endl;
+            LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
           }
           for (std::vector<UInt64>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
           {

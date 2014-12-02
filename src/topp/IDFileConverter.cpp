@@ -81,13 +81,15 @@ represented in the simpler idXML format.
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
 information for the use of ProteinProphet.
 
+Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
+
 <B>Details on additional parameters:</B>
 
 @p mz_file: \n
 Some search engine output files (like pepXML, mascotXML, Sequest .out files) may not contain retention times, only scan numbers. To be able to look up the actual RT values, the raw file has to be provided using the parameter @p mz_file. (If the identification results should be used later to annotate feature maps or consensus maps, it is critical that they contain RT values. See also @ref TOPP_IDMapper.)
 
 @p mz_name: \n
-PepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
+pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
 
 @p scan_regex: \n
 For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time. For example, if the format of the "pep_scan_title" elements is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract the number. (However, the format in this example is actually covered by the defaults.)
@@ -127,20 +129,17 @@ protected:
   void
   registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<path/file>", "", "Input file or directory containing the output of the search engine.\n"
-                                                "Sequest: Directory containing the .out files\n"
-                                                "pepXML: Single pepXML file.\n"
-                                                "protXML: Single protXML file.\n"
-                                                "mascotXML: Single Mascot XML file.\n"
-                                                "omssaXML: Single OMSSA XML file.\n"
-                                                "XTandem: Single XML file.\n"
-                                                "idXML: Single idXML file.\n", true);
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,idXML"));
+    registerInputFile_("in", "<path/file>", "",
+                       "Input file or directory containing the data to convert. This may be:\n"
+                       "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
+                       "- a single file in a search engine-specific XML format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml),\n"
+                       "- for Sequest results, a directory containing .out files.\n");
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,idXML,mzid"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
     setValidFormats_("out", ListUtils::create<String>(formats));
-    registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+    registerStringOption_("out_type", "<type>", "", "Output file type (default: determined from file extension)", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     addEmptyLine_();
@@ -200,7 +199,7 @@ protected:
           try
           {
             num_and_rt[NativeID[1].toInt()] = spectra_it->getRT();
-            // std::cout << "num_and_rt: " << NativeID[1] << " = " << NativeID[1].toInt() << " : " << num_and_rt[NativeID[1].toInt()] << std::endl; // CG debuggging 2009-07-01
+            // cout << "num_and_rt: " << NativeID[1] << " = " << NativeID[1].toInt() << " : " << num_and_rt[NativeID[1].toInt()] << endl; // CG debuggging 2009-07-01
           }
           catch (Exception::ConversionError& e)
           {
@@ -252,7 +251,7 @@ protected:
               {
                 writeLog_(String("Error: Cannot read scan number as integer. '") + e.getMessage());
               }
-              catch (std::exception& e)
+              catch (exception& e)
               {
                 writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
@@ -318,9 +317,8 @@ protected:
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
+        LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
         MzIdentMLFile().load(in, protein_identifications, peptide_identifications);
-        LOG_WARN << "Converting from mzid: you might experience loss of information"
-                 << " depending on the capabilities of the target format." << std::endl;
       }
       else if (in_type == FileTypes::PROTXML)
       {
@@ -427,7 +425,7 @@ protected:
     else if (out_type == FileTypes::FASTA)
     {
       Size count = 0;
-      std::ofstream fasta(out.c_str(), std::ios::out);
+      ofstream fasta(out.c_str(), ios::out);
       for (Size i = 0; i < peptide_identifications.size(); ++i)
       {
         for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
@@ -440,7 +438,7 @@ protected:
           for (Size j = 0; j < seq.size(); j += 60)
           {
             Size k = min(j + 60, seq.size());
-            fasta << std::string(seq[j], seq[k]) << endl;
+            fasta << string(seq[j], seq[k]) << endl;
           }
         }
       }

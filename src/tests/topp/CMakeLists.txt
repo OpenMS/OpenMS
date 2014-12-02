@@ -606,10 +606,18 @@ set_tests_properties("TOPP_IDFileConverter_5_out1" PROPERTIES DEPENDS "TOPP_IDFi
 add_test("TOPP_IDFileConverter_6" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_6_input1.pepXML -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input2.mzML -mz_name F025589.dat.mzML -out IDFileConverter_6_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_6_out1" ${DIFF} -in1 IDFileConverter_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_6_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_6_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_6")
-# XTandem XML to idXML:
+# X! Tandem XML to idXML:
 add_test("TOPP_IDFileConverter_7" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_7_input1.xml -out IDFileConverter_7_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_7_out1" ${DIFF} -in1 IDFileConverter_7_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_7_output.idXML -whitelist "IdentificationRun date" )
 set_tests_properties("TOPP_IDFileConverter_7_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_7")
+# mzIdentML to idXML (input file is "MzIdentMLFile_whole.mzid" from the class test):
+add_test("TOPP_IDFileConverter_8" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_8_input.mzid -out IDFileConverter_8_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_8_out1" ${DIFF} -in1 IDFileConverter_8_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_8_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_8_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_8")
+#  idXML to mzIdentML (input file is "IdXMLFile_whole.idXML" from the class test):
+add_test("TOPP_IDFileConverter_9" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_9_input.idXML -out IDFileConverter_9_output.tmp -out_type mzid)
+add_test("TOPP_IDFileConverter_9_out1" ${DIFF} -in1 IDFileConverter_9_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_9_output.mzid -whitelist "creationDate" )
+set_tests_properties("TOPP_IDFileConverter_9_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_9")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
