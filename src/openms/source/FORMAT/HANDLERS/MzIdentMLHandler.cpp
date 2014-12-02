@@ -583,7 +583,7 @@ namespace OpenMS
               entry += "\t<Seq>" + s + "</Seq>\n";
             }
             entry += "\t\t" + cv_.getTermByName("protein description").toXMLString(cv_ns, enst);
-            entry += "</DBSequence>\n";
+            entry += "\n\t</DBSequence>\n";
 
             sen_ids.insert(std::pair<String, UInt64>(enst, enid));
             sen_set.insert(entry);
@@ -597,7 +597,7 @@ namespace OpenMS
       }
       inputs_element += search_database;
       inputs_element += spectra_data;
-      inputs_element += "</Inputs>\n";
+      inputs_element += "\t</Inputs>\n";
 
       /*
       2nd: iterate over peptideidentification vector
