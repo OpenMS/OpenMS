@@ -37,7 +37,6 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -45,6 +44,8 @@
 #include <OpenMS/METADATA/PeptideEvidence.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTab.h>
 
 #include <vector>
 #include <algorithm>
@@ -113,10 +114,10 @@ protected:
       setValidFormats_("out", ListUtils::create<String>("csv"));
     }
 
-    map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(vector<String> mods)
+    map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const vector<String>& mods)
     {
       map<Size, MzTabModificationMetaData> mods_mztab;
-      for (vector<String>::iterator sit = mods.begin(); sit != mods.end(); ++sit)
+      for (vector<String>::const_iterator sit = mods.begin(); sit != mods.end(); ++sit)
       {
         Size index = (sit - mods.begin()) + 1;
         MzTabModificationMetaData mod;
@@ -157,7 +158,39 @@ protected:
       return mods_mztab;
     }
 
-    ExitCodes main_(int, const char **)
+    map<Size, MzTabModificationMetaData> generateMzTabStringFromVariableModifications(const vector<String>& mods)
+    {
+      if (mods.empty())
+      {
+        map<Size, MzTabModificationMetaData> mods_mztab;
+        MzTabModificationMetaData mod_mtd;
+        mod_mtd.modification.fromCellString("[MS, MS:1002454, No variable modifications searched, ]");
+        mods_mztab.insert(make_pair(1, mod_mtd));
+        return mods_mztab;
+      }
+      else
+      {
+        return generateMzTabStringFromModifications(mods);
+      }
+    }
+
+    map<Size, MzTabModificationMetaData> generateMzTabStringFromFixedModifications(const vector<String>& mods)
+    {
+      if (mods.empty())
+      {
+        map<Size, MzTabModificationMetaData> mods_mztab;
+        MzTabModificationMetaData mod_mtd;
+        mod_mtd.modification.fromCellString("[MS, MS:1002453, No fixed modifications searched, ]");
+        mods_mztab.insert(make_pair(1, mod_mtd));
+        return mods_mztab;
+      }
+      else
+      {
+        return generateMzTabStringFromModifications(mods);
+      }
+    }
+
+    ExitCodes main_(int, const char**)
     {
       // parameter handling
       String in_feature = getStringOption_("in_feature");
@@ -169,6 +202,7 @@ protected:
       {
         MzTab mztab;
         MzTabMetaData meta_data;
+
         // For featureXML we export a "Summary Quantification" file. This means we don't need to report feature quantification values at the assay level
         // but only at the (single) study variable variable level.
 
@@ -182,8 +216,8 @@ protected:
         vector<String> var_mods = sp.variable_modifications;
         vector<String> fixed_mods = sp.fixed_modifications;
 
-        meta_data.variable_mod = generateMzTabStringFromModifications(var_mods);
-        meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
+        meta_data.variable_mod = generateMzTabStringFromVariableModifications(var_mods);
+        meta_data.fixed_mod = generateMzTabStringFromFixedModifications(fixed_mods);
 
         vector<PeptideIdentification> pep_ids;
 
@@ -201,7 +235,7 @@ protected:
             prot_ids[i].computeCoverage(pep_ids);
           }
         }
-        catch (Exception::MissingInformation & e)
+        catch (Exception::MissingInformation& e)
         {
           LOG_WARN << "Non-critical exception: " << e.what() << "\n";
         }
@@ -216,7 +250,7 @@ protected:
         ms_run.location = MzTabString("null"); // TODO: file origin of ms run (e.g. mzML) not stored in featureXML so far
         meta_data.ms_run[1] = ms_run;
         meta_data.uri[1] = MzTabString(in_feature);
-        meta_data.psm_search_engine_score[1] = MzTabParameter();  // TODO: we currently only support psm search engine scores annotated to the identification run
+        meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO: we currently only support psm search engine scores annotated to the identification run
         meta_data.peptide_search_engine_score[1] = MzTabParameter();
 
         mztab.setMetaData(meta_data);
@@ -229,7 +263,7 @@ protected:
         {
           const Feature& f = feature_map[i];
           vector<String> keys;
-          f.getKeys(keys);  //TODO: why not just return it?
+          f.getKeys(keys); //TODO: why not just return it?
           feature_user_value_keys.insert(keys.begin(), keys.end());
 
           const vector<PeptideIdentification>& pep_ids = f.getPeptideIdentifications();
@@ -255,9 +289,15 @@ protected:
           rts.push_back(MzTabDouble(f.getRT()));
           rt_list.set(rts);
           row.retention_time = rt_list;
+
+          // set rt window if a bounding box has been set
           vector<MzTabDouble> window;
-          window.push_back(MzTabDouble(f.getConvexHull().getBoundingBox().minX()));
-          window.push_back(MzTabDouble(f.getConvexHull().getBoundingBox().maxX()));
+          if (f.getConvexHull().getBoundingBox() != DBoundingBox<2>())
+          {
+            window.push_back(MzTabDouble(f.getConvexHull().getBoundingBox().minX()));
+            window.push_back(MzTabDouble(f.getConvexHull().getBoundingBox().maxX()));
+          }
+
           MzTabDoubleList rt_window;
           rt_window.set(window);
           row.retention_time_window = rt_window;
@@ -545,7 +585,7 @@ protected:
             }
             else
             {
-              row.start = MzTabString(String(peptide_evidences[0].getStart() + 1));  // counting in mzTab starts at 1
+              row.start = MzTabString(String(peptide_evidences[0].getStart() + 1)); // counting in mzTab starts at 1
             }
 
             if (peptide_evidences[0].getEnd() == PeptideEvidence::UNKNOWN_POSITION)
@@ -671,7 +711,7 @@ protected:
   };
 }
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMzTabExporter t;
   return t.main(argc, argv);
