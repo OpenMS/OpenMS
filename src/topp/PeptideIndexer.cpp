@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 
 #include <algorithm>
 
@@ -453,12 +454,12 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input idXML file containing the identifications.");
-    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    registerInputFile_("in", "<file>", "", "Input idXML/mzid file containing the identifications.");
+    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
     registerInputFile_("fasta", "<file>", "", "Input sequence database in FASTA format. Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("fasta", ListUtils::create<String>("fasta"));
-    registerOutputFile_("out", "<file>", "", "Output idXML file.");
-    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerOutputFile_("out", "<file>", "", "Output idXML,mzid file.");
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));
     registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
     registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
     setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
