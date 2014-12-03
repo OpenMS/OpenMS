@@ -43,6 +43,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -438,8 +439,8 @@ protected:
     void registerOptionsAndFlags_()
     {
       registerInputFile_("in", "<file>", "", "Input file ");
-      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
-      registerOutputFile_("out", "<file>", "", "Output file (mandatory for featureXML and idXML)", false);
+      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML,mzid"));
+      registerOutputFile_("out", "<file>", "", "Output file (mandatory for featureXML and idXML/mzid)", false);
       setValidFormats_("out", ListUtils::create<String>("csv"));
       registerStringOption_("separator", "<sep>", "", "The used separator character(s); if not set the 'tab' character is used", false);
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
@@ -1051,12 +1052,20 @@ protected:
         }
         return EXECUTION_OK;
       }
-      else if (in_type == FileTypes::IDXML)
+      else if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML)
       {
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
         String document_id;
-        IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        if (in_type == FileTypes::MZIDENTML)
+        {
+          MzIdentMLFile().load(in, prot_ids, pep_ids);
+        }
+        else
+        {
+          IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        }
+
         try // might throw Exception::MissingInformation()
         {
           for (Size i = 0; i < prot_ids.size(); ++i)

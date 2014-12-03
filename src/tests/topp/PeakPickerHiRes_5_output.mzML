@@ -27,7 +27,7 @@
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
 		</software>
 		<software id="so_dp_sp_0_pm_0" version="version_string" >
-			<cvParam cvRef="MS" accession="MS:1002135" name="PeakPickerHiRes" />
+			<cvParam cvRef="MS" accession="MS:1002135" name="TOPP PeakPickerHiRes" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">
@@ -88,7 +88,7 @@
 						<binary>APRZbrxKokA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector  counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>fF4hSg==</binary>
@@ -130,7 +130,7 @@
 						<binary>AGxXaktKokA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector  counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>8vKrSQ==</binary>
@@ -172,7 +172,7 @@
 						<binary>AAwZnSpKokA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector  counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>yzzSSA==</binary>

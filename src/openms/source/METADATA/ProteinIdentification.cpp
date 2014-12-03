@@ -54,11 +54,21 @@ namespace OpenMS
   {
   }
 
-  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup rhs) const
+  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
   {
-    return probability == rhs.probability &&
-           accessions == rhs.accessions;
+    return (probability == rhs.probability) && (accessions == rhs.accessions);
   }
+
+  bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
+  {
+    // comparison of probabilities is intentionally "the wrong way around":
+    if (probability > rhs.probability) return true;
+    if (probability < rhs.probability) return false;
+    if (accessions.size() < rhs.accessions.size()) return true;
+    if (accessions.size() > rhs.accessions.size()) return false;
+    return accessions < rhs.accessions;
+  }
+
 
   ProteinIdentification::SearchParameters::SearchParameters() :
     db(),
@@ -153,11 +163,6 @@ namespace OpenMS
 
   void ProteinIdentification::setHits(const vector<ProteinHit>& protein_hits)
   {
-    // groups might become invalid by this operation
-    if (!protein_groups_.empty() || !indistinguishable_proteins_.empty())
-    {
-      LOG_ERROR << "New protein hits set while (indistinguishable) proteins groups are non-empty! This might invalidate groups. Delete groups before setting new hits.\n";
-    }
     protein_hits_ = protein_hits;
   }
 

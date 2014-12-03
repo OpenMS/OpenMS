@@ -55,7 +55,7 @@ Contact person:
 Note: The data is taken from the first spectrum!
 
 Processing 1:
-  software name:    ProteoWizard
+  software name:    ProteoWizard software
   software version: 1.0
   completion time:  0000-00-00 00:00:00
   actions:          Conversion to mzML format

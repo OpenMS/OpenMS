@@ -38,12 +38,12 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResult.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultRaw.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilterResultPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 
 using namespace OpenMS;
 
-START_TEST(MultiplexFiltering, "$Id$")
+START_TEST(MultiplexFilteringProfile, "$Id$")
 
 // read data
 MSExperiment<Peak1D> exp;
@@ -93,7 +93,7 @@ for (int c = charge_max; c >= charge_min; --c)
     patterns.push_back(pattern2);
 }
 
-MultiplexFiltering filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
+MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, out_debug);
 std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 
 MultiplexClustering* nullPointer = 0;

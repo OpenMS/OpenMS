@@ -74,6 +74,15 @@ public:
 protected:
     /// Pointer to the actual B-spline
     BSpline2d* spline_;
+
+    /// Min./max. x value (endpoints of the data range)
+    double xmin_, xmax_;
+
+    /// Method to use for extrapolation (beyond 'xmin_'/'xmax_')
+    enum { EX_LINEAR, EX_BSPLINE, EX_CONSTANT, EX_GLOBAL_LINEAR } extrapolate_;
+
+    /// Parameters for constant or linear extrapolation 
+    double offset_min_, offset_max_, slope_min_, slope_max_;
   };
 } // namespace
 

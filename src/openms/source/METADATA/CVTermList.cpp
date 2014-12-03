@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
+// $Authors: Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/CVTermList.h>
@@ -94,6 +94,14 @@ namespace OpenMS
   void CVTermList::replaceCVTerms(const Map<String, vector<CVTerm> >& cv_term_map)
   {
     cv_terms_ = cv_term_map;
+  }
+
+  void CVTermList::consumeCVTerms(const Map<String, vector<CVTerm> >& cv_term_map)
+  {
+    for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_term_map.begin(); it != cv_term_map.end(); ++it)
+    {
+      cv_terms_[it->first].insert(cv_terms_[it->first].end(), it->second.begin(), it->second.end());
+    }
   }
 
   const Map<String, vector<CVTerm> >& CVTermList::getCVTerms() const

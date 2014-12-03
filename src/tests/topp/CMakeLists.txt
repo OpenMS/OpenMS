@@ -328,7 +328,7 @@ add_test("TOPP_FileConverter_18" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_18_out1" ${DIFF} -in1 FileConverter_18.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_17_output.ibspectra.csv )
 set_tests_properties("TOPP_FileConverter_18_out1" PROPERTIES DEPENDS "TOPP_FileConverter_18")
 # Purpose: test the -write_mzML_index and the -process_lowmemory options 
-add_test("TOPP_FileConverter_19" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_19.tmp  -write_mzML_index true -process_lowmemory -in_type mzML -out_type mzML)
+add_test("TOPP_FileConverter_19" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_19.tmp  -write_mzML_index -process_lowmemory -in_type mzML -out_type mzML)
 add_test("TOPP_FileConverter_19_out" ${DIFF} -in1 FileConverter_19.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_19_output.mzML )
 set_tests_properties("TOPP_FileConverter_19_out" PROPERTIES DEPENDS "TOPP_FileConverter_19")
 
@@ -606,10 +606,18 @@ set_tests_properties("TOPP_IDFileConverter_5_out1" PROPERTIES DEPENDS "TOPP_IDFi
 add_test("TOPP_IDFileConverter_6" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_6_input1.pepXML -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input2.mzML -mz_name F025589.dat.mzML -out IDFileConverter_6_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_6_out1" ${DIFF} -in1 IDFileConverter_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_6_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_6_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_6")
-# XTandem XML to idXML:
+# X! Tandem XML to idXML:
 add_test("TOPP_IDFileConverter_7" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_7_input1.xml -out IDFileConverter_7_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_7_out1" ${DIFF} -in1 IDFileConverter_7_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_7_output.idXML -whitelist "IdentificationRun date" )
 set_tests_properties("TOPP_IDFileConverter_7_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_7")
+# mzIdentML to idXML (input file is "MzIdentMLFile_whole.mzid" from the class test):
+add_test("TOPP_IDFileConverter_8" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_8_input.mzid -out IDFileConverter_8_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_8_out1" ${DIFF} -in1 IDFileConverter_8_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_8_output.idXML -whitelist "IdentificationRun date" )
+set_tests_properties("TOPP_IDFileConverter_8_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_8")
+#  idXML to mzIdentML (input file is "IdXMLFile_whole.idXML" from the class test):
+add_test("TOPP_IDFileConverter_9" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_9_input.idXML -out IDFileConverter_9_output.tmp -out_type mzid)
+add_test("TOPP_IDFileConverter_9_out1" ${DIFF} -in1 IDFileConverter_9_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_9_output.mzid -whitelist "creationDate" )
+set_tests_properties("TOPP_IDFileConverter_9_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_9")
 
 #------------------------------------------------------------------------------
 # IDFilter tests
@@ -655,6 +663,10 @@ set_tests_properties("TOPP_IDFilter_8_out1" PROPERTIES DEPENDS "TOPP_IDFilter_8"
 add_test("TOPP_IDFilter_9" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_9_input.idXML -out IDFilter_9_output.tmp -score:pep 0.05)
 add_test("TOPP_IDFilter_9_out1" ${DIFF} -in1 IDFilter_9_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_9_output.idXML )
 set_tests_properties("TOPP_IDFilter_9_out1" PROPERTIES DEPENDS "TOPP_IDFilter_9")
+# update protein groups ("IDFilter_10_input.idXML" is same as "IDFileConverter_3_output.idXML", i.e. converted protXML):
+add_test("TOPP_IDFilter_10" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_10_input.idXML -out IDFilter_10_output.tmp -score:prot 0.3 -delete_unreferenced_peptide_hits)
+add_test("TOPP_IDFilter_10_out1" ${DIFF} -in1 IDFilter_10_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_10_output.idXML )
+set_tests_properties("TOPP_IDFilter_10_out1" PROPERTIES DEPENDS "TOPP_IDFilter_10")
 
 #------------------------------------------------------------------------------
 # MapAlignerPoseClustering tests
@@ -1456,11 +1468,14 @@ set_tests_properties("TOPP_PeptideIndexer_10_out" PROPERTIES DEPENDS "TOPP_Pepti
 # empty FASTA
 add_test("TOPP_PeptideIndexer_11" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/degenerate_cases/empty.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_11_out.tmp)
 set_tests_properties("TOPP_PeptideIndexer_11" PROPERTIES WILL_FAIL 1)
-# empty input
-add_test("TOPP_PeptideIndexer_12" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML -out PeptideIndexer_12_out.tmp)
-add_test("TOPP_PeptideIndexer_12_out" ${DIFF} -in1 PeptideIndexer_12_out.tmp -in2 ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML )
+# with "annotate_proteins":
+add_test("TOPP_PeptideIndexer_12" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_12_out.tmp -allow_unmatched -enzyme:specificity none -annotate_proteins)
+add_test("TOPP_PeptideIndexer_12_out" ${DIFF} -in1 PeptideIndexer_12_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_12_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_12_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_12")
-
+# empty input
+add_test("TOPP_PeptideIndexer_13" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML -out PeptideIndexer_13_out.tmp)
+add_test("TOPP_PeptideIndexer_13_out" ${DIFF} -in1 PeptideIndexer_13_out.tmp -in2 ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML )
+set_tests_properties("TOPP_PeptideIndexer_13_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_13")
 
 if(WITH_GUI)
   #------------------------------------------------------------------------------
@@ -1472,7 +1487,7 @@ endif()
 #------------------------------------------------------------------------------
 # search engine tests (might be optional, depending on presence of external binaries, e.g., omssacl.exe)
 #------------------------------------------------------------------------------
-include(SEARCHENGINES/search_engine_tests.cmake)
+include(THIRDPARTY/third_party_tests.cmake)
 
 if(WITH_GUI)
   #------------------------------------------------------------------------------

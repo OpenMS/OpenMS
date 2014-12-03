@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
+<IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<SearchParameters id="SP_0" db="proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="+1-+3" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0.00666666666666667" peak_mass_tolerance="0" >
+        <VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2014-11-13T15:47:51" search_engine="MSGFPlus" search_engine_version="" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="BSA2" score="0" sequence="" >
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="BSA3" score="0" sequence="" >
+			</ProteinHit>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0" MZ="520.262817382812" RT="2655.095703125" >
+			<PeptideHit score="4.6521305e-19" sequence="DFASSGGYVLHLHR" charge="3" aa_before="-" aa_after="E" >
+			</PeptideHit>
+			<UserParam type="int" name="ScanNumber" value="0"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0" MZ="1063.20983886719" RT="4587.6689453125" >
+			<PeptideHit score="3.864406e-26" sequence="IALSRPNVEVVALNDPFITNDYAAYM(Oxidation)FK" charge="3" aa_before="-" aa_after="E" protein_refs="PH_0" >
+			</PeptideHit>
+			<UserParam type="int" name="ScanNumber" value="1"/>
+		</PeptideIdentification>
+		<PeptideIdentification score_type="SpecEValue" higher_score_better="false" significance_threshold="0" MZ="775.38720703125" RT="4923.77734375" >
+			<PeptideHit score="1.7573099e-19" sequence="RPGADSDIGGFGGLFDLAQAGFR" charge="3" aa_before="-" aa_after="A" protein_refs="PH_1" >
+			</PeptideHit>
+			<UserParam type="int" name="ScanNumber" value="2"/>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>
