@@ -36,7 +36,7 @@
 #ifndef REGRESSIONUTILS_H_
 #define REGRESSIONUTILS_H_
 #include <vector>
-#include <WildMagic/Wm5Vector2.h>
+#include "Wm5Vector2.h"
 
 namespace OpenMS {
   namespace Math {

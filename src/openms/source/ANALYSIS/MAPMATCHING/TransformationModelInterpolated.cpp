@@ -43,8 +43,8 @@
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 // AkimaInterpolator
-#include <WildMagic/Wm5IntpAkimaNonuniform1.h>
-#include <WildMagic/Wm5Math.h>
+#include <Wm5IntpAkimaNonuniform1.h>
+#include <Wm5Math.h>
 
 namespace OpenMS
 {
