@@ -27,10 +27,9 @@
 # find WM5 include path
 find_path(WM5_INCLUDE_DIR
           NAMES
-            Wm5Core.h
+            WildMagic/Wm5Core.h
           HINTS
             ${WM5_DIR}/include
-          PATH_SUFFIXES WildMagic libwildmagic
 )
 
 #------------------------------------------------------------------------------
