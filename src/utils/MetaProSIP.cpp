@@ -660,9 +660,6 @@ public:
       StringList weights_list;
       StringList corr_list;
 
-      MapRateToScoreType decomposition_map;   // all rate to decomposition scores for the peptide
-      MapRateToScoreType correlation_map;   // all rate to correlation scores for the peptide
-
       for (MapRateToScoreType::const_iterator mit = sip_peptides[i].decomposition_map.begin(); mit != sip_peptides[i].decomposition_map.end(); ++mit)
       {
         rate_dec_list.push_back(String(mit->first));
@@ -1267,7 +1264,6 @@ public:
     }
 
     double S_err = 0;
-    double predicted_sum = 0;
     PeakSpectrum reconstructed;
 
     for (Size row = 0; row != isotopic_intensities.size(); ++row)
@@ -1277,7 +1273,6 @@ public:
       {
         predicted += basis_matrix(row, col) * beta(col, 0);
       }
-      predicted_sum += predicted;
       Peak1D peak;
       peak.setIntensity(predicted);
       peak.setMZ(sip_peptide.mz_theo + sip_peptide.mass_diff / sip_peptide.charge * row);
@@ -1298,10 +1293,6 @@ public:
     sip_peptide.RR = 1.0 - (S_err / S_tot);
     sip_peptide.reconstruction = reconstructed;
 
-    /*
-  cout << "RR: " << seq << " " << 1.0 - (S_err / S_tot) << " " << S_err << " " << S_tot << endl;
-  cout << "absolute TIC error: " << fabs(1.0 - predicted_sum / accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0)) << endl;
-  */
     return result;
   }
 
