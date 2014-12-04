@@ -39,8 +39,8 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/RegressionUtils.h>
 
-#include <WildMagic/Wm5Vector2.h>
-#include <WildMagic/Wm5LinearSystem.h>
+#include "Wm5Vector2.h"
+#include "Wm5LinearSystem.h"
 #include <iterator>
 
 using Wm5::LinearSystem;
