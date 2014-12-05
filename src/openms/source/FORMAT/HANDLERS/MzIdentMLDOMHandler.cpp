@@ -193,7 +193,7 @@ namespace OpenMS
         mzid_parser_.parse(mzid_file.c_str());
 
         // no need to free this pointer - owned by the parent parser object
-        DOMDocument* xmlDoc = mzid_parser_.getDocument();
+        xercesc::DOMDocument* xmlDoc = mzid_parser_.getDocument();
 
         // 0. AnalysisSoftware {1,unbounded}
         DOMNodeList* analysisSoftwareElements = xmlDoc->getElementsByTagName(XMLString::transcode("AnalysisSoftware"));
@@ -276,7 +276,7 @@ namespace OpenMS
       {
         try
         {
-          DOMDocument* xmlDoc = impl->createDocument(
+          xercesc::DOMDocument* xmlDoc = impl->createDocument(
             XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1"),
             XMLString::transcode("MzIdentML"),             // root element name
             0);                       // document type object (DTD).
