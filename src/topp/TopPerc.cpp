@@ -229,7 +229,8 @@ protected:
                          (String)lnNTermIonCurrentRatio + out_sep + (String)lnCTermIonCurrentRatio + out_sep + (String)lnMS2IonCurrent
                          + out_sep + (String)expMass + out_sep + (String)pepLen + out_sep + (String)dM + out_sep + (String)absdM + out_sep +
                          (String)meanErrorTop7 + out_sep + (String)sqMeanErrorTop7 + out_sep + (String)stdevErrorTop7 +
-                         out_sep + ss.str() + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide_with_modifications + out_sep + protein + out_sep;
+                         out_sep + String(ss.str()) + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + 
+                         peptide_with_modifications + out_sep + protein + out_sep;
 
             // peptide Spectrum Hit pushed to the output file
             txt.addLine(lis);
