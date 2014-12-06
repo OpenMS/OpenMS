@@ -1,18 +1,18 @@
 // --------------------------------------------------------------------------
-// OpenMS -- Open-Source Mass Spectrometry
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
-// * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-// * Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-// * Neither the name of any author or any participating institution
-// may be used to endorse or promote products derived from this software
-// without specific prior written permission.
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
+//    without specific prior written permission.
 // For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
@@ -121,7 +121,7 @@ protected:
     {
       for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
       {
-        // Some Hits have no NumMatchedMainIons, and MeanError, etc values. Have to ignore them!
+        // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
         if (hit->metaValueExists("NumMatchedMainIons"))
         {
           // only take features from first ranked entries and only with meanerrortop7 != 0.0
@@ -193,7 +193,7 @@ protected:
             stdevErrorTop7 = rescaleFragmentFeature(stdevErrorTop7, NumMatchedMainIons);
 
             // write 1 for the correct charge, 0 for other charges
-            // i.e: charge 3 for charges from 2-5: 0 1 0 0
+            // i.e.: charge 3 for charges from 2-5: 0 1 0 0
             stringstream ss;
             int i = minCharge;
             while (i <= maxCharge)
@@ -358,7 +358,7 @@ protected:
     registerFlag_("R", "Measure performance on test set each iteration");
     registerFlag_("O", "Override error check and do not fall back on default score vector in case of suspect score vector");
     registerIntOption_("S", "<value>", 1, "Setting seed of the random number generator. Default value is 1", false);
-    registerFlag_("K", "Retention time features calculated as in klammer et al.");
+    registerFlag_("K", "Retention time features calculated as in Klammer et al.");
     registerFlag_("D", "Include description of correct features");
     registerOutputFile_("B", "<file>", "", "Output tab delimited results for decoys into a file", false);
     registerFlag_("U", "Do not remove redundant peptides, keep all PSMS and exclude peptide level probabilities.");
@@ -374,7 +374,7 @@ protected:
     registerFlag_("E", "Proteins graph will not be separated in sub-graphs (Only valid if option -A is active).");
     registerFlag_("C", "it does not prune peptides with a very low score (~0.0) which means that if a peptide with a very low score is matching two proteins, when we prune the peptide,it will be duplicated to generate two new protein groups (Only valid if option -A is active).");
     registerIntOption_("d", "<value>", 0, "Setting depth 0 or 1 or 2 from low depth to high depth(less computational time) of the grid search for the estimation Alpha,Beta and Gamma parameters for fido(Only valid if option -A is active). Default value is 0", false);
-    registerStringOption_("P", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that idenfifies the decoys in the database is not the default (by default : random) (Only valid if option -A  is active).", false);
+    registerStringOption_("P", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (by default : random) (Only valid if option -A  is active).", false);
     registerFlag_("T", "Reduce the tree of proteins (removing low scored proteins) in order to estimate alpha,beta and gamma faster.(Only valid if option -A is active).");
     registerFlag_("Y", "Use target decoy competition to compute peptide probabilities.(recommended when using -A).");
     registerFlag_("H", "Q-value threshold that will be used in the computation of the MSE and ROC AUC score in the grid search (recommended 0.05 for normal size datasets and 0.1 for big size datasets).(Only valid if option -A is active).");
@@ -441,7 +441,7 @@ protected:
     {
       datab = "MSGF+";
 
-      // TODO FOR FUTURE DEVELOPMENT: check out without explict parameter setting if input file is target or decoy!!!
+      // TODO FOR FUTURE DEVELOPMENT: check out without explicit parameter setting if input file is target or decoy!!!
       // Both input files are read in
       MzIdentMLFile().load(inputfile_target_name, protein_ids, peptide_ids);
       MzIdentMLFile().load(inputfile_decoy_name, protein_ids_d, peptide_ids_d);
@@ -533,33 +533,40 @@ protected:
 
       // Find out which ions are in XTandem-File and take only these as features
       stringstream ss_ion;
-      if (peptide_ids.front().getHits().front().getMetaValue("a_score").toString() != "" && peptide_ids.front().getHits().front().getMetaValue("a_ions").toString() != "")
+      if (peptide_ids.front().getHits().front().getMetaValue("a_score").toString() != "" && 
+          peptide_ids.front().getHits().front().getMetaValue("a_ions").toString() != "")
       {
         ss_ion << "frac_ion_a" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("b_score").toString() != "" && peptide_ids.front().getHits().front().getMetaValue("b_ions").toString() != "")
+      if (peptide_ids.front().getHits().front().getMetaValue("b_score").toString() != "" && 
+          peptide_ids.front().getHits().front().getMetaValue("b_ions").toString() != "")
       {
         ss_ion << "frac_ion_b" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("c_score").toString() != "" && peptide_ids.front().getHits().front().getMetaValue("c_ions").toString() != "")
+      if (peptide_ids.front().getHits().front().getMetaValue("c_score").toString() != "" && 
+          peptide_ids.front().getHits().front().getMetaValue("c_ions").toString() != "")
       {
         ss_ion << "frac_ion_c" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("x_score").toString() != "" && peptide_ids.front().getHits().front().getMetaValue("x_ions").toString() != "")
+      if (peptide_ids.front().getHits().front().getMetaValue("x_score").toString() != "" && 
+          peptide_ids.front().getHits().front().getMetaValue("x_ions").toString() != "")
       {
         ss_ion << "frac_ion_x" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("y_score").toString() != "" && peptide_ids.front().getHits().front().getMetaValue("y_ions").toString() != "")
+      if (peptide_ids.front().getHits().front().getMetaValue("y_score").toString() != "" && 
+          peptide_ids.front().getHits().front().getMetaValue("y_ions").toString() != "")
       {
         ss_ion << "frac_ion_y" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("z_score").toString() != "" && peptide_ids.front().getHits().front().getMetaValue("z_ions").toString() != "")
+      if (peptide_ids.front().getHits().front().getMetaValue("z_score").toString() != "" && 
+          peptide_ids.front().getHits().front().getMetaValue("z_ions").toString() != "")
       {
         ss_ion << "frac_ion_z" << ",";
       }
 
       // Create header for the features
-      String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() + ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
+      String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() + 
+        ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
       StringList txt_header0 = ListUtils::create<String>(featureset);
       // Insert the header with the features names to the file
       txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
@@ -570,7 +577,8 @@ protected:
       {
         if (it->isHigherScoreBetter())
         {
-          String scannumber = String(it->getMetaValue("spectrum_id"));       //TODO this must be spectrum_reference!!! parse spectrum number from there if necessary!
+          //TODO this must be spectrum_reference!!! parse spectrum number from there if necessary!
+          String scannumber = String(it->getMetaValue("spectrum_id"));
           int charge = it->getHits().front().getCharge();
           int label = 1;
           double hyperscore = it->getHits().front().getScore();
@@ -582,27 +590,33 @@ protected:
           // Find out correct ion types and get its Values
           stringstream ss_ion_2;
 
-          if (it->getHits().front().getMetaValue("a_score").toString() != "" && it->getHits().front().getMetaValue("a_ions").toString() != "")
+          if (it->getHits().front().getMetaValue("a_score").toString() != "" && 
+              it->getHits().front().getMetaValue("a_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("b_score").toString() != "" && it->getHits().front().getMetaValue("b_ions").toString() != "")
+          if (it->getHits().front().getMetaValue("b_score").toString() != "" && 
+              it->getHits().front().getMetaValue("b_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("c_score").toString() != "" && it->getHits().front().getMetaValue("c_ions").toString() != "")
+          if (it->getHits().front().getMetaValue("c_score").toString() != "" && 
+              it->getHits().front().getMetaValue("c_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("x_score").toString() != "" && it->getHits().front().getMetaValue("x_ions").toString() != "")
+          if (it->getHits().front().getMetaValue("x_score").toString() != "" && 
+              it->getHits().front().getMetaValue("x_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("y_score").toString() != "" && it->getHits().front().getMetaValue("y_ions").toString() != "")
+          if (it->getHits().front().getMetaValue("y_score").toString() != "" && 
+              it->getHits().front().getMetaValue("y_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("z_score").toString() != "" && it->getHits().front().getMetaValue("z_ions").toString() != "")
+          if (it->getHits().front().getMetaValue("z_score").toString() != "" && 
+              it->getHits().front().getMetaValue("z_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length << out_sep;
           }
@@ -612,7 +626,7 @@ protected:
           double absdM = abs(dm);
 
           // write 1 for the correct charge, 0 for other charges
-          // i.e: charge 3 for charges from 2-5: 0 1 0 0
+          // i.e.: charge 3 for charges from 2-5: 0 1 0 0
           stringstream ss;
           int i = minCharge;
           while (i <= maxCharge)
@@ -640,8 +654,11 @@ protected:
           String protein = it->getHits().front().getPeptideEvidences().front().getProteinAccession();
 
           // One PeptideSpectrumHit with all its features
-          String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) + "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + out_sep + String(deltascore) + out_sep + ss_ion_2.str()
-                       + String(mh) + out_sep + String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + ss.str() + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
+          String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) +
+            "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + 
+            out_sep + String(deltascore) + out_sep + ss_ion_2.str() + String(mh) + out_sep + 
+            String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + String(ss.str()) + 
+            String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
 
           // peptide Spectrum Hit pushed to the output file
           txt.addLine(lis);
@@ -803,7 +820,7 @@ protected:
     // Percolator execution with the executable ant the arguments StringList
     process.execute(percolator_executable.toQString(), arguments); // does automatic escaping etc...
 
-    // when percolator finished calculation, it stores the results -r option (with or wothout -U) or -m (which seems to be not working)
+    // when percolator finished calculation, it stores the results -r option (with or without -U) or -m (which seems to be not working)
     CsvFile csv_file(out_file, '\t');
 
     map<String, vector<String> > pep_map;
@@ -877,7 +894,7 @@ protected:
 
     LOG_INFO << "TopPerc finished successfully!" << endl;
 
-    // As the percolator poutput file is not needed anymore, the temporary directory is going to be deleted
+    // As the percolator output file is not needed anymore, the temporary directory is going to be deleted
 //    File::removeDirRecursively(temp_data_directory);
 
     return EXECUTION_OK;
