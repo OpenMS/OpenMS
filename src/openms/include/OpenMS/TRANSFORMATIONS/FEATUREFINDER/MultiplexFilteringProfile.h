@@ -83,12 +83,13 @@ public:
      * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
      * @param peptide_similarity    similarity score for two peptides in the same multiplet
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
+     * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
      * @param out_debug    directory for debug output
      *
      * @throw Exception::IllegalArgument if profile and centroided data do not contain same number of spectra
      * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
      */
-    MultiplexFilteringProfile(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
+    MultiplexFilteringProfile(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String out_debug);
 
     /**
      * @brief filter for patterns

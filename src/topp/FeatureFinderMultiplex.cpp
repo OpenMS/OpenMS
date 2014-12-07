@@ -196,6 +196,7 @@ private:
   double intensity_cutoff_;
   double peptide_similarity_;
   double averagine_similarity_;
+  double averagine_similarity_scaling_;
   bool knock_out_;
 
   // section "labels"
@@ -205,7 +206,7 @@ public:
   TOPPFeatureFinderMultiplex() :
     TOPPBase("FeatureFinderMultiplex", "Determination of peak ratios in LC-MS data", true),
     debug_(false), charge_min_(1), charge_max_(1), missed_cleavages_(0), isotopes_per_peptide_min_(1), isotopes_per_peptide_max_(1), rt_typical_(0.0), rt_min_(0.0),
-    mz_tolerance_(0.0), mz_unit_(true), intensity_cutoff_(0.0), peptide_similarity_(0.0), averagine_similarity_(0.0), knock_out_(false)
+    mz_tolerance_(0.0), mz_unit_(true), intensity_cutoff_(0.0), peptide_similarity_(0.0), averagine_similarity_(0.0), averagine_similarity_scaling_(0.0), knock_out_(false)
   {
   }
 
@@ -254,6 +255,9 @@ public:
       defaults.setValue("averagine_similarity", 0.4, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
       defaults.setMinFloat("averagine_similarity", 0.0);
       defaults.setMaxFloat("averagine_similarity", 1.0);
+      defaults.setValue("averagine_similarity_scaling", 0.75, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simulataneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
+      defaults.setMinFloat("averagine_similarity_scaling", 0.0);
+      defaults.setMaxFloat("averagine_similarity_scaling", 1.0);
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
       defaults.setMinInt("missed_cleavages", 0);
       defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
@@ -347,6 +351,7 @@ public:
     intensity_cutoff_ = getParam_().getValue("algorithm:intensity_cutoff");
     peptide_similarity_ = getParam_().getValue("algorithm:peptide_similarity");
     averagine_similarity_ = getParam_().getValue("algorithm:averagine_similarity");
+    averagine_similarity_scaling_ = getParam_().getValue("algorithm:averagine_similarity_scaling");
     missed_cleavages_ = getParam_().getValue("algorithm:missed_cleavages");
     knock_out_ = (getParam_().getValue("algorithm:knock_out") == "true");
   }
@@ -1208,14 +1213,14 @@ private:
     if (centroided)
     {
       // centroided data
-      MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
+      MultiplexFilteringCentroided filtering(exp, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, out_debug_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
     }
     else
     {
       // profile data
-      MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, out_debug_);
+      MultiplexFilteringProfile filtering(exp, exp_picked, boundaries_exp_s, patterns, isotopes_per_peptide_min_, isotopes_per_peptide_max_, missing_peaks_, intensity_cutoff_, mz_tolerance_, mz_unit_, peptide_similarity_, averagine_similarity_, averagine_similarity_scaling_, out_debug_);
       filtering.setLogType(log_type_);
       filter_results = filtering.filter();
     }

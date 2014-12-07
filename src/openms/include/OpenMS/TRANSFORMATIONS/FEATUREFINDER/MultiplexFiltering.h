@@ -115,9 +115,10 @@ public:
      * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
      * @param peptide_similarity    similarity score for two peptides in the same multiplet
      * @param averagine_similarity    similarity score for peptide isotope pattern and averagine model
+     * @param averagine_similarity_scaling    scaling factor x for the averagine similarity parameter p when detecting peptide singlets. With p' = p + x(1-p). 
      * @param out_debug    directory for debug output
      */
-    MultiplexFiltering(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug);
+    MultiplexFiltering(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String out_debug);
 
 protected:
     /**
@@ -308,6 +309,11 @@ protected:
      * @brief averagine similarity
      */
     double averagine_similarity_;
+
+    /**
+     * @brief averagine similarity scaling
+     */
+    double averagine_similarity_scaling_;
 
     /**
      * @brief directory for debug output
