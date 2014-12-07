@@ -249,6 +249,19 @@ namespace OpenMS
 
   bool MultiplexFiltering::averagineSimilarityFilter(MultiplexPeakPattern pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
   {
+    // Use a more restrictive averagine similarity when we are searching for peptide singlets.
+    double similarity;
+    if (pattern.getMassShiftCount() == 1)
+    {
+      // We are detecting peptide singlets.
+      similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+    }
+    else
+    {
+      // We are detecting peptide doublets or triplets or ...
+      similarity = averagine_similarity_;
+    }
+    
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       vector<double> isotope_pattern;
@@ -264,7 +277,7 @@ namespace OpenMS
           isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
         }
       }
-      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < averagine_similarity_)
+      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < similarity)
       {
         return false;
       }
