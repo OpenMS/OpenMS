@@ -256,7 +256,7 @@ public:
       defaults.setMaxFloat("averagine_similarity", 1.0);
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages due to incomplete digestion.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("knock_out", "true", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
+      defaults.setValue("knock_out", "false", "Is it likely that knock-outs are present? (Supported for doublex, triplex and quadruplex experiments only.)", ListUtils::create<String>("advanced"));
       defaults.setValidStrings("knock_out", ListUtils::create<String>("true,false"));
     }
 
