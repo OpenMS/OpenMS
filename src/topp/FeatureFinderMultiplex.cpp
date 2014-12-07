@@ -648,6 +648,42 @@ public:
   }
 
   /**
+   * @brief comparator of peak patterns
+   *
+   * @param pattern1    first peak pattern
+   * @param pattern2    second peak pattern
+   *
+   * @return true if pattern1 should be searched before pattern2
+   */
+  static bool less_pattern(const MultiplexPeakPattern& pattern1, const MultiplexPeakPattern& pattern2)
+  {
+    if (pattern1.getMassShiftCount() == pattern2.getMassShiftCount())
+    {
+      if (pattern1.getCharge() == pattern2.getCharge())
+      {
+        // The first mass shift is by definition always zero.
+        if ((pattern1.getMassShiftCount() > 1) && (pattern2.getMassShiftCount() > 1))
+        {
+          return pattern1.getMassShiftAt(1) < pattern2.getMassShiftAt(1);
+        }
+        else
+        {
+          // Should never happen.
+          return true;
+        }
+      }
+      else
+      {
+        return pattern1.getCharge() > pattern2.getCharge();
+      }
+    }
+    else
+    {
+      return pattern1.getMassShiftCount() > pattern2.getMassShiftCount();
+    }
+  }
+
+  /**
    * @brief generate list of mass shifts
    *
    * @param charge_min    minimum charge
@@ -674,6 +710,19 @@ public:
         list.push_back(pattern);
       }
     }
+    
+    sort(list.begin(),list.end(),less_pattern);
+    
+    // debug output
+    /*for (size_t i = 0; i < list.size(); ++i)
+    {
+      std::cout << list[i].getCharge() << "+  ";
+      for (size_t j = 0; j < list[i].getMassShiftCount(); ++j)
+      {
+        std::cout << list[i].getMassShiftAt(j) << "  ";
+      }
+      std::cout << "\n";
+    }*/
 
     return list;
   }
