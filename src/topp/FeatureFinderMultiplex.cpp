@@ -664,6 +664,7 @@ public:
         // The first mass shift is by definition always zero.
         if ((pattern1.getMassShiftCount() > 1) && (pattern2.getMassShiftCount() > 1))
         {
+          // 4Da before 8Da etc. (larger miss cleavages last)
           return pattern1.getMassShiftAt(1) < pattern2.getMassShiftAt(1);
         }
         else
@@ -674,11 +675,13 @@ public:
       }
       else
       {
+        // 5+ before 4+ before 3+ etc.
         return pattern1.getCharge() > pattern2.getCharge();
       }
     }
     else
     {
+      // triplets before doublets before singlets
       return pattern1.getMassShiftCount() > pattern2.getMassShiftCount();
     }
   }
@@ -697,13 +700,10 @@ public:
   {
     std::vector<MultiplexPeakPattern> list;
 
-    // iterate over all charge states (from max to min)
-    // 4+ can be mistaken as 2+, but 2+ not as 4+
+    // iterate over all charge states
     for (int c = charge_max; c >= charge_min; --c)
     {
-      // iterate over all mass shifts (from small to large shifts)
-      // first look for the more likely non-missed-cleavage cases
-      // e.g. first (0, 4, 8) then (0, 8, 16)
+      // iterate over all mass shifts
       for (unsigned i = 0; i < mass_pattern_list.size(); ++i)
       {
         MultiplexPeakPattern pattern(c, peaks_per_peptide_max, mass_pattern_list[i], i);
