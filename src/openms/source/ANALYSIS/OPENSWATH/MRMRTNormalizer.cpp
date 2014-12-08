@@ -252,7 +252,7 @@ namespace OpenMS
 
   int MRMRTNormalizer::residualOutlierCandidate(std::vector<double>& x, std::vector<double>& y)
   {
-    // Returns candidate outlier: A linear regression and residuales are calculated for
+    // Returns candidate outlier: A linear regression and residuals are calculated for
     // the data points. The one with highest residual error is selected as the outlier candidate. The
     // corresponding iterator position is then returned.
     Math::LinearRegression lin_reg;

@@ -163,7 +163,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     {
       map_source_to_targets.erase(sit++);
     }
-    else if (sit->second.size() == 1 && source != first_target) // simple rename e.g. A->X... simply subsitute all in restriction sequence
+    else if (sit->second.size() == 1 && source != first_target) // simple rename e.g. A->X... simply substitute all in restriction sequence
     {
       sequence_restriction.substitute(source, first_target);
       map_source_to_targets.erase(sit++);
@@ -325,7 +325,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         nucleotide_style_formula = nucleotide_style_formula.prefix(p);
       }
       //  std::cout << "(" << nucleotide_style_formula << ")" << endl;
-      // perform string comparison: if nucleotide seuquence doesnt occur in any permutation in res_seq mark the corresponding empirical formula for deletion
+      // perform string comparison: if nucleotide sequence doesn't occur in any permutation in res_seq mark the corresponding empirical formula for deletion
       bool restriction_violated = false;
 
       // for each min. count restriction on a target nucleotide...
@@ -392,7 +392,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     result.mod_combinations[cysteine_adduct_formula.toString()].insert(cysteine_adduct_string);
   }
 
-  // output index  -> empirical formula -> (ambigous) nucleotide formulas
+  // output index  -> empirical formula -> (ambiguous) nucleotide formulas
   // nucleotide formulas which only differ in nucleotide ordering are only printed once
   double pseudo_rt = 1;
   for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
@@ -425,7 +425,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         std::sort(nucleotide_style_formula.begin(), nucleotide_style_formula.end());
       }
 
-      // only print ambigous sequences once
+      // only print ambiguous sequences once
       if (printed.find(nucleotide_style_formula) == printed.end())
       {
         std::cout << nucleotide_style_formula;

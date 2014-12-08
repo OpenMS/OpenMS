@@ -274,7 +274,7 @@ namespace OpenMS
         }
         bool is_compatible = false;
 
-        // Term specifity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
+        // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
         const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {

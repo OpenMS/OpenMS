@@ -270,7 +270,7 @@ namespace OpenMS
       if (tag_ == "Customizations")
       {
         String customizations = sm_.convert(chars);
-        // TODO write customizations to Sofware
+        // TODO write customizations to Software
         return;
       }
 
@@ -420,7 +420,7 @@ namespace OpenMS
         UInt64 dbid, sdid;
 
         // handle SearchDatabase element for each ProteinIdentification
-        String dbst(it->getSearchParameters().db); //TODO @mths for several IdentificationRuns thsi must be something else, otherwise for two of the same db just one will be created
+        String dbst(it->getSearchParameters().db); //TODO @mths for several IdentificationRuns this must be something else, otherwise for two of the same db just one will be created
         std::map<String, UInt64>::iterator dbit = sdb_ids.find(dbst);
         if (dbit == sdb_ids.end())
         {

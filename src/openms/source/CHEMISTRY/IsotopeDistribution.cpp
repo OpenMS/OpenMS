@@ -292,7 +292,7 @@ namespace OpenMS
 
     ContainerType intermediate;
 
-    // to avoid taking unneccessary squares, we check the loop condition
+    // to avoid taking unnecessary squares, we check the loop condition
     // somewhere in the middle
     ContainerType convolution_power;
     convolveSquare_(convolution_power, input);

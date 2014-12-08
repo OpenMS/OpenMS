@@ -251,7 +251,7 @@ namespace OpenMS
 
     //////////////// residue modification parameters
     //<note type="input" label="residue, modification mass">57.022@C</note>
-    //<note>The format of this parameter is m@X, where m is the modfication
+    //<note>The format of this parameter is m@X, where m is the modification
     //mass in Daltons and X is the appropriate residue to modify. Lists of
     //modifications are separated by commas. For example, to modify M and C
     //with the addition of 16.0 Daltons, the parameter line would be

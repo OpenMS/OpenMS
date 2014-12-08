@@ -400,7 +400,7 @@ namespace OpenMS
     {
       q_aa_acidic[aa_acidic[i]] = -1 / (1 + std::pow(10, -ph + aa_acidic_pkas[i]));
     }
-    // add values for ambigous AA according to dayhoff frequencies
+    // add values for ambiguous AA according to Dayhoff frequencies
     q_aa_acidic["B"] = q_aa_acidic["D"] * (5.5 / (5.5 + 4.3)) + 0 * (4.3 / (5.5 + 4.3)); // D~5.5; N~4.3
     q_aa_acidic["Z"] = q_aa_acidic["E"] * (6.0 / (6.0 + 3.9)) + 0 * (3.9 / (6.0 + 3.9)); // E~6.0; Q~3.9
   }
@@ -496,7 +496,8 @@ namespace OpenMS
     UInt k_mer_length = 0;
     double sigma = 0.0;
     UInt border_length = 0;
-    Size max_number_of_peptides(2000); // hard coding pediction bins; larger values only take more memory, result is not affected
+    // hard coding prediction bins; larger values only take more memory, result is not affected
+    Size max_number_of_peptides(2000);
 
     LOG_INFO << "Predicting RT ... ";
 

@@ -172,7 +172,7 @@ namespace OpenMS
     // calculate some initial boundaries that can be used to shorten the enumeration process
     //Int q_comp_min = -max_span_; //minimal expected charge of compomer
     //Int q_comp_max = max_span_;  //maximal expected charge of compomer
-    Int max_pq = q_max_;                 //maximal number of positve adduct-charges for a compomer
+    Int max_pq = q_max_;                 //maximal number of positive adduct-charges for a compomer
     //Int max_nq = q_max_; //maximal number of negative adduct-charges for a compomer
 
     for (AdductsType::const_iterator it = adduct_charged.begin(); it != adduct_charged.end(); ++it)

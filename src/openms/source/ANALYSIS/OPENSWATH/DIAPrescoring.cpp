@@ -110,7 +110,7 @@ namespace OpenMS
       std::vector<double> score2v;
       for (; beg != end; ++beg, ++xx)
       {
-        //std::cout << "analysing transtion" << xx << beg->second.size()
+        //std::cout << "analysing transition" << xx << beg->second.size()
         //    << " " << beg->first << std::endl;
         double score1;
         double score2;

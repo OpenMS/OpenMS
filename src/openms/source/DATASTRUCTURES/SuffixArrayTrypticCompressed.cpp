@@ -54,9 +54,10 @@ namespace OpenMS
 {
 
   /**
-    @brief comperator for two substings represented as pair of ints
+    @brief comparator for two substrings represented as pair of integers
 
-    holds a reference of the string and compairs two substrings. It will be used for sorting the indices.
+    It holds a reference of the string and compares two substrings. It will be
+    used for sorting the indices.
   */
   struct SubstringLess :
     public binary_function<pair<SignedSize, SignedSize>, pair<SignedSize, SignedSize>, bool>
@@ -390,7 +391,7 @@ protected:
     return findFirst_(spec, m, 0, spec.size() - 1);
   }
 
-// finds all occurences of a given spectrum
+// finds all occurrences of a given spectrum
   void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > >& candidates, const vector<double>& spec)
   {
     //time_t t0 (time(NULL));
@@ -482,7 +483,11 @@ protected:
         char cn = ((Size)(indices_[i].first + j + 1) == s_.length() - 1) ? 'R' : s_[(indices_[i].first) + j + 1];
         m += masse_[(int)c];
 
-        // there is one special case if we are at a node where the last character before this node is a digesting start and the first outgoing char prevents digestion but not one of the left childs. then we have to pay attention on not skipping this edge that could possible be a peptide candidate
+        // there is one special case if we are at a node where the last
+        // character before this node is a digesting start and the first
+        // outgoing char prevents digestion but not one of the left childs.
+        // then we have to pay attention on not skipping this edge that could
+        // possible be a peptide candidate
         bool have_to_go_in = false;
 
         if (j + 1 <= lcp_[i] && !isDigestingEnd(c, cn) && isDigestingEnd(c, '$'))

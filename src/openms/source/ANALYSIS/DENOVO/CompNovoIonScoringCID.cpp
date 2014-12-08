@@ -140,7 +140,7 @@ namespace OpenMS
 
     decomp_param.setValue("tolerance", (double)param_.getValue("precursor_mass_tolerance"));
     decomp_algo.setParameters(decomp_param);
-    // now the upper part with differen tolerance
+    // now the upper part with different tolerance
     for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
       if (it->first < precursor_weight && precursor_weight - it->first < max_decomp_weight)

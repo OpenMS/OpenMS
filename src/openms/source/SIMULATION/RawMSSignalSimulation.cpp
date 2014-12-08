@@ -526,7 +526,7 @@ namespace OpenMS
 
   double RawMSSignalSimulation::getPeakWidth_(const double mz, const bool is_gaussian) const
   {
-    double mz_local = std::max(mz, 400.0); // at least assume m/z=400, as otherwise FWHM might get redicously small
+    double mz_local = std::max(mz, 400.0); // at least assume m/z=400, as otherwise FWHM might get ridiculously small
     // convert from resolution @ current m/z --> FWHM
     double fwhm = mz_local / getResolution_(mz_local, res_base_, res_model_);
     // Approximation for Gaussian-shaped signals,
@@ -927,7 +927,7 @@ namespace OpenMS
       elution_bounds[2] = std::distance(experiment.begin(), exp_it);
       elution_bounds[3] = exp_it->getRT();
     }
-    // set elution profile details in feature -> used for MS^E precursor selection in tandemMS later
+    // set elution profile details in feature -> used for MS^E precursor selection in tandem MS later
     feature.setMetaValue("elution_profile_intensities", elution_intensities);
     feature.setMetaValue("elution_profile_bounds", elution_bounds);
   }
@@ -1298,6 +1298,7 @@ namespace OpenMS
     SimTypes::SimIntensityType intensity = feature_intensity * natural_scaling_factor * intensity_scale_;
 
     // add some noise
+    // TODO: German comment
     // TODO: variables model f??r den intensit??ts-einfluss
     // e.g. sqrt(intensity) || ln(intensity)
     boost::normal_distribution<SimTypes::SimIntensityType> ndist(0, intensity_scale_stddev_ * intensity);

@@ -186,7 +186,7 @@ namespace OpenMS
       }
 
       i += advance_size;
-      String s_intend = (result.size() == 0 ? "" : String(indentation, ' ')); // first line no intendation
+      String s_intend = (result.size() == 0 ? "" : String(indentation, ' ')); // first line no indentation
       String r = s_intend + (result.size() == 0 ? line : line.trim()); // intended lines get trimmed
       result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
     }

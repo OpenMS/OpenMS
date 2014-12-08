@@ -441,7 +441,7 @@ namespace OpenMS
     for (set<String>::const_iterator it = children.begin(); it != children.end(); ++it)
     {
       terms.insert(*it);
-      //TODO This is not save for cyclic graphs. Are they allowd in CVs?
+      //TODO This is not save for cyclic graphs. Are they allowed in CVs?
       getAllChildTerms(terms, *it);
     }
   }

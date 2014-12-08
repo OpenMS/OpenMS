@@ -289,7 +289,7 @@ namespace OpenMS
       if (debug_)
       {
         // Writes for each peak pattern two debug files.
-        // One containg rejected data points. The intensity encodes which of the six filters failed.
+        // One containing rejected data points. The intensity encodes which of the six filters failed.
         // The second file containing data points that passed all filters.
         writeDebug(pattern, true, debug_rejected);
         writeDebug(pattern, false, debug_filtered);

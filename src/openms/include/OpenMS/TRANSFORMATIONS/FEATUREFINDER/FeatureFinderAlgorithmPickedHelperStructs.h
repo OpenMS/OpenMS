@@ -152,7 +152,7 @@ namespace OpenMS
     {
       typedef std::vector<MassTrace<PeakType> > privvec;
 
-      // public exports of used mehtods
+      // public exports of used methods
       using privvec::size;
       using privvec::at;
       using privvec::reserve;

@@ -341,10 +341,10 @@ namespace OpenMS
           subm += masse_[(int)cc];
           mm = m + subm;
 
-          // we always have to substract the mass of the start character (either $ or for trypsin K or R)
+          // we always have to subtract the mass of the start character (either $ or for trypsin K or R)
           double newm = (mm - masse_[(SignedSize)start_char]);
 
-          // if we reached the maxmimal mass we can directly skip the sub tree
+          // if we reached the maximal mass we can directly skip the sub tree
           if (newm > mmax + tol_)
           {
             allm.push(0);
@@ -353,7 +353,7 @@ namespace OpenMS
             br = true;
             break;
           }
-          // if we are reaching a separetor character
+          // if we are reaching a separator character
           if ((i < 1 && length_till_node < 1) ? false : (cc == '$'))
           {
             // either we are not using tags or we have already seen one of the tags
@@ -481,7 +481,8 @@ namespace OpenMS
         if (!br)
         {
           m = mm;
-          //because of the on-the-fly mass update the updated mass differs from actual mass, so from time to time we can correct the actual mass
+          //because of the on-the-fly mass update the updated mass differs from
+          //actual mass, so from time to time we can correct the actual mass
           //TODO: why would that be?! (Andreas)
           if (steps4 > 1000)
           {

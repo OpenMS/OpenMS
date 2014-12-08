@@ -497,7 +497,7 @@ namespace OpenMS
       chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
     }
 
-    // Iterate thorugh all transitions and store the transition with the
+    // Iterate through all transitions and store the transition with the
     // corresponding chromatogram in the corresponding transition group
     Size progress = 0;
     startProgress(0, nr_chromatograms, "Mapping transitions to chromatograms ");

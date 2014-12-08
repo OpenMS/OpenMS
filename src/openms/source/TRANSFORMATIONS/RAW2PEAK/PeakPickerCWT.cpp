@@ -374,7 +374,8 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
             std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
 #endif
-            // if peaks are broad and assymetric, the max in the cwt can be a few datapoints away from the real max
+            // if peaks are broad and asymmetric, the max in the cwt can be a
+            // few data points away from the real max
             // --> check also for distance in m/z in comparison with the scale
             if ((area.max - 1)->getMZ() - (it_help - 2)->getMZ() > scale_ / 2)
             {
@@ -465,7 +466,7 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
             std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
 #endif
-            // if peaks are broad and assymetric, the max in the cwt can be a few datapoints away from the real max
+            // if peaks are broad and asymmetric, the max in the cwt can be a few datapoints away from the real max
             // --> check also for distance in m/z in comparison with the scale
             if ((it_help + 2)->getMZ() - (area.max - 1)->getMZ() > scale_ / 2)
             {
@@ -1359,7 +1360,7 @@ namespace OpenMS
       number_of_peaks = 0;
       Int peak_left_index, peak_right_index;
 
-      // compute the continious wavelet transform with resolution 1
+      // compute the continuous wavelet transform with resolution 1
       double resolution = 1;
       wt.transform(it_pick_begin, it_pick_end, resolution);
       PeakArea_ area;

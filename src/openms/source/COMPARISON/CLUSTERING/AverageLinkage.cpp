@@ -123,7 +123,7 @@ namespace OpenMS
         clusters.erase(clusters.begin() + min.first);
 
         //update original_distance matrix
-        //average linkage: new distcance between clusteres is the minimum distance between elements of each cluster
+        //average linkage: new distance between clusters is the minimum distance between elements of each cluster
         //lance-williams update for d((i,j),k): (m_i/m_i+m_j)* d(i,k) + (m_j/m_i+m_j)* d(j,k) ; m_x is the number of elements in cluster x
         for (Size k = 0; k < min.second; ++k)
         {

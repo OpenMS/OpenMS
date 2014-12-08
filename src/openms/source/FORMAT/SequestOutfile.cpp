@@ -139,32 +139,37 @@ namespace OpenMS
     double precursor_mz_value(0.0);
     Size
       precursor_mass_type(0),
-    ion_mass_type(0),
-    number_of_columns(0),
-    displayed_peptides(0),
-    proteins_per_peptide(0),
-    line_number(0);
+      ion_mass_type(0),
+      number_of_columns(0),
+      displayed_peptides(0),
+      proteins_per_peptide(0),
+      line_number(0);
 
     Int
       charge(-1),
-    number_column(-1),
-    rank_sp_column(-1),
-    id_column(-1),
-    mh_column(-1),
-    delta_cn_column(-1),
-    xcorr_column(-1),
-    sp_column(-1),
-    sf_column(-1),
-    ions_column(-1),
-    reference_column(-1),
-    peptide_column(-1),
-    score_column(-1);
+      number_column(-1),
+      rank_sp_column(-1),
+      id_column(-1),
+      mh_column(-1),
+      delta_cn_column(-1),
+      xcorr_column(-1),
+      sp_column(-1),
+      sf_column(-1),
+      ions_column(-1),
+      reference_column(-1),
+      peptide_column(-1),
+      score_column(-1);
 
     String::size_type
       start(0),
-    end(0);
+      end(0);
 
-    readOutHeader(result_filename, datetime, precursor_mz_value, charge, precursor_mass_type, ion_mass_type, displayed_peptides, sequest, sequest_version, database_type, number_column, rank_sp_column, id_column, mh_column, delta_cn_column, xcorr_column, sp_column, sf_column, ions_column, reference_column, peptide_column, score_column, number_of_columns);
+    readOutHeader(result_filename, datetime, precursor_mz_value, charge,
+        precursor_mass_type, ion_mass_type, displayed_peptides, sequest,
+        sequest_version, database_type, number_column, rank_sp_column,
+        id_column, mh_column, delta_cn_column, xcorr_column, sp_column,
+        sf_column, ions_column, reference_column, peptide_column, score_column,
+        number_of_columns);
 
     identifier = sequest + "_" + datetime.getDate();
 
@@ -184,11 +189,16 @@ namespace OpenMS
     while (getline(result_file, line)) // skip all lines until the one with '---'
     {
       if (!line.empty() && (line[line.length() - 1] < 33))
+      {
         line.resize(line.length() - 1);
+      }
+
       line.trim();
       ++line_number;
       if (line.hasPrefix("---"))
+      {
         break;
+      }
     }
 
     PeptideIdentification peptide_identification;
@@ -203,7 +213,9 @@ namespace OpenMS
     peptide_identification.setScoreType(score_type);
 
     if (no_pvalues)
+    {
       pvalues.insert(pvalues.end(), displayed_peptides, 0.0);
+    }
 
     vector<double>::const_iterator p_value = pvalues.begin();
 
@@ -311,7 +323,9 @@ namespace OpenMS
         for (String::ConstIterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i)
         {
           if ((bool) isalpha(*c_i) && (bool) isupper(*c_i))
+          {
             sequence.append(1, *c_i);
+          }
         }
         peptide_hit.setSequence(AASequence::fromString(sequence));
 
@@ -324,7 +338,9 @@ namespace OpenMS
         /// @todo score einfach zusammenrechnen? (Martin)
 
         if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
+        {
           protein_hits.push_back(protein_hit);
+        }
 
         peptide_evidence.setProteinAccession(accession);
         peptide_hit.addPeptideEvidence(peptide_evidence);
@@ -335,7 +351,10 @@ namespace OpenMS
           {
             getline(result_file, line);
             if (!line.empty() && (line[line.length() - 1] < 33))
+            {
               line.resize(line.length() - 1);
+            }
+
             line.trim();
             // all these lines look like '0  accession', e.g. '0  gi|1584947|prf||2123446B gamma sar'
             /*if (!line.hasPrefix("0  ")) // if the line doesn't look like that
@@ -351,11 +370,14 @@ namespace OpenMS
             getACAndACType(line, accession, accession_type);
             protein_hit.setAccession(accession);
             // protein_hit.setRank(ac_position_map.size());
-            // @todo score einfach zusammenrechnen? (Martin)
+            // @todo simply add up score
+            // score einfach zusammenrechnen? (Martin)
             // protein_hit.setScore(0.0);
 
             if (ac_position_map.insert(make_pair(accession, protein_hits.size())).second)
+            {
               protein_hits.push_back(protein_hit);
+            }
 
             PeptideEvidence pe;
             pe.setProteinAccession(accession);
@@ -370,7 +392,9 @@ namespace OpenMS
         if (!ignore_proteins_per_peptide)
         {
           for (Size i = 0; i < proteins_per_peptide; ++i)
+          {
             getline(result_file, line);
+          }
         }
       }
 
@@ -431,7 +455,7 @@ namespace OpenMS
           s_i->append(*(s_i + 1));
           substrings.erase(s_i + 1);
         }
-        // if there are two columns and the second is a number preceeded by a '+', they are merged
+        // if there are two columns and the second is a number preceded by a '+', they are merged
         else if ((*(s_i + 1))[0] == '+')
         {
           bool is_digit(true);
@@ -494,7 +518,9 @@ namespace OpenMS
       if (line.empty() || line.hasPrefix(";"))
         continue;
 
-      // the sequence belonging to the predecessing protein ('>') is stored, so when a new protein ('>') is found, save the sequence of the old protein
+      // the sequence belonging to the predecessing protein ('>') is stored, so
+      // when a new protein ('>') is found, save the sequence of the old
+      // protein
       if (line.hasPrefix(">"))
       {
         getACAndACType(line, accession, accession_type);
@@ -738,11 +764,15 @@ namespace OpenMS
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No Sequest version found!", result_filename);
         }
         if (!line.empty() && (line[line.length() - 1] < 33))
+        {
           line.resize(line.length() - 1);
+        }
         line.trim();
 
         if (line.hasSubstring(","))
+        {
           line = line.substr(0, line.find(',', 0));
+        }
         buffer = line;
         buffer.toUpper();
         if (!buffer.hasSubstring("SEQUEST"))
@@ -768,9 +798,13 @@ namespace OpenMS
         {
           pos1 = line.find(',', ++pos);
           if (pos1 == String::npos)
-            sequest_version = line.substr(pos);
+          {
+              sequest_version = line.substr(pos);
+          }
           else
+          {
             sequest_version = line.substr(pos, pos1 - pos);
+          }
         } // else no version was found
       }
       else if (line.hasPrefix("(M+H)+ mass = "))
@@ -805,16 +839,22 @@ namespace OpenMS
         datetime.setTime(substrings[0]);
       }
       else if (line.hasPrefix("# bases"))
-        database_type = "bases";
+      {
+          database_type = "bases";
+      }
       else if (line.hasPrefix("# amino acids"))
+      {
         database_type = "amino acids";
+      }
       else if (line.hasPrefix("display top") && substrings[0].hasPrefix("display top")) // get the number of peptides displayed
       {
         displayed_peptides = strlen("display top ");
         displayed_peptides = substrings[0].substr(displayed_peptides, substrings[0].find('/', displayed_peptides)).toInt();
       }
       else if (line.hasPrefix("#"))
+      {
         break; // the header is read
+      }
     }
 
     if (datetime == datetime_empty)
@@ -877,9 +917,13 @@ namespace OpenMS
     {
       i->trim();
       if (i->empty())
-        i = substrings.erase(i);
+      {
+          i = substrings.erase(i);
+      }
       else
-        ++i;
+      {
+          ++i;
+      }
     }
     number_of_columns = substrings.size();
 

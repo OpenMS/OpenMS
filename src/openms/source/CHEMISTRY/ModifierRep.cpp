@@ -189,12 +189,12 @@ namespace OpenMS
     stringstream ss;
     ss << m;
     String mm = ss.str();
-    /* if it does not exist the mass mapping hat to be calculated. This consits of several steps:
-        1. getting all aminoacids with modifications (A,B)
+    /* if it does not exist the mass mapping hat to be calculated. This consists of several steps:
+        1. getting all amino acids with modifications (A,B)
         2. getting all possible combinations of this modifications with maximal number of modifications (A,B,AB,AA,BB - NOT BA because BA == AB)
         3. getting all masses for every combination
         4. joining the results by the mass and create a map <double,vector<string> >
-        5. convertig double to string and deleting doubled entrys
+        5. converting double to string and deleting doubled entries
         6. saving the mapping
     */
     if (mass_mapping_.empty() && number_of_modifications_ > 0)

@@ -199,7 +199,7 @@ namespace OpenMS
 
         // solve
         Eigen::MatrixXd matrix_x = ludecomp.solve(b);
-        // check if a solutioon exists
+        // check if a solution exists
         if (!((*m) * matrix_x).isApprox(b))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");

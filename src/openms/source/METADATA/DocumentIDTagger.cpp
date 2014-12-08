@@ -111,7 +111,7 @@ namespace OpenMS
 
     String IDPool_file = getPoolFile();
     String IDPool_file_tmp = String(IDPool_file) + String(".tmp");
-    // create PoolFile if non-existant
+    // create PoolFile if non-existent
     if (!File::exists(IDPool_file))
     {
       ofstream out(IDPool_file.c_str());

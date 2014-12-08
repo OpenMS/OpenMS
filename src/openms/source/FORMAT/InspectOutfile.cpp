@@ -191,22 +191,28 @@ namespace OpenMS
       // the database position of the protein (the i-th protein)
       record_number = substrings[record_number_column].toInt();
 
-      // map the database position of the protein to its position in the protein hits and insert it, if it's a new protein
+      // map the database position of the protein to its position in the
+      // protein hits and insert it, if it's a new protein
       if (rn_position_map.find(record_number) == rn_position_map.end())
       {
         rn_position_map[record_number] = protein_identification.getHits().size();
         protein_identification.insertHit(protein_hit);
       }
 
-      // if a new scan is found (new file or new scan), insert it into the vector (the first time the condition is fullfilled because spectrum_file is "")
+      // if a new scan is found (new file or new scan), insert it into the
+      // vector (the first time the condition is fulfilled because
+      // spectrum_file is "")
       if ((substrings[spectrum_file_column] != spectrum_file) || ((Size) substrings[scan_column].toInt() != scan_number))
       {
-        if (substrings[spectrum_file_column] != spectrum_file) // if it's a new file, insert it into the vector (used to retrieve RT and MT later)
+        // if it's a new file, insert it into the vector (used to retrieve RT and MT later)
+        if (substrings[spectrum_file_column] != spectrum_file)
         {
           // if it's the first file or if hits have been found in the file before, insert a new file
-          if (files_and_peptide_identification_with_scan_number.empty() || !files_and_peptide_identification_with_scan_number.back().second.empty())
+          if (files_and_peptide_identification_with_scan_number.empty() ||
+              !files_and_peptide_identification_with_scan_number.back().second.empty())
           {
-            files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column], vector<pair<Size, Size> >()));
+            files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column],
+                  vector<pair<Size, Size> >()));
           }
           // otherwise change the name of the last file entry (the one without hits)
           else
