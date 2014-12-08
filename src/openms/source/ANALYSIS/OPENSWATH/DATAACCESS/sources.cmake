@@ -7,6 +7,7 @@ MRMFeatureAccessOpenMS.cpp
 SpectrumAccessOpenMS.cpp
 SpectrumAccessOpenMSCached.cpp
 SpectrumAccessTransforming.cpp
+SpectrumAccessQuadMZTransforming.cpp
 DataAccessHelper.cpp
 SimpleOpenMSSpectraAccessFactory.cpp
 )

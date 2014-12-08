@@ -8,6 +8,7 @@ MRMFeatureAccessOpenMS.h
 SpectrumAccessOpenMS.h
 SpectrumAccessOpenMSCached.h
 SimpleOpenMSSpectraAccessFactory.h
+SpectrumAccessQuadMZTransforming.h
 )
 
 ### add path to the filenames
