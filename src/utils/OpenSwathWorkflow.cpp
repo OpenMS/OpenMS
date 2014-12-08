@@ -70,11 +70,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrate Window
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-
-#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathMapMassCorrection.h>
 
 #include <assert.h>
 
@@ -687,6 +683,8 @@ namespace OpenMS
      * @param min_rsq Minimal R^2 value that is expected for the RT regression
      * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
+     * @param swath_maps The raw data for the m/z correction
+     * @param mz_correction_function If correction in m/z is desired, which function should be used
      *
      * @note: feature_finder_param are copied because they are changed here.
      *
@@ -746,8 +744,7 @@ namespace OpenMS
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       }
 
-      //correctMZ(transition_group_map, swath_maps, "quadratic_regression");
-      correctMZ(transition_group_map, swath_maps, mz_correction_function);
+      SwathMapMassCorrection::correctMZ(transition_group_map, swath_maps, mz_correction_function);
 
       // remove outliers using the jackknife approach 
       std::vector<std::pair<double, double> > pairs_corrected;
@@ -764,228 +761,6 @@ namespace OpenMS
 
       this->endProgress();
       return trafo_out;
-    }
-
-    /**
-     * @brief Correct the m/z values of a SWATH map based on the RT-normalization peptides
-     *
-     */
-    void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
-            std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type)
-    {
-
-      double mz_extr_window = 0.05;
-
-#ifdef OPENSWATH_WORKFLOW_DEBUG
-      std::cout.precision(16);
-      std::ofstream os("debug_ppmdiff.txt");
-      os.precision(writtenDigits(double()));
-/* display in R
-
-   df = read.csv("debug_ppmdiff.txt", sep="\t" , header=F)
-   colnames(df) = c("mz", "theomz", "dppm", "int", "rt")
-   df$absd = df$theomz-df$mz
-   plot(df$mz, df$absd, main="m/z vs absolute deviation")
-   plot(df$mz, df$dppm, main="m/z vs ppm deviation")
-
-   linm = lm(theomz ~ mz, df)
-   df$x2 = df$mz*df$mz
-   quadm = lm(theomz ~ mz + x2, df)
-
-   df$ppmdiff_pred = (df$theomz - predict(quadm))/df$mz * 1e6
-
-   plot(df$mz, df$ppmdiff_pred, col="blue", cex=0.5)
-   points(df$mz, df$dppm, col="red", cex=0.5)
-   legend("bottomright", legend=c("original", "corrected") , col=c("red", "blue") )
-
-
-
-   plot(df$mz, df$dppm, col="red", cex=0.5)
-   quadm_ppm = lm(dppm ~ mz + x2, df)
-   
-   plot(df$mz, df$dppm, main="PPM difference and model fit")
-   points(df$mz, predict(quadm_ppm), cex=0.3, col="red")
-
-   points(df$mz, df$dppm - predict(quadm_ppm), col="blue")
-
-
-   plot(df$mz, df$ppmdiff_pred, col="red", main="Cmp two model approaches")
-   points(df$mz, df$dppm - predict(quadm_ppm), col="blue")
-
-   sd(df$dppm)
-   mean(df$dppm)
-   sd(df$ppmdiff_pred)
-   mean(df$ppmdiff_pred)
-   sd(df$dppm - predict(quadm_ppm))
-   mean(df$dppm - predict(quadm_ppm))
-
-
-
-*/
-#endif
-
-      TransformationDescription::DataPoints data_all;
-      std::vector<double> weights;
-      std::vector<double> exp_mz;
-      std::vector<double> theo_mz;
-      std::vector<double> delta_ppm;
-      for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-          trgroup_it != transition_group_map.end(); ++trgroup_it)
-      {
-        // we need at least one feature to find the best one
-        OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
-        if (transition_group->getFeatures().size() == 0) {continue;}
-
-        // Find the feature with the highest score
-        double bestRT = -1;
-        double highest_score = -1000;
-        for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-             mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
-        {
-          if (mrmfeature->getOverallQuality() > highest_score)
-          {
-            bestRT = mrmfeature->getRT();
-            highest_score = mrmfeature->getOverallQuality();
-          }
-        }
-
-        // Get the corresponding SWATH map
-        SignedSize res = -1;
-        for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
-        {
-          if (swath_maps[i].lower < transition_group->getTransitions()[0].precursor_mz && 
-          swath_maps[i].upper >= transition_group->getTransitions()[0].precursor_mz)
-          {res = i; break;}
-        }
-
-        // Get the spectrum for this RT and extract raw datapoints for the
-        // calibrating transitions 
-        OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(swath_maps[res].sptr, bestRT, 1);
-        for (std::vector< OpenMS::MRMFeatureFinderScoring::TransitionType >::const_iterator 
-            tr = transition_group->getTransitions().begin(); 
-            tr != transition_group->getTransitions().end(); tr++)
-        {
-          double mz, intensity;
-          double left = tr->product_mz - mz_extr_window / 2.0;
-          double right = tr->product_mz + mz_extr_window / 2.0;
-          bool centroided = false;
-
-          OpenSwath::integrateWindow(sp, left, right, mz, intensity, centroided);
-          if (mz == -1) {continue;}
-
-          data_all.push_back(std::make_pair(mz, tr->product_mz));
-          weights.push_back( log2(intensity) ); // regression weight is the log2 intensity
-          exp_mz.push_back( mz );
-          theo_mz.push_back( tr->product_mz ); // y = target = theoretical
-          double diff_ppm = (mz - tr->product_mz) * 1000000 / tr->product_mz;
-          delta_ppm.push_back(diff_ppm); // y = target = delta-ppm
-
-#ifdef OPENSWATH_WORKFLOW_DEBUG
-          os << mz << "\t" << tr->product_mz << "\t" << diff_ppm << "\t" << log2(intensity) << "\t" << bestRT << std::endl;
-#endif
-        }
-      }
-
-      std::vector<double> regression_params;
-      if (corr_type == "none")
-      {
-        return;
-      }
-      else if (corr_type == "unweighted_regression")
-      {
-        double confidence_interval_P(0.0);
-        Math::LinearRegression lr;
-        lr.computeRegression(confidence_interval_P, exp_mz.begin(), exp_mz.end(), theo_mz.begin());
-        regression_params.push_back(lr.getIntercept());
-        regression_params.push_back(lr.getSlope());
-        regression_params.push_back(0.0);
-      }
-      else if (corr_type == "weighted_regression")
-      {
-        double confidence_interval_P(0.0);
-        Math::LinearRegression lr;
-        lr.computeRegressionWeighted(confidence_interval_P, exp_mz.begin(), exp_mz.end(), theo_mz.begin(), weights.begin());
-        regression_params.push_back(lr.getIntercept());
-        regression_params.push_back(lr.getSlope());
-        regression_params.push_back(0.0);
-      }
-      else if (corr_type == "quadratic_regression")
-      {
-        // Quadratic fit
-        Math::QuadraticRegression qr;
-        qr.computeRegression(exp_mz.begin(), exp_mz.end(), theo_mz.begin());
-        regression_params.push_back(qr.getA());
-        regression_params.push_back(qr.getB());
-        regression_params.push_back(qr.getC());
-      }
-      else if (corr_type == "quadratic_regression_delta_ppm")
-      {
-        // Quadratic fit
-        Math::QuadraticRegression qr;
-        qr.computeRegression(exp_mz.begin(), exp_mz.end(), delta_ppm.begin());
-        regression_params.push_back(qr.getA());
-        regression_params.push_back(qr.getB());
-        regression_params.push_back(qr.getC());
-      }
-      else 
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "Unknown correction type " + corr_type);
-      }
-
-/*
-
-
-# mz regression parameters: Y = -0.0156725 + 1.00005 X + -3.7127e-08 X^2
- sum residual sq ppm before 394.0529252540293 / after 245.4905283249099
-rsq: 0.9993098240025888 points: 7
-
-# mz regression parameters: Y = 42.2354 + -0.107071 X + 6.87643e-05 X^2
- sum residual sq ppm before 394.0529252540293 / after 205.778656429406
-rsq: 0.9993098240025888 points: 7
-
-
--- done [took 4.53 s (CPU), 4.55 s (Wall)] -- 
-OpenSwathWorkflow took 23.92 s (wall), 23.73 s (CPU), 0.00 s (system), 23.73 s (user).
-
--- done [took 1.41 s (CPU), 1.41 s (Wall)] -- 
-OpenSwathWorkflow took 21.07 s (wall), 20.90 s (CPU), 0.00 s (system), 20.90 s (user).
-
-*/
-      printf("# mz regression parameters: Y = %g + %g X + %g X^2\n",
-             regression_params[0],
-             regression_params[1],
-             regression_params[2]);
-
-#ifdef OPENSWATH_WORKFLOW_DEBUG
-      os.close();
-      double s_ppm_before = 0;
-      double s_ppm_after = 0;
-      for (TransformationDescription::DataPoints::iterator d = data_all.begin(); d != data_all.end(); d++)
-      {
-        double ppm_before = (d->first - d->second) * 1000000 / d->first;
-        double predict = d->first*d->first*regression_params[2] + d->first*regression_params[1]+regression_params[0];
-        double ppm_after = ( predict - d->second) * 1000000 / d->second;
-        if (corr_type == "quadratic_regression_delta_ppm")
-        {
-          double new_mz = d->first - predict*d->first/1000000; 
-          ppm_after = ( new_mz - d->second) * 1000000 / d->second;
-        }
-        s_ppm_before += std::fabs(ppm_before);
-        s_ppm_after += std::fabs(ppm_after);
-      }
-      std::cout <<" sum residual sq ppm before " << s_ppm_before << " / after " << s_ppm_after << std::endl;
-#endif
-
-      // Replace the swath files with a transforming wrapper.
-      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
-      {
-        swath_maps[i].sptr = boost::shared_ptr<OpenSwath::ISpectrumAccess>(
-          new SpectrumAccessQuadMZTransforming(swath_maps[i].sptr, 
-            regression_params[0], regression_params[1], regression_params[2], 
-            corr_type == "quadratic_regression_delta_ppm"));
-      }
-
     }
 
     /// Helper function to score a set of chromatograms

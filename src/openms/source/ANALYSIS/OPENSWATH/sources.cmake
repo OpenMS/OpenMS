@@ -6,6 +6,7 @@ set(sources_list
 MRMDecoy.cpp
 MRMRTNormalizer.cpp
 TransitionTSVReader.cpp
+SwathMapMassCorrection.cpp
 OpenSwathHelper.cpp
 OpenSwathScoring.cpp
 ChromatogramExtractor.cpp
