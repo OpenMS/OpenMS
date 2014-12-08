@@ -60,6 +60,19 @@ public:
     /**
      * @brief Correct the m/z values of a SWATH map based on the RT-normalization peptides
      *
+     * This extracts the full spectra at the most likely elution time of the
+     * calibrant masses and fits a regression curve to correct for a possible
+     * mass shift of the empirical masses vs the theoretically expected masses.
+     * Several types of regressions are available (see below corr_type parameter).
+     *
+     * The function will replace the pointers stored in swath_maps with a
+     * transforming map that will contain corrected m/z values.
+     *
+     * @param transition_group_map A MRMFeatureFinderScoring result map
+     * @param swath_maps The raw swath maps from the current run
+     * @param corr_type Regression type, one of "none", "unweighted_regression", "weighted_regression", "quadratic_regression", "quadratic_regression_delta_ppm"
+     *
+     *
      */
     static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
             std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type);

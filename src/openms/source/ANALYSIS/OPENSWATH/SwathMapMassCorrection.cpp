@@ -49,7 +49,6 @@ namespace OpenMS
     void SwathMapMassCorrection::correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
             std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type)
     {
-
       double mz_extr_window = 0.05;
 
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
@@ -93,12 +92,13 @@ namespace OpenMS
           if (swath_maps[i].lower < transition_group->getTransitions()[0].precursor_mz && 
               swath_maps[i].upper >= transition_group->getTransitions()[0].precursor_mz)
           {
-            res = i; break;
+            res = i;
+            break; // we found it, we are done
           }
         }
 
-        // Get the spectrum for this RT and extract raw data points for the
-        // calibrating transitions 
+        // Get the spectrum for this RT and extract raw data points for all the
+        // calibrating transitions (fragment m/z values) from the spectrum
         OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(swath_maps[res].sptr, bestRT, 1);
         for (std::vector< OpenMS::MRMFeatureFinderScoring::TransitionType >::const_iterator 
             tr = transition_group->getTransitions().begin(); 
@@ -109,18 +109,26 @@ namespace OpenMS
           double right = tr->product_mz + mz_extr_window / 2.0;
           bool centroided = false;
 
+          // integrate spectrum at the position of the theoretical mass
           OpenSwath::integrateWindow(sp, left, right, mz, intensity, centroided);
+
+          // skip empty windows
           if (mz == -1) 
           {
             continue;
           }
 
+          // store result masses
+
           data_all.push_back(std::make_pair(mz, tr->product_mz));
-          weights.push_back( log2(intensity) ); // regression weight is the log2 intensity
+          // regression weight is the log2 intensity
+          weights.push_back( log2(intensity) );
           exp_mz.push_back( mz );
-          theo_mz.push_back( tr->product_mz ); // y = target = theoretical
+          // y = target = theoretical
+          theo_mz.push_back( tr->product_mz );
           double diff_ppm = (mz - tr->product_mz) * 1000000 / tr->product_mz;
-          delta_ppm.push_back(diff_ppm); // y = target = delta-ppm
+          // y = target = delta-ppm
+          delta_ppm.push_back(diff_ppm);
 
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
           os << mz << "\t" << tr->product_mz << "\t" << diff_ppm << "\t" << log2(intensity) << "\t" << bestRT << std::endl;
