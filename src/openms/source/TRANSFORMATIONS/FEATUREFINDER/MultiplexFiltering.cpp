@@ -60,8 +60,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, String out_debug) :
-    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
+  MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_picked, std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String out_debug) :
+    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
   {
   }
 
@@ -249,6 +249,19 @@ namespace OpenMS
 
   bool MultiplexFiltering::averagineSimilarityFilter(MultiplexPeakPattern pattern, const vector<double>& intensities_actual, int peaks_found_in_all_peptides_spline, double mz) const
   {
+    // Use a more restrictive averagine similarity when we are searching for peptide singlets.
+    double similarity;
+    if (pattern.getMassShiftCount() == 1)
+    {
+      // We are detecting peptide singlets.
+      similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+    }
+    else
+    {
+      // We are detecting peptide doublets or triplets or ...
+      similarity = averagine_similarity_;
+    }
+    
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       vector<double> isotope_pattern;
@@ -264,7 +277,7 @@ namespace OpenMS
           isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
         }
       }
-      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < averagine_similarity_)
+      if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < similarity)
       {
         return false;
       }
