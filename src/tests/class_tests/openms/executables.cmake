@@ -214,6 +214,7 @@ set(format_executables_list
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
   MSDataChainingConsumer_test
+  SpectrumAccessQuadMZTransforming_test
 )
 
 set(math_executables_list
