@@ -199,6 +199,7 @@ set(format_executables_list
   SpecArrayFile_test
   SwathFile_test
   SwathFileConsumer_test
+  SwathWindowLoader_test
   TextFile_test
   ToolDescriptionFile_test
   TraMLFile_test
