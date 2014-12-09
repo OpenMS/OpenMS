@@ -43,13 +43,15 @@
 // Functions
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrateWindow
 
+// #define SWATHMAPMASSCORRECTION_DEBUG
+
 namespace OpenMS
 {
 
     void SwathMapMassCorrection::correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
-            std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type)
+            std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type, double mz_extr_window)
     {
-      double mz_extr_window = 0.05;
+      
 
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
       std::cout.precision(16);
@@ -97,6 +99,11 @@ namespace OpenMS
           }
         }
 
+        if (res == -1)
+        {
+          continue;
+        }
+
         // Get the spectrum for this RT and extract raw data points for all the
         // calibrating transitions (fragment m/z values) from the spectrum
         OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(swath_maps[res].sptr, bestRT, 1);
@@ -136,8 +143,9 @@ namespace OpenMS
         }
       }
 
+
       std::vector<double> regression_params;
-      if (corr_type == "none")
+      if (corr_type == "none" || data_all.empty())
       {
         return;
       }

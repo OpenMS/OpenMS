@@ -40,8 +40,6 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
-// #define SWATHMAPMASSCORRECTION_DEBUG
-
 namespace OpenMS
 {
 
@@ -75,7 +73,7 @@ public:
      *
      */
     static void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
-            std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type);
+            std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type, double mz_extr_window = 0.05);
 
   };
 }
