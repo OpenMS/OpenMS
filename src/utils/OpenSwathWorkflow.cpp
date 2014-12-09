@@ -53,6 +53,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
 #include <OpenMS/FORMAT/SwathFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -76,11 +77,6 @@ using namespace OpenMS;
 // The workflow class and the TSV writer
 namespace OpenMS
 {
-
-  static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath::SwathMap right)
-  {
-    return left.upper < right.upper;
-  }
 
   /**
    * @brief Class to write out an OpenSwath TSV output (mProphet input)
@@ -947,120 +943,6 @@ namespace OpenMS
 
     /// Whether to use the MS1 traces
     bool use_ms1_traces_;
-
-  };
-
-  /**
-   * @brief Class to read a file describing the Swath Windows
-   *
-   * The file must of be tab delimited and of the following format:
-   *    window_lower window_upper
-   *    400 425
-   *    425 450
-   *    ...
-   *
-   * Note that the first line is a header and will be skipped.
-   *
-   */
-  class SwathWindowLoader
-  {
-
-  public:
-
-    /**
-     * @brief Annotate a Swath map using a Swath window file specifying the individual windows
-     *
-     * @note It is assumed that the files in the swath_maps vector are in the
-     * same order as the windows in the provided file (usually from lowest to
-     * highest).
-     *
-     * @param filename The filename of the tab delimited file
-     * @param swath_maps The list of SWATH maps (assumed to be in the same order as in the file)
-     *
-     */
-    static void annotateSwathMapsFromFile(const String filename,
-      std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort)
-    {
-      std::vector<double> swath_prec_lower_, swath_prec_upper_;
-      readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
-
-      // Sort the windows by the start of the lower window
-      if (doSort)
-        {std::sort(swath_maps.begin(), swath_maps.end(), SortSwathMapByLower);}
-
-      Size i = 0, j = 0;
-      for (; i < swath_maps.size(); i++)
-      {
-        if (swath_maps[i].ms1)
-        {
-          // skip to next map (only increase i)
-          continue;
-        }
-        if (j >= swath_prec_lower_.size())
-        {
-          std::cerr << "Trying to access annotation for SWATH map " << j <<
-            " but there are only " << swath_prec_lower_.size() << " windows in the" <<
-            " swath_windows_file. Please check your input." << std::endl;
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "The number of SWATH maps read from the raw data and from the annotation file do not match.");
-        }
-
-        std::cout << "Re-annotate from file: SWATH " <<
-          swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " <<
-          swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
-
-        swath_maps[i].lower = swath_prec_lower_[j];
-        swath_maps[i].upper = swath_prec_upper_[j];
-        j++;
-      }
-
-      if (j != swath_prec_upper_.size())
-      {
-        std::cerr << "The number of SWATH maps read from the raw data (" <<
-          j << ") and from the annotation file (" << swath_prec_upper_.size() << ") do not match." << std::endl;
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "The number of SWATH maps read from the raw data and from the annotation file do not match.");
-      }
-    }
-
-    /**
-     * @brief Reading a tab delimited file specifying the SWATH windows
-     *
-     * The file must of be tab delimited and of the following format:
-     *    window_lower window_upper
-     *    400 425
-     *    425 450
-     *    ...
-     *
-     * Note that the first line is a header and will be skipped.
-     *
-     * @param filename The filename of the tab delimited file
-     * @param swath_prec_lower_ The output vector for the window start
-     * @param swath_prec_upper_ The output vector for the window end
-     *
-     */
-    static void readSwathWindows(const String filename,
-      std::vector<double> & swath_prec_lower_,
-      std::vector<double> & swath_prec_upper_ )
-    {
-      std::ifstream data(filename.c_str());
-      std::string line;
-      std::getline(data, line); //skip header
-      std::cout << "Read Swath window header " << line << std::endl;
-      double lower, upper;
-      while (std::getline(data, line))
-      {
-        std::stringstream lineStream(line);
-
-        lineStream >> lower;
-        lineStream >> upper;
-
-        swath_prec_lower_.push_back(lower);
-        swath_prec_upper_.push_back(upper);
-      }
-      assert(swath_prec_lower_.size() == swath_prec_upper_.size());
-      std::cout << "Read Swath window file with " << swath_prec_lower_.size() << " SWATH windows." << std::endl;
-    }
 
   };
 
