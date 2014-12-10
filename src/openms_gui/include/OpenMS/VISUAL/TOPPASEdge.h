@@ -61,7 +61,7 @@ namespace OpenMS
     public QGraphicsItem
   {
     Q_OBJECT
-
+    Q_INTERFACES(QGraphicsItem)
 public:
 
     /// The status of this edge
