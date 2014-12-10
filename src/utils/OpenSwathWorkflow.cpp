@@ -98,7 +98,10 @@ namespace OpenMS
       use_ms1_traces_(ms1_scores)
       {}
 
-    bool isActive() {return doWrite_;}
+    bool isActive() 
+    {
+      return doWrite_;
+    }
 
     void writeHeader()
     {
@@ -292,6 +295,9 @@ namespace OpenMS
 
     /** @brief ChromatogramExtractor parameters
      *
+     * A small helper struct to pass the parameters for the chromatogram
+     * extraction through to the actual algorithm.
+     *
     */
     struct ChromExtractParams
     {
@@ -310,6 +316,19 @@ namespace OpenMS
     };
 
     /** @brief Compute the alignment against a set of RT-normalization peptides
+     *
+     * This function extracts the RT normalization chromatograms
+     * (simpleExtractChromatograms) and then uses the chromatograms to find
+     * features (in RTNormalization).
+     *
+     * @param irt_transitions A set of transitions used for the RT normalization peptides
+     * @param swath_maps The raw data (swath maps)
+     * @param min_rsq Minimal R^2 value that is expected for the RT regression
+     * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
+     * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
+     * @param cp_irt Parameter set for the chromatogram extraction
+     * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
+     * @param mz_correction_function If correction in m/z is desired, which function should be used
      *
     */
     TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
@@ -354,6 +373,19 @@ namespace OpenMS
      * 3. scoreAllChromatograms
      * 4. Write out chromatograms and found features
      *
+     * @param swath_maps The raw data (swath maps)
+     * @param trafo Transformation description (translating this runs' RT to normalized RT space)
+     * @param cp Parameter set for the chromatogram extraction
+     * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
+     * @param transition_exp The set of assays to be extracted and scored
+     * @param out_featureFile Output file to store identified features
+     * @param out Output file to store identified features in csv format
+     * @param tsv_writer TSV Writer object to store identified features in csv format
+     * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms 
+     * @param batchSize Size of the batches which should be extracted and scored
+     *
+     * TODO : is "out" parameter needed ? 
+     *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
       const TransformationDescription trafo,
@@ -365,6 +397,7 @@ namespace OpenMS
     {
       tsv_writer.writeHeader();
 
+      // Compute inversion of the transformation
       TransformationDescription trafo_inverse = trafo;
       trafo_inverse.invert();
 
@@ -372,6 +405,7 @@ namespace OpenMS
       int progress = 0;
       this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
+      // (i) Obtain precursor chromatograms if precursor extraction is enabled
       std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
@@ -396,12 +430,13 @@ namespace OpenMS
           for (Size j = 0; j < coordinates.size(); j++)
           {
             ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
-            // write MS1 chroms to disk
+            // write MS1 chromatograms to disk
             chromConsumer->consumeChromatogram( chromatograms[j] );
           }
         }
       }
 
+      // (ii) Perform extraction and scoring of fragment ion chromatograms
       // We set dynamic scheduling such that the maps are worked on in the order
       // in which they were given to the program / acquired. This gives much
       // better load balancing than static allocation.
@@ -413,7 +448,7 @@ namespace OpenMS
         if (!swath_maps[i].ms1) // skip MS1
         {
 
-          // Step 1: select transitions
+          // Step 1: select which transitions to extract (proceed in batches)
           OpenSwath::LightTargetedExperiment transition_exp_used_all;
           OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
               cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
@@ -455,12 +490,12 @@ namespace OpenMS
               std::vector< OpenSwath::ChromatogramPtr > chrom_list;
               std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
 
-              // prepare the extraction coordinates & extract chromatograms
+              // Step 2.2: prepare the extraction coordinates & extract chromatograms
               prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
               extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
                   cp.ppm, cp.extraction_function);
 
-              // Step 2.2: convert chromatograms back and write to output
+              // Step 2.3: convert chromatograms back and write to output
               std::vector< OpenMS::MSChromatogram<> > chromatograms;
               extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(), chromatograms, false);
               chrom_exp->setChromatograms(chromatograms);
@@ -505,8 +540,8 @@ namespace OpenMS
               }
             }
 
-          } // continue 2
-        } // continue 1
+          } // continue 2 (no continue due to OpenMP)
+        } // continue 1 (no continue due to OpenMP)
       }
       this->endProgress();
     }
@@ -622,7 +657,17 @@ namespace OpenMS
       }
     }
 
-    /// @note: feature_finder_param are copied because they are changed here.
+    /** @brief Perform RT normalization using the MRMFeatureFinderScoring 
+     *
+     * @param transition_exp_ The transitions for the normalization peptides
+     * @param chromatograms The extracted chromatograms
+     * @param min_rsq Minimal R^2 value that is expected for the RT regression
+     * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
+     * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
+     *
+     * @note: feature_finder_param are copied because they are changed here.
+     *
+    */
     TransformationDescription RTNormalization(TargetedExperiment transition_exp_,
             std::vector< OpenMS::MSChromatogram<> > chromatograms, double min_rsq, double min_coverage,
             Param feature_finder_param)
@@ -644,27 +689,32 @@ namespace OpenMS
 
       OpenSwath::LightTargetedExperiment transition_exp_used = targeted_exp;
 
+      // Change the feature finding parameters:
+      //  - no RT score (since we don't know the correct retention time)
+      //  - no RT window
+      //  - no elution model score
+      //  - no peak quality (use all peaks)
       MRMFeatureFinderScoring featureFinder;
       feature_finder_param.setValue("Scores:use_rt_score", "false");
       feature_finder_param.setValue("Scores:use_elution_model_score", "false");
       feature_finder_param.setValue("rt_extraction_window", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 1.0); // set to 1.0 in all cases
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
-
       featureFinder.setParameters(feature_finder_param);
 
-      FeatureMap featureFile; // also for results
+      FeatureMap featureFile; // for results
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map; // for results
-      boost::shared_ptr<MSExperiment<Peak1D> > swath_map(new MSExperiment<Peak1D>);
-      OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+      boost::shared_ptr<MSExperiment<Peak1D> > empty_swath_map(new MSExperiment<Peak1D>); // empty map 
+      OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(empty_swath_map);
+      TransformationDescription empty_trafo; // empty transformation
 
-      boost::shared_ptr<MSExperiment<Peak1D> > xic_map(new MSExperiment<Peak1D>); // the map with the extracted ion chromatograms
+      // Prepare the data with the chromatograms
+      boost::shared_ptr<MSExperiment<Peak1D> > xic_map(new MSExperiment<Peak1D>); 
       xic_map->setChromatograms(chromatograms);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = OpenSwath::SpectrumAccessPtr(new OpenMS::SpectrumAccessOpenMS(xic_map));
-      TransformationDescription empty_trafo;
 
       featureFinder.setStrictFlag(false); // TODO remove this, it should be strict (e.g. all transitions need to be present for RT norm)
-      featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, empty_trafo, swath_ptr, transition_group_map);
+      featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, empty_trafo, empty_swath_ptr, transition_group_map);
 
       // find best feature, compute pairs of iRT and real RT
       std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map);
@@ -673,7 +723,7 @@ namespace OpenMS
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       }
 
-      // remove outliers
+      // remove outliers using the jackknife approach 
       std::vector<std::pair<double, double> > pairs_corrected;
       bool chauvenet = false;
       pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage, chauvenet, "iter_jackknife");
