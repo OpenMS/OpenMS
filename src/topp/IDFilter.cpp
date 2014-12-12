@@ -38,7 +38,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
 #include <limits>
@@ -172,9 +171,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
 
     registerTOPPSubsection_("precursor", "Filtering by precursor RT or m/z");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
@@ -352,17 +351,7 @@ protected:
     }
     String document_id;
 
-    FileTypes::Type in_type = FileHandler::getTypeByFileName(getStringOption_("in"));
-
-    if (in_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().load(inputfile_name, protein_identifications, identifications);   //, document_id);
-    }
-    else
-    {
-      IdXMLFile().load(inputfile_name, protein_identifications, identifications, document_id);
-    }
-
+    IdXMLFile().load(inputfile_name, protein_identifications, identifications, document_id);
 
     //-------------------------------------------------------------
     // calculations
@@ -639,16 +628,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    FileTypes::Type out_type = FileHandler::getTypeByFileName(getStringOption_("out"));
-
-    if (out_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);   //, document_id);
-    }
-    else
-    {
-      IdXMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
-    }
+    IdXMLFile().store(outputfile_name, filtered_protein_identifications, filtered_peptide_identifications);
 
     return EXECUTION_OK;
   }
