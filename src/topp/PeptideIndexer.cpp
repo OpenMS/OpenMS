@@ -36,14 +36,12 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 
 #include <algorithm>
 
@@ -454,12 +452,12 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input idXML/mzid file containing the identifications.");
-    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
+    registerInputFile_("in", "<file>", "", "Input idXML file containing the identifications.");
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerInputFile_("fasta", "<file>", "", "Input sequence database in FASTA format. Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("fasta", ListUtils::create<String>("fasta"));
-    registerOutputFile_("out", "<file>", "", "Output idXML,mzid file.");
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));
+    registerOutputFile_("out", "<file>", "", "Output idXML file.");
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
     registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
     setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
@@ -538,11 +536,8 @@ protected:
     vector<PeptideIdentification> pep_ids;
 
     FileTypes::Type in_type = FileHandler::getType(in);
-    if (in_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().load(in, prot_ids, pep_ids);
-    }
-    else if (in_type == FileTypes::IDXML)
+
+    if (in_type == FileTypes::IDXML)
     {
       IdXMLFile().load(in, prot_ids, pep_ids);
     }
@@ -552,7 +547,6 @@ protected:
                                        __PRETTY_FUNCTION__,
                                        "wrong in fileformat");
     }
-
 
     //-------------------------------------------------------------
     // calculations
@@ -975,22 +969,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-
-    in_type = FileHandler::getTypeByFileName(out);
-    if (in_type == FileTypes::IDXML || out.hasSuffix(".tmp")) // fix for ctest
-    {
-      IdXMLFile().store(out, prot_ids, pep_ids);
-    }
-    else if (in_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().store(out, prot_ids, pep_ids);
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       __PRETTY_FUNCTION__,
-                                       "wrong out fileformat");
-    }
+    IdXMLFile().store(out, prot_ids, pep_ids);
 
     if ((!allow_unmatched) && (stats_unmatched > 0))
     {

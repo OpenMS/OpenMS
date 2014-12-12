@@ -50,7 +50,6 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 
 #include <QtCore/QString>
 
@@ -170,7 +169,7 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,mzid,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
+    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
     setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
@@ -475,7 +474,7 @@ protected:
         os << "\n";
       }
     }
-    else if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML)     //identifications
+    else if (in_type == FileTypes::IDXML) //identifications
     {
       UInt spectrum_count(0);
       Size peptide_hit_count(0);
@@ -490,14 +489,7 @@ protected:
       SysInfo::getProcessMemoryConsumption(mem1);
 
       // reading input
-      if (in_type == FileTypes::MZIDENTML)
-      {
-          MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
-      }
-      else
-      {
-          IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
-      }
+      IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
 
       SysInfo::getProcessMemoryConsumption(mem2);
       std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
