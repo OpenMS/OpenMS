@@ -49,6 +49,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
@@ -474,7 +475,7 @@ protected:
         os << "\n";
       }
     }
-    else if (in_type == FileTypes::IDXML) //identifications
+    else if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML) //identifications
     {
       UInt spectrum_count(0);
       Size peptide_hit_count(0);
@@ -489,7 +490,15 @@ protected:
       SysInfo::getProcessMemoryConsumption(mem1);
 
       // reading input
-      IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
+
+      if (in_type == FileTypes::MZIDENTML)
+      {
+        MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
+      }
+      else
+      {
+        IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
+      }
 
       SysInfo::getProcessMemoryConsumption(mem2);
       std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;

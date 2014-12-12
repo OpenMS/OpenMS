@@ -535,18 +535,7 @@ protected:
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
 
-    FileTypes::Type in_type = FileHandler::getType(in);
-
-    if (in_type == FileTypes::IDXML)
-    {
-      IdXMLFile().load(in, prot_ids, pep_ids);
-    }
-    else
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                       __PRETTY_FUNCTION__,
-                                       "wrong in fileformat");
-    }
+    IdXMLFile().load(in, prot_ids, pep_ids);
 
     //-------------------------------------------------------------
     // calculations
