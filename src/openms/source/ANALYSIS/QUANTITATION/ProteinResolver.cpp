@@ -598,7 +598,7 @@ namespace OpenMS
   //ProteinResolver::indistinguishableProteins(vector<MSDGroup>& msd_groups)
   //{
   //indistinguishable proteins
-  //TODO check which proteins are indistinguishable from eachother. This code seems to be instable.
+  //TODO check which proteins are indistinguishable from each other. This code seems to be unstable.
   /*
   Size mg = 0;
   cout<<"\nindistinguishable\n";
@@ -652,7 +652,7 @@ namespace OpenMS
             it2->second->indis.push_back(it1->second);
           }
         }
-        //TODO gurantee that all indistinguishable have all others in their list
+        //TODO guarantee that all indistinguishable have all others in their list
         //at the moment the key idea is that only the first Protein has all of them. The others have just a pointer to the first one.
       }
     ++i;

@@ -360,7 +360,7 @@ namespace OpenMS
           exp_spec.sortByPosition();
           exp_spectra_part.push_back(exp_spec);
 
-          //cerr << "Evalulating...(#peptides=" << it->hits.size() << ") ";
+          //cerr << "Evaluating...(#peptides=" << it->hits.size() << ") ";
           // for all hits
           vector<RichPeakSpectrum> sim_spectra_hits;
           for (vector<PeptideHit>::const_iterator pit = it->hits.begin(); pit != it->hits.end(); ++pit)

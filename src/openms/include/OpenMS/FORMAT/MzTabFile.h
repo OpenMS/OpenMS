@@ -115,7 +115,7 @@ protected:
 
     String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row) const;
 
-    // auxiliar functions
+    // auxiliary functions
     // extract two integers from string (e.g. search_engine_score[1]_ms_run[2] -> 1,2)
     static std::pair<int, int> extractIndexPairsFromBrackets_(const String & s);
 

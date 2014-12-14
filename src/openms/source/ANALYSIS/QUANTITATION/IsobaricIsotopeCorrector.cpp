@@ -109,7 +109,7 @@ namespace OpenMS
       }
       solveNNLS_(correction_matrix, m_b, m_x);
 
-      // update the ouput consensus map with the corrected intensities
+      // update the output consensus map with the corrected intensities
       float cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency

@@ -1378,7 +1378,7 @@ namespace OpenMS
     param_->gamma = 1.0; // for poly/rbf/sigmoid
     param_->coef0 = 0; // for poly/sigmoid
     param_->cache_size = 300; // in MB
-    param_->eps = 0.001; // stopping criterium
+    param_->eps = 0.001; // stopping criterion
     param_->C = 1; // for C_SVC, EPSILON_SVR, and NU_SVR
     param_->nu = 0.5; // for NU_SVC, ONE_CLASS, and NU_SVR
     param_->p = 0.1; // for EPSILON_SVR

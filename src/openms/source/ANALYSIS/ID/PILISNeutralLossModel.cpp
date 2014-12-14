@@ -44,7 +44,7 @@
 // N-terminal Lysine NH3-loss
 //
 // if E N-term and charge directed state, abundant loss of water
-// the bk-1/bk-2 pathway somtimes show bx+18 ions, especially when H is C-term to it
+// the bk-1/bk-2 pathway sometimes show bx+18 ions, especially when H is C-term to it
 //
 
 #define NEUTRAL_LOSS_MODEL_DEBUG

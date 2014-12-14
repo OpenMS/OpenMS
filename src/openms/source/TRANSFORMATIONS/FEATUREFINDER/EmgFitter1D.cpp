@@ -270,7 +270,7 @@ namespace OpenMS
 
     // optimize the symmetry
     // The computations can lead to an overflow error at very low values of symmetry (s~0).
-    // For s~5 the parameter can be aproximized by the Levenberg-Marquardt argorithms.
+    // For s~5 the parameter can be approximated by the Levenberg-Marquardt algorithms.
     // (the other parameters are much greater than one)
     if (symmetry_ < 1)
       symmetry_ += 5;

@@ -156,7 +156,7 @@ namespace OpenMS
     }
 */
 
-  // this method calculates the distribution of protons, by using two separat ions given by the precursor peptide ion and the cleavage site
+  // this method calculates the distribution of protons, by using two separate ions given by the precursor peptide ion and the cleavage site
   // this is needed for charge directed cases, where the activated proton needs to be distributed between the two ions
   // cleavage_site is one-based; so b1/yk-1 would be cleavage_site == 1; it can be in the range [0,peptide.size()]
   void ProtonDistributionModel::calculateProtonDistributionIonPair_(const AASequence & peptide,
@@ -165,7 +165,7 @@ namespace OpenMS
   {
     // TODO model this using one calculation for both ions
 
-    double q(0);     // Zustandsumme
+    double q(0);     // Zustandsumme = state sum
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
     double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");
@@ -432,7 +432,7 @@ namespace OpenMS
         }
       }
 
-      // now calculate the coloumb repulsions
+      // now calculate the Coulomb repulsions
       for (Size i = 0; i != gb_bb.size(); ++i)
       {
         // check if the site is not occupied by a "complete" proton
@@ -602,8 +602,8 @@ namespace OpenMS
     // if two protons are available one proton is kept at the cleavage site
     // this is needed for the N/C-terminal charge distribution calculation
     //
-    // use the fixed proton with precalculated charges of the other proton
-    // -> get distribtion of the prior fixed one
+    // use the fixed proton with pre-calculated charges of the other proton
+    // -> get distribution of the prior fixed one
 
     // make only sense with charge = 2
     if (fixed_proton || use_most_basic_site)
@@ -715,7 +715,7 @@ namespace OpenMS
         }
       }
 
-      // calculate availablities
+      // calculate availabilities
       for (Size i = 0; i <= peptide.size(); ++i)
       {
         double gb_i(0);
@@ -1091,11 +1091,11 @@ namespace OpenMS
           {
             // distance of the protons
             Int r_ij(abs((Int)i - (Int)j));
-            // calc probability
+            // calculate probability
             double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / r_ij) * 1000 / (Constants::R * T) -500) / q;
             // add prob to site of first proton
             bb_charge_[i] += prob;
-            // add to apperent GB
+            // add to apparent GB
             bb_charge_[j] += prob;
 
             // side chains
@@ -1452,7 +1452,7 @@ namespace OpenMS
       num_active_protons = charge - 1;
     }
 
-    // calc proton distribution
+    // calculate proton distribution
     calculateProtonDistribution_(peptide, num_active_protons, Residue::Full);
     double n_term_sum(0), c_term_sum(0);
 
@@ -1586,7 +1586,7 @@ namespace OpenMS
     {
       if (type == ChargeDirected)
       {
-        // calc proton distribution with one fixed at cleavage site
+        // calculate proton distribution with one fixed at cleavage site
         calculateProtonDistribution_(peptide, 2, Residue::Full, true, n_term_ion.size());
         //calculateProtonDistribution_(peptide, 1, Residue::Full);
         double p_n(0), p_c(0);
@@ -1607,7 +1607,7 @@ namespace OpenMS
 #endif
 
 
-        // calc proton distribution of second proton with other one at most basic site fixed
+        // calculate proton distribution of second proton with other one at most basic site fixed
         calculateProtonDistribution_(peptide, 2, Residue::Full, false, n_term_ion.size(), true);
 
 #ifdef CALC_CHARGE_STATES_DEBUG

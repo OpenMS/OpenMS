@@ -175,7 +175,7 @@ namespace OpenMS
       vector<CVMappingRule> & rules = rules_[path];
       Map<String, Map<String, UInt> > & fulfilled = fulfilled_[path];       //(rule ID => term ID => term count)
 
-      //check how offen each term appeared
+      //check how often each term appeared
       for (Size r = 0; r < rules.size(); ++r)
       {
         for (Size t = 0; t < rules[r].getCVTerms().size(); ++t)

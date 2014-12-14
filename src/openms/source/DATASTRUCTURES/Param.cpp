@@ -555,7 +555,7 @@ namespace OpenMS
   const String& Param::getSectionDescription(const String& key) const
   {
     //This variable is used instead of String::EMPTY as the method is used in
-    //statis initialization und thus cannot rely on String::EMPTY been initialized.
+    //static initialization and thus cannot rely on String::EMPTY been initialized.
     static String empty;
 
     ParamNode* node = root_.findParentOf(key);
@@ -909,7 +909,7 @@ namespace OpenMS
         arg1_is_option = true;
 
 
-      //with multpile argument
+      //with multiple argument
       if (options_with_multiple_argument.has(arg))
       {
         //next argument is an option

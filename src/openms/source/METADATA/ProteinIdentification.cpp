@@ -211,7 +211,7 @@ namespace OpenMS
     indistinguishable_proteins_.push_back(group);
   }
 
-  // retrival of the peptide significance threshold value
+  // retrieval of the peptide significance threshold value
   double ProteinIdentification::getSignificanceThreshold() const
   {
     return protein_significance_threshold_;
@@ -318,12 +318,12 @@ namespace OpenMS
 
   Size ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
   {
-    // todo: we currently ignore overlapping peptides, i.e. the coverage could be > 100%
+    // TODO: we currently ignore overlapping peptides, i.e. the coverage could be > 100%
 
     Size no_seq_count(0);
     // index the proteins by accession
     // Accession -> set of pep sequences
-    // (use set to discard mutli-pep matches)
+    // (use set to discard multi-pep matches)
     Map<String, std::set<String> > protein_index;
     for (Size i = 0; i < protein_hits_.size(); ++i)
     {

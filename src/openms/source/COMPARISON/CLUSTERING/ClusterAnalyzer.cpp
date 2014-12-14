@@ -96,7 +96,7 @@ namespace OpenMS
     }
 
 
-    //inital values for interdis_i and cluster_with_interdist
+    //initial values for interdis_i and cluster_with_interdist
     std::set<Size>::iterator it = leafs.begin();
     ++it;
     for (; it != leafs.end(); ++it)

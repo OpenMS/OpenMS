@@ -643,7 +643,8 @@ namespace OpenMS
       {
         return false;
       }
-      else if (peptide_.at(i)->getModification() != peptide.peptide_.at(i)->getModification())  // if AA sequence equal, check if modificatiosn (if available) are equal
+      // if AA sequence equal, check if modifications (if available) are equal
+      else if (peptide_.at(i)->getModification() != peptide.peptide_.at(i)->getModification())
       {
         return false;
       }

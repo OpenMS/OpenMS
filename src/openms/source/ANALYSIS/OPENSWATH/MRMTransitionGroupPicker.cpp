@@ -74,7 +74,7 @@ namespace OpenMS
     if (&rhs == this)
       return *this;
 
-    // dont copy parameters
+    // don't copy parameters
 
     return *this;
   }

@@ -66,8 +66,8 @@ namespace OpenMS
    *
    * @see MultiplexPeakPattern
    * @see MultiplexFilterResult
-   * @see MultiplexFilgeringCentroided
-   * @see MultiplexFilgeringProfile
+   * @see MultiplexFilteringCentroided
+   * @see MultiplexFilteringProfile
    */
   class OPENMS_DLLAPI MultiplexFiltering :
     public ProgressLogger

@@ -95,7 +95,7 @@ namespace OpenMS
       //cerr << "Possible modification " << (*it)->getFullId() << " " << (*it)->getTermSpecificity() << endl;
       if (term_spec == ResidueModification::ANYWHERE || term_spec == (*it)->getTermSpecificity())
       {
-        //cerr << "Found correc term spec and adding '" << (*it)->getFullId() << "'" << endl;
+        //cerr << "Found correct term spec and adding '" << (*it)->getFullId() << "'" << endl;
         mods.insert(*it);
       }
     }

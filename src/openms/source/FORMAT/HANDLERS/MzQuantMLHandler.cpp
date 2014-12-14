@@ -153,7 +153,7 @@ namespace OpenMS
       }
       else if (tag_ == "ProcessingMethod")
       {
-        //order gets implicity imposed by set<ProcessingAction> - so nothing to do here
+        //order gets implicitly imposed by set<ProcessingAction> - so nothing to do here
       }
       else if (tag_ == "Software")
       {
@@ -272,7 +272,9 @@ namespace OpenMS
         //~ }
         //~ }
 
-        String f_ref = attributeAsString_(attributes, "feature_ref"); // models which features will be included in this consensus feature - idependent from id(is optional)
+        // models which features will be included in this consensus feature -
+        // independent from id(is optional)
+        String f_ref = attributeAsString_(attributes, "feature_ref");
         f_cf_ids_.insert(std::make_pair(f_ref, current_cf_id_));
 
         //~ StringList a_refs = attributeAsStringList_(attributes,"assay_refs"); // what to do with these??
@@ -342,7 +344,7 @@ namespace OpenMS
       {
         //overwrites current_col_types_ with the ratio_refs or the assay_refs
         String r = sm_.convert(chars);
-        //clear must have happened earlyer in QuantLayer tag
+        //clear must have happened earlier in QuantLayer tag
         r.trim();
         if (!r.empty()) // always two notifications for a row, only the first one contains chars - dunno why
         {
@@ -388,7 +390,9 @@ namespace OpenMS
         return;
       }
 
-      // no ProcessingMethod endElement action so each userParam under Dataprocessing will be one processingaction - no other way for core-lib compability yet
+      // no ProcessingMethod endElement action so each userParam under
+      // Dataprocessing will be one processingaction - no other way for
+      // core-lib compatibility yet
       if (tag_ == "DataProcessing")
       {
         current_dp_.second.setProcessingActions(current_pas_);
@@ -1063,7 +1067,7 @@ namespace OpenMS
               fwi.push_back(fit->getWidth());
               //~ fqu.push_back(jt->getQuality());
               feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit->getRT()) + "\" mz=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\">\n";
-              // TODO as soon as SILACanalyzer incorporate convex hulls read from the featuremap
+              // TODO as soon as SILACAnalyzer incorporate convex hulls read from the featuremap
               //~ writeUserParam_(os, *jt, UInt(2)); // FeatureHandle has no MetaInfoInterface!!!
               feature_xml += "\t\t\t<userParam name=\"map_index\" value=\"" + String(fit->getMapIndex()) + "\"/>\n";
               feature_xml += "\t\t\t<userParam name=\"feature_index\" value=\"" + String(fit->getUniqueId()) + "\"/>\n";
@@ -1086,7 +1090,7 @@ namespace OpenMS
             f2i.push_back(fi);
           } break;
 
-          case 2: //label free TODO iterate over featuremaps befor switch or something
+          case 2: //label free TODO iterate over featuremaps before switch or something
             break;
 
           case 3:
@@ -1199,7 +1203,7 @@ namespace OpenMS
               r_values.insert(std::make_pair(rd, String(rit->ratio_value_)));
             }
             std::vector<String> dis;
-            //TODO isert missing ratio_refs into r_values with value "-1"
+            //TODO insert missing ratio_refs into r_values with value "-1"
             for (std::map<String, String>::const_iterator sit = r_values.begin(); sit != r_values.end(); ++sit)
             {
               dis.push_back(sit->second);

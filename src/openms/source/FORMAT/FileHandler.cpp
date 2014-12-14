@@ -290,7 +290,7 @@ namespace OpenMS
     }
 
     // PNG file (to be really correct, the first eight bytes of the file would
-    // have to be checked; see e.g. the wikipedia article)
+    // have to be checked; see e.g. the Wikipedia article)
     if (first_line.substr(1, 3) == "PNG")
       return FileTypes::PNG;
 

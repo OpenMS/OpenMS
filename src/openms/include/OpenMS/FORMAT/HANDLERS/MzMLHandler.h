@@ -3573,11 +3573,11 @@ protected:
       ControlledVocabulary::CVTerm so_term = getChildWithName_("MS:1000531", software.getName());
       if (so_term.id == "")
       {
-        so_term = getChildWithName_("MS:1000531", software.getName() + " software"); //act of desparation to find the right cv and keep compatible with older cv mzmls
+        so_term = getChildWithName_("MS:1000531", software.getName() + " software"); //act of desperation to find the right cv and keep compatible with older cv mzmls
       }
       if (so_term.id == "")
       {
-        so_term = getChildWithName_("MS:1000531", "TOPP " + software.getName()); //act of desparation to find the right cv and keep compatible with older cv mzmls
+        so_term = getChildWithName_("MS:1000531", "TOPP " + software.getName()); //act of desperation to find the right cv and keep compatible with older cv mzmls
       }
       if (so_term.id == "MS:1000799")
       {
@@ -3616,7 +3616,7 @@ protected:
       ControlledVocabulary::CVTerm ft_term = getChildWithName_("MS:1000560", source_file.getFileType());
       if (ft_term.id.empty() && source_file.getFileType().hasSuffix("file"))
       {
-        ft_term = getChildWithName_("MS:1000560", source_file.getFileType().chop(4) + "format");   // this is born out of desparation that sourcefile has a string interface for its filetype and not the enum, which could have been easily manipulated to the updated cv
+        ft_term = getChildWithName_("MS:1000560", source_file.getFileType().chop(4) + "format");   // this is born out of desperation that sourcefile has a string interface for its filetype and not the enum, which could have been easily manipulated to the updated cv
       }
       if (ft_term.id != "")
       {

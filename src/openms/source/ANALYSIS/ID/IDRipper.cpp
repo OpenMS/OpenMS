@@ -105,7 +105,7 @@ namespace OpenMS
       if (peptide_hits.empty())
         continue;
 
-      // collect all protein accesions that are stored in the peptide hits
+      // collect all protein accessions that are stored in the peptide hits
       vector<String> protein_accessions;
       getProteinAccessions_(protein_accessions, peptide_hits);
 

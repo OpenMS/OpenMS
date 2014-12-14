@@ -729,7 +729,10 @@ namespace OpenMS
     else if (tag == "IdentificationRun")
     {
       if (prot_ids_->size() == 0)
-        prot_ids_->push_back(prot_id_);  // add empty <ProteinIdentification> if there was none so far (thats where the IdentificationRun parameters are stored)
+      {
+        // add empty <ProteinIdentification> if there was none so far (that's where the IdentificationRun parameters are stored)
+        prot_ids_->push_back(prot_id_);
+      }
       prot_id_ = ProteinIdentification();
       last_meta_ = 0;
       prot_id_in_run_ = false;

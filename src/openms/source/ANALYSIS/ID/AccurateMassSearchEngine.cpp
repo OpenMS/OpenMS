@@ -1264,7 +1264,7 @@ namespace OpenMS
 
       // std::cout << "putting " << tmpvec2[part_idx] << " into a formula with mass ";
 
-      // check if formula has got a stoichometry factor in front
+      // check if formula has got a stoichiometry factor in front
       String formula_str(tmpvec2[part_idx]);
       const char first_char = formula_str[0];
 

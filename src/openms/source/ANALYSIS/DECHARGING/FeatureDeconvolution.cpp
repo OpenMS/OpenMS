@@ -684,7 +684,7 @@ namespace OpenMS
 #ifdef DC_DEVEL
     out_dead.store("ILP_dead_edges.txt"); // TODO disable
     //std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
-    //std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.toString() + "\n(dirty)\n" + ef_dirty_edge.toString() + "\n\n";
+    //std::cout << "Edge empirical formula (clean):\n" + ef_clean_edge.toString() + "\n(dirty)\n" + ef_dirty_edge.toString() + "\n\n";
 #endif
 
     // END DEBUG
@@ -840,7 +840,7 @@ namespace OpenMS
           {
             cons_map[target_cf0].insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
             clique_register[f1_idx] = target_cf0;
-            //std::cout << "add: F" << f1_idx << " to " <<target_cf0 << " dueto F" << f0_idx << "\n";
+            //std::cout << "add: F" << f1_idx << " to " <<target_cf0 << " due to F" << f0_idx << "\n";
           }
           else //** conflict: the two elements of the pair already have separate CFs --> merge
           { // take every feature from second CF and: #1 put into first CF, #2 change registration with map
@@ -954,7 +954,7 @@ namespace OpenMS
 
     }
     cons_map_tmp.swap(cons_map);
-    // Warning: from here on cons_map indices have changes --> clique_register[]'s values are not reliable any longer (keys are still goood)
+    // Warning: from here on cons_map indices have changes --> clique_register[]'s values are not reliable any longer (keys are still good)
 
     // include single features without a buddy!
     Size singletons_count = 0;

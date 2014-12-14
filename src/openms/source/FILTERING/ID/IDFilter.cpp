@@ -296,7 +296,7 @@ namespace OpenMS
 
     for (Size i = 0; i < identification.getHits().size(); i++)
     {
-      if (no_protein_identifiers || accession_sequences == "*") // filter by sequence alone if no protein accesssions are available
+      if (no_protein_identifiers || accession_sequences == "*") // filter by sequence alone if no protein accessions are available
       {
         if (protein_sequences.find(identification.getHits()[i].getSequence().toUnmodifiedString()) != String::npos)
         {

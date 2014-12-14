@@ -1362,7 +1362,7 @@ namespace OpenMS
 //        spectrum_identification.getHits().back().setProteinAccessions(temp);
         spectrum_identification.insertHit(hit);
 
-        // due to redundand references this is not needed! peptideref already maps to all those PeptideEvidence elements
+        // due to redundant references this is not needed! peptideref already maps to all those PeptideEvidence elements
         //      DOMElement* child = spectrumIdentificationItemElement->getFirstElementChild();
         //      while ( child )
         //      {
@@ -1605,10 +1605,14 @@ namespace OpenMS
       current_as->setAttribute(XMLString::transcode("name"), XMLString::transcode("search_engine_"));
       analysisSoftwareElements->appendChild(current_as);
       DOMElement* current_sw = current_as->getOwnerDocument()->createElement(XMLString::transcode("SoftwareName"));
-      DOMElement* current_cv = current_sw->getOwnerDocument()->createElement(XMLString::transcode("cvParam")); //TODO extract as function bauen and insert cv
+
+      //TODO extract as function bauen and insert cv
+      DOMElement* current_cv = current_sw->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
       current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode("search_engine_"));
       current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("PSI-MS"));
-      current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(cv_.getTermByName("search_engine_").id.c_str())); //TODO this needs error handling
+        
+      //TODO this needs error handling
+      current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(cv_.getTermByName("search_engine_").id.c_str()));
       current_sw->appendChild(current_cv);
       analysisSoftwareElements->appendChild(current_sw);
     }
@@ -1702,7 +1706,8 @@ namespace OpenMS
         current_pev->setAttribute(XMLString::transcode("end"), XMLString::transcode(String(pevs->second.stop).c_str()));
         current_pev->setAttribute(XMLString::transcode("pre"), XMLString::transcode(String(pevs->second.pre).c_str()));
         current_pev->setAttribute(XMLString::transcode("post"), XMLString::transcode(String(pevs->second.post).c_str()));
-        current_pev->setAttribute(XMLString::transcode("isDecoy"), XMLString::transcode("false"));   //nicht vergessen decoy zu annotiern
+        // do not forget to annotate the decoy
+        current_pev->setAttribute(XMLString::transcode("isDecoy"), XMLString::transcode("false"));
         sequenceCollectionElements->appendChild(current_pev);
       }
     }
@@ -1824,6 +1829,7 @@ namespace OpenMS
           current_si->setAttribute(XMLString::transcode("rank"), XMLString::transcode(String(ph->getRank()).c_str()));
           current_si->setAttribute(XMLString::transcode("passThreshold"), XMLString::transcode("TBA"));
           current_si->setAttribute(XMLString::transcode("sample_ref"), XMLString::transcode("TBA"));
+          // TODO German comment
           //   nicht vergessen  cvs for score!
           current_sr->appendChild(current_si);
           for (list<String>::iterator pepevref = hit_pev_.front().begin(); pepevref != hit_pev_.front().end(); ++pepevref)

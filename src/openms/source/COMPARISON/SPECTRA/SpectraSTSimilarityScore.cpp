@@ -76,27 +76,33 @@ namespace OpenMS
 
     //normalize bins
 
-    //magnitute of the spectral vector
+    //magnitude of the spectral vector
     float magnitude1(0);
     float magnitude2(0);
-    for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin(); iter1 < bin1.getBins().end(); ++iter1)
+    for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin();
+          iter1 < bin1.getBins().end(); ++iter1)
     {
       magnitude1 += pow((double) * iter1, 2);
     }
     magnitude1 = sqrt(magnitude1);
+
     //normalize bins of bin1
-    for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin(); iter1 < bin1.getBins().end(); ++iter1)
+    for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin();
+          iter1 < bin1.getBins().end(); ++iter1)
     {
       *iter1 = (float) * iter1 / magnitude1;
     }
 
-    for (SparseVector<float>::SparseVectorIterator iter2 = bin2.getBins().begin(); iter2 < bin2.getBins().end(); ++iter2)
+    for (SparseVector<float>::SparseVectorIterator iter2 = bin2.getBins().begin();
+          iter2 < bin2.getBins().end(); ++iter2)
     {
       magnitude2 += pow((double) * iter2, 2);
     }
     magnitude2 = sqrt(magnitude2);
-    //normalize bins of bin1
-    for (SparseVector<float>::SparseVectorIterator iter2 = bin2.getBins().begin(); iter2 < bin2.getBins().end(); ++iter2)
+
+    //normalize bins of bin2
+    for (SparseVector<float>::SparseVectorIterator iter2 = bin2.getBins().begin();
+          iter2 < bin2.getBins().end(); ++iter2)
     {
       *iter2 = (float) * iter2 / magnitude2;
     }
@@ -130,7 +136,11 @@ namespace OpenMS
     return score;
   }
 
-  bool SpectraSTSimilarityScore::preprocess(PeakSpectrum & spec, float remove_peak_intensity_threshold, UInt cut_peaks_below, Size min_peak_number, Size max_peak_number)
+  bool SpectraSTSimilarityScore::preprocess(PeakSpectrum & spec,
+                                            float remove_peak_intensity_threshold,
+                                            UInt cut_peaks_below,
+                                            Size min_peak_number,
+                                            Size max_peak_number)
   {
     spec.sortByIntensity(true);
     double min_high_intensity = 0;
@@ -154,7 +164,7 @@ namespace OpenMS
 
     }
     spec = tmp;
-    //if not enough peaks in the specturm pass that one out
+    //if not enough peaks in the spectrum pass that one out
     return spec.size() >= min_peak_number;
   }
 

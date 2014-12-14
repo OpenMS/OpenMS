@@ -49,7 +49,7 @@ namespace OpenMS
 
   typedef pair<String, String> FASTAEntry;
 
-  ///Constructor to intialize algorithm
+  ///Constructor to initialize algorithm
   EdwardsLippertIterator::EdwardsLippertIterator() :
     PepIterator()
   {

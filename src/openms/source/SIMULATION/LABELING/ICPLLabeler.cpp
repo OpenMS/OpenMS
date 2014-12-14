@@ -185,7 +185,7 @@ namespace OpenMS
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
           Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_((*medium_labeled_feature_iter), medium_channel_label_)];
-          // guarantee uniquenes
+          // guarantee uniqueness
           light_labeled_feature.ensureUniqueId();
 
           if (medium_labeled_feature_sequence.isModified()) // feature has a medium ICPL-Label and is not equal to light-labeled
@@ -356,7 +356,7 @@ namespace OpenMS
 
         if (light_labeled_features_index.has(medium_labeled_feature_unmodified_sequence))
         {
-          // 1.Fall paar zwischen c0 und c1
+          // 1. case: pair between c0 and c1
           if (medium_labeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
@@ -380,7 +380,7 @@ namespace OpenMS
         }
         else
         {
-          // c1 ist alleine
+          // c1 is alone
           final_feature_map.push_back(medium_labeled_feature);
         }
       }

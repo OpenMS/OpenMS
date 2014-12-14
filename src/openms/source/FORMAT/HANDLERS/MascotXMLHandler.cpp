@@ -429,7 +429,7 @@ namespace OpenMS
           }
 
           // pepXML can contain more hits than MascotXML; hence we try to match all of them...
-          // run-time is O(n^2) in the number of petide hits; should be a very small number
+          // run-time is O(n^2) in the number of peptide hits; should be a very small number
 
           for (Size i = 0; i < temp_peptide_hits.size(); ++i)
           {

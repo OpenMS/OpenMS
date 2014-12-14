@@ -463,7 +463,8 @@ protected:
     */
     template <typename SpectrumT, typename TransitionT>
     double computeQuality_(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
-                           std::vector<SpectrumT>& picked_chroms, const int chr_idx, const double best_left, const double best_right, String& outlier)
+                           std::vector<SpectrumT>& picked_chroms, const int chr_idx,
+                           const double best_left, const double best_right, String& outlier)
     {
 
       // Resample all chromatograms around the current estimated peak and
@@ -477,7 +478,8 @@ protected:
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         const SpectrumT& chromatogram = transition_group.getChromatograms()[k];
-        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
+        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, 
+            master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
 
         std::vector<double> int_here;
         for (Size i = 0; i < used_chromatogram.size(); i++)
@@ -488,8 +490,6 @@ protected:
       }
 
       // Compute the cross-correlation for the collected intensities
-      // std::vector<std::vector<double> > all_shape_scores;
-      // std::vector<std::vector<double> > all_coel_scores;
       std::vector<double> mean_shapes;
       std::vector<double> mean_coel;
       for (Size k = 0; k < all_ints.size(); k++)
@@ -498,8 +498,9 @@ protected:
         std::vector<double> coel;
         for (Size i = 0; i < all_ints.size(); i++)
         {
-          if (i == k) {continue; }
-          std::map<int, double> res = OpenSwath::Scoring::normalizedCrossCorrelation(all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
+          if (i == k) {continue;}
+          std::map<int, double> res = OpenSwath::Scoring::normalizedCrossCorrelation(
+              all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
 
           // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
           double res_coelution = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->first);
@@ -514,21 +515,13 @@ protected:
         OpenSwath::mean_and_stddev msc;
         msc = std::for_each(shapes.begin(), shapes.end(), msc);
         double shapes_mean = msc.mean();
-        // double shapes_stdv = msc.sample_stddev();
         msc = std::for_each(coel.begin(), coel.end(), msc);
         double coel_mean = msc.mean();
-        // double coel_stdv = msc.sample_stddev();
 
         // mean shape scores below 0.5-0.6 should be a real sign of trouble ... !
         // mean coel scores above 3.5 should be a real sign of trouble ... !
-
-        // std::cout << "overall shapes " << shapes_mean << " std " << shapes_stdv << std::endl;
-        // std::cout << "overall coel " << coel_mean << " std " << coel_stdv << std::endl;
-
         mean_shapes.push_back(shapes_mean);
         mean_coel.push_back(coel_mean);
-        // all_shape_scores.push_back(shapes);
-        // all_coel_scores.push_back(coel);
       }
 
       // find the chromatogram with the minimal shape score and the maximal
@@ -536,16 +529,11 @@ protected:
       // pretty good that it is different from the others...
       int min_index_shape = std::distance(mean_shapes.begin(), std::min_element(mean_shapes.begin(), mean_shapes.end()));
       int max_index_coel = std::distance(mean_coel.begin(), std::max_element(mean_coel.begin(), mean_coel.end()));
-      /*
-      std::cout << " min shape  " << min_index_shape << " max coel " << max_index_coel << std::endl;
-      std::cout << " Shape (min): " << *std::min_element(mean_shapes.begin(), mean_shapes.end())   << std::endl;
-
-      std::cout << " Coelution (max): " << *std::max_element(mean_coel.begin(), mean_coel.end())    << std::endl;
-      */
 
       // Look at the picked peaks that are within the current left/right borders
       int missing_peaks = 0;
       int multiple_peaks = 0;
+
       // collect all seeds that lie within the current seed
       std::vector<double> left_borders;
       std::vector<double> right_borders;
@@ -572,14 +560,8 @@ protected:
           }
         }
 
-        // std::cout << " for chrom " << k << " found " << pfound << " peaks";
-        if (pfound == 1)
-        {
-          //std::cout << " l /r " << l_tmp << " / " << r_tmp;
-        }
         if (l_tmp > 0.0) left_borders.push_back(l_tmp);
         if (r_tmp > 0.0) right_borders.push_back(r_tmp);
-        // std::cout << std::endl;
 
         if (pfound == 0) missing_peaks++;
         if (pfound > 1) multiple_peaks++;
@@ -590,29 +572,6 @@ protected:
       LOG_DEBUG << " Overall found missing : " << missing_peaks << " and multiple : " << multiple_peaks << std::endl;
 
       /// left_borders / right_borders might not have the same length since we might have peaks missing!!
-
-#if 0
-      {
-        OpenSwath::mean_and_stddev msc;
-        msc = std::for_each(left_borders.begin(), left_borders.end(), msc);
-        std::cout << " left borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: " << /* left_borders[min_index_shape]  << */ std::endl;
-      }
-      {
-        OpenSwath::mean_and_stddev msc;
-        msc = std::for_each(right_borders.begin(), right_borders.end(), msc);
-        std::cout << " right borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: " << /* right_borders[min_index_shape] << */ std::endl;
-      }
-      {
-        OpenSwath::mean_and_stddev msc;
-        msc = std::for_each(mean_shapes.begin(), mean_shapes.end(), msc);
-        std::cout << " mean_shapes borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: " << /* right_borders[min_index_shape] << */ std::endl;
-      }
-      {
-        OpenSwath::mean_and_stddev msc;
-        msc = std::for_each(mean_coel.begin(), mean_coel.end(), msc);
-        std::cout << " mean_coel borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: " << /* right_borders[min_index_shape] << */ std::endl;
-      }
-#endif
 
       // Is there one transitions that is very different from the rest (e.g.
       // the same element has a bad shape and a bad coelution score) -> potential outlier
@@ -636,8 +595,10 @@ protected:
       coel_score = (coel_score - 1.0) / 2.0;
 
       double score = shape_score - coel_score - 1.0 * missing_peaks / picked_chroms.size();
+
       LOG_DEBUG << " computed score  " << score << " (from " <<  shape_score << 
         " - " << coel_score << " - " << 1.0 * missing_peaks / picked_chroms.size() << ")" << std::endl;
+
       return score;
     }
 
@@ -703,26 +664,34 @@ protected:
       // "pseudo-median" instead of the border of the most intense peak.
       double mean, stdev;
 
+      // Right borders
       mean = std::accumulate(right_borders.begin(), right_borders.end(), 0.0) / (double) right_borders.size();
       stdev = std::sqrt(std::inner_product(right_borders.begin(), right_borders.end(), right_borders.begin(), 0.0)
                                / right_borders.size() - mean * mean);
       std::sort(right_borders.begin(), right_borders.end());
+
       LOG_DEBUG << " - Recalculating right peak boundaries " << mean << " mean / best " 
                 << best_right << " std " << stdev << " : "  << std::fabs(best_right - mean) / stdev 
                 << " coefficient of variation" << std::endl;
+
+      // Compare right borders of best transition with the mean
       if (std::fabs(best_right - mean) / stdev > max_z)
       {
         best_right = right_borders[right_borders.size() / 2]; // pseudo median
         LOG_DEBUG << " - Setting right boundary to  " << best_right << std::endl;
       }
 
+      // Left borders
       mean = std::accumulate(left_borders.begin(), left_borders.end(), 0.0) / (double) left_borders.size();
       stdev = std::sqrt(std::inner_product(left_borders.begin(), left_borders.end(), left_borders.begin(), 0.0)
                         / left_borders.size() - mean * mean);
       std::sort(left_borders.begin(), left_borders.end());
+
       LOG_DEBUG << " - Recalculating left peak boundaries " << mean << " mean / best " 
                 << best_left << " std " << stdev << " : "  << std::fabs(best_left - mean) / stdev 
                 << " coefficient of variation" << std::endl;
+
+      // Compare left borders of best transition with the mean
       if (std::fabs(best_left - mean)  / stdev > max_z)
       {
         best_left = left_borders[left_borders.size() / 2]; // pseudo median

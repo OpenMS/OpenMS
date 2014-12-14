@@ -53,7 +53,7 @@ namespace OpenMS
   {
 
     /// This class ensures that the reset() method of the XMLHandler is called when it goes out of scope.
-    /// useful when used in exeption handling
+    /// useful when used in exception handling
     class XMLCleaner_
     {
 public:
