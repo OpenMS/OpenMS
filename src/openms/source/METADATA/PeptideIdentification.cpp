@@ -275,7 +275,7 @@ namespace OpenMS
     return filtered;
   }
 
-  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
   const DataValue& PeptideIdentification::getMetaValue(const String& name) const
   {
     if (name == "RT" || name == "MZ")
@@ -286,7 +286,7 @@ namespace OpenMS
     return MetaInfoInterface::getMetaValue(name);
   }
 
-  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
   void PeptideIdentification::setMetaValue(const String& name, const DataValue& value)
   {
     if (name == "RT" || name == "MZ")

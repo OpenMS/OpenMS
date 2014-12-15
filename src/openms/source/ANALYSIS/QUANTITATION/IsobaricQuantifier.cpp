@@ -115,10 +115,10 @@ namespace OpenMS
       LOG_WARN << "Warning: Due to deactivated isotope-correction labeling statistics will be based on raw intensities, which might give too optimistic results." << std::endl;
     }
 
-    // compute statitics and embed into ouput map
+    // compute statistics and embed into output map
     computeLabelingStatistics_(consensus_map_out);
 
-    // apply normaization if requested
+    // apply normalization if requested
     if (normalization_enabled_)
     {
       IsobaricNormalizer normalizer(quant_method_);

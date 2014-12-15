@@ -205,7 +205,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
   }
   if (!found)
   {
-    // infere this peak
+    // infer this peak
     Peak1D p;
     p.setIntensity(it1->getIntensity());
     p.setPosition(mz_comp);
@@ -378,7 +378,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
       hit.setScore(cid_score);
 
       hit.setSequence(getModifiedAASequence_(*it));
-      hit.setCharge((Int)charge);   //TODO unifiy charge interface: int or size?
+      hit.setCharge((Int)charge);   //TODO unify charge interface: int or size?
       hits.push_back(hit);
       //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << endl;
     }

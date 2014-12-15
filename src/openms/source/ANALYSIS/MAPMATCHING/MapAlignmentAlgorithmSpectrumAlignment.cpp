@@ -210,7 +210,7 @@ namespace OpenMS
     {
       column_row_orientation = true;
     }
-    //matrix for holding calculated sorces
+    //matrix for holding calculated scores
     std::map<Size, std::map<Size, float> > buffermatrix;
     std::map<Size, std::map<Size, Size> > traceback;
     //calculate the value of k
@@ -619,10 +619,10 @@ namespace OpenMS
   {
     //plotting scores of the alignment
     /*std::ofstream tempfile3;
-    float maximimum=2.0;
+    float maximum=2.0;
     tempfile3.open("debugscore.txt",std::ios::trunc);
     tempfile3 << "set xrange[0:"<< pattern.size()-1<<  "]" << "\n set yrange[0:"<< aligned.size()-1 << "]" << "\n set zrange[0:"
-    << maximimum << "] \n set view 45,20,1.0,2.5 \n"<< "splot \'-\'" <<std::endl;
+    << maximum << "] \n set view 45,20,1.0,2.5 \n"<< "splot \'-\'" <<std::endl;
     for (Size i =0; i< debugscorematrix_.size();++i)
     {
         tempfile3<< debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << std::endl;

@@ -74,7 +74,7 @@ namespace OpenMS
   This function return the similarity score of itself based on SteinScott.
 
   @param spec  const PeakSpectrum Spectrum 1
-@see SteinScottImproveScore()
+  @see SteinScottImproveScore()
   */
   double SteinScottImproveScore::operator()(const PeakSpectrum & spec) const
   {
@@ -84,9 +84,9 @@ namespace OpenMS
   /**
   @brief Similarity pairwise score
 
-  This function return the similarity score of two Spectrums based on SteinScott.
+  This function return the similarity score of two spectra based on SteinScott.
 
-      @param s1  const PeakSpectrum Spectrum 1
+  @param s1  const PeakSpectrum Spectrum 1
   @param s2  const PeakSpectrum Spectrum 2
   @see SteinScottImproveScore()
   */
@@ -142,7 +142,10 @@ namespace OpenMS
     score = (sum - z) / (std::sqrt((sum1 * sum2)));
     // std::cout<<score<< " score" << std::endl;
     if (score < (float)param_.getValue("threshold"))
+    {
       score = 0;
+    }
+
     return score;
   }
 

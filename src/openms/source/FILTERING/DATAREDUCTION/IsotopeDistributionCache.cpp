@@ -91,7 +91,7 @@ namespace OpenMS
       isotope_distributions_[index].optional_begin = begin;
       isotope_distributions_[index].optional_end = end;
 
-      //scale the distibution to a maximum of 1
+      //scale the distribution to a maximum of 1
       double max = 0.0;
       for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
       {

@@ -46,7 +46,7 @@ namespace OpenMS
 
   typedef std::pair<String, String> FASTAEntry;
 
-  ///Constructor to intialize algorithm
+  ///Constructor to initialize algorithm
   TrypticIterator::TrypticIterator() :
     PepIterator()
   {

@@ -2536,7 +2536,7 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
     TextFile tmp_out;
     for (TextFile::ConstIterator it = out.begin(); it != out.end(); )
     {
-      if (std::binary_search(empty_rows.begin(), empty_rows.end(), line))  // check if current line was orignally an empty line
+      if (std::binary_search(empty_rows.begin(), empty_rows.end(), line))  // check if current line was originally an empty line
       {
         tmp_out.addLine("\n");
         ++line;

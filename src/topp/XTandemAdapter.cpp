@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -124,7 +123,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance", false);
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
@@ -400,20 +399,8 @@ protected:
     protein_id.setSearchEngine("XTandem");
 
     protein_ids.push_back(protein_id);
-    FileTypes::Type in_type = FileHandler::getTypeByFileName(outputfile_name);
-    if (in_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().store(outputfile_name, protein_ids, peptide_ids);
-    }
-    else if (in_type == FileTypes::IDXML || outputfile_name.hasSuffix(".tmp")) // fix for ctest
-    {
-      IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
-    }
-    else
-    {
-      writeLog_("Error: Could not determine output file type!");
-      return PARSE_ERROR;
-    }
+
+    IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
 
     /// Deletion of temporary files
     if (this->debug_level_ < 2)

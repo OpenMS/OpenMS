@@ -516,8 +516,9 @@ namespace OpenMS
     model_->setColumnName(index, (String("y_") + map_iter->first).c_str());
     model_->setColumnBounds(index, 0., 0., LPWrapper::LOWER_BOUND_ONLY);
     //model_->setColumnBounds(index,0.,1.,LPWrapper::DOUBLE_BOUNDED);
-    //  cmodel_->setColumnUpper(counter,1.); // test for inlcusion list protein based
+    //  cmodel_->setColumnUpper(counter,1.); // test for inclusion list protein based
 
+    //  TODO: German comment
     //  cmodel_->setColumnIsInteger(counter,true); // testweise abgeschaltet, da er sonst, wenn nicht ausreichend
     // Peptide da waren, um das Protein auf 1 zu setzen, gar keine Variablen f?r das Protein ausw?hlt
     model_->setObjective(index, 1.);
@@ -640,6 +641,7 @@ namespace OpenMS
           curr_rt -= rt_step_size;
         }
 #ifdef DEBUG_OPS
+        //  TODO: German comment
         std::cout << "links fertig----nun nach rechts" << std::endl;
 #endif
         curr_rt_index = rt_index + 1;
@@ -811,7 +813,7 @@ namespace OpenMS
           break;
         ++j;
       }
-      // no feature occuring in this scan
+      // no feature occurring in this scan
       if (start == j)
         continue;
 
@@ -953,7 +955,7 @@ namespace OpenMS
       std::cout << var_counter << " " << variable_indices[var_counter].feature << std::endl;
       if (var_counter ==  variable_indices.size())
       {
-        std::cout << "varaible index not found..skipping" << std::endl; continue;
+        std::cout << "variable index not found..skipping" << std::endl; continue;
       }
       std::cout << variable_indices[var_counter] << std::endl;
 
@@ -1041,7 +1043,7 @@ namespace OpenMS
     ///////////////////////////////////////////////////////////////////////
     model_->setObjectiveSense(LPWrapper::MAX); // maximize
 
-    // first get maximimal intensity, as we use it for normalization
+    // first get maximal intensity, as we use it for normalization
     double max_int = 0.;
     for (Size i = 0; i < features.size(); ++i)
     {
@@ -1105,7 +1107,7 @@ namespace OpenMS
                   << intensity_weights[i][c] << " msms_score "
                   << msms_score << " max_int " << max_int
                   << " obj: " << intensity_weights[i][c] * msms_score
-                  << " anderes obj.: " << intensity_weights[i][c] * msms_score / max_int
+                  << " other obj.: " << intensity_weights[i][c] * msms_score / max_int
                   << std::endl;
 #endif
         model_->setObjective(index, intensity_weights[i][c] * (double)features[i].getMetaValue("msms_score"));
@@ -1274,8 +1276,8 @@ namespace OpenMS
             existing = true;
             model_->setColumnBounds(variable_indices[f_v_idx].variable, 1., model_->getColumnUpperBound(variable_indices[f_v_idx].variable), LPWrapper::FIXED);
 #ifdef DEBUG_OPS
-            std::cout << "set column lower von " << model_->getColumnName(variable_indices[f_v_idx].variable)
-                      << " auf " << model_->getColumnLowerBound(variable_indices[f_v_idx].variable) << std::endl;
+            std::cout << "set column lower from " << model_->getColumnName(variable_indices[f_v_idx].variable)
+                      << " to " << model_->getColumnLowerBound(variable_indices[f_v_idx].variable) << std::endl;
 #endif
             break;
           }

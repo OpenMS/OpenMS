@@ -135,7 +135,7 @@ namespace OpenMS
 
           SimTypes::SimIntensityType total_intensity = (*lf_iter).getIntensity();
 
-          // di-labled
+          // di-labeled
           addModificationToPeptideHit_(b2, "UniMod:193");
           b2.setIntensity(total_intensity * labeling_efficiency  * labeling_efficiency);
 

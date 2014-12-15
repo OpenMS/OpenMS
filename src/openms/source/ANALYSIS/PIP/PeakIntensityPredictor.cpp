@@ -138,7 +138,7 @@ namespace OpenMS
       //add linear bias to mapped value
       g_i += (c_x + wout[i]) * nei[i];
     }
-    //divide by total neighborhod values
+    //divide by total neighborhood values
     g_i = g_i / sum_g_i;
 
     //normalize predicted values to distribution of training data

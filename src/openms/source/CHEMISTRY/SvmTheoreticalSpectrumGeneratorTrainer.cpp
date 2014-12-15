@@ -883,7 +883,7 @@ namespace OpenMS
     } //End of training SVR and SVC for the primary types
 
 
-    //If we are only generating the outfiles we can terminare here
+    //If we are only generating the outfiles we can terminate here
     if (write_outfiles)
     {
       return;

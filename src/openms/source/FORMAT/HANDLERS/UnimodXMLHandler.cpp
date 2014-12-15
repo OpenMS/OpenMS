@@ -156,7 +156,7 @@ namespace OpenMS
 
       }
 
-      // delta mass defintions?
+      // delta mass definitions?
       if (tag_ == "umod:delta" || tag_ == "delta")
       {
         // avge_mass="-0.9848" mono_mass="-0.984016" composition="H N O(-1)" >

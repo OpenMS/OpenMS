@@ -180,7 +180,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
         power >>= 1;
       }
 
-      // initializes distribution which will folded iteratively upto each entry
+      // initializes distribution which will folded iteratively up to each entry
       IMSIsotopeDistribution this_power_two_index(*this);
 
       // initializes result distribution where foldings will be collected

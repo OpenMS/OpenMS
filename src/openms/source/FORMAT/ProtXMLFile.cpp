@@ -171,7 +171,7 @@ namespace OpenMS
       // current last protein is from the same "indistinguishable" group:
       double score = prot_id_->getHits().back().getScore();
       registerProtein_(protein_name);
-      // score of group leader might technically not be transferrable (due to
+      // score of group leader might technically not be transferable (due to
       // protein length etc.), but we still transfer it to allow filtering of
       // proteins by score without disrupting the groups:
       prot_id_->getHits().back().setScore(score);

@@ -216,7 +216,7 @@ namespace OpenMS
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
           Feature& unlabeled_feature = unlabeled_features_index[unmodified_sequence];
-          // guarantee uniquenes
+          // guarantee uniqueness
           unlabeled_feature.ensureUniqueId();
 
           // feature has a SILAC Label and is not equal to non-labeled
@@ -397,7 +397,7 @@ namespace OpenMS
 
         if (unlabeled_features_index.has(medium_channel_feature_unmodified_sequence))
         {
-          // 1.Fall paar zwischen c0 und c1
+          // 1. case: pair between c0 and c1
           if (medium_channel_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
@@ -421,7 +421,7 @@ namespace OpenMS
         }
         else
         {
-          // c1 ist alleine
+          // c1 is alone
           final_feature_map.push_back(medium_channel_feature);
         }
 

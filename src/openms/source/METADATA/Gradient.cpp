@@ -228,7 +228,7 @@ namespace OpenMS
   void Gradient::clearPercentages()
   {
     percentages_.clear();
-    // fill all precentages with 0
+    // fill all percentages with 0
     percentages_.insert(percentages_.begin(), eluents_.size(), vector<UInt>(times_.size(), 0));
   }
 

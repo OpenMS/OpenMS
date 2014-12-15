@@ -476,7 +476,7 @@ namespace OpenMS
       hit.setScore(cid_score + etd_score);
 
       hit.setSequence(getModifiedAASequence_(*it));
-      hit.setCharge((Int)charge);   //TODO unifiy charge interface: int or size?
+      hit.setCharge((Int)charge);   //TODO unify charge interface: int or size?
       hits.push_back(hit);
       //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << etd_score << " " << cid_score + etd_score << endl;
     }
@@ -574,7 +574,7 @@ namespace OpenMS
     double z_pos(3.0 + suffix);
     //double b_pos(0.0 + prefix);
     //double y_pos(18.0 + suffix);
-    // sometimes alsa b and y ions are in this spectrum
+    // sometimes also b and y ions are in this spectrum
 
 #ifdef ETD_SPECTRUM_DEBUG
     cerr << "ETDSpectrum for " << sequence << " " << prefix << " " << suffix << endl;

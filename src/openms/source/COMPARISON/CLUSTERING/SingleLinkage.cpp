@@ -131,7 +131,7 @@ namespace OpenMS
         }
       }
 
-      //update clustering if neccessary
+      //update clustering if necessary
       for (Size i = 0; i < k; ++i)
       {
         if (lambda[i] >= lambda[pi[i]])
