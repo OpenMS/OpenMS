@@ -378,20 +378,18 @@ namespace OpenMS
      * @param cp Parameter set for the chromatogram extraction
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
      * @param transition_exp The set of assays to be extracted and scored
-     * @param out_featureFile Output file to store identified features
-     * @param out Output file to store identified features in csv format
+     * @param out_featureFile Output feature map to store identified features
+     * @param store_features Whether features should be appended to the output feature map
      * @param tsv_writer TSV Writer object to store identified features in csv format
      * @param chromConsumer Chromatogram consumer object to store the extracted chromatograms 
      * @param batchSize Size of the batches which should be extracted and scored
-     *
-     * TODO : is "out" parameter needed ? 
      *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
       const TransformationDescription trafo,
       const ChromExtractParams & cp, const Param & feature_finder_param,
       const OpenSwath::LightTargetedExperiment& transition_exp,
-      FeatureMap& out_featureFile, String out,
+      FeatureMap& out_featureFile, bool store_features,
       OpenSwathTSVWriter & tsv_writer, Interfaces::IMSDataConsumer<> * chromConsumer,
       int batchSize)
     {
@@ -521,7 +519,7 @@ namespace OpenMS
                 }
 
                 // write features to output if so desired
-                if (!out.empty())
+                if (store_features)
                 {
                   for (FeatureMap::iterator feature_it = featureFile.begin();
                        feature_it != featureFile.end(); ++feature_it)
@@ -1439,7 +1437,7 @@ protected:
     wf.setLogType(log_type_);
 
     wf.performExtraction(swath_maps, trafo_rtnorm, cp, feature_finder_param, transition_exp,
-        out_featureFile, out, tsvwriter, chromConsumer, batchSize);
+        out_featureFile, !out.empty(), tsvwriter, chromConsumer, batchSize);
     if (!out.empty())
     {
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
