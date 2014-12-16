@@ -187,7 +187,7 @@ class MetaProSIPInterpolation
 {
 public:
   ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
-  static vector<RateScorePair> getHighPoints(double threshold, const MapRateToScoreType& rate2score)
+  static vector<RateScorePair> getHighPoints(double threshold, const MapRateToScoreType& rate2score, bool debug = false)
   {
     vector<RateScorePair> high_points;
     vector<double> x, y;
@@ -214,13 +214,21 @@ public:
     //Wm5::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
     CubicSpline2d spline(x, y);
 
+    if (debug)
+    {
+      LOG_DEBUG << x[0] << " " << x[n-1] << " " << n << endl;
+    }
+
     double last_dxdy = 0;
     for (double xi = x[0]; xi < x[n - 1]; xi += 0.01)
     {
       double dxdy = spline.derivatives(xi, 1);
-      //cout << "dxdy " << dxdy << endl;
       double yi = spline.eval(xi);
-      //cout << "y " << y << endl;
+
+      if (debug)
+      {
+        LOG_DEBUG  << x[0] << " " << x[n-1] << " " << xi << " " << yi << endl;;
+      }
 
       if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
       {
@@ -230,6 +238,15 @@ public:
         high_points.push_back(rsp);
       }
       last_dxdy = dxdy;
+    }
+
+    if (debug)
+    {
+      LOG_DEBUG << "Found: " << high_points.size() << " local maxima." << endl;
+      for (Size i = 0; i != high_points.size(); ++i)
+      {
+        LOG_DEBUG << high_points[i].rate << " " << high_points[i].score << endl;
+      }
     }
 
     return high_points;
@@ -285,12 +302,12 @@ public:
     TextFile t;
     for (MapRateToScoreType::const_iterator mit = ria_density.begin(); mit != ria_density.end(); ++mit)
     {
-      t.push_back(String(mit->second));
+      t.addLine(String(mit->second));
     }
     t.store("/abi-data/sachsenb/OpenMS_IDE/dump.txt");
     */
 
-    vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, ria_density);
+    vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, ria_density, true);
 
     // return cluster centers
     for (vector<RateScorePair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
@@ -315,7 +332,7 @@ public:
         double largest_ria = incs[incs.size() - 1].rate;
         Size closest_cluster_idx = 0;
         double closest_cluster_dist = std::numeric_limits<double>::max();
-        for (Size i = 0; i != clusters.size(); ++i)
+        for (Size i = 0; i != centers.size(); ++i)
         {
           double dist = std::fabs(centers[i] - largest_ria);
           if (dist < closest_cluster_dist)
@@ -3055,11 +3072,44 @@ protected:
     debug_exp.clear(false);
 
     vector<vector<SIPPeptide> > sippeptide_clusters;    // vector of cluster
-    if (cluster_flag)    // data has been clustered so read back the result from R
+
+    if (cluster_flag)
     {
-      // determine cluster center of RIAs
+      if (debug_level > 0)
+      {
+        LOG_INFO << "Determine cluster center of RIAs: " << endl;
+      }
       vector<double> cluster_center(MetaProSIPClustering::getRIAClusterCenter(sip_peptides));
+      if (debug_level > 0)
+      {
+        LOG_INFO << "Assigning peptides to cluster: " << endl;
+      }
       sippeptide_clusters = MetaProSIPClustering::clusterSIPPeptides(cluster_center, sip_peptides);
+
+      // remove cluster with no assigned SIP peptide (spurious highpoints giving rise to cluster may happen because of small bumps caused by interpolation)
+      vector< vector<SIPPeptide> >::iterator scit = sippeptide_clusters.begin();
+      vector<double>::iterator ccit = cluster_center.begin();
+      while (scit != sippeptide_clusters.end() && ccit != cluster_center.end())
+      {
+        if (scit->empty())
+        {
+           scit = sippeptide_clusters.erase(scit);  // remove cluster of SIP peptides
+           ccit = cluster_center.erase(ccit);  // remove cluster center
+        }
+        else
+        {
+          ++scit;
+          ++ccit;
+        }
+      }
+
+      if (debug_level > 0)
+      {
+        for (Size i = 0; i != sippeptide_clusters.size(); ++i)
+        {
+          LOG_INFO << "Cluster: " << (i+1) << " contains " << sippeptide_clusters[i].size() << " peptides." << endl;
+        }
+      }
     }
     else   // data hasn't been clustered so just add all SIP peptides as cluster zero
     {
@@ -3069,6 +3119,7 @@ protected:
     // create group/cluster centric report
     if (!out_csv.empty())
     {
+      LOG_INFO << "Create CSV report." << endl;
       MetaProSIPReporting::createCSVReport(sippeptide_clusters, out_csv_stream, proteinid_to_description);
     }
 
