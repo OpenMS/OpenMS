@@ -89,59 +89,59 @@ struct RateScorePair
 /// datastructure for reporting an incorporation event
 struct SIPIncorporation
 {
-  double rate;   ///< rate
+  double rate; ///< rate
 
-  double correlation;   ///< correlation coefficient
+  double correlation; ///< correlation coefficient
 
-  double abundance;   ///< abundance of isotopologue
+  double abundance; ///< abundance of isotopologue
 
-  PeakSpectrum theoretical;   ///< peak spectrum as generated from the theoretical isotopic distribution
+  PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution
 };
 
 /// datastructure for reporting a peptide with one or more incorporation rates
 struct SIPPeptide
 {
-  AASequence sequence;     ///< sequence of the peptide
+  AASequence sequence; ///< sequence of the peptide
 
-  vector<String> accessions;    ///< protein accessions of the peptide
+  vector<String> accessions; ///< protein accessions of the peptide
 
-  bool unique;   ///< if the peptide is unique and therefor identifies the protein umambigously
+  bool unique; ///< if the peptide is unique and therefor identifies the protein umambigously
 
-  double mz_theo;   ///< theoretical mz
+  double mz_theo; ///< theoretical mz
 
-  double mass_theo;    ///< uncharged theoretical mass
+  double mass_theo; ///< uncharged theoretical mass
 
-  double score;   ///< search engine score or q-value if fdr filtering is applied
+  double score; ///< search engine score or q-value if fdr filtering is applied
 
-  double feature_rt;   ///< measurement time of feature apex [s]
+  double feature_rt; ///< measurement time of feature apex [s]
 
-  double feature_mz;   ///< mz of feature apex [s]
+  double feature_mz; ///< mz of feature apex [s]
 
   //Size feature_scan_number; ///< scan number
 
-  Int charge;   ///< charge of the peptide feature
+  Int charge; ///< charge of the peptide feature
 
-  double mass_diff;    // 13C or 15N mass difference
+  double mass_diff; // 13C or 15N mass difference
 
-  double global_LR;   ///< labeling ratio for the whole spectrum used to detect global drifts. 13C/(12C+13C) intensities. (15N analogous)
+  double global_LR; ///< labeling ratio for the whole spectrum used to detect global drifts. 13C/(12C+13C) intensities. (15N analogous)
 
   vector<RateScorePair> correlation_maxima;
 
-  MapRateToScoreType decomposition_map;   // all rate to decomposition scores for the peptide
+  MapRateToScoreType decomposition_map; // all rate to decomposition scores for the peptide
 
-  MapRateToScoreType correlation_map;   // all rate to correlation scores for the peptide
+  MapRateToScoreType correlation_map; // all rate to correlation scores for the peptide
 
-  double RR;   ///< R squared of NNLS fit
+  double RR; ///< R squared of NNLS fit
 
-  double explained_TIC_fraction;   ///< fraction of the MS2 TIC that is explained by the maximum correlating decomposition weights
+  double explained_TIC_fraction; ///< fraction of the MS2 TIC that is explained by the maximum correlating decomposition weights
 
-  String feature_type;   ///< used to distinguish features from FeatureFinder, or synthetised from ids or averagine ids in reporting
+  String feature_type; ///< used to distinguish features from FeatureFinder, or synthetised from ids or averagine ids in reporting
 
-  Size non_zero_decomposition_coefficients;   ///< decomposition coefficients significantly larger than 0
+  Size non_zero_decomposition_coefficients; ///< decomposition coefficients significantly larger than 0
 
-  PeakSpectrum reconstruction;   ///< signal reconstruction (debugging)
+  PeakSpectrum reconstruction; ///< signal reconstruction (debugging)
 
-  vector<double> reconstruction_monoistopic;   ///< signal reconstruction of natural peptide (at mono-isotopic peak)
+  vector<double> reconstruction_monoistopic; ///< signal reconstruction of natural peptide (at mono-isotopic peak)
 
   PeakSpectrum accumulated;
 
@@ -216,7 +216,7 @@ public:
 
     if (debug)
     {
-      LOG_DEBUG << x[0] << " " << x[n-1] << " " << n << endl;
+      LOG_DEBUG << x[0] << " " << x[n - 1] << " " << n << endl;
     }
 
     double last_dxdy = 0;
@@ -227,7 +227,7 @@ public:
 
       if (debug)
       {
-        LOG_DEBUG  << x[0] << " " << x[n-1] << " " << xi << " " << yi << endl;;
+        LOG_DEBUG << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
       }
 
       if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
@@ -709,10 +709,10 @@ public:
 
       if (score_plot_yaxis_min >= 0)
       {
-        current_script.addLine("corr[corr<0]=0");   // truncate at 0 for better drawing
+        current_script.addLine("corr[corr<0]=0"); // truncate at 0 for better drawing
       }
 
-      current_script.addLine("x0=rate_dec; x1=rate_dec; y0=rep(0, length(x0)); y1=dec");    // create R segments for decomposition score (vertical bars)
+      current_script.addLine("x0=rate_dec; x1=rate_dec; y0=rep(0, length(x0)); y1=dec"); // create R segments for decomposition score (vertical bars)
       if (file_extension == "png")
       {
         current_script.addLine("png('" + tmp_path + "/" + score_filename + "')");
@@ -793,7 +793,7 @@ public:
     LOG_INFO << "Plotting correlation score and weight distribution" << endl;
     plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
 
-    if (file_extension != "pdf")    // html doesn't support pdf as image
+    if (file_extension != "pdf") // html doesn't support pdf as image
     {
       writeHTML(qc_output_directory, file_suffix, file_extension, sip_peptides);
     }
@@ -810,9 +810,9 @@ public:
       const vector<SIPPeptide>& current_cluster = sippeptide_cluster[i];
 
       // Group
-      map<String, vector<SIPPeptide> > all_peptides;    // map sequence to SIPPeptide
-      map<String, vector<SIPPeptide> > ambigous_peptides;    // map sequence to SIPPeptide
-      map<String, map<String, vector<SIPPeptide> > > unambigous_proteins;    // map Accession to unmodified String to SIPPeptides
+      map<String, vector<SIPPeptide> > all_peptides; // map sequence to SIPPeptide
+      map<String, vector<SIPPeptide> > ambigous_peptides; // map sequence to SIPPeptide
+      map<String, map<String, vector<SIPPeptide> > > unambigous_proteins; // map Accession to unmodified String to SIPPeptides
 
       for (Size k = 0; k != current_cluster.size(); ++k)
       {
@@ -830,7 +830,7 @@ public:
         all_peptides[seq].push_back(current_SIPpeptide);
       }
 
-      Size n_all_peptides = all_peptides.size();    // # of different (on sequence level) unique and non-unique peptides
+      Size n_all_peptides = all_peptides.size(); // # of different (on sequence level) unique and non-unique peptides
       //Size n_ambigous_peptides = ambigous_peptides.size();
       Size n_unambigous_proteins = unambigous_proteins.size();
 
@@ -847,7 +847,7 @@ public:
       }
       double group_global_LR = Math::median(group_global_LRs.begin(), group_global_LRs.end(), false);
 
-      Size group_number_RIA = (Size)(Math::median(group_number_RIAs.begin(), group_number_RIAs.end(), false) + 0.5);   // median number of RIAs
+      Size group_number_RIA = (Size)(Math::median(group_number_RIAs.begin(), group_number_RIAs.end(), false) + 0.5); // median number of RIAs
       // Group header
       // Distinct peptides := different (on sequence level) unique and non-unique peptides
       out_csv_stream << String("Group ") + String(i + 1) << "# Distinct Peptides" << "# Unambigous Proteins" << "Median Global LR";
@@ -904,7 +904,7 @@ public:
           }
         }
         double protein_global_LR = Math::median(protein_global_LRs.begin(), protein_global_LRs.end(), false);
-        Size protein_number_RIA = (Size)(Math::median(protein_number_RIAs.begin(), protein_number_RIAs.end(), false) + 0.5);   // median number of RIAs
+        Size protein_number_RIA = (Size)(Math::median(protein_number_RIAs.begin(), protein_number_RIAs.end(), false) + 0.5); // median number of RIAs
 
         out_csv_stream << "" << "Protein Accession" << "Description" << "# Unique Peptides" << "Median Global LR";
         for (Size i = 0; i != protein_number_RIA; ++i)
@@ -1036,7 +1036,7 @@ public:
 
           for (Size ac = 0; ac != v_it->accessions.size(); ++ac)
           {
-            if (ac >= 3)   // only print at most 3 accessions as these can be quite numorous
+            if (ac >= 3) // only print at most 3 accessions as these can be quite numorous
             {
               accessions_string += "...";
               break;
@@ -1133,7 +1133,7 @@ public:
       out_csv_stream << current_SIPpeptide.sequence.toString() << current_SIPpeptide.feature_type;
 
       // output quality report links if available
-      if (qc_output_directory.empty() || file_suffix.empty())    // if no qc plots have been generated or no unique file_suffix has been provided we can't generate links to spectra and scores
+      if (qc_output_directory.empty() || file_suffix.empty()) // if no qc plots have been generated or no unique file_suffix has been provided we can't generate links to spectra and scores
       {
         out_csv_stream << "" << "" << in_mzML;
       }
@@ -1193,7 +1193,7 @@ public:
         const double corr = current_SIPpeptide.incorporations[j].correlation;
 
         double LR_of_RIA = 0;
-        if (ria < 1.5)   // first RIA hast natural abundance
+        if (ria < 1.5) // first RIA hast natural abundance
         {
           LR_of_RIA = abundance / current_SIPpeptide.incorporations[0].abundance;
         }
@@ -1330,10 +1330,10 @@ public:
     // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
     AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
     EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
-    UInt max_labeling_carbon = (UInt)unmodified_peptide_ef.getNumberOf(e1);   // max. number of atoms that can be labeled
-    EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef;    // difference formula for modifications (note that it can contain positive/negative numbers)
+    UInt max_labeling_carbon = (UInt)unmodified_peptide_ef.getNumberOf(e1); // max. number of atoms that can be labeled
+    EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef; // difference formula for modifications (note that it can contain positive/negative numbers)
 
-    if (modifications_ef.getNumberOf(e1) > 0)    // modification adds additional (unlabeled) carbon atoms
+    if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) carbon atoms
     {
       IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
       for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_carbon)
@@ -1346,7 +1346,7 @@ public:
         isotopes.set(container);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_carbon + additional_isotopes);
-        dist += modification_dist;    // convole with modification distribution (which follows the natural distribution)
+        dist += modification_dist; // convole with modification distribution (which follows the natural distribution)
         container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1422,10 +1422,10 @@ public:
     // calculate empirical formula of modifications - these can not be labeled via substrate feeding and must be taken care of in pattern calculation
     AASequence unmodified_peptide = AASequence::fromString(peptide.toUnmodifiedString());
     EmpiricalFormula unmodified_peptide_ef = unmodified_peptide.getFormula();
-    UInt max_labeling_nitrogens = (UInt)unmodified_peptide_ef.getNumberOf(e1);   // max. number of nitrogen atoms that can be labeled
-    EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef;    // difference formula for modifications (note that it can contain positive/negative numbers)
+    UInt max_labeling_nitrogens = (UInt)unmodified_peptide_ef.getNumberOf(e1); // max. number of nitrogen atoms that can be labeled
+    EmpiricalFormula modifications_ef = peptide_ef - unmodified_peptide_ef; // difference formula for modifications (note that it can contain positive/negative numbers)
 
-    if (modifications_ef.getNumberOf(e1) > 0)    // modification adds additional (unlabeled) nitrogen atoms
+    if (modifications_ef.getNumberOf(e1) > 0) // modification adds additional (unlabeled) nitrogen atoms
     {
       IsotopeDistribution modification_dist = modifications_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
       for (double abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)max_labeling_nitrogens)
@@ -1438,7 +1438,7 @@ public:
         isotopes.set(container);
         e2->setIsotopeDistribution(isotopes);
         IsotopeDistribution dist = unmodified_peptide_ef.getIsotopeDistribution(max_labeling_nitrogens + additional_isotopes);
-        dist += modification_dist;    // calculate convolution with isotope distribution of modification(s)
+        dist += modification_dist; // calculate convolution with isotope distribution of modification(s)
         container = dist.getContainer();
         vector<double> intensities;
         for (Size i = 0; i != container.size(); ++i)
@@ -1587,13 +1587,13 @@ public:
     for (Size i = 0; i < xic_mzs.size(); ++i)
     {
       // create and initialize xic to contain values for all rts
-      map<double, double> xic;   // rt to summed intensity
+      map<double, double> xic; // rt to summed intensity
       for (set<double>::const_iterator sit = all_rts.begin(); sit != all_rts.end(); ++sit)
       {
         xic[*sit] = 0;
       }
 
-      double mz_da = mz_toelrance_ppm * xic_mzs[i] / 1e6;   // mz tolerance in Dalton
+      double mz_da = mz_toelrance_ppm * xic_mzs[i] / 1e6; // mz tolerance in Dalton
       MSExperiment<>::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
 
       for (; it != peak_map.areaEndConst(); ++it)
@@ -1616,9 +1616,9 @@ public:
 
   static vector<double> correlateXICsToMono(const vector<vector<double> >& xics)
   {
-    vector<double> rrs(xics.size(), 0);   // correlation of isotopic xics to monoisotopic xic
+    vector<double> rrs(xics.size(), 0); // correlation of isotopic xics to monoisotopic xic
 
-    rrs[0] = 1.0;   // perfect correlation of monoisotopic trace to itself
+    rrs[0] = 1.0; // perfect correlation of monoisotopic trace to itself
 
     for (Size i = 1; i < xics.size(); ++i)
     {
@@ -1858,7 +1858,7 @@ protected:
     for (; b_it != e_it; ++b_it)
     {
       std::pair<double, Int> intensity_offset_pair = make_pair(*b_it, std::distance(pattern_begin, b_it));
-      intensity_to_offset.push_back(intensity_offset_pair);    // pair: intensity, offset to pattern_begin iterator
+      intensity_to_offset.push_back(intensity_offset_pair); // pair: intensity, offset to pattern_begin iterator
     }
     // sort by intensity (highest first)
     std::sort(intensity_to_offset.begin(), intensity_to_offset.end(), std::greater<pair<double, Int> >());
@@ -1909,7 +1909,7 @@ protected:
 
     LOG_INFO << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
 
-    double TIC_threshold = use_N15 ? getDoubleOption_("pattern_15N_TIC_threshold") : getDoubleOption_("pattern_13C_TIC_threshold");   // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
+    double TIC_threshold = use_N15 ? getDoubleOption_("pattern_15N_TIC_threshold") : getDoubleOption_("pattern_13C_TIC_threshold"); // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
 
     double max_incorporation_rate = 100.0;
     double incorporation_step = max_incorporation_rate / (double)n_element;
@@ -1934,14 +1934,14 @@ protected:
     {
       // calculate isotope distribution of averagine peptide as this will be used to detect spurious correlations with coeluting peptides
       // Note: actually it would be more accurate to use 15N-14N or 13C-12C distances. This doesn't affect averagine distribution much so this approximation is sufficient. (see TODO)
-      double current_weight = peptide_weight + ii * 1.0;    // TODO: use 13C-12C or 15N-14N instead of 1.0 as mass distance to be super accurate
+      double current_weight = peptide_weight + ii * 1.0; // TODO: use 13C-12C or 15N-14N instead of 1.0 as mass distance to be super accurate
       IsotopeDistribution averagine = IsotopeDistribution(10);
       averagine.estimateFromPeptideWeight(current_weight);
 
       std::vector<std::pair<Size, double> > averagine_intensities_pairs = averagine.getContainer();
 
       // zeros to the left for sliding window correlation
-      std::vector<double> averagine_intensities(AVERAGINE_CORR_OFFSET, 0.0);   // add 0 intensity bins left to actual averagine pattern
+      std::vector<double> averagine_intensities(AVERAGINE_CORR_OFFSET, 0.0); // add 0 intensity bins left to actual averagine pattern
 
       for (Size i = 0; i != averagine_intensities_pairs.size(); ++i)
       {
@@ -2046,7 +2046,7 @@ protected:
     vector<double> isotopic_intensities;
     for (Size k = 0; k != element_count; ++k)
     {
-      double min_rt = seed_rt - 0.01;   // feature rt
+      double min_rt = seed_rt - 0.01; // feature rt
       double max_rt = seed_rt + 0.01;
       double mz = seed_mz + k * mass_diff / seed_charge;
 
@@ -2055,7 +2055,7 @@ protected:
 
       if (k <= 5)
       {
-        double ppm = std::max(10.0, mz_tolerance_ppm);    // restrict ppm to 10 for low intensity peaks
+        double ppm = std::max(10.0, mz_tolerance_ppm); // restrict ppm to 10 for low intensity peaks
         min_mz = mz - mz * ppm * 1e-6;
         max_mz = mz + mz * ppm * 1e-6;
       }
@@ -2074,7 +2074,7 @@ protected:
       for (; aait != peak_map.areaEndConst(); ++aait)
       {
         double peak_int = aait->getIntensity();
-        if (peak_int > 1)   // we found a valid 13C/15N peak
+        if (peak_int > 1) // we found a valid 13C/15N peak
         {
           found_peaks.push_back(peak_int);
         }
@@ -2139,10 +2139,10 @@ protected:
       {
         ratio = intensities_sum_13C / (intensities_sum_12C + intensities_sum_13C);
       }
-      out_stream << ratio;   // << skewness(intensities_13C.begin(), intensities_13C.end());
+      out_stream << ratio; // << skewness(intensities_13C.begin(), intensities_13C.end());
 
     }
-    else   // bad correlation, no need to print intensities, ratio etc.
+    else // bad correlation, no need to print intensities, ratio etc.
     {
       String int_string;
 
@@ -2198,8 +2198,8 @@ protected:
       for (; ait != peak_map.areaEndConst(); ++ait)
       {
         Peak2D p2d;
-        p2d.setRT(ait.getRT());    // get rt of scan
-        p2d.setMZ(ait->getMZ());    // get peak 1D mz
+        p2d.setRT(ait.getRT()); // get rt of scan
+        p2d.setMZ(ait->getMZ()); // get peak 1D mz
         p2d.setIntensity(ait->getIntensity());
         mono_trace.push_back(p2d);
       }
@@ -2211,7 +2211,7 @@ protected:
       Peak2D p2d;
       double next_valid_scan_rt = peak_map.RTBegin(hit_rt - 0.001)->getRT();
       p2d.setRT(next_valid_scan_rt);
-      p2d.setMZ(0);    // actually not needed
+      p2d.setMZ(0); // actually not needed
       p2d.setIntensity(0);
       mono_trace.push_back(p2d);
     }
@@ -2328,7 +2328,7 @@ protected:
           int_sum += low->second;
         }
 
-        sip_incorporation.abundance = int_sum;   // calculate abundance as sum of all decompositions
+        sip_incorporation.abundance = int_sum; // calculate abundance as sum of all decompositions
         sip_incorporation.correlation = min(corr, 1.0);
 
         max_corr_TIC += int_sum;
@@ -2370,7 +2370,7 @@ protected:
     double highest_non_natural_rate = 0;
     for (vector<SIPIncorporation>::const_iterator it = sip_incorporations.begin(); it != sip_incorporations.end(); ++it)
     {
-      if (it->rate < 5.0)   // skip natural
+      if (it->rate < 5.0) // skip natural
       {
         continue;
       }
@@ -2445,14 +2445,14 @@ protected:
     set<pair<double, double> > seeds_weight_rate_pair;
     for (; md_it != map_rate_to_decomposition_weight.end(); ++md_it, ++mc_it)
     {
-      if (mc_it->first < 10.0)   // lowRIA region
+      if (mc_it->first < 10.0) // lowRIA region
       {
         if (mc_it->second >= min_low_RIA_threshold && md_it->second >= min_decomposition_weight)
         {
           seeds_weight_rate_pair.insert(make_pair(md_it->second, md_it->first));
         }
       }
-      else    // non-low RIA region
+      else // non-low RIA region
       {
         if (mc_it->second >= min_corr_threshold && md_it->second >= min_decomposition_weight)
         {
@@ -2533,7 +2533,7 @@ protected:
     double highest_non_natural_rate = 0;
     for (vector<SIPIncorporation>::const_iterator it = sip_incorporations.begin(); it != sip_incorporations.end(); ++it)
     {
-      if (it->rate < 5.0)   // skip natural
+      if (it->rate < 5.0) // skip natural
       {
         continue;
       }
@@ -2739,7 +2739,7 @@ protected:
       // extract rt and mz of all identified precursors and store them in blacklist
       vector<Peak2D> blacklisted_precursors;
       // in features
-      for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)   // for each peptide feature
+      for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
       {
         const vector<PeptideIdentification>& f_ids = feature_it->getPeptideIdentifications();
         for (vector<PeptideIdentification>::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
@@ -2796,7 +2796,7 @@ protected:
           PeptideHit pseudo_hit;
 
           // set peptide with lowest deviation from averagine
-          pseudo_hit.setSequence(AASequence());    // set empty sequence
+          pseudo_hit.setSequence(AASequence()); // set empty sequence
           pseudo_hit.setCharge(precursor_charge);
           PeptideIdentification pseudo_id;
           vector<PeptideHit> pseudo_hits;
@@ -2838,9 +2838,9 @@ protected:
 
     vector<SIPPeptide> sip_peptides;
 
-    Size nPSMs = 0;   ///< number of PSMs. If 0 IDMapper has not been called.
+    Size nPSMs = 0; ///< number of PSMs. If 0 IDMapper has not been called.
 
-    for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)   // for each peptide feature
+    for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
     {
       const double feature_hit_center_rt = feature_it->getRT();
 
@@ -2873,7 +2873,7 @@ protected:
       tmp_pepid.assignRanks();
 
       SIPPeptide sip_peptide;
-      sip_peptide.feature_type = feature_it->getMetaValue("feature_type");   // used to annotate feature type in reporting
+      sip_peptide.feature_type = feature_it->getMetaValue("feature_type"); // used to annotate feature type in reporting
 
       // retrieve identification information
       const PeptideHit& feature_hit = tmp_pepid.getHits()[0];
@@ -2913,7 +2913,7 @@ protected:
       sip_peptide.unique = sip_peptide.accessions.size() == 1 ? true : false;
 
       // determine retention time of scans next to the central scan
-      vector<double> seeds_rt = findApexRT(feature_it, feature_hit_center_rt, peak_map, 2);   // 1 scan at maximum, 2+2 above and below
+      vector<double> seeds_rt = findApexRT(feature_it, feature_hit_center_rt, peak_map, 2); // 1 scan at maximum, 2+2 above and below
       double max_trace_int_rt = seeds_rt[0];
 
       // determine maximum number of peaks and mass difference
@@ -2927,7 +2927,7 @@ protected:
       {
         element_count = MetaProSIPDecomposition::getNumberOfLabelingElements(use_N15, feature_hit_aaseq);
       }
-      else   // if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
+      else // if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
         // calculate number of expected labeling elements using averagine model
         element_count = use_N15 ? sip_peptide.mass_theo * 0.0122177302837372 : sip_peptide.mass_theo * 0.0444398894906044;
@@ -3071,7 +3071,7 @@ protected:
     MSExperiment<Peak1D> debug_exp = peak_map;
     debug_exp.clear(false);
 
-    vector<vector<SIPPeptide> > sippeptide_clusters;    // vector of cluster
+    vector<vector<SIPPeptide> > sippeptide_clusters; // vector of cluster
 
     if (cluster_flag)
     {
@@ -3087,14 +3087,14 @@ protected:
       sippeptide_clusters = MetaProSIPClustering::clusterSIPPeptides(cluster_center, sip_peptides);
 
       // remove cluster with no assigned SIP peptide (spurious highpoints giving rise to cluster may happen because of small bumps caused by interpolation)
-      vector< vector<SIPPeptide> >::iterator scit = sippeptide_clusters.begin();
+      vector<vector<SIPPeptide> >::iterator scit = sippeptide_clusters.begin();
       vector<double>::iterator ccit = cluster_center.begin();
       while (scit != sippeptide_clusters.end() && ccit != cluster_center.end())
       {
         if (scit->empty())
         {
-           scit = sippeptide_clusters.erase(scit);  // remove cluster of SIP peptides
-           ccit = cluster_center.erase(ccit);  // remove cluster center
+          scit = sippeptide_clusters.erase(scit);   // remove cluster of SIP peptides
+          ccit = cluster_center.erase(ccit);   // remove cluster center
         }
         else
         {
@@ -3107,11 +3107,11 @@ protected:
       {
         for (Size i = 0; i != sippeptide_clusters.size(); ++i)
         {
-          LOG_INFO << "Cluster: " << (i+1) << " contains " << sippeptide_clusters[i].size() << " peptides." << endl;
+          LOG_INFO << "Cluster: " << (i + 1) << " contains " << sippeptide_clusters[i].size() << " peptides." << endl;
         }
       }
     }
-    else   // data hasn't been clustered so just add all SIP peptides as cluster zero
+    else // data hasn't been clustered so just add all SIP peptides as cluster zero
     {
       sippeptide_clusters.push_back(sip_peptides);
     }
