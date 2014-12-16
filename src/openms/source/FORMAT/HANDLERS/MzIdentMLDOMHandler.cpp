@@ -162,7 +162,6 @@ namespace OpenMS
      * reads a mzid file into handlers pro_id_ & pep_id_ members
      */
     void MzIdentMLDOMHandler::readMzIdentMLFile(const string& mzid_file)
-    throw(runtime_error)
     {
       // Test to see if the file is ok.
       struct stat fileStatus;
@@ -269,7 +268,6 @@ namespace OpenMS
     }
 
     void MzIdentMLDOMHandler::writeMzIdentMLFile(const string& mzid_file)
-    throw(runtime_error)
     {
       DOMImplementation* impl =  DOMImplementationRegistry::getDOMImplementation(XMLString::transcode("XML 1.0")); //XML 3?!
       if (impl != NULL)
@@ -1558,7 +1556,7 @@ namespace OpenMS
                 {
                   aas.setModification(index - 1, cv.getName()); //TODO @mths,Timo : do this via UNIMOD accessions
                 }
-                catch (int e)
+                catch (...)
                 {
                   LOG_WARN << "Found unusable modification" << " @residue: " << aas.getResidue((SignedSize)index).getName() << String(index) << " mod: " << cv.getName() << endl;
                 }

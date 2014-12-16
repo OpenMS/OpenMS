@@ -303,7 +303,7 @@ protected:
       LOG_DEBUG << "region_rt_span: " << region_rt_span_ << std::endl;
       
       // find RT values where intensity is at half-maximum:
-      index = max_index;
+      index = static_cast<Int>(max_index);
       while ((index > 0) && (smoothed[index] > height_ * 0.5)) --index;
       double left_height = smoothed[index];
       it = total_intensities.begin();
@@ -311,7 +311,7 @@ protected:
       double left_rt = it->first;
       LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
                 << std::endl;
-      index = max_index;
+      index = static_cast<Int>(max_index);
       while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5)) ++index;
       double right_height = smoothed[index];
       it = total_intensities.end();

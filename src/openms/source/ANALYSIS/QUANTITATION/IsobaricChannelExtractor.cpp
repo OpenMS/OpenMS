@@ -352,7 +352,7 @@ namespace OpenMS
 
     // ------------------------------------------------------------------------------
     // compute total intensity
-    int idx = precursor_peak_idx - 1;
+    int idx = static_cast<int>(precursor_peak_idx) - 1;
     while (idx >= 0 && precursor_spec[idx].getMZ() > fuzzy_lower_mz)
     {
       if (precursor_spec[idx].getMZ() > strict_lower_mz)
@@ -368,7 +368,7 @@ namespace OpenMS
       --idx;
     }
 
-    idx = precursor_peak_idx + 1;
+    idx = static_cast<int>(precursor_peak_idx) + 1;
     while (idx < static_cast<int>(precursor_spec.size()) && precursor_spec[idx].getMZ() < fuzzy_upper_mz)
     {
       if (precursor_spec[idx].getMZ() < strict_upper_mz)

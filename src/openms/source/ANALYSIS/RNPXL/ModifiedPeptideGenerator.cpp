@@ -139,7 +139,7 @@ namespace OpenMS
        const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
        if (term_spec == ResidueModification::ANYWHERE)
        {
-         map_compatibility[residue_index].push_back(*variable_it);
+         map_compatibility[static_cast<int>(residue_index)].push_back(*variable_it);
        } else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
        {
          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);

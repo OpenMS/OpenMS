@@ -182,7 +182,7 @@ namespace OpenMS
         int a_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("a_ions"))))).toInt());
         hit.setMetaValue("a_ions", a_ions);
       }
-      catch (const std::exception& e)
+      catch (...)
       {
       }
 
@@ -193,7 +193,7 @@ namespace OpenMS
         int b_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("b_ions"))))).toInt());
         hit.setMetaValue("b_ions", b_ions);
       }
-      catch (const std::exception& e)
+      catch (...)
       {
       }
 
@@ -204,7 +204,7 @@ namespace OpenMS
         int c_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("c_ions"))))).toInt());
         hit.setMetaValue("c_ions", c_ions);
       }
-      catch (const std::exception& e)
+      catch (...)
       {
       }
 
@@ -215,7 +215,7 @@ namespace OpenMS
         int x_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("x_ions"))))).toInt());
         hit.setMetaValue("x_ions", x_ions);
       }
-      catch (const std::exception& e)
+      catch (...)
       {
       }
 
@@ -226,7 +226,7 @@ namespace OpenMS
         int y_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("y_ions"))))).toInt());
         hit.setMetaValue("y_ions", y_ions);
       }
-      catch (const std::exception& e)
+      catch (...)
       {
       }
 
@@ -237,7 +237,7 @@ namespace OpenMS
         int z_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("z_ions"))))).toInt());
         hit.setMetaValue("z_ions", z_ions);
       }
-      catch (const std::exception& e)
+      catch (...)
       {
       }
 

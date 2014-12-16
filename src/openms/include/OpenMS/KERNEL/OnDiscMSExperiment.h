@@ -181,7 +181,7 @@ public:
     */
     MSSpectrum<PeakT> getSpectrum(Size id)
     {
-      OpenMS::Interfaces::SpectrumPtr sptr = indexed_mzml_file_.getSpectrumById(id);
+      OpenMS::Interfaces::SpectrumPtr sptr = indexed_mzml_file_.getSpectrumById(static_cast<int>(id));
       MSSpectrum<PeakT> spectrum(meta_ms_experiment_->operator[](id));
 
       // recreate a spectrum from the data arrays!
@@ -213,7 +213,7 @@ public:
     */
     MSChromatogram<ChromatogramPeakT> getChromatogram(Size id)
     {
-      OpenMS::Interfaces::ChromatogramPtr cptr = indexed_mzml_file_.getChromatogramById(id);
+      OpenMS::Interfaces::ChromatogramPtr cptr = indexed_mzml_file_.getChromatogramById(static_cast<int>(id));
       MSChromatogram<ChromatogramPeakT> chromatogram(meta_ms_experiment_->getChromatogram(id));
 
       // recreate a chromatogram from the data arrays!

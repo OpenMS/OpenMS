@@ -385,7 +385,7 @@ namespace OpenMS
     double scan_time(mt.getScanTime());
     Size win_size = std::ceil(chrom_fwhm_ / scan_time);
     // add smoothed data (original data is still accessible)
-    smoothData(mt, win_size);
+    smoothData(mt, static_cast<Int>(win_size));
 
     // debug intensities
 

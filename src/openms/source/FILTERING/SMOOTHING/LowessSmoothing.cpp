@@ -71,7 +71,7 @@ namespace OpenMS
     Size input_size = input_y.size();
 
     // const Size q = floor( input_size * alpha );
-    const Size q = (window_size_ < input_size) ? window_size_ : input_size - 1;
+    const Size q = (window_size_ < input_size) ? static_cast<Size>(window_size_) : input_size - 1;
 
     DoubleVector distances(input_size, 0.0);
     DoubleVector sortedDistances(input_size, 0.0);

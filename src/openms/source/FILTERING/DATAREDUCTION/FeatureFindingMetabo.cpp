@@ -287,7 +287,7 @@ bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis& feat_hypo)
 
     for (; i - 1 < feat_size; ++i)
     {
-        nodes[i - 1].index = i;
+      nodes[i - 1].index = static_cast<Int>(i);
 
         double ratio((all_ints[i - 1] / mono_int));
 
@@ -306,8 +306,8 @@ bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis& feat_hypo)
 
     for (; i < 7; ++i)
     {
-        nodes[i - 1].index = i;
-        nodes[i - 1].value = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
+      nodes[i - 1].index = static_cast<Int>(i);
+      nodes[i - 1].value = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
     }
 
     nodes[6].index = -1;
@@ -362,9 +362,9 @@ bool FeatureFindingMetabo::isLegalIsotopePattern2_(FeatureHypothesis& feat_hypo)
 
     for ( ; i - 1 < feat_size; ++i)
     {
-        nodes[i - 1].index = i;
+      nodes[i - 1].index = static_cast<Int>(i);
 
-        double ratio((all_ints[i - 1] / mono_int));
+      double ratio((all_ints[i - 1] / mono_int));
 
         // std::cout << i << " " << ratio << " " << std::endl;
 
@@ -374,14 +374,14 @@ bool FeatureFindingMetabo::isLegalIsotopePattern2_(FeatureHypothesis& feat_hypo)
         //            return false;
         //        }
 
-        double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
-        nodes[i - 1].value = tmp_val;
+      double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
+      nodes[i - 1].value = tmp_val;
     }
 
 
     for (; i < FEAT_NUM + 1; ++i)
     {
-        nodes[i - 1].index = i;
+      nodes[i - 1].index = static_cast<Int>(i);
         nodes[i - 1].value = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
     }
 

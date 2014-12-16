@@ -907,7 +907,7 @@ namespace OpenMS
       //            }
 
       // enter protein variable
-      indices_vec.push_back(protein_variable_index_map[map_iter->first]);
+      indices_vec.push_back(static_cast<Int>(protein_variable_index_map[map_iter->first]));
       entries.push_back(1.);
 
       Int i = distance(pt_prot_map.begin(), map_iter);
@@ -1095,13 +1095,13 @@ namespace OpenMS
 #endif
         IndexTriple triple;
         triple.feature = i;
-        triple.scan = s;
+        triple.scan = static_cast<Int>(s);
         Size index = model_->addColumn();
         triple.variable = index;
         variable_indices.push_back(triple);
-        model_->setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
-        model_->setColumnType(index, LPWrapper::BINARY); // binary variable
-        model_->setColumnName(index, (String("x_") + i + "," + s).c_str());
+        model_->setColumnBounds(static_cast<Int>(index), 0, 1, LPWrapper::DOUBLE_BOUNDED);
+        model_->setColumnType(static_cast<Int>(index), LPWrapper::BINARY); // binary variable
+        model_->setColumnName(static_cast<Int>(index), (String("x_") + i + "," + s).c_str());
 #ifdef DEBUG_OPS
         std::cout << "feat " << i << " scan " << s << " "
                   << intensity_weights[i][c] << " msms_score "
@@ -1110,7 +1110,7 @@ namespace OpenMS
                   << " other obj.: " << intensity_weights[i][c] * msms_score / max_int
                   << std::endl;
 #endif
-        model_->setObjective(index, intensity_weights[i][c] * (double)features[i].getMetaValue("msms_score"));
+        model_->setObjective(static_cast<Int>(index), intensity_weights[i][c] * (double)features[i].getMetaValue("msms_score"));
         ++counter;
         if (msms_score > max_int)
           max_int = msms_score;
@@ -1145,7 +1145,9 @@ namespace OpenMS
     // 3: add step size constraint
     ///////////////////////////////////////////////////////////////////////
     if (step_size > 0)
-      addStepSizeConstraint_(variable_indices, step_size);
+    {
+      addStepSizeConstraint_(variable_indices, static_cast<UInt>(step_size));
+    }
     solveILP(solution_indices);
   }
 
@@ -1214,7 +1216,7 @@ namespace OpenMS
     std::vector<Int> indices(variable_indices.size());
     for (Size i = 0; i < variable_indices.size(); ++i)
     {
-      indices[i] = i;
+      indices[i] = static_cast<Int>(i);
     }
 #ifdef DEBUG_OPS
     std::cout << "\nadd row " << std::endl;
@@ -1274,7 +1276,7 @@ namespace OpenMS
           if (variable_indices[f_v_idx].scan == rt_index)
           {
             existing = true;
-            model_->setColumnBounds(variable_indices[f_v_idx].variable, 1., model_->getColumnUpperBound(variable_indices[f_v_idx].variable), LPWrapper::FIXED);
+            model_->setColumnBounds(static_cast<Int>(variable_indices[f_v_idx].variable), 1., model_->getColumnUpperBound(static_cast<Int>(variable_indices[f_v_idx].variable)), LPWrapper::FIXED);
 #ifdef DEBUG_OPS
             std::cout << "set column lower from " << model_->getColumnName(variable_indices[f_v_idx].variable)
                       << " to " << model_->getColumnLowerBound(variable_indices[f_v_idx].variable) << std::endl;
@@ -1314,7 +1316,7 @@ namespace OpenMS
       if (fabs(model_->getColumnValue(indexes[i]) - 1.) < 0.001)
         ++count;
     }
-    return count;
+    return static_cast<Int>(count);
   }
 
   void PSLPFormulation::updateRTConstraintsForSequentialILP(Size& rt_index, UInt ms2_spectra_per_rt_bin, Size max_rt_index)
@@ -1409,7 +1411,7 @@ namespace OpenMS
                   // or only the ones with rt-weight > min_rt_weight
                   while (f_v_idx < variable_indices_copy.size() && f == variable_indices_copy[f_v_idx].feature)
                   {
-                    if (model_->getObjective(f_v_idx) < 0.00000001)
+                    if (model_->getObjective(static_cast<Int>(f_v_idx)) < 0.00000001)
                     {
                       ++f_v_idx;
                       continue;
@@ -1417,7 +1419,7 @@ namespace OpenMS
                     double dt = map_iter->second[p];
                     // weight is detectability * rt_weight
                     double weight = dt * rt_weight;
-                    double obj = model_->getObjective(f_v_idx);
+                    double obj = model_->getObjective(static_cast<Int>(f_v_idx));
 #ifdef DEBUG_OPS
                     std::cout << features[f].getMZ() << " "
                               << features[f].getRT() << " "
@@ -1430,10 +1432,10 @@ namespace OpenMS
 #endif
                     if (log_weight * weight >  obj && obj > 0.)
                     {
-                      model_->setObjective(f_v_idx, 0.001);
+                      model_->setObjective(static_cast<Int>(f_v_idx), 0.001);
                     }
                     else
-                      model_->setObjective(f_v_idx, obj - weight * log_weight);
+                      model_->setObjective(static_cast<Int>(f_v_idx), obj - weight * log_weight);
 #ifdef DEBUG_OPS
                     std::cout << " -> " << model_->getObjective(f_v_idx) << " columnname: " << model_->getColumnName(f_v_idx) << std::endl;
 #endif
@@ -1501,14 +1503,14 @@ namespace OpenMS
 #ifdef DEBUG_OPS
         std::cout << protein_accs[pa] << " index " << row << " " << model_->getElement(row, index) << std::endl;
 #endif
-        if (model_->getElement(row, index) != 0.)
+        if (model_->getElement(row, static_cast<Int>(index)) != 0.)
         {
           const double weight = 1.;
           //                            std::cout << "getElement("<<protein_accs[pa]<<","<<index<<")="
           //                                                << cmodel_->getElement(row,index) << "\t";
           if (fabs(pep_score * weight - 1.) < 0.000001)
           {
-            model_->setElement(row, index, -log(0.000001) / log(1. - min_prot_coverage)); // pseudocount to prevent entering inf
+            model_->setElement(row, static_cast<Int>(index), -log(0.000001) / log(1. - min_prot_coverage)); // pseudocount to prevent entering inf
 #ifdef DEBUG_OPS
             std::cout << protein_accs[pa] << " setElement(" << row << "," << model_->getColumnName(index) << "=  "
                       << model_->getElement(row, index) << std::endl;
@@ -1516,7 +1518,7 @@ namespace OpenMS
           }
           else
           {
-            model_->setElement(row, index, -log(1. - pep_score * weight) / log(1. - min_prot_coverage));
+            model_->setElement(row, static_cast<Int>(index), -log(1. - pep_score * weight) / log(1. - min_prot_coverage));
 #ifdef DEBUG_OPS
             std::cout << protein_accs[pa] << " setElement(" << row << "," << model_->getColumnName(index) << "=  " << model_->getElement(row, index) << std::endl;
 #endif
@@ -1830,14 +1832,14 @@ namespace OpenMS
         while (f_v_idx2 < variable_indices.size() && f_index == variable_indices[f_v_idx2].feature)
         {
           index = variable_indices[f_v_idx2].variable;
-          if (model_->getElement(row, index) != 0.)
+          if (model_->getElement(row, static_cast<Int>(index)) != 0.)
           {
             updated_constraints.insert(protein_accs[pa]);
 #ifdef DEBUG_OPS
             std::cout << "getElement(" << protein_accs[pa] << "," << index << ")="
                       << model_->getElement(row, index) << "\t";
 #endif
-            model_->setElement(row, index, 0.);
+            model_->setElement(row, static_cast<Int>(index), 0.);
 #ifdef DEBUG_OPS
             std::cout << "getElement(" << protein_accs[pa] << "," << index << ")="
                       << model_->getElement(row, index) << "\n";

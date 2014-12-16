@@ -501,7 +501,7 @@ namespace OpenMS
       hit.setScore(it->second[0]);
       hit.setMetaValue("similarity", it->second[1]);
       hit.setMetaValue("Number of annotations", it->second[2]);
-      hit.setCharge(it->second[3]);
+      hit.setCharge(static_cast<Int>(it->second[3]));
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;
@@ -666,7 +666,7 @@ namespace OpenMS
       hit.setScore(it->second[0]);
       hit.setMetaValue("similarity", it->second[1]);
       hit.setMetaValue("Number of annotations", it->second[2]);
-      hit.setCharge(it->second[3]);
+      hit.setCharge(static_cast<Int>(it->second[3]));
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;

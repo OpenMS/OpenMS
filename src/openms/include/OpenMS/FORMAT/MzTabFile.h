@@ -44,8 +44,8 @@
 
 namespace OpenMS
 {
-  struct String;
-  struct SVOutStream;
+  class String;
+  class SVOutStream;
 /**
     @brief File adapter for MzTab files
 
