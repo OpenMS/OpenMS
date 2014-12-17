@@ -53,7 +53,7 @@ namespace OpenMS
   /**
     @brief In-Memory representation of a mass spectrometry experiment.
 
-    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS). This representation of an MS experiment is organized as list of spectra and chromatograms and provides an in-memory representation of popular mass-spectrometric file formats such as mzXML or mzML. The meta-data associated with an experiment is contained in ExperimentalSettings (by inheritance) while the raw data (as well as spectra and chromatogram level meta data) is stored in objects of type MSSpectrum and MSChromatogram which are accessible through the getSpectrum and getChromatogam functions.
+    Contains the data and metadata of an experiment performed with an MS (or HPLC and MS). This representation of an MS experiment is organized as list of spectra and chromatograms and provides an in-memory representation of popular mass-spectrometric file formats such as mzXML or mzML. The meta-data associated with an experiment is contained in ExperimentalSettings (by inheritance) while the raw data (as well as spectra and chromatogram level meta data) is stored in objects of type MSSpectrum and MSChromatogram, which are accessible through the getSpectrum and getChromatogram functions.
 
     Be careful when changing the order of contained MSSpectrum instances, if tandem-MS data is
     stored in this class. The only way to find a precursor spectrum of MSSpectrum x is to
@@ -748,26 +748,26 @@ public:
       std::swap(total_size_, from.total_size_);
     }
 
-    /// sets the spectra list
+    /// sets the spectrum list
     void setSpectra(const std::vector<MSSpectrum<PeakT> > & spectra)
     {
       spectra_ = spectra;
     }
 
-    /// adds a spectra to the list
+    /// adds a spectrum to the list
     void addSpectrum(const MSSpectrum<PeakT> & spectrum)
     {
       spectra_.push_back(spectrum);
     }
 
-    /// returns the spectra list
+    /// returns the spectrum list
     const std::vector<MSSpectrum<PeakT> > & getSpectra() const
     {
       return spectra_;
     }
 
-    /// returns the spectra list
-    std::vector<MSSpectrum<PeakT> > & getSpectra() 
+    /// returns the spectrum list (mutable)
+    std::vector<MSSpectrum<PeakT> > & getSpectra()
     {
       return spectra_;
     }
@@ -786,6 +786,12 @@ public:
 
     /// returns the chromatogram list
     const std::vector<MSChromatogram<ChromatogramPeakType> > & getChromatograms() const
+    {
+      return chromatograms_;
+    }
+
+    /// returns the chromatogram list (mutable)
+    std::vector<MSChromatogram<ChromatogramPeakType> > & getChromatograms()
     {
       return chromatograms_;
     }
