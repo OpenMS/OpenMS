@@ -25,6 +25,7 @@ MassCalculator
 MetaboliteSpectralMatcher
 MRMPairFinder
 MSSimulator
+MzMLSplitter
 OpenMSInfo
 PeakPickerIterative
 QCCalculator
