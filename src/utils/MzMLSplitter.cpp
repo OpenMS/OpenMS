@@ -160,7 +160,8 @@ protected:
     for (Size counter = 1; parts > 0; --parts, ++counter)
     {
       ostringstream out_name;
-      out_name << out << "_part" << setw(width) << setfill('0') << counter;
+      out_name << out << "_part" << setw(width) << setfill('0') << counter
+               << ".mzML";
       MSExperiment<> part = experiment;
       addDataProcessing_(part, getProcessingInfo_(DataProcessing::FILTERING));
 
