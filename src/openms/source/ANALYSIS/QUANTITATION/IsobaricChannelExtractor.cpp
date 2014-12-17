@@ -58,7 +58,7 @@ namespace OpenMS
 
     // find the first ms1 scan in the experiment
     followUpScan = baseExperiment.begin();
-    while (followUpScan->getMSLevel() != 1 && followUpScan != baseExperiment.end())
+    while (followUpScan != baseExperiment.end() && followUpScan->getMSLevel() != 1)
     {
       ++followUpScan;
     }
@@ -70,13 +70,14 @@ namespace OpenMS
   void IsobaricChannelExtractor::PuritySate_::advanceFollowUp(const double rt)
   {
     // advance follow up scan until we found a ms1 scan with a bigger RT
+    if (followUpScan != baseExperiment.end()) ++followUpScan;
     while (followUpScan != baseExperiment.end())
     {
-      ++followUpScan;
       if (followUpScan->getMSLevel() == 1 && followUpScan->getRT() > rt)
       {
         break;
       }
+      ++followUpScan;
     }
 
     // check if we found one

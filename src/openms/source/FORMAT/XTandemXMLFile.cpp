@@ -174,104 +174,55 @@ namespace OpenMS
       double delta(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("delta"))))).toDouble());
       hit.setMetaValue("delta", delta);
 
-      // try to get a, b, c, x, y, z score. If no available catch exception, but no handling necessary.
-      try
-      {
-        double a_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("a_score"))))).toDouble());
-        hit.setMetaValue("a_score", a_score);
-        int a_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("a_ions"))))).toInt());
-        hit.setMetaValue("a_ions", a_ions);
-      }
-      catch (...)
-      {
-      }
+      // try to get a, b, c, x, y, z score (optional)
+      String att_str;
+      if (optionalAttributeAsString_(att_str, attributes, "a_score")) hit.setMetaValue("a_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "a_ions")) hit.setMetaValue("a_ions", att_str.toInt());
+      
+      if (optionalAttributeAsString_(att_str, attributes, "b_score")) hit.setMetaValue("b_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "b_ions")) hit.setMetaValue("b_ions", att_str.toInt());
 
-      try
-      {
-        double b_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("b_score"))))).toDouble());
-        hit.setMetaValue("b_score", b_score);
-        int b_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("b_ions"))))).toInt());
-        hit.setMetaValue("b_ions", b_ions);
-      }
-      catch (...)
-      {
-      }
+      if (optionalAttributeAsString_(att_str, attributes, "c_score")) hit.setMetaValue("c_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "c_ions")) hit.setMetaValue("c_ions", att_str.toInt());
 
-      try
-      {
-        double c_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("c_score"))))).toDouble());
-        hit.setMetaValue("c_score", c_score);
-        int c_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("c_ions"))))).toInt());
-        hit.setMetaValue("c_ions", c_ions);
-      }
-      catch (...)
-      {
-      }
+      if (optionalAttributeAsString_(att_str, attributes, "x_score")) hit.setMetaValue("x_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "x_ions")) hit.setMetaValue("x_ions", att_str.toInt());
 
-      try
-      {
-        double x_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("x_score"))))).toDouble());
-        hit.setMetaValue("x_score", x_score);
-        int x_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("x_ions"))))).toInt());
-        hit.setMetaValue("x_ions", x_ions);
-      }
-      catch (...)
-      {
-      }
+      if (optionalAttributeAsString_(att_str, attributes, "y_score")) hit.setMetaValue("y_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "y_ions")) hit.setMetaValue("y_ions", att_str.toInt());
 
-      try
-      {
-        double y_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("y_score"))))).toDouble());
-        hit.setMetaValue("y_score", y_score);
-        int y_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("y_ions"))))).toInt());
-        hit.setMetaValue("y_ions", y_ions);
-      }
-      catch (...)
-      {
-      }
-
-      try
-      {
-        double z_score(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("z_score"))))).toDouble());
-        hit.setMetaValue("z_score", z_score);
-        int z_ions(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("z_ions"))))).toInt());
-        hit.setMetaValue("z_ions", z_ions);
-      }
-      catch (...)
-      {
-      }
+      if (optionalAttributeAsString_(att_str, attributes, "z_score")) hit.setMetaValue("z_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "z_ions")) hit.setMetaValue("z_ions", att_str.toInt());
 
       // get sequence of peptide
-      String seq(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("seq")))));
+      String seq = attributeAsString_(attributes, "seq");
       hit.setSequence(AASequence::fromString(seq));
 
       // get amino acid before
-      String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
+      String pre = attributeAsString_(attributes, "pre");
       if (!pre.empty())
       {
-        pe.setAABefore(pre[pre.size() - 1]);
+        pe.setAABefore(pre[pre.size()-1]);
       }
 
       // get amino acid after
-      String post(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("post")))));
+      String post = attributeAsString_(attributes, "post");
       if (!post.empty())
       {
         pe.setAAAfter(post[0]);
       }
 
       // get expectation value
-      double expect(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
-      hit.setMetaValue("E-Value", expect);
+      String expect = attributeAsString_(attributes, "expect");
+      hit.setMetaValue("E-Value", expect.toDouble());
 
       // get precursor m/z
       //double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
       //hit.setMetaValue("MZ", mh); // not needed, set by the XTandem Adapter itself
 
       // spectrum id
-      String id_string(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("id")))));
-      vector<String> split;
-      id_string.split('.', split);
-      UInt id(split[0].toInt());
+      String id_string = attributeAsString_(attributes, "id");
+      UInt id(id_string.prefix('.').toInt());
       // hit.setMetaValue("RT_index", id);
       actual_id_ = id;
 
