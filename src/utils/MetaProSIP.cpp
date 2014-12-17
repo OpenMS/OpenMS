@@ -1593,13 +1593,20 @@ public:
         xic[*sit] = 0;
       }
 
-      double mz_da = mz_toelrance_ppm * xic_mzs[i] / 1e6; // mz tolerance in Dalton
+      double mz_da = mz_toelrance_ppm * xic_mzs[i] * 1e-6; // mz tolerance in Dalton
       MSExperiment<>::ConstAreaIterator it = peak_map.areaBeginConst(seed_rt - rt_tolerance_s, seed_rt + rt_tolerance_s, xic_mzs[i] - mz_da, xic_mzs[i] + mz_da);
 
       for (; it != peak_map.areaEndConst(); ++it)
       {
         double rt = it.getRT();
-        xic[rt] += it->getIntensity();
+        if (xic.find(rt) != xic.end())
+        {
+          xic[rt] += it->getIntensity();
+        }
+        else
+        {
+          LOG_WARN << "RT: " << rt << " not contained in rt set." << endl;
+        }
       }
 
       // copy map to vector for easier processing
@@ -2159,7 +2166,10 @@ protected:
     double best_rate, best_score;
     getBestRateScorePair(map_rate_to_decomposition_weight, best_rate, best_score);
 
-    //  cout << "best rate+score: " << best_rate << " " << best_score << endl;
+    if (debug_level_ >= 10)
+    {
+      LOG_DEBUG << "best rate + score: " << best_rate << " " << best_score << endl;
+    }
 
     // normalize weights to max(weights)=1
     MapRateToScoreType map_weights_norm(map_rate_to_decomposition_weight);
@@ -2350,17 +2360,21 @@ protected:
         }
         else
         {
-          cout << "warning: prevented adding of 0 abundance decomposition at rate " << rate << endl;
-          cout << "decomposition: " << endl;
-          for (MapRateToScoreType::const_iterator it = map_rate_to_decomposition_weight.begin(); it != map_rate_to_decomposition_weight.end(); ++it)
+          if (debug_level_ > 1)
           {
-            cout << it->first << " " << it->second << endl;
+            LOG_WARN << "warning: prevented adding of 0 abundance decomposition at rate " << rate << endl;
+            LOG_WARN << "decomposition: " << endl;
+            for (MapRateToScoreType::const_iterator it = map_rate_to_decomposition_weight.begin(); it != map_rate_to_decomposition_weight.end(); ++it)
+            {
+              LOG_WARN << it->first << " " << it->second << endl;
+            }
+            LOG_WARN << "correlation: " << endl;
+            for (MapRateToScoreType::const_iterator it = map_rate_to_correlation_score.begin(); it != map_rate_to_correlation_score.end(); ++it)
+            {
+              LOG_WARN << it->first << " " << it->second << endl;
+            }
           }
-          cout << "correlation: " << endl;
-          for (MapRateToScoreType::const_iterator it = map_rate_to_correlation_score.begin(); it != map_rate_to_correlation_score.end(); ++it)
-          {
-            cout << it->first << " " << it->second << endl;
-          }
+
         }
       }
     }
@@ -2868,8 +2882,16 @@ protected:
       {
         pep_ids[i].assignRanks();
         const vector<PeptideHit>& hits = pep_ids[i].getHits();
-        tmp_pepid.insertHit(hits[0]);
+        if (!hits.empty())
+        {
+          tmp_pepid.insertHit(hits[0]);
+        }
+        else
+        {
+          LOG_WARN << "Empty peptide hit encountered on feature. Ignoring." << endl;
+        }
       }
+
       tmp_pepid.assignRanks();
 
       SIPPeptide sip_peptide;
@@ -2899,6 +2921,11 @@ protected:
         feature_hit_aaseq = AASequence();
         feature_hit_seq = String("");
         feature_hit_theoretical_mz = feature_hit_center_mz;
+      }
+
+      if (debug_level_ > 1)
+      {
+        LOG_DEBUG << "Feature type: (" << sip_peptide.feature_type << ") Seq.: " << feature_hit_seq << " m/z: " << feature_hit_theoretical_mz << endl;
       }
 
       const set<String> protein_accessions = feature_hit.extractProteinAccessions();
@@ -2934,8 +2961,19 @@ protected:
       }
 
       // collect 13C / 15N peaks
+      if (debug_level_ >= 10)
+      {
+        LOG_DEBUG << "Extract XICs" << endl;
+      }
+
       vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
       double TIC = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0.0);
+
+      // collect 13C / 15N peaks
+      if (debug_level_ >= 10)
+      {
+        LOG_DEBUG << "TIC of XICs: " << TIC << endl;
+      }
 
       // no Peaks collected
       if (TIC < 1e-4)
