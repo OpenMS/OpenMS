@@ -1042,6 +1042,17 @@ START_SECTION((const std::vector<MSChromatogram<ChromatogramPeakType> >& getChro
 	NOT_TESTABLE // tested above
 END_SECTION
 
+START_SECTION((std::vector<MSChromatogram<ChromatogramPeakType> >& getChromatograms()))
+  MSExperiment<> exp;
+  vector<MSChromatogram<> > chromatograms(2);
+  exp.getChromatograms().swap(chromatograms);
+  TEST_EQUAL(exp.getChromatograms().size(), 2);
+  TEST_EQUAL(chromatograms.size(), 0);
+  exp.getChromatograms().swap(chromatograms);
+  TEST_EQUAL(exp.getChromatograms().size(), 0);
+  TEST_EQUAL(chromatograms.size(), 2);
+END_SECTION
+
 START_SECTION((const MSChromatogram<ChromatogramPeakType> getTIC() const))
   MSExperiment<> tmp;
   tmp.resize(2);
