@@ -265,8 +265,8 @@ namespace OpenMS
   {
 
     int min_index = 0;
-    int max_index = (*packages_).size() - 1;
-    int i = last_package_;
+    int max_index = static_cast<Int>((*packages_).size()) - 1;
+    int i = static_cast<Int>(last_package_);
     SplinePackage package = (*packages_)[i];
 
     // find correct package

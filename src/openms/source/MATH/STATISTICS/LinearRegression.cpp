@@ -107,7 +107,7 @@ namespace OpenMS
 
     void LinearRegression::computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P)
     {
-      unsigned N = points.size();
+      unsigned N = static_cast<unsigned>(points.size());
       std::vector<double> X; X.reserve(N);
       std::vector<double> Y; Y.reserve(N);
       for (unsigned i = 0; i < N; ++i)

@@ -75,7 +75,7 @@ namespace OpenMS
         {
           points.push_back(Wm5::Vector2d(data.at(i).first, data.at(i).second));
         }
-        if (!Wm5::HeightLineFit2<double>(size, &points.front(), slope_, intercept_))
+        if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
         {
           throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
         }

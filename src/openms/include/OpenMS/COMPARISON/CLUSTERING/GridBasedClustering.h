@@ -178,7 +178,7 @@ namespace OpenMS
     void cluster()
     {
       // progress logger
-      unsigned clusters_start = clusters_.size();
+      Size clusters_start = clusters_.size();
       startProgress(0, clusters_start, "clustering");
       
       MinimumDistance zero_distance(-1, -1, 0);

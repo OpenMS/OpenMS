@@ -99,7 +99,7 @@ public:
     {
       if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) 0) delete interpolator_;
       // re-construct a new interpolator
-      interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(x.size(), &x.front(), &y.front());
+      interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
 
     double eval(const double& x) const

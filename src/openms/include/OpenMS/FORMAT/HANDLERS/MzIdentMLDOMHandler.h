@@ -110,9 +110,9 @@ public:
       //@}
 
       /// Provides the functionality of reading a mzid with a handler object
-      void readMzIdentMLFile(const std::string& mzid_file) throw(std::runtime_error);
+      void readMzIdentMLFile(const std::string& mzid_file);
       /// Provides the functionality to write a mzid with a handler object
-      void writeMzIdentMLFile(const std::string& mzid_file) throw(std::runtime_error);
+      void writeMzIdentMLFile(const std::string& mzid_file);
 
 protected:
       /// Progress logger
