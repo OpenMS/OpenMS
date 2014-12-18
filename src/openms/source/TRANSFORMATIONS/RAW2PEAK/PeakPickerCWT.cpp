@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
@@ -821,38 +822,32 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "fit at the peak maximum " << std::endl;
 #endif
-      // determine the left half of the area of the PeakArea_...
+      // determine the left half of the peak area
       double peak_area_left = 0.;
-      //                peak_area_left += area.left->getIntensity();
+      // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
       peak_area_left += area.left->getIntensity() * ((area.left + 1)->getMZ() - area.left->getMZ()) * 0.5;
       peak_area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max - 1)->getMZ()) * 0.5;
-
-      for (PeakIterator pi = area.left + 1; pi < area.max; pi++)
+      for (PeakIterator pi = area.left + 1; pi < area.max; ++pi)
       {
         double step = ((pi)->getMZ() - (pi - 1)->getMZ());
         peak_area_left += step * pi->getIntensity();
-        // peak_area_left += pi->getIntensity();
       }
 
+      // same with right side
+      // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
       double peak_area_right = 0.;
-      //                peak_area_right += area.right->getIntensity();
-      //                peak_area_right += area.max->getIntensity();
       peak_area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right - 1)->getMZ()) * 0.5;
       peak_area_right += area.max->getIntensity() *  ((area.max + 1)->getMZ() - (area.max)->getMZ()) * 0.5;
-
-      for (PeakIterator pi = area.max + 1; pi < area.right; pi++)
+      for (PeakIterator pi = area.max + 1; pi < area.right; ++pi)
       {
         double step = ((pi)->getMZ() - (pi - 1)->getMZ());
         peak_area_right += step * pi->getIntensity();
-        //                      peak_area_right += pi->getIntensity();
       }
 
-      // first the lorentz-peak...
-
+      // first the Lorentz peak ...
+      // (see equation 8.14 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*arctan(...) )
       double left_width = max_intensity / peak_area_left * atan(sqrt(max_intensity / left_intensity - 1.));
       double right_width = max_intensity / peak_area_right * atan(sqrt(max_intensity / right_intensity - 1.));
-
-
 
       PeakShape lorentz(max_intensity, area.max->getMZ(),
                         left_width, right_width, peak_area_left + peak_area_right,
@@ -860,10 +855,10 @@ namespace OpenMS
 
       lorentz.r_value = correlate_(lorentz, area);
 
-      // now the sech-peak...
+      // now the Sech2 peak ...
+      // (see equation 8.17 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*sqrt(...) )
       left_width  = max_intensity / peak_area_left * sqrt(1. - left_intensity / max_intensity);
       right_width  = max_intensity / peak_area_right * sqrt(1. - right_intensity / max_intensity);
-
 
       PeakShape sech(max_intensity, area.max->getMZ(),
                      left_width, right_width,
@@ -881,7 +876,8 @@ namespace OpenMS
       std::cout << "h: " << lorentz.height << std::endl;
 #endif
 
-      if ((lorentz.r_value > sech.r_value) && boost::math::isnan(sech.r_value))
+      // take shape with higher correlation (Sech2 can be NaN, so Lorentzian might be the only option)
+      if ((lorentz.r_value > sech.r_value) || boost::math::isnan(sech.r_value))
       {
         return lorentz;
       }
@@ -1181,11 +1177,9 @@ namespace OpenMS
   }
 
   double PeakPickerCWT::correlate_(const PeakShape & peak,
-                                       const PeakPickerCWT::PeakArea_ & area,
-                                       Int direction) const
+                                   const PeakPickerCWT::PeakArea_ & area,
+                                   Int direction) const
   {
-    double SSxx = 0., SSyy = 0., SSxy = 0.;
-
     // compute the averages
     double data_average = 0., fit_average = 0.;
     double data_sqr = 0., fit_sqr = 0.;
@@ -1201,7 +1195,7 @@ namespace OpenMS
     else if (direction < 0)
       corr_begin = area.max;
 
-    for (PeakIterator pi = corr_begin; pi <= corr_end; pi++)
+    for (PeakIterator pi = corr_begin; pi <= corr_end; ++pi)
     {
       double data_val = pi->getIntensity();
       double peak_val = peak(pi->getMZ());
@@ -1214,7 +1208,7 @@ namespace OpenMS
 
       cross += data_val * peak_val;
 
-      number_of_points++;
+      ++number_of_points;
     }
 
     if (number_of_points == 0)
@@ -1223,10 +1217,10 @@ namespace OpenMS
     data_average /= number_of_points;
     fit_average  /= number_of_points;
 
-    SSxx = data_sqr - number_of_points * (data_average * data_average);
-    SSyy = fit_sqr - number_of_points * (fit_average * fit_average);
-    SSxy = cross - number_of_points * (data_average * fit_average);
-
+    double SSxx = data_sqr - number_of_points * (data_average * data_average);
+    double SSyy = fit_sqr - number_of_points * (fit_average * fit_average);
+    double SSxy = cross - number_of_points * (data_average * fit_average);
+    // using r^2 = cov(x,y) / (var(x) * var(y))
     return (SSxy * SSxy) / (SSxx * SSyy);
   }
 
@@ -1412,7 +1406,7 @@ namespace OpenMS
           // << area.right->getPosition()
           // << std::endl;
           // #endif
-          // determine the best fitting lorezian or sech2 function
+          // determine the best fitting Lorentzian or sech2 function
           PeakShape shape = fitPeakShape_(area, centroid_fit);
           shape.setLeftEndpoint((input.begin() + distance(raw_peak_array.begin(), area.left)));
           shape.setRightEndpoint((input.begin() + distance(raw_peak_array.begin(), area.right)));
@@ -1426,6 +1420,13 @@ namespace OpenMS
           {
             shape.signal_to_noise = sne.getSignalToNoise(area.max);
             peak_shapes.push_back(shape);
+            /*
+            // sample the fitted shape
+            for (PeakIterator pi = area.left; pi != area.right; ++pi)
+            {
+              Peak1D p(pi->getMZ(), shape(pi->getMZ()));
+              output.push_back(p);
+            }*/
             ++number_of_peaks;
           }
           else
@@ -1439,7 +1440,7 @@ namespace OpenMS
 
         // remove the peak from the signal
         // TODO: does this work as expected???
-        for (PeakIterator pi = area.left; pi != area.right + 1; pi++)
+        for (PeakIterator pi = area.left; pi != area.right + 1; ++pi)
         {
           pi->setIntensity(0.);
         }
@@ -1471,9 +1472,9 @@ namespace OpenMS
       sort(peak_shapes.begin(), peak_shapes.end(), PeakShape::PositionLess());
       std::set<UInt> peaks_to_skip;
       // search for broad or asymmetric peaks
-      UInt n = (UInt) peak_shapes.size();
       if (deconvolution_)
       {
+        UInt n = (UInt) peak_shapes.size();
         for (UInt i = 0; i < n; ++i)
         {
           if ((peak_shapes[i].getFWHM() > fwhm_threshold)
@@ -1555,7 +1556,7 @@ namespace OpenMS
                   double dist = 1.00235;
                   //check charge 1 or 2
                   bool dist_ok = ((fabs(dist - dist_right) < 0.21) || (fabs(dist / 2. - dist_right) < 0.11)) ? true : false;
-                  // distance complies peptide mass rule
+                  // distance complies with peptide mass rule
                   if (dist_ok)
                   {
 #ifdef DEBUG_DECONV

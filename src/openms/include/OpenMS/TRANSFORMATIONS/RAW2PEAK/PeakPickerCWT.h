@@ -36,7 +36,6 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERCWT_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
@@ -48,6 +47,8 @@
 //#define DEBUG_DECONV
 namespace OpenMS
 {
+  class PeakShape;
+
   /**
          @brief This class implements a peak picking algorithm using wavelet techniques
 

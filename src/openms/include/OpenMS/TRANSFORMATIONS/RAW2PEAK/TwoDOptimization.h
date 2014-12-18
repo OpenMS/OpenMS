@@ -857,8 +857,6 @@ protected:
                           spec.getFloatDataArrays()[3][peak_index], //left width
                           spec.getFloatDataArrays()[4][peak_index], //right width
                           spec[peak_index].getIntensity(), //area is stored in peak intensity
-                          std::vector<Peak1D>::iterator(),
-                          std::vector<Peak1D>::iterator(),
                           PeakShape::Type(Int(spec.getFloatDataArrays()[5][peak_index]))); //shape
           peak_shapes.push_back(shape);
           ++set_iter;
