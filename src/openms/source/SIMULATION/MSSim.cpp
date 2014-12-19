@@ -155,6 +155,10 @@ namespace OpenMS
         }
         delete(labeler);
       }
+      else
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This labeler returned by the Factory is invalid!", product_name->c_str()); 
+      }
     }
 
     return tmp;

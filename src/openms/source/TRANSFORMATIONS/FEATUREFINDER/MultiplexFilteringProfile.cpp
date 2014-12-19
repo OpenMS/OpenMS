@@ -144,7 +144,7 @@ namespace OpenMS
 
       // iterate over spectra
       MSExperiment<Peak1D>::Iterator it_rt_profile;
-      MSExperiment<Peak1D>::Iterator it_rt_picked;
+      MSExperiment<Peak1D>::ConstIterator it_rt_picked;
       vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
       for (it_rt_profile = exp_profile_.begin(), it_rt_picked = exp_picked_.begin(), it_rt_boundaries = boundaries_.begin();
            it_rt_profile < exp_profile_.end() && it_rt_picked < exp_picked_.end() && it_rt_boundaries < boundaries_.end();
@@ -169,7 +169,7 @@ namespace OpenMS
         vector<double> peak_min;
         vector<double> peak_max;
         vector<double> peak_intensity;
-        MSSpectrum<Peak1D>::Iterator it_mz;
+        MSSpectrum<Peak1D>::ConstIterator it_mz;
         vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
         for (it_mz = it_rt_picked->begin(), it_mz_boundary = it_rt_boundaries->begin();
              it_mz < it_rt_picked->end() && it_mz_boundary < it_rt_boundaries->end();
