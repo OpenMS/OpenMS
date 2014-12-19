@@ -172,7 +172,7 @@ namespace OpenMS
         MSSpectrum<Peak1D>::Iterator it_mz;
         vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
         for (it_mz = it_rt_picked->begin(), it_mz_boundary = it_rt_boundaries->begin();
-             it_mz < it_rt_picked->end(), it_mz_boundary < it_rt_boundaries->end();
+             it_mz < it_rt_picked->end() && it_mz_boundary < it_rt_boundaries->end();
              ++it_mz, ++it_mz_boundary)
         {
           peak_position.push_back(it_mz->getMZ());
@@ -423,7 +423,7 @@ namespace OpenMS
     MSSpectrum<Peak1D>::ConstIterator it_mz;
     vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
     for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
-         it_mz < it_rt->end(), it_mz_boundaries < it_rt_boundaries->end();
+         it_mz < it_rt->end() && it_mz_boundaries < it_rt_boundaries->end();
          ++it_mz, ++it_mz_boundaries)
     {
       if (mz >= scaling * (*it_mz_boundaries).mz_min + (1 - scaling) * it_mz->getMZ() &&

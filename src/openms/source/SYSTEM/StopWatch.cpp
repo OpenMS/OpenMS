@@ -243,8 +243,8 @@ namespace OpenMS
   //accumulated time + the time since the stop_watch was last started.
   double StopWatch::getClockTime() const
   {
-    PointerSizeInt elapsed_seconds;
-    PointerSizeInt elapsed_useconds;
+    PointerSizeInt elapsed_seconds = 0;
+    PointerSizeInt elapsed_useconds = 0;
 
     if (is_running_ == false)
     {

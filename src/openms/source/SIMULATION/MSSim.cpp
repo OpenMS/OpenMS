@@ -144,14 +144,17 @@ namespace OpenMS
     for (vector<String>::iterator product_name = products.begin(); product_name != products.end(); ++product_name)
     {
       BaseLabeler* labeler = Factory<BaseLabeler>::create(*product_name);
-      tmp.insert("Labeling:" + *product_name + ":", labeler->getDefaultParameters());
-      if (!tmp.copy("Labeling:" + *product_name).empty())
+      if (labeler)
       {
-        // if parameters of labeler are empty, the section will not exist and
-        // the command below would fail
-        tmp.setSectionDescription("Labeling:" + *product_name, labeler->getDescription());
+        tmp.insert("Labeling:" + *product_name + ":", labeler->getDefaultParameters());
+        if (!tmp.copy("Labeling:" + *product_name).empty())
+        {
+          // if parameters of labeler are empty, the section will not exist and
+          // the command below would fail
+          tmp.setSectionDescription("Labeling:" + *product_name, labeler->getDescription());
+        }
+        delete(labeler);
       }
-      delete(labeler);
     }
 
     return tmp;

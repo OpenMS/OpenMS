@@ -716,8 +716,7 @@ namespace OpenMS
     }
   }
 
-  svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>& problems,
-                                           Size                                            except)
+  svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>& problems, Size except)
   {
     svm_problem* merged_problem = NULL;
 
