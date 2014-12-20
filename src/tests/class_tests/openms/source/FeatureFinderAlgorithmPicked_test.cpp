@@ -54,11 +54,11 @@ using namespace OpenMS;
 using namespace OpenMS::Math;
 using namespace std;
 
-typedef FeatureFinderAlgorithmPicked<Peak1D> FFPP;
+typedef FeatureFinderAlgorithmPicked FFPP;
 
 FFPP* ptr = 0;
 FFPP* nullPointer = 0;
-FeatureFinderAlgorithm<Peak1D>* ffA_nullPointer = 0;
+FeatureFinderAlgorithm* ffA_nullPointer = 0;
 
 START_SECTION((FeatureFinderAlgorithmPicked()))
 	ptr = new FFPP;
@@ -69,13 +69,8 @@ START_SECTION((~FeatureFinderAlgorithmPicked()))
 	delete ptr;
 END_SECTION
 
-START_SECTION([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
-	FeatureFinderAlgorithmPicked<RichPeak1D> ffa;
-	NOT_TESTABLE
-END_SECTION
-
 START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
-	FeatureFinderAlgorithm<Peak1D>* ptr2 = FFPP::create();
+  FeatureFinderAlgorithm* ptr2 = FFPP::create();
   TEST_NOT_EQUAL(ptr2,ffA_nullPointer)
 	delete ptr2;
 END_SECTION

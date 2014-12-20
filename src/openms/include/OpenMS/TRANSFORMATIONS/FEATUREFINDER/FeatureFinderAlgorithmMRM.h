@@ -69,24 +69,23 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  template <class PeakType>
   class FeatureFinderAlgorithmMRM :
-    public FeatureFinderAlgorithm<PeakType>,
+    public FeatureFinderAlgorithm,
     public FeatureFinderDefs
   {
 public:
     ///@name Type definitions
     //@{
-    typedef typename FeatureFinderAlgorithm<PeakType>::MapType MapType;
+    typedef typename FeatureFinderAlgorithm::MapType MapType;
     typedef typename MapType::SpectrumType SpectrumType;
     typedef typename SpectrumType::FloatDataArrays FloatDataArrays;
     //@}
 
-    using FeatureFinderAlgorithm<PeakType>::param_;
-    using FeatureFinderAlgorithm<PeakType>::features_;
-    using FeatureFinderAlgorithm<PeakType>::ff_;
-    using FeatureFinderAlgorithm<PeakType>::defaults_;
-    using FeatureFinderAlgorithm<PeakType>::map_;
+    using FeatureFinderAlgorithm::param_;
+    using FeatureFinderAlgorithm::features_;
+    using FeatureFinderAlgorithm::ff_;
+    using FeatureFinderAlgorithm::defaults_;
+    using FeatureFinderAlgorithm::map_;
 
 public:
 
@@ -99,7 +98,7 @@ public:
 
     /// default constructor
     FeatureFinderAlgorithmMRM() :
-      FeatureFinderAlgorithm<PeakType>()
+      FeatureFinderAlgorithm()
     {
       defaults_.setValue("min_rt_distance", 10.0, "Minimal distance of MRM features in seconds.");
       defaults_.setMinFloat("min_rt_distance", 0.0);
@@ -126,7 +125,7 @@ public:
       //General initialization
       //-------------------------------------------------------------------------
 
-      Map<Size, Map<Size, std::vector<std::pair<double, PeakType> > > > traces;
+      Map<Size, Map<Size, std::vector<std::pair<double, Peak1D> > > > traces;
 
       SignalToNoiseEstimatorMeanIterative<RichPeakSpectrum> sne;
       LinearResampler resampler;
@@ -134,8 +133,8 @@ public:
       // Split the whole map into traces (== MRM transitions)
       ff_->startProgress(0, traces.size(), "Finding features in traces.");
       Size counter(0);
-      //typename Map<Size, Map<Size, std::vector<std::pair<double, PeakType> > > >::const_iterator it1 = traces.begin();
-      //typename Map<Size, std::vector<std::pair<double, PeakType> > >::const_iterator it2;
+      //typename Map<Size, Map<Size, std::vector<std::pair<double, Peak1D> > > >::const_iterator it1 = traces.begin();
+      //typename Map<Size, std::vector<std::pair<double, Peak1D> > >::const_iterator it2;
       double min_rt_distance(param_.getValue("min_rt_distance"));
       double min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
       Size min_num_peaks_per_feature(param_.getValue("min_num_peaks_per_feature"));
@@ -154,7 +153,7 @@ public:
       {
         // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
         RichPeakSpectrum chromatogram;
-        //typename std::vector<std::pair<double, PeakType> >::const_iterator it3 = it2->second.begin();
+        //typename std::vector<std::pair<double, Peak1D> >::const_iterator it3 = it2->second.begin();
         for (MSChromatogram<ChromatogramPeak>::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
         {
           RichPeak1D peak;
@@ -343,10 +342,10 @@ public:
             filter.filter(filter_spec);
 
             // transform the data for fitting and fit RT profile
-            std::vector<PeakType> data_to_fit;
+            std::vector<Peak1D> data_to_fit;
             for (Size j = 0; j != filter_spec.size(); ++j)
             {
-              PeakType p;
+              Peak1D p;
               p.setPosition(filter_spec[j].getMZ());
               p.setIntensity(filter_spec[j].getIntensity());
               data_to_fit.push_back(p);
@@ -436,7 +435,7 @@ public:
       }
     }
 
-    static FeatureFinderAlgorithm<PeakType> * create()
+    static FeatureFinderAlgorithm* create()
     {
       return new FeatureFinderAlgorithmMRM();
     }
@@ -448,7 +447,7 @@ public:
 
 protected:
 
-    double fitRT_(std::vector<PeakType> & rt_input_data, InterpolationModel * & model) const
+    double fitRT_(std::vector<Peak1D> & rt_input_data, InterpolationModel * & model) const
     {
       double quality;
       Param param;

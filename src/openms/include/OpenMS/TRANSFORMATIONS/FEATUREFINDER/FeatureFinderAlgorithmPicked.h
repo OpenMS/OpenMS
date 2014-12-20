@@ -80,25 +80,25 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  template <class PeakType>
   class FeatureFinderAlgorithmPicked :
-    public FeatureFinderAlgorithm<PeakType>,
+    public FeatureFinderAlgorithm,
     public FeatureFinderDefs
   {
 public:
     /// @name Type definitions
     //@{
-    typedef typename FeatureFinderAlgorithm<PeakType>::MapType MapType;
+    typedef typename FeatureFinderAlgorithm::MapType MapType;
     typedef typename MapType::SpectrumType SpectrumType;
     typedef typename SpectrumType::FloatDataArrays FloatDataArrays;
     //@}
 
-    using FeatureFinderAlgorithm<PeakType>::param_;
-    using FeatureFinderAlgorithm<PeakType>::features_;
-    using FeatureFinderAlgorithm<PeakType>::ff_;
-    using FeatureFinderAlgorithm<PeakType>::defaults_;
+    using FeatureFinderAlgorithm::param_;
+    using FeatureFinderAlgorithm::features_;
+    using FeatureFinderAlgorithm::ff_;
+    using FeatureFinderAlgorithm::defaults_;
 
 protected:
+    typedef Peak1D PeakType;
     typedef FeatureFinderAlgorithmPickedHelperStructs::Seed Seed;
     typedef typename FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> MassTrace;
     typedef typename FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> MassTraces;
@@ -108,7 +108,7 @@ protected:
 public:
     /// default constructor
     FeatureFinderAlgorithmPicked() :
-      FeatureFinderAlgorithm<PeakType>(),
+      FeatureFinderAlgorithm(),
       map_(),
       log_()
     {
@@ -264,7 +264,7 @@ public:
       trace_fitter_params.setValue("max_iteration", max_iterations);
 
       //copy the input map
-      map_ = *(FeatureFinderAlgorithm<PeakType>::map_);
+      map_ = *(FeatureFinderAlgorithm::map_);
 
       //flag for user-specified seed mode
       bool user_seeds = (seeds_.size() > 0);
@@ -1087,7 +1087,7 @@ public:
 
     }
 
-    static FeatureFinderAlgorithm<PeakType>* create()
+    static FeatureFinderAlgorithm* create()
     {
       return new FeatureFinderAlgorithmPicked();
     }

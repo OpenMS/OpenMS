@@ -224,7 +224,7 @@ protected:
     results_map.getFileDescriptions()[1].label = "heavy";
     results_map.getFileDescriptions()[1].filename = in;
 
-    FeatureFinderAlgorithmIsotopeWavelet<Peak1D> iso_ff;
+    FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());
     ff_param.setValue("max_charge", 3);
     ff_param.setValue("intensity_threshold", -1.0);

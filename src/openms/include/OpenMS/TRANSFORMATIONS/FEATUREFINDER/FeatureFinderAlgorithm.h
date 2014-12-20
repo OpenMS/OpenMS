@@ -71,13 +71,12 @@ namespace OpenMS
       @brief Abstract base class for FeatureFinder algorithms
 
   */
-  template <class PeakType>
   class FeatureFinderAlgorithm :
     public DefaultParamHandler
   {
 public:
     /// Input map type
-    typedef MSExperiment<PeakType> MapType;
+    typedef MSExperiment<Peak1D> MapType;
     /// Coordinate/Position type of peaks
     typedef typename MapType::CoordinateType CoordinateType;
     /// Intensity type of peaks

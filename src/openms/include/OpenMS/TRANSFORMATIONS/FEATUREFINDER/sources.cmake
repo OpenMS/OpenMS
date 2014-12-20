@@ -20,7 +20,6 @@ FeatureFinderAlgorithmIsotopeWavelet.h
 FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
-FeatureFinderAlgorithm_impl.h
 FeatureFinderDefs.h
 Fitter1D.h
 GaussFitter1D.h

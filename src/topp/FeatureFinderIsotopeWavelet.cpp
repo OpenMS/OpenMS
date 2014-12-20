@@ -124,7 +124,7 @@ protected:
 
   Param getSubsectionDefaults_(const String & /*section*/) const
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmIsotopeWavelet<Peak1D>::getProductName());
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmIsotopeWavelet::getProductName());
   }
 
   ExitCodes main_(int, const char **)
@@ -161,7 +161,7 @@ protected:
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmIsotopeWavelet<Peak1D>::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(FeatureFinderAlgorithmIsotopeWavelet::getProductName(), exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG

@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm_impl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -55,7 +55,7 @@ namespace OpenMS
     Param tmp;
     if (algorithm_name != "none")
     {
-      FeatureFinderAlgorithm<Peak1D> * a = Factory<FeatureFinderAlgorithm<Peak1D> >::create(algorithm_name);
+      FeatureFinderAlgorithm* a = Factory<FeatureFinderAlgorithm>::create(algorithm_name);
       tmp.insert("", a->getDefaultParameters());
       delete(a);
     }
@@ -119,7 +119,7 @@ namespace OpenMS
     // do the work
     if (algorithm_name != "none")
     {
-      FeatureFinderAlgorithm<PeakType> * algorithm = Factory<FeatureFinderAlgorithm<PeakType> >::create(algorithm_name);
+      FeatureFinderAlgorithm* algorithm = Factory<FeatureFinderAlgorithm>::create(algorithm_name);
       algorithm->setParameters(param);
       algorithm->setData(input_map, features, *this);
       algorithm->setSeeds(seeds);

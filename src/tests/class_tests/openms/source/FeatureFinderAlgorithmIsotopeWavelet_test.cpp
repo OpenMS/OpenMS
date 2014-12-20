@@ -43,11 +43,11 @@ using namespace OpenMS;
 using namespace OpenMS::Math;
 using namespace std;
 
-typedef FeatureFinderAlgorithmIsotopeWavelet<Peak1D> FFASS;
+typedef FeatureFinderAlgorithmIsotopeWavelet FFASS;
 
 FFASS* ptr = 0;
 FFASS* nullPointer = 0;
-FeatureFinderAlgorithm<Peak1D>* ffA_nullPointer = 0;
+FeatureFinderAlgorithm* ffA_nullPointer = 0;
 
 START_SECTION((FeatureFinderAlgorithmIsotopeWavelet()))
 	ptr = new FFASS;
@@ -71,7 +71,7 @@ START_SECTION(void run())
 END_SECTION
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
-	FeatureFinderAlgorithm<Peak1D>* ptr2 = FFASS::create();
+  FeatureFinderAlgorithm* ptr2 = FFASS::create();
   TEST_NOT_EQUAL(ptr2,ffA_nullPointer)
 	delete ptr2;
 END_SECTION

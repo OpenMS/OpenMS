@@ -163,7 +163,7 @@ protected:
 
   Param getSubsectionDefaults_(const String & /*section*/) const
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked<Peak1D>::getProductName());
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
   }
 
   ExitCodes main_(int, const char **)
@@ -206,7 +206,7 @@ protected:
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmPicked<Peak1D>::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(FeatureFinderAlgorithmPicked::getProductName(), exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG

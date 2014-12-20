@@ -457,9 +457,9 @@ int main(int argc, char** argv)
   // More complicated cases
   //////////////////////////////////
 
-  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet<Peak1D>()))
-  DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked<Peak1D>()));
-  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM<Peak1D>()))
+  DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet()))
+  DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
+  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()))
   DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());

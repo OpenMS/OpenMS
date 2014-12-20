@@ -33,9 +33,29 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm_impl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 
 namespace OpenMS
 {
+  void FeatureFinderAlgorithm::registerChildren()
+  {
+    Factory<FeatureFinderAlgorithm>::registerProduct
+    (
+      FeatureFinderAlgorithmPicked::getProductName(),
+      &FeatureFinderAlgorithmPicked::create
+    );
+    Factory<FeatureFinderAlgorithm>::registerProduct
+    (
+      FeatureFinderAlgorithmIsotopeWavelet::getProductName(),
+      &FeatureFinderAlgorithmIsotopeWavelet::create
+    );
+    Factory<FeatureFinderAlgorithm>::registerProduct
+    (
+      FeatureFinderAlgorithmMRM::getProductName(),
+      &FeatureFinderAlgorithmMRM::create
+    );
 
+  }
 }

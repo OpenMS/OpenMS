@@ -65,7 +65,7 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-typedef FeatureFinderAlgorithmSH<Peak1D> FFSH;
+typedef FeatureFinderAlgorithmSH FFSH;
 
 class TOPPFeatureFinderSH :
   public TOPPBase

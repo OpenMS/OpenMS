@@ -64,14 +64,13 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  template <typename PeakType>
   class FeatureFinderAlgorithmIsotopeWavelet :
-    public FeatureFinderAlgorithm<PeakType>
+    public FeatureFinderAlgorithm
   {
 public:
 
-    typedef FeatureFinderAlgorithm<PeakType> Base;
-
+    typedef FeatureFinderAlgorithm Base;
+    typedef Peak1D PeakType;
 
     /** @brief Default Constructor */
     FeatureFinderAlgorithmIsotopeWavelet()
@@ -114,15 +113,6 @@ public:
     /** @brief Destructor. */
     virtual ~FeatureFinderAlgorithmIsotopeWavelet()
     {
-    }
-
-    typename IsotopeWaveletTransform<PeakType>::TransSpectrum * prepareHRDataCuda(const UInt i, IsotopeWaveletTransform<PeakType> * iwt)
-    {
-      MSSpectrum<PeakType> * new_spec(createHRData(i));
-      typename IsotopeWaveletTransform<PeakType>::TransSpectrum * c_trans = new typename IsotopeWaveletTransform<PeakType>::TransSpectrum(new_spec);
-      iwt->initializeScanCuda(*new_spec);
-
-      return c_trans;
     }
 
     MSSpectrum<PeakType> * createHRData(const UInt i)
@@ -341,7 +331,7 @@ public:
       return "isotope_wavelet";
     }
 
-    static FeatureFinderAlgorithm<PeakType> * create()
+    static FeatureFinderAlgorithm* create()
     {
       return new FeatureFinderAlgorithmIsotopeWavelet();
     }
