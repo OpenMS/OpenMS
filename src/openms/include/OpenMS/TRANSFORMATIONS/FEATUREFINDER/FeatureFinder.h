@@ -84,8 +84,7 @@ as this will disturb most algorithms.
 
         Implemented in FeatureFinder_impl.h
     */
-    template <class PeakType>
-    void run(const String & algorithm_name, MSExperiment<PeakType> & input_map, FeatureMap& features, const Param & param, const FeatureMap& seeds);
+    void run(const String & algorithm_name, MSExperiment<> & input_map, FeatureMap& features, const Param & param, const FeatureMap& seeds);
 
     /// Returns a non-mutable reference to a peak flag
     const Flag & getPeakFlag(const IndexPair & index) const

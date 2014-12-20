@@ -29,7 +29,6 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -36,7 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

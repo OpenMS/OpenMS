@@ -37,8 +37,10 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 ///////////////////////////
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
 using namespace std;

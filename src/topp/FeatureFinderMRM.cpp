@@ -36,7 +36,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;

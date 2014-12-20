@@ -22,7 +22,6 @@ FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
 FeatureFinderAlgorithm_impl.h
 FeatureFinderDefs.h
-FeatureFinder_impl.h
 Fitter1D.h
 GaussFitter1D.h
 GaussModel.h

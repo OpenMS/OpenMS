@@ -37,8 +37,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
