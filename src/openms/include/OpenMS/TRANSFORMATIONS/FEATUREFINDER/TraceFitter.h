@@ -37,10 +37,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
 
 namespace OpenMS
 {
@@ -64,13 +63,12 @@ public:
     class GenericFunctor
     {
     public:
-      int inputs() const { return m_inputs; }
-      int values() const { return m_values; }
+      int inputs() const;
+      int values() const;
 
-      GenericFunctor(int dimensions, int num_data_points)
-      : m_inputs(dimensions), m_values(num_data_points) {}
+      GenericFunctor(int dimensions, int num_data_points);
 
-      virtual ~GenericFunctor() {}
+      virtual ~GenericFunctor();
 
       virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) = 0;
       // compute Jacobian matrix for the different parameters
@@ -81,39 +79,16 @@ public:
     };
 
     /// default constructor
-    TraceFitter() :
-      DefaultParamHandler("TraceFitter")
-    {
-      defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
-      defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", ListUtils::create<String>("advanced"));
-      defaults_.setValidStrings("weighted", ListUtils::create<String>("true,false"));
-      defaultsToParam_();
-    }
+    TraceFitter();
 
     /// copy constructor
-    TraceFitter(const TraceFitter& source) :
-      DefaultParamHandler(source),
-      max_iterations_(source.max_iterations_),
-      weighted_(source.weighted_)
-    {
-      updateMembers_();
-    }
+    TraceFitter(const TraceFitter& source);
 
     /// assignment operator
-    virtual TraceFitter& operator=(const TraceFitter& source)
-    {
-      DefaultParamHandler::operator=(source);
-      max_iterations_ = source.max_iterations_;
-      weighted_ = source.weighted_;
-      updateMembers_();
-
-      return *this;
-    }
+    virtual TraceFitter& operator=(const TraceFitter& source);
 
     /// destructor
-    virtual ~TraceFitter()
-    {
-    }
+    virtual ~TraceFitter();
 
     /**
      * Main method of the TraceFitter which triggers the actual fitting.
@@ -156,12 +131,7 @@ public:
      * @param trace the mass trace for which the value should be computed
      * @param k  use the position of the k-th peak to compute the value
      */
-    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, Size k)
-    {
-      double rt = trace.peaks[k].first;
-
-      return trace.theoretical_int * getValue(rt);
-    }
+    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, Size k);
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span
@@ -201,11 +171,7 @@ protected:
       bool weighted;
     };
 
-    virtual void updateMembers_()
-    {
-      max_iterations_ = this->param_.getValue("max_iteration");
-      weighted_ = this->param_.getValue("weighted") == "true";
-    }
+    virtual void updateMembers_();
 
     /**
      * Updates all member variables to the fitted values stored in the solver.
@@ -216,31 +182,7 @@ protected:
     /**
      * Optimize the given parameters using the Levenberg-Marquardt algorithm.
      */
-    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor)
-    {
-      //TODO: this function is copy&paste from LevMarqFitter1d.h. Make a generic wrapper for
-      //LM optimization
-      int data_count = functor.values();
-      int num_params = functor.inputs();
-
-      // LM always expects N>=p, cause Jacobian be rectangular M x N with M>=N
-      if (data_count < num_params) throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, we always expects N>=p");
-
-
-      Eigen::LevenbergMarquardt<GenericFunctor> lmSolver (functor);
-      lmSolver.parameters.maxfev = max_iterations_;
-      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
-
-      //the states are poorly documented. after checking the source, we believe that
-      //all states except NotStarted, Running and ImproperInputParameters are good
-      //termination states.
-      if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
-      {
-          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Could not fit the gaussian to the data: Error " + String(status));
-      }
-
-      getOptimizedParameters_(x_init);
-    }
+    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor);
 
     /// Maximum number of iterations
     SignedSize max_iterations_;
