@@ -194,7 +194,7 @@ namespace OpenMS
       }
 
       // now find sections in the chromatogram which have high s/n value
-      double last_rt(0), this_rt(0);
+      double last_rt(0);
       std::vector<std::vector<DPosition<2> > > sections;
       for (RichPeakSpectrum::Iterator sit = sn_chrom.begin(); sit != sn_chrom.end(); ++sit)
       {
@@ -202,7 +202,7 @@ namespace OpenMS
         {
           std::cerr << "SECTIONS: " << sit->getMZ() << " " << sit->getIntensity() << std::endl;
         }
-        this_rt = sit->getMZ();
+        double this_rt = sit->getMZ();
         if (sections.empty() || (this_rt - last_rt) > min_rt_distance)
         {
           if (write_debuginfo)
@@ -310,13 +310,11 @@ namespace OpenMS
           f.setOverallQuality(quality);
 
           ConvexHull2D::PointArrayType hull_points(sections[i].size());
-          double intensity_sum(0.0), rt_sum(0.0);
+          double intensity_sum(0.0);
           for (Size j = 0; j < sections[i].size(); ++j)
           {
             hull_points[j][0] = sections[i][j].getX();
             hull_points[j][1] = first_it->getProduct().getMZ();
-
-            rt_sum += sections[i][j].getX();
             intensity_sum += sections[i][j].getY();
           }
 

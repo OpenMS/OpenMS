@@ -234,10 +234,9 @@ namespace OpenMS
         }
         else                 //HighRes data
         {
-          MSSpectrum<PeakType> * new_spec(NULL);
           for (UInt c = 0; c < max_charge_; ++c)
           {
-            new_spec = createHRData(i);
+            MSSpectrum<PeakType> * new_spec = createHRData(i);
             iwt->initializeScan(*new_spec, c);
             MSSpectrum<PeakType> c_trans(*new_spec);
 

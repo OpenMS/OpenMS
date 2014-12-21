@@ -260,7 +260,6 @@ namespace OpenMS
       }
     }
 
-    int gl_progress = 0;
     debug_ = ((String)(param_.getValue("debug")) == "true");
     //clean up / create folders for debug information
     if (debug_)
@@ -624,7 +623,7 @@ namespace OpenMS
       std::map<Size, std::vector<Size> > seeds_in_features;
       typedef std::map<Size, Feature> FeatureMapType;
       FeatureMapType tmp_feature_map;
-      gl_progress = 0;
+      int gl_progress = 0;
       ff_->startProgress(0, seeds.size(), String("Extending seeds for charge ") + String(c));
 #ifdef _OPENMP
 #pragma omp parallel for
