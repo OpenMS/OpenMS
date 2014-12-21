@@ -52,7 +52,7 @@ namespace OpenMS
    *
    * @experimental Needs further testing on real data. Note that the tests are currently also focused on testing the EGH as replacement for the gaussian.
    */
-  class EGHTraceFitter :
+  class OPENMS_DLLAPI EGHTraceFitter :
     public TraceFitter
   {
 public:

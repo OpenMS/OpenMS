@@ -53,7 +53,7 @@ namespace OpenMS
    * @todo docu needs update
    *
    */
-  class TraceFitter :
+  class OPENMS_DLLAPI TraceFitter :
     public DefaultParamHandler
   {
 

@@ -47,7 +47,7 @@ namespace OpenMS
    *
    * @todo More docu
    */
-  class GaussTraceFitter :
+  class OPENMS_DLLAPI GaussTraceFitter :
     public TraceFitter
   {
 public:
