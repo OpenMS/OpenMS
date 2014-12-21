@@ -56,7 +56,7 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  class FeatureFinderAlgorithmPicked :
+  class OPENMS_DLLAPI FeatureFinderAlgorithmPicked :
     public FeatureFinderAlgorithm,
     public FeatureFinderDefs
   {

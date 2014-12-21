@@ -40,7 +40,6 @@
 START_TEST(FeatureFinderAlgorithmIsotopeWavelet, "$Id$")
 
 using namespace OpenMS;
-using namespace OpenMS::Math;
 using namespace std;
 
 typedef FeatureFinderAlgorithmIsotopeWavelet FFASS;

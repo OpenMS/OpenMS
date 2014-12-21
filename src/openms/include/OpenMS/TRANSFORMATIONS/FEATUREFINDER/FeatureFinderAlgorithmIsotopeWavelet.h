@@ -35,7 +35,6 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMISOTOPEWAVELET_H
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletTransform.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
 namespace OpenMS
@@ -58,7 +57,7 @@ namespace OpenMS
 
     @ingroup FeatureFinder
   */
-  class FeatureFinderAlgorithmIsotopeWavelet :
+  class OPENMS_DLLAPI FeatureFinderAlgorithmIsotopeWavelet :
     public FeatureFinderAlgorithm
   {
 public:
