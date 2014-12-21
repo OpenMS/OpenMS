@@ -74,7 +74,7 @@ START_SECTION((virtual void run()))
 	FeatureFinder ff;
   ff.setLogType(ProgressLogger::NONE);
 
-	PeakMap exp;
+  MSExperiment<> exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmMRM_input.mzML"), exp);
 
 	FeatureMap features, seeds;
