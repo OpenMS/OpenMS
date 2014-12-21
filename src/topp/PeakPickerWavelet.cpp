@@ -133,7 +133,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output peak file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
-    registerFlag_("write_peak_meta_data", "Write additional information about the picked peaks (maximal intensity, left and right area...) into the mzML-file.Attention: this can blow up files,as 7 arrays are stored per spectrum!", true);
+    registerFlag_("write_peak_meta_data", "Write additional information about the picked peaks (maximal intensity, left and right area...) into the mzML-file. Attention: this can blow up files, since seven arrays are stored per spectrum!", true);
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }

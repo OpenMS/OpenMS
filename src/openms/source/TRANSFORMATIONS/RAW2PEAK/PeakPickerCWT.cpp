@@ -54,6 +54,8 @@
 #include <vector>
 #include <algorithm>
 
+//#define DEBUG_PEAK_PICKING2 1
+
 using namespace std;
 
 namespace OpenMS
@@ -1240,7 +1242,7 @@ namespace OpenMS
         updateMembers_();
       }
     }
-    //clear output container
+    // clear output container
     output.clear(true);
 
     // copy the experimental settings
@@ -1420,13 +1422,6 @@ namespace OpenMS
           {
             shape.signal_to_noise = sne.getSignalToNoise(area.max);
             peak_shapes.push_back(shape);
-            /*
-            // sample the fitted shape
-            for (PeakIterator pi = area.left; pi != area.right; ++pi)
-            {
-              Peak1D p(pi->getMZ(), shape(pi->getMZ()));
-              output.push_back(p);
-            }*/
             ++number_of_peaks;
           }
           else
@@ -1643,118 +1638,132 @@ namespace OpenMS
 
   double PeakPickerCWT::estimatePeakWidth(const MSExperiment<> & input)
   {
-    // the peak widths that are tested
-    //DoubleList widths = DoubleList::create("0.5,0.4,0.3,0.25,0.2,0.15,0.1,0.075,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
-    DoubleList widths = ListUtils::create<double>("1.,0.5,0.25,0.125,0.1,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
-#ifdef DEBUG_PEAK_PICKING
+    // The peak widths which are tested
+    // Note that the limit is 1 Da in Peak Width. The Wavelet has a certain tolerance, but very broad peaks (e.g. top-down MS) will not be found
+    // unless the search range is extended
+    DoubleList test_widths = ListUtils::create<double>("1.,0.5,0.25,0.125,0.1,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
+#ifdef DEBUG_PEAK_PICKING2
     std::cout << "calculating max tic" << std::endl;
 #endif
+    // make a backup of param .. restore later
+    Param p_backup = param_;
+
+    // use a high S/N to ensure we only look at high peaks.. low noise peaks might distort the FWHM
+    param_.setValue("signal_to_noise", 10); 
+
     // determine spectrum used for estimation
-    // used the one with the highest tic
+    // use the one with the highest tic
     TICFilter tic_filter;
-    double max_tic = 0.;
-    Size index = 0;
-    std::vector<std::pair<Size, double> > index_tic_vec;
+    typedef std::vector<std::pair<Size, double> > TicVec;
+    TicVec index_tic_vec;
     for (Size s = 0; s < input.size(); ++s)
     {
       double tmp_tic = tic_filter.apply(input[s]);
       index_tic_vec.push_back(make_pair(s, tmp_tic));
-      if (tmp_tic > max_tic)
-      {
-        max_tic = tmp_tic;
-        index = s;
-      }
     }
-    // now sort the index_tic_vec according to tic and get the 3 highest spectra:
+
+    // now sort the index_tic_vec according to tic and get the three highest spectra
     sort(index_tic_vec.begin(), index_tic_vec.end(), PairComparatorSecondElement<std::pair<Size, double> >());
-    std::vector<double> estimated_widths;
-    for (Size s = 0; s < input.size() && s < 3; ++s)
+    
+    std::vector<double> best_FWHMs;
+    for (Size i = 0; i < 3 && i < index_tic_vec.size(); ++i)
     {
-#ifdef DEBUG_PEAK_PICKING
-      std::cout << "RT: " << input[s].getRT() << "\n";
+      std::pair<Size, double> tic = index_tic_vec[i];
+      // skip empty spectra
+      if (tic.second == 0) continue;
+
+      std::vector<Size> peak_counts;
+#ifdef DEBUG_PEAK_PICKING2
+      std::cout << "RT: " << input[tic.first].getRT() << "\n";
 #endif
-      index  = (index_tic_vec.end() - 1 - s)->first;
-      // now pick this spectrum with the different peak widths
-      MSExperiment<> exp;
-      for (Size w = 0; w < widths.size(); ++w)
+      // holds average FWHM of this spectrum
+      std::vector<double> observed_FWHM;
+      // ... for different peak widths
+      for (Size w = 0; w < test_widths.size(); ++w)
       {
         MSSpectrum<> spec;
-        param_.setValue("peak_width", widths[w]);
+        param_.setValue("peak_width", test_widths[w]);
         updateMembers_();
-#ifdef DEBUG_PEAK_PICKING
+#ifdef DEBUG_PEAK_PICKING2
         std::cout << "peak_width " << param_.getValue("peak_width") << "\tfwhm_bound_ " << fwhm_bound_ << "\t";
 #endif
-        pick(input[index], spec);
-#ifdef DEBUG_PEAK_PICKING
+        pick(input[tic.first], spec);
+
         double fwhm = 0.;
         for (Size p = 0; p < spec.size(); ++p)
         {
           fwhm += spec.getFloatDataArrays()[2][p];
         }
         fwhm /= (double) spec.size();
+        observed_FWHM.push_back(fwhm);
 
-        std::cout << spec.size() << "\t" << fwhm << std::endl;
-#endif
-        exp.addSpectrum(spec);
+        peak_counts.push_back(spec.size());
       }
 
       // determine slope
       std::vector<double> slopes;
       double m_min = std::numeric_limits<double>::max();
-      double m_min_width = 0.;
-      for (Size i = 0; i < exp.size() - 1; ++i)
+      for (Size i = 0; i < peak_counts.size() - 1; ++i)
       {
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << ((SignedSize)exp[i].size() - (SignedSize)exp[i + 1].size()) << "/" << (widths[i] - widths[i + 1]) << "\t";
-#endif
-        double m = (double)((SignedSize)exp[i].size() - (SignedSize)exp[i + 1].size()) / (widths[i] - widths[i + 1]);
+        double m = (double)((SignedSize)peak_counts[i] - (SignedSize)peak_counts[i + 1]) / (test_widths[i] - test_widths[i + 1]);
         slopes.push_back(m);
+#ifdef DEBUG_PEAK_PICKING2
+        std::cout << m << "\t";
+#endif
         if (m < m_min)
         {
           m_min = m;
-          m_min_width =  (widths[i] + widths[i + 1]) / 2;
         }
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << (widths[i] + widths[i + 1]) / 2 << "\t" << m << std::endl;
+#ifdef DEBUG_PEAK_PICKING2
+        std::cout << (test_widths[i] + test_widths[i + 1]) / 2 << "\t" << m << std::endl;
 #endif
       }
       // determine point where slope starts decreasing , there the plateau should end
       bool min_found = false;
-#ifdef DEBUG_PEAK_PICKING
+#ifdef DEBUG_PEAK_PICKING2
       std::cout << "m_min: " << m_min << std::endl;
 #endif
       for (Size s = 0; s < slopes.size(); ++s)
       {
-#ifdef DEBUG_PEAK_PICKING
+#ifdef DEBUG_PEAK_PICKING2
         std::cout << slopes[s] << std::endl;
 #endif
         if (fabs(slopes[s] - m_min) < 0.01)
+        {
           min_found = true;
+        }
         if (min_found && slopes[s] / m_min < 0.5)
         {
-#ifdef DEBUG_PEAK_PICKING
-          std::cout << "peak_width = " << (m_min_width + (widths[s] + widths[s + 1]) / 2) / 2 << std::endl;
+          double pw = observed_FWHM[s+1];
+#ifdef DEBUG_PEAK_PICKING2
+          std::cout << "peak_width = " << pw << std::endl;
 #endif
-          estimated_widths.push_back((m_min_width + (widths[s] + widths[s + 1]) / 2) / 2);
+          best_FWHMs.push_back(pw);
           break;
         }
       }
     }
     // average width over the three tested spectra
     double avg_width = 0.;
-    if (estimated_widths.empty())
+    if (best_FWHMs.empty())
     {
-      std::cout << "Couldn't estimate peak width!" << std::endl;
-      return 0.;
-    }
-    for (Size s = 0; s < estimated_widths.size(); ++s)
+      std::cout << "Could not estimate peak width!" << std::endl;
+    } 
+    else
     {
-      std::cout << "width" << s << " = " << estimated_widths[s] << std::endl;
-      avg_width += estimated_widths[s];
+      for (Size s = 0; s < best_FWHMs.size(); ++s)
+      {
+        std::cout << "  Estimated FWHM of spectrum #" << s << ": " << best_FWHMs[s] << std::endl;
+        avg_width += best_FWHMs[s];
+      }
+      avg_width /= (double)best_FWHMs.size();
+      std::cout << "--> Average estimated FWHM: " << avg_width / (double)best_FWHMs.size() << std::endl;
     }
-    std::cout << "average estimated width " << avg_width / (double)estimated_widths.size() << std::endl;
-    return avg_width / (double)estimated_widths.size();
 
+    // restore old param set
+    param_ = p_backup; 
+
+    return avg_width;
   }
 
 }
