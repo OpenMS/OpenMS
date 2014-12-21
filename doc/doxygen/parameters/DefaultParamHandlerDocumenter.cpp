@@ -467,8 +467,8 @@ int main(int argc, char** argv)
   DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
   DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
   DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
-  DOCME2(GaussTraceFitter, (GaussTraceFitter<Peak1D>()))
-  DOCME2(EGHTraceFitter, (EGHTraceFitter<Peak1D>()))
+  DOCME2(GaussTraceFitter, (GaussTraceFitter()))
+  DOCME2(EGHTraceFitter, (EGHTraceFitter()))
 
   DOCME2(IsobaricChannelExtractor, IsobaricChannelExtractor(new ItraqFourPlexQuantitationMethod()));
   DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));

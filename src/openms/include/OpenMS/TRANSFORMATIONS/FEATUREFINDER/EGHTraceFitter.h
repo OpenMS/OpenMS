@@ -57,19 +57,18 @@ namespace OpenMS
    *
    * @experimental Needs further testing on real data. Note that the tests are currently also focused on testing the EGH as replacement for the gaussian.
    */
-  template <class PeakType>
   class EGHTraceFitter :
-    public TraceFitter<PeakType>
+    public TraceFitter
   {
 public:
     /** Functor for LM Optimization */
-    class EGHTraceFunctor : public TraceFitter<PeakType>::GenericFunctor
+    class EGHTraceFunctor : public TraceFitter::GenericFunctor
     {
     public:
 
       EGHTraceFunctor(int dimensions,
-          const typename TraceFitter<PeakType>::ModelData* data)
-      : TraceFitter<PeakType>::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
+          const typename TraceFitter::ModelData* data)
+      : TraceFitter::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
 
       virtual ~EGHTraceFunctor() {}
 
@@ -87,7 +86,7 @@ public:
         UInt count = 0;
         for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
         {
-          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = m_data->traces_ptr->at(t);
+          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> & trace = m_data->traces_ptr->at(t);
           double weight = m_data->weighted ? trace.theoretical_int : 1.0;
           for (Size i = 0; i < trace.peaks.size(); ++i)
           {
@@ -128,7 +127,7 @@ public:
         UInt count = 0;
         for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
         {
-          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = m_data->traces_ptr->at(t);
+          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> & trace = m_data->traces_ptr->at(t);
           double weight = m_data->weighted ? trace.theoretical_int : 1.0;
           for (Size i = 0; i < trace.peaks.size(); ++i)
           {
@@ -179,7 +178,7 @@ public:
       }
 
     protected:
-      const typename TraceFitter<PeakType>::ModelData* m_data;
+      const typename TraceFitter::ModelData* m_data;
     };
 
     EGHTraceFitter()
@@ -188,7 +187,7 @@ public:
     }
 
     EGHTraceFitter(const EGHTraceFitter& other) :
-      TraceFitter<PeakType>(other)
+      TraceFitter(other)
     {
       this->height_ = other.height_;
       this->apex_rt_ = other.apex_rt_;
@@ -202,7 +201,7 @@ public:
 
     EGHTraceFitter& operator=(const EGHTraceFitter& source)
     {
-      TraceFitter<PeakType>::operator=(source);
+      TraceFitter::operator=(source);
 
       this->height_ = source.height_;
       this->apex_rt_ = source.apex_rt_;
@@ -221,7 +220,7 @@ public:
     }
 
     // override important methods
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces)
     {
       setInitialParameters_(traces);
 
@@ -231,12 +230,12 @@ public:
       x_init(2) = sigma_;
       x_init(3) = tau_;
 
-      typename TraceFitter<PeakType>::ModelData data;
+      typename TraceFitter::ModelData data;
       data.traces_ptr = &traces;
       data.weighted = this->weighted_;
       EGHTraceFunctor functor (NUM_PARAMS_, &data);
 
-      TraceFitter<PeakType>::optimize_(x_init, functor);
+      TraceFitter::optimize_(x_init, functor);
     }
 
     double getLowerRTBound() const
@@ -314,7 +313,7 @@ public:
       return bounds.second - bounds.first;
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, const char function_name, const double baseline, const double rt_shift)
     {
       std::stringstream s;
       s << String(function_name)  << "(x)= " << baseline << " + ";
@@ -380,7 +379,7 @@ protected:
       sigma_5_bound_ = getAlphaBoundaries_(0.043937);
     }
 
-    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
+    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces)
     {
       LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)" << std::endl;
       LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;
@@ -464,15 +463,10 @@ protected:
 
     virtual void updateMembers_()
     {
-      TraceFitter<PeakType>::updateMembers_();
+      TraceFitter::updateMembers_();
     }
 
   };
-
-  // from table 1 in the Lan & Jorgenson paper:
-  template <class PeakType>
-  const double EGHTraceFitter<PeakType>::EPSILON_COEFS_[] = 
-  {4.0, -6.293724, 9.232834, -11.342910, 9.123978, -4.173753, 0.827797};
 
 } // namespace OpenMS
 

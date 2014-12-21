@@ -34,13 +34,10 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/RichPeak1D.h>
 
 namespace OpenMS
 {
-
-  EGHTraceFitter<Peak1D> default_egh_trace_fitter_peak1D;
-
-  EGHTraceFitter<RichPeak1D> default_egh_trace_fitter_richpeak1D;
-
+  // from table 1 in the Lan & Jorgenson paper:
+  const double EGHTraceFitter::EPSILON_COEFS_[] =
+  {4.0, -6.293724, 9.232834, -11.342910, 9.123978, -4.173753, 0.827797};
 }  // namespace OpenMS

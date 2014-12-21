@@ -423,12 +423,12 @@ protected:
       trans_ids[trans_it->getNativeID()] = &(*trans_it);
     }
 
-    TraceFitter<Peak1D>* fitter;
+    TraceFitter* fitter;
     if (asymmetric)
     {
-      fitter = new EGHTraceFitter<Peak1D>();
+      fitter = new EGHTraceFitter();
     }
-    else fitter = new GaussTraceFitter<Peak1D>();
+    else fitter = new GaussTraceFitter();
     if (weighted)
     {
       Param params = fitter->getDefaults();
@@ -564,15 +564,15 @@ protected:
       feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
       if (asymmetric)
       {
-        EGHTraceFitter<Peak1D>* egh =
-          static_cast<EGHTraceFitter<Peak1D>*>(fitter);
+        EGHTraceFitter* egh =
+          static_cast<EGHTraceFitter*>(fitter);
         feat_it->setMetaValue("model_EGH_tau", egh->getTau());
         feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
       }
       else
       {
-        GaussTraceFitter<Peak1D>* gauss =
-          static_cast<GaussTraceFitter<Peak1D>*>(fitter);
+        GaussTraceFitter* gauss =
+          static_cast<GaussTraceFitter*>(fitter);
         feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
       }
 

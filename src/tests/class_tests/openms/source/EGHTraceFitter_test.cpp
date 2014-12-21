@@ -250,7 +250,7 @@ mts.max_trace = 0;
 Param p;
 p.setValue("max_iteration", 500);
 
-EGHTraceFitter<Peak1D> egh_trace_fitter;
+EGHTraceFitter egh_trace_fitter;
 egh_trace_fitter.setParameters(p);
 egh_trace_fitter.fit(mts);
 
@@ -262,11 +262,11 @@ double expected_tau = 0.0;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-EGHTraceFitter<Peak1D>* ptr = 0;
-EGHTraceFitter<Peak1D>* nullPointer = 0;
+EGHTraceFitter* ptr = 0;
+EGHTraceFitter* nullPointer = 0;
 START_SECTION(EGHTraceFitter())
 {
-	ptr = new EGHTraceFitter<Peak1D>();
+  ptr = new EGHTraceFitter();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -279,7 +279,7 @@ END_SECTION
 
 START_SECTION((EGHTraceFitter(const EGHTraceFitter& other)))
 {
-  EGHTraceFitter<Peak1D> egh1(egh_trace_fitter);
+  EGHTraceFitter egh1(egh_trace_fitter);
 
   TEST_EQUAL(egh1.getCenter(),egh_trace_fitter.getCenter())
   TEST_EQUAL(egh1.getHeight(),egh_trace_fitter.getHeight())
@@ -290,7 +290,7 @@ END_SECTION
 
 START_SECTION((EGHTraceFitter& operator=(const EGHTraceFitter& source)))
 {
-  EGHTraceFitter<Peak1D> egh1;
+  EGHTraceFitter egh1;
 
   egh1 = egh_trace_fitter;
 
@@ -306,7 +306,7 @@ START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Pe
   // fit was already done before
   TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(), expected_x0)
   TEST_REAL_SIMILAR(egh_trace_fitter.getHeight(), expected_H)
-  EGHTraceFitter<Peak1D> weighted_fitter;
+  EGHTraceFitter weighted_fitter;
   Param params = weighted_fitter.getDefaults();
   params.setValue("weighted", "true");
   weighted_fitter.setParameters(params);
@@ -363,15 +363,15 @@ START_SECTION((double getValue(double rt) const))
 }
 END_SECTION
 
-START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
+START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, Size k)))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
   mt.theoretical_int = 0.8;
 
-  Peak1D p;
-  p.setIntensity(8.0);
+  Peak1D peak;
+  peak.setIntensity(8.0);
 
-  mt.peaks.push_back(make_pair(expected_x0, &p));
+  mt.peaks.push_back(make_pair(expected_x0, &peak));
 
   // theoretical should be expected_H * theoretical_int at position expected_x0
   TEST_REAL_SIMILAR(egh_trace_fitter.computeTheoretical(mt, 0), mt.theoretical_int * expected_H)

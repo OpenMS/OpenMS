@@ -44,14 +44,13 @@ using namespace OpenMS;
 using namespace std;
 
 // dummy implementation for the test
-template <class PeakType>
 class DerivedTraceFitter
-    : public TraceFitter<PeakType>
+    : public TraceFitter
 {
 
 public:
 
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>&)
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>&)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -101,7 +100,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>&, const char, const double, const double)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>&, const char, const double, const double)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -118,11 +117,11 @@ START_TEST(TraceFitter, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-TraceFitter<Peak1D>* ptr = 0;
-TraceFitter<Peak1D>* nullPointer = 0;
+TraceFitter* ptr = 0;
+TraceFitter* nullPointer = 0;
 START_SECTION(TraceFitter())
 {
-    ptr = new DerivedTraceFitter<Peak1D>();
+  ptr = new DerivedTraceFitter();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -147,7 +146,7 @@ START_SECTION((virtual TraceFitter& operator=(const TraceFitter& source)))
 }
 END_SECTION
 
-DerivedTraceFitter<Peak1D> trace_fitter;
+DerivedTraceFitter trace_fitter;
 START_SECTION((virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)=0))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> m;

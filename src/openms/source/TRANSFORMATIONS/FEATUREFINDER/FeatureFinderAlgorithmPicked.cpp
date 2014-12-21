@@ -705,7 +705,7 @@ namespace OpenMS
 
             // choose fitter
             double egh_tau = 0.0;
-            TraceFitter<PeakType>* fitter = chooseTraceFitter_(egh_tau);
+            TraceFitter* fitter = chooseTraceFitter_(egh_tau);
 
             fitter->setParameters(trace_fitter_params);
             fitter->fit(traces);
@@ -786,10 +786,10 @@ namespace OpenMS
               // Extract some of the model parameters.
               if (egh_tau != 0.0)
               {
-                egh_tau = (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getTau();
+                egh_tau = (static_cast<EGHTraceFitter*>(fitter))->getTau();
                 f.setMetaValue("EGH_tau", egh_tau);
-                f.setMetaValue("EGH_height", (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getHeight());
-                f.setMetaValue("EGH_sigma", (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getSigma());
+                f.setMetaValue("EGH_height", (static_cast<EGHTraceFitter*>(fitter))->getHeight());
+                f.setMetaValue("EGH_sigma", (static_cast<EGHTraceFitter*>(fitter))->getSigma());
               }
 
               // Calculate the mass of the feature: maximum, average, monoisotopic
@@ -1732,19 +1732,19 @@ namespace OpenMS
     return final;
   }
 
-  TraceFitter<FeatureFinderAlgorithmPicked::PeakType>* FeatureFinderAlgorithmPicked::chooseTraceFitter_(double& tau)
+  TraceFitter* FeatureFinderAlgorithmPicked::chooseTraceFitter_(double& tau)
   {
     // choose fitter
     if (param_.getValue("feature:rt_shape") == "asymmetric")
     {
       LOG_DEBUG << "use asymmetric rt peak shape" << std::endl;
       tau = -1.0;
-      return new EGHTraceFitter<FeatureFinderAlgorithmPicked::PeakType>();
+      return new EGHTraceFitter();
     }
     else // if (param_.getValue("feature:rt_shape") == "symmetric")
     {
       LOG_DEBUG << "use symmetric rt peak shape" << std::endl;
-      return new GaussTraceFitter<FeatureFinderAlgorithmPicked::PeakType>();
+      return new GaussTraceFitter();
     }
   }
 
@@ -1782,7 +1782,7 @@ namespace OpenMS
     return final;
   }
 
-  void FeatureFinderAlgorithmPicked::cropFeature_(TraceFitter<PeakType>* fitter,
+  void FeatureFinderAlgorithmPicked::cropFeature_(TraceFitter* fitter,
                     const MassTraces& traces,
                     MassTraces& new_traces)
   {
@@ -1860,7 +1860,7 @@ namespace OpenMS
     new_traces.baseline = traces.baseline;
   }
 
-  bool FeatureFinderAlgorithmPicked::checkFeatureQuality_(TraceFitter<PeakType>* fitter,
+  bool FeatureFinderAlgorithmPicked::checkFeatureQuality_(TraceFitter* fitter,
                             MassTraces& feature_traces,
                             const double& seed_mz, const double& min_feature_score,
                             String& error_msg, double& fit_score, double& correlation, double& final_score)
@@ -1948,7 +1948,7 @@ namespace OpenMS
     return feature_ok;
   }
 
-  void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(TraceFitter<PeakType>* fitter,
+  void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(TraceFitter* fitter,
                               const MassTraces& traces,
                               const MassTraces& new_traces,
                               bool feature_ok, const String error_msg, const double final_score, const Int plot_nr, const PeakType& peak,

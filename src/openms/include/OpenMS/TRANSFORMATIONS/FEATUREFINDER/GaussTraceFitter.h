@@ -51,9 +51,8 @@ namespace OpenMS
    *
    * @todo More docu
    */
-  template <typename PeakType>
   class GaussTraceFitter :
-    public TraceFitter<PeakType>
+    public TraceFitter
   {
 public:
     GaussTraceFitter()
@@ -62,7 +61,7 @@ public:
     }
 
     GaussTraceFitter(const GaussTraceFitter& other) :
-      TraceFitter<PeakType>(other)
+      TraceFitter(other)
     {
       this->height_ = other.height_;
       this->x0_ = other.x0_;
@@ -73,7 +72,7 @@ public:
 
     GaussTraceFitter& operator=(const GaussTraceFitter& source)
     {
-      TraceFitter<PeakType>::operator=(source);
+      TraceFitter::operator=(source);
 
       this->height_ = source.height_;
       this->x0_ = source.x0_;
@@ -89,7 +88,7 @@ public:
     }
 
     // override important methods
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces)
     {
       LOG_DEBUG << "Traces length: " << traces.size() << "\n";
       setInitialParameters_(traces);
@@ -99,12 +98,12 @@ public:
       x_init(1) = x0_;
       x_init(2) = sigma_;
 
-      typename TraceFitter<PeakType>::ModelData data;
+      typename TraceFitter::ModelData data;
       data.traces_ptr = &traces;
       data.weighted = this->weighted_;
       GaussTraceFunctor functor (NUM_PARAMS_, &data);
 
-      TraceFitter<PeakType>::optimize_(x_init, functor);
+      TraceFitter::optimize_(x_init, functor);
     }
 
     double getLowerRTBound() const
@@ -161,7 +160,7 @@ public:
       return 2.506628 * height_ * sigma_;
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, const char function_name, const double baseline, const double rt_shift)
     {
       std::stringstream s;
       s << String(function_name)  << "(x)= " << baseline << " + ";
@@ -184,12 +183,12 @@ protected:
       sigma_ = std::fabs(x_init(2));
     }
 
-    class GaussTraceFunctor : public TraceFitter<PeakType>::GenericFunctor
+    class GaussTraceFunctor : public TraceFitter::GenericFunctor
     {
     public:
       GaussTraceFunctor(int dimensions,
-          const typename TraceFitter<PeakType>::ModelData* data)
-      : TraceFitter<PeakType>::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
+          const typename TraceFitter::ModelData* data)
+      : TraceFitter::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
 
       int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
       {
@@ -201,7 +200,7 @@ protected:
         Size count = 0;
         for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
         {
-          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = (*m_data->traces_ptr)[t];
+          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> & trace = (*m_data->traces_ptr)[t];
           double weight = m_data->weighted ? trace.theoretical_int : 1.0;
           for (Size i = 0; i < trace.peaks.size(); ++i)
           {
@@ -226,7 +225,7 @@ protected:
         Size count = 0;
         for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
         {
-          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = (*m_data->traces_ptr)[t];
+          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> & trace = (*m_data->traces_ptr)[t];
           double weight = m_data->weighted ? trace.theoretical_int : 1.0;
           for (Size i = 0; i < trace.peaks.size(); ++i)
           {
@@ -241,10 +240,10 @@ protected:
         return 0;
       }
     protected:
-      const typename TraceFitter<PeakType>::ModelData* m_data;
+      const typename TraceFitter::ModelData* m_data;
     };
 
-    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
+    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces)
     {
       LOG_DEBUG << "GaussTraceFitter->setInitialParameters(...)" << std::endl;
       LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;
@@ -329,7 +328,7 @@ protected:
 
     virtual void updateMembers_()
     {
-      TraceFitter<PeakType>::updateMembers_();
+      TraceFitter::updateMembers_();
     }
 
   };

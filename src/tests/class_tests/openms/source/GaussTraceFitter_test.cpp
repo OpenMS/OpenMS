@@ -46,7 +46,7 @@ using namespace std;
 START_TEST(GaussTraceFitter, "$Id$")
 
 /////////////////////////////////////////////////////////////
-typedef GaussTraceFitter<Peak1D> GTF;
+typedef GaussTraceFitter GTF;
 /////////////////////////////////////////////////////////////
 FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> mts;
 
@@ -302,7 +302,7 @@ START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Pe
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getCenter(), expected_x0)
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getHeight(), expected_H)
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getSigma(), expected_sigma)
-  GaussTraceFitter<Peak1D> weighted_fitter;
+  GaussTraceFitter weighted_fitter;
   Param params = weighted_fitter.getDefaults();
   params.setValue("weighted", "true");
   weighted_fitter.setParameters(params);
@@ -391,10 +391,10 @@ START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelpe
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
   mt.theoretical_int = 0.8;
 
-  Peak1D p;
-  p.setIntensity(8.0);
+  Peak1D peak;
+  peak.setIntensity(8.0);
 
-  mt.peaks.push_back(make_pair(expected_x0, &p));
+  mt.peaks.push_back(make_pair(expected_x0, &peak));
 
   // theoretical should be expected_H * theoretical_int at position expected_x0
   TEST_REAL_SIMILAR(gaussian_trace_fitter.computeTheoretical(mt, 0), mt.theoretical_int * expected_H)
