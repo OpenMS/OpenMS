@@ -411,8 +411,8 @@ namespace OpenMS
 
       tau_ = -1 / log_alpha * (B - A);
       //EGH function fails when tau==0
-      if(tau_ == 0)
-        tau_ = std::numeric_limits<double>::epsilon();
+      if (tau_ == 0) tau_ = std::numeric_limits<double>::epsilon();
+
       LOG_DEBUG << "tau: " << tau_ << std::endl;
       sigma_= sqrt(-0.5 / log_alpha * B * A);
       LOG_DEBUG << "sigma: " << sigma_<< std::endl;
