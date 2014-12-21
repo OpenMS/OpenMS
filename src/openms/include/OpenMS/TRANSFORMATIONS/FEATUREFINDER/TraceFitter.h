@@ -93,7 +93,7 @@ public:
     /**
      * Main method of the TraceFitter which triggers the actual fitting.
      */
-    virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces) = 0;
+    virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces) = 0;
 
     /**
      * Returns the lower bound of the fitted RT model
@@ -131,7 +131,7 @@ public:
      * @param trace the mass trace for which the value should be computed
      * @param k  use the position of the k-th peak to compute the value
      */
-    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, Size k);
+    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k);
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span
@@ -162,12 +162,12 @@ public:
      * @param rt_shift A shift value, that allows to plot all RT profiles side by side, even if they would overlap in reality.
      *                 This should be 0 for the first mass trace and increase by a fixed value for each mass trace.
      */
-    virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, const char function_name, const double baseline, const double rt_shift) = 0;
+    virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift) = 0;
 
 protected:
     struct ModelData
     {
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>* traces_ptr;
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces* traces_ptr;
       bool weighted;
     };
 

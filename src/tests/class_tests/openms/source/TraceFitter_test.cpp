@@ -37,8 +37,9 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/Peak1D.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -50,7 +51,7 @@ class DerivedTraceFitter
 
 public:
 
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>&)
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces&)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -100,7 +101,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>&, const char, const double, const double)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace&, const char, const double, const double)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -147,9 +148,9 @@ START_SECTION((virtual TraceFitter& operator=(const TraceFitter& source)))
 END_SECTION
 
 DerivedTraceFitter trace_fitter;
-START_SECTION((virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)=0))
+START_SECTION((virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)=0))
 {
-  FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> m;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTraces m;
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.fit(m))
 }
 END_SECTION
@@ -184,9 +185,9 @@ START_SECTION((virtual double getValue(double rt) const ))
 }
 END_SECTION
 
-START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
+START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k)))
 {
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt;
   Peak1D p;
   mt.peaks.push_back(make_pair(1.0, &p));
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.computeTheoretical(mt, 0))
@@ -214,9 +215,9 @@ START_SECTION((virtual double getArea()))
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)=0))
+START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)=0))
 {
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt;
   double shift = 0.0;
   double baseline = 0.0;
   char f = 'f';

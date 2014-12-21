@@ -75,7 +75,7 @@ namespace OpenMS
   {
   }
 
-  void GaussTraceFitter::fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces)
+  void GaussTraceFitter::fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
     LOG_DEBUG << "Traces length: " << traces.size() << "\n";
     setInitialParameters_(traces);
@@ -144,7 +144,7 @@ namespace OpenMS
     return 2.506628 * height_ * sigma_;
   }
 
-  String GaussTraceFitter::getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, const char function_name, const double baseline, const double rt_shift)
+  String GaussTraceFitter::getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)
   {
     std::stringstream s;
     s << String(function_name)  << "(x)= " << baseline << " + ";
@@ -173,7 +173,7 @@ namespace OpenMS
     Size count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
-      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> & trace = (*m_data->traces_ptr)[t];
+      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace & trace = (*m_data->traces_ptr)[t];
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
@@ -198,7 +198,7 @@ namespace OpenMS
     Size count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
-      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> & trace = (*m_data->traces_ptr)[t];
+      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace & trace = (*m_data->traces_ptr)[t];
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
@@ -214,7 +214,7 @@ namespace OpenMS
   }
 
 
-  void GaussTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces)
+  void GaussTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
     LOG_DEBUG << "GaussTraceFitter->setInitialParameters(...)" << std::endl;
     LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;

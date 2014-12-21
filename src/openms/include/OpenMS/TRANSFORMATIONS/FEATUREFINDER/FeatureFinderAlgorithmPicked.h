@@ -76,8 +76,8 @@ public:
 protected:
     typedef Peak1D PeakType;
     typedef FeatureFinderAlgorithmPickedHelperStructs::Seed Seed;
-    typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> MassTrace;
-    typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> MassTraces;
+    typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
+    typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
     typedef FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
     typedef FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern IsotopePattern;
 

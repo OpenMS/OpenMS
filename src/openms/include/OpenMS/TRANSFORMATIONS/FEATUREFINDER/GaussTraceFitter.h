@@ -60,7 +60,7 @@ public:
     virtual ~GaussTraceFitter();
 
     // override important methods
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces);
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
 
     double getLowerRTBound() const;
 
@@ -85,7 +85,7 @@ public:
 
     double getArea();
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, const char function_name, const double baseline, const double rt_shift);
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift);
 
 protected:
     double sigma_;
@@ -111,7 +111,7 @@ protected:
       const typename TraceFitter::ModelData* m_data;
     };
 
-    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces);
+    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
 
     virtual void updateMembers_();
 

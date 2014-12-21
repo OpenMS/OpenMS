@@ -69,7 +69,7 @@ namespace OpenMS
     UInt count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
-      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> & trace = m_data->traces_ptr->at(t);
+      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace & trace = m_data->traces_ptr->at(t);
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
@@ -109,7 +109,7 @@ namespace OpenMS
     UInt count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
-      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> & trace = m_data->traces_ptr->at(t);
+      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace & trace = m_data->traces_ptr->at(t);
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
@@ -197,7 +197,7 @@ namespace OpenMS
   {
   }
 
-  void EGHTraceFitter::fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces)
+  void EGHTraceFitter::fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
     setInitialParameters_(traces);
 
@@ -291,7 +291,7 @@ namespace OpenMS
     return bounds.second - bounds.first;
   }
 
-  String EGHTraceFitter::getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, const char function_name, const double baseline, const double rt_shift)
+  String EGHTraceFitter::getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)
   {
     std::stringstream s;
     s << String(function_name)  << "(x)= " << baseline << " + ";
@@ -336,7 +336,7 @@ namespace OpenMS
     sigma_5_bound_ = getAlphaBoundaries_(0.043937);
   }
 
-  void EGHTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces)
+  void EGHTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
           LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)" << std::endl;
       LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;

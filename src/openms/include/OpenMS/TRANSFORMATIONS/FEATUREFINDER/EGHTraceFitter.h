@@ -84,7 +84,7 @@ public:
     virtual ~EGHTraceFitter();
 
     // override important methods
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces);
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
 
     double getLowerRTBound() const;
 
@@ -108,7 +108,7 @@ public:
 
     double getFWHM() const;
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, const char function_name, const double baseline, const double rt_shift);
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift);
 
 protected:
     double apex_rt_;
@@ -135,7 +135,7 @@ protected:
 
     void getOptimizedParameters_(const Eigen::VectorXd& x_init);
 
-    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>& traces);
+    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);
 
     virtual void updateMembers_();
   };

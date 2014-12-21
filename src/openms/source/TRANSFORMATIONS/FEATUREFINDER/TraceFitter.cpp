@@ -79,7 +79,7 @@ namespace OpenMS
   {
   }
 
-  double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, Size k)
+  double TraceFitter::computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k)
   {
     double rt = trace.peaks[k].first;
 

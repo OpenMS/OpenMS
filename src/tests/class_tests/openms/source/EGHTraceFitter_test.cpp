@@ -37,10 +37,11 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+///////////////////////////
+
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <cmath>
-///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
@@ -51,12 +52,12 @@ using namespace std;
 
 START_TEST(EGHTraceFitter, "$Id$")
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> mts;
+FeatureFinderAlgorithmPickedHelperStructs::MassTraces mts;
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt1;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt1;
 mt1.theoretical_int = 0.8;
 
-FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt2;
+FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt2;
 mt2.theoretical_int = 0.2;
 
 /////////////////////////////////////////////////////////////
@@ -301,7 +302,7 @@ START_SECTION((EGHTraceFitter& operator=(const EGHTraceFitter& source)))
 }
 END_SECTION
 
-START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)))
+START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)))
 {
   // fit was already done before
   TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(), expected_x0)
@@ -363,9 +364,9 @@ START_SECTION((double getValue(double rt) const))
 }
 END_SECTION
 
-START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D>& trace, Size k)))
+START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k)))
 {
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace mt;
   mt.theoretical_int = 0.8;
 
   Peak1D peak;
@@ -413,7 +414,7 @@ START_SECTION((virtual double getArea()))
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)))
+START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, const char function_name, const double baseline, const double rt_shift)))
 {
   String formula = egh_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
   // should look like -- f(x)= 0 + (((4.5 + 3.93096e-15 * (x - 680.1 )) > 0) ? 8 * exp(-1 * (x - 680.1)**2 / ( 4.5 + 3.93096e-15 * (x - 680.1 ))) : 0) --
