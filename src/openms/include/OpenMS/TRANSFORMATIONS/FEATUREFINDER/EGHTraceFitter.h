@@ -62,7 +62,7 @@ public:
     public:
 
       EGHTraceFunctor(int dimensions,
-          const typename TraceFitter::ModelData* data);
+          const TraceFitter::ModelData* data);
 
       virtual ~EGHTraceFunctor();
 
@@ -72,7 +72,7 @@ public:
       int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
 
     protected:
-      const typename TraceFitter::ModelData* m_data;
+      const TraceFitter::ModelData* m_data;
     };
 
     EGHTraceFitter();

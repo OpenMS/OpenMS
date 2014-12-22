@@ -64,9 +64,9 @@ namespace OpenMS
 public:
     ///@name Type definitions
     //@{
-    typedef typename FeatureFinderAlgorithm::MapType MapType;
-    typedef typename MapType::SpectrumType SpectrumType;
-    typedef typename SpectrumType::FloatDataArrays FloatDataArrays;
+    typedef FeatureFinderAlgorithm::MapType MapType;
+    typedef MapType::SpectrumType SpectrumType;
+    typedef SpectrumType::FloatDataArrays FloatDataArrays;
     //@}
 
     using FeatureFinderAlgorithm::param_;

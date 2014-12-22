@@ -296,7 +296,7 @@ namespace OpenMS
           //std::cout << "rt range: " << min_rt << " - " << max_rt << std::endl;
           //std::cout << "mz range: " << min_mz << " - " << max_mz << std::endl;
           tmp.clear();
-          for (typename MapType::ConstAreaIterator it = map_.areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != map_.areaEndConst(); ++it)
+          for (MapType::ConstAreaIterator it = map_.areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != map_.areaEndConst(); ++it)
           {
             tmp.push_back(it->getIntensity());
           }
@@ -1017,7 +1017,7 @@ namespace OpenMS
       FeatureMap abort_map;
       abort_map.reserve(abort_reasons_.size());
       Size counter = 0;
-      for (typename std::map<Seed, String>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
+      for (std::map<Seed, String>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
       {
         Feature f;
         f.setRT(map_[it2->first.spectrum].getRT());

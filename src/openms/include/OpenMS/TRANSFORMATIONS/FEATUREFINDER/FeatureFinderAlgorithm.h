@@ -78,9 +78,9 @@ public:
     /// Input map type
     typedef MSExperiment<Peak1D> MapType;
     /// Coordinate/Position type of peaks
-    typedef typename MapType::CoordinateType CoordinateType;
+    typedef MapType::CoordinateType CoordinateType;
     /// Intensity type of peaks
-    typedef typename MapType::IntensityType IntensityType;
+    typedef MapType::IntensityType IntensityType;
 
     /// default constructor
     FeatureFinderAlgorithm() :
