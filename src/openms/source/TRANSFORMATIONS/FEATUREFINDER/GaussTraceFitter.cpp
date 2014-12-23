@@ -161,7 +161,10 @@ namespace OpenMS
 
   GaussTraceFitter::GaussTraceFunctor::GaussTraceFunctor(int dimensions,
       const TraceFitter::ModelData* data)
-  : TraceFitter::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
+  : TraceFitter::GenericFunctor(dimensions,
+                                static_cast<int>(data->traces_ptr->getPeakCount())),
+    m_data(data)
+  {}
 
   int GaussTraceFitter::GaussTraceFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
   {

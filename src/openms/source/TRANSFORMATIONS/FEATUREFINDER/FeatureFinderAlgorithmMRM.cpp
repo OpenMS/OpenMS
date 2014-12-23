@@ -100,7 +100,7 @@ namespace OpenMS
       std::cerr << "Starting feature finding #chromatograms=" << map_->getChromatograms().size() << ", #spectra=" << map_->size() << std::endl;
     }
 
-    typename std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator first_it = map_->getChromatograms().begin();
+    std::vector<MSChromatogram<ChromatogramPeak> >::const_iterator first_it = map_->getChromatograms().begin();
     for (; first_it != map_->getChromatograms().end(); ++first_it)
     {
       // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)

@@ -101,14 +101,14 @@ protected:
     {
     public:
       GaussTraceFunctor(int dimensions,
-          const typename TraceFitter::ModelData* data);
+          const TraceFitter::ModelData* data);
 
       int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
 
       // compute Jacobian matrix for the different parameters
       int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
     protected:
-      const typename TraceFitter::ModelData* m_data;
+      const TraceFitter::ModelData* m_data;
     };
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces);

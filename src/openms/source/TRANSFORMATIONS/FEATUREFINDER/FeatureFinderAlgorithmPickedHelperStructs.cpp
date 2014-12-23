@@ -204,10 +204,10 @@ namespace OpenMS
   void FeatureFinderAlgorithmPickedHelperStructs::MassTraces::computeIntensityProfile(std::list<std::pair<double, double> >& intensity_profile) const
   {
     // typedefs for better readability
-    typedef typename MassTraces::const_iterator TTraceIterator;
+    typedef MassTraces::const_iterator TTraceIterator;
     typedef std::list<std::pair<double, double> >::iterator TProfileIterator;
-    typedef typename std::vector<std::pair<double, const Peak1D*> > TMassTracePeakList;
-    typedef typename TMassTracePeakList::const_iterator TTracePeakIterator;
+    typedef std::vector<std::pair<double, const Peak1D*> > TMassTracePeakList;
+    typedef TMassTracePeakList::const_iterator TTracePeakIterator;
 
     TTraceIterator trace_it = this->begin();
     // we add the first trace without check, as the profile is currently empty
