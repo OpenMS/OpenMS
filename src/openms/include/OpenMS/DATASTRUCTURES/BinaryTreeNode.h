@@ -32,7 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_DATASTRUCTURES_BINARYTREENODE_H
 #define OPENMS_DATASTRUCTURES_BINARYTREENODE_H
 

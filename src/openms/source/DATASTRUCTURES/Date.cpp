@@ -33,12 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
-#include <ctime>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/config.h>
+
+#include <ctime>
 
 using namespace std;
 

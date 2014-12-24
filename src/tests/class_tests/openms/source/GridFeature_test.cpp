@@ -36,13 +36,12 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
+///////////////////////////
+
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-
-///////////////////////////
 
 START_TEST(GridFeature, "$Id$")
 

@@ -47,7 +47,7 @@
 namespace OpenMS
 {
   class GridFeature;
-  
+
   // Boost switch since with 1.47 several classes got moved into a new
   // boost::unordered namespace (specifically unordered_map).
   namespace OpenMSBoost

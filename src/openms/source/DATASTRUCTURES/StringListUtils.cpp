@@ -41,17 +41,17 @@ using namespace std;
 
 namespace OpenMS
 {
-  
+
   StringList StringListUtils::fromQStringList(const QStringList & rhs)
   {
     StringList sl;
     sl.reserve(rhs.size());
-    
+
     for (QStringList::const_iterator it = rhs.begin(); it != rhs.end(); ++it)
     {
       sl.push_back(it->toStdString());
     }
-    
+
     return sl;
   }
 
@@ -64,17 +64,17 @@ namespace OpenMS
   {
     std::for_each(sl.begin(), sl.end(), boost::mem_fn(&String::toLower));
   }
-  
+
   StringListUtils::Iterator StringListUtils::searchPrefix(const Iterator & start, const Iterator & end, const String & text, bool trim)
   {
     return find_if(start, end, PrefixPredicate_(text, trim));
   }
-  
+
   StringListUtils::ConstIterator StringListUtils::searchPrefix(const ConstIterator & start, const ConstIterator & end, const String & text, bool trim)
   {
     return find_if(start, end, PrefixPredicate_(text, trim));
   }
-  
+
   StringListUtils::ConstIterator StringListUtils::searchPrefix(const StringList & container, const String & text, bool trim)
   {
     return searchPrefix(container.begin(), container.end(), text, trim);
@@ -84,12 +84,12 @@ namespace OpenMS
   {
     return searchPrefix(container.begin(), container.end(), text, trim);
   }
-  
+
   StringListUtils::Iterator StringListUtils::searchSuffix(const Iterator & start, const Iterator & end, const String & text, bool trim)
   {
     return find_if(start, end, SuffixPredicate_(text, trim));
   }
-  
+
   StringListUtils::ConstIterator StringListUtils::searchSuffix(const ConstIterator & start, const ConstIterator & end, const String & text, bool trim)
   {
     return find_if(start, end, SuffixPredicate_(text, trim));
@@ -99,10 +99,10 @@ namespace OpenMS
   {
     return searchSuffix(container.begin(), container.end(), text, trim);
   }
-  
+
   StringListUtils::Iterator StringListUtils::searchSuffix(StringList & container, const String & text, bool trim)
   {
     return searchSuffix(container.begin(), container.end(), text, trim);
   }
-  
+
 } // namespace OpenMS

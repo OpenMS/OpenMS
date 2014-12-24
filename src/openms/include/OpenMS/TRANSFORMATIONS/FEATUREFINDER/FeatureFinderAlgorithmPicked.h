@@ -42,7 +42,7 @@
 #include <fstream>
 
 namespace OpenMS
-{ 
+{
   /**
     @brief FeatureFinderAlgorithm for picked peaks.
 

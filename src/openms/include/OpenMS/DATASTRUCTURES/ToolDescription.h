@@ -37,9 +37,10 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <map>
 
 #include <OpenMS/OpenMSConfig.h>
+
+#include <map>
 
 namespace OpenMS
 {

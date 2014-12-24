@@ -33,12 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <numeric> // for "accumulate"
-#include <sstream>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <numeric> // for "accumulate"
+#include <sstream>
 
 namespace OpenMS
 {

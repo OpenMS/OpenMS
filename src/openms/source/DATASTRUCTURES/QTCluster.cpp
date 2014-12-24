@@ -34,10 +34,11 @@
 
 
 #include <OpenMS/DATASTRUCTURES/QTCluster.h>
-#include <numeric>
 
 #include <OpenMS/DATASTRUCTURES/GridFeature.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+
+#include <numeric>
 
 using namespace std;
 

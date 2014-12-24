@@ -35,6 +35,10 @@
 #ifndef OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 #define OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/config.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -42,10 +46,6 @@
 #include <map>
 #include <sstream>
 #include <stdexcept>
-
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/config.h>
 
 namespace OpenMS
 {

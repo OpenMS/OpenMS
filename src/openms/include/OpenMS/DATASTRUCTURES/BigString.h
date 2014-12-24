@@ -32,7 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_DATASTRUCTURES_BIGSTRING_H
 #define OPENMS_DATASTRUCTURES_BIGSTRING_H
 

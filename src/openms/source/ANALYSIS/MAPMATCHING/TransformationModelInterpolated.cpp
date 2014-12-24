@@ -34,13 +34,13 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
+// Spline2dInterpolator
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+
 #include <map>
 #include <vector>
 #include <algorithm>
 #include <numeric>
-
-// Spline2dInterpolator
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 // AkimaInterpolator
 #include <Wm5IntpAkimaNonuniform1.h>

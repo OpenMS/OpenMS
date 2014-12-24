@@ -32,17 +32,17 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYPEPTIDEFINDER_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYPEPTIDEFINDER_H
 
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
 #include <OpenMS/DATASTRUCTURES/BigString.h>
-#include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
+
+#include <vector>
 
 namespace OpenMS
 {

@@ -39,7 +39,6 @@
 
 #include <iostream>
 
-
 namespace OpenMS {
 class CVMappingRule;
 }  // namespace OpenMS

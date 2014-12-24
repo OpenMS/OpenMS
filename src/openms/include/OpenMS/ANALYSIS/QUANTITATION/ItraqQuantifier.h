@@ -35,10 +35,10 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQQUANTIFIER_H
 #define OPENMS_ANALYSIS_QUANTITATION_ITRAQQUANTIFIER_H
 
-#include <vector>
-
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
+#include <vector>
 
 namespace OpenMS
 {

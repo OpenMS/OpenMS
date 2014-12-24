@@ -35,11 +35,11 @@
 #ifndef OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
 #define OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
 
-#include <vector>
-#include <set>
-
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+
+#include <vector>
+#include <set>
 
 namespace OpenMS
 {

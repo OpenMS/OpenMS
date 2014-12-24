@@ -35,12 +35,12 @@
 #ifndef OPENMS_DATASTRUCTURES_LISTUTILSIO_H
 #define OPENMS_DATASTRUCTURES_LISTUTILSIO_H
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <iomanip>
 #include <iterator>
 #include <ostream>
 #include <vector>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 // This header collects io relevant parts of ListUtils. Separating the from the
 // rest avoids inclusion of ostream headers in a lot of classes.

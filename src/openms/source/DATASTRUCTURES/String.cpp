@@ -35,6 +35,8 @@
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/CONCEPT/Types.h>
+
 #include <QtCore/QString>
 #include <cstddef>
 #include <algorithm>
@@ -44,8 +46,6 @@
 #include <limits>
 #include <sstream>
 #include <string>
-
-#include "OpenMS/CONCEPT/Types.h"       // for UInt, Int, Byte, Size
 
 using namespace std;
 

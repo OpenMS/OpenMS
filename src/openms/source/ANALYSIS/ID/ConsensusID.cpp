@@ -37,7 +37,6 @@
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-
 #include <map>
 #include <cmath>
 

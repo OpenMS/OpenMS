@@ -36,6 +36,10 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
 #include <set>
 #include <string>
 #include <iostream>
@@ -46,10 +50,6 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <boost/lexical_cast.hpp>
-
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 using namespace xercesc;

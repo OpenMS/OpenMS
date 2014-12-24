@@ -32,15 +32,13 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAY_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAY_H
-
-#include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <vector>
 
 namespace OpenMS
 {

@@ -37,9 +37,9 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <QtCore/QDate>
-
 #include <OpenMS/OpenMSConfig.h>
+
+#include <QtCore/QDate>
 
 namespace OpenMS
 {

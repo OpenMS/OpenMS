@@ -32,8 +32,6 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
-
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H
 
@@ -42,11 +40,11 @@
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 
-#include <functional>
-#include <vector>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
+
+#include <functional>
+#include <vector>
 
 namespace OpenMS
 {

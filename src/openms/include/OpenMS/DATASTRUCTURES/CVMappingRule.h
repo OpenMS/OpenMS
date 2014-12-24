@@ -43,7 +43,7 @@
 namespace OpenMS
 {
   class CVMappingTerm;
-  
+
   /**
       @brief Representation of a CV Mapping rule used by CVMappings
 

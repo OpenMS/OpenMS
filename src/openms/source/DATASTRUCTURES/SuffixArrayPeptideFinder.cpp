@@ -40,8 +40,6 @@
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>
 
-#include <fstream>
-
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Factory.h>
@@ -50,6 +48,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <OpenMS/config.h>
+
+#include <fstream>
 
 using namespace std;
 

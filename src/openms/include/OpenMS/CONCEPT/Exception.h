@@ -37,6 +37,7 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/CONCEPT/Types.h>
+
 #include <iosfwd>
 #include <new>
 #include <string>

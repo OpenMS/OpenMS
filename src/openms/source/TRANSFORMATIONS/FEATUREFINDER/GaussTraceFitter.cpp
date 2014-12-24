@@ -34,10 +34,10 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <sstream>
 #include <numeric> // for "accumulate"
-
-#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

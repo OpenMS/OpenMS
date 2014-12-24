@@ -35,9 +35,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <fstream>
-
 #include <OpenMS/CONCEPT/Factory.h>
+
+#include <fstream>
 
 namespace OpenMS
 {

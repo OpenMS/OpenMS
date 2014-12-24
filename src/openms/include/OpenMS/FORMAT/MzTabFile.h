@@ -36,11 +36,11 @@
 #define OPENMS_FORMAT_MZTABFILE_H
 
 #include <OpenMS/FORMAT/MzTab.h>
+
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #include <vector>
 #include <algorithm>
-
 
 namespace OpenMS
 {

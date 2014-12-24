@@ -34,12 +34,13 @@
 
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <QFileInfo>
-#include <QtCore/QRegExp>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
+
+#include <QFileInfo>
+#include <QtCore/QRegExp>
 
 #define HIGH_PRECISION 8
 #define LOW_PRECISION 6

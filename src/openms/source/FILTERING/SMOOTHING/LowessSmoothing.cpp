@@ -35,11 +35,10 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 
-#include <algorithm>
-#include <cstdlib>
-
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
+#include <algorithm>
+#include <cstdlib>
 
 namespace OpenMS
 {

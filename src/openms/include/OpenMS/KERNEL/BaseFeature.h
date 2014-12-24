@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-  
+
   class PeptideIdentification;
 
   /**

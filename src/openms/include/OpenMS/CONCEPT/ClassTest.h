@@ -39,6 +39,14 @@
 // When the included headers are changed, *all* tests have to be recompiled!
 // Use the ClassTest class if you need add high-level functionality.
 // Includes in the C-file are ok...
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/config.h>
+
 #include <cmath> // fabs
 #include <cstdio> // tmpnam()
 #include <cstdlib> // getenv()
@@ -48,14 +56,6 @@
 #include <list>
 #include <string>
 #include <vector>
-
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/config.h>
 
 // Empty declaration to avoid problems in case the namespace is not
 // yet defined (e.g. TEST/ClassTest_test.cpp)

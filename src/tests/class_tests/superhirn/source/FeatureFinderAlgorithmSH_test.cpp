@@ -36,16 +36,14 @@
 #include "test_config.h"
 
 ///////////////////////////
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH.h>
+///////////////////////////
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH.h>
-
-///////////////////////////
 
 START_TEST(FeatureFinderAlgorithmSH, "$Id$")
 

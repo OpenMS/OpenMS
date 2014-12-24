@@ -40,9 +40,9 @@
 #ifdef DEBUG_OPS
 #include <OpenMS/SYSTEM/StopWatch.h>
 #endif
+
 namespace OpenMS
 {
-
 
   PSLPFormulation::PSLPFormulation() :
     DefaultParamHandler("PSLPFormulation"), solver_(LPWrapper::SOLVER_GLPK)

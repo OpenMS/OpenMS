@@ -32,7 +32,6 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICCOMPRESSED_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICCOMPRESSED_H
 

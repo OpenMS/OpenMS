@@ -38,17 +38,18 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
-#include <set>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <set>
+
 namespace OpenMS
 {
   class FeatureMap;
   class Peak2D;
-  
+
   /**
     @brief A 2-dimensional consensus feature.
 
@@ -304,7 +305,7 @@ public:
     const_iterator begin() const;
 
     iterator begin();
-    
+
     const_iterator end() const;
 
     iterator end();

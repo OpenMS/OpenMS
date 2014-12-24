@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   class FeatureMap;
-  
+
   /**
     @brief Provides functionality for writing inclusion or exclusion lists.
 

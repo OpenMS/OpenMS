@@ -32,8 +32,6 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
-
 #ifndef OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYTRYPTICSEQAN_H
 

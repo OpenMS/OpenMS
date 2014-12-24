@@ -38,9 +38,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <iostream>
-
 #include <OpenMS/CONCEPT/Factory.h>
+
+#include <iostream>
 
 using namespace std;
 using namespace OpenMS;

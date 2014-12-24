@@ -35,18 +35,18 @@
 #ifndef OPENMS_KERNEL_FEATUREHANDLE_H
 #define OPENMS_KERNEL_FEATUREHANDLE_H
 
-#include <iosfwd>
-#include <vector>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/OpenMSConfig.h>
 
+#include <iosfwd>
+#include <vector>
+
 namespace OpenMS
 {
   class BaseFeature;
-  
+
   /**
     @brief Representation of a Peak2D, RichPeak2D or Feature .
 

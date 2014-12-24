@@ -35,9 +35,9 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_PROTEININFERENCE_H
 #define OPENMS_ANALYSIS_QUANTITATION_PROTEININFERENCE_H
 
-#include <vector>
-
 #include <OpenMS/KERNEL/Peak2D.h>
+
+#include <vector>
 
 namespace OpenMS
 {

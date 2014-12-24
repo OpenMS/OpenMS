@@ -36,11 +36,11 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <ctime>
-#include <iostream>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/config.h>
+
+#include <ctime>
+#include <iostream>
 
 using namespace std;
 

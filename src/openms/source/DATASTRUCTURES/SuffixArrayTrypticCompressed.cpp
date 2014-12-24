@@ -40,6 +40,9 @@
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
+
 #include <string>
 #include <algorithm>
 #include <cmath>
@@ -48,9 +51,6 @@
 #include <iostream>
 #include <sstream>
 #include <stack>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/config.h>
 
 using namespace std;
 

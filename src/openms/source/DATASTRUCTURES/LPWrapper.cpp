@@ -35,7 +35,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
-#include <cstddef>
 
 #if COINOR_SOLVER == 1
 #ifdef _MSC_VER //disable some COIN-OR warnings that distract from ours
@@ -64,6 +63,7 @@
 #endif
 
 #include <glpk.h>
+#include <cstddef>
 
 namespace OpenMS
 {

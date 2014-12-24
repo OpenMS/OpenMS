@@ -31,6 +31,7 @@
 // $Maintainer: Clemens Groepl, Chris Bielow $
 // $Authors: Katharina Albers $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>

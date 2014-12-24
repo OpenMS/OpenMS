@@ -36,9 +36,9 @@
 #define OPENMS_DATASTRUCTURES_DATETIME_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <QtCore/QDate>
-
 #include <OpenMS/OpenMSConfig.h>
+
+#include <QtCore/QDate>
 
 namespace OpenMS
 {

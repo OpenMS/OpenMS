@@ -40,7 +40,6 @@
 
 #include <algorithm>
 
-
 using namespace OpenMS;
 using namespace std;
 

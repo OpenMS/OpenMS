@@ -43,6 +43,7 @@
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMDocument.hpp>
@@ -66,8 +67,6 @@
 #include <stdexcept>
 #include <vector>
 #include <map>
-
-#include <OpenMS/CONCEPT/LogStream.h>
 
 // Error codes
 //enum {

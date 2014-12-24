@@ -42,12 +42,12 @@
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
-#include <map>
-#include <vector>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
+
+#include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -56,7 +56,7 @@ namespace OpenMS
   namespace Logger {
     class LogStream;
   }
-  
+
   /**
     @brief A container for consensus elements.
 

@@ -35,13 +35,13 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
+
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
-
-#include "OpenMS/DATASTRUCTURES/Adduct.h"  // for Adduct
 
 namespace OpenMS
 {

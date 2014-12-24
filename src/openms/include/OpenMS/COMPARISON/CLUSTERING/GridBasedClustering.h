@@ -32,6 +32,12 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+
 #include <cmath>
 #include <limits>
 #include <map>
@@ -40,18 +46,12 @@
 #include <algorithm>
 #include <iostream>
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/COMPARISON/CLUSTERING/ClusteringGrid.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
-
 #ifndef OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
 #define OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H
 
 namespace OpenMS
 {
-  
+
   /**
    * @brief basic data structure for distances between clusters
    */
@@ -68,7 +68,7 @@ namespace OpenMS
     * @brief returns cluster index
     */
     int getClusterIndex() const;
-    
+
     /**
     * @brief returns index of nearest cluster
     */
@@ -82,7 +82,7 @@ namespace OpenMS
     bool operator>(MinimumDistance other) const;
     bool operator==(MinimumDistance other) const;
 
-    private:        
+    private:
 
     /// hide default constructor
     MinimumDistance();
@@ -101,20 +101,20 @@ namespace OpenMS
     * @brief distance between cluster and its nearest neighbour
     */
     double distance_;
-     
+
   };
-  
+
   /**
   * @brief 2D hierarchical clustering implementation
   * optimized for large data sets containing many small clusters
   * i.e. dimensions of clusters << dimension of entire dataset
-  * 
+  *
   * The clustering problem therefore simplifies to a number of
   * local clustering problems. Each of the local problems can be
   * solved on a couple of adjacent cells on a larger grid. The grid
   * spacing is determined by the expected typical cluster size
   * in this region.
-  * 
+  *
   * Each data point can have two additional properties A and B.
   * In each cluster all properties A need to be the same,
   * all properties B different.
@@ -130,10 +130,10 @@ namespace OpenMS
     typedef GridBasedCluster::Point Point;    // DPosition<2>
     typedef GridBasedCluster::Rectangle Rectangle;    // DBoundingBox<2>
     typedef ClusteringGrid::CellIndex CellIndex;    // std::pair<int,int>
-    
+
     /**
      * @brief initialises all data structures
-     * 
+     *
      * @param data_x    x-coordinates of points to be clustered
      * @param data_y    y-coordinates of points to be clustered
      * @param properties_A    property A of points (same in each cluster)
@@ -144,16 +144,16 @@ namespace OpenMS
     GridBasedClustering(Metric metric, const std::vector<double> &data_x,
                         const std::vector<double> &data_y, const std::vector<int> &properties_A,
                         const std::vector<int> &properties_B, std::vector<double> grid_spacing_x,
-                        std::vector<double> grid_spacing_y) : 
+                        std::vector<double> grid_spacing_y) :
       metric_(metric),
       grid_(grid_spacing_x, grid_spacing_y)
     {
       init_(data_x, data_y, properties_A, properties_B);
     }
-    
+
     /**
      * @brief initialises all data structures
-     * 
+     *
      * @param data_x    x-coordinates of points to be clustered
      * @param data_y    y-coordinates of points to be clustered
      * @param grid_spacing_x    grid spacing in x-direction
@@ -161,7 +161,7 @@ namespace OpenMS
      */
     GridBasedClustering(Metric metric, const std::vector<double> &data_x,
                         const std::vector<double> &data_y, std::vector<double> grid_spacing_x,
-                        std::vector<double> grid_spacing_y) : 
+                        std::vector<double> grid_spacing_y) :
       metric_(metric),
       grid_(grid_spacing_x,grid_spacing_y)
     {
@@ -170,7 +170,7 @@ namespace OpenMS
       std::vector<int> properties_B(data_x.size(),-1);
       init_(data_x, data_y, properties_A, properties_B);
     }
-    
+
     /**
      * @brief performs the hierarchical clustering
      * (merges clusters until their dimension exceeds that of  cell)
@@ -180,21 +180,21 @@ namespace OpenMS
       // progress logger
       Size clusters_start = clusters_.size();
       startProgress(0, clusters_start, "clustering");
-      
+
       MinimumDistance zero_distance(-1, -1, 0);
       typedef std::multiset<MinimumDistance>::iterator MultisetIterator;
-      
+
       // combine clusters until all have been moved to the final list
       while (clusters_.size() > 0)
       {
           setProgress(clusters_start - clusters_.size());
-          
+
           MultisetIterator smallest_distance_it = distances_.lower_bound(zero_distance);
           MinimumDistance smallest_distance(*smallest_distance_it);
           distances_.erase(smallest_distance_it);
           int cluster_index1 = smallest_distance.getClusterIndex();
           int cluster_index2 = smallest_distance.getNearestNeighbourIndex();
-          
+
           // update cluster list
           GridBasedCluster cluster1 = clusters_.find(cluster_index1)->second;
           GridBasedCluster cluster2 = clusters_.find(cluster_index2)->second;
@@ -204,16 +204,16 @@ namespace OpenMS
           new_points.reserve(points1.size() + points2.size());
           new_points.insert(new_points.end(), points1.begin(), points1.end());
           new_points.insert(new_points.end(), points2.begin(), points2.end());
-          
+
           double new_x = (cluster1.getCentre().getX() * points1.size() + cluster2.getCentre().getX() * points2.size()) / (points1.size() + points2.size());
           double new_y = (cluster1.getCentre().getY() * points1.size() + cluster2.getCentre().getY() * points2.size()) / (points1.size() + points2.size());
-      
+
           Rectangle box1 = cluster1.getBoundingBox();
           Rectangle box2 = cluster2.getBoundingBox();
           Rectangle new_box(box1);
           new_box.enlarge(box2.minPosition());
           new_box.enlarge(box2.maxPosition());
-          
+
           // Properties A of both clusters should by now be the same. The merge veto has been checked
           // when a new entry to the minimum distance list was added, @see findNearestNeighbour_.
           if (cluster1.getPropertyA() != cluster2.getPropertyA())
@@ -221,33 +221,33 @@ namespace OpenMS
               throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Property A of both clusters not the same. ", "A");
           }
           int new_A = cluster1.getPropertyA();
-          
+
           std::vector<int> B1 = cluster1.getPropertiesB();
           std::vector<int> B2 = cluster2.getPropertiesB();
           std::vector<int> new_B;
           new_B.reserve(B1.size() + B2.size());
           new_B.insert(new_B.end(), B1.begin(), B1.end());
           new_B.insert(new_B.end(), B2.begin(), B2.end());
-          
+
           GridBasedCluster new_cluster(DPosition<2>(new_x,new_y), new_box, new_points, new_A, new_B);
-          
+
           clusters_.erase(clusters_.find(cluster_index1));
           clusters_.erase(clusters_.find(cluster_index2));
           clusters_.insert(std::make_pair(cluster_index1, new_cluster));
-          
+
           // update grid
           CellIndex cell_for_cluster1 = grid_.getIndex(cluster1.getCentre());
           CellIndex cell_for_cluster2 = grid_.getIndex(cluster2.getCentre());
           CellIndex cell_for_new_cluster = grid_.getIndex(DPosition<2>(new_x,new_y));
-          
+
           grid_.removeCluster(cell_for_cluster1, cluster_index1);
           grid_.removeCluster(cell_for_cluster2, cluster_index2);
           grid_.addCluster(cell_for_new_cluster, cluster_index1);
-      
+
           // update minimum distance list
           std::vector<int> clusters_to_be_updated;
           clusters_to_be_updated.push_back(cluster_index1);    // index of the new cluster
-          
+
           MultisetIterator it = distances_.begin();
           while (it != distances_.end())
           {
@@ -268,7 +268,7 @@ namespace OpenMS
                   ++it;
               }
           }
-          
+
           for (std::vector<int>::const_iterator cluster_index = clusters_to_be_updated.begin(); cluster_index != clusters_to_be_updated.end(); ++cluster_index)
           {
               if (findNearestNeighbour_(clusters_.find(*cluster_index)->second,*cluster_index))
@@ -278,9 +278,9 @@ namespace OpenMS
                   clusters_.erase(clusters_.find(*cluster_index));    // remove from cluster list
              }
           }
-                   
+
       }
- 
+
       endProgress();
     }
 
@@ -290,7 +290,7 @@ namespace OpenMS
      */
     void extendClustersY()
     {
-        
+
         // construct new grid (grid only in x-direction, single cell in y-direction)
         std::vector<double> grid_spacing_x = grid_.getGridSpacingX();
         std::vector<double> grid_spacing_y = grid_.getGridSpacingY();
@@ -298,7 +298,7 @@ namespace OpenMS
         grid_spacing_y_new.push_back(grid_spacing_y.front());
         grid_spacing_y_new.push_back(grid_spacing_y.back());
         ClusteringGrid grid_x_only(grid_spacing_x, grid_spacing_y_new);
-        
+
         // register final clusters on the new grid
         for (std::map<int, GridBasedCluster>::iterator it = clusters_final_.begin(); it != clusters_final_.end(); ++it)
         {
@@ -306,8 +306,8 @@ namespace OpenMS
             GridBasedCluster cluster = it->second;
             grid_x_only.addCluster(grid_x_only.getIndex(cluster.getCentre()), cluster_index);
         }
-        
-        
+
+
         // scan through x on the grid
         for (unsigned cell = 0; cell < grid_spacing_x.size(); ++cell)
         {
@@ -326,7 +326,7 @@ namespace OpenMS
                         index_list.insert(std::make_pair(clusters_final_.find(*it)->second,*it));
                     }
                     cluster_list.sort();
-                    
+
                     // Now check if two adjacent clusters c1 and c2 can be merged.
                     std::list<GridBasedCluster>::iterator c1 = cluster_list.begin();
                     std::list<GridBasedCluster>::iterator c2 = cluster_list.begin();
@@ -337,7 +337,7 @@ namespace OpenMS
                         double centre1y = (*c1).getCentre().getY();
                         double centre2x = (*c2).getCentre().getX();
                         double centre2y = (*c2).getCentre().getY();
-                        
+
                         double box1x_min = (*c1).getBoundingBox().minX();
                         double box1x_max = (*c1).getBoundingBox().maxX();
                         double box1y_min = (*c1).getBoundingBox().minY();
@@ -346,22 +346,22 @@ namespace OpenMS
                         double box2x_max = (*c2).getBoundingBox().maxX();
                         double box2y_min = (*c2).getBoundingBox().minY();
                         double box2y_max = (*c2).getBoundingBox().maxY();
-                        
+
                         //double y_range1 = box1y_max - box1y_min;
                         //double y_range2 = box2y_max - box2y_min;
                         //double y_gap = box1y_min - box2y_max;
-                                           
+
                         // Is there an overlap of the two clusters in x?
                         bool overlap = (box1x_min <= box2x_max && box1x_min >= box2x_min) || (box1x_max >= box2x_min && box1x_max <= box2x_max);
-    
+
                         // Is the x-centre of one cluster in the x-range of the other?
                         //bool centre_in_range1 = (box2x_min <= centre1x && centre1x <= box2x_max);
                         //bool centre_in_range2 = (box1x_min <= centre2x && centre2x <= box1x_max);
-                            
+
                         // Is the y-gap between the two clusters smaller than 1/s of their average y-range?
                         //double s = 6;    // scaling factor
                         //bool clusters_close = (y_gap * s <= (y_range1 - y_range2)/2);
-                           
+
                         // Shall we merge the two adjacent clusters?
                         //if ((centre_in_range1 || centre_in_range2) && clusters_close)
                         if (overlap)
@@ -372,43 +372,43 @@ namespace OpenMS
                             new_points.reserve(points1.size() + points2.size());
                             new_points.insert(new_points.end(), points1.begin(), points1.end());
                             new_points.insert(new_points.end(), points2.begin(), points2.end());
-                            
+
                             double new_x = (centre1x * points1.size() + centre2x * points2.size()) / (points1.size() + points2.size());
                             double new_y = (centre1y * points1.size() + centre2y * points2.size()) / (points1.size() + points2.size());
-                            
-                            double min_x = std::min(box1x_min, box2x_min); 
-                            double min_y = std::min(box1y_min, box2y_min); 
-                            double max_x = std::max(box1x_max, box2x_max); 
+
+                            double min_x = std::min(box1x_min, box2x_min);
+                            double min_y = std::min(box1y_min, box2y_min);
+                            double max_x = std::max(box1x_max, box2x_max);
                             double max_y = std::max(box1y_max, box2y_max);
-                            
+
                             Point new_centre(new_x, new_y);
                             Point position_min(min_x,min_y);
                             Point position_max(max_x,max_y);
                             Rectangle new_bounding_box(position_min,position_max);
-                            
+
                             GridBasedCluster new_cluster(new_centre, new_bounding_box, new_points);
-                            
+
                             // update final cluster list
                             clusters_final_.erase(clusters_final_.find(index_list.find(*c1)->second));
                             clusters_final_.erase(clusters_final_.find(index_list.find(*c2)->second));
                             clusters_final_.insert(std::make_pair(index_list.find(*c1)->second, new_cluster));
-                            
+
                             // update grid
                             CellIndex cell_for_cluster1 = grid_x_only.getIndex((*c1).getCentre());
                             CellIndex cell_for_cluster2 = grid_x_only.getIndex((*c2).getCentre());
                             CellIndex cell_for_new_cluster = grid_x_only.getIndex(new_centre);
-                            
+
                             grid_x_only.removeCluster(cell_for_cluster1, index_list.find(*c1)->second);
                             grid_x_only.removeCluster(cell_for_cluster2, index_list.find(*c2)->second);
                             grid_x_only.addCluster(cell_for_new_cluster, index_list.find(*c1)->second);
                         }
                         ++c1;
                         ++c2;
-                    } 
+                    }
                 }
             }
         }
-         
+
     }
 
     /**
@@ -429,8 +429,8 @@ namespace OpenMS
             {
                 ++it;
             }
-        }    
-    }    
+        }
+    }
 
     /**
      * @brief returns final results (mapping of cluster indices to clusters)
@@ -446,7 +446,7 @@ namespace OpenMS
      * @brief metric for measuring the distance between points in the 2D plane
      */
     Metric metric_;
-    
+
     /**
     * @brief grid on which the position of the clusters are registered
     * used in cluster method
@@ -470,10 +470,10 @@ namespace OpenMS
     * stores the smallest of the distances in the head
     */
     std::multiset<MinimumDistance> distances_;
-    
+
     /**
      * @brief initialises all data structures
-     * 
+     *
      * @param data_x    x-coordinates of points to be clustered
      * @param data_y    y-coordinates of points to be clustered
      * @param properties_A    property A of points (same in each cluster)
@@ -487,27 +487,27 @@ namespace OpenMS
         {
             Point position(data_x[i],data_y[i]);
             Rectangle box(position,position);
-            
+
             std::vector<int> pi;    // point indices
             pi.push_back(i);
             std::vector<int> pb;    // properties B
             pb.push_back(properties_B[i]);
-            
+
             // add to cluster list
             GridBasedCluster cluster(position, box, pi, properties_A[i], pb);
             clusters_.insert(std::make_pair(i,cluster));
-            
+
             // register on grid
             grid_.addCluster(grid_.getIndex(position), i);
         }
-        
+
         // fill list of minimum distances
         std::map<int, GridBasedCluster>::iterator iterator = clusters_.begin();
         while (iterator != clusters_.end())
         {
             int cluster_index = iterator->first;
             GridBasedCluster cluster = iterator->second;
-            
+
             if (findNearestNeighbour_(cluster, cluster_index))
             {
                 // remove from grid
@@ -527,10 +527,10 @@ namespace OpenMS
     * Each point in a cluster can (optionally) have two properties A and B.
     * Properties A need to be the same, properties B need to differ in each cluster.
     * Methods checks if this is violated in the merged cluster.
-    * 
+    *
     * @param c1    cluster 1
     * @param c2    cluster 2
-    * 
+    *
     * @return    veto for merging clusters
     * true -> clusters can be merged
     * false -> clusters cannot be merged
@@ -541,16 +541,16 @@ namespace OpenMS
         int A2 = c2.getPropertyA();
         std::vector<int> B1 = c1.getPropertiesB();
         std::vector<int> B2 = c2.getPropertiesB();
-        
+
         // check if any of the properties A and B is not set i.e. =-1
         if (A1 == -1 || A2 == -1 || std::find(B1.begin(), B1.end(), -1) != B1.end() || std::find(B2.begin(), B2.end(), -1) != B2.end())
         {
             return false;
         }
-        
+
         // Will the merged cluster have the same properties A?
         bool vetoA = !(A1 == A2);
-        
+
         // Will the merged cluster have different properties B?
         // (Hence the intersection of properties B of cluster 1 and cluster 2 should be empty.)
         std::vector<int> B_intersection;
@@ -558,31 +558,31 @@ namespace OpenMS
         sort(B2.begin(), B2.end());
         set_intersection(B1.begin(),B1.end(),B2.begin(),B2.end(),back_inserter(B_intersection));
         bool vetoB = !B_intersection.empty();
-        
+
         return (vetoA || vetoB);
     }
 
     /**
      * @brief determines the nearest neighbour for each cluster
-     * 
+     *
      * @note If no nearest neighbour exists, the cluster is removed from the list.
      * The deletion is done outside of the method, see return boolean.
      * @note If two clusters cannot be merged (merge veto), they are no
      * viable nearest neighbours.
-     * 
+     *
      * @param cluster    cluster for which the nearest neighbour should be found
      * @param cluster_index    index of cluster
-     * 
-     * @param Should the cluster be removed from the cluster list? 
+     *
+     * @param Should the cluster be removed from the cluster list?
      */
     bool findNearestNeighbour_(GridBasedCluster cluster, int cluster_index)
     {
         Point centre = cluster.getCentre();
         CellIndex cell_index = grid_.getIndex(centre);
-        
+
         double min_dist = 0;
         int nearest_neighbour = -1;
-        
+
         // search in the grid cell and its 8 neighbouring cells for the nearest neighbouring cluster
         for (int i = -1; i <= 1; ++i)
         {
@@ -611,20 +611,20 @@ namespace OpenMS
                 }
             }
         }
-        
+
         if (nearest_neighbour == -1)
         {
             // no other cluster nearby, hence move the cluster to the final results
             clusters_final_.insert(std::make_pair(cluster_index, clusters_.find(cluster_index)->second));
             return true;
         }
-        
+
         // add to the list of minimal distances
         distances_.insert(MinimumDistance(cluster_index, nearest_neighbour, min_dist));
         return false;
     }
-  
+
   };
-  
+
 }
 #endif /* OPENMS_COMPARISON_CLUSTERING_GRIDBASEDCLUSTERING_H */

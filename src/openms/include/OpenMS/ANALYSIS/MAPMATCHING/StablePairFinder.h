@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   class AASequence;
-  
+
   /**
     @brief This class implements a pair finding algorithm for consensus features.
 
