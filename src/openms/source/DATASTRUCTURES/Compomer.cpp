@@ -32,12 +32,15 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
-
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <algorithm>
 #include <cmath>
-#include <algorithm> // std::min
 #include <iostream>
+
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
 
 using namespace std;
 

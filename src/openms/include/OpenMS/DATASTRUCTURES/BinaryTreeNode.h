@@ -37,7 +37,7 @@
 #define OPENMS_DATASTRUCTURES_BINARYTREENODE_H
 
 #include <OpenMS/CONCEPT/Types.h>
-
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {

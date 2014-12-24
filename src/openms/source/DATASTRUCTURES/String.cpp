@@ -32,22 +32,20 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
-
 #include <QtCore/QString>
-
-#include <boost/spirit/include/qi.hpp>
-
-#include <string>
+#include <cstddef>
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
 #include <limits>
-#include <algorithm>
+#include <sstream>
+#include <string>
+
+#include "OpenMS/CONCEPT/Types.h"       // for UInt, Int, Byte, Size
 
 using namespace std;
 

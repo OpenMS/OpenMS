@@ -36,19 +36,23 @@
 #define OPENMS_KERNEL_FEATUREMAP_H
 
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
-#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
-
+#include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <algorithm>
-#include <vector>
 #include <exception>
+#include <vector>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
+#include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/KERNEL/BaseFeature.h>
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {
+  class ProteinIdentification;
+  class PeptideIdentification;
+  class DataProcessing;
 
   /// summary of the peptide identification assigned to each feature of this map.
   /// Each feature contributes one vote (=state)

@@ -33,14 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
-
-#include <iostream>
-#include <typeinfo>
+#include <cstdio>
 #include <exception>
 #include <iostream>
-#include <cstdio>
 #include <sstream>
+#include <typeinfo>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 
 #define DEF_EXCEPTION(a, b) \
   a::a(const char * file, int line, const char * function) throw() :                                                           \

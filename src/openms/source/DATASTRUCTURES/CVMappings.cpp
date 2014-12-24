@@ -33,8 +33,16 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
+#include <OpenMS/DATASTRUCTURES/CVReference.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <iostream>
+
+
+namespace OpenMS {
+class CVMappingRule;
+}  // namespace OpenMS
 
 using namespace std;
 

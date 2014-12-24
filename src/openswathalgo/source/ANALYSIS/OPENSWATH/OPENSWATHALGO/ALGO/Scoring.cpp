@@ -34,8 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
-
 #include <cmath>
+
 #include <boost/numeric/conversion/cast.hpp>
 
 namespace OpenSwath

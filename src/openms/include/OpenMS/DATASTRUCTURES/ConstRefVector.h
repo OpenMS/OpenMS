@@ -35,13 +35,12 @@
 #ifndef OPENMS_DATASTRUCTURES_CONSTREFVECTOR_H
 #define OPENMS_DATASTRUCTURES_CONSTREFVECTOR_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
-#include <vector>
-#include <typeinfo>
 #include <algorithm>
+#include <typeinfo>
+#include <vector>
 
 namespace OpenMS
 {

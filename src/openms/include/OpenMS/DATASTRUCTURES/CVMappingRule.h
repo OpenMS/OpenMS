@@ -35,12 +35,15 @@
 #ifndef OPENMS_DATASTRUCTURES_CVMAPPINGRULE_H
 #define OPENMS_DATASTRUCTURES_CVMAPPINGRULE_H
 
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
+
 #include <vector>
 
 namespace OpenMS
 {
+  class CVMappingTerm;
+  
   /**
       @brief Representation of a CV Mapping rule used by CVMappings
 

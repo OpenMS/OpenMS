@@ -37,6 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/OpenMSConfig.h>
 
 class QStringList;
 

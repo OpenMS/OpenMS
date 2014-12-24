@@ -35,13 +35,15 @@
 #ifndef OPENMS_DATASTRUCTURES_LISTUTILS_H
 #define OPENMS_DATASTRUCTURES_LISTUTILS_H
 
-#include <vector>
-#include <algorithm>
-#include <iterator>
-#include <cmath>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/config.h>
+
+#include <algorithm>
+#include <cmath>
+#include <iterator>
+#include <vector>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>

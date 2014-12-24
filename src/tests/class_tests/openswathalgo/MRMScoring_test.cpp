@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2014.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -70,19 +70,19 @@ void fill_mock_objects(MockMRMFeature * imrmfeature, std::vector<std::string>& n
   native_ids.push_back("group1");
   native_ids.push_back("group2");
 
-  static const double arr1[] = 
+  static const double arr1[] =
   {
     5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
-    8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392 
+    8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392
   };
   std::vector<double> intensity1 (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] = 
+  static const double arr2[] =
   {
     15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
     121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108
   };
   std::vector<double> intensity2 (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
-  static const double arr3[] = 
+  static const double arr3[] =
   {
     0.0, 110.0, 200.0, 270.0, 320.0, 350.0, 360.0, 350.0, 320.0, 270.0, 200.0
   };
@@ -135,8 +135,8 @@ END_SECTION
 /*
  * Validation of the cross-correlation in Python
  *
- 
-from numpy import * 
+
+from numpy import *
 
 data1 = [5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
        8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392]
@@ -250,10 +250,10 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore_weighted)
   std::vector<std::string> native_ids;
   fill_mock_objects(imrmfeature, native_ids);
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
-  
+
   // xcorr_deltas = [0, 3, 0] * array([0.25, 2*0.5*0.5,0.25])
-  // sum(xcorr_deltas) 
-  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore_weighted(weights), 1.5) 
+  // sum(xcorr_deltas)
+  TEST_REAL_SIMILAR(mrmscore.calcXcorrCoelutionScore_weighted(weights), 1.5)
 }
 END_SECTION
 
@@ -277,7 +277,7 @@ BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score_weighted)
   static const double weights_[] = { 0.5, 0.5 };
   std::vector<double> weights (weights_, weights_ + sizeof(weights_) / sizeof(weights_[0]) );
   mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
-  
+
   // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)
   TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score_weighted(weights), 0.6984916)
@@ -324,8 +324,8 @@ BOOST_AUTO_TEST_CASE(test_Library_score)
 from numpy import *
 data1 = array([1,10000,2000])
 data2 = array([782.380737304688, 58.3845062255859, 58.3845062255859])
-ndata1 = (data1 / (sum(data1) *1.0) ) 
-ndata2 = (data2 / (sum(data2) *1.0) ) 
+ndata1 = (data1 / (sum(data1) *1.0) )
+ndata2 = (data2 / (sum(data2) *1.0) )
 
 dotprod = sum([ (a*b) for (a,b) in zip(ndata1, ndata2) ])
 lenx = sqrt(sum([ (a*a) for (a,b) in zip(ndata1, ndata2) ]))
@@ -352,11 +352,11 @@ norm2 = sqrtdata2 / sqrt( sum([s*s for s in sqrtdata2]) )
 sum([ (a*b) for (a,b) in zip(norm1, norm2) ])
 # 0.34514800971521764
 
-ndata1 = (data1 / (sum(data1) *1.0) ) 
-ndata2 = (data2 / (sum(data2) *1.0) ) 
+ndata1 = (data1 / (sum(data1) *1.0) )
+ndata2 = (data2 / (sum(data2) *1.0) )
 
-nsqrtdata1 = (sqrtdata1 / (sum(sqrtdata1) *1.0) ) 
-nsqrtdata2 = (sqrtsdata2 / (sum(sqrtdata2) *1.0) ) 
+nsqrtdata1 = (sqrtdata1 / (sum(sqrtdata1) *1.0) )
+nsqrtdata2 = (sqrtsdata2 / (sum(sqrtdata2) *1.0) )
 sum([ abs(a-b) for (a,b) in zip(nsqrtdata1, nsqrtdata2) ])
 # 1.2796447146892949
 
@@ -386,7 +386,7 @@ sum([ abs(a-b) for (a,b) in zip(nsqrtdata1, nsqrtdata2) ])
   MRMScoring mrmscore;
   double manhatten, dotproduct;
   double spectral_angle, rmsd;
-  double library_corr, library_rmsd; 
+  double library_corr, library_rmsd;
   mrmscore.calcLibraryScore(imrmfeature, transitions, library_corr, library_rmsd, manhatten, dotproduct, spectral_angle, rmsd);
   TEST_REAL_SIMILAR(library_corr, -0.654591316)
   TEST_REAL_SIMILAR(library_rmsd, 0.5800337593)

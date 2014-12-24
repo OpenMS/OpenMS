@@ -32,16 +32,14 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
 //#define MRMSCORING_TESTING
 #include <algorithm>
-#include <algorithm>
-#include <iterator>
 #include <iostream>
+#include <iterator>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 namespace OpenSwath
 {

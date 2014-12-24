@@ -35,17 +35,18 @@
 #ifndef OPENMS_DATASTRUCTURES_COMPOMER_H
 #define OPENMS_DATASTRUCTURES_COMPOMER_H
 
-#include <vector>
-#include <map>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/OpenMSConfig.h>
 
-#include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <map>
+#include <vector>
 
 namespace OpenMS
 {
 
-  class String;
   class Adduct;
+  class String;
 
   /**
     @brief Holds information on an edge connecting two features from a (putative) charge ladder

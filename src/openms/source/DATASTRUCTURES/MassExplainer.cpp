@@ -32,14 +32,16 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
-
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-
-
-#include <iostream>
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
 #include <algorithm>
+#include <iostream>
+
+#include "OpenMS/DATASTRUCTURES/Adduct.h"  // for Adduct
 
 namespace OpenMS
 {

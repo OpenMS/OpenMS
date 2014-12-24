@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //#define DEBUG_OPS
 namespace OpenMS

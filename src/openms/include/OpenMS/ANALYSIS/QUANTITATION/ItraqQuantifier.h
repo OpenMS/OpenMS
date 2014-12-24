@@ -38,13 +38,11 @@
 #include <vector>
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
+  class ConsensusMap;
 
   /**
     @brief Does post-processing on raw iTRAQ channel quantitation
@@ -89,9 +87,7 @@ public:
       @throws Exception::FailedAPICall is least-squares fit fails
       @throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
     */
-    void run(const ConsensusMap & consensus_map_in,
-             ConsensusMap & consensus_map_out
-             );
+    void run(const ConsensusMap & consensus_map_in, ConsensusMap & consensus_map_out);
 
     /**
       @brief Statistics for quantitation performance and comparison of NNLS vs. naive method (aka matrix inversion)

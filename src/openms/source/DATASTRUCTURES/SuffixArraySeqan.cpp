@@ -32,23 +32,24 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
+#include <seqan/index/index_shims.h>
+#include <string>
 #include <cmath>
-#include <ctime>
 #include <cstdio>
+#include <ctime>
 #include <fstream>
 #include <stack>
 #include <typeinfo>
 
-#include <OpenMS/CHEMISTRY/ModifierRep.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
 
 //using namespace seqan; // do not use since seqan defines a class set, which makes std::set ambiguous
 using namespace std;
-
 
 namespace OpenMS
 {

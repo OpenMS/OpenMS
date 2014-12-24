@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithm.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 using namespace OpenMS;
 using namespace std;

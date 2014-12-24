@@ -34,6 +34,8 @@
 
 #include <OpenMS/DATASTRUCTURES/CVReference.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 using namespace std;
 
 namespace OpenMS

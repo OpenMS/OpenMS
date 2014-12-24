@@ -37,8 +37,10 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 ///////////////////////////
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -48,13 +50,13 @@ START_TEST(FeatureFinderAlgorithmMRM, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FeatureFinderAlgorithmMRM<Peak1D>* ptr = 0;
-FeatureFinderAlgorithmMRM<Peak1D>* nullPointer = 0;
-FeatureFinderAlgorithm<Peak1D>* ffA_nullPointer = 0;
+FeatureFinderAlgorithmMRM* ptr = 0;
+FeatureFinderAlgorithmMRM* nullPointer = 0;
+FeatureFinderAlgorithm* ffA_nullPointer = 0;
 
 START_SECTION(FeatureFinderAlgorithmMRM())
 {
-	ptr = new FeatureFinderAlgorithmMRM<Peak1D>();
+  ptr = new FeatureFinderAlgorithmMRM();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
@@ -65,14 +67,14 @@ START_SECTION(~FeatureFinderAlgorithmMRM())
 }
 END_SECTION
 
-ptr = new FeatureFinderAlgorithmMRM<Peak1D>();
+ptr = new FeatureFinderAlgorithmMRM();
 
 START_SECTION((virtual void run()))
 {
 	FeatureFinder ff;
   ff.setLogType(ProgressLogger::NONE);
 
-	PeakMap exp;
+  MSExperiment<> exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFinderAlgorithmMRM_input.mzML"), exp);
 
 	FeatureMap features, seeds;
@@ -101,8 +103,8 @@ END_SECTION
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
 {
-  FeatureFinderAlgorithm<Peak1D>* ptr2 = 0;
-	ptr2 = FeatureFinderAlgorithmMRM<Peak1D>::create();
+  FeatureFinderAlgorithm* ptr2 = 0;
+  ptr2 = FeatureFinderAlgorithmMRM::create();
   TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
 }
 END_SECTION

@@ -35,15 +35,16 @@
 #ifndef OPENMS_DATASTRUCTURES_CVMAPPINGS_H
 #define OPENMS_DATASTRUCTURES_CVMAPPINGS_H
 
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
-#include <OpenMS/DATASTRUCTURES/CVReference.h>
-
-#include <vector>
 #include <map>
+#include <vector>
 
 namespace OpenMS
 {
+  class CVMappingRule;
+  class CVReference;
+  
   /**
     @brief Representation of controlled vocabulary mapping rules (for PSI formats)
 

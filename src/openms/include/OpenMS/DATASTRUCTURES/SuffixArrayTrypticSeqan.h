@@ -39,6 +39,10 @@
 
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
+
 namespace OpenMS
 {
 

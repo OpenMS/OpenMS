@@ -40,7 +40,11 @@
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
 using namespace std;
+
 namespace OpenMS
 {
   using namespace Math;

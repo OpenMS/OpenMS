@@ -35,15 +35,13 @@
 #ifndef OPENMS_DATASTRUCTURES_CONVEXHULL2D_H
 #define OPENMS_DATASTRUCTURES_CONVEXHULL2D_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
-
-
 
 namespace OpenMS
 {

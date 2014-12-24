@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingRule.h>
 
 #include <vector>
 

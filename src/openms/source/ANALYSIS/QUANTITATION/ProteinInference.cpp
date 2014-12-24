@@ -35,7 +35,10 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+
+#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {

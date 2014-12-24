@@ -41,6 +41,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 
+#include <OpenMS/CONCEPT/Factory.h>
+
 namespace OpenMS
 {
   Fitter1D::Fitter1D() :
@@ -88,6 +90,11 @@ namespace OpenMS
     interpolation_step_ = param_.getValue("interpolation_step");
     statistics_.setMean(param_.getValue("statistics:mean"));
     statistics_.setVariance(param_.getValue("statistics:variance"));
+  }
+  
+  Fitter1D::QualityType Fitter1D::fit1d(const RawDataArrayType & /* range */, InterpolationModel * & /* model */)
+  {
+    throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
 
 } // namespace OpenMS

@@ -44,6 +44,8 @@
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
 
+#include <OpenMS/CONCEPT/Factory.h>
+
 namespace OpenMS
 {
 

@@ -35,26 +35,28 @@
 #ifndef OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 #define OPENMS_DATASTRUCTURES_SPARSEVECTOR_H
 
-#include <map>
 #include <algorithm>
-#include <stdexcept>
 #include <cassert>
 #include <cmath>
-#include <sstream>
-#include <OpenMS/CONCEPT/Exception.h>
-
 #include <iostream>
+#include <map>
+#include <sstream>
+#include <stdexcept>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/config.h>
 
 namespace OpenMS
 {
   /**
-      @brief SparseVector implementation. The container will not actually store a specified type of element - the sparse element, e.g. zero (by default)
+    @brief SparseVector implementation. The container will not actually store a specified type of element - the sparse element, e.g. zero (by default)
 
-      SparseVector for allround usage, will work with Int, UInt, double, float. This should use less space than a normal vector
-      (if more than half of the elements are sparse elements, since the underlying structure is a map) and functions can just
-      ignore sparse elements (hop(), @see SparseVectorIterator) for faster look over the elements of the container
+    SparseVector for allround usage, will work with Int, UInt, double, float. This should use less space than a normal vector
+    (if more than half of the elements are sparse elements, since the underlying structure is a map) and functions can just
+    ignore sparse elements (hop(), @see SparseVectorIterator) for faster look over the elements of the container
 
-      @ingroup Datastructures
+    @ingroup Datastructures
   */
   template <typename Value>
   class SparseVector
@@ -64,9 +66,9 @@ public:
 
     //forward declarations
     class SparseVectorConstIterator;
+    class SparseVectorConstReverseIterator;
     class SparseVectorIterator;
     class SparseVectorReverseIterator;
-    class SparseVectorConstReverseIterator;
     class ValueProxy;
 
     //made available from this classes

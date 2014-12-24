@@ -36,8 +36,7 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm_impl.h>
-
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -45,13 +44,12 @@ using namespace std;
 
 namespace OpenMS
 {
-	template <class PeakType>
 	class FFA
-		:public FeatureFinderAlgorithm<PeakType>
+    :public FeatureFinderAlgorithm
 	{
 		public:
 			FFA()
-				: FeatureFinderAlgorithm<PeakType>()
+        : FeatureFinderAlgorithm()
 			{
 			}
 
@@ -71,7 +69,7 @@ namespace OpenMS
 				return tmp;
 			}
 
-			const MSExperiment<PeakType>* getMap()
+      const MSExperiment<Peak1D>* getMap()
 			{
 				return this->map_;
 			}
@@ -93,15 +91,15 @@ START_TEST(FeatureFinderAlgorithm, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-FFA<Peak1D>* ptr = 0;
-FFA<Peak1D>* nullPointer = 0;
+FFA* ptr = 0;
+FFA* nullPointer = 0;
 
-MSExperiment<Peak1D>* map_nullPointer = 0;
+MSExperiment<>* map_nullPointer = 0;
 FeatureMap*  featureMap_nullPointer = 0;
 FeatureFinder*        ff_nullPointer = 0;
 
 START_SECTION((FeatureFinderAlgorithm()))
-	ptr = new FFA<Peak1D>();
+  ptr = new FFA();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
@@ -109,27 +107,23 @@ START_SECTION((virtual ~FeatureFinderAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
-	FeatureFinderAlgorithmPicked<RichPeak1D> ffa;
-END_SECTION
-
 START_SECTION((virtual void run()=0))
-	FFA<Peak1D> ffa;
+  FFA ffa;
 	ffa.run();
 END_SECTION
 
 START_SECTION((virtual Param getDefaultParameters() const))
-	FFA<Peak1D> ffa;
+  FFA ffa;
 	TEST_EQUAL(String(ffa.getDefaultParameters().getValue("bla")),"bluff")
 END_SECTION
 
 START_SECTION((void setData(const MapType& map, FeatureMap features, FeatureFinder& ff)))
-	FFA<Peak1D> ffa;
+  FFA ffa;
   TEST_EQUAL(ffa.getMap(),map_nullPointer)
   TEST_EQUAL(ffa.getFeatures(),featureMap_nullPointer)
   TEST_EQUAL(ffa.getFF(),ff_nullPointer)
 
-	MSExperiment<Peak1D> map;
+  MSExperiment<> map;
 	FeatureMap features;
 	FeatureFinder ff;
 	ffa.setData(map, features, ff);
@@ -140,7 +134,7 @@ START_SECTION((void setData(const MapType& map, FeatureMap features, FeatureFind
 END_SECTION
 
 START_SECTION((virtual void setSeeds(const FeatureMap& seeds)))
-	FFA<Peak1D> ffa;
+  FFA ffa;
 	FeatureMap seeds;
 	seeds.resize(4);
 	TEST_EXCEPTION(Exception::IllegalArgument,ffa.setSeeds(seeds))

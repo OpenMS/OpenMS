@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
@@ -143,7 +142,7 @@ protected:
     }
 
     // calculations
-    FeatureFinderAlgorithmIsotopeWavelet<Peak1D> iso_ff;
+    FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());
     ff_param.setValue("max_charge", getIntOption_("max_charge"));
     ff_param.setValue("intensity_threshold", getDoubleOption_("intensity_threshold"));

@@ -34,6 +34,8 @@
 
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 using namespace std;
 
 namespace OpenMS

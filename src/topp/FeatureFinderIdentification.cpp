@@ -423,12 +423,12 @@ protected:
       trans_ids[trans_it->getNativeID()] = &(*trans_it);
     }
 
-    TraceFitter<Peak1D>* fitter;
+    TraceFitter* fitter;
     if (asymmetric)
     {
-      fitter = new EGHTraceFitter<Peak1D>();
+      fitter = new EGHTraceFitter();
     }
-    else fitter = new GaussTraceFitter<Peak1D>();
+    else fitter = new GaussTraceFitter();
     if (weighted)
     {
       Param params = fitter->getDefaults();
@@ -471,7 +471,7 @@ protected:
         getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
       peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
                     (add_zeros > 0.0)); // don't forget additional zero point
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> traces;
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces traces;
       traces.max_trace = 0;
       // need a mass trace for every transition, plus maybe one for add. zeros:
       traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
@@ -479,7 +479,7 @@ protected:
              feat_it->getSubordinates().begin(); sub_it !=
            feat_it->getSubordinates().end(); ++sub_it)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace trace;
         trace.peaks.reserve(points_per_hull);
         if (sub_it->metaValueExists("isotope_probability"))
         {
@@ -528,7 +528,7 @@ protected:
 
       if (add_zeros > 0.0)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace trace;
         trace.peaks.reserve(2);
         trace.theoretical_int = add_zeros;
         Peak1D peak;
@@ -564,15 +564,15 @@ protected:
       feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
       if (asymmetric)
       {
-        EGHTraceFitter<Peak1D>* egh =
-          static_cast<EGHTraceFitter<Peak1D>*>(fitter);
+        EGHTraceFitter* egh =
+          static_cast<EGHTraceFitter*>(fitter);
         feat_it->setMetaValue("model_EGH_tau", egh->getTau());
         feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
       }
       else
       {
-        GaussTraceFitter<Peak1D>* gauss =
-          static_cast<GaussTraceFitter<Peak1D>*>(fitter);
+        GaussTraceFitter* gauss =
+          static_cast<GaussTraceFitter*>(fitter);
         feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
       }
 
@@ -587,7 +587,7 @@ protected:
         double rt_end = min(fitter->getUpperRTBound(),
                             traces[0].peaks.rbegin()->first);
 
-        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>::
+        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces::
              iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
         {
           for (vector<pair<double, const Peak1D*> >::iterator p_it =

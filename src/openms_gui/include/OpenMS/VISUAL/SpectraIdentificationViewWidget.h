@@ -43,11 +43,13 @@
 
 #include <OpenMS/VISUAL/LayerData.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 namespace OpenMS
 {
   /**
     @brief Tabular visualization / selection of identified spectra.
-  
+
     @htmlinclude OpenMS_DigestSimulation.parameters
   */
   class SpectraIdentificationViewWidget :

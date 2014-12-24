@@ -37,6 +37,8 @@
 
 #include <fstream>
 
+#include <OpenMS/CONCEPT/Factory.h>
+
 namespace OpenMS
 {
 

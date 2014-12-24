@@ -51,6 +51,8 @@
 
 namespace OpenMS
 {
+    class EmpiricalFormula;
+
     class OPENMS_DLLAPI AccurateMassSearchResult
     {
     public:

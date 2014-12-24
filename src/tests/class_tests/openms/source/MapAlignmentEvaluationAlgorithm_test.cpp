@@ -42,6 +42,9 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmPrecision.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentEvaluationAlgorithmRecall.h>
 
+#include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/KERNEL/Feature.h>
+
 using namespace OpenMS;
 using namespace std;
 

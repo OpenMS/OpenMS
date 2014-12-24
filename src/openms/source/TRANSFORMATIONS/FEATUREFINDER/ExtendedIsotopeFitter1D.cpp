@@ -35,6 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 #include <numeric>
 #include <boost/math/special_functions/fpclassify.hpp>

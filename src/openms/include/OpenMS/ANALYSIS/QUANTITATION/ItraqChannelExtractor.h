@@ -36,23 +36,25 @@
 #define OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
 
 #include <vector>
-#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
+  
+  class ConsensusMap;
 
   /**
-      @brief [experimental class] extracts the iTRAQ channels from tandem MS data and stores intensity values in a consensus map
+    @brief [experimental class] extracts the iTRAQ channels from tandem MS data and stores intensity values in a consensus map
 
-      [experimental class]
-  This class supports 4 and 8 channel iTRAQ and 6 channel TMT and will optionally do peak picking
-  before the quantitation step. Quantitation is done by adding all signals within a small delta
-  around the expected m/z of each channel. When all channels are found to be empty, the
-  ConsensusFeature is not created. No post-processing is done here. Use ItraqQuantifier for that!
+    [experimental class]
+    This class supports 4 and 8 channel iTRAQ and 6 channel TMT and will optionally do peak picking
+    before the quantitation step. Quantitation is done by adding all signals within a small delta
+    around the expected m/z of each channel. When all channels are found to be empty, the
+    ConsensusFeature is not created. No post-processing is done here. Use ItraqQuantifier for that!
 
-      @htmlinclude OpenMS_ItraqChannelExtractor.parameters
+    @htmlinclude OpenMS_ItraqChannelExtractor.parameters
   */
   class OPENMS_DLLAPI ItraqChannelExtractor :
     public DefaultParamHandler,
@@ -91,7 +93,6 @@ protected:
 
     /// implemented for DefaultParamHandler
     void updateMembers_();
-
 
 private:
 

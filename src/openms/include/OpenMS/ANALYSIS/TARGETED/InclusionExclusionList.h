@@ -37,10 +37,12 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 namespace OpenMS
 {
+  class FeatureMap;
+  
   /**
     @brief Provides functionality for writing inclusion or exclusion lists.
 

@@ -56,7 +56,7 @@ using namespace OpenMS;
 using namespace OpenMS::Math;
 using namespace std;
 
-typedef FeatureFinderAlgorithmSH<Peak1D> FFSH;
+typedef FeatureFinderAlgorithmSH FFSH;
 
 FFSH* ptr = 0;
 FFSH* nullPtr = 0;
@@ -70,15 +70,10 @@ START_SECTION((~FeatureFinderAlgorithmSH()))
 	delete ptr;
 END_SECTION
 
-ptr = new FeatureFinderAlgorithmSH<Peak1D>();
-
-START_SECTION([EXTRA] FeatureFinderAlgorithmSH() - with RichPeak1D)
-	FeatureFinderAlgorithmSH<RichPeak1D> ffa;
-	NOT_TESTABLE
-END_SECTION
+ptr = new FeatureFinderAlgorithmSH();
 
 START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
-	FeatureFinderAlgorithm<Peak1D>* ptr2 = FFSH::create();
+  FeatureFinderAlgorithm* ptr2 = FFSH::create();
 	TEST_NOT_EQUAL(ptr2,nullPtr)
 	delete ptr2;
 END_SECTION

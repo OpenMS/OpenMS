@@ -37,18 +37,20 @@
 
 #include <vector>
 
-#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
 namespace OpenMS
 {
+
+  class PeptideHit;
+  class ConsensusMap;
+
   /**
-      @brief [experimental class] given a peptide quantitation, infer corresponding protein quantities
+    @brief [experimental class] given a peptide quantitation, infer corresponding protein quantities
 
-      Infers protein ratios from peptide ratios (currently using unique peptides only).
-      Use the IDMapper class to add protein and peptide information to a
-      quantitative ConsensusMap prior to this step.
-
+    Infers protein ratios from peptide ratios (currently using unique peptides only).
+    Use the IDMapper class to add protein and peptide information to a
+    quantitative ConsensusMap prior to this step.
   */
   class OPENMS_DLLAPI ProteinInference
   {
@@ -79,8 +81,7 @@ public:
 
         @throws Exception::MissingInformation if Protein/PeptideIdentifications are missing
     */
-    void infer(ConsensusMap & consensus_map,
-               const UInt reference_map);
+    void infer(ConsensusMap & consensus_map, const UInt reference_map);
 
 
 protected:

@@ -36,13 +36,16 @@
 #define OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
 
 #include <vector>
-#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <set>
 
+#include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 namespace OpenMS
 {
 
   class MassExplainer;
+  class FeatureMap;
 
   class OPENMS_DLLAPI ILPDCWrapper
   {

@@ -35,13 +35,12 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
 #define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
 
-#include <vector>
-#include <map>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
 
 #include <boost/shared_ptr.hpp>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
+#include <map>
+#include <vector>
 
 namespace OpenSwath
 {

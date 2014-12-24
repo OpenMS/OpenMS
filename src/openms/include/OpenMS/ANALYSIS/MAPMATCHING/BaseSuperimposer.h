@@ -40,17 +40,19 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 #include <utility>
 #include <fstream>
 
 namespace OpenMS
 {
   /**
-  @brief The base class of all superimposer algorithms.
+    @brief The base class of all superimposer algorithms.
 
-  This class defines the basic interface for all superimposer algorithms. It
-  works on several element maps and computes transformations that map the
-  elements of the maps as near as possible to each other.
+    This class defines the basic interface for all superimposer algorithms. It
+    works on several element maps and computes transformations that map the
+    elements of the maps as near as possible to each other.
   */
   class OPENMS_DLLAPI BaseSuperimposer :
     public DefaultParamHandler,
@@ -60,16 +62,10 @@ namespace OpenMS
 public:
 
     /// Constructor
-    BaseSuperimposer() :
-      DefaultParamHandler("BaseSuperimposer"),
-      ProgressLogger()
-    {
-    }
+    BaseSuperimposer();
 
     /// Destructor
-    virtual ~BaseSuperimposer()
-    {
-    }
+    virtual ~BaseSuperimposer();
 
     /**
     @brief Estimates the transformation between input @p maps and returns the

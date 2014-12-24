@@ -33,7 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/FeatureHandle.h>
-#include <OpenMS/KERNEL/ConsensusFeature.h>
+
+#include <OpenMS/KERNEL/BaseFeature.h>
 
 namespace OpenMS
 {

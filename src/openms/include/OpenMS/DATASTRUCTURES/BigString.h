@@ -36,8 +36,11 @@
 #ifndef OPENMS_DATASTRUCTURES_BIGSTRING_H
 #define OPENMS_DATASTRUCTURES_BIGSTRING_H
 
-#include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
+#include <vector>
 
 namespace OpenMS
 {

@@ -37,8 +37,8 @@
 
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderDefs.h>
 
@@ -92,10 +92,7 @@ public:
     virtual Fitter1D & operator=(const Fitter1D & source);
 
     /// return interpolation model
-    virtual QualityType fit1d(const RawDataArrayType & /* range */, InterpolationModel * & /* model */)
-    {
-      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-    }
+    virtual QualityType fit1d(const RawDataArrayType & /* range */, InterpolationModel * & /* model */);
 
     /// register all derived classes here
     static void registerChildren();

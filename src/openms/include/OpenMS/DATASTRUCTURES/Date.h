@@ -35,11 +35,11 @@
 #ifndef OPENMS_DATASTRUCTURES_DATE_H
 #define OPENMS_DATASTRUCTURES_DATE_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <QtCore/QDate>
+
+#include <OpenMS/OpenMSConfig.h>
 
 namespace OpenMS
 {

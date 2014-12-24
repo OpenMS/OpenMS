@@ -41,6 +41,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
+#include <OpenMS/CONCEPT/Factory.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -60,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  void FeatureGroupingAlgorithm::group(const vector<ConsensusMap> & maps, ConsensusMap & out)
+  void FeatureGroupingAlgorithm::group(const vector<ConsensusMap>& maps, ConsensusMap& out)
   {
     LOG_WARN << "FeatureGroupingAlgorithm::group() does not support ConsensusMaps directly. Converting to FeatureMaps." << endl;
 
@@ -75,8 +77,7 @@ namespace OpenMS
     group(maps_f, out);
   }
 
-  void FeatureGroupingAlgorithm::transferSubelements(
-    const vector<ConsensusMap> & maps, ConsensusMap & out) const
+  void FeatureGroupingAlgorithm::transferSubelements(const vector<ConsensusMap>& maps, ConsensusMap& out) const
   {
     // accumulate file descriptions from the input maps:
     // cout << "Updating file descriptions..." << endl;
@@ -85,10 +86,8 @@ namespace OpenMS
     map<pair<Size, UInt64>, Size> mapid_table;
     for (Size i = 0; i < maps.size(); ++i)
     {
-      const ConsensusMap & consensus = maps[i];
-      for (ConsensusMap::FileDescriptions::const_iterator desc_it =
-             consensus.getFileDescriptions().begin(); desc_it !=
-           consensus.getFileDescriptions().end(); ++desc_it)
+      const ConsensusMap& consensus = maps[i];
+      for (ConsensusMap::FileDescriptions::const_iterator desc_it = consensus.getFileDescriptions().begin(); desc_it != consensus.getFileDescriptions().end(); ++desc_it)
       {
         Size counter = mapid_table.size();
         mapid_table[make_pair(i, desc_it->first)] = counter;
@@ -101,7 +100,7 @@ namespace OpenMS
     vector<map<UInt64, ConsensusMap::ConstIterator> > feat_lookup(maps.size());
     for (Size i = 0; i < maps.size(); ++i)
     {
-      const ConsensusMap & consensus = maps[i];
+      const ConsensusMap& consensus = maps[i];
       for (ConsensusMap::ConstIterator feat_it = consensus.begin();
            feat_it != consensus.end(); ++feat_it)
       {
@@ -113,21 +112,16 @@ namespace OpenMS
     }
     // adjust the consensus features:
     // cout << "Adjusting consensus features..." << endl;
-    for (ConsensusMap::iterator cons_it = out.begin(); cons_it != out.end();
-         ++cons_it)
+    for (ConsensusMap::iterator cons_it = out.begin(); cons_it != out.end(); ++cons_it)
     {
       ConsensusFeature adjusted = ConsensusFeature(
-        static_cast<BaseFeature>(*cons_it));         // remove sub-features
-      for (ConsensusFeature::HandleSetType::const_iterator sub_it =
-             cons_it->getFeatures().begin(); sub_it !=
-           cons_it->getFeatures().end(); ++sub_it)
+        static_cast<BaseFeature>(*cons_it)); // remove sub-features
+      for (ConsensusFeature::HandleSetType::const_iterator sub_it = cons_it->getFeatures().begin(); sub_it != cons_it->getFeatures().end(); ++sub_it)
       {
         UInt64 id = sub_it->getUniqueId();
         Size map_index = sub_it->getMapIndex();
         ConsensusMap::ConstIterator origin = feat_lookup[map_index][id];
-        for (ConsensusFeature::HandleSetType::const_iterator handle_it =
-               origin->getFeatures().begin(); handle_it !=
-             origin->getFeatures().end(); ++handle_it)
+        for (ConsensusFeature::HandleSetType::const_iterator handle_it = origin->getFeatures().begin(); handle_it != origin->getFeatures().end(); ++handle_it)
         {
           FeatureHandle handle = *handle_it;
           Size new_id = mapid_table[make_pair(map_index, handle.getMapIndex())];

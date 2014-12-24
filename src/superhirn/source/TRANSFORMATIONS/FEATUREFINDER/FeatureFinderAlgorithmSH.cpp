@@ -38,5 +38,4 @@
 
 namespace OpenMS
 {
-  FeatureFinderAlgorithmSH<Peak1D> default_featurefinderalgorithmsh;
 }

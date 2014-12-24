@@ -32,8 +32,9 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticSeqan.h>
+
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 
 namespace OpenMS
 {

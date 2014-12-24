@@ -37,10 +37,13 @@
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/OpenMSConfig.h>
+
 namespace OpenMS
 {
   class Compomer;
-  class Adduct;
 
   /**
     @brief computes empirical formulas for given mass differences using a set of allowed elements

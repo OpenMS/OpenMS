@@ -32,7 +32,6 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 
 namespace OpenMS
