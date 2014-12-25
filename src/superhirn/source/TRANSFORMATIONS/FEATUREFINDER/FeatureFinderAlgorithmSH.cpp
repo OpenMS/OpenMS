@@ -136,7 +136,7 @@ namespace OpenMS
   {
 
     Size start_idx = 0;
-    while (!isdigit(native_id[start_idx]) && start_idx < native_id.length())
+    while (start_idx < native_id.length() && !isdigit(native_id[start_idx]))
     {
       ++start_idx;
     }
