@@ -55,8 +55,8 @@ namespace OpenMS
   }
 
   template <typename MapType>
-  void FeatureGroupingAlgorithmQT::group_(const vector<MapType> & maps,
-                                          ConsensusMap & out)
+  void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps,
+                                          ConsensusMap& out)
   {
     // check that the number of maps is ok:
     if (maps.size() < 2)
@@ -95,14 +95,14 @@ namespace OpenMS
     return;
   }
 
-  void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap> & maps,
-                                         ConsensusMap & out)
+  void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,
+                                         ConsensusMap& out)
   {
     group_(maps, out);
   }
 
-  void FeatureGroupingAlgorithmQT::group(const std::vector<ConsensusMap> & maps,
-                                         ConsensusMap & out)
+  void FeatureGroupingAlgorithmQT::group(const std::vector<ConsensusMap>& maps,
+                                         ConsensusMap& out)
   {
     group_(maps, out);
   }

@@ -63,12 +63,12 @@ public:
     */
     Date();
     /// Copy constructor
-    Date(const Date & date);
+    Date(const Date& date);
     /// Copy constructor from Qt base class
-    Date(const QDate & date);
+    Date(const QDate& date);
 
     /// Assignment operator
-    Date & operator=(const Date & source);
+    Date& operator=(const Date& source);
 
     /**
         @brief sets data from a string
@@ -80,7 +80,7 @@ public:
 
         @exception Exception::ParseError is thrown if the date is given in the wrong format
     */
-    void set(const String & date);
+    void set(const String& date);
 
     /**
         @brief sets data from three integers
@@ -104,7 +104,7 @@ public:
 
         Give the numbers in the following order: month, day and year.
     */
-    void get(UInt & month, UInt & day, UInt & year) const;
+    void get(UInt& month, UInt& day, UInt& year) const;
 
     ///Sets the undefined date: 00/00/0000
     void clear();

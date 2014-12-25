@@ -88,8 +88,8 @@ namespace OpenSwath
   std::vector<std::string> MockMRMFeature::getPrecursorIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, boost::shared_ptr<MockFeature> >::const_iterator 
-        it = m_precursor_features.begin(); it != m_precursor_features.end(); ++it) 
+    for (std::map<std::string, boost::shared_ptr<MockFeature> >::const_iterator
+         it = m_precursor_features.begin(); it != m_precursor_features.end(); ++it)
     {
       v.push_back(it->first);
     }

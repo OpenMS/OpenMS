@@ -45,7 +45,7 @@
 // macros for boost
 #define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
 #define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, EPS_05 ));
+  BOOST_CHECK(boost::test_tools::check_is_close(val1, val2, EPS_05));
 #define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
 #define END_SECTION
 #define START_TEST(var1, var2)
@@ -70,10 +70,10 @@ START_TEST(ITrans2Trans, "$Id$")
 
 BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
 {
-	OpenSwath::LightTargetedExperiment  lte;
-	OpenSwath::TargetedExperiment  te;
-	//OpenSwath::convert(lte, te);
-	//TODO (wolski): write tests
+  OpenSwath::LightTargetedExperiment  lte;
+  OpenSwath::TargetedExperiment  te;
+  //OpenSwath::convert(lte, te);
+  //TODO (wolski): write tests
 }
 END_SECTION
 
@@ -81,5 +81,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-

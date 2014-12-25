@@ -62,7 +62,7 @@ public:
     //TODO: This is copy and paste from LevMarqFitter1d.h. Make a generic wrapper for LM optimization
     class GenericFunctor
     {
-    public:
+public:
       int inputs() const;
       int values() const;
 
@@ -70,11 +70,11 @@ public:
 
       virtual ~GenericFunctor();
 
-      virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) = 0;
+      virtual int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) = 0;
       // compute Jacobian matrix for the different parameters
-      virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) = 0;
+      virtual int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) = 0;
 
-    protected:
+protected:
       const int m_inputs, m_values;
     };
 

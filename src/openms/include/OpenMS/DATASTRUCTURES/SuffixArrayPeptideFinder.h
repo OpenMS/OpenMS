@@ -71,12 +71,12 @@ public:
     @throw ParseError is thrown if a error in parsing of the fasta file occurs
     @throw InvalidValue is thrown if an unknown method is supplied
     */
-    SuffixArrayPeptideFinder(const String & filename, const String & method, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
+    SuffixArrayPeptideFinder(const String& filename, const String& method, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
     /**
     @brief copy constructor
     */
-    SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder & source);
+    SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder& source);
 
     /**
     @brief destructor
@@ -91,7 +91,7 @@ public:
                  The String contains the modification (if any) in the format specified by getModificationOutputMethod()
     @see sufArray.h
     */
-    void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String> > > & candidates, const std::vector<double> & spec);
+    void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String> > >& candidates, const std::vector<double>& spec);
 
     /**
     @brief finds all candidate for given DTA file
@@ -103,7 +103,7 @@ public:
     @throw ParseError is thrown if the dta file could not be parsed
     @see sufArray.h
     */
-    void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String> > > & candidates, const String & DTA_file);
+    void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String> > >& candidates, const String& DTA_file);
 
     /**
     @brief allowed tolerance for mass match
@@ -134,13 +134,13 @@ public:
     @param tags reference to vector of strings with tags
     @note sets use_tags = true
     */
-    void setTags(const std::vector<String> & tags);
+    void setTags(const std::vector<String>& tags);
 
     /**
     @brief getter for tags
     @return const reference to vector of strings
     */
-    const std::vector<String> & getTags();
+    const std::vector<String>& getTags();
 
     /**
     @brief setter for use_tags
@@ -159,7 +159,7 @@ public:
     @param s describing how modifications should be given back
     @throw InvalidValue is thrown if method s is not known
     */
-    void setModificationOutputMethod(const String & s);
+    void setModificationOutputMethod(const String& s);
 
     /**
     @brief getter for modification output method
@@ -171,9 +171,9 @@ protected:
 
     String vToString_(std::vector<String> v);
 
-    BigString big_string_;  ///< bigString object holding all peptides of fasta file
+    BigString big_string_; ///< bigString object holding all peptides of fasta file
 
-    SuffixArray * sa_;   ///< pointer to suffixarray
+    SuffixArray* sa_; ///< pointer to suffixarray
 
     String modification_output_method_; ///< output method for modifications
 

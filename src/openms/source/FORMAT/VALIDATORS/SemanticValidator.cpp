@@ -47,7 +47,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    SemanticValidator::SemanticValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    SemanticValidator::SemanticValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       XMLHandler("", 0),
       XMLFile(),
       mapping_(mapping),
@@ -73,22 +73,22 @@ namespace OpenMS
     {
     }
 
-    void SemanticValidator::setTag(const String & tag)
+    void SemanticValidator::setTag(const String& tag)
     {
       cv_tag_ = tag;
     }
 
-    void SemanticValidator::setAccessionAttribute(const String & accession)
+    void SemanticValidator::setAccessionAttribute(const String& accession)
     {
       accession_att_ = accession;
     }
 
-    void SemanticValidator::setNameAttribute(const String & name)
+    void SemanticValidator::setNameAttribute(const String& name)
     {
       name_att_ = name;
     }
 
-    void SemanticValidator::setValueAttribute(const String & value)
+    void SemanticValidator::setValueAttribute(const String& value)
     {
       value_att_ = value;
     }
@@ -103,17 +103,17 @@ namespace OpenMS
       check_units_ = check;
     }
 
-    void SemanticValidator::setUnitAccessionAttribute(const String & accession)
+    void SemanticValidator::setUnitAccessionAttribute(const String& accession)
     {
       unit_accession_att_ = accession;
     }
 
-    void SemanticValidator::setUnitNameAttribute(const String & name)
+    void SemanticValidator::setUnitNameAttribute(const String& name)
     {
       unit_name_att_ = name;
     }
 
-    bool SemanticValidator::validate(const String & filename, StringList & errors, StringList & warnings)
+    bool SemanticValidator::validate(const String& filename, StringList& errors, StringList& warnings)
     {
       //TODO Check if all required CVs are loaded => exception if not
 
@@ -138,7 +138,7 @@ namespace OpenMS
       return errors_.empty();
     }
 
-    void SemanticValidator::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+    void SemanticValidator::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
       String tag = sm_.convert(qname);
       String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
@@ -168,14 +168,14 @@ namespace OpenMS
       }
     }
 
-    void SemanticValidator::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void SemanticValidator::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       String tag = sm_.convert(qname);
       String path = getPath_() + "/" + cv_tag_ + "/@" + accession_att_;
 
       //look up rules and fulfilled rules/terms
-      vector<CVMappingRule> & rules = rules_[path];
-      Map<String, Map<String, UInt> > & fulfilled = fulfilled_[path];       //(rule ID => term ID => term count)
+      vector<CVMappingRule>& rules = rules_[path];
+      Map<String, Map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
 
       //check how often each term appeared
       for (Size r = 0; r < rules.size(); ++r)
@@ -252,7 +252,7 @@ namespace OpenMS
       open_tags_.pop_back();
     }
 
-    void SemanticValidator::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+    void SemanticValidator::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
     {
       //nothing to do here
     }
@@ -265,7 +265,7 @@ namespace OpenMS
       return path;
     }
 
-    void SemanticValidator::getCVTerm_(const Attributes & attributes, CVTerm & parsed_term)
+    void SemanticValidator::getCVTerm_(const Attributes& attributes, CVTerm& parsed_term)
     {
       parsed_term.accession = attributeAsString_(attributes, accession_att_.c_str());
       parsed_term.name = attributeAsString_(attributes, name_att_.c_str());
@@ -284,40 +284,40 @@ namespace OpenMS
 
     //~ void SemanticValidator::makeCVTerm_(const ControlledVocabulary::CVTerm lc, CVTerm & parsed_term)
     //~ {
-      //~ parsed_term.accession = lc.id;
-      //~ parsed_term.name = lc.name;
-      //~ //no value in ControlledVocabulary::CVTerm
-      //~ //no units either yet
-      //~ {
-        //~ parsed_term.has_unit_accession = false;
-        //~ parsed_term.has_unit_name = false;
-      //~ }
+    //~ parsed_term.accession = lc.id;
+    //~ parsed_term.name = lc.name;
+    //~ //no value in ControlledVocabulary::CVTerm
+    //~ //no units either yet
+    //~ {
+    //~ parsed_term.has_unit_accession = false;
+    //~ parsed_term.has_unit_name = false;
+    //~ }
     //~ }
 
     //reimplemented to
     // - ignore values (not known)
     // - allow more names (upper-lower-case + spaces)
-    void SemanticValidator::handleTerm_(const String & path, const CVTerm & parsed_term)
+    void SemanticValidator::handleTerm_(const String& path, const CVTerm& parsed_term)
     {
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
       //Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
       bool allowed = false;
       bool rule_found = false;
-      vector<CVMappingRule> & rules = rules_[path];
-      for (Size r = 0; r < rules.size(); ++r)  //go thru all rules
+      vector<CVMappingRule>& rules = rules_[path];
+      for (Size r = 0; r < rules.size(); ++r) //go thru all rules
       {
         rule_found = true;
-        for (Size t = 0; t < rules[r].getCVTerms().size(); ++t)     //go thru all terms
+        for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms
         {
-          const CVMappingTerm & term = rules[r].getCVTerms()[t];
-          if (term.getUseTerm() && term.getAccession() == parsed_term.accession)         //check if the term itself is allowed
+          const CVMappingTerm& term = rules[r].getCVTerms()[t];
+          if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
           {
             allowed = true;
             fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
             break;
           }
-          if (term.getAllowChildren())           //check if the term's children are allowed
+          if (term.getAllowChildren()) //check if the term's children are allowed
           {
             set<String> child_terms;
             cv_.getAllChildTerms(child_terms, term.getAccession());
@@ -389,11 +389,11 @@ namespace OpenMS
         }
       }
 
-      if (!rule_found)       //No rule found
+      if (!rule_found) //No rule found
       {
         warnings_.push_back(String("No mapping rule found for element '") + getPath_(1) + "'");
       }
-      else if (!allowed)      //if rule found and not allowed
+      else if (!allowed) //if rule found and not allowed
       {
         errors_.push_back(String("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
       }
@@ -437,7 +437,7 @@ namespace OpenMS
             {
               parsed_term.value.toInt();
             }
-            catch (Exception::ConversionError & /*e*/)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:integer: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
@@ -448,7 +448,7 @@ namespace OpenMS
             {
               value.toDouble();
             }
-            catch (Exception::ConversionError & /*e*/)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:decimal: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
@@ -463,7 +463,7 @@ namespace OpenMS
                 throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should be negative");
               }
             }
-            catch (Exception::ConversionError & /*e*/)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:negativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
@@ -478,7 +478,7 @@ namespace OpenMS
                 throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should be positive");
               }
             }
-            catch (Exception::ConversionError & /*e*/)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:positiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
@@ -493,7 +493,7 @@ namespace OpenMS
                 throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should not be negative");
               }
             }
-            catch (Exception::ConversionError & /*e*/)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:nonNegativeInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
@@ -508,7 +508,7 @@ namespace OpenMS
                 throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "should not be positive");
               }
             }
-            catch (Exception::ConversionError & /*e*/)
+            catch (Exception::ConversionError& /*e*/)
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:nonPositiveInteger: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
@@ -530,14 +530,14 @@ namespace OpenMS
               DateTime tmp;
               tmp.set(value);
             }
-            catch (Exception::ParseError &)
+            catch (Exception::ParseError&)
             {
               errors_.push_back(String("Value-type of CV term wrong, should be xsd:date: '") + parsed_term.accession + " - " + parsed_term.name + "' value='" + value + "' at element '" + getPath_(1) + "'");
             }
           }
           else if (type == ControlledVocabulary::CVTerm::XSD_ANYURI)
           {
-            QRegExp rx("*:*");             // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
+            QRegExp rx("*:*"); // according to RFC 2396 this is there must be a colon (looked only 2 minutes on it)
             rx.setPatternSyntax(QRegExp::Wildcard);
             if (!rx.exactMatch(value.c_str()))
             {
@@ -556,25 +556,25 @@ namespace OpenMS
       }
     }
 
-    bool SemanticValidator::locateTerm(const String & path, const CVTerm & parsed_term) const
+    bool SemanticValidator::locateTerm(const String& path, const CVTerm& parsed_term) const
     {
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
       //Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
       bool allowed = false;
-      const vector<CVMappingRule> & rules = rules_[path];
-      for (Size r = 0; r < rules.size(); ++r)  //go thru all rules
+      const vector<CVMappingRule>& rules = rules_[path];
+      for (Size r = 0; r < rules.size(); ++r) //go thru all rules
       {
         //~ rule_found = true;
-        for (Size t = 0; t < rules[r].getCVTerms().size(); ++t)     //go thru all terms
+        for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms
         {
-          const CVMappingTerm & term = rules[r].getCVTerms()[t];
-          if (term.getUseTerm() && term.getAccession() == parsed_term.accession)         //check if the term itself is allowed
+          const CVMappingTerm& term = rules[r].getCVTerms()[t];
+          if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
           {
             allowed = true;
             break;
           }
-          if (term.getAllowChildren())           //check if the term's children are allowed
+          if (term.getAllowChildren()) //check if the term's children are allowed
           {
             set<String> child_terms;
             cv_.getAllChildTerms(child_terms, term.getAccession());
@@ -592,5 +592,5 @@ namespace OpenMS
       return allowed;
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

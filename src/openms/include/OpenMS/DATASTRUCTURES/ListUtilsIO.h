@@ -81,6 +81,7 @@ namespace OpenMS
     sl.push_back(string);
     return sl;
   }
+
 }
 
 #endif // #ifndef

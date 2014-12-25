@@ -44,7 +44,7 @@ namespace OpenMS
   {
   }
 
-  BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode & source) :
+  BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source) :
     left_child(source.left_child), right_child(source.right_child), distance(source.distance)
   {
   }
@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  BinaryTreeNode & BinaryTreeNode::operator=(const BinaryTreeNode & source)
+  BinaryTreeNode& BinaryTreeNode::operator=(const BinaryTreeNode& source)
   {
     if (this != &source)
     {

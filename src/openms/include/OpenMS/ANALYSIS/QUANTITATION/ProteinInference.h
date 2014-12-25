@@ -63,10 +63,10 @@ public:
     ProteinInference();
 
     /// copy constructor
-    ProteinInference(const ProteinInference & cp);
+    ProteinInference(const ProteinInference& cp);
 
     /// assignment operator
-    ProteinInference & operator=(const ProteinInference & rhs);
+    ProteinInference& operator=(const ProteinInference& rhs);
 
     /**
         @brief given a peptide quantitation, infer corresponding protein quantities
@@ -81,18 +81,18 @@ public:
 
         @throws Exception::MissingInformation if Protein/PeptideIdentifications are missing
     */
-    void infer(ConsensusMap & consensus_map, const UInt reference_map);
+    void infer(ConsensusMap& consensus_map, const UInt reference_map);
 
 
 protected:
 
-    void infer_(ConsensusMap & consensus_map,
+    void infer_(ConsensusMap& consensus_map,
                 const size_t protein_idenfication_index,
                 const UInt reference_map);
 
-    bool sortByUnique_(std::vector<PeptideHit> & peptide_hits_local, const bool is_higher_score_better);
+    bool sortByUnique_(std::vector<PeptideHit>& peptide_hits_local, const bool is_higher_score_better);
 
-  };   // !class
+  }; // !class
 
 } // !namespace
 

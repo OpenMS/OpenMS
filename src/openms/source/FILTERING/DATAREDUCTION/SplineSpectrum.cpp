@@ -98,8 +98,8 @@ namespace OpenMS
     mz_max_ = mz.back();
 
     // remove unnecessary zeros, i.e. zero intensity data points with zeros to the left and right
-    std::vector<double> mz_slim1;    // slimmer vector after removal of zero-intensity datapoints from mz
-    std::vector<double> intensity_slim1;    // slimmer vector after removal of zero-intensity datapoints from intensity
+    std::vector<double> mz_slim1; // slimmer vector after removal of zero-intensity datapoints from mz
+    std::vector<double> intensity_slim1; // slimmer vector after removal of zero-intensity datapoints from intensity
     mz_slim1.reserve(mz.size());
     intensity_slim1.reserve(intensity.size());
     if (intensity[0] != 0 || intensity[1] != 0)
@@ -126,14 +126,14 @@ namespace OpenMS
       mz_slim1.push_back(mz[mz.size() - 1]);
       intensity_slim1.push_back(intensity[mz.size() - 1]);
     }
-    
+
     // remove Thermo bug zeros
     // (In some Thermo data appear odd zero intensity data points. Normal data points are sometimes quickly followed by a zero.
     // These zeros are clearly not part of the profile, but bugs. The following code snippet removes them. A datapoint is
     // "quickly followed" by a second one, if the m/z step is shorter than scaling_Thermo_bug times the previous m/z step.)
-    std::vector<double> mz_slim2;    // slimmer vector after removal of Thermo bugs from mz_slim1
-    std::vector<double> intensity_slim2;    // slimmer vector after removal of Thermo bugs from intensity_slim1
-    const double scaling_Thermo_bug = 1/50;    // scaling factor for Thermo bug
+    std::vector<double> mz_slim2; // slimmer vector after removal of Thermo bugs from mz_slim1
+    std::vector<double> intensity_slim2; // slimmer vector after removal of Thermo bugs from intensity_slim1
+    const double scaling_Thermo_bug = 1 / 50; // scaling factor for Thermo bug
     mz_slim2.reserve(mz_slim1.size());
     intensity_slim2.reserve(intensity_slim1.size());
     mz_slim2.push_back(mz_slim1[0]);
@@ -144,7 +144,7 @@ namespace OpenMS
     {
       if (intensity_slim1[i] == 0)
       {
-        if ((mz_slim1[i] - mz_slim1[i-1]) < (mz_slim1[i-1] - mz_slim1[i-2]) * scaling_Thermo_bug)
+        if ((mz_slim1[i] - mz_slim1[i - 1]) < (mz_slim1[i - 1] - mz_slim1[i - 2]) * scaling_Thermo_bug)
         {
           continue;
         }

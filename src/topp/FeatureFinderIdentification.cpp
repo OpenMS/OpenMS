@@ -94,7 +94,7 @@ using namespace std;
 
         For every distinct peptide ion (defined by sequence and charge) in the input (parameter @p id), an assay is generated, incorporating the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution of the peptide. The parameter @p reference_rt controls how the RT of the assay is determined if the peptide has been observed multiple times. The relative intensities of the isotopes together with their m/z values are calculated from the sequence and charge.
 
-        The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps: 
+        The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps:
 
         <B>1. Ion chromatogram extraction</B>
 
@@ -103,15 +103,15 @@ using namespace std;
         @see @ref TOPP_OpenSwathChromatogramExtractor
 
         <B>2. Feature detection</B>
-        
+
         Next feature candidates are detected in the XICs and scored. The best candidate per assay according to the OpenSWATH scoring is turned into a feature.
 
-        @see @ref TOPP_OpenSwathAnalyzer 
+        @see @ref TOPP_OpenSwathAnalyzer
 
         <B>3. Elution model fitting</B>
 
         Elution models can be fitted to every feature to improve the quantification. For robustness, one model is fitted to all isotopic mass traces of a feature in parallel. A symmetric (Gaussian) and an asymmetric (exponential-Gaussian hybrid) model type are available. The fitted models are checked for plausibility before they are accepted.
-        
+
         Finally the results (feature maps, parameter @p out) are returned.
 
         @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
@@ -190,7 +190,6 @@ protected:
     registerDoubleOption_("model:check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
     setMinFloat_("model:check:asymmetry", 0.0);
   }
-
 
   typedef MSExperiment<Peak1D> PeakMap;
 
@@ -399,7 +398,6 @@ protected:
     }
   }
 
-
   // fit models of elution profiles to all features:
   void fitElutionModels_(FeatureMap& features, bool asymmetric = true)
   {
@@ -438,7 +436,7 @@ protected:
 
     // store model parameters to find outliers later:
     double width_limit = getDoubleOption_("model:check:width");
-    double asym_limit = (asymmetric ? 
+    double asym_limit = (asymmetric ?
                          getDoubleOption_("model:check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
@@ -468,7 +466,7 @@ protected:
       vector<Peak1D> peaks;
       // reserve space once, to avoid copying and invalidating pointers:
       Size points_per_hull = feat_it->
-        getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
+                             getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
       peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
                     (add_zeros > 0.0)); // don't forget additional zero point
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces traces;
@@ -972,13 +970,13 @@ protected:
     FeatureMap features;
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
-    params.setValue("stop_report_after_feature", 
+    params.setValue("stop_report_after_feature",
                     all_features ? -1 : 1);
     if (elution_model != "none") params.setValue("write_convex_hull", "true");
     params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");

@@ -52,30 +52,30 @@ namespace OpenMS
   {
   }
 
-  ConsensusFeature::ConsensusFeature(const ConsensusFeature & rhs) :
+  ConsensusFeature::ConsensusFeature(const ConsensusFeature& rhs) :
     BaseFeature(rhs), handles_(rhs.handles_), ratios_()
   {
     ratios_ = rhs.ratios_;
   }
 
-  ConsensusFeature::ConsensusFeature(const BaseFeature & feature) :
+  ConsensusFeature::ConsensusFeature(const BaseFeature& feature) :
     BaseFeature(feature), handles_(), ratios_()
   {
   }
 
-  ConsensusFeature::ConsensusFeature(UInt64 map_index, const Peak2D & element, UInt64 element_index) :
+  ConsensusFeature::ConsensusFeature(UInt64 map_index, const Peak2D& element, UInt64 element_index) :
     BaseFeature(element), handles_(), ratios_()
   {
     insert(map_index, element, element_index);
   }
 
-  ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature & element) :
+  ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature& element) :
     BaseFeature(element), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
   }
 
-  ConsensusFeature & ConsensusFeature::operator=(const ConsensusFeature & rhs)
+  ConsensusFeature& ConsensusFeature::operator=(const ConsensusFeature& rhs)
   {
     if (&rhs == this)
       return *this;
@@ -90,12 +90,12 @@ namespace OpenMS
   {
   }
 
-  void ConsensusFeature::insert(const ConsensusFeature & cf)
+  void ConsensusFeature::insert(const ConsensusFeature& cf)
   {
     handles_.insert(cf.handles_.begin(), cf.handles_.end());
   }
 
-  void ConsensusFeature::insert(const FeatureHandle & handle)
+  void ConsensusFeature::insert(const FeatureHandle& handle)
   {
     if (!(handles_.insert(handle).second))
     {
@@ -104,7 +104,7 @@ namespace OpenMS
     }
   }
 
-  void ConsensusFeature::insert(const HandleSetType & handle_set)
+  void ConsensusFeature::insert(const HandleSetType& handle_set)
   {
     for (ConsensusFeature::HandleSetType::const_iterator it = handle_set.begin(); it != handle_set.end(); ++it)
     {
@@ -112,18 +112,18 @@ namespace OpenMS
     }
   }
 
-  void ConsensusFeature::insert(UInt64 map_index, const Peak2D & element, UInt64 element_index)
+  void ConsensusFeature::insert(UInt64 map_index, const Peak2D& element, UInt64 element_index)
   {
     insert(FeatureHandle(map_index, element, element_index));
   }
 
-  void ConsensusFeature::insert(UInt64 map_index, const BaseFeature & element)
+  void ConsensusFeature::insert(UInt64 map_index, const BaseFeature& element)
   {
     insert(FeatureHandle(map_index, element));
     peptides_.insert(peptides_.end(), element.getPeptideIdentifications().begin(), element.getPeptideIdentifications().end());
   }
 
-  const ConsensusFeature::HandleSetType & ConsensusFeature::getFeatures() const
+  const ConsensusFeature::HandleSetType& ConsensusFeature::getFeatures() const
   {
     return handles_;
   }
@@ -243,7 +243,7 @@ namespace OpenMS
     return;
   }
 
-  void ConsensusFeature::computeDechargeConsensus(const FeatureMap & fm, bool intensity_weighted_averaging)
+  void ConsensusFeature::computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging)
   {
     // for computing average position and intensity
     double rt = 0.0;
@@ -296,17 +296,17 @@ namespace OpenMS
     return;
   }
 
-  void ConsensusFeature::addRatio(const ConsensusFeature::Ratio & r)
+  void ConsensusFeature::addRatio(const ConsensusFeature::Ratio& r)
   {
     ratios_.push_back(r);
   }
 
-  void ConsensusFeature::setRatios(std::vector<ConsensusFeature::Ratio> & rs)
+  void ConsensusFeature::setRatios(std::vector<ConsensusFeature::Ratio>& rs)
   {
     ratios_ = rs;
   }
 
-  std::vector<ConsensusFeature::Ratio> & ConsensusFeature::getRatios()
+  std::vector<ConsensusFeature::Ratio>& ConsensusFeature::getRatios()
   {
     return ratios_;
   }
@@ -330,7 +330,6 @@ namespace OpenMS
   {
     return handles_.begin();
   }
-
 
   ConsensusFeature::const_iterator ConsensusFeature::end() const
   {
@@ -372,8 +371,7 @@ namespace OpenMS
     return handles_.empty();
   }
 
-
-  std::ostream & operator<<(std::ostream & os, const ConsensusFeature & cons)
+  std::ostream& operator<<(std::ostream& os, const ConsensusFeature& cons)
   {
     os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
     os << "Position: " << cons.getPosition() << std::endl;
@@ -384,10 +382,10 @@ namespace OpenMS
     for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
     {
       os << " - Map index: " << it->getMapIndex() << std::endl
-        << "   Feature id: " << it->getUniqueId() << std::endl
-        << "   RT: " << precisionWrapper(it->getRT()) << std::endl
-        << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
-        << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
+         << "   Feature id: " << it->getUniqueId() << std::endl
+         << "   RT: " << precisionWrapper(it->getRT()) << std::endl
+         << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
+         << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
     }
 
     os << "Meta information: " << std::endl;

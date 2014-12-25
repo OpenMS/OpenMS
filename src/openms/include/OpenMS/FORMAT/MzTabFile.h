@@ -62,7 +62,7 @@ public:
     typedef std::map<std::pair<String, String>, std::vector<PeptideHit> > MapAccPepType;
 
     // store MzTab file
-    void store(const String & filename, const MzTab & mz_tab) const;
+    void store(const String& filename, const MzTab& mz_tab) const;
 
     // Set store behaviour of optional "reliability" and "uri" columns (default=no)
     void storeProteinReliabilityColumn(bool store);
@@ -75,8 +75,8 @@ public:
     void storeSmallMoleculeUriColumn(bool store);
     void storeProteinGoTerms(bool store);
 
-     // load MzTab file
-    void load(const String & filename, MzTab& mz_tab);
+    // load MzTab file
+    void load(const String& filename, MzTab& mz_tab);
 
 protected:
     bool store_protein_reliability_;
@@ -109,7 +109,7 @@ protected:
 
     String generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row) const;
 
-    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionRows & map, StringList& sl) const;
+    void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionRows& map, StringList& sl) const;
 
     String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_best_search_engine_scores, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
 
@@ -117,7 +117,7 @@ protected:
 
     // auxiliary functions
     // extract two integers from string (e.g. search_engine_score[1]_ms_run[2] -> 1,2)
-    static std::pair<int, int> extractIndexPairsFromBrackets_(const String & s);
+    static std::pair<int, int> extractIndexPairsFromBrackets_(const String& s);
 
     static void sortPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);
 

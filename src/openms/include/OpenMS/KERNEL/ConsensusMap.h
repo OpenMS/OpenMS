@@ -53,7 +53,8 @@ namespace OpenMS
 {
   class ProteinIdentification;
   class DataProcessing;
-  namespace Logger {
+  namespace Logger
+  {
     class LogStream;
   }
 

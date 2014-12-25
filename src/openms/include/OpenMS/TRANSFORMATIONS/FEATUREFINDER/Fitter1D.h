@@ -81,7 +81,7 @@ public:
     Fitter1D();
 
     /// copy constructor
-    Fitter1D(const Fitter1D & source);
+    Fitter1D(const Fitter1D& source);
 
     /// destructor
     virtual ~Fitter1D()
@@ -89,10 +89,10 @@ public:
     }
 
     /// assignment operator
-    virtual Fitter1D & operator=(const Fitter1D & source);
+    virtual Fitter1D& operator=(const Fitter1D& source);
 
     /// return interpolation model
-    virtual QualityType fit1d(const RawDataArrayType & /* range */, InterpolationModel * & /* model */);
+    virtual QualityType fit1d(const RawDataArrayType& /* range */, InterpolationModel*& /* model */);
 
     /// register all derived classes here
     static void registerChildren();

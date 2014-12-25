@@ -56,7 +56,7 @@ namespace OpenMS
 
 public:
 
-    typedef Adduct::AdductsType AdductsType;     //vector<Adduct>
+    typedef Adduct::AdductsType AdductsType; //vector<Adduct>
     typedef std::vector<Compomer>::const_iterator CompomerIterator;
 
     ///@name Constructors and destructor
@@ -80,7 +80,7 @@ private:
     void init_(bool init_thresh_p);
 public:
     /// Assignment operator
-    MassExplainer & operator=(const MassExplainer & rhs);
+    MassExplainer& operator=(const MassExplainer& rhs);
 
     /// Destructor
     virtual ~MassExplainer();
@@ -100,7 +100,7 @@ public:
     AdductsType getAdductBase() const;
 
     /// return a compomer by its Id (useful after a query() ).
-    const Compomer & getCompomerById(Size id) const;
+    const Compomer& getCompomerById(Size id) const;
     //@}
 
 
@@ -115,15 +115,15 @@ public:
                      const float mass_to_explain,
                      const float mass_delta,
                      const float thresh_log_p,
-                     std::vector<Compomer>::const_iterator & firstExplanation,
-                     std::vector<Compomer>::const_iterator & lastExplanation) const;
+                     std::vector<Compomer>::const_iterator& firstExplanation,
+                     std::vector<Compomer>::const_iterator& lastExplanation) const;
 protected:
 
     ///check if the generated compomer is valid judged by its probability, charges etc
-    bool compomerValid_(const Compomer & cmp);
+    bool compomerValid_(const Compomer& cmp);
 
     /// create a proper adduct from formula and charge and probability
-    Adduct createAdduct_(const String & formula, const Int charge, const double p) const;
+    Adduct createAdduct_(const String& formula, const Int charge, const double p) const;
 
     /// store possible explanations (as formula) for a certain ChargeDifference and MassDifference
     std::vector<Compomer> explanations_;

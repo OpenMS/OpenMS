@@ -76,7 +76,7 @@ namespace OpenMS
 
       try
       {
-        XMLPlatformUtils::Initialize();   // Initialize Xerces infrastructure
+        XMLPlatformUtils::Initialize(); // Initialize Xerces infrastructure
       }
       catch (XMLException& e)
       {
@@ -109,7 +109,7 @@ namespace OpenMS
 
       try
       {
-        XMLPlatformUtils::Initialize();   // Initialize Xerces infrastructure
+        XMLPlatformUtils::Initialize(); // Initialize Xerces infrastructure
       }
       catch (XMLException& e)
       {
@@ -148,7 +148,7 @@ namespace OpenMS
       // Terminate Xerces
       try
       {
-        XMLPlatformUtils::Terminate();   // Terminate after release of memory
+        XMLPlatformUtils::Terminate(); // Terminate after release of memory
       }
       catch (xercesc::XMLException& e)
       {
@@ -169,7 +169,7 @@ namespace OpenMS
       errno = 0;
       if (stat(mzid_file.c_str(), &fileStatus) == -1) // ==0 ok; ==-1 error
       {
-        if (errno == ENOENT)          // errno declared by include file errno.h
+        if (errno == ENOENT) // errno declared by include file errno.h
           throw (runtime_error("Path file_name does not exist, or path is an empty string."));
         else if (errno == ENOTDIR)
           throw (runtime_error("A component of the path is not a directory."));
@@ -276,8 +276,8 @@ namespace OpenMS
         {
           xercesc::DOMDocument* xmlDoc = impl->createDocument(
             XMLString::transcode("http://psidev.info/psi/pi/mzIdentML/1.1"),
-            XMLString::transcode("MzIdentML"),             // root element name
-            0);                       // document type object (DTD).
+            XMLString::transcode("MzIdentML"), // root element name
+            0); // document type object (DTD).
 
           DOMElement* rootElem = xmlDoc->getDocumentElement();
           rootElem->setAttribute(XMLString::transcode("version"),
@@ -288,7 +288,7 @@ namespace OpenMS
                                  XMLString::transcode(String(DateTime::now().getDate() + "T" + DateTime::now().getTime()).c_str()));
 
           // * cvList *
-          DOMElement* cvl_p = xmlDoc->createElement(XMLString::transcode("cvList"));     // TODO add generically
+          DOMElement* cvl_p = xmlDoc->createElement(XMLString::transcode("cvList")); // TODO add generically
           buildCvList_(cvl_p);
           rootElem->appendChild(cvl_p);
 
@@ -312,7 +312,7 @@ namespace OpenMS
 
           for (vector<ProteinIdentification>::const_iterator pi = cpro_id_->begin(); pi != cpro_id_->end(); ++pi)
           {
-            String dbref = pi->getSearchParameters().db +  pi->getSearchParameters().db_version + pi->getSearchParameters().taxonomy;       //TODO @mths : this needs to be more unique, btw add tax etc. as cv to DBSequence
+            String dbref = pi->getSearchParameters().db +  pi->getSearchParameters().db_version + pi->getSearchParameters().taxonomy; //TODO @mths : this needs to be more unique, btw add tax etc. as cv to DBSequence
             for (vector<ProteinHit>::const_iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
             {
               CVTermList cvs;
@@ -334,7 +334,7 @@ namespace OpenMS
                 pepevs.push_back(pepevref);
                 bool idec = (String(ph->getMetaValue("target_decoy"))).hasSubstring("decoy");
                 PeptideEvidence temp_struct = {pev->getStart(), pev->getEnd(), pev->getAABefore(), pev->getAAAfter(), idec}; //TODO @ mths : completely switch to PeptideEvidence
-                pe_ev_map_.insert(make_pair(pepevref, temp_struct));           // TODO @ mths : double check start & end & chars for before & after
+                pe_ev_map_.insert(make_pair(pepevref, temp_struct)); // TODO @ mths : double check start & end & chars for before & after
               }
               hit_pev_.push_back(pepevs);
 
@@ -1151,11 +1151,11 @@ namespace OpenMS
               {
                 if (cvit->first == "MS:1000894") //TODO use subordinate terms which define units
                 {
-                  pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue()));   // TODO convert if unit is minutes
+                  pep_id_->back().setRT(boost::lexical_cast<double>(cvit->second.front().getValue())); // TODO convert if unit is minutes
                 }
                 else
                 {
-                  pep_id_->back().setMetaValue(cvit->first, cvit->second.front().getValue());  // TODO? all DataValues - are there more then one, my guess is this is overdesigned
+                  pep_id_->back().setMetaValue(cvit->first, cvit->second.front().getValue()); // TODO? all DataValues - are there more then one, my guess is this is overdesigned
                 }
               }
               //adopt up s
@@ -1229,26 +1229,26 @@ namespace OpenMS
       {
         if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
         {
-          if (scoreit->first != "MS:1002055")   // do not use peptide-level q-values for now
+          if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
           {
-            score = scoreit->second.front().getValue().toString().toDouble();   // cast fix needed as DataValue is init with XercesString
+            score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
             spectrum_identification.setHigherScoreBetter(false);
-            spectrum_identification.setScoreType("q-value");   //higherIsBetter = false
+            spectrum_identification.setScoreType("q-value"); //higherIsBetter = false
             scoretype = true;
             break;
           }
         }
         else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
         {
-          score = scoreit->second.front().getValue().toString().toDouble();     // cast fix needed as DataValue is init with XercesString
+          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
-          spectrum_identification.setScoreType("E-value");     //higherIsBetter = false
+          spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
           scoretype = true;
           break;
         }
         else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end() || scoreit->first == "MS:1001143")
         {
-          score = scoreit->second.front().getValue().toString().toDouble();     // cast fix needed as DataValue is init with XercesString
+          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(true);
           spectrum_identification.setScoreType(scoreit->second.front().getName());
           scoretype = true;
@@ -1270,7 +1270,7 @@ namespace OpenMS
           hit.setMetaValue(up->first, up->second);
         }
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
-        spectrum_identification.setMZ(experimentalMassToCharge);   // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
+        spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths: why is this not in SpectrumIdentificationResult? exp. m/z for one spec should not change from one id for it to the next!
 
         //connect the PeptideHit with PeptideEvidences (for AABefore/After) and subsequently with DBSequence (for ProteinAccession)
         pair<multimap<String, String>::iterator, multimap<String, String>::iterator> pev_its;
@@ -1280,7 +1280,7 @@ namespace OpenMS
           bool idec = false;
           OpenMS::PeptideEvidence pev;
           if (pe_ev_map_.find(pev_it->second) != pe_ev_map_.end())
-          {            
+          {
             MzIdentMLDOMHandler::PeptideEvidence& pv = pe_ev_map_[pev_it->second];
             pev.setAABefore(pv.pre);
             pev.setAAAfter(pv.post);
@@ -1608,7 +1608,7 @@ namespace OpenMS
       DOMElement* current_cv = current_sw->getOwnerDocument()->createElement(XMLString::transcode("cvParam"));
       current_cv->setAttribute(XMLString::transcode("name"), XMLString::transcode("search_engine_"));
       current_cv->setAttribute(XMLString::transcode("cvRef"), XMLString::transcode("PSI-MS"));
-        
+
       //TODO this needs error handling
       current_cv->setAttribute(XMLString::transcode("accession"), XMLString::transcode(cv_.getTermByName("search_engine_").id.c_str()));
       current_sw->appendChild(current_cv);

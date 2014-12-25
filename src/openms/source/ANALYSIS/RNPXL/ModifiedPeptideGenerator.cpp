@@ -70,10 +70,12 @@ namespace OpenMS
         if (term_spec == ResidueModification::ANYWHERE)
         {
           peptide.setModification(residue_index, fixed_it->getFullName());
-        } else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
+        }
+        else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
         {
           peptide.setCTerminalModification(fixed_it->getFullName());
-        } else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
+        }
+        else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
         {
           peptide.setNTerminalModification(fixed_it->getFullName());
         }
@@ -105,103 +107,107 @@ namespace OpenMS
     const int N_TERM_MODIFICATION_INDEX = -1; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
     const int C_TERM_MODIFICATION_INDEX = -2; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
 
-   //keep a list of all possible modifications of this peptide
-   vector<AASequence> modified_peptides;
+    //keep a list of all possible modifications of this peptide
+    vector<AASequence> modified_peptides;
 
-   // only add unmodified version if flag is set (default)
-   if (keep_unmodified)
-   {
-     modified_peptides.push_back(peptide);
-   }
+    // only add unmodified version if flag is set (default)
+    if (keep_unmodified)
+    {
+      modified_peptides.push_back(peptide);
+    }
 
-   //iterate over each residue and build compatibility mapping describing which amino acid (peptide index) is compatible with which modification
-   map<int, vector<ResidueModification> > map_compatibility;
+    //iterate over each residue and build compatibility mapping describing which amino acid (peptide index) is compatible with which modification
+    map<int, vector<ResidueModification> > map_compatibility;
 
-   for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
-   {
-     // skip already modified residues
-     if (residue_it->isModified())
-     {
-       continue;
-     }
+    for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
+    {
+      // skip already modified residues
+      if (residue_it->isModified())
+      {
+        continue;
+      }
 
-     Size residue_index = residue_it - peptide.begin();
+      Size residue_index = residue_it - peptide.begin();
 
-     //determine compatibility of variable modifications
-     for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
-     {
-       // check if amino acid match between modification and current residue
-       if (residue_it->getOneLetterCode() != variable_it->getOrigin())
-       {
-         continue;
-       }
+      //determine compatibility of variable modifications
+      for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
+      {
+        // check if amino acid match between modification and current residue
+        if (residue_it->getOneLetterCode() != variable_it->getOrigin())
+        {
+          continue;
+        }
 
-       // Term specifity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
-       const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
-       if (term_spec == ResidueModification::ANYWHERE)
-       {
-         map_compatibility[static_cast<int>(residue_index)].push_back(*variable_it);
-       } else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
-       {
-         map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
-       } else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
-       {
-         map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
-       }
-     }
-   }
+        // Term specifity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
+        const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
+        if (term_spec == ResidueModification::ANYWHERE)
+        {
+          map_compatibility[static_cast<int>(residue_index)].push_back(*variable_it);
+        }
+        else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
+        {
+          map_compatibility[C_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+        else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
+        {
+          map_compatibility[N_TERM_MODIFICATION_INDEX].push_back(*variable_it);
+        }
+      }
+    }
 
-   // Check if no compatible site that can be modified by variable modification. If so just return peptides without variable modifications.
-   const Size compatible_mod_sites = map_compatibility.size();
-   if (compatible_mod_sites == 0)
-   {
-     if (keep_unmodified)
-     {
-       all_modified_peptides.push_back(peptide);
-     }
-     return;
-   }
+    // Check if no compatible site that can be modified by variable modification. If so just return peptides without variable modifications.
+    const Size compatible_mod_sites = map_compatibility.size();
+    if (compatible_mod_sites == 0)
+    {
+      if (keep_unmodified)
+      {
+        all_modified_peptides.push_back(peptide);
+      }
+      return;
+    }
 
-   // generate powerset of max_variable_mods_per_peptide sized subset of all compatible modification sites
-   Size max_placements = std::min(max_variable_mods_per_peptide, compatible_mod_sites);
-   for (Size n_var_mods = 1; n_var_mods <= max_placements; ++n_var_mods)
-   {
-     // enumerate all modified peptides with n_var_mods variable modified residues
-     Size zeros = std::max((Size)0, compatible_mod_sites - n_var_mods);
-     vector<bool> subset_mask;
+    // generate powerset of max_variable_mods_per_peptide sized subset of all compatible modification sites
+    Size max_placements = std::min(max_variable_mods_per_peptide, compatible_mod_sites);
+    for (Size n_var_mods = 1; n_var_mods <= max_placements; ++n_var_mods)
+    {
+      // enumerate all modified peptides with n_var_mods variable modified residues
+      Size zeros = std::max((Size)0, compatible_mod_sites - n_var_mods);
+      vector<bool> subset_mask;
 
-     for (Size i = 0; i != compatible_mod_sites; ++i)
-     {
-       // create mask 000011 to select last (e.g. n_var_mods = 2) two compatible sites as subset from the set of all compatible sites
-       if (i < zeros)
-       {
-         subset_mask.push_back(false);
-       } else
-       {
-         subset_mask.push_back(true);
-       }
-     }
+      for (Size i = 0; i != compatible_mod_sites; ++i)
+      {
+        // create mask 000011 to select last (e.g. n_var_mods = 2) two compatible sites as subset from the set of all compatible sites
+        if (i < zeros)
+        {
+          subset_mask.push_back(false);
+        }
+        else
+        {
+          subset_mask.push_back(true);
+        }
+      }
 
-     // generate all subsets of compatible sites {000011, ... , 101000, 110000} with current number of allowed variable modifications per peptide
-     do
-     {
-       // create subset indices e.g.{4,12} from subset mask e.g. 1010000 corresponding to the positions in the peptide sequence
-       vector<int> subset_indices;
-       map<int, vector<ResidueModification> >::const_iterator mit = map_compatibility.begin();
-       for (Size i = 0; i != compatible_mod_sites; ++i, ++mit)
-       {
-         if (subset_mask[i])
-         {
-           subset_indices.push_back(mit->first);
-         }
-       }
+      // generate all subsets of compatible sites {000011, ... , 101000, 110000} with current number of allowed variable modifications per peptide
+      do
+      {
+        // create subset indices e.g.{4,12} from subset mask e.g. 1010000 corresponding to the positions in the peptide sequence
+        vector<int> subset_indices;
+        map<int, vector<ResidueModification> >::const_iterator mit = map_compatibility.begin();
+        for (Size i = 0; i != compatible_mod_sites; ++i, ++mit)
+        {
+          if (subset_mask[i])
+          {
+            subset_indices.push_back(mit->first);
+          }
+        }
 
-       // now enumerate all modifications
-       recurseAndGenerateVariableModifiedPeptides_(subset_indices, map_compatibility, 0, peptide, modified_peptides);
-     } while (next_permutation(subset_mask.begin(), subset_mask.end()));
-   }
-   // add modified version of the current peptide to the list of all peptides
-   all_modified_peptides.insert(all_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
+        // now enumerate all modifications
+        recurseAndGenerateVariableModifiedPeptides_(subset_indices, map_compatibility, 0, peptide, modified_peptides);
+      }
+      while (next_permutation(subset_mask.begin(), subset_mask.end()));
+    }
+    // add modified version of the current peptide to the list of all peptides
+    all_modified_peptides.insert(all_modified_peptides.end(), modified_peptides.begin(), modified_peptides.end());
   }
 
   // static
@@ -223,7 +229,7 @@ namespace OpenMS
     const int current_index = subset_indices[depth];
 
     map<int, vector<ResidueModification> >::const_iterator pos_mod_it = map_compatibility.find(current_index);
-    const vector<ResidueModification>& mods = pos_mod_it->second;  // we don't need to check for .end as entry is guaranteed to exist
+    const vector<ResidueModification>& mods = pos_mod_it->second; // we don't need to check for .end as entry is guaranteed to exist
 
     for (vector<ResidueModification>::const_iterator mod_it = mods.begin(); mod_it != mods.end(); ++mod_it)
     {
@@ -236,7 +242,8 @@ namespace OpenMS
       else if (current_index == N_TERM_MODIFICATION_INDEX)
       {
         new_peptide.setNTerminalModification(mod_it->getFullName());
-      } else
+      }
+      else
       {
         new_peptide.setModification(current_index, mod_it->getFullName());
       }
@@ -280,10 +287,12 @@ namespace OpenMS
         if (term_spec == ResidueModification::ANYWHERE)
         {
           is_compatible = true;
-        } else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
+        }
+        else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
         {
           is_compatible = true;
-        } else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
+        }
+        else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
         {
           is_compatible = true;
         }
@@ -298,5 +307,5 @@ namespace OpenMS
       }
     }
   }
-}
 
+}

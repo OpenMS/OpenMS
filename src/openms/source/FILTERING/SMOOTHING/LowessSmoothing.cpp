@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  void LowessSmoothing::smoothData(const DoubleVector & input_x, const DoubleVector & input_y, DoubleVector & smoothed_output)
+  void LowessSmoothing::smoothData(const DoubleVector& input_x, const DoubleVector& input_y, DoubleVector& smoothed_output)
   {
     if (input_x.size() != input_y.size())
     {
@@ -89,7 +89,7 @@ namespace OpenMS
       std::sort(sortedDistances.begin(), sortedDistances.end());
 
       // Compute weigths.
-      std::vector<double> weigths (input_size, 0);
+      std::vector<double> weigths(input_size, 0);
       for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
       {
         weigths.at(inner_idx) = tricube_(distances[inner_idx], sortedDistances[q]);

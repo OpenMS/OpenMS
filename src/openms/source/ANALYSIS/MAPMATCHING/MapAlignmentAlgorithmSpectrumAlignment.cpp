@@ -64,7 +64,7 @@ namespace OpenMS
     defaults_.setValue("mismatchscore", -5.0, "Defines the score of two Spectra if they have no similarity to each other. ", ListUtils::create<String>("advanced"));
     defaults_.setMaxFloat("mismatchscore", 0.0);
     defaults_.setValue("scorefunction", "SteinScottImproveScore", " The score function is the core of an alignment. The success of an alignment depends mostly of the elected score function. The score function return the similarity of two Spectrum back. The score influence defines later the way of possible traceback. There exist many way of algorithm to calculate the score.");
-    defaults_.setValidStrings("scorefunction", ListUtils::create<String>("SteinScottImproveScore,ZhangSimilarityScore"));   //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
+    defaults_.setValidStrings("scorefunction", ListUtils::create<String>("SteinScottImproveScore,ZhangSimilarityScore")); //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
     defaultsToParam_();
     setLogType(CMD);
   }
@@ -74,15 +74,15 @@ namespace OpenMS
     delete c1_;
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::alignPeakMaps(std::vector<MSExperiment<> > & peakmaps, std::vector<TransformationDescription> & transformation)
+  void MapAlignmentAlgorithmSpectrumAlignment::alignPeakMaps(std::vector<MSExperiment<> >& peakmaps, std::vector<TransformationDescription>& transformation)
   {
     transformation.clear();
     TransformationDescription trafo;
     trafo.fitModel("identity");
-    transformation.push_back(trafo);     // transformation of reference map
+    transformation.push_back(trafo); // transformation of reference map
     try
     {
-      std::vector<MSSpectrum<> *> spectrum_pointers;
+      std::vector<MSSpectrum<>*> spectrum_pointers;
       msFilter_(peakmaps[0], spectrum_pointers);
       startProgress(0, (peakmaps.size() - 1), "Alignment");
       for (Size i = 1; i < peakmaps.size(); ++i)
@@ -92,16 +92,16 @@ namespace OpenMS
       }
       endProgress();
     }
-    catch (Exception::OutOfRange & /*e*/)
+    catch (Exception::OutOfRange& /*e*/)
     {
       throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum<> *> & pattern, MSExperiment<> & aligned, std::vector<TransformationDescription> & transformation)
+  void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum<>*>& pattern, MSExperiment<>& aligned, std::vector<TransformationDescription>& transformation)
   {
     //tempalign ->container for holding only MSSpectrums with MS-Level 1
-    std::vector<MSSpectrum<> *> tempalign;
+    std::vector<MSSpectrum<>*> tempalign;
     msFilter_(aligned, tempalign);
 
     //if it's possible, built 4 blocks. These can be individually be aligned.
@@ -195,7 +195,7 @@ namespace OpenMS
     transformation.push_back(TransformationDescription(data));
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<float> & ycoordinate, std::vector<int> & xcoordinatepattern)
+  void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::vector<int>& xcoordinate, std::vector<float>& ycoordinate, std::vector<int>& xcoordinatepattern)
   {
     //affine gap alignment needs two matrices
     std::map<Size, std::map<Size, float> > firstcolummatchmatrix;
@@ -226,7 +226,7 @@ namespace OpenMS
       for (Size i = 0; i <= n; ++i)
       {
         setProgress(i);
-        for (Size j = 0; j <= m; ++j)    //if( j >=1 && (Size)j<=m)
+        for (Size j = 0; j <= m; ++j) //if( j >=1 && (Size)j<=m)
         {
           if (insideBand_(i, j, n, m, k_))
           {
@@ -416,7 +416,7 @@ namespace OpenMS
     endProgress();
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::msFilter_(MSExperiment<> & peakmap, std::vector<MSSpectrum<> *> & spectrum_pointer_container)
+  void MapAlignmentAlgorithmSpectrumAlignment::msFilter_(MSExperiment<>& peakmap, std::vector<MSSpectrum<>*>& spectrum_pointer_container)
   {
     std::vector<UInt> pattern;
     peakmap.updateRanges(-1);
@@ -452,7 +452,7 @@ namespace OpenMS
     }
   }
 
-  inline Int  MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, float> > & buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend)
+  inline Int  MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend)
   {
     Int ktemp = 2;
     for (float i = 0.25; i <= 0.75; i += 0.25)
@@ -489,7 +489,7 @@ namespace OpenMS
     return ktemp;
   }
 
-  inline  float MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, float> > & buffer, bool column_row_orientation)
+  inline  float MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::map<Size, std::map<Size, float> >& buffer, bool column_row_orientation)
   {
     if (!column_row_orientation)
     {
@@ -531,12 +531,12 @@ namespace OpenMS
     }
   }
 
-  inline  float MapAlignmentAlgorithmSpectrumAlignment::scoring_(const MSSpectrum<> & a, MSSpectrum<> & b)
+  inline  float MapAlignmentAlgorithmSpectrumAlignment::scoring_(const MSSpectrum<>& a, MSSpectrum<>& b)
   {
     return c1_->operator()(a, b);
   }
 
-  inline void MapAlignmentAlgorithmSpectrumAlignment::bucketFilter_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<float> & ycoordinate, std::vector<int> & xcoordinatepattern)
+  inline void MapAlignmentAlgorithmSpectrumAlignment::bucketFilter_(const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned, std::vector<int>& xcoordinate, std::vector<float>& ycoordinate, std::vector<int>& xcoordinatepattern)
   {
     std::vector<std::pair<std::pair<Int, float>, float> > tempxy;
     Size size = 0;
@@ -617,7 +617,7 @@ namespace OpenMS
     */
   }
 
-  inline void MapAlignmentAlgorithmSpectrumAlignment::debugFileCreator_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned)
+  inline void MapAlignmentAlgorithmSpectrumAlignment::debugFileCreator_(const std::vector<MSSpectrum<>*>& pattern, std::vector<MSSpectrum<>*>& aligned)
   {
     //plotting scores of the alignment
     /*std::ofstream tempfile3;

@@ -84,14 +84,14 @@ public:
       }
 
       /// Copy constructor
-      DIntervalBase(const DIntervalBase & rhs) :
+      DIntervalBase(const DIntervalBase& rhs) :
         min_(rhs.min_),
         max_(rhs.max_)
       {
       }
 
       /// Assignment operator
-      DIntervalBase & operator=(const DIntervalBase & rhs)
+      DIntervalBase& operator=(const DIntervalBase& rhs)
       {
         min_ = rhs.min_;
         max_ = rhs.max_;
@@ -106,7 +106,7 @@ public:
       /**
           @brief This constructor sets min_ and max_ directly.
       */
-      DIntervalBase(PositionType const & minimum, PositionType const & maximum) :
+      DIntervalBase(PositionType const& minimum, PositionType const& maximum) :
         min_(minimum),
         max_(maximum)
       {
@@ -119,13 +119,13 @@ public:
       //@{
 
       /// Accessor to minimum position
-      inline PositionType const & minPosition() const
+      inline PositionType const& minPosition() const
       {
         return min_;
       }
 
       /// Accessor to maximum position
-      inline PositionType const & maxPosition() const
+      inline PositionType const& maxPosition() const
       {
         return max_;
       }
@@ -136,7 +136,7 @@ public:
           @note The minimum position given here will be returned my minPosition() after the method.
                 If necessary the value returned by maxPosition() will be adjusted.
       */
-      void setMin(PositionType const & position)
+      void setMin(PositionType const& position)
       {
         min_ = position;
         for (UInt i = 0; i < DIMENSION; ++i)
@@ -151,7 +151,7 @@ public:
           @note The maximum position given here will be returned my maxPosition() after the method.
                 If necessary the value returned by minPosition() will be adjusted.
       */
-      void setMax(PositionType const & position)
+      void setMax(PositionType const& position)
       {
         max_ = position;
         for (UInt i = 0; i < DIMENSION; ++i)
@@ -163,7 +163,7 @@ public:
       /**
           @brief Mutator for minimum and maximum position
       */
-      void setMinMax(PositionType const & min, PositionType const & max)
+      void setMinMax(PositionType const& min, PositionType const& max)
       {
         min_ = min;
         max_ = max;
@@ -190,13 +190,13 @@ public:
       /**@name Predicates */
       //@{
       /// Equality operator
-      bool operator==(const DIntervalBase & rhs) const
+      bool operator==(const DIntervalBase& rhs) const
       {
         return (min_ == rhs.min_) && (max_ == rhs.max_);
       }
 
       /// Equality operator
-      bool operator!=(const DIntervalBase & rhs) const
+      bool operator!=(const DIntervalBase& rhs) const
       {
         return !(operator==(rhs));
       }
@@ -324,7 +324,7 @@ protected:
       }
 
       ///Protected constructor for the construction of static instances
-      DIntervalBase(const std::pair<PositionType, PositionType> & pair) :
+      DIntervalBase(const std::pair<PositionType, PositionType>& pair) :
         min_(pair.first),
         max_(pair.second)
       {
@@ -343,7 +343,7 @@ protected:
 
     ///Print the contents to a stream.
     template <UInt D>
-    std::ostream & operator<<(std::ostream & os, const DIntervalBase<D> & rhs)
+    std::ostream& operator<<(std::ostream& os, const DIntervalBase<D>& rhs)
     {
       os << "--DIntervalBase BEGIN--" << std::endl;
       os << "MIN --> " << rhs.minPosition() << std::endl;
@@ -352,7 +352,7 @@ protected:
       return os;
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 
 } // namespace OpenMS
 

@@ -56,19 +56,19 @@ using namespace std;
 namespace OpenMS
 {
 
-  SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String & f_file, const String & method, const WeightWrapper::WEIGHTMODE weight_mode)
+  SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const String& f_file, const String& method, const WeightWrapper::WEIGHTMODE weight_mode)
   {
     if (!(method == "trypticCompressed" || method == "seqan" || method == "trypticSeqan"))
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "method has to be trypticCompressed,seqan,trypticSeqan", method);
     }
 
-    PepIterator & it = *Factory<PepIterator>::create("FastaIterator");
+    PepIterator& it = *Factory<PepIterator>::create("FastaIterator");
     try
     {
       it.setFastaFile(f_file);
     }
-    catch (Exception::FileNotFound &)
+    catch (Exception::FileNotFound&)
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, f_file);
     }
@@ -127,7 +127,7 @@ namespace OpenMS
     }*/
   }
 
-  SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder & source) :
+  SuffixArrayPeptideFinder::SuffixArrayPeptideFinder(const SuffixArrayPeptideFinder& source) :
     WeightWrapper(source)
   {
     sa_ = source.sa_;
@@ -159,12 +159,12 @@ namespace OpenMS
     return sa_->getNumberOfModifications();
   }
 
-  void SuffixArrayPeptideFinder::setTags(const vector<OpenMS::String> & tags)
+  void SuffixArrayPeptideFinder::setTags(const vector<OpenMS::String>& tags)
   {
     sa_->setTags(tags);
   }
 
-  const vector<OpenMS::String> & SuffixArrayPeptideFinder::getTags()
+  const vector<OpenMS::String>& SuffixArrayPeptideFinder::getTags()
   {
     return sa_->getTags();
   }
@@ -179,7 +179,7 @@ namespace OpenMS
     return sa_->getUseTags();
   }
 
-  void SuffixArrayPeptideFinder::setModificationOutputMethod(const String & s)
+  void SuffixArrayPeptideFinder::setModificationOutputMethod(const String& s)
   {
     if (!(s == "mass" || s == "stringUnchecked" || s == "stringChecked"))
     {
@@ -211,7 +211,7 @@ namespace OpenMS
     return res;
   }
 
-  void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > > & candidates, const vector<double> & spec)
+  void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > >& candidates, const vector<double>& spec)
   {
     vector<vector<pair<pair<SignedSize, SignedSize>, double> > > ca;
     sa_->findSpec(ca, spec);
@@ -220,7 +220,7 @@ namespace OpenMS
     mod.setNumberOfModifications(sa_->getNumberOfModifications());
     for (Size i = 0; i < ca.size(); i++)
     {
-      set<String> already_used;   // TODO
+      set<String> already_used; // TODO
       // TODO
       if (i % 1000 == 0)
       {
@@ -271,7 +271,7 @@ namespace OpenMS
     return;
   }
 
-  void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry, String> > > & candidates, const String & DTA_file)
+  void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<SuffixArrayPeptideFinder::FASTAEntry, String> > >& candidates, const String& DTA_file)
   {
     DTAFile dta_file;
     PeakSpectrum s;

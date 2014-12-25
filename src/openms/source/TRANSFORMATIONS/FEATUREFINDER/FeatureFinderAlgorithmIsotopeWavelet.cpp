@@ -84,11 +84,11 @@ namespace OpenMS
   {
   }
 
-  MSSpectrum<FeatureFinderAlgorithmIsotopeWavelet::PeakType> * FeatureFinderAlgorithmIsotopeWavelet::createHRData(const UInt i)
+  MSSpectrum<FeatureFinderAlgorithmIsotopeWavelet::PeakType>* FeatureFinderAlgorithmIsotopeWavelet::createHRData(const UInt i)
   {
     MSSpectrum<PeakType> spec((*this->map_)[i]);
 
-    const MSSpectrum<PeakType> & specr((*this->map_)[i]);
+    const MSSpectrum<PeakType>& specr((*this->map_)[i]);
 
     for (UInt j = 0; j < spec.size() - 1; ++j)
     {
@@ -129,7 +129,7 @@ namespace OpenMS
       bound = (1. / max_charge_) / 2. / 4.;
     }
 
-    MSSpectrum<PeakType> * new_spec = new MSSpectrum<PeakType>;
+    MSSpectrum<PeakType>* new_spec = new MSSpectrum<PeakType>;
     new_spec->reserve(200000);
     new_spec->setRT(((*this->map_)[i]).getRT());
     PeakType p; p.setMZ(specr[0].getMZ()); p.setIntensity(specr[0].getIntensity());
@@ -182,115 +182,115 @@ namespace OpenMS
     progress_counter_ = 0;
     this->ff_->startProgress(0, 2 * this->map_->size() * max_charge_, "analyzing spectra");
 
-      IsotopeWaveletTransform<PeakType> * iwt = new IsotopeWaveletTransform<PeakType>(min_mz, max_mz, max_charge_, max_size, hr_data_, intensity_type_);
-      for (UInt i = 0; i < this->map_->size(); ++i)
+    IsotopeWaveletTransform<PeakType>* iwt = new IsotopeWaveletTransform<PeakType>(min_mz, max_mz, max_charge_, max_size, hr_data_, intensity_type_);
+    for (UInt i = 0; i < this->map_->size(); ++i)
+    {
+      const MSSpectrum<PeakType>& c_ref((*this->map_)[i]);
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+      std::cout << ::std::fixed << ::std::setprecision(6) << "Spectrum " << i + 1 << " (" << (*this->map_)[i].getRT() << ") of " << this->map_->size() << " ... ";
+      std::cout.flush();
+#endif
+
+      if (c_ref.size() <= 1)                 //unable to do transform anything
       {
-        const MSSpectrum<PeakType> & c_ref((*this->map_)[i]);
-
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-        std::cout << ::std::fixed << ::std::setprecision(6) << "Spectrum " << i + 1 << " (" << (*this->map_)[i].getRT() << ") of " << this->map_->size() << " ... ";
-        std::cout.flush();
+        std::cout << "scan empty or consisting of a single data point. Skipping." << std::endl;
 #endif
-
-        if (c_ref.size() <= 1)               //unable to do transform anything
-        {
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-          std::cout << "scan empty or consisting of a single data point. Skipping." << std::endl;
-#endif
-          this->ff_->setProgress(progress_counter_ += 2);
-          continue;
-        }
-
-        if (!hr_data_)                 //LowRes data
-        {
-          iwt->initializeScan((*this->map_)[i]);
-          for (UInt c = 0; c < max_charge_; ++c)
-          {
-            MSSpectrum<PeakType> c_trans(c_ref);
-
-            iwt->getTransform(c_trans, c_ref, c);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-            std::stringstream stream;
-            stream << "cpu_lowres_" << c_ref.getRT() << "_" << c + 1 << ".trans\0";
-            std::ofstream ofile(stream.str().c_str());
-            for (UInt k = 0; k < c_ref.size(); ++k)
-            {
-              ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getIntensity() << std::endl;
-            }
-            ofile.close();
-#endif
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-            std::cout << "transform O.K. ... "; std::cout.flush();
-#endif
-            this->ff_->setProgress(++progress_counter_);
-
-            iwt->identifyCharge(c_trans, c_ref, i, c, intensity_threshold_, check_PPMs_);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-            std::cout << "charge recognition O.K. ... "; std::cout.flush();
-#endif
-            this->ff_->setProgress(++progress_counter_);
-          }
-        }
-        else                 //HighRes data
-        {
-          for (UInt c = 0; c < max_charge_; ++c)
-          {
-            MSSpectrum<PeakType> * new_spec = createHRData(i);
-            iwt->initializeScan(*new_spec, c);
-            MSSpectrum<PeakType> c_trans(*new_spec);
-
-            iwt->getTransformHighRes(c_trans, *new_spec, c);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-            std::stringstream stream;
-            stream << "cpu_highres_" << new_spec->getRT() << "_" << c + 1 << ".trans\0";
-            std::ofstream ofile(stream.str().c_str());
-            for (UInt k = 0; k < new_spec->size(); ++k)
-            {
-              ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << (*new_spec)[k].getIntensity() << std::endl;
-            }
-            ofile.close();
-#endif
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-            std::cout << "transform O.K. ... "; std::cout.flush();
-#endif
-            this->ff_->setProgress(++progress_counter_);
-
-            iwt->identifyCharge(c_trans, *new_spec, i, c, intensity_threshold_, check_PPMs_);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-            std::cout << "charge recognition O.K. ... "; std::cout.flush();
-#endif
-            this->ff_->setProgress(++progress_counter_);
-
-            delete (new_spec); new_spec = NULL;
-          }
-        }
-
-
-        iwt->updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-        std::cout << "updated box states." << std::endl;
-#endif
-
-        std::cout.flush();
+        this->ff_->setProgress(progress_counter_ += 2);
+        continue;
       }
 
-      this->ff_->endProgress();
+      if (!hr_data_)                   //LowRes data
+      {
+        iwt->initializeScan((*this->map_)[i]);
+        for (UInt c = 0; c < max_charge_; ++c)
+        {
+          MSSpectrum<PeakType> c_trans(c_ref);
 
-      //Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_
-      iwt->updateBoxStates(*this->map_, INT_MAX, RT_interleave_, real_RT_votes_cutoff_);
+          iwt->getTransform(c_trans, c_ref, c);
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-      std::cout << "Final mapping."; std::cout.flush();
+          std::stringstream stream;
+          stream << "cpu_lowres_" << c_ref.getRT() << "_" << c + 1 << ".trans\0";
+          std::ofstream ofile(stream.str().c_str());
+          for (UInt k = 0; k < c_ref.size(); ++k)
+          {
+            ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getIntensity() << std::endl;
+          }
+          ofile.close();
 #endif
-      *this->features_ = iwt->mapSeeds2Features(*this->map_, real_RT_votes_cutoff_);
 
-      delete (iwt);
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+          std::cout << "transform O.K. ... "; std::cout.flush();
+#endif
+          this->ff_->setProgress(++progress_counter_);
+
+          iwt->identifyCharge(c_trans, c_ref, i, c, intensity_threshold_, check_PPMs_);
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+          std::cout << "charge recognition O.K. ... "; std::cout.flush();
+#endif
+          this->ff_->setProgress(++progress_counter_);
+        }
+      }
+      else                   //HighRes data
+      {
+        for (UInt c = 0; c < max_charge_; ++c)
+        {
+          MSSpectrum<PeakType>* new_spec = createHRData(i);
+          iwt->initializeScan(*new_spec, c);
+          MSSpectrum<PeakType> c_trans(*new_spec);
+
+          iwt->getTransformHighRes(c_trans, *new_spec, c);
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+          std::stringstream stream;
+          stream << "cpu_highres_" << new_spec->getRT() << "_" << c + 1 << ".trans\0";
+          std::ofstream ofile(stream.str().c_str());
+          for (UInt k = 0; k < new_spec->size(); ++k)
+          {
+            ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << (*new_spec)[k].getIntensity() << std::endl;
+          }
+          ofile.close();
+#endif
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+          std::cout << "transform O.K. ... "; std::cout.flush();
+#endif
+          this->ff_->setProgress(++progress_counter_);
+
+          iwt->identifyCharge(c_trans, *new_spec, i, c, intensity_threshold_, check_PPMs_);
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+          std::cout << "charge recognition O.K. ... "; std::cout.flush();
+#endif
+          this->ff_->setProgress(++progress_counter_);
+
+          delete (new_spec); new_spec = NULL;
+        }
+      }
+
+
+      iwt->updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+      std::cout << "updated box states." << std::endl;
+#endif
+
+      std::cout.flush();
+    }
+
+    this->ff_->endProgress();
+
+    //Forces to empty OpenBoxes_ and to synchronize ClosedBoxes_
+    iwt->updateBoxStates(*this->map_, INT_MAX, RT_interleave_, real_RT_votes_cutoff_);
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+    std::cout << "Final mapping."; std::cout.flush();
+#endif
+    *this->features_ = iwt->mapSeeds2Features(*this->map_, real_RT_votes_cutoff_);
+
+    delete (iwt);
   }
 
   const String FeatureFinderAlgorithmIsotopeWavelet::getProductName()
@@ -314,4 +314,5 @@ namespace OpenMS
     hr_data_ = ((String)(this->param_.getValue("hr_data")) == "true");
     intensity_type_ = ((String)(this->param_.getValue("intensity_type")));
   }
+
 }

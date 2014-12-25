@@ -95,7 +95,7 @@ public:
 
 protected:
 
-    double fitRT_(std::vector<Peak1D> & rt_input_data, InterpolationModel * & model) const;
+    double fitRT_(std::vector<Peak1D>& rt_input_data, InterpolationModel*& model) const;
 
     //Docu in base class
     virtual void updateMembers_();

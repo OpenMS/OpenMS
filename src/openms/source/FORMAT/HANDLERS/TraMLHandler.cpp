@@ -44,7 +44,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    TraMLHandler::TraMLHandler(const TargetedExperiment & exp, const String & filename, const String & version, const ProgressLogger & logger) :
+    TraMLHandler::TraMLHandler(const TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
       exp_(0),
@@ -53,7 +53,7 @@ namespace OpenMS
       cv_.loadFromOBO("PI", File::find("/CV/psi-ms.obo"));
     }
 
-    TraMLHandler::TraMLHandler(TargetedExperiment & exp, const String & filename, const String & version, const ProgressLogger & logger) :
+    TraMLHandler::TraMLHandler(TargetedExperiment& exp, const String& filename, const String& version, const ProgressLogger& logger) :
       XMLHandler(filename, version),
       logger_(logger),
       exp_(&exp),
@@ -66,12 +66,12 @@ namespace OpenMS
     {
     }
 
-    void TraMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
 
-      static const XMLCh * s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh * s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh * s_name = xercesc::XMLString::transcode("name");
+      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 
       tag_ = sm_.convert(qname);
       open_tags_.push_back(tag_);
@@ -278,7 +278,7 @@ namespace OpenMS
       return;
     }
 
-    void TraMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void TraMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
       if (open_tags_.back() == "Sequence")
       {
@@ -289,7 +289,7 @@ namespace OpenMS
       return;
     }
 
-    void TraMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void TraMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       tag_ = sm_.convert(qname);
 
@@ -475,9 +475,9 @@ namespace OpenMS
       return;
     }
 
-    void TraMLHandler::writeTo(std::ostream & os)
+    void TraMLHandler::writeTo(std::ostream& os)
     {
-      const TargetedExperiment & exp = *(cexp_);
+      const TargetedExperiment& exp = *(cexp_);
       logger_.startProgress(0, exp.getTransitions().size(), "storing TraML file");
       // int progress = 0;
 
@@ -626,7 +626,7 @@ namespace OpenMS
             for (std::vector<TargetedExperiment::Peptide::Modification>::const_iterator mit = it->mods.begin(); mit != it->mods.end(); ++mit)
             {
               os << "      <Modification";
-              os << " location=\"" << mit->location + 1<< "\""; // TraML stores locations starting with 1
+              os << " location=\"" << mit->location + 1 << "\""; // TraML stores locations starting with 1
               if (mit->mono_mass_delta != 0)
               {
                 os << " monoisotopicMassDelta=\"" << mit->mono_mass_delta << "\"";
@@ -705,7 +705,7 @@ namespace OpenMS
       if (exp.getTransitions().size() > 0)
       {
         int progress = 0;
-      
+
         os << "  <TransitionList>" << "\n";
         for (std::vector<ReactionMonitoringTransition>::const_iterator it = exp.getTransitions().begin(); it != exp.getTransitions().end(); ++it)
         {
@@ -727,14 +727,14 @@ namespace OpenMS
           // Precursor occurs exactly once (is required according to schema).
           // CV term MS:1000827 MUST be supplied for the TransitionList path
           os << "      <Precursor>" << "\n";
-          os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" << 
+          os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000827\" name=\"isolation window target m/z\" value=\"" <<
             precisionWrapper(it->getPrecursorMZ()) << "\" unitCvRef=\"MS\" unitAccession=\"MS:1000040\" unitName=\"m/z\"/>\n";
           writeCVParams_(os, it->getPrecursorCVTermList(), 4);
           writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 4);
           os << "      </Precursor>" << "\n";
 
           for (ProductListType::const_iterator prod_it = it->getIntermediateProducts().begin();
-                prod_it != it->getIntermediateProducts().end(); ++prod_it)
+               prod_it != it->getIntermediateProducts().end(); ++prod_it)
           {
             os << "      <IntermediateProduct>" << "\n";
             writeProduct_(os, prod_it);
@@ -748,7 +748,7 @@ namespace OpenMS
           writeProduct_(os, dummy_vect.begin());
           os << "      </Product>" << "\n";
 
-          const IncludeExcludeTarget::RetentionTime * rit = &it->getRetentionTime();
+          const IncludeExcludeTarget::RetentionTime* rit = &it->getRetentionTime();
           if (!rit->getCVTerms().empty())
           {
             os << "      <RetentionTime";
@@ -834,7 +834,7 @@ namespace OpenMS
       return;
     }
 
-    void TraMLHandler::writeTarget_(std::ostream & os, const std::vector<IncludeExcludeTarget>::const_iterator & it) const
+    void TraMLHandler::writeTarget_(std::ostream& os, const std::vector<IncludeExcludeTarget>::const_iterator& it) const
     {
       os << "      <Target id=\"" << it->getName() << "\"";
       if (!it->getPeptideRef().empty())
@@ -851,7 +851,7 @@ namespace OpenMS
       writeUserParam_(os, (MetaInfoInterface)it->getPrecursorCVTermList(), 5);
       os << "        </Precursor>\n";
 
-      const IncludeExcludeTarget::RetentionTime * rit = &it->getRetentionTime();
+      const IncludeExcludeTarget::RetentionTime* rit = &it->getRetentionTime();
       if (!rit->getCVTerms().empty())
       {
         os << "        <RetentionTime";
@@ -880,9 +880,9 @@ namespace OpenMS
 
     }
 
-    void TraMLHandler::writeProduct_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator & prod_it) const
+    void TraMLHandler::writeProduct_(std::ostream& os, const std::vector<ReactionMonitoringTransition::Product>::const_iterator& prod_it) const
     {
-      if ( prod_it->getChargeState() != -1 )
+      if (prod_it->getChargeState() != -1)
       {
         os << "        <cvParam cvRef=\"MS\" accession=\"MS:1000041\" name=\"charge state\" value=\"" <<  prod_it->getChargeState() << "\"/>\n";
       }
@@ -912,7 +912,7 @@ namespace OpenMS
       }
     }
 
-    void TraMLHandler::writeConfiguration_(std::ostream & os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator & cit) const
+    void TraMLHandler::writeConfiguration_(std::ostream& os, const std::vector<ReactionMonitoringTransition::Configuration>::const_iterator& cit) const
     {
       os << "          <Configuration instrumentRef=\"" << cit->instrument_ref << "\"";
       if (cit->contact_ref != "")
@@ -940,7 +940,7 @@ namespace OpenMS
       os << "          </Configuration>" << "\n";
     }
 
-    void TraMLHandler::writeCVParams_(std::ostream & os, const CVTermList & cv_terms, UInt indent) const
+    void TraMLHandler::writeCVParams_(std::ostream& os, const CVTermList& cv_terms, UInt indent) const
     {
       for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.getCVTerms().begin(); it != cv_terms.getCVTerms().end(); ++it)
       {
@@ -961,13 +961,13 @@ namespace OpenMS
       }
     }
 
-    void TraMLHandler::handleCVParam_(const String & parent_parent_tag, const String & parent_tag, const CVTerm & cv_term)
+    void TraMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const CVTerm& cv_term)
     {
       //Error checks of CV values
       String accession = cv_term.getAccession();
       if (cv_.exists(accession))
       {
-        const ControlledVocabulary::CVTerm & term = cv_.getTerm(accession);
+        const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
         //obsolete CV terms
         if (term.obsolete)
         {
@@ -1015,7 +1015,7 @@ namespace OpenMS
                 {
                   value.toInt();
                 }
-                catch (Exception::ConversionError &)
+                catch (Exception::ConversionError&)
                 {
                   warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have an integer value. The value is '" + value + "'.");
                   return;
@@ -1028,7 +1028,7 @@ namespace OpenMS
                 {
                   value.toDouble();
                 }
-                catch (Exception::ConversionError &)
+                catch (Exception::ConversionError&)
                 {
                   warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must have a floating-point value. The value is '" + value + "'.");
                   return;
@@ -1042,7 +1042,7 @@ namespace OpenMS
                   DateTime tmp;
                   tmp.set(value);
                 }
-                catch (Exception::ParseError &)
+                catch (Exception::ParseError&)
                 {
                   warning(LOAD, String("The CV term '") + accession + " - " + cv_.getTerm(accession).name + "' used in tag '" + parent_tag + "' must be a valid date. The value is '" + value + "'.");
                   return;
@@ -1171,7 +1171,7 @@ namespace OpenMS
         {
           actual_product_.setChargeState(cv_term.getValue().toString().toDouble());
         }
-        else 
+        else
         {
           actual_product_.addCVTerm(cv_term);
         }
@@ -1217,7 +1217,7 @@ namespace OpenMS
 
     }
 
-    void TraMLHandler::handleUserParam_(const String & parent_parent_tag, const String & parent_tag, const String & name, const String & type, const String & value)
+    void TraMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
     {
       //create a DataValue that contains the data in the right type
       DataValue data_value;
@@ -1329,7 +1329,7 @@ namespace OpenMS
         warning(LOAD, String("Unhandled userParam '") + name + "' in tag '" + parent_tag + "'.");
     }
 
-    void TraMLHandler::writeUserParam_(std::ostream & os, const MetaInfoInterface & meta, UInt indent) const
+    void TraMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent) const
     {
       std::vector<String> keys;
       meta.getKeys(keys);
@@ -1358,4 +1358,3 @@ namespace OpenMS
 
   } //namespace Internal
 } // namespace OpenMS
-

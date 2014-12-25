@@ -56,7 +56,7 @@ namespace OpenMS
 {
 
   // constructor
-  SuffixArraySeqan::SuffixArraySeqan(const String & st, const String & sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
+  SuffixArraySeqan::SuffixArraySeqan(const String& st, const String& sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
     WeightWrapper(weight_mode),
     s_(st),
     number_of_modifications_(0),
@@ -76,7 +76,7 @@ namespace OpenMS
     }
     //creating array with aminoacid masses
 
-    ResidueDB * rdb = ResidueDB::getInstance();
+    ResidueDB* rdb = ResidueDB::getInstance();
 
     char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
@@ -87,7 +87,7 @@ namespace OpenMS
 
     for (Size z = 0; z < strlen(aa); ++z)
     {
-      const Residue * r = rdb->getResidue(aa[z]);
+      const Residue* r = rdb->getResidue(aa[z]);
       masse_[(int)aa[z]] = this->getWeight(*r, Residue::Internal);
     }
 
@@ -115,7 +115,7 @@ namespace OpenMS
 
   }
 
-  SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source) :
+  SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan& source) :
     SuffixArray(source),
     WeightWrapper(source),
     index_(source.index_),
@@ -137,7 +137,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SuffixArraySeqan::save(const String & file_name)
+  bool SuffixArraySeqan::save(const String& file_name)
   {
     if (!seqan::save(index_, file_name.c_str()))
     {
@@ -146,7 +146,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SuffixArraySeqan::open(const String & file_name)
+  bool SuffixArraySeqan::open(const String& file_name)
   {
     if (!seqan::open(index_, file_name.c_str()))
     {
@@ -179,13 +179,13 @@ namespace OpenMS
     return "";
   }
 
-  void SuffixArraySeqan::setTags(const vector<String> & tags)
+  void SuffixArraySeqan::setTags(const vector<String>& tags)
   {
     tags_ = tags;
     use_tags_ = true;
   }
 
-  const vector<String> & SuffixArraySeqan::getTags()
+  const vector<String>& SuffixArraySeqan::getTags()
   {
     return tags_;
   }
@@ -214,7 +214,7 @@ namespace OpenMS
     return number_of_modifications_;
   }
 
-  SignedSize SuffixArraySeqan::findFirst_(const vector<double> & spec, double & m, SignedSize start, SignedSize  end)
+  SignedSize SuffixArraySeqan::findFirst_(const vector<double>& spec, double& m, SignedSize start, SignedSize  end)
   {
 
     if (end - start <= 1)
@@ -237,13 +237,13 @@ namespace OpenMS
     return middle + 1;
   }
 
-  SignedSize SuffixArraySeqan::findFirst_(const vector<double> & spec, double & m)
+  SignedSize SuffixArraySeqan::findFirst_(const vector<double>& spec, double& m)
   {
     return findFirst_(spec, m, 0, spec.size() - 1);
   }
 
   // finds all occurrences of a given spectrum
-  void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > > & candidates, const vector<double> & spec)
+  void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > >& candidates, const vector<double>& spec)
   {
     if (spec.empty())
     {

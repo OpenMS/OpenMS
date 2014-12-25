@@ -78,13 +78,13 @@ public:
     typedef SparseVectorReverseIterator reverse_iterator;
 
     //remapping
-    typedef typename std::map<size_t, Value>::difference_type difference_type;        //needed?
+    typedef typename std::map<size_t, Value>::difference_type difference_type; //needed?
     typedef typename std::map<size_t, Value>::size_type size_type;
-    typedef typename std::map<size_t, Value>::allocator_type allocator_type;        //needed?
+    typedef typename std::map<size_t, Value>::allocator_type allocator_type; //needed?
     typedef Value value_type;
-    typedef Value * pointer;        //needed?
-    typedef ValueProxy & reference;
-    typedef const ValueProxy & const_reference;
+    typedef Value* pointer; //needed?
+    typedef ValueProxy& reference;
+    typedef const ValueProxy& const_reference;
 
     //internal use
     typedef typename std::map<size_t, Value>::const_iterator map_const_iterator;
@@ -125,7 +125,7 @@ public:
     {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
-      if (value != sparse_element_)          //change, if sparse element is another
+      if (value != sparse_element_) //change, if sparse element is another
 #pragma clang diagnostic pop
       {
         map_iterator i = values_.begin();
@@ -138,13 +138,13 @@ public:
     }
 
     /// copy constructor
-    SparseVector(const SparseVector & source) :
+    SparseVector(const SparseVector& source) :
       values_(source.values_), size_(source.size_), sparse_element_(source.sparse_element_)
     {
     }
 
     /// assignment operator
-    SparseVector & operator=(const SparseVector & source)
+    SparseVector& operator=(const SparseVector& source)
     {
       if (this != &source)
       {
@@ -161,13 +161,13 @@ public:
     }
 
     /// equality operator
-    bool operator==(const SparseVector & rhs) const
+    bool operator==(const SparseVector& rhs) const
     {
       return (values_ == rhs.values_) && (size_ == rhs.size_) && (sparse_element_ == rhs.sparse_element_);
     }
 
     /// less than operator
-    bool operator<(const SparseVector & rhs) const
+    bool operator<(const SparseVector& rhs) const
     {
       return values_ < rhs.values_;
     }
@@ -217,7 +217,7 @@ public:
     const Value /*Proxy*/ operator[](size_type pos) const
     {
       assert(pos < size_);
-      return (Value)ValueProxy(const_cast<SparseVector &>(*this), pos);
+      return (Value)ValueProxy(const_cast<SparseVector&>(*this), pos);
     }
 
     /// ValueProxy handles the conversion and the writing ( if != sparseElement )
@@ -274,14 +274,14 @@ public:
       bool update = false;
       map_iterator mit = values_.find(it.position());
       map_iterator mit_next;
-      if (mit != values_.end())             //element exists => erase it and update indices of elements after it
+      if (mit != values_.end()) //element exists => erase it and update indices of elements after it
       {
         mit_next = mit;
         ++mit_next;
         values_.erase(mit);
         update = true;
       }
-      else            //element does not exists => update indices of elements after it
+      else //element does not exists => update indices of elements after it
       {
         mit_next = values_.lower_bound(it.position());
         update = true;
@@ -358,7 +358,7 @@ public:
 
         while (second != last)
         {
-          if (second->second < lowest->second)                 //the first element is covered by initial lowest == first
+          if (second->second < lowest->second) //the first element is covered by initial lowest == first
           {
             lowest = second;
           }
@@ -377,7 +377,7 @@ public:
         {
           return SparseVectorIterator(*this, lowest->first);
         }
-        else                 //lowest->second >(=) sparseElement
+        else //lowest->second >(=) sparseElement
         {
           if (!first_sparse_found)
           {
@@ -488,7 +488,7 @@ public:
 public:
 
       /// public constructor
-      ValueProxy(SparseVector & vec, size_type index) :
+      ValueProxy(SparseVector& vec, size_type index) :
         vec_(vec), index_(index)
       {
       }
@@ -534,7 +534,7 @@ public:
       // maybe more cast-operators for other types
 
       /// assignment operator, ditches the sparse elements
-      ValueProxy & operator=(const ValueProxy & rhs)
+      ValueProxy& operator=(const ValueProxy& rhs)
       {
         if ((this != &rhs) && (vec_ == rhs.vec_))
         {
@@ -559,9 +559,9 @@ public:
       }
 
       /// assignment operator, ditches the sparse elements
-      ValueProxy & operator=(Value val)
+      ValueProxy& operator=(Value val)
       {
-        if (val != vec_.sparse_element_)             //if (fabs(val) > 1e-8)
+        if (val != vec_.sparse_element_) //if (fabs(val) > 1e-8)
         {
           vec_.values_[index_] = val;
         }
@@ -577,38 +577,38 @@ public:
       }
 
       /// inequality operator
-      bool operator!=(const ValueProxy & other)
+      bool operator!=(const ValueProxy& other)
       {
 
         return (index_ != other.index_) || (&vec_ != &other.vec_);
       }
 
       /// equality operator
-      bool operator==(const ValueProxy & other)
+      bool operator==(const ValueProxy& other)
       {
         return !(this != other);
       }
 
       /// less than operator
-      bool operator<(const ValueProxy & other)
+      bool operator<(const ValueProxy& other)
       {
         return (Value) * this < (Value)other;
       }
 
       /// greater than operator
-      bool operator>(const ValueProxy & other)
+      bool operator>(const ValueProxy& other)
       {
         return (Value) * this > (Value)other;
       }
 
       /// less or equal than operator
-      bool operator<=(const ValueProxy & other)
+      bool operator<=(const ValueProxy& other)
       {
         return (Value) * this <= (Value)other;
       }
 
       /// greater or equal than operator
-      bool operator>=(const ValueProxy & other)
+      bool operator>=(const ValueProxy& other)
       {
         return (Value) * this >= (Value)other;
       }
@@ -616,12 +616,12 @@ public:
 private:
 
       /// the referring SparseVector
-      SparseVector & vec_;
+      SparseVector& vec_;
 
       /// the reference into the SparseVector
       size_type index_;
 
-    };      //end of class ValueProxy
+    }; //end of class ValueProxy
 
     /**
         @brief random access iterator for SparseVector
@@ -635,7 +635,7 @@ private:
 public:
 
       /// copy constructor
-      SparseVectorIterator(const SparseVectorIterator & source) :
+      SparseVectorIterator(const SparseVectorIterator& source) :
         position_(source.position_),
         vector_(source.vector_),
         valit_(source.valit_)
@@ -648,7 +648,7 @@ public:
       }
 
       /// assignment operator
-      SparseVectorIterator & operator=(const SparseVectorIterator & source)
+      SparseVectorIterator& operator=(const SparseVectorIterator& source)
       {
         if (this != &source)
         {
@@ -660,7 +660,7 @@ public:
       }
 
       ///prefix increment
-      SparseVectorIterator & operator++()
+      SparseVectorIterator& operator++()
       {
         ++position_;
         return *this;
@@ -675,7 +675,7 @@ public:
       }
 
       ///prefix decrement
-      SparseVectorIterator & operator--()
+      SparseVectorIterator& operator--()
       {
         --position_;
         return *this;
@@ -712,14 +712,14 @@ public:
       }
 
       /// compound assignment +
-      SparseVectorIterator & operator+=(const size_type rhs)
+      SparseVectorIterator& operator+=(const size_type rhs)
       {
         position_ += rhs;
         return *this;
       }
 
       /// compound assignment -
-      SparseVectorIterator & operator-=(const size_type rhs)
+      SparseVectorIterator& operator-=(const size_type rhs)
       {
         position_ -= rhs;
         return *this;
@@ -750,47 +750,47 @@ public:
       }
 
       /// inequality operator
-      bool operator!=(const SparseVectorIterator & other)
+      bool operator!=(const SparseVectorIterator& other)
       {
         return position_ != other.position_ || &vector_ != &other.vector_;
       }
 
       /// equality operator
-      bool operator==(const SparseVectorIterator & other)
+      bool operator==(const SparseVectorIterator& other)
       {
         return !(*this != other);
       }
 
       /// less than operator
-      bool operator<(const SparseVectorIterator & other)
+      bool operator<(const SparseVectorIterator& other)
       {
         return position_ < other.position();
       }
 
       /// greater than operator
-      bool operator>(const SparseVectorIterator & other)
+      bool operator>(const SparseVectorIterator& other)
       {
         return position_ > other.position();
       }
 
       /// less or equal than operator
-      bool operator<=(const SparseVectorIterator & other)
+      bool operator<=(const SparseVectorIterator& other)
       {
         return position_ <= other.position();
       }
 
       /// greater or equal than operator
-      bool operator>=(const SparseVectorIterator & other)
+      bool operator>=(const SparseVectorIterator& other)
       {
         return position_ >= other.position();
       }
 
       /// go to the next nonempty position
-      SparseVectorIterator & hop()
+      SparseVectorIterator& hop()
       {
         //assert(valit_ != vector_.values_.end() );
         //look for first entry if this is the first call. Go one step otherwise
-        if (position_ != valit_->first)             //first call
+        if (position_ != valit_->first) //first call
         {
           valit_ = vector_.values_.upper_bound(position_);
         }
@@ -819,7 +819,7 @@ public:
 protected:
 
       ///
-      SparseVectorIterator(SparseVector & vector, size_type position) :
+      SparseVectorIterator(SparseVector& vector, size_type position) :
         position_(position),
         vector_(vector),
         valit_(vector.values_.begin())
@@ -830,7 +830,7 @@ protected:
       size_type position_;
 
       /// the referred SparseVector
-      SparseVector & vector_;
+      SparseVector& vector_;
 
       /// the position in the underlying map of SparseVector
       map_const_iterator valit_;
@@ -840,7 +840,7 @@ private:
       /// Not implemented => private
       SparseVectorIterator();
 
-    };    //end of class SparseVectorIterator
+    }; //end of class SparseVectorIterator
 
     /**
         @brief random access reverse iterator for SparseVector
@@ -854,7 +854,7 @@ private:
 public:
 
       /// copy constructor
-      SparseVectorReverseIterator(const SparseVectorReverseIterator & source) :
+      SparseVectorReverseIterator(const SparseVectorReverseIterator& source) :
         position_(source.position_),
         vector_(source.vector_),
         valrit_(source.valrit_)
@@ -867,7 +867,7 @@ public:
       }
 
       /// assignment operator
-      SparseVectorReverseIterator & operator=(const SparseVectorReverseIterator & source)
+      SparseVectorReverseIterator& operator=(const SparseVectorReverseIterator& source)
       {
         if (this != &source)
         {
@@ -879,7 +879,7 @@ public:
       }
 
       /// prefix increment
-      SparseVectorReverseIterator & operator++()
+      SparseVectorReverseIterator& operator++()
       {
         --position_;
         return *this;
@@ -894,7 +894,7 @@ public:
       }
 
       /// prefix decrement
-      SparseVectorReverseIterator & operator--()
+      SparseVectorReverseIterator& operator--()
       {
         ++position_;
         return *this;
@@ -925,14 +925,14 @@ public:
       }
 
       /// compound assignment +
-      SparseVectorReverseIterator & operator+=(const size_type rhs)
+      SparseVectorReverseIterator& operator+=(const size_type rhs)
       {
         position_ -= rhs;
         return *this;
       }
 
       /// compound assignment -
-      SparseVectorReverseIterator & operator-=(const size_type rhs)
+      SparseVectorReverseIterator& operator-=(const size_type rhs)
       {
         position_ += rhs;
         return *this;
@@ -964,43 +964,43 @@ public:
       }
 
       /// inequality operator
-      bool operator!=(const SparseVectorReverseIterator & other)
+      bool operator!=(const SparseVectorReverseIterator& other)
       {
         return position_ != other.position_ || &vector_ != &other.vector_;
       }
 
       /// equality operator
-      bool operator==(const SparseVectorReverseIterator & other)
+      bool operator==(const SparseVectorReverseIterator& other)
       {
         return !(*this != other);
       }
 
       /// less than operator
-      bool operator<(const SparseVectorReverseIterator & other)
+      bool operator<(const SparseVectorReverseIterator& other)
       {
         return !(this->position() < other.position());
       }
 
       /// greater than operator
-      bool operator>(const SparseVectorReverseIterator & other)
+      bool operator>(const SparseVectorReverseIterator& other)
       {
         return !(this->position() > other.position());
       }
 
       /// less or equal than operator
-      bool operator<=(const SparseVectorReverseIterator & other)
+      bool operator<=(const SparseVectorReverseIterator& other)
       {
         return !(this->position() <= other.position());
       }
 
       /// greater or equal than operator
-      bool operator>=(const SparseVectorReverseIterator & other)
+      bool operator>=(const SparseVectorReverseIterator& other)
       {
         return !(this->position() >= other.position());
       }
 
       /// go to the next nonempty position
-      SparseVectorReverseIterator & rhop()
+      SparseVectorReverseIterator& rhop()
       {
         assert(valrit_ != reverse_map_const_iterator(vector_.values_.rend()));
         //look for first entry if this is the first call. Go one step otherwise
@@ -1033,7 +1033,7 @@ public:
 public:
 
       /// detailed constructor
-      SparseVectorReverseIterator(SparseVector & vector, size_type position) :
+      SparseVectorReverseIterator(SparseVector& vector, size_type position) :
         position_(position),
         vector_(vector),
         valrit_(vector.values_.rbegin())
@@ -1047,7 +1047,7 @@ protected:
 
 private:
       /// referred sparseVector
-      SparseVector & vector_;
+      SparseVector& vector_;
 
       /// the position in the underlying map of SparseVector
       reverse_map_const_iterator valrit_;
@@ -1057,7 +1057,7 @@ private:
 
 
 
-    };    //end of class SparseVectorReverseIterator
+    }; //end of class SparseVectorReverseIterator
 
     /// const_iterator for SparseVector
     class SparseVectorConstIterator
@@ -1068,7 +1068,7 @@ private:
 public:
 
       /// copy constructor
-      SparseVectorConstIterator(const SparseVectorConstIterator & source) :
+      SparseVectorConstIterator(const SparseVectorConstIterator& source) :
         position_(source.position_),
         vector_(source.vector_),
         valit_(source.valit_)
@@ -1076,7 +1076,7 @@ public:
       }
 
       /// copy constructor from SparseVector::SparseVectorIterator
-      SparseVectorConstIterator(const SparseVectorIterator & source) :
+      SparseVectorConstIterator(const SparseVectorIterator& source) :
         position_(source.position_),
         vector_(source.vector_),
         valit_(source.valit_)
@@ -1089,19 +1089,19 @@ public:
       }
 
       /// assignment operator
-      SparseVectorConstIterator & operator=(const SparseVectorConstIterator & source)
+      SparseVectorConstIterator& operator=(const SparseVectorConstIterator& source)
       {
         if (this != &source)
         {
           position_ = source.position_;
-          const_cast<SparseVector &>(this->vector_) = source.vector_;
+          const_cast<SparseVector&>(this->vector_) = source.vector_;
           valit_ = source.valit_;
         }
         return *this;
       }
 
       /// postincrement operator
-      SparseVectorConstIterator & operator++()
+      SparseVectorConstIterator& operator++()
       {
         assert(position_ <= vector_.size_);
         ++position_;
@@ -1118,7 +1118,7 @@ public:
       }
 
       /// postincrement operator
-      SparseVectorConstIterator & operator--()
+      SparseVectorConstIterator& operator--()
       {
         assert(position_ <= vector_.size_);
         --position_;
@@ -1138,7 +1138,7 @@ public:
       const Value operator*() const
       {
         assert(position_ < vector_.size_);
-        return (Value)ValueProxy(const_cast<SparseVector &>(this->vector_), position_);
+        return (Value)ValueProxy(const_cast<SparseVector&>(this->vector_), position_);
       }
 
       // indexing
@@ -1146,18 +1146,18 @@ public:
       {
         position_ += n;
         assert(position_ < vector_.size_);
-        return ValueProxy(const_cast<SparseVector &>(this->vector_), position_);
+        return ValueProxy(const_cast<SparseVector&>(this->vector_), position_);
       }
 
       /// compound assignment +
-      SparseVectorConstIterator & operator+=(const size_type rhs)
+      SparseVectorConstIterator& operator+=(const size_type rhs)
       {
         position_ += rhs;
         return *this;
       }
 
       /// compound assignment -
-      SparseVectorConstIterator & operator-=(const size_type rhs)
+      SparseVectorConstIterator& operator-=(const size_type rhs)
       {
         position_ -= rhs;
         return *this;
@@ -1166,57 +1166,57 @@ public:
       /// binary arithmetic +
       SparseVectorConstIterator operator+(const size_type rhs) const
       {
-        return SparseVectorConstIterator(const_cast<SparseVector &>(this->vector_), position_ + rhs);
+        return SparseVectorConstIterator(const_cast<SparseVector&>(this->vector_), position_ + rhs);
       }
 
       /// binary arithmetic -
       SparseVectorConstIterator operator-(const size_type rhs) const
       {
-        return SparseVectorConstIterator(const_cast<SparseVector &>(this->vector_), position_ - rhs);
+        return SparseVectorConstIterator(const_cast<SparseVector&>(this->vector_), position_ - rhs);
       }
 
       /// inequality operator
-      bool operator!=(const SparseVectorConstIterator & other)
+      bool operator!=(const SparseVectorConstIterator& other)
       {
         return position_ != other.position_ || &vector_ != &other.vector_;
       }
 
       /// equality operator
-      bool operator==(const SparseVectorConstIterator & other)
+      bool operator==(const SparseVectorConstIterator& other)
       {
         return !(*this != other);
       }
 
       /// less than operator
-      bool operator<(const SparseVectorConstIterator & other)
+      bool operator<(const SparseVectorConstIterator& other)
       {
         return this->position() < other.position();
       }
 
       /// greater than operator
-      bool operator>(const SparseVectorConstIterator & other)
+      bool operator>(const SparseVectorConstIterator& other)
       {
         return this->position() > other.position();
       }
 
       /// less or equal than operator
-      bool operator<=(const SparseVectorConstIterator & other)
+      bool operator<=(const SparseVectorConstIterator& other)
       {
         return this->position() <= other.position();
       }
 
       /// greater or equal than operator
-      bool operator>=(const SparseVectorConstIterator & other)
+      bool operator>=(const SparseVectorConstIterator& other)
       {
         return this->position() >= other.position();
       }
 
       /// go to the next nonempty position
-      SparseVectorConstIterator & hop()
+      SparseVectorConstIterator& hop()
       {
         assert(valit_ != vector_.values_.end());
         //look for first entry if this is the first call. Go one step otherwise
-        if (position_ != valit_->first)             //first call
+        if (position_ != valit_->first) //first call
         {
           valit_ = vector_.values_.upper_bound(position_);
         }
@@ -1247,7 +1247,7 @@ protected:
       SparseVectorConstIterator();
 
       /// detailed constructor
-      SparseVectorConstIterator(const SparseVector & vector, size_type position) :
+      SparseVectorConstIterator(const SparseVector& vector, size_type position) :
         position_(position),
         vector_(vector),
         valit_(vector.values_.begin())
@@ -1259,12 +1259,12 @@ private:
       mutable size_type position_;
 
       /// referring to this SparseVector
-      const SparseVector & vector_;
+      const SparseVector& vector_;
 
       /// the position in the underlying map of SparseVector
       map_const_iterator valit_;
 
-    };      //end of class SparseVectorConstIterator
+    }; //end of class SparseVectorConstIterator
 
     /// const_reverse_iterator for SparseVector
     class SparseVectorConstReverseIterator
@@ -1274,7 +1274,7 @@ private:
 public:
 
       /// copy constructor
-      SparseVectorConstReverseIterator(const SparseVectorConstIterator & source) :
+      SparseVectorConstReverseIterator(const SparseVectorConstIterator& source) :
         position_(source.position_),
         vector_(source.vector_),
         valrit_(source.valrit_)
@@ -1282,7 +1282,7 @@ public:
       }
 
       /// copy constructor from SparseVector::SparseVectorIterator
-      SparseVectorConstReverseIterator(const SparseVectorReverseIterator & source) :
+      SparseVectorConstReverseIterator(const SparseVectorReverseIterator& source) :
         position_(source.position_),
         vector_(source.vector_),
         valrit_(source.valrit_)
@@ -1295,19 +1295,19 @@ public:
       }
 
       /// assignment operator
-      SparseVectorConstReverseIterator & operator=(const SparseVectorConstReverseIterator & source)
+      SparseVectorConstReverseIterator& operator=(const SparseVectorConstReverseIterator& source)
       {
         if (this != &source)
         {
           position_ = source.position_;
-          const_cast<SparseVector &>(this->vector_) = source.vector_;
+          const_cast<SparseVector&>(this->vector_) = source.vector_;
           valrit_ = source.valrit_;
         }
         return *this;
       }
 
       /// postincrement operator
-      SparseVectorConstReverseIterator & operator++()
+      SparseVectorConstReverseIterator& operator++()
       {
         //assert(position_ < 0);
         --position_;
@@ -1324,7 +1324,7 @@ public:
       }
 
       /// postdecrement operator
-      SparseVectorConstReverseIterator & operator--()
+      SparseVectorConstReverseIterator& operator--()
       {
         //assert(position_ < 0);
         ++position_;
@@ -1345,11 +1345,11 @@ public:
       {
         assert(position_ <= vector_.size_);
         assert(position_ != 0);
-        return ValueProxy(const_cast<SparseVector &>(this->vector_), position_ - 1);
+        return ValueProxy(const_cast<SparseVector&>(this->vector_), position_ - 1);
       }
 
       /// go to the next nonempty position
-      SparseVectorConstReverseIterator & rhop()
+      SparseVectorConstReverseIterator& rhop()
       {
         assert(valrit_ != vector_.values_.rend());
         //look for first entry if this is the first call. Go one step otherwise
@@ -1380,7 +1380,7 @@ public:
       }
 
       /// inequality operator
-      bool operator!=(const SparseVectorConstReverseIterator & other)
+      bool operator!=(const SparseVectorConstReverseIterator& other)
       {
         return position_ != other.position_ || &vector_ != &other.vector_;
       }
@@ -1391,7 +1391,7 @@ protected:
       SparseVectorConstReverseIterator();
 
       /// detailed constructor
-      SparseVectorConstReverseIterator(const SparseVector & vector, size_type position) :
+      SparseVectorConstReverseIterator(const SparseVector& vector, size_type position) :
         position_(position), vector_(vector), valrit_(vector.values_.rbegin())
       {
       }
@@ -1402,15 +1402,15 @@ private:
       mutable size_type position_;
 
       /// reference to the vector operating on
-      const SparseVector & vector_;
+      const SparseVector& vector_;
 
       // the position in the underlying map of SparseVector
       reverse_map_const_iterator valrit_;
 
-    };      //end of class SparseVectorConstReverseIterator
+    }; //end of class SparseVectorConstReverseIterator
 
 
-  };  //end of class SparseVector
+  }; //end of class SparseVector
 
 }
 #endif //OPENMS_DATASTRUCTURES_SPARSEVECTOR_H

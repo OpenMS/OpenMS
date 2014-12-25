@@ -79,22 +79,22 @@ public:
     struct SizeLess :
       std::binary_function<ConsensusFeature, ConsensusFeature, bool>
     {
-      inline bool operator()(ConsensusFeature const & left, ConsensusFeature const & right) const
+      inline bool operator()(ConsensusFeature const& left, ConsensusFeature const& right) const
       {
         return left.size() < right.size();
       }
 
-      inline bool operator()(ConsensusFeature const & left, UInt64 const & right) const
+      inline bool operator()(ConsensusFeature const& left, UInt64 const& right) const
       {
         return left.size() < right;
       }
 
-      inline bool operator()(UInt64 const & left, ConsensusFeature const & right) const
+      inline bool operator()(UInt64 const& left, ConsensusFeature const& right) const
       {
         return left < right.size();
       }
 
-      inline bool operator()(const UInt64 & left, const UInt64 & right) const
+      inline bool operator()(const UInt64& left, const UInt64& right) const
       {
         return left < right;
       }
@@ -105,7 +105,7 @@ public:
     struct MapsLess :
       std::binary_function<ConsensusFeature, ConsensusFeature, bool>
     {
-      inline bool operator()(ConsensusFeature const & left, ConsensusFeature const & right) const
+      inline bool operator()(ConsensusFeature const& left, ConsensusFeature const& right) const
       {
         return std::lexicographical_compare(left.begin(), left.end(), right.begin(), right.end(), FeatureHandle::IndexLess());
       }
@@ -119,7 +119,7 @@ public:
       {
       }
 
-      Ratio(const Ratio & rhs)
+      Ratio(const Ratio& rhs)
       {
         ratio_value_ = rhs.ratio_value_;
         denominator_ref_ = rhs.denominator_ref_;
@@ -131,7 +131,7 @@ public:
       {
       }
 
-      Ratio & operator=(const Ratio & rhs)
+      Ratio& operator=(const Ratio& rhs)
       {
         if (&rhs != this)
         {
@@ -156,10 +156,10 @@ public:
     ConsensusFeature();
 
     /// Copy constructor
-    ConsensusFeature(const ConsensusFeature & rhs);
+    ConsensusFeature(const ConsensusFeature& rhs);
 
     /// Constructor from basic feature
-    explicit ConsensusFeature(const BaseFeature & feature);
+    explicit ConsensusFeature(const BaseFeature& feature);
 
     /**
       @brief Constructor with map and element index for a singleton consensus
@@ -167,7 +167,7 @@ public:
 
       Sets the consensus feature position and intensity to the values of @p element as well.
     */
-    ConsensusFeature(UInt64 map_index, const Peak2D & element, UInt64 element_index);
+    ConsensusFeature(UInt64 map_index, const Peak2D& element, UInt64 element_index);
 
     /**
       @brief Constructor with map index for a singleton consensus feature.
@@ -175,10 +175,10 @@ public:
       Sets the consensus feature position, intensity, charge, quality, and peptide identifications
       to the values of @p element as well.
     */
-    ConsensusFeature(UInt64 map_index, const BaseFeature & element);
+    ConsensusFeature(UInt64 map_index, const BaseFeature& element);
 
     /// Assignment operator
-    ConsensusFeature & operator=(const ConsensusFeature & rhs);
+    ConsensusFeature& operator=(const ConsensusFeature& rhs);
 
     /// Destructor
     virtual ~ConsensusFeature();
@@ -191,7 +191,7 @@ public:
     /**
       @brief Adds all feature handles (of the CF) into the consensus feature
     */
-    void insert(const ConsensusFeature & cf);
+    void insert(const ConsensusFeature& cf);
 
     /**
       @brief Adds an feature handle into the consensus feature
@@ -199,10 +199,10 @@ public:
       @exception Exception::InvalidValue is thrown if a handle with the same map index and unique
       id already exists.
     */
-    void insert(const FeatureHandle & handle);
+    void insert(const FeatureHandle& handle);
 
     /// Adds all feature handles in @p handle_set to this consensus feature.
-    void insert(const HandleSetType & handle_set);
+    void insert(const HandleSetType& handle_set);
 
     /**
       @brief Creates a FeatureHandle and adds it
@@ -210,7 +210,7 @@ public:
       @exception Exception::InvalidValue is thrown if a handle with the same map index and unique
       id already exists.
     */
-    void insert(UInt64 map_index, const Peak2D & element, UInt64 element_index);
+    void insert(UInt64 map_index, const Peak2D& element, UInt64 element_index);
 
     /**
       @brief Creates a FeatureHandle and adds it
@@ -218,10 +218,10 @@ public:
       @exception Exception::InvalidValue is thrown if a handle with the same map index and unique
       id already exists.
     */
-    void insert(UInt64 map_index, const BaseFeature & element);
+    void insert(UInt64 map_index, const BaseFeature& element);
 
     /// Non-mutable access to the contained feature handles
-    const HandleSetType & getFeatures() const;
+    const HandleSetType& getFeatures() const;
     //@}
 
     ///@name Accessors
@@ -268,7 +268,7 @@ public:
       @param fm Input feature map, which provides additional information on the features
       @param intensity_weighted_averaging Use unweighted averaging (default) or weighted by intensity
     */
-    void computeDechargeConsensus(const FeatureMap & fm, bool intensity_weighted_averaging = false);
+    void computeDechargeConsensus(const FeatureMap& fm, bool intensity_weighted_averaging = false);
 
     /**
       @brief Add a ratio.
@@ -277,7 +277,7 @@ public:
 
       @note still experimental. consensusfeaturehandler will ignore it.
     */
-    void addRatio(const Ratio & r);
+    void addRatio(const Ratio& r);
 
     /**
       @brief Add a ratio vector.
@@ -286,7 +286,7 @@ public:
 
       @note still experimental. consensusfeaturehandler will ignore it.
     */
-    void setRatios(std::vector<Ratio> & rs);
+    void setRatios(std::vector<Ratio>& rs);
 
     /**
       @brief Get the ratio vector.
@@ -296,7 +296,7 @@ public:
     /**
       @brief Get the ratio vector.
     */
-    std::vector<Ratio> & getRatios();
+    std::vector<Ratio>& getRatios();
 
     ///@name Accessors for set of FeatureHandles
     //@{
@@ -323,14 +323,14 @@ public:
     bool empty() const;
     //@}
 
-  private:
+private:
     HandleSetType handles_;
     std::vector<Ratio> ratios_;
 
   };
 
   ///Print the contents of a ConsensusFeature to a stream
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ConsensusFeature & cons);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusFeature& cons);
 
 } // namespace OpenMS
 

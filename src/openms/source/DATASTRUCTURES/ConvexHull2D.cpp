@@ -48,7 +48,7 @@ namespace OpenMS
   }
 
   /// assignment operator
-  ConvexHull2D & ConvexHull2D::operator=(const ConvexHull2D & rhs)
+  ConvexHull2D& ConvexHull2D::operator=(const ConvexHull2D& rhs)
   {
     if (&rhs == this)
       return *this;
@@ -60,7 +60,7 @@ namespace OpenMS
   }
 
   /// equality operator
-  bool ConvexHull2D::operator==(const ConvexHull2D & rhs) const
+  bool ConvexHull2D::operator==(const ConvexHull2D& rhs) const
   {
     // different size => return false
     if (map_points_.size() != rhs.map_points_.size())
@@ -98,7 +98,7 @@ namespace OpenMS
   }
 
   /// accessor for the points
-  const ConvexHull2D::PointArrayType & ConvexHull2D::getHullPoints() const
+  const ConvexHull2D::PointArrayType& ConvexHull2D::getHullPoints() const
   {
     // construct outer hull if required
     if (outer_points_.empty() && map_points_.size() > 0)
@@ -135,7 +135,7 @@ namespace OpenMS
     return outer_points_;
   }
 
-  void ConvexHull2D::setHullPoints(const ConvexHull2D::PointArrayType & points)
+  void ConvexHull2D::setHullPoints(const ConvexHull2D::PointArrayType& points)
   {
     map_points_.clear();
     outer_points_ = points;
@@ -177,7 +177,7 @@ namespace OpenMS
     return bb;
   }
 
-  bool ConvexHull2D::addPoint(const PointType & point)
+  bool ConvexHull2D::addPoint(const PointType& point)
   {
     outer_points_.clear();
 
@@ -196,7 +196,7 @@ namespace OpenMS
     return true;
   }
 
-  void ConvexHull2D::addPoints(const PointArrayType & points)
+  void ConvexHull2D::addPoints(const PointArrayType& points)
   {
     for (PointArrayTypeConstIterator it = points.begin(); it != points.end(); ++it)
     {
@@ -210,7 +210,7 @@ namespace OpenMS
     // keep the min&max scan only
     //
     if (map_points_.size() < 3)
-      return 0;                         // we need at least one "middle" scan
+      return 0; // we need at least one "middle" scan
 
     HullPointType compressed_map;
 
@@ -245,10 +245,10 @@ namespace OpenMS
     return saved_points;
   }
 
-  bool ConvexHull2D::encloses(const PointType & point) const
+  bool ConvexHull2D::encloses(const PointType& point) const
   {
     if ((map_points_.empty()) && outer_points_.size() > 0) // we cannot answer the query as we lack the internal data structure
-    {       // (if you need this you need to augment encloses() to work on outer_points_ only)
+    { // (if you need this you need to augment encloses() to work on outer_points_ only)
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
 
@@ -276,13 +276,13 @@ namespace OpenMS
       return false;
 
     // check if point is within bounds
-    double mz_low = it_lower->second.minPosition()[0]      // m/z offset
-                        + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first)))  // factor (0-1)
-                        * (it_upper->second.minPosition()[0] - it_lower->second.minPosition()[0]);                       // m/z range
+    double mz_low = it_lower->second.minPosition()[0] // m/z offset
+                    + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first)))      // factor (0-1)
+                    * (it_upper->second.minPosition()[0] - it_lower->second.minPosition()[0]);                           // m/z range
 
-    double mz_high = it_lower->second.maxPosition()[0]      // m/z offset
-                         + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first))) // factor (0-1)
-                         * (it_upper->second.maxPosition()[0] - it_lower->second.maxPosition()[0]);                      // m/z range
+    double mz_high = it_lower->second.maxPosition()[0] // m/z offset
+                     + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first)))     // factor (0-1)
+                     * (it_upper->second.maxPosition()[0] - it_lower->second.maxPosition()[0]);                          // m/z range
 
 
     DBoundingBox<1> range(mz_low, mz_high);

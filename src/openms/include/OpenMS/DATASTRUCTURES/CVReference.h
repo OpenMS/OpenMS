@@ -58,38 +58,38 @@ public:
     CVReference();
 
     /// Copy constructor
-    CVReference(const CVReference & rhs);
+    CVReference(const CVReference& rhs);
 
     /// Destructor
     virtual ~CVReference();
 
     /// Assignment operator
-    CVReference & operator=(const CVReference & rhs);
+    CVReference& operator=(const CVReference& rhs);
 
     /** @name Accessors
     */
     //@{
     /// sets the name of the CV reference
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// returns the name of the CV reference
-    const String & getName() const;
+    const String& getName() const;
 
     /// sets the CV identifier which is referenced
-    void setIdentifier(const String & identifier);
+    void setIdentifier(const String& identifier);
 
     /// returns the CV identifier which is referenced
-    const String & getIdentifier() const;
+    const String& getIdentifier() const;
     //@}
 
     /** @name Predicates
     */
     //@{
     /// equality operator
-    bool operator==(const CVReference & rhs) const;
+    bool operator==(const CVReference& rhs) const;
 
     /// inequality operator
-    bool operator!=(const CVReference & rhs) const;
+    bool operator!=(const CVReference& rhs) const;
     //@}
 
 

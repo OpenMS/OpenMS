@@ -80,7 +80,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI ListUtils
   {
-  private:
+private:
     /**
       @brief Predicate to check double equality with a given tolerance.
     */
@@ -102,14 +102,14 @@ namespace OpenMS
         return std::fabs(value - target_) < tolerance_;
       }
 
-    private:
+private:
       /// The allowed tolerance.
       double tolerance_;
       /// The target value that should be found.
       double target_;
     };
 
-  public:
+public:
     /**
       @brief Returns a list that is created by splitting the given comma-separated string.
       @note If converted to vector<String> the strings are not trimmed.
@@ -197,9 +197,10 @@ namespace OpenMS
     template <typename T, typename E>
     static Int getIndex(const std::vector<T>& container, const E& elem)
     {
-      typename std::vector<T>::const_iterator pos = 
+      typename std::vector<T>::const_iterator pos =
         std::find(container.begin(), container.end(), elem);
       if (pos == container.end()) return -1;
+
       return std::distance(container.begin(), pos);
     }
 

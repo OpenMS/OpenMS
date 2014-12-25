@@ -77,16 +77,16 @@ public:
     FeatureHandle();
 
     /// Constructor with map index, element index and position
-    FeatureHandle(UInt64 map_index, const Peak2D & point, UInt64 element_index);
+    FeatureHandle(UInt64 map_index, const Peak2D& point, UInt64 element_index);
 
     /// Constructor from map index and basic feature
-    FeatureHandle(UInt64 map_index, const BaseFeature & feature);
+    FeatureHandle(UInt64 map_index, const BaseFeature& feature);
 
     /// Copy constructor
-    FeatureHandle(const FeatureHandle & rhs);
+    FeatureHandle(const FeatureHandle& rhs);
 
     /// Assignment operator
-    FeatureHandle & operator=(const FeatureHandle & rhs);
+    FeatureHandle& operator=(const FeatureHandle& rhs);
 
     /// Destructor
     virtual ~FeatureHandle();
@@ -106,7 +106,7 @@ public:
       FeatureHandle::setRT(), FeatureHandle::setMZ(),
       FeatureHandle::setIntensity(), FeatureHandle::setCharge(), etc..
     */
-    FeatureHandleMutable_ & asMutable() const;
+    FeatureHandleMutable_& asMutable() const;
     //@}
 
     ///@name Accessors
@@ -132,16 +132,16 @@ public:
     //@}
 
     /// Equality operator
-    bool operator==(const FeatureHandle & i) const;
+    bool operator==(const FeatureHandle& i) const;
 
     /// Equality operator
-    bool operator!=(const FeatureHandle & i) const;
+    bool operator!=(const FeatureHandle& i) const;
 
     /// Comparator by map and unique id
     struct IndexLess :
       std::binary_function<FeatureHandle, FeatureHandle, bool>
     {
-      bool operator()(FeatureHandle const & left, FeatureHandle const & right) const;
+      bool operator()(FeatureHandle const& left, FeatureHandle const& right) const;
     };
 
 protected:
@@ -168,17 +168,17 @@ private:
     using FeatureHandle::setUniqueId;
     using FeatureHandle::setMapIndex;
     FeatureHandleMutable_();
-    FeatureHandleMutable_(const FeatureHandleMutable_ &);
+    FeatureHandleMutable_(const FeatureHandleMutable_&);
   };
 
-  inline FeatureHandle::FeatureHandleMutable_ & FeatureHandle::asMutable() const
+  inline FeatureHandle::FeatureHandleMutable_& FeatureHandle::asMutable() const
   {
     // the const cast is to remove constness, but note that FeatureHandleMutable_ lacks some mutators
     // TODO use const_cast
-    return static_cast<FeatureHandleMutable_ &>(const_cast<FeatureHandle &>(*this));
+    return static_cast<FeatureHandleMutable_&>(const_cast<FeatureHandle&>(*this));
   }
 
-  inline bool FeatureHandle::IndexLess::operator()(FeatureHandle const & left, FeatureHandle const & right) const
+  inline bool FeatureHandle::IndexLess::operator()(FeatureHandle const& left, FeatureHandle const& right) const
   {
     // if map indices are equal, use unique ids
     if (left.map_index_ == right.map_index_)
@@ -190,7 +190,7 @@ private:
   }
 
   ///Print the contents of a FeatureHandle to a stream.
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const FeatureHandle & cons);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const FeatureHandle& cons);
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_FEATUREHANDLE_H

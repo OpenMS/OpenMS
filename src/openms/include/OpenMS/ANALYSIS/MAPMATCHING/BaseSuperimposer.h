@@ -73,7 +73,7 @@ public:
 
     @exception IllegalArgument is thrown if the input maps are invalid.
     */
-    virtual void run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation) = 0;
+    virtual void run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation) = 0;
 
     /// Register all derived classes here
     static void registerChildren();
@@ -81,13 +81,13 @@ public:
 private:
 
     /// Copy constructor intentionally not implemented
-    BaseSuperimposer(const BaseSuperimposer &);
+    BaseSuperimposer(const BaseSuperimposer&);
 
     /// Assignment operator intentionally not implemented
-    BaseSuperimposer & operator=(const BaseSuperimposer &);
+    BaseSuperimposer& operator=(const BaseSuperimposer&);
 
   };
 
 } // namespace OpenMS
 
-#endif  // OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H
+#endif // OPENMS_ANALYSIS_MAPMATCHING_BASESUPERIMPOSER_H

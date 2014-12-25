@@ -57,21 +57,22 @@ namespace OpenMS
   {
 public:
     /** Functor for LM Optimization */
-    class EGHTraceFunctor : public TraceFitter::GenericFunctor
+    class EGHTraceFunctor :
+      public TraceFitter::GenericFunctor
     {
-    public:
+public:
 
       EGHTraceFunctor(int dimensions,
-          const TraceFitter::ModelData* data);
+                      const TraceFitter::ModelData* data);
 
       virtual ~EGHTraceFunctor();
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec);
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J);
 
-    protected:
+protected:
       const TraceFitter::ModelData* m_data;
     };
 

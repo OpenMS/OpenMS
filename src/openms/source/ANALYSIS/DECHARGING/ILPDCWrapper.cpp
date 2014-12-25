@@ -328,10 +328,10 @@ namespace OpenMS
   // old version, slower, as ILP has different layout (i.e, the same as described in paper)
 
   double ILPDCWrapper::computeSliceOld_(const FeatureMap fm,
-                                            PairsType& pairs,
-                                            const PairsIndex margin_left,
-                                            const PairsIndex margin_right,
-                                            const Size verbose_level) const
+                                        PairsType& pairs,
+                                        const PairsIndex margin_left,
+                                        const PairsIndex margin_right,
+                                        const Size verbose_level) const
   {
     LPWrapper build;
     //build.setSolver(LPWrapper::SOLVER_GLPK);
@@ -542,9 +542,9 @@ namespace OpenMS
       double rt_diff =  fabs(fm[pair.getElementIndex(0)].getRT() - fm[pair.getElementIndex(1)].getRT());
       // enhance correct charge
       double charge_enhance = ((pair.getCharge(0) == fm[pair.getElementIndex(0)].getCharge())
-                                  &&
-                                   (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
-                                  ? 100 : 1;
+                              &&
+                               (pair.getCharge(1) == fm[pair.getElementIndex(1)].getCharge()))
+                              ? 100 : 1;
       score = charge_enhance * (1 / (pair.getMassDiff() + 1) + 1 / (rt_diff + 1));
     }
 

@@ -64,12 +64,12 @@ public:
     */
     DateTime();
     /// Copy constructor
-    DateTime(const DateTime & date);
+    DateTime(const DateTime& date);
     /// Copy constructor from Qt base class
-    DateTime(const QDateTime & date);
+    DateTime(const QDateTime& date);
 
     /// Assignment operator
-    DateTime & operator=(const DateTime & source);
+    DateTime& operator=(const DateTime& source);
 
     /**
         @brief sets date from a string
@@ -78,7 +78,7 @@ public:
 
         @exception Exception::ParseError
     */
-    void setDate(const String & date);
+    void setDate(const String& date);
 
     /**
         @brief sets time from a string
@@ -87,7 +87,7 @@ public:
 
         @exception Exception::ParseError
     */
-    void setTime(const String & date);
+    void setTime(const String& date);
 
     /**
         @brief sets data from three integers
@@ -121,14 +121,14 @@ public:
 
         Give the numbers in the following order: month, day and year, hour minute, second.
     */
-    void get(UInt & month, UInt & day, UInt & year, UInt & hour, UInt & minute, UInt & second) const;
+    void get(UInt& month, UInt& day, UInt& year, UInt& hour, UInt& minute, UInt& second) const;
 
     /**
         @brief Fills the arguments with the date
 
         Give the numbers in the following order: month, day and year.
     */
-    void getDate(UInt & month, UInt & day, UInt & year) const;
+    void getDate(UInt& month, UInt& day, UInt& year) const;
 
     /**
         @brief Returns the date as string
@@ -142,7 +142,7 @@ public:
 
         The arguments are all UInts and the order is hour minute second
     */
-    void getTime(UInt & hour, UInt & minute, UInt & second) const;
+    void getTime(UInt& hour, UInt& minute, UInt& second) const;
 
     /**
         @brief Returns the time as string
@@ -177,7 +177,7 @@ public:
 
         @exception Exception::ParseError
     */
-    void set(const String & date);
+    void set(const String& date);
 
 protected:
   };

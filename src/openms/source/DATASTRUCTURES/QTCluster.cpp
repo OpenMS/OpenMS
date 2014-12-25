@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  QTCluster::QTCluster(GridFeature * center_point, Size num_maps,
+  QTCluster::QTCluster(GridFeature* center_point, Size num_maps,
                        double max_distance, bool use_IDs) :
     center_point_(center_point), neighbors_(), max_distance_(max_distance),
     num_maps_(num_maps), quality_(0.0), changed_(false), use_IDs_(use_IDs),
@@ -76,15 +76,15 @@ namespace OpenMS
 
   Size QTCluster::size() const
   {
-    return neighbors_.size() + 1;     // + 1 for the center
+    return neighbors_.size() + 1; // + 1 for the center
   }
 
-  bool QTCluster::operator<(QTCluster & cluster)
+  bool QTCluster::operator<(QTCluster& cluster)
   {
     return this->getQuality() < cluster.getQuality();
   }
 
-  void QTCluster::add(GridFeature * element, double distance)
+  void QTCluster::add(GridFeature* element, double distance)
   {
     // maybe TODO: check here if distance is smaller than max. distance?
     // maybe TODO: check here if peptide annotations are compatible?
@@ -97,7 +97,7 @@ namespace OpenMS
     }
   }
 
-  void QTCluster::getElements(OpenMSBoost::unordered_map<Size, GridFeature *> & elements)
+  void QTCluster::getElements(OpenMSBoost::unordered_map<Size, GridFeature*>& elements)
   {
     elements.clear();
     elements[center_point_->getMapIndex()] = center_point_;
@@ -122,45 +122,45 @@ namespace OpenMS
         elements[it->first] = it->second.begin()->second;
       }
     }
-    else     // find elements that are compatible with the optimal annotation:
+    else // find elements that are compatible with the optimal annotation:
     {
       for (NeighborMap::const_iterator n_it = neighbors_.begin();
            n_it != neighbors_.end(); ++n_it)
       {
-        for (std::multimap<double, GridFeature *>::const_iterator df_it =
+        for (std::multimap<double, GridFeature*>::const_iterator df_it =
                n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
         {
-          const set<AASequence> & current = df_it->second->getAnnotations();
+          const set<AASequence>& current = df_it->second->getAnnotations();
           if (current.empty() || (current == annotations_))
           {
             elements[n_it->first] = df_it->second;
-            break;             // found the best element for this input map
+            break; // found the best element for this input map
           }
         }
       }
     }
   }
 
-  bool QTCluster::update(const OpenMSBoost::unordered_map<Size, GridFeature *> & removed)
+  bool QTCluster::update(const OpenMSBoost::unordered_map<Size, GridFeature*>& removed)
   {
     // check if the cluster center was removed:
-    for (OpenMSBoost::unordered_map<Size, GridFeature *>::const_iterator rm_it = removed.begin();
+    for (OpenMSBoost::unordered_map<Size, GridFeature*>::const_iterator rm_it = removed.begin();
          rm_it != removed.end(); ++rm_it)
     {
       if (rm_it->second == center_point_)
         return false;
     }
     // update the cluster contents:
-    for (OpenMSBoost::unordered_map<Size, GridFeature *>::const_iterator rm_it = removed.begin();
+    for (OpenMSBoost::unordered_map<Size, GridFeature*>::const_iterator rm_it = removed.begin();
          rm_it != removed.end(); ++rm_it)
     {
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
-        continue;                                  // no points from this map
-      for (std::multimap<double, GridFeature *>::iterator feat_it =
+        continue; // no points from this map
+      for (std::multimap<double, GridFeature*>::iterator feat_it =
              pos->second.begin(); feat_it != pos->second.end(); ++feat_it)
       {
-        if (feat_it->second == rm_it->second)         // remove this neighbor
+        if (feat_it->second == rm_it->second) // remove this neighbor
         {
           if (!use_IDs_ || (annotations_ == rm_it->second->getAnnotations()))
           {
@@ -172,7 +172,7 @@ namespace OpenMS
           break;
         }
       }
-      if (pos->second.empty())       // only neighbor from this map was just removed
+      if (pos->second.empty()) // only neighbor from this map was just removed
       {
         neighbors_.erase(pos);
       }
@@ -210,7 +210,7 @@ namespace OpenMS
       // add max. distance for missing cluster elements:
       internal_distance += (num_other - counter) * max_distance_;
     }
-    else     // find the annotation that gives the best quality
+    else // find the annotation that gives the best quality
     {
       internal_distance = optimizeAnnotations_();
     }
@@ -220,7 +220,7 @@ namespace OpenMS
     quality_ = (max_distance_ - internal_distance) / max_distance_;
   }
 
-  const set<AASequence> & QTCluster::getAnnotations()
+  const set<AASequence>& QTCluster::getAnnotations()
   {
     if (changed_ && use_IDs_ && center_point_->getAnnotations().empty() &&
         !neighbors_.empty())
@@ -237,23 +237,23 @@ namespace OpenMS
          n_it != neighbors_.end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (std::multimap<double, GridFeature *>::iterator df_it =
+      for (std::multimap<double, GridFeature*>::iterator df_it =
              n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
       {
         double dist = df_it->first;
-        const set<AASequence> & current = df_it->second->getAnnotations();
+        const set<AASequence>& current = df_it->second->getAnnotations();
         map<set<AASequence>, vector<double> >::iterator pos =
           seq_table.find(current);
-        if (pos == seq_table.end())         // new set of annotations
+        if (pos == seq_table.end()) // new set of annotations
         {
           seq_table[current].resize(num_maps_, max_distance_);
           seq_table[current][map_index] = dist;
         }
-        else         // new dist. value for this input map
+        else // new dist. value for this input map
         {
           pos->second[map_index] = min(dist, pos->second[map_index]);
         }
-        if (current.empty())         // unannotated feature
+        if (current.empty()) // unannotated feature
         {
           // no need to check further (annotation-specific distances are worse
           // than this unspecific one):

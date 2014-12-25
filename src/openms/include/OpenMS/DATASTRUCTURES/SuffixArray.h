@@ -59,12 +59,12 @@ public:
     @throw Exception::InvalidValue if string does not start with empty string ($)
     @throw Exception::FileNotFound is thrown if the given filename is not found
     */
-    SuffixArray(const String & st, const String & filename);
+    SuffixArray(const String& st, const String& filename);
 
     /**
     @brief copy constructor
     */
-    SuffixArray(const SuffixArray & sa);
+    SuffixArray(const SuffixArray& sa);
 
     /**
     @brief destructor
@@ -84,7 +84,7 @@ public:
     @throw InvalidValue if the spectrum is not sorted ascendingly
 
     */
-    virtual void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double> > > & candidates, const std::vector<double> & spec) = 0;
+    virtual void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double> > >& candidates, const std::vector<double>& spec) = 0;
 
     /**
     @brief saves the suffix array to disc
@@ -92,14 +92,14 @@ public:
     @return bool if operation was successful
     @throw UnableToCreateFile if file could not be created (e.g. if you have no rights)
     */
-    virtual bool save(const String & filename) = 0;
+    virtual bool save(const String& filename) = 0;
     /**
     @brief opens the suffix array
     @param filename const reference string describing the filename
     @return bool if operation was successful
     @throw FileNotFound
     */
-    virtual bool open(const String & filename) = 0;
+    virtual bool open(const String& filename) = 0;
 
     /**
     @brief setter for tolerance
@@ -127,13 +127,13 @@ public:
     @param tags const vector of strings with tags with length 3 each
     @throw Exception::InvalidValue if at least one tag does not have size of 3
     */
-    virtual void setTags(const std::vector<String> & tags) = 0;
+    virtual void setTags(const std::vector<String>& tags) = 0;
 
     /**
     @brief getter for tags
     @return const vector of string with tags
     */
-    virtual const std::vector<String> & getTags() = 0;
+    virtual const std::vector<String>& getTags() = 0;
 
     /**
     @brief setter for use_tags

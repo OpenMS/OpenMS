@@ -198,21 +198,23 @@ protected:
 
 private:
 
-    /// Not implemented
-    LinearRegression(const LinearRegression & arg);
-    /// Not implemented
-    LinearRegression & operator=(const LinearRegression & arg);
+      /// Not implemented
+      LinearRegression(const LinearRegression& arg);
+      /// Not implemented
+      LinearRegression& operator=(const LinearRegression& arg);
 
-    };//class
+    }; //class
 
 
-    namespace {
-      //given x compute y = slope * x + intercept
-    double computePointY( double x, double slope, double intercept)
+    namespace
     {
-      return (slope * x + intercept);
-    }
-    }//namespace
+      //given x compute y = slope * x + intercept
+      double computePointY(double x, double slope, double intercept)
+      {
+        return slope * x + intercept;
+      }
+
+    } //namespace
 
     //x, y, w must be of same size
     template <typename Iterator>
@@ -221,13 +223,14 @@ private:
       double chi_squared = 0.0;
       Iterator xIter = x_begin;
       Iterator yIter = y_begin;
-      for(; xIter!=x_end; ++xIter, ++yIter)
+      for (; xIter != x_end; ++xIter, ++yIter)
       {
         chi_squared += std::pow(*yIter - computePointY(*xIter, slope, intercept), 2);
       }
 
       return chi_squared;
     }
+
     //x, y, w must be of same size
     template <typename Iterator>
     double LinearRegression::computeWeightedChiSquare(Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin, double slope, double intercept)
@@ -236,9 +239,9 @@ private:
       Iterator xIter = x_begin;
       Iterator yIter = y_begin;
       Iterator wIter = w_begin;
-      for(; xIter != x_end; ++xIter, ++yIter, ++wIter)
+      for (; xIter != x_end; ++xIter, ++yIter, ++wIter)
       {
-        chi_squared += *wIter*std::pow(*yIter - computePointY(*xIter, slope, intercept), 2);
+        chi_squared += *wIter * std::pow(*yIter - computePointY(*xIter, slope, intercept), 2);
       }
 
       return chi_squared;
@@ -280,32 +283,32 @@ private:
       double sumW = 0;
       Iterator wIter = w_begin;
 
-      for (int i=0; i<numPoints; ++i, ++wIter)
+      for (int i = 0; i < numPoints; ++i, ++wIter)
       {
-          sumX += (*wIter)*points[i].X();
-          sumY += (*wIter)*points[i].Y();
-          sumXX += (*wIter)*points[i].X()*points[i].X();
-          sumXY += (*wIter)*points[i].X()*points[i].Y();
-          sumW += (*wIter);
+        sumX += (*wIter) * points[i].X();
+        sumY += (*wIter) * points[i].Y();
+        sumXX += (*wIter) * points[i].X() * points[i].X();
+        sumXY += (*wIter) * points[i].X() * points[i].Y();
+        sumW += (*wIter);
       }
       //create matrices to solve Ax = B
       double A[2][2] =
       {
-          {sumXX, sumX},
-          {sumX, sumW}
+        {sumXX, sumX},
+        {sumX, sumW}
       };
       double B[2] =
       {
-          sumXY,
-          sumY
+        sumXY,
+        sumY
       };
       double X[2];
 
       bool nonsingular = Wm5::LinearSystem<double>().Solve2(A, B, X);
       if (nonsingular)
       {
-          slope_ = X[0];
-          intercept_ = X[1];
+        slope_ = X[0];
+        intercept_ = X[1];
       }
       chi_squared_ = computeWeightedChiSquare(x_begin, x_end, y_begin, w_begin, slope_, intercept_);
 
@@ -318,10 +321,6 @@ private:
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
       }
     }
-
-
-
-
 
   } // namespace Math
 } // namespace OpenMS

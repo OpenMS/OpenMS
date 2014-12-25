@@ -58,7 +58,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ExtendedIsotopeFitter1D::ExtendedIsotopeFitter1D(const ExtendedIsotopeFitter1D & source) :
+  ExtendedIsotopeFitter1D::ExtendedIsotopeFitter1D(const ExtendedIsotopeFitter1D& source) :
     MaxLikeliFitter1D(source)
   {
     updateMembers_();
@@ -68,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  ExtendedIsotopeFitter1D & ExtendedIsotopeFitter1D::operator=(const ExtendedIsotopeFitter1D & source)
+  ExtendedIsotopeFitter1D& ExtendedIsotopeFitter1D::operator=(const ExtendedIsotopeFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -79,7 +79,7 @@ namespace OpenMS
     return *this;
   }
 
-  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // build model
     if (charge_ == 0)
@@ -102,7 +102,7 @@ namespace OpenMS
         max_ += stdev1_;
       }
 
-      model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -114,7 +114,7 @@ namespace OpenMS
     }
     else
     {
-      model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("ExtendedIsotopeModel"));
+      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("ExtendedIsotopeModel"));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");

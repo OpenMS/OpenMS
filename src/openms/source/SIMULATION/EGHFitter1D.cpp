@@ -45,7 +45,7 @@
 
 namespace OpenMS
 {
-  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
   {
     Size n = m_data->n;
     RawDataArrayType set = m_data->set;
@@ -82,8 +82,9 @@ namespace OpenMS
     }
     return 0;
   }
+
   // compute Jacobian matrix for the different parameters
-  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
   {
     Size n =  m_data->n;
     RawDataArrayType set = m_data->set;
@@ -148,7 +149,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  EGHFitter1D::EGHFitter1D(const EGHFitter1D & source) :
+  EGHFitter1D::EGHFitter1D(const EGHFitter1D& source) :
     LevMarqFitter1D(source)
   {
     setParameters(source.getParameters());
@@ -159,7 +160,7 @@ namespace OpenMS
   {
   }
 
-  EGHFitter1D & EGHFitter1D::operator=(const EGHFitter1D & source)
+  EGHFitter1D& EGHFitter1D::operator=(const EGHFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -171,7 +172,7 @@ namespace OpenMS
     return *this;
   }
 
-  EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
     min_ = max_ = set[0].getPos();
@@ -199,13 +200,13 @@ namespace OpenMS
     // Compute start parameters
     setInitialParameters_(set);
 
-    Eigen::VectorXd x_init (4);
+    Eigen::VectorXd x_init(4);
     x_init(0) = height_;
     x_init(1) = retention_;
     x_init(2) = sigma_square_;
     x_init(3) = tau_;
 
-    EGHFitterFunctor functor (4, &d);
+    EGHFitterFunctor functor(4, &d);
     optimize_(x_init, functor);
 
     // Set optimized parameters
@@ -223,14 +224,14 @@ namespace OpenMS
 #endif
 
     // build model
-    model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("EGHModel"));
+    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("EGHModel"));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;
     tmp.setValue("statistics:variance", statistics_.variance());
     tmp.setValue("statistics:mean", statistics_.mean());
 
-    tmp.setValue("bounding_box:compute", "false");   // disable auto computation of bounding box
+    tmp.setValue("bounding_box:compute", "false"); // disable auto computation of bounding box
     tmp.setValue("bounding_box:min", min_);
     tmp.setValue("bounding_box:max", max_);
 
@@ -263,7 +264,7 @@ namespace OpenMS
     return correlation;
   }
 
-  void EGHFitter1D::setInitialParameters_(const RawDataArrayType & set)
+  void EGHFitter1D::setInitialParameters_(const RawDataArrayType& set)
   {
     // sum over all intensities
     CoordinateType sum = 0.0;

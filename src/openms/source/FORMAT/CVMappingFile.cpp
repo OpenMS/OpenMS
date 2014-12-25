@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void CVMappingFile::load(const String & filename, CVMappings & cv_mappings, bool strip_namespaces)
+  void CVMappingFile::load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces)
   {
     //File name for error messages in XMLHandler
     file_ = filename;
@@ -72,7 +72,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+  void CVMappingFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
 
     tag_ = String(sm_.convert(qname));
@@ -224,7 +224,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void CVMappingFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname));
 
@@ -238,7 +238,7 @@ namespace OpenMS
     return;
   }
 
-  void CVMappingFile::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+  void CVMappingFile::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
   {
     // good XML format, nothing to do here
   }

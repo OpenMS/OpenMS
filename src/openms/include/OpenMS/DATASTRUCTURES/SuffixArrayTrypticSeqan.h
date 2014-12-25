@@ -65,7 +65,7 @@ public:
             @throw InvalidValue is thrown if string st if invalid
             @throw FileNotFound is thrown if given file is not found
     */
-    SuffixArrayTrypticSeqan(const String & st, const String & filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
+    SuffixArrayTrypticSeqan(const String& st, const String& filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
     /**
     @brief returns if an enzyme will cut after first character

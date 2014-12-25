@@ -64,13 +64,13 @@ namespace OpenMS
     charges_ = "1+, 2+ and 3+";
   }
 
-  void MascotInfile::store(const String & filename,
-                           const PeakSpectrum & spec,
+  void MascotInfile::store(const String& filename,
+                           const PeakSpectrum& spec,
                            double mz,
                            double retention_time,
                            String search_title)
   {
-    FILE * fp = fopen(filename.c_str(), "wt");
+    FILE* fp = fopen(filename.c_str(), "wt");
 
     mz_ = mz;
     retention_time_ = retention_time;
@@ -94,11 +94,11 @@ namespace OpenMS
 
   }
 
-  void MascotInfile::store(const String & filename,
-                           const MSExperiment<> & experiment,
+  void MascotInfile::store(const String& filename,
+                           const MSExperiment<>& experiment,
                            String search_title)
   {
-    FILE * fp = fopen(filename.c_str(), "wt");
+    FILE* fp = fopen(filename.c_str(), "wt");
 
     search_title_ = search_title;
 
@@ -114,7 +114,7 @@ namespace OpenMS
     fclose(fp);
   }
 
-  void MascotInfile::writeParameterHeader_(const String & name, FILE * fp, bool line_break)
+  void MascotInfile::writeParameterHeader_(const String& name, FILE* fp, bool line_break)
   {
     if (line_break)
     {
@@ -127,7 +127,7 @@ namespace OpenMS
     fputs("\"\n\n", fp);
   }
 
-  void MascotInfile::writeHeader_(FILE * fp)
+  void MascotInfile::writeHeader_(FILE* fp)
   {
     stringstream ss;
 
@@ -233,9 +233,9 @@ namespace OpenMS
     fputs(charges_.c_str(), fp);
   }
 
-  void MascotInfile::writeSpectrum_(FILE * fp,
-                                    const String & filename,
-                                    const PeakSpectrum & peaks)
+  void MascotInfile::writeSpectrum_(FILE* fp,
+                                    const String& filename,
+                                    const PeakSpectrum& peaks)
   {
     stringstream ss;
 
@@ -289,9 +289,9 @@ namespace OpenMS
     }
   }
 
-  void MascotInfile::writeMSExperiment_(FILE * fp,
-                                        const String & filename,
-                                        const MSExperiment<> & experiment)
+  void MascotInfile::writeMSExperiment_(FILE* fp,
+                                        const String& filename,
+                                        const MSExperiment<>& experiment)
   {
     String temp_string;
     stringstream ss;
@@ -382,92 +382,92 @@ namespace OpenMS
     }
   }
 
-  const String & MascotInfile::getBoundary()
+  const String& MascotInfile::getBoundary()
   {
     return boundary_;
   }
 
-  void MascotInfile::setBoundary(const String & boundary)
+  void MascotInfile::setBoundary(const String& boundary)
   {
     boundary_ = boundary;
   }
 
-  const String & MascotInfile::getDB()
+  const String& MascotInfile::getDB()
   {
     return db_;
   }
 
-  void MascotInfile::setDB(const String & db)
+  void MascotInfile::setDB(const String& db)
   {
     db_ = db;
   }
 
-  const String & MascotInfile::getSearchType()
+  const String& MascotInfile::getSearchType()
   {
     return search_type_;
   }
 
-  void MascotInfile::setSearchType(const String & search_type)
+  void MascotInfile::setSearchType(const String& search_type)
   {
     search_type_ = search_type;
   }
 
-  const String & MascotInfile::getHits()
+  const String& MascotInfile::getHits()
   {
     return hits_;
   }
 
-  void MascotInfile::setHits(const String & hits)
+  void MascotInfile::setHits(const String& hits)
   {
     hits_ = hits;
   }
 
-  const String & MascotInfile::getCleavage()
+  const String& MascotInfile::getCleavage()
   {
     return cleavage_;
   }
 
-  void MascotInfile::setCleavage(const String & cleavage)
+  void MascotInfile::setCleavage(const String& cleavage)
   {
     cleavage_ = cleavage;
   }
 
-  const String & MascotInfile::getMassType()
+  const String& MascotInfile::getMassType()
   {
     return mass_type_;
   }
 
-  void MascotInfile::setMassType(const String & mass_type)
+  void MascotInfile::setMassType(const String& mass_type)
   {
     mass_type_ = mass_type;
   }
 
-  const std::vector<String> & MascotInfile::getModifications()
+  const std::vector<String>& MascotInfile::getModifications()
   {
     return mods_;
   }
 
-  void MascotInfile::setModifications(const std::vector<String> & mods)
+  void MascotInfile::setModifications(const std::vector<String>& mods)
   {
     mods_ = mods;
   }
 
-  const std::vector<String> & MascotInfile::getVariableModifications()
+  const std::vector<String>& MascotInfile::getVariableModifications()
   {
     return variable_mods_;
   }
 
-  void MascotInfile::setVariableModifications(const std::vector<String> & variable_mods)
+  void MascotInfile::setVariableModifications(const std::vector<String>& variable_mods)
   {
     variable_mods_ = variable_mods;
   }
 
-  const String & MascotInfile::getInstrument()
+  const String& MascotInfile::getInstrument()
   {
     return instrument_;
   }
 
-  void MascotInfile::setInstrument(const String & instrument)
+  void MascotInfile::setInstrument(const String& instrument)
   {
     instrument_ = instrument;
   }
@@ -502,32 +502,32 @@ namespace OpenMS
     ion_mass_tolerance_ = ion_mass_tolerance;
   }
 
-  const String & MascotInfile::getTaxonomy()
+  const String& MascotInfile::getTaxonomy()
   {
     return taxonomy_;
   }
 
-  void MascotInfile::setTaxonomy(const String & taxonomy)
+  void MascotInfile::setTaxonomy(const String& taxonomy)
   {
     taxonomy_ = taxonomy;
   }
 
-  const String & MascotInfile::getFormVersion()
+  const String& MascotInfile::getFormVersion()
   {
     return form_version_;
   }
 
-  void MascotInfile::setFormVersion(const String & form_version)
+  void MascotInfile::setFormVersion(const String& form_version)
   {
     form_version_ = form_version;
   }
 
-  const String & MascotInfile::getCharges()
+  const String& MascotInfile::getCharges()
   {
     return charges_;
   }
 
-  void MascotInfile::setCharges(std::vector<Int> & charges)
+  void MascotInfile::setCharges(std::vector<Int>& charges)
   {
     stringstream ss;
 
@@ -572,7 +572,7 @@ namespace OpenMS
     charges_ = ss.str();
   }
 
-  bool MascotInfile::getNextSpectrum_(istream & is, vector<pair<double, double> > & spectrum, UInt & charge, double & precursor_mz, double & precursor_int, double & rt, String & title)
+  bool MascotInfile::getNextSpectrum_(istream& is, vector<pair<double, double> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title)
   {
     bool ok(false);
     spectrum.clear();
@@ -650,7 +650,7 @@ namespace OpenMS
                   }
                 }
               }
-              catch (Exception::BaseException & /*e*/)
+              catch (Exception::BaseException& /*e*/)
               {
                 // just do nothing and write the whole title to spec
                 vector<String> split;
@@ -661,7 +661,7 @@ namespace OpenMS
                 }
               }
             }
-            else             // just write the title as metainfo to the spectrum
+            else // just write the title as metainfo to the spectrum
             {
               vector<String> split;
               line.split('=', split);

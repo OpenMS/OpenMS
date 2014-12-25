@@ -88,7 +88,7 @@ namespace OpenMS
     TraceFitter::ModelData data;
     data.traces_ptr = &traces;
     data.weighted = this->weighted_;
-    GaussTraceFunctor functor (NUM_PARAMS_, &data);
+    GaussTraceFunctor functor(NUM_PARAMS_, &data);
 
     TraceFitter::optimize_(x_init, functor);
   }
@@ -160,13 +160,14 @@ namespace OpenMS
   }
 
   GaussTraceFitter::GaussTraceFunctor::GaussTraceFunctor(int dimensions,
-      const TraceFitter::ModelData* data)
-  : TraceFitter::GenericFunctor(dimensions,
+                                                         const TraceFitter::ModelData* data) :
+    TraceFitter::GenericFunctor(dimensions,
                                 static_cast<int>(data->traces_ptr->getPeakCount())),
     m_data(data)
-  {}
+  {
+  }
 
-  int GaussTraceFitter::GaussTraceFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+  int GaussTraceFitter::GaussTraceFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
   {
     double height = x(0);
     double x0 = x(1);
@@ -176,20 +177,21 @@ namespace OpenMS
     Size count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
-      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace & trace = (*m_data->traces_ptr)[t];
+      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace = (*m_data->traces_ptr)[t];
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
         fvec(count) = (m_data->traces_ptr->baseline + trace.theoretical_int * height
-            * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity()) * weight;
+                       * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity()) * weight;
         ++count;
       }
     }
 
     return 0;
   }
+
   // compute Jacobian matrix for the different parameters
-  int GaussTraceFitter::GaussTraceFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+  int GaussTraceFitter::GaussTraceFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
   {
     double height = x(0);
     double x0 = x(1);
@@ -201,7 +203,7 @@ namespace OpenMS
     Size count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
-      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace & trace = (*m_data->traces_ptr)[t];
+      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace = (*m_data->traces_ptr)[t];
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
@@ -209,13 +211,12 @@ namespace OpenMS
         double e = exp(c_fac * pow(rt - x0, 2));
         J(count, 0) = trace.theoretical_int * e * weight;
         J(count, 1) = trace.theoretical_int * height * e * (rt - x0) / sig_sq * weight;
-        J(count, 2) = 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3 *weight;
+        J(count, 2) = 0.125* trace.theoretical_int* height* e* pow(rt - x0, 2) / sig_3 * weight;
         ++count;
       }
     }
     return 0;
   }
-
 
   void GaussTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
@@ -277,7 +278,8 @@ namespace OpenMS
 
     // find RT values where intensity is at half-maximum:
     index = static_cast<Int>(max_index);
-    while ((index > 0) && (smoothed[index] > height_ * 0.5)) --index;
+    while ((index > 0) && (smoothed[index] > height_ * 0.5))
+      --index;
     double left_height = smoothed[index];
     it = total_intensities.begin();
     std::advance(it, index);
@@ -285,7 +287,8 @@ namespace OpenMS
     LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
               << std::endl;
     index = static_cast<Int>(max_index);
-    while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5)) ++index;
+    while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5))
+      ++index;
     double right_height = smoothed[index];
     it = total_intensities.end();
     std::advance(it, index - Int(N));
@@ -304,4 +307,5 @@ namespace OpenMS
   {
     TraceFitter::updateMembers_();
   }
-}  // namespace OpenMS
+
+} // namespace OpenMS

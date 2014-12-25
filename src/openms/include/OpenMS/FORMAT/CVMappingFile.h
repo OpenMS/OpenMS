@@ -75,26 +75,26 @@ public:
         @param cv_mappings  The CVMappings instance in which the rules, cvs and other content from the file should be stored
         @param filename  The filename to read from
     */
-    void load(const String & filename, CVMappings & cv_mappings, bool strip_namespaces = false);
+    void load(const String& filename, CVMappings& cv_mappings, bool strip_namespaces = false);
 
 protected:
 
     // Docu in base class
-    void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     // Docu in base class
-    void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
     // Docu in base class
-    void characters(const XMLCh * const chars, const XMLSize_t /*length*/);
+    void characters(const XMLCh* const chars, const XMLSize_t /*length*/);
 
 private:
 
     ///Not implemented
-    CVMappingFile(const CVMappingFile & rhs);
+    CVMappingFile(const CVMappingFile& rhs);
 
     ///Not implemented
-    CVMappingFile & operator=(const CVMappingFile & rhs);
+    CVMappingFile& operator=(const CVMappingFile& rhs);
 
     String tag_;
 

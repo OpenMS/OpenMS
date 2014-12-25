@@ -85,7 +85,7 @@ public:
       }
 
       // measure of SIMILARITY (not distance, i.e. 1-distance)!!
-      double operator()(const IEWindow & first, const IEWindow & second) const
+      double operator()(const IEWindow& first, const IEWindow& second) const
       {
         // get MZ distance:
         double d_mz = fabs(first.MZ_ - second.MZ_);
@@ -97,11 +97,11 @@ public:
         // mz is close enough ...
 
         // is RT overlapping?
-        if (first.RTmin_ <= second.RTmin_ && second.RTmin_ <= first.RTmax_) return 1;  // intersect #1
+        if (first.RTmin_ <= second.RTmin_ && second.RTmin_ <= first.RTmax_) return 1; // intersect #1
 
-        if (first.RTmin_ <= second.RTmax_ && second.RTmax_ <= first.RTmax_) return 1;  // intersect #2
+        if (first.RTmin_ <= second.RTmax_ && second.RTmax_ <= first.RTmax_) return 1; // intersect #2
 
-        if (second.RTmin_ <= first.RTmin_ && first.RTmax_ <= second.RTmax_) return 1;  // complete inclusion (only one case; the other is covered above)
+        if (second.RTmin_ <= first.RTmin_ && first.RTmax_ <= second.RTmax_) return 1; // complete inclusion (only one case; the other is covered above)
 
         // when windows to not overlap at all:
         // ... are they at least close?
@@ -118,8 +118,8 @@ public:
 protected:
 
       double rt_bridge_; ///< max rt distance between two windows in order to be considered overlapping
-      double mz_max_;    ///< max m/z distance between two ...
-      bool mz_as_ppm_;       ///< m/z distance unit
+      double mz_max_; ///< max m/z distance between two ...
+      bool mz_as_ppm_; ///< m/z distance unit
 
     }; // end of WindowDistance_
 
@@ -136,7 +136,7 @@ protected:
        - RT windows are extended
        - m/z value is averaged over all windows
     */
-    void mergeOverlappingWindows_(WindowList & list) const;
+    void mergeOverlappingWindows_(WindowList& list) const;
 
 
     /**
@@ -148,7 +148,7 @@ protected:
       @throws Exception::UnableToCreateFile when file cannot be created
 
     */
-    void writeToFile_(const String & out_path, const WindowList & windows) const;
+    void writeToFile_(const String& out_path, const WindowList& windows) const;
 
 public:
     /** @name Constructors and destructors
@@ -171,9 +171,9 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
     */
-    void writeTargets(const std::vector<FASTAFile::FASTAEntry> & fasta_entries,
-                      const String & out_path,
-                      const IntList & charges,
+    void writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
+                      const String& out_path,
+                      const IntList& charges,
                       const String rt_model_path);
 
     /**
@@ -181,8 +181,8 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the output file cannot be created
      */
-    void writeTargets(const FeatureMap & map,
-                      const String & out_path);
+    void writeTargets(const FeatureMap& map,
+                      const String& out_path);
 
     /**
       @brief Writes inclusion or exclusion list of given peptide ids (tab-delimited).
@@ -191,9 +191,9 @@ public:
       @exception Exception::InvalidSize is thrown if a peptide id contains more than one hit
       @exception Exception::MissingInformation is thrown if a peptide id contains no RT information
      */
-    void writeTargets(const std::vector<PeptideIdentification> & pep_ids,
-                      const String & out_path,
-                      const IntList & charges);
+    void writeTargets(const std::vector<PeptideIdentification>& pep_ids,
+                      const String& out_path,
+                      const IntList& charges);
 
   };
 

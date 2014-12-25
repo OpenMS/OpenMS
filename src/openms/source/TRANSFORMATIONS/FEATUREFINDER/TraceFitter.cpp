@@ -41,13 +41,24 @@
 namespace OpenMS
 {
 
-  int TraceFitter::GenericFunctor::inputs() const { return m_inputs; }
-  int TraceFitter::GenericFunctor::values() const { return m_values; }
+  int TraceFitter::GenericFunctor::inputs() const
+  {
+    return m_inputs;
+  }
 
-  TraceFitter::GenericFunctor::GenericFunctor(int dimensions, int num_data_points)
-  : m_inputs(dimensions), m_values(num_data_points) {}
+  int TraceFitter::GenericFunctor::values() const
+  {
+    return m_values;
+  }
 
-  TraceFitter::GenericFunctor::~GenericFunctor() {}
+  TraceFitter::GenericFunctor::GenericFunctor(int dimensions, int num_data_points) :
+    m_inputs(dimensions), m_values(num_data_points)
+  {
+  }
+
+  TraceFitter::GenericFunctor::~GenericFunctor()
+  {
+  }
 
   TraceFitter::TraceFitter() :
     DefaultParamHandler("TraceFitter")
@@ -104,7 +115,7 @@ namespace OpenMS
     if (data_count < num_params) throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, we always expects N>=p");
 
 
-    Eigen::LevenbergMarquardt<GenericFunctor> lmSolver (functor);
+    Eigen::LevenbergMarquardt<GenericFunctor> lmSolver(functor);
     lmSolver.parameters.maxfev = max_iterations_;
     Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
@@ -113,7 +124,7 @@ namespace OpenMS
     //termination states.
     if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
     {
-        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Could not fit the gaussian to the data: Error " + String(status));
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Could not fit the gaussian to the data: Error " + String(status));
     }
 
     getOptimizedParameters_(x_init);

@@ -85,7 +85,7 @@ namespace OpenMS
     return a;
   }
 
-  Adduct Adduct::operator+(const Adduct & rhs)
+  Adduct Adduct::operator+(const Adduct& rhs)
   {
     if (this->formula_ != rhs.formula_)
     {
@@ -96,7 +96,7 @@ namespace OpenMS
     return a;
   }
 
-  void Adduct::operator+=(const Adduct & rhs)
+  void Adduct::operator+=(const Adduct& rhs)
   {
     if (this->formula_ != rhs.formula_)
     {
@@ -106,69 +106,69 @@ namespace OpenMS
   }
 
   //@{ Accessors
-  const Int & Adduct::getCharge() const
+  const Int& Adduct::getCharge() const
   {
     return charge_;
   }
 
-  void Adduct::setCharge(const Int & charge)
+  void Adduct::setCharge(const Int& charge)
   {
     charge_ = charge;
   }
 
-  const Int & Adduct::getAmount() const
+  const Int& Adduct::getAmount() const
   {
     return amount_;
   }
 
-  void Adduct::setAmount(const Int & amount)
+  void Adduct::setAmount(const Int& amount)
   {
     if (amount < 0)
       std::cerr << "Warning: Adduct received negative amount! (" << amount << ")\n";
     amount_ = amount;
   }
 
-  const double & Adduct::getSingleMass() const
+  const double& Adduct::getSingleMass() const
   {
     return singleMass_;
   }
 
-  void Adduct::setSingleMass(const double & singleMass)
+  void Adduct::setSingleMass(const double& singleMass)
   {
     singleMass_ = singleMass;
   }
 
-  const double & Adduct::getLogProb() const
+  const double& Adduct::getLogProb() const
   {
     return log_prob_;
   }
 
-  void Adduct::setLogProb(const double & log_prob)
+  void Adduct::setLogProb(const double& log_prob)
   {
     log_prob_ = log_prob;
   }
 
-  const String & Adduct::getFormula() const
+  const String& Adduct::getFormula() const
   {
     return formula_;
   }
 
-  void Adduct::setFormula(const String & formula)
+  void Adduct::setFormula(const String& formula)
   {
     formula_ = checkFormula_(formula);
   }
 
-  const double & Adduct::getRTShift() const
+  const double& Adduct::getRTShift() const
   {
     return rt_shift_;
   }
 
-  const String & Adduct::getLabel() const
+  const String& Adduct::getLabel() const
   {
     return label_;
   }
 
-  String Adduct::checkFormula_(const String & formula)
+  String Adduct::checkFormula_(const String& formula)
   {
     EmpiricalFormula ef(formula);
     if (ef.getCharge() != 0)
@@ -188,9 +188,9 @@ namespace OpenMS
   }
 
   ///Print the contents of an Adduct to a stream.
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Adduct & a)
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Adduct& a)
   {
-    os  << "---------- Adduct -----------------\n";
+    os << "---------- Adduct -----------------\n";
     os << "Charge: " << a.charge_ << std::endl;
     os << "Amount: " << a.amount_ << std::endl;
     os << "MassSingle: " << a.singleMass_ << std::endl;
@@ -199,7 +199,7 @@ namespace OpenMS
     return os;
   }
 
-  OPENMS_DLLAPI bool operator==(const Adduct & a, const  Adduct & b)
+  OPENMS_DLLAPI bool operator==(const Adduct& a, const  Adduct& b)
   {
     return a.charge_ == b.charge_
            && a.amount_ == b.amount_

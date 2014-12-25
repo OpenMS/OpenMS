@@ -54,7 +54,7 @@ namespace OpenMS
   {
 private:
     /// Reference to the contained feature
-    const BaseFeature & feature_;
+    const BaseFeature& feature_;
 
     /// Index of the feature map or consensus map
     Size map_index_;
@@ -72,10 +72,10 @@ public:
      * @param map_index Index of the feature map or consensus map
      * @param feature_index Index of the feature in the map
      */
-    GridFeature(const BaseFeature & feature, Size map_index, Size feature_index);
+    GridFeature(const BaseFeature& feature, Size map_index, Size feature_index);
 
     /// Returns the feature
-    const BaseFeature & getFeature() const;
+    const BaseFeature& getFeature() const;
 
     /// Destructor
     virtual ~GridFeature();
@@ -90,7 +90,7 @@ public:
     Int getID() const;
 
     /// Returns the set of peptide sequences annotated to the cluster center
-    const std::set<AASequence> & getAnnotations() const;
+    const std::set<AASequence>& getAnnotations() const;
 
     /// Returns the feature RT
     double getRT() const;

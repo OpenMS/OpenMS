@@ -53,9 +53,9 @@ namespace OpenMS
   namespace OpenMSBoost
   {
 #if OPENMS_BOOST_VERSION_MINOR > 47
-      using namespace boost::unordered;
+    using namespace boost::unordered;
 #else
-      using namespace boost;
+    using namespace boost;
 #endif
   }
 
@@ -87,10 +87,10 @@ private:
      * @brief Mapping: input map -> distance to center (ordered!) -> neighboring point
      * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
      */
-    typedef OpenMSBoost::unordered_map<Size, std::multimap<double, GridFeature *> > NeighborMap;
+    typedef OpenMSBoost::unordered_map<Size, std::multimap<double, GridFeature*> > NeighborMap;
 
     /// Pointer to the cluster center
-    GridFeature * center_point_;
+    GridFeature* center_point_;
 
     /**
      * @brief Neighbors of the cluster center, sorted by distance, for different input maps.
@@ -145,7 +145,7 @@ public:
      * @param max_distance Maximum allowed distance of two points
      * @param use_IDs Use peptide annotations?
      */
-    QTCluster(GridFeature * center_point, Size num_maps,
+    QTCluster(GridFeature* center_point, Size num_maps,
               double max_distance, bool use_IDs);
 
     /// Destructor
@@ -161,7 +161,7 @@ public:
     Size size() const;
 
     /// Compare by quality
-    bool operator<(QTCluster & cluster);
+    bool operator<(QTCluster& cluster);
 
     /**
      * @brief Adds a new element/neighbor to the cluster
@@ -169,28 +169,28 @@ public:
      * @param element The element to be added
      * @param distance Distance of the element to the center point
      */
-    void add(GridFeature * element, double distance);
+    void add(GridFeature* element, double distance);
 
     /// Gets the clustered elements
-    void getElements(OpenMSBoost::unordered_map<Size, GridFeature *> & elements);
+    void getElements(OpenMSBoost::unordered_map<Size, GridFeature*>& elements);
 
     /**
      * @brief Updates the cluster after data points were removed
      * @return Whether the cluster is still valid (it's not if the cluster center is among the removed points).
      */
-    bool update(const OpenMSBoost::unordered_map<Size, GridFeature *> & removed);
+    bool update(const OpenMSBoost::unordered_map<Size, GridFeature*>& removed);
 
     /// Returns the cluster quality
     double getQuality();
 
     /// Return the set of peptide sequences annotated to the cluster center
-    const std::set<AASequence> & getAnnotations();
+    const std::set<AASequence>& getAnnotations();
 
-    inline void setInvalid() {valid_ = false;}
+    inline void setInvalid() {valid_ = false; }
 
-    inline bool isInvalid() {return !valid_;}
+    inline bool isInvalid() {return !valid_; }
 
-    NeighborMap getNeighbors() {return neighbors_;}
+    NeighborMap getNeighbors() {return neighbors_; }
 
   };
 }

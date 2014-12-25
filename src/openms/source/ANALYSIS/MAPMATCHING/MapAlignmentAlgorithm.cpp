@@ -68,22 +68,22 @@ namespace OpenMS
   {
   }
 
-  void MapAlignmentAlgorithm::alignPeakMaps(vector<MSExperiment<> > &, vector<TransformationDescription> &)
+  void MapAlignmentAlgorithm::alignPeakMaps(vector<MSExperiment<> >&, vector<TransformationDescription>&)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
 
-  void MapAlignmentAlgorithm::alignCompactFeatureMaps(vector<std::vector<Peak2D> > &, vector<TransformationDescription> &)
+  void MapAlignmentAlgorithm::alignCompactFeatureMaps(vector<std::vector<Peak2D> >&, vector<TransformationDescription>&)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
 
-  void MapAlignmentAlgorithm::alignFeatureMaps(vector<FeatureMap> &, vector<TransformationDescription> &)
+  void MapAlignmentAlgorithm::alignFeatureMaps(vector<FeatureMap>&, vector<TransformationDescription>&)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
 
-  void MapAlignmentAlgorithm::alignConsensusMaps(vector<ConsensusMap> & cms, vector<TransformationDescription> & tf)
+  void MapAlignmentAlgorithm::alignConsensusMaps(vector<ConsensusMap>& cms, vector<TransformationDescription>& tf)
   {
     LOG_WARN << "MapAlignmentAlgorithm::alignConsensusMaps() does not support ConsensusMaps directly. Converting to FeatureMaps.\n";
 
@@ -100,13 +100,13 @@ namespace OpenMS
     MapAlignmentTransformer::transformConsensusMaps(cms, tf);
   }
 
-  void MapAlignmentAlgorithm::alignPeptideIdentifications(vector<vector<PeptideIdentification> > &, vector<TransformationDescription> &)
+  void MapAlignmentAlgorithm::alignPeptideIdentifications(vector<vector<PeptideIdentification> >&, vector<TransformationDescription>&)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }
 
   void MapAlignmentAlgorithm::setReference(Size reference_index,
-                                           const String & reference_file)
+                                           const String& reference_file)
   {
     if (reference_index || !reference_file.empty())
     {
@@ -114,7 +114,7 @@ namespace OpenMS
     }
   }
 
-  void MapAlignmentAlgorithm::fitModel(const String & model_type, const Param & params, vector<TransformationDescription> & trafos)
+  void MapAlignmentAlgorithm::fitModel(const String& model_type, const Param& params, vector<TransformationDescription>& trafos)
   {
     for (vector<TransformationDescription>::iterator it = trafos.begin();
          it != trafos.end(); ++it)

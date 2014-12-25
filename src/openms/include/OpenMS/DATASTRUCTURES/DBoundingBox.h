@@ -83,20 +83,20 @@ public:
     }
 
     /// Copy constructor
-    DBoundingBox(const DBoundingBox & rhs) :
+    DBoundingBox(const DBoundingBox& rhs) :
       Base(rhs)
     {
     }
 
     /// Assignment operator
-    DBoundingBox & operator=(const DBoundingBox & rhs)
+    DBoundingBox& operator=(const DBoundingBox& rhs)
     {
       Base::operator=(rhs);
       return *this;
     }
 
     /// Assignment operator for the base class
-    DBoundingBox & operator=(const Base & rhs)
+    DBoundingBox& operator=(const Base& rhs)
     {
       Base::operator=(rhs);
       return *this;
@@ -108,7 +108,7 @@ public:
     }
 
     ///Constructor from two positions
-    DBoundingBox(const PositionType & minimum, const PositionType & maximum) :
+    DBoundingBox(const PositionType& minimum, const PositionType& maximum) :
       Base(minimum, maximum)
     {
     }
@@ -119,7 +119,7 @@ public:
     //@{
 
     /// Enlarges the bounding box such that it contains a position.
-    void enlarge(const PositionType & p)
+    void enlarge(const PositionType& p)
     {
       for (UInt i = 0; i < DIMENSION; ++i)
       {
@@ -140,13 +140,13 @@ public:
     //@{
 
     /// Equality operator
-    bool operator==(const DBoundingBox & rhs) const
+    bool operator==(const DBoundingBox& rhs) const
     {
       return Base::operator==(rhs);
     }
 
     /// Equality operator
-    bool operator==(const Base & rhs) const
+    bool operator==(const Base& rhs) const
     {
       return Base::operator==(rhs);
     }
@@ -157,7 +157,7 @@ public:
         @param position The point's position.
         @returns true if point lies inside this area.
     */
-    bool encloses(const PositionType & position) const
+    bool encloses(const PositionType& position) const
     {
       for (UInt i = 0; i < DIMENSION; ++i)
       {
@@ -178,7 +178,7 @@ public:
     /**
          Checks whether this bounding box intersects with another bounding box
     */
-    bool intersects(const DBoundingBox & bounding_box) const
+    bool intersects(const DBoundingBox& bounding_box) const
     {
       for (UInt i = 0; i < DIMENSION; ++i)
       {
@@ -212,7 +212,7 @@ public:
   @relatesalso DBoundingBox
   */
   template <UInt D>
-  std::ostream & operator<<(std::ostream & os, const DBoundingBox<D> & bounding_box)
+  std::ostream& operator<<(std::ostream& os, const DBoundingBox<D>& bounding_box)
   {
     os << "--DBOUNDINGBOX BEGIN--" << std::endl;
     os << "MIN --> " << bounding_box.minPosition() << std::endl;

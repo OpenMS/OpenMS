@@ -83,12 +83,12 @@ public:
     After creating all relevant indices they are sorted and the lcp and skip
     vectors are created.
     */
-    SuffixArrayTrypticCompressed(const String & st, const String & filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
+    SuffixArrayTrypticCompressed(const String& st, const String& filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
     /**
     @brief copy constructor
     */
-    SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed & sa);
+    SuffixArrayTrypticCompressed(const SuffixArrayTrypticCompressed& sa);
 
     /**
     @brief destructor
@@ -113,7 +113,7 @@ public:
     lcp table are used. The mass wont be calculated for each entry but it will
     be updated during traversal using a stack data structure
     */
-    void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double> > > & candidates, const std::vector<double> & spec);
+    void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double> > >& candidates, const std::vector<double>& spec);
 
     /**
     @brief saves the suffix array to disc
@@ -121,14 +121,14 @@ public:
     @return bool if operation was successful
     @throw Exception::UnableToCreateFile if file could not be created (e.g. if you have no rights)
     */
-    bool save(const String & file_name);
+    bool save(const String& file_name);
     /**
     @brief opens the suffix array
     @param file_name const reference string describing the filename
     @return bool if operation was successful
     @throw FileNotFound
     */
-    bool open(const String & file_name);
+    bool open(const String& file_name);
 
     /**
     @brief setter for tolerance
@@ -156,13 +156,13 @@ public:
     @param tags const vector of strings with tags with length 3 each
     @throw InvalidValue if at least one tag does not have size of 3
     */
-    void setTags(const std::vector<String> & tags);
+    void setTags(const std::vector<String>& tags);
 
     /**
     @brief getter for tags
     @return const vector of string with tags
     */
-    const std::vector<String> & getTags();
+    const std::vector<String>& getTags();
 
     /**
     @brief setter for use_tags
@@ -213,7 +213,7 @@ protected:
     @param current_point const pair of ints describing a substring
     @return SignedSize with the length of the lowest common prefix
     */
-    SignedSize getLCP_(const std::pair<SignedSize, SignedSize> & last_point, const std::pair<SignedSize, SignedSize> & current_point);
+    SignedSize getLCP_(const std::pair<SignedSize, SignedSize>& last_point, const std::pair<SignedSize, SignedSize>& current_point);
 
     /**
     @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.
@@ -222,7 +222,7 @@ protected:
     @return SignedSize with the index of the first occurrence
     @note requires that there is at least one occurrence
     */
-    SignedSize findFirst_(const std::vector<double> & spec, double & m);
+    SignedSize findFirst_(const std::vector<double>& spec, double& m);
 
     /**
     @brief binary search for finding the index of the first element of the
@@ -235,7 +235,7 @@ protected:
     @return SignedSize with the index of the first occurrence
     @note requires that there is at least one occurrence
     */
-    SignedSize findFirst_(const std::vector<double> & spec, double & m, SignedSize start, SignedSize end);
+    SignedSize findFirst_(const std::vector<double>& spec, double& m, SignedSize start, SignedSize end);
 
     /**
     @brief treats the suffix array as a tree and parses the tree using postorder traversal. This is realised by a recursive algorithm.
@@ -249,7 +249,7 @@ protected:
     @param leafe_depth will be filled with the depth of every leaf
     @note initialize: walked_in=0, depth=1, edge_len=1
     */
-    void parseTree_(SignedSize start_index, SignedSize stop_index, SignedSize depth, SignedSize walked_in, SignedSize edge_len, std::vector<std::pair<SignedSize, SignedSize> > & out_number, std::vector<std::pair<SignedSize, SignedSize> > & edge_length, std::vector<SignedSize> & leafe_depth);
+    void parseTree_(SignedSize start_index, SignedSize stop_index, SignedSize depth, SignedSize walked_in, SignedSize edge_len, std::vector<std::pair<SignedSize, SignedSize> >& out_number, std::vector<std::pair<SignedSize, SignedSize> >& edge_length, std::vector<SignedSize>& leafe_depth);
 
     /**
     @brief indicates if a node during traversal has more outgoings
@@ -259,7 +259,7 @@ protected:
     */
     bool hasMoreOutgoings_(SignedSize start_index, SignedSize stop_index, SignedSize walked_in);
 
-    const String & s_; ///< the string with which the suffix array is build
+    const String& s_; ///< the string with which the suffix array is build
 
     double tol_; ///< mass tolerance for finding candidates
 
@@ -277,7 +277,7 @@ protected:
 
     std::vector<String> tags_; ///< all given tags
 
-    bool use_tags_;  ///< indicates whether tags are used or not
+    bool use_tags_; ///< indicates whether tags are used or not
 
     SignedSize progress_;
   };

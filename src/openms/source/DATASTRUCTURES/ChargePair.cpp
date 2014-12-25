@@ -54,13 +54,13 @@ namespace OpenMS
   }
 
   /// Constructor from map index, element index and Feature
-  ChargePair::ChargePair(const Size & index0,
-             const Size & index1,
-             const Int & charge0,
-             const Int & charge1,
-             const Compomer & compomer,
-             const double & mass_diff,
-             const bool active) :
+  ChargePair::ChargePair(const Size& index0,
+                         const Size& index1,
+                         const Int& charge0,
+                         const Int& charge1,
+                         const Compomer& compomer,
+                         const double& mass_diff,
+                         const bool active) :
     feature0_index_(index0),
     feature1_index_(index1),
     feature0_charge_(charge0),
@@ -73,7 +73,7 @@ namespace OpenMS
   }
 
   /// Copy constructor
-  ChargePair::ChargePair(const ChargePair & rhs) :
+  ChargePair::ChargePair(const ChargePair& rhs) :
     feature0_index_(rhs.feature0_index_),
     feature1_index_(rhs.feature1_index_),
     feature0_charge_(rhs.feature0_charge_),
@@ -86,7 +86,7 @@ namespace OpenMS
   }
 
   /// Assignment operator
-  ChargePair & ChargePair::operator=(const ChargePair & rhs)
+  ChargePair& ChargePair::operator=(const ChargePair& rhs)
   {
     if (&rhs == this) return *this;
 
@@ -140,13 +140,13 @@ namespace OpenMS
   }
 
   /// Returns the Id of the compomer that explains the mass difference
-  const Compomer & ChargePair::getCompomer() const
+  const Compomer& ChargePair::getCompomer() const
   {
     return compomer_;
   }
 
   /// Set the compomer id
-  void ChargePair::setCompomer(const Compomer & compomer)
+  void ChargePair::setCompomer(const Compomer& compomer)
   {
     compomer_ = compomer;
   }
@@ -189,7 +189,7 @@ namespace OpenMS
   //@}
 
   /// Equality operator
-  bool ChargePair::operator==(const ChargePair & i) const
+  bool ChargePair::operator==(const ChargePair& i) const
   {
     return (feature0_index_ == i.feature0_index_) &&
            (feature1_index_ == i.feature1_index_) &&
@@ -201,18 +201,18 @@ namespace OpenMS
   }
 
   /// Equality operator
-  bool ChargePair::operator!=(const ChargePair & i) const
+  bool ChargePair::operator!=(const ChargePair& i) const
   {
     return !(this->operator==(i));
   }
 
-  std::ostream & operator<<(std::ostream & os, const ChargePair & cp)
+  std::ostream& operator<<(std::ostream& os, const ChargePair& cp)
   {
-    os  << "---------- ChargePair -----------------\n"
-    << "Mass Diff: " << cp.getMassDiff() << "\n"
-    << "Compomer: " << cp.getCompomer() << "\n"
-    << "Charge: " << cp.getCharge(0) << " : " << cp.getCharge(1) << "\n"
-    << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << "\n";
+    os << "---------- ChargePair -----------------\n"
+       << "Mass Diff: " << cp.getMassDiff() << "\n"
+       << "Compomer: " << cp.getCompomer() << "\n"
+       << "Charge: " << cp.getCharge(0) << " : " << cp.getCharge(1) << "\n"
+       << "Element Index: " << cp.getElementIndex(0) << " : " << cp.getElementIndex(1) << "\n";
     return os;
   }
 

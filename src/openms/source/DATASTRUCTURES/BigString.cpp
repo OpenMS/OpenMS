@@ -53,7 +53,7 @@ namespace OpenMS
     FASTA_header_.push_back("");
   }
 
-  BigString::BigString(const BigString & bs) :
+  BigString::BigString(const BigString& bs) :
     big_string_(bs.big_string_),
     separator_(bs.separator_),
     count_(bs.count_),
@@ -69,7 +69,7 @@ namespace OpenMS
 
   }
 
-  void BigString::add(FASTAEntry const & new_entry)
+  void BigString::add(FASTAEntry const& new_entry)
   {
     big_string_ += new_entry.second;
     big_string_ += separator_;
@@ -99,7 +99,7 @@ namespace OpenMS
     return len_;
   }
 
-  void BigString::getPeptide(FASTAEntry & entry, Size start, Size length)
+  void BigString::getPeptide(FASTAEntry& entry, Size start, Size length)
   {
     Size index_start = getIndex_(start);
     if (index_start != getIndex_(start + length))
@@ -111,7 +111,7 @@ namespace OpenMS
     return;
   }
 
-  const String & BigString::getBigString() const
+  const String& BigString::getBigString() const
   {
     return big_string_;
   }

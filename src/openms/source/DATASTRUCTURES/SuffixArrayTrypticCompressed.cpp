@@ -607,9 +607,9 @@ protected:
         if (j == (lcp_[i] - 1) && lcp_[i] > 0)
         {
           history.push(
-              pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> >(
-                pair<SignedSize, map<double, SignedSize> >(i + skip_[i], map<double, SignedSize>(modification_map)),
-                pair<SignedSize, double>(j, m)));
+            pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> >(
+              pair<SignedSize, map<double, SignedSize> >(i + skip_[i], map<double, SignedSize>(modification_map)),
+              pair<SignedSize, double>(j, m)));
         }
         // if mass is to big we can skip the sub tree
         if (m > mmax + tol_)

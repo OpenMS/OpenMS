@@ -74,7 +74,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void LabeledPairFinder::run(const vector<ConsensusMap> & input_maps, ConsensusMap & result_map)
+  void LabeledPairFinder::run(const vector<ConsensusMap>& input_maps, ConsensusMap& result_map)
   {
     if (input_maps.size() != 1)
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "exactly one input map required");
@@ -155,7 +155,7 @@ namespace OpenMS
           cout << "Warning: Found only " << dists.size() << " pairs. The estimated shift and std deviation are probably not reliable!" << endl;
         }
         //--------------------------- estimate initial parameters of fit ---------------------------
-        GaussFitter::GaussFitResult result (-1,-1,-1);
+        GaussFitter::GaussFitResult result(-1, -1, -1);
         //first estimate of the optimal shift: median of the distances
         sort(dists.begin(), dists.end());
         Size median_index = dists.size() / 2;
@@ -167,7 +167,7 @@ namespace OpenMS
         Size end_index = (Size) min((SignedSize)(dists.size() - 1), (SignedSize)(median_index + max_pairs / 2));
         double start_value = dists[start_index];
         double end_value = dists[end_index];
-        double bin_step = fabs(end_value - start_value) / 99.999;     //ensure that we have 100 bins
+        double bin_step = fabs(end_value - start_value) / 99.999; //ensure that we have 100 bins
         Math::Histogram<> hist(start_value, end_value, bin_step);
         //std::cout << "HIST from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
         for (Size i = start_index; i <= end_index; ++i)
@@ -201,7 +201,7 @@ namespace OpenMS
         }
         double sigma_low =  result.x0 - pos;
         pos = result.x0;
-        while (pos<end_value && hist.binValue(pos)> bin_median)
+        while (pos<end_value&& hist.binValue(pos)> bin_median)
         {
           pos += bin_step;
         }

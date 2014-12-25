@@ -52,12 +52,16 @@ namespace OpenMS
   const Size EGHTraceFitter::NUM_PARAMS_ = 4;
 
   EGHTraceFitter::EGHTraceFunctor::EGHTraceFunctor(int dimensions,
-      const TraceFitter::ModelData* data)
-  : TraceFitter::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
+                                                   const TraceFitter::ModelData* data) :
+    TraceFitter::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data)
+  {
+  }
 
-  EGHTraceFitter::EGHTraceFunctor::~EGHTraceFunctor() {}
+  EGHTraceFitter::EGHTraceFunctor::~EGHTraceFunctor()
+  {
+  }
 
-  int EGHTraceFitter::EGHTraceFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+  int EGHTraceFitter::EGHTraceFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
   {
     double H  = x(0);
     double tR = x(1);
@@ -71,7 +75,7 @@ namespace OpenMS
     UInt count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
-      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace & trace = m_data->traces_ptr->at(t);
+      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace = m_data->traces_ptr->at(t);
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
@@ -98,11 +102,11 @@ namespace OpenMS
     return 0;
   }
 
-  int EGHTraceFitter::EGHTraceFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+  int EGHTraceFitter::EGHTraceFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
   {
     double H  = x(0);
     double tR = x(1);
-    double sigma = fabs(x(2));// must be non-negative!
+    double sigma = fabs(x(2)); // must be non-negative!
     double tau = x(3);
 
     double derivative_H, derivative_tR, derivative_sigma, derivative_tau = 0.0;
@@ -111,7 +115,7 @@ namespace OpenMS
     UInt count = 0;
     for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
     {
-      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace & trace = m_data->traces_ptr->at(t);
+      const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace = m_data->traces_ptr->at(t);
       double weight = m_data->weighted ? trace.theoretical_int : 1.0;
       for (Size i = 0; i < trace.peaks.size(); ++i)
       {
@@ -171,7 +175,7 @@ namespace OpenMS
   {
     this->height_ = other.height_;
     this->apex_rt_ = other.apex_rt_;
-    this->sigma_= other.sigma_;
+    this->sigma_ = other.sigma_;
     this->tau_ = other.tau_;
 
     this->sigma_5_bound_ = other.sigma_5_bound_;
@@ -185,7 +189,7 @@ namespace OpenMS
 
     this->height_ = source.height_;
     this->apex_rt_ = source.apex_rt_;
-    this->sigma_= source.sigma_;
+    this->sigma_ = source.sigma_;
     this->tau_ = source.tau_;
 
     this->sigma_5_bound_ = source.sigma_5_bound_;
@@ -212,7 +216,7 @@ namespace OpenMS
     TraceFitter::ModelData data;
     data.traces_ptr = &traces;
     data.weighted = this->weighted_;
-    EGHTraceFunctor functor (NUM_PARAMS_, &data);
+    EGHTraceFunctor functor(NUM_PARAMS_, &data);
 
     TraceFitter::optimize_(x_init, functor);
   }
@@ -300,8 +304,8 @@ namespace OpenMS
     s << "("; // the overall bracket
     s << "((" << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )) > 0) ? "; // condition
     s <<  (trace.theoretical_int *  height_) << " * exp(-1 * (x - " << (rt_shift + apex_rt_) << ")**2 " <<
-    "/" <<
-    " ( " << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )))";
+      "/" <<
+      " ( " << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )))";
     s << " : 0)";
     return String(s.str());
   }
@@ -340,88 +344,91 @@ namespace OpenMS
 
   void EGHTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
-          LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)" << std::endl;
-      LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;
+    LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)" << std::endl;
+    LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;
 
-      // aggregate data; some peaks (where intensity is zero) can be missing!
-      // mapping: RT -> total intensity over all mass traces
-      std::list<std::pair<double, double> > total_intensities;
-      traces.computeIntensityProfile(total_intensities);
+    // aggregate data; some peaks (where intensity is zero) can be missing!
+    // mapping: RT -> total intensity over all mass traces
+    std::list<std::pair<double, double> > total_intensities;
+    traces.computeIntensityProfile(total_intensities);
 
-      // compute moving average for smoothing:
-      const Size N = total_intensities.size();
-      const Size LEN = 2; // window size: 2 * LEN + 1
-      std::vector<double> totals(N + 2 * LEN); // pad with zeros at ends
-      Int index = LEN;
-      // LOG_DEBUG << "Summed intensities:\n";
-      for (std::list<std::pair<double, double> >::iterator it =
-             total_intensities.begin(); it != total_intensities.end(); ++it)
-      {
-        totals[index++] = it->second;
-        // LOG_DEBUG << it->second << std::endl;
-      }
+    // compute moving average for smoothing:
+    const Size N = total_intensities.size();
+    const Size LEN = 2;   // window size: 2 * LEN + 1
+    std::vector<double> totals(N + 2 * LEN);   // pad with zeros at ends
+    Int index = LEN;
+    // LOG_DEBUG << "Summed intensities:\n";
+    for (std::list<std::pair<double, double> >::iterator it =
+           total_intensities.begin(); it != total_intensities.end(); ++it)
+    {
+      totals[index++] = it->second;
+      // LOG_DEBUG << it->second << std::endl;
+    }
 
-      std::vector<double> smoothed(N);
-      Size max_index = 0; // index of max. smoothed intensity
-      // LOG_DEBUG << "Smoothed intensities:\n";
-      double sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
-      for (Size i = 0; i < N; ++i)
-      {
-        sum += totals[i + 2 * LEN];
-        smoothed[i] = sum / (2 * LEN + 1);
-        sum -= totals[i];
-        if (smoothed[i] > smoothed[max_index]) max_index = i;
-        // LOG_DEBUG << smoothed[i] << std::endl;
-      }
-      LOG_DEBUG << "Maximum at index " << max_index << std::endl;
-      height_ = smoothed[max_index] - traces.baseline;
-      LOG_DEBUG << "height: " << height_ << std::endl;
-      std::list<std::pair<double, double> >::iterator it = total_intensities.begin();
-      std::advance(it, max_index);
-      apex_rt_ = it->first;
-      LOG_DEBUG << "apex_rt: " << apex_rt_ << std::endl;
-      region_rt_span_ = (total_intensities.rbegin()->first -
-                         total_intensities.begin()->first);
-      LOG_DEBUG << "region_rt_span: " << region_rt_span_ << std::endl;
+    std::vector<double> smoothed(N);
+    Size max_index = 0;   // index of max. smoothed intensity
+    // LOG_DEBUG << "Smoothed intensities:\n";
+    double sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
+    for (Size i = 0; i < N; ++i)
+    {
+      sum += totals[i + 2 * LEN];
+      smoothed[i] = sum / (2 * LEN + 1);
+      sum -= totals[i];
+      if (smoothed[i] > smoothed[max_index]) max_index = i;
+      // LOG_DEBUG << smoothed[i] << std::endl;
+    }
+    LOG_DEBUG << "Maximum at index " << max_index << std::endl;
+    height_ = smoothed[max_index] - traces.baseline;
+    LOG_DEBUG << "height: " << height_ << std::endl;
+    std::list<std::pair<double, double> >::iterator it = total_intensities.begin();
+    std::advance(it, max_index);
+    apex_rt_ = it->first;
+    LOG_DEBUG << "apex_rt: " << apex_rt_ << std::endl;
+    region_rt_span_ = (total_intensities.rbegin()->first -
+                       total_intensities.begin()->first);
+    LOG_DEBUG << "region_rt_span: " << region_rt_span_ << std::endl;
 
-      // find RT values where intensity is at half-maximum:
-      index = static_cast<Int>(max_index);
-      while ((index > 0) && (smoothed[index] > height_ * 0.5)) --index;
-      double left_height = smoothed[index];
-      it = total_intensities.begin();
-      std::advance(it, index);
-      double left_rt = it->first;
-      LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
-                << std::endl;
-      index = static_cast<Int>(max_index);
-      while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5)) ++index;
-      double right_height = smoothed[index];
-      it = total_intensities.end();
-      std::advance(it, index - Int(N));
-      double right_rt = it->first;
-      LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
-                << right_rt << std::endl;
+    // find RT values where intensity is at half-maximum:
+    index = static_cast<Int>(max_index);
+    while ((index > 0) && (smoothed[index] > height_ * 0.5))
+      --index;
+    double left_height = smoothed[index];
+    it = total_intensities.begin();
+    std::advance(it, index);
+    double left_rt = it->first;
+    LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
+              << std::endl;
+    index = static_cast<Int>(max_index);
+    while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5))
+      ++index;
+    double right_height = smoothed[index];
+    it = total_intensities.end();
+    std::advance(it, index - Int(N));
+    double right_rt = it->first;
+    LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
+              << right_rt << std::endl;
 
-      double A = apex_rt_ - left_rt;
-      double B = right_rt - apex_rt_;
-      //LOG_DEBUG << "A: " << A << std::endl;
-      //LOG_DEBUG << "B: " << B << std::endl;
+    double A = apex_rt_ - left_rt;
+    double B = right_rt - apex_rt_;
+    //LOG_DEBUG << "A: " << A << std::endl;
+    //LOG_DEBUG << "B: " << B << std::endl;
 
-      // compute estimates for tau / sigma based on A and B:
-      double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
-      double log_alpha = log(alpha);
+    // compute estimates for tau / sigma based on A and B:
+    double alpha = (left_height + right_height) * 0.5 / height_;   // ~0.5
+    double log_alpha = log(alpha);
 
-      tau_ = -1 / log_alpha * (B - A);
-      //EGH function fails when tau==0
-      if (tau_ == 0) tau_ = std::numeric_limits<double>::epsilon();
+    tau_ = -1 / log_alpha * (B - A);
+    //EGH function fails when tau==0
+    if (tau_ == 0) tau_ = std::numeric_limits<double>::epsilon();
 
-      LOG_DEBUG << "tau: " << tau_ << std::endl;
-      sigma_= sqrt(-0.5 / log_alpha * B * A);
-      LOG_DEBUG << "sigma: " << sigma_<< std::endl;
+    LOG_DEBUG << "tau: " << tau_ << std::endl;
+    sigma_ = sqrt(-0.5 / log_alpha * B * A);
+    LOG_DEBUG << "sigma: " << sigma_ << std::endl;
   }
 
   void EGHTraceFitter::updateMembers_()
   {
     TraceFitter::updateMembers_();
   }
-}  // namespace OpenMS
+
+} // namespace OpenMS

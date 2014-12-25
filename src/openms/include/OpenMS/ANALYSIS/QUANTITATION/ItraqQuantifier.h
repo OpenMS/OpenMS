@@ -70,13 +70,13 @@ public:
     explicit ItraqQuantifier(Int itraq_type);
 
     /// Constructor with iTRAQ-type (either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX) and Param
-    ItraqQuantifier(Int itraq_type, const Param & param);
+    ItraqQuantifier(Int itraq_type, const Param& param);
 
     /// copy constructor
-    ItraqQuantifier(const ItraqQuantifier & cp);
+    ItraqQuantifier(const ItraqQuantifier& cp);
 
     /// assignment operator
-    ItraqQuantifier & operator=(const ItraqQuantifier & rhs);
+    ItraqQuantifier& operator=(const ItraqQuantifier& rhs);
 
     /**
       @brief using the raw iTRAQ intensities we apply isotope correction, normalization (using median)
@@ -87,7 +87,7 @@ public:
       @throws Exception::FailedAPICall is least-squares fit fails
       @throws Exception::InvalidParameter if parameter is invalid (e.g. reference_channel)
     */
-    void run(const ConsensusMap & consensus_map_in, ConsensusMap & consensus_map_out);
+    void run(const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out);
 
     /**
       @brief Statistics for quantitation performance and comparison of NNLS vs. naive method (aka matrix inversion)
@@ -107,9 +107,9 @@ public:
       {
       }
 
-      Size channel_count;  //< 4plex, 6plex, or 8 plex?!
+      Size channel_count; //< 4plex, 6plex, or 8 plex?!
       Size iso_number_ms2_negative; //< number of MS2 spectra where one or more channels had negative solution
-      Size iso_number_reporter_negative;  //< number of channels where naive solution was negative
+      Size iso_number_reporter_negative; //< number of channels where naive solution was negative
       Size iso_number_reporter_different; //< number of channels >0 where naive solution was different; happens when naive solution is negative in other channels
       double iso_solution_different_intensity; //< absolute intensity difference between both solutions (for channels > 0)
       double iso_total_intensity_negative; //< only for spectra where naive solution is negative
@@ -131,15 +131,15 @@ private:
     /// initialize
     void initIsotopeCorrections_();
 
-    void reconstructChannelInfo_(const ConsensusMap & consensus_map);
+    void reconstructChannelInfo_(const ConsensusMap& consensus_map);
 
-    /** 
+    /**
       @brief Check if the given channel_frequency matrix is an identity matrix
-     
+
       @param The matrix to check.
     */
     bool isIdentityCorrectionMatrix_(const Matrix<double>& channel_frequency) const;
-    
+
     /// either ItraqConstants::FOURPLEX or ItraqConstants::EIGHTPLEX
     Int itraq_type_;
 
@@ -153,9 +153,9 @@ private:
     /// stats for isotope correction
     ItraqQuantifierStats stats_;
 
-  };   // !class
+  }; // !class
 
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ItraqQuantifier::ItraqQuantifierStats & stats);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ItraqQuantifier::ItraqQuantifierStats& stats);
 
 } // !namespace
 

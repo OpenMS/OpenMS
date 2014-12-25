@@ -48,22 +48,22 @@
 
 namespace OpenMS
 {
-    /**
-  @brief comparator for two doubles with a tolerance value
-  */
+  /**
+@brief comparator for two doubles with a tolerance value
+*/
   struct FloatsWithTolLess :
-	public std::binary_function<double, double, bool>
+    public std::binary_function<double, double, bool>
   {
     /**
     @brief constructor
     @param t const reference to the tolerance
     */
-    explicit FloatsWithTolLess(const double & t) :
+    explicit FloatsWithTolLess(const double& t) :
       tol_(t) {}
     /**
     @brief copy constructor
     */
-    FloatsWithTolLess(const FloatsWithTolLess & rhs) :
+    FloatsWithTolLess(const FloatsWithTolLess& rhs) :
       tol_(rhs.tol_) {}
 
     /**
@@ -78,7 +78,7 @@ namespace OpenMS
     }
 
 protected:
-    double const & tol_;     ///< tolerance value
+    double const& tol_; ///< tolerance value
   };
 
   /**
@@ -86,18 +86,18 @@ protected:
   @todo Think about that this does and if it is really necessary (why double, double????) (Andreas, Clemens)
   */
   struct IntsInRangeLess :
-	  public std::binary_function<double, double, bool>
+    public std::binary_function<double, double, bool>
   {
     /**
     @brief constructor
     @param t const reference to the tolerance
     */
-    IntsInRangeLess(const int & s, const int & e) :
+    IntsInRangeLess(const int& s, const int& e) :
       start_(s), end_(e) {}
     /**
     @brief copy constructor
     */
-    IntsInRangeLess(const IntsInRangeLess & source) :
+    IntsInRangeLess(const IntsInRangeLess& source) :
       start_(source.start_), end_(source.end_) {}
 
     /**
@@ -113,8 +113,8 @@ protected:
     }
 
 protected:
-    int const & start_;     ///< start index
-    int const & end_;     ///< end index
+    int const& start_; ///< start index
+    int const& end_; ///< end index
   };
 
 
@@ -146,12 +146,12 @@ public:
     @throw FileNotFound is thrown if the given file is not found
     @throw InvalidValue if the given suffix array string is invalid
     */
-    SuffixArraySeqan(const String & st, const String & filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
+    SuffixArraySeqan(const String& st, const String& filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
     /**
     @brief copy constructor
     */
-    SuffixArraySeqan(const SuffixArraySeqan & source);
+    SuffixArraySeqan(const SuffixArraySeqan& source);
 
     /**
     @brief destructor
@@ -175,7 +175,7 @@ public:
     lcp table are used. The mass wont be calculated for each entry but it will
     be updated during traversal using a stack data structure
     */
-    void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double> > > & candidates, const std::vector<double> & spec);
+    void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double> > >& candidates, const std::vector<double>& spec);
 
     /**
     @brief saves the suffix array to disc
@@ -183,7 +183,7 @@ public:
     @return bool if operation was successful
     @throw UnableToCreateFile is thrown if the output files could not be created
     */
-    bool save(const String & filename);
+    bool save(const String& filename);
 
     /**
     @brief opens the suffix array
@@ -192,7 +192,7 @@ public:
     @return bool if operation was successful
     @throw FileNotFound is thrown if the given file could not be found
     */
-    bool open(const String & filename);
+    bool open(const String& filename);
 
     /**
     @brief setter for tolerance
@@ -220,13 +220,13 @@ public:
     @param tags reference to vector of strings with tags
     @note sets use_tags = true
     */
-    void setTags(const std::vector<OpenMS::String> & tags);
+    void setTags(const std::vector<OpenMS::String>& tags);
 
     /**
     @brief getter for tags
     @return const reference to vector of strings
     */
-    const std::vector<OpenMS::String> & getTags();
+    const std::vector<OpenMS::String>& getTags();
 
     /**
     @brief setter for use_tags
@@ -268,7 +268,7 @@ protected:
 
     @see goNext
     */
-    inline void goNextSubTree_(TIter & it, double & m, std::stack<double> & allm, std::stack<std::map<double, SignedSize> > & mod_map)
+    inline void goNextSubTree_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, SignedSize> >& mod_map)
     {
       // preorder dfs
       if (!goRight(it))
@@ -312,7 +312,7 @@ protected:
     @param it reference to the suffix array iterator
     @see goNext
     */
-    inline void goNextSubTree_(TIter & it)
+    inline void goNextSubTree_(TIter& it)
     {
       // preorder dfs
       if (!goRight(it))
@@ -347,7 +347,7 @@ protected:
 
     @see goNextSubTree_
     */
-    inline void goNext_(TIter & it, double & m, std::stack<double> & allm, std::stack<std::map<double, SignedSize> > & mod_map)
+    inline void goNext_(TIter& it, double& m, std::stack<double>& allm, std::stack<std::map<double, SignedSize> >& mod_map)
     {
       // preorder dfs
       if (!goDown(it))
@@ -356,7 +356,7 @@ protected:
       }
     }
 
-    inline void parseTree_(TIter & it, std::vector<std::pair<SignedSize, SignedSize> > & out_number, std::vector<std::pair<SignedSize, SignedSize> > & edge_length, std::vector<SignedSize> & leafe_depth)
+    inline void parseTree_(TIter& it, std::vector<std::pair<SignedSize, SignedSize> >& out_number, std::vector<std::pair<SignedSize, SignedSize> >& edge_length, std::vector<SignedSize>& leafe_depth)
     {
       SignedSize depth = 1;
       while (!atEnd(it))
@@ -407,9 +407,9 @@ protected:
       }
     }
 
-    TIndex index_;     ///< seqan suffix array
+    TIndex index_; ///< seqan suffix array
 
-    TIter * it_;    ///< seqan suffix array iterator
+    TIter* it_; ///< seqan suffix array iterator
 
     /**
     @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.
@@ -418,7 +418,7 @@ protected:
     @return SignedSize with the index of the first occurrence
     @note requires that there is at least one occurrence
     */
-    SignedSize findFirst_(const std::vector<double> & spec, double & m);
+    SignedSize findFirst_(const std::vector<double>& spec, double& m);
 
     /**
     @brief binary search for finding the index of the first element of the
@@ -431,19 +431,19 @@ protected:
     @return SignedSize with the index of the first occurrence
     @note requires that there is at least one occurrence
     */
-    SignedSize findFirst_(const std::vector<double> & spec, double & m, SignedSize start, SignedSize  end);
+    SignedSize findFirst_(const std::vector<double>& spec, double& m, SignedSize start, SignedSize  end);
 
-    const String & s_;    ///< reference to strings for which the suffix array is build
+    const String& s_; ///< reference to strings for which the suffix array is build
 
-    double masse_[255];     ///< amino acid masses
+    double masse_[255]; ///< amino acid masses
 
-    SignedSize number_of_modifications_;     ///< number of allowed modifications
+    SignedSize number_of_modifications_; ///< number of allowed modifications
 
-    std::vector<String> tags_;     ///< all tags
+    std::vector<String> tags_; ///< all tags
 
-    bool use_tags_;     ///< if tags are used
+    bool use_tags_; ///< if tags are used
 
-    double tol_;     ///< tolerance
+    double tol_; ///< tolerance
   };
 }
 

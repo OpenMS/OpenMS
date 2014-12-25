@@ -51,7 +51,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  GaussFitter1D::GaussFitter1D(const GaussFitter1D & source) :
+  GaussFitter1D::GaussFitter1D(const GaussFitter1D& source) :
     MaxLikeliFitter1D(source)
   {
     updateMembers_();
@@ -61,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  GaussFitter1D & GaussFitter1D::operator=(const GaussFitter1D & source)
+  GaussFitter1D& GaussFitter1D::operator=(const GaussFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -72,7 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  GaussFitter1D::QualityType GaussFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  GaussFitter1D::QualityType GaussFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
     min_ = max_ = set[0].getPos();
@@ -93,7 +93,7 @@ namespace OpenMS
     }
 
     // build model
-    model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("GaussModel"));
+    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;

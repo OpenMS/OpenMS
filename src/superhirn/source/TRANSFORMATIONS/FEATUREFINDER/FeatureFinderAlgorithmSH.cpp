@@ -49,16 +49,16 @@ namespace OpenMS
     // ----------------------------------------------------------------------------------------------------
     this->defaults_.setValue("ms1:precursor_detection_scan_levels", ListUtils::create<Int>("1"), "Precursor detection scan levels");
     // ----------------------------------------------------------------------------------------------------
-    this->defaults_.setValue("ms1:max_inter_scan_distance", 0, "MS1 max inter scan distance");        // was 0.1
-    this->defaults_.setMinInt("ms1:max_inter_scan_distance", 0);       // Markus needs to clarify this parameter
+    this->defaults_.setValue("ms1:max_inter_scan_distance", 0, "MS1 max inter scan distance"); // was 0.1
+    this->defaults_.setMinInt("ms1:max_inter_scan_distance", 0); // Markus needs to clarify this parameter
     // ----------------------------------------------------------------------------------------------------
-    this->defaults_.setValue("ms1:tr_resolution", 0.01, "MS1 LC retention time resolution");         // seems to have no effect
+    this->defaults_.setValue("ms1:tr_resolution", 0.01, "MS1 LC retention time resolution"); // seems to have no effect
     this->defaults_.setMinFloat("ms1:tr_resolution", 0);
     // ----------------------------------------------------------------------------------------------------
     this->defaults_.setValue("ms1:intensity_threshold", 1000.0, "FT peak detect MS1 intensity min threshold");
     this->defaults_.setMinFloat("ms1:intensity_threshold", 0);
     // ----------------------------------------------------------------------------------------------------
-    this->defaults_.setValue("ms1:max_inter_scan_rt_distance", 0.1, "MS1 max inter scan distance");        // seems to have no effect
+    this->defaults_.setValue("ms1:max_inter_scan_rt_distance", 0.1, "MS1 max inter scan distance"); // seems to have no effect
     this->defaults_.setMinFloat("ms1:max_inter_scan_rt_distance", 0);
     // ----------------------------------------------------------------------------------------------------
     this->defaults_.setValue("ms1:min_nb_cluster_members", 4, "FT peak detect MS1 min nb peak members");
@@ -176,7 +176,7 @@ namespace OpenMS
     // go through map, extract data and store it in a vector of RawData objects
     for (unsigned int s = 0; s < map_.size(); s++)
     {
-      const SpectrumType & spectrum = map_[s];
+      const SpectrumType& spectrum = map_[s];
       double rt = spectrum.getRT();
 
       if (orderByNativeIds)
@@ -232,4 +232,5 @@ namespace OpenMS
   {
     return "superhirn";
   }
+
 }

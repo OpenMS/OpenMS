@@ -44,9 +44,10 @@ namespace OpenMS
     map_index_(0),
     charge_(0),
     width_(0)
-  {}
+  {
+  }
 
-  FeatureHandle::FeatureHandle(UInt64 map_index, const Peak2D & point, UInt64 element_index) :
+  FeatureHandle::FeatureHandle(UInt64 map_index, const Peak2D& point, UInt64 element_index) :
     Peak2D(point),
     map_index_(map_index),
     charge_(0),
@@ -55,23 +56,25 @@ namespace OpenMS
     setUniqueId(element_index);
   }
 
-  FeatureHandle::FeatureHandle(UInt64 map_index, const BaseFeature & feature) :
+  FeatureHandle::FeatureHandle(UInt64 map_index, const BaseFeature& feature) :
     Peak2D(feature),
     UniqueIdInterface(feature),
     map_index_(map_index),
     charge_(feature.getCharge()),
     width_(feature.getWidth())
-  {}
+  {
+  }
 
-  FeatureHandle::FeatureHandle(const FeatureHandle & rhs) :
+  FeatureHandle::FeatureHandle(const FeatureHandle& rhs) :
     Peak2D(rhs),
     UniqueIdInterface(rhs),
     map_index_(rhs.map_index_),
     charge_(rhs.charge_),
     width_(rhs.width_)
-  {}
+  {
+  }
 
-  FeatureHandle & FeatureHandle::operator=(const FeatureHandle & rhs)
+  FeatureHandle& FeatureHandle::operator=(const FeatureHandle& rhs)
   {
     Peak2D::operator=(rhs);
     UniqueIdInterface::operator=(rhs);
@@ -83,7 +86,8 @@ namespace OpenMS
   }
 
   FeatureHandle::~FeatureHandle()
-  {}
+  {
+  }
 
   UInt64 FeatureHandle::getMapIndex() const
   {
@@ -115,7 +119,7 @@ namespace OpenMS
     return width_;
   }
 
-  bool FeatureHandle::operator==(const FeatureHandle & i) const
+  bool FeatureHandle::operator==(const FeatureHandle& i) const
   {
     return (Peak2D::operator==(i))
            && (UniqueIdInterface::operator==(i))
@@ -124,19 +128,20 @@ namespace OpenMS
            && (width_ == i.width_);
   }
 
-  bool FeatureHandle::operator!=(const FeatureHandle & i) const
+  bool FeatureHandle::operator!=(const FeatureHandle& i) const
   {
     return !(operator==(i));
   }
 
-  std::ostream & operator<<(std::ostream & os, const FeatureHandle & cons)
+  std::ostream& operator<<(std::ostream& os, const FeatureHandle& cons)
   {
-    os  << "---------- FeatureHandle -----------------\n"
-    << "RT: " << cons.getRT() << std::endl
-    << "m/z: " << cons.getMZ() << std::endl
-    << "Intensity: " << cons.getIntensity() << std::endl
-    << "Map Index: " << cons.getMapIndex() << std::endl
-    << "Element Id: " << cons.getUniqueId() << std::endl;
+    os << "---------- FeatureHandle -----------------\n"
+       << "RT: " << cons.getRT() << std::endl
+       << "m/z: " << cons.getMZ() << std::endl
+       << "Intensity: " << cons.getIntensity() << std::endl
+       << "Map Index: " << cons.getMapIndex() << std::endl
+       << "Element Id: " << cons.getUniqueId() << std::endl;
     return os;
   }
+
 }

@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  Param::ParamEntry::ParamEntry(const ParamEntry & other) :
+  Param::ParamEntry::ParamEntry(const ParamEntry& other) :
     name(other.name),
     description(other.description),
     value(other.value),

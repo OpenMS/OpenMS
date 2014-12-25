@@ -58,11 +58,11 @@ namespace OpenMS
     Q_OBJECT
 public:
     /// Constructor
-    SpectraIdentificationViewWidget(const Param & preferences, QWidget * parent = 0);
+    SpectraIdentificationViewWidget(const Param& preferences, QWidget* parent = 0);
     /// Destructor
     virtual ~SpectraIdentificationViewWidget();
     /// Attach model
-    void attachLayer(LayerData * model);
+    void attachLayer(LayerData* model);
     /// Helper function to block outgoing signals
     bool ignore_update;
 
@@ -79,20 +79,20 @@ signals:
     void showSpectrumMetaData(int);
     void requestVisibleArea1D(double, double);
 private:
-    LayerData * layer_;
-    QCheckBox * hide_no_identification_;
-    QCheckBox * create_rows_for_commmon_metavalue_;
-    QTableWidget * table_widget_;
+    LayerData* layer_;
+    QCheckBox* hide_no_identification_;
+    QCheckBox* create_rows_for_commmon_metavalue_;
+    QTableWidget* table_widget_;
     bool is_ms1_shown_;
 private slots:
     /// Emits spectrumSelected with the current spectrum index
-    void spectrumSelectionChange_(QTableWidgetItem *, QTableWidgetItem *);
+    void spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*);
     /// Export table entries as csv
     void exportEntries_();
     /// Saves the (potentially filtered) idXML
     void saveIdXML_();
     /// Display header context menu
-    void headerContextMenu_(const QPoint &);
+    void headerContextMenu_(const QPoint&);
     /// Cell clicked in table_widget
     void cellClicked_(int row, int column);
   };
