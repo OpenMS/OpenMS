@@ -35,6 +35,8 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMSH_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMSH_H
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
+
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
 namespace OpenMS
@@ -95,7 +97,7 @@ namespace OpenMS
 
       @ingroup FeatureFinder
   */
-  class FeatureFinderAlgorithmSH :
+  class SUPERHIRN_DLLAPI FeatureFinderAlgorithmSH :
     public FeatureFinderAlgorithm,
     public FeatureFinderDefs
   {
