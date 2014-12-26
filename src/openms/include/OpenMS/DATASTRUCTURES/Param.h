@@ -493,7 +493,7 @@ protected:
       @param name The name that is used in error messages.
       @param defaults The default values.
       @param prefix The prefix where to check for the defaults.
-     
+
       Warnings etc. will be send to LOG_WARN.
 
       @exception Exception::InvalidParameter is thrown if errors occur during the check

@@ -56,22 +56,22 @@ public:
     CVMappingTerm();
 
     /// Copy constructor
-    CVMappingTerm(const CVMappingTerm & rhs);
+    CVMappingTerm(const CVMappingTerm& rhs);
 
     /// Destructor
     virtual ~CVMappingTerm();
 
     /// Assignment operator
-    CVMappingTerm & operator=(const CVMappingTerm & rhs);
+    CVMappingTerm& operator=(const CVMappingTerm& rhs);
 
     /** @name Accessors
     */
     //@{
     /// sets the accession string of the term
-    void setAccession(const String & accession);
+    void setAccession(const String& accession);
 
     /// returns the accession string of the term
-    const String & getAccession() const;
+    const String& getAccession() const;
 
     /// sets whether the term name should be used, instead of the accession
     void setUseTermName(bool use_term_name);
@@ -86,10 +86,10 @@ public:
     bool getUseTerm() const;
 
     /// sets the name of the term
-    void setTermName(const String & term_name);
+    void setTermName(const String& term_name);
 
     /// returns the name of the term
-    const String & getTermName() const;
+    const String& getTermName() const;
 
     /// sets whether this term can be repeated
     void setIsRepeatable(bool is_repeatable);
@@ -104,20 +104,20 @@ public:
     bool getAllowChildren() const;
 
     /// sets the cv identifier reference string, e.g. UO for unit obo
-    void setCVIdentifierRef(const String & cv_identifier_ref);
+    void setCVIdentifierRef(const String& cv_identifier_ref);
 
     /// returns the cv identifier reference string
-    const String & getCVIdentifierRef() const;
+    const String& getCVIdentifierRef() const;
     //@}
 
     /** @name Predicates
     */
     //@{
     /// equality operator
-    bool operator==(const CVMappingTerm & rhs) const;
+    bool operator==(const CVMappingTerm& rhs) const;
 
     /// inequality operator
-    bool operator!=(const CVMappingTerm & rhs) const;
+    bool operator!=(const CVMappingTerm& rhs) const;
     //}
 
 protected:

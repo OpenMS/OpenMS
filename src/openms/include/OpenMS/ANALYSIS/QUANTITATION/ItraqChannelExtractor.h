@@ -35,14 +35,15 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
 #define OPENMS_ANALYSIS_QUANTITATION_ITRAQCHANNELEXTRACTOR_H
 
-#include <vector>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
+#include <vector>
+
 namespace OpenMS
 {
-  
+
   class ConsensusMap;
 
   /**
@@ -72,20 +73,20 @@ public:
     explicit ItraqChannelExtractor(Int itraq_type);
 
     /// Constructor with iTRAQ type (from enum ItraqConstants::ITRAQ_TYPES) and param
-    ItraqChannelExtractor(Int itraq_type, const Param & param);
+    ItraqChannelExtractor(Int itraq_type, const Param& param);
 
     /// copy constructor
-    ItraqChannelExtractor(const ItraqChannelExtractor & cp);
+    ItraqChannelExtractor(const ItraqChannelExtractor& cp);
 
     /// assignment operator
-    ItraqChannelExtractor & operator=(const ItraqChannelExtractor & rhs);
+    ItraqChannelExtractor& operator=(const ItraqChannelExtractor& rhs);
 
 
     /// @brief extracts the iTRAQ channels from the tandem MS data and stores intensity values in a consensus map
     ///
     /// @param ms_exp_data Raw data to read
     /// @param consensus_map
-    void run(const MSExperiment<Peak1D> & ms_exp_data, ConsensusMap & consensus_map);
+    void run(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map);
 
 protected:
 
@@ -106,7 +107,7 @@ private:
     /// the channel-name is also the id-string in the mapList section of the ConsensusMap
     ChannelMapType channel_map_;
 
-  };   // !class
+  }; // !class
 
 } // !namespace
 

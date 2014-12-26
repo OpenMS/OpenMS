@@ -33,12 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
-#include <ctime>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/config.h>
+
+#include <ctime>
 
 using namespace std;
 
@@ -50,17 +51,17 @@ namespace OpenMS
 
   }
 
-  Date::Date(const Date & date) :
+  Date::Date(const Date& date) :
     QDate(date)
   {
   }
 
-  Date::Date(const QDate & date) :
+  Date::Date(const QDate& date) :
     QDate(date)
   {
   }
 
-  Date & Date::operator=(const Date & source)
+  Date& Date::operator=(const Date& source)
   {
     if (&source == this)
     {
@@ -71,7 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  void Date::set(const String & date)
+  void Date::set(const String& date)
   {
     clear();
 
@@ -117,7 +118,7 @@ namespace OpenMS
     return "0000-00-00";
   }
 
-  void Date::get(UInt & month, UInt & day, UInt & year) const
+  void Date::get(UInt& month, UInt& day, UInt& year) const
   {
     day = QDate::day();
     month = QDate::month();

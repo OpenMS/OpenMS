@@ -37,8 +37,9 @@
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/KERNEL/Peak1D.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/Peak1D.h>
 
 using namespace OpenMS;
 using namespace std;

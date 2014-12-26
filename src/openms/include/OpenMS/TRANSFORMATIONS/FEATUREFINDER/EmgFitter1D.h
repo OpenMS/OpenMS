@@ -53,16 +53,16 @@ public:
     EmgFitter1D();
 
     /// copy constructor
-    EmgFitter1D(const EmgFitter1D & source);
+    EmgFitter1D(const EmgFitter1D& source);
 
     /// destructor
     virtual ~EmgFitter1D();
 
     /// assignment operator
-    virtual EmgFitter1D & operator=(const EmgFitter1D & source);
+    virtual EmgFitter1D& operator=(const EmgFitter1D& source);
 
     /// create new EmgFitter1D object (function needed by Factory)
-    static Fitter1D * create()
+    static Fitter1D* create()
     {
       return new EmgFitter1D();
     }
@@ -74,7 +74,7 @@ public:
     }
 
     /// return interpolation model
-    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model);
+    QualityType fit1d(const RawDataArrayType& range, InterpolationModel*& model);
 
 protected:
     /// Helper struct (contains the size of an area and a raw data container)
@@ -87,25 +87,26 @@ protected:
       RawDataArrayType set;
     };
 
-    class EgmFitterFunctor : public LevMarqFitter1D::GenericFunctor
+    class EgmFitterFunctor :
+      public LevMarqFitter1D::GenericFunctor
     {
-      public:
-        EgmFitterFunctor(int dimensions, const EmgFitter1D::Data * data)
-          : LevMarqFitter1D::GenericFunctor(dimensions,
-                                            static_cast<int>(data->n)),
-            m_data(data)
-        {}
+public:
+      EgmFitterFunctor(int dimensions, const EmgFitter1D::Data* data) :
+        LevMarqFitter1D::GenericFunctor(dimensions,
+                                        static_cast<int>(data->n)),
+        m_data(data)
+      {}
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec);
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J);
 
-      protected:
-        const EmgFitter1D::Data * m_data;
+protected:
+      const EmgFitter1D::Data* m_data;
     };
 
     /// Compute start parameter
-    virtual void setInitialParameters_(const RawDataArrayType & set);
+    virtual void setInitialParameters_(const RawDataArrayType& set);
 
     /// Parameter of emg - peak height
     CoordinateType height_;

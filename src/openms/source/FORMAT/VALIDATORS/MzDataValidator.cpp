@@ -43,7 +43,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    MzDataValidator::MzDataValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    MzDataValidator::MzDataValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       SemanticValidator(mapping, cv)
     {
       setCheckUnits(true);
@@ -53,27 +53,27 @@ namespace OpenMS
     {
     }
 
-    void MzDataValidator::handleTerm_(const String & path, const CVTerm & parsed_term)
+    void MzDataValidator::handleTerm_(const String& path, const CVTerm& parsed_term)
     {
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
       //Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
       bool allowed = false;
       bool rule_found = false;
-      vector<CVMappingRule> & rules = rules_[path];
-      for (Size r = 0; r < rules.size(); ++r)  //go thru all rules
+      vector<CVMappingRule>& rules = rules_[path];
+      for (Size r = 0; r < rules.size(); ++r) //go thru all rules
       {
         rule_found = true;
-        for (Size t = 0; t < rules[r].getCVTerms().size(); ++t)     //go thru all terms
+        for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms
         {
-          const CVMappingTerm & term = rules[r].getCVTerms()[t];
-          if (term.getUseTerm() && term.getAccession() == parsed_term.accession)         //check if the term itself is allowed
+          const CVMappingTerm& term = rules[r].getCVTerms()[t];
+          if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
           {
             allowed = true;
             fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
             break;
           }
-          if (term.getAllowChildren())           //check if the term's children are allowed
+          if (term.getAllowChildren()) //check if the term's children are allowed
           {
             set<String> child_terms;
             cv_.getAllChildTerms(child_terms, term.getAccession());
@@ -145,11 +145,11 @@ namespace OpenMS
         }
       }
 
-      if (!rule_found)       //No rule found
+      if (!rule_found) //No rule found
       {
         warnings_.push_back(String("No mapping rule found for element '") + getPath_(1) + "'");
       }
-      else if (!allowed)      //if rule found and not allowed
+      else if (!allowed) //if rule found and not allowed
       {
         errors_.push_back(String("CV term used in invalid element: '") + parsed_term.accession + " - " + parsed_term.name + "' at element '" + getPath_(1) + "'");
       }
@@ -177,5 +177,5 @@ namespace OpenMS
       }
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

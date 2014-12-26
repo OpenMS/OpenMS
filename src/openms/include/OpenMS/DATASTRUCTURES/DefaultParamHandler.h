@@ -93,19 +93,19 @@ namespace OpenMS
   {
 public:
     /// Constructor with name that is displayed in error messages
-    DefaultParamHandler(const String & name);
+    DefaultParamHandler(const String& name);
 
     /// Copy constructor
-    DefaultParamHandler(const DefaultParamHandler & rhs);
+    DefaultParamHandler(const DefaultParamHandler& rhs);
 
     /// Destructor
     virtual ~DefaultParamHandler();
 
     /// Assignment operator.
-    virtual DefaultParamHandler & operator=(const DefaultParamHandler & rhs);
+    virtual DefaultParamHandler& operator=(const DefaultParamHandler& rhs);
 
     /// Equality operator
-    virtual bool operator==(const DefaultParamHandler & rhs) const;
+    virtual bool operator==(const DefaultParamHandler& rhs) const;
 
     /**
         @brief Sets the parameters.
@@ -116,22 +116,22 @@ public:
 
         @exception Exception::InvalidParameter is thrown if errors occur during the check.
     */
-    void setParameters(const Param & param);
+    void setParameters(const Param& param);
 
     /// Non-mutable access to the parameters
-    const Param & getParameters() const;
+    const Param& getParameters() const;
 
     /// Non-mutable access to the default parameters
-    const Param & getDefaults() const;
+    const Param& getDefaults() const;
 
     /// Non-mutable access to the name
-    const String & getName() const;
+    const String& getName() const;
 
     /// Mutable access to the name
-    void setName(const String & name);
+    void setName(const String& name);
 
     /// Non-mutable access to the registered subsections
-    const std::vector<String> & getSubsections() const;
+    const std::vector<String>& getSubsections() const;
 
 protected:
     /**
@@ -187,7 +187,7 @@ private:
     /// Hidden default C'tor (class name parameter is required!)
     DefaultParamHandler();
 
-  };   //class
+  }; //class
 
 } // namespace OPENMS
 

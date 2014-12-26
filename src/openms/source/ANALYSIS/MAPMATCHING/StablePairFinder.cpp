@@ -94,7 +94,7 @@ namespace OpenMS
 
     // set up the distance functor:
     double max_intensity = max(input_maps[0].getMaxInt(),
-                                   input_maps[1].getMaxInt());
+                               input_maps[1].getMaxInt());
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
     distance_params.remove("second_nearest_gap");
@@ -125,7 +125,7 @@ namespace OpenMS
     // iterate over all feature pairs, find nearest neighbors:
     // TODO: iterate over SENSIBLE RT (and m/z) window -- sort the maps beforehand
     //       to save a lot of processing time...
-    //       Once done, remove the warning in the description of the 'use_idenfications' parameter 
+    //       Once done, remove the warning in the description of the 'use_idenfications' parameter
     for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
       const ConsensusFeature& feat0 = input_maps[0][fi0];

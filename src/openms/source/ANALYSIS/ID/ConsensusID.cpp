@@ -37,7 +37,6 @@
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-
 #include <map>
 #include <cmath>
 
@@ -412,7 +411,7 @@ namespace OpenMS
               if (tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
               {
                 //use SEQAN similarity scoring
-                typedef::seqan::String< ::seqan::AminoAcid > TSequence;
+                typedef ::seqan::String< ::seqan::AminoAcid> TSequence;
                 TSequence seq1 = tt->getSequence().toUnmodifiedString().c_str();
                 TSequence seq2 = hit->getSequence().toUnmodifiedString().c_str();
 /////////////////////////introduce scoring with PAM30MS

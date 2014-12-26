@@ -52,7 +52,7 @@ namespace OpenSwath
 
     static void convert(LightTargetedExperiment& lte,
                         std::map<std::string,
-                        std::vector<LightTransition> >& transmap);
+                                 std::vector<LightTransition> >& transmap);
 
 
     // TODO : remove and explain German comments

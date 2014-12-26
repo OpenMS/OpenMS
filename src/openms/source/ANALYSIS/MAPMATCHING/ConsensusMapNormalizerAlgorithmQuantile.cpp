@@ -33,8 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
-#include <cmath>
+
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
+#include <cmath>
 #include <algorithm>
 
 using namespace std;

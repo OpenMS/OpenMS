@@ -93,7 +93,7 @@ struct SILAC_pair
 // SILAC_pair which it is matched to
 struct MatchedFeature
 {
-  MatchedFeature(const Feature & feature, Size index) :
+  MatchedFeature(const Feature& feature, Size index) :
     f(feature),
     idx(index)
   {
@@ -163,7 +163,7 @@ protected:
     setMinFloat_("expansion_range", 0.0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -458,7 +458,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPERPairFinder tool;
   return tool.main(argc, argv);

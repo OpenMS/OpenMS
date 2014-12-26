@@ -48,7 +48,7 @@ namespace OpenMS
   {
   }
 
-  CVMappingRule::CVMappingRule(const CVMappingRule & rhs) :
+  CVMappingRule::CVMappingRule(const CVMappingRule& rhs) :
     identifier_(rhs.identifier_),
     element_path_(rhs.element_path_),
     requirement_level_(rhs.requirement_level_),
@@ -62,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  CVMappingRule & CVMappingRule::operator=(const CVMappingRule & rhs)
+  CVMappingRule& CVMappingRule::operator=(const CVMappingRule& rhs)
   {
     if (this != &rhs)
     {
@@ -76,7 +76,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool CVMappingRule::operator==(const CVMappingRule & rhs) const
+  bool CVMappingRule::operator==(const CVMappingRule& rhs) const
   {
     return identifier_ == rhs.identifier_ &&
            element_path_ == rhs.element_path_ &&
@@ -86,27 +86,27 @@ namespace OpenMS
            cv_terms_ == rhs.cv_terms_;
   }
 
-  bool CVMappingRule::operator!=(const CVMappingRule & rhs) const
+  bool CVMappingRule::operator!=(const CVMappingRule& rhs) const
   {
     return !(*this == rhs);
   }
 
-  void CVMappingRule::setIdentifier(const String & identifier)
+  void CVMappingRule::setIdentifier(const String& identifier)
   {
     identifier_ = identifier;
   }
 
-  const String & CVMappingRule::getIdentifier() const
+  const String& CVMappingRule::getIdentifier() const
   {
     return identifier_;
   }
 
-  void CVMappingRule::setElementPath(const String & element_path)
+  void CVMappingRule::setElementPath(const String& element_path)
   {
     element_path_ = element_path;
   }
 
-  const String & CVMappingRule::getElementPath() const
+  const String& CVMappingRule::getElementPath() const
   {
     return element_path_;
   }
@@ -131,27 +131,27 @@ namespace OpenMS
     return combinations_logic_;
   }
 
-  void CVMappingRule::setScopePath(const String & path)
+  void CVMappingRule::setScopePath(const String& path)
   {
     scope_path_ = path;
   }
 
-  const String & CVMappingRule::getScopePath() const
+  const String& CVMappingRule::getScopePath() const
   {
     return scope_path_;
   }
 
-  void CVMappingRule::setCVTerms(const vector<CVMappingTerm> & cv_terms)
+  void CVMappingRule::setCVTerms(const vector<CVMappingTerm>& cv_terms)
   {
     cv_terms_ = cv_terms;
   }
 
-  const vector<CVMappingTerm> & CVMappingRule::getCVTerms() const
+  const vector<CVMappingTerm>& CVMappingRule::getCVTerms() const
   {
     return cv_terms_;
   }
 
-  void CVMappingRule::addCVTerm(const CVMappingTerm & cv_term)
+  void CVMappingRule::addCVTerm(const CVMappingTerm& cv_term)
   {
     cv_terms_.push_back(cv_term);
   }

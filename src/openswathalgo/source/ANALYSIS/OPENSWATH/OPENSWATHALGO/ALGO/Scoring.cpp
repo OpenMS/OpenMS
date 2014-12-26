@@ -78,7 +78,7 @@ namespace OpenSwath
       for (int i = 0; i < n; i++)
       {
 
-        result += (x[i] - y[i])*(x[i] - y[i]);
+        result += (x[i] - y[i]) * (x[i] - y[i]);
       }
       return std::sqrt(result / n);
     }
@@ -99,10 +99,10 @@ namespace OpenSwath
       x_len = std::sqrt(x_len);
       y_len = std::sqrt(y_len);
 
-      return std::acos( dotprod / (x_len*y_len) );
+      return std::acos(dotprod / (x_len * y_len));
     }
 
-    XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType & array)
+    XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType& array)
     {
       OPENSWATH_PRECONDITION(array.size() > 0, "Cannot get highest apex from empty array.");
 
@@ -119,7 +119,7 @@ namespace OpenSwath
       return max_it;
     }
 
-    void standardize_data(std::vector<double> & data)
+    void standardize_data(std::vector<double>& data)
     {
       OPENSWATH_PRECONDITION(data.size() > 0, "Need non-empty array.");
 
@@ -138,8 +138,8 @@ namespace OpenSwath
       }
     }
 
-    XCorrArrayType normalizedCrossCorrelation(std::vector<double> & data1,
-      std::vector<double> & data2, int maxdelay, int lag = 1)
+    XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
+                                              std::vector<double>& data2, int maxdelay, int lag = 1)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -154,8 +154,8 @@ namespace OpenSwath
       return result;
     }
 
-    XCorrArrayType calculateCrossCorrelation(std::vector<double> & data1,
-      std::vector<double> & data2, int maxdelay, int lag)
+    XCorrArrayType calculateCrossCorrelation(std::vector<double>& data1,
+                                             std::vector<double>& data2, int maxdelay, int lag)
     {
       OPENSWATH_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
 
@@ -180,8 +180,8 @@ namespace OpenSwath
       return result;
     }
 
-    XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double> & data1,
-      std::vector<double> & data2, bool normalize)
+    XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double>& data1,
+                                            std::vector<double>& data2, bool normalize)
     {
       OPENSWATH_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");
       int maxdelay = boost::numeric_cast<int>(data1.size());

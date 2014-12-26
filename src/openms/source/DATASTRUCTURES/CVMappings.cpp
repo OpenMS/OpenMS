@@ -39,10 +39,10 @@
 
 #include <iostream>
 
-
-namespace OpenMS {
-class CVMappingRule;
-}  // namespace OpenMS
+namespace OpenMS
+{
+  class CVMappingRule;
+} // namespace OpenMS
 
 using namespace std;
 

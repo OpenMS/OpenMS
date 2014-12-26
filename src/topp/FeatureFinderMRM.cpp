@@ -113,12 +113,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmMRM::getProductName());
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //input file names and types
     String in = getStringOption_("in");
@@ -188,7 +188,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureFinderMRM tool;
   return tool.main(argc, argv);

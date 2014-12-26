@@ -84,11 +84,11 @@ public:
     static ToolListType getUtilList();
 
     /// get all types of a tool (empty if none)
-    static StringList getTypes(const String & toolname);
+    static StringList getTypes(const String& toolname);
 
     /// Returns the category string from TOPP or UTIL tools
     /// @return empty string if tool was not found
-    static String getCategory(const String & toolname);
+    static String getCategory(const String& toolname);
 
     /// get getOpenMSDataPath() + "/TOOLS/EXTERNAL"
     static String getExternalToolsPath();

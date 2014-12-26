@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  Param FeatureFinder::getParameters(const String & algorithm_name) const
+  Param FeatureFinder::getParameters(const String& algorithm_name) const
   {
     Param tmp;
     if (algorithm_name != "none")
@@ -62,7 +62,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void FeatureFinder::run(const String & algorithm_name, MSExperiment<> & input_map, FeatureMap& features, const Param & param, const FeatureMap& seeds)
+  void FeatureFinder::run(const String& algorithm_name, MSExperiment<>& input_map, FeatureMap& features, const Param& param, const FeatureMap& seeds)
   {
     typedef MSExperiment<>::PeakType PeakType;
 
@@ -127,7 +127,7 @@ namespace OpenMS
       delete(algorithm);
     }
 
-    if (algorithm_name != "mrm")   // mrm  works on chromatograms; the next section is only for conventional data
+    if (algorithm_name != "mrm") // mrm  works on chromatograms; the next section is only for conventional data
     {
       //report RT apex spectrum index and native ID for each feature
       for (Size i = 0; i < features.size(); ++i)
@@ -149,4 +149,5 @@ namespace OpenMS
       }
     }
   }
+
 }

@@ -130,7 +130,7 @@ branch_name=$(git rev-parse --abbrev-ref HEAD)
 print_if_verbose "Applying to branch ${branch_name}"
 
 # get modified files .. including only *.cpp and *.h, but no tests
-modified_files=$(git diff --name-only ${branch_name} $(git merge-base ${branch_name} ${REF_BRANCH}) | grep -e '.cpp$' -e '.h$' | grep -v '_test.cpp$')
+modified_files=$(git diff --name-only ${branch_name} $(git merge-base ${branch_name} ${REF_BRANCH}) | grep -e '.cpp$' -e '.h$' | grep -v '_test.cpp$' | grep -v 'thirdparty')
 
 for f in $modified_files; do
   print_if_verbose "Uncrustify file: $f"

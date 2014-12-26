@@ -534,7 +534,7 @@ namespace OpenMS
               best_iso_idx = hit_idx;
             }
           }
-        
+
           std::vector<AccurateMassSearchResult> tmp_results;
           tmp_results.push_back(query_results[best_iso_idx]);
 
@@ -571,8 +571,8 @@ namespace OpenMS
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
     f.getPeptideIdentifications().back().setIdentifier("AccurateMassSearchResult");
     for (std::vector<AccurateMassSearchResult>::const_iterator it_row  = amr.begin();
-                                                               it_row != amr.end();
-                                                               ++it_row)
+         it_row != amr.end();
+         ++it_row)
     {
       PeptideHit hit;
       hit.setMetaValue("identifier", it_row->getMatchingHMDBids());
@@ -671,14 +671,14 @@ namespace OpenMS
           mztab_row_record.chemical_formula = chem_form;
 
           // set the smiles field
-          String smi_temp = hmdb_properties_mapping_[hid_temp][1];             // extract SMILES from struct mapping file
+          String smi_temp = hmdb_properties_mapping_[hid_temp][1]; // extract SMILES from struct mapping file
           MzTabString smi_string;
           smi_string.set(smi_temp);
 
           mztab_row_record.smiles = smi_string;
 
           // set the inchi_key field
-          String inchi_temp = hmdb_properties_mapping_[hid_temp][2];             // extract INCHIKEY from struct mapping file
+          String inchi_temp = hmdb_properties_mapping_[hid_temp][2]; // extract INCHIKEY from struct mapping file
           MzTabString inchi_key;
           inchi_key.set(inchi_temp);
 
@@ -826,7 +826,7 @@ namespace OpenMS
           col1.first = "opt_adduct_ion";
           col1.second = addion;
           optionals.push_back(col1);
-          ++adduct_stats[addion_temp];       // just some stats
+          ++adduct_stats[addion_temp]; // just some stats
 
 
           // set isotope similarity score
@@ -843,7 +843,7 @@ namespace OpenMS
 
 
           // set id group; rows with the same id group number originated from the same feature
-          adduct_stats_unique[addion_temp].insert(id_group);       // stats ...
+          adduct_stats_unique[addion_temp].insert(id_group); // stats ...
           String id_group_temp(id_group);
           MzTabString id_group_str;
           id_group_str.set(id_group_temp);
@@ -940,7 +940,7 @@ namespace OpenMS
         {
           entry.formula = *istr_it;
           if (entry.mass == 0)
-          {        // recompute mass from formula
+          { // recompute mass from formula
             entry.mass = EmpiricalFormula(entry.formula).getMonoWeight();
             //std::cerr << "mass of " << entry.formula << " is " << entry.mass << "\n";
           }

@@ -58,7 +58,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IsotopeFitter1D::IsotopeFitter1D(const IsotopeFitter1D & source) :
+  IsotopeFitter1D::IsotopeFitter1D(const IsotopeFitter1D& source) :
     MaxLikeliFitter1D(source)
   {
     updateMembers_();
@@ -68,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  IsotopeFitter1D & IsotopeFitter1D::operator=(const IsotopeFitter1D & source)
+  IsotopeFitter1D& IsotopeFitter1D::operator=(const IsotopeFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -79,7 +79,7 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
     min_ = max_ = set[0].getPos();
@@ -102,7 +102,7 @@ namespace OpenMS
     // build model
     if (charge_ == 0)
     {
-      model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -114,7 +114,7 @@ namespace OpenMS
     }
     else
     {
-      model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("IsotopeModel"));
+      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("IsotopeModel"));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");
@@ -128,7 +128,7 @@ namespace OpenMS
       tmp.setValue("isotope:maximum", max_isotope_);
 
       model->setParameters(tmp);
-      (static_cast<IsotopeModel *>(model))->setSamples((static_cast<IsotopeModel *>(model))->getFormula());
+      (static_cast<IsotopeModel*>(model))->setSamples((static_cast<IsotopeModel*>(model))->getFormula());
     }
 
     // fit offset

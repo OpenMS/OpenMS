@@ -161,12 +161,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //input file names
     String in = getStringOption_("in");
@@ -259,7 +259,7 @@ protected:
 
     if (!out_mzq.trim().empty())
     {
-      MSQuantifications msq(features, exp.getExperimentalSettings(), exp[0].getDataProcessing() );
+      MSQuantifications msq(features, exp.getExperimentalSettings(), exp[0].getDataProcessing());
       msq.assignUIDs();
       MzQuantMLFile file;
       file.store(out_mzq, msq);
@@ -271,7 +271,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureFinderCentroided tool;
   return tool.main(argc, argv);

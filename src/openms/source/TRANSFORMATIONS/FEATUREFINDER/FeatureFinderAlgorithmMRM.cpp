@@ -302,7 +302,7 @@ namespace OpenMS
             p.setIntensity(filter_spec[j].getIntensity());
             data_to_fit.push_back(p);
           }
-          InterpolationModel * model_rt = 0;
+          InterpolationModel* model_rt = 0;
           double quality = fitRT_(data_to_fit, model_rt);
 
           Feature f;
@@ -395,7 +395,7 @@ namespace OpenMS
     return "mrm";
   }
 
-  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D> & rt_input_data, InterpolationModel * & model) const
+  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, InterpolationModel*& model) const
   {
     double quality;
     Param param;
@@ -426,4 +426,5 @@ param.setValue( "deltaRelError", deltaRelError_);
   void FeatureFinderAlgorithmMRM::updateMembers_()
   {
   }
+
 }

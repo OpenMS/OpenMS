@@ -71,7 +71,7 @@ public:
     /** @brief Destructor. */
     virtual ~FeatureFinderAlgorithmIsotopeWavelet();
 
-    MSSpectrum<PeakType> * createHRData(const UInt i);
+    MSSpectrum<PeakType>* createHRData(const UInt i);
 
     /** @brief The working horse of this class. */
     void run();
@@ -86,20 +86,20 @@ protected:
     struct BoxElement
     {
       double mz;
-      UInt c;       ///<Note, this is not the charge (it is charge-1!!!)
+      UInt c; ///<Note, this is not the charge (it is charge-1!!!)
       double score;
       double intens;
-      double RT;       ///<The elution time (not the scan index)
+      double RT; ///<The elution time (not the scan index)
     };
 
-    typedef std::map<UInt, BoxElement> Box;     ///<Key: RT (index), value: BoxElement
+    typedef std::map<UInt, BoxElement> Box; ///<Key: RT (index), value: BoxElement
 
-    UInt max_charge_;     ///<The maximal charge state we will consider
-    double intensity_threshold_;     ///<The only parameter of the isotope wavelet
-    UInt RT_votes_cutoff_, real_RT_votes_cutoff_, RT_interleave_;     ///<The number of subsequent scans a pattern must cover in order to be considered as signal
+    UInt max_charge_; ///<The maximal charge state we will consider
+    double intensity_threshold_; ///<The only parameter of the isotope wavelet
+    UInt RT_votes_cutoff_, real_RT_votes_cutoff_, RT_interleave_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal
     String use_gpus_, intensity_type_;
     bool check_PPMs_, hr_data_;
-    std::vector<UInt> gpu_ids_;     ///< A list of all GPU devices that can be used
+    std::vector<UInt> gpu_ids_; ///< A list of all GPU devices that can be used
 
     Int progress_counter_;
 

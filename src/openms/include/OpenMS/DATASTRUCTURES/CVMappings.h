@@ -44,7 +44,7 @@ namespace OpenMS
 {
   class CVMappingRule;
   class CVReference;
-  
+
   /**
     @brief Representation of controlled vocabulary mapping rules (for PSI formats)
 

@@ -47,23 +47,23 @@ namespace OpenMS
   {
   }
 
-  BaseFeature::BaseFeature(const BaseFeature & rhs) :
+  BaseFeature::BaseFeature(const BaseFeature& rhs) :
     RichPeak2D(rhs), quality_(rhs.quality_), charge_(rhs.charge_), width_(rhs.width_),
     peptides_(rhs.peptides_)
   {
   }
 
-  BaseFeature::BaseFeature(const RichPeak2D & point) :
+  BaseFeature::BaseFeature(const RichPeak2D& point) :
     RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
   {
   }
 
-  BaseFeature::BaseFeature(const Peak2D & point) :
+  BaseFeature::BaseFeature(const Peak2D& point) :
     RichPeak2D(point), quality_(0.0), charge_(0), width_(0), peptides_()
   {
   }
 
-  BaseFeature & BaseFeature::operator=(const BaseFeature & rhs)
+  BaseFeature& BaseFeature::operator=(const BaseFeature& rhs)
   {
     if (&rhs == this)
       return *this;
@@ -77,7 +77,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool BaseFeature::operator==(const BaseFeature & rhs) const
+  bool BaseFeature::operator==(const BaseFeature& rhs) const
   {
     return RichPeak2D::operator==(rhs)
            && (quality_ == rhs.quality_)
@@ -86,7 +86,7 @@ namespace OpenMS
            && (peptides_ == rhs.peptides_);
   }
 
-  bool BaseFeature::operator!=(const BaseFeature & rhs) const
+  bool BaseFeature::operator!=(const BaseFeature& rhs) const
   {
     return !operator==(rhs);
   }
@@ -119,55 +119,55 @@ namespace OpenMS
     setMetaValue("FWHM", fwhm);
   }
 
-  const BaseFeature::ChargeType & BaseFeature::getCharge() const
+  const BaseFeature::ChargeType& BaseFeature::getCharge() const
   {
     return charge_;
   }
 
-  void BaseFeature::setCharge(const BaseFeature::ChargeType & charge)
+  void BaseFeature::setCharge(const BaseFeature::ChargeType& charge)
   {
     charge_ = charge;
   }
 
-  const vector<PeptideIdentification> & BaseFeature::getPeptideIdentifications()
+  const vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
   const
   {
     return peptides_;
   }
 
-  vector<PeptideIdentification> & BaseFeature::getPeptideIdentifications()
+  vector<PeptideIdentification>& BaseFeature::getPeptideIdentifications()
   {
     return peptides_;
   }
 
   void BaseFeature::setPeptideIdentifications(
-    const vector<PeptideIdentification> & peptides)
+    const vector<PeptideIdentification>& peptides)
   {
     peptides_ = peptides;
   }
 
-
-   BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
-   {
-     if (peptides_.size() == 0) return FEATURE_ID_NONE;
-     else if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0) return FEATURE_ID_SINGLE;
-     else
-     {
-       std::set<String> seqs;
-       for (Size i=0; i<peptides_.size(); ++i)
-       {
-         if (peptides_[i].getHits().size() > 0)
-         {
-           PeptideIdentification id_tmp = peptides_[i];
-           id_tmp.sort(); // look at best hit only - requires sorting
-           seqs.insert(id_tmp.getHits()[0].getSequence().toString());
-         }
-       }
-       if (seqs.size()==1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
-       else if (seqs.size()>1) return FEATURE_ID_MULTIPLE_DIVERGENT; // multiple different annotations ... probably bad mapping
-       else /*if (seqs.size()==0)*/  return FEATURE_ID_NONE; // very rare case of empty hits
-     }
-   }
-
+  BaseFeature::AnnotationState BaseFeature::getAnnotationState() const
+  {
+    if (peptides_.size() == 0) return FEATURE_ID_NONE;
+    else if (peptides_.size() == 1 && peptides_[0].getHits().size() > 0)
+      return FEATURE_ID_SINGLE;
+    else
+    {
+      std::set<String> seqs;
+      for (Size i = 0; i < peptides_.size(); ++i)
+      {
+        if (peptides_[i].getHits().size() > 0)
+        {
+          PeptideIdentification id_tmp = peptides_[i];
+          id_tmp.sort();  // look at best hit only - requires sorting
+          seqs.insert(id_tmp.getHits()[0].getSequence().toString());
+        }
+      }
+      if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      else if (seqs.size() > 1)
+        return FEATURE_ID_MULTIPLE_DIVERGENT;                        // multiple different annotations ... probably bad mapping
+      else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;   // very rare case of empty hits
+    }
+  }
 
 } // namespace OpenMS

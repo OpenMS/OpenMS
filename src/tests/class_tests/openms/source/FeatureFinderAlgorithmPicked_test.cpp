@@ -36,14 +36,13 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+///////////////////////////
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
-
-///////////////////////////
 
 START_TEST(FeatureFinderAlgorithmPicked, "$Id$")
 

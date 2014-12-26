@@ -65,17 +65,17 @@ namespace OpenMS
     for (FeatureMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
     {
       os << iter->getPosition() << '\t'
-      << iter->getIntensity() << '\t'
-      << iter->getOverallQuality() << '\t'
-      << iter->getCharge() << '\t'
-      << iter->getUniqueId() << "\n";
+         << iter->getIntensity() << '\t'
+         << iter->getOverallQuality() << '\t'
+         << iter->getCharge() << '\t'
+         << iter->getUniqueId() << "\n";
     }
     os << "# -- DFEATUREMAP END --" << std::endl;
     return os;
   }
 
   AnnotationStatistics::AnnotationStatistics() :
-    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0)     // initialize all with 0
+    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0) // initialize all with 0
   {
   }
 

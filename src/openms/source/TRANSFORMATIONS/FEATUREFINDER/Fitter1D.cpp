@@ -56,14 +56,14 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  Fitter1D::Fitter1D(const Fitter1D & source) :
+  Fitter1D::Fitter1D(const Fitter1D& source) :
     DefaultParamHandler(source)
   {
     setParameters(source.getParameters());
     updateMembers_();
   }
 
-  Fitter1D & Fitter1D::operator=(const Fitter1D & source)
+  Fitter1D& Fitter1D::operator=(const Fitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -91,8 +91,8 @@ namespace OpenMS
     statistics_.setMean(param_.getValue("statistics:mean"));
     statistics_.setVariance(param_.getValue("statistics:variance"));
   }
-  
-  Fitter1D::QualityType Fitter1D::fit1d(const RawDataArrayType & /* range */, InterpolationModel * & /* model */)
+
+  Fitter1D::QualityType Fitter1D::fit1d(const RawDataArrayType& /* range */, InterpolationModel*& /* model */)
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
   }

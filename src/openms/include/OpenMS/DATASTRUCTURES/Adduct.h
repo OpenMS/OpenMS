@@ -60,48 +60,48 @@ public:
     /// Increase amount of this adduct by factor @param m
     Adduct operator*(const Int m) const;
     /// Add two adducts amount if they are equal (defined by equal formula)
-    Adduct operator+(const Adduct & rhs);
+    Adduct operator+(const Adduct& rhs);
     /// Add other adducts amount to *this (equal formula required!)
-    void operator+=(const Adduct & rhs);
+    void operator+=(const Adduct& rhs);
 
 
     /// Print the contents of an Adduct to a stream.
-    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Adduct & a);
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Adduct& a);
 
     /// Comparator
-    friend OPENMS_DLLAPI bool operator==(const Adduct & a, const Adduct & b);
+    friend OPENMS_DLLAPI bool operator==(const Adduct& a, const Adduct& b);
 
     //@{ Accessors
-    const Int & getCharge() const;
+    const Int& getCharge() const;
 
-    void setCharge(const Int & charge);
+    void setCharge(const Int& charge);
 
-    const Int & getAmount() const;
-    void setAmount(const Int & amount);
+    const Int& getAmount() const;
+    void setAmount(const Int& amount);
 
-    const double & getSingleMass() const;
-    void setSingleMass(const double & singleMass);
+    const double& getSingleMass() const;
+    void setSingleMass(const double& singleMass);
 
-    const double & getLogProb() const;
-    void setLogProb(const double & log_prob);
+    const double& getLogProb() const;
+    void setLogProb(const double& log_prob);
 
-    const String & getFormula() const;
-    void setFormula(const String & formula);
+    const String& getFormula() const;
+    void setFormula(const String& formula);
 
-    const double & getRTShift() const;
-    const String & getLabel() const;
+    const double& getRTShift() const;
+    const String& getLabel() const;
     //}
 
 private:
     Int charge_; //< usually +1
     Int amount_; //< number of entities
     double singleMass_; //< mass of a single entity
-    double log_prob_;   //< log probability of observing a single entity of this adduct
-    String formula_;   //< chemical formula (parsable by EmpiricalFormula)
-    double rt_shift_;     //< RT shift induced by a single entity of this adduct (this is for adducts attached prior to ESI, e.g. labeling)
-    String label_;     //< Label for this adduct (can be used to indicate heavy labels)
+    double log_prob_; //< log probability of observing a single entity of this adduct
+    String formula_; //< chemical formula (parsable by EmpiricalFormula)
+    double rt_shift_; //< RT shift induced by a single entity of this adduct (this is for adducts attached prior to ESI, e.g. labeling)
+    String label_; //< Label for this adduct (can be used to indicate heavy labels)
 
-    String checkFormula_(const String & formula);
+    String checkFormula_(const String& formula);
 
   };
 

@@ -45,11 +45,11 @@ namespace OpenMS
   {
   }
 
-  SuffixArray::SuffixArray(const SuffixArray &)
+  SuffixArray::SuffixArray(const SuffixArray&)
   {
   }
 
-  SuffixArray::SuffixArray(const String & /* st */, const String & /* filename */)
+  SuffixArray::SuffixArray(const String& /* st */, const String& /* filename */)
   {
   }
 

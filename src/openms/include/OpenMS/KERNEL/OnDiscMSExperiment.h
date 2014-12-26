@@ -87,7 +87,7 @@ public:
       indexed_mzml_file_.openFile(filename);
       if (filename != "")
       {
-        meta_ms_experiment_ = boost::shared_ptr< MSExperiment<> >(new MSExperiment<>);
+        meta_ms_experiment_ = boost::shared_ptr<MSExperiment<> >(new MSExperiment<>);
 
         MzMLFile f;
         PeakFileOptions options = f.getOptions();
@@ -99,7 +99,7 @@ public:
     }
 
     /// Copy constructor
-    OnDiscMSExperiment(const OnDiscMSExperiment & source) :
+    OnDiscMSExperiment(const OnDiscMSExperiment& source) :
       filename_(source.filename_),
       indexed_mzml_file_(source.indexed_mzml_file_),
       meta_ms_experiment_(source.meta_ms_experiment_)
@@ -113,16 +113,16 @@ public:
       meta-information is the same. Note that the file reader (e.g. the
       std::ifstream of the file) might be in a different state.
     */
-    bool operator==(const OnDiscMSExperiment & rhs) const
+    bool operator==(const OnDiscMSExperiment& rhs) const
     {
       // check if file and meta information is the same
       return filename_ == rhs.filename_ &&
-        (*meta_ms_experiment_) == (*rhs.meta_ms_experiment_);
-        // do not check if indexed_mzml_file_ is equal -> they have the same filename...
+             (*meta_ms_experiment_) == (*rhs.meta_ms_experiment_);
+      // do not check if indexed_mzml_file_ is equal -> they have the same filename...
     }
 
     /// Inequality operator
-    bool operator!=(const OnDiscMSExperiment & rhs) const
+    bool operator!=(const OnDiscMSExperiment& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -169,15 +169,15 @@ public:
     }
 
     /// alias for getSpectrum
-    inline MSSpectrum<PeakT> operator[] (Size n)
+    inline MSSpectrum<PeakT> operator[](Size n)
     {
       return getSpectrum(n);
     }
 
     /**
-      @brief returns a single spectrum 
+      @brief returns a single spectrum
 
-      TODO: make this more efficient by reducing the copying   
+      TODO: make this more efficient by reducing the copying
     */
     MSSpectrum<PeakT> getSpectrum(Size id)
     {
@@ -199,7 +199,7 @@ public:
     }
 
     /**
-      @brief returns a single spectrum 
+      @brief returns a single spectrum
     */
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id)
     {
@@ -207,9 +207,9 @@ public:
     }
 
     /**
-      @brief returns a single chromatogram 
+      @brief returns a single chromatogram
 
-      TODO: make this more efficient by reducing the copying   
+      TODO: make this more efficient by reducing the copying
     */
     MSChromatogram<ChromatogramPeakT> getChromatogram(Size id)
     {
@@ -232,7 +232,7 @@ public:
     }
 
     /**
-      @brief returns a single chromatogram 
+      @brief returns a single chromatogram
     */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(Size id)
     {
@@ -241,7 +241,7 @@ public:
 
 private:
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
-    OnDiscMSExperiment & operator=(const OnDiscMSExperiment & /* source */) {;}
+    OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */) {}
 
 protected:
 
@@ -249,11 +249,10 @@ protected:
     String filename_;
     /// The index of the underlying data file
     IndexedMzMLFile indexed_mzml_file_;
-    /// The meta-data 
-    boost::shared_ptr< MSExperiment<> > meta_ms_experiment_;
+    /// The meta-data
+    boost::shared_ptr<MSExperiment<> > meta_ms_experiment_;
   };
 
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_ONDISCMSEXPERIMENT_H
-

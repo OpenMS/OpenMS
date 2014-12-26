@@ -50,12 +50,12 @@ namespace OpenMS
   /// Summary of fitting results
   struct OPENMS_DLLAPI Summary
   {
-    std::map<String, UInt> exception;    //count exceptions
+    std::map<String, UInt> exception; //count exceptions
     UInt no_exceptions;
-    std::map<String, UInt> mz_model;    //count used mz models
-    std::map<float, UInt> mz_stdev;    //count used mz standard deviations
-    std::vector<UInt> charge;     //count used charges
-    double corr_mean, corr_max, corr_min;       //boxplot for correlation
+    std::map<String, UInt> mz_model; //count used mz models
+    std::map<float, UInt> mz_stdev; //count used mz standard deviations
+    std::vector<UInt> charge; //count used charges
+    double corr_mean, corr_max, corr_min; //boxplot for correlation
 
     /// Initial values
     Summary() :
@@ -113,7 +113,7 @@ public:
     }
 
     /// Sets a reference to the calling FeatureFinder
-    void setData(const MapType & map, FeatureMap & features, FeatureFinder & ff)
+    void setData(const MapType& map, FeatureMap& features, FeatureFinder& ff)
     {
       map_ = &map;
       features_ = &features;
@@ -125,7 +125,7 @@ public:
 
         @exception Exception::IllegalArgument is thrown if the algorithm does not support user-specified seed lists
     */
-    virtual void setSeeds(const FeatureMap & seeds)
+    virtual void setSeeds(const FeatureMap& seeds)
     {
       if (seeds.size() != 0)
       {
@@ -136,21 +136,21 @@ public:
 protected:
 
     /// Input data pointer
-    const MapType * map_;
+    const MapType* map_;
 
     /// Output data pointer
-    FeatureMap * features_;
+    FeatureMap* features_;
 
     /// Pointer to the calling FeatureFinder that is used to access the feature flags
-    FeatureFinder * ff_;
+    FeatureFinder* ff_;
 
 private:
 
     /// Not implemented
-    FeatureFinderAlgorithm & operator=(const FeatureFinderAlgorithm &);
+    FeatureFinderAlgorithm& operator=(const FeatureFinderAlgorithm&);
 
     /// Not implemented
-    FeatureFinderAlgorithm(const FeatureFinderAlgorithm &);
+    FeatureFinderAlgorithm(const FeatureFinderAlgorithm&);
 
   };
 }

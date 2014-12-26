@@ -32,7 +32,6 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_DATASTRUCTURES_BINARYTREENODE_H
 #define OPENMS_DATASTRUCTURES_BINARYTREENODE_H
 
@@ -57,10 +56,10 @@ public:
     ~BinaryTreeNode();
 
     /// copy constructor
-    BinaryTreeNode(const BinaryTreeNode & source);
+    BinaryTreeNode(const BinaryTreeNode& source);
 
     /// assignment operator
-    BinaryTreeNode & operator=(const BinaryTreeNode & source);
+    BinaryTreeNode& operator=(const BinaryTreeNode& source);
 
     Size left_child;
     Size right_child;

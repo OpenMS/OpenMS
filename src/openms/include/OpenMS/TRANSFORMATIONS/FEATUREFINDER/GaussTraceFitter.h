@@ -97,17 +97,18 @@ protected:
 
     void getOptimizedParameters_(const Eigen::VectorXd& x_init);
 
-    class GaussTraceFunctor : public TraceFitter::GenericFunctor
+    class GaussTraceFunctor :
+      public TraceFitter::GenericFunctor
     {
-    public:
+public:
       GaussTraceFunctor(int dimensions,
-          const TraceFitter::ModelData* data);
+                        const TraceFitter::ModelData* data);
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec);
 
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
-    protected:
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J);
+protected:
       const TraceFitter::ModelData* m_data;
     };
 

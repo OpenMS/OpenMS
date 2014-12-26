@@ -246,7 +246,7 @@ namespace OpenMS
           {
             right_bound = mid_element_idx;
           }
-          else             // or to the right...
+          else // or to the right...
           {
             left_bound = mid_element_idx;
           }
@@ -464,7 +464,7 @@ namespace OpenMS
       Size last_idx(0);
 
       // add last data point as last minimum (to grep the last chunk of the MT)
-      mins.push_back(mt.getSize()-1);
+      mins.push_back(mt.getSize() - 1);
 
       for (Size min_idx = 0; min_idx < mins.size(); ++min_idx)
       {

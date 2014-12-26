@@ -36,6 +36,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/Factory.h>
+
 #include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS
@@ -51,7 +52,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  BiGaussFitter1D::BiGaussFitter1D(const BiGaussFitter1D & source) :
+  BiGaussFitter1D::BiGaussFitter1D(const BiGaussFitter1D& source) :
     MaxLikeliFitter1D(source)
   {
     updateMembers_();
@@ -61,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  BiGaussFitter1D & BiGaussFitter1D::operator=(const BiGaussFitter1D & source)
+  BiGaussFitter1D& BiGaussFitter1D::operator=(const BiGaussFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -72,7 +73,7 @@ namespace OpenMS
     return *this;
   }
 
-  BiGaussFitter1D::QualityType BiGaussFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  BiGaussFitter1D::QualityType BiGaussFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
     min_ = max_ = set[0].getPos();
@@ -94,7 +95,7 @@ namespace OpenMS
     }
 
     // build model
-    model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("BiGaussModel"));
+    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("BiGaussModel"));
     model->setInterpolationStep(interpolation_step_);
     Param tmp;
     tmp.setValue("bounding_box:min", min_);

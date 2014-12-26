@@ -41,20 +41,20 @@ using namespace std;
 namespace OpenMS
 {
 
-  GridFeature::GridFeature(const BaseFeature & feature, Size map_index,
+  GridFeature::GridFeature(const BaseFeature& feature, Size map_index,
                            Size feature_index) :
     feature_(feature),
     map_index_(map_index),
     feature_index_(feature_index),
     annotations_()
   {
-    const vector<PeptideIdentification> & peptides =
+    const vector<PeptideIdentification>& peptides =
       feature.getPeptideIdentifications();
     for (vector<PeptideIdentification>::const_iterator pep_it =
            peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
-        continue;                                    // shouldn't be the case
+        continue; // shouldn't be the case
       annotations_.insert(pep_it->getHits()[0].getSequence());
     }
   }
@@ -63,7 +63,7 @@ namespace OpenMS
   {
   }
 
-  const BaseFeature & GridFeature::getFeature() const
+  const BaseFeature& GridFeature::getFeature() const
   {
     return feature_;
   }
@@ -83,7 +83,7 @@ namespace OpenMS
     return (Int)feature_index_;
   }
 
-  const set<AASequence> & GridFeature::getAnnotations() const
+  const set<AASequence>& GridFeature::getAnnotations() const
   {
     return annotations_;
   }

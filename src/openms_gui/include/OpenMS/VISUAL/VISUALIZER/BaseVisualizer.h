@@ -56,7 +56,7 @@ namespace OpenMS
 public:
 
     /// Loads the object that is to be edited.
-    void load(ObjectType & o)
+    void load(ObjectType& o)
     {
       ptr_ = &o;
       temp_ = o;
@@ -69,7 +69,7 @@ public:
 protected:
 
     /// Pointer to the object that is currently edited
-    ObjectType * ptr_;
+    ObjectType* ptr_;
     /// Copy of current object used to restore the original values
     ObjectType temp_;
 

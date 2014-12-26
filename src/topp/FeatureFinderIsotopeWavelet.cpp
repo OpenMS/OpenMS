@@ -122,12 +122,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return FeatureFinder().getParameters(FeatureFinderAlgorithmIsotopeWavelet::getProductName());
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //input and output file names ..
     String in = getStringOption_("in");
@@ -200,7 +200,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureFinderIsotopeWavelet tool;
   return tool.main(argc, argv);
