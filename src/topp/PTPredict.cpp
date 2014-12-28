@@ -113,7 +113,6 @@ protected:
     vector<double> predicted_labels;
     map<String, double> predicted_data;
     svm_problem* training_data = NULL;
-    svm_problem* prediction_data = NULL;
     UInt border_length = 0;
     UInt k_mer_length = 0;
     double sigma = 0;
@@ -211,6 +210,8 @@ protected:
 
       temp_peptides.insert(temp_peptides.end(), it_from, it_to);
       temp_labels.resize(temp_peptides.size(), 0);
+
+      svm_problem* prediction_data = NULL;
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
       {
