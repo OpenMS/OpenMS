@@ -104,7 +104,6 @@ namespace OpenMS
           char buff[100];
           if (fgets(buff, sizeof(buff), fp) != NULL)
           {
-            pclose(fp);
             String output(buff);
             StringList components;
             output.split(' ', components);
@@ -121,6 +120,7 @@ namespace OpenMS
         {
           LOG_DEBUG << "output shaping: stty size command failed." << std::endl;
         }
+        pclose(fp);
 #endif
       }
       --console_width_; // to add the \n at the end of each line without forcing another line break on windows
