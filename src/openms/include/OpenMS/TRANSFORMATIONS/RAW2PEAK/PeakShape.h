@@ -46,14 +46,15 @@ namespace OpenMS
   /**
     @brief Internal representation of a peak shape (used by the PeakPickerCWT)
 
-    It defines an asymmetric lorentzian and asymmetric hyperbolic squared secan function.
+    It defines an asymmetric Lorentzian and asymmetric hyperbolic squared secan function.
   */
-  struct OPENMS_DLLAPI PeakShape
+  class OPENMS_DLLAPI PeakShape
   {
+  public:
     /**
-      @brief Peak shape type (asymmetric lorentzian or asymmetric hyperbolic secans squared).
+      @brief Peak shape type (asymmetric Lorentzian or asymmetric hyperbolic secans squared).
 
-      The peak shape can represent an asymmetric lorentzian function, given by
+      The peak shape can represent an asymmetric Lorentzian function, given by
 
       l(x) = height/(1.+pow(left_width*(x - mz_position), 2)) (x<=mz_position)
 
@@ -76,21 +77,7 @@ namespace OpenMS
     typedef MSSpectrum<>::const_iterator PeakIterator;
 
     /// Default constructor
-    PeakShape() :
-      height(0),
-      mz_position(0),
-      left_width(0),
-      right_width(0),
-      area(0),
-      r_value(0),
-      signal_to_noise(0.),
-      type(UNDEFINED),
-      left_iterator_set_(false),
-      right_iterator_set_(false)
-    {
-      left_endpoint_ = exp_.end();
-      right_endpoint_ = exp_.end();
-    }
+    PeakShape();
 
     /// Constructor that sets most of the members
     PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, PeakIterator left_, PeakIterator right_, Type type_);
@@ -103,10 +90,8 @@ namespace OpenMS
     PeakShape(const PeakShape & rhs);
 
     /// Destructor
-    virtual ~PeakShape()
-    {
-    }
-
+    virtual ~PeakShape();
+    
     /// Assignment operator
     PeakShape & operator=(const PeakShape & rhs);
 
@@ -117,11 +102,11 @@ namespace OpenMS
 
     /// Compute the intensity of the peaks shape at position x
     double operator()(double x) const;
-    /// Computes symmetry measure of the peak shape, which is corresponds to th ratio of the left and right width parameters.
+    /// Computes symmetry measure of the peak shape, which is corresponds to the ratio of the left and right width parameters.
     double getSymmetricMeasure() const;
     /// Estimates the full width at half maximum.
     double getFWHM() const;
-    /// Check if endpoint iterators
+    /// Check if endpoint iterators are provided
     bool iteratorsSet() const;
 
     PeakIterator getLeftEndpoint() const;
@@ -167,7 +152,7 @@ protected:
     PeakIterator left_endpoint_;
     /// Right peak endpoint in the data
     PeakIterator right_endpoint_;
-    /// Needed for initialisation of endpoint iterators
+    /// Needed for initialization of endpoint iterators
     MSSpectrum<> exp_;
     /// flag if left endpoint iterator differs from default value
     bool left_iterator_set_;
