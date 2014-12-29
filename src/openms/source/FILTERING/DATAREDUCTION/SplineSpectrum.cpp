@@ -133,7 +133,7 @@ namespace OpenMS
     // "quickly followed" by a second one, if the m/z step is shorter than scaling_Thermo_bug times the previous m/z step.)
     std::vector<double> mz_slim2; // slimmer vector after removal of Thermo bugs from mz_slim1
     std::vector<double> intensity_slim2; // slimmer vector after removal of Thermo bugs from intensity_slim1
-    const double scaling_Thermo_bug = 1 / 50; // scaling factor for Thermo bug
+    const double scaling_Thermo_bug = 1.0 / 50.0; // scaling factor for Thermo bug
     mz_slim2.reserve(mz_slim1.size());
     intensity_slim2.reserve(intensity_slim1.size());
     mz_slim2.push_back(mz_slim1[0]);
