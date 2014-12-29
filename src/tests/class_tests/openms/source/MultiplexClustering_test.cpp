@@ -100,7 +100,7 @@ std::vector<MultiplexFilterResult> filter_results = filtering.filter();
 MultiplexClustering* nullPointer = 0;
 MultiplexClustering* ptr;
 
-START_SECTION(MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug))
+START_SECTION(MultiplexClustering(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum, String out_debug))
     MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
     ptr = new MultiplexClustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
@@ -110,7 +110,7 @@ END_SECTION
 
 MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical, rt_minimum, out_debug);
 
-START_SECTION(std::vector<std::map<int GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results))
+START_SECTION(std::vector<std::map<int GridBasedCluster> > cluster(const std::vector<MultiplexFilterResult>& filter_results))
     std::vector<std::map<int,GridBasedCluster> > cluster_results = clustering.cluster(filter_results);
     TEST_EQUAL(cluster_results[0].size(), 0);
     TEST_EQUAL(cluster_results[1].size(), 0);

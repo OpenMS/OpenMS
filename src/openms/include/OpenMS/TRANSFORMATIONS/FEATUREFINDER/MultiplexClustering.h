@@ -83,7 +83,7 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug);
+        MultiplexClustering(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum, String out_debug);
         
         /**
          * @brief constructor
@@ -97,7 +97,7 @@ namespace OpenMS
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(MSExperiment<Peak1D> exp_picked, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum, String out_debug);
+        MultiplexClustering(const MSExperiment<Peak1D>& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum, String out_debug);
         
         /**
          * @brief cluster filter results
@@ -107,7 +107,7 @@ namespace OpenMS
          * 
          * @return cluster results (cluster ID, details about cluster including list of filter result IDs belonging to the cluster)
          */
-        std::vector<std::map<int,GridBasedCluster> > cluster(std::vector<MultiplexFilterResult> filter_results);
+        std::vector<std::map<int,GridBasedCluster> > cluster(const std::vector<MultiplexFilterResult>& filter_results);
         
         /**
          * @brief scaled Euclidean distance for clustering
