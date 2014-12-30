@@ -63,7 +63,7 @@ START_SECTION(virtual ~SwathWindowLoader())
     delete ptr;
 END_SECTION
 
-START_SECTION( static void readSwathWindows(const String filename, std::vector<double> & swath_prec_lower_, std::vector<double> & swath_prec_upper_ ) )
+START_SECTION( static void readSwathWindows(const String & filename, std::vector<double> & swath_prec_lower_, std::vector<double> & swath_prec_upper_ ) )
 {
   std::vector<double> swath_prec_lower;
   std::vector<double> swath_prec_upper;
@@ -82,7 +82,7 @@ START_SECTION( static void readSwathWindows(const String filename, std::vector<d
 }
 END_SECTION
 
-START_SECTION ( static void annotateSwathMapsFromFile(const std::string filename, std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort))
+START_SECTION ( static void annotateSwathMapsFromFile(const std::string & filename, std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort))
 {
   std::vector< OpenSwath::SwathMap > swath_maps(4);
   SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps, false);
@@ -109,6 +109,15 @@ START_SECTION ( static void annotateSwathMapsFromFile(const std::string filename
   TEST_REAL_SIMILAR(swath_maps_sorted[1].upper, 450)
   TEST_REAL_SIMILAR(swath_maps_sorted[2].upper, 475)
   TEST_REAL_SIMILAR(swath_maps_sorted[3].upper, 500)
+
+  // Test exceptions
+  std::vector< OpenSwath::SwathMap > swath_maps_too_large(5);
+  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument, 
+      SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_too_large, true));
+
+  std::vector< OpenSwath::SwathMap > swath_maps_too_small(3);
+  TEST_EXCEPTION(OpenMS::Exception::IllegalArgument, 
+      SwathWindowLoader::annotateSwathMapsFromFile(OPENMS_GET_TEST_DATA_PATH("SwathWindowFile.txt"), swath_maps_too_small, true));
 }
 END_SECTION
 
