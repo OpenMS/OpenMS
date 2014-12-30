@@ -1757,7 +1757,7 @@ namespace OpenMS
         avg_width += best_FWHMs[s];
       }
       avg_width /= (double)best_FWHMs.size();
-      std::cout << "--> Average estimated FWHM: " << avg_width / (double)best_FWHMs.size() << std::endl;
+      std::cout << "--> Average estimated FWHM: " << avg_width << std::endl;
     }
 
     // restore old param set
