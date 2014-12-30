@@ -44,12 +44,12 @@
 namespace OpenMS
 {
 
-  static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath::SwathMap right)
+  static bool SortSwathMapByLower(const OpenSwath::SwathMap & left, const OpenSwath::SwathMap & right)
   {
     return left.upper < right.upper;
   }
 
-  void SwathWindowLoader::annotateSwathMapsFromFile(const std::string filename,
+  void SwathWindowLoader::annotateSwathMapsFromFile(const std::string & filename,
     std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort)
   {
     std::vector<double> swath_prec_lower_, swath_prec_upper_;
@@ -57,7 +57,9 @@ namespace OpenMS
 
     // Sort the windows by the start of the lower window
     if (doSort)
-      {std::sort(swath_maps.begin(), swath_maps.end(), SortSwathMapByLower);}
+    {
+      std::sort(swath_maps.begin(), swath_maps.end(), SortSwathMapByLower);
+    }
 
     Size i = 0, j = 0;
     for (; i < swath_maps.size(); i++)
@@ -94,7 +96,7 @@ namespace OpenMS
     }
   }
 
-  void SwathWindowLoader::readSwathWindows(const std::string filename,
+  void SwathWindowLoader::readSwathWindows(const std::string & filename,
     std::vector<double> & swath_prec_lower_,
     std::vector<double> & swath_prec_upper_ )
   {

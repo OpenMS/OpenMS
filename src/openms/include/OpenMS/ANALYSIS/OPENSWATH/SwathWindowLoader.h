@@ -68,9 +68,11 @@ namespace OpenMS
      *
      * @param filename The filename of the tab delimited file
      * @param swath_maps The list of SWATH maps (assumed to be in the same order as in the file)
+     * @param doSort Sort the windows after reading in ascending order
+     * @throw Exception::IllegalArgument if the maps in the file and the provided input maps to not match
      *
      */
-    static void annotateSwathMapsFromFile(const std::string filename,
+    static void annotateSwathMapsFromFile(const std::string & filename,
       std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort);
 
     /**
@@ -89,7 +91,7 @@ namespace OpenMS
      * @param swath_prec_upper_ The output vector for the window end
      *
      */
-    static void readSwathWindows(const std::string filename,
+    static void readSwathWindows(const std::string & filename,
       std::vector<double> & swath_prec_lower_,
       std::vector<double> & swath_prec_upper_ );
   };
