@@ -59,7 +59,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, double rt_typical, double rt_minimum, String out_debug) :
+  MultiplexClustering::MultiplexClustering(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum, String out_debug) :
     rt_typical_(rt_typical), rt_minimum_(rt_minimum), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
   {
     if (exp_picked.size() != boundaries.size())
@@ -92,10 +92,10 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
-    MSExperiment<Peak1D>::Iterator it_rt;
+    MSExperiment<Peak1D>::ConstIterator it_rt;
     for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
     {
-      MSSpectrum<Peak1D>::Iterator it_mz;
+      MSSpectrum<Peak1D>::ConstIterator it_mz;
       for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         mz.push_back(it_mz->getMZ());
@@ -106,7 +106,7 @@ namespace OpenMS
 
   }
 
-  MultiplexClustering::MultiplexClustering(MSExperiment<Peak1D> exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum, String out_debug) :
+  MultiplexClustering::MultiplexClustering(const MSExperiment<Peak1D>& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum, String out_debug) :
     rt_typical_(rt_typical), rt_minimum_(rt_minimum), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
   {
     // ranges of the experiment
@@ -143,10 +143,10 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
-    MSExperiment<Peak1D>::Iterator it_rt;
+    MSExperiment<Peak1D>::ConstIterator it_rt;
     for (it_rt = exp.begin(); it_rt < exp.end(); ++it_rt)
     {
-      MSSpectrum<Peak1D>::Iterator it_mz;
+      MSSpectrum<Peak1D>::ConstIterator it_mz;
       for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
       {
         mz.push_back(it_mz->getMZ());
@@ -164,7 +164,7 @@ namespace OpenMS
 
   }
 
-  std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(std::vector<MultiplexFilterResult> filter_results)
+  std::vector<std::map<int, GridBasedCluster> > MultiplexClustering::cluster(const std::vector<MultiplexFilterResult>& filter_results)
   {
     // progress logger
     unsigned progress = 0;
