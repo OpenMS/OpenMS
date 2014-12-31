@@ -36,11 +36,5 @@
 
 namespace OpenSwath
 {
-	/*
-  TargetedExperiment::TargetedExperiment()
-  {}
-	
-  TargetedExperiment::~TargetedExperiment() 
-  {}
-  */
 }
+
