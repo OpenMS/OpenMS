@@ -44,10 +44,11 @@ set(sources_algo_list
 
 set(sources_dataaccess_list
   DATAACCESS/SpectrumHelpers.cpp
-	DATAACCESS/ISpectrumAccess.cpp
-	DATAACCESS/TransitionHelper.cpp
-	DATAACCESS/MockObjects.cpp
-	DATAACCESS/DataFrameWriter.cpp
+  DATAACCESS/ISpectrumAccess.cpp
+  DATAACCESS/TransitionHelper.cpp
+  DATAACCESS/MockObjects.cpp
+  DATAACCESS/DataFrameWriter.cpp
+  DATAACCESS/Transitions.cpp
 )
 
 ### add path to the filenames
