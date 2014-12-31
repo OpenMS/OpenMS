@@ -37,17 +37,17 @@ set(directory source/ANALYSIS/OPENSWATH/OPENSWATHALGO)
 
 ### list all files of the directory here
 set(sources_algo_list
-  ALGO/Scoring.cpp
   ALGO/MRMScoring.cpp
+  ALGO/Scoring.cpp
   ALGO/StatsHelpers.cpp
 )
 
 set(sources_dataaccess_list
-  DATAACCESS/SpectrumHelpers.cpp
-  DATAACCESS/ISpectrumAccess.cpp
-  DATAACCESS/TransitionHelper.cpp
-  DATAACCESS/MockObjects.cpp
   DATAACCESS/DataFrameWriter.cpp
+  DATAACCESS/ISpectrumAccess.cpp
+  DATAACCESS/MockObjects.cpp
+  DATAACCESS/SpectrumHelpers.cpp
+  DATAACCESS/TransitionHelper.cpp
   DATAACCESS/Transitions.cpp
 )
 
@@ -82,11 +82,11 @@ set(header_dataaccess_list
   DATAACCESS/DataFrameWriter.h
   DATAACCESS/DataStructures.h
   DATAACCESS/ISpectrumAccess.h
-  DATAACCESS/TransitionHelper.h
   DATAACCESS/ITransition.h
   DATAACCESS/MockObjects.h
   DATAACCESS/SpectrumHelpers.h
   DATAACCESS/TransitionExperiment.h
+  DATAACCESS/TransitionHelper.h
   DATAACCESS/Transitions.h
 )
 
