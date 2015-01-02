@@ -32,6 +32,7 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
@@ -92,9 +93,9 @@ class TOPPHiResPrecursorMassCorrector :
       // input files
       registerInputFile_("in", "<file>", "", "input file (centroided data)");
       setValidFormats_("in", ListUtils::create<String>("mzML"));
+      registerTOPPSubsection_("feature", "Use features for precursor mass correction.");
       registerInputFile_("feature:in", "<file>", "", "features used to correct precursor masses.", false);
       setValidFormats_("feature:in", ListUtils::create<String>("featureXML"));
-      registerTOPPSubsection_("feature", "Use features for precursor mass correction.");
       registerDoubleOption_("feature:mz_tolerance", "<num>", 5.0, "The precursor mass tolerance. Used to determine matching to feature mass traces.", false);
       registerStringOption_("feature:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
       setValidStrings_("feature:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
@@ -107,9 +108,14 @@ class TOPPHiResPrecursorMassCorrector :
       setValidFormats_("out", ListUtils::create<String>("mzML"));
       registerOutputFile_("out_csv", "<file>", "", "Optional csv output file containing columns: precursor rt, uncorrected mz, corrected mz, delta mz\n", false);
       setValidFormats_("out_csv", ListUtils::create<String>("csv"));
+
+      registerTOPPSubsection_("nearest_peak", "Use nearest MS1 peak for precursor mass correction.");
+      registerDoubleOption_("nearest_peak:mz_tolerance", "<num>", 0.0, "The precursor mass tolerance. Used to determine matching to next MS1 peak.", false);
+      registerStringOption_("nearest_peak:mz_tolerance_unit", "<choice>", "ppm", "Unit of precursor mass tolerance", false);
+      setValidStrings_("nearest_peak:mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
     }
 
-    void getPrecursors_(const PeakMap & exp, vector<Precursor> & precursors, vector<double> & precursors_rt)
+    void getPrecursors_(const PeakMap & exp, vector<Precursor> & precursors, vector<double> & precursors_rt, vector<Size> precursor_scan_index)
     {
       for (Size i = 0; i != exp.size(); ++i)
       {
@@ -121,6 +127,7 @@ class TOPPHiResPrecursorMassCorrector :
         vector<double> pcs_rt(pcs.size(), exp[i].getRT());
         copy(pcs.begin(), pcs.end(), back_inserter(precursors));
         copy(pcs_rt.begin(), pcs_rt.end(), back_inserter(precursors_rt));
+	precursor_scan_index.push_back(i);
       }
     }
 
@@ -188,12 +195,14 @@ class TOPPHiResPrecursorMassCorrector :
       }
     }
 
-    void correctToNearestMS1Peak(PeakMap & exp, vector<double> & deltaMZs, vector<double> & mzs, vector<double> & rts)
+    set<Size> correctToNearestMS1Peak(PeakMap & exp, double mz_tolerance, bool ppm, vector<double> & deltaMZs, vector<double> & mzs, vector<double> & rts)
     {
+      set<Size> corrected_precursors;
       // load experiment and extract precursors
       vector<Precursor> precursors;  // precursor
       vector<double> precursors_rt;  // RT of precursor MS2 spectrum
-      getPrecursors_(exp, precursors, precursors_rt);
+      vector<Size> precursor_scan_index;
+      getPrecursors_(exp, precursors, precursors_rt, precursor_scan_index);
 
       for (Size i = 0; i != precursors_rt.size(); ++i)
       {
@@ -206,7 +215,7 @@ class TOPPHiResPrecursorMassCorrector :
         //cout << rt << " " << mz << endl;
 
         // get precursor spectrum
-        MSExperiment<Peak1D>::ConstIterator rt_it = exp.RTBegin(rt);
+        MSExperiment<Peak1D>::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
 
         // store index of MS2 spectrum
         UInt precursor_spectrum_idx = rt_it - exp.begin();
@@ -228,10 +237,10 @@ class TOPPHiResPrecursorMassCorrector :
         double nearest_peak_mz = (*rt_it)[nearest_peak_idx].getMZ();
 
         // calculate error between expected and actual position
-        double nearestPeakError = abs(nearest_peak_mz - mz);
+        double nearestPeakError = ppm ? abs(nearest_peak_mz - mz)/mz * 1e6 : abs(nearest_peak_mz - mz);
 
         // check if error is small enough
-        if (nearestPeakError < 0.1)
+        if (nearestPeakError < mz_tolerance)
         {
           // sanity check: do we really have the same precursor in the original and the picked spectrum
           if (fabs(exp[precursor_spectrum_idx].getPrecursors()[0].getMZ() - mz) > 0.0001)
@@ -248,8 +257,10 @@ class TOPPHiResPrecursorMassCorrector :
           Precursor corrected_prec = precursors[i];
           corrected_prec.setMZ(nearest_peak_mz);
           exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
-        }
+          corrected_precursors.insert(precursor_spectrum_idx);
+	}
       }
+      return corrected_precursors;
     }
 
     // Wrong assignment of the mono-isotopic mass for precursors are assumed:
@@ -258,8 +269,9 @@ class TOPPHiResPrecursorMassCorrector :
     // In the case of wrong mono-isotopic assignment several options for correction are available:
     // keep_original will create a copy of the precursor and tandem spectrum for the new mono-isotopic mass trace and retain the original one
     // all_matching_features does this not for only the closest feature but all features in a question
-    void correctToNearestFeature(const FeatureMap& features, PeakMap & exp, double rt_tolerance_s = 0.0, double mz_tolerance = 0.0, bool ppm = true, bool believe_charge = false, bool keep_original = false, bool all_matching_features = false, int max_trace = 2)
+    set<Size> correctToNearestFeature(const FeatureMap& features, PeakMap & exp, double rt_tolerance_s = 0.0, double mz_tolerance = 0.0, bool ppm = true, bool believe_charge = false, bool keep_original = false, bool all_matching_features = false, int max_trace = 2)
     {
+      set<Size> corrected_precursors;
       // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
       // if believe_charge is set, only add features that match the precursor charge
       map<Size, set<Size> > scan_idx_to_feature_idx;
@@ -375,6 +387,7 @@ class TOPPHiResPrecursorMassCorrector :
         {
           const Size scan = it->first;
           MSSpectrum<> spectrum = exp[scan];
+	  corrected_precursors.insert(scan);
           for (set<Size>::iterator f_it = it->second.begin(); f_it != it->second.end(); ++f_it)
           {
             spectrum.getPrecursors()[0].setMZ(features[*f_it].getMZ());
@@ -391,8 +404,10 @@ class TOPPHiResPrecursorMassCorrector :
           const Size scan = it->first;
           exp[scan].getPrecursors()[0].setMZ(features[*it->second.begin()].getMZ());
           exp[scan].getPrecursors()[0].setCharge(features[*it->second.begin()].getCharge());
+	  corrected_precursors.insert(scan);
         }
       }
+      return corrected_precursors;
     }
 
     ExitCodes main_(int, const char **)
@@ -410,6 +425,9 @@ class TOPPHiResPrecursorMassCorrector :
       bool assign_all_matching = getFlag_("feature:assign_all_matching");
       bool believe_charge = getFlag_("feature:believe_charge");
 
+      const double nearest_peak_mz_tolerance = getDoubleOption_("nearest_peak:mz_tolerance");
+      const bool nearest_peak_ppm = getStringOption_("nearest_peak:mz_tolerance_unit") == "ppm" ? true : false;
+
       PeakMap exp;
       MzMLFile().load(in_mzml, exp);
 
@@ -419,23 +437,39 @@ class TOPPHiResPrecursorMassCorrector :
       vector<double> deltaMZs;
       vector<double> mzs;
       vector<double> rts;
+      set<Size> corrected_precursors; // spectrum index of corrected precursors
 
-      if (in_feature.empty())
+      // perform correction to closest MS1 peak
+      set<Size> corrected_to_nearest_peak;
+      if (nearest_peak_mz_tolerance > 0.0)
       {
-        correctToNearestMS1Peak(exp, deltaMZs, mzs, rts);
+        corrected_to_nearest_peak = correctToNearestMS1Peak(exp, nearest_peak_mz_tolerance, nearest_peak_ppm, deltaMZs, mzs, rts);
       }
-      else
+ 
+      // perform correction to closest feature (also corrects charge if not disabled)
+      set<Size> corrected_to_nearest_feature;	      
+      if (!in_feature.empty())
       {
         FeatureMap features;
         FeatureXMLFile().load(in_feature, features);
-        correctToNearestFeature(features, exp, rt_tolerance, mz_tolerance, mz_unit_ppm, believe_charge, keep_original, assign_all_matching, max_trace);
+        corrected_to_nearest_feature = correctToNearestFeature(features, exp, rt_tolerance, mz_tolerance, mz_unit_ppm, believe_charge, keep_original, assign_all_matching, max_trace);
+        corrected_precursors.insert(corrected_to_nearest_feature.begin(), corrected_to_nearest_feature.end());
       }
 
       MzMLFile().store(out_mzml, exp);
 
-      if (out_csv != "")
+      if (nearest_peak_mz_tolerance > 0.0)
       {
-        writeHist(out_csv, deltaMZs, mzs, rts);
+        LOG_INFO << "Corrected " << corrected_to_nearest_peak.size() << " precursor to a MS1 peak." << endl;
+        if (out_csv != "")
+        {
+          writeHist(out_csv, deltaMZs, mzs, rts);
+        }
+      }
+
+      if (!in_feature.empty())
+      {
+	LOG_INFO << "Corrected " << corrected_to_nearest_feature.size() << " precursors to a feature." << endl;
       }
 
       return EXECUTION_OK;
