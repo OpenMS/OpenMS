@@ -132,6 +132,15 @@ print_if_verbose "Applying to branch ${branch_name}"
 # get modified files .. including only *.cpp and *.h, but no tests
 modified_files=$(git diff --name-only ${branch_name} $(git merge-base ${branch_name} ${REF_BRANCH}) | grep -e '.cpp$' -e '.h$' | grep -v '_test.cpp$' | grep -v 'thirdparty')
 
+uncrustify_branch_name=${branch_name}_uncrustify
+echo "Creating and switching to uncrustify branch ${uncrustify_branch_name}"
+
+if [ $DRY -ne 1 ]; then
+  git checkout -b ${uncrustify_branch_name} ${branch_name}
+else
+  echo "git checkout -b ${uncrustify_branch_name} ${branch_name}"
+fi
+
 for f in $modified_files; do
   print_if_verbose "Uncrustify file: $f"
   if [ $DRY -ne 1 ]; then
