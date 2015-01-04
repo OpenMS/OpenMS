@@ -127,7 +127,7 @@ class TOPPHiResPrecursorMassCorrector :
         vector<double> pcs_rt(pcs.size(), exp[i].getRT());
         copy(pcs.begin(), pcs.end(), back_inserter(precursors));
         copy(pcs_rt.begin(), pcs_rt.end(), back_inserter(precursors_rt));
-	precursor_scan_index.push_back(i);
+        precursor_scan_index.push_back(i);
       }
     }
 
@@ -258,7 +258,7 @@ class TOPPHiResPrecursorMassCorrector :
           corrected_prec.setMZ(nearest_peak_mz);
           exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
           corrected_precursors.insert(precursor_spectrum_idx);
-	}
+        }
       }
       return corrected_precursors;
     }
@@ -387,7 +387,7 @@ class TOPPHiResPrecursorMassCorrector :
         {
           const Size scan = it->first;
           MSSpectrum<> spectrum = exp[scan];
-	  corrected_precursors.insert(scan);
+          corrected_precursors.insert(scan);
           for (set<Size>::iterator f_it = it->second.begin(); f_it != it->second.end(); ++f_it)
           {
             spectrum.getPrecursors()[0].setMZ(features[*f_it].getMZ());
@@ -404,7 +404,7 @@ class TOPPHiResPrecursorMassCorrector :
           const Size scan = it->first;
           exp[scan].getPrecursors()[0].setMZ(features[*it->second.begin()].getMZ());
           exp[scan].getPrecursors()[0].setCharge(features[*it->second.begin()].getCharge());
-	  corrected_precursors.insert(scan);
+          corrected_precursors.insert(scan);
         }
       }
       return corrected_precursors;
@@ -447,7 +447,7 @@ class TOPPHiResPrecursorMassCorrector :
       }
  
       // perform correction to closest feature (also corrects charge if not disabled)
-      set<Size> corrected_to_nearest_feature;	      
+      set<Size> corrected_to_nearest_feature;      
       if (!in_feature.empty())
       {
         FeatureMap features;
@@ -469,7 +469,7 @@ class TOPPHiResPrecursorMassCorrector :
 
       if (!in_feature.empty())
       {
-	LOG_INFO << "Corrected " << corrected_to_nearest_feature.size() << " precursors to a feature." << endl;
+        LOG_INFO << "Corrected " << corrected_to_nearest_feature.size() << " precursors to a feature." << endl;
       }
 
       return EXECUTION_OK;
