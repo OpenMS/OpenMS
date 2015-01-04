@@ -325,6 +325,9 @@ protected:
 
     const String in_fasta_file(getStringOption_("in_fasta"));
 
+    const String out_idXML = getStringOption_("out_idXML");
+    const string out_csv = getStringOption_("out_csv");
+
     RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_length);
 
     String base_name = QFileInfo(QString::fromStdString(in_mzml)).baseName();
@@ -528,8 +531,6 @@ protected:
     }
 
     // create report
-    const String out_idXML = getStringOption_("out_idXML");
-    const string out_csv = getStringOption_("out_csv");
     vector<RNPxlReportRow> csv_rows;
 
     const double marker_tolerance = getDoubleOption_("marker_ions_tolerance");
