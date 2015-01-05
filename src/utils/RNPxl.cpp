@@ -792,7 +792,7 @@ protected:
     {
       for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
       {
-        double rt = (double)pit->getMetaValue("RT");
+        double rt = pit->getRT();
 
         set<String> accessions = hit->extractProteinAccessions();
 
