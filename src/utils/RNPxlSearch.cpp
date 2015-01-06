@@ -341,7 +341,7 @@ class RNPxlSearch
 
     double logfactorial(UInt x)
     {
-      int y;
+      Size y;
 
       if (x < 2)
         return 1;
@@ -561,9 +561,11 @@ class RNPxlSearch
         // assign unprocessed peptides
         current_digest.assign(tmp.begin(), tmp.end());
 
+        for (vector<AASequence>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+        {
         vector<AASequence> all_modified_peptides;
-        ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), current_digest.begin(), current_digest.end());
-        ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), current_digest.begin(), current_digest.end(), max_variable_mods_per_peptide, all_modified_peptides);
+        ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), *cit);
+        ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), *cit, max_variable_mods_per_peptide, all_modified_peptides);
 
         for (vector<AASequence>::const_iterator mod_peps_it = all_modified_peptides.begin(); mod_peps_it != all_modified_peptides.end(); ++mod_peps_it)
         {
@@ -625,7 +627,7 @@ class RNPxlSearch
           }
         }
       }
-
+      }
       // annotate with RT and MZ and sort by rank
       for (vector< vector<PeptideHit> >::const_iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
       {
