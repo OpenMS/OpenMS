@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,9 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -57,23 +60,21 @@
 #include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
-#include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
 
 #include <map>
 #include <algorithm>
 
-#include <boost/unordered_set.hpp>
-#include <boost/functional/hash.hpp>
+#ifdef _OPENMP
+#include <omp.h>
+#define NUMBER_OF_THREADS (omp_get_num_threads())
+#else
+#define NUMBER_OF_THREADS (1)
+#endif
 
 using namespace OpenMS;
 using namespace std;
-using namespace boost::unordered;
 
 /*
   TODO:
@@ -95,158 +96,178 @@ using namespace boost::unordered;
 
 struct PeptideHitSequenceLessComparator
 {
-    bool operator()(const PeptideHit& a, const PeptideHit& b)
-    {
-      if (a.getSequence().toString() < b.getSequence().toString()) return true;
-      return false;
-    }
+  bool operator()(const PeptideHit& a, const PeptideHit& b)
+  {
+    if (a.getSequence().toString() < b.getSequence().toString()) return true;
+
+    return false;
+  }
+
 };
 
-class RNPxlSearch
-    : public TOPPBase
+class RNPxlSearch :
+  public TOPPBase
 {
-  public:
-    RNPxlSearch() :
-      TOPPBase("RNPxlSearch", "Annotates MS/MS spectra using RNPxlSearch.", false)
+public:
+  RNPxlSearch() :
+    TOPPBase("RNPxlSearch", "Annotates MS/MS spectra using RNPxlSearch.", false)
+  {
+  }
+
+protected:
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "input file ");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
+
+    registerInputFile_("database", "<file>", "", "input file ");
+    setValidFormats_("database", ListUtils::create<String>("fasta"));
+
+    registerOutputFile_("out", "<file>", "", "output file ");
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
+
+    registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
+    registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
+
+    StringList precursor_mass_tolerance_unit_valid_strings;
+    precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
+    precursor_mass_tolerance_unit_valid_strings.push_back("Da");
+
+    registerStringOption_("precursor:mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
+    setValidStrings_("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
+
+    registerIntOption_("precursor:min_charge", "<num>", 2, "Minimum precursor charge to be considered.", false, false);
+    registerIntOption_("precursor:max_charge", "<num>", 5, "Maximum precursor charge to be considered.", false, false);
+
+    registerTOPPSubsection_("fragment", "Fragments (Product Ion) Options");
+    registerDoubleOption_("fragment:mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
+
+    StringList fragment_mass_tolerance_unit_valid_strings;
+    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
+    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+
+    registerStringOption_("fragment:mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
+    setValidStrings_("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
+
+    registerTOPPSubsection_("modifications", "Modifications Options");
+    vector<String> all_mods;
+    ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    registerStringList_("modifications:fixed", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'", false);
+    setValidStrings_("modifications:fixed", all_mods);
+    registerStringList_("modifications:variable", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'", false);
+    setValidStrings_("modifications:variable", all_mods);
+    registerIntOption_("modifications:variable_max_per_peptide", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
+
+    registerTOPPSubsection_("peptide", "Peptide Options");
+    registerIntOption_("peptide:min_size", "<num>", 7, "Minimum size a peptide must have after digestion to be considered in the search.", false, true);
+    registerIntOption_("peptide:missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
+
+    registerTOPPSubsection_("report", "Reporting Options");
+    registerIntOption_("report:top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
+
+    // RNPxl specific
+    registerTOPPSubsection_("RNPxl", "RNPxl Options");
+    registerIntOption_("RNPxl:length", "", 4, "Oligonucleotide maximum length.", false);
+
+    registerStringOption_("RNPxl:sequence", "", "", "Sequence to restrict the generation of oligonucleotide chains. (disabled for empty sequence)", false);
+
+    StringList target_nucleotides;
+    target_nucleotides.push_back("A=C10H14N5O7P");
+    target_nucleotides.push_back("C=C9H14N3O8P");
+    target_nucleotides.push_back("G=C10H14N5O8P");
+    target_nucleotides.push_back("U=C9H13N2O9P");
+
+    registerStringList_("RNPxl:target_nucleotides", "", target_nucleotides, "format:  target nucleotide=empirical formula of nucleoside monophosphate \n e.g. A=C10H14N5O7P, ..., U=C10H14N5O7P, X=C9H13N2O8PS  where X represents e.g. tU \n or e.g. Y=C10H14N5O7PS where Y represents tG", false, false);
+
+    StringList mapping;
+    mapping.push_back("A->A");
+    mapping.push_back("C->C");
+    mapping.push_back("G->G");
+    mapping.push_back("U->U");
+
+    registerStringList_("RNPxl:mapping", "", mapping, "format: source->target e.g. A->A, ..., U->U, U->X", false, false);
+
+    StringList restrictions;
+    restrictions.push_back("A=0");
+    restrictions.push_back("C=0");
+    restrictions.push_back("U=0");
+    restrictions.push_back("G=0");
+
+    registerStringList_("RNPxl:restrictions", "", restrictions, "format: target nucleotide=min_count: e.g U=1 if at least one U must be in the generated sequence.", false, false);
+
+    StringList modifications;
+    modifications.push_back("-H2O");
+    modifications.push_back("");
+    modifications.push_back("-H2O-HPO3");
+    modifications.push_back("-HPO3");
+    modifications.push_back("-H2O+HPO3");
+    modifications.push_back("+HPO3");
+
+    registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g -H2O, ..., H2O+PO3", false, false);
+
+    registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
+  }
+
+  vector<ResidueModification> getModifications_(StringList modNames)
+  {
+    vector<ResidueModification> modifications;
+
+    // iterate over modification names and add to vector
+    for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
+    {
+      String modification(*mod_it);
+      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
+    }
+
+    return modifications;
+  }
+
+  // check if for minimum size
+  class HasInvalidPeptideLengthPredicate
+  {
+public:
+    explicit HasInvalidPeptideLengthPredicate(Size min_size)
+      : min_size_(min_size)
     {
     }
 
-  protected:
-    void registerOptionsAndFlags_()
+    bool operator()(const AASequence& aas)
     {
-      registerInputFile_("in", "<file>", "", "input file ");
-      setValidFormats_("in", ListUtils::create<String>("mzML"));
-
-      registerInputFile_("database", "<file>", "", "input file ");
-      setValidFormats_("database", ListUtils::create<String>("fasta"));
-
-      registerOutputFile_("out", "<file>", "", "output file ");
-      setValidFormats_("out", ListUtils::create<String>("idXML"));
-
-      // mass tolerance
-      registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 10.0, "Precursor mass tolerance", false);
-
-      StringList precursor_mass_tolerance_unit_valid_strings;
-      precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
-      precursor_mass_tolerance_unit_valid_strings.push_back("Da");
-      registerStringOption_("precursor_mass_tolerance_unit", "<unit>", "ppm", "Unit of precursor mass tolerance.", false, false);
-      setValidStrings_("precursor_mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
-
-      registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 10.0, "Fragment mass tolerance", false);
-
-      StringList fragment_mass_tolerance_unit_valid_strings;
-      fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
-      fragment_mass_tolerance_unit_valid_strings.push_back("Da");
-
-      registerStringOption_("fragment_mass_tolerance_unit", "<unit>", "ppm", "Unit of fragment m", false, false);
-      setValidStrings_("fragment_mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
-
-      // modifications
-      vector<String> all_mods;
-      ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-      registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
-      setValidStrings_("fixed_modifications", all_mods);
-
-      registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
-      setValidStrings_("variable_modifications", all_mods);
-
-      registerIntOption_("peptide_max_var_mods", "<num>", 2, "Maximum number of residues carrying a variable modification per candidate peptide", false, false);
-      registerIntOption_("top_hits", "<num>", 1, "Maximum number of top scoring hits per spectrum that are reported.", false, true);
-
-      registerIntOption_("missed_cleavages", "<num>", 1, "Number of missed cleavages.", false, false);
-
-      // RNPxl specific
-      registerIntOption_("length", "", 4, "Oligonucleotide maximum length.", false);
-
-      registerStringOption_("sequence", "", "", "Sequence to restrict the generation of oligonucleotide chains. (disabled for empty sequence)", false);
-
-      StringList target_nucleotides;
-      target_nucleotides.push_back("A=C10H14N5O7P");
-      target_nucleotides.push_back("C=C9H14N3O8P");
-      target_nucleotides.push_back("G=C10H14N5O8P");
-      target_nucleotides.push_back("U=C9H13N2O9P");
-
-      registerStringList_("target_nucleotides", "", target_nucleotides, "format:  target nucleotide=empirical formula of nucleoside monophosphate \n e.g. A=C10H14N5O7P, ..., U=C10H14N5O7P, X=C9H13N2O8PS  where X represents e.g. tU \n or e.g. Y=C10H14N5O7PS where Y represents tG", false, false);
-
-      StringList mapping;
-      mapping.push_back("A->A");
-      mapping.push_back("C->C");
-      mapping.push_back("G->G");
-      mapping.push_back("U->U");
-
-      registerStringList_("mapping", "", mapping, "format: source->target e.g. A->A, ..., U->U, U->X", false, false);
-
-      StringList restrictions;
-      restrictions.push_back("A=0");
-      restrictions.push_back("C=0");
-      restrictions.push_back("U=0");
-      restrictions.push_back("G=0");
-
-      registerStringList_("restrictions", "", restrictions, "format: target nucleotide=min_count: e.g U=1 if at least one U must be in the generated sequence.", false, false);
-
-      StringList modifications;
-      modifications.push_back("-H2O");
-      modifications.push_back("");
-      modifications.push_back("-H2O-HPO3");
-      modifications.push_back("-HPO3");
-      modifications.push_back("-H2O+HPO3");
-      modifications.push_back("+HPO3");
-
-      registerStringList_("modifications", "", modifications, "format: empirical formula e.g -H2O, ..., H2O+PO3", false, false);
-
-      registerFlag_("CysteineAdduct", "Use this flag if the +152 adduct is expected.");
+      return aas.size() < min_size_;
     }
 
-    vector<ResidueModification> getModifications_(StringList modNames)
-    {
-      vector<ResidueModification> modifications;
+private:
+    Size min_size_;
+  };
 
-      // iterate over modification names and add to vector
-      for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
+  // spectrum must not contain 0 intensity peaks and must be sorted by m/z
+  template <typename SpectrumType>
+  void deisotopeAndSingleChargeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
+  {
+    if (in.empty())
+    {
+      return;
+    }
+
+    SpectrumType old_spectrum = in;
+
+    // determine charge seeds and extend them
+    vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
+    vector<Int> features(old_spectrum.size(), -1);
+    Int feature_number = 0;
+
+    for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
+    {
+      double current_mz = old_spectrum[current_peak].getPosition()[0];
+
+      for (Int q = max_charge; q >= min_charge; --q)     // important: test charge hypothesis from high to low
       {
-        String modification(*mod_it);
-        modifications.push_back( ModificationsDB::getInstance()->getModification(modification));
-      }
-
-      return modifications;
-    }
-
-    static bool HasInvalidPeptideLengthPredicate_(const AASequence& aas)
-    {
-      bool has_invalid_length = aas.size() < 7;
-      return has_invalid_length;
-    }
-
-    // spectrum must not contain 0 intensity peaks and must be sorted by mz
-    template <typename SpectrumType>
-    void deisotopeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 2, Size max_isopeaks = 10)
-    {
-      if (in.empty())
-      {
-        return;
-      }
-
-      static const Int UNASSIGNED_FEAUTURE_ID = -1;
-      SpectrumType old_spectrum = in;
-
-      // annotate every peak not assigned to a feature
-      vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
-      vector<Int> features(old_spectrum.size(), UNASSIGNED_FEAUTURE_ID);
-      Int feature_number = 0;
-
-      // determine charge charge seeds and extend them
-      for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
-      {
-        double current_mz = old_spectrum[current_peak].getPosition()[0];
-
-        for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
+        // try to extend isotopes from mono-isotopic peak
+        // if extension larger then min_isopeaks possible:
+        //   - save charge q in mono_isotopic_peak[]
+        //   - annotate all isotopic peaks with feature number
+        if (features[current_peak] == -1)     // only process peaks which have no assigned feature number
         {
-          // skip peaks already assigned to a feature
-          if (features[current_peak] != UNASSIGNED_FEAUTURE_ID)
-          {
-            continue;
-          }
-
           bool has_min_isopeaks = true;
           vector<Size> extensions;
           for (Size i = 0; i < max_isopeaks; ++i)
@@ -254,21 +275,21 @@ class RNPxlSearch
             double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
+            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)     // test for missing peak
             {
-              // if current isotope is missing and smaller than expected number of observed isotopic peaks then mark as incomplete
               if (i < min_isopeaks)
               {
                 has_min_isopeaks = false;
               }
               break;
-            } else
+            }
+            else
             {
-              // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis that intensities are decreasing
+              // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
               Size n_extensions = extensions.size();
               if (n_extensions != 0)
               {
-                if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions-1]].getIntensity())
+                if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
                 {
                   if (i < min_isopeaks)
                   {
@@ -295,281 +316,389 @@ class RNPxlSearch
           }
         }
       }
+    }
 
-      in.clear(false);
-      for (Size i = 0; i != old_spectrum.size(); ++i)
+    in.clear(false);
+    for (Size i = 0; i != old_spectrum.size(); ++i)
+    {
+      Int z = mono_isotopic_peak[i];
+      if (keep_only_deisotoped)
       {
-        if (keep_only_deisotoped)
+        if (z == 0)
         {
-          if (mono_isotopic_peak[i] != 0)
-          {
-            in.push_back(old_spectrum[i]);
-          }
-        } else  // deisotoped and unassigned
+          continue;
+        }
+
+        // if already single charged or no decharging selected keep peak as it is
+        if (!make_single_charged)
         {
-          if (mono_isotopic_peak[i] != 0 || features[i] < 0)
-          {
-            in.push_back(old_spectrum[i]);
-          }
+          in.push_back(old_spectrum[i]);
+        }
+        else
+        {
+          Peak1D p = old_spectrum[i];
+          p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+          in.push_back(p);
         }
       }
-
-      /*
-    cout << "monoisotopic peak charges: " << endl;
-    for (Size i = 0; i != in.size(); ++i)
-    {
-        cout << mono_isotopic_peak[i];
-    }
-    cout <<  endl;
-
-    cout << "feature numbers for each peak: " << endl;
-    for (Size i = 0; i != in.size(); ++i)
-    {
-        if (features[i] != -1)
-        {
-            cout << features[i] << " " << in[i].getMZ() << " . ";
-        } else
-        {
-            cout << ". ";
-        }
-    }
-    cout <<  endl;
-    */
-
-      in.sortByPosition();
-    }
-
-    double logfactorial(UInt x)
-    {
-      Size y;
-
-      if (x < 2)
-        return 1;
       else
       {
-        double z = 0;
-        for (y = 2; y<=x; y++)
+        // keep all unassigned peaks
+        if (features[i] < 0)
         {
-          z = log(y)+z;
+          in.push_back(old_spectrum[i]);
+          continue;
         }
 
-        return (z);
-      }
-    }
-
-    double computeHyperScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const MSSpectrum<Peak1D>& exp_spectrum, const MSSpectrum<RichPeak1D>& theo_spectrum)
-    {
-      double dot_product = 0.0;
-      UInt y_ion_count = 0;
-      UInt b_ion_count = 0;
-
-      for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
-      {
-        const double& theo_mz = theo_peak_it->getMZ();
-
-        double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
-
-        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
-        Size index = exp_spectrum.findNearest(theo_mz);
-        double exp_mz = exp_spectrum[index].getMZ();
-
-        // found peak match
-        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+        // convert mono-isotopic peak with charge assigned by deisotoping
+        if (z != 0)
         {
-          dot_product += exp_spectrum[index].getIntensity();
-          if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
+          if (!make_single_charged)
           {
-            ++y_ion_count;
-          } else
+            in.push_back(old_spectrum[i]);
+          }
+          else
           {
-            ++b_ion_count;
+            Peak1D p = old_spectrum[i];
+            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+            in.push_back(p);
           }
         }
       }
+    }
 
-      if (dot_product > 1e-1)
+    in.sortByPosition();
+  }
+
+  double logfactorial(UInt x)
+  {
+    UInt y;
+
+    if (x < 2)
+      return 1;
+    else
+    {
+      double z = 0;
+      for (y = 2; y <= x; y++)
       {
-        double yFact = logfactorial(y_ion_count);
-        double bFact = logfactorial(b_ion_count);
-        double hyperScore = log(dot_product) + yFact + bFact;
-        return hyperScore;
-      } else
+        z = log((double)y) + z;
+      }
+
+      return z;
+    }
+  }
+
+  double computeHyperScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const MSSpectrum<Peak1D>& exp_spectrum, const MSSpectrum<RichPeak1D>& theo_spectrum)
+  {
+    double dot_product = 0.0;
+    UInt y_ion_count = 0;
+    UInt b_ion_count = 0;
+
+    for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+    {
+      const double& theo_mz = theo_peak_it->getMZ();
+
+      double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+      // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+      Size index = exp_spectrum.findNearest(theo_mz);
+      double exp_mz = exp_spectrum[index].getMZ();
+
+      // found peak match
+      if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
       {
-        return 0;
+        dot_product += exp_spectrum[index].getIntensity();
+        if (theo_peak_it->getMetaValue("IonName").toString()[0] == 'y')
+        {
+          ++y_ion_count;
+        }
+        else
+        {
+          ++b_ion_count;
+        }
       }
     }
 
-    ExitCodes main_(int, const char**)
+    if (dot_product > 1e-1)
     {
-      String in_mzml = getStringOption_("in");
-      String in_db = getStringOption_("database");
-      String out_idxml = getStringOption_("out");
+      double yFact = logfactorial(y_ion_count);
+      double bFact = logfactorial(b_ion_count);
+      double hyperScore = log(dot_product) + yFact + bFact;
+      return hyperScore;
+    }
+    else
+    {
+      return 0;
+    }
+  }
 
-      double precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
-      double fragment_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
+  void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  {
+    // filter MS2 map
+    // remove 0 intensities
+    ThresholdMower threshold_mower_filter;
+    threshold_mower_filter.filterPeakMap(exp);
 
-      bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor_mass_tolerance_unit") == "ppm");
-      bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment_mass_tolerance_unit") == "ppm");
+    Normalizer normalizer;
+    normalizer.filterPeakMap(exp);
 
-      StringList fixedModNames = getStringList_("fixed_modifications");
-      set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
+    // sort by rt
+    exp.sortSpectra(false);
 
-      if (fixed_unique.size() != fixedModNames.size())
-      {
-        cout << "duplicate fixed modification provided." << endl;
-        return ILLEGAL_PARAMETERS;
-      }
+    // filter settings
+    WindowMower window_mower_filter;
+    Param filter_param = window_mower_filter.getParameters();
+    filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
+    filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
+    filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
+    window_mower_filter.setParameters(filter_param);
 
-      StringList varModNames = getStringList_("variable_modifications");
-      set<String> var_unique(varModNames.begin(), varModNames.end());
-      if (var_unique.size() != varModNames.size())
-      {
-        cout << "duplicate variable modification provided." << endl;
-        return ILLEGAL_PARAMETERS;
-      }
+    NLargest nlargest_filter = NLargest(400);
 
-      // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
-      StringList target_nucleotides = getStringList_("target_nucleotides");
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize exp_index = 0; exp_index < (SignedSize)exp.size(); ++exp_index)
+    {
+      // sort by mz
+      exp[exp_index].sortByPosition();
 
-      // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
-      StringList mappings = getStringList_("mapping");
-
-      // string format: target,min_count: e.g "X=1" if at least one tU must be in the generated sequence.
-      // All target nucleotides must be included. X=0 -> disable restriction
-      StringList restrictions = getStringList_("restrictions");
-
-      StringList modifications = getStringList_("modifications");
-
-      String sequence_restriction = getStringOption_("sequence");
-
-      Int max_nucleotide_length = getIntOption_("length");
-
-      bool cysteine_adduct = getFlag_("CysteineAdduct");
-
-      RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_nucleotide_length);
-      mm.mod_masses[""] = 0;  // insert "null" modification otherwise unmodified peptide will not be searched
-      mm.mod_combinations[""].insert("none");
-
-      // load MS2 map
-      PeakMap exp;
-      MzMLFile f;
-      f.setLogType(log_type_);
-
-      PeakFileOptions options;
-      options.clearMSLevels();
-      options.addMSLevel(2);
-      f.getOptions() = options;
-      f.load(in_mzml, exp);
-      exp.sortSpectra(true);
-
-      cout << "filtering spectra ... " << endl;
-      // filter MS2 map
-      // remove 0 intensities
-      ThresholdMower threshold_mower_filter;
-      threshold_mower_filter.filterPeakMap(exp);
-
-      Normalizer normalizer;
-      normalizer.filterPeakMap(exp);
-
-      exp.sortSpectra(true);
-      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
-      {
-        deisotopeMSSpectrum(*it, 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 2, 10);
-      }
-
-      if (getIntOption_("debug") >= 1)
-      {
-        f.store(String("deisotoped_" + String(in_mzml)), exp);
-      }
+      // deisotope
+      deisotopeAndSingleChargeMSSpectrum(exp[exp_index], 1, 3, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, false, 3, 10, true);
 
       // remove noise
-      WindowMower window_mower_filter;
-      Param filter_param = window_mower_filter.getParameters();
-      filter_param.setValue("windowsize", 100.0, "The size of the sliding window along the m/z axis.");
-      filter_param.setValue("peakcount", 20, "The number of peaks that should be kept.");
-      filter_param.setValue("movetype", "jump", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-      window_mower_filter.setParameters(filter_param);
-      window_mower_filter.filterPeakMap(exp);
+      window_mower_filter.filterPeakSpectrum(exp[exp_index]);
+      nlargest_filter.filterPeakSpectrum(exp[exp_index]);
 
-      // conservativly restrict number of peaks
-      NLargest nlargest_filter = NLargest(400);
-      nlargest_filter.filterPeakMap(exp);
-      exp.sortSpectra(true);
+      // sort (nlargest changes order)
+      exp[exp_index].sortByPosition();
+    }
+  }
 
-      // build multimap of precursor mass to scan index
-      multimap<double, Size> multimap_mass_2_scan_index;
-      for (PeakMap::ConstIterator s_it = exp.begin(); s_it != exp.end(); ++s_it)
+  void postProcessHits_(const PeakMap& exp, const vector<vector<PeptideHit> >& peptide_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits)
+  {
+    for (vector<vector<PeptideHit> >::const_iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
+    {
+      if (!pit->empty())
       {
-        int scan_index = s_it - exp.begin();
-        vector<Precursor> precursor = s_it->getPrecursors();
+        Size scan_index = pit - peptide_hits.begin();
 
-        if (precursor.size() == 1 && s_it->size() > 5)  // there should only one precursor and MS2 should contain at least 5 peaks
+        // create empty PeptideIdentification object and fill meta data
+        PeptideIdentification pi;
+        pi.setScoreType("hyperscore");
+        pi.setHigherScoreBetter(true);
+        pi.setRT(exp[scan_index].getRT());
+        pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
+        pi.setHits(*pit);
+        pi.assignRanks();
+        peptide_ids.push_back(pi);
+      }
+    }
+
+    IDFilter filter;
+
+    // only store top n hits
+    for (vector<PeptideIdentification>::iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
+    {
+      PeptideIdentification& pi = *pids_it;
+      PeptideIdentification temp_identification = pi;
+      filter.filterIdentificationsByBestNHits(temp_identification, top_hits, pi);
+    }
+
+    // protein identifications (leave as is...)
+    protein_ids = vector<ProteinIdentification>(1);
+    protein_ids[0].setDateTime(DateTime::now());
+    protein_ids[0].setSearchEngine("RNPxlSearch");
+    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+  }
+
+  ExitCodes main_(int, const char**)
+  {
+    ProgressLogger progresslogger;
+    progresslogger.setLogType(log_type_);
+    String in_mzml = getStringOption_("in");
+    String in_db = getStringOption_("database");
+    String out_idxml = getStringOption_("out");
+
+    Int min_precursor_charge = getIntOption_("precursor:min_charge");
+    Int max_precursor_charge = getIntOption_("precursor:max_charge");
+    double precursor_mass_tolerance = getDoubleOption_("precursor:mass_tolerance");
+    bool precursor_mass_tolerance_unit_ppm = (getStringOption_("precursor:mass_tolerance_unit") == "ppm");
+
+    double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+    bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
+
+    StringList fixedModNames = getStringList_("modifications:fixed");
+    set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
+
+    Size peptide_min_size = getIntOption_("peptide:min_size");
+
+    if (fixed_unique.size() != fixedModNames.size())
+    {
+      LOG_WARN << "duplicate fixed modification provided." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
+    StringList varModNames = getStringList_("modifications:variable");
+    set<String> var_unique(varModNames.begin(), varModNames.end());
+    if (var_unique.size() != varModNames.size())
+    {
+      LOG_WARN << "duplicate variable modification provided." << endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
+    vector<ResidueModification> fixedMods = getModifications_(fixedModNames);
+    vector<ResidueModification> varMods = getModifications_(varModNames);
+    Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
+
+    Int report_top_hits = getIntOption_("report:top_hits");
+
+    // string format:  target,formula e.g. "A=C10H14N5O7P", ..., "U=C10H14N5O7P", "X=C9H13N2O8PS"  where X represents tU
+    StringList target_nucleotides = getStringList_("RNPxl:target_nucleotides");
+
+    // string format:  source->target e.g. "A->A", ..., "U->U", "U->X"
+    StringList mappings = getStringList_("RNPxl:mapping");
+
+    // string format: target,min_count: e.g "X=1" if at least one tU must be in the generated sequence.
+    // All target nucleotides must be included. X=0 -> disable restriction
+    StringList restrictions = getStringList_("RNPxl:restrictions");
+
+    StringList modifications = getStringList_("RNPxl:modifications");
+
+    String sequence_restriction = getStringOption_("RNPxl:sequence");
+
+    Int max_nucleotide_length = getIntOption_("RNPxl:length");
+
+    bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
+
+    RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_nucleotide_length);
+    mm.mod_masses[""] = 0;    // insert "null" modification otherwise unmodified peptide will not be searched
+    mm.mod_combinations[""].insert("none");
+
+    // load MS2 map
+    PeakMap spectra;
+    MzMLFile f;
+    f.setLogType(log_type_);
+
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+    f.getOptions() = options;
+    f.load(in_mzml, spectra);
+    spectra.sortSpectra(true);
+
+    progresslogger.startProgress(0, 1, "Filtering spectra...");
+    preprocessSpectra_(spectra, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+    progresslogger.endProgress();
+
+    // build multimap of precursor mass to scan index
+    multimap<double, Size> multimap_mass_2_scan_index;
+    for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
+    {
+      int scan_index = s_it - spectra.begin();
+      vector<Precursor> precursor = s_it->getPrecursors();
+
+      // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
+      if (precursor.size() == 1 && s_it->size() >= peptide_min_size)
+      {
+        int precursor_charge = precursor[0].getCharge();
+
+        if (precursor_charge < min_precursor_charge || precursor_charge > max_precursor_charge)
         {
-          int precursor_charge = precursor[0].getCharge();
-          double precursor_mz = precursor[0].getMZ();
-          double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
-          multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+          continue;
         }
+
+        double precursor_mz = precursor[0].getMZ();
+        double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
+        multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
+      }
+    }
+
+    // create spectrum generator
+    TheoreticalSpectrumGenerator spectrum_generator;
+
+    vector<vector<PeptideHit> > peptide_hits(spectra.size(), vector<PeptideHit>());
+
+    progresslogger.startProgress(0, 1, "Load database from FASTA file...");
+    FASTAFile fastaFile;
+    vector<FASTAFile::FASTAEntry> fasta_db;
+    fastaFile.load(in_db, fasta_db);
+    progresslogger.endProgress();
+
+    const Size missed_cleavages = getIntOption_("peptide:missed_cleavages");
+    EnzymaticDigestion digestor;
+    digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
+    digestor.setMissedCleavages(missed_cleavages);
+
+    progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
+
+    // lookup for processed peptides. must be defined outside of omp section and synchronized
+    set<std::string> processed_petides;
+
+    // set minimum size of peptide after digestion
+    HasInvalidPeptideLengthPredicate has_invalid_length(getIntOption_("peptide:min_size"));
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
+    {
+      IF_MASTERTHREAD
+      {
+        progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
       }
 
-      // create spectrum generator
-      TheoreticalSpectrumGenerator spectrum_generator;
-      vector<PeptideIdentification> peptide_ids;
-      vector<vector<PeptideHit> > peptide_hits(exp.size(), vector<PeptideHit>());
+      const AASequence& seq = AASequence::fromString(fasta_db[fasta_index].sequence);
 
-      // load database from FASTA file
-      cout << "loading database ... " << endl;
-      FASTAFile fastaFile;
-      vector<FASTAFile::FASTAEntry> fasta_db;
-      fastaFile.load(in_db, fasta_db);
 
-      // digest database
-      const Size missed_cleavages = getIntOption_("missed_cleavages");
-      EnzymaticDigestion digestor;
-      digestor.setEnzyme(EnzymaticDigestion::ENZYME_TRYPSIN);
-      digestor.setMissedCleavages(missed_cleavages);
+      vector<AASequence> current_digest;
+      digestor.digest(seq, current_digest);
 
-      cout << "digesting database, apply modifications and score peptides against spectra... " << endl;
-      vector<ResidueModification> fixedMods = getModifications_(fixedModNames);
-      vector<ResidueModification> varMods = getModifications_(varModNames);
-      Size max_variable_mods_per_peptide = getIntOption_("peptide_max_var_mods");
+      // c++ STL pattern for deleting entries from vector based on predicate evaluation
+      current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), has_invalid_length), current_digest.end());
 
-      boost::unordered_set<Size> cached_peptides;
-      for (vector<FASTAFile::FASTAEntry>::const_iterator fasta_it = fasta_db.begin(); fasta_it != fasta_db.end(); ++fasta_it)
+      for (vector<AASequence>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
-        vector<AASequence> current_digest;
-        digestor.digest(AASequence::fromString(fasta_it->sequence), current_digest);
-        // c++ STL pattern for deleting entries from vector based on predicate evaluation
-        current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), HasInvalidPeptideLengthPredicate_), current_digest.end());
-        // make unique
-        set<AASequence> tmp(current_digest.begin(), current_digest.end());
+        const std::string& s = cit->toUnmodifiedString();
 
-        // look up if peptide has already been searched
-        for (set<AASequence>::iterator set_it = tmp.begin(); set_it != tmp.end(); )  // note that this is the STL pattern for deleting while iterating a set so don't change operator order
+        bool already_processed = false;
+#ifdef _OPENMP
+#pragma omp critical (processed_peptides_access)
+#endif
         {
-          Size string_hash = boost::hash<std::string>()(set_it->toUnmodifiedString());
-          if (cached_peptides.find(string_hash) != cached_peptides.end())
+          if (processed_petides.find(s) != processed_petides.end())
           {
-            tmp.erase(set_it++);
-          } else
-          {
-            ++set_it;
-            cached_peptides.insert(string_hash);  // ok to add already here as s is unique for this digested protein
+            // peptide (and all modified variants) already processed so skip it
+            already_processed = true;
           }
         }
 
-        // assign unprocessed peptides
-        current_digest.assign(tmp.begin(), tmp.end());
-
-        for (vector<AASequence>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+        if (already_processed)
         {
+          continue;
+        }
+
+#ifdef _OPENMP
+#pragma omp critical (processed_peptides_access)
+#endif
+        {
+          processed_petides.insert(s);
+        }
+
         vector<AASequence> all_modified_peptides;
-        ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), *cit);
-        ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), *cit, max_variable_mods_per_peptide, all_modified_peptides);
 
-        for (vector<AASequence>::const_iterator mod_peps_it = all_modified_peptides.begin(); mod_peps_it != all_modified_peptides.end(); ++mod_peps_it)
+        // this critial section is because ResidueDB is not thread safe and new residues are created based on the PTMs
+#ifdef _OPENMP
+#pragma omp critical (residuedb_access)
+#endif
         {
-          const AASequence& candidate = *mod_peps_it;
+          ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), *cit);
+          ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), *cit, max_variable_mods_per_peptide, all_modified_peptides);
+        }
+
+        for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
+        {
+          const AASequence& candidate = all_modified_peptides[mod_pep_idx];
           double current_peptide_mass_without_RNA = candidate.getMonoWeight();
 
           //create empty theoretical spectrum
@@ -584,20 +713,21 @@ class RNPxlSearch
             multimap<double, Size>::const_iterator low_it;
             multimap<double, Size>::const_iterator up_it;
 
-            if (precursor_mass_tolerance_unit_ppm)  // ppm
+            if (precursor_mass_tolerance_unit_ppm) // ppm
             {
-              low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - current_peptide_mass * precursor_mass_tolerance * 1e-6);
-              up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + current_peptide_mass * precursor_mass_tolerance * 1e-6);
-            } else  // Dalton
+              low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
+              up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
+            }
+            else    // Dalton
             {
-              low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - precursor_mass_tolerance);
-              up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + precursor_mass_tolerance);
+              low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * precursor_mass_tolerance);
+              up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * precursor_mass_tolerance);
             }
 
             if (low_it == up_it) continue; // no matching precursor in data
 
             //add peaks for b and y ions with charge 1
-            if (theo_spectrum.empty())  // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
+            if (theo_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
             {
               spectrum_generator.getSpectrum(theo_spectrum, candidate, 1);
               theo_spectrum.sortByPosition(); //sort by mz
@@ -606,7 +736,7 @@ class RNPxlSearch
             for (; low_it != up_it; ++low_it)
             {
               const Size& scan_index = low_it->second;
-              const MSSpectrum<Peak1D>& exp_spectrum = exp[scan_index];
+              const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
 
               double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
@@ -619,80 +749,38 @@ class RNPxlSearch
               // add peptide hit
               PeptideHit hit;
               hit.setSequence(candidate);
-              hit.setMetaValue(String("RNA"), *mm.mod_combinations.at(rna_mod_it->first).begin());  // return first nucleotide formula matching current empirical formula and mass
+              hit.setMetaValue(String("RNA"), *mm.mod_combinations.at(rna_mod_it->first).begin()); // return first nucleotide formula matching current empirical formula and mass
               hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
               hit.setScore(score);
-              peptide_hits[scan_index].push_back(hit);
+#ifdef _OPENMP
+#pragma omp critical (peptide_hits_access)
+#endif
+              {
+                peptide_hits[scan_index].push_back(hit);
+              }
             }
           }
         }
       }
-      }
-      // annotate with RT and MZ and sort by rank
-      for (vector< vector<PeptideHit> >::const_iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
-      {
-        if (!pit->empty())
-        {
-          Size scan_index = pit - peptide_hits.begin();
-
-          // create empty PeptideIdentification object and fill meta data
-          PeptideIdentification pi;
-          pi.setScoreType("hyperscore");
-          pi.setHigherScoreBetter(true);
-          pi.setMetaValue("RT", exp[scan_index].getRT());
-          pi.setMetaValue("MZ", exp[scan_index].getPrecursors()[0].getMZ());
-          pi.setHits(*pit);
-
-          // sort by score
-          pi.assignRanks();
-
-          peptide_ids.push_back(pi);
-        }
-      }
-
-      // calculate delta ion score
-      for (vector<PeptideIdentification>::iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
-      {
-        vector<PeptideHit>& pit = pids_it->getHits();
-        if (pit.size() == 1)
-        {
-          PeptideHit& best = pids_it->getHits()[0];
-          best.setMetaValue(String("D-Score"), 1000.0);  // set to maximum if there is no second peptide
-        } else if (pit.size() >= 2)
-        {
-          PeptideHit& best = pids_it->getHits()[0];
-          PeptideHit& second = pids_it->getHits()[1];
-          best.setMetaValue(String("D-Score"), best.getScore() - second.getScore());
-        }
-      }
-
-      // filter for top n hits
-      IDFilter filter;
-      Int top_hits = getIntOption_("top_hits");
-
-      for (vector<PeptideIdentification>::iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
-      {
-        PeptideIdentification& pi = *pids_it;
-        PeptideIdentification temp_identification = pi;
-        filter.filterIdentificationsByBestNHits(temp_identification, top_hits, pi);
-      }
-
-      // protein identifications (leave as is...)
-      vector<ProteinIdentification> protein_ids(1);
-      protein_ids[0].setDateTime(DateTime::now());
-      protein_ids[0].setSearchEngine("RNPxlSearch");
-      protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
-
-      // write ProteinIdentifications and PeptideIdentifications to IdXML
-      IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
-
-      return EXECUTION_OK;
     }
+    progresslogger.endProgress();
+
+    vector<PeptideIdentification> peptide_ids;
+    vector<ProteinIdentification> protein_ids;
+    progresslogger.startProgress(0, 1, "Post-processing PSMs...");
+    postProcessHits_(spectra, peptide_hits, protein_ids, peptide_ids, report_top_hits);
+    progresslogger.endProgress();
+
+    // write ProteinIdentifications and PeptideIdentifications to IdXML
+    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+
+    return EXECUTION_OK;
+  }
+
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   RNPxlSearch tool;
   return tool.main(argc, argv);
 }
-
