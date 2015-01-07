@@ -279,6 +279,7 @@ protected:
 
     registerFlag_("CysteineAdduct", "Use this flag if the +152 adduct is expected.");
 
+    registerFlag_("continue", "Do not recreate intermediate files to continue after unexpected crash.", true);
     // search
     registerInputFile_("in_OMSSA_ini", "<file>", "", "Ini file for the OMSSA search engine\n");
     setValidFormats_("in_OMSSA_ini", ListUtils::create<String>("ini"));
@@ -324,6 +325,9 @@ protected:
     double precursor_variant_mz_threshold = getDoubleOption_("precursor_variant_mz_threshold");
 
     const String in_fasta_file(getStringOption_("in_fasta"));
+
+    const String out_idXML = getStringOption_("out_idXML");
+    const string out_csv = getStringOption_("out_csv");
 
     RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_length);
 
@@ -480,10 +484,12 @@ protected:
       String file_name_variant = tmp_path + "/" + base_name + "_"  + rt_string + "_" + mz_string + "_variant.mzML";
       file_list_variants_mzML.push_back(file_name_variant);
 
-      if (!getFlag_("test"))
+      if (getFlag_("continue") && File::exists(file_name_variant))
       {
-        MzMLFile().store(file_name_variant, new_exp);
+        continue; 
       }
+
+      MzMLFile().store(file_name_variant, new_exp);
     }
 
     cout << base_name << ": " << "Spectra filtered by fractional mass: " << fractional_mass_filtered << endl;
@@ -504,6 +510,12 @@ protected:
         String in_string = *it;
         String out_string = in_string;
         out_string.substitute(".mzML", ".idXML");
+
+        if (getFlag_("continue") && File::exists(out_string))
+        {
+          continue;
+        }
+
         // Compose argument list and run OMSSA with new ini
         QStringList args;
         args << "-ini" << in_OMSSA_ini.toQString() << "-in" << in_string.toQString() << "-out" << out_string.toQString() << "-database" << in_fasta_file.toQString() << "-no_progress";
@@ -528,8 +540,6 @@ protected:
     }
 
     // create report
-    const String out_idXML = getStringOption_("out_idXML");
-    const string out_csv = getStringOption_("out_csv");
     vector<RNPxlReportRow> csv_rows;
 
     const double marker_tolerance = getDoubleOption_("marker_ions_tolerance");
@@ -559,18 +569,6 @@ protected:
 
       // copy protein identifications as is - they are not really needed in the later output
       whole_experiment_filtered_protein_ids.insert(whole_experiment_filtered_protein_ids.end(), prot_ids.begin(), prot_ids.end());
-
-      /*
-      for (size_t k = 0; k != prot_ids.size(); ++k)
-      {
-        vector<ProteinHit> ph_tmp = prot_ids[k].getHits();
-        cout << ph_tmp.size() << endl;
-        for (vector<ProteinHit>::iterator it2 = ph_tmp.begin(); it2 != ph_tmp.end(); ++it2)
-        {
-          cout << it2->getAccession() << endl;
-        }
-      }
-      */
 
       // load map with all precursor variations (originating from one single precursor) that corresponds to this identification run
       PeakMap exp;
@@ -791,7 +789,7 @@ protected:
     {
       for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
       {
-        double rt = (double)pit->getMetaValue("RT");
+        double rt = pit->getRT();
 
         set<String> accessions = hit->extractProteinAccessions();
 
