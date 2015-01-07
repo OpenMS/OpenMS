@@ -34,14 +34,14 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -52,9 +52,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
-
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
