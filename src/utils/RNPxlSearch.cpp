@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
@@ -93,6 +94,152 @@ using namespace std;
         }
     move predicate member functions to class
 */
+struct RNPxlReportRow
+{
+  bool no_id;
+  double rt;
+  double original_mz;
+  String accessions;
+  String RNA;
+  String peptide;
+  Int charge;
+  double score;
+  double peptide_weight;
+  double RNA_weight;
+  double xl_weight;
+  double abs_prec_error;
+  double rel_prec_error;
+  Map<String, vector<pair<double, double> > > marker_ions;
+  double m_H;
+  double m_2H;
+  double m_3H;
+  double m_4H;
+
+  String getString(String separator)
+  {
+    StringList sl;
+
+    // rt mz
+    sl << String::number(rt, 0) << String::number(original_mz, 4);
+
+    // id if available
+    if (no_id)
+    {
+      sl << "" << "" << "" << "" << "" << "" << "" << "";
+    }
+    else
+    {
+      sl << accessions << RNA << peptide << String(charge) << String(score)
+         << String::number(peptide_weight, 4) << String::number(RNA_weight, 4) << String::number(peptide_weight + RNA_weight, 4);
+    }
+
+    // marker ions
+    for (Map<String, vector<pair<double, double> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    {
+      for (Size i = 0; i != it->second.size(); ++i)
+      {
+        sl << String::number(it->second[i].second * 100.0, 2);
+      }
+    }
+
+    // id error and multiple charged mass
+    if (no_id)
+    {
+      sl << "" << ""
+         << "" << "" << "" << "";
+    }
+    else
+    {
+      // error
+      sl << String::number(abs_prec_error, 4)
+         << String::number(rel_prec_error, 1);
+
+      // weight
+      sl << String::number(m_H, 4)
+         << String::number(m_2H, 4)
+         << String::number(m_3H, 4)
+         << String::number(m_4H, 4);
+    }
+    return ListUtils::concatenate(sl, separator);
+  }
+
+};
+
+struct MarkerIonExtractor
+{
+  typedef map<String, vector<pair<double, double> > > MarkerIonsType;
+  static MarkerIonsType extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance)
+  {
+    MarkerIonsType marker_ions;
+    marker_ions["A"].push_back(make_pair(136.06231, 0.0));
+    marker_ions["A"].push_back(make_pair(330.06033, 0.0));
+    marker_ions["C"].push_back(make_pair(112.05108, 0.0));
+    marker_ions["C"].push_back(make_pair(306.04910, 0.0));
+    marker_ions["G"].push_back(make_pair(152.05723, 0.0));
+    marker_ions["G"].push_back(make_pair(346.05525, 0.0));
+    marker_ions["U"].push_back(make_pair(113.03509, 0.0));
+    marker_ions["U"].push_back(make_pair(307.03311, 0.0));
+
+    PeakSpectrum spec(s);
+    Normalizer normalizer;
+    normalizer.filterSpectrum(spec);
+    spec.sortByPosition();
+
+    // for each nucleotide with marker ions
+    for (Map<String, vector<pair<double, double> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    {
+      // for each marker ion of the current nucleotide
+      for (Size i = 0; i != it->second.size(); ++i)
+      {
+        double mz = it->second[i].first;
+        double max_intensity = 0;
+        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit)
+        {
+          if (sit->getMZ() + marker_tolerance < mz)
+          {
+            continue;
+          }
+          if (mz < sit->getMZ() - marker_tolerance)
+          {
+            break;
+          }
+          if (fabs(mz - sit->getMZ()) < marker_tolerance)
+          {
+            if (max_intensity < sit->getIntensity())
+            {
+              max_intensity = sit->getIntensity();
+            }
+          }
+        }
+        it->second[i].second = max_intensity;
+      }
+    }
+    return marker_ions;
+  }
+};
+
+struct RNPxlReportRowHeader
+{
+  String getString(String separator)
+  {
+    StringList sl;
+    sl << "#RT" << "original m/z" << "proteins" << "RNA" << "peptide" << "charge" << "score"
+       << "peptide weight" << "RNA weight" << "cross-link weight";
+
+    // marker ion fields
+    MarkerIonExtractor::MarkerIonsType marker_ions = MarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
+    for (MarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    {
+      for (Size i = 0; i != it->second.size(); ++i)
+      {
+        sl << String(it->first + "_" + it->second[i].first);
+      }
+    }
+    sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H";
+    return ListUtils::concatenate(sl, separator);
+  }
+
+};
 
 struct PeptideHitSequenceLessComparator
 {
@@ -102,7 +249,6 @@ struct PeptideHitSequenceLessComparator
 
     return false;
   }
-
 };
 
 class RNPxlSearch :
@@ -125,6 +271,9 @@ protected:
 
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
+
+    registerOutputFile_("out_csv", "<file>", "", "csv output file");
+    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
 
     registerTOPPSubsection_("precursor", "Precursor (Parent Ion) Options");
     registerDoubleOption_("precursor:mass_tolerance", "<tolerance>", 10.0, "Width of precursor mass tolerance window", false);
@@ -206,6 +355,9 @@ protected:
     registerStringList_("RNPxl:modifications", "", modifications, "format: empirical formula e.g -H2O, ..., H2O+PO3", false, false);
 
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
+    registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.");
+    registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
+    registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
 
   vector<ResidueModification> getModifications_(StringList modNames)
@@ -519,6 +671,7 @@ private:
     String in_mzml = getStringOption_("in");
     String in_db = getStringOption_("database");
     String out_idxml = getStringOption_("out");
+    String out_csv = getStringOption_("out_csv");
 
     Int min_precursor_charge = getIntOption_("precursor:min_charge");
     Int max_precursor_charge = getIntOption_("precursor:max_charge");
@@ -527,6 +680,11 @@ private:
 
     double fragment_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
     bool fragment_mass_tolerance_unit_ppm = (getStringOption_("fragment:mass_tolerance_unit") == "ppm");
+
+    double marker_ions_tolerance = getDoubleOption_("RNPxl:marker_ions_tolerance");
+    Map<String, vector<pair<double, double> > > marker_ions;
+
+    double small_peptide_mass_filter_threshold = getDoubleOption_("RNPxl:filter_small_peptide_mass");
 
     StringList fixedModNames = getStringList_("modifications:fixed");
     set<String> fixed_unique(fixedModNames.begin(), fixedModNames.end());
@@ -592,6 +750,8 @@ private:
     progresslogger.endProgress();
 
     // build multimap of precursor mass to scan index
+    Size fractional_mass_filtered(0);
+    Size small_peptide_mass_filtered(0);
     multimap<double, Size> multimap_mass_2_scan_index;
     for (PeakMap::ConstIterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
     {
@@ -610,6 +770,23 @@ private:
 
         double precursor_mz = precursor[0].getMZ();
         double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
+     
+        if (getFlag_("RNPxl:filter_fractional_mass"))
+        {
+          if (precursor_mass < 1750.0 && precursor_mass - floor(precursor_mass) < 0.2)
+          {
+            fractional_mass_filtered++;
+            continue;
+          }
+        }
+     
+       
+        if (precursor_mass < small_peptide_mass_filter_threshold)
+        {
+          small_peptide_mass_filtered++;
+          continue;
+        }
+
         multimap_mass_2_scan_index.insert(make_pair(precursor_mass, scan_index));
       }
     }
