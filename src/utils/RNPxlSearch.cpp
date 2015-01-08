@@ -46,6 +46,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
@@ -175,7 +176,7 @@ struct RNPxlReportRow
     StringList sl;
 
     // rt mz
-    sl << String::number(rt, 0) << String::number(original_mz, 4);
+    sl << String::number(rt, 2) << String::number(original_mz, 4);
 
     // id if available
     if (no_id)
@@ -252,7 +253,8 @@ vector<RNPxlReportRow> annotateRNPxlInformation_(const PeakMap& spectra, vector<
   for (Size i = 0; i != peptide_ids.size(); ++i)
   {
     OPENMS_PRECONDITION(!peptide_ids[i].getHits().empty(), "Error: no empty peptide ids allowed.");
-    Size scan_index = peptide_ids[i].getHits()[0].getMetaValue("scan_index");
+    OPENMS_PRECONDITION(peptide_ids[i].hasMetaValue("scan_index"), "Error: scan index not annotated.");
+    Size scan_index = (unsigned int)peptide_ids[i].getMetaValue("scan_index");
     map_spectra_to_id[scan_index] = i;
   }
 
@@ -264,7 +266,7 @@ vector<RNPxlReportRow> annotateRNPxlInformation_(const PeakMap& spectra, vector<
     vector<Precursor> precursor = s_it->getPrecursors();
 
     // there should only one precursor and MS2 should contain at least a few peaks to be considered (e.g. at least for every AA in the peptide)
-    if (s_it->getMSLevel() == 1 && precursor.size() == 1)
+    if (s_it->getMSLevel() == 2 && precursor.size() == 1)
     {
       Size charge = precursor[0].getCharge();
       double mz = precursor[0].getMZ();
@@ -272,12 +274,11 @@ vector<RNPxlReportRow> annotateRNPxlInformation_(const PeakMap& spectra, vector<
 
       double rt = s_it->getRT();
 
-      PeptideIdentification& pi = peptide_ids[map_spectra_to_id[scan_index]];
-      vector<PeptideHit>& phs = pi.getHits();
-      // case 1: no peptide identification: store rt, mz, charge and marker ion intensities
       RNPxlReportRow row;
-      if (phs.empty())
-      {
+
+      // case 1: no peptide identification: store rt, mz, charge and marker ion intensities
+      if (map_spectra_to_id.find(scan_index) == map_spectra_to_id.end())
+      {	   
         row.no_id = true;
         row.rt = rt;
         row.original_mz = mz;
@@ -286,6 +287,9 @@ vector<RNPxlReportRow> annotateRNPxlInformation_(const PeakMap& spectra, vector<
         csv_rows.push_back(row);
         continue;
       }
+
+      PeptideIdentification& pi = peptide_ids[map_spectra_to_id[scan_index]];
+      vector<PeptideHit>& phs = pi.getHits();
 
       // case 2: identification data present for spectrum
       PeptideHit& ph = phs[0];
@@ -331,7 +335,7 @@ vector<RNPxlReportRow> annotateRNPxlInformation_(const PeakMap& spectra, vector<
       row.xl_weight = peptide_weight + rna_weight;
 
       ph.setMetaValue("RNPxl:peptide_mass_z0", DataValue(peptide_weight));
-      ph.setMetaValue("RNPxl:xl_mass", xl_weight);
+      ph.setMetaValue("RNPxl:xl_mass_z0", xl_weight);
 
       for (MarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
       {
@@ -491,7 +495,10 @@ protected:
     for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
     {
       String modification(*mod_it);
-      modifications.push_back(ModificationsDB::getInstance()->getModification(modification));
+      ResidueModification rm = ModificationsDB::getInstance()->getModification(modification);
+      modifications.push_back(rm);
+      // attempt to register modified residue in the single thread context (no locking required) and obtain thread safety this way
+      ResidueDB::getInstance()->getModifiedResidue(modification);
     }
 
     return modifications;
@@ -760,7 +767,7 @@ private:
 
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi;
-	pi.setMetaValue("scan_index", scan_index);
+	pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
         pi.setRT(exp[scan_index].getRT());
