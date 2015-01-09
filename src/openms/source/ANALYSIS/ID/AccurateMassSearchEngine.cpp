@@ -103,8 +103,7 @@ namespace OpenMS
 /// assignment operator
   AccurateMassSearchResult& AccurateMassSearchResult::operator=(const AccurateMassSearchResult& rhs)
   {
-    if (this == &rhs)
-      return *this;
+    if (this == &rhs) return *this;
 
     adduct_mass_ = rhs.adduct_mass_;
     query_mass_ = rhs.query_mass_;
@@ -719,7 +718,7 @@ namespace OpenMS
 
 
           // set database field
-          String dbname_temp = "HMDB";
+          String dbname_temp = database_name_;
           MzTabString dbname;
           dbname.set(dbname_temp);
 
@@ -727,7 +726,7 @@ namespace OpenMS
 
 
           // set database_version field
-          String dbver_temp = "3.5";
+          String dbver_temp = database_version_;
           MzTabString dbversion;
           dbversion.set(dbver_temp);
 
@@ -919,11 +918,39 @@ namespace OpenMS
     // LOG_DEBUG << "parsing " << fname << " file..." << std::endl;
 
     std::ifstream ifs(filename.c_str());
+    Size line_number = 0;
     while (getline(ifs, line))
     {
+      ++line_number;
       str_buf.clear();
-      str_buf << line;
+      str_buf << line;      
       // std::cout << line << std::endl;
+      if (line_number == 1)
+      {              
+	std::vector<String> fields;
+        line.trim().split('\t', fields);
+        if (fields[0] != "database_name")
+        {
+          database_name_ = fields[1];
+        }
+        else
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping file must contain \"database_name\t{NAME}\" as first line.! Aborting... ", "0");
+        }
+      }
+      else if (line_number == 2)
+      {              
+        std::vector<String> fields;
+        line.trim().split('\t', fields);
+        if (fields[0] != "database_version")
+        {
+          database_version_ = fields[1];
+        }
+        else
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping file must contain \"database_version\t{VERSION}\" as first line.! Aborting... ", "0");
+        }
+      }
       std::istream_iterator<String> istr_it(str_buf);
 
       Size word_count(0);

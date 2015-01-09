@@ -306,6 +306,9 @@ private:
 
     StringList pos_adducts_;
     StringList neg_adducts_;
+
+    String database_name_;
+    String database_version_;
   };
 
 }
