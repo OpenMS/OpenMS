@@ -253,7 +253,6 @@ vector<RNPxlReportRow> annotateRNPxlInformation_(const PeakMap& spectra, vector<
   for (Size i = 0; i != peptide_ids.size(); ++i)
   {
     OPENMS_PRECONDITION(!peptide_ids[i].getHits().empty(), "Error: no empty peptide ids allowed.");
-    OPENMS_PRECONDITION(peptide_ids[i].hasMetaValue("scan_index"), "Error: scan index not annotated.");
     Size scan_index = (unsigned int)peptide_ids[i].getMetaValue("scan_index");
     map_spectra_to_id[scan_index] = i;
   }
@@ -957,7 +956,6 @@ private:
 
       const AASequence& seq = AASequence::fromString(fasta_db[fasta_index].sequence);
 
-
       vector<AASequence> current_digest;
       digestor.digest(seq, current_digest);
 
@@ -994,10 +992,8 @@ private:
 
         vector<AASequence> all_modified_peptides;
 
-        // this critial section is because ResidueDB is not thread safe and new residues are created based on the PTMs
-#ifdef _OPENMP
-#pragma omp critical (residuedb_access)
-#endif
+        // no critial section is needed despite ResidueDB not beeing thread sage.
+	// It is only written to on introduction of novel modified residues. These resdiues have been already added above (single thread context).
         {
           ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), *cit);
           ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), *cit, max_variable_mods_per_peptide, all_modified_peptides);
@@ -1047,8 +1043,8 @@ private:
 
               double score = computeHyperScore(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
 
-              // no hit
-              if (score < 1e-16)
+              // no good hit
+              if (score < 1.0)
               {
                 continue;
               }
