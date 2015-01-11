@@ -631,7 +631,7 @@ namespace OpenMS
     {
       return;
     }
-      
+
     MzTabMetaData md = mztab_out.getMetaData();
 
     // may contain quantificaton data so we choose quantification
@@ -653,11 +653,11 @@ namespace OpenMS
     run_md.location = null_location;
     md.ms_run[1] = run_md;
 
-    // try to deduce the number of study variables from first entry. 
+    // try to deduce the number of study variables from first entry.
     // As we don't have experimental design information in OpenMS (yet) we assume one study_variable for each intensity.
     Size n_individual_intensities = overall_results.begin()->at(0).getIndividualIntensities().size();
 
-    // if we have 0 individual_intensities it is a feature otherwise it is a consensus feature. 
+    // if we have 0 individual_intensities it is a feature otherwise it is a consensus feature.
     // TODO: check if the design can be improved. Distinction of itensities done here doesn't seem very natural.
     Size n_study_variables = n_individual_intensities == 0 ? 1 : n_individual_intensities;
 
@@ -665,7 +665,7 @@ namespace OpenMS
     {
       MzTabStudyVariableMetaData sv_md;
       sv_md.description.fromCellString("Accurate mass search result file.");
-      md.study_variable[i+1] = sv_md;
+      md.study_variable[i + 1] = sv_md;
     }
 
     mztab_out.setMetaData(md);
@@ -694,7 +694,7 @@ namespace OpenMS
         {
           MzTabSmallMoleculeSectionRow mztab_row_record;
 
-	  // set the identifier field
+          // set the identifier field
           String hid_temp = matching_ids[id_idx];
           MzTabString hmdb_id;
           hmdb_id.set(hid_temp);
@@ -741,9 +741,9 @@ namespace OpenMS
 
           mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
-	  double exp_mz_tmp = (*tab_it)[hit_idx].getQueryMass();
-	  MzTabDouble exp_mass_to_charge;
-	  exp_mass_to_charge.set(exp_mz_tmp);
+          double exp_mz_tmp = (*tab_it)[hit_idx].getQueryMass();
+          MzTabDouble exp_mass_to_charge;
+          exp_mass_to_charge.set(exp_mz_tmp);
 
           // set charge field
           Int ch_temp = (*tab_it)[hit_idx].getCharge();
@@ -778,11 +778,11 @@ namespace OpenMS
 
           mztab_row_record.database_version = dbversion;
 
-	  MzTabParameterList search_engines;
-	  search_engines.fromCellString("[,,AccurateMassSearch,]");
+          MzTabParameterList search_engines;
+          search_engines.fromCellString("[,,AccurateMassSearch,]");
           mztab_row_record.search_engine = search_engines;
 
-	  MzTabDouble null_score;
+          MzTabDouble null_score;
           mztab_row_record.best_search_engine_score[1] = null_score; // set null
           mztab_row_record.search_engine_score_ms_run[1][1] = null_score; // set null
 
@@ -791,7 +791,7 @@ namespace OpenMS
           std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
           std::vector<MzTabDouble> int_temp3;
 
-	  bool single_intensity = (indiv_ints.size() == 0);
+          bool single_intensity = (indiv_ints.size() == 0);
 
           if (single_intensity)
           {
@@ -978,13 +978,13 @@ namespace OpenMS
       ++line_number;
       // std::cout << line << std::endl;
       if (line_number == 1)
-      {              
-	std::vector<String> fields;
+      {
+        std::vector<String> fields;
         line.trim().split('\t', fields);
         if (fields[0] == "database_name")
         {
           database_name_ = fields[1];
-	  continue;
+          continue;
         }
         else
         {
@@ -992,13 +992,13 @@ namespace OpenMS
         }
       }
       else if (line_number == 2)
-      {              
+      {
         std::vector<String> fields;
         line.trim().split('\t', fields);
         if (fields[0] == "database_version")
         {
           database_version_ = fields[1];
-	  continue;
+          continue;
         }
         else
         {
@@ -1007,7 +1007,7 @@ namespace OpenMS
       }
 
       str_buf.clear();
-      str_buf << line;      
+      str_buf << line;
       std::istream_iterator<String> istr_it(str_buf);
 
       Size word_count(0);
