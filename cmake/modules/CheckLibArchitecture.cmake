@@ -64,10 +64,15 @@ function(check_lib_architecture link_libs)
                             TIMEOUT ${LIB_ARCH_TIMEOUT}) ## three seconds should be enough to get the first lines, which suffice to know what we need; big libs may need much longer!
             ## do not check '${DUMP_RESULT} EQUAL 0' here since a timeout could set it to 'Process terminated due to timeout'
             ## get a shorter version for (faster) regex matching below
-            string(SUBSTRING "${PIPE_OUT_LIB}" 0 600 PIPE_OUT_LIB_S)
+            string(LENGTH "${PIPE_OUT_LIB}" PIPE_OUT_LIB_LEN)
+            if (${PIPE_OUT_LIB_LEN} LESS 601)
+              set(PIPE_OUT_LIB_S "${PIPE_OUT_LIB}")
+            else()
+              string(SUBSTRING "${PIPE_OUT_LIB}" 0 600 PIPE_OUT_LIB_S)
+            endif()
             ## check if substring is long enough
             if (NOT PIPE_OUT_LIB_S MATCHES "[Mm]achine")
-              message(STATUS "  - Timeout before data could be acquired. Make sure your machine is not too busy or increase 'LIB_ARCH_TIMEOUT'.")
+              message(STATUS "  - Timeout before data could be acquired. Data was:\n'${PIPE_OUT_LIB_S}'\n--\nMake sure your machine is not too busy or increase 'LIB_ARCH_TIMEOUT'.")
             else()
               ## we expect consistent architectures, output can be
               ## 'Machine      : 8664 (x64)'
