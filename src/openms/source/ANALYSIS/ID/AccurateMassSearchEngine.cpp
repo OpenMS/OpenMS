@@ -89,7 +89,7 @@ namespace OpenMS
   bool AccurateMassSearchEngine::AdductInfo_::isCompatible(EmpiricalFormula db_entry) const
   {
     return db_entry.contains(ef_ * -1);
-  };
+  }
 
   int AccurateMassSearchEngine::AdductInfo_::getCharge() const
   {
@@ -236,7 +236,7 @@ namespace OpenMS
     }
 
     return AdductInfo_(cp_str, ef, charge, intrinsic, mol_multiplier);
-  };
+  }
 
 
   /// default constructor
@@ -717,7 +717,7 @@ namespace OpenMS
 
       if (query_results.size() == 0) continue; // cannot happen if a 'not-found' dummy was added
 
-      bool is_dummy = (query_results[0].getMatchingIndex() == -1);
+      bool is_dummy = (query_results[0].getMatchingIndex() == (Size)-1);
       if (is_dummy) ++dummy_count;
 
       if (iso_similarity_ && !is_dummy)
@@ -729,8 +729,6 @@ namespace OpenMS
         else if ((Size)fmap[i].getMetaValue("num_of_masstraces") > 1)
         { // compute isotope pattern similarities (do not take the best-scoring one, since it might have really bad ppm or other properties -- 
           // it is impossible to decide here which one is best
-          double best_iso_sim(std::numeric_limits<double>::max());
-          Size best_iso_idx(0);
           for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
           {
             String emp_formula(query_results[hit_idx].getFormulaString());
@@ -1433,9 +1431,7 @@ namespace OpenMS
 
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
 
-    IsotopeDistribution iso_dist(form.getIsotopeDistribution(common_size));
-
-    double max_iso_prob(iso_dist.begin()->second);
+    IsotopeDistribution iso_dist(form.getIsotopeDistribution((UInt)common_size));
 
     // scale available peaks to 1
     iso_dist.renormalize();
