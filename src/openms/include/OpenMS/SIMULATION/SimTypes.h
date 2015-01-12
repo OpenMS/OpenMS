@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,105 +56,128 @@
 
 namespace OpenMS
 {
-  //forward declarations
-  class SimRandomNumberGenerator;
 
-  /// Coordinate type in mz and rt dimension
-  typedef Peak2D::CoordinateType SimCoordinateType;
-
-  /// Abundance of proteins/peptides
-  typedef Peak2D::IntensityType SimIntensityType;
-
-  /// Charge of a peptide
-  typedef Feature::ChargeType SimChargeType;
-
-  /// Raw data point
-  typedef Peak1D SimPointType;
-
-  /// Container for FASTAEntry & abundance information
-  class OPENMS_DLLAPI SampleProteins : public std::vector<std::pair<FASTAFile::FASTAEntry, MetaInfoInterface> > { }; 
-
-  /// Container for multiple channels of SampleProteins
-  class OPENMS_DLLAPI SampleChannels : public std::vector<SampleProteins> { }; 
-
-  /// Sim FeatureMap
-  typedef FeatureMap<> FeatureMapSim;
-
-  /// Sim FeatureMap Vector
-  typedef std::vector<FeatureMapSim> FeatureMapSimVector;
-
-  /// Sim MSExperiment type
-  typedef MSExperiment<SimPointType> MSSimExperiment;
-
-  //Sim Shared Pointer type
-  typedef boost::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
-  /**
-    @brief Wrapper class for random number generators used by the simulation classes
-
-    The random numbers are separated two sources of randomness:
-
-    <ul>
-      <li><em>technical random numbers</em> which should represent technical
-          sources of variability like instrument noise and </li>
-      <li><em>biological random numbers</em> which should represent biological
-          sources of variability (e.g. between two samples of the same composition)</li>
-    </ul>
-
-    @ingroup Simulation
-  */
-  class SimRandomNumberGenerator
+  namespace SimTypes
   {
-  public:
+    /// Coordinate type in mz and rt dimension
+    typedef Peak2D::CoordinateType SimCoordinateType;
 
-    boost::random::mt19937_64& getBiologicalRng()
-    {
-      return biological_rng_;
-    }
+    /// Abundance of proteins/peptides
+    typedef Peak2D::IntensityType SimIntensityType;
 
-    boost::random::mt19937_64& getTechnicalRng()
-    {
-      return technical_rng_;
-    }
+    /// Charge of a peptide
+    typedef Feature::ChargeType SimChargeType;
 
-    void setBiologicalRngSeed( unsigned long int seed )
-    {
-      biological_rng_.seed(seed);
-    }
+    /// Raw data point
+    typedef Peak1D SimPointType;
 
-    void setTechnicalRngSeed( unsigned long int seed )
+    /**
+      @brief Plain data object holding sequence and abundance information on a single protein.
+    */
+    struct SimProtein
     {
-      technical_rng_.seed(seed);
-    }
+      /// FASTAEntry holding the sequence information
+      FASTAFile::FASTAEntry entry;
+      /// MetaInfoInterface holding the abundance information
+      MetaInfoInterface meta;
 
-    /// Initialize the RNGs
-    void initialize(bool biological_random, bool technical_random)
+      /**
+        @brief c'tor
+      */
+      SimProtein(FASTAFile::FASTAEntry& e, MetaInfoInterface& m) :
+       entry(e),
+       meta(m)
+      {}
+    };
+
+    /// Container for FASTAEntry & abundance information
+    typedef std::vector<SimProtein> SampleProteins;
+
+    /// Container for multiple channels of SampleProteins
+    typedef std::vector<SampleProteins> SampleChannels;
+
+    /// Sim FeatureMap
+    typedef FeatureMap FeatureMapSim;
+
+    /// Sim FeatureMap Vector
+    typedef std::vector<FeatureMapSim> FeatureMapSimVector;
+
+    /// Sim MSExperiment type
+    typedef MSExperiment<SimPointType> MSSimExperiment;
+
+    /**
+      @brief Wrapper class for random number generators used by the simulation classes
+
+      The random numbers are separated two sources of randomness:
+
+      <ul>
+        <li><em>technical random numbers</em> which should represent technical
+            sources of variability like instrument noise and </li>
+        <li><em>biological random numbers</em> which should represent biological
+            sources of variability (e.g. between two samples of the same composition)</li>
+      </ul>
+
+      @ingroup Simulation
+    */
+    class SimRandomNumberGenerator
     {
-      // use 0 as default seed to get reproducible experiments
-      if (biological_random)
+public:
+
+      boost::random::mt19937_64& getBiologicalRng()
       {
-        biological_rng_ = boost::random::mt19937_64(std::time(0));
+        return biological_rng_;
       }
-      else
+
+      boost::random::mt19937_64& getTechnicalRng()
       {
-        biological_rng_ = boost::random::mt19937_64(0);
+        return technical_rng_;
       }
 
-      if (technical_random)
+      void setBiologicalRngSeed(unsigned long int seed)
       {
-        technical_rng_ = boost::random::mt19937_64(std::time(0));
+        biological_rng_.seed(seed);
       }
-      else
+
+      void setTechnicalRngSeed(unsigned long int seed)
       {
+        technical_rng_.seed(seed);
+      }
+
+      /// Initialize the RNGs
+      void initialize(bool biological_random, bool technical_random)
+      {
+        // use 0 as default seed to get reproducible experiments
+        if (biological_random)
+        {
+          biological_rng_ = boost::random::mt19937_64(std::time(0));
+        }
+        else
+        {
+          biological_rng_ = boost::random::mt19937_64(0);
+        }
+
+        if (technical_random)
+        {
+          technical_rng_ = boost::random::mt19937_64(std::time(0));
+        }
+        else
+        {
           technical_rng_ = boost::random::mt19937_64(0);
+        }
       }
-    }
-  private:
-    /// random number generator for biological variability
-    boost::random::mt19937_64 biological_rng_;
-    /// random number generator for technical variability
-    boost::random::mt19937_64 technical_rng_;
 
-  };
+private:
+      /// random number generator for biological variability
+      boost::random::mt19937_64 biological_rng_;
+      /// random number generator for technical variability
+      boost::random::mt19937_64 technical_rng_;
+
+    };
+
+    //Sim Shared Pointer type
+    typedef boost::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
+
+  }
 
 }
 

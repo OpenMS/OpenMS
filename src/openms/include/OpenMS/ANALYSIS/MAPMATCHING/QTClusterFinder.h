@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -175,7 +175,7 @@ public:
 
          @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    void run(const std::vector<FeatureMap<> > & input_maps,
+    void run(const std::vector<FeatureMap > & input_maps,
              ConsensusMap & result_map);
 
     /// Returns an instance of this class

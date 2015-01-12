@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -51,6 +52,9 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -84,7 +88,33 @@ using namespace std;
         </table>
         </CENTER>
 
-        This tool uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+        This tool detects quantitative features in MS1 data based on information from peptide identifications (derived from MS2 spectra). It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+
+        @note It is important that only high-confidence peptide identifications and centroided (peak-picked) LC-MS data are used as inputs!
+
+        For every distinct peptide ion (defined by sequence and charge) in the input (parameter @p id), an assay is generated, incorporating the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution of the peptide. The parameter @p reference_rt controls how the RT of the assay is determined if the peptide has been observed multiple times. The relative intensities of the isotopes together with their m/z values are calculated from the sequence and charge.
+
+        The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps:
+
+        <B>1. Ion chromatogram extraction</B>
+
+        First ion chromatograms (XICs) are extracted from the data (parameter @p in). For every assay, the RT range of the XICs is given by @p extract:rt_window (around the reference RT of the assay) and the m/z ranges by @p extract:mz_window (around the m/z values of all included isotopes). As an exception to this, if @p extract:reference_rt is @p adapt, a more complex procedure is used to find the RT range: A range of size @p rt_window around every relevant peptide ID is considered, overlapping ranges are joined, and the largest resulting range is used for the extraction. In that case, the reference RT for the assay is the median RT of the peptide IDs within the range.
+
+        @see @ref TOPP_OpenSwathChromatogramExtractor
+
+        <B>2. Feature detection</B>
+
+        Next feature candidates are detected in the XICs and scored. The best candidate per assay according to the OpenSWATH scoring is turned into a feature.
+
+        @see @ref TOPP_OpenSwathAnalyzer
+
+        <B>3. Elution model fitting</B>
+
+        Elution models can be fitted to every feature to improve the quantification. For robustness, one model is fitted to all isotopic mass traces of a feature in parallel. A symmetric (Gaussian) and an asymmetric (exponential-Gaussian hybrid) model type are available. The fitted models are checked for plausibility before they are accepted.
+
+        Finally the results (feature maps, parameter @p out) are returned.
+
+        @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
 
         <B>The command line parameters of this tool are:</B>
         @verbinclude TOPP_FeatureFinderIdentification.cli
@@ -116,60 +146,57 @@ protected:
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file (features)");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("lib_out","<file>", "", "Output file (assay library)",
+    registerOutputFile_("lib_out", "<file>", "", "Output file (assay library)",
                         false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("chrom_out","<file>", "", "Output file (chromatograms)",
+    registerOutputFile_("chrom_out", "<file>", "", "Output file (chromatograms)",
                         false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("trafo_out","<file>", "",
+    registerOutputFile_("trafo_out", "<file>", "",
                         "Output file (RT transformation)", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
-    addEmptyLine_();
-    registerStringOption_("reference_rt", "<choice>", "score", "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge ('score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs, 'adapt': adapt RT windows based on IDs)", false);
-    setValidStrings_("reference_rt",
-                     ListUtils::create<String>("score,intensity,median,all,adapt"));
-    registerDoubleOption_("rt_window", "<value>", 180, "RT window size (in sec.) for chromatogram extraction.", false);
-    setMinFloat_("rt_window", 0);
-    registerDoubleOption_("mz_window", "<value>", 10, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
-    setMinFloat_("mz_window", 0);
-    registerDoubleOption_("isotope_pmin", "<value>", 0.01, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
-    setMinFloat_("isotope_pmin", 0);
-    setMaxFloat_("isotope_pmin", 1);
-    StringList model_choices = ListUtils::create<String>("none,symmetric,asymmetric");
-    registerStringOption_("elution_model", "<choice>", model_choices[0], "Elution model to fit to features", false);
-    setValidStrings_("elution_model", model_choices);
-    // advanced parameters:
-    registerFlag_("unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
-    registerFlag_("no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the OpenSWATH intensity", true);
-    registerTOPPSubsection_("model_check", "Parameters for checking the validity of elution models and rejecting them if necessary");
-    registerDoubleOption_("model_check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
-    setMinFloat_("model_check:boundaries", 0.0);
-    setMaxFloat_("model_check:boundaries", 1.0);
-    registerDoubleOption_("model_check:width", "<value>", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
-    setMinFloat_("model_check:width", 0.0);
-    registerDoubleOption_("model_check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
-    setMinFloat_("model_check:asymmetry", 0.0);
+    registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
+    StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
+    registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge. 'adapt': adapt (extend) RT windows based on IDs; 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs (requires further processing of results).", false);
+    setValidStrings_("extract:reference_rt", refs);
+    registerDoubleOption_("extract:rt_window", "<value>", 60.0, "RT window size (in sec.) for chromatogram extraction.", false);
+    setMinFloat_("extract:rt_window", 0.0);
+    registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
+    setMinFloat_("extract:mz_window", 0.0);
+    registerDoubleOption_("extract:isotope_pmin", "<value>", 0.03, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
+    setMinFloat_("extract:isotope_pmin", 0.0);
+    setMaxFloat_("extract:isotope_pmin", 1.0);
 
-    // addEmptyLine_();
-    // registerSubsection_("algorithm", "Algorithm parameters section");
+    registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
+    registerDoubleOption_("detect:peak_width", "<value>", 30.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
+    setMinFloat_("detect:peak_width", 0.0);
+    registerFlag_("detect:all_features", "Return all features detected by OpenSWATH for an assay, instead of only the best one. (This requires further processing of the results.)", true);
+
+    registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
+    StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
+    registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
+    setValidStrings_("model:type", models);
+    registerDoubleOption_("model:add_zeros", "<value>", 0.2, "Add zero-intensity points outside the feature range to constrain the model fit. This parameter sets the weight given to these points during model fitting; '0' to disable.", false, true);
+    setMinFloat_("model:add_zeros", 0.0);
+    registerFlag_("model:unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
+    registerFlag_("model:no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the initial intensity estimate", true);
+    registerTOPPSubsection_("model:check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
+    registerDoubleOption_("model:check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
+    setMinFloat_("model:check:boundaries", 0.0);
+    setMaxFloat_("model:check:boundaries", 1.0);
+    registerDoubleOption_("model:check:width", "<value>", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
+    setMinFloat_("model:check:width", 0.0);
+    registerDoubleOption_("model:check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
+    setMinFloat_("model:check:asymmetry", 0.0);
   }
-
-  // Param getSubsectionDefaults_(const String& /*section*/) const
-  // {
-  //   Param combined;
-  //   return combined;
-  // }
-
 
   typedef MSExperiment<Peak1D> PeakMap;
 
-  // mapping: charge -> iterator to peptide
-  typedef Map<Int, vector<vector<PeptideIdentification>::iterator> > ChargeMap;
-  // mapping: sequence -> charge -> iterator to peptide
-  typedef Map<AASequence, ChargeMap> PeptideMap;
-  // mapping: assay ID -> RT begin/end
+  // mapping: charge -> pointer to peptides
+  typedef map<Int, vector<PeptideIdentification*> > ChargeMap;
+  // mapping: sequence -> charge -> pointer to peptide
+  typedef map<AASequence, ChargeMap> PeptideMap;
 
   PeakMap ms_data_; // input LC-MS data
   TargetedExperiment library_; // assay library
@@ -203,7 +230,6 @@ protected:
     }
   }
 
-
   // add an assay (peptide and transitions) to the library:
   void addAssay_(TargetedExperiment::Peptide& peptide, const AASequence& seq,
                  const ChargeMap::value_type& charge_data)
@@ -217,10 +243,7 @@ protected:
     else if (reference_rt_ == "score")
     {
       rts.resize(1);
-
-      // Initialization value does not matter here since we set the values in
-      // the first run anyways.
-      double best_score = 0; 
+      double best_score = 0.0; // to avoid compiler warning (real init below)
       for (ChargeMap::mapped_type::const_iterator pi_it =
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
@@ -375,8 +398,8 @@ protected:
     }
   }
 
-
-  void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true)
+  // fit models of elution profiles to all features:
+  void fitElutionModels_(FeatureMap& features, bool asymmetric = true)
   {
     // assumptions:
     // - all features have subordinates (for the mass traces/transitions)
@@ -384,25 +407,26 @@ protected:
     // - all convex hulls in one feature contain the same number (> 0) of points
     // - the y coordinates of the hull points store the intensities
 
-    bool weighted = !getFlag_("unweighted_fit");
-    bool impute = !getFlag_("no_imputation");
-    double check_boundaries = getDoubleOption_("model_check:boundaries");
+    double add_zeros = getDoubleOption_("model:add_zeros");
+    bool weighted = !getFlag_("model:unweighted_fit");
+    bool impute = !getFlag_("model:no_imputation");
+    double check_boundaries = getDoubleOption_("model:check:boundaries");
 
     // prepare look-up of transitions by native ID:
-    map<String, vector<ReactionMonitoringTransition>::const_iterator> trans_ids;
+    map<String, const ReactionMonitoringTransition*> trans_ids;
     for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
            library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
+         library_.getTransitions().end(); ++trans_it)
     {
-      trans_ids[trans_it->getNativeID()] = trans_it;
+      trans_ids[trans_it->getNativeID()] = &(*trans_it);
     }
 
-    TraceFitter<Peak1D>* fitter;
+    TraceFitter* fitter;
     if (asymmetric)
     {
-      fitter = new EGHTraceFitter<Peak1D>();
+      fitter = new EGHTraceFitter();
     }
-    else fitter = new GaussTraceFitter<Peak1D>();
+    else fitter = new GaussTraceFitter();
     if (weighted)
     {
       Param params = fitter->getDefaults();
@@ -411,9 +435,9 @@ protected:
     }
 
     // store model parameters to find outliers later:
-    double width_limit = getDoubleOption_("model_check:width");
-    double asym_limit = (asymmetric ? 
-                             getDoubleOption_("model_check:asymmetry") : 0.0);
+    double width_limit = getDoubleOption_("model:check:width");
+    double asym_limit = (asymmetric ?
+                         getDoubleOption_("model:check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
     vector<double> widths_all, widths_good, asym_all, asym_good;
@@ -432,34 +456,46 @@ protected:
     // collect peaks that constitute mass traces:
     LOG_DEBUG << "Fitting elution models to features:" << endl;
     Size index = 0;
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it, ++index)
     {
       LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
+      double region_start = double(feat_it->getMetaValue("leftWidth"));
+      double region_end = double(feat_it->getMetaValue("rightWidth"));
+
       vector<Peak1D> peaks;
       // reserve space once, to avoid copying and invalidating pointers:
       Size points_per_hull = feat_it->
-        getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
-      peaks.reserve(feat_it->getSubordinates().size() * points_per_hull);
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> traces;
+                             getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
+      peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
+                    (add_zeros > 0.0)); // don't forget additional zero point
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces traces;
       traces.max_trace = 0;
-      traces.reserve(feat_it->getSubordinates().size());
+      // need a mass trace for every transition, plus maybe one for add. zeros:
+      traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
       for (vector<Feature>::iterator sub_it =
              feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
+           feat_it->getSubordinates().end(); ++sub_it)
       {
-        const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
-        String native_id = sub_it->getMetaValue("native_id");
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
-        trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
-        sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace trace;
         trace.peaks.reserve(points_per_hull);
+        if (sub_it->metaValueExists("isotope_probability"))
+        {
+          trace.theoretical_int = sub_it->getMetaValue("isotope_probability");
+        }
+        else
+        {
+          String native_id = sub_it->getMetaValue("native_id");
+          trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
+          sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
+        }
+        const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
         for (ConvexHull2D::PointArrayTypeConstIterator point_it =
                hull.getHullPoints().begin(); point_it !=
-               hull.getHullPoints().end(); ++point_it)
+             hull.getHullPoints().end(); ++point_it)
         {
           double intensity = point_it->getY();
-          if (intensity > 0) // only use non-zero intensities for fitting
+          if (intensity > 0.0) // only use non-zero intensities for fitting
           {
             Peak1D peak;
             peak.setMZ(sub_it->getMZ());
@@ -471,6 +507,7 @@ protected:
         trace.updateMaximum();
         if (!trace.peaks.empty()) traces.push_back(trace);
       }
+
       Size max_trace = 0;
       double max_intensity = 0;
       for (Size i = 0; i < traces.size(); ++i)
@@ -487,6 +524,21 @@ protected:
       // traces.baseline = 0.75 * traces.baseline;
       traces.baseline = 0.0;
 
+      if (add_zeros > 0.0)
+      {
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace trace;
+        trace.peaks.reserve(2);
+        trace.theoretical_int = add_zeros;
+        Peak1D peak;
+        peak.setMZ(feat_it->getSubordinates()[0].getMZ());
+        peak.setIntensity(0.0);
+        peaks.push_back(peak);
+        double offset = 0.2 * (region_start - region_end);
+        trace.peaks.push_back(make_pair(region_start - offset, &peaks.back()));
+        trace.peaks.push_back(make_pair(region_end + offset, &peaks.back()));
+        traces.push_back(trace);
+      }
+
       // fit the model:
       bool fit_success = true;
       try
@@ -495,7 +547,7 @@ protected:
       }
       catch (Exception::UnableToFit& except)
       {
-        LOG_ERROR << "Error fitting model to feature '" 
+        LOG_ERROR << "Error fitting model to feature '"
                   << feat_it->getUniqueId() << "': " << except.getName()
                   << " - " << except.getMessage() << endl;
         fit_success = false;
@@ -510,15 +562,15 @@ protected:
       feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
       if (asymmetric)
       {
-        EGHTraceFitter<Peak1D>* egh =
-          static_cast<EGHTraceFitter<Peak1D>*>(fitter);
+        EGHTraceFitter* egh =
+          static_cast<EGHTraceFitter*>(fitter);
         feat_it->setMetaValue("model_EGH_tau", egh->getTau());
         feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
       }
       else
       {
-        GaussTraceFitter<Peak1D>* gauss =
-          static_cast<GaussTraceFitter<Peak1D>*>(fitter);
+        GaussTraceFitter* gauss =
+          static_cast<GaussTraceFitter*>(fitter);
         feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
       }
 
@@ -528,15 +580,15 @@ protected:
       {
         mre = 0.0;
         double total_weights = 0.0;
-        double rt_start = max(fitter->getLowerRTBound(), 
-                                  traces[0].peaks[0].first);
-        double rt_end = min(fitter->getUpperRTBound(), 
-                                traces[0].peaks.rbegin()->first);
+        double rt_start = max(fitter->getLowerRTBound(),
+                              traces[0].peaks[0].first);
+        double rt_end = min(fitter->getUpperRTBound(),
+                            traces[0].peaks.rbegin()->first);
 
-        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>::
-               iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
+        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces::
+             iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
         {
-          for (vector<pair<double, const Peak1D*> >::iterator p_it = 
+          for (vector<pair<double, const Peak1D*> >::iterator p_it =
                  tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
           {
             double rt = p_it->first;
@@ -544,7 +596,7 @@ protected:
             {
               double model_value = fitter->getValue(rt);
               double diff = fabs(model_value * tr_it->theoretical_int -
-                                     p_it->second->getIntensity());
+                                 p_it->second->getIntensity());
               mre += diff / model_value;
               total_weights += tr_it->theoretical_int;
             }
@@ -555,8 +607,6 @@ protected:
       feat_it->setMetaValue("model_error", mre);
 
       // check model validity:
-      double region_start = double(feat_it->getMetaValue("leftWidth"));
-      double region_end = double(feat_it->getMetaValue("rightWidth"));
       double area = fitter->getArea();
       feat_it->setMetaValue("model_area", area);
       if ((area != area) || (area <= 0.0)) // x != x: test for NaN
@@ -583,7 +633,7 @@ protected:
         {
           double sigma = feat_it->getMetaValue("model_EGH_sigma");
           double abs_tau = fabs(double(feat_it->
-                                               getMetaValue("model_EGH_tau")));
+                                       getMetaValue("model_EGH_tau")));
           if (width_limit > 0)
           {
             // see implementation of "EGHTraceFitter::getArea":
@@ -612,7 +662,7 @@ protected:
     if (width_limit > 0)
     {
       double median_width = Math::median(widths_good.begin(),
-                                             widths_good.end());
+                                         widths_good.end());
       vector<double> abs_diffs(widths_good.size());
       for (Size i = 0; i < widths_good.size(); ++i)
       {
@@ -620,7 +670,7 @@ protected:
       }
       // median absolute deviation (constant factor to approximate std. dev.):
       double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
-                                                   abs_diffs.end());
+                                               abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -655,7 +705,7 @@ protected:
       }
       // median absolute deviation (constant factor to approximate std. dev.):
       double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
-                                                  abs_diffs.end());
+                                              abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
@@ -675,10 +725,10 @@ protected:
 
     // impute approximate results for failed model fits:
     TransformationModel::DataPoints quant_values;
-    vector<FeatureMap<>::Iterator> failed_models;
+    vector<FeatureMap::Iterator> failed_models;
     Size model_successes = 0, model_failures = 0;
 
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it, ++index)
     {
       feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
@@ -694,8 +744,8 @@ protected:
         if (impute)
         { // apply log-transform to weight down high outliers:
           double raw_intensity = feat_it->getIntensity();
-          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = " 
-                    << area << "; log(x) = " << log(raw_intensity) 
+          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
+                    << area << "; log(x) = " << log(raw_intensity)
                     << ", log(y) = " << log(area) << endl;
           quant_values.push_back(make_pair(log(raw_intensity), log(area)));
         }
@@ -703,17 +753,17 @@ protected:
         model_successes++;
       }
     }
-    LOG_INFO << "Model fitting: " << model_successes << " successes, " 
+    LOG_INFO << "Model fitting: " << model_successes << " successes, "
              << model_failures << " failures" << endl;
 
-    if (impute)
-    { // impute results for cases where the model fit failed:
+    if (impute) // impute results for cases where the model fit failed
+    {
       TransformationModelLinear lm(quant_values, Param());
       double slope, intercept;
       lm.getParameters(slope, intercept);
-      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept 
+      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept
                 << endl;
-      for (vector<FeatureMap<>::Iterator>::iterator it = failed_models.begin();
+      for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
            it != failed_models.end(); ++it)
       {
         double area = exp(lm.evaluate(log((*it)->getIntensity())));
@@ -721,7 +771,6 @@ protected:
       }
     }
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -734,13 +783,15 @@ protected:
     String lib_out = getStringOption_("lib_out");
     String chrom_out = getStringOption_("chrom_out");
     String trafo_out = getStringOption_("trafo_out");
-    reference_rt_ = getStringOption_("reference_rt");
-    double rt_window = getDoubleOption_("rt_window");
+    reference_rt_ = getStringOption_("extract:reference_rt");
+    double rt_window = getDoubleOption_("extract:rt_window");
     rt_tolerance_ = rt_window / 2.0;
-    double mz_window = getDoubleOption_("mz_window");
+    double mz_window = getDoubleOption_("extract:mz_window");
     bool mz_window_ppm = mz_window >= 1;
-    double isotope_pmin = getDoubleOption_("isotope_pmin");
-    String elution_model = getStringOption_("elution_model");
+    double isotope_pmin = getDoubleOption_("extract:isotope_pmin");
+    bool all_features = getFlag_("detect:all_features");
+    double peak_width = getDoubleOption_("detect:peak_width");
+    String elution_model = getStringOption_("model:type");
 
     //-------------------------------------------------------------
     // load input
@@ -780,7 +831,7 @@ protected:
       if (pep_it->getHits().empty()) continue;
       pep_it->sort();
       PeptideHit& hit = pep_it->getHits()[0];
-      peptide_map[hit.getSequence()][hit.getCharge()].push_back(pep_it);
+      peptide_map[hit.getSequence()][hit.getCharge()].push_back(&(*pep_it));
     }
 
     //-------------------------------------------------------------
@@ -797,11 +848,12 @@ protected:
 
       // keep track of protein accessions:
       const PeptideHit& hit = pm_it->second.begin()->second[0]->getHits()[0];
-      vector<String> current_accessions = hit.getProteinAccessions();
+
+      set<String> current_accessions = hit.extractProteinAccessions();
       // missing protein accession would crash OpenSwath algorithms:
       if (current_accessions.empty())
       {
-        current_accessions.push_back("not_available");
+        current_accessions.insert("not_available");
       }
       protein_accessions.insert(current_accessions.begin(),
                                 current_accessions.end());
@@ -815,7 +867,7 @@ protected:
       // create assay for current peptide (fill in charge etc. later):
       TargetedExperiment::Peptide peptide;
       peptide.sequence = seq.toString();
-      peptide.protein_refs = current_accessions;
+      peptide.protein_refs = vector<String>(current_accessions.begin(), current_accessions.end());
 
       // go through different charge states:
       for (ChargeMap::iterator cm_it = pm_it->second.begin();
@@ -857,7 +909,7 @@ protected:
       vector<ChromatogramExtractor::ExtractionCoordinates> coords;
       for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
              library_.getTransitions().begin(); trans_it !=
-             library_.getTransitions().end(); ++trans_it)
+           library_.getTransitions().end(); ++trans_it)
       {
         const TargetedExperiment::Peptide& peptide =
           library_.getPeptideByRef(trans_it->getPeptideRef());
@@ -873,15 +925,15 @@ protected:
         {
           // is this an intuitive way to store/access the RT?!
           double rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].
-            getValue().toString().toDouble();
+                      getValue().toString().toDouble();
           rt = trafo_.apply(rt); // reverse RT transformation
           double rt_win = rt_window;
           if (peptide.metaValueExists("rt_window"))
           {
             rt_win = peptide.getMetaValue("rt_window");
           }
-          current.rt_start = rt - rt_win / 2.0;
-          current.rt_end = rt + rt_win / 2.0;
+          current.rt_start = rt - rt_win * 0.5;
+          current.rt_end = rt + rt_win * 0.5;
         }
         coords.push_back(current);
       }
@@ -915,16 +967,17 @@ protected:
     // find chromatographic peaks
     //-------------------------------------------------------------
     LOG_INFO << "Finding chromatographic peaks..." << endl;
-    FeatureMap<> features;
+    FeatureMap features;
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
-    params.setValue("stop_report_after_feature", -1); // 1);
+    params.setValue("stop_report_after_feature",
+                    all_features ? -1 : 1);
     if (elution_model != "none") params.setValue("write_convex_hull", "true");
-    params.setValue("TransitionGroupPicker:min_peak_width", 5.0);
+    params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
-    // params.setValue("TransitionGroupPicker:PeakPickerMRM:use_gauss", "false");
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 20.0);
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
+                    peak_width);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
     mrm_finder.setParameters(params);
@@ -942,7 +995,7 @@ protected:
     // fill in missing feature data
     //-------------------------------------------------------------
     LOG_INFO << "Adapting feature data..." << endl;
-    for (FeatureMap<>::Iterator feat_it = features.begin();
+    for (FeatureMap::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
       feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
@@ -954,7 +1007,7 @@ protected:
       {
         for (vector<Feature>::iterator sub_it =
                feat_it->getSubordinates().begin(); sub_it !=
-               feat_it->getSubordinates().end(); ++sub_it)
+             feat_it->getSubordinates().end(); ++sub_it)
         {
           double abs_mz_tol = mz_window / 2.0;
           if (mz_window_ppm) abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;

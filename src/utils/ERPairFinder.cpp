@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -92,7 +93,7 @@ struct SILAC_pair
 // SILAC_pair which it is matched to
 struct MatchedFeature
 {
-  MatchedFeature(const Feature & feature, Size index) :
+  MatchedFeature(const Feature& feature, Size index) :
     f(feature),
     idx(index)
   {
@@ -162,7 +163,7 @@ protected:
     setMinFloat_("expansion_range", 0.0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -223,7 +224,7 @@ protected:
     results_map.getFileDescriptions()[1].label = "heavy";
     results_map.getFileDescriptions()[1].filename = in;
 
-    FeatureFinderAlgorithmIsotopeWavelet<Peak1D, Feature> iso_ff;
+    FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());
     ff_param.setValue("max_charge", 3);
     ff_param.setValue("intensity_threshold", -1.0);
@@ -233,7 +234,7 @@ protected:
     ff.setLogType(ProgressLogger::NONE);
 
     vector<SILACQuantitation> quantlets;
-    FeatureMap<> all_features;
+    FeatureMap all_features;
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
     {
       if (it->size() == 0 || it->getMSLevel() != 1 || !it->getInstrumentSettings().getZoomScan())
@@ -342,7 +343,7 @@ protected:
         new_exp_light.updateRanges();
         new_exp_heavy.updateRanges();
 
-        FeatureMap<> feature_map_light, feature_map_heavy, seeds;
+        FeatureMap feature_map_light, feature_map_heavy, seeds;
         if (light_spec.size() > 0)
         {
           ff.run("isotope_wavelet", new_exp_light, feature_map_light, ff_param, seeds);
@@ -356,12 +357,12 @@ protected:
 
         // search if feature maps to m/z value of pair
         vector<MatchedFeature> light, heavy;
-        for (FeatureMap<>::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
+        for (FeatureMap::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
         {
           all_features.push_back(*fit);
           light.push_back(MatchedFeature(*fit, idx));
         }
-        for (FeatureMap<>::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
+        for (FeatureMap::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
         {
           all_features.push_back(*fit);
           heavy.push_back(MatchedFeature(*fit, idx));
@@ -457,7 +458,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPERPairFinder tool;
   return tool.main(argc, argv);

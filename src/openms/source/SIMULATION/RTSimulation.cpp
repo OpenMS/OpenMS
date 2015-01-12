@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,13 +57,13 @@ namespace OpenMS
 {
 
   RTSimulation::RTSimulation() :
-    DefaultParamHandler("RTSimulation"), rnd_gen_(new SimRandomNumberGenerator())
+    DefaultParamHandler("RTSimulation"), rnd_gen_(new SimTypes::SimRandomNumberGenerator())
   {
     setDefaultParams_();
     updateMembers_();
   }
 
-  RTSimulation::RTSimulation(MutableSimRandomNumberGeneratorPtr random_generator) :
+  RTSimulation::RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr random_generator) :
     DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
   {
     setDefaultParams_();
@@ -199,9 +199,9 @@ namespace OpenMS
 
   }
 
-  void RTSimulation::noRTColumn_(FeatureMapSim& features)
+  void RTSimulation::noRTColumn_(SimTypes::FeatureMapSim& features)
   {
-    for (FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
+    for (SimTypes::FeatureMapSim::iterator it_f = features.begin(); it_f != features.end();
          ++it_f)
     {
       (*it_f).setRT(-1);
@@ -211,7 +211,7 @@ namespace OpenMS
   /**
    @brief Gets a feature map containing the peptides and predicts for those the retention times
    */
-  void RTSimulation::predictRT(FeatureMapSim& features)
+  void RTSimulation::predictRT(SimTypes::FeatureMapSim& features)
   {
     LOG_INFO << "RT Simulation ... started" << std::endl;
 
@@ -238,11 +238,11 @@ namespace OpenMS
     }
 
     // rt error dicing
-    SimCoordinateType rt_offset = param_.getValue("variation:affine_offset");
-    SimCoordinateType rt_scale  = param_.getValue("variation:affine_scale");
-    SimCoordinateType rt_ft_stddev = param_.getValue("variation:feature_stddev");
+    SimTypes::SimCoordinateType rt_offset = param_.getValue("variation:affine_offset");
+    SimTypes::SimCoordinateType rt_scale  = param_.getValue("variation:affine_scale");
+    SimTypes::SimCoordinateType rt_ft_stddev = param_.getValue("variation:feature_stddev");
 
-    FeatureMapSim fm_tmp(features);
+    SimTypes::FeatureMapSim fm_tmp(features);
     fm_tmp.clear(false);
     StringList deleted_features;
     for (Size i = 0; i < predicted_retention_times.size(); ++i)
@@ -259,8 +259,8 @@ namespace OpenMS
         predicted_retention_times[i] = features[i].getMetaValue("rt");
       }
       // add variation
-      boost::normal_distribution<SimCoordinateType> ndist(rt_offset, rt_ft_stddev);
-      SimCoordinateType rt_error = ndist(rnd_gen_->getTechnicalRng());
+      boost::normal_distribution<SimTypes::SimCoordinateType> ndist(rt_offset, rt_ft_stddev);
+      SimTypes::SimCoordinateType rt_error = ndist(rnd_gen_->getTechnicalRng());
       predicted_retention_times[i] = predicted_retention_times[i] * rt_scale + rt_error;
       //overwrite RT [no randomization] (if given by user)
       if (features[i].metaValueExists("RT"))
@@ -400,12 +400,12 @@ namespace OpenMS
     {
       q_aa_acidic[aa_acidic[i]] = -1 / (1 + std::pow(10, -ph + aa_acidic_pkas[i]));
     }
-    // add values for ambigous AA according to dayhoff frequencies
+    // add values for ambiguous AA according to Dayhoff frequencies
     q_aa_acidic["B"] = q_aa_acidic["D"] * (5.5 / (5.5 + 4.3)) + 0 * (4.3 / (5.5 + 4.3)); // D~5.5; N~4.3
     q_aa_acidic["Z"] = q_aa_acidic["E"] * (6.0 / (6.0 + 3.9)) + 0 * (3.9 / (6.0 + 3.9)); // E~6.0; Q~3.9
   }
 
-  void RTSimulation::calculateMT_(FeatureMapSim& features, std::vector<double>& predicted_retention_times)
+  void RTSimulation::calculateMT_(SimTypes::FeatureMapSim& features, std::vector<double>& predicted_retention_times)
   {
     Map<String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
     getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
@@ -496,7 +496,8 @@ namespace OpenMS
     UInt k_mer_length = 0;
     double sigma = 0.0;
     UInt border_length = 0;
-    Size max_number_of_peptides(2000); // hard coding pediction bins; larger values only take more memory, result is not affected
+    // hard coding prediction bins; larger values only take more memory, result is not affected
+    Size max_number_of_peptides(2000);
 
     LOG_INFO << "Predicting RT ... ";
 
@@ -581,15 +582,15 @@ namespace OpenMS
     LOG_INFO << "done" << endl;
   }
 
-  void RTSimulation::predictContaminantsRT(FeatureMapSim& contaminants)
+  void RTSimulation::predictContaminantsRT(SimTypes::FeatureMapSim& contaminants)
   {
     // iterate of feature map
-    boost::uniform_real<SimCoordinateType> udist(0, total_gradient_time_);
+    boost::uniform_real<SimTypes::SimCoordinateType> udist(0, total_gradient_time_);
     for (Size i = 0; i < contaminants.size(); ++i)
     {
 
       // assign random retention time
-      SimCoordinateType retention_time = udist(rnd_gen_->getTechnicalRng());
+      SimTypes::SimCoordinateType retention_time = udist(rnd_gen_->getTechnicalRng());
       contaminants[i].setRT(retention_time);
     }
   }
@@ -599,17 +600,17 @@ namespace OpenMS
     return param_.getValue("rt_column") != "none";
   }
 
-  SimCoordinateType RTSimulation::getGradientTime() const
+  SimTypes::SimCoordinateType RTSimulation::getGradientTime() const
   {
     return total_gradient_time_;
   }
 
-  void RTSimulation::createExperiment(MSSimExperiment& experiment)
+  void RTSimulation::createExperiment(SimTypes::MSSimExperiment& experiment)
   {
     // this is a closed intervall (it includes gradient_min_ and gradient_max_)
     Size number_of_scans = Size((gradient_max_ - gradient_min_) / rt_sampling_rate_) + 1;
 
-    experiment = MSSimExperiment();
+    experiment = SimTypes::MSSimExperiment();
 
     if (isRTColumnOn())
     {
@@ -619,7 +620,7 @@ namespace OpenMS
 
       double current_scan_rt = gradient_min_;
       Size id = 1;
-      for (MSSimExperiment::iterator exp_it = experiment.begin();
+      for (SimTypes::MSSimExperiment::iterator exp_it = experiment.begin();
            exp_it != experiment.end();
            ++exp_it)
       {
@@ -653,7 +654,7 @@ namespace OpenMS
 
 //#define MSSIM_DEBUG_MOV_AVG_FILTER
 
-  void RTSimulation::smoothRTDistortion_(MSSimExperiment& experiment)
+  void RTSimulation::smoothRTDistortion_(SimTypes::MSSimExperiment& experiment)
   {
     // how often do we move over the distortions
     const UInt filter_iterations = param_.getValue("column_condition:distortion");

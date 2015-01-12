@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
@@ -52,6 +53,8 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+
+//#define DEBUG_PEAK_PICKING2 1
 
 using namespace std;
 
@@ -374,7 +377,8 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
             std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
 #endif
-            // if peaks are broad and assymetric, the max in the cwt can be a few datapoints away from the real max
+            // if peaks are broad and asymmetric, the max in the cwt can be a
+            // few data points away from the real max
             // --> check also for distance in m/z in comparison with the scale
             if ((area.max - 1)->getMZ() - (it_help - 2)->getMZ() > scale_ / 2)
             {
@@ -465,7 +469,7 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
             std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
 #endif
-            // if peaks are broad and assymetric, the max in the cwt can be a few datapoints away from the real max
+            // if peaks are broad and asymmetric, the max in the cwt can be a few datapoints away from the real max
             // --> check also for distance in m/z in comparison with the scale
             if ((it_help + 2)->getMZ() - (area.max - 1)->getMZ() > scale_ / 2)
             {
@@ -820,38 +824,32 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
       std::cout << "fit at the peak maximum " << std::endl;
 #endif
-      // determine the left half of the area of the PeakArea_...
+      // determine the left half of the peak area
       double peak_area_left = 0.;
-      //                peak_area_left += area.left->getIntensity();
+      // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
       peak_area_left += area.left->getIntensity() * ((area.left + 1)->getMZ() - area.left->getMZ()) * 0.5;
       peak_area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max - 1)->getMZ()) * 0.5;
-
-      for (PeakIterator pi = area.left + 1; pi < area.max; pi++)
+      for (PeakIterator pi = area.left + 1; pi < area.max; ++pi)
       {
         double step = ((pi)->getMZ() - (pi - 1)->getMZ());
         peak_area_left += step * pi->getIntensity();
-        // peak_area_left += pi->getIntensity();
       }
 
+      // same with right side
+      // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
       double peak_area_right = 0.;
-      //                peak_area_right += area.right->getIntensity();
-      //                peak_area_right += area.max->getIntensity();
       peak_area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right - 1)->getMZ()) * 0.5;
       peak_area_right += area.max->getIntensity() *  ((area.max + 1)->getMZ() - (area.max)->getMZ()) * 0.5;
-
-      for (PeakIterator pi = area.max + 1; pi < area.right; pi++)
+      for (PeakIterator pi = area.max + 1; pi < area.right; ++pi)
       {
         double step = ((pi)->getMZ() - (pi - 1)->getMZ());
         peak_area_right += step * pi->getIntensity();
-        //                      peak_area_right += pi->getIntensity();
       }
 
-      // first the lorentz-peak...
-
+      // first the Lorentz peak ...
+      // (see equation 8.14 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*arctan(...) )
       double left_width = max_intensity / peak_area_left * atan(sqrt(max_intensity / left_intensity - 1.));
       double right_width = max_intensity / peak_area_right * atan(sqrt(max_intensity / right_intensity - 1.));
-
-
 
       PeakShape lorentz(max_intensity, area.max->getMZ(),
                         left_width, right_width, peak_area_left + peak_area_right,
@@ -859,10 +857,10 @@ namespace OpenMS
 
       lorentz.r_value = correlate_(lorentz, area);
 
-      // now the sech-peak...
+      // now the Sech2 peak ...
+      // (see equation 8.17 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*sqrt(...) )
       left_width  = max_intensity / peak_area_left * sqrt(1. - left_intensity / max_intensity);
       right_width  = max_intensity / peak_area_right * sqrt(1. - right_intensity / max_intensity);
-
 
       PeakShape sech(max_intensity, area.max->getMZ(),
                      left_width, right_width,
@@ -880,7 +878,8 @@ namespace OpenMS
       std::cout << "h: " << lorentz.height << std::endl;
 #endif
 
-      if ((lorentz.r_value > sech.r_value) && boost::math::isnan(sech.r_value))
+      // take shape with higher correlation (Sech2 can be NaN, so Lorentzian might be the only option)
+      if ((lorentz.r_value > sech.r_value) || boost::math::isnan(sech.r_value))
       {
         return lorentz;
       }
@@ -1180,11 +1179,9 @@ namespace OpenMS
   }
 
   double PeakPickerCWT::correlate_(const PeakShape & peak,
-                                       const PeakPickerCWT::PeakArea_ & area,
-                                       Int direction) const
+                                   const PeakPickerCWT::PeakArea_ & area,
+                                   Int direction) const
   {
-    double SSxx = 0., SSyy = 0., SSxy = 0.;
-
     // compute the averages
     double data_average = 0., fit_average = 0.;
     double data_sqr = 0., fit_sqr = 0.;
@@ -1200,7 +1197,7 @@ namespace OpenMS
     else if (direction < 0)
       corr_begin = area.max;
 
-    for (PeakIterator pi = corr_begin; pi <= corr_end; pi++)
+    for (PeakIterator pi = corr_begin; pi <= corr_end; ++pi)
     {
       double data_val = pi->getIntensity();
       double peak_val = peak(pi->getMZ());
@@ -1213,7 +1210,7 @@ namespace OpenMS
 
       cross += data_val * peak_val;
 
-      number_of_points++;
+      ++number_of_points;
     }
 
     if (number_of_points == 0)
@@ -1222,10 +1219,10 @@ namespace OpenMS
     data_average /= number_of_points;
     fit_average  /= number_of_points;
 
-    SSxx = data_sqr - number_of_points * (data_average * data_average);
-    SSyy = fit_sqr - number_of_points * (fit_average * fit_average);
-    SSxy = cross - number_of_points * (data_average * fit_average);
-
+    double SSxx = data_sqr - number_of_points * (data_average * data_average);
+    double SSyy = fit_sqr - number_of_points * (fit_average * fit_average);
+    double SSxy = cross - number_of_points * (data_average * fit_average);
+    // using r^2 = cov(x,y) / (var(x) * var(y))
     return (SSxy * SSxy) / (SSxx * SSyy);
   }
 
@@ -1245,7 +1242,7 @@ namespace OpenMS
         updateMembers_();
       }
     }
-    //clear output container
+    // clear output container
     output.clear(true);
 
     // copy the experimental settings
@@ -1359,7 +1356,7 @@ namespace OpenMS
       number_of_peaks = 0;
       Int peak_left_index, peak_right_index;
 
-      // compute the continious wavelet transform with resolution 1
+      // compute the continuous wavelet transform with resolution 1
       double resolution = 1;
       wt.transform(it_pick_begin, it_pick_end, resolution);
       PeakArea_ area;
@@ -1411,7 +1408,7 @@ namespace OpenMS
           // << area.right->getPosition()
           // << std::endl;
           // #endif
-          // determine the best fitting lorezian or sech2 function
+          // determine the best fitting Lorentzian or sech2 function
           PeakShape shape = fitPeakShape_(area, centroid_fit);
           shape.setLeftEndpoint((input.begin() + distance(raw_peak_array.begin(), area.left)));
           shape.setRightEndpoint((input.begin() + distance(raw_peak_array.begin(), area.right)));
@@ -1438,7 +1435,7 @@ namespace OpenMS
 
         // remove the peak from the signal
         // TODO: does this work as expected???
-        for (PeakIterator pi = area.left; pi != area.right + 1; pi++)
+        for (PeakIterator pi = area.left; pi != area.right + 1; ++pi)
         {
           pi->setIntensity(0.);
         }
@@ -1470,9 +1467,9 @@ namespace OpenMS
       sort(peak_shapes.begin(), peak_shapes.end(), PeakShape::PositionLess());
       std::set<UInt> peaks_to_skip;
       // search for broad or asymmetric peaks
-      UInt n = (UInt) peak_shapes.size();
       if (deconvolution_)
       {
+        UInt n = (UInt) peak_shapes.size();
         for (UInt i = 0; i < n; ++i)
         {
           if ((peak_shapes[i].getFWHM() > fwhm_threshold)
@@ -1554,7 +1551,7 @@ namespace OpenMS
                   double dist = 1.00235;
                   //check charge 1 or 2
                   bool dist_ok = ((fabs(dist - dist_right) < 0.21) || (fabs(dist / 2. - dist_right) < 0.11)) ? true : false;
-                  // distance complies peptide mass rule
+                  // distance complies with peptide mass rule
                   if (dist_ok)
                   {
 #ifdef DEBUG_DECONV
@@ -1641,118 +1638,132 @@ namespace OpenMS
 
   double PeakPickerCWT::estimatePeakWidth(const MSExperiment<> & input)
   {
-    // the peak widths that are tested
-    //DoubleList widths = DoubleList::create("0.5,0.4,0.3,0.25,0.2,0.15,0.1,0.075,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
-    DoubleList widths = ListUtils::create<double>("1.,0.5,0.25,0.125,0.1,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
-#ifdef DEBUG_PEAK_PICKING
+    // The peak widths which are tested
+    // Note that the limit is 1 Da in Peak Width. The Wavelet has a certain tolerance, but very broad peaks (e.g. top-down MS) will not be found
+    // unless the search range is extended
+    DoubleList test_widths = ListUtils::create<double>("1.,0.5,0.25,0.125,0.1,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
+#ifdef DEBUG_PEAK_PICKING2
     std::cout << "calculating max tic" << std::endl;
 #endif
+    // make a backup of param .. restore later
+    Param p_backup = param_;
+
+    // use a high S/N to ensure we only look at high peaks.. low noise peaks might distort the FWHM
+    param_.setValue("signal_to_noise", 10); 
+
     // determine spectrum used for estimation
-    // used the one with the highest tic
+    // use the one with the highest tic
     TICFilter tic_filter;
-    double max_tic = 0.;
-    Size index = 0;
-    std::vector<std::pair<Size, double> > index_tic_vec;
+    typedef std::vector<std::pair<Size, double> > TicVec;
+    TicVec index_tic_vec;
     for (Size s = 0; s < input.size(); ++s)
     {
       double tmp_tic = tic_filter.apply(input[s]);
       index_tic_vec.push_back(make_pair(s, tmp_tic));
-      if (tmp_tic > max_tic)
-      {
-        max_tic = tmp_tic;
-        index = s;
-      }
     }
-    // now sort the index_tic_vec according to tic and get the 3 highest spectra:
+
+    // now sort the index_tic_vec according to tic and get the three highest spectra
     sort(index_tic_vec.begin(), index_tic_vec.end(), PairComparatorSecondElement<std::pair<Size, double> >());
-    std::vector<double> estimated_widths;
-    for (Size s = 0; s < input.size() && s < 3; ++s)
+    
+    std::vector<double> best_FWHMs;
+    for (Size i = 0; i < 3 && i < index_tic_vec.size(); ++i)
     {
-#ifdef DEBUG_PEAK_PICKING
-      std::cout << "RT: " << input[s].getRT() << "\n";
+      std::pair<Size, double> tic = index_tic_vec[i];
+      // skip empty spectra
+      if (tic.second == 0) continue;
+
+      std::vector<Size> peak_counts;
+#ifdef DEBUG_PEAK_PICKING2
+      std::cout << "RT: " << input[tic.first].getRT() << "\n";
 #endif
-      index  = (index_tic_vec.end() - 1 - s)->first;
-      // now pick this spectrum with the different peak widths
-      MSExperiment<> exp;
-      for (Size w = 0; w < widths.size(); ++w)
+      // holds average FWHM of this spectrum
+      std::vector<double> observed_FWHM;
+      // ... for different peak widths
+      for (Size w = 0; w < test_widths.size(); ++w)
       {
         MSSpectrum<> spec;
-        param_.setValue("peak_width", widths[w]);
+        param_.setValue("peak_width", test_widths[w]);
         updateMembers_();
-#ifdef DEBUG_PEAK_PICKING
+#ifdef DEBUG_PEAK_PICKING2
         std::cout << "peak_width " << param_.getValue("peak_width") << "\tfwhm_bound_ " << fwhm_bound_ << "\t";
 #endif
-        pick(input[index], spec);
-#ifdef DEBUG_PEAK_PICKING
+        pick(input[tic.first], spec);
+
         double fwhm = 0.;
         for (Size p = 0; p < spec.size(); ++p)
         {
           fwhm += spec.getFloatDataArrays()[2][p];
         }
         fwhm /= (double) spec.size();
+        observed_FWHM.push_back(fwhm);
 
-        std::cout << spec.size() << "\t" << fwhm << std::endl;
-#endif
-        exp.addSpectrum(spec);
+        peak_counts.push_back(spec.size());
       }
 
       // determine slope
       std::vector<double> slopes;
       double m_min = std::numeric_limits<double>::max();
-      double m_min_width = 0.;
-      for (Size i = 0; i < exp.size() - 1; ++i)
+      for (Size i = 0; i < peak_counts.size() - 1; ++i)
       {
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << ((SignedSize)exp[i].size() - (SignedSize)exp[i + 1].size()) << "/" << (widths[i] - widths[i + 1]) << "\t";
-#endif
-        double m = (double)((SignedSize)exp[i].size() - (SignedSize)exp[i + 1].size()) / (widths[i] - widths[i + 1]);
+        double m = (double)((SignedSize)peak_counts[i] - (SignedSize)peak_counts[i + 1]) / (test_widths[i] - test_widths[i + 1]);
         slopes.push_back(m);
+#ifdef DEBUG_PEAK_PICKING2
+        std::cout << m << "\t";
+#endif
         if (m < m_min)
         {
           m_min = m;
-          m_min_width =  (widths[i] + widths[i + 1]) / 2;
         }
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << (widths[i] + widths[i + 1]) / 2 << "\t" << m << std::endl;
+#ifdef DEBUG_PEAK_PICKING2
+        std::cout << (test_widths[i] + test_widths[i + 1]) / 2 << "\t" << m << std::endl;
 #endif
       }
       // determine point where slope starts decreasing , there the plateau should end
       bool min_found = false;
-#ifdef DEBUG_PEAK_PICKING
+#ifdef DEBUG_PEAK_PICKING2
       std::cout << "m_min: " << m_min << std::endl;
 #endif
       for (Size s = 0; s < slopes.size(); ++s)
       {
-#ifdef DEBUG_PEAK_PICKING
+#ifdef DEBUG_PEAK_PICKING2
         std::cout << slopes[s] << std::endl;
 #endif
         if (fabs(slopes[s] - m_min) < 0.01)
+        {
           min_found = true;
+        }
         if (min_found && slopes[s] / m_min < 0.5)
         {
-#ifdef DEBUG_PEAK_PICKING
-          std::cout << "peak_width = " << (m_min_width + (widths[s] + widths[s + 1]) / 2) / 2 << std::endl;
+          double pw = observed_FWHM[s+1];
+#ifdef DEBUG_PEAK_PICKING2
+          std::cout << "peak_width = " << pw << std::endl;
 #endif
-          estimated_widths.push_back((m_min_width + (widths[s] + widths[s + 1]) / 2) / 2);
+          best_FWHMs.push_back(pw);
           break;
         }
       }
     }
     // average width over the three tested spectra
     double avg_width = 0.;
-    if (estimated_widths.empty())
+    if (best_FWHMs.empty())
     {
-      std::cout << "Couldn't estimate peak width!" << std::endl;
-      return 0.;
-    }
-    for (Size s = 0; s < estimated_widths.size(); ++s)
+      std::cout << "Could not estimate peak width!" << std::endl;
+    } 
+    else
     {
-      std::cout << "width" << s << " = " << estimated_widths[s] << std::endl;
-      avg_width += estimated_widths[s];
+      for (Size s = 0; s < best_FWHMs.size(); ++s)
+      {
+        std::cout << "  Estimated FWHM of spectrum #" << s << ": " << best_FWHMs[s] << std::endl;
+        avg_width += best_FWHMs[s];
+      }
+      avg_width /= (double)best_FWHMs.size();
+      std::cout << "--> Average estimated FWHM: " << avg_width << std::endl;
     }
-    std::cout << "average estimated width " << avg_width / (double)estimated_widths.size() << std::endl;
-    return avg_width / (double)estimated_widths.size();
 
+    // restore old param set
+    param_ = p_backup; 
+
+    return avg_width;
   }
 
 }

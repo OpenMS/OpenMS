@@ -43,7 +43,6 @@ MzDataFile.cpp
 MzTab.cpp
 MzTabFile.cpp
 MzMLFile.cpp
-MzTabFile.cpp
 MzXMLFile.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp

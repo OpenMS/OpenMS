@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,88 +51,89 @@
 
 namespace OpenMS
 {
-    class OPENMS_DLLAPI AccurateMassSearchResult
-    {
-    public:
-        /// Default constructor
-        AccurateMassSearchResult();
+  class EmpiricalFormula;
 
-        /// Default destructor
-        ~AccurateMassSearchResult();
+  class OPENMS_DLLAPI AccurateMassSearchResult
+  {
+public:
+    /// Default constructor
+    AccurateMassSearchResult();
 
-        /// copy constructor
-        AccurateMassSearchResult(const AccurateMassSearchResult& );
+    /// Default destructor
+    ~AccurateMassSearchResult();
 
-        /// assignment operator
-        AccurateMassSearchResult & operator=(const AccurateMassSearchResult& );
+    /// copy constructor
+    AccurateMassSearchResult(const AccurateMassSearchResult&);
 
-        /// getter & setter methods
-        double getAdductMass() const;
-        void setAdductMass(const double&);
+    /// assignment operator
+    AccurateMassSearchResult& operator=(const AccurateMassSearchResult&);
 
-        double getQueryMass() const;
-        void setQueryMass(const double&);
+    /// getter & setter methods
+    double getAdductMass() const;
+    void setAdductMass(const double&);
 
-        double getFoundMass() const;
-        void setFoundMass(const double&);
+    double getQueryMass() const;
+    void setQueryMass(const double&);
 
-        Int getCharge() const;
-        void setCharge(const Int&);
+    double getFoundMass() const;
+    void setFoundMass(const double&);
 
-        double getErrorPPM() const;
-        void setErrorPPM(const double&);
+    Int getCharge() const;
+    void setCharge(const Int&);
 
-        double getObservedRT() const;
-        void setObservedRT(const double& rt);
+    double getErrorPPM() const;
+    void setErrorPPM(const double&);
 
-        double getObservedIntensity() const;
-        void setObservedIntensity(const double&);
+    double getObservedRT() const;
+    void setObservedRT(const double& rt);
 
-        std::vector<double> getIndividualIntensities() const;
-        void setIndividualIntensities(const std::vector<double>&);
+    double getObservedIntensity() const;
+    void setObservedIntensity(const double&);
 
-        Size getMatchingIndex() const;
-        void setMatchingIndex(const Size&);
+    std::vector<double> getIndividualIntensities() const;
+    void setIndividualIntensities(const std::vector<double>&);
 
-        Size getSourceFeatureIndex() const;
-        void setSourceFeatureIndex(const Size&);
+    Size getMatchingIndex() const;
+    void setMatchingIndex(const Size&);
 
-        const String& getFoundAdduct() const;
-        void setFoundAdduct(const String&);
+    Size getSourceFeatureIndex() const;
+    void setSourceFeatureIndex(const Size&);
 
-        const String& getFormulaString() const;
-        void setEmpiricalFormula(const String&);
+    const String& getFoundAdduct() const;
+    void setFoundAdduct(const String&);
 
-        const std::vector<String>& getMatchingHMDBids() const;
-        void setMatchingHMDBids(const std::vector<String>&);
+    const String& getFormulaString() const;
+    void setEmpiricalFormula(const String&);
 
-        double getIsotopesSimScore() const;
-        void setIsotopesSimScore(const double&);
+    const std::vector<String>& getMatchingHMDBids() const;
+    void setMatchingHMDBids(const std::vector<String>&);
 
-        // double computeCombinedScore(); // not implemented
-        // debug/output functions
-        void outputResults() const;
+    double getIsotopesSimScore() const;
+    void setIsotopesSimScore(const double&);
 
+    // double computeCombinedScore(); // not implemented
+    // debug/output functions
+    void outputResults() const;
 
-    private:
-        /// Stored information/results of DB query
-        double adduct_mass_;
-        double query_mass_;
-        double found_mass_;
-        Int charge_;
-        double error_ppm_;
-        double observed_rt_;
-        double observed_intensity_;
-        std::vector<double> individual_intensities_;
-        Size matching_index_;
-        Size source_feature_index_;
+private:
+    /// Stored information/results of DB query
+    double adduct_mass_;
+    double query_mass_;
+    double found_mass_;
+    Int charge_;
+    double error_ppm_;
+    double observed_rt_;
+    double observed_intensity_;
+    std::vector<double> individual_intensities_;
+    Size matching_index_;
+    Size source_feature_index_;
 
-        String found_adduct_;
-        String empirical_formula_;
-        std::vector<String> matching_hmdb_ids_;
+    String found_adduct_;
+    String empirical_formula_;
+    std::vector<String> matching_hmdb_ids_;
 
-        double isotopes_sim_score_;
-    };
+    double isotopes_sim_score_;
+  };
 
   /**
     @brief An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
@@ -156,16 +157,13 @@ namespace OpenMS
 
     @ingroup Analysis_ID
   */
-    class OPENMS_DLLAPI AccurateMassSearchEngine :
+  class OPENMS_DLLAPI AccurateMassSearchEngine :
     public DefaultParamHandler,
     public ProgressLogger
   {
 public:
     /// Default constructor
     AccurateMassSearchEngine();
-
-    // Explicit constructor
-    // AccurateMassSearchEngine(const String& map_fname);
 
     /// Default destructor
     virtual ~AccurateMassSearchEngine();
@@ -180,7 +178,7 @@ public:
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
-    void run(FeatureMap<>&, MzTab&) const;
+    void run(FeatureMap&, MzTab&) const;
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
@@ -306,23 +304,24 @@ private:
     };
     std::vector<MappingEntry_> mass_mappings_;
 
-    struct CompareEntryAndMass_     // defined here to allow for in-lining by compiler
+    struct CompareEntryAndMass_ // defined here to allow for inlining by compiler
     {
-       double asMass( const MappingEntry_& v ) const
-       {
-          return v.mass;
-       }
+      double asMass(const MappingEntry_& v) const
+      {
+        return v.mass;
+      }
 
-       double asMass( double t ) const
-       {
-          return t;
-       }
+      double asMass(double t) const
+      {
+        return t;
+      }
 
-       template< typename T1, typename T2 >
-       bool operator()( T1 const& t1, T2 const& t2 ) const
-       {
-           return asMass(t1) < asMass(t2);
-       }
+      template <typename T1, typename T2>
+      bool operator()(T1 const& t1, T2 const& t2) const
+      {
+        return asMass(t1) < asMass(t2);
+      }
+
     };
 
     HMDBPropsMapping hmdb_properties_mapping_;
@@ -343,6 +342,9 @@ private:
 
     std::vector<AdductInfo_> pos_adducts_;
     std::vector<AdductInfo_> neg_adducts_;
+
+    String database_name_;
+    String database_version_;
   };
 
 }

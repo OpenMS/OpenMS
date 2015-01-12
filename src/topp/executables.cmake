@@ -9,19 +9,20 @@ CompNovo
 CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
-DTAExtractor
 Decharger
+DTAExtractor
 EICExtractor
-ExecutePipeline
 FalseDiscoveryRate
-FeatureFinderMRM
 FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderIsotopeWavelet
 FeatureFinderMetabo
+FeatureFinderMRM
+FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT
+FidoAdapter
 FileConverter
 FileFilter
 FileInfo
@@ -29,18 +30,18 @@ FileMerger
 GenericWrapper
 HighResPrecursorMassCorrector
 IDConflictResolver
-IDPosteriorErrorProbability
 IDFileConverter
 IDFilter
 IDMapper
 IDMerger
+IDPosteriorErrorProbability
 IDRipper
 IDRTCalibration
-ITRAQAnalyzer
-IsobaricAnalyzer
 InclusionExclusionListCreator
 InspectAdapter
 InternalCalibration
+IsobaricAnalyzer
+ITRAQAnalyzer
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
@@ -51,7 +52,9 @@ MascotAdapter
 MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
+MSGFPlusAdapter
 MyriMatchAdapter
+MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
@@ -61,45 +64,44 @@ OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator
 OpenSwathFeatureXMLToTSV
 OpenSwathRTNormalizer
+PeakPickerHiRes
+PeakPickerWavelet
+PepNovoAdapter
+PeptideIndexer
 PhosphoScoring
 PILISIdentification
 PILISModelCV
 PILISModelTrainer
 PILISSpectraGenerator
-PTModel
-PTPredict
-PeakPickerHiRes
-PeakPickerWavelet
-PepNovoAdapter
-PeptideIndexer
 PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier
 ProteinResolver
+PTModel
+PTPredict
 RTModel
 RTPredict
-Resampler
 SeedListGenerator
 SpecLibSearcher
-SpectraFilterWindowMower
-SpectraFilterThresholdMower
-SpectraFilterSqrtMower
-SpectraFilterParentPeakMower
-SpectraFilterMarkerMower
-SpectraFilterScaler
 SpectraFilterBernNorm
+SpectraFilterMarkerMower
 SpectraFilterNLargest
 SpectraFilterNormalizer
+SpectraFilterParentPeakMower
+SpectraFilterScaler
+SpectraFilterSqrtMower
+SpectraFilterThresholdMower
+SpectraFilterWindowMower
 SpectraMerger
+TextExporter
 TMTAnalyzer
 TOFCalibration
-TextExporter
-MzTabExporter
 XTandemAdapter
+TopPerc
 )
 
-## all targets with need linkage against OpenMS_GUI.lib - they also need to appear in the list above)
+## all targets requiring OpenMS_GUI
 set(TOPP_executables_with_GUIlib
 ExecutePipeline
 Resampler
@@ -107,7 +109,8 @@ Resampler
 
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
-foreach(i ${TOPP_executables})
+foreach(i ${TOPP_executables} ${TOPP_executables_with_GUIlib})
 	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
+
 source_group("" FILES ${sources_VS})

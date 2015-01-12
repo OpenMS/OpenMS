@@ -13,7 +13,7 @@
 		</fileContent>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value=", " />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="" />
 		</contact>
 	</fileDescription>
 	<sampleList count="1">
@@ -124,10 +124,10 @@
 						<binary>AAC9f5kygEAAAHFmoDqAQAAAdiapQoBAAACCer5CgEA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="24">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>vaU5TkvtOk3n4bNLd1K6TQ==</binary>
+						<binary>vaU5TlHtOk3n4bNLd1K6TQ==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -153,13 +153,13 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AACzMZcygEAAAAs0njqAQAAAxgqmQoBAAADPNbxCgEA=</binary>
+						<binary>AACzMZcygEAAAAs0njqAQAAAxgqmQoBAAABBNrxCgEA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="24">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>Fvx4TowAeE3ic81LTpUxTQ==</binary>
+						<binary>Fvx4TowAeE3ic81LDZYxTQ==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>

@@ -35,6 +35,7 @@ QTCluster.h
 SeqanIncludeWrapper.h
 SparseVector.h
 String.h
+StringUtils.h
 StringListUtils.h
 SuffixArray.h
 SuffixArrayPeptideFinder.h

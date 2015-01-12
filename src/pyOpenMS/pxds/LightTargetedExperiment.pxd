@@ -33,7 +33,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         double rt
         int charge
         libcpp_string sequence
-        libcpp_string protein_ref
+        libcpp_vector[libcpp_string] protein_refs
+        libcpp_string peptide_group_label
         libcpp_string id
         libcpp_vector[LightModification] modifications
 

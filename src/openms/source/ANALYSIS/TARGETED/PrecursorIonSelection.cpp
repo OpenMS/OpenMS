@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
+#include <OpenMS/SYSTEM/StopWatch.h>
+
 using namespace std;
 //#define PIS_DEBUG
 //#undef PIS_DEBUG
@@ -73,7 +75,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PrecursorIonSelection::PrecursorIonSelection(const PrecursorIonSelection & source) :
+  PrecursorIonSelection::PrecursorIonSelection(const PrecursorIonSelection& source) :
     DefaultParamHandler(source),
     min_pep_ids_(source.min_pep_ids_),
     max_score_(source.max_score_),
@@ -87,22 +89,22 @@ namespace OpenMS
 
   }
 
-  const double & PrecursorIonSelection::getMaxScore() const
+  const double& PrecursorIonSelection::getMaxScore() const
   {
     return max_score_;
   }
 
-  void PrecursorIonSelection::setMaxScore(const double & max_score)
+  void PrecursorIonSelection::setMaxScore(const double& max_score)
   {
     max_score_ = max_score;
   }
 
-  void PrecursorIonSelection::getNextPrecursors(std::vector<Int> & solution_indices, std::vector<PSLPFormulation::IndexTriple> & variable_indices,
-                                                std::set<Int> & measured_variables, FeatureMap<> & features,
-                                                FeatureMap<> & new_features, UInt step_size,
-                                                PSLPFormulation & /*ilp*/)
+  void PrecursorIonSelection::getNextPrecursors(std::vector<Int>& solution_indices, std::vector<PSLPFormulation::IndexTriple>& variable_indices,
+                                                std::set<Int>& measured_variables, FeatureMap& features,
+                                                FeatureMap& new_features, UInt step_size,
+                                                PSLPFormulation& /*ilp*/)
   {
-    FeatureMap<> tmp_features;
+    FeatureMap tmp_features;
 #ifdef PIS_DEBUG
     std::cout << "Get next precursors" << std::endl;
     std::cout << solution_indices.size() << " entries in solution indices.\n";
@@ -113,7 +115,7 @@ namespace OpenMS
     sort(variable_indices.begin(), variable_indices.end(), PSLPFormulation::VariableIndexLess());
     Size prots = 0;
     // first go through solution indices
-    for (Size i = 0; i < solution_indices.size(); ++i)     //
+    for (Size i = 0; i < solution_indices.size(); ++i) //
     {
       // check if variable is not a protein
       if (solution_indices[i] >= (Int)x_variable_number_)
@@ -172,7 +174,7 @@ namespace OpenMS
 #endif
   }
 
-  void PrecursorIonSelection::getNextPrecursorsSeq(FeatureMap<> & features, FeatureMap<> & next_features, UInt number, double & rt)
+  void PrecursorIonSelection::getNextPrecursorsSeq(FeatureMap& features, FeatureMap& next_features, UInt number, double& rt)
   {
     std::sort(features.begin(), features.end(), SeqTotalScoreMore());
     UInt count = 0;
@@ -184,7 +186,7 @@ namespace OpenMS
     }
     Feature f;
     f.setRT(rt);
-    FeatureMap<>::Iterator iter = lower_bound(features.begin(), features.end(), f, Feature::RTLess()); // took this comparator on purpose!
+    FeatureMap::Iterator iter = lower_bound(features.begin(), features.end(), f, Feature::RTLess()); // took this comparator on purpose!
     if (iter != features.end())
     {
       rt = iter->getRT();
@@ -237,7 +239,7 @@ namespace OpenMS
     if (count < number)
     {
       f.setRT(rt + 0.1);
-      FeatureMap<>::Iterator iter = lower_bound(features.begin(), features.end(), f, Feature::RTLess()); // took this comparator on purpose!
+      FeatureMap::Iterator iter = lower_bound(features.begin(), features.end(), f, Feature::RTLess()); // took this comparator on purpose!
       if (iter != features.end())
       {
         rt = iter->getRT();
@@ -247,11 +249,11 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelection::getNextPrecursors(FeatureMap<> & features, FeatureMap<> & next_features, UInt number)
+  void PrecursorIonSelection::getNextPrecursors(FeatureMap& features, FeatureMap& next_features, UInt number)
   {
     sortByTotalScore(features);
     UInt count = 0;
-    FeatureMap<>::Iterator iter = features.begin();
+    FeatureMap::Iterator iter = features.begin();
     while (iter != features.end() && count < number)
     {
       if ((iter->metaValueExists("fragmented") && iter->getMetaValue("fragmented") != "true")
@@ -275,13 +277,13 @@ namespace OpenMS
     }
   }
 
-  void PrecursorIonSelection::rescore_(FeatureMap<> & features, std::vector<PeptideIdentification> & new_pep_ids,
-                                       PrecursorIonSelectionPreprocessing & preprocessed_db, PSProteinInference & protein_inference)
+  void PrecursorIonSelection::rescore_(FeatureMap& features, std::vector<PeptideIdentification>& new_pep_ids,
+                                       PrecursorIonSelectionPreprocessing& preprocessed_db, PSProteinInference& protein_inference)
   {
     double min_protein_probability = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
     double min_protein_probability_for_change = param_.getValue("MIPFormulation:thresholds:min_protein_probability");
     // get maximal score in the list
-    FeatureMap<>::Iterator iter = features.begin();
+    FeatureMap::Iterator iter = features.begin();
     for (; iter != features.end(); ++iter)
     {
       if ((double)iter->getMetaValue("msms_score") > max_score_)
@@ -296,7 +298,7 @@ namespace OpenMS
 #ifdef PIS_DEBUG
       std::cout << new_pep_ids[i].getHits().size() << " hits" << std::endl;
 #endif
-      const std::vector<PeptideHit> & hits = new_pep_ids[i].getHits();
+      const std::vector<PeptideHit>& hits = new_pep_ids[i].getHits();
       // for all peptide hits
       for (UInt h = 0; h < hits.size(); ++h)
       {
@@ -304,8 +306,9 @@ namespace OpenMS
         std::cout << hits[h].getScore() << " >= " << new_pep_ids[i].getSignificanceThreshold() << " "
                   << hits[h].getMetaValue("Rank") << std::endl;
 #endif
-        std::vector<String>::const_iterator acc_it = hits[h].getProteinAccessions().begin();
-        for (; acc_it != hits[h].getProteinAccessions().end(); ++acc_it)
+        std::set<String> protein_accessions = hits[h].extractProteinAccessions();
+        std::set<String>::const_iterator acc_it = protein_accessions.begin();
+        for (; acc_it != protein_accessions.end(); ++acc_it)
         {
 #ifdef PIS_DEBUG
           std::cout << *acc_it << std::endl;
@@ -319,7 +322,7 @@ namespace OpenMS
                  prot_id_counter_[*acc_it].size() >= min_pep_ids_) // protein is already identified
                || (param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "false" &&
                    (protein_inference.getProteinProbability(*acc_it) > min_protein_probability) &&
-                   (protein_inference.isProteinInMinimalList(*acc_it))))  // protein is already identified
+                   (protein_inference.isProteinInMinimalList(*acc_it)))) // protein is already identified
             {
 #ifdef PIS_DEBUG
               std::cout << prot_id_counter_[*acc_it].size() << " >= " << min_pep_ids_ << std::endl;
@@ -397,9 +400,9 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelection::rescore(FeatureMap<> & features, std::vector<PeptideIdentification> & new_pep_ids,
-                                      std::vector<ProteinIdentification> & prot_ids,
-                                      PrecursorIonSelectionPreprocessing & preprocessed_db, bool check_meta_values)
+  void PrecursorIonSelection::rescore(FeatureMap& features, std::vector<PeptideIdentification>& new_pep_ids,
+                                      std::vector<ProteinIdentification>& prot_ids,
+                                      PrecursorIonSelectionPreprocessing& preprocessed_db, bool check_meta_values)
   {
     // check for required MetaValues in FeatureMap
     if (check_meta_values)
@@ -433,10 +436,10 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelection::shiftDown_(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db,
+  void PrecursorIonSelection::shiftDown_(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db,
                                          String protein_acc)
   {
-    const std::vector<double> & masses = preprocessed_db.getMasses(protein_acc);
+    const std::vector<double>& masses = preprocessed_db.getMasses(protein_acc);
 #ifdef PIS_DEBUG
     std::cout << protein_acc << "  shift down  " << masses.size() << " peptides" << std::endl;
 #endif
@@ -444,7 +447,7 @@ namespace OpenMS
     std::vector<double>::const_iterator aa_vec_iter = masses.begin();
     for (; aa_vec_iter != masses.end(); ++aa_vec_iter)
     {
-      FeatureMap<>::Iterator f_iter = features.begin();
+      FeatureMap::Iterator f_iter = features.begin();
       for (; f_iter != features.end(); ++f_iter)
       {
         if ((double) f_iter->getMetaValue("msms_score") > 0
@@ -501,10 +504,10 @@ namespace OpenMS
     }
   }
 
-  void PrecursorIonSelection::shiftUp_(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db,
+  void PrecursorIonSelection::shiftUp_(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db,
                                        String protein_acc)
   {
-    const std::vector<double> & masses = preprocessed_db.getMasses(protein_acc);
+    const std::vector<double>& masses = preprocessed_db.getMasses(protein_acc);
 #ifdef PIS_DEBUG
     std::cout << protein_acc << "  shift up  " << masses.size() << " peptides" << std::endl;
 #endif
@@ -512,7 +515,7 @@ namespace OpenMS
     std::vector<double>::const_iterator aa_vec_iter = masses.begin();
     for (; aa_vec_iter != masses.end(); ++aa_vec_iter)
     {
-      FeatureMap<>::Iterator f_iter = features.begin();
+      FeatureMap::Iterator f_iter = features.begin();
       for (; f_iter != features.end(); ++f_iter)
       {
         if ((double) f_iter->getMetaValue("msms_score") > 0
@@ -572,7 +575,7 @@ namespace OpenMS
     }
   }
 
-  void PrecursorIonSelection::checkForRequiredUserParams_(FeatureMap<> & features)
+  void PrecursorIonSelection::checkForRequiredUserParams_(FeatureMap& features)
   {
 #ifdef PIS_DEBUG
     std::cout << "check for required metadata" << std::endl;
@@ -595,7 +598,7 @@ namespace OpenMS
 
   }
 
-  std::vector<PeptideIdentification> PrecursorIonSelection::filterPeptideIds_(std::vector<PeptideIdentification> & pep_ids)
+  std::vector<PeptideIdentification> PrecursorIonSelection::filterPeptideIds_(std::vector<PeptideIdentification>& pep_ids)
   {
     std::vector<PeptideIdentification> filtered_pep_ids;
 
@@ -613,7 +616,7 @@ namespace OpenMS
           }
         }
       }
-      else           // if meta value rank doesn't exist, take highest scoring peptide hit
+      else // if meta value rank doesn't exist, take highest scoring peptide hit
       {
         if (pep_ids[id_c].getHits().size() == 1 &&
             pep_ids[id_c].getHits()[0].getScore() >= pep_ids[id_c].getSignificanceThreshold())
@@ -639,7 +642,7 @@ namespace OpenMS
         }
       }
 
-      if (!tmp_hits.empty())          // if there were significant hits save them
+      if (!tmp_hits.empty()) // if there were significant hits save them
       {
         PeptideIdentification tmp_id = pep_ids[id_c];
         tmp_id.setHits(tmp_hits);
@@ -655,10 +658,10 @@ namespace OpenMS
     prot_id_counter_.clear();
   }
 
-  void PrecursorIonSelection::simulateRun(FeatureMap<> & features, std::vector<PeptideIdentification> & pep_ids,
-                                          std::vector<ProteinIdentification> & prot_ids,
-                                          PrecursorIonSelectionPreprocessing & preprocessed_db,
-                                          String path, MSExperiment<> & experiment, String precursor_path)
+  void PrecursorIonSelection::simulateRun(FeatureMap& features, std::vector<PeptideIdentification>& pep_ids,
+                                          std::vector<ProteinIdentification>& prot_ids,
+                                          PrecursorIonSelectionPreprocessing& preprocessed_db,
+                                          String path, MSExperiment<>& experiment, String precursor_path)
   {
     convertPeptideIdScores_(pep_ids);
     if (param_.getValue("type") == "ILP_IPS")
@@ -667,9 +670,9 @@ namespace OpenMS
       simulateRun_(features, pep_ids, prot_ids, preprocessed_db, path, precursor_path);
   }
 
-  void PrecursorIonSelection::simulateRun_(FeatureMap<> & features, std::vector<PeptideIdentification> & pep_ids,
-                                           std::vector<ProteinIdentification> & prot_ids,
-                                           PrecursorIonSelectionPreprocessing & preprocessed_db,
+  void PrecursorIonSelection::simulateRun_(FeatureMap& features, std::vector<PeptideIdentification>& pep_ids,
+                                           std::vector<ProteinIdentification>& prot_ids,
+                                           PrecursorIonSelectionPreprocessing& preprocessed_db,
                                            String path, String precursor_path)
   {
     UInt step_size(param_.getValue("step_size"));
@@ -717,7 +720,7 @@ namespace OpenMS
     double protein_id_threshold = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
 
     // get first precursors
-    FeatureMap<> new_features;
+    FeatureMap new_features;
     double curr_rt = min_rt;
     if (sequential_order)
     {
@@ -732,7 +735,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
     std::vector<ProteinIdentification> curr_prot_ids, all_prot_ids;
 
-    std::ofstream * precs = 0;
+    std::ofstream* precs = 0;
     if (precursor_path != "")
       precs = new std::ofstream(precursor_path.c_str());
 
@@ -769,7 +772,7 @@ namespace OpenMS
 
 
         // get their peptide ids
-        std::vector<PeptideIdentification> & pep_ids = new_features[c].getPeptideIdentifications();
+        std::vector<PeptideIdentification>& pep_ids = new_features[c].getPeptideIdentifications();
 #ifdef PIS_DEBUG
         if (!pep_ids.empty())
         {
@@ -798,17 +801,17 @@ namespace OpenMS
           all_pep_ids.push_back(pep_ids[pep_id]);
           curr_pep_ids.push_back(pep_ids[pep_id]);
           // go through peptide hits
-          const std::vector<PeptideHit> & pep_hits = pep_ids[pep_id].getHits();
+          const std::vector<PeptideHit>& pep_hits = pep_ids[pep_id].getHits();
           for (UInt pep_hit = 0; pep_hit < pep_hits.size(); ++pep_hit)
           {
             // get their accessions
-            const std::vector<String> & accs = pep_hits[pep_hit].getProteinAccessions();
+            std::set<String> accs = pep_hits[pep_hit].extractProteinAccessions();
             //std::cout << accs.size() << std::endl;
-            const std::vector<ProteinIdentification> & prot_ids = features.getProteinIdentifications();
+            const std::vector<ProteinIdentification>& prot_ids = features.getProteinIdentifications();
             // get ProteinIds for accession and save them
             for (UInt prot_id = 0; prot_id < prot_ids.size(); ++prot_id)
             {
-              const std::vector<ProteinHit> & prot_hits = prot_ids[prot_id].getHits();
+              const std::vector<ProteinHit>& prot_hits = prot_ids[prot_id].getHits();
               for (UInt prot_hit = 0; prot_hit < prot_hits.size(); ++prot_hit)
               {
                 if (find(accs.begin(), accs.end(), prot_hits[prot_hit].getAccession()) != accs.end())
@@ -816,7 +819,7 @@ namespace OpenMS
                   //std::cout << "found "<<prot_hits[prot_hit].getAccession() << std::endl;
                   // check if protein is already in all_prot_ids
                   bool exists = false;
-                  for (UInt s_prot_id = 0; s_prot_id < all_prot_ids.size(); ++s_prot_id)                                             // should be at most one
+                  for (UInt s_prot_id = 0; s_prot_id < all_prot_ids.size(); ++s_prot_id) // should be at most one
                   {
                     for (UInt s_prot_hit = 0; s_prot_hit < all_prot_ids[s_prot_id].getHits().size(); ++s_prot_hit)
                     {
@@ -827,7 +830,7 @@ namespace OpenMS
                         break;
                       }
                     }
-                  }                                                   // for(UInt s_prot_id = 0; s_prot_id <...
+                  } // for(UInt s_prot_id = 0; s_prot_id <...
                   // add only if this protein doesn't exist as a hit yet
                   if (!exists)
                   {
@@ -854,14 +857,14 @@ namespace OpenMS
                       curr_prot_ids[0].insertHit(prot_hits[prot_hit]);
                     }
 
-                  }                                                  //if(!exists)
+                  } //if(!exists)
 
-                }                                             // if(find(accs.begin()...
-              }                                      //for(UInt prot_hit=0;prot_hit <...
-            }                                 // for(UInt prot_id=0;prot_id < ...
-          }                          //for(UInt pep_hit=0;pep_hit<...
-        }                    //for(UInt pep_id=0;pep_id<...
-      }              //for(UInt c=0;c<new_cl.size();++c)
+                } // if(find(accs.begin()...
+              } //for(UInt prot_hit=0;prot_hit <...
+            } // for(UInt prot_id=0;prot_id < ...
+          } //for(UInt pep_hit=0;pep_hit<...
+        } //for(UInt pep_id=0;pep_id<...
+      } //for(UInt c=0;c<new_cl.size();++c)
 
       precursors += new_features.size();
 #ifdef PIS_DEBUG
@@ -944,7 +947,7 @@ namespace OpenMS
 #ifdef PIS_DEBUG
       std::cout << new_features.size() << " compounds for msms" << std::endl;
 #endif
-    }        //while(new_features.size() > 0 && iteration < max_iteration)
+    } //while(new_features.size() > 0 && iteration < max_iteration)
 
 #ifdef PIS_DEBUG
     for (UInt p = 0; p < all_pep_ids.size(); ++p)
@@ -978,10 +981,10 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap<> & features, MSExperiment<> & experiment,
-                                                      std::vector<PeptideIdentification> & pep_ids,
-                                                      std::vector<ProteinIdentification> & prot_ids,
-                                                      PrecursorIonSelectionPreprocessing & preprocessed_db,
+  void PrecursorIonSelection::simulateILPBasedIPSRun_(FeatureMap& features, MSExperiment<>& experiment,
+                                                      std::vector<PeptideIdentification>& pep_ids,
+                                                      std::vector<ProteinIdentification>& prot_ids,
+                                                      PrecursorIonSelectionPreprocessing& preprocessed_db,
                                                       String output_path, String precursor_path)
   {
     bool use_peptide_rule = (param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true") ? true : false;
@@ -1050,7 +1053,7 @@ namespace OpenMS
     std::map<String, std::vector<Size> > protein_feature_map;
 
     std::set<Int> charges_set;
-    charges_set.insert(0);     //TODO : make this work for different charges
+    charges_set.insert(0); //TODO : make this work for different charges
 
     ilp_wrapper.createAndSolveCombinedLPForKnownLCMSMapFeatureBased(features, experiment, variable_indices, solution_indices, indices, charges_set, rt_bin_capacity, step_size, sequential_order);
     x_variable_number_ = variable_indices.size();
@@ -1061,7 +1064,7 @@ namespace OpenMS
     std::map<Size, std::vector<String> > feature_constraints_map;
     // acquire first spectrum/spectra
     // get first precursors
-    FeatureMap<> new_features;
+    FeatureMap new_features;
     getNextPrecursors(solution_indices, variable_indices, measured_variables, features, new_features, step_size, ilp_wrapper);
     ilp_wrapper.updateFeatureILPVariables(new_features, variable_indices, feature_constraints_map);
     Size precursors = 0;
@@ -1080,7 +1083,7 @@ namespace OpenMS
       }
     }
 
-    std::ofstream * precs = 0;
+    std::ofstream* precs = 0;
     if (precursor_path != "")
       precs = new std::ofstream(precursor_path.c_str());
 
@@ -1126,9 +1129,9 @@ namespace OpenMS
         // print info
         std::cout << "rt " << new_features[c].getRT()
                   << " mz: " <<  new_features[c].getMZ()
-        // << " delta_p_max "<< new_features[c].getMetaValue("delta_p_max")
-        //                                          << " delta_p_max_protein_acc "<< new_features[c].getMetaValue("delta_p_max_protein_acc")
-        << " msms_score " << new_features[c].getMetaValue("msms_score");
+          // << " delta_p_max "<< new_features[c].getMetaValue("delta_p_max")
+          //                                          << " delta_p_max_protein_acc "<< new_features[c].getMetaValue("delta_p_max_protein_acc")
+                  << " msms_score " << new_features[c].getMetaValue("msms_score");
         if (new_features[c].metaValueExists("penalized"))
         {
           std::cout << " penalized? " << new_features[c].getMetaValue("penalized");
@@ -1137,7 +1140,7 @@ namespace OpenMS
         //          << " int: "<< new_features[c].getIntensity() <<std::endl;
         std::cout << "\n";
         // get their peptide ids
-        std::vector<PeptideIdentification> & pep_ids = new_features[c].getPeptideIdentifications();
+        std::vector<PeptideIdentification>& pep_ids = new_features[c].getPeptideIdentifications();
 
         //#ifdef PIS_DEBUG
         if (pep_ids.size() > 0)
@@ -1157,11 +1160,13 @@ namespace OpenMS
           std::cout << "score: " << pep_ids[0].getHits()[0].getScore() << " "
                     << pep_ids[0].getSignificanceThreshold() << " "
                     << pep_ids[0].getHits()[0].getMetaValue("Rank");
-          if (!pep_ids[0].getHits()[0].getProteinAccessions().empty())
-          {
-            String acc = pep_ids[0].getHits()[0].getProteinAccessions()[0];
 
-            const std::map<String, std::vector<String> > & sequence_map = preprocessed_db.getProteinPeptideSequenceMap();
+          std::set<String> protein_accessions = pep_ids[0].getHits()[0].extractProteinAccessions();
+          if (!protein_accessions.empty())
+          {
+            String acc = *protein_accessions.begin();
+
+            const std::map<String, std::vector<String> >& sequence_map = preprocessed_db.getProteinPeptideSequenceMap();
             std::map<String, std::vector<String> >::const_iterator seq_map_iter = sequence_map.find(acc);
             if (seq_map_iter != sequence_map.end())
             {
@@ -1252,7 +1257,7 @@ namespace OpenMS
 #endif
   }
 
-  UInt PrecursorIonSelection::filterProtIds_(std::vector<ProteinIdentification> & prot_ids)
+  UInt PrecursorIonSelection::filterProtIds_(std::vector<ProteinIdentification>& prot_ids)
   {
     std::vector<UInt> not_count;
     UInt prot_count = 0;
@@ -1264,7 +1269,7 @@ namespace OpenMS
       for (UInt i = 0; i < hits.size(); ++i)
       {
         if (prot_id_counter_[hits[i].getAccession()].size() < min_pep_ids_)
-          continue;                                                                                // if this protein has less than 3 peptides it isn't identified
+          continue; // if this protein has less than 3 peptides it isn't identified
         // for debugging purposes
         ++prot_id_count;
         // is this already combined?
@@ -1308,7 +1313,7 @@ namespace OpenMS
     return prot_count;
   }
 
-  void PrecursorIonSelection::convertPeptideIdScores_(std::vector<PeptideIdentification> & pep_ids)
+  void PrecursorIonSelection::convertPeptideIdScores_(std::vector<PeptideIdentification>& pep_ids)
   {
     for (Size i = 0; i < pep_ids.size(); ++i)
     {

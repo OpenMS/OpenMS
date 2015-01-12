@@ -18,6 +18,7 @@ DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
+SwathWindowLoader.cpp
 )
 
 ### add path to the filenames

@@ -35,6 +35,7 @@
 # required modules
 include(CMakeParseArguments)
 include(GenerateExportHeader)
+include(CheckLibArchitecture)
 
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
@@ -113,6 +114,7 @@ endmacro()
 #                    HEADER_FILES  <header files associated to the library>
 #                                  (will be installed with the library)
 #                    INTERNAL_INCLUDES <list of internal include directories for the library>
+#                    PRIVATE_INCLUDES <list of include directories that will used for compilate but that will not be exposed to other libraries>
 #                    EXTERNAL_INCLUDES <list of external include directories for the library>
 #                                      (will be added with -isystem if available)
 #                    LINK_LIBRARIES <list of libraries used when linking the library>
@@ -122,7 +124,7 @@ function(openms_add_library)
   # parse arguments to function
   set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
-  set(multiValueArgs INTERNAL_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES)
+  set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES)
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
   #------------------------------------------------------------------------------
@@ -139,6 +141,7 @@ function(openms_add_library)
   # Include directories
   include_directories(${openms_add_library_INTERNAL_INCLUDES})
   include_directories(SYSTEM ${openms_add_library_EXTERNAL_INCLUDES})
+  include_directories(SYSTEM ${openms_add_library_PRIVATE_INCLUDES})
 
   #------------------------------------------------------------------------------
   # Check if we want a unity build
@@ -170,6 +173,8 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Link library against other libraries
   if(openms_add_library_LINK_LIBRARIES)
+    ## check for consistent lib arch (e.g. all 64bit)?
+    check_lib_architecture(openms_add_library_LINK_LIBRARIES)
     target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
   endif()

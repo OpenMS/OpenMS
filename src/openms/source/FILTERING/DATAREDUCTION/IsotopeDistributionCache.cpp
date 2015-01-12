@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,90 +34,95 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/IsotopeDistributionCache.h>
 
-using namespace OpenMS;
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 
-IsotopeDistributionCache::IsotopeDistributionCache(double max_mass, double mass_window_width, double intensity_percentage, double intensity_percentage_optional) :
-  mass_window_width_(mass_window_width)
+namespace OpenMS
 {
-  Size num_isotopes = std::ceil(max_mass / mass_window_width) + 1;
 
-  //reserve enough space
-  isotope_distributions_.resize(num_isotopes);
-
-  //calculate distribution if necessary
-  for (Size index = 0; index < num_isotopes; ++index)
+  IsotopeDistributionCache::IsotopeDistributionCache(double max_mass, double mass_window_width, double intensity_percentage, double intensity_percentage_optional) :
+    mass_window_width_(mass_window_width)
   {
-    //log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
-    IsotopeDistribution d;
-    d.setMaxIsotope(20);
-    d.estimateFromPeptideWeight(0.5 * mass_window_width + index * mass_window_width);
+    Size num_isotopes = std::ceil(max_mass / mass_window_width) + 1;
 
-    //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
-    Size size_before = d.size();
-    d.trimLeft(intensity_percentage_optional);
-    isotope_distributions_[index].trimmed_left = size_before - d.size();
-    d.trimRight(intensity_percentage_optional);
+    //reserve enough space
+    isotope_distributions_.resize(num_isotopes);
 
-    for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
+    //calculate distribution if necessary
+    for (Size index = 0; index < num_isotopes; ++index)
     {
-      isotope_distributions_[index].intensity.push_back(it->second);
-      //log_ << " - " << it->second << std::endl;
-    }
+      //log_ << "Calculating iso dist for mass: " << 0.5*mass_window_width_ + index * mass_window_width_ << std::endl;
+      IsotopeDistribution d;
+      d.setMaxIsotope(20);
+      d.estimateFromPeptideWeight(0.5 * mass_window_width + index * mass_window_width);
 
-    //determine the number of optional peaks at the beginning/end
-    Size begin = 0;
-    Size end = 0;
-    bool is_begin = true;
-    bool is_end = false;
-    for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
-    {
-      if (isotope_distributions_[index].intensity[i] < intensity_percentage)
+      //trim left and right. And store the number of isotopes on the left, to reconstruct the monoisotopic peak
+      Size size_before = d.size();
+      d.trimLeft(intensity_percentage_optional);
+      isotope_distributions_[index].trimmed_left = size_before - d.size();
+      d.trimRight(intensity_percentage_optional);
+
+      for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        if (!is_end && !is_begin)
-          is_end = true;
-        if (is_begin)
-          ++begin;
-        else if (is_end)
-          ++end;
+        isotope_distributions_[index].intensity.push_back(it->second);
+        //log_ << " - " << it->second << std::endl;
       }
-      else if (is_begin)
+
+      //determine the number of optional peaks at the beginning/end
+      Size begin = 0;
+      Size end = 0;
+      bool is_begin = true;
+      bool is_end = false;
+      for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
       {
-        is_begin = false;
+        if (isotope_distributions_[index].intensity[i] < intensity_percentage)
+        {
+          if (!is_end && !is_begin)
+            is_end = true;
+          if (is_begin)
+            ++begin;
+          else if (is_end)
+            ++end;
+        }
+        else if (is_begin)
+        {
+          is_begin = false;
+        }
       }
-    }
-    isotope_distributions_[index].optional_begin = begin;
-    isotope_distributions_[index].optional_end = end;
+      isotope_distributions_[index].optional_begin = begin;
+      isotope_distributions_[index].optional_end = end;
 
-    //scale the distibution to a maximum of 1
-    double max = 0.0;
-    for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
-    {
-      if (isotope_distributions_[index].intensity[i] > max)
+      //scale the distribution to a maximum of 1
+      double max = 0.0;
+      for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
       {
-        max = isotope_distributions_[index].intensity[i];
+        if (isotope_distributions_[index].intensity[i] > max)
+        {
+          max = isotope_distributions_[index].intensity[i];
+        }
       }
-    }
 
-    isotope_distributions_[index].max = max;
+      isotope_distributions_[index].max = max;
 
-    for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
-    {
-      isotope_distributions_[index].intensity[i] /= max;
+      for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
+      {
+        isotope_distributions_[index].intensity[i] /= max;
+      }
     }
   }
-}
 
-/// Returns the isotope distribution for a certain mass window
-const IsotopeDistributionCache::TheoreticalIsotopePattern & IsotopeDistributionCache::getIsotopeDistribution(double mass) const
-{
-  //calculate index in the vector
-  Size index = (Size) std::floor(mass / mass_window_width_);
-
-  if (index >= isotope_distributions_.size())
+  // Returns the isotope distribution for a certain mass window
+  const IsotopeDistributionCache::TheoreticalIsotopePattern& IsotopeDistributionCache::getIsotopeDistribution(double mass) const
   {
-    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsotopeDistribution not precalculated. Maximum allowed index is " + String(isotope_distributions_.size()), String(index));
+    //calculate index in the vector
+    Size index = static_cast<Size>(std::floor(mass / mass_window_width_));
+
+    if (index >= isotope_distributions_.size())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsotopeDistribution not precalculated. Maximum allowed index is " + String(isotope_distributions_.size()), String(index));
+    }
+
+    //Return distribution
+    return isotope_distributions_[index];
   }
 
-  //Return distribution
-  return isotope_distributions_[index];
 }

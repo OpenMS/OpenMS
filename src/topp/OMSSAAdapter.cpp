@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -160,11 +160,11 @@ protected:
     Int omssa_minor;
     Int omssa_patch;
 
-    bool operator<(const OMSSAVersion & v) const
+    bool operator<(const OMSSAVersion& v) const
     {
       if (omssa_major > v.omssa_major) return false;
       else if (omssa_major < v.omssa_major) return true;
-      else   // ==
+      else // ==
       {
         if (omssa_minor > v.omssa_minor) return false;
         else if (omssa_minor < v.omssa_minor) return true;
@@ -178,7 +178,7 @@ protected:
 
   };
 
-  bool getVersion_(const String & version, OMSSAVersion & omssa_version_i) const
+  bool getVersion_(const String& version, OMSSAVersion& omssa_version_i) const
   {
     // we expect three components
     IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
@@ -201,7 +201,7 @@ protected:
     registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error in Dalton", false);
     registerInputFile_("database", "<psq or fasta>", "", "NCBI formatted FASTA files. The .psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' (e.g., SwissProt.fasta) the psq suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("database",ListUtils::create<String>("psq,fasta"));
+    setValidFormats_("database", ListUtils::create<String>("psq,fasta"));
     registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor ion charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
     vector<String> all_mods;
@@ -340,7 +340,7 @@ protected:
     //-he <Double> the maximum e-value allowed in the hit list
     registerIntOption_("hl", "<Integer>", 30, "maximum number of hits retained for one spectrum. Note: even when set to 1 OMSSA may report multiple hits with different charge states", false);
     registerDoubleOption_("he", "<float>", 1000, "the maximum e-value allowed in the hit list. If you set this parameter too small (e.g., he=1), this will effectively introduce FDR filtering."
-                                                " Thus, allowing a less stringent FDR during post-processing will nevertheless return the (better) FDR introduced here, since mediocre hits are not even reported.", false);
+                                                 " Thus, allowing a less stringent FDR during post-processing will nevertheless return the (better) FDR introduced here, since mediocre hits are not even reported.", false);
 
     //Post translational modifications
     //To specify modifications, first type in "omssacl -ml" to see a list of modifications available and their corresponding id number.  Then when running the search, specify the id numbers of the modification you wish to apply, e.g. "omssacl -mf 5 -mv 1,8 ...". Multiple PTMs can be specified by placing commas between the numbers without any spaces.  At the present time, the list of allowed post translational modifications will be expanded over time.
@@ -379,14 +379,14 @@ protected:
     registerIntOption_("chunk_size", "<Integer>", 0, "Number of spectra to submit in one chunk to OMSSA. Chunks with more than 30k spectra will likely cause memory allocation issues with 32bit OMSSA versions (which is usually the case on Windows). To disable chunking (i.e. submit all spectra in one big chunk), set it to '0'.", false, true);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     StringList parameters;
     // path to the log file
     String logfile(getStringOption_("log"));
     String omssa_executable(getStringOption_("omssa_executable"));
-    String unique_name = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString());   // body for the tmp files
-    String unique_input_name = unique_name + "_OMSSA";  // mfg
+    String unique_name = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString()); // body for the tmp files
+    String unique_input_name = unique_name + "_OMSSA"; // mfg
     String unique_output_name = unique_name + "_OMSSA"; // xml (OMSSA)
     String unique_usermod_name = unique_name + "_OMSSA_user_mod_file.xml";
 
@@ -396,7 +396,7 @@ protected:
 
     // get version of OMSSA
     QProcess qp;
-    qp.start(omssa_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly);   // does automatic escaping etc...
+    qp.start(omssa_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly); // does automatic escaping etc...
     bool success = qp.waitForFinished();
     String output(QString(qp.readAllStandardOutput()));
     String omssa_version;
@@ -426,6 +426,14 @@ protected:
     String db_name = String(getStringOption_("database"));
     // @todo: find DB for OMSSA (if not given) in OpenMS_bin/share/OpenMS/DB/*.fasta|.pin|...
 
+    //-------------------------------------------------------------
+    // Validate user parameters
+    //-------------------------------------------------------------
+    if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
+    {
+      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      return ILLEGAL_PARAMETERS;
+    }
 
     if (db_name.suffix('.') != "psq")
     {
@@ -471,9 +479,9 @@ protected:
       parameters << "-d" << String(db_name);
     }
 
-    parameters << "-to" << String(getDoubleOption_("fragment_mass_tolerance"));         //String(getDoubleOption_("to"));
+    parameters << "-to" << String(getDoubleOption_("fragment_mass_tolerance")); //String(getDoubleOption_("to"));
     parameters << "-hs" << String(getIntOption_("hs"));
-    parameters << "-te" << String(getDoubleOption_("precursor_mass_tolerance"));         //String(getDoubleOption_("te"));
+    parameters << "-te" << String(getDoubleOption_("precursor_mass_tolerance")); //String(getDoubleOption_("te"));
     if (getFlag_("precursor_mass_tolerance_unit_ppm"))
     {
       if (omssa_version_i < OMSSAVersion(2, 1, 8))
@@ -483,10 +491,11 @@ protected:
                   + " Required version is 2.1.8 and above.\n");
         return ILLEGAL_PARAMETERS;
       }
-      parameters << "-teppm";   // only from OMSSA 2.1.8 on
+      parameters << "-teppm"; // only from OMSSA 2.1.8 on
     }
-    parameters << "-zl" << String(getIntOption_("min_precursor_charge"));         //String(getIntOption_("zl"));
-    parameters << "-zh" <<  String(getIntOption_("max_precursor_charge"));         //String(getIntOption_("zh"));
+
+    parameters << "-zl" << String(getIntOption_("min_precursor_charge")); //String(getIntOption_("zl"));
+    parameters << "-zh" <<  String(getIntOption_("max_precursor_charge")); //String(getIntOption_("zh"));
     parameters << "-zt" <<  String(getIntOption_("zt"));
     parameters << "-zc" <<  String(getIntOption_("zc"));
     parameters << "-zcc" << String(getIntOption_("zcc"));
@@ -763,7 +772,7 @@ protected:
         chunk_size = (int)map.getSpectra().size();
       }
 
-      for (Size i=0; i<map.size(); i+=chunk_size)
+      for (Size i = 0; i < map.size(); i += chunk_size)
       {
         PeakMap map_chunk;
         PeakMap* chunk_ptr = &map_chunk; // points to the current chunk data
@@ -775,7 +784,7 @@ protected:
         }
         else
         {
-          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), map.getSpectra().begin()+i, map.getSpectra().begin()+std::min(map.size(), i+chunk_size));
+          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), map.getSpectra().begin() + i, map.getSpectra().begin() + std::min(map.size(), i + chunk_size));
         }
         MascotGenericFile omssa_infile;
         String filename_chunk = unique_input_name + String(chunk) + ".mgf";
@@ -797,7 +806,7 @@ protected:
     pl.setLogType(this->log_type_);
     pl.startProgress(0, file_spectra_chunks_in.size(), "OMSSA search");
 
-    for (Size i=0; i<file_spectra_chunks_in.size(); ++i)
+    for (Size i = 0; i < file_spectra_chunks_in.size(); ++i)
     {
       pl.setProgress(i);
       StringList parameters_chunk = parameters;
@@ -821,7 +830,8 @@ protected:
         String call_string = omssa_executable + " " + ListUtils::concatenate(parameters_chunk, " ");
         writeDebug_(call_string, 5);
         status = system(call_string.c_str());
-      } else
+      }
+      else
       {
         writeDebug_(omssa_executable + " " + ListUtils::concatenate(parameters_chunk, " "), 5);
         status = QProcess::execute(omssa_executable.toQString(), qparam);
@@ -891,29 +901,23 @@ protected:
 
       // merge chunk results is not done, since all the statistics associated with a protein hit will be invalidated if peptide evidence is spread
       // across chunks. So we only retain this information if there is a single chunk (no splitting occurred)
-      if (file_spectra_chunks_in.size()==1)
+      if (file_spectra_chunks_in.size() == 1)
       {
         peptide_ids = peptide_ids_chunk;
         protein_identification = protein_identification_chunk;
       }
       else
       { // add only first prot ID to have a valid id-identifier mapping (but leave hits empty)
-        if (i==0)
+        if (i == 0)
         {
           protein_identification = protein_identification_chunk;
           protein_identification.setHits(std::vector<ProteinHit>()); // remove hits
         }
         // ... and remove any refs from peptides
         for (vector<PeptideIdentification>::iterator it_pep = peptide_ids_chunk.begin();
-                                                     it_pep!= peptide_ids_chunk.end();
-                                                     ++it_pep)
+             it_pep != peptide_ids_chunk.end();
+             ++it_pep)
         {
-          for (std::vector<PeptideHit>::iterator it_hit = it_pep->getHits().begin();
-                                                 it_hit!= it_pep->getHits().end();
-                                                 ++it_hit)
-          {
-            it_hit->setProteinAccessions(std::vector<String>());
-          }
           it_pep->setIdentifier(protein_identification.getIdentifier());
           peptide_ids.push_back(*it_pep);
         }
@@ -1000,7 +1004,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPOMSSAAdapter tool;
 

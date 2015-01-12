@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,7 +115,7 @@ namespace OpenMS
 #endif
   }
 
-  void InternalCalibration::calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map,
+  void InternalCalibration::calibrateMapGlobally(const FeatureMap& feature_map, FeatureMap& calibrated_feature_map,
                                                  String trafo_file_name)
   {
     // check if the ids
@@ -152,7 +152,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::calibrateMapGlobally(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map, std::vector<PeptideIdentification>& ref_ids, String trafo_file_name)
+  void InternalCalibration::calibrateMapGlobally(const FeatureMap& feature_map, FeatureMap& calibrated_feature_map, std::vector<PeptideIdentification>& ref_ids, String trafo_file_name)
   {
     checkReferenceIds_(ref_ids);
 
@@ -188,7 +188,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::applyTransformation_(const FeatureMap<>& feature_map, FeatureMap<>& calibrated_feature_map)
+  void InternalCalibration::applyTransformation_(const FeatureMap& feature_map, FeatureMap& calibrated_feature_map)
   {
     calibrated_feature_map = feature_map;
     for (Size f = 0; f < feature_map.size(); ++f)
@@ -221,7 +221,7 @@ namespace OpenMS
     }
   }
 
-  void InternalCalibration::checkReferenceIds_(const FeatureMap<>& feature_map)
+  void InternalCalibration::checkReferenceIds_(const FeatureMap& feature_map)
   {
     Size num_ids = 0;
     for (Size f = 0; f < feature_map.size(); ++f)

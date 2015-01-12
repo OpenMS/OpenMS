@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 
+#include <OpenMS/CONCEPT/Factory.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -52,7 +54,7 @@ namespace OpenMS
 	 : public FeatureGroupingAlgorithm
 	{
 		public:
-			void group(const vector< FeatureMap<> >&, ConsensusMap& map)
+			void group(const vector< FeatureMap >&, ConsensusMap& map)
 			{
 			  map.getFileDescriptions()[0].filename = "bla";
 				map.getFileDescriptions()[0].size = 5;
@@ -76,9 +78,9 @@ START_SECTION((virtual ~FeatureGroupingAlgorithm()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((virtual void group(const vector< FeatureMap<> > &maps, ConsensusMap &out)=0))
+START_SECTION((virtual void group(const vector< FeatureMap > &maps, ConsensusMap &out)=0))
 	FGA fga;
-	vector< FeatureMap<> > in;
+	vector< FeatureMap > in;
 	ConsensusMap map;
 	fga.group(in,map);
 	TEST_EQUAL(map.getFileDescriptions()[0].filename, "bla")

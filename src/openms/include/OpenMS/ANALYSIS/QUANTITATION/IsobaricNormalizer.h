@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,18 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICNORMALIZER_H
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICNORMALIZER_H
 
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/KERNEL/Peak2D.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
-
-#include <OpenMS/KERNEL/ConsensusMap.h>
 
 namespace OpenMS
 {
+  class IsobaricQuantitationMethod;
+  class ConsensusMap;
+
   /**
     @brief Performs median normalization on the extracted ratios of isobaric labeling experiment.
   */
@@ -69,7 +74,7 @@ private:
     const IsobaricQuantitationMethod* quant_meth_;
 
     /// The name of the reference channel as given in the IsobaricChannelInformation.
-    Int reference_channel_name_;
+    String reference_channel_name_;
 
     /**
       @brief Given a ConsensusFeature the method will return an iterator pointing to the consensus element representing the reference channel.

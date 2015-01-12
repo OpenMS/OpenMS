@@ -8,6 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EdwardsLippertIterator.h>" namespace "OpenMS
     cdef cppclass EdwardsLippertIterator(PepIterator) :
         # wrap-inherits:
         #  PepIterator
+
         EdwardsLippertIterator() nogil except +
         EdwardsLippertIterator(EdwardsLippertIterator) nogil except +
         bool isDigestingEnd(char AA1, char AA2) nogil except +

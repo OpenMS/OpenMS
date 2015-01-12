@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #   MSChromatogram := MSChromatogram[ChromatogramPeak]
 
         MSChromatogram() nogil except +
-        MSChromatogram(MSChromatogram) nogil except +
+        MSChromatogram(MSChromatogram &) nogil except +
         double getMZ() nogil except +
         # void   setMZ(double) nogil except +
 

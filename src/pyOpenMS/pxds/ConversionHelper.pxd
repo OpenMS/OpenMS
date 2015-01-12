@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/KERNEL/ConversionHelper.h>" namespace "OpenMS":
     cdef cppclass MapConversion:
 
       void convert(UInt64 input_map_index,
-                   FeatureMap[Feature] input_map,
+                   FeatureMap input_map,
                    ConsensusMap & output_map,
                    Size n) nogil except +
     
@@ -21,5 +21,5 @@ cdef extern from "<OpenMS/KERNEL/ConversionHelper.h>" namespace "OpenMS":
     
       void convert(ConsensusMap input_map,
                    bool keep_uids,
-                   FeatureMap[Feature] & output_map) nogil except +
+                   FeatureMap & output_map) nogil except +
 

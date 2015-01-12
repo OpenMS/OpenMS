@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <iosfwd>
 
@@ -78,25 +80,25 @@ public:
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, FeatureMap<> & feature_map);
+    void load(const String& filename, FeatureMap& feature_map);
 
-    Size loadSize(const String & filename);
+    Size loadSize(const String& filename);
 
     /**
         @brief stores the map @p feature_map in file with name @p filename.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
-    void store(const String & filename, const FeatureMap<> & feature_map);
+    void store(const String& filename, const FeatureMap& feature_map);
 
     /// Mutable access to the options for loading/storing
-    FeatureFileOptions & getOptions();
+    FeatureFileOptions& getOptions();
 
     /// Non-mutable access to the options for loading/storing
-    const FeatureFileOptions & getOptions() const;
+    const FeatureFileOptions& getOptions() const;
 
     /// setter for options for loading/storing
-    void setOptions(const FeatureFileOptions &);
+    void setOptions(const FeatureFileOptions&);
 
 protected:
 
@@ -104,19 +106,19 @@ protected:
     void resetMembers_();
 
     // Docu in base class
-    virtual void endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname);
+    virtual void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname);
 
     // Docu in base class
-    virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
+    virtual void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes);
 
     // Docu in base class
-    virtual void characters(const XMLCh * const chars, const XMLSize_t length);
+    virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
     /// Writes a feature to a stream
-    void writeFeature_(const String & filename, std::ostream & os, const Feature & feat, const String & identifier_prefix, UInt64 identifier, UInt indentation_level);
+    void writeFeature_(const String& filename, std::ostream& os, const Feature& feat, const String& identifier_prefix, UInt64 identifier, UInt indentation_level);
 
     /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
-    void writePeptideIdentification_(const String & filename, std::ostream & os, const PeptideIdentification & id, const String & tag_name, UInt indentation_level);
+    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
 
 
     /**
@@ -132,9 +134,9 @@ protected:
     Int disable_parsing_;
 
     /// points to the last open &lt;feature&gt; tag (possibly a subordinate feature)
-    Feature * current_feature_;
+    Feature* current_feature_;
     /// Feature map pointer for reading
-    FeatureMap<Feature> * map_;
+    FeatureMap* map_;
     /// Options that can be set
     FeatureFileOptions options_;
     /// only parse until "count" tag is reached (used in loadSize())
@@ -144,7 +146,6 @@ protected:
 
     /**@name temporary data structures to hold parsed data */
     //@{
-    ModelDescription<2> model_desc_;
     Param param_;
     ConvexHull2D::PointArrayType current_chull_;
     DPosition<2> hull_position_;
@@ -160,7 +161,7 @@ protected:
     Int subordinate_feature_level_;
 
     /// Pointer to last read object as a MetaInfoInterface, or null.
-    MetaInfoInterface * last_meta_;
+    MetaInfoInterface* last_meta_;
 
     /// Temporary protein ProteinIdentification
     ProteinIdentification prot_id_;

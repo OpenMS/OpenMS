@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,13 @@
 #ifndef OPENMS_DATASTRUCTURES_DPOSITION_H
 #define OPENMS_DATASTRUCTURES_DPOSITION_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <algorithm>
 #include <limits>
+#include <ostream>
 
 namespace OpenMS
 {
@@ -182,6 +183,7 @@ public:
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
         if (coordinate_[i] != point.coordinate_[i]) return false;
+
 #pragma clang diagnostic pop
       }
       return true;
@@ -347,7 +349,7 @@ public:
     {
       for (Size i = 0; i < D; ++i)
       {
-        coordinate_[i] = (CoordinateType) 0;
+        coordinate_[i] = static_cast<CoordinateType>(0);
       }
     }
 

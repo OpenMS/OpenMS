@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -134,7 +134,7 @@ public:
 
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
-    void quantifyPeptides(FeatureMap<>& features);
+    void quantifyPeptides(FeatureMap& features);
 
     /**
          @brief Compute peptide abundances from data in a consensus map

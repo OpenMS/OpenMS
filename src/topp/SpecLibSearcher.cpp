@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -391,13 +391,13 @@ protected:
                     SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
                     BinnedSpectrum quer_bin = sp->transform(quer);
                     BinnedSpectrum librar_bin = sp->transform(librar);
-                    score = (* sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
+                    score = (*sp)(quer, librar); //(*sp)(quer_bin,librar_bin);
                     double dot_bias = sp->dot_bias(quer_bin, librar_bin, score);
                     hit.setMetaValue("DOTBIAS", dot_bias);
                   }
                   else
                   {
-                    score = (* comparor)(quer, librar);
+                    score = (*comparor)(quer, librar);
                   }
 
                   DataValue RT(library[i].getRT());
@@ -405,7 +405,9 @@ protected:
                   hit.setMetaValue("RT", RT);
                   hit.setMetaValue("MZ", MZ);
                   hit.setScore(score);
-                  hit.addProteinAccession(pr_hit.getAccession());
+                  PeptideEvidence pe;
+                  pe.setProteinAccession(pr_hit.getAccession());
+                  hit.addPeptideEvidence(pe);
                   pid.insertHit(hit);
                 }
               }

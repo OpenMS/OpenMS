@@ -9,28 +9,24 @@ from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS":
 
-    cdef cppclass FeatureFinderAlgorithmPicked[PeakT, FeatureT](DefaultParamHandler):
+    cdef cppclass FeatureFinderAlgorithmPicked(DefaultParamHandler):
 
         # wrap-inherits:
         #    DefaultParamHandler
-        #
-        # wrap-instances:
-        #    FeatureFinderAlgorithmPicked := FeatureFinderAlgorithmPicked[Peak1D, Feature]
-
         FeatureFinderAlgorithmPicked()      nogil except +
 
-        void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff) nogil except +
+        void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap & output, FeatureFinder & ff) nogil except +
         void run() nogil except +
 
 
-        void setSeeds(FeatureMap[Feature]& seeds) nogil except +
+        void setSeeds(FeatureMap& seeds) nogil except +
 
-        # static FeatureFinderAlgorithm<PeakType, FeatureType>* create()
+        # static FeatureFinderAlgorithm* create()
 
 #
 # static methods are wrapped like this:
 #
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS::FeatureFinderAlgorithmPicked<OpenMS::Peak1D,OpenMS::Feature>":
+cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS::FeatureFinderAlgorithmPicked":
 
     String getProductName()   nogil except + # wrap-attach:FeatureFinderAlgorithmPicked

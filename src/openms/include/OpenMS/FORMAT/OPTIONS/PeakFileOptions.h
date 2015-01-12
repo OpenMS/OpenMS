@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -149,6 +149,16 @@ public:
     ///returns whether to fill the actual data into the container (spectrum/chromatogram)
     bool getFillData() const;
 
+    /// @name sort peaks in spectra / chromatograms by position
+    ///sets whether or not to sort peaks in spectra
+    void setSortSpectraByMZ(bool sort);
+    ///gets whether or not peaks in spectra should be sorted
+    bool getSortSpectraByMZ() const;
+    ///sets whether or not to sort peaks in chromatograms
+    void setSortChromatogramsByRT(bool sort);
+    ///gets whether or not peaks in chromatograms should be sorted
+    bool getSortChromatogramsByRT() const;
+
     /**
         @name Precision options
 
@@ -210,6 +220,8 @@ private:
     bool zlib_compression_;
     bool size_only_;
     bool always_append_data_;
+    bool sort_spectra_by_mz_;
+    bool sort_chromatograms_by_rt_;
     bool fill_data_;
     bool write_index_;
     MSNumpressCoder::NumpressConfig np_config_mz_;

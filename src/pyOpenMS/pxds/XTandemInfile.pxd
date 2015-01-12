@@ -47,6 +47,8 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
         void setRefine(bool refine) nogil except +
         void write(String & filename) nogil except +
         void load(String & filename) nogil except +
+        void setCleavageSite(String cleavage_site) nogil except +
+        String getCleavageSite() nogil except +
 
 cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS::XTandemInfile":
     cdef enum ErrorUnit "OpenMS::XTandemInfile::ErrorUnit":

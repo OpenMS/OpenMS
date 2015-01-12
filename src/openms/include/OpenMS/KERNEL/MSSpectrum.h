@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
   */
   template <typename PeakT = Peak1D>
   class MSSpectrum :
-    public std::vector<PeakT>,
+    private std::vector<PeakT>,
     public RangeManager<1>,
     public SpectrumSettings
   {
@@ -92,7 +92,7 @@ public:
     struct RTLess :
       public std::binary_function<MSSpectrum, MSSpectrum, bool>
     {
-      inline bool operator()(const MSSpectrum & a, const MSSpectrum & b) const
+      inline bool operator()(const MSSpectrum& a, const MSSpectrum& b) const
       {
         return a.getRT() < b.getRT();
       }
@@ -127,6 +127,35 @@ public:
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
+    ///@name Export methods from std::vector<PeakT>
+    //@{
+    using ContainerType::operator[];
+    using ContainerType::begin;
+    using ContainerType::rbegin;
+    using ContainerType::end;
+    using ContainerType::rend;
+    using ContainerType::resize;
+    using ContainerType::size;
+    using ContainerType::push_back;
+    using ContainerType::pop_back;
+    using ContainerType::empty;
+    using ContainerType::front;
+    using ContainerType::back;
+    using ContainerType::reserve;
+    using ContainerType::insert;
+    using ContainerType::erase;
+    using ContainerType::swap;
+
+    using typename ContainerType::iterator;
+    using typename ContainerType::const_iterator;
+    using typename ContainerType::size_type;
+    using typename ContainerType::value_type;
+    using typename ContainerType::reference;
+    using typename ContainerType::const_reference;
+    using typename ContainerType::pointer;
+    using typename ContainerType::difference_type;
+    //@}
+
 
     /// Constructor
     MSSpectrum() :
@@ -142,7 +171,7 @@ public:
     {}
 
     /// Copy constructor
-    MSSpectrum(const MSSpectrum & source) :
+    MSSpectrum(const MSSpectrum& source) :
       ContainerType(source),
       RangeManager<1>(source),
       SpectrumSettings(source),
@@ -159,7 +188,7 @@ public:
     {}
 
     /// Assignment operator
-    MSSpectrum & operator=(const MSSpectrum & source)
+    MSSpectrum& operator=(const MSSpectrum& source)
     {
       if (&source == this) return *this;
 
@@ -178,7 +207,7 @@ public:
     }
 
     /// Equality operator
-    bool operator==(const MSSpectrum & rhs) const
+    bool operator==(const MSSpectrum& rhs) const
     {
       //name_ can differ => it is not checked
 #pragma clang diagnostic push
@@ -191,11 +220,12 @@ public:
              float_data_arrays_ == rhs.float_data_arrays_ &&
              string_data_arrays_ == rhs.string_data_arrays_ &&
              integer_data_arrays_ == rhs.integer_data_arrays_;
+
 #pragma clang diagnostic pop
     }
 
     /// Equality operator
-    bool operator!=(const MSSpectrum & rhs) const
+    bool operator!=(const MSSpectrum& rhs) const
     {
       return !(operator==(rhs));
     }
@@ -238,13 +268,13 @@ public:
     }
 
     /// Returns the name
-    inline const String & getName() const
+    inline const String& getName() const
     {
       return name_;
     }
 
     /// Sets the name
-    inline void setName(const String & name)
+    inline void setName(const String& name)
     {
       name_ = name;
     }
@@ -265,37 +295,37 @@ public:
     */
     //@{
     /// Returns a const reference to the float meta data arrays
-    inline const FloatDataArrays & getFloatDataArrays() const
+    inline const FloatDataArrays& getFloatDataArrays() const
     {
       return float_data_arrays_;
     }
 
     /// Returns a mutable reference to the float meta data arrays
-    inline FloatDataArrays & getFloatDataArrays()
+    inline FloatDataArrays& getFloatDataArrays()
     {
       return float_data_arrays_;
     }
 
     /// Returns a const reference to the string meta data arrays
-    inline const StringDataArrays & getStringDataArrays() const
+    inline const StringDataArrays& getStringDataArrays() const
     {
       return string_data_arrays_;
     }
 
     /// Returns a mutable reference to the string meta data arrays
-    inline StringDataArrays & getStringDataArrays()
+    inline StringDataArrays& getStringDataArrays()
     {
       return string_data_arrays_;
     }
 
     /// Returns a const reference to the integer meta data arrays
-    inline const IntegerDataArrays & getIntegerDataArrays() const
+    inline const IntegerDataArrays& getIntegerDataArrays() const
     {
       return integer_data_arrays_;
     }
 
     /// Returns a mutable reference to the integer meta data arrays
-    inline IntegerDataArrays & getIntegerDataArrays()
+    inline IntegerDataArrays& getIntegerDataArrays()
     {
       return integer_data_arrays_;
     }
@@ -640,12 +670,12 @@ protected:
 
   /// Print the contents to a stream.
   template <typename PeakT>
-  std::ostream & operator<<(std::ostream & os, const MSSpectrum<PeakT> & spec)
+  std::ostream& operator<<(std::ostream& os, const MSSpectrum<PeakT>& spec)
   {
     os << "-- MSSPECTRUM BEGIN --" << std::endl;
 
     //spectrum settings
-    os << static_cast<const SpectrumSettings &>(spec);
+    os << static_cast<const SpectrumSettings&>(spec);
 
     //peaklist
     for (typename MSSpectrum<PeakT>::ConstIterator it = spec.begin(); it != spec.end(); ++it)

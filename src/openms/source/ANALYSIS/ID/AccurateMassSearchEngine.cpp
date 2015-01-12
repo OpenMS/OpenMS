@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -48,6 +50,7 @@
 #include <numeric>
 #include <sstream>
 #include <fstream>
+#include <iomanip>
 
 namespace OpenMS
 {
@@ -285,8 +288,7 @@ namespace OpenMS
   /// assignment operator
   AccurateMassSearchResult& AccurateMassSearchResult::operator=(const AccurateMassSearchResult& rhs)
   {
-    if (this == &rhs)
-      return *this;
+    if (this == &rhs) return *this;
 
     adduct_mass_ = rhs.adduct_mass_;
     query_mass_ = rhs.query_mass_;
@@ -690,7 +692,7 @@ namespace OpenMS
     is_initialized_ = true;
   }
 
-  void AccurateMassSearchEngine::run(FeatureMap<>& fmap, MzTab& mztab_out)  const
+  void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTab& mztab_out) const
   {
     if (!is_initialized_)
     {
@@ -734,20 +736,7 @@ namespace OpenMS
             String emp_formula(query_results[hit_idx].getFormulaString());
             double iso_sim(computeIsotopePatternSimilarity_(fmap[i], EmpiricalFormula(emp_formula)));
             query_results[hit_idx].setIsotopesSimScore(iso_sim);
-            /*
-            if (iso_sim > best_iso_sim)
-            {
-              best_iso_sim = iso_sim;
-              best_iso_idx = hit_idx;
-            }
-            */
           }
-        
-          //std::vector<AccurateMassSearchResult> tmp_results;
-          //tmp_results.push_back(query_results[best_iso_idx]);
-
-          // keep the best AccurateMassSearchResult, drop all other hits
-          //query_results = tmp_results;
         }
       }
 
@@ -763,8 +752,8 @@ namespace OpenMS
     }
     // add dummy protein identification which is required to keep peptidehits alive during store()
     fmap.getProteinIdentifications().resize(fmap.getProteinIdentifications().size() + 1);
-    fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchResult");
-    fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearchResult");
+    fmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
+    fmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
     fmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     if (fmap.empty())
@@ -784,10 +773,10 @@ namespace OpenMS
   void AccurateMassSearchEngine::annotate_(const std::vector<AccurateMassSearchResult>& amr, BaseFeature& f) const
   {
     f.getPeptideIdentifications().resize(f.getPeptideIdentifications().size() + 1);
-    f.getPeptideIdentifications().back().setIdentifier("AccurateMassSearchResult");
+    f.getPeptideIdentifications().back().setIdentifier("AccurateMassSearch");
     for (std::vector<AccurateMassSearchResult>::const_iterator it_row  = amr.begin();
-                                                               it_row != amr.end();
-                                                               ++it_row)
+         it_row != amr.end();
+         ++it_row)
     {
       PeptideHit hit;
       hit.setMetaValue("identifier", it_row->getMatchingHMDBids());
@@ -844,8 +833,8 @@ namespace OpenMS
     }
     // add dummy protein identification which is required to keep peptidehits alive during store()
     cmap.getProteinIdentifications().resize(cmap.getProteinIdentifications().size() + 1);
-    cmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearchResult");
-    cmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearchResult");
+    cmap.getProteinIdentifications().back().setIdentifier("AccurateMassSearch");
+    cmap.getProteinIdentifications().back().setSearchEngine("AccurateMassSearch");
     cmap.getProteinIdentifications().back().setDateTime(DateTime().now());
 
     exportMzTab_(overall_results, mztab_out);
@@ -854,10 +843,50 @@ namespace OpenMS
 
   void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_results, MzTab& mztab_out) const
   {
-    // iterate the overall results table
+    if (overall_results.empty())
+    {
+      return;
+    }
 
-    String unit_id("AccMassSearch");
-    MzTabSmallMoleculeSectionData sm_data_section;
+    MzTabMetaData md = mztab_out.getMetaData();
+
+    // may contain quantificaton data so we choose quantification
+    md.mz_tab_type.fromCellString("Quantification");
+
+    // we don't report assay so we mark this as a summary file
+    md.mz_tab_mode.fromCellString("Summary");
+
+    md.description.fromCellString("Result summary from accurate mass search.");
+
+    // Set mandatory meta data. This is required so we fill in a pseudo score for accurate mass search
+    MzTabParameter search_engine_score;
+    search_engine_score.fromCellString("[,,AccurateMassSearchScore,]");
+    md.smallmolecule_search_engine_score[1] = search_engine_score;
+
+    // As we don't have information on experimental design we just assume one source file that is not further specified ("null")
+    MzTabMSRunMetaData run_md;
+    MzTabString null_location;
+    run_md.location = null_location;
+    md.ms_run[1] = run_md;
+
+    // try to deduce the number of study variables from first entry.
+    // As we don't have experimental design information in OpenMS (yet) we assume one study_variable for each intensity.
+    Size n_individual_intensities = overall_results.begin()->at(0).getIndividualIntensities().size();
+
+    // if we have 0 individual_intensities it is a feature otherwise it is a consensus feature.
+    // TODO: check if the design can be improved. Distinction of itensities done here doesn't seem very natural.
+    Size n_study_variables = n_individual_intensities == 0 ? 1 : n_individual_intensities;
+
+    for (Size i = 0; i != n_study_variables; ++i)
+    {
+      MzTabStudyVariableMetaData sv_md;
+      sv_md.description.fromCellString("Accurate mass search result file.");
+      md.study_variable[i + 1] = sv_md;
+    }
+
+    mztab_out.setMetaData(md);
+
+    // iterate the overall results table
     MzTabSmallMoleculeSectionRows all_sm_rows;
 
     Size id_group(1);
@@ -902,14 +931,14 @@ namespace OpenMS
           HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(hid_temp);
 
           // set the smiles field
-          String smi_temp = entry->second[1];             // extract SMILES from struct mapping file
+          String smi_temp = entry->second[1]; // extract SMILES from struct mapping file
           MzTabString smi_string;
           smi_string.set(smi_temp);
 
           mztab_row_record.smiles = smi_string;
 
           // set the inchi_key field
-          String inchi_temp = entry->second[2];             // extract INCHIKEY from struct mapping file
+          String inchi_temp = entry->second[2]; // extract INCHIKEY from struct mapping file
           MzTabString inchi_key;
           inchi_key.set(inchi_temp);
 
@@ -928,8 +957,11 @@ namespace OpenMS
           MzTabDouble mass_to_charge;
           mass_to_charge.set(mz_temp);
 
-          mztab_row_record.mass_to_charge = mass_to_charge;
+          mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
+          double exp_mz_tmp = (*tab_it)[hit_idx].getQueryMass();
+          MzTabDouble exp_mass_to_charge;
+          exp_mass_to_charge.set(exp_mz_tmp);
 
           // set charge field
           Int ch_temp = (*tab_it)[hit_idx].getCharge();
@@ -950,7 +982,7 @@ namespace OpenMS
 
 
           // set database field
-          String dbname_temp = "HMDB";
+          String dbname_temp = database_name_;
           MzTabString dbname;
           dbname.set(dbname_temp);
 
@@ -958,20 +990,28 @@ namespace OpenMS
 
 
           // set database_version field
-          String dbver_temp = "3.5";
+          String dbver_temp = database_version_;
           MzTabString dbversion;
           dbversion.set(dbver_temp);
 
           mztab_row_record.database_version = dbversion;
 
+          MzTabParameterList search_engines;
+          search_engines.fromCellString("[,,AccurateMassSearch,]");
+          mztab_row_record.search_engine = search_engines;
 
-          // set smallmolecule_abundance_sub
+          MzTabDouble null_score;
+          mztab_row_record.best_search_engine_score[1] = null_score; // set null
+          mztab_row_record.search_engine_score_ms_run[1][1] = null_score; // set null
+
+
           // check if we deal with a feature or consensus feature
-
           std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
           std::vector<MzTabDouble> int_temp3;
 
-          if (indiv_ints.size() == 0)
+          bool single_intensity = (indiv_ints.size() == 0);
+
+          if (single_intensity)
           {
             double int_temp((*tab_it)[hit_idx].getObservedIntensity());
             MzTabDouble int_temp2;
@@ -989,8 +1029,10 @@ namespace OpenMS
             }
           }
 
-          mztab_row_record.smallmolecule_abundance_sub = int_temp3;
-
+          for (Size i = 0; i != int_temp3.size(); ++i)
+          {
+            mztab_row_record.smallmolecule_abundance_study_variable[i + 1] = int_temp3[i];
+          }
 
           // set smallmolecule_abundance_stdev_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
           MzTabDouble stdev_temp;
@@ -1009,8 +1051,10 @@ namespace OpenMS
             }
           }
 
-          mztab_row_record.smallmolecule_abundance_stdev_sub = stdev_temp3;
-
+          for (Size i = 0; i != stdev_temp3.size(); ++i)
+          {
+            mztab_row_record.smallmolecule_abundance_stdev_study_variable[i + 1] = stdev_temp3[i];
+          }
 
           // set smallmolecule_abundance_std_error_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
           MzTabDouble stderr_temp2;
@@ -1029,9 +1073,10 @@ namespace OpenMS
             }
           }
 
-
-          mztab_row_record.smallmolecule_abundance_std_error_sub = stderr_temp3;
-
+          for (Size i = 0; i != stderr_temp3.size(); ++i)
+          {
+            mztab_row_record.smallmolecule_abundance_std_error_study_variable[i + 1] = stderr_temp3[i];
+          }
 
           // optional columns:
           std::vector<MzTabOptionalColumnEntry> optionals;
@@ -1052,7 +1097,7 @@ namespace OpenMS
           col1.first = "opt_adduct_ion";
           col1.second = addion;
           optionals.push_back(col1);
-          ++adduct_stats[addion_temp];       // just some stats
+          ++adduct_stats[addion_temp]; // just some stats
 
 
           // set isotope similarity score
@@ -1069,7 +1114,7 @@ namespace OpenMS
 
 
           // set id group; rows with the same id group number originated from the same feature
-          adduct_stats_unique[addion_temp].insert(id_group);       // stats ...
+          adduct_stats_unique[addion_temp].insert(id_group); // stats ...
           String id_group_temp(id_group);
           MzTabString id_group_str;
           id_group_str.set(id_group_temp);
@@ -1084,9 +1129,7 @@ namespace OpenMS
       ++id_group;
     }
 
-    sm_data_section[unit_id] = all_sm_rows;
-    mztab_out.setSmallMoleculeSectionData(sm_data_section);
-
+    mztab_out.setSmallMoleculeSectionRows(all_sm_rows);
 
     // print some adduct stats:
     LOG_INFO << "Hits by adduct: #peaks explained (# matching db entries)'\n";
@@ -1151,11 +1194,38 @@ namespace OpenMS
     {
       ++line_count;
       line.trim();
-      if (line.empty()) continue;
+      // std::cout << line << std::endl;
+      if (line_count == 1)
+      {
+        std::vector<String> fields;
+        line.trim().split('\t', fields);
+        if (fields[0] == "database_name")
+        {
+          database_name_ = fields[1];
+          continue;
+        }
+        else
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping file must contain \"database_name\t{NAME}\" as first line.!", line);
+        }
+      }
+      else if (line_count == 2)
+      {
+        std::vector<String> fields;
+        line.trim().split('\t', fields);
+        if (fields[0] == "database_version")
+        {
+          database_version_ = fields[1];
+          continue;
+        }
+        else
+        {
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping file must contain \"database_version\t{VERSION}\" as first line.!", line);
+        }
+      }
 
       str_buf.clear();
       str_buf << line;
-      // std::cout << line << std::endl;
       std::istream_iterator<String> istr_it(str_buf);
 
       Size word_count(0);
@@ -1260,7 +1330,7 @@ namespace OpenMS
       fname = File::find(filename);
     }
     TextFile tf(fname, true, -1, true); // trim & skip_empty
-    for (TextFile::const_iterator it = tf.begin(); it != tf.end(); ++it)
+    for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
     {
       result.push_back(AdductInfo_::parseAdductString(*it));
     }

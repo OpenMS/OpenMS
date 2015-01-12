@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -99,10 +100,10 @@ using namespace std;
 
     On the peptide side, two sources for m/z values are possible (see parameter @p mz_reference): 1. m/z of the precursor of the MS2 spectrum that gave rise to the peptide identification;
     2. theoretical masses computed from the amino acid sequences of peptide hits.
-    (When using theoretical masses, make sure that peptide modifications were identified correctly. OpenMS currently "forgets" mass shifts that it can't assign to modifications - if that 
+    (When using theoretical masses, make sure that peptide modifications were identified correctly. OpenMS currently "forgets" mass shifts that it can't assign to modifications - if that
     happens, masses computed from peptide sequences will be off.)
 
-    @deprecated The parameter handling of this tool has been reworked. For greater consistency with other tools, the parameters @p rt_delta and @p mz_delta have been renamed to @p rt_tolerance 
+    @deprecated The parameter handling of this tool has been reworked. For greater consistency with other tools, the parameters @p rt_delta and @p mz_delta have been renamed to @p rt_tolerance
     and @p mz_tolerance. The possible values of the @p mz_reference parameter have also been renamed. The default value of @p mz_tolerance has been increased from 1 ppm to a more realistic 20 ppm.\n
     Most importantly, the @p use_centroids parameter from previous versions has been split into two parameters, @p feature:use_centroid_rt and @p feature:use_centroid_mz. In OpenMS 1.6, peptide
     identifications would be matched only against monoisotopic mass traces of features if @p mz_reference was @p PeptideMass; otherwise, all mass traces would be used. This implicit behaviour has
@@ -129,7 +130,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
-    setValidFormats_("id", ListUtils::create<String>("idXML"));
+    setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,mzq"));
     registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
@@ -158,22 +159,36 @@ protected:
     registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // LOG_DEBUG << "Starting..." << endl;
-    String in = getStringOption_("in");
-    FileTypes::Type in_type = FileHandler::getType(in);
-    String out = getStringOption_("out");
 
     //----------------------------------------------------------------
-    // load idXML
+    // load ids
     //----------------------------------------------------------------
     // LOG_DEBUG << "Loading idXML..." << endl;
+    String id = getStringOption_("id");
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
-    String document_id;
-    IdXMLFile().load(getStringOption_("id"), protein_ids, peptide_ids, document_id);
+    FileTypes::Type in_type = FileHandler::getType(id);
+    if (in_type == FileTypes::IDXML)
+    {
+      IdXMLFile().load(id, protein_ids, peptide_ids);
+    }
+    else if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(id, protein_ids, peptide_ids);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       __PRETTY_FUNCTION__,
+                                       "wrong id fileformat");
+    }
 
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    in_type = FileHandler::getType(in);
     //----------------------------------------------------------------
     //create mapper
     //----------------------------------------------------------------
@@ -213,7 +228,7 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       // LOG_DEBUG << "Processing feature map..." << endl;
-      FeatureMap<> map;
+      FeatureMap map;
       FeatureXMLFile file;
       file.load(in, map);
 
@@ -258,7 +273,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDMapper tool;
   return tool.main(argc, argv);

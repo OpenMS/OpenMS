@@ -51,7 +51,7 @@ using namespace std;
 using namespace OpenMS;
 using namespace Internal;
 
-void convertINI2HTML(const Param & p, ostream & os)
+void convertINI2HTML(const Param& p, ostream& os)
 {
   // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
   os << "<div class=\"ini_global\">\n";
@@ -69,14 +69,20 @@ void convertINI2HTML(const Param & p, ostream & os)
     string key = it.getName();
 
     //write opened/closed nodes
-    const std::vector<Param::ParamIterator::TraceInfo> & trace = it.getTrace();
+    const std::vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
     for (std::vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
     {
       if (it2->opened) //opened node
       {
         String d = it2->description;
         d.substitute("\n", "<br>");
-        os << indentation  << "<div class=\"node\"><span class=\"node_name\">" << (String().fillLeft('+', (UInt) indentation.size() / 2) + it2->name) << "</span><span class=\"node_description\">" << (d) << "</span></div>" << "\n";
+        os << indentation
+           << "<div class=\"node\"><span class=\"node_name\">"
+           << (String().fillLeft('+', (UInt) indentation.size() / 2) + it2->name)
+           << "</span><span class=\"node_description\">"
+           << (d)
+           << "</span></div>"
+           << "\n";
         indentation += "  ";
       }
       else //closed node
@@ -90,12 +96,24 @@ void convertINI2HTML(const Param & p, ostream & os)
     String s_attr;
     String s_req;
     if (it->tags.find("advanced") != it->tags.end())
-      s_attr += " item_advanced";                                                // optionally add advanced class
+      s_attr += " item_advanced"; // optionally add advanced class
     if (it->tags.find("required") != it->tags.end())
-      s_req += " item_required";                                                // optionally add required class
+      s_req += " item_required"; // optionally add required class
     DataValue::DataType value_type = it->value.valueType();
     //write opening tag
-    os << indentation << "<div class=\"item" + s_attr + "\"><span class=\"item_name" + s_req + "\" style=\"padding-left:" << indentation.size() * 4 << "px;\">" << (it->name) << "</span><span class=\"item_value\">" << it->value.toString() << "</span>" << "\n";
+    os << indentation
+       << "<div class=\"item"
+       << s_attr
+       << "\"><span class=\"item_name"
+       << s_req
+       << "\" style=\"padding-left:"
+       << indentation.size() * 4
+       << "px;\">"
+       << (it->name)
+       << "</span><span class=\"item_value\">"
+       << it->value.toString()
+       << "</span>"
+       << "\n";
 
     //replace all critical characters in description
     String d = it->description;
@@ -107,7 +125,7 @@ void convertINI2HTML(const Param & p, ostream & os)
     for (set<String>::const_iterator tag_it = it->tags.begin(); tag_it != it->tags.end(); ++tag_it)
     {
       if (*tag_it == "advanced")
-        continue;                        // do not list "advanced" or "required" (this is done by color coding)
+        continue; // do not list "advanced" or "required" (this is done by color coding)
       if (*tag_it == "required")
         continue;
       if (!list.empty())
@@ -130,7 +148,7 @@ void convertINI2HTML(const Param & p, ostream & os)
         if (min_set)
           restrictions += String(it->min_int);
         else
-          restrictions += "-&#8734;";        // infinity symbol
+          restrictions += "-&#8734;"; // infinity symbol
         restrictions += ':';
         if (max_set)
           restrictions += String(it->max_int);
@@ -150,7 +168,7 @@ void convertINI2HTML(const Param & p, ostream & os)
         if (min_set)
           restrictions += String(it->min_float);
         else
-          restrictions += "-&#8734;";        // infinity symbol
+          restrictions += "-&#8734;"; // infinity symbol
         restrictions += ':';
         if (max_set)
           restrictions += String(it->max_float);
@@ -172,7 +190,7 @@ void convertINI2HTML(const Param & p, ostream & os)
       break;
     }
     if (restrictions.empty())
-      restrictions = " ";                       // create content, such that the cell gets an underline
+      restrictions = " "; // create content, such that the cell gets an underline
 
     os << "<span class=\"item_restrictions\">" << restrictions << "</span>";
 
@@ -181,10 +199,10 @@ void convertINI2HTML(const Param & p, ostream & os)
     ++it;
   }
 
-  os << "</div>\n";  // end global div
+  os << "</div>\n"; // end global div
 }
 
-bool generate(const ToolListType & tools, const String & prefix, const String & binary_directory)
+bool generate(const ToolListType& tools, const String& prefix, const String& binary_directory)
 {
   bool errors_occured = false;
   for (ToolListType::const_iterator it = tools.begin(); it != tools.end(); ++it)
@@ -204,72 +222,88 @@ bool generate(const ToolListType & tools, const String & prefix, const String & 
     }
 #endif
 #ifdef OPENMS_WINDOWSPLATFORM
-	command += ".exe"; // otherwise File::exists() will fail
+    command += ".exe"; // otherwise File::exists() will fail
 #endif
 
     ofstream f((String("output/") + prefix + it->first + ".cli").c_str());
-	if (!File::exists(command))
-	{
-	  stringstream ss;
-	  ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
+    if (!File::exists(command))
+    {
+      stringstream ss;
+      ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
       ss << "Tool could not be found at '" << command << "'\n " << command << endl;
-	  f << ss.str();
-	  cerr << ss.str();
+      f << ss.str();
+      cerr << ss.str();
       errors_occured = true;
-	  f.close();
-	  continue;
- 	}
-	else
-	{
+      f.close();
+      continue;
+    }
+    else
+    {
       process.start(String(command + " --help").toQString());
-	  process.waitForFinished();
+      process.waitForFinished();
 
-	  std::string lines = QString(process.readAll()).toStdString();
-	  if (process.error() != QProcess::UnknownError)
-	  {
-	    // error while generation cli docu
-	    stringstream ss;
-	    f << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
-	    f << "Output was: \n" << lines << endl;
-	    f << "Command line was: \n " << command << endl;
-	    f << ss.str();
-	    cerr << ss.str();
+      std::string lines = QString(process.readAll()).toStdString();
+      if (process.error() != QProcess::UnknownError)
+      {
+        // error while generation cli docu
+        stringstream ss;
+        ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
+        ss << "Output was: \n" << lines << endl;
+        ss << "Command line was: \n " << command << endl;
+        f << ss.str();
+        cerr << ss.str();
         errors_occured = true;
-	    f.close();
-	    continue;
-	  }
-	  else
-	  {
-	  // write output
-	    f << lines;
-	  }
-	}
+        f.close();
+        continue;
+      }
+      else
+      {
+        // write output
+        f << lines;
+      }
+    }
     f.close();
 
     //////
     // get the INI file and convert it into HTML
     //////
-    if (it->first == "GenericWrapper")
-      continue;                                  // does not support -write_ini without a type
-    if (it->first == "TOPPView")
-      continue;                            // does not support -write_ini
-    if (it->first == "TOPPAS")
-      continue;                          // does not support -write_ini
-    String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
-    process.start((command + " -write_ini " + tmp_file).toQString());
-    process.waitForFinished();
-    Param p;
-    ParamXMLFile pf;
-    pf.load(tmp_file, p);
-    File::remove(tmp_file);
-    ofstream f_html((String("output/") + prefix + it->first + ".html").c_str());
-    convertINI2HTML(p, f_html);
-    f_html.close();
+    if (it->first != "GenericWrapper" && // does not support -write_ini without a type
+        it->first != "TOPPView" && // do not support -write_ini
+        it->first != "TOPPAS")
+    {
+      String tmp_file = File::getTempDirectory() + "/" + File::getUniqueName() + "_" + it->first + ".ini";
+      String ini_command = command + " -write_ini " + tmp_file;
+      process.start(ini_command.toQString());
+      process.waitForFinished();
+
+      if (process.error() != QProcess::UnknownError || !File::exists(tmp_file))
+      {
+        std::string lines = QString(process.readAll()).toStdString();
+
+        // error while generation cli docu
+        stringstream ss;
+        ss << "Errors occurred while writing ini file for " << it->first << "!" << endl;
+        ss << "Output was: \n" << lines << endl;
+        ss << "Command line was: \n " << ini_command << endl;
+        cerr << ss.str();
+        errors_occured = true;
+        continue;
+      }
+
+      // load content of written ini file
+      Param p;
+      ParamXMLFile pf;
+      pf.load(tmp_file, p);
+      File::remove(tmp_file);
+      ofstream f_html((String("output/") + prefix + it->first + ".html").c_str());
+      convertINI2HTML(p, f_html);
+      f_html.close();
+    }
   }
   return errors_occured;
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
   if (argc != 2)
   {
@@ -279,15 +313,15 @@ int main(int argc, char ** argv)
 
   String binary_directory = String(argv[1]).ensureLastChar('/');
 
-  if(!File::exists(binary_directory))
+  if (!File::exists(binary_directory))
   {
     cerr << "The given binary directory does not exist. Aborting." << endl;
     return EXIT_FAILURE;
   }
 
   //TOPP tools
-  ToolListType topp_tools = ToolHandler::getTOPPToolList(true);   // include GenericWrapper (can be called with --help without error, even though it has a type)
-  topp_tools["TOPPView"] = Internal::ToolDescription();   // these two need to be excluded from writing an INI file later!
+  ToolListType topp_tools = ToolHandler::getTOPPToolList(true); // include GenericWrapper (can be called with --help without error, even though it has a type)
+  topp_tools["TOPPView"] = Internal::ToolDescription(); // these two need to be excluded from writing an INI file later!
   topp_tools["TOPPAS"] = Internal::ToolDescription();
   //UTILS
   ToolListType util_tools = ToolHandler::getUtilList();

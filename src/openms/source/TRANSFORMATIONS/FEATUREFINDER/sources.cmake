@@ -19,8 +19,6 @@ FeatureFinderAlgorithmIsotopeWavelet.cpp
 FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
-FeatureFinderAlgorithmSimple.cpp
-FeatureFinderAlgorithmSimplest.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp
@@ -33,8 +31,10 @@ IsotopeWaveletTransform.cpp
 LevMarqFitter1D.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
-ModelFitter.cpp
+MultiplexClustering.cpp
 MultiplexFiltering.cpp
+MultiplexFilteringCentroided.cpp
+MultiplexFilteringProfile.cpp
 MultiplexFilterResult.cpp
 MultiplexFilterResultPeak.cpp
 MultiplexFilterResultRaw.cpp
@@ -42,9 +42,7 @@ MultiplexPeakPattern.cpp
 PeakWidthEstimator.cpp
 ProductModel.cpp
 SeedListGenerator.cpp
-SimpleExtender.cpp
-SimpleSeeder.cpp
-
+TraceFitter.cpp
 )
 
 ### add path to the filenames

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -78,7 +77,7 @@ struct SILAC_pair
 // SILAC_pair which it is matched to
 struct MatchedFeature
 {
-  MatchedFeature(const Feature & feature, Size index) :
+  MatchedFeature(const Feature& feature, Size index) :
     f(feature),
     idx(index)
   {
@@ -138,7 +137,7 @@ protected:
     setMinFloat_("RT_pair_tolerance", 0.0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -155,7 +154,7 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    FeatureMap<> all_mrm_features;
+    FeatureMap all_mrm_features;
     FeatureXMLFile().load(in, all_mrm_features);
 
     // read pair file
@@ -202,7 +201,7 @@ protected:
 
     // collect the different MRM XIC pairs for each SILAC pair as quantlets
     // then calculate the ratio over the quanlets and calculate some statistics
-    FeatureMap<> all_features;
+    FeatureMap all_features;
     for (Map<double, Map<double, vector<SILAC_pair> > >::ConstIterator it1 = pairs.begin(); it1 != pairs.end(); ++it1)
     {
       for (Map<double, vector<SILAC_pair> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
@@ -212,8 +211,8 @@ protected:
         Size idx = 0;
         for (vector<SILAC_pair>::const_iterator pit = it2->second.begin(); pit != it2->second.end(); ++pit, ++idx)
         {
-          FeatureMap<> feature_map_light, feature_map_heavy;
-          for (FeatureMap<>::const_iterator it = all_mrm_features.begin(); it != all_mrm_features.end(); ++it)
+          FeatureMap feature_map_light, feature_map_heavy;
+          for (FeatureMap::const_iterator it = all_mrm_features.begin(); it != all_mrm_features.end(); ++it)
           {
             if (fabs((double)it->getMetaValue("MZ") - it1->first) < mass_tolerance &&
                 fabs(it->getMZ() - pit->mz_light) < mass_tolerance &&
@@ -232,12 +231,12 @@ protected:
 
           // search if feature maps to m/z value of pair
           vector<MatchedFeature> light, heavy;
-          for (FeatureMap<>::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
+          for (FeatureMap::const_iterator fit = feature_map_light.begin(); fit != feature_map_light.end(); ++fit)
           {
             all_features.push_back(*fit);
             light.push_back(MatchedFeature(*fit, idx));
           }
-          for (FeatureMap<>::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
+          for (FeatureMap::const_iterator fit = feature_map_heavy.begin(); fit != feature_map_heavy.end(); ++fit)
           {
             all_features.push_back(*fit);
             heavy.push_back(MatchedFeature(*fit, idx));
@@ -330,7 +329,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMRMPairFinder tool;
   return tool.main(argc, argv);

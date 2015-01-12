@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1046,40 +1046,44 @@ namespace OpenMS
     //~ setProgress(++progress_);
 
     //~ file should either contain the complete stylesheet injection (including the stylesheet file preamble, the DOCTYPE definition and the stylesheet itself) or be empty
-    String xslt = "";
+    std::string xslt = "";
+    std::string xslt_ref = "";
     try
     {
-      String xslt_file = File::find("XSL/QcML_report_sheet.xsl");
+      String xslt_file = File::find("XSL/QcML_report_sheet.xsl"); //TODO make this user defined pt.1
       std::ifstream in(xslt_file.c_str());
-      xslt = String((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+      xslt = std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+      xslt = xslt.erase(0, xslt.find("\n") + 1);
+      xslt_ref = "openms-qc-stylesheet"; //TODO make this user defined pt.2
     }
     catch (Exception::FileNotFound &)
     {
       warning(STORE, String("No qcml stylesheet found, result will not be viewable in a browser!"));
     }
-    
-    
+
+
     //open stream
     ofstream os(filename.c_str());
     if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
- 
+
     os.precision(writtenDigits<double>(0.0));
 
     //~ setProgress(++progress_);
     //header & xslt
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
-    os << "<?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?>\n";
-    os << "<!DOCTYPE catelog [\n"
-       << "  <!ATTLIST xsl:stylesheet\n"
-       << "  id  ID  #REQUIRED>\n"
-       << "  ]>\n";
+    if (!xslt_ref.empty())
+    {
+        os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
+        os << "<!DOCTYPE catelog [\n"
+           << "  <!ATTLIST xsl:stylesheet\n"
+           << "  id  ID  #REQUIRED>\n"
+           << "  ]>\n";
+    }
     os << "<qcML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
-    
-    os << xslt << "\n";
 
     //content runs
     std::set<String> keys;
@@ -1179,6 +1183,11 @@ namespace OpenMS
     os <<  "\t<cv uri=\"http://qcml.googlecode.com/svn/trunk/cv/qc-cv.obo\" ID=\"qc_cv_ref\" fullName=\"MS-QC\" version=\"0.1.0\"/>\n";
     os <<  "\t<cv uri=\"http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo\" ID=\"uo_cv_ref\" fullName=\"unit\" version=\"1.0.0\"/>\n";
     os <<  "\t</cvList>\n";
+
+    if (!xslt_ref.empty())
+    {
+      os << xslt << "\n";
+    }
 
     os << "</qcML>\n";
   }

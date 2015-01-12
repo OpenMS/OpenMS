@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche$
@@ -46,45 +46,45 @@ class DerivedLabeler
   : public BaseLabeler
 {
 	  public:
-	virtual void preCheck(Param &) const 
-  { 
-    throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
-	} 
+	virtual void preCheck(Param &) const
+  {
+    throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+	}
 
-	virtual void setUpHook(FeatureMapSimVector & /* features */) 
-	{ 
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
-	} 
+	virtual void setUpHook(SimTypes::FeatureMapSimVector & /* features */)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+	}
 
-	virtual void postDigestHook(FeatureMapSimVector & /* features_to_simulate */) 
-	{ 
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
-	} 
+	virtual void postDigestHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+	}
 
-	virtual void postRTHook(FeatureMapSimVector & /* features_to_simulate */) 
-	{ 
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
-	} 
+	virtual void postRTHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+	}
 
-	virtual void postDetectabilityHook(FeatureMapSimVector & /* features_to_simulate */) 
-	{ 
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
-	} 
+	virtual void postDetectabilityHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+	}
 
-	virtual void postIonizationHook(FeatureMapSimVector & /* features_to_simulate */) 
-	{ 
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
-	} 
+	virtual void postIonizationHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+	}
 
-	virtual void postRawMSHook(FeatureMapSimVector & /* features_to_simulate */) 
-	{ 
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
-	} 
+	virtual void postRawMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+	}
 
-	virtual void postRawTandemMSHook(FeatureMapSimVector & /* features_to_simulate */, MSSimExperiment & /* simulated map */) 
-	{ 
-		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__); 
-	} 	
+	virtual void postRawTandemMSHook(SimTypes::FeatureMapSimVector & /* features_to_simulate */, SimTypes::MSSimExperiment & /* simulated map */)
+	{
+		throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
+	}
 
 };
 
@@ -109,46 +109,46 @@ START_SECTION(~BaseLabeler())
 END_SECTION
 
 DerivedLabeler labeler;
-FeatureMapSimVector empty_fmsv;
-MSSimExperiment empty_experiment;
+SimTypes::FeatureMapSimVector empty_fmsv;
+SimTypes::MSSimExperiment empty_experiment;
 
-START_SECTION((virtual void setUpHook(FeatureMapSimVector &)))
+START_SECTION((virtual void setUpHook(SimTypes::FeatureMapSimVector &)))
 {
   TEST_EXCEPTION(Exception::NotImplemented, labeler.setUpHook(empty_fmsv))
 }
 END_SECTION
 
-START_SECTION((virtual void postDigestHook(FeatureMapSimVector &)))
+START_SECTION((virtual void postDigestHook(SimTypes::FeatureMapSimVector &)))
 {
   TEST_EXCEPTION(Exception::NotImplemented, labeler.postDigestHook(empty_fmsv))
 }
 END_SECTION
 
-START_SECTION((virtual void postRTHook(FeatureMapSimVector &)))
+START_SECTION((virtual void postRTHook(SimTypes::FeatureMapSimVector &)))
 {
   TEST_EXCEPTION(Exception::NotImplemented, labeler.postRTHook(empty_fmsv))
 }
 END_SECTION
 
-START_SECTION((virtual void postDetectabilityHook(FeatureMapSimVector &)))
+START_SECTION((virtual void postDetectabilityHook(SimTypes::FeatureMapSimVector &)))
 {
   TEST_EXCEPTION(Exception::NotImplemented, labeler.postDetectabilityHook(empty_fmsv))
 }
 END_SECTION
 
-START_SECTION((virtual void postIonizationHook(FeatureMapSimVector &)))
+START_SECTION((virtual void postIonizationHook(SimTypes::FeatureMapSimVector &)))
 {
   TEST_EXCEPTION(Exception::NotImplemented, labeler.postIonizationHook(empty_fmsv))
 }
 END_SECTION
 
-START_SECTION((virtual void postRawMSHook(FeatureMapSimVector &)))
+START_SECTION((virtual void postRawMSHook(SimTypes::FeatureMapSimVector &)))
 {
   TEST_EXCEPTION(Exception::NotImplemented, labeler.postRawMSHook(empty_fmsv))
 }
 END_SECTION
 
-START_SECTION((virtual void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
+START_SECTION((virtual void postRawTandemMSHook(SimTypes::FeatureMapSimVector &, SimTypes::MSSimExperiment &)))
 {
   TEST_EXCEPTION(Exception::NotImplemented, labeler.postRawTandemMSHook(empty_fmsv, empty_experiment))
 }
@@ -193,7 +193,7 @@ START_SECTION((void registerChildren()))
   NOT_TESTABLE
 }
 END_SECTION
-  
+
 START_SECTION((const String & getDescription() const))
 {
   TEST_STRING_EQUAL(labeler.getDescription(), "")

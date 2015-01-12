@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -121,7 +122,57 @@ namespace OpenMS
 
   bool AASequence::operator<(const AASequence& rhs) const
   {
-    return toString() < rhs.toString();
+    // check size
+    if (peptide_.size() != rhs.peptide_.size())
+    {
+      return (peptide_.size() < rhs.peptide_.size());
+    }
+
+    // when checking terminal mods, "no mod" is less than "any mod"
+    if (n_term_mod_ && !rhs.n_term_mod_)
+    {
+      return false;
+    }
+    else if (!n_term_mod_ && rhs.n_term_mod_)
+    {
+      return true;
+    }
+    else if (n_term_mod_ && rhs.n_term_mod_ && (n_term_mod_ != rhs.n_term_mod_))
+    {
+      return (n_term_mod_->getId() < rhs.n_term_mod_->getId());
+    }
+
+    ConstIterator a = begin();
+    ConstIterator b = rhs.begin();
+
+    // check one letter codes
+    for (; a != end(); ++a, ++b)
+    {
+      if (a->getOneLetterCode() != b->getOneLetterCode())
+      {
+        return (a->getOneLetterCode() < b->getOneLetterCode());
+      }
+      else if (a->getModification() != b->getModification())
+      {
+        return (a->getModification() < b->getModification());
+      }
+    }
+
+    // c-term
+    if (c_term_mod_ && !rhs.c_term_mod_)
+    {
+      return false;
+    }
+    else if (!c_term_mod_ && rhs.c_term_mod_)
+    {
+      return true;
+    }
+    else if (c_term_mod_ && rhs.c_term_mod_ && (c_term_mod_ != rhs.c_term_mod_))
+    {
+      return (c_term_mod_->getId() < rhs.c_term_mod_->getId());
+    }
+
+    return false;
   }
 
   EmpiricalFormula AASequence::getFormula(Residue::ResidueType type, Int charge) const
@@ -219,24 +270,99 @@ namespace OpenMS
 
   double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
-    // check whether tags are present
-    double tag_offset(0);
-    for (ConstIterator it = this->begin(); it != this->end(); ++it)
+    static const double H_weight = EmpiricalFormula("H").getMonoWeight();
+    static const double OH_weight = EmpiricalFormula("OH").getMonoWeight();
+    static const double NH_weight = EmpiricalFormula("NH").getMonoWeight();
+    static const double internal_to_full = EmpiricalFormula("H2O").getMonoWeight();
+    static const double nterm_to_full = EmpiricalFormula("OH").getMonoWeight();
+    static const double cterm_to_full = EmpiricalFormula("H").getMonoWeight();
+    static const double b_ion_to_full = EmpiricalFormula("OH").getMonoWeight();
+    static const double a_ion_to_full = EmpiricalFormula("HCO2").getMonoWeight();
+    static const double x_ion_to_full = EmpiricalFormula("HCO").getMonoWeight();
+    static const double z_ion_to_full = EmpiricalFormula("NH2").getMonoWeight();
+
+    double mono_weight(Constants::PROTON_MASS_U * charge);
+
+    // terminal modifications
+    if (n_term_mod_ != 0 &&
+        (type == Residue::Full || type == Residue::AIon || type == Residue::BIon || type == Residue::CIon || type == Residue::NTerminal)
+        )
     {
-      if (it->getOneLetterCode() == "")
+      mono_weight += n_term_mod_->getDiffMonoMass();
+    }
+
+    if (c_term_mod_ != 0 &&
+        (type == Residue::Full || type == Residue::XIon || type == Residue::YIon || type == Residue::ZIon || type == Residue::CTerminal)
+        )
+    {
+      mono_weight += c_term_mod_->getDiffMonoMass();
+    }
+
+    if (peptide_.size() > 0)
+    {
+      if (peptide_.size() == 1)
       {
-        tag_offset += it->getMonoWeight(Residue::Internal);
+        return mono_weight + peptide_[0]->getMonoWeight(type);
+      }
+      else
+      {
+        for (ConstIterator it = this->begin(); it != this->end(); ++it)
+        {
+          // standard residue including named modifications
+          mono_weight += it->getMonoWeight(Residue::Internal);
+        }
+
+        // add the missing formula part
+        switch (type)
+        {
+        case Residue::Full:
+          return mono_weight + internal_to_full;
+
+        case Residue::Internal:
+          return mono_weight /* + add_protons*/;
+
+        case Residue::NTerminal:
+          return mono_weight + internal_to_full - nterm_to_full;
+
+        case Residue::CTerminal:
+          return mono_weight + internal_to_full - cterm_to_full;
+
+        case Residue::BIon:
+          return mono_weight + internal_to_full - b_ion_to_full - H_weight;
+
+        case Residue::AIon:
+          return mono_weight + internal_to_full - a_ion_to_full - H_weight;
+
+        case Residue::CIon:
+          return mono_weight + internal_to_full - OH_weight + NH_weight;
+
+        case Residue::XIon:
+          return mono_weight + internal_to_full + x_ion_to_full;
+
+        case Residue::YIon:
+          return mono_weight + internal_to_full;
+
+        case Residue::ZIon:
+          return mono_weight + internal_to_full - z_ion_to_full;
+
+        default:
+          cerr << "AASequence::getMonoWeight: unknown ResidueType" << endl;
+        }
       }
     }
 
-    return tag_offset + getFormula(type, charge).getMonoWeight();
-  }
 
-  /*void AASequence::getNeutralLosses(Map<const EmpiricalFormula, UInt) const
+    return mono_weight;
+}
+
+
+
+
+/*void AASequence::getNeutralLosses(Map<const EmpiricalFormula, UInt) const
   {
       // the following losses are from the Zhang paper (AC, 76, 14, 2004)
       // charge directed*/
-  /*
+/*
   static const EmpiricalFormula R_44("NH2CHNH");
   static const EmpiricalFormula R_59("CN3H5"); // guanidium
   static const EmpiricalFormula R_61("N2H4CH");
@@ -357,12 +483,10 @@ namespace OpenMS
     {
       return *this;
     }
+
     AASequence seq;
     seq.n_term_mod_ = n_term_mod_;
-    for (Size i = 0; i < index; ++i)
-    {
-      seq.peptide_.push_back(peptide_[i]);
-    }
+    seq.peptide_.insert(seq.peptide_.end(), peptide_.begin(), peptide_.begin() + index);
     return seq;
   }
 
@@ -372,16 +496,15 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, size());
     }
+
     if (index == size())
     {
       return *this;
     }
+
     AASequence seq;
     seq.c_term_mod_ = c_term_mod_;
-    for (Size i = size() - index; i != size(); ++i)
-    {
-      seq.peptide_.push_back(peptide_[i]);
-    }
+    seq.peptide_.insert(seq.peptide_.end(), peptide_.begin() + (size() - index), peptide_.end());
     return seq;
   }
 
@@ -395,15 +518,15 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index + num, size());
     }
+
     AASequence seq;
     if (index == 0)
       seq.n_term_mod_ = n_term_mod_;
     if (index + num == this->size())
       seq.c_term_mod_ = c_term_mod_;
-    for (Size i = index; i != index + num; ++i)
-    {
-      seq.peptide_.push_back(peptide_[i]);
-    }
+
+    seq.peptide_.insert(seq.peptide_.end(), peptide_.begin() + index, peptide_.begin() + index + num);
+
     return seq;
   }
 
@@ -509,7 +632,7 @@ namespace OpenMS
 
   bool AASequence::operator==(const AASequence& peptide) const
   {
-    if (size() != peptide.size())
+    if (peptide_.size() != peptide.peptide_.size())
     {
       return false;
     }
@@ -517,6 +640,11 @@ namespace OpenMS
     for (Size i = 0; i != size(); ++i)
     {
       if (peptide_[i] != peptide.peptide_[i])
+      {
+        return false;
+      }
+      // if AA sequence equal, check if modifications (if available) are equal
+      else if (peptide_.at(i)->getModification() != peptide.peptide_.at(i)->getModification())
       {
         return false;
       }
@@ -566,7 +694,7 @@ namespace OpenMS
   {
     if (position >= peptide_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide_.size(), position);
+      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, peptide_.size());
     }
 
     return peptide_[position]->isModified();
@@ -659,7 +787,7 @@ namespace OpenMS
     {
       try
       {
-        const ResidueModification* term_mod = 
+        const ResidueModification* term_mod =
           &(mod_db->getTerminalModification(mod, ResidueModification::C_TERM));
         aas.c_term_mod_ = term_mod;
         return mod_end;
@@ -749,12 +877,12 @@ namespace OpenMS
           return mod_end;
         }
       }
-      LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" + 
+      LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
         residue->getOneLetterCode() + "' - adding it to the database" << endl;
     }
     // at beginning of peptide:
     else if (delta_mass) // N-terminal mod can only be specified by delta mass
-    { 
+    {
       vector<String> term_mods;
       mod_db->getTerminalModificationsByDiffMonoMass(
         term_mods, mass, tolerance, ResidueModification::N_TERM);
@@ -772,13 +900,13 @@ namespace OpenMS
     if (residue && delta_mass)
     {
       new_res.setMonoWeight(mass + residue->getMonoWeight());
-      new_res.setAverageWeight(mass + 
+      new_res.setAverageWeight(mass +
                                residue->getAverageWeight());
     }
     else
     { // mass value is for an internal residue, but methods expect full residue:
       new_res.setMonoWeight(mass + Residue::getInternalToFullMonoWeight());
-      new_res.setAverageWeight(mass + 
+      new_res.setAverageWeight(mass +
                                Residue::getInternalToFullAverageWeight());
     }
     ResidueDB::getInstance()->addResidue(new_res);
@@ -786,7 +914,7 @@ namespace OpenMS
     return mod_end;
   }
 
-  void AASequence::parseString_(const String& pep, AASequence& aas, 
+  void AASequence::parseString_(const String& pep, AASequence& aas,
                                 bool permissive)
   {
     aas.peptide_.clear();
@@ -795,7 +923,7 @@ namespace OpenMS
     if (peptide.empty()) return;
 
     static ResidueDB* rdb = ResidueDB::getInstance();
-    for (String::ConstIterator str_it = peptide.begin(); 
+    for (String::ConstIterator str_it = peptide.begin();
          str_it != peptide.end(); ++str_it)
     {
       const Residue* r = rdb->getResidue(*str_it); // "isalpha" check not needed
@@ -813,7 +941,7 @@ namespace OpenMS
       }
       else
       {
-        if (permissive && ((*str_it == '*') || (*str_it == '#') || 
+        if (permissive && ((*str_it == '*') || (*str_it == '#') ||
                            (*str_it == '+')))
         { // stop codons
           aas.peptide_.push_back(rdb->getResidue('X'));

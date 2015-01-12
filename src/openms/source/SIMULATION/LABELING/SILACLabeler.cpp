@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -108,7 +108,7 @@ namespace OpenMS
     canModificationBeApplied_(heavy_channel_arginine_label_, String("R"));
   }
 
-  void SILACLabeler::applyLabelToProteinHit_(FeatureMapSim& channel, const String& arginine_label, const String& lysine_label) const
+  void SILACLabeler::applyLabelToProteinHit_(SimTypes::FeatureMapSim& channel, const String& arginine_label, const String& lysine_label) const
   {
     for (std::vector<ProteinHit>::iterator protein_hit = channel.getProteinIdentifications()[0].getHits().begin();
          protein_hit != channel.getProteinIdentifications()[0].getHits().end();
@@ -131,7 +131,7 @@ namespace OpenMS
     }
   }
 
-  void SILACLabeler::setUpHook(FeatureMapSimVector& features_to_simulate)
+  void SILACLabeler::setUpHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
     // check if we have the correct number of channels
     if (features_to_simulate.size() < 2 || features_to_simulate.size() > 3)
@@ -139,7 +139,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(features_to_simulate.size()) + " channel(s) given. We currently support only 2-channel SILAC. Please provide two FASTA files!");
     }
 
-    FeatureMapSim& medium_channel = features_to_simulate[1];
+    SimTypes::FeatureMapSim& medium_channel = features_to_simulate[1];
     if (medium_channel.getProteinIdentifications().size() > 0)
     {
       applyLabelToProteinHit_(medium_channel, medium_channel_arginine_label_, medium_channel_lysine_label_);
@@ -148,7 +148,7 @@ namespace OpenMS
     //check for third channel and label
     if (features_to_simulate.size() == 3)
     {
-      FeatureMapSim& heavy_channel = features_to_simulate[2];
+      SimTypes::FeatureMapSim& heavy_channel = features_to_simulate[2];
       if (heavy_channel.getProteinIdentifications().size() > 0)
       {
         applyLabelToProteinHit_(heavy_channel, heavy_channel_arginine_label_, heavy_channel_lysine_label_);
@@ -179,19 +179,19 @@ namespace OpenMS
     return unmodified_sequence;
   }
 
-  void SILACLabeler::postDigestHook(FeatureMapSimVector& features_to_simulate)
+  void SILACLabeler::postDigestHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
 
-    FeatureMapSim& light_channel_features = features_to_simulate[0];
-    FeatureMapSim& medium_channel_features = features_to_simulate[1];
+    SimTypes::FeatureMapSim& light_channel_features = features_to_simulate[0];
+    SimTypes::FeatureMapSim& medium_channel_features = features_to_simulate[1];
 
     // merge the generated feature maps and create consensus
-    FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
+    SimTypes::FeatureMapSim final_feature_map = mergeProteinIdentificationsMaps_(features_to_simulate);
 
     if (features_to_simulate.size() == 2)
     {
       Map<String, Feature> unlabeled_features_index;
-      for (FeatureMapSim::iterator unlabeled_features_iter = light_channel_features.begin();
+      for (SimTypes::FeatureMapSim::iterator unlabeled_features_iter = light_channel_features.begin();
            unlabeled_features_iter != light_channel_features.end();
            ++unlabeled_features_iter)
       {
@@ -204,7 +204,7 @@ namespace OpenMS
       }
 
       // iterate over second map
-      for (FeatureMapSim::iterator labeled_feature_iter = medium_channel_features.begin(); labeled_feature_iter != medium_channel_features.end(); ++labeled_feature_iter)
+      for (SimTypes::FeatureMapSim::iterator labeled_feature_iter = medium_channel_features.begin(); labeled_feature_iter != medium_channel_features.end(); ++labeled_feature_iter)
       {
         const String unmodified_sequence = getUnmodifiedSequence_(*labeled_feature_iter, medium_channel_arginine_label_, medium_channel_lysine_label_);
 
@@ -216,7 +216,7 @@ namespace OpenMS
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
           Feature& unlabeled_feature = unlabeled_features_index[unmodified_sequence];
-          // guarantee uniquenes
+          // guarantee uniqueness
           unlabeled_feature.ensureUniqueId();
 
           // feature has a SILAC Label and is not equal to non-labeled
@@ -264,7 +264,7 @@ namespace OpenMS
 
       // index of unlabeled channelunlabeled_feature
       Map<String, Feature> unlabeled_features_index;
-      for (FeatureMapSim::iterator unlabeled_features_iter = light_channel_features.begin();
+      for (SimTypes::FeatureMapSim::iterator unlabeled_features_iter = light_channel_features.begin();
            unlabeled_features_iter != light_channel_features.end();
            ++unlabeled_features_iter)
       {
@@ -278,7 +278,7 @@ namespace OpenMS
 
       // index of labeled channel
       Map<String, Feature> medium_features_index;
-      for (FeatureMapSim::iterator labeled_features_iter = medium_channel_features.begin();
+      for (SimTypes::FeatureMapSim::iterator labeled_features_iter = medium_channel_features.begin();
            labeled_features_iter != medium_channel_features.end();
            ++labeled_features_iter)
       {
@@ -290,8 +290,8 @@ namespace OpenMS
                                        ));
       }
 
-      FeatureMapSim& heavy_labeled_features = features_to_simulate[2];
-      for (FeatureMapSim::iterator heavy_labeled_feature_iter = heavy_labeled_features.begin();
+      SimTypes::FeatureMapSim& heavy_labeled_features = features_to_simulate[2];
+      for (SimTypes::FeatureMapSim::iterator heavy_labeled_feature_iter = heavy_labeled_features.begin();
            heavy_labeled_feature_iter != heavy_labeled_features.end();
            ++heavy_labeled_feature_iter)
       {
@@ -397,7 +397,7 @@ namespace OpenMS
 
         if (unlabeled_features_index.has(medium_channel_feature_unmodified_sequence))
         {
-          // 1.Fall paar zwischen c0 und c1
+          // 1. case: pair between c0 and c1
           if (medium_channel_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
           {
             // add features to final map
@@ -421,7 +421,7 @@ namespace OpenMS
         }
         else
         {
-          // c1 ist alleine
+          // c1 is alone
           final_feature_map.push_back(medium_channel_feature);
         }
 
@@ -489,7 +489,7 @@ namespace OpenMS
   }
 
 // TODO: rewrite
-  void SILACLabeler::postRTHook(FeatureMapSimVector& features_to_simulate)
+  void SILACLabeler::postRTHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
     double rt_shift = param_.getValue("fixed_rtshift");
 
@@ -498,8 +498,8 @@ namespace OpenMS
     {
       // create map of all available features
       Map<UInt64, Feature*> id_map;
-      FeatureMapSim& feature_map = features_to_simulate[0];
-      for (FeatureMapSim::Iterator it = feature_map.begin(); it != feature_map.end(); ++it)
+      SimTypes::FeatureMapSim& feature_map = features_to_simulate[0];
+      for (SimTypes::FeatureMapSim::Iterator it = feature_map.begin(); it != feature_map.end(); ++it)
       {
         id_map.insert(std::make_pair<UInt64, Feature*>(it->getUniqueId(), &(*it)));
       }
@@ -542,22 +542,22 @@ namespace OpenMS
     }
   }
 
-  void SILACLabeler::postDetectabilityHook(FeatureMapSimVector& /* features_to_simulate */)
+  void SILACLabeler::postDetectabilityHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
     // no changes to the features .. nothing todo here
   }
 
-  void SILACLabeler::postIonizationHook(FeatureMapSimVector& /* features_to_simulate */)
+  void SILACLabeler::postIonizationHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */)
   {
     // no changes to the features .. nothing todo here
   }
 
-  void SILACLabeler::postRawMSHook(FeatureMapSimVector& features_to_simulate)
+  void SILACLabeler::postRawMSHook(SimTypes::FeatureMapSimVector& features_to_simulate)
   {
     recomputeConsensus_(features_to_simulate[0]);
   }
 
-  void SILACLabeler::postRawTandemMSHook(FeatureMapSimVector& /* features_to_simulate */, MSSimExperiment& /* simulated map */)
+  void SILACLabeler::postRawTandemMSHook(SimTypes::FeatureMapSimVector& /* features_to_simulate */, SimTypes::MSSimExperiment& /* simulated map */)
   {
     // no changes to the features .. nothing todo here
   }

@@ -2,8 +2,8 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -26,7 +26,7 @@
 // WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
 // OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Stephan Aiche $
@@ -43,7 +43,7 @@ namespace OpenMS
 {
   /**
     @brief TMT 6plex quantitation to be used with the IsobaricQuantitation.
-   
+
     @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
   */
   class OPENMS_DLLAPI TMTSixPlexQuantitationMethod :
@@ -52,7 +52,7 @@ namespace OpenMS
 public:
     /// Default c'tor
     TMTSixPlexQuantitationMethod();
-    
+
     /// d'tor
     ~TMTSixPlexQuantitationMethod();
 
@@ -61,36 +61,36 @@ public:
 
     /// Assignment operator
     TMTSixPlexQuantitationMethod & operator=(const TMTSixPlexQuantitationMethod& rhs);
-    
+
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
-    
+
     const String& getName() const;
-    
+
     const IsobaricChannelList& getChannelInformation() const;
-    
+
     Size getNumberOfChannels() const;
-    
+
     virtual Matrix<double> getIsotopeCorrectionMatrix() const;
-    
+
     Size getReferenceChannel() const;
-    
+
     /// @}
-    
+
   private:
-    /// the actual information on the different itraq4plex channels.
+    /// the actual information on the different tmt 6plex channels.
     IsobaricChannelList channels_;
-    
+
     /// The name of the quantitation method.
     static const String name_;
-    
+
     /// The reference channel for this experiment.
     Size reference_channel_;
-    
+
   protected:
     /// implemented for DefaultParamHandler
     void setDefaultParams_();
-    
+
     /// implemented for DefaultParamHandler
     void updateMembers_();
 

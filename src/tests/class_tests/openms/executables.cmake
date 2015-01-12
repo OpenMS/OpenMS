@@ -18,6 +18,7 @@ set(concept_executables_list
 
 set(datastructures_executables_list
   Adduct_test
+  ClusteringGrid_test
   CVMappingRule_test
   CVMappingTerm_test
   CVMappings_test
@@ -34,6 +35,8 @@ set(datastructures_executables_list
   Date_test
   DefaultParamHandler_test
   DistanceMatrix_test
+  GridBasedCluster_test
+  GridBasedClustering_test
   GridFeature_test
   HashGrid_test
   ListUtils_test
@@ -97,6 +100,7 @@ set(metadata_executables_list
 set(system_executables_list
   File_test
   FileWatcher_test
+  JavaInfo_test
   StopWatch_test
   SysInfo_test
 )
@@ -195,6 +199,7 @@ set(format_executables_list
   SpecArrayFile_test
   SwathFile_test
   SwathFileConsumer_test
+  SwathWindowLoader_test
   TextFile_test
   ToolDescriptionFile_test
   TraMLFile_test
@@ -208,6 +213,7 @@ set(format_executables_list
   # DATAACCESS
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
+  MSDataChainingConsumer_test
 )
 
 set(math_executables_list
@@ -215,6 +221,7 @@ set(math_executables_list
   AveragePosition_test
   BasicStatistics_test
   BilinearInterpolation_test
+  BSpline2d_test
   CubicSpline2d_test
   GammaDistributionFitter_test
   GaussFitter_test
@@ -253,7 +260,10 @@ set(filtering_executables_list
   MarkerMower_test
   MassTraceDetection_test
   MorphologicalFilter_test
+  MultiplexClustering_test
   MultiplexFiltering_test
+  MultiplexFilteringCentroided_test
+  MultiplexFilteringProfile_test
   MultiplexFilterResult_test
   MultiplexFilterResultPeak_test
   MultiplexFilterResultRaw_test
@@ -264,8 +274,6 @@ set(filtering_executables_list
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
-  SILACPattern_test
-  SILACPoint_test
   SplinePackage_test
   SplineSpectrum_test
   SavitzkyGolayFilter_test
@@ -294,11 +302,9 @@ set(comparison_executables_list
   ClusterHierarchical_test
   CompleteLinkage_test
   EuclideanSimilarity_test
-  HierarchicalClustering_test
   PeakAlignment_test
   PeakSpectrumCompareFunctor_test
   SingleLinkage_test
-  SILACClustering_test
   SpectraSTSimilarityScore_test
   SpectrumAlignmentScore_test
   SpectrumAlignment_test
@@ -390,6 +396,7 @@ set(analysis_executables_list
   ItraqFourPlexQuantitationMethod_test
   ItraqEightPlexQuantitationMethod_test
   TMTSixPlexQuantitationMethod_test
+  TMTTenPlexQuantitationMethod_test
   ItraqQuantifier_test
   LabeledPairFinder_test
   LocalLinearMap_test
@@ -431,6 +438,9 @@ set(analysis_executables_list
   StablePairFinder_test
   TransformationDescription_test
   TransformationModel_test
+  TransformationModelBSpline_test
+  TransformationModelInterpolated_test
+  TransformationModelLinear_test
 )
 
 set(applications_executables_list
@@ -457,8 +467,6 @@ set(transformations_executables_list
   FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
-  # deprecated: FeatureFinderAlgorithmSimple_test
-  # deprecated: FeatureFinderAlgorithmSimplest_test
   FeatureFinderAlgorithm_test
   FeatureFinder_test
   Fitter1D_test
@@ -473,18 +481,15 @@ set(transformations_executables_list
   LevMarqFitter1D_test
   MaxLikeliFitter1D_test
   ModelDescription_test
-  ModelFitter_test
   OptimizePeakDeconvolution_test
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
   PeakPickerMaxima_test
-PeakWidthEstimator_test
+  PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test
   SeedListGenerator_test
-  SimpleExtender_test
-  SimpleSeeder_test
   TwoDOptimization_test
   TraceFitter_test
 )

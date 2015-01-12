@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,12 +72,21 @@ public:
     {
       /// Probability of this group
       double probability;
+
       /// Accessions of (indistinguishable) proteins that belong to the same group
-      StringList accessions;
+      std::vector<String> accessions;
 
       ProteinGroup();
 
-      bool operator==(const ProteinGroup rhs) const;
+      /// Equality operator
+      bool operator==(const ProteinGroup& rhs) const;
+
+      /*
+        @brief Comparison operator (for sorting)
+
+        This operator is intended for sorting protein groups in a "best first" manner. That means higher probabilities are "less" than lower probabilities (!); smaller groups are "less" than larger groups; everything else being equal, accessions are compared lexicographically.
+      */
+      bool operator<(const ProteinGroup& rhs) const;
     };
 
     /// Peak mass type
@@ -153,8 +162,14 @@ public:
     std::vector<ProteinHit> & getHits();
     /// Appends a protein hit
     void insertHit(const ProteinHit & input);
-    /// Sets the protein hits
+
+    /** 
+        @brief Sets the protein hits
+        
+        @note This may invalidate (indistinguishable) protein groups! If necessary, use e.g. @p IDFilter::updateProteinGroups to update the groupings.
+     */
     void setHits(const std::vector<ProteinHit> & hits);
+
     /// Finds a protein hit by accession (returns past-the-end iterator if not found)
     std::vector<ProteinHit>::iterator findHit(const String & accession);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1178,7 +1178,7 @@ namespace OpenMS
 
   bool Spectrum2DCanvas::finishAdding_()
   {
-    //unselect all peaks
+    // unselect all peaks
     selected_peak_.clear();
     measurement_start_.clear();
 
@@ -1224,7 +1224,7 @@ namespace OpenMS
     {
       getCurrentLayer_().getConsensusMap()->updateRanges();
 
-      //Abort if no data points are contained
+      // abort if no data points are contained
       if (getCurrentLayer_().getConsensusMap()->size() == 0)
       {
         layers_.resize(getLayerCount() - 1);
@@ -1243,7 +1243,7 @@ namespace OpenMS
 
       update_buffer_ = true;
 
-      //Abort if no data points are contained
+      // abort if no data points are contained
       if (currentPeakData_()->getChromatograms().empty())
       {
         layers_.resize(getLayerCount() - 1);
@@ -1255,7 +1255,7 @@ namespace OpenMS
     }
     else if (layers_.back().type == LayerData::DT_IDENT)   // identification data
     {
-      //Abort if no data points are contained
+      // abort if no data points are contained
       if (getCurrentLayer_().peptides.empty())
       {
         layers_.resize(getLayerCount() - 1);
@@ -1266,13 +1266,13 @@ namespace OpenMS
       }
     }
 
-    //Warn if negative intensities are contained
+    // warn if negative intensities are contained
     if (getMinIntensity(current_layer_) < 0.0)
     {
       QMessageBox::warning(this, "Warning", "This dataset contains negative intensities. Use it at your own risk!");
     }
 
-    //overall values update
+    // overall values update
     recalculateRanges_(0, 1, 2);
     if (layers_.size() == 1)
     {
@@ -1333,7 +1333,7 @@ namespace OpenMS
     emit layerActivated(this);
   }
 
-  //change the current layer
+  // change the current layer
   void Spectrum2DCanvas::activateLayer(Size layer_index)
   {
     if (layer_index >= getLayerCount() || layer_index == current_layer_)
@@ -1522,7 +1522,7 @@ namespace OpenMS
     {
       update_buffer_ = false;
 
-      //recalculate snap factor
+      // recalculate snap factor
       recalculateSnapFactor_();
 
       buffer_.fill(QColor(param_.getValue("background_color").toQString()).rgb());
@@ -1531,7 +1531,7 @@ namespace OpenMS
 
       for (Size i = 0; i < getLayerCount(); i++)
       {
-        //timing
+        // timing
         if (show_timing_)
         {
           layer_timer.start();
@@ -1541,7 +1541,7 @@ namespace OpenMS
         {
           if (getLayer(i).type == LayerData::DT_PEAK)
           {
-            paintDots_(i, painter);
+           // nothing .. currently
           }
           else if (getLayer(i).type == LayerData::DT_FEATURE)
           {
@@ -1558,7 +1558,6 @@ namespace OpenMS
             {
               paintIdentifications_(i, painter);
             }
-            paintDots_(i, painter);
           }
           else if (getLayer(i).type == LayerData::DT_CONSENSUS)
           {
@@ -1566,17 +1565,15 @@ namespace OpenMS
             {
               paintConsensusElements_(i, painter);
             }
-            paintDots_(i, painter);
           }
           else if (getLayer(i).type == LayerData::DT_CHROMATOGRAM)
           {
-            // TODO CHROM
-            paintDots_(i, painter);
           }
           else if (getLayer(i).type == LayerData::DT_IDENT)
           {
-            paintDots_(i, painter);
           }
+          // all layers
+          paintDots_(i, painter);
         }
         //timing
         if (show_timing_)
@@ -1768,11 +1765,11 @@ namespace OpenMS
       break;
     }
 
-    //draw text
+    // draw text
     QStringList lines;
-    lines.push_back("RT: " + QString::number(rt, 'f', 2));
-    lines.push_back("m/z: " + QString::number(mz, 'f', 2));
-    lines.push_back("Int: " + QString::number(it, 'f', 2));
+    lines.push_back("RT:  " + QLocale::c().toString(rt, 'f', 2)); // adds group separators (consistency with intensity)
+    lines.push_back("m/z: " + QLocale::c().toString(mz, 'f', 5)); // adds group separators (consistency with intensity)
+    lines.push_back("Int: " + QLocale::c().toString(it, 'f', 2)); // adds group separators (every 1e3), to better visualize large numbers (e.g. 23.009.646.54,3)
 
     if (getCurrentLayer().type == LayerData::DT_FEATURE || getCurrentLayer().type == LayerData::DT_CONSENSUS)
     {
@@ -1801,10 +1798,10 @@ namespace OpenMS
       lines.push_back("Size: " + QString::number(size));
       for (ConsensusFeature::HandleSetType::const_iterator it = sub_features.begin(); it != sub_features.end(); ++it)
       {
-        lines.push_back("Feature m/z:" + QString::number(it->getMZ(), 'f', 2) +
-                        "  rt:" + QString::number(it->getRT(), 'f', 2) +
-                        "   q:" + QString::number(it->getCharge(), 'f', 2) +
-                        "  intensity:" + QString::number(it->getIntensity(), 'f', 2));
+        lines.push_back("Feature m/z: " + QLocale::c().toString(it->getMZ(), 'f', 5) + // adds group separators (consistency with intensity)
+                        "  rt: " + QLocale::c().toString(it->getRT(), 'f', 2) +        // adds group separators (consistency with intensity)
+                        "   q: " + QString::number(it->getCharge(), 'f', 2) +
+                        "  intensity: " + QLocale::c().toString(it->getIntensity(), 'f', 2)); // adds group separators (every 1e3), to better visualize large numbers (e.g. 23.009.646.54,3)
       }
     }
 
@@ -2299,7 +2296,7 @@ namespace OpenMS
       settings_menu->addAction("Show/hide numbers/labels");
       settings_menu->addAction("Show/hide unassigned peptide hits");
 
-      //search for nearby features
+      // search for nearby features
       DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
       DPosition<2> p2 = widgetToData_(e->pos() - QPoint(10, 10));
       double rt_min = min(p1[1], p2[1]);
@@ -2310,7 +2307,7 @@ namespace OpenMS
       QMenu * meta = new QMenu("Feature meta data");
       bool present = false;
       FeatureMapType & features = *getCurrentLayer_().getFeatureMap();
-      //featre meta data menu
+      // feature meta data menu
       for (FeatureMapType::Iterator it = features.begin(); it != features.end(); ++it)
       {
         if (it->getMZ() <= mz_max && it->getMZ() >= mz_min && it->getRT() <= rt_max && it->getRT() >= rt_min)

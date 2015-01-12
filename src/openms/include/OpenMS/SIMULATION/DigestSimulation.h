@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,16 +42,16 @@ namespace OpenMS
 {
 
   /**
-        @brief Simulates protein digestion
+    @brief Simulates protein digestion
 
-        Supports all enzymes supported by EnzymaticDigestion.h
-        and additionally incorporates abundance values, which
-        are distributed evenly among digestion products of each
-        protein.
+    Supports all enzymes supported by EnzymaticDigestion.h
+    and additionally incorporates abundance values, which
+    are distributed evenly among digestion products of each
+    protein.
 
-        @htmlinclude OpenMS_DigestSimulation.parameters
+    @htmlinclude OpenMS_DigestSimulation.parameters
 
-        @ingroup Simulation
+    @ingroup Simulation
   */
   class OPENMS_DLLAPI DigestSimulation :
     public DefaultParamHandler
@@ -65,14 +65,14 @@ public:
     DigestSimulation();
 
     /// Copy constructor
-    DigestSimulation(const DigestSimulation & source);
+    DigestSimulation(const DigestSimulation& source);
 
     /// Destructor
     virtual ~DigestSimulation();
     //@}
 
     /// Assignment operator
-    DigestSimulation & operator=(const DigestSimulation & source);
+    DigestSimulation& operator=(const DigestSimulation& source);
 
 
     /**
@@ -84,7 +84,7 @@ public:
 
         @param feature_map Input FeatureMap containing the proteins that should be digested as ProteinIdentification
     **/
-    void digest(FeatureMapSim & feature_map);
+    void digest(SimTypes::FeatureMapSim& feature_map);
 
 private:
     /// set defaults

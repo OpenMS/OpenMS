@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,60 +28,74 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKWIDTHESTIMATOR_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKWIDTHESTIMATOR_H
 
-
+#include <OpenMS/MATH/MISC/BSpline2d.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-
-#include <boost/tuple/tuple.hpp>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 namespace OpenMS
 {
   /**
-    @brief This class implements a peak width estimation algorithm best suited for high resolution MS data (FT-ICR-MS, Orbitrap).
-    Peaks are detected and a spline is fitted to the raw data in a window around the peak.
-    Then a search for to the half-maximum is performed on the spline to the left and right of the peak maximum.
-    The Full Width at the Half Maximum is collected.
-    Finally a linear regression is performed to determine FWHM(m/z)
-
-    @note The peaks must be sorted according to ascending m/z!
-
-    @experimental This algorithm has not been tested thoroughly yet.
-    */
+   * @brief Rough estimation of the peak width at m/z
+   *
+   * Based on the peaks of the dataset (peak position & width) and the peak
+   * boundaries as reported by the PeakPickerHiRes, the typical peak width is
+   * estimated for arbitrary m/z using a spline interpolation.
+   *
+   */
   class OPENMS_DLLAPI PeakWidthEstimator
   {
-public:
-    class Result
-    {
-public:
-      double c0, c1;
 
-      Result() :
-        c0(0), 
-        c1(0)
-      {}
+    public:
 
-      Result(const double local_c0, const double local_c1) :
-        c0(local_c0), 
-        c1(local_c1)
-      {}
+    /**
+    * @brief constructor
+    * 
+    * @param exp_picked m/z positions of picked peaks
+    * @param boundaries corresponding peak widths
+    *
+    * @throw Exception::UnableToFit if the B-spline initialisation fails.
+    */
+    PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries);
 
-      double operator()(const double mz) const
-      {
-        return std::exp(c0 + c1 * std::log(mz));
-      }
+    /**
+    * @brief returns the estimated peak width at m/z
+    * 
+    * @note If the mz value is outside the interpolation range, the peak width
+    *       value of the maximal/minimal value is used.
+    *
+    * @throw Exception::InvalidValue if the peak width estimation returns a negative value.
+    */
+    double getPeakWidth(double mz);
 
-    };
+    /**
+    * @brief destructor
+    */
+    virtual ~PeakWidthEstimator();
 
-    static void estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<double, double, double> > & fwhms);
-    static Result estimateFWHM(const MSExperiment<Peak1D> & input);
+    private:        
+
+    /// hide default constructor
+    PeakWidthEstimator();
+
+    /**
+     * @brief B-spline for peak width interpolation
+     */
+    BSpline2d* bspline_;
+
+    /**
+    * @brief m/z range of peak width interpolation
+    */
+    double mz_min_;
+    double mz_max_;
+            
   };
 }
 
-#endif // OPENMS_TRANSFORMATIONS_PEAKWIDTHESTIMATOR_H
+#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_PEAKWIDTHESTIMATOR_H

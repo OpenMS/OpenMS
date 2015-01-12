@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -258,15 +259,9 @@ START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const
 }
 END_SECTION
 
-FeatureMap<> exp_fm;
-FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
-MzTab test_mztab;
 
 // Param ams_param;
 ams_param.setValue("isotopic_similarity", "true");
-
-String fm_id_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H8N4","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
-String fm_id_filt_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
 
 FuzzyStringComparator fsc;
 StringList sl;
@@ -275,8 +270,12 @@ sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
 
 
-START_SECTION((void run(FeatureMap<>& fmap, MzTab& mztab_out)))
+START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
 {
+  FeatureMap exp_fm;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
+  {
+    MzTab test_mztab;
     ams_feat_test.run(exp_fm, test_mztab);
 
     // test annotation of input
@@ -287,10 +286,10 @@ START_SECTION((void run(FeatureMap<>& fmap, MzTab& mztab_out)))
     TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.featureXML")), true);
 
     // test mzTab output
-    MzTabSmallMoleculeSectionData sms = test_mztab.getSmallMoleculeSectionData();
-    MzTabSmallMoleculeSectionRows sm_rows = sms["AccMassSearch"];
-
+    String fm_id_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H8N4","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
     Size fm_id_list_size = sizeof(fm_id_list)/sizeof(fm_id_list[0]);
+
+    MzTabSmallMoleculeSectionRows sm_rows = test_mztab.getSmallMoleculeSectionRows();
     TEST_EQUAL(sm_rows.size(), fm_id_list_size);
 
     if (sm_rows.size() == fm_id_list_size)
@@ -298,44 +297,43 @@ START_SECTION((void run(FeatureMap<>& fmap, MzTab& mztab_out)))
         for (Size i = 0; i < sm_rows.size(); ++i)
         {
             String sm_formula = sm_rows[i].chemical_formula.get();
-            //std::cout << "\"" << sm_formula << "\",";
             TEST_STRING_EQUAL(sm_formula, fm_id_list[i]);
         }
     }
 
     ams_feat_test.setParameters(ams_param);
-
+  }
     ////////////////////////////////
     // now with isotope filtering //
     ////////////////////////////////
+  {
+    MzTab test_mztab;
     ams_feat_test.run(exp_fm, test_mztab);
 
-    sms = test_mztab.getSmallMoleculeSectionData();
-    sm_rows = sms["AccMassSearch"];
+    MzTabSmallMoleculeSectionRows sm_rows = test_mztab.getSmallMoleculeSectionRows();
 
+    String fm_id_filt_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
     Size fm_id_filt_list_size = sizeof(fm_id_filt_list)/sizeof(fm_id_filt_list[0]);
     TEST_EQUAL(sm_rows.size(), fm_id_filt_list_size);
 
     if (sm_rows.size() == fm_id_filt_list_size)
     {
-        for (Size i = 0; i < sm_rows.size(); ++i)
-        {
-            String sm_formula = sm_rows[i].chemical_formula.get();
-            // std::cout << "\"" << sm_formula << "\",";
-            TEST_STRING_EQUAL(sm_formula, fm_id_filt_list[i]);
-        }
+      for (Size i = 0; i < sm_rows.size(); ++i)
+      {
+          String sm_formula = sm_rows[i].chemical_formula.get();
+          TEST_STRING_EQUAL(sm_formula, fm_id_filt_list[i]);
+      }
     }
+  }
 }
 END_SECTION
 
-ConsensusMap exp_cm;
-ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.consensusXML"), exp_cm);
-MzTab test_mztab2;
-
-String cons_id_list[] = {"C27H41NO6","C27H36O6","C27H36O6","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C26H52NO7P","C26H52NO7P","C27H40O6","C27H40O6","C15H21NO3","C26H46O6","C12H24N2O4","C31H48O2S2","C11H20N4O2","C60H86O18","C48H86O18P2","C48H86O18P2","C48H86O18P2","C48H86O18P2","C26H54NO7P","C26H54NO7P","C24H40N8O4","C27H42O6","C13H23NO3","C10H14N2O6","C10H14N2O6","C10H14N2O6","C9H18N2O4S","C9H18N2O4S"};
 
 START_SECTION((void run(ConsensusMap& cmap, MzTab& mztab_out)))
 {
+    ConsensusMap exp_cm;
+    ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.consensusXML"), exp_cm);
+    MzTab test_mztab2;
     ams_feat_test.run(exp_cm, test_mztab2);
 
     // test annotation of input
@@ -346,10 +344,10 @@ START_SECTION((void run(ConsensusMap& cmap, MzTab& mztab_out)))
     TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.consensusXML")), true);
 
     // test mzTab output
-    MzTabSmallMoleculeSectionData sms = test_mztab2.getSmallMoleculeSectionData();
-    MzTabSmallMoleculeSectionRows sm_rows = sms["AccMassSearch"];
-
+    String cons_id_list[] = {"C27H41NO6","C27H36O6","C27H36O6","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C26H52NO7P","C26H52NO7P","C27H40O6","C27H40O6","C15H21NO3","C26H46O6","C12H24N2O4","C31H48O2S2","C11H20N4O2","C60H86O18","C48H86O18P2","C48H86O18P2","C48H86O18P2","C48H86O18P2","C26H54NO7P","C26H54NO7P","C24H40N8O4","C27H42O6","C13H23NO3","C10H14N2O6","C10H14N2O6","C10H14N2O6","C9H18N2O4S","C9H18N2O4S"};
     Size cons_id_list_size = sizeof(cons_id_list)/sizeof(cons_id_list[0]);
+
+    MzTabSmallMoleculeSectionRows sm_rows = test_mztab2.getSmallMoleculeSectionRows();
 
     TEST_EQUAL(sm_rows.size(), cons_id_list_size);
 
@@ -358,10 +356,13 @@ START_SECTION((void run(ConsensusMap& cmap, MzTab& mztab_out)))
         for (Size i = 0; i < sm_rows.size(); ++i)
         {
             String sm_formula = sm_rows[i].chemical_formula.get();
-            // std::cout << "\"" << sm_formula << "\",";
             TEST_STRING_EQUAL(sm_formula, cons_id_list[i]);
         }
     }
+
+    String tmp_mztab_file;
+    NEW_TMP_FILE(tmp_mztab_file);
+    MzTabFile().store(tmp_mztab_file, test_mztab2);
 }
 END_SECTION
 
@@ -387,16 +388,15 @@ START_SECTION((const String& getInternalIonMode()))
   p.setValue("ionization_mode","positive");
   ams.setParameters(p);
   TEST_EQUAL(ams.getInternalIonMode(), "positive")
-
-
 }
 END_SECTION
 
 
 START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map))
 {
-
-  FeatureMap<> fm_p = exp_fm;
+  FeatureMap exp_fm;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
+  FeatureMap fm_p = exp_fm;
   AccurateMassSearchEngine ams;
   MzTab mzt;
   Param p;
@@ -404,7 +404,6 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   p.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
   p.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
   ams.setParameters(p);
-
 
   TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // has no scan_polarity meta value
 
@@ -416,7 +415,6 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
 
   fm_p[0].setMetaValue("scan_polarity", "something;somethingelse");
   TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // not unique
-
 }
 END_SECTION
 

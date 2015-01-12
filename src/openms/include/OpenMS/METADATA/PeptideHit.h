@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/METADATA/PeptideEvidence.h>
 
 namespace OpenMS
 {
@@ -63,7 +64,7 @@ public:
     {
 public:
       template <typename Arg>
-      bool operator()(const Arg & a, const Arg & b)
+      bool operator()(const Arg& a, const Arg& b)
       {
         return a.getScore() > b.getScore();
       }
@@ -75,7 +76,7 @@ public:
     {
 public:
       template <typename Arg>
-      bool operator()(const Arg & a, const Arg & b)
+      bool operator()(const Arg& a, const Arg& b)
       {
         return a.getScore() < b.getScore();
       }
@@ -92,83 +93,77 @@ public:
     PeptideHit(double score,
                UInt rank,
                Int charge,
-               const AASequence & sequence);
+               const AASequence& sequence);
 
     /// copy constructor
-    PeptideHit(const PeptideHit & source);
+    PeptideHit(const PeptideHit& source);
 
     /// destructor
     virtual ~PeptideHit();
     //@}
 
     /// assignment operator
-    PeptideHit & operator=(const PeptideHit & source);
+    PeptideHit& operator=(const PeptideHit& source);
 
     /// Equality operator
-    bool operator==(const PeptideHit & rhs) const;
+    bool operator==(const PeptideHit& rhs) const;
 
     /// Inequality operator
-    bool operator!=(const PeptideHit & rhs) const;
+    bool operator!=(const PeptideHit& rhs) const;
 
     /**	@name Accessors
     */
     //@{
-    /// returns the score of the peptide hit
-    double getScore() const;
-
-    /// returns the rank of the peptide hit
-    UInt getRank() const;
-
     /// returns the peptide sequence without trailing or following spaces
-    const AASequence & getSequence() const;
+    const AASequence& getSequence() const;
+
+    /// sets the peptide sequence
+    void setSequence(const AASequence& sequence);
 
     /// returns the charge of the peptide
     Int getCharge() const;
 
-    /// returns the corresponding protein accessions
-    const std::vector<String> & getProteinAccessions() const;
-
-    /// sets the corresponding protein accessions
-    void setProteinAccessions(const std::vector<String> & accessions);
-
-    /// sets the score of the peptide hit
-    void setScore(double score);
-
-    /// sets the rank
-    void setRank(UInt newrank);
-
-    /// sets the peptide sequence
-    void setSequence(const AASequence & sequence);
-
     /// sets the charge of the peptide
     void setCharge(Int charge);
 
-    /// adds an accession of a protein which contains this peptide hit
-    void addProteinAccession(const String & accession);
+    /// returns information on peptides (potentially) identified by this PSM
+    const std::vector<PeptideEvidence>& getPeptideEvidences() const;
 
-    /// sets the amino acid before the sequence
-    void setAABefore(char acid);
-    /// returns the amino acid before the sequence
-    char getAABefore() const;
+    /// set information on peptides (potentially) identified by this PSM
+    void setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences);
 
-    /// sets the amino acid after the sequence
-    void setAAAfter(char acid);
-    /// returns the amino acid after the sequence
-    char getAAAfter() const;
+    /// adds information on a peptide that is (potentially) identified by this PSM
+    void addPeptideEvidence(const PeptideEvidence& peptide_evidence);
 
+    /// returns the PSM score
+    double getScore() const;
 
+    /// sets the PSM score
+    void setScore(double score);
+
+    /// returns the PSM rank
+    UInt getRank() const;
+
+    /// sets the PSM rank
+    void setRank(UInt newrank);
     //@}
 
-
+    /// extracts the set of non-empty protein accessions from peptide evidences
+    std::set<String> extractProteinAccessions() const;
 protected:
-    double score_;          ///< the score of the peptide hit
-    UInt rank_;                         ///< the position(rank) where the hit appeared in the hit list
-    Int charge_;         ///< the charge of the peptide
-    AASequence sequence_;                               ///< the amino acid sequence of the peptide hit
-    char aa_before_;     ///< Amino acid before the sequence
-    char aa_after_;     ///< Amino acid after the sequence
-    std::vector<String> corresponding_protein_accessions_;     ///< the accessions of the corresponding proteins
+    AASequence sequence_;
 
+    /// the score of the peptide hit
+    double score_;
+
+    /// the position(rank) where the hit appeared in the hit list
+    UInt rank_;
+
+    /// the charge of the peptide
+    Int charge_;
+
+    /// information on the potential peptides observed through this PSM.
+    std::vector<PeptideEvidence> peptide_evidences_;
   };
 
 } // namespace OpenMS

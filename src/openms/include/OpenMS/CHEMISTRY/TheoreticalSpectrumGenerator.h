@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,20 +75,17 @@ public:
      */
     //@{
     /// returns a spectrum with b and y peaks
-    virtual void getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1);
+    virtual void getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity
-    virtual void addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1);
+    virtual void addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge = 1) const;
 
     /// adds the precursor peaks to the spectrum
-    virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1);
+    virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
 
     /// Adds the common, most abundant immonium ions to the theoretical spectra
-    void addAbundantImmoniumIons(RichPeakSpectrum & spec);
+    void addAbundantImmoniumIons(RichPeakSpectrum & spec) const;
     //@}
-
-protected:
-    RichPeak1D p_;
   };
 }
 

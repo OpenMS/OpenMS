@@ -41,3 +41,11 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>" namespace "OpenMS":
         bool hasIntensityRange() nogil except +
         DRange1 getIntensityRange() nogil except +
 
+        Size getMaxDataPoolSize() nogil except +
+        void setMaxDataPoolSize(Size s) nogil except +
+
+        void setSortSpectraByMZ(bool doSort) nogil except +
+        bool getSortSpectraByMZ() nogil except +
+        void setSortChromatogramsByRT(bool doSort) nogil except +
+        bool getSortChromatogramsByRT() nogil except +
+

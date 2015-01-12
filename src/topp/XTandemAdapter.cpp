@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
@@ -89,11 +90,11 @@ using namespace std;
   the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
     The major part of the setting can be directly adjusted using the "default_input.xml" of
-    @em X!Tandem. Parameters set by this wrapper overwrite the default settings given in the 
-    "default_input.xml", even those parameters not set explicitly, but defaulting to a value. 
+    @em X!Tandem. Parameters set by this wrapper overwrite the default settings given in the
+    "default_input.xml", even those parameters not set explicitly, but defaulting to a value.
     An example of such a "default_input.xml" is contained in the "bin" folder of the
     @em X!Tandem installation. The parameter "default_input_file" must point to a valid
-    file. "Masterfiles" for "default_input.xml" parameter importing other xml input files 
+    file. "Masterfiles" for "default_input.xml" parameter importing other xml input files
     are not recommended, use at own risk.
 
     <B>The command line parameters of this tool are:</B>
@@ -210,6 +211,15 @@ protected:
     String tandem_taxonomy_filename(temp_directory + "_tandem_taxonomy_file.xml");
 
     //-------------------------------------------------------------
+    // Validate user parameters
+    //-------------------------------------------------------------
+    if (getIntOption_("min_precursor_charge") > getIntOption_("max_precursor_charge"))
+    {
+      LOG_ERROR << "Given charge range is invalid: max_precursor_charge needs to be >= min_precursor_charge." << std::endl;
+      return ILLEGAL_PARAMETERS;
+    }
+
+    //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
 
@@ -232,7 +242,7 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2);     // only load msLevel 2
+    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
@@ -359,7 +369,7 @@ protected:
         double pre_mz(0.0);
         if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
         it->setMZ(pre_mz);
-        it->removeMetaValue("spectrum_id");
+        //it->removeMetaValue("spectrum_id");
       }
       else
       {
@@ -390,8 +400,7 @@ protected:
 
     protein_ids.push_back(protein_id);
 
-    IdXMLFile id_output;
-    id_output.store(outputfile_name, protein_ids, peptide_ids);
+    IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
 
     /// Deletion of temporary files
     if (this->debug_level_ < 2)
@@ -406,7 +415,7 @@ protected:
 
     // some stats
     LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size() ) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size()) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }

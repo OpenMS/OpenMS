@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,9 +40,9 @@
 #ifdef DEBUG_OPS
 #include <OpenMS/SYSTEM/StopWatch.h>
 #endif
+
 namespace OpenMS
 {
-
 
   PSLPFormulation::PSLPFormulation() :
     DefaultParamHandler("PSLPFormulation"), solver_(LPWrapper::SOLVER_GLPK)
@@ -127,7 +127,7 @@ namespace OpenMS
     //delete model_;
   }
 
-  void PSLPFormulation::createAndSolveILP_(const FeatureMap<>& features, std::vector<std::vector<double> >& intensity_weights,
+  void PSLPFormulation::createAndSolveILP_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
                                            std::set<Int>& charges_set, std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                            std::vector<IndexTriple>& variable_indices, std::vector<int>& solution_indices,
                                            UInt ms2_spectra_per_rt_bin,
@@ -252,7 +252,7 @@ namespace OpenMS
       std::cout << "\nadd row " << std::endl;
 #endif
       model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"),
-      LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
+                     LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
 
 #ifdef DEBUG_OPS
       std::cout << stop - start << " PREC_ACQU_LIMIT_" << String(i) << std::endl;
@@ -432,7 +432,7 @@ namespace OpenMS
   void PSLPFormulation::createAndSolveILPForInclusionListCreation(PrecursorIonSelectionPreprocessing& preprocessing,
                                                                   UInt ms2_spectra_per_rt_bin,
                                                                   UInt max_list_size,
-                                                                  FeatureMap<>& precursors,
+                                                                  FeatureMap& precursors,
                                                                   bool solve_ILP)
   {
     const std::map<String, std::vector<double> >& pt_prot_map = preprocessing.getProteinPTMap();
@@ -453,7 +453,7 @@ namespace OpenMS
     std::map<String, Size> protein_penalty_index_map;
     Size pep_counter = 0;
 #ifdef DEBUG_OPS
-    FeatureMap<> test_map;
+    FeatureMap test_map;
 #endif
     //  std::cout << "add proteins to LP"<<std::endl;
     for (; map_iter != pt_prot_map.end(); ++map_iter)
@@ -499,7 +499,7 @@ namespace OpenMS
                                          Size& counter, Size& pep_counter, Size& feature_counter,
                                          std::vector<IndexTriple>& variable_indices,
                                          std::map<String, Size>& protein_variable_index_map,
-                                         FeatureMap<>& precursors)
+                                         FeatureMap& precursors)
   {
     double min_rt = param_.getValue("rt:min_rt");
     double max_rt = param_.getValue("rt:max_rt");
@@ -516,8 +516,9 @@ namespace OpenMS
     model_->setColumnName(index, (String("y_") + map_iter->first).c_str());
     model_->setColumnBounds(index, 0., 0., LPWrapper::LOWER_BOUND_ONLY);
     //model_->setColumnBounds(index,0.,1.,LPWrapper::DOUBLE_BOUNDED);
-    //  cmodel_->setColumnUpper(counter,1.); // test for inlcusion list protein based
+    //  cmodel_->setColumnUpper(counter,1.); // test for inclusion list protein based
 
+    //  TODO: German comment
     //  cmodel_->setColumnIsInteger(counter,true); // testweise abgeschaltet, da er sonst, wenn nicht ausreichend
     // Peptide da waren, um das Protein auf 1 zu setzen, gar keine Variablen f?r das Protein ausw?hlt
     model_->setObjective(index, 1.);
@@ -640,6 +641,7 @@ namespace OpenMS
           curr_rt -= rt_step_size;
         }
 #ifdef DEBUG_OPS
+        //  TODO: German comment
         std::cout << "links fertig----nun nach rechts" << std::endl;
 #endif
         curr_rt_index = rt_index + 1;
@@ -811,7 +813,7 @@ namespace OpenMS
           break;
         ++j;
       }
-      // no feature occuring in this scan
+      // no feature occurring in this scan
       if (start == j)
         continue;
 
@@ -905,7 +907,7 @@ namespace OpenMS
       //            }
 
       // enter protein variable
-      indices_vec.push_back(protein_variable_index_map[map_iter->first]);
+      indices_vec.push_back(static_cast<Int>(protein_variable_index_map[map_iter->first]));
       entries.push_back(1.);
 
       Int i = distance(pt_prot_map.begin(), map_iter);
@@ -929,7 +931,7 @@ namespace OpenMS
     }
   }
 
-  void PSLPFormulation::assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple>& variable_indices, FeatureMap<>& precursors,
+  void PSLPFormulation::assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple>& variable_indices, FeatureMap& precursors,
                                                                 std::vector<int>& solution_indices,
                                                                 PrecursorIonSelectionPreprocessing& preprocessing)
   {
@@ -953,7 +955,7 @@ namespace OpenMS
       std::cout << var_counter << " " << variable_indices[var_counter].feature << std::endl;
       if (var_counter ==  variable_indices.size())
       {
-        std::cout << "varaible index not found..skipping" << std::endl; continue;
+        std::cout << "variable index not found..skipping" << std::endl; continue;
       }
       std::cout << variable_indices[var_counter] << std::endl;
 
@@ -1020,7 +1022,7 @@ namespace OpenMS
     precursors.ensureUniqueId();
   }
 
-  void PSLPFormulation::createAndSolveCombinedLPFeatureBased_(const FeatureMap<>& features, std::vector<std::vector<double> >& intensity_weights,
+  void PSLPFormulation::createAndSolveCombinedLPFeatureBased_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
                                                               std::set<Int>& charges_set, std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                                               std::vector<IndexTriple>& variable_indices, std::vector<Int>& solution_indices,
                                                               UInt ms2_spectra_per_rt_bin, Size number_of_scans, Size step_size, bool sequential_order)
@@ -1041,7 +1043,7 @@ namespace OpenMS
     ///////////////////////////////////////////////////////////////////////
     model_->setObjectiveSense(LPWrapper::MAX); // maximize
 
-    // first get maximimal intensity, as we use it for normalization
+    // first get maximal intensity, as we use it for normalization
     double max_int = 0.;
     for (Size i = 0; i < features.size(); ++i)
     {
@@ -1093,22 +1095,22 @@ namespace OpenMS
 #endif
         IndexTriple triple;
         triple.feature = i;
-        triple.scan = s;
+        triple.scan = static_cast<Int>(s);
         Size index = model_->addColumn();
         triple.variable = index;
         variable_indices.push_back(triple);
-        model_->setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
-        model_->setColumnType(index, LPWrapper::BINARY); // binary variable
-        model_->setColumnName(index, (String("x_") + i + "," + s).c_str());
+        model_->setColumnBounds(static_cast<Int>(index), 0, 1, LPWrapper::DOUBLE_BOUNDED);
+        model_->setColumnType(static_cast<Int>(index), LPWrapper::BINARY); // binary variable
+        model_->setColumnName(static_cast<Int>(index), (String("x_") + i + "," + s).c_str());
 #ifdef DEBUG_OPS
         std::cout << "feat " << i << " scan " << s << " "
                   << intensity_weights[i][c] << " msms_score "
                   << msms_score << " max_int " << max_int
                   << " obj: " << intensity_weights[i][c] * msms_score
-                  << " anderes obj.: " << intensity_weights[i][c] * msms_score / max_int
+                  << " other obj.: " << intensity_weights[i][c] * msms_score / max_int
                   << std::endl;
 #endif
-        model_->setObjective(index, intensity_weights[i][c] * (double)features[i].getMetaValue("msms_score"));
+        model_->setObjective(static_cast<Int>(index), intensity_weights[i][c] * (double)features[i].getMetaValue("msms_score"));
         ++counter;
         if (msms_score > max_int)
           max_int = msms_score;
@@ -1143,7 +1145,9 @@ namespace OpenMS
     // 3: add step size constraint
     ///////////////////////////////////////////////////////////////////////
     if (step_size > 0)
-      addStepSizeConstraint_(variable_indices, step_size);
+    {
+      addStepSizeConstraint_(variable_indices, static_cast<UInt>(step_size));
+    }
     solveILP(solution_indices);
   }
 
@@ -1212,7 +1216,7 @@ namespace OpenMS
     std::vector<Int> indices(variable_indices.size());
     for (Size i = 0; i < variable_indices.size(); ++i)
     {
-      indices[i] = i;
+      indices[i] = static_cast<Int>(i);
     }
 #ifdef DEBUG_OPS
     std::cout << "\nadd row " << std::endl;
@@ -1236,7 +1240,7 @@ namespace OpenMS
 #endif
   }
 
-  void PSLPFormulation::updateFeatureILPVariables(FeatureMap<>& new_features, std::vector<IndexTriple>& variable_indices, std::map<Size, std::vector<String> >& feature_constraints_map)
+  void PSLPFormulation::updateFeatureILPVariables(FeatureMap& new_features, std::vector<IndexTriple>& variable_indices, std::map<Size, std::vector<String> >& feature_constraints_map)
   {
 #ifdef DEBUG_OPS
     std::cout << "update feature ilp variables" << std::endl;
@@ -1272,10 +1276,10 @@ namespace OpenMS
           if (variable_indices[f_v_idx].scan == rt_index)
           {
             existing = true;
-            model_->setColumnBounds(variable_indices[f_v_idx].variable, 1., model_->getColumnUpperBound(variable_indices[f_v_idx].variable), LPWrapper::FIXED);
+            model_->setColumnBounds(static_cast<Int>(variable_indices[f_v_idx].variable), 1., model_->getColumnUpperBound(static_cast<Int>(variable_indices[f_v_idx].variable)), LPWrapper::FIXED);
 #ifdef DEBUG_OPS
-            std::cout << "set column lower von " << model_->getColumnName(variable_indices[f_v_idx].variable)
-                      << " auf " << model_->getColumnLowerBound(variable_indices[f_v_idx].variable) << std::endl;
+            std::cout << "set column lower from " << model_->getColumnName(variable_indices[f_v_idx].variable)
+                      << " to " << model_->getColumnLowerBound(variable_indices[f_v_idx].variable) << std::endl;
 #endif
             break;
           }
@@ -1312,7 +1316,7 @@ namespace OpenMS
       if (fabs(model_->getColumnValue(indexes[i]) - 1.) < 0.001)
         ++count;
     }
-    return count;
+    return static_cast<Int>(count);
   }
 
   void PSLPFormulation::updateRTConstraintsForSequentialILP(Size& rt_index, UInt ms2_spectra_per_rt_bin, Size max_rt_index)
@@ -1342,7 +1346,7 @@ namespace OpenMS
       model_->setRowBounds(idx, 0., (double)ms2_spectra_per_rt_bin, LPWrapper::UPPER_BOUND_ONLY);
   }
 
-  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap<>& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
+  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
   {
 #ifdef DEBUG_OPS
     std::cout << "Update Obj. function of combined ILP." << std::endl;
@@ -1407,7 +1411,7 @@ namespace OpenMS
                   // or only the ones with rt-weight > min_rt_weight
                   while (f_v_idx < variable_indices_copy.size() && f == variable_indices_copy[f_v_idx].feature)
                   {
-                    if (model_->getObjective(f_v_idx) < 0.00000001)
+                    if (model_->getObjective(static_cast<Int>(f_v_idx)) < 0.00000001)
                     {
                       ++f_v_idx;
                       continue;
@@ -1415,7 +1419,7 @@ namespace OpenMS
                     double dt = map_iter->second[p];
                     // weight is detectability * rt_weight
                     double weight = dt * rt_weight;
-                    double obj = model_->getObjective(f_v_idx);
+                    double obj = model_->getObjective(static_cast<Int>(f_v_idx));
 #ifdef DEBUG_OPS
                     std::cout << features[f].getMZ() << " "
                               << features[f].getRT() << " "
@@ -1428,10 +1432,10 @@ namespace OpenMS
 #endif
                     if (log_weight * weight >  obj && obj > 0.)
                     {
-                      model_->setObjective(f_v_idx, 0.001);
+                      model_->setObjective(static_cast<Int>(f_v_idx), 0.001);
                     }
                     else
-                      model_->setObjective(f_v_idx, obj - weight * log_weight);
+                      model_->setObjective(static_cast<Int>(f_v_idx), obj - weight * log_weight);
 #ifdef DEBUG_OPS
                     std::cout << " -> " << model_->getObjective(f_v_idx) << " columnname: " << model_->getColumnName(f_v_idx) << std::endl;
 #endif
@@ -1449,7 +1453,7 @@ namespace OpenMS
 #endif
   }
 
-  void PSLPFormulation::updateCombinedILP(FeatureMap<>& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices,
+  void PSLPFormulation::updateCombinedILP(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices,
                                           std::vector<String>& new_protein_accs, std::vector<String>& protein_accs, PSProteinInference& prot_inference,
                                           Size& variable_counter, std::map<String, std::vector<Size> >& protein_feature_map, Feature& new_feature,
                                           std::map<String, Size>& protein_variable_index_map, std::map<String, std::set<String> >& /*prot_id_counter*/)
@@ -1487,7 +1491,8 @@ namespace OpenMS
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();
       Size index = new_feature.getMetaValue("variable_index");
-      const std::vector<String>& accs = new_feature.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions();
+
+      std::set<String> accs = new_feature.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
@@ -1498,14 +1503,14 @@ namespace OpenMS
 #ifdef DEBUG_OPS
         std::cout << protein_accs[pa] << " index " << row << " " << model_->getElement(row, index) << std::endl;
 #endif
-        if (model_->getElement(row, index) != 0.)
+        if (model_->getElement(row, static_cast<Int>(index)) != 0.)
         {
           const double weight = 1.;
           //                            std::cout << "getElement("<<protein_accs[pa]<<","<<index<<")="
           //                                                << cmodel_->getElement(row,index) << "\t";
           if (fabs(pep_score * weight - 1.) < 0.000001)
           {
-            model_->setElement(row, index, -log(0.000001) / log(1. - min_prot_coverage)); // pseudocount to prevent entering inf
+            model_->setElement(row, static_cast<Int>(index), -log(0.000001) / log(1. - min_prot_coverage)); // pseudocount to prevent entering inf
 #ifdef DEBUG_OPS
             std::cout << protein_accs[pa] << " setElement(" << row << "," << model_->getColumnName(index) << "=  "
                       << model_->getElement(row, index) << std::endl;
@@ -1513,7 +1518,7 @@ namespace OpenMS
           }
           else
           {
-            model_->setElement(row, index, -log(1. - pep_score * weight) / log(1. - min_prot_coverage));
+            model_->setElement(row, static_cast<Int>(index), -log(1. - pep_score * weight) / log(1. - min_prot_coverage));
 #ifdef DEBUG_OPS
             std::cout << protein_accs[pa] << " setElement(" << row << "," << model_->getColumnName(index) << "=  " << model_->getElement(row, index) << std::endl;
 #endif
@@ -1527,41 +1532,41 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "Now search for matching features for " << accs.size() << " proteins." << std::endl;
 #endif
-      for (Size prot = 0; prot < accs.size(); ++prot)
+      for (std::set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
       {
         // first enter the new feature to the corresponding proteins
-        std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(accs[prot]);
+        std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(*acc_it);
 #ifdef DEBUG_OPS
         std::cout << "now enter " << new_feature.getRT() << "  " << new_feature.getMZ()
                   << " with variable index "
                   << index
-                  << " to prot_variable_map " << accs[prot] << std::endl;
+                  << " to prot_variable_map " << acc_it << std::endl;
 #endif
         if (prot_var_iter == protein_feature_map.end())
         {
           std::vector<Size> vec;
           vec.push_back((Size)new_feature.getMetaValue("feature_index"));
-          protein_feature_map.insert(std::make_pair(accs[prot], vec));
+          protein_feature_map.insert(std::make_pair(*acc_it, vec));
         }
         else
           prot_var_iter->second.push_back((Size)new_feature.getMetaValue("feature_index"));
         // if protein prob exceeds min threshold
-        if ((prot_inference.getProteinProbability(accs[prot]) > min_protein_probability) && (prot_inference.isProteinInMinimalList(accs[prot])))
+        if ((prot_inference.getProteinProbability(*acc_it) > min_protein_probability) && (prot_inference.isProteinInMinimalList(*acc_it)))
         {
-          std::map<String, std::vector<double> >::const_iterator map_iter = preprocessed_db.getProteinPTMap().find(accs[prot]);
+          std::map<String, std::vector<double> >::const_iterator map_iter = preprocessed_db.getProteinPTMap().find(*acc_it);
           if (map_iter !=  preprocessed_db.getProteinPTMap().end())
           {
-            std::vector<String>::iterator prot_acc_iter = find(protein_accs.begin(), protein_accs.end(), accs[prot]);
+            std::vector<String>::iterator prot_acc_iter = find(protein_accs.begin(), protein_accs.end(), *acc_it);
             if (prot_acc_iter == protein_accs.end())
             {
               // enter new variable y_i
-              if (prot_inference.getProteinProbability(accs[prot]) >= min_prot_coverage)
+              if (prot_inference.getProteinProbability(*acc_it) >= min_prot_coverage)
               {
-                new_protein_accs.push_back(accs[prot]);
+                new_protein_accs.push_back(*acc_it);
                 if (double(param_.getValue("combined_ilp:k3")) > 0.000001)
-                  updateObjFunction_(accs[prot], features, preprocessed_db, variable_indices);
+                  updateObjFunction_(*acc_it, features, preprocessed_db, variable_indices);
               }
-              protein_accs.push_back(accs[prot]);
+              protein_accs.push_back(*acc_it);
               // insert protein to ILP
               // first add penalty
               // insert penalty variable
@@ -1584,7 +1589,7 @@ namespace OpenMS
 
 
               // now go through protein_feature_map and enter them to
-              std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(accs[prot]);
+              std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(*acc_it);
               if (prot_var_iter != protein_feature_map.end())
               {
                 // TODO: problem: they need not all correspond to the current feature
@@ -1786,17 +1791,17 @@ namespace OpenMS
             } //if(prot_acc_iter == protein_accs.end())
             else
             {
-              if (find(new_protein_accs.begin(), new_protein_accs.end(), accs[prot]) == new_protein_accs.end() &&
-                  prot_inference.getProteinProbability(accs[prot]) >= min_prot_coverage && double(param_.getValue("combined_ilp:k3")) > 0.000001)
+              if (find(new_protein_accs.begin(), new_protein_accs.end(), *acc_it) == new_protein_accs.end() &&
+                  prot_inference.getProteinProbability(*acc_it) >= min_prot_coverage && double(param_.getValue("combined_ilp:k3")) > 0.000001)
               {
-                new_protein_accs.push_back(accs[prot]);
-                updateObjFunction_(accs[prot], features, preprocessed_db, variable_indices);
+                new_protein_accs.push_back(*acc_it);
+                updateObjFunction_(*acc_it, features, preprocessed_db, variable_indices);
               }
             }
           }
           else
           {
-            std::cout << "Protein not present in preprocessed db: " << accs[prot] << std::endl;
+            std::cout << "Protein not present in preprocessed db: " << *acc_it << std::endl;
           }
         }
       }
@@ -1827,14 +1832,14 @@ namespace OpenMS
         while (f_v_idx2 < variable_indices.size() && f_index == variable_indices[f_v_idx2].feature)
         {
           index = variable_indices[f_v_idx2].variable;
-          if (model_->getElement(row, index) != 0.)
+          if (model_->getElement(row, static_cast<Int>(index)) != 0.)
           {
             updated_constraints.insert(protein_accs[pa]);
 #ifdef DEBUG_OPS
             std::cout << "getElement(" << protein_accs[pa] << "," << index << ")="
                       << model_->getElement(row, index) << "\t";
 #endif
-            model_->setElement(row, index, 0.);
+            model_->setElement(row, static_cast<Int>(index), 0.);
 #ifdef DEBUG_OPS
             std::cout << "getElement(" << protein_accs[pa] << "," << index << ")="
                       << model_->getElement(row, index) << "\n";

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,10 +56,10 @@ public:
   TestQuantitationMethod()
   {
     setName("TestQuantitationMethod");
-    channel_list.push_back(IsobaricChannelInformation(114, 0, "", 114.1112));
-    channel_list.push_back(IsobaricChannelInformation(115, 1, "", 115.1082));
-    channel_list.push_back(IsobaricChannelInformation(116, 2, "", 116.1116));
-    channel_list.push_back(IsobaricChannelInformation(117, 3, "", 117.1149));
+    channel_list.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, -1, -1, 1, 2));
+    channel_list.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, -1, 0, 2, 3));
+    channel_list.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, 0, 1, 3, -1));
+    channel_list.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, 1, 2, -1, -1));
     name = "TestQuantitationMethod";
   }
 
@@ -194,11 +194,17 @@ END_SECTION
 
 START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] IsobaricChannelInformation(const Int name, const Int id, const String &description, const Peak2D::CoordinateType &center)))
 {
-  IsobaricQuantitationMethod::IsobaricChannelInformation cI(114, 0, "", 114.1112);
+  IsobaricQuantitationMethod::IsobaricChannelInformation cI(114, 0, "", 114.1112, -1, -1, -1, -1);
   TEST_STRING_EQUAL(cI.description, "")
   TEST_EQUAL(cI.name, 114)
   TEST_EQUAL(cI.id, 0)
   TEST_EQUAL(cI.center, 114.1112)
+
+  TEST_EQUAL(cI.channel_id_minus_2, -1)
+  TEST_EQUAL(cI.channel_id_minus_1, -1)
+  TEST_EQUAL(cI.channel_id_plus_1, -1)
+  TEST_EQUAL(cI.channel_id_plus_2, -1)
+
 }
 END_SECTION
 

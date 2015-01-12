@@ -13,7 +13,7 @@
 		</fileContent>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value=", " />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="" />
 		</contact>
 	</fileDescription>
 	<sampleList count="1">
@@ -121,13 +121,13 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAC9f5kygEAAAC11BDOAQAAAsl3JOYBAAAAF04U6gEAAAHFmoDqAQAAABRrmOoBAAADZulQ7gEAAAPtlREKAQAAA33+TQoBAAADK1ptCgEAAAHYmqUKAQAAAgnq+QoBAAACqbX1DgEAAAF4kr0OAQA==</binary>
+						<binary>AAC9f5kygEAAAL14BDOAQAAANmfJOYBAAAB/44U6gEAAAHFmoDqAQAAAzRvmOoBAAAATvVQ7gEAAAMt3REKAQAAA33+TQoBAAADK1ptCgEAAAHYmqUKAQAAAgnq+QoBAAAAWeH1DgEAAAP4nr0OAQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="76">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>vaU5Tt7uo0r9Z8RKUGZYSkrtOk1urTpK0eRLSntUnEohlpZK2xKjSufhs0t3UrpNIstpSkhwZUo=</binary>
+						<binary>vaU5Tm4vpEq12sRKfJ5YSkrtOk0EsDpKmORLSkVNnEohlpZK2xKjSufhs0t3UrpN5mRqSnaOZUo=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -153,13 +153,13 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AABBC2QygEAAALMxlzKAQAAARWW9MoBAAABjGcoygEAAAPNVxTaAQAAAnlGJOoBAAAALNJ46gEAAALL9QUKAQAAAeh6QQoBAAADGCqZCgEAAAM81vEKAQAAAxn98Q4BA</binary>
+						<binary>AABBC2QygEAAALMxlzKAQAAARWW9MoBAAABjGcoygEAAAGNSxTaAQAAAnlGJOoBAAAALNJ46gEAAAB4IQkKAQAAAHh2QQoBAAADGCqZCgEAAAM81vEKAQAAAXo18Q4BA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="64">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>5JMwSxb8eE4jUAtL1hYOS6FSL0pP2AlLjAB4TRTO5EoLUYxK4nPNSziVMU1/gKRK</binary>
+						<binary>5JMwSxb8eE4jUAtL1hYOS9NTL0pP2AlLjAB4TRyG5UrqSYxK4nPNSziVMU1bgqRK</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>

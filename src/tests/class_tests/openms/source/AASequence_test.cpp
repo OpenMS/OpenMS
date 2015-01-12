@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   TEST_EQUAL(seq.hasNTerminalModification(),false);
   TEST_EQUAL(seq.hasCTerminalModification(),false);
   TEST_EQUAL(seq.getResidue((SignedSize)4).getModification(),"")
-  
+
   AASequence seq2;
   seq2 = AASequence::fromString("CNARCKNCNCNARCDRE");
   TEST_EQUAL(seq, seq2);
@@ -161,8 +161,8 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
   AASequence seq18 = AASequence::fromString("PEP T*I#D+E", true);
   TEST_EQUAL(seq18.size(), 10);
   TEST_EQUAL(seq18.toString(), "PEPTXIXDXE");
-  
-  TEST_EXCEPTION(Exception::ParseError, 
+
+  TEST_EXCEPTION(Exception::ParseError,
                  AASequence::fromString("PEP T*I#D+E", false));
 }
 END_SECTION
@@ -232,10 +232,14 @@ START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full
 END_SECTION
 
 START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
-  AASequence seq = AASequence::fromString("DFPIANGER");
-  TOLERANCE_ABSOLUTE(0.01)
-  TEST_REAL_SIMILAR(seq.getMonoWeight(), double(1017.48796))
-  TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon, 1), double(1018.5))
+  TOLERANCE_ABSOLUTE(1e-6)
+  TOLERANCE_RELATIVE(1.0 + 1e-6)
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(), double(1017.48796))
+
+  // test if direct calculation and calculation via empirical formula yield the same result
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(Residue::YIon, 1), AASequence::fromString("DFPIANGER").getFormula(Residue::YIon, 1).getMonoWeight())
+
+  TEST_REAL_SIMILAR(AASequence::fromString("DFPIANGER").getMonoWeight(Residue::YIon, 1), double(1018.4952))
 
   // test N-term modification
   AASequence seq2 = AASequence::fromString("(NIC)DFPIANGER");
@@ -247,13 +251,15 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 
   // test heavy modification
   AASequence seq3 = AASequence::fromString("(dNIC)DFPIANGER");
-  TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1126.536019));
+  TEST_REAL_SIMILAR(seq3.getMonoWeight(), double(1017.48796) + double(109.048119));
 
   // test old OpenMS dNIC definition
   AASequence seq3a = AASequence::fromString("(MOD:09999)DFPIANGER");
   TEST_EQUAL(seq3 == seq3a, true)
 
+  TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 
+  TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 END_SECTION
 
 START_SECTION(const Residue& operator[](SignedSize index) const)
@@ -567,6 +573,29 @@ START_SECTION(bool operator<(const AASequence &rhs) const)
   TEST_EQUAL(seq1 < seq2, false)
   AASequence seq3 = AASequence::fromString("DFPIANGFR");
   TEST_EQUAL(seq3 < seq1, false)
+
+  // shorter residue sequence is smaller than longer one
+  TEST_EQUAL(AASequence::fromString("PPP") < AASequence::fromString("AAAA"), true)
+  TEST_EQUAL(AASequence::fromString("PM(Oxidation)P") < AASequence::fromString("AAAA"), true)
+
+  // modified is larger than unmodified
+  TEST_EQUAL(AASequence::fromString("MMM") < AASequence::fromString("MM(Oxidation)M"), true)
+  TEST_EQUAL(AASequence::fromString("ARRR") < AASequence::fromString("ARRR(Label:13C(6))"), true)
+  TEST_EQUAL(AASequence::fromString("CNR") < AASequence::fromString("(ICPL:2H(4))CNR"), true)
+  TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))CNAR") < AASequence::fromString("(ICPL:13C(6))YCYCY"), true)
+
+  // alphabetic order
+  TEST_EQUAL(AASequence::fromString("AAA") < AASequence::fromString("AAM"), true)
+  TEST_EQUAL(AASequence::fromString("AAM") < AASequence::fromString("AMA"), true)
+  TEST_EQUAL(AASequence::fromString("AMA") < AASequence::fromString("MAA"), true)
+
+  // if N-terminal mods. are the same, check the sequence
+  TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))AMA") < AASequence::fromString("(ICPL:2H(4))MAA"), true)
+  TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))MAA") < AASequence::fromString("(ICPL:2H(4))AMA"), false)
+  // if everything else is the same, check the C-terminal mods.
+  TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))AMA(Amidated)") < AASequence::fromString("(ICPL:2H(4))AMA(Label:18O(2))"), true)
+  TEST_EQUAL(AASequence::fromString("(ICPL:2H(4))AMA(Label:18O(2))") < AASequence::fromString("(ICPL:2H(4))AMA(Amidated)"), false)
+
 END_SECTION
 
 START_SECTION(bool operator!=(const AASequence& rhs) const)
@@ -575,12 +604,17 @@ START_SECTION(bool operator!=(const AASequence& rhs) const)
   TEST_EQUAL(seq2 != AASequence::fromString("DFPIANGER"), false)
   TEST_EQUAL(seq1 != AASequence::fromString("(MOD:00051)DFPIANGER"), false)
 
+  // test C-terminal mods
   AASequence seq3 = AASequence::fromString("DFPIANGER(MOD:00177)");
   AASequence seq4 = AASequence::fromString("DFPIANGER(Amidated)");
   TEST_EQUAL(seq3 != AASequence::fromString("DFPIANGER"), true)
   TEST_EQUAL(seq3 != AASequence::fromString("DFPIANGER(MOD:00177)"), false)
   TEST_EQUAL(seq4 != AASequence::fromString("DFPIANGER(Amidated)"), false)
   TEST_EQUAL(seq4 != AASequence::fromString("DFPIANGER"), true)
+
+  // test inner mods
+  TEST_EQUAL(AASequence::fromString("DFPMIANGER") != AASequence::fromString("DFPM(Oxidation)IANGER"), true)
+  TEST_EQUAL(AASequence::fromString("DFPM(Oxidation)IANGER") == AASequence::fromString("DFPM(Oxidation)IANGER"), true)
 
   AASequence seq5 = AASequence::fromString("DFBIANGER");
   TEST_EQUAL(seq5 != AASequence::fromString("DFPIANGER"), true)
@@ -636,10 +670,15 @@ START_SECTION([EXTRA] Tag in peptides)
   TEST_EQUAL(aa6.isModified(), false) // TODO unclear what the correct answer should be
 
   // Test negative mods / losses
-  AASequence aa_loss = AASequence::fromString("PEPTM[-30]IDE");
-  TEST_REAL_SIMILAR(aa_loss.getMonoWeight(), 900.40049)
-  TEST_EQUAL(aa_loss.size(), 8)
-  TEST_EQUAL(aa_loss.isModified(), true)
+  // test without loss
+  TEST_REAL_SIMILAR(AASequence::fromString("PEPTMIDE").getMonoWeight(), 930.4004)
+  // test with losses
+  // known loss from unimod: Homoserine (should actually only happen at c-term but we allow it)
+  TEST_REAL_SIMILAR(AASequence::fromString("PEPTM[-30]IDE").getMonoWeight(), 930.4004 - 29.992806)
+  // new loss from unimod: Homoserine (should actually only happen at c-term but we allow it)
+  TEST_REAL_SIMILAR(AASequence::fromString("PEPTM[-30.4004]IDE").getMonoWeight(), 900.0)
+  TEST_EQUAL(AASequence::fromString("PEPTM[-30]IDE").size(), 8)
+  TEST_EQUAL(AASequence::fromString("PEPTM[-30]IDE").isModified(), true)
 }
 END_SECTION
 

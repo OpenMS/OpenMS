@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -99,6 +99,9 @@ public:
       std::vector<double> result_windows_even;
       /// Noise values for window starting at mz_start - 0.5 * window_length (length = nr_windows + 1)
       std::vector<double> result_windows_odd;
+
+      /// Constructor
+      NoiseEstimator() {}
 
       /// Constructor
       NoiseEstimator(double nr_windows_, double mz_start_, double win_len_) :

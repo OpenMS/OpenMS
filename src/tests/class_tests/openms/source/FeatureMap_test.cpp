@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Marc Sturm, Chris Bielow, Clemens Groepl $
@@ -37,6 +37,10 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
+
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <algorithm>
 #include <string>
@@ -56,14 +60,14 @@ START_TEST(FeatureMap, "$Id$")
 /////////////////////////////////////////////////////////////
 
 
-FeatureMap<>* pl_ptr = 0;
-FeatureMap<>* nullPointer = 0;
+FeatureMap* pl_ptr = 0;
+FeatureMap* nullPointer = 0;
 START_SECTION((FeatureMap()))
-	pl_ptr = new FeatureMap<>();
+	pl_ptr = new FeatureMap();
   TEST_NOT_EQUAL(pl_ptr, nullPointer)
 
-	TEST_EQUAL(pl_ptr->getMin(), FeatureMap<>::PositionType::maxPositive())
-	TEST_EQUAL(pl_ptr->getMax(), FeatureMap<>::PositionType::minNegative())
+	TEST_EQUAL(pl_ptr->getMin(), FeatureMap::PositionType::maxPositive())
+	TEST_EQUAL(pl_ptr->getMax(), FeatureMap::PositionType::minNegative())
 	TEST_REAL_SIMILAR(pl_ptr->getMinInt(), numeric_limits<double>::max())
 	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<double>::max())
 END_SECTION
@@ -111,52 +115,52 @@ hulls[0].addPoint(DPosition<2>(5.0,3.123));
 feature4.setConvexHulls(hulls);
 
 START_SECTION((const std::vector<ProteinIdentification>& getProteinIdentifications() const))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),0)
 END_SECTION
 
 START_SECTION((std::vector<ProteinIdentification>& getProteinIdentifications()))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.getProteinIdentifications().resize(1);
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),1)
 END_SECTION
 
 START_SECTION((void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications)))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.setProteinIdentifications(std::vector<ProteinIdentification>(2));
 	TEST_EQUAL(tmp.getProteinIdentifications().size(),2)
 END_SECTION
 
 START_SECTION((const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),0)
 END_SECTION
 
 START_SECTION((std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications()))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.getUnassignedPeptideIdentifications().resize(1);
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),1)
 END_SECTION
 
 START_SECTION((void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications)))
-	FeatureMap<> tmp;
+	FeatureMap tmp;
 	tmp.setUnassignedPeptideIdentifications(std::vector<PeptideIdentification>(2));
 	TEST_EQUAL(tmp.getUnassignedPeptideIdentifications().size(),2)
 END_SECTION
 
 START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
-  FeatureMap<> tmp;
+  FeatureMap tmp;
   TEST_EQUAL(tmp.getDataProcessing().size(),0);
 END_SECTION
 
 START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
-  FeatureMap<> tmp;
+  FeatureMap tmp;
   tmp.getDataProcessing().resize(1);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
 START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
-  FeatureMap<> tmp;
+  FeatureMap tmp;
   std::vector<DataProcessing> dummy;
   dummy.resize(1);
   tmp.setDataProcessing(dummy);
@@ -165,7 +169,7 @@ END_SECTION
 
 START_SECTION((void updateRanges()))
 	//test without convex hulls
-  FeatureMap<> s;
+  FeatureMap s;
   s.push_back(feature1);
   s.push_back(feature2);
   s.push_back(feature3);
@@ -193,7 +197,7 @@ START_SECTION((void updateRanges()))
 END_SECTION
 
 START_SECTION((FeatureMap(const FeatureMap &source)))
-	FeatureMap<> map1;
+	FeatureMap map1;
 	map1.push_back(feature1);
 	map1.push_back(feature2);
 	map1.push_back(feature3);
@@ -203,7 +207,7 @@ START_SECTION((FeatureMap(const FeatureMap &source)))
 	map1.getProteinIdentifications().resize(1);
 	map1.getUnassignedPeptideIdentifications().resize(1);
 
-	FeatureMap<> map2(map1);
+	FeatureMap map2(map1);
 
 	TEST_EQUAL(map2.size(),3);
   TEST_REAL_SIMILAR(map2.getMaxInt(),1.0)
@@ -214,7 +218,7 @@ START_SECTION((FeatureMap(const FeatureMap &source)))
 END_SECTION
 
 START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
-	FeatureMap<> map1;
+	FeatureMap map1;
 	map1.push_back(feature1);
 	map1.push_back(feature2);
 	map1.push_back(feature3);
@@ -225,7 +229,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	map1.getUnassignedPeptideIdentifications().resize(1);
 
 	//assignment
-	FeatureMap<> map2;
+	FeatureMap map2;
 	map2 = map1;
 
 	TEST_EQUAL(map2.size(),3);
@@ -236,7 +240,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
 
   //assignment of empty object
-   map2 = FeatureMap<>();
+   map2 = FeatureMap();
 
 	TEST_EQUAL(map2.size(),0);
 	TEST_REAL_SIMILAR(map2.getMinInt(), numeric_limits<double>::max())
@@ -248,7 +252,7 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
 END_SECTION
 
 START_SECTION((bool operator == (const FeatureMap& rhs) const))
-	FeatureMap<> empty,edit;
+	FeatureMap empty,edit;
 
 	TEST_EQUAL(empty==edit, true);
 
@@ -281,7 +285,7 @@ START_SECTION((bool operator == (const FeatureMap& rhs) const))
 END_SECTION
 
 START_SECTION((bool operator != (const FeatureMap& rhs) const))
-	FeatureMap<> empty,edit;
+	FeatureMap empty,edit;
 
 	TEST_EQUAL(empty!=edit, false);
 
@@ -314,26 +318,26 @@ START_SECTION((bool operator != (const FeatureMap& rhs) const))
 END_SECTION
 
 START_SECTION((FeatureMap operator + (const FeatureMap& rhs) const))
-	// just some basic testing... most is done in operator +=()	
-	FeatureMap<> m1, m2, m3;
-	
+	// just some basic testing... most is done in operator +=()
+	FeatureMap m1, m2, m3;
+
 	TEST_EQUAL(m1+m2, m3);
-	
+
 	Feature f1;
 	f1.setMZ(100.12);
 	m1.push_back(f1);
 	m3 = m1;
 	TEST_EQUAL(m1+m2, m3);
-	
+
 END_SECTION
 
 START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
-	FeatureMap<> m1, m2, m3;
-	
+	FeatureMap m1, m2, m3;
+
 	// adding empty maps has no effect:
 	m1+=m2;
 	TEST_EQUAL(m1, m3);
-	
+
 	// with content:
 	Feature f1;
 	f1.setMZ(100.12);
@@ -355,7 +359,7 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 	m2.getUnassignedPeptideIdentifications().resize(2);
 	m2.push_back(Feature());
 	m2.push_back(Feature());
-	
+
 
 	m1+=m2;
 	TEST_EQUAL(m1.getIdentifier(), "");
@@ -370,7 +374,7 @@ END_SECTION
 
 START_SECTION((void sortByIntensity(bool reverse=false)))
 
-	FeatureMap<> to_be_sorted;
+	FeatureMap to_be_sorted;
 
 	Feature f1;
 	f1.setIntensity(10.0f);
@@ -401,7 +405,7 @@ END_SECTION
 
 START_SECTION((void sortByPosition()))
 
-	FeatureMap<> to_be_sorted;
+	FeatureMap to_be_sorted;
 
 	Feature f1;
 	f1.getPosition()[0] = 10;
@@ -425,7 +429,7 @@ END_SECTION
 
 START_SECTION((void sortByMZ()))
 
-	FeatureMap<> to_be_sorted;
+	FeatureMap to_be_sorted;
 
 	Feature f1;
 	f1.getPosition()[0] = 10;
@@ -452,7 +456,7 @@ END_SECTION
 
 START_SECTION((void sortByRT()))
 
-	FeatureMap<> to_be_sorted;
+	FeatureMap to_be_sorted;
 
 	Feature f1;
 	f1.getPosition()[0] = 10;
@@ -479,7 +483,7 @@ END_SECTION
 
 START_SECTION((void swap(FeatureMap& from)))
 {
-  FeatureMap<> map1, map2;
+  FeatureMap map1, map2;
 	map1.setIdentifier("stupid comment");
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -508,7 +512,7 @@ END_SECTION
 
 START_SECTION((void swapFeaturesOnly(FeatureMap& from)))
 {
-  FeatureMap<> map1, map2;
+  FeatureMap map1, map2;
 	map1.setIdentifier("stupid comment");
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -537,7 +541,7 @@ END_SECTION
 
 START_SECTION((void sortByOverallQuality(bool reverse=false)))
 
-	FeatureMap<> to_be_sorted;
+	FeatureMap to_be_sorted;
 
 	Feature f1;
 	f1.getPosition()[0] = 1;
@@ -580,7 +584,7 @@ START_SECTION((void sortByOverallQuality(bool reverse=false)))
 END_SECTION
 
 START_SECTION((void clear(bool clear_meta_data=true)))
-  FeatureMap<> map1;
+  FeatureMap map1;
 	map1.setIdentifier("stupid comment");
 	map1.push_back(feature1);
 	map1.push_back(feature2);
@@ -588,19 +592,19 @@ START_SECTION((void clear(bool clear_meta_data=true)))
 	map1.getDataProcessing().resize(1);
 	map1.getProteinIdentifications().resize(1);
 	map1.getUnassignedPeptideIdentifications().resize(1);
-	
+
 	map1.clear(false);
 	TEST_EQUAL(map1.size(),0)
-	TEST_EQUAL(map1==FeatureMap<>(),false)
+	TEST_EQUAL(map1==FeatureMap(),false)
 
 	map1.clear(true);
-	TEST_EQUAL(map1==FeatureMap<>(),true)
+	TEST_EQUAL(map1==FeatureMap(),true)
 END_SECTION
 
 
 START_SECTION(([EXTRA] void uniqueIdToIndex()))
 {
-	  FeatureMap<> fm;
+	  FeatureMap fm;
 	  Feature f;
 	  f.setMZ(23.9);
 	  std::vector< std::pair < Size, UInt64 > > pairs;
@@ -648,7 +652,7 @@ END_SECTION
 
 START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)())))
 {
-  FeatureMap<> fm;
+  FeatureMap fm;
   fm.push_back(Feature());
   fm.push_back(Feature());
   fm.back().getSubordinates().push_back(Feature());
@@ -667,8 +671,8 @@ END_SECTION
 
 START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*member_function)() const ) const ))
 {
-  FeatureMap<> fm;
-  FeatureMap<> const & fmc(fm);
+  FeatureMap fm;
+  FeatureMap const & fmc(fm);
   fm.push_back(Feature());
   fm.push_back(Feature());
   fm.back().getSubordinates().push_back(Feature());
@@ -686,7 +690,7 @@ START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*m
 END_SECTION
 
 START_SECTION((  AnnotationStatistics getAnnotationStatistics() const ))
-  FeatureMap<> fm;
+  FeatureMap fm;
 
   AnnotationStatistics stats, res;
   stats = fm.getAnnotationStatistics();

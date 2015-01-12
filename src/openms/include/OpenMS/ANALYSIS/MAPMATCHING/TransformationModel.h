@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,21 +36,22 @@
 #define OPENMS_ANALYSIS_MAPMATCHING_TRANSFORMATIONMODEL_H
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include "OpenMS/MATH/MISC/Spline2d.h"
+#include <boost/noncopyable.hpp> // to prevent copy/assignment
 
 namespace OpenMS
 {
   /**
-       @brief Base class for transformation models
+    @brief Base class for transformation models
 
-       Implements the identity (no transformation). Parameters and data are ignored.
+    Implements the identity (no transformation). Parameters and data are ignored.
 
-       @ingroup MapAlignment
+    Note that this class and its derived classes do not allow copying/assignment, due to the need for internal memory management associated with some of the transformation models.
+
+    @ingroup MapAlignment
   */
-  class OPENMS_DLLAPI TransformationModel
+  class OPENMS_DLLAPI TransformationModel : boost::noncopyable
   {
-public:
+  public:
     /// Coordinate pair
     typedef std::pair<double, double> DataPoint;
     /// Vector of coordinate pairs
@@ -60,127 +61,24 @@ public:
     TransformationModel() {}
 
     /// Alternative constructor (derived classes should implement this one!)
-    TransformationModel(const TransformationModel::DataPoints &,
-                        const Param &) :
-      params_() {}
+    TransformationModel(const TransformationModel::DataPoints&, const Param&);
 
     /// Destructor
-    virtual ~TransformationModel() {}
+    virtual ~TransformationModel();
 
     /// Evaluates the model at the given value
-    virtual double evaluate(const double value) const
-    {
-      return value;
-    }
+    virtual double evaluate(double value) const;
 
     /// Gets the (actual) parameters
-    const Param & getParameters() const
-    {
-      return params_;
-    }
+    const Param& getParameters() const;
 
     /// Gets the default parameters
-    static void getDefaultParameters(Param & params)
-    {
-      params.clear();
-    }
+    static void getDefaultParameters(Param& params);
 
-protected:
+  protected:
     /// Parameters
     Param params_;
   };
-
-
-  /**
-       @brief Linear model for transformations
-
-       The model can be inferred from data or specified using explicit parameters. If data is given, a least squares fit is used to find the model parameters (slope and intercept). Depending on parameter @p symmetric_regression, a normal regression (@e y on @e x) or symmetric regression (@f$ y - x @f$ on @f$ y + x @f$) is performed.
-
-       Without data, the model can be specified by giving the parameters @p slope and @p intercept explicitly.
-
-       @ingroup MapAlignment
-  */
-  class OPENMS_DLLAPI TransformationModelLinear :
-    public TransformationModel
-  {
-public:
-    /**
-        @brief Constructor
-
-        @exception IllegalArgument is thrown if neither data points nor explicit parameters (slope/intercept) are given.
-    */
-    TransformationModelLinear(const DataPoints & data, const Param & params);
-
-    /// Destructor
-    ~TransformationModelLinear();
-
-    /// Evaluates the model at the given value
-    virtual double evaluate(const double value) const;
-
-    using TransformationModel::getParameters;
-
-    /// Gets the "real" parameters
-    void getParameters(double & slope, double & intercept) const;
-
-    /// Gets the default parameters
-    static void getDefaultParameters(Param & params);
-
-    /**
-         @brief Computes the inverse
-
-         @exception DivisionByZero is thrown if the slope is zero.
-    */
-    void invert();
-
-protected:
-    /// Parameters of the linear model
-    double slope_, intercept_;
-    /// Was the model estimated from data?
-    bool data_given_;
-    /// Use symmetric regression?
-    bool symmetric_;
-  };
-
-
-  /**
-       @brief Interpolation model for transformations
-
-       Between the data points, the interpolation uses the neighboring points. Outside the range spanned by the points, we extrapolate using a line through the first and the last point.
-
-       Interpolation is done by a cubic spline. Note that at least 4 data point are required.
-
-       @ingroup MapAlignment
-  */
-  class OPENMS_DLLAPI TransformationModelInterpolated :
-    public TransformationModel
-  {
-public:
-    /**
-         @brief Constructor
-
-         @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
-    */
-    TransformationModelInterpolated(const DataPoints & data,
-                                    const Param & params);
-
-    /// Destructor
-    ~TransformationModelInterpolated();
-
-    /// Evaluates the model at the given value
-    double evaluate(const double value) const;
-
-    /// Gets the default parameters
-    static void getDefaultParameters(Param & params);
-
-protected:
-    /// Data coordinates
-    std::vector<double> x_, y_;
-    /// Interpolation function
-    Spline2d<double> * interp_;
-    /// Linear model for extrapolation
-    TransformationModelLinear * lm_;
-  };
-
 
 } // end of namespace OpenMS
 

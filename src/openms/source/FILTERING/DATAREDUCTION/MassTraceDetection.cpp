@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -397,8 +397,9 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 --trace_down_idx;
                 ++down_scan_counter;
 
-
-                // trace termination criterion: max allowed number of consecutive outliers reached OR cancel extension if sampling_rate falls below min_sample_rate_
+                // trace termination criterion: max allowed number of
+                // consecutive outliers reached OR cancel extension if
+                // sampling_rate falls below min_sample_rate_
                 if (trace_termination_criterion_ == "outlier")
                 {
                     if (conseq_missed_peak_down > MAX_CONSEQ_MISSING)

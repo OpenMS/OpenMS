@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@ using namespace std;
   @page TOPP_IDMerger IDMerger
 
   @brief Merges several idXML files into one idXML file.
- 
+
   <center>
   <table>
   <tr>
@@ -66,11 +66,11 @@ using namespace std;
   </tr>
   </table>
   </center>
- 
+
   The peptide hits and protein hits of the input files will be written into the single output file. In general, the number of idXML files that can be merged into one file is not limited.
 
   The combination of search engine and processing date/time should be unique for every identification run over all input files. If this is not the case, the date/time of a conflicting run will be increased in steps of seconds until the combination is unique.
-  
+
   If an additional file is given through the @p add_to parameter, identifications from the main inputs (@p in) are added to that file, but only for those peptide sequences that were not already present. Only the best peptide hit per identification (MS2 spectrum) is taken into account; peptide identifications and their corresponding protein identifications are transferred.
 
   Alternatively, with the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
@@ -132,7 +132,7 @@ protected:
 
     // prepare scores and coverage values of protein hits from the protXML:
     map<String, pair<double, double> > hit_values;
-    ProteinIdentification & protein = protxml_proteins[0];
+    ProteinIdentification& protein = protxml_proteins[0];
     for (vector<ProteinHit>::iterator hit_it = protein.getHits().begin();
          hit_it != protein.getHits().end(); ++hit_it)
     {
@@ -187,17 +187,17 @@ protected:
     while (used_ids.find(new_id) != used_ids.end());
   }
 
-  void annotateFileOrigin_(vector<ProteinIdentification>& proteins, 
-                           vector<PeptideIdentification>& peptides, 
+  void annotateFileOrigin_(vector<ProteinIdentification>& proteins,
+                           vector<PeptideIdentification>& peptides,
                            const String& filename)
   {
-    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin(); 
-         prot_it !=proteins.end(); ++prot_it)
+    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+         prot_it != proteins.end(); ++prot_it)
     {
       prot_it->setMetaValue("file_origin", DataValue(filename));
     }
-    
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin(); 
+
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
       pep_it->setMetaValue("file_origin", DataValue(filename));
@@ -216,7 +216,7 @@ protected:
     registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -248,7 +248,7 @@ protected:
       // seem useful, but should be possible in principle:
       writeLog_("The options 'add_to' and 'pepxml_protxml' cannot be used together. Aborting!");
       printUsage_();
-      return ILLEGAL_PARAMETERS;    
+      return ILLEGAL_PARAMETERS;
     }
 
     //-------------------------------------------------------------
@@ -269,7 +269,8 @@ protected:
       vector<vector<PeptideIdentification> > peptides_by_file;
       StringList add_to_ids; // IDs from the "add_to" file (if any)
 
-      if (!add_to.empty()) {
+      if (!add_to.empty())
+      {
         remove(file_names.begin(), file_names.end(), add_to);
         file_names.insert(file_names.begin(), add_to);
       }
@@ -283,13 +284,13 @@ protected:
 
         if (annotate_file_origin) // set MetaValue "file_origin" if flag is set
         {
-          annotateFileOrigin_(additional_proteins, peptides_by_file[i], 
+          annotateFileOrigin_(additional_proteins, peptides_by_file[i],
                               file_name);
         }
 
         for (vector<ProteinIdentification>::iterator prot_it =
                additional_proteins.begin(); prot_it !=
-               additional_proteins.end(); ++prot_it)
+             additional_proteins.end(); ++prot_it)
         {
           String id = prot_it->getIdentifier();
           if (proteins_by_id.find(id) != proteins_by_id.end())
@@ -298,7 +299,7 @@ protected:
             // generate a new ID:
             DateTime date_time = prot_it->getDateTime();
             String new_id;
-            generateNewId_(proteins_by_id, prot_it->getSearchEngine(), 
+            generateNewId_(proteins_by_id, prot_it->getSearchEngine(),
                            date_time, new_id);
             writeLog_("New identifier '" + new_id +
                       "' generated as replacement.");
@@ -306,8 +307,8 @@ protected:
             prot_it->setIdentifier(new_id);
             prot_it->setDateTime(date_time);
             for (vector<PeptideIdentification>::iterator pep_it =
-                   peptides_by_file[i].begin(); pep_it != 
-                   peptides_by_file[i].end(); ++pep_it)
+                   peptides_by_file[i].begin(); pep_it !=
+                 peptides_by_file[i].end(); ++pep_it)
             {
               if (pep_it->getIdentifier() == id) pep_it->setIdentifier(new_id);
             }
@@ -326,7 +327,7 @@ protected:
         {
           peptides.insert(peptides.end(), pep_it->begin(), pep_it->end());
         }
-        for (map<String, ProteinIdentification>::iterator map_it = 
+        for (map<String, ProteinIdentification>::iterator map_it =
                proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
         {
           proteins.push_back(map_it->second);
@@ -336,7 +337,7 @@ protected:
       {
         // copy over data from reference file ("add_to"):
         map<String, ProteinIdentification> selected_proteins;
-        for (StringList::iterator ids_it = add_to_ids.begin(); 
+        for (StringList::iterator ids_it = add_to_ids.begin();
              ids_it != add_to_ids.end(); ++ids_it)
         {
           selected_proteins[*ids_it] = proteins_by_id[*ids_it];
@@ -344,14 +345,14 @@ protected:
         // keep track of peptides that shouldn't be duplicated:
         set<AASequence> sequences;
         vector<PeptideIdentification>& base_peptides = peptides_by_file[0];
-        for (vector<PeptideIdentification>::iterator pep_it = 
+        for (vector<PeptideIdentification>::iterator pep_it =
                base_peptides.begin(); pep_it != base_peptides.end(); ++pep_it)
         {
           if (pep_it->getHits().empty()) continue;
           pep_it->sort();
           sequences.insert(pep_it->getHits()[0].getSequence());
         }
-        peptides.insert(peptides.end(), base_peptides.begin(), 
+        peptides.insert(peptides.end(), base_peptides.begin(),
                         base_peptides.end());
         // merge in data from other files:
         for (vector<vector<PeptideIdentification> >::iterator file_it =
@@ -359,7 +360,7 @@ protected:
              ++file_it)
         {
           set<String> accessions; // keep track to avoid duplicates
-          for (vector<PeptideIdentification>::iterator pep_it = 
+          for (vector<PeptideIdentification>::iterator pep_it =
                  file_it->begin(); pep_it != file_it->end(); ++pep_it)
           {
             if (pep_it->getHits().empty()) continue;
@@ -371,10 +372,11 @@ protected:
             LOG_DEBUG << "new peptide!" << endl;
             pep_it->getHits().resize(1); // restrict to best hit for simplicity
             peptides.push_back(*pep_it);
+
+            set<String> protein_accessions = hit.extractProteinAccessions();
+
             // copy over proteins:
-            for (vector<String>::const_iterator acc_it = 
-                   hit.getProteinAccessions().begin(); acc_it !=
-                   hit.getProteinAccessions().end(); ++acc_it)
+            for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
             {
               LOG_DEBUG << "accession: " << *acc_it << endl;
               // skip ahead if accession is not new:
@@ -383,7 +385,7 @@ protected:
               // first find the right protein identification:
               const String& id = pep_it->getIdentifier();
               LOG_DEBUG << "identifier: " << id << endl;
-              if (proteins_by_id.find(id) == proteins_by_id.end()) 
+              if (proteins_by_id.find(id) == proteins_by_id.end())
               {
                 writeLog_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
                 continue;
@@ -394,7 +396,7 @@ protected:
               if (hit_it == protein.getHits().end())
               {
                 writeLog_("Error: accession '" + *acc_it + "' not found in "
-                          "protein identification '" + id + "'. Skipping.");
+                                                           "protein identification '" + id + "'. Skipping.");
                 continue;
               }
               // we may need to copy protein ID meta data, if we haven't yet:
@@ -414,7 +416,7 @@ protected:
             }
           }
         }
-        for (map<String, ProteinIdentification>::iterator map_it = 
+        for (map<String, ProteinIdentification>::iterator map_it =
                selected_proteins.begin(); map_it != selected_proteins.end();
              ++map_it)
         {
@@ -437,7 +439,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDMerger tool;
   return tool.main(argc, argv);

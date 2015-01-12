@@ -3,7 +3,7 @@
   <NODE name="info" description="">
     <ITEM name="num_vertices" value="7" type="int" description="" required="false" advanced="false" />
     <ITEM name="num_edges" value="6" type="int" description="" required="false" advanced="false" />
-    <ITEM name="version" value="1.12.0" type="string" description="" required="false" advanced="false" />
+    <ITEM name="version" value="2.0.0" type="string" description="" required="false" advanced="false" />
     <ITEM name="description" value="&lt;![CDATA[]]&gt;" type="string" description="" required="false" advanced="false" />
   </NODE>
   <NODE name="vertices" description="">
@@ -103,7 +103,7 @@
       <ITEM name="x_pos" value="60" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="-40" type="double" description="" required="false" advanced="false" />
       <NODE name="parameters" description="Instance &apos;1&apos; section for &apos;IDMapper&apos;">
-        <ITEM name="id" value="" type="input-file" description="Protein/peptide identifications file" required="true" advanced="false" supported_formats="*.idXML" />
+        <ITEM name="id" value="" type="input-file" description="Protein/peptide identifications file" required="true" advanced="false" supported_formats="*.mzid,*.idXML" />
         <ITEM name="in" value="" type="input-file" description="Feature map/consensus map file" required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.mzq" />
         <ITEM name="out" value="" type="output-file" description="Output file (the format depends on the input file format)." required="true" advanced="false" supported_formats="*.featureXML,*.consensusXML,*.mzq" />
         <ITEM name="rt_tolerance" value="5" type="double" description="RT tolerance (in seconds) for the matching of peptide identifications and (consensus) features.#br#Tolerance is understood as &apos;plus or minus x&apos;, so the matching range increases by twice the given value." required="false" advanced="false" restrictions="0:" />

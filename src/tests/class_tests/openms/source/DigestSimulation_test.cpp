@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -88,9 +88,9 @@ START_SECTION((DigestSimulation& operator=(const DigestSimulation &source)))
 END_SECTION
 
 
-START_SECTION((void digest(FeatureMapSim & feature_map)))
+START_SECTION((void digest(SimTypes::FeatureMapSim & feature_map)))
 {
-  FeatureMapSim fm;
+  SimTypes::FeatureMapSim fm;
   ProteinIdentification protIdent;
   // add new ProteinHit to ProteinIdentification
   {
@@ -116,39 +116,31 @@ START_SECTION((void digest(FeatureMapSim & feature_map)))
   a.digest(fm);
 
   TEST_EQUAL(fm.size(), 8)
-  ABORT_IF(fm.size()!=8)
+  ABORT_IF(fm.size() != 8)
 
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("ACDK"))
-  TEST_EQUAL(fm[0].getIntensity(), 108)
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LNN"))
+  TEST_EQUAL(fm[0].getIntensity(), 72)
 
-  TEST_EQUAL(fm[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("ACDKDDLASSR"))
-  TEST_EQUAL(fm[1].getIntensity(), 36)
+  TEST_EQUAL(fm[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("ACDK"))
+  TEST_EQUAL(fm[1].getIntensity(), 108)
 
-  TEST_EQUAL(fm[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("ACDKDDLDDFR"))
-  TEST_EQUAL(fm[2].getIntensity(), 72)
+  TEST_EQUAL(fm[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("DDLASSR"))
+  TEST_EQUAL(fm[2].getIntensity(), 36)
 
-  TEST_EQUAL(fm[3].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("DDLASSR"))
-  TEST_EQUAL(fm[3].getIntensity(), 36)
+  TEST_EQUAL(fm[3].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("DDLDDFR"))
+  TEST_EQUAL(fm[3].getIntensity(), 72)
 
   TEST_EQUAL(fm[4].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("DDLASSRL"))
   TEST_EQUAL(fm[4].getIntensity(), 36)
 
-  TEST_EQUAL(fm[5].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("DDLDDFR"))
+  TEST_EQUAL(fm[5].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("DDLDDFRLNN"))
   TEST_EQUAL(fm[5].getIntensity(), 72)
 
-  TEST_EQUAL(fm[6].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("DDLDDFRLNN"))
-  TEST_EQUAL(fm[6].getIntensity(), 72)
+  TEST_EQUAL(fm[6].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("ACDKDDLASSR"))
+  TEST_EQUAL(fm[6].getIntensity(), 36)
 
-  TEST_EQUAL(fm[7].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LNN"))
+  TEST_EQUAL(fm[7].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("ACDKDDLDDFR"))
   TEST_EQUAL(fm[7].getIntensity(), 72)
-
-
- //for (FeatureMapSim::const_iterator f = fm.begin();
- //        f != fm.end();
- //        ++f)
- //{
- //  std::cout << f->getPeptideIdentifications()[0].getHits()[0].getSequence() << " " << f->getIntensity() << "\n";
- //}
 
 }
 END_SECTION

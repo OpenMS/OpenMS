@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -196,7 +196,7 @@ namespace OpenMS
     {
       vector<RichPeakSpectrum> site_determining_ions;
       compute_site_determining_ions(th_spectra, *hp, hit.getCharge(), site_determining_ions);
-      N = UInt(site_determining_ions[0].size());       // all possiblities have the same number
+      N = UInt(site_determining_ions[0].size());       // all possibilities have the same number
       double p = (double)hp->peak_depth / 100;
       Int n = 0;
       //Auslagern

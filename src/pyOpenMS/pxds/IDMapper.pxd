@@ -25,7 +25,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDMapper.h>" namespace "OpenMS":
                       libcpp_vector[ProteinIdentification] & protein_ids,
                       bool measure_from_subelements) nogil except +
 
-        void annotate(FeatureMap[Feature] & map_,
+        void annotate(FeatureMap & map_,
                       libcpp_vector[PeptideIdentification] & ids,
                       libcpp_vector[ProteinIdentification] & protein_ids,
                       bool use_centroid_rt,

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
@@ -151,21 +152,21 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
     setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
-    
+
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
     setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
-    
+
     addEmptyLine_();
 
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
-    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked<Peak1D, Feature>::getProductName());
+    return FeatureFinder().getParameters(FeatureFinderAlgorithmPicked::getProductName());
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //input file names
     String in = getStringOption_("in");
@@ -187,7 +188,7 @@ protected:
     exp.updateRanges();
 
     //load seeds
-    FeatureMap<> seeds;
+    FeatureMap seeds;
     if (getStringOption_("seeds") != "")
     {
       FeatureXMLFile().load(getStringOption_("seeds"), seeds);
@@ -198,20 +199,20 @@ protected:
     ff.setLogType(log_type_);
 
     // A map for the resulting features
-    FeatureMap<> features;
+    FeatureMap features;
 
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to FeatureFinder", feafi_param, 3);
 
     // Apply the feature finder
-    ff.run(FeatureFinderAlgorithmPicked<Peak1D, Feature>::getProductName(), exp, features, feafi_param, seeds);
+    ff.run(FeatureFinderAlgorithmPicked::getProductName(), exp, features, feafi_param, seeds);
     features.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // DEBUG
     if (debug_level_ > 10)
     {
-      FeatureMap<>::Iterator it;
+      FeatureMap::Iterator it;
       for (it = features.begin(); it != features.end(); ++it)
       {
         if (!it->isMetaEmpty())
@@ -242,7 +243,7 @@ protected:
     // unless debugging is turned on.
     if (debug_level_ < 5)
     {
-      FeatureMap<>::Iterator it;
+      FeatureMap::Iterator it;
       for (it = features.begin(); it != features.end(); ++it)
       {
         it->getConvexHull().expandToBoundingBox();
@@ -255,22 +256,22 @@ protected:
     }
 
     map_file.store(out, features);
-    
+
     if (!out_mzq.trim().empty())
     {
-      MSQuantifications msq(features, exp.getExperimentalSettings(), exp[0].getDataProcessing() );
+      MSQuantifications msq(features, exp.getExperimentalSettings(), exp[0].getDataProcessing());
       msq.assignUIDs();
       MzQuantMLFile file;
       file.store(out_mzq, msq);
     }
-    
+
     return EXECUTION_OK;
   }
 
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureFinderCentroided tool;
   return tool.main(argc, argv);

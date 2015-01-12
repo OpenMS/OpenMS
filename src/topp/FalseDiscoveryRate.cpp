@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -99,7 +101,7 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return FalseDiscoveryRate().getDefaults();
   }
@@ -107,8 +109,8 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Identification input file which contains a search against "
-                       "a concatenated sequence database. "
-                       "Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input.", false);
+                                           "a concatenated sequence database. "
+                                           "Either specify '-in' alone or 'fwd_in' together with 'rev_in' as input.", false);
     setValidFormats_("in", ListUtils::create<String>("idXML"));
 
     registerInputFile_("fwd_in", "<file>", "", "Identification input to estimate FDR, forward run.", false);
@@ -127,7 +129,7 @@ protected:
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -174,15 +176,23 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    if (combined)         // -in was given
+    if (combined) // -in was given
     {
       vector<PeptideIdentification> pep_ids;
       vector<ProteinIdentification> prot_ids;
+
       IdXMLFile().load(in, prot_ids, pep_ids);
+
       try
       {
-        if (!proteins_only) fdr.apply(pep_ids);
-        if (!peptides_only) fdr.apply(prot_ids);
+        if (!proteins_only)
+        {
+          fdr.apply(pep_ids);
+        }
+        if (!peptides_only)
+        {
+          fdr.apply(prot_ids);
+        }
       }
       catch (Exception::MissingInformation)
       {
@@ -205,6 +215,7 @@ protected:
     {
       vector<PeptideIdentification> fwd_pep, rev_pep;
       vector<ProteinIdentification> fwd_prot, rev_prot;
+
       IdXMLFile().load(fwd_in, fwd_prot, fwd_pep);
       IdXMLFile().load(rev_in, rev_prot, rev_pep);
 
@@ -212,7 +223,7 @@ protected:
       // calculations
       //-------------------------------------------------------------
 
-      writeDebug_("Starting calculations", 1);
+      writeDebug_("Starting calculations with " + String(fwd_pep.size()) + "/" + String(rev_pep.size()) + " read peptide IDs", 1);
 
       if (!proteins_only)
       {
@@ -222,6 +233,8 @@ protected:
       {
         fdr.apply(fwd_prot, rev_prot);
       }
+
+      // TODO @all shouldnt here be assign ranks be applied as well?
 
       //-------------------------------------------------------------
       // writing output
@@ -234,11 +247,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFalseDiscoveryRate tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

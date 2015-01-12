@@ -25,15 +25,16 @@ import numpy as np
 
     def set_peaks(self, peaks):
 
-        assert isinstance(peaks, (tuple, list))
-        assert len(peaks) == 2
+        assert isinstance(peaks, (tuple, list)), "Input for set_peaks needs to be a tuple or a list of size 2 (rt and intensity vector)"
+        assert len(peaks) == 2, "Input for set_peaks needs to be a tuple or a list of size 2 (rt and intensity vector)"
 
         rts, intensities = peaks
-        assert len(rts) == len(intensities)
+        assert len(rts) == len(intensities), "Input vectors for set_peaks need to have the same length (rt and intensity vector)"
 
         cdef _MSChromatogram[_ChromatogramPeak] * chrom_ = self.inst.get()
 
-        chrom_.clear(0) # emtpy vector, keep meta data
+        chrom_.clear(0) # empty vector, keep meta data
+        # chrom_.reserve(<int>len(rts)) # allocate space for incoming data
         cdef _ChromatogramPeak p = _ChromatogramPeak()
         cdef double rt
         cdef float I
