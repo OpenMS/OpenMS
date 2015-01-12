@@ -589,7 +589,8 @@ namespace OpenMS
       removeTheoreticalSpectrumLayer_();
     }
 
-    tv_->getActive1DWidget()->canvas()->resetZoom();
+    // the next line is meant to be disabled to allow switching between spectra without loosing the current view range (to compare across spectra)
+    // tv_->getActive1DWidget()->canvas()->resetZoom();
   }
 
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
