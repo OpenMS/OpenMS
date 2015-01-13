@@ -77,8 +77,8 @@ namespace OpenMS
       double electrons_mass_diff(charge_ * Constants::ELECTRON_MASS_U);
       mass += electrons_mass_diff;
     }
-    // the mol multiplier determines if we assume to be looking at dimers or higher
-    // now, we just want to monomer, to compare its mass to a DB entry
+    // the Mol multiplier determines if we assume to be looking at dimers or higher
+    // Currently, we just want to monomer, to compare its mass to a DB entry
     mass /= mol_multiplier_;
 
     return mass;
@@ -101,7 +101,7 @@ namespace OpenMS
     return name_;
   }
 
-  AccurateMassSearchEngine::AdductInfo_ AccurateMassSearchEngine::AdductInfo_::parseAdductString(const String adduct)
+  AccurateMassSearchEngine::AdductInfo_ AccurateMassSearchEngine::AdductInfo_::parseAdductString(const String& adduct)
   {
     // adduct string looks like this:
     // M+2K-H;1+   or
@@ -128,7 +128,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not detect molecular ion;charge in '" + cp_str + "'. Got semicolon right?", cp_str);
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not detect molecular ion; charge in '" + cp_str + "'. Got semicolon right?", cp_str);
     }
 
     // check if charge string is formatted correctly
@@ -522,10 +522,10 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
     }
 
-    // Depending on ion_mode_internal_, the file containing the rules for positive or negative adducts is loaded
+    // Depending on ion_mode_internal_, either positive or negative adducts are used
     std::vector<AdductInfo_>::const_iterator it_s, it_e;
     if (ion_mode == "positive")
     {
@@ -539,7 +539,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Ion mode cannot be set to '") + ion_mode + "'!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
 
 
@@ -615,7 +615,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
     }
 
     std::vector<AccurateMassSearchResult> results_part;
@@ -636,7 +636,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
     }
 
     std::vector<AccurateMassSearchResult> results_part;
@@ -696,7 +696,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
     }
     
     String ion_mode_internal(ion_mode_);
@@ -806,7 +806,7 @@ namespace OpenMS
   {
     if (!is_initialized_)
     {
-      throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "AccurateMassSearchEngine::init() was not called!");
     }
 
     String ion_mode_internal(ion_mode_);
@@ -848,7 +848,7 @@ namespace OpenMS
 
     MzTabMetaData md = mztab_out.getMetaData();
 
-    // may contain quantificaton data so we choose quantification
+    // may contain quantification data so we choose quantification
     md.mz_tab_type.fromCellString("Quantification");
 
     // we don't report assay so we mark this as a summary file
@@ -861,7 +861,7 @@ namespace OpenMS
     search_engine_score.fromCellString("[,,AccurateMassSearchScore,]");
     md.smallmolecule_search_engine_score[1] = search_engine_score;
 
-    // As we don't have information on experimental design we just assume one source file that is not further specified ("null")
+    // Since we don't have information on experimental design we just assume one source file that is not further specified ("null")
     MzTabMSRunMetaData run_md;
     MzTabString null_location;
     run_md.location = null_location;
@@ -872,7 +872,7 @@ namespace OpenMS
     Size n_individual_intensities = overall_results.begin()->at(0).getIndividualIntensities().size();
 
     // if we have 0 individual_intensities it is a feature otherwise it is a consensus feature.
-    // TODO: check if the design can be improved. Distinction of itensities done here doesn't seem very natural.
+    // TODO: check if the design can be improved. Distinction of intensities done here doesn't seem very natural.
     Size n_study_variables = n_individual_intensities == 0 ? 1 : n_individual_intensities;
 
     for (Size i = 0; i != n_study_variables; ++i)

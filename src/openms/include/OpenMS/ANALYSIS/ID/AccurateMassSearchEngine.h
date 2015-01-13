@@ -261,7 +261,7 @@ private:
       /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
       /// e.g. M+H;1+
       /// 'M' can have multipliers, e.g. '2M + H;1+' (for a singly charged dimer)
-      static AdductInfo_ parseAdductString(const String adduct);
+      static AdductInfo_ parseAdductString(const String& adduct);
 
     private:
       /// hide default C'tor
