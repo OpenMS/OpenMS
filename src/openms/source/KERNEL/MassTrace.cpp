@@ -348,17 +348,12 @@ namespace OpenMS
 
   double MassTrace::getIntensity(bool smoothed) const
   {
-    // std::cout << "area old:\t" << computeFwhmAreaSmooth() << "\tarea new:\t" << computeFwhmAreaSmoothRobust() << "area old:\t" << computeFwhmArea() << "\tarea new:\t" << computeFwhmAreaRobust() << std::endl;
-
     if (smoothed)
     {
       return computeFwhmAreaSmoothRobust();
     }
 
     return computeFwhmAreaRobust();
-
-    //return getMaxIntensity(smoothed);
-
   }
 
   double MassTrace::getMaxIntensity(bool smoothed) const
