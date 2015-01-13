@@ -98,7 +98,7 @@
 					<userParam type="stringList" name="description" value="[Methionyl-Serine,Serinyl-Methionine]"/>
 					<userParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
 					<userParam type="string" name="chemical_formula" value="C8H16N2O4S"/>
-					<userParam type="float" name="ppm_error" value="-3.04011223637974"/>
+					<userParam type="float" name="ppm_error" value="-3.04011223650013"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>

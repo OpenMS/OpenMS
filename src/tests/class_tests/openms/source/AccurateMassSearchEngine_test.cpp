@@ -253,6 +253,9 @@ StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
+// for some reason, Windows and Linux give slightly different results
+fsc.setAcceptableAbsolute((3.04011223650013 - 3.04011223637974)*1.1);
+
 
 START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
 {
