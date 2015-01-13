@@ -95,12 +95,12 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-        registerInputFileList_("in", "<file>", StringList(), "featureXML or consensusXML file(s); a list can contain mixed file types");
+        registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
         setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
-        registerOutputFileList_("out", "<file>", StringList(), "mzTab file(s)");
+        registerOutputFile_("out", "<file>", "", "mzTab file");
         setValidFormats_("out", ListUtils::create<String>("csv"));
 
-        registerOutputFileList_("out_annotation", "<file>", StringList(), "A copy of the input file(s), annotated with matching hits from the database.", false);
+        registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
         setValidFormats_("out_annotation", ListUtils::create<String>("featureXML,consensusXML"));
 
 
@@ -129,7 +129,6 @@ protected:
       p.remove("positive_adducts_file");
       p.remove("negative_adducts_file");
       return p;
-
     }
 
     ExitCodes main_(int, const char**)
@@ -138,24 +137,11 @@ protected:
         //-------------------------------------------------------------
         // parameter handling
         //-------------------------------------------------------------
+        String in = getStringOption_("in");
+        String out = getStringOption_("out");
+        String file_ann = getStringOption_("out_annotation");
 
-        StringList in = getStringList_("in");
-        StringList out = getStringList_("out");
-        StringList file_ann = getStringList_("out_annotation");
-
-        // check length of lists
-        if (in.size() != out.size())
-        {
-          LOG_ERROR << "Length of input and output list do not match (" << in.size() << " != " << out.size() << ")! Aborting!" << std::endl;
-          return ILLEGAL_PARAMETERS;
-        }
-        if (file_ann.size() > 0 && in.size() != file_ann.size())
-        {
-          LOG_ERROR << "Length of input and output annotation list do not match (" << in.size() << " != " << out.size() << ")! Match the size or leave 'out_annotation' empty! Aborting!" << std::endl;
-          return ILLEGAL_PARAMETERS;
-        }
-
-        Param ams_param = getParam_().copy("algorithm:", true);
+         Param ams_param = getParam_().copy("algorithm:", true);
         // copy top-level params to algorithm
         ams_param.setValue("db:mapping", getStringOption_("db:mapping"));
         ams_param.setValue("db:struct", getStringOption_("db:struct"));
@@ -173,59 +159,53 @@ protected:
         ams.setParameters(ams_param);
         ams.init();
         
-        #ifdef _OPENMP
-        #pragma omp parallel for
-        #endif
-        for (SignedSize i = 0; i < (SignedSize)in.size(); ++i)
+        FileTypes::Type filetype = FileHandler::getType(in);
+
+        if (filetype == FileTypes::FEATUREXML)
         {
-          FileTypes::Type filetype = FileHandler::getType(in[i]);
+          FeatureMap ms_feat_map;
+          FeatureXMLFile().load(in, ms_feat_map);
 
-          if (filetype == FileTypes::FEATUREXML)
+          //-------------------------------------------------------------
+          // do the work
+          //-------------------------------------------------------------
+          ams.run(ms_feat_map, mztab_output);
+
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
+          // annotate output with data processing info
+          //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+          if (!file_ann.empty())
           {
-            FeatureMap ms_feat_map;
-            FeatureXMLFile().load(in[i], ms_feat_map);
-
-            //-------------------------------------------------------------
-            // do the work
-            //-------------------------------------------------------------
-            ams.run(ms_feat_map, mztab_output);
-
-            //-------------------------------------------------------------
-            // writing output
-            //-------------------------------------------------------------
-            // annotate output with data processing info
-            //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-            if (!file_ann.empty())
-            {
-              FeatureXMLFile().store(file_ann[i], ms_feat_map);
-            }
+            FeatureXMLFile().store(file_ann, ms_feat_map);
           }
-          else if (filetype == FileTypes::CONSENSUSXML)
-          {
-            ConsensusMap ms_cons_map;
-
-            ConsensusXMLFile().load(in[i], ms_cons_map);
-
-            //-------------------------------------------------------------
-            // do the work
-            //-------------------------------------------------------------
-            ams.run(ms_cons_map, mztab_output);
-
-            //-------------------------------------------------------------
-            // writing output
-            //-------------------------------------------------------------
-
-            // annotate output with data processing info
-            //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-            if (!file_ann.empty())
-            {
-              ConsensusXMLFile().store(file_ann[i], ms_cons_map);
-            }
-          }
-
-          mztab_outfile.store(out[i], mztab_output);
         }
-        
+        else if (filetype == FileTypes::CONSENSUSXML)
+        {
+          ConsensusMap ms_cons_map;
+
+          ConsensusXMLFile().load(in, ms_cons_map);
+
+          //-------------------------------------------------------------
+          // do the work
+          //-------------------------------------------------------------
+          ams.run(ms_cons_map, mztab_output);
+
+          //-------------------------------------------------------------
+          // writing output
+          //-------------------------------------------------------------
+
+          // annotate output with data processing info
+          //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+          if (!file_ann.empty())
+          {
+            ConsensusXMLFile().store(file_ann, ms_cons_map);
+          }
+        }
+
+        mztab_outfile.store(out, mztab_output);
+
 
         return EXECUTION_OK;
     }
