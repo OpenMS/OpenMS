@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.6" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2014-08-01T21:34:24" search_engine="AccurateMassSearchResult" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2015-01-13T15:05:03" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -1175,6 +1175,16 @@
 				<pt x="257.25" y="161.132490074973" />
 				<pt x="257" y="161.132154679944" />
 			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="0">
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
+					<userParam type="stringList" name="description" value="[--dummy--]"/>
+					<userParam type="string" name="modifications" value="-"/>
+					<userParam type="string" name="chemical_formula" value=""/>
+					<userParam type="float" name="ppm_error" value="nan"/>
+				</PeptideHit>
+			</PeptideIdentification>
 			<userParam type="string" name="label" value="T160"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
 			<userParam type="float" name="masstrace_intensity_0" value="18965.9494716721"/>
@@ -1366,6 +1376,16 @@
 				<pt x="278.25" y="164.039161803902" />
 				<pt x="278" y="164.039176318679" />
 			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="0">
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
+					<userParam type="stringList" name="description" value="[--dummy--]"/>
+					<userParam type="string" name="modifications" value="-"/>
+					<userParam type="string" name="chemical_formula" value=""/>
+					<userParam type="float" name="ppm_error" value="nan"/>
+				</PeptideHit>
+			</PeptideIdentification>
 			<userParam type="string" name="label" value="T41_T102"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
 			<userParam type="float" name="masstrace_intensity_0" value="1946719.9301806"/>
@@ -1522,6 +1542,16 @@
 				<pt x="312.75" y="164.077397355578" />
 				<pt x="312.5" y="164.07741135197" />
 			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="0">
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
+					<userParam type="stringList" name="description" value="[--dummy--]"/>
+					<userParam type="string" name="modifications" value="-"/>
+					<userParam type="string" name="chemical_formula" value=""/>
+					<userParam type="float" name="ppm_error" value="nan"/>
+				</PeptideHit>
+			</PeptideIdentification>
 			<userParam type="string" name="label" value="T69_T134"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
 			<userParam type="float" name="masstrace_intensity_0" value="413215.012682643"/>
@@ -2296,6 +2326,16 @@
 				<pt x="256.75" y="167.07275437282" />
 				<pt x="256.5" y="167.072641883297" />
 			</convexhull>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
+				<PeptideHit score="0" sequence="" charge="0">
+					<userParam type="int" name="charge" value="0"/>
+					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
+					<userParam type="stringList" name="description" value="[--dummy--]"/>
+					<userParam type="string" name="modifications" value="-"/>
+					<userParam type="string" name="chemical_formula" value=""/>
+					<userParam type="float" name="ppm_error" value="nan"/>
+				</PeptideHit>
+			</PeptideIdentification>
 			<userParam type="string" name="label" value="T3_T12_T48_T61_T101"/>
 			<userParam type="int" name="num_of_masstraces" value="5"/>
 			<userParam type="float" name="masstrace_intensity_0" value="181771052.539316"/>

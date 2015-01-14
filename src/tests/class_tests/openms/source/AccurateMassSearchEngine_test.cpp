@@ -96,36 +96,42 @@ String id_list_neg[] = {/*"C32H28O11",*/ "C17H17Cl2N", "C10H13N5O5", "C6H14O6S2"
                         //                   305.073804963  283.091668551   246.02317956
 START_SECTION((void queryByMass(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)))
 {
-    std::vector<AccurateMassSearchResult> hmdb_results_pos, hmdb_results_neg;
-    ams_pos.queryByMass(query_mass_pos, 1.0, hmdb_results_pos);
+  std::vector<AccurateMassSearchResult> hmdb_results_pos, hmdb_results_neg;
+  // test not initialized
+  TEST_EXCEPTION(Exception::IllegalArgument, ams_pos.queryByMass(query_mass_pos, 1.0, "positive", hmdb_results_pos)); // 'ams_pos' not initialized
+  ams_pos.init();
+  ams_neg.init();
 
-    Size id_list_pos_length(sizeof(id_list_pos)/sizeof(id_list_pos[0]));
-    Size id_list_neg_length(sizeof(id_list_neg)/sizeof(id_list_neg[0]));
+  // test invalid scan polarity
+  TEST_EXCEPTION(Exception::InvalidParameter, ams_pos.queryByMass(query_mass_pos, 1.0, "blabla", hmdb_results_pos)); // invalid scan_polarity
+
+  // test the actual query
+  ams_pos.queryByMass(query_mass_pos, 1.0, "positive", hmdb_results_pos);
+
+  Size id_list_pos_length(sizeof(id_list_pos)/sizeof(id_list_pos[0]));
+  Size id_list_neg_length(sizeof(id_list_neg)/sizeof(id_list_neg[0]));
 
 
-    TEST_EQUAL(hmdb_results_pos.size(), id_list_pos_length)
+  TEST_EQUAL(hmdb_results_pos.size(), id_list_pos_length)
 
-    if (hmdb_results_pos.size() == id_list_pos_length)
-    {
-        for (Size i = 0; i < id_list_pos_length; ++i)
-        {
-            TEST_STRING_EQUAL(hmdb_results_pos[i].getFormulaString(), id_list_pos[i])
-            // std::cout << hmdb_results_pos[i].getFormulaString() << std::endl;
-        }
-    }
-    ams_pos.queryByMass(query_mass_neg, -1.0, hmdb_results_neg);  // this is not 100% correct, since we are still searching with positive adducts.
-    // However, it does not matter if +z or -z, since any FF will just give +1, even in negative mode
+  if (hmdb_results_pos.size() == id_list_pos_length)
+  {
+      for (Size i = 0; i < id_list_pos_length; ++i)
+      {
+          TEST_STRING_EQUAL(hmdb_results_pos[i].getFormulaString(), id_list_pos[i])
+          // std::cout << hmdb_results_pos[i].getFormulaString() << std::endl;
+      }
+  }
+  ams_pos.queryByMass(query_mass_neg, -1.0, "positive", hmdb_results_neg);  // this is not 100% correct, since we are still searching with positive adducts.
+  // However, it does not matter if +z or -z, since any FF will just give +1, even in negative mode
 
-    TEST_EQUAL(hmdb_results_neg.size(), id_list_neg_length)
-
-    if (hmdb_results_neg.size() == id_list_neg_length)
-    {
-        for (Size i = 0; i < hmdb_results_neg.size(); ++i)
-        {
-            TEST_STRING_EQUAL(hmdb_results_neg[i].getFormulaString(), id_list_neg[i])
-            // std::cout << hmdb_results_neg[i].getFormulaString() << std::endl;
-        }
-    }
+  TEST_EQUAL(hmdb_results_neg.size(), id_list_neg_length)
+  ABORT_IF(hmdb_results_neg.size() != id_list_neg_length)
+  for (Size i = 0; i < hmdb_results_neg.size(); ++i)
+  {
+      TEST_STRING_EQUAL(hmdb_results_neg[i].getFormulaString(), id_list_neg[i])
+      // std::cout << hmdb_results_neg[i].getFormulaString() << std::endl;
+  }
 }
 END_SECTION
 
@@ -142,33 +148,32 @@ test_feat.setMetaValue("masstrace_intensity_2", 4.0);
 
 AccurateMassSearchEngine ams_feat_test;
 ams_feat_test.setParameters(ams_param);
-
+ams_feat_test.init();
 
 String feat_query_pos[] = {"C23H45NO4", "C20H37NO3", "C22H41NO"};
 
 START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results)))
 {
-    std::vector<AccurateMassSearchResult> results;
+  std::vector<AccurateMassSearchResult> results;
 
-    ams_feat_test.queryByFeature(test_feat, 0, results);
+  TEST_EXCEPTION(Exception::InvalidParameter, ams_feat_test.queryByFeature(test_feat, 0, "blabla", results)); // invalid scan_polarity
+  ams_feat_test.queryByFeature(test_feat, 0, "positive", results);
 
-    TEST_EQUAL(results.size(), 3)
+  TEST_EQUAL(results.size(), 3)
 
-    for (Size i = 0; i < results.size(); ++i)
-    {
-        TEST_REAL_SIMILAR(results[i].getObservedRT(), 300.0)
-        TEST_REAL_SIMILAR(results[i].getObservedIntensity(), 100.0)
-    }
+  for (Size i = 0; i < results.size(); ++i)
+  {
+      TEST_REAL_SIMILAR(results[i].getObservedRT(), 300.0)
+      TEST_REAL_SIMILAR(results[i].getObservedIntensity(), 100.0)
+  }
 
-    Size feat_query_size(sizeof(feat_query_pos)/sizeof(feat_query_pos[0]));
+  Size feat_query_size(sizeof(feat_query_pos)/sizeof(feat_query_pos[0]));
 
-    if (results.size() == feat_query_size)
-    {
-        for (Size i = 0; i < feat_query_size; ++i)
-        {
-            TEST_STRING_EQUAL(results[i].getFormulaString(), feat_query_pos[i])
-        }
-    }
+  ABORT_IF(results.size() != feat_query_size)
+  for (Size i = 0; i < feat_query_size; ++i)
+  {
+      TEST_STRING_EQUAL(results[i].getFormulaString(), feat_query_pos[i])
+  }
 }
 END_SECTION
 
@@ -205,54 +210,51 @@ cons_feat.computeConsensus();
 
 START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results)))
 {
-    std::vector<AccurateMassSearchResult> results;
+  std::vector<AccurateMassSearchResult> results;
 
-    ams_feat_test.queryByConsensusFeature(cons_feat, 0, 3, results);
+  TEST_EXCEPTION(Exception::InvalidParameter, ams_feat_test.queryByConsensusFeature(cons_feat, 0, 3, "blabla", results)); // invalid scan_polarity
+  ams_feat_test.queryByConsensusFeature(cons_feat, 0, 3, "positive", results);
 
-    TEST_EQUAL(results.size(), 3)
+  TEST_EQUAL(results.size(), 3)
 
-    for (Size i = 0; i < results.size(); ++i)
-    {
-        TEST_REAL_SIMILAR(results[i].getObservedRT(), 300.0)
-        TEST_REAL_SIMILAR(results[i].getObservedIntensity(), 0.0)
-    }
+  for (Size i = 0; i < results.size(); ++i)
+  {
+      TEST_REAL_SIMILAR(results[i].getObservedRT(), 300.0)
+      TEST_REAL_SIMILAR(results[i].getObservedIntensity(), 0.0)
+  }
 
-    // std::cout << cons_feat.getMZ() << " " << results.size() << std::endl;
+  // std::cout << cons_feat.getMZ() << " " << results.size() << std::endl;
 
-    for (Size i = 0; i < results.size(); ++i)
-    {
-        std::vector<double> indiv_ints = results[i].getIndividualIntensities();
-        TEST_EQUAL(indiv_ints.size(), 3)
+  for (Size i = 0; i < results.size(); ++i)
+  {
+      std::vector<double> indiv_ints = results[i].getIndividualIntensities();
+      TEST_EQUAL(indiv_ints.size(), 3)
 
-        if (indiv_ints.size() == 3)
-        {
-            TEST_REAL_SIMILAR(indiv_ints[0], fh1.getIntensity());
-            TEST_REAL_SIMILAR(indiv_ints[1], fh2.getIntensity());
-            TEST_REAL_SIMILAR(indiv_ints[2], fh3.getIntensity());
-        }
-    }
+      if (indiv_ints.size() == 3)
+      {
+          TEST_REAL_SIMILAR(indiv_ints[0], fh1.getIntensity());
+          TEST_REAL_SIMILAR(indiv_ints[1], fh2.getIntensity());
+          TEST_REAL_SIMILAR(indiv_ints[2], fh3.getIntensity());
+      }
+  }
 
-    Size feat_query_size(sizeof(feat_query_pos)/sizeof(feat_query_pos[0]));
+  Size feat_query_size(sizeof(feat_query_pos)/sizeof(feat_query_pos[0]));
 
-    if (results.size() == feat_query_size)
-    {
-        for (Size i = 0; i < feat_query_size; ++i)
-        {
-            TEST_STRING_EQUAL(results[i].getFormulaString(), feat_query_pos[i])
-        }
-    }
+  ABORT_IF(results.size() != feat_query_size)
+  for (Size i = 0; i < feat_query_size; ++i)
+  {
+      TEST_STRING_EQUAL(results[i].getFormulaString(), feat_query_pos[i])
+  }
 }
 END_SECTION
-
-
-// Param ams_param;
-ams_param.setValue("isotopic_similarity", "true");
 
 FuzzyStringComparator fsc;
 StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
+// for some reason, Windows and Linux give slightly different results
+fsc.setAcceptableAbsolute((3.04011223650013 - 3.04011223637974)*1.1);
 
 
 START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
@@ -270,44 +272,31 @@ START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
     ff.store(tmp_file, exp_fm);
     TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.featureXML")), true);
 
-    // test mzTab output
-    String fm_id_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H8N4","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
-    Size fm_id_list_size = sizeof(fm_id_list)/sizeof(fm_id_list[0]);
+    String tmp_mztab_file;
+    NEW_TMP_FILE(tmp_mztab_file);
+    MzTabFile().store(tmp_mztab_file, test_mztab);
 
-    MzTabSmallMoleculeSectionRows sm_rows = test_mztab.getSmallMoleculeSectionRows();
-    TEST_EQUAL(sm_rows.size(), fm_id_list_size);
-
-    if (sm_rows.size() == fm_id_list_size)
+    StringList fm_id_list;
+    for (Size i = 0; i < exp_fm.size() ; ++i)
     {
-        for (Size i = 0; i < sm_rows.size(); ++i)
-        {
-            String sm_formula = sm_rows[i].chemical_formula.get();
-            TEST_STRING_EQUAL(sm_formula, fm_id_list[i]);
-        }
+      std::vector<PeptideHit> hits = exp_fm[i].getPeptideIdentifications()[0].getHits();
+      for (Size j = 0; j < hits.size(); ++j)
+      {
+        String chem = hits[j].getMetaValue("chemical_formula");
+        StringList x(hits[j].getMetaValue("identifier").toStringList().size(), chem);
+        fm_id_list.insert(fm_id_list.end(), x.begin(),x.end());
+      }
     }
 
-    ams_feat_test.setParameters(ams_param);
-  }
-    ////////////////////////////////
-    // now with isotope filtering //
-    ////////////////////////////////
-  {
-    MzTab test_mztab;
-    ams_feat_test.run(exp_fm, test_mztab);
-
+    // test mzTab output
     MzTabSmallMoleculeSectionRows sm_rows = test_mztab.getSmallMoleculeSectionRows();
+    TEST_EQUAL(sm_rows.size(), fm_id_list.size())
 
-    String fm_id_filt_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
-    Size fm_id_filt_list_size = sizeof(fm_id_filt_list)/sizeof(fm_id_filt_list[0]);
-    TEST_EQUAL(sm_rows.size(), fm_id_filt_list_size);
-
-    if (sm_rows.size() == fm_id_filt_list_size)
+    ABORT_IF(sm_rows.size() != fm_id_list.size())
+    for (Size i = 0; i < sm_rows.size(); ++i)
     {
-      for (Size i = 0; i < sm_rows.size(); ++i)
-      {
-          String sm_formula = sm_rows[i].chemical_formula.get();
-          TEST_STRING_EQUAL(sm_formula, fm_id_filt_list[i]);
-      }
+        String sm_formula = sm_rows[i].chemical_formula.get();
+        TEST_STRING_EQUAL(sm_formula, fm_id_list[i]);
     }
   }
 }
@@ -316,66 +305,50 @@ END_SECTION
 
 START_SECTION((void run(ConsensusMap& cmap, MzTab& mztab_out)))
 {
-    ConsensusMap exp_cm;
-    ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.consensusXML"), exp_cm);
-    MzTab test_mztab2;
-    ams_feat_test.run(exp_cm, test_mztab2);
+  ConsensusMap exp_cm;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.consensusXML"), exp_cm);
+  MzTab test_mztab2;
+  ams_feat_test.run(exp_cm, test_mztab2);
 
-    // test annotation of input
-    String tmp_file;
-    NEW_TMP_FILE(tmp_file);
-    ConsensusXMLFile ff;
-    ff.store(tmp_file, exp_cm);
-    TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.consensusXML")), true);
+  // test annotation of input
+  String tmp_file;
+  NEW_TMP_FILE(tmp_file);
+  ConsensusXMLFile ff;
+  ff.store(tmp_file, exp_cm);
+  TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1.consensusXML")), true);
 
-    // test mzTab output
-    String cons_id_list[] = {"C27H41NO6","C27H36O6","C27H36O6","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C17H22O2","C26H52NO7P","C26H52NO7P","C27H40O6","C27H40O6","C15H21NO3","C26H46O6","C12H24N2O4","C31H48O2S2","C11H20N4O2","C60H86O18","C48H86O18P2","C48H86O18P2","C48H86O18P2","C48H86O18P2","C26H54NO7P","C26H54NO7P","C24H40N8O4","C27H42O6","C13H23NO3","C10H14N2O6","C10H14N2O6","C10H14N2O6","C9H18N2O4S","C9H18N2O4S"};
-    Size cons_id_list_size = sizeof(cons_id_list)/sizeof(cons_id_list[0]);
+  String tmp_mztab_file;
+  NEW_TMP_FILE(tmp_mztab_file);
+  MzTabFile().store(tmp_mztab_file, test_mztab2);
 
-    MzTabSmallMoleculeSectionRows sm_rows = test_mztab2.getSmallMoleculeSectionRows();
-
-    TEST_EQUAL(sm_rows.size(), cons_id_list_size);
-
-    if (sm_rows.size() == cons_id_list_size)
+  StringList cons_id_list;
+  for (Size i = 0; i < exp_cm.size() ; ++i)
+  {
+    std::vector<PeptideHit> hits = exp_cm[i].getPeptideIdentifications()[0].getHits();
+    for (Size j = 0; j < hits.size(); ++j)
     {
-        for (Size i = 0; i < sm_rows.size(); ++i)
-        {
-            String sm_formula = sm_rows[i].chemical_formula.get();
-            TEST_STRING_EQUAL(sm_formula, cons_id_list[i]);
-        }
+      String chem = hits[j].getMetaValue("chemical_formula");
+      // ignore dummies (== unannotated features)
+      if (!chem.empty()) {
+        StringList x(hits[j].getMetaValue("identifier").toStringList().size(), chem);
+        cons_id_list.insert(cons_id_list.end(), x.begin(),x.end());
+      }
     }
+  }
 
-    String tmp_mztab_file;
-    NEW_TMP_FILE(tmp_mztab_file);
-    MzTabFile().store(tmp_mztab_file, test_mztab2);
+  // test mzTab output
+  MzTabSmallMoleculeSectionRows sm_rows = test_mztab2.getSmallMoleculeSectionRows();
+  TEST_EQUAL(sm_rows.size(), cons_id_list.size())
+
+  ABORT_IF(sm_rows.size() != cons_id_list.size())
+  for (Size i = 0; i < sm_rows.size(); ++i)
+  {
+    String sm_formula = sm_rows[i].chemical_formula.get();
+    TEST_STRING_EQUAL(sm_formula, cons_id_list[i]);
+  }
+
 }
 END_SECTION
-
-
-START_SECTION((const String& getInternalIonMode()))
-{
-  AccurateMassSearchEngine ams;
-  Param p;
-  p.setValue("ionization_mode","auto");
-  p.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
-  p.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
-
-
-  ams.setParameters(p);
-  TEST_EQUAL(ams.getInternalIonMode(), "auto")
-  std::vector<AccurateMassSearchResult> hmdb_results_pos;
-  // query a mass in auto mode is invalid (auto mode requires a feature/cf map)
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.queryByMass(1234, 1, hmdb_results_pos))
-
-  p.setValue("ionization_mode","negative");
-  ams.setParameters(p);
-  TEST_EQUAL(ams.getInternalIonMode(), "negative")
-  p.setValue("ionization_mode","positive");
-  ams.setParameters(p);
-  TEST_EQUAL(ams.getInternalIonMode(), "positive")
-}
-END_SECTION
-
 
 START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map))
 {
@@ -389,17 +362,18 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   p.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
   p.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
   ams.setParameters(p);
+  ams.init();
 
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // has no scan_polarity meta value
-
-  fm_p[0].setMetaValue("scan_polarity", "positive");          // should run ok
-  ams.run(fm_p, mzt);
-
-  fm_p[0].setMetaValue("scan_polarity", "negative");          // should run ok
-  ams.run(fm_p, mzt);
-
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' has no scan_polarity meta value
   fm_p[0].setMetaValue("scan_polarity", "something;somethingelse");
-  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // not unique
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' scan_polarity meta value wrong
+
+  fm_p[0].setMetaValue("scan_polarity", "positive"); // should run ok
+  ams.run(fm_p, mzt);
+
+  fm_p[0].setMetaValue("scan_polarity", "negative"); // should run ok
+  ams.run(fm_p, mzt);
+
 }
 END_SECTION
 

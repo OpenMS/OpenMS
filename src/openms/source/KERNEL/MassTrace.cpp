@@ -348,8 +348,6 @@ namespace OpenMS
 
   double MassTrace::getIntensity(bool smoothed) const
   {
-    // std::cout << "area old:\t" << computeFwhmAreaSmooth() << "\tarea new:\t" << computeFwhmAreaSmoothRobust() << "area old:\t" << computeFwhmArea() << "\tarea new:\t" << computeFwhmAreaRobust() << std::endl;
-
     if (smoothed)
     {
       return computeFwhmAreaSmoothRobust();
@@ -506,14 +504,14 @@ namespace OpenMS
     std::sort(temp_rt.begin(), temp_rt.end());
 
     Size temp_mz_size = temp_rt.size();
-
+    Size mid = static_cast<Size>(temp_mz_size / 2.0);
     if ((temp_mz_size % 2) == 0)
     {
-      centroid_rt_ = (temp_rt[std::floor(temp_mz_size / 2.0) - 1] +  temp_rt[std::floor(temp_mz_size / 2.0)]) / 2;
+      centroid_rt_ = (temp_rt[mid - 1] +  temp_rt[mid]) / 2;
     }
     else
     {
-      centroid_rt_ = temp_rt[std::floor(temp_mz_size / 2.0)];
+      centroid_rt_ = temp_rt[mid];
     }
 
 
@@ -545,14 +543,14 @@ namespace OpenMS
     std::sort(temp_mz.begin(), temp_mz.end());
 
     Size temp_mz_size = temp_mz.size();
-
+    Size mid = static_cast<Size>(temp_mz_size / 2.0);
     if ((temp_mz_size % 2) == 0)
     {
-      centroid_mz_ = (temp_mz[std::floor(temp_mz_size / 2.0) - 1] +  temp_mz[std::floor(temp_mz_size / 2.0)]) / 2;
+      centroid_mz_ = (temp_mz[mid - 1] +  temp_mz[mid]) / 2;
     }
     else
     {
-      centroid_mz_ = temp_mz[std::floor(temp_mz_size / 2.0)];
+      centroid_mz_ = temp_mz[mid];
     }
 
     return;
