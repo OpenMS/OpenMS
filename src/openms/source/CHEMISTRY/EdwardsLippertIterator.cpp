@@ -53,7 +53,7 @@ namespace OpenMS
   EdwardsLippertIterator::EdwardsLippertIterator() :
     PepIterator()
   {
-    ResidueDB * rdb = ResidueDB::getInstance();
+    ResidueDB* rdb = ResidueDB::getInstance();
 
     char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
@@ -64,7 +64,7 @@ namespace OpenMS
 
     for (Size i = 0; i < strlen(aa); ++i)
     {
-      const Residue * r = rdb->getResidue(aa[i]);
+      const Residue* r = rdb->getResidue(aa[i]);
       masse_[(int)aa[i]] = r->getAverageWeight();
     }
 
@@ -82,7 +82,7 @@ namespace OpenMS
 
   }
 
-  EdwardsLippertIterator::EdwardsLippertIterator(const EdwardsLippertIterator & source) :
+  EdwardsLippertIterator::EdwardsLippertIterator(const EdwardsLippertIterator& source) :
     PepIterator(source),
     f_file_(source.f_file_),
     actual_pep_(source.actual_pep_),
@@ -111,7 +111,7 @@ namespace OpenMS
     return FASTAEntry(f_entry_.first, actual_pep_);
   }
 
-  PepIterator & EdwardsLippertIterator::operator++()
+  PepIterator& EdwardsLippertIterator::operator++()
   {
     if (actual_pep_ == "")
     {
@@ -126,13 +126,13 @@ namespace OpenMS
     return *this;
   }
 
-  PepIterator * EdwardsLippertIterator::operator++(int)
+  PepIterator* EdwardsLippertIterator::operator++(int)
   {
     if (actual_pep_ == "")
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
-    PepIterator * old = new EdwardsLippertIterator(*this);
+    PepIterator* old = new EdwardsLippertIterator(*this);
     actual_pep_ = next_();
     if (f_iterator_->isAtEnd() && !hasNext_())
     {
@@ -155,7 +155,7 @@ namespace OpenMS
     return tol_;
   }
 
-  void EdwardsLippertIterator::setSpectrum(const vector<double> & s)
+  void EdwardsLippertIterator::setSpectrum(const vector<double>& s)
   {
     //check if spectrum is sorted
     for (Size i = 1; i < s.size(); ++i)
@@ -169,12 +169,12 @@ namespace OpenMS
     massMax_ = spec_.back();
   }
 
-  const vector<double> & EdwardsLippertIterator::getSpectrum()
+  const vector<double>& EdwardsLippertIterator::getSpectrum()
   {
     return spec_;
   }
 
-  void EdwardsLippertIterator::setFastaFile(const String & f)
+  void EdwardsLippertIterator::setFastaFile(const String& f)
   {
     fstream fs;
     fs.open(f.c_str());
@@ -306,7 +306,7 @@ namespace OpenMS
     return true;
   }
 
-  bool EdwardsLippertIterator::isInSpectrum_(double & mass)
+  bool EdwardsLippertIterator::isInSpectrum_(double& mass)
   {
     return binary_search(spec_.begin(), spec_.end(), mass, FloatsWithTolLess(tol_));
   }

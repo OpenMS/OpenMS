@@ -710,9 +710,9 @@ public:
         list.push_back(pattern);
       }
     }
-    
-    sort(list.begin(),list.end(),less_pattern);
-    
+
+    sort(list.begin(), list.end(), less_pattern);
+
     // debug output
     /*for (size_t i = 0; i < list.size(); ++i)
     {

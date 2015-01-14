@@ -51,7 +51,7 @@ namespace OpenMS
   {
   }
 
-  PILISCrossValidation::Peptide::Peptide(const Peptide & rhs) :
+  PILISCrossValidation::Peptide::Peptide(const Peptide& rhs) :
     sequence(rhs.sequence),
     charge(rhs.charge),
     spec(rhs.spec),
@@ -63,7 +63,7 @@ namespace OpenMS
   {
   }
 
-  PILISCrossValidation::Peptide & PILISCrossValidation::Peptide::operator=(const PILISCrossValidation::Peptide & rhs)
+  PILISCrossValidation::Peptide& PILISCrossValidation::Peptide::operator=(const PILISCrossValidation::Peptide& rhs)
   {
     if (&rhs != this)
     {
@@ -75,7 +75,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool PILISCrossValidation::Peptide::operator<(const PILISCrossValidation::Peptide & peptide) const
+  bool PILISCrossValidation::Peptide::operator<(const PILISCrossValidation::Peptide& peptide) const
   {
     if (sequence < peptide.sequence)
     {
@@ -102,7 +102,7 @@ namespace OpenMS
   {
   }
 
-  PILISCrossValidation::Option::Option(const PILISCrossValidation::Option & rhs) :
+  PILISCrossValidation::Option::Option(const PILISCrossValidation::Option& rhs) :
     type(rhs.type),
     int_min(rhs.int_min),
     int_max(rhs.int_max),
@@ -137,7 +137,7 @@ namespace OpenMS
     }
   }
 
-  PILISCrossValidation::Option & PILISCrossValidation::Option::operator=(const PILISCrossValidation::Option & rhs)
+  PILISCrossValidation::Option& PILISCrossValidation::Option::operator=(const PILISCrossValidation::Option& rhs)
   {
     if (&rhs != this)
     {
@@ -168,7 +168,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PILISCrossValidation::PILISCrossValidation(const PILISCrossValidation & rhs) :
+  PILISCrossValidation::PILISCrossValidation(const PILISCrossValidation& rhs) :
     DefaultParamHandler(rhs),
     cv_options_(rhs.cv_options_)
   {
@@ -178,7 +178,7 @@ namespace OpenMS
   {
   }
 
-  PILISCrossValidation & PILISCrossValidation::operator=(const PILISCrossValidation & rhs)
+  PILISCrossValidation& PILISCrossValidation::operator=(const PILISCrossValidation& rhs)
   {
     if (this != &rhs)
     {
@@ -187,7 +187,7 @@ namespace OpenMS
     return *this;
   }
 
-  void PILISCrossValidation::partition_(vector<vector<Peptide> > & parts, const vector<Peptide> & source)
+  void PILISCrossValidation::partition_(vector<vector<Peptide> >& parts, const vector<Peptide>& source)
   {
     Size nfold(param_.getValue("nfold"));
     parts = vector<vector<Peptide> >(nfold);
@@ -217,7 +217,7 @@ namespace OpenMS
   }
 
 // generate parameter permutations
-  void PILISCrossValidation::generateParameters_(const Param & param, const Map<String, Option> & options, vector<Param> & parameters)
+  void PILISCrossValidation::generateParameters_(const Param& param, const Map<String, Option>& options, vector<Param>& parameters)
   {
     if (options.empty())
     {
@@ -261,7 +261,7 @@ namespace OpenMS
     return;
   }
 
-  void PILISCrossValidation::apply(Param & PILIS_param, const PILISModel & base_model, const vector<Peptide> & peptides)
+  void PILISCrossValidation::apply(Param& PILIS_param, const PILISModel& base_model, const vector<Peptide>& peptides)
   {
     vector<vector<Peptide> > partitions;
     partition_(partitions, peptides);
@@ -414,7 +414,7 @@ namespace OpenMS
     return;
   }
 
-  double PILISCrossValidation::scoreHits(const vector<vector<vector<RichPeakSpectrum> > > & sim_spectra, const vector<vector<RichPeakSpectrum> > & exp_spectra)
+  double PILISCrossValidation::scoreHits(const vector<vector<vector<RichPeakSpectrum> > >& sim_spectra, const vector<vector<RichPeakSpectrum> >& exp_spectra)
   {
     String optimization_method = param_.getValue("optimization_method");
 
@@ -560,7 +560,7 @@ namespace OpenMS
             // normalize the exp_spectrum to the highest peaks which could be picked
             RichPeakSpectrum exp_spec(exp_spectra[i][j]);
             RichPeakSpectrum theo_spec;
-            const AASequence & peptide(exp_spec.getPeptideIdentifications().begin()->getHits().begin()->getSequence());
+            const AASequence& peptide(exp_spec.getPeptideIdentifications().begin()->getHits().begin()->getSequence());
             tsg.addPeaks(theo_spec, peptide, Residue::BIon, 1);
             //tsg.addPeaks(theo_spec, peptide, Residue::BIon, 2); // TODO check which charge states are allowed
             tsg.addPeaks(theo_spec, peptide, Residue::YIon, 1);
@@ -630,7 +630,7 @@ namespace OpenMS
     return 0;
   }
 
-  double PILISCrossValidation::scoreSpectra_(const RichPeakSpectrum & spec1, const RichPeakSpectrum & spec2)
+  double PILISCrossValidation::scoreSpectra_(const RichPeakSpectrum& spec1, const RichPeakSpectrum& spec2)
   {
     PeakSpectrum s1, s2;
     for (RichPeakSpectrum::ConstIterator piit = spec1.begin(); piit != spec1.end(); ++piit)

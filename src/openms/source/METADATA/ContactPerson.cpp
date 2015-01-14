@@ -52,7 +52,7 @@ namespace OpenMS
 
   }
 
-  ContactPerson::ContactPerson(const ContactPerson & source) :
+  ContactPerson::ContactPerson(const ContactPerson& source) :
     MetaInfoInterface(source),
     first_name_(source.first_name_),
     last_name_(source.last_name_),
@@ -70,7 +70,7 @@ namespace OpenMS
 
   }
 
-  ContactPerson & ContactPerson::operator=(const ContactPerson & source)
+  ContactPerson& ContactPerson::operator=(const ContactPerson& source)
   {
     if (&source == this)
       return *this;
@@ -87,7 +87,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool ContactPerson::operator==(const ContactPerson & rhs) const
+  bool ContactPerson::operator==(const ContactPerson& rhs) const
   {
     return first_name_ == rhs.first_name_ &&
            last_name_ == rhs.last_name_ &&
@@ -99,32 +99,32 @@ namespace OpenMS
            MetaInfoInterface::operator==(rhs);
   }
 
-  bool ContactPerson::operator!=(const ContactPerson & rhs) const
+  bool ContactPerson::operator!=(const ContactPerson& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & ContactPerson::getFirstName() const
+  const String& ContactPerson::getFirstName() const
   {
     return first_name_;
   }
 
-  void ContactPerson::setFirstName(const String & name)
+  void ContactPerson::setFirstName(const String& name)
   {
     first_name_ = name;
   }
 
-  const String & ContactPerson::getLastName() const
+  const String& ContactPerson::getLastName() const
   {
     return last_name_;
   }
 
-  void ContactPerson::setLastName(const String & name)
+  void ContactPerson::setLastName(const String& name)
   {
     last_name_ = name;
   }
 
-  void ContactPerson::setName(const String & name)
+  void ContactPerson::setName(const String& name)
   {
     std::vector<String> tmp;
     if (name.split(',', tmp))
@@ -146,52 +146,52 @@ namespace OpenMS
     }
   }
 
-  const String & ContactPerson::getEmail() const
+  const String& ContactPerson::getEmail() const
   {
     return email_;
   }
 
-  void ContactPerson::setEmail(const String & email)
+  void ContactPerson::setEmail(const String& email)
   {
     email_ = email;
   }
 
-  const String & ContactPerson::getInstitution() const
+  const String& ContactPerson::getInstitution() const
   {
     return institution_;
   }
 
-  void ContactPerson::setInstitution(const String & institution)
+  void ContactPerson::setInstitution(const String& institution)
   {
     institution_ = institution;
   }
 
-  const String & ContactPerson::getContactInfo() const
+  const String& ContactPerson::getContactInfo() const
   {
     return contact_info_;
   }
 
-  void ContactPerson::setContactInfo(const String & contact_info)
+  void ContactPerson::setContactInfo(const String& contact_info)
   {
     contact_info_ = contact_info;
   }
 
-  const String & ContactPerson::getURL() const
+  const String& ContactPerson::getURL() const
   {
     return url_;
   }
 
-  void ContactPerson::setURL(const String & url)
+  void ContactPerson::setURL(const String& url)
   {
     url_ = url;
   }
 
-  const String & ContactPerson::getAddress() const
+  const String& ContactPerson::getAddress() const
   {
     return address_;
   }
 
-  void ContactPerson::setAddress(const String & address)
+  void ContactPerson::setAddress(const String& address)
   {
     address_ = address;
   }

@@ -676,11 +676,11 @@ namespace OpenMS
   };
 
   int IsotopicDist::sfNrIsotopes[96];
-  int IsotopicDist::sfMaxIsotopeIndex = 19;   // Highest first index in isotopic tables above
-  int IsotopicDist::sfMaxMassIndex = 95;   // Highest second index in isotopic tables above
-  double IsotopicDist::sfMinMass = 500.0;   // Min mass of isotopic tables
-  double IsotopicDist::sfMaxMass = 10000.0;   // Max mass of isotopic tables
-  double IsotopicDist::sfMassStep = 100.0;   // Mass bin size in isotopic tables
+  int IsotopicDist::sfMaxIsotopeIndex = 19; // Highest first index in isotopic tables above
+  int IsotopicDist::sfMaxMassIndex = 95; // Highest second index in isotopic tables above
+  double IsotopicDist::sfMinMass = 500.0; // Min mass of isotopic tables
+  double IsotopicDist::sfMaxMass = 10000.0; // Max mass of isotopic tables
+  double IsotopicDist::sfMassStep = 100.0; // Mass bin size in isotopic tables
 
   //bool IsotopicDist::sfDebug = false;
   //std::ostream* IsotopicDist::sfStream = 0;
@@ -720,29 +720,29 @@ namespace OpenMS
 
 // Returns median isotopic distribtion for a given mass and charge 1
 // NEVER USED
-  /*
-   void IsotopicDist::getDistribution(
-   double pMass, // mass of monoisotopic peak
-   double*& pMasses, // iso dist masses as C array, monoisotopic peak is set to 0 mass
-   double*& pIntens) // iso dist intensities as C array
-   {
+/*
+ void IsotopicDist::getDistribution(
+ double pMass, // mass of monoisotopic peak
+ double*& pMasses, // iso dist masses as C array, monoisotopic peak is set to 0 mass
+ double*& pIntens) // iso dist intensities as C array
+ {
 
 
-   int idx = getIndex(pMass,1);
+ int idx = getIndex(pMass,1);
 
-   pMasses = sfIsoDist50[idx];
-   pIntens = sfIsoMass50[idx];
-   }
-   */
+ pMasses = sfIsoDist50[idx];
+ pIntens = sfIsoMass50[idx];
+ }
+ */
 
 // Iterates over an list of CentroidPeak objects and finds those ones that match a isotopic m/z value. It also calculates the 'best'
 // match of a isotopic pattern to these peaks.
-  bool IsotopicDist::getMatchingPeaks(list<CentroidPeak>::iterator pMono,   // potential monoisotopic peak
+  bool IsotopicDist::getMatchingPeaks(list<CentroidPeak>::iterator pMono, // potential monoisotopic peak
                                       list<CentroidPeak>::iterator pEnd, // end of peak group
                                       int pCharge, // charge of the isotopic pattern
-                                      double & pAlpha, // best fit factor
+                                      double& pAlpha, // best fit factor
                                       double pTheta, // noise level
-                                      list<list<CentroidPeak>::iterator> & pMatchedPeaks) // matching peaks
+                                      list<list<CentroidPeak>::iterator>& pMatchedPeaks) // matching peaks
   {
     init();
 
@@ -767,7 +767,7 @@ namespace OpenMS
 
     // get the extracted x percentile distribution:
     //double* sfIsoDist10Local = IsotopicDist::sfIsoDist10[idx];
-    double * sfIsoDist50Local = IsotopicDist::sfIsoDist50[idx];
+    double* sfIsoDist50Local = IsotopicDist::sfIsoDist50[idx];
     //double* sfIsoDist90Local = IsotopicDist::sfIsoDist90[idx];
 
     // check for external distributions: ****PK : EXTERNAL_ISOTOPIC_PROFILES is always false, remove
@@ -790,8 +790,8 @@ namespace OpenMS
     pAlpha = (intens + pTheta) / theoIntensMono;
 
     // Markus-Fix, applied 2011-05-06
-    int maxNbIsotopes = sfNrIsotopes[idx];     // number of isotopes used for quantification
-    int maxMaxNbIsotopes = (maxNbIsotopes > 6) ? maxNbIsotopes : 6;     // number of isotopes to be removed
+    int maxNbIsotopes = sfNrIsotopes[idx]; // number of isotopes used for quantification
+    int maxMaxNbIsotopes = (maxNbIsotopes > 6) ? maxNbIsotopes : 6; // number of isotopes to be removed
 
     /*
      if( CentroidData::MonoIsoDebugging ){
@@ -806,8 +806,8 @@ namespace OpenMS
 
     for (i = 0; i < maxMaxNbIsotopes; i++) // find matching isotopes
     {
-      double m_low, m_high, max_alpha, theta, dm,dist_min;
-      theta = (sfIsoDist50Local[i] < SuperHirnParameters::instance()->getDetectableIsotopeFactor()) ? pTheta : 0.0;       // this only requires intense isotpic peaks to match exp. peaks
+      double m_low, m_high, max_alpha, theta, dm, dist_min;
+      theta = (sfIsoDist50Local[i] < SuperHirnParameters::instance()->getDetectableIsotopeFactor()) ? pTheta : 0.0; // this only requires intense isotpic peaks to match exp. peaks
 
       //m_low = mono + sfIsoDist10Local[i]/pCharge - tol;
       //m_high = mono + sfIsoDist90Local[i]/pCharge + tol;
@@ -826,9 +826,9 @@ namespace OpenMS
         {
           dm = abs(piter->getMass() - mono - sfIsoMass50[idx][i] / pCharge);
           alpha = (piter->getIntensity() + theta) / sfIsoDist50Local[i];
-          if (i > 0)  // second and higher isotop
+          if (i > 0) // second and higher isotop
           {
-            dist = abs((alpha - mono_alpha) / mono_alpha) + 10.0 * dm / tol;             // score to evaluate distance between expected and measured values
+            dist = abs((alpha - mono_alpha) / mono_alpha) + 10.0 * dm / tol; // score to evaluate distance between expected and measured values
             if (dist < dist_min) // take minimum distance within same isotop mass range
             {
               max_alpha = alpha;
@@ -842,7 +842,7 @@ namespace OpenMS
           {
             if (piter == pMono)
             {
-              mono_alpha = alpha;               // take only peak itself within C12 isotop mass range
+              mono_alpha = alpha; // take only peak itself within C12 isotop mass range
               max_alpha = alpha;
               match_peak = pMono;
               pMono->setIsotopIdx(0);
@@ -855,7 +855,7 @@ namespace OpenMS
           if (!matched)
           {
             alpha = theta / sfIsoDist50Local[i];
-            max_alpha = (alpha > max_alpha) ? alpha : max_alpha;             // take maximum within same isotop
+            max_alpha = (alpha > max_alpha) ? alpha : max_alpha; // take maximum within same isotop
           }
           break;
         }
@@ -889,7 +889,7 @@ namespace OpenMS
         if (!matched)
         {
           alpha = theta / sfIsoDist50Local[i];
-          max_alpha = (alpha > max_alpha) ? alpha : max_alpha;           // take maximum within same isotop
+          max_alpha = (alpha > max_alpha) ? alpha : max_alpha; // take maximum within same isotop
         }
       }
 
@@ -921,11 +921,11 @@ namespace OpenMS
 
     if (matched)
     {
-      pAlpha /= cnt;       // calculate the avg alpha values for all alphas close to the one of the monoisotopic peak
+      pAlpha /= cnt; // calculate the avg alpha values for all alphas close to the one of the monoisotopic peak
     }
     else
     {
-      pAlpha = min_alpha;       // otherwise take smallest
+      pAlpha = min_alpha; // otherwise take smallest
     }
 
 //if (sfDebug) sfStream << " " << pAlpha << endl;
@@ -934,10 +934,10 @@ namespace OpenMS
   }
 
 // Subtracts fitted isotopic distribution from the spectrum and defines monoisotopic peak
-  void IsotopicDist::subtractMatchingPeaks(list<list<CentroidPeak>::iterator> & pMatchedPeaks,  // pointers to matching peaks
+  void IsotopicDist::subtractMatchingPeaks(list<list<CentroidPeak>::iterator>& pMatchedPeaks, // pointers to matching peaks
                                            int pCharge, // charge
                                            double pAlpha, // fit constant
-                                           DeconvPeak & pMonoPeak) // object to store info about monoisotopic peak
+                                           DeconvPeak& pMonoPeak) // object to store info about monoisotopic peak
   {
     init();
     list<list<CentroidPeak>::iterator>::iterator mpi;
@@ -954,7 +954,7 @@ namespace OpenMS
     for (mpi = pMatchedPeaks.begin(); mpi != pMatchedPeaks.end(); ++mpi) // go through list of all matched peaks
     {
       int i = (*mpi)->getIsotopIdx();
-      h_tot += pAlpha * sfIsoDist50[idx][i];       // sum up fitted intensities
+      h_tot += pAlpha * sfIsoDist50[idx][i]; // sum up fitted intensities
       cnt++;
 
       //    if (sfDebug) (*sfStream) << (*mpi)->getMass() << " " << (*mpi)->getIntensity() << " " << pAlpha*sfIsoDist50[idx][i] << ":";
@@ -965,7 +965,7 @@ namespace OpenMS
 
       if (i == 1)
       {
-        dmC13 = (*mpi)->getMass() - mono - sfIsoMass50[idx][1] / pCharge;         // useful quantity for score
+        dmC13 = (*mpi)->getMass() - mono - sfIsoMass50[idx][1] / pCharge; // useful quantity for score
       }
     }
 

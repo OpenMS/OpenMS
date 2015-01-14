@@ -37,20 +37,25 @@
 namespace OpenMS
 {
 
-  MSDataChainingConsumer::MSDataChainingConsumer() {}
+  MSDataChainingConsumer::MSDataChainingConsumer()
+  {
+  }
 
-  MSDataChainingConsumer::MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer<> *> consumers) :
+  MSDataChainingConsumer::MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer<>*> consumers) :
     consumers_(consumers)
-  {}
+  {
+  }
 
-  MSDataChainingConsumer::~MSDataChainingConsumer() {}
+  MSDataChainingConsumer::~MSDataChainingConsumer()
+  {
+  }
 
-  void MSDataChainingConsumer::appendConsumer(Interfaces::IMSDataConsumer<> * consumer)
+  void MSDataChainingConsumer::appendConsumer(Interfaces::IMSDataConsumer<>* consumer)
   {
     consumers_.push_back(consumer);
   }
 
-  void MSDataChainingConsumer::setExperimentalSettings(const ExperimentalSettings & settings)
+  void MSDataChainingConsumer::setExperimentalSettings(const ExperimentalSettings& settings)
   {
     for (Size i = 0; i < consumers_.size(); i++)
     {
@@ -58,7 +63,7 @@ namespace OpenMS
     }
   }
 
-  void MSDataChainingConsumer::setExpectedSize(Size s_size, Size c_size) 
+  void MSDataChainingConsumer::setExpectedSize(Size s_size, Size c_size)
   {
     for (Size i = 0; i < consumers_.size(); i++)
     {
@@ -66,7 +71,7 @@ namespace OpenMS
     }
   }
 
-  void MSDataChainingConsumer::consumeSpectrum(SpectrumType & s)
+  void MSDataChainingConsumer::consumeSpectrum(SpectrumType& s)
   {
     for (Size i = 0; i < consumers_.size(); i++)
     {
@@ -74,7 +79,7 @@ namespace OpenMS
     }
   }
 
-  void MSDataChainingConsumer::consumeChromatogram(ChromatogramType & c)
+  void MSDataChainingConsumer::consumeChromatogram(ChromatogramType& c)
   {
     for (Size i = 0; i < consumers_.size(); i++)
     {
@@ -83,4 +88,3 @@ namespace OpenMS
   }
 
 } //end namespace OpenMS
-

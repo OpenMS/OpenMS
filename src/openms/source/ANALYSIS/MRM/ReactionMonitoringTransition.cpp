@@ -47,7 +47,7 @@ namespace OpenMS
   {
   }
 
-  ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs) :
+  ReactionMonitoringTransition::ReactionMonitoringTransition(const ReactionMonitoringTransition& rhs) :
     CVTermList(rhs),
     name_(rhs.name_),
     peptide_ref_(rhs.peptide_ref_),
@@ -67,7 +67,7 @@ namespace OpenMS
   {
   }
 
-  ReactionMonitoringTransition & ReactionMonitoringTransition::operator=(const ReactionMonitoringTransition & rhs)
+  ReactionMonitoringTransition& ReactionMonitoringTransition::operator=(const ReactionMonitoringTransition& rhs)
   {
     if (&rhs != this)
     {
@@ -87,7 +87,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool ReactionMonitoringTransition::operator==(const ReactionMonitoringTransition & rhs) const
+  bool ReactionMonitoringTransition::operator==(const ReactionMonitoringTransition& rhs) const
   {
     return CVTermList::operator==(rhs) &&
            name_ == rhs.name_ &&
@@ -103,47 +103,47 @@ namespace OpenMS
            library_intensity_ == rhs.library_intensity_;
   }
 
-  bool ReactionMonitoringTransition::operator!=(const ReactionMonitoringTransition & rhs) const
+  bool ReactionMonitoringTransition::operator!=(const ReactionMonitoringTransition& rhs) const
   {
     return !(*this == rhs);
   }
 
-  void ReactionMonitoringTransition::setName(const String & name)
+  void ReactionMonitoringTransition::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & ReactionMonitoringTransition::getName() const
+  const String& ReactionMonitoringTransition::getName() const
   {
     return name_;
   }
 
-  void ReactionMonitoringTransition::setNativeID(const String & name)
+  void ReactionMonitoringTransition::setNativeID(const String& name)
   {
     name_ = name;
   }
 
-  const String & ReactionMonitoringTransition::getNativeID() const
+  const String& ReactionMonitoringTransition::getNativeID() const
   {
     return name_;
   }
 
-  void ReactionMonitoringTransition::setPeptideRef(const String & peptide_ref)
+  void ReactionMonitoringTransition::setPeptideRef(const String& peptide_ref)
   {
     peptide_ref_ = peptide_ref;
   }
 
-  const String & ReactionMonitoringTransition::getPeptideRef() const
+  const String& ReactionMonitoringTransition::getPeptideRef() const
   {
     return peptide_ref_;
   }
 
-  void ReactionMonitoringTransition::setCompoundRef(const String & compound_ref)
+  void ReactionMonitoringTransition::setCompoundRef(const String& compound_ref)
   {
     compound_ref_ = compound_ref;
   }
 
-  const String & ReactionMonitoringTransition::getCompoundRef() const
+  const String& ReactionMonitoringTransition::getCompoundRef() const
   {
     return compound_ref_;
   }
@@ -158,17 +158,17 @@ namespace OpenMS
     return precursor_mz_;
   }
 
-  void ReactionMonitoringTransition::setPrecursorCVTermList(const CVTermList & list)
+  void ReactionMonitoringTransition::setPrecursorCVTermList(const CVTermList& list)
   {
     precursor_cv_terms_ = list;
   }
 
-  void ReactionMonitoringTransition::addPrecursorCVTerm(const CVTerm & cv_term)
+  void ReactionMonitoringTransition::addPrecursorCVTerm(const CVTerm& cv_term)
   {
     precursor_cv_terms_.addCVTerm(cv_term);
   }
 
-  const CVTermList & ReactionMonitoringTransition::getPrecursorCVTermList() const
+  const CVTermList& ReactionMonitoringTransition::getPrecursorCVTermList() const
   {
     return precursor_cv_terms_;
   }
@@ -199,18 +199,18 @@ namespace OpenMS
       }
       return product_.getCVTerms()["MS:1000827"][0].getValue().toString().toDouble();
     }
-    catch (char * /*str*/)
+    catch (char* /*str*/)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Product mz has never been set");
     }
   }
 
-  void ReactionMonitoringTransition::addProductCVTerm(const CVTerm & cv_term)
+  void ReactionMonitoringTransition::addProductCVTerm(const CVTerm& cv_term)
   {
     product_.addCVTerm(cv_term);
   }
 
-  const std::vector<ReactionMonitoringTransition::Product> & ReactionMonitoringTransition::getIntermediateProducts() const
+  const std::vector<ReactionMonitoringTransition::Product>& ReactionMonitoringTransition::getIntermediateProducts() const
   {
     return intermediate_products_;
   }
@@ -220,7 +220,7 @@ namespace OpenMS
     intermediate_products_.push_back(product);
   }
 
-  void ReactionMonitoringTransition::setIntermediateProducts(const std::vector<ReactionMonitoringTransition::Product> & intermediate_products)
+  void ReactionMonitoringTransition::setIntermediateProducts(const std::vector<ReactionMonitoringTransition::Product>& intermediate_products)
   {
     intermediate_products_ = intermediate_products;
   }
@@ -230,7 +230,7 @@ namespace OpenMS
     product_ = product;
   }
 
-  const ReactionMonitoringTransition::Product & ReactionMonitoringTransition::getProduct() const
+  const ReactionMonitoringTransition::Product& ReactionMonitoringTransition::getProduct() const
   {
     return product_;
   }
@@ -240,22 +240,22 @@ namespace OpenMS
     rts = rt;
   }
 
-  const ReactionMonitoringTransition::RetentionTime & ReactionMonitoringTransition::getRetentionTime() const
+  const ReactionMonitoringTransition::RetentionTime& ReactionMonitoringTransition::getRetentionTime() const
   {
     return rts;
   }
 
-  void ReactionMonitoringTransition::setPrediction(const Prediction & prediction)
+  void ReactionMonitoringTransition::setPrediction(const Prediction& prediction)
   {
     prediction_ = prediction;
   }
 
-  const ReactionMonitoringTransition::Prediction & ReactionMonitoringTransition::getPrediction() const
+  const ReactionMonitoringTransition::Prediction& ReactionMonitoringTransition::getPrediction() const
   {
     return prediction_;
   }
 
-  void ReactionMonitoringTransition::addPredictionTerm(const CVTerm & term)
+  void ReactionMonitoringTransition::addPredictionTerm(const CVTerm& term)
   {
     prediction_.addCVTerm(term);
   }
@@ -269,7 +269,7 @@ namespace OpenMS
     return decoy_type_;
   }
 
-  void ReactionMonitoringTransition::setDecoyTransitionType(const DecoyTransitionType & d)
+  void ReactionMonitoringTransition::setDecoyTransitionType(const DecoyTransitionType& d)
   {
     decoy_type_ = d;
   }

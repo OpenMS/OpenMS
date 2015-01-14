@@ -290,8 +290,8 @@ public:
         // compute TIC
         MSChromatogram<> tic = exp.getTIC();
         MSSpectrum<> tics, tic_gf, tics_pp, tics_sn;
-        for (Size ic = 0; ic < tic.size(); ++ic)
-        { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)
+        for (Size ic = 0; ic < tic.size(); ++ic) // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)
+        {
           Peak1D peak;
           peak.setMZ(tic[ic].getRT());
           peak.setIntensity(tic[ic].getIntensity());
@@ -377,8 +377,8 @@ public:
             }
 
           }
-          else
-          { // default feature with no auto-rt
+          else // default feature with no auto-rt
+          {
             LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
             cm.push_back(*cit);
           }
@@ -400,8 +400,8 @@ public:
         description = info.header_description;
       }
 
-      if (fi == 0)
-      { // two additional columns for first file (theoretical RT and m/z)
+      if (fi == 0) // two additional columns for first file (theoretical RT and m/z)
+      {
         tf_single_header0 << "" << "";
         tf_single_header1 << "" << "";
         tf_single_header2 << "RT" << "mz";

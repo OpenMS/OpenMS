@@ -1056,7 +1056,7 @@ namespace OpenMS
       xslt = xslt.erase(0, xslt.find("\n") + 1);
       xslt_ref = "openms-qc-stylesheet"; //TODO make this user defined pt.2
     }
-    catch (Exception::FileNotFound &)
+    catch (Exception::FileNotFound&)
     {
       warning(STORE, String("No qcml stylesheet found, result will not be viewable in a browser!"));
     }
@@ -1077,11 +1077,11 @@ namespace OpenMS
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     if (!xslt_ref.empty())
     {
-        os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
-        os << "<!DOCTYPE catelog [\n"
-           << "  <!ATTLIST xsl:stylesheet\n"
-           << "  id  ID  #REQUIRED>\n"
-           << "  ]>\n";
+      os << "<?xml-stylesheet type=\"text/xml\" href=\"#" << xslt_ref << "\"?>\n";
+      os << "<!DOCTYPE catelog [\n"
+         << "  <!ATTLIST xsl:stylesheet\n"
+         << "  id  ID  #REQUIRED>\n"
+         << "  ]>\n";
     }
     os << "<qcML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
 

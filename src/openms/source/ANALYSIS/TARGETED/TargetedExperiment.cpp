@@ -42,7 +42,7 @@ namespace OpenMS
   {
   }
 
-  TargetedExperiment::TargetedExperiment(const TargetedExperiment & rhs) :
+  TargetedExperiment::TargetedExperiment(const TargetedExperiment& rhs) :
     cvs_(rhs.cvs_),
     contacts_(rhs.contacts_),
     publications_(rhs.publications_),
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  TargetedExperiment & TargetedExperiment::operator=(const TargetedExperiment & rhs)
+  TargetedExperiment& TargetedExperiment::operator=(const TargetedExperiment& rhs)
   {
     if (&rhs != this)
     {
@@ -88,14 +88,14 @@ namespace OpenMS
     return *this;
   }
 
-  TargetedExperiment TargetedExperiment::operator+(const TargetedExperiment & rhs) const
+  TargetedExperiment TargetedExperiment::operator+(const TargetedExperiment& rhs) const
   {
     TargetedExperiment tmp(*this);
     tmp += rhs;
     return tmp;
   }
 
-  TargetedExperiment & TargetedExperiment::operator+=(const TargetedExperiment & rhs)
+  TargetedExperiment& TargetedExperiment::operator+=(const TargetedExperiment& rhs)
   {
     protein_reference_map_dirty_ = true;
     peptide_reference_map_dirty_ = true;
@@ -128,7 +128,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool TargetedExperiment::operator==(const TargetedExperiment & rhs) const
+  bool TargetedExperiment::operator==(const TargetedExperiment& rhs) const
   {
     return cvs_ == rhs.cvs_ &&
            contacts_ == rhs.contacts_ &&
@@ -145,7 +145,7 @@ namespace OpenMS
            source_files_ == rhs.source_files_;
   }
 
-  bool TargetedExperiment::operator!=(const TargetedExperiment & rhs) const
+  bool TargetedExperiment::operator!=(const TargetedExperiment& rhs) const
   {
     return !(operator==(rhs));
   }
@@ -177,113 +177,113 @@ namespace OpenMS
     }
   }
 
-  void TargetedExperiment::setCVs(const std::vector<CV> & cvs)
+  void TargetedExperiment::setCVs(const std::vector<CV>& cvs)
   {
     cvs_ = cvs;
   }
 
-  const std::vector<TargetedExperiment::CV> & TargetedExperiment::getCVs() const
+  const std::vector<TargetedExperiment::CV>& TargetedExperiment::getCVs() const
   {
     return cvs_;
   }
 
-  void TargetedExperiment::addCV(const CV & cv)
+  void TargetedExperiment::addCV(const CV& cv)
   {
     cvs_.push_back(cv);
   }
 
-  void TargetedExperiment::setContacts(const std::vector<Contact> & contacts)
+  void TargetedExperiment::setContacts(const std::vector<Contact>& contacts)
   {
     contacts_ = contacts;
   }
 
-  const std::vector<TargetedExperiment::Contact> & TargetedExperiment::getContacts() const
+  const std::vector<TargetedExperiment::Contact>& TargetedExperiment::getContacts() const
   {
     return contacts_;
   }
 
-  void TargetedExperiment::addContact(const Contact & contact)
+  void TargetedExperiment::addContact(const Contact& contact)
   {
     contacts_.push_back(contact);
   }
 
-  void TargetedExperiment::setPublications(const std::vector<Publication> & publications)
+  void TargetedExperiment::setPublications(const std::vector<Publication>& publications)
   {
     publications_ = publications;
   }
 
-  const std::vector<TargetedExperiment::Publication> & TargetedExperiment::getPublications() const
+  const std::vector<TargetedExperiment::Publication>& TargetedExperiment::getPublications() const
   {
     return publications_;
   }
 
-  void TargetedExperiment::addPublication(const Publication & publication)
+  void TargetedExperiment::addPublication(const Publication& publication)
   {
     publications_.push_back(publication);
   }
 
-  void TargetedExperiment::setTargetCVTerms(const CVTermList & cv_terms)
+  void TargetedExperiment::setTargetCVTerms(const CVTermList& cv_terms)
   {
     targets_ = cv_terms;
   }
 
-  const CVTermList & TargetedExperiment::getTargetCVTerms() const
+  const CVTermList& TargetedExperiment::getTargetCVTerms() const
   {
     return targets_;
   }
 
-  void TargetedExperiment::addTargetCVTerm(const CVTerm & cv_term)
+  void TargetedExperiment::addTargetCVTerm(const CVTerm& cv_term)
   {
     targets_.addCVTerm(cv_term);
   }
 
-  void TargetedExperiment::setTargetMetaValue(const String & name, const DataValue & value)
+  void TargetedExperiment::setTargetMetaValue(const String& name, const DataValue& value)
   {
     targets_.setMetaValue(name, value);
   }
 
-  void TargetedExperiment::setInstruments(const std::vector<Instrument> & instruments)
+  void TargetedExperiment::setInstruments(const std::vector<Instrument>& instruments)
   {
     instruments_ = instruments;
   }
 
-  const std::vector<TargetedExperiment::Instrument> & TargetedExperiment::getInstruments() const
+  const std::vector<TargetedExperiment::Instrument>& TargetedExperiment::getInstruments() const
   {
     return instruments_;
   }
 
-  void TargetedExperiment::addInstrument(const Instrument & instrument)
+  void TargetedExperiment::addInstrument(const Instrument& instrument)
   {
     instruments_.push_back(instrument);
   }
 
-  void TargetedExperiment::setSoftware(const std::vector<Software> & software)
+  void TargetedExperiment::setSoftware(const std::vector<Software>& software)
   {
     software_ = software;
   }
 
-  const std::vector<Software> & TargetedExperiment::getSoftware() const
+  const std::vector<Software>& TargetedExperiment::getSoftware() const
   {
     return software_;
   }
 
-  void TargetedExperiment::addSoftware(const Software & software)
+  void TargetedExperiment::addSoftware(const Software& software)
   {
     software_.push_back(software);
   }
 
-  void TargetedExperiment::setProteins(const std::vector<Protein> & proteins)
+  void TargetedExperiment::setProteins(const std::vector<Protein>& proteins)
   {
     protein_reference_map_dirty_ = true;
     proteins_ = proteins;
   }
 
-  const std::vector<TargetedExperiment::Protein> & TargetedExperiment::getProteins() const
+  const std::vector<TargetedExperiment::Protein>& TargetedExperiment::getProteins() const
   {
     return proteins_;
   }
 
-  const TargetedExperiment::Protein & TargetedExperiment::getProteinByRef(const String & ref)
+  const TargetedExperiment::Protein& TargetedExperiment::getProteinByRef(const String& ref)
   {
     if (protein_reference_map_dirty_)
     {
@@ -292,39 +292,39 @@ namespace OpenMS
     return *(protein_reference_map_[ref]);
   }
 
-  void TargetedExperiment::addProtein(const Protein & protein)
+  void TargetedExperiment::addProtein(const Protein& protein)
   {
     protein_reference_map_dirty_ = true;
     proteins_.push_back(protein);
   }
 
-  void TargetedExperiment::setCompounds(const std::vector<Compound> & compounds)
+  void TargetedExperiment::setCompounds(const std::vector<Compound>& compounds)
   {
     compounds_ = compounds;
   }
 
-  const std::vector<TargetedExperiment::Compound> & TargetedExperiment::getCompounds() const
+  const std::vector<TargetedExperiment::Compound>& TargetedExperiment::getCompounds() const
   {
     return compounds_;
   }
 
-  void TargetedExperiment::addCompound(const Compound & rhs)
+  void TargetedExperiment::addCompound(const Compound& rhs)
   {
     compounds_.push_back(rhs);
   }
 
-  void TargetedExperiment::setPeptides(const std::vector<Peptide> & peptides)
+  void TargetedExperiment::setPeptides(const std::vector<Peptide>& peptides)
   {
     peptide_reference_map_dirty_ = true;
     peptides_ = peptides;
   }
 
-  const std::vector<TargetedExperiment::Peptide> & TargetedExperiment::getPeptides() const
+  const std::vector<TargetedExperiment::Peptide>& TargetedExperiment::getPeptides() const
   {
     return peptides_;
   }
 
-  const TargetedExperiment::Peptide & TargetedExperiment::getPeptideByRef(const String & ref)
+  const TargetedExperiment::Peptide& TargetedExperiment::getPeptideByRef(const String& ref)
   {
     if (peptide_reference_map_dirty_)
     {
@@ -333,68 +333,68 @@ namespace OpenMS
     return *(peptide_reference_map_[ref]);
   }
 
-  void TargetedExperiment::addPeptide(const Peptide & rhs)
+  void TargetedExperiment::addPeptide(const Peptide& rhs)
   {
     peptide_reference_map_dirty_ = true;
     peptides_.push_back(rhs);
   }
 
-  void TargetedExperiment::setTransitions(const std::vector<ReactionMonitoringTransition> & transitions)
+  void TargetedExperiment::setTransitions(const std::vector<ReactionMonitoringTransition>& transitions)
   {
     transitions_ = transitions;
   }
 
-  const std::vector<ReactionMonitoringTransition> & TargetedExperiment::getTransitions() const
+  const std::vector<ReactionMonitoringTransition>& TargetedExperiment::getTransitions() const
   {
     return transitions_;
   }
 
-  void TargetedExperiment::addTransition(const ReactionMonitoringTransition & transition)
+  void TargetedExperiment::addTransition(const ReactionMonitoringTransition& transition)
   {
     transitions_.push_back(transition);
   }
 
-  void TargetedExperiment::setIncludeTargets(const std::vector<IncludeExcludeTarget> & targets)
+  void TargetedExperiment::setIncludeTargets(const std::vector<IncludeExcludeTarget>& targets)
   {
     include_targets_ = targets;
   }
 
-  const std::vector<IncludeExcludeTarget> & TargetedExperiment::getIncludeTargets() const
+  const std::vector<IncludeExcludeTarget>& TargetedExperiment::getIncludeTargets() const
   {
     return include_targets_;
   }
 
-  void TargetedExperiment::addIncludeTarget(const IncludeExcludeTarget & target)
+  void TargetedExperiment::addIncludeTarget(const IncludeExcludeTarget& target)
   {
     include_targets_.push_back(target);
   }
 
-  void TargetedExperiment::setExcludeTargets(const std::vector<IncludeExcludeTarget> & targets)
+  void TargetedExperiment::setExcludeTargets(const std::vector<IncludeExcludeTarget>& targets)
   {
     exclude_targets_ = targets;
   }
 
-  const std::vector<IncludeExcludeTarget> & TargetedExperiment::getExcludeTargets() const
+  const std::vector<IncludeExcludeTarget>& TargetedExperiment::getExcludeTargets() const
   {
     return exclude_targets_;
   }
 
-  void TargetedExperiment::addExcludeTarget(const IncludeExcludeTarget & target)
+  void TargetedExperiment::addExcludeTarget(const IncludeExcludeTarget& target)
   {
     exclude_targets_.push_back(target);
   }
 
-  void TargetedExperiment::setSourceFiles(const std::vector<SourceFile> & source_files)
+  void TargetedExperiment::setSourceFiles(const std::vector<SourceFile>& source_files)
   {
     source_files_ = source_files;
   }
 
-  const std::vector<SourceFile> & TargetedExperiment::getSourceFiles() const
+  const std::vector<SourceFile>& TargetedExperiment::getSourceFiles() const
   {
     return source_files_;
   }
 
-  void TargetedExperiment::addSourceFile(const SourceFile & source_file)
+  void TargetedExperiment::addSourceFile(const SourceFile& source_file)
   {
     source_files_.push_back(source_file);
   }

@@ -74,7 +74,7 @@ namespace OpenMS
    */
 
 // Constructor for raw data, which is then centroided. Converts it to CentroidPeak objects
-  CentroidData::CentroidData(int pWindowWidth,   // width of window for quadratic fit
+  CentroidData::CentroidData(int pWindowWidth, // width of window for quadratic fit
                              boost::shared_ptr<RawData> pRawData, // Profile data object
                              bool centMode // if data are in centroid modus
                              )
@@ -86,7 +86,7 @@ namespace OpenMS
   }
 
 // Constructor for raw data, which is then centroided. Converts it to CentroidPeak objects
-  CentroidData::CentroidData(int pWindowWidth,   // width of window for quadratic fit
+  CentroidData::CentroidData(int pWindowWidth, // width of window for quadratic fit
                              boost::shared_ptr<RawData> pRawData, // Profile data object
                              double iRT, bool centMode // if data are in centroid modus
                              )
@@ -104,8 +104,8 @@ namespace OpenMS
   }
 
 // Writes data to out stream using the << operator
-  ostream & operator<<(ostream & pOut, // output stream
-                       CentroidData & pCentroidData) //
+  ostream& operator<<(ostream& pOut, // output stream
+                      CentroidData& pCentroidData)   //
   {
     list<CentroidPeak> p;
     list<CentroidPeak>::iterator pi;
@@ -122,15 +122,15 @@ namespace OpenMS
 // Public methods
 
 // get centroid peak list
-  void CentroidData::get(list<CentroidPeak> & pCentroidPeaks)
+  void CentroidData::get(list<CentroidPeak>& pCentroidPeaks)
   {
     pCentroidPeaks = fCentroidPeaks;
   }
 
 // Sets list of already centroided mass and intensity values. Converts them to CentroidPeak objects
 // These values must be sorted with respect to increasing mass
-  void CentroidData::set(vector<double> & pCentroidMasses,  // Centroided masses
-                         vector<double> & pCentroidIntens // Centroided intensities
+  void CentroidData::set(vector<double>& pCentroidMasses, // Centroided masses
+                         vector<double>& pCentroidIntens // Centroided intensities
                          )
   {
     vector<double>::iterator mi, hi;
@@ -147,7 +147,7 @@ namespace OpenMS
   }
 
 // Sets raw profile data object. Converts it to CentroidPeak objects
-  void CentroidData::set(boost::shared_ptr<RawData> pRawData   // Profile data
+  void CentroidData::set(boost::shared_ptr<RawData> pRawData // Profile data
                          )
   {
     calcCentroids(pRawData);
@@ -155,7 +155,7 @@ namespace OpenMS
   }
 
 // Calculates the precentile of all intensities and sets fNoise to it
-  void CentroidData::setNoise(double pPrctile   // percentile, which noiselevel is set to
+  void CentroidData::setNoise(double pPrctile // percentile, which noiselevel is set to
                               )
   {
     vector<double> intens;
@@ -166,7 +166,7 @@ namespace OpenMS
       intens.push_back(pi->getIntensity());
     }
 
-    sort(intens.begin(), intens.end());     // ascending order
+    sort(intens.begin(), intens.end()); // ascending order
 
     int len = (int) intens.size();
 
@@ -186,7 +186,6 @@ namespace OpenMS
     }
   }
 
-  
   void CentroidData::setWidth(int pWidth)
   {
     fWindowWidth = pWidth;
@@ -221,14 +220,14 @@ namespace OpenMS
 // A peak group is a set of peaks (ordered by mass) with maximal spacing of 1 + eps Da. If the gap is higher than
 //  1 + eps Da, then a new peak group is formed. Deisotoping only within one peak group. Start and end iterators
 // are set for the peakgroup
-  bool CentroidData::getNextPeakGroup(list<CentroidPeak>::iterator & pStart,  // start position of peak group
-                                      list<CentroidPeak>::iterator & pEnd) // end position of peak group
+  bool CentroidData::getNextPeakGroup(list<CentroidPeak>::iterator& pStart, // start position of peak group
+                                      list<CentroidPeak>::iterator& pEnd) // end position of peak group
   {
     list<CentroidPeak>::iterator pi, prev;
 
     pi = fPeakGroupStart;
     prev = fPeakGroupStart;
-    if (pi != fCentroidPeaks.end())     // FLO: Windows Fix (crash: "could not be incremented")
+    if (pi != fCentroidPeaks.end()) // FLO: Windows Fix (crash: "could not be incremented")
     {
       ++pi;
     }
@@ -245,7 +244,7 @@ namespace OpenMS
 
     pStart = fPeakGroupStart;
     pEnd = pi;
-    fPeakGroupStart = pi;     // store for next call
+    fPeakGroupStart = pi; // store for next call
 
     return fPeakGroupStart != fCentroidPeaks.end();
   }
@@ -259,7 +258,7 @@ namespace OpenMS
 // Private methods
 
 // Calculates centroides of peaks from raw data
-  void CentroidData::calcCentroids(boost::shared_ptr<RawData> pRawData)   // Profile data object
+  void CentroidData::calcCentroids(boost::shared_ptr<RawData> pRawData) // Profile data object
   { // Calculates centroide data from profile data
     // int i, hw, j;
     // double cm, toti, min_dh;
@@ -291,7 +290,7 @@ namespace OpenMS
 
       ////////////////////////////////////////////
       // centroid raw data
-      double min_dh = SuperHirnParameters::instance()->getLowIntensityMSSignalThreshold();       // min height
+      double min_dh = SuperHirnParameters::instance()->getLowIntensityMSSignalThreshold(); // min height
       int hw = fWindowWidth / 2;
 
       for (int i = 2; i < (int) masses.size() - 2; i++)
@@ -328,7 +327,7 @@ namespace OpenMS
               toti += inte;
             }
           }
-          cm = cm / toti;           // Centre of gravity = centroid
+          cm = cm / toti; // Centre of gravity = centroid
 
           // take the intensity at the apex of the profile peak:
           CentroidPeak peak(cm, intens[i], fScanRetentionTime);

@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /// creates a new instance of a AverageLinkage object
-  ClusterFunctor * AverageLinkage::create()
+  ClusterFunctor* AverageLinkage::create()
   {
     return new AverageLinkage();
   }
@@ -56,7 +56,7 @@ namespace OpenMS
   {
   }
 
-  AverageLinkage::AverageLinkage(const AverageLinkage & source) :
+  AverageLinkage::AverageLinkage(const AverageLinkage& source) :
     ClusterFunctor(source), ProgressLogger(source)
   {
   }
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  AverageLinkage & AverageLinkage::operator=(const AverageLinkage & source)
+  AverageLinkage& AverageLinkage::operator=(const AverageLinkage& source)
   {
     if (this != &source)
     {
@@ -75,7 +75,7 @@ namespace OpenMS
     return *this;
   }
 
-  void AverageLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
+  void AverageLinkage::operator()(DistanceMatrix<float>& original_distance, std::vector<BinaryTreeNode>& cluster_tree, const float threshold /*=1*/) const
   {
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)

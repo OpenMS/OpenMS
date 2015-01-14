@@ -55,7 +55,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // constructor for the object MS2Feature:
-  MS2Feature::MS2Feature(MS2Fragment * in) :
+  MS2Feature::MS2Feature(MS2Fragment* in) :
     ClusteredMS2ConsensusSpectrum(in)
   {
     ID = -1;
@@ -77,7 +77,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2Feature
-  MS2Feature::MS2Feature(const MS2Feature & tmp) :
+  MS2Feature::MS2Feature(const MS2Feature& tmp) :
     ClusteredMS2ConsensusSpectrum(tmp)
   {
     ID = tmp.ID;
@@ -85,7 +85,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2Feature
-  MS2Feature::MS2Feature(const MS2Feature * tmp) :
+  MS2Feature::MS2Feature(const MS2Feature* tmp) :
     ClusteredMS2ConsensusSpectrum(tmp)
   {
     ID = tmp->ID;

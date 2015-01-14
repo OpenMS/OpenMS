@@ -121,9 +121,9 @@ namespace OpenMS
     /*             3    ITERATION COUNT EXCEEDED.  MORE THAN 3*N ITERATIONS. */
 
     /*     ------------------------------------------------------------------ */
-    /* Subroutine */ int nnls_(double * a, integer * mda, integer * m, integer *
-                               n, double * b, double * x, double * rnorm, double * w,
-                               double * zz, integer * index, integer * mode)
+    /* Subroutine */ int nnls_(double* a, integer* mda, integer* m, integer*
+                               n, double* b, double* x, double* rnorm, double* w,
+                               double* zz, integer* index, integer* mode)
     {
       /* System generated locals */
       integer a_dim1, a_offset, i__1, i__2;
@@ -136,15 +136,15 @@ namespace OpenMS
       /* Local variables */
       static integer i__, j, l;
       static double t;
-      /* Subroutine */ int g1_(double *, double *, double *, double *, double *);
+      /* Subroutine */ int g1_(double*, double*, double*, double*, double*);
       static double cc;
-      /* Subroutine */ int h12_(integer *, integer *, integer *, integer *, double *, integer *, double *, double *, integer *, integer *, integer *);
+      /* Subroutine */ int h12_(integer *, integer *, integer *, integer *, double*, integer *, double*, double*, integer *, integer *, integer*);
       static integer ii, jj, ip;
       static double sm;
       static integer iz, jz;
       static double up, ss;
       static integer iz1, iz2, npp1;
-      double diff_(double *, double *);
+      double diff_(double*, double*);
       static integer iter;
       static double temp, wmax, alpha, asave;
       static integer itmax, izmax, nsetp;
@@ -265,7 +265,7 @@ L60:
         }
       }
       unorm = sqrt(unorm);
-      d__2 = unorm + (d__1 = a[npp1 + j * a_dim1], fabs(d__1)) * .01;   /* --changed */
+      d__2 = unorm + (d__1 = a[npp1 + j * a_dim1], fabs(d__1)) * .01; /* --changed */
       if (diff_(&d__2, &unorm) > 0.)
       {
 
@@ -550,8 +550,8 @@ L400:
       return 0;
     } /* nnls_ */
 
-    /* Subroutine */ int g1_(double * a, double * b, double * cterm,
-                             double * sterm, double * sig)
+    /* Subroutine */ int g1_(double* a, double* b, double* cterm,
+                             double* sterm, double* sig)
     {
       /* System generated locals */
       double d__1;
@@ -644,9 +644,9 @@ L400:
     /*     NCV    NUMBER OF VECTORS IN C() TO BE TRANSFORMED. IF NCV .LE. 0 */
     /*            NO OPERATIONS WILL BE DONE ON C(). */
     /*     ------------------------------------------------------------------ */
-    /* Subroutine */ int h12_(integer * mode, integer * lpivot, integer * l1,
-                              integer * m, double * u, integer * iue, double * up, double *
-                              c__, integer * ice, integer * icv, integer * ncv)
+    /* Subroutine */ int h12_(integer* mode, integer* lpivot, integer* l1,
+                              integer* m, double* u, integer* iue, double* up, double*
+                              c__, integer* ice, integer* icv, integer* ncv)
     {
       /* System generated locals */
       integer u_dim1, u_offset, i__1, i__2;
@@ -688,7 +688,7 @@ L400:
         /* L10: */
         /* Computing MAX */
         d__2 = (d__1 = u[j * u_dim1 + 1], fabs(d__1));
-        cl = std::max(d__2, cl);  /* --changed */
+        cl = std::max(d__2, cl); /* --changed */
       }
       if (cl <= 0.)
       {
@@ -796,7 +796,7 @@ L130:
       return 0;
     } /* h12_ */
 
-    double diff_(double * x, double * y)
+    double diff_(double* x, double* y)
     {
       /* System generated locals */
       double ret_val;
@@ -815,7 +815,7 @@ L130:
     } /* diff_ */
 
     /* -- added manually */
-    double d_sign_(double & a, double & b)
+    double d_sign_(double& a, double& b)
     {
       double x = (a >= 0 ? a : -a);
       return b >= 0 ? x : -x;

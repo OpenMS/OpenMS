@@ -186,7 +186,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2Info
-  MS2Info::MS2Info(const MS2Info & tmp)
+  MS2Info::MS2Info(const MS2Info& tmp)
   {
     ID = tmp.ID;
     PEP_PROB = tmp.PEP_PROB;
@@ -210,7 +210,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2Info
-  MS2Info::MS2Info(const MS2Info * tmp)
+  MS2Info::MS2Info(const MS2Info* tmp)
   {
     ID = tmp->ID;
     PEP_PROB = tmp->PEP_PROB;
@@ -234,7 +234,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  MS2Info & MS2Info::operator=(const MS2Info & tmp)
+  MS2Info& MS2Info::operator=(const MS2Info& tmp)
   {
     ID = tmp.ID;
     PEP_PROB = tmp.PEP_PROB;
@@ -259,7 +259,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // equal operator:
-  bool MS2Info::operator==(const MS2Info & tmp)
+  bool MS2Info::operator==(const MS2Info& tmp)
   {
 
     if (SQ == tmp.SQ)
@@ -517,7 +517,6 @@ namespace OpenMS
     return status;
   }
 
-
   std::map<int, double>::iterator MS2Info::get_Modification_list_start()
   {
     return MOD_LIST.begin();
@@ -533,7 +532,7 @@ namespace OpenMS
     return MOD_LIST.find(pos);
   }
 
-  std::map<int, double> * MS2Info::get_Modification_list()
+  std::map<int, double>* MS2Info::get_Modification_list()
   {
     return &(MOD_LIST);
   }

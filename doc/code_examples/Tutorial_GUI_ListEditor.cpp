@@ -33,10 +33,10 @@
 
 using namespace OpenMS;
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
   QApplication app(argc, argv);
-  ListEditor * listeditor = new ListEditor;
+  ListEditor* listeditor = new ListEditor;
   listeditor->show();
   return app.exec();
 

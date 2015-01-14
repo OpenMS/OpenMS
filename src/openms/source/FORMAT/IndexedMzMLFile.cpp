@@ -60,7 +60,7 @@ namespace OpenMS
     else parsing_success_ = false;
   }
 
-  IndexedMzMLFile::IndexedMzMLFile(String filename) 
+  IndexedMzMLFile::IndexedMzMLFile(String filename)
   {
     openFile(filename);
   }
@@ -80,7 +80,7 @@ namespace OpenMS
   {
   }
 
-  void IndexedMzMLFile::openFile(String filename) 
+  void IndexedMzMLFile::openFile(String filename)
   {
     if (filestream_.is_open())
     {
@@ -111,15 +111,15 @@ namespace OpenMS
     int spectrumToGet = id;
 
     if (!parsing_success_)
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-          "Parsing was unsuccessful, cannot read file", "");
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                  "Parsing was unsuccessful, cannot read file", "");
     if (spectrumToGet < 0)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-          String( "id needs to be positive, was " + String(id) ));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       String("id needs to be positive, was " + String(id)));
     if (spectrumToGet >= (int)getNrSpectra())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String( 
-        "id needs to be smaller than the number of spectra, was " + String(id) 
-        + " maximal allowed is " + String(getNrSpectra()) ));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(
+                                         "id needs to be smaller than the number of spectra, was " + String(id)
+                                         + " maximal allowed is " + String(getNrSpectra())));
 
     std::streampos startidx = -1;
     std::streampos endidx = -1;
@@ -172,15 +172,15 @@ namespace OpenMS
     int chromToGet = id;
 
     if (!parsing_success_)
-      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-          "Parsing was unsuccessful, cannot read file", "");
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                  "Parsing was unsuccessful, cannot read file", "");
     if (chromToGet < 0)
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-          String( "id needs to be positive, was " + String(id) ));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       String("id needs to be positive, was " + String(id)));
     if (chromToGet >= (int)getNrChromatograms())
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String( 
-        "id needs to be smaller than the number of spectra, was " + String(id) 
-        + " maximal allowed is " + String(getNrSpectra()) ));
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String(
+                                         "id needs to be smaller than the number of spectra, was " + String(id)
+                                         + " maximal allowed is " + String(getNrSpectra())));
 
     std::streampos startidx = -1;
     std::streampos endidx = -1;

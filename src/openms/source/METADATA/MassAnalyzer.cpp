@@ -72,7 +72,7 @@ namespace OpenMS
 
   }
 
-  MassAnalyzer::MassAnalyzer(const MassAnalyzer & source) :
+  MassAnalyzer::MassAnalyzer(const MassAnalyzer& source) :
     MetaInfoInterface(source),
     type_(source.type_),
     resolution_method_(source.resolution_method_),
@@ -98,7 +98,7 @@ namespace OpenMS
 
   }
 
-  MassAnalyzer & MassAnalyzer::operator=(const MassAnalyzer & source)
+  MassAnalyzer& MassAnalyzer::operator=(const MassAnalyzer& source)
   {
     if (&source == this)
       return *this;
@@ -123,7 +123,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool MassAnalyzer::operator==(const MassAnalyzer & rhs) const
+  bool MassAnalyzer::operator==(const MassAnalyzer& rhs) const
   {
     return order_ == rhs.order_ &&
            type_ == rhs.type_ &&
@@ -143,7 +143,7 @@ namespace OpenMS
            MetaInfoInterface::operator==(rhs);
   }
 
-  bool MassAnalyzer::operator!=(const MassAnalyzer & rhs) const
+  bool MassAnalyzer::operator!=(const MassAnalyzer& rhs) const
   {
     return !(operator==(rhs));
   }

@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  HPLCVisualizer::HPLCVisualizer(bool editable, QWidget * parent) :
+  HPLCVisualizer::HPLCVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<HPLC>()
   {

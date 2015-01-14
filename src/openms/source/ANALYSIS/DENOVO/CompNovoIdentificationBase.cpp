@@ -98,13 +98,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  CompNovoIdentificationBase::CompNovoIdentificationBase(const CompNovoIdentificationBase & rhs) :
+  CompNovoIdentificationBase::CompNovoIdentificationBase(const CompNovoIdentificationBase& rhs) :
     DefaultParamHandler(rhs)
   {
     updateMembers_();
   }
 
-  CompNovoIdentificationBase & CompNovoIdentificationBase::operator=(const CompNovoIdentificationBase & rhs)
+  CompNovoIdentificationBase& CompNovoIdentificationBase::operator=(const CompNovoIdentificationBase& rhs)
   {
     if (this != &rhs)
     {
@@ -119,7 +119,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum & spec, const String & sequence, double prefix, double suffix)
+  void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum& spec, const String& sequence, double prefix, double suffix)
   {
     static double h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
     Peak1D p;
@@ -152,7 +152,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, double prefix, double suffix)
+  void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum& spec, const String& sequence, Size charge, double prefix, double suffix)
   {
     static double h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
     static double nh3_mass = EmpiricalFormula("NH3").getMonoWeight();
@@ -241,7 +241,7 @@ namespace OpenMS
           // H2O loss
           p.setPosition((y_pos + z * Constants::PROTON_MASS_U - h2o_mass) / (double)z);
           p.setIntensity(0.1 / (double)(z * z));
-          if (aa2 == 'Q')           // pyroglutamic acid formation
+          if (aa2 == 'Q') // pyroglutamic acid formation
           {
             p.setIntensity(0.5f);
           }
@@ -292,7 +292,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationBase::filterPermuts_(set<String> & permut)
+  void CompNovoIdentificationBase::filterPermuts_(set<String>& permut)
   {
     set<String> tmp;
     for (set<String>::const_iterator it = permut.begin(); it != permut.end(); ++it)
@@ -313,7 +313,7 @@ namespace OpenMS
     return;
   }
 
-  Size CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String & peptide) const
+  Size CompNovoIdentificationBase::countMissedCleavagesTryptic_(const String& peptide) const
   {
     Size missed_cleavages(0);
 
@@ -332,7 +332,7 @@ namespace OpenMS
     return missed_cleavages;
   }
 
-  void CompNovoIdentificationBase::permute_(String prefix, String s, set<String> & permutations)
+  void CompNovoIdentificationBase::permute_(String prefix, String s, set<String>& permutations)
   {
     if (s.size() <= 1)
     {
@@ -350,7 +350,7 @@ namespace OpenMS
     }
   }
 
-  void CompNovoIdentificationBase::getDecompositions_(vector<MassDecomposition> & decomps, double mass, bool no_caching)
+  void CompNovoIdentificationBase::getDecompositions_(vector<MassDecomposition>& decomps, double mass, bool no_caching)
   {
     //static Map<double, vector<MassDecomposition> > decomp_cache;
     if (!no_caching)
@@ -373,7 +373,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, Map<double, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, double precursor_weight, bool full_range)
+  void CompNovoIdentificationBase::selectPivotIons_(vector<Size>& pivots, Size left, Size right, Map<double, CompNovoIonScoringBase::IonScore>& ion_scores, const PeakSpectrum& CID_spec, double precursor_weight, bool full_range)
   {
 #ifdef SELECT_PIVOT_DEBUG
     cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
@@ -482,7 +482,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   }
 
   // s1 should be the original spectrum
-  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2)
+  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum& s1, const PeakSpectrum& s2)
   {
     double score(0.0);
 
@@ -519,12 +519,12 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     return score;
   }
 
-  bool Internal::PermutScoreComparator(const CompNovoIdentificationBase::Permut & p1, const CompNovoIdentificationBase::Permut & p2)
+  bool Internal::PermutScoreComparator(const CompNovoIdentificationBase::Permut& p1, const CompNovoIdentificationBase::Permut& p2)
   {
     return p1.getScore() > p2.getScore();
   }
 
-  void CompNovoIdentificationBase::windowMower_(PeakSpectrum & spec, double windowsize, Size no_peaks)
+  void CompNovoIdentificationBase::windowMower_(PeakSpectrum& spec, double windowsize, Size no_peaks)
   {
     PeakSpectrum copy(spec);
     vector<Peak1D> to_be_deleted;
@@ -569,7 +569,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
   }
 
-  void CompNovoIdentificationBase::filterDecomps_(vector<MassDecomposition> & decomps)
+  void CompNovoIdentificationBase::filterDecomps_(vector<MassDecomposition>& decomps)
   {
     Size max_number_aa_per_decomp(param_.getValue("max_number_aa_per_decomp"));
     vector<MassDecomposition> tmp;
@@ -601,7 +601,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     }
   }
 
-  AASequence CompNovoIdentificationBase::getModifiedAASequence_(const String & sequence)
+  AASequence CompNovoIdentificationBase::getModifiedAASequence_(const String& sequence)
   {
     AASequence seq;
     for (String::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
@@ -619,7 +619,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     return seq;
   }
 
-  String CompNovoIdentificationBase::getModifiedStringFromAASequence_(const AASequence & sequence)
+  String CompNovoIdentificationBase::getModifiedStringFromAASequence_(const AASequence& sequence)
   {
     String seq;
     for (AASequence::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
@@ -641,8 +641,8 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     // init residue mass table
     String residue_set(param_.getValue("residue_set"));
 
-    set<const Residue *> residues = ResidueDB::getInstance()->getResidues(residue_set);
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    set<const Residue*> residues = ResidueDB::getInstance()->getResidues(residue_set);
+    for (set<const Residue*>::const_iterator it = residues.begin(); it != residues.end(); ++it)
     {
       aa_to_weight_[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
     }
@@ -698,7 +698,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
       //cerr << "Setting fixed modification " << it->getModification() << " of amino acid '" << aa << "'; weight = " << aa_to_weight_[aa] << endl;
 
-      const Residue * res = ResidueDB::getInstance()->getModifiedResidue(it->getModification());
+      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(it->getModification());
       name_to_residue_[aa] = res;
       residue_to_name_[res] = aa;
     }
@@ -741,7 +741,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
       }
 
       //cerr << "Mapping variable modification " << it->getModification() << " to letter '" << aa << "' (@" << origin_aa << "); weight = " << aa_to_weight_[aa] << endl;
-      const Residue * res = ResidueDB::getInstance()->getModifiedResidue(it->getModification());
+      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(it->getModification());
       name_to_residue_[aa] = res;
       residue_to_name_[res] = aa;
     }

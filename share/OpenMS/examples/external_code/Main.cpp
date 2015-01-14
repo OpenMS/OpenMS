@@ -35,7 +35,7 @@
 using namespace OpenMS;
 using namespace OpenMSExternal;
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
 
   FeatureMap fm;

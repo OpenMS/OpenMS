@@ -236,7 +236,7 @@ protected:
       isotope_filename;
 
     bool
-      inspect_in(false),
+    inspect_in(false),
     inspect_out(false),
     blind_only(false),
     blind(false),

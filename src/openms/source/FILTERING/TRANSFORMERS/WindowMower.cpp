@@ -54,12 +54,12 @@ namespace OpenMS
   {
   }
 
-  WindowMower::WindowMower(const WindowMower & source) :
+  WindowMower::WindowMower(const WindowMower& source) :
     DefaultParamHandler(source)
   {
   }
 
-  WindowMower & WindowMower::operator=(const WindowMower & source)
+  WindowMower& WindowMower::operator=(const WindowMower& source)
   {
     if (this != &source)
     {
@@ -68,20 +68,21 @@ namespace OpenMS
     return *this;
   }
 
-  void WindowMower::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void WindowMower::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     bool sliding = (String)param_.getValue("movetype") == "slide" ? true : false;
 
     if (sliding)
     {
       filterPeakSpectrumForTopNInSlidingWindow(spectrum);
-    } else
+    }
+    else
     {
       filterPeakSpectrumForTopNInJumpingWindow(spectrum);
     }
   }
 
-  void WindowMower::filterPeakMap(PeakMap & exp)
+  void WindowMower::filterPeakMap(PeakMap& exp)
   {
     bool sliding = (String)param_.getValue("movetype") == "slide" ? true : false;
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
@@ -89,7 +90,8 @@ namespace OpenMS
       if (sliding)
       {
         filterPeakSpectrumForTopNInSlidingWindow(*it);
-      } else
+      }
+      else
       {
         filterPeakSpectrumForTopNInJumpingWindow(*it);
       }

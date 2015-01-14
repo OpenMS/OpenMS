@@ -144,7 +144,7 @@ protected:
     for (Size i = 0; i < file_list.size(); ++i)
     {
       MzMLFile swath_file;
-      MapTypePtr swath_map (new MapType);
+      MapTypePtr swath_map(new MapType);
       FeatureMap featureFile;
       std::cout << "Loading file " << file_list[i] << std::endl;
 
@@ -201,9 +201,9 @@ protected:
       //featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
       //transition_exp_used, trafo, swath_ptr, transition_group_map);
       //FeatureXMLFile().store(out, out_featureFile);
-    }         //end of for loop
+    } //end of for loop
     return EXECUTION_OK;
-  }       //end of _main
+  } //end of _main
 
 };
 

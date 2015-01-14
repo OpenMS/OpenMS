@@ -46,7 +46,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TOPPViewSpectraViewBehavior::TOPPViewSpectraViewBehavior(TOPPViewBase * parent) :
+  TOPPViewSpectraViewBehavior::TOPPViewSpectraViewBehavior(TOPPViewBase* parent) :
     tv_(parent)
   {
   }
@@ -57,11 +57,11 @@ namespace OpenMS
   {
 
     // basic behavior 1
-    const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
+    const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
     // open new 1D widget
-    Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
 
     if (layer.type == LayerData::DT_CHROMATOGRAM)
     {
@@ -72,10 +72,10 @@ namespace OpenMS
       ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
       chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
       SpectrumType spectrum;
-      const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[index];
+      const MSChromatogram<ChromatogramPeak>& current_chrom = exp_sptr->getChromatograms()[index];
       for (Size i = 0; i != current_chrom.size(); ++i)
       {
-        const ChromatogramPeak & cpeak = current_chrom[i];
+        const ChromatogramPeak& cpeak = current_chrom[i];
         Peak1D peak1d;
         peak1d.setMZ(cpeak.getRT());
         peak1d.setIntensity(cpeak.getIntensity());
@@ -151,7 +151,7 @@ namespace OpenMS
 
     // show multiple spectra together is only used for chromatograms directly
     // where multiple (SRM) traces are shown together
-    const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
+    const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
     ExperimentSharedPtrType exp_sptr = layer.getPeakData();
 
     // string for naming the different chromatogram layers with their index
@@ -160,7 +160,7 @@ namespace OpenMS
     caption = layer.name;
 
     //open new 1D widget
-    Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+    Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget*)tv_->getWorkspace());
     // fix legend if its a chromatogram
     w->xAxis()->setLegend("Time [sec]");
 
@@ -174,10 +174,10 @@ namespace OpenMS
       if (layer.type == LayerData::DT_CHROMATOGRAM)
       {
 
-        const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[indices[index]];
+        const MSChromatogram<ChromatogramPeak>& current_chrom = exp_sptr->getChromatograms()[indices[index]];
         for (Size i = 0; i != current_chrom.size(); ++i)
         {
-          const ChromatogramPeak & cpeak = current_chrom[i];
+          const ChromatogramPeak& cpeak = current_chrom[i];
           Peak1D peak1d;
           peak1d.setMZ(cpeak.getRT());
           peak1d.setIntensity(cpeak.getIntensity());
@@ -225,9 +225,9 @@ namespace OpenMS
 
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(int index)
   {
-    Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
+    Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
     widget_1d->canvas()->activateSpectrum(index);
-    const LayerData & layer = tv_->getActiveCanvas()->getCurrentLayer();
+    const LayerData& layer = tv_->getActiveCanvas()->getCurrentLayer();
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
@@ -236,7 +236,7 @@ namespace OpenMS
     {
       // first get chromatogram data
       ExperimentSharedPtrType exp_sptr = widget_1d->canvas()->getCurrentLayer().getChromatogramData();
-      const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
+      const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
       String fname = layer.filename;
       String lname = layer.name;
 
@@ -249,10 +249,10 @@ namespace OpenMS
       // create a managed pointer fill it with a spectrum containing the chromatographic data
       ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
       SpectrumType spectrum;
-      const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[index];
+      const MSChromatogram<ChromatogramPeak>& current_chrom = exp_sptr->getChromatograms()[index];
       for (Size i = 0; i != current_chrom.size(); ++i)
       {
-        const ChromatogramPeak & cpeak = current_chrom[i];
+        const ChromatogramPeak& cpeak = current_chrom[i];
         Peak1D peak1d;
         peak1d.setMZ(cpeak.getRT());
         peak1d.setIntensity(cpeak.getIntensity());
@@ -285,12 +285,12 @@ namespace OpenMS
 
   void TOPPViewSpectraViewBehavior::activate1DSpectrum(std::vector<int, std::allocator<int> > indices)
   {
-    Spectrum1DWidget * widget_1d = tv_->getActive1DWidget();
+    Spectrum1DWidget* widget_1d = tv_->getActive1DWidget();
 
     // If we have a chromatogram, we cannot just simply activate this spectrum.
     // we have to do much more work, e.g. creating a new experiment with the
     // new spectrum.
-    const LayerData & layer = widget_1d->canvas()->getCurrentLayer();
+    const LayerData& layer = widget_1d->canvas()->getCurrentLayer();
     String fname = layer.filename;
     if (layer.chromatogram_flag_set())
     {
@@ -309,10 +309,10 @@ namespace OpenMS
         // create a managed pointer fill it with a spectrum containing the chromatographic data
         ExperimentSharedPtrType chrom_exp_sptr(new ExperimentType());
         SpectrumType spectrum;
-        const MSChromatogram<ChromatogramPeak> & current_chrom = exp_sptr->getChromatograms()[indices[index]];
+        const MSChromatogram<ChromatogramPeak>& current_chrom = exp_sptr->getChromatograms()[indices[index]];
         for (Size i = 0; i != current_chrom.size(); ++i)
         {
-          const ChromatogramPeak & cpeak = current_chrom[i];
+          const ChromatogramPeak& cpeak = current_chrom[i];
           Peak1D peak1d;
           peak1d.setMZ(cpeak.getRT());
           peak1d.setIntensity(cpeak.getIntensity());

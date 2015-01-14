@@ -40,7 +40,7 @@ namespace OpenMS
 {
 
   DTAFile::DTAFile() :
-      default_ms_level_(2) // set default to MS2
+    default_ms_level_(2)   // set default to MS2
   {
   }
 

@@ -777,9 +777,8 @@ protected:
         PeakMap map_chunk;
         PeakMap* chunk_ptr = &map_chunk; // points to the current chunk data
         // prepare a chunk
-        if (static_cast<int>(map.size()) <= chunk_size)
-        { // we have only one chunk; avoid duplicating the whole data (could be a lot)
-          // we do not use swap() since someone might want to access 'map' later and would find it empty
+        if (static_cast<int>(map.size()) <= chunk_size) // we have only one chunk; avoid duplicating the whole data (could be a lot)
+        { // we do not use swap() since someone might want to access 'map' later and would find it empty
           chunk_ptr = &map;
         }
         else
@@ -906,8 +905,8 @@ protected:
         peptide_ids = peptide_ids_chunk;
         protein_identification = protein_identification_chunk;
       }
-      else
-      { // add only first prot ID to have a valid id-identifier mapping (but leave hits empty)
+      else // add only first prot ID to have a valid id-identifier mapping (but leave hits empty)
+      {
         if (i == 0)
         {
           protein_identification = protein_identification_chunk;

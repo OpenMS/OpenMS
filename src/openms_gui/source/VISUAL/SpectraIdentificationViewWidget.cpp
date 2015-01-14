@@ -119,7 +119,7 @@ namespace OpenMS
     table_widget_->setSelectionBehavior(QAbstractItemView::SelectRows);
     table_widget_->setShowGrid(false);
 
-    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem*, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem*, QTableWidgetItem*)));
+    connect(table_widget_, SIGNAL(currentItemChanged(QTableWidgetItem *, QTableWidgetItem*)), this, SLOT(spectrumSelectionChange_(QTableWidgetItem *, QTableWidgetItem*)));
 
     spectra_widget_layout->addWidget(table_widget_);
 

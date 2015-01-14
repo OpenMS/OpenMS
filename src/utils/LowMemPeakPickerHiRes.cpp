@@ -115,7 +115,7 @@ class TOPPLowMemPeakPickerHiRes :
 {
 public:
   TOPPLowMemPeakPickerHiRes() :
-    TOPPBase("LowMemPeakPickerHiRes", "Finds mass spectrometric peaks in profile mass spectra.",false)
+    TOPPBase("LowMemPeakPickerHiRes", "Finds mass spectrometric peaks in profile mass spectra.", false)
   {
   }
 
@@ -125,7 +125,7 @@ protected:
     public MSDataWritingConsumer
   {
 
-  public:
+public:
 
     PPHiResMzMLConsumer(String filename, PeakPickerHiRes pp) :
       MSDataWritingConsumer(filename),
@@ -134,19 +134,19 @@ protected:
       pp_ = pp;
     }
 
-    void processSpectrum_(MapType::SpectrumType & s)
+    void processSpectrum_(MapType::SpectrumType& s)
     {
-      if (!ListUtils::contains(ms1_levels_, s.getMSLevel())) {return;}
+      if (!ListUtils::contains(ms1_levels_, s.getMSLevel())) {return; }
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
       s = sout;
     }
 
-    void processChromatogram_(MapType::ChromatogramType & /* c */)
+    void processChromatogram_(MapType::ChromatogramType& /* c */)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Cannot handle chromatograms yet.");
+                                       "Cannot handle chromatograms yet.");
     }
 
     PeakPickerHiRes pp_;
@@ -163,12 +163,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return PeakPickerHiRes().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -236,7 +236,7 @@ protected:
     PeakPickerHiRes pp;
     pp.setLogType(log_type_);
     pp.setParameters(pepi_param);
-    PPHiResMzMLConsumer * ppConsumer = new PPHiResMzMLConsumer(out, pp);
+    PPHiResMzMLConsumer* ppConsumer = new PPHiResMzMLConsumer(out, pp);
     ppConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
     ///////////////////////////////////
@@ -253,7 +253,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPLowMemPeakPickerHiRes tool;
   return tool.main(argc, argv);

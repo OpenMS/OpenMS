@@ -88,7 +88,7 @@ namespace OpenMS
 
         if (denominator > 0.0)
         {
-          fegh =  m_data->traces_ptr->baseline + trace.theoretical_int * H * exp(-t_diff2 / denominator);
+          fegh =  m_data->traces_ptr->baseline + trace.theoretical_int* H* exp(-t_diff2 / denominator);
         }
         else
         {
@@ -304,8 +304,8 @@ namespace OpenMS
     s << "("; // the overall bracket
     s << "((" << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )) > 0) ? "; // condition
     s <<  (trace.theoretical_int *  height_) << " * exp(-1 * (x - " << (rt_shift + apex_rt_) << ")**2 " <<
-      "/" <<
-      " ( " << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )))";
+    "/" <<
+    " ( " << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )))";
     s << " : 0)";
     return String(s.str());
   }
@@ -354,8 +354,8 @@ namespace OpenMS
 
     // compute moving average for smoothing:
     const Size N = total_intensities.size();
-    const Size LEN = 2;   // window size: 2 * LEN + 1
-    std::vector<double> totals(N + 2 * LEN);   // pad with zeros at ends
+    const Size LEN = 2; // window size: 2 * LEN + 1
+    std::vector<double> totals(N + 2 * LEN); // pad with zeros at ends
     Int index = LEN;
     // LOG_DEBUG << "Summed intensities:\n";
     for (std::list<std::pair<double, double> >::iterator it =
@@ -366,7 +366,7 @@ namespace OpenMS
     }
 
     std::vector<double> smoothed(N);
-    Size max_index = 0;   // index of max. smoothed intensity
+    Size max_index = 0; // index of max. smoothed intensity
     // LOG_DEBUG << "Smoothed intensities:\n";
     double sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
     for (Size i = 0; i < N; ++i)
@@ -414,7 +414,7 @@ namespace OpenMS
     //LOG_DEBUG << "B: " << B << std::endl;
 
     // compute estimates for tau / sigma based on A and B:
-    double alpha = (left_height + right_height) * 0.5 / height_;   // ~0.5
+    double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
     double log_alpha = log(alpha);
 
     tau_ = -1 / log_alpha * (B - A);

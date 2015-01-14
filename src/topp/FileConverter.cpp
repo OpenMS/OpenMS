@@ -137,7 +137,7 @@ protected:
     String formats("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
-    
+
     registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique ID post-processing for output data.\n'none' keeps current IDs even if invalid.\n'ensure' keeps current IDs but reassigns invalid ones.\n'reassign' assigns new unique IDs.", false);
     String method("none,ensure,reassign");
     setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
@@ -282,7 +282,7 @@ protected:
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-          "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
+                                         "Process_lowmemory option can only be used with mzML / mzXML input and mzML output data types.");
       }
     }
     else
@@ -365,7 +365,8 @@ protected:
         if (uid_postprocessing == "ensure")
         {
           fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        } else if (uid_postprocessing == "reassign")
+        }
+        else if (uid_postprocessing == "reassign")
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
@@ -417,7 +418,8 @@ protected:
         if (uid_postprocessing == "ensure")
         {
           fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-        } else if (uid_postprocessing == "reassign")
+        }
+        else if (uid_postprocessing == "reassign")
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }

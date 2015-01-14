@@ -156,7 +156,7 @@ namespace OpenMS
     {
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
-        continue; // no points from this map
+        continue;  // no points from this map
       for (std::multimap<double, GridFeature*>::iterator feat_it =
              pos->second.begin(); feat_it != pos->second.end(); ++feat_it)
       {

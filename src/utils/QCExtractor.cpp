@@ -77,14 +77,14 @@ using namespace std;
     </CENTER>
 
     If there is a table attached to a qp that is needed as a single file. The qcml file to extract from is given with @p in.
-    
+
     - @p qp defines the qp name to which the table is attached;
     - @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
     - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
     - @p set/run if the target qp is contained in a set, this has to be set here;
-    
-    Output is in csv format (see parameter @p out_csv) which can be easily parsed by many programs. 
-    
+
+    Output is in csv format (see parameter @p out_csv) which can be easily parsed by many programs.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCExtractor.cli
     <B>INI file documentation of this tool:</B>
@@ -98,7 +98,7 @@ class TOPPQCExtractor :
   public TOPPBase
 {
 public:
-  TOPPQCExtractor():
+  TOPPQCExtractor() :
     TOPPBase("QCExtractor", "Extracts a table attachment to a given qc parameter.", false)
   {
   }
@@ -157,7 +157,7 @@ protected:
     String csv_str = "";
     if (target_qp == "set id")
     {
-      if (qcmlfile.existsSet(target_run,true))
+      if (qcmlfile.existsSet(target_run, true))
       {
         csv_str = qcmlfile.exportIDstats(target_run);
       }

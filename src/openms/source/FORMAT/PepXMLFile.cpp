@@ -329,14 +329,14 @@ namespace OpenMS
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getNTerminalModification(), ResidueModification::N_TERM);
             f << " mod_nterm_mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
+            precisionWrapper(mod.getMonoMass() + seq[(Size)0].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           if (seq.hasCTerminalModification())
           {
             const ResidueModification& mod = ModificationsDB::getInstance()->getTerminalModification(seq.getCTerminalModification(), ResidueModification::C_TERM);
             f << "mod_cterm_mass=\"" <<
-              precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
+            precisionWrapper(mod.getMonoMass() + seq[seq.size() - 1].getMonoWeight(Residue::Internal)) << "\"";
           }
 
           f << ">" << "\n";
@@ -349,7 +349,7 @@ namespace OpenMS
               // the modification position is 1-based
               f << "\t\t\t\t<mod_aminoacid_mass position=\"" << (i + 1)
                 << "\" mass=\"" <<
-                precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
+              precisionWrapper(mod.getMonoMass() + seq[i].getMonoWeight(Residue::Internal)) << "\"/>" << "\n";
             }
           }
 

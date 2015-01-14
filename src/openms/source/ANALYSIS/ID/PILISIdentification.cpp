@@ -71,7 +71,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PILISIdentification::PILISIdentification(const PILISIdentification & rhs) :
+  PILISIdentification::PILISIdentification(const PILISIdentification& rhs) :
     DefaultParamHandler(rhs),
     /* sequence_db_(0),*/
     hmm_model_(0),
@@ -81,7 +81,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PILISIdentification & PILISIdentification::operator=(const PILISIdentification & rhs)
+  PILISIdentification& PILISIdentification::operator=(const PILISIdentification& rhs)
   {
     if (this != &rhs)
     {
@@ -119,7 +119,7 @@ delete sequence_db_;
         sequence_db_ = sequence_db;
     }
 */
-  void PILISIdentification::setModel(PILISModel * hmm_model)
+  void PILISIdentification::setModel(PILISModel* hmm_model)
   {
     if (own_model_)
     {
@@ -130,7 +130,7 @@ delete sequence_db_;
     return;
   }
 
-  PILISModel * PILISIdentification::getPILISModel_()
+  PILISModel* PILISIdentification::getPILISModel_()
   {
     if (hmm_model_ == 0)
     {
@@ -140,7 +140,7 @@ delete sequence_db_;
     return hmm_model_;
   }
 
-  void PILISIdentification::getIdentifications(const vector<map<String, UInt> > & candidates, vector<PeptideIdentification> & ids, const RichPeakMap & exp)
+  void PILISIdentification::getIdentifications(const vector<map<String, UInt> >& candidates, vector<PeptideIdentification>& ids, const RichPeakMap& exp)
   {
     UInt max_candidates = (UInt)param_.getValue("max_candidates");
     UInt count(0);
@@ -182,7 +182,7 @@ delete sequence_db_;
     return;
   }
 
-  void PILISIdentification::getIdentification(const map<String, UInt> & candidates, PeptideIdentification & id, const RichPeakSpectrum & spec)
+  void PILISIdentification::getIdentification(const map<String, UInt>& candidates, PeptideIdentification& id, const RichPeakSpectrum& spec)
   {
     if (spec.getMSLevel() != 2)
     {
@@ -262,7 +262,7 @@ delete sequence_db_;
     return;
   }
 
-  void PILISIdentification::getPreIdentification_(PeptideIdentification & id, const RichPeakSpectrum & spec, const map<String, UInt> & cand_peptides)
+  void PILISIdentification::getPreIdentification_(PeptideIdentification& id, const RichPeakSpectrum& spec, const map<String, UInt>& cand_peptides)
   {
     // get simple spectra to pre-eliminate most of the candidates
     for (map<String, UInt>::const_iterator it1 = cand_peptides.begin(); it1 != cand_peptides.end(); ++it1)
@@ -275,7 +275,7 @@ delete sequence_db_;
         AASequence seq = AASequence::fromString(it1->first);
         getSpectrum_(sim_spec, it1->first, it1->second);
       }
-      catch (Exception::ParseError & /*e*/)
+      catch (Exception::ParseError& /*e*/)
       {
         cerr << "Peptide sequence " << it1->first << " cannot be processed" << endl;
         continue;
@@ -303,7 +303,7 @@ delete sequence_db_;
     return;
   }
 
-  void PILISIdentification::getFinalIdentification_(PeptideIdentification & id, const RichPeakSpectrum & spec, const PeptideIdentification & pre_id)
+  void PILISIdentification::getFinalIdentification_(PeptideIdentification& id, const RichPeakSpectrum& spec, const PeptideIdentification& pre_id)
   {
     UInt max_candidates = (UInt)param_.getValue("max_candidates");
     sim_specs_.clear();
@@ -338,7 +338,7 @@ delete sequence_db_;
     return;
   }
 
-  void PILISIdentification::getSpectrum_(RichPeakSpectrum & spec, const String & sequence, int charge)
+  void PILISIdentification::getSpectrum_(RichPeakSpectrum& spec, const String& sequence, int charge)
   {
     double b_pos(0);
     double y_pos(18);
@@ -447,7 +447,7 @@ delete sequence_db_;
       //cerr << fixed_modifications << endl;
       vector<String> mod_split;
 
-      fixed_modifications.split(',', mod_split);       // comma separated modifications
+      fixed_modifications.split(',', mod_split); // comma separated modifications
 
       // now get the modifications
       for (Size i = 0; i != mod_split.size(); ++i)

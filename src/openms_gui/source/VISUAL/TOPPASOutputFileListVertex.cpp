@@ -340,8 +340,8 @@ namespace OpenMS
     TOPPASVertex* tv = e->getSourceVertex();
     // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
     String dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-"
-                                                                  + tv->getName() + "-" 
-                                                                  + e->getSourceOutParamName().remove(':');
+                 + tv->getName() + "-"
+                 + e->getSourceOutParamName().remove(':');
     return dir;
   }
 

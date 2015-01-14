@@ -43,14 +43,14 @@ namespace OpenMS
     DefaultParamHandler("TOFCalibration"), ProgressLogger()
   {
     subsections_.push_back("PeakPicker");
-    check_defaults_ = false;   // class has no own parameters
+    check_defaults_ = false; // class has no own parameters
   }
 
   TOFCalibration::~TOFCalibration()
   {
   }
 
-  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<> & calib_spectra)
+  void TOFCalibration::calculateCalibCoeffs_(MSExperiment<>& calib_spectra)
   {
     // flight times are needed later
     calib_peaks_ft_ = calib_spectra;
@@ -94,9 +94,9 @@ namespace OpenMS
       qr.computeRegression(x.begin(), x.end(), y.begin());
 
 #ifdef DEBUG_CALIBRATION
-      std::cout << "chi^2: " << qr.getChiSquared() << std::endl;//DEBUG
+      std::cout << "chi^2: " << qr.getChiSquared() << std::endl; //DEBUG
       std::cout << "a: " << qr.getA() << "b: " << qr.getB()
-            << "c: " << qr.getC() << std::endl;//DEBUG
+                << "c: " << qr.getC() << std::endl; //DEBUG
 #endif
       // store the coefficients
       coeff_quad_fit_.push_back(qr.getA());
@@ -160,10 +160,10 @@ namespace OpenMS
     }
   }
 
-  void TOFCalibration::matchMasses_(MSExperiment<> & calib_peaks,
-                                    std::vector<std::vector<unsigned int> > & monoiso_peaks,
-                                    std::vector<unsigned int> & obs_masses,
-                                    std::vector<double> & exp_masses, unsigned int idx)
+  void TOFCalibration::matchMasses_(MSExperiment<>& calib_peaks,
+                                    std::vector<std::vector<unsigned int> >& monoiso_peaks,
+                                    std::vector<unsigned int>& obs_masses,
+                                    std::vector<double>& exp_masses, unsigned int idx)
   {
     for (unsigned int i = 0; i < monoiso_peaks[idx].size(); ++i)
     {
@@ -192,7 +192,7 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::getMonoisotopicPeaks_(MSExperiment<> & calib_peaks, std::vector<std::vector<unsigned int> > & monoiso_peaks)
+  void TOFCalibration::getMonoisotopicPeaks_(MSExperiment<>& calib_peaks, std::vector<std::vector<unsigned int> >& monoiso_peaks)
   {
 
     MSExperiment<>::iterator spec_iter = calib_peaks.begin();
@@ -255,7 +255,7 @@ namespace OpenMS
 #endif
   }
 
-  void TOFCalibration::applyTOFConversion_(MSExperiment<> & calib_spectra)
+  void TOFCalibration::applyTOFConversion_(MSExperiment<>& calib_spectra)
   {
     MSExperiment<>::iterator spec_iter = calib_spectra.begin();
     MSExperiment<>::SpectrumType::iterator peak_iter;

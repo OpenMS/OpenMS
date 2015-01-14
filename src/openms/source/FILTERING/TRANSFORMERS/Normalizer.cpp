@@ -53,12 +53,12 @@ namespace OpenMS
   {
   }
 
-  Normalizer::Normalizer(const Normalizer & source) :
+  Normalizer::Normalizer(const Normalizer& source) :
     DefaultParamHandler(source)
   {
   }
 
-  Normalizer & Normalizer::operator=(const Normalizer & source)
+  Normalizer& Normalizer::operator=(const Normalizer& source)
   {
     if (this != &source)
     {
@@ -67,12 +67,12 @@ namespace OpenMS
     return *this;
   }
 
-  void Normalizer::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void Normalizer::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void Normalizer::filterPeakMap(PeakMap & exp)
+  void Normalizer::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

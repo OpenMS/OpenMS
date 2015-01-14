@@ -59,7 +59,7 @@ namespace OpenMS
     brush_color_ = Qt::lightGray;
   }
 
-  TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex & rhs) :
+  TOPPASMergerVertex::TOPPASMergerVertex(const TOPPASMergerVertex& rhs) :
     TOPPASVertex(rhs),
     round_based_mode_(rhs.round_based_mode_)
   {
@@ -71,7 +71,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASMergerVertex & TOPPASMergerVertex::operator=(const TOPPASMergerVertex & rhs)
+  TOPPASMergerVertex& TOPPASMergerVertex::operator=(const TOPPASMergerVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
     round_based_mode_ = rhs.round_based_mode_;
@@ -84,11 +84,11 @@ namespace OpenMS
     return "MergerVertex";
   }
 
-  void TOPPASMergerVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * /*e*/)
+  void TOPPASMergerVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
   {
   }
 
-  void TOPPASMergerVertex::paint(QPainter * painter, const QStyleOptionGraphicsItem * /*option*/, QWidget * /*widget*/)
+  void TOPPASMergerVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/)
   {
     __DEBUG_BEGIN_METHOD__
 
@@ -133,7 +133,7 @@ namespace OpenMS
     if (this->allow_output_recycling_)
     {
       painter->setPen(Qt::green);
-      QSvgRenderer * svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
+      QSvgRenderer* svg_renderer = new QSvgRenderer(QString(":/Recycling_symbol.svg"), 0);
       svg_renderer->render(painter, QRectF(-7, -32, 14, 14));
     }
 
@@ -163,7 +163,7 @@ namespace OpenMS
     bool some_input_reachable_ = false;
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv = (*it)->getSourceVertex();
       if (tv->isReachable())
       {
         some_input_reachable_ = true;
@@ -179,7 +179,7 @@ namespace OpenMS
   void TOPPASMergerVertex::run()
   {
     //check if everything ready
-    if (!isUpstreamFinished())  return;
+    if (!isUpstreamFinished()) return;
 
     RoundPackages pkg;
     String error_msg("");
@@ -193,8 +193,8 @@ namespace OpenMS
 
     /// update round status
     Size input_rounds = pkg.size();
-    round_total_ = (round_based_mode_ ? (int) input_rounds : 1);  // for round based: take number of rounds from previous tool(s) - should all be equal
-    round_counter_ = 0;        // once round_counter_ reaches round_total_, we are done
+    round_total_ = (round_based_mode_ ? (int) input_rounds : 1); // for round based: take number of rounds from previous tool(s) - should all be equal
+    round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
 
     // clear output file list
     output_files_.clear();
@@ -209,10 +209,10 @@ namespace OpenMS
            ite != pkg[round].end();
            ++ite)
       {
-        files.append(ite->second.filenames);   // concat filenames from all incoming edges
+        files.append(ite->second.filenames); // concat filenames from all incoming edges
       }
       Size round_index = (round_based_mode_ ? round : 0);
-      output_files_[round_index][-1].filenames.append(files);    // concat over all rounds (if required)
+      output_files_[round_index][-1].filenames.append(files); // concat over all rounds (if required)
     }
 
     round_counter_ = round_total_;
@@ -221,7 +221,7 @@ namespace OpenMS
     // call all children, proceed in pipeline
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = (*it)->getTargetVertex();
+      TOPPASVertex* tv = (*it)->getTargetVertex();
       debugOut_(String("Starting child ") + tv->getTopoNr());
       tv->run();
     }

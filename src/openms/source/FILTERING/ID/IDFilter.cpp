@@ -620,7 +620,7 @@ namespace OpenMS
         filtered_groups.push_back(filtered);
       }
     }
-    
+
     return valid;
   }
 

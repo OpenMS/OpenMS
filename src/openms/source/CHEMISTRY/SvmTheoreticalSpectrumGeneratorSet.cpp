@@ -94,7 +94,7 @@ namespace OpenMS
     TextFile file(filename);
     TextFile::ConstIterator it = file.begin();
 
-    if (it == file.end()) return; // no data to load
+    if (it == file.end()) return;  // no data to load
 
     // skip header line
     ++it;

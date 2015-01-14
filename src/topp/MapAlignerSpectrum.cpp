@@ -107,7 +107,7 @@ protected:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "algorithm")
     {
@@ -118,10 +118,10 @@ protected:
     {
       return getModelDefaults("interpolated");
     }
-    return Param();     // shouldn't happen
+    return Param(); // shouldn't happen
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     MapAlignmentAlgorithmSpectrumAlignment algorithm;
     return TOPPMapAlignerBase::commonMain_(&algorithm);
@@ -130,7 +130,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapAlignerSpectrum tool;
   return tool.main(argc, argv);

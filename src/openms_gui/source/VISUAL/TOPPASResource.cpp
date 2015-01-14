@@ -39,7 +39,7 @@ namespace OpenMS
 {
   QStringList TOPPASResource::supported_schemes = (QStringList() << "file");
 
-  TOPPASResource::TOPPASResource(const QString & file) :
+  TOPPASResource::TOPPASResource(const QString& file) :
     QObject(),
     url_(),
     file_name_("")
@@ -47,7 +47,7 @@ namespace OpenMS
     fromLocalFile(file);
   }
 
-  TOPPASResource::TOPPASResource(const QUrl & url) :
+  TOPPASResource::TOPPASResource(const QUrl& url) :
     QObject(),
     url_(),
     file_name_("")
@@ -68,7 +68,7 @@ namespace OpenMS
     }
   }
 
-  TOPPASResource::TOPPASResource(const TOPPASResource & rhs) :
+  TOPPASResource::TOPPASResource(const TOPPASResource& rhs) :
     QObject(),
     url_(rhs.url_),
     file_name_(rhs.file_name_)
@@ -79,7 +79,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASResource & TOPPASResource::operator=(const TOPPASResource & rhs)
+  TOPPASResource& TOPPASResource::operator=(const TOPPASResource& rhs)
   {
     url_ = rhs.url_;
     file_name_ = rhs.file_name_;
@@ -87,24 +87,24 @@ namespace OpenMS
     return *this;
   }
 
-  void TOPPASResource::writeToFile(const QString & file_name)
+  void TOPPASResource::writeToFile(const QString& file_name)
   {
     // TODO retrieve data and write it to file_name
 
     file_name_ = file_name;
   }
 
-  const QString & TOPPASResource::getLocalFile() const
+  const QString& TOPPASResource::getLocalFile() const
   {
     return file_name_;
   }
 
-  const QUrl & TOPPASResource::getURL() const
+  const QUrl& TOPPASResource::getURL() const
   {
     return url_;
   }
 
-  void TOPPASResource::fromLocalFile(const QString & file)
+  void TOPPASResource::fromLocalFile(const QString& file)
   {
     url_ = QUrl::fromLocalFile(file);
     file_name_ = file;

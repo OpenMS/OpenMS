@@ -69,7 +69,7 @@ using namespace std;
 </CENTER>
 
     Reference:\n
-		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+        Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
     This tool provides an algorithm for grouping corresponding features in multiple runs of label-free experiments. For more details and algorithm-specific parameters (set in the ini file) see "Detailed Description" in the @ref OpenMS::FeatureGroupingAlgorithmQT "algorithm documentation".
 
@@ -103,14 +103,14 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     FeatureGroupingAlgorithmQT algo;
     Param p = algo.getParameters();
     return p;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     FeatureGroupingAlgorithmQT algo;
     return TOPPFeatureLinkerBase::common_main_(&algo);
@@ -119,7 +119,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFeatureLinkerUnlabeledQT tool;
   return tool.main(argc, argv);

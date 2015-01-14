@@ -125,7 +125,7 @@ namespace OpenMS
     // check size
     if (peptide_.size() != rhs.peptide_.size())
     {
-      return (peptide_.size() < rhs.peptide_.size());
+      return peptide_.size() < rhs.peptide_.size();
     }
 
     // when checking terminal mods, "no mod" is less than "any mod"
@@ -139,7 +139,7 @@ namespace OpenMS
     }
     else if (n_term_mod_ && rhs.n_term_mod_ && (n_term_mod_ != rhs.n_term_mod_))
     {
-      return (n_term_mod_->getId() < rhs.n_term_mod_->getId());
+      return n_term_mod_->getId() < rhs.n_term_mod_->getId();
     }
 
     ConstIterator a = begin();
@@ -150,11 +150,11 @@ namespace OpenMS
     {
       if (a->getOneLetterCode() != b->getOneLetterCode())
       {
-        return (a->getOneLetterCode() < b->getOneLetterCode());
+        return a->getOneLetterCode() < b->getOneLetterCode();
       }
       else if (a->getModification() != b->getModification())
       {
-        return (a->getModification() < b->getModification());
+        return a->getModification() < b->getModification();
       }
     }
 
@@ -169,7 +169,7 @@ namespace OpenMS
     }
     else if (c_term_mod_ && rhs.c_term_mod_ && (c_term_mod_ != rhs.c_term_mod_))
     {
-      return (c_term_mod_->getId() < rhs.c_term_mod_->getId());
+      return c_term_mod_->getId() < rhs.c_term_mod_->getId();
     }
 
     return false;
@@ -353,10 +353,7 @@ namespace OpenMS
 
 
     return mono_weight;
-}
-
-
-
+  }
 
 /*void AASequence::getNeutralLosses(Map<const EmpiricalFormula, UInt) const
   {
@@ -756,7 +753,6 @@ namespace OpenMS
     return os;
   }
 
-
   String::ConstIterator AASequence::parseModRoundBrackets_(
     const String::ConstIterator str_it, const String& str, AASequence& aas)
   {
@@ -767,7 +763,8 @@ namespace OpenMS
     while (mod_end != str.end())
     {
       if (*mod_end == ')') --open_brackets;
-      else if (*mod_end == '(') ++open_brackets;
+      else if (*mod_end == '(')
+        ++open_brackets;
       if (!open_brackets) break;
       ++mod_end;
     }
@@ -792,12 +789,12 @@ namespace OpenMS
         aas.c_term_mod_ = term_mod;
         return mod_end;
       }
-      catch (Exception::ElementNotFound& /* e */)
-      { // just do nothing, the mod is presumably a non-terminal one
+      catch (Exception::ElementNotFound& /* e */) // just do nothing, the mod is presumably a non-terminal one
+      {
       }
     }
     aas.peptide_.back() = ResidueDB::getInstance()->
-      getModifiedResidue(aas.peptide_.back(), mod);
+                          getModifiedResidue(aas.peptide_.back(), mod);
     // @TODO: if mod isn't found, "InvalidValue" is raised - catch it here?
     return mod_end;
   }
@@ -808,7 +805,8 @@ namespace OpenMS
     OPENMS_PRECONDITION(*str_it == '[', "Modification must start with '['.");
     String::ConstIterator mod_start = str_it;
     String::ConstIterator mod_end = ++mod_start;
-    while ((mod_end != str.end()) && (*mod_end != ']')) ++mod_end;
+    while ((mod_end != str.end()) && (*mod_end != ']'))
+      ++mod_end;
     string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
@@ -853,7 +851,7 @@ namespace OpenMS
           const ResidueModification* res_mod = &(mod_db->
                                                  getModification(res_mods[0]));
           aas.peptide_.back() = ResidueDB::getInstance()->
-            getModifiedResidue(residue, res_mod->getId());
+                                getModifiedResidue(residue, res_mod->getId());
           return mod_end;
         }
       }
@@ -873,12 +871,12 @@ namespace OpenMS
         if (res_mod)
         {
           aas.peptide_.back() = ResidueDB::getInstance()->
-            getModifiedResidue(residue, res_mod->getId());
+                                getModifiedResidue(residue, res_mod->getId());
           return mod_end;
         }
       }
       LOG_WARN << "Warning: unknown modification '" + mod + "' of residue '" +
-        residue->getOneLetterCode() + "' - adding it to the database" << endl;
+      residue->getOneLetterCode() + "' - adding it to the database" << endl;
     }
     // at beginning of peptide:
     else if (delta_mass) // N-terminal mod can only be specified by delta mass
@@ -903,8 +901,8 @@ namespace OpenMS
       new_res.setAverageWeight(mass +
                                residue->getAverageWeight());
     }
-    else
-    { // mass value is for an internal residue, but methods expect full residue:
+    else // mass value is for an internal residue, but methods expect full residue:
+    {
       new_res.setMonoWeight(mass + Residue::getInternalToFullMonoWeight());
       new_res.setAverageWeight(mass +
                                Residue::getInternalToFullAverageWeight());
@@ -946,8 +944,8 @@ namespace OpenMS
         { // stop codons
           aas.peptide_.push_back(rdb->getResidue('X'));
         }
-        else if (permissive && (*str_it == ' '))
-        { // skip, i.e. do nothing here
+        else if (permissive && (*str_it == ' ')) // skip, i.e. do nothing here
+        {
         }
         else
         {

@@ -55,7 +55,7 @@ namespace OpenMS
     pos_col_[100] = Qt::black;
   }
 
-  MultiGradient::MultiGradient(const MultiGradient & multigradient) :
+  MultiGradient::MultiGradient(const MultiGradient& multigradient) :
     pos_col_(multigradient.pos_col_),
     interpolation_mode_(multigradient.interpolation_mode_),
     pre_(multigradient.pre_),
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  MultiGradient & MultiGradient::operator=(const MultiGradient & rhs)
+  MultiGradient& MultiGradient::operator=(const MultiGradient& rhs)
   {
     if (this == &rhs)
     {
@@ -149,7 +149,7 @@ namespace OpenMS
     {
       map<double, QColor>::const_iterator it1 = pos_col_.lower_bound(position);
 
-      if (std::abs(it1->first - position) < numeric_limits<double>::epsilon())  // compare double
+      if (std::abs(it1->first - position) < numeric_limits<double>::epsilon()) // compare double
       {
         return it1->second;
       }
@@ -212,7 +212,7 @@ namespace OpenMS
     return out.str();
   }
 
-  void MultiGradient::fromString(const string & gradient)
+  void MultiGradient::fromString(const string& gradient)
   {
     pos_col_.clear();
 

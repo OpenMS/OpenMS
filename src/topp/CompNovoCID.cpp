@@ -98,7 +98,7 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return CompNovoIdentificationCID().getDefaults();
   }
@@ -116,7 +116,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm section");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -203,11 +203,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPCompNovoCID tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

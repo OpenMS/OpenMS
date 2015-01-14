@@ -41,7 +41,7 @@ class IntRealString
 public:
   IntRealString(Int i, float r, String s) :
     i_(i), r_(r), s_(s) {}
-  IntRealString(const IntRealString & rhs) :
+  IntRealString(const IntRealString& rhs) :
     i_(rhs.i_), r_(rhs.r_), s_(rhs.s_) {}
 
   void print() const
@@ -135,7 +135,7 @@ Int main()
   vec.print();
 
   // vector of pointers into vec
-  std::vector<const IntRealString *> ptr_vec;
+  std::vector<const IntRealString*> ptr_vec;
   for (Size i = 0; i < vec.size(); ++i)
   {
     ptr_vec.push_back(&vec[i]);

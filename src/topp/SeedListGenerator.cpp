@@ -75,7 +75,7 @@ using namespace std;
 </CENTER>
 
     Reference:\n
-		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+        Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
     In feature detection algorithms, an early step is generally to identify points of interest in the LC-MS map (so-called seeds) that may later be extended to features. If supported by the feature detection algorithm (currently only the "centroided" algorithm), user-supplied seed lists allow greater control over this process.
 
@@ -132,7 +132,7 @@ protected:
       registerFlag_("use_peptide_mass", "[idXML input only] Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
     }
 
-    ExitCodes main_(int, const char **)
+    ExitCodes main_(int, const char**)
     {
       String in = getStringOption_("in");
       StringList out = getStringList_("out");
@@ -204,7 +204,7 @@ protected:
 }
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSeedListGenerator t;
   return t.main(argc, argv);

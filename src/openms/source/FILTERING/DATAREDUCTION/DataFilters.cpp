@@ -60,7 +60,7 @@ namespace OpenMS
   {
   }
 
-  bool DataFilters::DataFilter::operator==(const DataFilter & rhs) const
+  bool DataFilters::DataFilter::operator==(const DataFilter& rhs) const
   {
     return field == rhs.field
            && op == rhs.op
@@ -71,11 +71,10 @@ namespace OpenMS
   }
 
   ///Inequality operator
-  bool DataFilters::DataFilter::operator!=(const DataFilter & rhs) const
+  bool DataFilters::DataFilter::operator!=(const DataFilter& rhs) const
   {
     return !operator==(rhs);
   }
-
 
   String DataFilters::DataFilter::toString() const
   {
@@ -116,7 +115,7 @@ namespace OpenMS
     return out;
   }
 
-  void DataFilters::DataFilter::fromString(const String & filter)
+  void DataFilters::DataFilter::fromString(const String& filter)
   {
     bool meta = false;
     String tmp = filter;
@@ -161,7 +160,7 @@ namespace OpenMS
     else
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid operator.", tmp);
     //value
-    if (size > 3)     // string values may contain spaces, implode to a single string
+    if (size > 3) // string values may contain spaces, implode to a single string
     {
       tmp.concatenate(parts.begin() + 2, parts.end(), " ");
     }
@@ -189,7 +188,7 @@ namespace OpenMS
       {
         tmp = tmp.substr(1, tmp.size() - 2);
       }
-      if (!meta)       // non meta values must be numerical
+      if (!meta) // non meta values must be numerical
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid value.", tmp);
       }
@@ -200,7 +199,7 @@ namespace OpenMS
     }
   }
 
-  void DataFilters::add(const DataFilter & filter)
+  void DataFilters::add(const DataFilter& filter)
   {
     //activate if not empty
     is_active_ = true;
@@ -228,7 +227,7 @@ namespace OpenMS
       is_active_ = false;
   }
 
-  void DataFilters::replace(Size index, const DataFilter & filter)
+  void DataFilters::replace(Size index, const DataFilter& filter)
   {
     if (index >= filters_.size())
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, filters_.size());
@@ -255,21 +254,21 @@ namespace OpenMS
     return filters_.size();
   }
 
-  const DataFilters::DataFilter & DataFilters::operator[](Size index) const
+  const DataFilters::DataFilter& DataFilters::operator[](Size index) const
   {
     if (index >= filters_.size())
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, filters_.size());
     return filters_[index];
   }
 
-  bool DataFilters::passes(const Feature & feature) const
+  bool DataFilters::passes(const Feature& feature) const
   {
     if (!is_active_)
       return true;
 
     for (Size i = 0; i < filters_.size(); i++)
     {
-      const DataFilters::DataFilter & filter = filters_[i];
+      const DataFilters::DataFilter& filter = filters_[i];
       if (filter.field == INTENSITY)
       {
         if (filter.op == GREATER_EQUAL && feature.getIntensity() < filter.value)
@@ -308,7 +307,7 @@ namespace OpenMS
       }
       else if (filter.field == META_DATA)
       {
-        const MetaInfoInterface & mii = static_cast<MetaInfoInterface>(feature);
+        const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(feature);
         if (!metaPasses_(mii, filter, meta_indices_[i]))
           return false;
       }
@@ -316,14 +315,14 @@ namespace OpenMS
     return true;
   }
 
-  bool DataFilters::passes(const ConsensusFeature & consensus_feature) const
+  bool DataFilters::passes(const ConsensusFeature& consensus_feature) const
   {
     if (!is_active_)
       return true;
 
     for (Size i = 0; i < filters_.size(); i++)
     {
-      const DataFilters::DataFilter & filter = filters_[i];
+      const DataFilters::DataFilter& filter = filters_[i];
       if (filter.field == INTENSITY)
       {
         if (filter.op == GREATER_EQUAL && consensus_feature.getIntensity() < filter.value)
@@ -362,7 +361,7 @@ namespace OpenMS
       }
       else if (filter.field == META_DATA)
       {
-        const MetaInfoInterface & mii = static_cast<MetaInfoInterface>(consensus_feature);
+        const MetaInfoInterface& mii = static_cast<MetaInfoInterface>(consensus_feature);
         if (!metaPasses_(mii, filter, meta_indices_[i]))
           return false;
       }

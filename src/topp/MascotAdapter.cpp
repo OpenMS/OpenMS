@@ -265,7 +265,7 @@ protected:
     registerStringOption_("temp_data_directory", "<dir>", "", "a directory in which some temporary files can be stored", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // path to the log file
     String logfile = "mascot.log";
@@ -314,7 +314,7 @@ protected:
 
     date_time.now();
     date_time_string = date_time.get();
-    date_time_string.substitute(':', '.');        // Windows does not allow ":" in filenames!
+    date_time_string.substitute(':', '.'); // Windows does not allow ":" in filenames!
     date_time_string.split(' ', parts);
 
     mascot_infile_name = parts[0] + "_" + parts[1] + "_" + mascot_infile_name;
@@ -572,7 +572,7 @@ protected:
           return EXTERNAL_PROGRAM_ERROR;
         }
 
-      }           // from if(!mascot_in)
+      } // from if(!mascot_in)
       else
       {
         if (boundary != "")
@@ -583,7 +583,7 @@ protected:
                             experiment,
                             "OpenMS search");
       }
-    }         // from if(!mascot_out)
+    } // from if(!mascot_out)
     if (!mascot_in)
     {
       if (mascot_out)
@@ -627,14 +627,14 @@ protected:
         QFile(pepXML_file_name.toQString()).remove();
       }
 
-    }             // from if(!mascot_in)
+    } // from if(!mascot_in)
     return EXECUTION_OK;
   }
 
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMascotAdapter tool;
 

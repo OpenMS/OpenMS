@@ -48,7 +48,7 @@ namespace OpenMS
 
   }
 
-  Instrument::Instrument(const Instrument & source) :
+  Instrument::Instrument(const Instrument& source) :
     MetaInfoInterface(source),
     name_(source.name_),
     vendor_(source.vendor_),
@@ -68,7 +68,7 @@ namespace OpenMS
 
   }
 
-  Instrument & Instrument::operator=(const Instrument & source)
+  Instrument& Instrument::operator=(const Instrument& source)
   {
     if (&source == this)
       return *this;
@@ -87,7 +87,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool Instrument::operator==(const Instrument & rhs) const
+  bool Instrument::operator==(const Instrument& rhs) const
   {
 //if (software_ != rhs.software_) cout << "Instrument - " << __LINE__ << endl;
 //if (name_ != rhs.name_) cout << "Instrument - " << __LINE__ << endl;
@@ -112,107 +112,107 @@ namespace OpenMS
            MetaInfoInterface::operator==(rhs);
   }
 
-  bool Instrument::operator!=(const Instrument & rhs) const
+  bool Instrument::operator!=(const Instrument& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & Instrument::getName() const
+  const String& Instrument::getName() const
   {
     return name_;
   }
 
-  void Instrument::setName(const String & name)
+  void Instrument::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & Instrument::getVendor() const
+  const String& Instrument::getVendor() const
   {
     return vendor_;
   }
 
-  void Instrument::setVendor(const String & vendor)
+  void Instrument::setVendor(const String& vendor)
   {
     vendor_ = vendor;
   }
 
-  const String & Instrument::getModel() const
+  const String& Instrument::getModel() const
   {
     return model_;
   }
 
-  void Instrument::setModel(const String & model)
+  void Instrument::setModel(const String& model)
   {
     model_ = model;
   }
 
-  const String & Instrument::getCustomizations() const
+  const String& Instrument::getCustomizations() const
   {
     return customizations_;
   }
 
-  void Instrument::setCustomizations(const String & customizations)
+  void Instrument::setCustomizations(const String& customizations)
   {
     customizations_ = customizations;
   }
 
-  const std::vector<IonSource> & Instrument::getIonSources() const
+  const std::vector<IonSource>& Instrument::getIonSources() const
   {
     return ion_sources_;
   }
 
-  std::vector<IonSource> & Instrument::getIonSources()
+  std::vector<IonSource>& Instrument::getIonSources()
   {
     return ion_sources_;
   }
 
-  void Instrument::setIonSources(const std::vector<IonSource> & ion_sources)
+  void Instrument::setIonSources(const std::vector<IonSource>& ion_sources)
   {
     ion_sources_ = ion_sources;
   }
 
-  const std::vector<MassAnalyzer> & Instrument::getMassAnalyzers() const
+  const std::vector<MassAnalyzer>& Instrument::getMassAnalyzers() const
   {
     return mass_analyzers_;
   }
 
-  std::vector<MassAnalyzer> & Instrument::getMassAnalyzers()
+  std::vector<MassAnalyzer>& Instrument::getMassAnalyzers()
   {
     return mass_analyzers_;
   }
 
-  void Instrument::setMassAnalyzers(const std::vector<MassAnalyzer> & mass_analyzers)
+  void Instrument::setMassAnalyzers(const std::vector<MassAnalyzer>& mass_analyzers)
   {
     mass_analyzers_ = mass_analyzers;
   }
 
-  const std::vector<IonDetector> & Instrument::getIonDetectors() const
+  const std::vector<IonDetector>& Instrument::getIonDetectors() const
   {
     return ion_detectors_;
   }
 
-  std::vector<IonDetector> & Instrument::getIonDetectors()
+  std::vector<IonDetector>& Instrument::getIonDetectors()
   {
     return ion_detectors_;
   }
 
-  void Instrument::setIonDetectors(const std::vector<IonDetector> & ion_detectors)
+  void Instrument::setIonDetectors(const std::vector<IonDetector>& ion_detectors)
   {
     ion_detectors_ = ion_detectors;
   }
 
-  const Software & Instrument::getSoftware() const
+  const Software& Instrument::getSoftware() const
   {
     return software_;
   }
 
-  Software & Instrument::getSoftware()
+  Software& Instrument::getSoftware()
   {
     return software_;
   }
 
-  void Instrument::setSoftware(const Software & software)
+  void Instrument::setSoftware(const Software& software)
   {
     software_ = software;
   }

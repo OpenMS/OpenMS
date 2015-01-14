@@ -43,7 +43,7 @@ namespace OpenMS
 {
   namespace ims
   {
-    Weights & Weights::operator=(const Weights & other)
+    Weights& Weights::operator=(const Weights& other)
     {
       if (this != &other)
       {
@@ -76,7 +76,7 @@ namespace OpenMS
       alphabet_masses_[index2] = mass;
     }
 
-    Weights::alphabet_mass_type Weights::getParentMass(const std::vector<unsigned int> & decomposition) const
+    Weights::alphabet_mass_type Weights::getParentMass(const std::vector<unsigned int>& decomposition) const
     {
       // checker whether the passed decomposition is applicable
       if (alphabet_masses_.size() != decomposition.size())
@@ -148,7 +148,7 @@ namespace OpenMS
       return max_error;
     }
 
-    std::ostream & operator<<(std::ostream & os, const Weights & weights)
+    std::ostream& operator<<(std::ostream& os, const Weights& weights)
     {
       for (Weights::size_type i = 0; i < weights.size(); ++i)
       {

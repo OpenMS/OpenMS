@@ -66,8 +66,15 @@ namespace OpenMS
 // Constructor & destructor
 ///////////////////////////////////////////////////////////////////////////////
 
-  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_start(){ return DATA.begin(); }
-  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_end(){ return DATA.end(); }
+  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_start()
+  {
+    return DATA.begin();
+  }
+
+  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_end()
+  {
+    return DATA.end();
+  }
 
   LCMSCData::LCMSCData()
   {
@@ -82,21 +89,21 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // constructor for the object :
-  LCMSCData::LCMSCData(const LCMSCData * tmp)
+  LCMSCData::LCMSCData(const LCMSCData* tmp)
   {
     DATA = tmp->DATA;
   }
 
 ////////////////////////////////////////////////
 // constructor for the object :
-  LCMSCData::LCMSCData(const LCMSCData & tmp)
+  LCMSCData::LCMSCData(const LCMSCData& tmp)
   {
     DATA = tmp.DATA;
   }
 
 ////////////////////////////////////////////////
 // constructor for the object :
-  LCMSCData & LCMSCData::operator=(const LCMSCData & tmp)
+  LCMSCData& LCMSCData::operator=(const LCMSCData& tmp)
   {
     DATA = tmp.DATA;
     return *this;
@@ -115,7 +122,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // add data into the structure:
-  void LCMSCData::add_LC_elution_peak(double MZ, LCElutionPeak * in)
+  void LCMSCData::add_LC_elution_peak(double MZ, LCElutionPeak* in)
   {
     // get the scan apex:
     int APEX = in->get_scan_apex();
@@ -157,7 +164,7 @@ namespace OpenMS
     {
 
       double this_INT = 0;
-      LCElutionPeak * TMP = NULL;
+      LCElutionPeak* TMP = NULL;
 
       // search around some scan region:
       for (int this_scan = start_scan; this_scan < end_scan; this_scan++)
@@ -198,7 +205,7 @@ namespace OpenMS
     int start_scan = SCAN - TOL;
     int end_scan = SCAN + TOL;
 
-    LCElutionPeak * TMP = NULL;
+    LCElutionPeak* TMP = NULL;
     vector<LCElutionPeak> out;
 
     // go through the structure and find all m/z at this scan:
@@ -241,11 +248,11 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // get all extracted LC peaks:
-  vector<LCElutionPeak *> LCMSCData::get_ALL_peak()
+  vector<LCElutionPeak*> LCMSCData::get_ALL_peak()
   {
 
-    LCElutionPeak * TMP = NULL;
-    vector<LCElutionPeak *> out;
+    LCElutionPeak* TMP = NULL;
+    vector<LCElutionPeak*> out;
 
     // go through the structure and find all m/z at this scan:
     MZ_LIST_ITERATOR P = get_DATA_start();
@@ -273,9 +280,9 @@ namespace OpenMS
 
 /////////////////////////////////////////////////////////////////////////////
 // get a vector with all LC peaks ordered by their score:
-  vector<LCElutionPeak *> LCMSCData::get_ALL_peak_ordered()
+  vector<LCElutionPeak*> LCMSCData::get_ALL_peak_ordered()
   {
-    vector<LCElutionPeak *> DATA = get_ALL_peak();
+    vector<LCElutionPeak*> DATA = get_ALL_peak();
     return DATA;
   }
 

@@ -42,7 +42,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  Spectrum1DGoToDialog::Spectrum1DGoToDialog(QWidget * parent) :
+  Spectrum1DGoToDialog::Spectrum1DGoToDialog(QWidget* parent) :
     QDialog(parent)
   {
     setupUi(this);
@@ -67,8 +67,8 @@ namespace OpenMS
   void Spectrum1DGoToDialog::fixRange()
   {
     // load from GUI
-    float min_mz=min_->text().toFloat();
-    float max_mz=max_->text().toFloat();
+    float min_mz = min_->text().toFloat();
+    float max_mz = max_->text().toFloat();
 
     // ensure correct order of min and max
     if (min_mz > max_mz) swap(min_mz, max_mz);

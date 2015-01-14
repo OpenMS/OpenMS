@@ -93,13 +93,13 @@ protected:
     registerFlag_("shuffle", "If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
   }
 
-  String getIdentifier_(const String & identifier, const String & decoy_string, const bool as_prefix)
+  String getIdentifier_(const String& identifier, const String& decoy_string, const bool as_prefix)
   {
     if (as_prefix) return decoy_string + identifier;
     else return identifier + decoy_string;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -114,11 +114,11 @@ protected:
     //-------------------------------------------------------------
 
     vector<FASTAFile::FASTAEntry> proteins;
-    for (Size i=0; i<in.size(); ++i)
+    for (Size i = 0; i < in.size(); ++i)
     {
       vector<FASTAFile::FASTAEntry> single_proteins;
       // this is a little inefficient since it requires copying; appending during load() would be better...
-      FASTAFile().load(in[i], single_proteins);  
+      FASTAFile().load(in[i], single_proteins);
       // append
       proteins.insert(proteins.end(), single_proteins.begin(), single_proteins.end());
     }
@@ -210,7 +210,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDecoyDatabase tool;
   return tool.main(argc, argv);

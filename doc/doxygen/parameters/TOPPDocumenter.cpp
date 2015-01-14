@@ -96,9 +96,9 @@ void convertINI2HTML(const Param& p, ostream& os)
     String s_attr;
     String s_req;
     if (it->tags.find("advanced") != it->tags.end())
-      s_attr += " item_advanced"; // optionally add advanced class
+      s_attr += " item_advanced";  // optionally add advanced class
     if (it->tags.find("required") != it->tags.end())
-      s_req += " item_required"; // optionally add required class
+      s_req += " item_required";  // optionally add required class
     DataValue::DataType value_type = it->value.valueType();
     //write opening tag
     os << indentation
@@ -125,7 +125,7 @@ void convertINI2HTML(const Param& p, ostream& os)
     for (set<String>::const_iterator tag_it = it->tags.begin(); tag_it != it->tags.end(); ++tag_it)
     {
       if (*tag_it == "advanced")
-        continue; // do not list "advanced" or "required" (this is done by color coding)
+        continue;  // do not list "advanced" or "required" (this is done by color coding)
       if (*tag_it == "required")
         continue;
       if (!list.empty())
@@ -148,7 +148,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         if (min_set)
           restrictions += String(it->min_int);
         else
-          restrictions += "-&#8734;"; // infinity symbol
+          restrictions += "-&#8734;";  // infinity symbol
         restrictions += ':';
         if (max_set)
           restrictions += String(it->max_int);
@@ -168,7 +168,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         if (min_set)
           restrictions += String(it->min_float);
         else
-          restrictions += "-&#8734;"; // infinity symbol
+          restrictions += "-&#8734;";  // infinity symbol
         restrictions += ':';
         if (max_set)
           restrictions += String(it->max_float);
@@ -190,7 +190,7 @@ void convertINI2HTML(const Param& p, ostream& os)
       break;
     }
     if (restrictions.empty())
-      restrictions = " "; // create content, such that the cell gets an underline
+      restrictions = " ";  // create content, such that the cell gets an underline
 
     os << "<span class=\"item_restrictions\">" << restrictions << "</span>";
 

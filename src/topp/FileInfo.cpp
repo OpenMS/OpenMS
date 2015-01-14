@@ -112,8 +112,8 @@ namespace OpenMS
   /// A little helper class to gather (and dump) some statistics from a vector<double>.
   struct SomeStatistics
   {
-    SomeStatistics()
-      :mean(0), variance(0), min(0), lowerq(0), median(0), upperq(0), max(0), count(0)
+    SomeStatistics() :
+      mean(0), variance(0), min(0), lowerq(0), median(0), upperq(0), max(0), count(0)
     {
     }
 
@@ -145,13 +145,13 @@ namespace OpenMS
   static ostream& operator<<(ostream& os, const SomeStatistics& rhs)
   {
     return os << "  num. of values: " << rhs.count << "\n"
-              << "  mean:           " << rhs.mean << "\n"
-              << "  minimum:        " << rhs.min << "\n"
-              << "  lower quartile: " << rhs.lowerq << "\n"
-              << "  median:         " << rhs.median << "\n"
-              << "  upper quartile: " << rhs.upperq << "\n"
-              << "  maximum:        " << rhs.max << "\n"
-              << "  variance:       " << rhs.variance << "\n";
+           << "  mean:           " << rhs.mean << "\n"
+           << "  minimum:        " << rhs.min << "\n"
+           << "  lower quartile: " << rhs.lowerq << "\n"
+           << "  median:         " << rhs.median << "\n"
+           << "  upper quartile: " << rhs.upperq << "\n"
+           << "  maximum:        " << rhs.max << "\n"
+           << "  variance:       " << rhs.variance << "\n";
   }
 
 }
@@ -380,8 +380,8 @@ protected:
         }
 
         std::cout << "Found a valid indexedmzML XML File with " <<
-          ifile.getNrSpectra() << " spectra and " <<
-          ifile.getNrChromatograms() << " chromatograms." << std::endl << std::endl;
+        ifile.getNrSpectra() << " spectra and " <<
+        ifile.getNrChromatograms() << " chromatograms." << std::endl << std::endl;
       }
       else
       {

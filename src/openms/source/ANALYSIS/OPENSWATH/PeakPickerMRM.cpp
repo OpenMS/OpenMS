@@ -86,16 +86,16 @@ namespace OpenMS
                                        "Chromatogram must be sorted by position");
     }
 
-    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
-        " with " << chromatogram.size() << " peaks ";
+    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() <<
+    " with " << chromatogram.size() << " peaks ";
     if (chromatogram.empty())
     {
-        LOG_DEBUG << std::endl; 
-        LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
-        return;
+      LOG_DEBUG << std::endl;
+      LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
+      return;
     }
-    LOG_DEBUG << "(start at RT " << chromatogram[0].getMZ() << " to RT " << chromatogram[ chromatogram.size() -1].getMZ() << ") "
-        "using method \'" << method_ << "\'" << std::endl;
+    LOG_DEBUG << "(start at RT " << chromatogram[0].getMZ() << " to RT " << chromatogram[chromatogram.size() - 1].getMZ() << ") "
+                                                                                                                             "using method \'" << method_ << "\'" << std::endl;
 
     picked_chrom.clear(true);
     // Crawdad has its own methods, so we can call the wrapper directly
@@ -205,7 +205,7 @@ namespace OpenMS
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_)
                 )
-            && (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_) )
+            && (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_))
       {
         ++k;
       }
@@ -218,7 +218,7 @@ namespace OpenMS
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_)
                 )
-            && (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) )
+            && (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_))
       {
         ++k;
       }
@@ -230,7 +230,7 @@ namespace OpenMS
 
       LOG_DEBUG << "Found peak at " << central_peak_mz << " and "  << picked_chrom[i].getIntensity()
                 << " with borders " << chromatogram[left_width_[i]].getMZ() << " " << chromatogram[right_width_[i]].getMZ() <<
-        " (" << chromatogram[right_width_[i]].getMZ() - chromatogram[left_width_[i]].getMZ() << ") "
+      " (" << chromatogram[right_width_[i]].getMZ() - chromatogram[left_width_[i]].getMZ() << ") "
                 << 0 << " weighted RT " << /* weighted_mz << */ std::endl;
     }
   }
@@ -300,6 +300,7 @@ namespace OpenMS
     throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
   }
+
 #endif
 
 

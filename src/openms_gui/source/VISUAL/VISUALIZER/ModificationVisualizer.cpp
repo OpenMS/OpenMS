@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ModificationVisualizer::ModificationVisualizer(bool editable, QWidget * parent) :
+  ModificationVisualizer::ModificationVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<Modification>()
   {
@@ -94,7 +94,7 @@ namespace OpenMS
       ptr_->setAffectedAminoAcids(modificationAA_->text());
       temp_ = (*ptr_);
     }
-    catch (exception & e)
+    catch (exception& e)
     {
       std::cout << "Error while trying to store the new modification data. " << e.what() << endl;
     }

@@ -38,10 +38,10 @@
 using namespace std;
 namespace OpenMS
 {
-  Bzip2Ifstream::Bzip2Ifstream(const char * filename) :
+  Bzip2Ifstream::Bzip2Ifstream(const char* filename) :
     n_buffer_(0), stream_at_end_(false)
   {
-    file_ = fopen(filename, "rb");       //read binary: always open in binary mode because windows and mac open in text mode
+    file_ = fopen(filename, "rb"); //read binary: always open in binary mode because windows and mac open in text mode
 
     //aborting, ahhh!
     if (!file_)
@@ -67,7 +67,7 @@ namespace OpenMS
     close();
   }
 
-  size_t Bzip2Ifstream::read(char * s, size_t n)
+  size_t Bzip2Ifstream::read(char* s, size_t n)
   {
     if (bzip2file_ != NULL)
     {
@@ -94,10 +94,10 @@ namespace OpenMS
     }
   }
 
-  void Bzip2Ifstream::open(const char * filename)
+  void Bzip2Ifstream::open(const char* filename)
   {
     close();
-    file_ = fopen(filename, "rb");       //read binary: always open in binary mode because windows and mac open in text mode
+    file_ = fopen(filename, "rb"); //read binary: always open in binary mode because windows and mac open in text mode
 
     //aborting, ahhh!
     if (!file_)

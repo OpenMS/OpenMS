@@ -49,20 +49,19 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions & MzXMLFile::getOptions()
+  PeakFileOptions& MzXMLFile::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions & MzXMLFile::getOptions() const
+  const PeakFileOptions& MzXMLFile::getOptions() const
   {
     return options_;
   }
 
-  void MzXMLFile::setOptions(const PeakFileOptions & options)
+  void MzXMLFile::setOptions(const PeakFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
 
 } // namespace OpenMS
-

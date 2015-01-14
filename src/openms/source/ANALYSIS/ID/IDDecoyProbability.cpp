@@ -61,7 +61,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IDDecoyProbability::IDDecoyProbability(const IDDecoyProbability & rhs) :
+  IDDecoyProbability::IDDecoyProbability(const IDDecoyProbability& rhs) :
     DefaultParamHandler(rhs)
   {
 
@@ -71,7 +71,7 @@ namespace OpenMS
   {
   }
 
-  void IDDecoyProbability::apply(vector<PeptideIdentification> & ids)
+  void IDDecoyProbability::apply(vector<PeptideIdentification>& ids)
   {
     double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
     double lower_score_better_default_value_if_zero_exp = pow((double)10.0, -lower_score_better_default_value_if_zero);
@@ -123,7 +123,7 @@ namespace OpenMS
     return;
   }
 
-  void IDDecoyProbability::apply(vector<PeptideIdentification> & prob_ids, const vector<PeptideIdentification> & orig_fwd_ids, const vector<PeptideIdentification> & rev_ids)
+  void IDDecoyProbability::apply(vector<PeptideIdentification>& prob_ids, const vector<PeptideIdentification>& orig_fwd_ids, const vector<PeptideIdentification>& rev_ids)
   {
     double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
     double lower_score_better_default_value_if_zero_exp = pow((double)10.0, -lower_score_better_default_value_if_zero);
@@ -192,7 +192,7 @@ namespace OpenMS
     return;
   }
 
-  void IDDecoyProbability::apply_(vector<PeptideIdentification> & ids, const vector<double> & rev_scores, const vector<double> & fwd_scores, const vector<double> & all_scores)
+  void IDDecoyProbability::apply_(vector<PeptideIdentification>& ids, const vector<double>& rev_scores, const vector<double>& fwd_scores, const vector<double>& all_scores)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 
@@ -211,7 +211,7 @@ namespace OpenMS
     for (Size i = 0; i < number_of_bins; ++i)
     {
       DPosition<2> pos;
-      pos.setX(((double)i) / (double)number_of_bins + 0.0001);    // necessary????
+      pos.setX(((double)i) / (double)number_of_bins + 0.0001); // necessary????
       pos.setY(rev_scores_normalized[i]);
       rev_data.push_back(pos);
 #ifdef IDDECOYPROBABILITY_DEBUG
@@ -220,7 +220,7 @@ namespace OpenMS
     }
 
     Math::GammaDistributionFitter gdf;
-    Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma_1st (1.0, 3.0);
+    Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma_1st(1.0, 3.0);
     gdf.setInitialParameters(result_gamma_1st);
     // TODO heuristic for good start parameters
     Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);
@@ -332,11 +332,12 @@ namespace OpenMS
     //TODO: fail-to-fit correction was done using the GNUPlotFormula. Seemed to be a hack.
     //Changed it to try-catch-block but I am not sure if this correction should be made
     //at all. Can someone please verify?
-    Math::GaussFitter::GaussFitResult result_gauss (gauss_A, gauss_x0, gauss_sigma);
-    try{
-        result_gauss = gf.fit(diff_data);
+    Math::GaussFitter::GaussFitResult result_gauss(gauss_A, gauss_x0, gauss_sigma);
+    try
+    {
+      result_gauss = gf.fit(diff_data);
     }
-    catch(Exception::UnableToFit& /* e */)
+    catch (Exception::UnableToFit& /* e */)
     {
       result_gauss.A = gauss_A;
       result_gauss.x0 = gauss_x0;
@@ -407,7 +408,7 @@ namespace OpenMS
   }
 
   // normalize the bins to [0, 1]
-  void IDDecoyProbability::normalizeBins_(const vector<double> & scores, vector<double> & binned, Transformation_ & trafo)
+  void IDDecoyProbability::normalizeBins_(const vector<double>& scores, vector<double>& binned, Transformation_& trafo)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
     // get the range of the scores
@@ -448,7 +449,7 @@ namespace OpenMS
     // normalize to \sum = 1
     for (vector<double>::iterator it = binned.begin(); it != binned.end(); ++it)
     {
-      *it /= (double)max_bin / 4.0;   // 4 is best value for the gamma distribution
+      *it /= (double)max_bin / 4.0; // 4 is best value for the gamma distribution
     }
 
 
@@ -464,11 +465,11 @@ namespace OpenMS
 #endif
   }
 
-  double IDDecoyProbability::getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
-                                                 const Transformation_ & gamma_trafo,
-                                                 const Math::GaussFitter::GaussFitResult & result_gauss,
-                                                 const Transformation_ & gauss_trafo,
-                                                 double score)
+  double IDDecoyProbability::getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult& result_gamma,
+                                             const Transformation_& gamma_trafo,
+                                             const Math::GaussFitter::GaussFitResult& result_gauss,
+                                             const Transformation_& gauss_trafo,
+                                             double score)
   {
     double rho_rev(0), rho_fwd(0);
     Size number_of_bins(param_.getValue("number_of_bins"));
@@ -512,7 +513,7 @@ namespace OpenMS
     return rho_fwd / (rho_fwd + rho_rev);
   }
 
-  void IDDecoyProbability::generateDistributionImage_(const vector<double> & ids, const String & formula, const String & filename)
+  void IDDecoyProbability::generateDistributionImage_(const vector<double>& ids, const String& formula, const String& filename)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 
@@ -543,7 +544,7 @@ namespace OpenMS
     return;
   }
 
-  void IDDecoyProbability::generateDistributionImage_(const vector<double> & all_ids, const Transformation_ & all_trans, const String & fwd_formula, const String & rev_formula, const String & filename)
+  void IDDecoyProbability::generateDistributionImage_(const vector<double>& all_ids, const Transformation_& all_trans, const String& fwd_formula, const String& rev_formula, const String& filename)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 

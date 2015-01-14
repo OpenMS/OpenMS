@@ -168,18 +168,21 @@ public:
   {
     switch (type)
     {
-      case NONE:
-        return "NONE";
-      case CMD:
-        return "CMD";
-      case GUI:
-        return "GUI";
+    case NONE:
+      return "NONE";
+
+    case CMD:
+      return "CMD";
+
+    case GUI:
+      return "GUI";
     }
 
 // should never happen but gcc emits a warning/error
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunreachable-code-return"
     return "";
+
 #pragma clang diagnostic pop
   }
 

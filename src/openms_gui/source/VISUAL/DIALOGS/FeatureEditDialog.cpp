@@ -40,14 +40,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  FeatureEditDialog::FeatureEditDialog(QWidget * parent) :
+  FeatureEditDialog::FeatureEditDialog(QWidget* parent) :
     QDialog(parent),
     feature_()
   {
     setupUi(this);
   }
 
-  void FeatureEditDialog::setFeature(const Feature & feature)
+  void FeatureEditDialog::setFeature(const Feature& feature)
   {
     //copy feature
     feature_ = feature;
@@ -58,7 +58,7 @@ namespace OpenMS
     charge_->setValue(feature_.getCharge());
   }
 
-  const Feature & FeatureEditDialog::getFeature() const
+  const Feature& FeatureEditDialog::getFeature() const
   {
     //update feature data according to widget
     feature_.setMZ(mz_->value());

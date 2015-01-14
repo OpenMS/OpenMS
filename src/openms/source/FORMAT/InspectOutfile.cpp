@@ -101,7 +101,7 @@ namespace OpenMS
       identifier;
 
     Size
-      record_number(0),
+    record_number(0),
     scan_number(0),
     line_number(0),
     number_of_columns(0);
@@ -135,7 +135,7 @@ namespace OpenMS
 
     // get the header
     Int
-      spectrum_file_column(-1),
+    spectrum_file_column(-1),
     scan_column(-1),
     peptide_column(-1),
     protein_column(-1),
@@ -212,7 +212,7 @@ namespace OpenMS
               !files_and_peptide_identification_with_scan_number.back().second.empty())
           {
             files_and_peptide_identification_with_scan_number.push_back(make_pair(substrings[spectrum_file_column],
-                  vector<pair<Size, Size> >()));
+                                                                                  vector<pair<Size, Size> >()));
           }
           // otherwise change the name of the last file entry (the one without hits)
           else
@@ -850,7 +850,7 @@ namespace OpenMS
           pos = ac_label.length(); // find the beginning of the accession
 
           while ((line.length() > pos) && (line[pos] < 33))
-            ++pos; // discard the whitespaces after the label
+            ++pos;  // discard the whitespaces after the label
           if (pos != line.length()) // if no accession is found, skip this protein
           {
             memset(protein_name_pos, 0, protein_name_length_); // clear the protein name
@@ -1020,7 +1020,7 @@ namespace OpenMS
 
     // get the header
     Int
-      spectrum_file_column(-1),
+    spectrum_file_column(-1),
     scan_column(-1),
     peptide_column(-1),
     protein_column(-1),

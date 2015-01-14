@@ -112,14 +112,14 @@ protected:
     setMinInt_("num_jobs", 1);
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int argc, const char** argv)
   {
     QString toppas_file = getStringOption_("in").toQString();
     QString out_dir_name = getStringOption_("out_dir").toQString();
     QString resource_file = getStringOption_("resource_file").toQString();
     int num_jobs = getIntOption_("num_jobs");
 
-    QApplication a(argc, const_cast<char **>(argv), false);
+    QApplication a(argc, const_cast<char**>(argv), false);
 
     //set & create temporary path -- make sure its a new subdirectory, as it will be deleted later
     QString new_tmp_dir = File::getUniqueName().toQString();
@@ -131,9 +131,9 @@ protected:
     TOPPASScene ts(0, tmp_path, false);
     if (!a.connect(&ts, SIGNAL(entirePipelineFinished()), &a, SLOT(quit()))) return UNKNOWN_ERROR;
 
-    if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()))) return UNKNOWN_ERROR;      // for some reason this slot does not get called, plus it would return "success", which we do not want
+    if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &a, SLOT(quit()))) return UNKNOWN_ERROR;  // for some reason this slot does not get called, plus it would return "success", which we do not want
 
-    if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &ts, SLOT(quitWithError()))) return UNKNOWN_ERROR;   // ... thus we use this
+    if (!a.connect(&ts, SIGNAL(pipelineExecutionFailed()), &ts, SLOT(quitWithError()))) return UNKNOWN_ERROR;  // ... thus we use this
 
     ts.load(toppas_file);
     ts.setAllowedThreads(num_jobs);
@@ -196,7 +196,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPExecutePipeline tool;
   return tool.main(argc, argv);

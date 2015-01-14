@@ -37,7 +37,7 @@ using namespace std;
 
 Int main()
 {
-  const ResidueDB * res_db = ResidueDB::getInstance();
+  const ResidueDB* res_db = ResidueDB::getInstance();
 
   Residue lys = *res_db->getResidue("Lysine"); // .getResidue("K") would also be ok
 

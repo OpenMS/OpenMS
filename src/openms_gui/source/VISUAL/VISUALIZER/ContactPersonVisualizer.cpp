@@ -43,7 +43,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget * parent) :
+  ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<ContactPerson>()
   {

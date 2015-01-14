@@ -47,7 +47,7 @@ namespace OpenMS
   {
   }
 
-  WeightWrapper::WeightWrapper(const WeightWrapper & source) :
+  WeightWrapper::WeightWrapper(const WeightWrapper& source) :
     weight_mode_(source.weight_mode_)
   {
   }
@@ -68,7 +68,7 @@ namespace OpenMS
     return weight_mode_;
   }
 
-  double WeightWrapper::getWeight(const AASequence & aa) const
+  double WeightWrapper::getWeight(const AASequence& aa) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
       return aa.getMonoWeight();
@@ -76,7 +76,7 @@ namespace OpenMS
       return aa.getAverageWeight();
   }
 
-  double WeightWrapper::getWeight(const EmpiricalFormula & ef) const
+  double WeightWrapper::getWeight(const EmpiricalFormula& ef) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
       return ef.getMonoWeight();
@@ -84,7 +84,7 @@ namespace OpenMS
       return ef.getAverageWeight();
   }
 
-  double WeightWrapper::getWeight(const Residue & r, Residue::ResidueType res_type) const
+  double WeightWrapper::getWeight(const Residue& r, Residue::ResidueType res_type) const
   {
     if (weight_mode_ == WeightWrapper::MONO)
       return r.getMonoWeight(res_type);

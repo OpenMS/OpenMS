@@ -210,7 +210,7 @@ namespace OpenMS
     // keep the min&max scan only
     //
     if (map_points_.size() < 3)
-      return 0; // we need at least one "middle" scan
+      return 0;  // we need at least one "middle" scan
 
     HullPointType compressed_map;
 
@@ -277,12 +277,12 @@ namespace OpenMS
 
     // check if point is within bounds
     double mz_low = it_lower->second.minPosition()[0] // m/z offset
-                    + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first)))      // factor (0-1)
-                    * (it_upper->second.minPosition()[0] - it_lower->second.minPosition()[0]);                           // m/z range
+                    + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first))) // factor (0-1)
+                    * (it_upper->second.minPosition()[0] - it_lower->second.minPosition()[0]); // m/z range
 
     double mz_high = it_lower->second.maxPosition()[0] // m/z offset
-                     + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first)))     // factor (0-1)
-                     * (it_upper->second.maxPosition()[0] - it_lower->second.maxPosition()[0]);                          // m/z range
+                     + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first))) // factor (0-1)
+                     * (it_upper->second.maxPosition()[0] - it_lower->second.maxPosition()[0]); // m/z range
 
 
     DBoundingBox<1> range(mz_low, mz_high);

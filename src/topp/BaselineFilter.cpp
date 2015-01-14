@@ -111,7 +111,7 @@ protected:
     setValidStrings_("method", ListUtils::create<String>("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -181,7 +181,7 @@ protected:
 
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPBaselineFilter tool;
   return tool.main(argc, argv);

@@ -329,7 +329,7 @@ namespace OpenMS
         mytransition.precursor_charge             =                      String(tmp_line[header_dict["Charge"]]).toInt();
       }
 
-      if (header_dict.find("PeptideGroupLabel") != header_dict.end()) 
+      if (header_dict.find("PeptideGroupLabel") != header_dict.end())
       {
         mytransition.peptide_group_label = tmp_line[header_dict["PeptideGroupLabel"]];
       }
@@ -614,21 +614,21 @@ namespace OpenMS
   void TransitionTSVReader::resolveMixedSequenceGroups_(std::vector<TransitionTSVReader::TSVTransition>& transition_list)
   {
     // Create temporary map by group label
-    std::map< String, std::vector<TSVTransition*> > label_transition_map;
+    std::map<String, std::vector<TSVTransition*> > label_transition_map;
     for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
     {
-      if (!tr_it->peptide_group_label.empty() )
+      if (!tr_it->peptide_group_label.empty())
       {
-        label_transition_map[tr_it->peptide_group_label].push_back(& (*tr_it));
+        label_transition_map[tr_it->peptide_group_label].push_back(&(*tr_it));
       }
     }
 
     // Iterate through all the group labels and perform sanity check whether the peptide sequence is the same for all of them
-    for (std::map< String, std::vector<TSVTransition*> >::iterator pep_it = label_transition_map.begin(); pep_it != label_transition_map.end(); ++pep_it)
+    for (std::map<String, std::vector<TSVTransition*> >::iterator pep_it = label_transition_map.begin(); pep_it != label_transition_map.end(); ++pep_it)
     {
       String curr_sequence;
-      if (!pep_it->second.empty() )
-      { 
+      if (!pep_it->second.empty())
+      {
         curr_sequence = (*pep_it->second.begin())->PeptideSequence;
       }
 
@@ -641,17 +641,17 @@ namespace OpenMS
           if (override_group_label_check_)
           {
             // We wont fix it but give out a warning
-            LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it->first << 
-              //" found multiple peptide sequences: " << curr_sequence << " and " << (*tr_it)->PeptideSequence << 
-              ". Since 'override_group_label_check' is on, nothing will be changed." << std::endl;
+            LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it->first <<
+            //" found multiple peptide sequences: " << curr_sequence << " and " << (*tr_it)->PeptideSequence <<
+            ". Since 'override_group_label_check' is on, nothing will be changed." << std::endl;
           }
           else
           {
             // Lets fix it and inform the user
-            LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it->first << 
-              //" found multiple peptide sequences: " << curr_sequence << " and " << (*tr_it)->PeptideSequence << 
-              ". This is most likely an error and to fix this, a new peptide label group will be inferred - " << 
-              "to override this decision, please use the override_group_label_check parameter." << std::endl;
+            LOG_WARN << "Warning: Found multiple peptide sequences for peptide label group " << pep_it->first <<
+            //" found multiple peptide sequences: " << curr_sequence << " and " << (*tr_it)->PeptideSequence <<
+            ". This is most likely an error and to fix this, a new peptide label group will be inferred - " <<
+            "to override this decision, please use the override_group_label_check parameter." << std::endl;
             (*tr_it)->peptide_group_label = (*tr_it)->group_id;
           }
 
@@ -1053,7 +1053,7 @@ namespace OpenMS
 
 #ifdef TRANSITIONTSVREADER_TESTING
       std::cout << "Peptide rts empty " <<
-        pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
+      pep.rts.empty()  << " or no cv term " << pep.rts[0].hasCVTerm("MS:1000896") << std::endl;
 #endif
 
       if (!pep.rts.empty() && pep.rts[0].hasCVTerm("MS:1000896"))

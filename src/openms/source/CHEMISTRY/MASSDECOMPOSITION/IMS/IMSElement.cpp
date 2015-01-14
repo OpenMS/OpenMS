@@ -47,7 +47,7 @@ namespace OpenMS
     */
     const IMSElement::mass_type IMSElement::ELECTRON_MASS_IN_U = 0.00054858;
 
-    IMSElement & IMSElement::operator=(const IMSElement & element)
+    IMSElement& IMSElement::operator=(const IMSElement& element)
     {
       // if one doesn't assign object to itself,
       // assign all object elements to the elements of the given object
@@ -60,7 +60,7 @@ namespace OpenMS
       return *this;
     }
 
-    bool IMSElement::operator==(const IMSElement & element) const
+    bool IMSElement::operator==(const IMSElement& element) const
     {
       return this == &element ||
              (name_ == element.name_ &&
@@ -68,12 +68,12 @@ namespace OpenMS
               isotopes_ == element.isotopes_);
     }
 
-    bool IMSElement::operator!=(const IMSElement & element) const
+    bool IMSElement::operator!=(const IMSElement& element) const
     {
       return !this->operator==(element);
     }
 
-    std::ostream & operator<<(std::ostream & os, const IMSElement & element)
+    std::ostream& operator<<(std::ostream& os, const IMSElement& element)
     {
       os << "name:\t" << element.getName() << "\nsequence:\t" << element.getSequence()
       << "\nisotope distribution:\n" << element.getIsotopeDistribution() << '\n';

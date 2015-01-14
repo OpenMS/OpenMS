@@ -37,11 +37,11 @@
 
 namespace OpenMS
 {
-  std::ostream & operator<<(std::ostream & os, const ChromatogramPeak & point)
+  std::ostream& operator<<(std::ostream& os, const ChromatogramPeak& point)
   {
     os << "POS: " << point.getRT() << " INT: " << point.getIntensity();
     return os;
   }
 
-  MSSpectrum<ChromatogramPeak> spec_cp; // required for VS to avoid missing symbols in DLL (hard to see why)  
+  MSSpectrum<ChromatogramPeak> spec_cp; // required for VS to avoid missing symbols in DLL (hard to see why)
 }

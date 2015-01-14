@@ -65,10 +65,10 @@ namespace OpenMS
     for (FeatureMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
     {
       os << iter->getPosition() << '\t'
-         << iter->getIntensity() << '\t'
-         << iter->getOverallQuality() << '\t'
-         << iter->getCharge() << '\t'
-         << iter->getUniqueId() << "\n";
+      << iter->getIntensity() << '\t'
+      << iter->getOverallQuality() << '\t'
+      << iter->getCharge() << '\t'
+      << iter->getUniqueId() << "\n";
     }
     os << "# -- DFEATUREMAP END --" << std::endl;
     return os;

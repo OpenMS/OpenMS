@@ -43,7 +43,7 @@ namespace OpenMS
 
     void setModification(int location, int max_size, String modification, OpenMS::AASequence& aas)
     {
-      OPENMS_PRECONDITION(location >= -1 && location <= max_size, (String("Location has invalid value") + (String)location).c_str() )
+      OPENMS_PRECONDITION(location >= -1 && location <= max_size, (String("Location has invalid value") + (String)location).c_str())
 
       if (location == -1)
       {
@@ -88,8 +88,8 @@ namespace OpenMS
         // modification by using the mass difference
         if (nr_modifications_added == 0)
         {
-          const ResidueModification * mod = mod_db->getBestModificationsByDiffMonoMass(
-                 peptide.sequence[it->location], it->mono_mass_delta, 1.0);
+          const ResidueModification* mod = mod_db->getBestModificationsByDiffMonoMass(
+            peptide.sequence[it->location], it->mono_mass_delta, 1.0);
           if (mod != NULL)
           {
             setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
@@ -98,8 +98,8 @@ namespace OpenMS
           {
             // could not find any modification ...
             std::cerr << "Warning: Could not determine modification with delta mass " <<
-              it->mono_mass_delta << " for peptide " << peptide.sequence <<
-              " at position " << it->location << std::endl;
+            it->mono_mass_delta << " for peptide " << peptide.sequence <<
+            " at position " << it->location << std::endl;
             std::cerr << "Skipping this modifcation" << std::endl;
           }
         }

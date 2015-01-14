@@ -61,7 +61,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // constructor for the object ClusteredMS2ConsensusSpectrum:
-  ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(MS2ConsensusSpectrum * in) :
+  ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(MS2ConsensusSpectrum* in) :
     MS2ConsensusSpectrum(in)
   {
 
@@ -83,7 +83,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // constructor for the object ClusteredMS2ConsensusSpectrum:
-  ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(MS2Fragment * in) :
+  ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(MS2Fragment* in) :
     MS2ConsensusSpectrum(in)
   {
     // store the scan numbers:
@@ -99,7 +99,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of ClusteredMS2ConsensusSpectrum
-  ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(const ClusteredMS2ConsensusSpectrum & tmp) :
+  ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(const ClusteredMS2ConsensusSpectrum& tmp) :
     MS2ConsensusSpectrum(tmp)
   {
     MS2Scans = tmp.MS2Scans;
@@ -107,7 +107,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of ClusteredMS2ConsensusSpectrum
-  ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(const ClusteredMS2ConsensusSpectrum * tmp) :
+  ClusteredMS2ConsensusSpectrum::ClusteredMS2ConsensusSpectrum(const ClusteredMS2ConsensusSpectrum* tmp) :
     MS2ConsensusSpectrum(tmp)
   {
     MS2Scans = tmp->MS2Scans;
@@ -116,7 +116,7 @@ namespace OpenMS
 //////////////////////////////////////////////////
 // extracts fragments from a MS/MS spectra and inserts
 // them into the Clustered MS/MS spectrum:
-  void ClusteredMS2ConsensusSpectrum::extractFragmentsFromSpectra(MS2ConsensusSpectrum * in)
+  void ClusteredMS2ConsensusSpectrum::extractFragmentsFromSpectra(MS2ConsensusSpectrum* in)
   {
 
     // go through the MS2 fragments and find the common one:
@@ -125,10 +125,10 @@ namespace OpenMS
     {
 
       // fragment search mass:
-      MS2Fragment * frag = &(P->second);
+      MS2Fragment* frag = &(P->second);
       double searchMZ = frag->getFragmentMz();
 
-      MS2Fragment * matchedFrag = this->findMS2Fragment(searchMZ);
+      MS2Fragment* matchedFrag = this->findMS2Fragment(searchMZ);
 
       // in case where the fragment has been detected in a previous MS/MS
       // merge thes in one MS2 fragment
@@ -147,7 +147,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // add a MS2 fragment:
-  void ClusteredMS2ConsensusSpectrum::addMS2ConsensusSpectrum(MS2ConsensusSpectrum * in)
+  void ClusteredMS2ConsensusSpectrum::addMS2ConsensusSpectrum(MS2ConsensusSpectrum* in)
   {
 
     // extract directly the MS/MS clustered spectrum
@@ -160,7 +160,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////////
 // merge a MS2 fragment into the target MS2 fragment:
-  void ClusteredMS2ConsensusSpectrum::mergeMS2Fragments(MS2Fragment * target, MS2Fragment * toMerge)
+  void ClusteredMS2ConsensusSpectrum::mergeMS2Fragments(MS2Fragment* target, MS2Fragment* toMerge)
   {
 
     // sum up intensities:
@@ -176,12 +176,12 @@ namespace OpenMS
 
   int ClusteredMS2ConsensusSpectrum::getNumberOfSpectraScan()
   {
-   return (int) MS2Scans.size();
+    return (int) MS2Scans.size();
   }
 
   std::vector<int>::iterator ClusteredMS2ConsensusSpectrum::getSpectraScanNumberStart()
   {
-   return MS2Scans.begin();
+    return MS2Scans.begin();
   }
 
   std::vector<int>::iterator ClusteredMS2ConsensusSpectrum::getSpectraScanNumberEnd()

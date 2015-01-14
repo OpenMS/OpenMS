@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumSettings::SpectrumSettings(const SpectrumSettings & source) :
+  SpectrumSettings::SpectrumSettings(const SpectrumSettings& source) :
     MetaInfoInterface(source),
     type_(source.type_),
     native_id_(source.native_id_),
@@ -76,7 +76,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumSettings & SpectrumSettings::operator=(const SpectrumSettings & source)
+  SpectrumSettings& SpectrumSettings::operator=(const SpectrumSettings& source)
   {
     if (&source == this)
       return *this;
@@ -96,7 +96,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool SpectrumSettings::operator==(const SpectrumSettings & rhs) const
+  bool SpectrumSettings::operator==(const SpectrumSettings& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
            type_ == rhs.type_ &&
@@ -111,12 +111,12 @@ namespace OpenMS
            data_processing_ == rhs.data_processing_;
   }
 
-  bool SpectrumSettings::operator!=(const SpectrumSettings & rhs) const
+  bool SpectrumSettings::operator!=(const SpectrumSettings& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  void SpectrumSettings::unify(const SpectrumSettings & rhs)
+  void SpectrumSettings::unify(const SpectrumSettings& rhs)
   {
     // append metavalues (overwrite when already present)
     std::vector<UInt> keys;
@@ -128,7 +128,7 @@ namespace OpenMS
     if (type_ != rhs.type_)
       type_ = UNKNOWN;                       // only keep if both are equal
     //native_id_ == rhs.native_id_ // keep
-    comment_ += rhs.comment_;        // append
+    comment_ += rhs.comment_; // append
     //instrument_settings_ == rhs.instrument_settings_  // keep
     //acquisition_info_ == rhs.acquisition_info_
     //source_file_ == rhs.source_file_ &&
@@ -148,134 +148,134 @@ namespace OpenMS
     type_ = type;
   }
 
-  const String & SpectrumSettings::getComment() const
+  const String& SpectrumSettings::getComment() const
   {
     return comment_;
   }
 
-  void SpectrumSettings::setComment(const String & comment)
+  void SpectrumSettings::setComment(const String& comment)
   {
     comment_ = comment;
   }
 
-  const InstrumentSettings & SpectrumSettings::getInstrumentSettings() const
+  const InstrumentSettings& SpectrumSettings::getInstrumentSettings() const
   {
     return instrument_settings_;
   }
 
-  InstrumentSettings & SpectrumSettings::getInstrumentSettings()
+  InstrumentSettings& SpectrumSettings::getInstrumentSettings()
   {
     return instrument_settings_;
   }
 
-  void SpectrumSettings::setInstrumentSettings(const InstrumentSettings & instrument_settings)
+  void SpectrumSettings::setInstrumentSettings(const InstrumentSettings& instrument_settings)
   {
     instrument_settings_ = instrument_settings;
   }
 
-  const AcquisitionInfo & SpectrumSettings::getAcquisitionInfo() const
+  const AcquisitionInfo& SpectrumSettings::getAcquisitionInfo() const
   {
     return acquisition_info_;
   }
 
-  AcquisitionInfo & SpectrumSettings::getAcquisitionInfo()
+  AcquisitionInfo& SpectrumSettings::getAcquisitionInfo()
   {
     return acquisition_info_;
   }
 
-  void SpectrumSettings::setAcquisitionInfo(const AcquisitionInfo & acquisition_info)
+  void SpectrumSettings::setAcquisitionInfo(const AcquisitionInfo& acquisition_info)
   {
     acquisition_info_ = acquisition_info;
   }
 
-  const SourceFile & SpectrumSettings::getSourceFile() const
+  const SourceFile& SpectrumSettings::getSourceFile() const
   {
     return source_file_;
   }
 
-  SourceFile & SpectrumSettings::getSourceFile()
+  SourceFile& SpectrumSettings::getSourceFile()
   {
     return source_file_;
   }
 
-  void SpectrumSettings::setSourceFile(const SourceFile & source_file)
+  void SpectrumSettings::setSourceFile(const SourceFile& source_file)
   {
     source_file_ = source_file;
   }
 
-  const vector<Precursor> & SpectrumSettings::getPrecursors() const
+  const vector<Precursor>& SpectrumSettings::getPrecursors() const
   {
     return precursors_;
   }
 
-  vector<Precursor> & SpectrumSettings::getPrecursors()
+  vector<Precursor>& SpectrumSettings::getPrecursors()
   {
     return precursors_;
   }
 
-  void SpectrumSettings::setPrecursors(const vector<Precursor> & precursors)
+  void SpectrumSettings::setPrecursors(const vector<Precursor>& precursors)
   {
     precursors_ = precursors;
   }
 
-  const vector<Product> & SpectrumSettings::getProducts() const
+  const vector<Product>& SpectrumSettings::getProducts() const
   {
     return products_;
   }
 
-  vector<Product> & SpectrumSettings::getProducts()
+  vector<Product>& SpectrumSettings::getProducts()
   {
     return products_;
   }
 
-  void SpectrumSettings::setProducts(const vector<Product> & products)
+  void SpectrumSettings::setProducts(const vector<Product>& products)
   {
     products_ = products;
   }
 
-  std::ostream & operator<<(std::ostream & os, const SpectrumSettings & /*spec*/)
+  std::ostream& operator<<(std::ostream& os, const SpectrumSettings& /*spec*/)
   {
     os << "-- SPECTRUMSETTINGS BEGIN --" << std::endl;
     os << "-- SPECTRUMSETTINGS END --" << std::endl;
     return os;
   }
 
-  const std::vector<PeptideIdentification> & SpectrumSettings::getPeptideIdentifications() const
+  const std::vector<PeptideIdentification>& SpectrumSettings::getPeptideIdentifications() const
   {
     return identification_;
   }
 
-  std::vector<PeptideIdentification> & SpectrumSettings::getPeptideIdentifications()
+  std::vector<PeptideIdentification>& SpectrumSettings::getPeptideIdentifications()
   {
     return identification_;
   }
 
-  void SpectrumSettings::setPeptideIdentifications(const std::vector<PeptideIdentification> & identification)
+  void SpectrumSettings::setPeptideIdentifications(const std::vector<PeptideIdentification>& identification)
   {
     identification_ = identification;
   }
 
-  const String & SpectrumSettings::getNativeID() const
+  const String& SpectrumSettings::getNativeID() const
   {
     return native_id_;
   }
 
-  void SpectrumSettings::setNativeID(const String & native_id)
+  void SpectrumSettings::setNativeID(const String& native_id)
   {
     native_id_ = native_id;
   }
 
-  const vector<DataProcessing> & SpectrumSettings::getDataProcessing() const
+  const vector<DataProcessing>& SpectrumSettings::getDataProcessing() const
   {
     return data_processing_;
   }
 
-  vector<DataProcessing> & SpectrumSettings::getDataProcessing()
+  vector<DataProcessing>& SpectrumSettings::getDataProcessing()
   {
     return data_processing_;
   }
 
-  void SpectrumSettings::setDataProcessing(const vector<DataProcessing> & processing_method)
+  void SpectrumSettings::setDataProcessing(const vector<DataProcessing>& processing_method)
   {
     data_processing_ = processing_method;
   }

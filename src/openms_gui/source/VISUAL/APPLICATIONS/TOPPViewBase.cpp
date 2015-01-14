@@ -176,8 +176,8 @@ namespace OpenMS
     connect(tab_bar_, SIGNAL(aboutToCloseId(int)), this, SLOT(closeByTab(int)));
 
     //connect signals ans slots for drag-and-drop
-    connect(tab_bar_, SIGNAL(dropOnWidget(const QMimeData*, QWidget*)), this, SLOT(copyLayer(const QMimeData*, QWidget*)));
-    connect(tab_bar_, SIGNAL(dropOnTab(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
+    connect(tab_bar_, SIGNAL(dropOnWidget(const QMimeData *, QWidget*)), this, SLOT(copyLayer(const QMimeData *, QWidget*)));
+    connect(tab_bar_, SIGNAL(dropOnTab(const QMimeData *, QWidget *, int)), this, SLOT(copyLayer(const QMimeData *, QWidget *, int)));
     box_layout->addWidget(tab_bar_);
 
     ws_ = new EnhancedWorkspace(dummy);
@@ -188,7 +188,7 @@ namespace OpenMS
     connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateFilterBar()));
     connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateMenu()));
     connect(ws_, SIGNAL(windowActivated(QWidget*)), this, SLOT(updateCurrentPath()));
-    connect(ws_, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
+    connect(ws_, SIGNAL(dropReceived(const QMimeData *, QWidget *, int)), this, SLOT(copyLayer(const QMimeData *, QWidget *, int)));
 
     box_layout->addWidget(ws_);
 
@@ -626,7 +626,6 @@ namespace OpenMS
     event->accept();
   }
 
-
   void TOPPViewBase::showURL()
   {
     // NOTE: This code identical to TOPPASBase::showURL(), if you change anything here
@@ -664,7 +663,6 @@ namespace OpenMS
                            tr("\n\nPossible reason: security settings or misconfigured Operating System"));
     }
   }
-
 
   // static
   bool TOPPViewBase::containsMS1Scans(const ExperimentType& exp)
@@ -2448,7 +2446,7 @@ namespace OpenMS
     connect(sw->canvas(), SIGNAL(layerZoomChanged(QWidget*)), this, SLOT(layerZoomChanged()));
     connect(sw, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SLOT(showStatusMessage(std::string, OpenMS::UInt)));
     connect(sw, SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
-    connect(sw, SIGNAL(dropReceived(const QMimeData*, QWidget*, int)), this, SLOT(copyLayer(const QMimeData*, QWidget*, int)));
+    connect(sw, SIGNAL(dropReceived(const QMimeData *, QWidget *, int)), this, SLOT(copyLayer(const QMimeData *, QWidget *, int)));
 
     // 1D spectrum specific signals
     Spectrum1DWidget* sw1 = qobject_cast<Spectrum1DWidget*>(sw);
@@ -2749,7 +2747,6 @@ namespace OpenMS
     }
   }
 
-
   void TOPPViewBase::rerunTOPPTool()
   {
     //warn if hidden layer => wrong layer selected...
@@ -3040,6 +3037,7 @@ namespace OpenMS
     }
     return true;
   }
+
   void TOPPViewBase::annotateWithID()
   {
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();
@@ -3052,9 +3050,9 @@ namespace OpenMS
 
     // load id data
     QString fname = QFileDialog::getOpenFileName(this,
-                                                "Select protein/AMT identification data",
-                                                current_path_.toQString(),
-                                                "idXML files (*.idXML);featureXML files (*.featureXML); all files (*.*)");
+                                                 "Select protein/AMT identification data",
+                                                 current_path_.toQString(),
+                                                 "idXML files (*.idXML);featureXML files (*.featureXML); all files (*.*)");
     if (fname.isEmpty()) return;
 
     FileTypes::Type type = FileHandler::getType(fname);
@@ -3475,8 +3473,8 @@ namespace OpenMS
                            "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
                            ).arg(VersionInfo::getVersion().toQString()
-                           ).arg( // if we have a revision, embed it also into the shown version number
-                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    label = new QLabel(text, dlg);
+                                 ).arg( // if we have a revision, embed it also into the shown version number
+      VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    label = new QLabel(text, dlg);
 
     grid->addWidget(label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 

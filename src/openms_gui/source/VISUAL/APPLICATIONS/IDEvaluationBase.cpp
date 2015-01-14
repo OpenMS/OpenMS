@@ -358,7 +358,6 @@ namespace OpenMS
     spec_1d_->canvas()->setVisibleArea(range);
   }
 
-
   bool IDEvaluationBase::loadCurve(const String& file_name, MSSpectrum<>& points)
   {
     if (FileHandler::getType(file_name) != FileTypes::IDXML)
@@ -374,7 +373,7 @@ namespace OpenMS
     bool ret = getPoints(pep_ids, q_value_thresholds_, points); // FDR calculation failed?
     points.setMetaValue("search_engine", ln);
 
-    return ret; 
+    return ret;
   }
 
   bool IDEvaluationBase::addSearchFile(const String& file_name)
@@ -393,10 +392,10 @@ namespace OpenMS
 
     return true;
   }
-  
+
   const MSExperiment<>& IDEvaluationBase::getPoints() const
   {
-     return data_;
+    return data_;
   }
 
   void IDEvaluationBase::saveImageAs()
@@ -457,7 +456,7 @@ namespace OpenMS
     //   x2 = small_edge_length;
     //   y2 = (1.0 / wh_proportion) * small_edge_length;
     // }
-    
+
     double h = param_.getValue("image:height");
     double w = param_.getValue("image:width");
     setGeometry(QRect(0, 0, w, h)); // does the layout -- otherwise we'd need show() to get it right
@@ -545,8 +544,8 @@ namespace OpenMS
                            "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
                            ).arg(VersionInfo::getVersion().toQString()
-                           ).arg( // if we have a revision, embed it also into the shown version number
-                             VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    QLabel* text_label = new QLabel(text, dlg);
+                                 ).arg( // if we have a revision, embed it also into the shown version number
+      VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");    QLabel* text_label = new QLabel(text, dlg);
     grid->addWidget(text_label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 
     //execute

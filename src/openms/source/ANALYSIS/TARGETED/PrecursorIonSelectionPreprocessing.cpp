@@ -293,7 +293,7 @@ namespace OpenMS
     std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
               << "\t" << param_.getValue("precursor_mass_tolerance")
               << " " << param_.getValue("precursor_mass_tolerance_unit")
-      //<< "\t"<<param_.getValue("rt_tolerance")
+    //<< "\t"<<param_.getValue("rt_tolerance")
               << "\t" << param_.getValue("missed_cleavages")
               << "\t" << param_.getValue("taxonomy")
               << "\t" << param_.getValue("tmp_dir") << "---"
@@ -592,7 +592,7 @@ namespace OpenMS
           ++counter_[distance(bin_masses_.begin(), tmp_iter)];
         }
         else
-          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)]; // increase right counter
+          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)];  // increase right counter
         // #ifdef PISP_DEBUG
         //                      timer.stop();
         //                      std::cout << timer.getCPUTime ()<<std::endl;
@@ -801,7 +801,7 @@ namespace OpenMS
           ++counter_[distance(bin_masses_.begin(), tmp_iter)];
         }
         else
-          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)]; // increase right counter
+          ++counter_[distance(bin_masses_.begin(), tmp_iter + 1)];  // increase right counter
 #ifdef PISP_DEBUG
         timer.stop();
         std::cout << timer.getCPUTime() << std::endl;

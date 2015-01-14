@@ -336,7 +336,7 @@ namespace OpenMS
 
   void AccurateMassSearchEngine::queryByMass(const double& adduct_mass, const Int& adduct_charge, std::vector<AccurateMassSearchResult>& results)
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_) init_();  // parse DB
 
     // Depending on ion_mode_internal_, the file containing the rules for positive or negative adducts is loaded
     StringListUtils::ConstIterator it_s, it_e;
@@ -366,9 +366,8 @@ namespace OpenMS
 
       // std::cout << "looking for " << pos_adducts_[adduct_idx] << std::endl;
       //if ((adduct_charge > 0) && (charge != adduct_charge))
-      if (adduct_charge != 0 && (std::abs(adduct_charge) != std::abs(charge)))
-      { // charge must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
-        // charge 0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
+      if (adduct_charge != 0 && (std::abs(adduct_charge) != std::abs(charge))) // charge must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
+      { // charge 0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
         continue;
       }
 
@@ -410,7 +409,7 @@ namespace OpenMS
 
   void AccurateMassSearchEngine::queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results)
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_) init_();  // parse DB
 
     std::vector<AccurateMassSearchResult> results_part;
 
@@ -428,7 +427,7 @@ namespace OpenMS
 
   void AccurateMassSearchEngine::queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results)
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_) init_();  // parse DB
 
     std::vector<AccurateMassSearchResult> results_part;
 
@@ -490,14 +489,14 @@ namespace OpenMS
 
   void AccurateMassSearchEngine::run(FeatureMap& fmap, MzTab& mztab_out)
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_) init_();  // parse DB
 
     if (ion_mode_ == "auto")
     {
       resolveAutoMode_(fmap);
     }
-    else
-    { // just copy
+    else // just copy
+    {
       ion_mode_internal_ = ion_mode_;
     }
 
@@ -519,8 +518,8 @@ namespace OpenMS
         {
           LOG_WARN << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
         }
-        else if ((Size)fmap[i].getMetaValue("num_of_masstraces") > 1)
-        { // compute isotope pattern similarities and determine best matching one
+        else if ((Size)fmap[i].getMetaValue("num_of_masstraces") > 1) // compute isotope pattern similarities and determine best matching one
+        {
           double best_iso_sim(std::numeric_limits<double>::max());
           Size best_iso_idx(0);
           for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
@@ -592,14 +591,14 @@ namespace OpenMS
 
   void AccurateMassSearchEngine::run(ConsensusMap& cmap, MzTab& mztab_out)
   {
-    if (!is_initialized_) init_(); // parse DB
+    if (!is_initialized_) init_();  // parse DB
 
     if (ion_mode_ == "auto")
     {
       resolveAutoMode_(cmap);
     }
-    else
-    { // just copy
+    else // just copy
+    {
       ion_mode_internal_ = ion_mode_;
     }
     ConsensusMap::FileDescriptions fd_map = cmap.getFileDescriptions();
@@ -939,8 +938,8 @@ namespace OpenMS
         else if (word_count == 1)
         {
           entry.formula = *istr_it;
-          if (entry.mass == 0)
-          { // recompute mass from formula
+          if (entry.mass == 0) // recompute mass from formula
+          {
             entry.mass = EmpiricalFormula(entry.formula).getMonoWeight();
             //std::cerr << "mass of " << entry.formula << " is " << entry.mass << "\n";
           }

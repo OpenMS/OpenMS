@@ -91,7 +91,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 // get a list of peptides and returns only those which are unique
-void getUniquePeptides(vector<PILISCrossValidation::Peptide> & peptides)
+void getUniquePeptides(vector<PILISCrossValidation::Peptide>& peptides)
 {
   vector<PILISCrossValidation::Peptide> unique_peptides;
   Map<AASequence, Map<Size, vector<PILISCrossValidation::Peptide> > > sorted;
@@ -164,7 +164,7 @@ protected:
     registerSubsection_("grid_search_parameters", "Parameters for the PILIS grid search.");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "PILIS_parameters")
     {
@@ -287,7 +287,7 @@ protected:
     return Param();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -462,7 +462,7 @@ protected:
     Param grid_param = getParam_().copy("grid_search_parameters:", true);
 
     StringList double_parameters = ListUtils::create<String>("lower_mz,charge_remote_threshold,charge_directed_threshold,min_enhancement_factor,min_y_ion_intensity,min_b_ion_intensity,min_a_ion_intensity,min_b_loss_intensity,min_y_loss_intensity,side_chain_activation");
-    StringList int_parameters = ListUtils::create<String>("max_isotope,max_fragment_charge,max_fragment_charge_training");   // todo add model_depth
+    StringList int_parameters = ListUtils::create<String>("max_isotope,max_fragment_charge,max_fragment_charge_training"); // todo add model_depth
 
     Size number_of_repeats = (UInt)grid_param.getValue("number_of_repeats");
     for (Size i = 0; i < number_of_repeats; ++i)
@@ -521,11 +521,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPILISModelCV tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

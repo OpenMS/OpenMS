@@ -53,7 +53,7 @@ using namespace std;
   @page TOPP_NoiseFilterSGolay NoiseFilterSGolay
 
   @brief  Executes a Savitzky Golay filter to reduce the noise in an MS experiment.
- 
+
   <center>
   <table>
   <tr>
@@ -74,7 +74,7 @@ using namespace std;
   </tr>
   </table>
   </center>
- 
+
   The idea of the Savitzky Golay filter is to find filter-coefficients
   that preserve higher moments, which means to approximate the underlying
   function within the moving window by a polynomial of higher order
@@ -106,13 +106,13 @@ public:
     @brief Helper class for the Low Memory Noise filtering
   */
   class NFSGolayMzMLConsumer :
-    public MSDataWritingConsumer 
+    public MSDataWritingConsumer
   {
 
-  public:
+public:
 
     NFSGolayMzMLConsumer(const String& filename, const SavitzkyGolayFilter& sgf) :
-      MSDataWritingConsumer(filename) 
+      MSDataWritingConsumer(filename)
     {
       sgf_ = sgf;
     }
@@ -122,12 +122,12 @@ public:
       sgf_.filter(s);
     }
 
-    void processChromatogram_(MapType::ChromatogramType& c) 
+    void processChromatogram_(MapType::ChromatogramType& c)
     {
       sgf_.filter(c);
     }
 
-  private:
+private:
     SavitzkyGolayFilter sgf_;
   };
 
@@ -144,7 +144,7 @@ public:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return SavitzkyGolayFilter().getDefaults();
   }
@@ -166,7 +166,7 @@ public:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -250,7 +250,7 @@ public:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPNoiseFilterSGolay tool;
   return tool.main(argc, argv);

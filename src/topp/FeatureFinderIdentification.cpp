@@ -333,8 +333,8 @@ protected:
                ++rt_it)
           {
             pair<double, double>& rt_region = rt_regions.back();
-            if (rt_region.second + rt_region.first >= *rt_it - rt_tolerance_)
-            { // regions overlap, join them (same start point, new length):
+            if (rt_region.second + rt_region.first >= *rt_it - rt_tolerance_) // regions overlap, join them (same start point, new length):
+            {
               rt_region.first = *rt_it + rt_tolerance_ - rt_region.second;
             }
             else // no overlap, start new region:
@@ -391,7 +391,7 @@ protected:
       TargetedExperiment::RetentionTime rt;
       rt.addCVTerm(rt_term_);
       peptide.rts.push_back(rt);
-      if (rts.size() > 1) peptide.id += ":" + String(i + 1); // use multiple IDs
+      if (rts.size() > 1) peptide.id += ":" + String(i + 1);  // use multiple IDs
       library_.addPeptide(peptide);
       addTransitions_(peptide.id, mz, charge);
       peptide = copy; // reset
@@ -675,7 +675,7 @@ protected:
       for (Size i = 0; i < features.size(); ++i)
       {
         double width = widths_all[i];
-        if (width != width) continue; // NaN (failed model)
+        if (width != width) continue;  // NaN (failed model)
         double z_width = (width - median_width) / mad_width; // mod. z-score
         if (z_width > width_limit)
         {
@@ -710,7 +710,7 @@ protected:
       for (Size i = 0; i < features.size(); ++i)
       {
         double asym = asym_all[i];
-        if (asym != asym) continue; // NaN (failed model)
+        if (asym != asym) continue;  // NaN (failed model)
         double z_asym = (asym - median_asym) / mad_asym; // mod. z-score
         if (z_asym > asym_limit)
         {
@@ -741,8 +741,8 @@ protected:
       else
       {
         double area = feat_it->getMetaValue("model_area");
-        if (impute)
-        { // apply log-transform to weight down high outliers:
+        if (impute) // apply log-transform to weight down high outliers:
+        {
           double raw_intensity = feat_it->getIntensity();
           LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = "
                     << area << "; log(x) = " << log(raw_intensity)

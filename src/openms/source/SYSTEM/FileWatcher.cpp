@@ -39,7 +39,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  FileWatcher::FileWatcher(QObject * parent) :
+  FileWatcher::FileWatcher(QObject* parent) :
     QFileSystemWatcher(parent),
     timers_(),
     delay_in_seconds_(1.0)
@@ -52,18 +52,18 @@ namespace OpenMS
   {
   }
 
-  void FileWatcher::monitorFileChanged_(const QString & name)
+  void FileWatcher::monitorFileChanged_(const QString& name)
   {
     //cout << "File changed: " << String(name) << endl;
     //Look up if there is already a timer for this file
-    QTimer * timer = 0;
+    QTimer* timer = 0;
     for (map<QString, QString>::const_iterator it = timers_.begin(); it != timers_.end(); ++it)
     {
-      if (it->second == name)     //we found the timer name and id
+      if (it->second == name) //we found the timer name and id
       {
         //cout << " - Found timer name: " << String(it->second) << endl;
         //search for the timer instance with the corresponding Id
-        timer = findChild<QTimer *>(it->first);
+        timer = findChild<QTimer*>(it->first);
       }
     }
 
@@ -95,7 +95,7 @@ namespace OpenMS
   {
     //cout << "Timer activated" << endl;
     //get the timer instance
-    QTimer * timer = qobject_cast<QTimer *>(sender());
+    QTimer* timer = qobject_cast<QTimer*>(sender());
     //emit the final for the file corresponding to the timer name
     //cout << " - timer name: " << String(timer->objectName()) << endl;
     //cout << " - timer file: " << String(timers_[timer->objectName()]) << endl;

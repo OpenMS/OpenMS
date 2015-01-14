@@ -162,14 +162,14 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String & /* section*/) const
+  Param getSubsectionDefaults_(const String& /* section*/) const
   {
     Param param = PrecursorIonSelection().getDefaults();
     //    param.insert("",PrecursorIonSelection().getDefaults().copy(""));
     return param;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -265,7 +265,7 @@ protected:
     else
     {
 
-      pis.rescore(f_map, pep_ids, prot_ids, pisp);  // todo: add "rescoring" for LP selection
+      pis.rescore(f_map, pep_ids, prot_ids, pisp); // todo: add "rescoring" for LP selection
       FeatureMap new_precursors;
       pis.getNextPrecursors(f_map, new_precursors, prec_num);
 
@@ -283,7 +283,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPrecursorIonSelector tool;
   return tool.main(argc, argv);

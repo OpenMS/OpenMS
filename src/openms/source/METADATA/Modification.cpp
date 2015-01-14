@@ -51,7 +51,7 @@ namespace OpenMS
 
   }
 
-  Modification::Modification(const Modification & source) :
+  Modification::Modification(const Modification& source) :
     SampleTreatment(source),
     reagent_name_(source.reagent_name_),
     mass_(source.mass_),
@@ -66,7 +66,7 @@ namespace OpenMS
 
   }
 
-  Modification & Modification::operator=(const Modification & source)
+  Modification& Modification::operator=(const Modification& source)
   {
     if (&source == this)
       return *this;
@@ -80,12 +80,12 @@ namespace OpenMS
     return *this;
   }
 
-  bool Modification::operator==(const SampleTreatment & rhs) const
+  bool Modification::operator==(const SampleTreatment& rhs) const
   {
     if (type_ != rhs.getType())
       return false;
 
-    const Modification * tmp = dynamic_cast<const Modification *>(&rhs);
+    const Modification* tmp = dynamic_cast<const Modification*>(&rhs);
     return SampleTreatment::operator==(* tmp) &&
            reagent_name_ == tmp->reagent_name_ &&
            mass_ == tmp->mass_ &&
@@ -93,18 +93,18 @@ namespace OpenMS
            affected_amino_acids_ == tmp->affected_amino_acids_;
   }
 
-  SampleTreatment * Modification::clone() const
+  SampleTreatment* Modification::clone() const
   {
-    SampleTreatment * tmp = new Modification(*this);
+    SampleTreatment* tmp = new Modification(*this);
     return tmp;
   }
 
-  const String & Modification::getReagentName() const
+  const String& Modification::getReagentName() const
   {
     return reagent_name_;
   }
 
-  void Modification::setReagentName(const String & reagent_name)
+  void Modification::setReagentName(const String& reagent_name)
   {
     reagent_name_ = reagent_name;
   }
@@ -119,22 +119,22 @@ namespace OpenMS
     mass_ = mass;
   }
 
-  const Modification::SpecificityType & Modification::getSpecificityType() const
+  const Modification::SpecificityType& Modification::getSpecificityType() const
   {
     return specificity_type_;
   }
 
-  void Modification::setSpecificityType(const Modification::SpecificityType & specificity_type)
+  void Modification::setSpecificityType(const Modification::SpecificityType& specificity_type)
   {
     specificity_type_ = specificity_type;
   }
 
-  const String & Modification::getAffectedAminoAcids() const
+  const String& Modification::getAffectedAminoAcids() const
   {
     return affected_amino_acids_;
   }
 
-  void Modification::setAffectedAminoAcids(const String & affected_amino_acids)
+  void Modification::setAffectedAminoAcids(const String& affected_amino_acids)
   {
     affected_amino_acids_ = affected_amino_acids;
   }

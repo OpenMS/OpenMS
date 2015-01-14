@@ -45,7 +45,7 @@ namespace OpenMS
   {
   }
 
-  AcquisitionInfo::AcquisitionInfo(const AcquisitionInfo & source) :
+  AcquisitionInfo::AcquisitionInfo(const AcquisitionInfo& source) :
     vector<Acquisition>(source),
     MetaInfoInterface(source),
     method_of_combination_(source.method_of_combination_)
@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  AcquisitionInfo & AcquisitionInfo::operator=(const AcquisitionInfo & source)
+  AcquisitionInfo& AcquisitionInfo::operator=(const AcquisitionInfo& source)
   {
     if (&source == this)
       return *this;
@@ -69,24 +69,24 @@ namespace OpenMS
     return *this;
   }
 
-  bool AcquisitionInfo::operator==(const AcquisitionInfo & rhs) const
+  bool AcquisitionInfo::operator==(const AcquisitionInfo& rhs) const
   {
     return method_of_combination_ == rhs.method_of_combination_ &&
            MetaInfoInterface::operator==(rhs) &&
            std::operator==(*this, rhs);
   }
 
-  bool AcquisitionInfo::operator!=(const AcquisitionInfo & rhs) const
+  bool AcquisitionInfo::operator!=(const AcquisitionInfo& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & AcquisitionInfo::getMethodOfCombination() const
+  const String& AcquisitionInfo::getMethodOfCombination() const
   {
     return method_of_combination_;
   }
 
-  void AcquisitionInfo::setMethodOfCombination(const String & method_of_combination)
+  void AcquisitionInfo::setMethodOfCombination(const String& method_of_combination)
   {
     method_of_combination_ = method_of_combination;
   }

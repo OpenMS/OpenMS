@@ -59,7 +59,7 @@ namespace OpenMS
     distribution_.push_back(make_pair<Size, double>(0, 1));
   }
 
-  IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & isotope_distribution) :
+  IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution& isotope_distribution) :
     max_isotope_(isotope_distribution.max_isotope_),
     distribution_(isotope_distribution.distribution_)
   {
@@ -79,7 +79,7 @@ namespace OpenMS
     return max_isotope_;
   }
 
-  IsotopeDistribution & IsotopeDistribution::operator=(const IsotopeDistribution & iso)
+  IsotopeDistribution& IsotopeDistribution::operator=(const IsotopeDistribution& iso)
   {
     if (this != &iso)
     {
@@ -89,7 +89,7 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeDistribution IsotopeDistribution::operator+(const IsotopeDistribution & iso) const
+  IsotopeDistribution IsotopeDistribution::operator+(const IsotopeDistribution& iso) const
   {
     ContainerType result;
     convolve_(result, distribution_, iso.distribution_);
@@ -99,7 +99,7 @@ namespace OpenMS
     return result_iso;
   }
 
-  IsotopeDistribution & IsotopeDistribution::operator+=(const IsotopeDistribution & iso)
+  IsotopeDistribution& IsotopeDistribution::operator+=(const IsotopeDistribution& iso)
   {
     ContainerType result;
     convolve_(result, distribution_, iso.distribution_);
@@ -107,7 +107,7 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeDistribution & IsotopeDistribution::operator*=(Size factor)
+  IsotopeDistribution& IsotopeDistribution::operator*=(Size factor)
   {
     ContainerType result;
     convolvePow_(result, distribution_, factor);
@@ -125,12 +125,12 @@ namespace OpenMS
     return result_iso;
   }
 
-  void IsotopeDistribution::set(const ContainerType & distribution)
+  void IsotopeDistribution::set(const ContainerType& distribution)
   {
     distribution_ = distribution;
   }
 
-  const IsotopeDistribution::ContainerType & IsotopeDistribution::getContainer() const
+  const IsotopeDistribution::ContainerType& IsotopeDistribution::getContainer() const
   {
     return distribution_;
   }
@@ -166,7 +166,7 @@ namespace OpenMS
 
   void IsotopeDistribution::estimateFromPeptideWeight(double average_weight)
   {
-    const ElementDB * db = ElementDB::getInstance();
+    const ElementDB* db = ElementDB::getInstance();
 
     vector<String> names;
     names.push_back("C");
@@ -199,18 +199,18 @@ namespace OpenMS
     }
   }
 
-  bool IsotopeDistribution::operator==(const IsotopeDistribution & isotope_distribution) const
+  bool IsotopeDistribution::operator==(const IsotopeDistribution& isotope_distribution) const
   {
     return max_isotope_ == isotope_distribution.max_isotope_ &&
            distribution_ == isotope_distribution.distribution_;
   }
 
-  bool IsotopeDistribution::operator!=(const IsotopeDistribution & isotope_distribution) const
+  bool IsotopeDistribution::operator!=(const IsotopeDistribution& isotope_distribution) const
   {
     return !(isotope_distribution == *this);
   }
 
-  void IsotopeDistribution::convolve_(ContainerType & result, const ContainerType & left, const ContainerType & right) const
+  void IsotopeDistribution::convolve_(ContainerType& result, const ContainerType& left, const ContainerType& right) const
   {
     if (left.empty() || right.empty())
     {
@@ -242,7 +242,7 @@ namespace OpenMS
     }
   }
 
-  void IsotopeDistribution::convolvePow_(ContainerType & result, const ContainerType & input, Size n) const
+  void IsotopeDistribution::convolvePow_(ContainerType& result, const ContainerType& input, Size n) const
   {
     /*
     // my code
@@ -314,7 +314,7 @@ namespace OpenMS
     // Clemens' code end
   }
 
-  void IsotopeDistribution::convolveSquare_(ContainerType & result, const ContainerType & input) const
+  void IsotopeDistribution::convolveSquare_(ContainerType& result, const ContainerType& input) const
   {
     result.clear();
     ContainerType::size_type r_max = 2 * input.size() - 1;

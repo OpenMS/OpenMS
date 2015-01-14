@@ -48,8 +48,8 @@ namespace OpenMS
 {
 
   void SignalToNoiseEstimatorMedianRapid::computeNoiseInWindows_(
-      const std::vector<double>& mz_array, std::vector<double> int_array, 
-      std::vector<double> & result, double mz_start)
+    const std::vector<double>& mz_array, std::vector<double> int_array,
+    std::vector<double>& result, double mz_start)
   {
     // PRECONDITION
     assert(mz_array.size() == int_array.size());
@@ -72,7 +72,7 @@ namespace OpenMS
       mz_end_it = std::lower_bound(mz_start_it, (std::vector<double>::const_iterator)mz_array.end(), mz_end);
 
       // Compute the the correct windows in intensity
-      std::iterator_traits< std::vector<double>::const_iterator >::difference_type iterator_pos = std::distance(mz_start_it, mz_end_it);
+      std::iterator_traits<std::vector<double>::const_iterator>::difference_type iterator_pos = std::distance(mz_start_it, mz_end_it);
       std::advance(int_end_win, iterator_pos);
 
       // compute median of all data between intensity start and intensity end
@@ -82,7 +82,7 @@ namespace OpenMS
       // Deal with a median of zero
       //
       // If we find a zero here, try to impute some value that might make sense as noise value ...
-      // alternatively, one could also remove all zeros and compute the median on that 
+      // alternatively, one could also remove all zeros and compute the median on that
       if (result[i] == 0)
       {
         // Legacy implementation from SignalToNoiseEstimatorMedian
@@ -90,9 +90,9 @@ namespace OpenMS
         // max_intensity_ = gauss_global.mean + std::sqrt(gauss_global.variance) * auto_max_stdev_Factor_;
         // From the maximum intensity we can compute the value of the lowest
         // bin in the histogram of the SignalToNoiseEstimatorMedian algorithm:
-        // maximum intensity divided by 60 
+        // maximum intensity divided by 60
         result[i] = (int_mean  + 3.0 * int_stdev) / 60;
-      }  
+      }
 
       mz_start_it = mz_end_it;
       int_start_win = int_end_win;
@@ -100,9 +100,9 @@ namespace OpenMS
     }
   }
 
-  double SignalToNoiseEstimatorMedianRapid::computeMedian_(std::vector<double>::iterator & first, std::vector<double>::iterator & last)
+  double SignalToNoiseEstimatorMedianRapid::computeMedian_(std::vector<double>::iterator& first, std::vector<double>::iterator& last)
   {
-    std::iterator_traits< std::vector<double>::const_iterator >::difference_type iterator_pos = std::distance(first, last);
+    std::iterator_traits<std::vector<double>::const_iterator>::difference_type iterator_pos = std::distance(first, last);
     std::nth_element(first, first + iterator_pos / 2, last);
 
     double median;
@@ -115,9 +115,9 @@ namespace OpenMS
       // even case
       // compute the arithmethic mean between the two middle elements
       double f = *(first + iterator_pos / 2);
-      std::nth_element(first, first + iterator_pos / 2 -1, last);
+      std::nth_element(first, first + iterator_pos / 2 - 1, last);
       double s = *(first + iterator_pos / 2 - 1);
-      median = (f+s)/2.0; 
+      median = (f + s) / 2.0;
     }
     else
     {
@@ -128,4 +128,3 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
-

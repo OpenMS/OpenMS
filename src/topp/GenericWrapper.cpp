@@ -170,7 +170,7 @@ protected:
   /**
     @brief format filenames and quote stringlists
   */
-  String paramToString_(const Param::ParamEntry & p)
+  String paramToString_(const Param::ParamEntry& p)
   {
 
     if (p.value.valueType() == DataValue::STRING_LIST) // quote each element
@@ -204,7 +204,7 @@ protected:
   struct StringSizeLess :
     std::binary_function<String, String, bool>
   {
-    bool operator()(String const & left, String const & right) const
+    bool operator()(String const& left, String const& right) const
     {
       return left.size() < right.size();
     }
@@ -212,7 +212,7 @@ protected:
   };
 
 
-  void createFragment_(String & fragment, const Param & param)
+  void createFragment_(String& fragment, const Param& param)
   {
 
     //std::cerr << "FRAGMENT: " << fragment << "\n\n";
@@ -264,7 +264,7 @@ protected:
       //std::cout << "fragment is:" << fragment << std::endl;
       while ((pos = rx.indexIn(t_tmp, pos)) != -1)
       {
-        String value = rx.cap(1);   // param name (hopefully)
+        String value = rx.cap(1); // param name (hopefully)
         // replace in fragment:
         QFileInfo qfi(value.toQString());
         //std::cout << "match @ " << pos << " " << value << " --> " << qfi.canonicalPath() << "\n";
@@ -283,7 +283,7 @@ protected:
       while ((pos = rx.indexIn(t_tmp, pos)) != -1)
       {
         //std::cout << "match @ " << pos << "\n";
-        String value = rx.cap(1);   // param name (hopefully)
+        String value = rx.cap(1); // param name (hopefully)
         // replace in fragment:
         QFileInfo qfi(value.toQString());
         //std::cout << "match @ " << pos << " " << value << " --> " << qfi.completeBaseName() << "\n";
@@ -300,8 +300,9 @@ protected:
     SignedSize diff = (fragment.length() - String(fragment).substitute("%", "").length()) - allowed_percent;
     //std::cerr << "allowed: " << allowed_percent << "\n" << "diff: " << diff << " in: " << fragment << "\n";
     if (diff > 0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping still contains '%' after substitution! Did you use % instead of %%?", fragment);
-    else if (diff < 0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: '%' from a filename where accidentally considered command tags! "
-                                                                                              "This is a bug! Remove '%' from input filesnames to fix, but please report this as well!", fragment);
+    else if (diff < 0)
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: '%' from a filename where accidentally considered command tags! "
+                                                                             "This is a bug! Remove '%' from input filesnames to fix, but please report this as well!", fragment);
 
     //std::cout << fragment << "'\n";
   }
@@ -324,7 +325,7 @@ protected:
     setValidStrings_("type", ToolHandler::getTypes(toolName_()));
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     String type = getStringOption_("type");
     // find params for 'type'
@@ -339,7 +340,7 @@ protected:
     return Param();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // find the config for the tool:
     String type = getStringOption_("type");
@@ -353,7 +354,7 @@ protected:
     {
       if ((it->tags).count("required") > 0)
       {
-        if (it->value.toString().trim().empty())    // any required parameter should have a value
+        if (it->value.toString().trim().empty()) // any required parameter should have a value
         {
           LOG_ERROR << "The INI-parameter '" + it->name + "' is required, but was not given! Aborting ...";
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
@@ -401,7 +402,7 @@ protected:
     // - we set the value of the affected parameter to the copied tmp file, such that subsequent calls target the tmp file
     for (Size i = 0; i < tde_.tr_table.pre_moves.size(); ++i)
     {
-      const Internal::FileMapping & fm = tde_.tr_table.pre_moves[i];
+      const Internal::FileMapping& fm = tde_.tr_table.pre_moves[i];
       // find target param:
       Param p = tool_param.copy("ETool:", true);
       String target = fm.target;
@@ -469,7 +470,7 @@ protected:
     // post processing (file moving via 'file' command)
     for (Size i = 0; i < tde_.tr_table.post_moves.size(); ++i)
     {
-      const Internal::FileMapping & fm = tde_.tr_table.post_moves[i];
+      const Internal::FileMapping& fm = tde_.tr_table.post_moves[i];
       // find target param:
       Param p = tool_param.copy("ETool:", true);
       String target = fm.target;
@@ -480,7 +481,7 @@ protected:
       // check if target already exists:
       String target_file = (String)p.getValue(target);
 
-      if (target_file.trim().empty())   // if target was not given, we skip the copying step (usually for optional parameters)
+      if (target_file.trim().empty()) // if target was not given, we skip the copying step (usually for optional parameters)
       {
         LOG_INFO << "Parameter '" + target + "' not given. Skipping forwarding of files.\n";
         continue;
@@ -510,11 +511,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPGenericWrapper tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

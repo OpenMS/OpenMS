@@ -595,9 +595,9 @@ namespace OpenMS
           std::cout << "protein " << map_iter->first << " peptide " << p
 
                     << " scan " << curr_rt_index << " weight "
-            //<< curr_rt_weight * map_iter->second[p] * mz_weight
-            // << " = " << curr_rt_weight << " * " << map_iter->second[p]
-                    << std::endl;
+          //<< curr_rt_weight * map_iter->second[p] * mz_weight
+          // << " = " << curr_rt_weight << " * " << map_iter->second[p]
+          << std::endl;
           //                            << " * "<<mz_weight<<std::endl;
 #endif
           model_->setObjective(index, 0.0);
@@ -678,9 +678,9 @@ namespace OpenMS
 #ifdef DEBUG_OPS
           std::cout << "protein " << map_iter->first << " peptide " << p
                     << " scan " << curr_rt_index << " weight "
-            //                    << curr_rt_weight * map_iter->second[p] * mz_weight
-            //      << " = " << curr_rt_weight << " * " << map_iter->second[p]
-                    << std::endl;
+          //                    << curr_rt_weight * map_iter->second[p] * mz_weight
+          //      << " = " << curr_rt_weight << " * " << map_iter->second[p]
+          << std::endl;
           //  << " * "<<mz_weight <<std::endl;
 #endif
           //cmodel_->setObjective(counter,1.-curr_rt_weight*map_iter->second[p]);
@@ -895,7 +895,7 @@ namespace OpenMS
             }
           }
           else if (variable_indices[v].feature > feature_counter)
-            break; // the indices are sorted, hence if the current index is larger, we are finished
+            break;  // the indices are sorted, hence if the current index is larger, we are finished
         }
         ++feature_counter;
       }
@@ -915,7 +915,7 @@ namespace OpenMS
       std::cout << "\nadd row " << std::endl;
       std::cout << (String("PROT_COV_") + map_iter->first) << "\t" << (String("PROT_COV_") + i).c_str() << std::endl;
       std::cout << indices_vec.size() << " " << (indices_vec[0]) << " " << (entries[0])
-        //                << " min " << -COIN_DBL_MAX << ", max " << log(1. - min_prot_coverage)
+      //                << " min " << -COIN_DBL_MAX << ", max " << log(1. - min_prot_coverage)
                 << std::endl;
 #endif
       // at the moment we want a certain coverage for each protein
@@ -960,7 +960,7 @@ namespace OpenMS
       std::cout << variable_indices[var_counter] << std::endl;
 
       if (variable_indices[var_counter].scan == -1)
-        continue; // we don't enter x_j variables
+        continue;  // we don't enter x_j variables
 
       // now get all variables belonging to the same peptide
       String acc = variable_indices[var_counter].prot_acc;
@@ -989,7 +989,7 @@ namespace OpenMS
       for (Size i = start; i < end; ++i)
       {
         if (variable_indices[i].scan == -1)
-          continue; // we don't enter x_j variables
+          continue;  // we don't enter x_j variables
         // now check if this index is in solution
         std::vector<Int>::iterator iter = find(solution_indices.begin(), solution_indices.end(), variable_indices[i].variable);
         if (iter == solution_indices.end())

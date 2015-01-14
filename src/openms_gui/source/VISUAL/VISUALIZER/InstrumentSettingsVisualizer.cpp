@@ -46,7 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidget * parent) :
+  InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<InstrumentSettings>()
   {

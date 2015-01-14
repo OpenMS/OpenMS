@@ -135,11 +135,11 @@ protected:
   Param getSubsectionDefaults_(const String& /*section*/) const
   {
     Param p = PosteriorErrorProbabilityModel().getParameters();
-    if (p.exists("out_plot"))
-    { // hide from user -- we have a top-level param for that
+    if (p.exists("out_plot")) // hide from user -- we have a top-level param for that
+    {
       p.remove("out_plot");
     }
-    else 
+    else
     {
       throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
     }
@@ -167,7 +167,7 @@ protected:
     else if (engine == "MASCOT")
     {
       // issue #740: unable to fit data with score 0
-      if (hit.getScore() == 0.0) 
+      if (hit.getScore() == 0.0)
       {
         return numeric_limits<double>::quiet_NaN();
       }
@@ -414,8 +414,8 @@ protected:
                     {
                       score = 1.0;
                     }
-                    else 
-                    { 
+                    else
+                    {
                       score = PEP_model.computeProbability(score);
                       if ((score > 0.0) && (score < 1.0)) unable_to_fit_data = false;  // only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
                       if ((score > 0.2) && (score < 0.8)) data_might_not_be_well_fit = false;  //same as above

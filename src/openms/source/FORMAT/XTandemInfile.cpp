@@ -306,7 +306,7 @@ namespace OpenMS
     //</note>
     writeNote_(os, "input", "protein, cleavage site", cleavage_site_);
     used_labels.insert("protein, cleavage site");
-      
+
     //////////////// semi cleavage parameter
     //<note type="input" label="protein, cleavage semi">yes</note>
     writeNote_(os, "input", "protein, cleavage semi", semi_cleavage_);
@@ -681,7 +681,7 @@ namespace OpenMS
   {
     semi_cleavage_ = semi_cleavage;
   }
-  
+
   void XTandemInfile::setCleavageSite(const String& cleavage_site)
   {
     cleavage_site_ = cleavage_site;

@@ -149,7 +149,7 @@ protected:
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -177,7 +177,7 @@ protected:
     writeDebug_("Reading model file", 2);
 
     // create model an set the given options
-    PILISModel * model = new PILISModel();
+    PILISModel* model = new PILISModel();
     model->readFromFile(getStringOption_("model_file"));
     Param model_param(model->getParameters());
     model_param.setValue("upper_mz", getDoubleOption_("model:upper_mz"));
@@ -200,14 +200,14 @@ protected:
     writeDebug_("Reading sequence db", 2);
 
     // create sequence db
-    SuffixArrayPeptideFinder * sapf = new SuffixArrayPeptideFinder(getStringOption_("peptide_db_file"), "trypticCompressed");
+    SuffixArrayPeptideFinder* sapf = new SuffixArrayPeptideFinder(getStringOption_("peptide_db_file"), "trypticCompressed");
     sapf->setTolerance(getDoubleOption_("precursor_mass_tolerance"));
     sapf->setNumberOfModifications(0);
     sapf->setUseTags(false);
 
     //exp.resize(50); // TODO
 
-    UInt max_charge(3), min_charge(1);         // TODO
+    UInt max_charge(3), min_charge(1); // TODO
     vector<double> pre_weights;
     for (RichPeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
@@ -399,11 +399,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPILISIdentification tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

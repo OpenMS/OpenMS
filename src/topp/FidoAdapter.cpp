@@ -147,7 +147,7 @@ protected:
 
   // write a PSM graph file for Fido based on the given peptide identifications;
   // optionally only use IDs with given identifier (filter by protein ID run):
-  void writePSMGraph_(vector<PeptideIdentification>& peptides, 
+  void writePSMGraph_(vector<PeptideIdentification>& peptides,
                       const String& out_path, const String& prob_param = "",
                       const String& identifier = "")
   {
@@ -159,11 +159,11 @@ protected:
       if ((!identifier.empty() && (pep_it->getIdentifier() != identifier)) ||
           (pep_it->getHits().empty()))
       {
-        continue; 
+        continue;
       }
       pep_it->sort();
       const PeptideHit& hit = pep_it->getHits()[0];
-      if (hit.getSequence().empty() || hit.extractProteinAccessions().empty()) 
+      if (hit.getSequence().empty() || hit.extractProteinAccessions().empty())
       {
         continue;
       }
@@ -178,14 +178,14 @@ protected:
           // workaround for important TOPP tools:
           String score_type = pep_it->getScoreType();
           score_type.toLower();
-          if ((score_type == "posterior error probability") || 
+          if ((score_type == "posterior error probability") ||
               score_type.hasPrefix("consensus_"))
           {
             if (!warned_once)
             {
               LOG_WARN << "Warning: Scores of peptide hits seem to be posterior"
-                " error probabilities. Converting to (positive) posterior"
-                " probabilities." << endl;
+                          " error probabilities. Converting to (positive) posterior"
+                          " probabilities." << endl;
               warned_once = true;
             }
             score = 1.0 - score;
@@ -213,9 +213,9 @@ protected:
       if (!error_reason.empty())
       {
         String msg = "Error: Unsuitable score type for peptide-spectrum "
-          "matches detected (problem: " + error_reason + ").\nFido requires "
-          "probabilities as scores, e.g. as produced by "
-          "IDPosteriorErrorProbability with the 'prob_correct' option.";
+                     "matches detected (problem: " + error_reason + ").\nFido requires "
+                                                                    "probabilities as scores, e.g. as produced by "
+                                                                    "IDPosteriorErrorProbability with the 'prob_correct' option.";
         LOG_ERROR << msg << endl;
         throw Exception::MissingInformation(__FILE__, __LINE__,
                                             __PRETTY_FUNCTION__, msg);
@@ -235,9 +235,8 @@ protected:
     graph_out.close();
   }
 
-
   // write the list of target and decoy proteins for Fido:
-  void writeProteinLists_(const ProteinIdentification& protein, 
+  void writeProteinLists_(const ProteinIdentification& protein,
                           const String& out_path)
   {
     // gather protein target/decoy data:
@@ -259,10 +258,10 @@ protected:
       else
       {
         String msg = "Error: All protein hits must be annotated with target/"
-          "decoy meta data. Run PeptideIndexer with the 'annotate_proteins' "
-          "option to accomplish this.";
+                     "decoy meta data. Run PeptideIndexer with the 'annotate_proteins' "
+                     "option to accomplish this.";
         LOG_ERROR << msg << endl;
-        throw Exception::MissingInformation(__FILE__, __LINE__, 
+        throw Exception::MissingInformation(__FILE__, __LINE__,
                                             __PRETTY_FUNCTION__, msg);
       }
     }
@@ -270,17 +269,17 @@ protected:
     if (targets.empty())
     {
       String msg = "Error: No target proteins found. Fido needs both targets "
-        "and decoys.";
+                   "and decoys.";
       LOG_ERROR << msg << endl;
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           __PRETTY_FUNCTION__, msg);
     }
     if (decoys.empty())
     {
       String msg = "Error: No decoy proteins found. Fido needs both targets "
-        "and decoys.";
+                   "and decoys.";
       LOG_ERROR << msg << endl;
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
+      throw Exception::MissingInformation(__FILE__, __LINE__,
                                           __PRETTY_FUNCTION__, msg);
     }
 
@@ -302,12 +301,11 @@ protected:
     proteins_out.close();
   }
 
-
   // run Fido(ChooseParameters) and read output:
-  bool runFido_(ProteinIdentification& protein, 
+  bool runFido_(ProteinIdentification& protein,
                 vector<PeptideIdentification>& peptides, bool choose_params,
-                const String& exe, QStringList& fido_params, 
-                double& prob_protein, double& prob_peptide, 
+                const String& exe, QStringList& fido_params,
+                double& prob_protein, double& prob_peptide,
                 double& prob_spurious, const String& temp_dir,
                 bool keep_zero_group = false, Size counter = 0)
   {
@@ -320,7 +318,7 @@ protected:
     if (choose_params)
     {
       String input_proteins = temp_dir + "fido_input_proteins" + num + ".txt";
-      fido_params.replaceInStrings("INPUT_PROTEINS", 
+      fido_params.replaceInStrings("INPUT_PROTEINS",
                                    input_proteins.toQString());
       writeProteinLists_(protein, input_proteins);
       LOG_INFO << "Running Fido with parameter estimation..." << endl;
@@ -385,7 +383,7 @@ protected:
 
     Size protein_counter = 0, zero_proteins = 0;
     vector<ProteinIdentification::ProteinGroup> groups;
-    for (vector<String>::iterator line_it = lines.begin(); 
+    for (vector<String>::iterator line_it = lines.begin();
          line_it != lines.end(); ++line_it)
     {
       // format of a line (example):
@@ -427,10 +425,9 @@ protected:
              << ((keep_zero_group && zero_proteins) ? "including " : "")
              << zero_proteins << " proteins with probability zero"
              << ((keep_zero_group || !zero_proteins) ? ")." : " not included).")
-              << endl; 
+             << endl;
     return true;
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -452,8 +449,8 @@ protected:
     }
     else if (File::isDirectory(exe)) // expect executables in directory
     {
-      exe += QString(QDir::separator()) + 
-        (choose_params ? "FidoChooseParameters" : "Fido");
+      exe += QString(QDir::separator()) +
+             (choose_params ? "FidoChooseParameters" : "Fido");
     }
     // else: expect full path to correct executable
 
@@ -465,14 +462,14 @@ protected:
     IdXMLFile().load(in, proteins, peptides);
     if (proteins.empty() || peptides.empty())
     {
-      LOG_ERROR << "Error: Input file '" << in 
+      LOG_ERROR << "Error: Input file '" << in
                 << "' should contain both protein and peptide data." << endl;
       return INPUT_FILE_EMPTY;
     }
-    
+
     // sanitize protein accessions:
     set<String> accessions;
-    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin(); 
+    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
     {
       for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
@@ -494,7 +491,7 @@ protected:
 
     // create temporary directory:
     String temp_dir = File::getTempDirectory() + "/" + File::getUniqueName() +
-      "/";
+                      "/";
     temp_dir = QDir::toNativeSeparators(temp_dir.toQString());
     {
       QDir d;
@@ -520,14 +517,14 @@ protected:
       Int log2_states_precalc = getIntOption_("log2_states_precalc");
       if (log2_states_precalc)
       {
-        if (!log2_states) log2_states = 18; // actual default value
+        if (!log2_states) log2_states = 18;  // actual default value
         fido_params << QString::number(log2_states_precalc);
       }
     }
     else // run Fido only
     {
       fido_params << "INPUT_GRAPH" << QString::number(prob_protein)
-                  << QString::number(prob_peptide) 
+                  << QString::number(prob_peptide)
                   << QString::number(prob_spurious);
     }
     if (log2_states) fido_params << QString::number(log2_states);
@@ -543,7 +540,7 @@ protected:
         LOG_INFO << "Protein identification run " << counter << ":" << endl;
         fido_success = runFido_(*prot_it, peptides, choose_params, exe,
                                 fido_params, prob_protein, prob_peptide,
-                                prob_spurious, temp_dir, keep_zero_group, 
+                                prob_spurious, temp_dir, keep_zero_group,
                                 counter);
       }
     }
@@ -565,12 +562,12 @@ protected:
         }
         // for every protein (accession), save the first occurrence:
         map<String, ProteinHit*> hit_map; // protein hits by accession
-        for (vector<ProteinIdentification>::reverse_iterator prot_it = 
+        for (vector<ProteinIdentification>::reverse_iterator prot_it =
                proteins.rbegin(); prot_it != proteins.rend(); ++prot_it)
         {
-          for (vector<ProteinHit>::reverse_iterator hit_it = 
-                 prot_it->getHits().rbegin(); hit_it != 
-                 prot_it->getHits().rend(); ++hit_it)
+          for (vector<ProteinHit>::reverse_iterator hit_it =
+                 prot_it->getHits().rbegin(); hit_it !=
+               prot_it->getHits().rend(); ++hit_it)
           {
             hit_map[hit_it->getAccession()] = &(*hit_it);
           }
@@ -582,13 +579,13 @@ protected:
           all_proteins.insertHit(*(map_it->second));
         }
 
-        fido_success = runFido_(all_proteins, peptides, choose_params, exe, 
+        fido_success = runFido_(all_proteins, peptides, choose_params, exe,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group);
         // write Fido probabilities into protein scores:
         for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
                all_proteins.getIndistinguishableProteins().begin(); group_it !=
-               all_proteins.getIndistinguishableProteins().end(); ++group_it)
+             all_proteins.getIndistinguishableProteins().end(); ++group_it)
         {
           for (vector<String>::iterator acc_it = group_it->accessions.begin();
                acc_it != group_it->accessions.end(); ++acc_it)
@@ -601,7 +598,7 @@ protected:
       }
       else // there is only one ID run
       {
-        fido_success = runFido_(proteins[0], peptides, choose_params, exe, 
+        fido_success = runFido_(proteins[0], peptides, choose_params, exe,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group);
       }
@@ -609,7 +606,7 @@ protected:
 
     // write output:
     IdXMLFile().store(out, proteins, peptides);
-    
+
     // clean up temporary files:
     if (debug_level_ > 1)
     {
@@ -623,7 +620,7 @@ protected:
       if (debug_level_ == 1)
       {
         String msg = "Set debug level to 2 or higher to keep temporary files "
-          "at '" + temp_dir + "'.";
+                     "at '" + temp_dir + "'.";
         LOG_DEBUG << msg << endl;
       }
     }

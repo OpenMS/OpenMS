@@ -55,7 +55,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  SpectrumCanvas::SpectrumCanvas(const Param & /*preferences*/, QWidget * parent) :
+  SpectrumCanvas::SpectrumCanvas(const Param& /*preferences*/, QWidget* parent) :
     QWidget(parent),
     DefaultParamHandler("SpectrumCanvas"),
     buffer_(),
@@ -112,7 +112,7 @@ namespace OpenMS
     //cout << "DEST SpectrumCanvas" << endl;
   }
 
-  void SpectrumCanvas::resizeEvent(QResizeEvent * /* e */)
+  void SpectrumCanvas::resizeEvent(QResizeEvent* /* e */)
   {
 #ifdef DEBUG_TOPPVIEW
     cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
@@ -126,7 +126,7 @@ namespace OpenMS
 #endif
   }
 
-  void SpectrumCanvas::setFilters(const DataFilters & filters)
+  void SpectrumCanvas::setFilters(const DataFilters& filters)
   {
     //set filters
     layers_[current_layer_].filters = filters;
@@ -164,7 +164,7 @@ namespace OpenMS
     update_(__PRETTY_FUNCTION__);
   }
 
-  void SpectrumCanvas::changeVisibleArea_(const AreaType & new_area, bool repaint, bool add_to_stack)
+  void SpectrumCanvas::changeVisibleArea_(const AreaType& new_area, bool repaint, bool add_to_stack)
   {
     //store old zoom state
     if (add_to_stack)
@@ -198,7 +198,7 @@ namespace OpenMS
 
   }
 
-  void SpectrumCanvas::wheelEvent(QWheelEvent * e)
+  void SpectrumCanvas::wheelEvent(QWheelEvent* e)
   {
     zoom_(e->x(), e->y(), e->delta() > 0);
     e->accept();
@@ -268,7 +268,7 @@ namespace OpenMS
     //cout << " - pos after:" << (zoom_pos_-zoom_stack_.begin()) << endl;
   }
 
-  void SpectrumCanvas::zoomAdd_(const AreaType & area)
+  void SpectrumCanvas::zoomAdd_(const AreaType& area)
   {
     //cout << "Adding to stack" << endl;
     //cout << " - pos before:" << (zoom_pos_-zoom_stack_.begin()) << endl;
@@ -305,7 +305,7 @@ namespace OpenMS
     changeVisibleArea_(area);
   }
 
-  void SpectrumCanvas::paintGridLines_(QPainter & painter)
+  void SpectrumCanvas::paintGridLines_(QPainter& painter)
   {
     if (!show_grid_ || !spectrum_widget_)
     {
@@ -319,7 +319,7 @@ namespace OpenMS
 
     painter.save();
 
-    unsigned int xl, xh, yl, yh;     //width/height of the diagram area, x, y coordinates of lo/hi x,y values
+    unsigned int xl, xh, yl, yh; //width/height of the diagram area, x, y coordinates of lo/hi x,y values
 
     xl = 0;
     xh = width();
@@ -333,11 +333,11 @@ namespace OpenMS
       // style definitions
       switch (j)
       {
-      case 0:           // style settings for big intervals
+      case 0: // style settings for big intervals
         painter.setPen(p1);
         break;
 
-      case 1:           // style settings for small intervals
+      case 1: // style settings for small intervals
         painter.setPen(p2);
         break;
 
@@ -360,11 +360,11 @@ namespace OpenMS
       // style definitions
       switch (j)
       {
-      case 0:           // style settings for big intervals
+      case 0: // style settings for big intervals
         painter.setPen(p1);
         break;
 
-      case 1:           // style settings for small intervals
+      case 1: // style settings for small intervals
         painter.setPen(p2);
         break;
 
@@ -390,22 +390,22 @@ namespace OpenMS
     return current_layer_;
   }
 
-  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, const String & filename)
+  bool SpectrumCanvas::addLayer(ExperimentSharedPtrType map, const String& filename)
   {
     layers_.resize(layers_.size() + 1);
     layers_.back().param = param_;
     layers_.back().filename = filename;
     layers_.back().getPeakData() = map;
 
-    if (layers_.back().getPeakData()->getChromatograms().size() != 0 
-        && layers_.back().getPeakData()->size() != 0)
+    if (layers_.back().getPeakData()->getChromatograms().size() != 0
+       && layers_.back().getPeakData()->size() != 0)
     {
       // TODO : handle this case better
       LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
     }
 
-    if (layers_.back().getPeakData()->getChromatograms().size() != 0 
-        && layers_.back().getPeakData()->size() == 0)
+    if (layers_.back().getPeakData()->getChromatograms().size() != 0
+       && layers_.back().getPeakData()->size() == 0)
     {
       layers_.back().type = LayerData::DT_CHROMATOGRAM;
     }
@@ -416,7 +416,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool SpectrumCanvas::addLayer(FeatureMapSharedPtrType map, const String & filename)
+  bool SpectrumCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename)
   {
     layers_.resize(layers_.size() + 1);
     layers_.back().param = param_;
@@ -426,7 +426,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool SpectrumCanvas::addLayer(ConsensusMapSharedPtrType map, const String & filename)
+  bool SpectrumCanvas::addLayer(ConsensusMapSharedPtrType map, const String& filename)
   {
     layers_.resize(layers_.size() + 1);
     layers_.back().param = param_;
@@ -436,8 +436,8 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool SpectrumCanvas::addLayer(vector<PeptideIdentification> & peptides,
-                                const String & filename)
+  bool SpectrumCanvas::addLayer(vector<PeptideIdentification>& peptides,
+                                const String& filename)
   {
     layers_.resize(layers_.size() + 1);
     layers_.back().param = param_;
@@ -447,11 +447,11 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  void SpectrumCanvas::setLayerName(Size i, const String & name)
+  void SpectrumCanvas::setLayerName(Size i, const String& name)
   {
     OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::setLayerName(i, name) index overflow");
     getLayer_(i).name = name;
-    if (i == 0 && spectrum_widget_) 
+    if (i == 0 && spectrum_widget_)
     {
       spectrum_widget_->setWindowTitle(name.toQString());
     }
@@ -466,7 +466,7 @@ namespace OpenMS
   void SpectrumCanvas::changeVisibility(Size i, bool b)
   {
     OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i, b) index overflow");
-    LayerData & layer = getLayer_(i);
+    LayerData& layer = getLayer_(i);
     if (layer.visible != b)
     {
       layer.visible = b;
@@ -478,7 +478,7 @@ namespace OpenMS
   void SpectrumCanvas::changeLayerFilterState(Size i, bool b)
   {
     OPENMS_PRECONDITION(i < layers_.size(), "SpectrumCanvas::changeVisibility(i,b) index overflow");
-    LayerData & layer = getLayer_(i);
+    LayerData& layer = getLayer_(i);
     if (layer.filters.isActive() != b)
     {
       layer.filters.setActive(b);
@@ -487,7 +487,7 @@ namespace OpenMS
     }
   }
 
-  const DRange<3> & SpectrumCanvas::getDataRange()
+  const DRange<3>& SpectrumCanvas::getDataRange()
   {
     return overall_data_range_;
   }
@@ -502,7 +502,7 @@ namespace OpenMS
     {
       if (getLayer(layer_index).type == LayerData::DT_PEAK || getLayer(layer_index).type == LayerData::DT_CHROMATOGRAM)
       {
-        const ExperimentType & map = *getLayer(layer_index).getPeakData();
+        const ExperimentType& map = *getLayer(layer_index).getPeakData();
         if (map.getMinMZ() < m_min[mz_dim]) m_min[mz_dim] = map.getMinMZ();
         if (map.getMaxMZ() > m_max[mz_dim]) m_max[mz_dim] = map.getMaxMZ();
         if (map.getMinRT() < m_min[rt_dim]) m_min[rt_dim] = map.getMinRT();
@@ -512,7 +512,7 @@ namespace OpenMS
       }
       else if (getLayer(layer_index).type == LayerData::DT_FEATURE)
       {
-        const FeatureMapType & map = *getLayer(layer_index).getFeatureMap();
+        const FeatureMapType& map = *getLayer(layer_index).getFeatureMap();
         if (map.getMin()[1] < m_min[mz_dim]) m_min[mz_dim] = map.getMin()[1];
         if (map.getMax()[1] > m_max[mz_dim]) m_max[mz_dim] = map.getMax()[1];
         if (map.getMin()[0] < m_min[rt_dim]) m_min[rt_dim] = map.getMin()[0];
@@ -522,7 +522,7 @@ namespace OpenMS
       }
       else if (getLayer(layer_index).type == LayerData::DT_CONSENSUS)
       {
-        const ConsensusMapType & map = *getLayer(layer_index).getConsensusMap();
+        const ConsensusMapType& map = *getLayer(layer_index).getConsensusMap();
         if (map.getMin()[1] < m_min[mz_dim]) m_min[mz_dim] = map.getMin()[1];
         if (map.getMax()[1] > m_max[mz_dim]) m_max[mz_dim] = map.getMax()[1];
         if (map.getMin()[0] < m_min[rt_dim]) m_min[rt_dim] = map.getMin()[0];
@@ -532,7 +532,7 @@ namespace OpenMS
       }
       else if (getLayer(layer_index).type == LayerData::DT_IDENT)
       {
-        const vector<PeptideIdentification> & peptides =
+        const vector<PeptideIdentification>& peptides =
           getLayer(layer_index).peptides;
         for (vector<PeptideIdentification>::const_iterator it =
                peptides.begin(); it != peptides.end(); ++it)
@@ -580,13 +580,13 @@ namespace OpenMS
 
   }
 
-  void SpectrumCanvas::update_(const char *)
+  void SpectrumCanvas::update_(const char*)
   {
     update();
   }
 
   //this does not work anymore, probably due to Qt::StrongFocus :(
-  void SpectrumCanvas::focusOutEvent(QFocusEvent * /*e*/)
+  void SpectrumCanvas::focusOutEvent(QFocusEvent* /*e*/)
   {
     // Alt/Shift pressed and focus lost => change back action mode
     if (action_mode_ != AM_TRANSLATE)
@@ -603,19 +603,19 @@ namespace OpenMS
     update_(__PRETTY_FUNCTION__);
   }
 
-  void SpectrumCanvas::leaveEvent(QEvent * /*e*/)
+  void SpectrumCanvas::leaveEvent(QEvent* /*e*/)
   {
     //release keyboard, when the mouse pointer leaves
     releaseKeyboard();
   }
 
-  void SpectrumCanvas::enterEvent(QEvent * /*e*/)
+  void SpectrumCanvas::enterEvent(QEvent* /*e*/)
   {
     //grab keyboard, as we need to handle key presses
     grabKeyboard();
   }
 
-  void SpectrumCanvas::keyReleaseEvent(QKeyEvent * e)
+  void SpectrumCanvas::keyReleaseEvent(QKeyEvent* e)
   {
     // Alt/Shift released => change back action mode
     if (e->key() == Qt::Key_Control || e->key() == Qt::Key_Shift)
@@ -628,7 +628,7 @@ namespace OpenMS
     e->ignore();
   }
 
-  void SpectrumCanvas::keyPressEvent(QKeyEvent * e)
+  void SpectrumCanvas::keyPressEvent(QKeyEvent* e)
   {
     // Alt/Shift pressed => change action mode
     if (e->key() == Qt::Key_Control)
@@ -690,7 +690,7 @@ namespace OpenMS
       show_timing_ = !show_timing_;
     }
 
-    releaseKeyboard();    // ensure that the key event is passed on to parent widget
+    releaseKeyboard(); // ensure that the key event is passed on to parent widget
     e->ignore();
   }
 
@@ -710,21 +710,21 @@ namespace OpenMS
   {
   }
 
-  void SpectrumCanvas::setAdditionalContextMenu(QMenu * menu)
+  void SpectrumCanvas::setAdditionalContextMenu(QMenu* menu)
   {
     context_add_ = menu;
   }
 
-  void SpectrumCanvas::getVisiblePeakData(ExperimentType & map) const
+  void SpectrumCanvas::getVisiblePeakData(ExperimentType& map) const
   {
     //clear output experiment
     map.clear(true);
 
-    const LayerData & layer = getCurrentLayer();
+    const LayerData& layer = getCurrentLayer();
     if (layer.type == LayerData::DT_PEAK)
     {
-      const AreaType & area = getVisibleArea();
-      const ExperimentType & peaks = *layer.getPeakData();
+      const AreaType& area = getVisibleArea();
+      const ExperimentType& peaks = *layer.getPeakData();
       //copy experimental settings
       map.ExperimentalSettings::operator=(peaks);
       //reserve space for the correct number of spectra in RT range
@@ -750,7 +750,7 @@ namespace OpenMS
         spectrum.setMSLevel(it->getMSLevel());
         spectrum.setPrecursors(it->getPrecursors());
         //copy peak information
-        if (!is_1d && it->getMSLevel() > 1 && !it->getPrecursors().empty())       //MS^n (n>1) spectra are copied if their precursor is in the m/z range
+        if (!is_1d && it->getMSLevel() > 1 && !it->getPrecursors().empty()) //MS^n (n>1) spectra are copied if their precursor is in the m/z range
         {
           if (it->getPrecursors()[0].getMZ() >= area.minPosition()[0] && it->getPrecursors()[0].getMZ() <= area.maxPosition()[0])
           {
@@ -778,12 +778,12 @@ namespace OpenMS
     }
   }
 
-  void SpectrumCanvas::getVisibleFeatureData(FeatureMapType & map) const
+  void SpectrumCanvas::getVisibleFeatureData(FeatureMapType& map) const
   {
     //clear output experiment
     map.clear(true);
 
-    const LayerData & layer = getCurrentLayer();
+    const LayerData& layer = getCurrentLayer();
     if (layer.type == LayerData::DT_FEATURE)
     {
       //copy meta data
@@ -809,12 +809,12 @@ namespace OpenMS
     }
   }
 
-  void SpectrumCanvas::getVisibleConsensusData(ConsensusMapType & map) const
+  void SpectrumCanvas::getVisibleConsensusData(ConsensusMapType& map) const
   {
     //clear output experiment
     map.clear(true);
 
-    const LayerData & layer = getCurrentLayer();
+    const LayerData& layer = getCurrentLayer();
     if (layer.type == LayerData::DT_CONSENSUS)
     {
       //copy file descriptions
@@ -839,13 +839,13 @@ namespace OpenMS
     }
   }
 
-  void SpectrumCanvas::getVisibleIdentifications(vector<PeptideIdentification> &
+  void SpectrumCanvas::getVisibleIdentifications(vector<PeptideIdentification>&
                                                  peptides) const
   {
     //clear output experiment
     peptides.clear();
 
-    const LayerData & layer = getCurrentLayer();
+    const LayerData& layer = getCurrentLayer();
     if (layer.type == LayerData::DT_IDENT)
     {
       //Visible area
@@ -871,7 +871,7 @@ namespace OpenMS
 
   void SpectrumCanvas::showMetaData(bool modifiable, Int index)
   {
-    LayerData & layer = getCurrentLayer_();
+    LayerData& layer = getCurrentLayer_();
 
     MetaDataBrowser dlg(modifiable, this);
     if (index == -1)
@@ -953,7 +953,7 @@ namespace OpenMS
 
   void SpectrumCanvas::modificationStatus_(Size layer_index, bool modified)
   {
-    LayerData & layer = getLayer_(layer_index);
+    LayerData& layer = getLayer_(layer_index);
     if (layer.modified != modified)
     {
       layer.modified = modified;
@@ -966,7 +966,7 @@ namespace OpenMS
     }
   }
 
-  void SpectrumCanvas::drawText_(QPainter & painter, QStringList text)
+  void SpectrumCanvas::drawText_(QPainter& painter, QStringList text)
   {
     painter.save();
 
@@ -998,12 +998,12 @@ namespace OpenMS
   }
 
   double SpectrumCanvas::getIdentificationMZ_(const Size layer_index,
-                                                  const PeptideIdentification &
-                                                  peptide) const
+                                              const PeptideIdentification&
+                                              peptide) const
   {
     if (getLayerFlag(layer_index, LayerData::I_PEPTIDEMZ))
     {
-      const PeptideHit & hit = peptide.getHits().front();
+      const PeptideHit& hit = peptide.getHits().front();
       Int charge = hit.getCharge();
       return hit.getSequence().getMonoWeight(Residue::Full, charge) / charge;
     }

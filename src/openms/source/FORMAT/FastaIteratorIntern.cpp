@@ -53,7 +53,7 @@ namespace OpenMS
 
   }
 
-  FastaIteratorIntern::FastaIteratorIntern(const FastaIteratorIntern & source) :
+  FastaIteratorIntern::FastaIteratorIntern(const FastaIteratorIntern& source) :
     PepIterator(source),
     fasta_file_(source.fasta_file_),
     entrys_(source.entrys_),
@@ -71,7 +71,7 @@ namespace OpenMS
     return *it_;
   }
 
-  PepIterator & FastaIteratorIntern::operator++()
+  PepIterator& FastaIteratorIntern::operator++()
   {
     if (fasta_file_ == "")
     {
@@ -81,18 +81,18 @@ namespace OpenMS
     return *this;
   }
 
-  PepIterator * FastaIteratorIntern::operator++(int)
+  PepIterator* FastaIteratorIntern::operator++(int)
   {
     if (fasta_file_ == "")
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
-    PepIterator * old = new FastaIteratorIntern(*this);
+    PepIterator* old = new FastaIteratorIntern(*this);
     ++it_;
     return old;
   }
 
-  void FastaIteratorIntern::setFastaFile(const String & f)
+  void FastaIteratorIntern::setFastaFile(const String& f)
   {
 
     FASTAFile ffile;

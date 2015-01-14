@@ -44,7 +44,7 @@
 #ifdef Debug_StablePairFinder
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
 #else
-#define V_(bla) {};
+#define V_(bla) {}
 #endif
 #define VV_(bla) V_("" # bla ": " << bla);
 
@@ -266,14 +266,14 @@ namespace OpenMS
     for (vector<PeptideIdentification>::const_iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
-        continue; // shouldn't be the case
+        continue;  // shouldn't be the case
 
       best1.insert(getBestHitSequence_(*pep_it).toString());
     }
     for (vector<PeptideIdentification>::const_iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
-        continue; // shouldn't be the case
+        continue;  // shouldn't be the case
 
       best2.insert(getBestHitSequence_(*pep_it).toString());
     }

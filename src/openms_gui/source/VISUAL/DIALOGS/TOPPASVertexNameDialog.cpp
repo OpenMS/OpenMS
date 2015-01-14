@@ -38,7 +38,7 @@
 
 namespace OpenMS
 {
-  TOPPASVertexNameDialog::TOPPASVertexNameDialog(const QString & name)
+  TOPPASVertexNameDialog::TOPPASVertexNameDialog(const QString& name)
   {
     setupUi(this);
 

@@ -43,14 +43,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  Annotation1DDistanceItem::Annotation1DDistanceItem(const QString & text, const PointType & start_point, const PointType & end_point) :
+  Annotation1DDistanceItem::Annotation1DDistanceItem(const QString& text, const PointType& start_point, const PointType& end_point) :
     Annotation1DItem(text),
     start_point_(start_point),
     end_point_(end_point)
   {
   }
 
-  Annotation1DDistanceItem::Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs) :
+  Annotation1DDistanceItem::Annotation1DDistanceItem(const Annotation1DDistanceItem& rhs) :
     Annotation1DItem(rhs)
   {
     start_point_ = rhs.getStartPoint();
@@ -61,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  void Annotation1DDistanceItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  void Annotation1DDistanceItem::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
     //translate mz/intensity to pixel coordinates
     QPoint start_p, end_p;
@@ -71,7 +71,7 @@ namespace OpenMS
     // compute bounding box on the specified painter
     if (canvas->isMzToXAxis())
     {
-      bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y() + 4));     // +4 for lower half of arrow heads
+      bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y() + 4)); // +4 for lower half of arrow heads
     }
     else
     {
@@ -154,39 +154,39 @@ namespace OpenMS
     }
   }
 
-  void Annotation1DDistanceItem::move(const PointType & delta)
+  void Annotation1DDistanceItem::move(const PointType& delta)
   {
     // shift vertical position according to y-component of delta
     start_point_.setY(start_point_.getY() + delta.getY());
     end_point_.setY(end_point_.getY() + delta.getY());
   }
 
-  void Annotation1DDistanceItem::setStartPoint(const PointType & p)
+  void Annotation1DDistanceItem::setStartPoint(const PointType& p)
   {
     start_point_ = p;
   }
 
-  void Annotation1DDistanceItem::setEndPoint(const PointType & p)
+  void Annotation1DDistanceItem::setEndPoint(const PointType& p)
   {
     end_point_ = p;
   }
 
-  const Annotation1DDistanceItem::PointType & Annotation1DDistanceItem::getStartPoint() const
+  const Annotation1DDistanceItem::PointType& Annotation1DDistanceItem::getStartPoint() const
   {
     return start_point_;
   }
 
-  const Annotation1DDistanceItem::PointType & Annotation1DDistanceItem::getEndPoint() const
+  const Annotation1DDistanceItem::PointType& Annotation1DDistanceItem::getEndPoint() const
   {
     return end_point_;
   }
 
-  void Annotation1DDistanceItem::setTicks(const std::vector<double> & ticks)
+  void Annotation1DDistanceItem::setTicks(const std::vector<double>& ticks)
   {
     ticks_ = ticks;
   }
 
-  void Annotation1DDistanceItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
+  void Annotation1DDistanceItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
   {
     // can only be moved vertically, so check only y-position
     DRange<3> data_range = canvas->getDataRange();

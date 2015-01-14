@@ -46,7 +46,7 @@ namespace OpenMS
   {
   }
 
-  Software::Software(const Software & rhs) :
+  Software::Software(const Software& rhs) :
     CVTermList(rhs),
     name_(rhs.name_),
     version_(rhs.version_)
@@ -57,7 +57,7 @@ namespace OpenMS
   {
   }
 
-  Software & Software::operator=(const Software & rhs)
+  Software& Software::operator=(const Software& rhs)
   {
     if (&rhs == this)
       return *this;
@@ -69,34 +69,34 @@ namespace OpenMS
     return *this;
   }
 
-  bool Software::operator==(const Software & rhs) const
+  bool Software::operator==(const Software& rhs) const
   {
     return CVTermList::operator==(rhs) &&
            name_ == rhs.name_ &&
            version_ == rhs.version_;
   }
 
-  bool Software::operator!=(const Software & rhs) const
+  bool Software::operator!=(const Software& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & Software::getName() const
+  const String& Software::getName() const
   {
     return name_;
   }
 
-  void Software::setName(const String & name)
+  void Software::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & Software::getVersion() const
+  const String& Software::getVersion() const
   {
     return version_;
   }
 
-  void Software::setVersion(const String & version)
+  void Software::setVersion(const String& version)
   {
     version_ = version;
   }

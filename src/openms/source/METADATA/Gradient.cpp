@@ -48,7 +48,7 @@ namespace OpenMS
 
   }
 
-  Gradient::Gradient(const Gradient & source) :
+  Gradient::Gradient(const Gradient& source) :
     eluents_(source.eluents_),
     times_(source.times_),
     percentages_(source.percentages_)
@@ -61,7 +61,7 @@ namespace OpenMS
 
   }
 
-  Gradient & Gradient::operator=(const Gradient & source)
+  Gradient& Gradient::operator=(const Gradient& source)
   {
     if (source == *this)
       return *this;
@@ -73,19 +73,19 @@ namespace OpenMS
     return *this;
   }
 
-  bool Gradient::operator==(const Gradient & rhs) const
+  bool Gradient::operator==(const Gradient& rhs) const
   {
     return (eluents_ == rhs.eluents_) &&
            (times_ == rhs.times_) &&
            (percentages_ == rhs.percentages_);
   }
 
-  bool Gradient::operator!=(const Gradient & rhs) const
+  bool Gradient::operator!=(const Gradient& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  void Gradient::addEluent(const String & eluent)
+  void Gradient::addEluent(const String& eluent)
   {
     //check if the eluent is valid
     std::vector<String>::iterator elu_it = find(eluents_.begin(), eluents_.end(), eluent);
@@ -104,7 +104,7 @@ namespace OpenMS
     eluents_.clear();
   }
 
-  const std::vector<String> & Gradient::getEluents() const
+  const std::vector<String>& Gradient::getEluents() const
   {
     return eluents_;
   }
@@ -129,12 +129,12 @@ namespace OpenMS
     times_.clear();
   }
 
-  const std::vector<Int> & Gradient::getTimepoints() const
+  const std::vector<Int>& Gradient::getTimepoints() const
   {
     return times_;
   }
 
-  void Gradient::setPercentage(const String & eluent, Int timepoint, UInt percentage)
+  void Gradient::setPercentage(const String& eluent, Int timepoint, UInt percentage)
   {
     // (1) validity check
 
@@ -180,12 +180,12 @@ namespace OpenMS
     percentages_[elu_index][time_index] = percentage;
   }
 
-  const std::vector<std::vector<UInt> > & Gradient::getPercentages() const
+  const std::vector<std::vector<UInt> >& Gradient::getPercentages() const
   {
     return percentages_;
   }
 
-  UInt Gradient::getPercentage(const String & eluent, Int timepoint) const
+  UInt Gradient::getPercentage(const String& eluent, Int timepoint) const
   {
     // (1) validity check
 

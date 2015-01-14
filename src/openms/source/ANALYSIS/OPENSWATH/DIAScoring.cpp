@@ -176,7 +176,7 @@ namespace OpenMS
   }
 
   /// Precursor isotope scores
-  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
+  void DIAScoring::dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state,
                                           double& isotope_corr, double& isotope_overlap)
   {
     // collect the potential isotopes of this peak
@@ -258,8 +258,8 @@ namespace OpenMS
   }
 
   void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, SpectrumPtrType spectrum,
-                                          std::map<std::string, double>& intensities, //relative intensities
-                                          double& isotope_corr, double& isotope_overlap)
+                                        std::map<std::string, double>& intensities,   //relative intensities
+                                        double& isotope_corr, double& isotope_overlap)
   {
     std::vector<double> isotopes_int;
     double max_ratio;
@@ -317,10 +317,9 @@ namespace OpenMS
 
       // Compute ratio between the (presumed) monoisotopic peak intensity and the now found peak
       double ratio;
-      if (mono_int != 0) { ratio = intensity / mono_int; }
-      else { ratio = 0; }
-      if (ratio > max_ratio) {max_ratio = ratio;}
-        
+      if (mono_int != 0) { ratio = intensity / mono_int; }else { ratio = 0; }
+      if (ratio > max_ratio) {max_ratio = ratio; }
+
       double ddiff_ppm = std::fabs(mz - (mono_mz - 1.0 / (double) ch)) * 1000000 / mono_mz;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
@@ -338,7 +337,7 @@ namespace OpenMS
   }
 
   double DIAScoring::scoreIsotopePattern_(double product_mz,
-                                             const std::vector<double>& isotopes_int, int putative_fragment_charge)
+                                          const std::vector<double>& isotopes_int, int putative_fragment_charge)
   {
     OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
 

@@ -138,13 +138,13 @@ namespace OpenMS
     if (min_run_occur_ > runs)
     {
       LOG_WARN << "Warning: Value of parameter 'min_run_occur' (here: "
-        + String(min_run_occur_)
-        + ") is higher than the number of runs incl. reference (here: "
-        + String(runs)
-        + "). Using "
-        + String(runs)
-        + " instead."
-               << endl;
+      + String(min_run_occur_)
+      + ") is higher than the number of runs incl. reference (here: "
+      + String(runs)
+      + "). Using "
+      + String(runs)
+      + " instead."
+      << endl;
 
       min_run_occur_ = runs;
     }
@@ -171,7 +171,7 @@ namespace OpenMS
     for (Size i = 0, j = 0; i < maps.size(); ++i)
     {
       if (i == reference_index_ - 1)
-        continue; // skip reference map, if any
+        continue;  // skip reference map, if any
       getRetentionTimes_(maps[i], rt_data[j++]);
     }
     setProgress(1);
@@ -185,7 +185,7 @@ namespace OpenMS
   }
 
   void MapAlignmentAlgorithmIdentification::alignFeatureMaps(
-    vector<FeatureMap >& maps,
+    vector<FeatureMap>& maps,
     vector<TransformationDescription>& transformations)
   {
     alignMaps(maps, transformations);
@@ -217,7 +217,7 @@ namespace OpenMS
     for (Size i = 0, j = 0; i < maps.size(); ++i)
     {
       if (i == reference_index_ - 1)
-        continue; // skip reference map, if any
+        continue;  // skip reference map, if any
       getRetentionTimes_(maps[i], rt_data[j++]);
     }
     setProgress(1);

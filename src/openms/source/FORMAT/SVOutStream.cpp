@@ -61,7 +61,7 @@ namespace OpenMS
 
     if (!newline_)
     {
-      (ostream&) *this << sep_;
+      (ostream &) * this << sep_;
     }
     else
     {
@@ -70,15 +70,15 @@ namespace OpenMS
 
     if (!modify_strings_)
     {
-      (ostream&) *this << str;
+      (ostream &) * this << str;
     }
     else if (quoting_ != String::NONE)
     {
-      (ostream&) *this << str.quote('"', quoting_);
+      (ostream &) * this << str.quote('"', quoting_);
     }
     else
     {
-      (ostream&) *this << str.substitute(sep_, replacement_);
+      (ostream &) * this << str.substitute(sep_, replacement_);
     }
     return *this;
   }
@@ -95,10 +95,10 @@ namespace OpenMS
 
   SVOutStream& SVOutStream::operator<<(const string& str)
   {
-    return operator<<((String&)str);
+    return operator<<((String &)str);
   }
 
-  SVOutStream& SVOutStream::operator<<(ostream& (*fp)(ostream&))
+  SVOutStream& SVOutStream::operator<<(ostream& (*fp)(ostream &))
   {
     // check for "std::endl":
     // this doesn't work in LLVM/clang's libc++ (used on Mac OS X 10.9):
@@ -110,14 +110,14 @@ namespace OpenMS
       newline_ = true;
       ss_.str("");
     }
-    (ostream&) *this << fp;
+    (ostream &) * this << fp;
     return *this;
   }
 
   SVOutStream& SVOutStream::operator<<(enum Newline)
   {
     newline_ = true;
-    (ostream&) *this << "\n";
+    (ostream &) * this << "\n";
     return *this;
   }
 

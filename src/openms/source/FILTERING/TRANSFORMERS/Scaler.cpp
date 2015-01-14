@@ -46,12 +46,12 @@ namespace OpenMS
   {
   }
 
-  Scaler::Scaler(const Scaler & source) :
+  Scaler::Scaler(const Scaler& source) :
     DefaultParamHandler(source)
   {
   }
 
-  Scaler & Scaler::operator=(const Scaler & source)
+  Scaler& Scaler::operator=(const Scaler& source)
   {
     if (this != &source)
     {
@@ -60,12 +60,12 @@ namespace OpenMS
     return *this;
   }
 
-  void Scaler::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void Scaler::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void Scaler::filterPeakMap(PeakMap & exp)
+  void Scaler::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

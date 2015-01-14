@@ -604,7 +604,7 @@ namespace OpenMS
     {
       if (!gui_)
       {
-        emit pipelineExecutionFailed();          // the user cannot interact. End processing.
+        emit pipelineExecutionFailed(); // the user cannot interact. End processing.
       }
       return;
     }
@@ -728,9 +728,8 @@ namespace OpenMS
     int counter = 0;
     foreach(TOPPASEdge * te, edges_)
     {
-      if (!((te->getEdgeStatus() == TOPPASEdge::ES_VALID) || (te->getEdgeStatus() == TOPPASEdge::ES_NOT_READY_YET)))
-      { // do not allow to store an invalid pipeline, e.g., after a "param refresh()", since this might lead to inconsistencies when storing the edge mapping parameters (segfaults even).
-        // alternatively, we could discard invalid edges during loading, but then the user looses the information where edges were present (currently they become red)
+      if (!((te->getEdgeStatus() == TOPPASEdge::ES_VALID) || (te->getEdgeStatus() == TOPPASEdge::ES_NOT_READY_YET))) // do not allow to store an invalid pipeline, e.g., after a "param refresh()", since this might lead to inconsistencies when storing the edge mapping parameters (segfaults even).
+      { // alternatively, we could discard invalid edges during loading, but then the user looses the information where edges were present (currently they become red)
         return false;
       }
       if (!(te->getSourceVertex() && te->getTargetVertex()))
@@ -1993,7 +1992,7 @@ namespace OpenMS
     /// warn about empty input nodes
     foreach(TOPPASInputFileListVertex * iflv, input_nodes)
     {
-      if ((iflv->outgoingEdgesCount() > 0) && (iflv->getFileNames().empty()))  // allow disconnected input node with empty file list
+      if ((iflv->outgoingEdgesCount() > 0) && (iflv->getFileNames().empty())) // allow disconnected input node with empty file list
       {
         strange_vertices.push_back(QString::number(iflv->getTopoNr()));
       }
@@ -2020,7 +2019,7 @@ namespace OpenMS
     strange_vertices.clear();
     foreach(TOPPASInputFileListVertex * iflv, input_nodes)
     {
-      if ((iflv->outgoingEdgesCount() > 0) && (!iflv->fileNamesValid()))  // allow disconnected input node with invalid files
+      if ((iflv->outgoingEdgesCount() > 0) && (!iflv->fileNamesValid())) // allow disconnected input node with invalid files
       {
         strange_vertices.push_back(QString::number(iflv->getTopoNr()));
       }
@@ -2127,17 +2126,18 @@ namespace OpenMS
     }
     if (!edges_ok)
     {
-      if (allowUserOverride) 
+      if (allowUserOverride)
       {
-          QMessageBox::StandardButton ret;
-          ret = QMessageBox::warning(views().first(), "Invalid edges detected", "Invalid edges detected. Do you still want to run the pipeline?",
-                                      QMessageBox::Yes | QMessageBox::No);
-          if (ret == QMessageBox::No)
-          {
-            return false;
-          }
-      } else 
-      { // do not allow silent execution with invalid edges
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::warning(views().first(), "Invalid edges detected", "Invalid edges detected. Do you still want to run the pipeline?",
+                                   QMessageBox::Yes | QMessageBox::No);
+        if (ret == QMessageBox::No)
+        {
+          return false;
+        }
+      }
+      else // do not allow silent execution with invalid edges
+      {
         return false;
       }
     }
@@ -2267,13 +2267,13 @@ namespace OpenMS
 
     TOPPASScene::RefreshStatus result;
     if (!change) result = ST_REFRESH_NOCHANGE;
-    else if (!sanityCheck_(false)) 
+    else if (!sanityCheck_(false))
     {
       if (sane_before) result = ST_REFRESH_CHANGEINVALID;
       else result = ST_REFRESH_REMAINSINVALID;
     }
     else result = ST_REFRESH_CHANGED;
-    
+
     return result;
   }
 

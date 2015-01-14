@@ -43,21 +43,21 @@
 
 namespace OpenMS
 {
-  SpectrumAlignmentDialog::SpectrumAlignmentDialog(Spectrum1DWidget * parent) :
+  SpectrumAlignmentDialog::SpectrumAlignmentDialog(Spectrum1DWidget* parent) :
     layer_indices_1_(),
     layer_indices_2_()
   {
     setupUi(this);
 
-    QButtonGroup * button_group = new QButtonGroup(this);
+    QButtonGroup* button_group = new QButtonGroup(this);
     button_group->addButton(ppm);
     button_group->addButton(da);
     da->setChecked(true);
 
-    Spectrum1DCanvas * cc = parent->canvas();
+    Spectrum1DCanvas* cc = parent->canvas();
     for (UInt i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerData & layer = cc->getLayer(i);
+      const LayerData& layer = cc->getLayer(i);
       if (layer.flipped)
       {
         layer_list_2->addItem(layer.name.toQString());

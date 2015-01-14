@@ -113,17 +113,17 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "algorithm")
     {
       MapAlignmentAlgorithmPoseClustering algo;
       return algo.getParameters();
     }
-    return Param();     // shouldn't happen
+    return Param(); // shouldn't happen
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     MapAlignmentAlgorithmPoseClustering algorithm;
     ExitCodes ret = TOPPMapAlignerBase::initialize_(&algorithm, true);
@@ -200,7 +200,7 @@ protected:
     plog.setLogType(log_type_);
 
     plog.startProgress(0, in_files.size(), "Aligning input maps");
-    Size progress(0);     // thread-safe progress
+    Size progress(0); // thread-safe progress
     // TODO: it should all work on featureXML files, since we might need them for output anyway. Converting to consensusXML is just wasting memory!
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
@@ -261,7 +261,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapAlignerPoseClustering tool;
   return tool.main(argc, argv);

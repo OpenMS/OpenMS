@@ -54,7 +54,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  GaussModel::GaussModel(const GaussModel & source) :
+  GaussModel::GaussModel(const GaussModel& source) :
     InterpolationModel(source)
   {
     setParameters(source.getParameters());
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  GaussModel & GaussModel::operator=(const GaussModel & source)
+  GaussModel& GaussModel::operator=(const GaussModel& source)
   {
     if (&source == this)
       return *this;
@@ -79,7 +79,7 @@ namespace OpenMS
 
   void GaussModel::setSamples()
   {
-    LinearInterpolation::container_type & data = interpolation_.getData();
+    LinearInterpolation::container_type& data = interpolation_.getData();
     data.clear();
     if (max_ == min_)
       return;

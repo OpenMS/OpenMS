@@ -47,12 +47,12 @@ namespace OpenMS
   {
   }
 
-  SqrtMower::SqrtMower(const SqrtMower & source) :
+  SqrtMower::SqrtMower(const SqrtMower& source) :
     DefaultParamHandler(source)
   {
   }
 
-  SqrtMower & SqrtMower::operator=(const SqrtMower & source)
+  SqrtMower& SqrtMower::operator=(const SqrtMower& source)
   {
     if (this != &source)
     {
@@ -61,12 +61,12 @@ namespace OpenMS
     return *this;
   }
 
-  void SqrtMower::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void SqrtMower::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void SqrtMower::filterPeakMap(PeakMap & exp)
+  void SqrtMower::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

@@ -94,7 +94,7 @@ namespace OpenMS
   }
 
 // Copy constructor
-  CentroidPeak::CentroidPeak(const CentroidPeak & pCentroidPeak)  // Object to copy
+  CentroidPeak::CentroidPeak(const CentroidPeak& pCentroidPeak) // Object to copy
   {
     mass_ = pCentroidPeak.mass_;
     intensity_ = pCentroidPeak.intensity_;
@@ -107,7 +107,7 @@ namespace OpenMS
   }
 
 // Copy constructor
-  CentroidPeak::CentroidPeak(const CentroidPeak * pCentroidPeak)  // Object to copy
+  CentroidPeak::CentroidPeak(const CentroidPeak* pCentroidPeak) // Object to copy
   {
     mass_ = pCentroidPeak->mass_;
     intensity_ = pCentroidPeak->intensity_;
@@ -127,7 +127,7 @@ namespace OpenMS
 // Operators
 
 // Copies values by assignemnt = operator
-  CentroidPeak & CentroidPeak::operator=(const CentroidPeak & pCentroidPeak) // Object to be assigned
+  CentroidPeak& CentroidPeak::operator=(const CentroidPeak& pCentroidPeak) // Object to be assigned
   {
     mass_ = pCentroidPeak.mass_;
     intensity_ = pCentroidPeak.intensity_;
@@ -141,30 +141,30 @@ namespace OpenMS
   }
 
 // Allows sorting objects in order of ascending mass
-  bool CentroidPeak::operator<(const CentroidPeak & pCentroidPeak)  // Object to be assigned
+  bool CentroidPeak::operator<(const CentroidPeak& pCentroidPeak) // Object to be assigned
   {
     return mass_ < pCentroidPeak.mass_;
   }
 
 // subtract intensity
-  void CentroidPeak::subtractIntensity(double pIntensity)   // intensity to be subtracted
+  void CentroidPeak::subtractIntensity(double pIntensity) // intensity to be subtracted
   {
     if (intensity_ < 0.0)
       return;        // do nothing for small intensities
 
     if (abs(intensity_ - pIntensity) / intensity_ > SuperHirnParameters::instance()->getIntensityCV())
     {
-      intensity_ -= pIntensity;       // subtract if difference is larger than stat variation (CV)
+      intensity_ -= pIntensity; // subtract if difference is larger than stat variation (CV)
     }
     else
     {
-      intensity_ = 0.0;       // if difference not stat. significant, set to zero
+      intensity_ = 0.0; // if difference not stat. significant, set to zero
     }
   }
 
 // Writes data to out stream using the << operator
-  std::ostream & operator<<(std::ostream & pOut, // output stream
-                            CentroidPeak & pCentroidPeak) //
+  std::ostream& operator<<(std::ostream& pOut, // output stream
+                           CentroidPeak& pCentroidPeak)   //
   {
     pOut << std::fixed << std::setprecision(4) << pCentroidPeak.getMass() << " " << std::fixed << std::setprecision(2)
     << pCentroidPeak.getIntensity();
@@ -202,8 +202,8 @@ namespace OpenMS
   }
 
 // Copy constructor
-  DeconvPeak::DeconvPeak(const DeconvPeak & pDeconvPeak) :
-    CentroidPeak(0, 0)         // Object to copy
+  DeconvPeak::DeconvPeak(const DeconvPeak& pDeconvPeak) :
+    CentroidPeak(0, 0) // Object to copy
   {
     mass_ = pDeconvPeak.mass_;
     intensity_ = pDeconvPeak.intensity_;
@@ -218,7 +218,7 @@ namespace OpenMS
   }
 
 // Copy constructor
-  DeconvPeak::DeconvPeak(const DeconvPeak * pDeconvPeak)  // Object to copy
+  DeconvPeak::DeconvPeak(const DeconvPeak* pDeconvPeak) // Object to copy
   {
     mass_ = pDeconvPeak->mass_;
     intensity_ = pDeconvPeak->intensity_;
@@ -239,7 +239,7 @@ namespace OpenMS
 // Operators
 
 // Copies values by assignemnt = operator
-  DeconvPeak & DeconvPeak::operator=(const DeconvPeak & pDeconvPeak) // Object to be assigned
+  DeconvPeak& DeconvPeak::operator=(const DeconvPeak& pDeconvPeak) // Object to be assigned
   {
     mass_ = pDeconvPeak.mass_;
     intensity_ = pDeconvPeak.intensity_;
@@ -254,8 +254,8 @@ namespace OpenMS
   }
 
 // Writes data to out stream using the << operator
-  ostream & operator<<(ostream & pOut, // output stream
-                       DeconvPeak & pDeconvPeak) //
+  ostream& operator<<(ostream& pOut, // output stream
+                      DeconvPeak& pDeconvPeak)   //
   {
     pOut << (CentroidPeak &)pDeconvPeak;
     pOut << " " << pDeconvPeak.getCharge() << " " << fixed << setprecision(5) << pDeconvPeak.getC13MassError();

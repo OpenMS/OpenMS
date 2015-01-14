@@ -159,14 +159,14 @@ namespace OpenMS
         if (peptides_[i].getHits().size() > 0)
         {
           PeptideIdentification id_tmp = peptides_[i];
-          id_tmp.sort();  // look at best hit only - requires sorting
+          id_tmp.sort(); // look at best hit only - requires sorting
           seqs.insert(id_tmp.getHits()[0].getSequence().toString());
         }
       }
-      if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME; // hits have identical seqs
+      if (seqs.size() == 1) return FEATURE_ID_MULTIPLE_SAME;  // hits have identical seqs
       else if (seqs.size() > 1)
         return FEATURE_ID_MULTIPLE_DIVERGENT;                        // multiple different annotations ... probably bad mapping
-      else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;   // very rare case of empty hits
+      else /*if (seqs.size()==0)*/ return FEATURE_ID_NONE;  // very rare case of empty hits
     }
   }
 

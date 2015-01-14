@@ -100,7 +100,7 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return CompNovoIdentification().getDefaults();
   }
@@ -117,7 +117,7 @@ protected:
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -203,7 +203,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPCompNovo tool;
   return tool.main(argc, argv);

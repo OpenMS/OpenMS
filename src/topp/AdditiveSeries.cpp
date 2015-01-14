@@ -129,7 +129,7 @@ protected:
   // NOTE: It might happen that there are several features at similar coordinates.
   // In this case, the program cannot be sure which one is the correct. So we decided
   // to use the one with the strongest intensity.
-  bool readMapFile_(String filename, vector<double> & intensities,
+  bool readMapFile_(String filename, vector<double>& intensities,
                     CoordinateType tol_mz, CoordinateType tol_rt,
                     DPosition<2> fpos1, DPosition<2> fpos2)
   {
@@ -146,8 +146,8 @@ protected:
     FeatureMap map;
     map_file.load(filename, map);
 
-    Feature * feat1 = 0;
-    Feature * feat2 = 0;
+    Feature* feat1 = 0;
+    Feature* feat2 = 0;
 
     FeatureMap::iterator iter = map.begin();
     while (iter != map.end())
@@ -196,9 +196,9 @@ protected:
       }
 
       ++iter;
-    }       // end of while
+    } // end of while
 
-    if (feat1 != 0 && feat2 != 0)      //(f1_sum != 0 && f2_sum != 0)
+    if (feat1 != 0 && feat2 != 0) //(f1_sum != 0 && f2_sum != 0)
     {
       cout << "Feature 1: " << *feat1 << endl;
       cout << "Feature 2: " << *feat2 << endl;
@@ -279,7 +279,7 @@ protected:
 
         }
         cmdout <<
-        "plot \""  << datafilename << "\"  w points ps 2 pt 1 lt 8 title \"data\" "            // want data on first line of key
+        "plot \""  << datafilename << "\"  w points ps 2 pt 1 lt 8 title \"data\" " // want data on first line of key
                                       ",  " << linreg.getIntercept() << "+" <<  linreg.getSlope() << "*x lt 2 lw 3 title \"linear regression: "
         << linreg.getIntercept() << " + " <<  linreg.getSlope() << " * x\" "
                                                                    ", \""  << datafilename << "\"  w points ps 2 pt 1 lt 8 notitle " // draw data a second time, on top of reg. line
@@ -301,7 +301,7 @@ protected:
         }
         dataout.close();
 
-      }       // end if (write_gnuplot)
+      } // end if (write_gnuplot)
 
       // write results to XML file
       ofstream results;
@@ -321,7 +321,7 @@ protected:
 
       results.close();
     }
-    catch (string & s)
+    catch (string& s)
     {
       cout << s <<  endl;
       return 1;
@@ -330,12 +330,12 @@ protected:
     return 0;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    Param const & add_param =  getParam_();
+    Param const& add_param =  getParam_();
     writeDebug_("Used parameters", add_param, 3);
 
     CoordinateType tol_mz = getDoubleOption_("mz_tolerance");
@@ -343,7 +343,7 @@ protected:
 
     String out_f  = getStringOption_("out");
 
-    if (getDoubleOption_("feature_mz") == -1|| getDoubleOption_("feature_rt") == -1)
+    if (getDoubleOption_("feature_mz") == -1 || getDoubleOption_("feature_rt") == -1)
     {
       writeLog_("Feature coordinates not given. Aborting.");
       return ILLEGAL_PARAMETERS;
@@ -427,7 +427,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   AdditiveSeries tool;
   return tool.main(argc, argv);

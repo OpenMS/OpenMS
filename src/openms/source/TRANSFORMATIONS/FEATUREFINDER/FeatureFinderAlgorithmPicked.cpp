@@ -1245,7 +1245,7 @@ namespace OpenMS
     Size max_trace_index = 0;
     for (Size p = 0; p < pattern.peak.size(); ++p)
     {
-      if (pattern.peak[p] < 0) continue; //skip missing and removed traces
+      if (pattern.peak[p] < 0) continue;  //skip missing and removed traces
       if (map_[pattern.spectrum[p]][pattern.peak[p]].getIntensity() > max_int)
       {
         max_int = map_[pattern.spectrum[p]][pattern.peak[p]].getIntensity();
@@ -1619,7 +1619,7 @@ namespace OpenMS
         {
           double int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin() + b, isotopes.intensity.end() - e, pattern.intensity.begin() + b, pattern.intensity.end() - e);
           if (boost::math::isnan(int_score)) int_score = 0.0;
-          if (isotopes.size() - b - e == 2 && int_score > min_isotope_fit_) int_score = min_isotope_fit_; //special case for the first loop iteration (otherwise the score is 1)
+          if (isotopes.size() - b - e == 2 && int_score > min_isotope_fit_) int_score = min_isotope_fit_;  //special case for the first loop iteration (otherwise the score is 1)
           if (debug_) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
           if (int_score / best_int_score >= 1.0 + optional_fit_improvement_)
           {

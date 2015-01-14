@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  void UnimodXMLFile::load(const String & filename, vector<ResidueModification *> & modifications)
+  void UnimodXMLFile::load(const String& filename, vector<ResidueModification*>& modifications)
   {
     String file = File::find(filename);
 

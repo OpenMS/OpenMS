@@ -39,9 +39,10 @@ using namespace std;
 Int main(int argc, const char** argv)
 {
   if (argc < 2) return 1;
+
   // the path to the data should be given on the command line
   String tutorial_data_path(argv[1]);
-  
+
   QApplication app(argc, const_cast<char**>(argv));
 
   Param param;

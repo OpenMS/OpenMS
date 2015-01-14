@@ -91,7 +91,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 // get a list of peptides and returns only those which are unique
-void getUniquePeptides(vector<PILISCrossValidation::Peptide> & peptides)
+void getUniquePeptides(vector<PILISCrossValidation::Peptide>& peptides)
 {
   vector<PILISCrossValidation::Peptide> unique_peptides;
   Map<AASequence, Map<Size, vector<PILISCrossValidation::Peptide> > > sorted;
@@ -164,7 +164,7 @@ protected:
     registerSubsection_("PILIS_parameters", "PILIS model parameters");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "PILIS_parameters")
     {
@@ -174,7 +174,7 @@ protected:
     return Param();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -395,11 +395,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPILISSpectraGenerator tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

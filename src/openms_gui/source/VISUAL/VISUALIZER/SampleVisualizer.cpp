@@ -48,7 +48,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SampleVisualizer::SampleVisualizer(bool editable, QWidget * parent) :
+  SampleVisualizer::SampleVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<Sample>()
   {

@@ -88,110 +88,109 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPMetaboliteSpectralMatcher :
-        public TOPPBase
+  public TOPPBase
 {
 public:
-    TOPPMetaboliteSpectralMatcher() :
-        TOPPBase("MetaboliteSpectralMatcher", "Find potential HMDB ids within the given mass error window.", false)
-    {
-    }
+  TOPPMetaboliteSpectralMatcher() :
+    TOPPBase("MetaboliteSpectralMatcher", "Find potential HMDB ids within the given mass error window.", false)
+  {
+  }
 
 protected:
 
-    void registerOptionsAndFlags_()
-    {
-        registerInputFile_("in", "<file>", "", "mzML file");
-        setValidFormats_("in", ListUtils::create<String>("mzML"));
-        registerOutputFile_("out", "<file>", "", "mzTab file");
-        setValidFormats_("out", ListUtils::create<String>("csv"));
+  void registerOptionsAndFlags_()
+  {
+    registerInputFile_("in", "<file>", "", "mzML file");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    registerOutputFile_("out", "<file>", "", "mzTab file");
+    setValidFormats_("out", ListUtils::create<String>("csv"));
 
-        // addEmptyLine_();
-        // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
-        registerSubsection_("algorithm", "Algorithm parameters section");
+    // addEmptyLine_();
+    // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
+    registerSubsection_("algorithm", "Algorithm parameters section");
+  }
+
+  Param getSubsectionDefaults_(const String& /*section*/) const
+  {
+    return MetaboliteSpectralMatching().getDefaults();
+  }
+
+  ExitCodes main_(int, const char**)
+  {
+
+    //-------------------------------------------------------------
+    // parameter handling
+    //-------------------------------------------------------------
+
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+
+    //-------------------------------------------------------------
+    // loading input
+    //-------------------------------------------------------------
+
+    MzMLFile mz_data_file;
+    mz_data_file.setLogType(log_type_);
+    MSExperiment<Peak1D> ms_peakmap;
+    std::vector<Int> ms_level(1, 2);
+    (mz_data_file.getOptions()).setMSLevels(ms_level);
+    mz_data_file.load(in, ms_peakmap);
+
+    if (ms_peakmap.empty())
+    {
+      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+                  " contain chromatograms. This tool currently cannot handle them, sorry.";
+      return INCOMPATIBLE_INPUT_DATA;
     }
-
-    Param getSubsectionDefaults_(const String& /*section*/) const
-    {
-        return MetaboliteSpectralMatching().getDefaults();
-    }
-
-    ExitCodes main_(int, const char**)
-    {
-
-        //-------------------------------------------------------------
-        // parameter handling
-        //-------------------------------------------------------------
-
-        String in = getStringOption_("in");
-        String out = getStringOption_("out");
-
-        //-------------------------------------------------------------
-        // loading input
-        //-------------------------------------------------------------
-
-        MzMLFile mz_data_file;
-        mz_data_file.setLogType(log_type_);
-        MSExperiment<Peak1D> ms_peakmap;
-        std::vector<Int> ms_level(1,2);
-        (mz_data_file.getOptions()).setMSLevels(ms_level);
-        mz_data_file.load(in, ms_peakmap);
-
-        if (ms_peakmap.empty())
-        {
-            LOG_WARN << "The given file does not contain any conventional peak data, but might"
-                        " contain chromatograms. This tool currently cannot handle them, sorry.";
-            return INCOMPATIBLE_INPUT_DATA;
-        }
 
 //        FeatureMap ms_feat_map;
-        MzTab mztab_output;
+    MzTab mztab_output;
 
 //        FeatureXMLFile().load(in, ms_feat_map);
-        MzTabFile mztab_outfile;
+    MzTabFile mztab_outfile;
 
-        //-------------------------------------------------------------
-        // get parameters
-        //-------------------------------------------------------------
+    //-------------------------------------------------------------
+    // get parameters
+    //-------------------------------------------------------------
 
-        Param ams_param = getParam_().copy("algorithm:", true);
-        writeDebug_("Parameters passed to MetaboliteSpectralMatcher", ams_param, 3);
+    Param ams_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to MetaboliteSpectralMatcher", ams_param, 3);
 
 
-        //-------------------------------------------------------------
-        // do the work
-        //-------------------------------------------------------------
+    //-------------------------------------------------------------
+    // do the work
+    //-------------------------------------------------------------
 
-        MetaboliteSpectralMatching ams;
-        ams.setParameters(ams_param);
+    MetaboliteSpectralMatching ams;
+    ams.setParameters(ams_param);
 
-        ams.run(ms_peakmap, mztab_output);
+    ams.run(ms_peakmap, mztab_output);
 
-        //std::vector<String> results;
+    //std::vector<String> results;
 
-        // ams.queryByMass(308.09, results);
+    // ams.queryByMass(308.09, results);
 
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
 
-        // annotate output with data processing info
-        //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+    // annotate output with data processing info
+    //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
-        mztab_outfile.store(out, mztab_output);
+    mztab_outfile.store(out, mztab_output);
 
-        //FeatureXMLFile().store(out, ms_feat_map);
+    //FeatureXMLFile().store(out, ms_feat_map);
 
-        return EXECUTION_OK;
-    }
+    return EXECUTION_OK;
+  }
 
 };
 
 
 int main(int argc, const char** argv)
 {
-    TOPPMetaboliteSpectralMatcher tool;
-    return tool.main(argc, argv);
+  TOPPMetaboliteSpectralMatcher tool;
+  return tool.main(argc, argv);
 }
 
 /// @endcond
-

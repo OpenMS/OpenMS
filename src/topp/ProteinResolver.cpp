@@ -593,7 +593,7 @@ protected:
       if (list.size() == 0)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                        String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");
+                                          String("Input path ('") + input_path + "') does not contain a valid input file. Check file types! Allowed are .idXML and .consensusXML files.");
       }
 
       for (int i = 0; i < list.size(); ++i)

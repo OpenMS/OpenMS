@@ -122,7 +122,8 @@ protected:
     char aa_before, aa_after; // may be '\0' if not given
     String peptide;
 
-    SequenceParts(): aa_before(0), aa_after(0) {}
+    SequenceParts() :
+      aa_before(0), aa_after(0) {}
   };
 
   // lists of allowed parameter values:
@@ -201,7 +202,7 @@ protected:
   {
     struct SequenceParts parts;
     size_t len = sequence.size(), start = 0, count = string::npos;
-    if (len > 3) // in 'X.Y', which side would we cut off? 
+    if (len > 3) // in 'X.Y', which side would we cut off?
     {
       if (sequence[1] == '.')
       {
@@ -247,7 +248,7 @@ protected:
         }
       }
     }
-    return  modifiedSequence;
+    return modifiedSequence;
   }
 
   // Method to replace the mass representation of modifications.
@@ -302,11 +303,11 @@ protected:
     }
   }
 
-  String makeModString_(const String& mod_name, bool fixed=true)
+  String makeModString_(const String& mod_name, bool fixed = true)
   {
     ResidueModification mod = ModificationsDB::getInstance()->getModification(mod_name);
     String residue = mod.getOrigin();
-    if (residue.size() != 1) residue = "*"; // specificity groups, e.g. "Deamidated (NQ)", are not supported by OpenMS
+    if (residue.size() != 1) residue = "*";  // specificity groups, e.g. "Deamidated (NQ)", are not supported by OpenMS
     String position = mod.getTermSpecificityName(); // "Prot-N-term", "Prot-C-term" not supported by OpenMS
     if (position == "none") position = "any";
     return String(mod.getDiffMonoMass()) + ", " + residue + (fixed ? ", fix, " : ", opt, ") + position + ", " + mod.getId() + "    # " + mod_name;
@@ -345,7 +346,7 @@ protected:
 
   void removeTempDir_(const String& temp_dir)
   {
-    if (temp_dir.empty()) return; // no temp. dir. created
+    if (temp_dir.empty()) return;  // no temp. dir. created
 
     if (debug_level_ >= 2)
     {
@@ -642,7 +643,7 @@ protected:
       }
       else // new PeptideIdentification
       {
-        String spec_id = elements[1];       
+        String spec_id = elements[1];
         pep_ident.setRT(rt_mapping[spec_id][0]);
         pep_ident.setMZ(rt_mapping[spec_id][1]);
         pep_ident.setMetaValue("ScanNumber", scan_number);
@@ -664,7 +665,7 @@ protected:
     vector<ProteinHit> prot_hits;
     for (set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++it)
     {
-      if (it->empty()) continue; // don't write a protein hit without accession (see @BUG above)
+      if (it->empty()) continue;  // don't write a protein hit without accession (see @BUG above)
       ProteinHit prot_hit = ProteinHit();
       prot_hit.setAccession(*it);
       prot_hits.push_back(prot_hit);
@@ -689,6 +690,7 @@ protected:
 
     return EXECUTION_OK;
   }
+
 };
 
 

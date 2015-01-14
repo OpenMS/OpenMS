@@ -298,7 +298,7 @@ namespace OpenMS
 
     double delta_x = right_rt - left_rt;
     double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
-    if (alpha >= 1) sigma_ = 1.0; // degenerate case, all values are the same
+    if (alpha >= 1) sigma_ = 1.0;  // degenerate case, all values are the same
     else sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha));
     LOG_DEBUG << "sigma: " << sigma_ << std::endl;
   }

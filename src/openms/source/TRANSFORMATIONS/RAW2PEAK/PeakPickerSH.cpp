@@ -50,13 +50,13 @@ namespace OpenMS
     // FLO: Do not care at the moment
   }
 
-  void PeakPickerSH::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
+  void PeakPickerSH::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
   {
     // make sure that output is clear
     output.clear(true);
 
     // copy experimental settings
-    static_cast<ExperimentalSettings &>(output) = input;
+    static_cast<ExperimentalSettings&>(output) = input;
 
     // resize output with respect to input
     output.resize(input.size());

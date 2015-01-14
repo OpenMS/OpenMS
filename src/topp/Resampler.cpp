@@ -107,7 +107,7 @@ protected:
 
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //----------------------------------------------------------------
     // load data
@@ -148,7 +148,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPResampler tool;
   return tool.main(argc, argv);

@@ -791,7 +791,7 @@ namespace OpenMS
             best_idx = mt_idx;
 
           }
-        }             // end mt_idx
+        } // end mt_idx
 
         if (best_so_far > 0.0)
         {
@@ -811,7 +811,7 @@ namespace OpenMS
         }
 
 
-      }       // end for iso_pos
+      } // end for iso_pos
 
       // std::cout << "best found for ch " << charge << ":" << fh_tmp.getLabel() << " score: " << fh_tmp.getScore() << std::endl;
     } // end for charge
@@ -914,7 +914,7 @@ namespace OpenMS
     {
       // std::cout << "score now: " <<  feat_hypos[hypo_idx].getScore() << std::endl;
       std::vector<String> labels(feat_hypos[hypo_idx].getLabels());
-      bool trace_coll = false;   // trace collision?
+      bool trace_coll = false; // trace collision?
       for (Size lab_idx = 0; lab_idx < labels.size(); ++lab_idx)
       {
         if (trace_excl_map.find(labels[lab_idx]) != trace_excl_map.end())

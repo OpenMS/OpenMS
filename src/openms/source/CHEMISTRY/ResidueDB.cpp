@@ -71,7 +71,7 @@ namespace OpenMS
     return 0;
   }
 
-  const Residue * ResidueDB::getResidue(const unsigned char & one_letter_code) const
+  const Residue* ResidueDB::getResidue(const unsigned char& one_letter_code) const
   {
     return residue_by_one_letter_code_[one_letter_code];
   }
@@ -414,7 +414,7 @@ namespace OpenMS
   void ResidueDB::buildResidueNames_()
   {
     // initialize lookup table to null pointer
-    for (Size i = 0; i != sizeof(residue_by_one_letter_code_)/sizeof(residue_by_one_letter_code_[0]); ++i)
+    for (Size i = 0; i != sizeof(residue_by_one_letter_code_) / sizeof(residue_by_one_letter_code_[0]); ++i)
     {
       residue_by_one_letter_code_[i] = 0;
     }

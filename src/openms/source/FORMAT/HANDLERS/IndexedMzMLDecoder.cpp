@@ -65,7 +65,7 @@ namespace OpenMS
       try
       {
 
-        res = boost::lexical_cast< unsigned long long >(s);
+        res = boost::lexical_cast<unsigned long long>(s);
         // TESTING CAST: res = (int) res; // use this only when emulating 32 bit systems
 
       }
@@ -74,21 +74,22 @@ namespace OpenMS
         std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
         std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            String("Could not convert string '") + s + "' to a 64 bit integer.");
+                                         String("Could not convert string '") + s + "' to a 64 bit integer.");
       }
 
       // Check if the value can fit into std::streampos
-      if ( fabs( boost::lexical_cast< long double >(s) - res) > 0.1)
+      if (fabs(boost::lexical_cast<long double>(s) - res) > 0.1)
       {
         std::cerr << "Your system may not support addressing a file of this size,"
-          << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
-          " bit integer are supported on your system." << std::endl;
+                  << " only addresses that fit into a " << sizeof(std::streamsize) * 8 <<
+        " bit integer are supported on your system." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            String("Could not convert string '") + s + "' to an integer on your system.");
+                                         String("Could not convert string '") + s + "' to an integer on your system.");
       }
 
       return res;
     }
+
   }
 
   int IndexedMzMLDecoder::parseOffsets(String filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
@@ -104,7 +105,7 @@ namespace OpenMS
     if (indexoffset < 0 || indexoffset > length)
     {
       std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
-        indexoffset << " (not between 0 and " << length << ")." << std::endl;
+      indexoffset << " (not between 0 and " << length << ")." << std::endl;
       return -1;
     }
 
@@ -114,7 +115,7 @@ namespace OpenMS
     // read data as a block:
     // allocate memory:
     std::streampos readl = length - indexoffset;
-    char* buffer = new char[ readl + std::streampos(1)];
+    char* buffer = new char[readl + std::streampos(1)];
     f.seekg(-readl, f.end);
     f.read(buffer, readl);
     buffer[readl] = '\0';
@@ -258,7 +259,7 @@ namespace OpenMS
             char* name = xercesc::XMLString::transcode(currentElement->getAttribute(idref_tag));
             char* offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
-            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(offset) );
+            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos(String(offset));
             result.push_back(std::make_pair(std::string(name), thisOffset));
 
             xercesc::XMLString::release(&name);
@@ -283,7 +284,7 @@ namespace OpenMS
         else
         {
           std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
-            "'spectrum' or 'chromatogram' below indexList but found instead '" << name << "'." << std::endl;
+          "'spectrum' or 'chromatogram' below indexList but found instead '" << name << "'." << std::endl;
           xercesc::XMLString::release(&idref_tag);
           xercesc::XMLString::release(&name_tag);
           delete parser;

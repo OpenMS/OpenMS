@@ -61,7 +61,7 @@ namespace OpenMS
     defaults_.setMinInt("ms_levels", 1);
 
     // parameters for SNT estimator
-    defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum<Peak1D> >().getDefaults());
+    defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian<MSSpectrum<Peak1D> >().getDefaults());
 
     // write defaults into Param object param_
     defaultsToParam_();

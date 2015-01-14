@@ -50,12 +50,12 @@ namespace OpenMS
   {
   }
 
-  CompNovoIonScoring::CompNovoIonScoring(const CompNovoIonScoring & rhs) :
+  CompNovoIonScoring::CompNovoIonScoring(const CompNovoIonScoring& rhs) :
     CompNovoIonScoringBase(rhs)
   {
   }
 
-  CompNovoIonScoring & CompNovoIonScoring::operator=(const CompNovoIonScoring & rhs)
+  CompNovoIonScoring& CompNovoIonScoring::operator=(const CompNovoIonScoring& rhs)
   {
     if (this != &rhs)
     {
@@ -68,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIonScoring::scoreSpectra(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, PeakSpectrum & ETD_spec, double precursor_weight, Size charge)
+  void CompNovoIonScoring::scoreSpectra(Map<double, IonScore>& ion_scores, PeakSpectrum& CID_spec, PeakSpectrum& ETD_spec, double precursor_weight, Size charge)
   {
     for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
     {
@@ -151,7 +151,7 @@ namespace OpenMS
     ion_scores[(CID_spec.end() - 1)->getPosition()[0]].score = 1;
   }
 
-  void CompNovoIonScoring::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec)
+  void CompNovoIonScoring::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore>& ion_scores, const PeakSpectrum& CID_spec)
   {
     vector<double> diffs;
     //diffs.push_back(28.0);
@@ -288,7 +288,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIonScoring::scoreETDFeatures_(Size /*charge*/, double precursor_weight, Map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec)
+  void CompNovoIonScoring::scoreETDFeatures_(Size /*charge*/, double precursor_weight, Map<double, IonScore>& ion_scores, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec)
   {
     //double fragment_mass_tolerance((double)param_.getValue("fragment_mass_tolerance"));
     Size max_isotope_to_score(param_.getValue("max_isotope_to_score"));

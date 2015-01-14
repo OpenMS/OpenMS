@@ -62,7 +62,7 @@ namespace OpenMS
 
   }
 
-  TrypticIterator::TrypticIterator(const TrypticIterator & source) :
+  TrypticIterator::TrypticIterator(const TrypticIterator& source) :
     PepIterator(source),
     f_file_(source.f_file_),
     actual_pep_(source.actual_pep_),
@@ -83,7 +83,7 @@ namespace OpenMS
     return FASTAEntry(f_entry_.first, actual_pep_);
   }
 
-  PepIterator & TrypticIterator::operator++()
+  PepIterator& TrypticIterator::operator++()
   {
     if (actual_pep_ == "")
     {
@@ -98,13 +98,13 @@ namespace OpenMS
     return *this;
   }
 
-  PepIterator * TrypticIterator::operator++(int)
+  PepIterator* TrypticIterator::operator++(int)
   {
     if (actual_pep_ == "")
     {
       throw Exception::InvalidIterator(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
-    PepIterator * old = new TrypticIterator(*this);
+    PepIterator* old = new TrypticIterator(*this);
     actual_pep_ = next_();
     if (f_iterator_->isAtEnd() && !hasNext_())
     {
@@ -113,7 +113,7 @@ namespace OpenMS
     return old;
   }
 
-  void TrypticIterator::setFastaFile(const String & f)
+  void TrypticIterator::setFastaFile(const String& f)
   {
     std::fstream fs;
     fs.open(f.c_str());

@@ -49,8 +49,8 @@ namespace OpenMS
 {
   namespace Math
   {
-    GaussFitter::GaussFitter()
-    : init_param_(0.06, 3.0, 0.5)
+    GaussFitter::GaussFitter() :
+      init_param_(0.06, 3.0, 0.5)
     {
     }
 
@@ -58,7 +58,7 @@ namespace OpenMS
     {
     }
 
-    void GaussFitter::setInitialParameters(const GaussFitResult & param)
+    void GaussFitter::setInitialParameters(const GaussFitResult& param)
     {
       init_param_ = param;
     }
@@ -68,10 +68,10 @@ namespace OpenMS
       int inputs() const { return m_inputs; }
       int values() const { return m_values; }
 
-      GaussFunctor(int dimensions, const std::vector<DPosition<2> >* data)
-      : m_inputs(dimensions), m_values(data->size()), m_data(data) {}
+      GaussFunctor(int dimensions, const std::vector<DPosition<2> >* data) :
+        m_inputs(dimensions), m_values(data->size()), m_data(data) {}
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
       {
 
         double A = x(0);
@@ -86,8 +86,9 @@ namespace OpenMS
 
         return 0;
       }
+
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
       {
 
         double A = x(0);
@@ -97,9 +98,9 @@ namespace OpenMS
         UInt i = 0;
         for (std::vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
         {
-          J(i,0) = std::exp(-1.0 * std::pow(it->getX() - x0, 2) / (2 * std::pow(sig, 2)));
-          J(i,1) = (A * std::exp(-1.0 * std::pow(it->getX() - x0, 2) / (2 * std::pow(sig, 2))) * (-1 * (-2 * it->getX() + 2.0 * x0) / (2 * std::pow(sig, 2))));
-          J(i,2) = (A * std::exp(-1.0 * std::pow(it->getX() - x0, 2) / (2 *std:: pow(sig, 2))) * (std::pow(it->getX() - x0, 2) / (4 * std::pow(sig, 3))));
+          J(i, 0) = std::exp(-1.0 * std::pow(it->getX() - x0, 2) / (2 * std::pow(sig, 2)));
+          J(i, 1) = (A * std::exp(-1.0 * std::pow(it->getX() - x0, 2) / (2 * std::pow(sig, 2))) * (-1 * (-2 * it->getX() + 2.0 * x0) / (2 * std::pow(sig, 2))));
+          J(i, 2) = (A * std::exp(-1.0 * std::pow(it->getX() - x0, 2) / (2 * std::pow(sig, 2))) * (std::pow(it->getX() - x0, 2) / (4 * std::pow(sig, 3))));
         }
         return 0;
       }
@@ -108,14 +109,14 @@ namespace OpenMS
       const std::vector<DPosition<2> >* m_data;
     };
 
-    GaussFitter::GaussFitResult GaussFitter::fit(vector<DPosition<2> > & input)
+    GaussFitter::GaussFitResult GaussFitter::fit(vector<DPosition<2> >& input)
     {
-      Eigen::VectorXd x_init (3);
+      Eigen::VectorXd x_init(3);
       x_init(0) = init_param_.A;
       x_init(1) = init_param_.x0;
       x_init(2) = init_param_.sigma;
-      GaussFunctor functor (3, &input);
-      Eigen::LevenbergMarquardt<GaussFunctor> lmSolver (functor);
+      GaussFunctor functor(3, &input);
+      Eigen::LevenbergMarquardt<GaussFunctor> lmSolver(functor);
       Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
       //the states are poorly documented. after checking the source, we believe that
@@ -123,7 +124,7 @@ namespace OpenMS
       //termination states.
       if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GaussFitter", "Could not fit the gaussian to the data: Error " + String(status));
+        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GaussFitter", "Could not fit the gaussian to the data: Error " + String(status));
       }
 #ifdef GAUSS_FITTER_VERBOSE
       std::stringstream formula;
@@ -131,8 +132,8 @@ namespace OpenMS
       std::cout << formular.str() << std::endl;
 #endif
 
-      return GaussFitResult (x_init(0), x_init(1), x_init(2));
+      return GaussFitResult(x_init(0), x_init(1), x_init(2));
     }
 
-  }   //namespace Math
+  } //namespace Math
 } // namespace OpenMS

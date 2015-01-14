@@ -60,7 +60,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MRMFragmentSelection::MRMFragmentSelection(const MRMFragmentSelection & rhs) :
+  MRMFragmentSelection::MRMFragmentSelection(const MRMFragmentSelection& rhs) :
     DefaultParamHandler(rhs)
   {
   }
@@ -69,7 +69,7 @@ namespace OpenMS
   {
   }
 
-  MRMFragmentSelection & MRMFragmentSelection::operator=(const MRMFragmentSelection & rhs)
+  MRMFragmentSelection& MRMFragmentSelection::operator=(const MRMFragmentSelection& rhs)
   {
     if (&rhs != this)
     {
@@ -78,7 +78,7 @@ namespace OpenMS
     return *this;
   }
 
-  void MRMFragmentSelection::selectFragments(vector<RichPeak1D> & selected_peaks, const RichPeakSpectrum & spec)
+  void MRMFragmentSelection::selectFragments(vector<RichPeak1D>& selected_peaks, const RichPeakSpectrum& spec)
   {
     Size num_top_peaks = param_.getValue("num_top_peaks");
     bool consider_names(param_.getValue("consider_names").toBool());
@@ -113,7 +113,7 @@ namespace OpenMS
     return;
   }
 
-  bool MRMFragmentSelection::peakselectionIsAllowed_(const RichPeak1D & peak)
+  bool MRMFragmentSelection::peakselectionIsAllowed_(const RichPeak1D& peak)
   {
     StringList allowed_charges = param_.getValue("allowed_charges");
 

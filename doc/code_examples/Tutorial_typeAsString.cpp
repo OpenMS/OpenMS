@@ -33,7 +33,7 @@
 #include <OpenMS/KERNEL/DPeak.h>
 #include <iostream>
 
-double someFunc(int, int *)
+double someFunc(int, int*)
 {
   return 9.9;
 }
@@ -41,8 +41,8 @@ double someFunc(int, int *)
 template <typename, int = 5>
 struct WOW
 {
-  static float staticMemberFunc(float &) {return 0; }
-  double memberFunc(const double &) {return 0; }
+  static float staticMemberFunc(float&) {return 0; }
+  double memberFunc(const double&) {return 0; }
 };
 
 template <typename X, int I, unsigned J = 666, template <class, int> class WauWau = WOW>
@@ -68,7 +68,7 @@ int main()
   cout << typeAsString<DPeak<1>::Type::IntensityType>() << endl;
   cout << endl;
   cout << typeAsString(&someFunc) << endl;
-  cout << typeAsString<WOW<char const * const *** const &> >() << endl;
+  cout << typeAsString<WOW<char const* const*** const&> >() << endl;
   cout << typeAsString<Oink<double, 55> >() << endl;
   cout << typeAsString(&WOW<string, 8>::staticMemberFunc) << endl;
   cout << typeAsString(&WOW<char, 8>::memberFunc) << endl;

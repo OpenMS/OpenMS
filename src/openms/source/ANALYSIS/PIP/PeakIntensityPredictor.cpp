@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  double PeakIntensityPredictor::predict(const AASequence & sequence)
+  double PeakIntensityPredictor::predict(const AASequence& sequence)
   {
     //get corresponding attribute values
     vector<double> aafeat = getPropertyVector_(sequence);
@@ -63,7 +63,7 @@ namespace OpenMS
     return map_(aafeat);
   }
 
-  double PeakIntensityPredictor::predict(const AASequence & sequence, vector<double> & add_info)
+  double PeakIntensityPredictor::predict(const AASequence& sequence, vector<double>& add_info)
   {
     //get corresponding attribute values
     vector<double> aafeat = getPropertyVector_(sequence);
@@ -79,7 +79,7 @@ namespace OpenMS
     return tmp;
   }
 
-  vector<double> PeakIntensityPredictor::predict(const vector<AASequence> & sequences)
+  vector<double> PeakIntensityPredictor::predict(const vector<AASequence>& sequences)
   {
     vector<double> out(sequences.size());
 
@@ -91,7 +91,7 @@ namespace OpenMS
     return out;
   }
 
-  vector<double> PeakIntensityPredictor::predict(const vector<AASequence> & sequences, vector<vector<double> > & add_info)
+  vector<double> PeakIntensityPredictor::predict(const vector<AASequence>& sequences, vector<vector<double> >& add_info)
   {
     vector<double> out(sequences.size());
     add_info.resize(sequences.size());
@@ -105,7 +105,7 @@ namespace OpenMS
     return out;
   }
 
-  double PeakIntensityPredictor::map_(const vector<double> & data)
+  double PeakIntensityPredictor::map_(const vector<double>& data)
   {
     double sum_g_i, g_i;
     Matrix<double> code = llm_.getCodebooks();
@@ -142,13 +142,13 @@ namespace OpenMS
     g_i = g_i / sum_g_i;
 
     //normalize predicted values to distribution of training data
-    g_i -= 3.364288;     //mean(targets)
-    g_i /= 1.332298;     //sd(targets)
+    g_i -= 3.364288; //mean(targets)
+    g_i /= 1.332298; //sd(targets)
 
     return g_i;
   }
 
-  Size PeakIntensityPredictor::findWinner_(const vector<double> & data)
+  Size PeakIntensityPredictor::findWinner_(const vector<double>& data)
   {
     Size winner = 0;
     double min_dist = 0.0;
@@ -180,7 +180,7 @@ namespace OpenMS
     return winner;
   }
 
-  vector<double> PeakIntensityPredictor::calculateAddInfo_(const vector<double> & data)
+  vector<double> PeakIntensityPredictor::calculateAddInfo_(const vector<double>& data)
   {
     vector<double> foo(3);
     Size winner = findWinner_(data);
@@ -202,7 +202,7 @@ namespace OpenMS
     return foo;
   }
 
-  std::vector<double> PeakIntensityPredictor::getPropertyVector_(const AASequence & sequence)
+  std::vector<double> PeakIntensityPredictor::getPropertyVector_(const AASequence& sequence)
   {
     std::vector<double> out(18);
 
@@ -233,14 +233,14 @@ namespace OpenMS
       out[4] += AAIndex::getFINA770101(amino);
       //Signal sequence helical potential
       out[1] += AAIndex::getARGP820102(amino);
-      out[8] += (amino == 'M' ? 1.0 : 0.0);    // numResidues of M
-      out[2] += (amino == 'F' ? 1.0 : 0.0);    // numResidues of F
-      out[6] += (amino == 'H' ? 1.0 : 0.0);    // numResidues of H
-      out[13] += (amino == 'Q' ? 1.0 : 0.0);    // numResidues of Q
-      out[17] += (amino == 'Y' ? 1.0 : 0.0);    // numResiduesof Y
+      out[8] += (amino == 'M' ? 1.0 : 0.0); // numResidues of M
+      out[2] += (amino == 'F' ? 1.0 : 0.0); // numResidues of F
+      out[6] += (amino == 'H' ? 1.0 : 0.0); // numResidues of H
+      out[13] += (amino == 'Q' ? 1.0 : 0.0); // numResidues of Q
+      out[17] += (amino == 'Y' ? 1.0 : 0.0); // numResiduesof Y
     }
 
-    out[5] = AAIndex::calculateGB(sequence, 500.0);     //Estimated gas-phase basicity at 500 K
+    out[5] = AAIndex::calculateGB(sequence, 500.0); //Estimated gas-phase basicity at 500 K
     out[9] = sequence.getAverageWeight();
 
     return out;

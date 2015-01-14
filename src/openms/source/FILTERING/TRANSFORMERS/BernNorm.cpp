@@ -59,12 +59,12 @@ namespace OpenMS
   {
   }
 
-  BernNorm::BernNorm(const BernNorm & source) :
+  BernNorm::BernNorm(const BernNorm& source) :
     DefaultParamHandler(source)
   {
   }
 
-  BernNorm & BernNorm::operator=(const BernNorm & source)
+  BernNorm& BernNorm::operator=(const BernNorm& source)
   {
     if (this != &source)
     {
@@ -73,12 +73,12 @@ namespace OpenMS
     return *this;
   }
 
-  void BernNorm::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void BernNorm::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void BernNorm::filterPeakMap(PeakMap & exp)
+  void BernNorm::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {

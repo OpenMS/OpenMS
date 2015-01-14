@@ -134,7 +134,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // constructor for the object feature:
-  LCElutionPeak::LCElutionPeak(const LCElutionPeak * tmp)
+  LCElutionPeak::LCElutionPeak(const LCElutionPeak* tmp)
   {
     CHRG_MAP = tmp->CHRG_MAP;
     f_observed_Mass = tmp->f_observed_Mass;
@@ -160,7 +160,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of LCElutionPeak
-  LCElutionPeak::LCElutionPeak(const LCElutionPeak & tmp)
+  LCElutionPeak::LCElutionPeak(const LCElutionPeak& tmp)
   {
 
     CHRG_MAP = tmp.CHRG_MAP;
@@ -188,7 +188,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  LCElutionPeak & LCElutionPeak::operator=(const LCElutionPeak & tmp)
+  LCElutionPeak& LCElutionPeak::operator=(const LCElutionPeak& tmp)
   {
 
     CHRG_MAP = tmp.CHRG_MAP;
@@ -250,7 +250,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////////////////////////
 // find the closest existing mz peak in the elution profile:
-  MSPeak * LCElutionPeak::find_true_peak(float SCAN)
+  MSPeak* LCElutionPeak::find_true_peak(float SCAN)
   {
 
     int int_SCAN = int(floor(SCAN));
@@ -304,7 +304,7 @@ namespace OpenMS
     SIGNAL_iterator P = get_signal_list_start();
     while (P != get_signal_list_end())
     {
-      MSPeak * peak = &(P->second);
+      MSPeak* peak = &(P->second);
       fSignalToNoise += peak->getSignalToNoise() * peak->get_intensity();
       fSNIntensityThreshold += peak->get_intensity() * (peak->get_intensity() / peak->getSignalToNoise());
       TotArea += peak->get_intensity();
@@ -326,8 +326,8 @@ namespace OpenMS
     double TOT_AREA = 0;
     double apexScan = 0;
     double apexTr = 0;
-    MSPeak * endPeak = NULL;
-    MSPeak * startPeak = NULL;
+    MSPeak* endPeak = NULL;
+    MSPeak* startPeak = NULL;
 
     // find the first peaks above the background intensity:
     SIGNAL_iterator P = get_signal_list_start();
@@ -422,7 +422,7 @@ namespace OpenMS
     }
 
     // set the apex ms peak:
-    MSPeak * APEX = find_true_peak((float) apexScan);
+    MSPeak* APEX = find_true_peak((float) apexScan);
     if (!APEX->getExtraPeakInfo().empty())
     {
       setElutionPeakExtraInfo(APEX->getExtraPeakInfo());
@@ -520,7 +520,7 @@ namespace OpenMS
     while (R != intens_signals.end())
     {
 
-      MSPeak * peak = &(*R).second;
+      MSPeak* peak = &(*R).second;
       // map<double, double> isotopeCluster; // unused variable
 
       vector<CentroidPeak>::iterator p = peak->get_isotopic_peaks_start();
@@ -560,7 +560,7 @@ namespace OpenMS
     createConsensIsotopPattern();
 
   }
-  
+
   SIGNAL_iterator LCElutionPeak::get_signal_list_start()
   {
     return intens_signals.begin();
@@ -614,7 +614,7 @@ namespace OpenMS
   }
 
   // to update the list of score and charge state:
-  void LCElutionPeak::update_CHRGMAP(MSPeak * IN)
+  void LCElutionPeak::update_CHRGMAP(MSPeak* IN)
   {
     std::multimap<int, int>::iterator T = CHRG_MAP.find(IN->get_charge_state());
     if (T == CHRG_MAP.end())
@@ -718,4 +718,5 @@ namespace OpenMS
   {
     return fSNIntensityThreshold;
   }
+
 }

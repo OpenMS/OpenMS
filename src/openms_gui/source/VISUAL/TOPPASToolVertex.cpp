@@ -853,8 +853,8 @@ namespace OpenMS
            it != pkg[0].end();
            ++it)
       {
-        if (use_recycling == 0 && (it->second.edge->getSourceVertex()->isRecyclingEnabled()))
-        { // first test all input nodes with disabled recycling
+        if (use_recycling == 0 && (it->second.edge->getSourceVertex()->isRecyclingEnabled())) // first test all input nodes with disabled recycling
+        {
           continue;
         }
         if (it->second.filenames.size() > max_size)
@@ -1000,7 +1000,7 @@ namespace OpenMS
         //std::cout << "PATH: " << p << "\n";
         String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
         //std::cout << "INTER: " << tmp << "\n";
-        if (tmp.size() <= 2 || tmp.has(':')) continue; // too small to be reliable; might even be 'c:'
+        if (tmp.size() <= 2 || tmp.has(':')) continue;  // too small to be reliable; might even be 'c:'
         filenames[i][0] = tmp.toQString();
         //std::cout << "  -->: " << filenames[i][0] << "\n";
       }

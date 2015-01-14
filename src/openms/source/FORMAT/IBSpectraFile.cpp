@@ -244,7 +244,7 @@ namespace OpenMS
         std::set<String> protein_accessions = peptide_hit.extractProteinAccessions();
         if (protein_accessions.size() != 1)
         {
-          if (!allow_non_unique) continue; // we only want unique peptides
+          if (!allow_non_unique) continue;  // we only want unique peptides
         }
 
         for (std::set<String>::const_iterator prot_ac = protein_accessions.begin(); prot_ac != protein_accessions.end(); ++prot_ac)

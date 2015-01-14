@@ -110,7 +110,7 @@ double dvec[] =
 namespace OpenMS
 {
   //internally used variables / defaults
-  IsotopeWavelet * IsotopeWavelet::me_ = NULL;
+  IsotopeWavelet* IsotopeWavelet::me_ = NULL;
   UInt IsotopeWavelet::max_charge_ = 1;
   std::vector<double> IsotopeWavelet::gamma_table_;
   std::vector<double> IsotopeWavelet::gamma_table_new_;
@@ -123,7 +123,7 @@ namespace OpenMS
   Size IsotopeWavelet::exp_table_max_index_ = 0;
 
 
-  IsotopeWavelet * IsotopeWavelet::init(const double max_m, const UInt max_charge)
+  IsotopeWavelet* IsotopeWavelet::init(const double max_m, const UInt max_charge)
   {
     if (me_ == NULL)
     {
@@ -301,7 +301,7 @@ namespace OpenMS
     }
   }
 
-  const IsotopeDistribution::ContainerType & IsotopeWavelet::getAveragine(const double mass, UInt * size)
+  const IsotopeDistribution::ContainerType& IsotopeWavelet::getAveragine(const double mass, UInt* size)
   {
 
     averagine_.estimateFromPeptideWeight(mass);

@@ -103,8 +103,8 @@ protected:
   // compare peptide IDs by score of best hit (hits must be sorted first!)
   // (note to self: the "static" is necessary to avoid cryptic "no matching
   // function" errors from gcc when the comparator is used below)
-  static bool compareIDs_(const PeptideIdentification & left,
-                          const PeptideIdentification & right)
+  static bool compareIDs_(const PeptideIdentification& left,
+                          const PeptideIdentification& right)
   {
     if (left.getHits()[0].getScore() < right.getHits()[0].getScore())
     {
@@ -113,7 +113,7 @@ protected:
     return false;
   }
 
-  void resolveConflict_(vector<PeptideIdentification> & peptides)
+  void resolveConflict_(vector<PeptideIdentification>& peptides)
   {
     if (peptides.empty()) return;
 
@@ -123,7 +123,7 @@ protected:
       pep_id->sort();
     }
     vector<PeptideIdentification>::iterator pos;
-    if (peptides[0].isHigherScoreBetter())     // find highest-scoring ID
+    if (peptides[0].isHigherScoreBetter()) // find highest-scoring ID
     {
       pos = max_element(peptides.begin(), peptides.end(), compareIDs_);
     }
@@ -146,7 +146,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
     FileTypes::Type in_type = FileHandler::getType(in);
@@ -182,7 +182,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDConflictResolver tool;
   return tool.main(argc, argv);

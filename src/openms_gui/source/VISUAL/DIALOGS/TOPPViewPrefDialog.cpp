@@ -42,31 +42,31 @@ namespace OpenMS
 {
   namespace Internal
   {
-    TOPPViewPrefDialog::TOPPViewPrefDialog(QWidget * parent) :
+    TOPPViewPrefDialog::TOPPViewPrefDialog(QWidget* parent) :
       QDialog(parent)
     {
       setupUi(this);
-      connect(findChild<QPushButton *>("browse_default"), SIGNAL(clicked()), this, SLOT(browseDefaultPath_()));
-      connect(findChild<QPushButton *>("browse_temp"), SIGNAL(clicked()), this, SLOT(browseTempPath_()));
+      connect(findChild<QPushButton*>("browse_default"), SIGNAL(clicked()), this, SLOT(browseDefaultPath_()));
+      connect(findChild<QPushButton*>("browse_temp"), SIGNAL(clicked()), this, SLOT(browseTempPath_()));
     }
 
     void TOPPViewPrefDialog::browseDefaultPath_()
     {
-      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", findChild<QLineEdit *>("default_path")->text());
+      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", findChild<QLineEdit*>("default_path")->text());
       if (path != "")
       {
-        findChild<QLineEdit *>("default_path")->setText(path);
+        findChild<QLineEdit*>("default_path")->setText(path);
       }
     }
 
     void TOPPViewPrefDialog::browseTempPath_()
     {
-      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", findChild<QLineEdit *>("temp_path")->text());
+      QString path = QFileDialog::getExistingDirectory(this, "Choose a directory", findChild<QLineEdit*>("temp_path")->text());
       if (path != "")
       {
-        findChild<QLineEdit *>("temp_path")->setText(path);
+        findChild<QLineEdit*>("temp_path")->setText(path);
       }
     }
 
-  }   //namespace Internal
+  } //namespace Internal
 } //namspace OpenMS

@@ -138,7 +138,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  MSPeak::MSPeak(const MSPeak & tmp)
+  MSPeak::MSPeak(const MSPeak& tmp)
   {
     MZ = tmp.MZ;
     SignalToNoise = tmp.SignalToNoise;
@@ -158,7 +158,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  MSPeak::MSPeak(const MSPeak * tmp)
+  MSPeak::MSPeak(const MSPeak* tmp)
   {
     MZ = tmp->MZ;
     SignalToNoise = tmp->SignalToNoise;
@@ -178,7 +178,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  MSPeak & MSPeak::operator=(const MSPeak & tmp)
+  MSPeak& MSPeak::operator=(const MSPeak& tmp)
   {
     MZ = tmp.MZ;
     SignalToNoise = tmp.SignalToNoise;
@@ -201,7 +201,7 @@ namespace OpenMS
 // show info:
   void MSPeak::show_info()
   {
-    printf("mz=%0.4f,int=%0.1f,scan=%d,tr=%0.2f,+%d", MZ, INTENSITY, SCAN, TR, CHRG);     // precursorMZ
+    printf("mz=%0.4f,int=%0.1f,scan=%d,tr=%0.2f,+%d", MZ, INTENSITY, SCAN, TR, CHRG); // precursorMZ
 
     if (precursorMZ > 1.0)
     {
@@ -275,7 +275,7 @@ namespace OpenMS
     }
 
     // ok if not, then check the isotopes:
-    
+
     // check now also the isotopes
     if (!ISOPEAKS.empty())
     {
@@ -318,7 +318,7 @@ namespace OpenMS
 
   }
 
-  std::vector<CentroidPeak> & MSPeak::get_isotopic_peaks()
+  std::vector<CentroidPeak>& MSPeak::get_isotopic_peaks()
   {
     return ISOPEAKS;
   }
@@ -435,6 +435,5 @@ namespace OpenMS
   {
     SignalToNoise = in;
   }
-
 
 }

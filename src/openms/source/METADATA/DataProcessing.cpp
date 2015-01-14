@@ -72,7 +72,7 @@ namespace OpenMS
 
   }
 
-  DataProcessing::DataProcessing(const DataProcessing & rhs) :
+  DataProcessing::DataProcessing(const DataProcessing& rhs) :
     MetaInfoInterface(rhs),
     software_(rhs.software_),
     processing_actions_(rhs.processing_actions_),
@@ -86,7 +86,7 @@ namespace OpenMS
 
   }
 
-  DataProcessing & DataProcessing::operator=(const DataProcessing & rhs)
+  DataProcessing& DataProcessing::operator=(const DataProcessing& rhs)
   {
     if (&rhs == this)
       return *this;
@@ -99,7 +99,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool DataProcessing::operator==(const DataProcessing & rhs) const
+  bool DataProcessing::operator==(const DataProcessing& rhs) const
   {
     return software_ == rhs.software_ &&
            processing_actions_ == rhs.processing_actions_ &&
@@ -107,47 +107,47 @@ namespace OpenMS
            MetaInfoInterface::operator==(rhs);
   }
 
-  bool DataProcessing::operator!=(const DataProcessing & rhs) const
+  bool DataProcessing::operator!=(const DataProcessing& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const Software & DataProcessing::getSoftware() const
+  const Software& DataProcessing::getSoftware() const
   {
     return software_;
   }
 
-  Software & DataProcessing::getSoftware()
+  Software& DataProcessing::getSoftware()
   {
     return software_;
   }
 
-  void DataProcessing::setSoftware(const Software & software)
+  void DataProcessing::setSoftware(const Software& software)
   {
     software_ = software;
   }
 
-  const DateTime & DataProcessing::getCompletionTime() const
+  const DateTime& DataProcessing::getCompletionTime() const
   {
     return completion_time_;
   }
 
-  void DataProcessing::setCompletionTime(const DateTime & completion_time)
+  void DataProcessing::setCompletionTime(const DateTime& completion_time)
   {
     completion_time_ = completion_time;
   }
 
-  const set<DataProcessing::ProcessingAction> & DataProcessing::getProcessingActions() const
+  const set<DataProcessing::ProcessingAction>& DataProcessing::getProcessingActions() const
   {
     return processing_actions_;
   }
 
-  set<DataProcessing::ProcessingAction> & DataProcessing::getProcessingActions()
+  set<DataProcessing::ProcessingAction>& DataProcessing::getProcessingActions()
   {
     return processing_actions_;
   }
 
-  void DataProcessing::setProcessingActions(const set<DataProcessing::ProcessingAction> & processing_actions)
+  void DataProcessing::setProcessingActions(const set<DataProcessing::ProcessingAction>& processing_actions)
   {
     processing_actions_ = processing_actions;
   }

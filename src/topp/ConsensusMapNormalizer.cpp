@@ -113,7 +113,7 @@ protected:
     setMaxFloat_("ratio_threshold", 1.0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
@@ -156,7 +156,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPConsensusMapNormalizer tool;
   return tool.main(argc, argv);

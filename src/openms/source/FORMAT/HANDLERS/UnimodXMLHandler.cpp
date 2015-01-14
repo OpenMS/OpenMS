@@ -44,7 +44,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification *> & mods, const String & filename) :
+    UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification*>& mods, const String& filename) :
       XMLHandler(filename, "2.0"),
       avge_mass_(0.0),
       mono_mass_(0.0),
@@ -58,7 +58,7 @@ namespace OpenMS
 
     }
 
-    void UnimodXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+    void UnimodXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
 
       tag_ = String(sm_.convert(qname));
@@ -198,7 +198,7 @@ namespace OpenMS
 
     }
 
-    void UnimodXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void UnimodXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       tag_ = String(sm_.convert(qname));
 
@@ -210,7 +210,7 @@ namespace OpenMS
         modification_->setDiffFormula(diff_formula_);
         for (Size i = 0; i != sites_.size(); ++i)
         {
-          ResidueModification * new_mod = new ResidueModification(*modification_);
+          ResidueModification* new_mod = new ResidueModification(*modification_);
           new_mod->setOrigin(sites_[i]);
           new_mod->setTermSpecificity(term_specs_[i]);
           new_mod->setNeutralLossDiffFormula(neutral_loss_diff_formulas_[i]);
@@ -249,10 +249,10 @@ namespace OpenMS
       }
     }
 
-    void UnimodXMLHandler::characters(const XMLCh * const /*chars*/, const XMLSize_t /*length*/)
+    void UnimodXMLHandler::characters(const XMLCh* const /*chars*/, const XMLSize_t /*length*/)
     {
       // nothing to do here
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SpectrumSettingsVisualizer::SpectrumSettingsVisualizer(bool editable, QWidget * parent) :
+  SpectrumSettingsVisualizer::SpectrumSettingsVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<SpectrumSettings>()
   {

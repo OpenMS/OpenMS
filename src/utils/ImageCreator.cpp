@@ -89,7 +89,7 @@ public:
 protected:
   StringList out_formats_; //< valid output formats for image
 
-  void addPoint_(int x, int y, QImage & image, QColor color = Qt::black,
+  void addPoint_(int x, int y, QImage& image, QColor color = Qt::black,
                  Size size = 2)
   {
     int h = image.height(), w = image.width();
@@ -118,15 +118,15 @@ protected:
     }
   }
 
-  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage & image, QColor color = Qt::black)
+  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage& image, QColor color = Qt::black)
   {
-    QPainter * painter = new QPainter(&image);
+    QPainter* painter = new QPainter(&image);
     painter->setPen(color);
     painter->drawRect(QRect(lower_rt, lower_mz, upper_rt - lower_rt, upper_mz - lower_mz));
     delete painter;
   }
 
-  void markMS2Locations_(MSExperiment<> & exp, QImage & image, bool transpose,
+  void markMS2Locations_(MSExperiment<>& exp, QImage& image, bool transpose,
                          QColor color, Size size)
   {
     double xcoef = image.width(), ycoef = image.height();
@@ -158,12 +158,12 @@ protected:
           x = int(xcoef * (mz - exp.getMinMZ()));
           y = int(ycoef * (exp.getMaxRT() - rt));
         }
-        addPoint_(x, y, image, color, size);  //mark MS2
+        addPoint_(x, y, image, color, size); //mark MS2
       }
     }
   }
 
-  void markFeatureLocations_(FeatureMap & feature_map, MSExperiment<> & exp, QImage & image, bool transpose, QColor color)
+  void markFeatureLocations_(FeatureMap& feature_map, MSExperiment<>& exp, QImage& image, bool transpose, QColor color)
   {
     double xcoef = image.width(), ycoef = image.height();
     if (transpose)
@@ -248,7 +248,7 @@ protected:
     setMaxInt_("precursor_size", 3);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //----------------------------------------------------------------
     // load data
@@ -263,7 +263,7 @@ protected:
       {
         format = out.suffix('.');
       }
-      catch (Exception::ElementNotFound & /*e*/)
+      catch (Exception::ElementNotFound& /*e*/)
       {
         format = "nosuffix";
       }
@@ -375,7 +375,7 @@ protected:
     string feature_color_string = getStringOption_("feature_color");
     QColor feature_color(feature_color_string.c_str());
 
-    QPainter * painter = new QPainter(&image);
+    QPainter* painter = new QPainter(&image);
     painter->setPen(background_color);
     painter->fillRect(0, 0, peaks, scans, Qt::SolidPattern);
     delete painter;
@@ -428,7 +428,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPImageCreator tool;
   return tool.main(argc, argv);

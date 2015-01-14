@@ -50,7 +50,7 @@ namespace OpenMS
 
   }
 
-  HPLC::HPLC(const HPLC & source) :
+  HPLC::HPLC(const HPLC& source) :
     instrument_(source.instrument_),
     column_(source.column_),
     temperature_(source.temperature_),
@@ -67,7 +67,7 @@ namespace OpenMS
 
   }
 
-  HPLC & HPLC::operator=(const HPLC & source)
+  HPLC& HPLC::operator=(const HPLC& source)
   {
     if (source == *this)
       return *this;
@@ -83,7 +83,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool HPLC::operator==(const HPLC & rhs) const
+  bool HPLC::operator==(const HPLC& rhs) const
   {
     return (instrument_ == rhs.instrument_) &&
            (column_ == rhs.column_) &&
@@ -94,27 +94,27 @@ namespace OpenMS
            (gradient_ == rhs.gradient_);
   }
 
-  bool HPLC::operator!=(const HPLC & rhs) const
+  bool HPLC::operator!=(const HPLC& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & HPLC::getInstrument() const
+  const String& HPLC::getInstrument() const
   {
     return instrument_;
   }
 
-  void HPLC::setInstrument(const String & instrument)
+  void HPLC::setInstrument(const String& instrument)
   {
     instrument_ = instrument;
   }
 
-  const String & HPLC::getColumn() const
+  const String& HPLC::getColumn() const
   {
     return column_;
   }
 
-  void HPLC::setColumn(const String & column)
+  void HPLC::setColumn(const String& column)
   {
     column_ = column;
   }
@@ -159,17 +159,17 @@ namespace OpenMS
     comment_ = comment;
   }
 
-  Gradient & HPLC::getGradient()
+  Gradient& HPLC::getGradient()
   {
     return gradient_;
   }
 
-  const Gradient & HPLC::getGradient() const
+  const Gradient& HPLC::getGradient() const
   {
     return gradient_;
   }
 
-  void HPLC::setGradient(const Gradient & gradient)
+  void HPLC::setGradient(const Gradient& gradient)
   {
     gradient_ = gradient;
   }

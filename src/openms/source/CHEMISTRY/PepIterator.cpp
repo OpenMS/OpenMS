@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  PepIterator::PepIterator(const PepIterator & /*source*/)
+  PepIterator::PepIterator(const PepIterator& /*source*/)
   {
   }
 

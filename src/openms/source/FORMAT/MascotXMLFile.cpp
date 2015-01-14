@@ -55,7 +55,7 @@ namespace OpenMS
   {
     map<String, vector<AASequence> > peptides;
 
-    load(filename, protein_identification, id_data, peptides, rt_mapping, 
+    load(filename, protein_identification, id_data, peptides, rt_mapping,
          scan_regex);
   }
 
@@ -63,14 +63,14 @@ namespace OpenMS
                            ProteinIdentification& protein_identification,
                            vector<PeptideIdentification>& id_data,
                            map<String, vector<AASequence> >& peptides,
-                           const RTMapping& rt_mapping, 
+                           const RTMapping& rt_mapping,
                            const String& scan_regex)
   {
     //clear
     protein_identification = ProteinIdentification();
     id_data.clear();
 
-    Internal::MascotXMLHandler handler(protein_identification, id_data, 
+    Internal::MascotXMLHandler handler(protein_identification, id_data,
                                        filename, peptides, rt_mapping,
                                        scan_regex);
     parse_(filename, &handler);
@@ -85,16 +85,17 @@ namespace OpenMS
          id_it != id_data.end(); ++id_it)
     {
       const vector<PeptideHit>& peptide_hits = id_it->getHits();
-      if (!peptide_hits.empty() && 
+      if (!peptide_hits.empty() &&
           (peptide_hits.size() > 1 || !peptide_hits[0].getSequence().empty()))
       {
         filtered_hits.push_back(*id_it);
       }
-      else if (!id_it->empty()) ++missing_sequence;
+      else if (!id_it->empty())
+        ++missing_sequence;
     }
-    if (missing_sequence) 
+    if (missing_sequence)
     {
-      LOG_WARN << "Warning: Removed " << missing_sequence 
+      LOG_WARN << "Warning: Removed " << missing_sequence
                << " peptide identifications without sequence." << endl;
     }
     id_data.swap(filtered_hits);
@@ -108,7 +109,7 @@ namespace OpenMS
     }
     if (no_rt_count)
     {
-      LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
+      LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size()
                << ") peptide identifications have no retention time value."
                << endl;
     }
@@ -116,13 +117,13 @@ namespace OpenMS
     if (!rt_mapping.empty() && (no_rt_count == id_data.size()))
     {
       throw Exception::MissingInformation(
-        __FILE__, __LINE__, __PRETTY_FUNCTION__, 
-        "No retention time information for peptide identifications found");
+              __FILE__, __LINE__, __PRETTY_FUNCTION__,
+              "No retention time information for peptide identifications found");
     }
 
     // argh! Mascot 2.2 tends to repeat the first hit (yes it appears twice),
     // so we delete one of them
-    for (vector<PeptideIdentification>::iterator it = id_data.begin(); 
+    for (vector<PeptideIdentification>::iterator it = id_data.begin();
          it != id_data.end(); ++it)
     {
       vector<PeptideHit> peptide_hits = it->getHits();
@@ -139,7 +140,6 @@ namespace OpenMS
     }
   }
 
-  
   void MascotXMLFile::generateRTMapping(
     const MSExperiment<>::ConstIterator begin,
     const MSExperiment<>::ConstIterator end, RTMapping& rt_mapping)
@@ -152,8 +152,9 @@ namespace OpenMS
       {
         Int num_id = id.suffix('=').toInt();
         if (num_id >= 0) rt_mapping[num_id] = it->getRT();
-        else throw Exception::ConversionError(__FILE__, __LINE__,
-                                              __PRETTY_FUNCTION__, "error");
+        else
+          throw Exception::ConversionError(__FILE__, __LINE__,
+                                           __PRETTY_FUNCTION__, "error");
       }
       catch (Exception::ConversionError)
       {

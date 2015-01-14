@@ -280,7 +280,7 @@ namespace OpenMS
       // std::cout << minimal_protein_list_accessions_[i] << " "<<getProteinProbability(minimal_protein_list_accessions_[i])
       //           << " "<<protein_id_threshold;
       if (getProteinProbability(minimal_protein_list_accessions_[i]) > protein_id_threshold)
-        ++num; //std::cout << "--->";}
+        ++num;  //std::cout << "--->";}
       // std::cout <<std::endl;
     }
     return num;
@@ -294,7 +294,7 @@ namespace OpenMS
       // std::cout << minimal_protein_list_accessions_[i] << " "<<getProteinProbability(minimal_protein_list_accessions_[i])
       //           << " "<<protein_id_threshold;
       if (prot_id_counter[minimal_protein_list_accessions_[i]].size() >= (Size)min_peptides)
-        ++num; //std::cout << "--->";}
+        ++num;  //std::cout << "--->";}
       // std::cout <<std::endl;
     }
     return num;

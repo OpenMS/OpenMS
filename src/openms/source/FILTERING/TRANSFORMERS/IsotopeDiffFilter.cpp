@@ -51,12 +51,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IsotopeDiffFilter::IsotopeDiffFilter(const IsotopeDiffFilter & source) :
+  IsotopeDiffFilter::IsotopeDiffFilter(const IsotopeDiffFilter& source) :
     FilterFunctor(source)
   {
   }
 
-  IsotopeDiffFilter & IsotopeDiffFilter::operator=(const IsotopeDiffFilter & source)
+  IsotopeDiffFilter& IsotopeDiffFilter::operator=(const IsotopeDiffFilter& source)
   {
     if (this != &source)
     {

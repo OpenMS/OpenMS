@@ -59,8 +59,8 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::initialize(double rt_normalization_factor_,
-    int add_up_spectra_, double spacing_for_spectra_resampling_,
-    OpenSwath_Scores_Usage & su_)
+                                    int add_up_spectra_, double spacing_for_spectra_resampling_,
+                                    OpenSwath_Scores_Usage& su_)
   {
     this->rt_normalization_factor_ = rt_normalization_factor_;
     this->add_up_spectra_ = add_up_spectra_;
@@ -68,9 +68,9 @@ namespace OpenMS
     this->su_ = su_;
   }
 
-  void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
-      OpenSwath::SpectrumAccessPtr swath_map, OpenSwath::SpectrumAccessPtr ms1_map, OpenMS::DIAScoring & diascoring,
-      const PeptideType& pep, OpenSwath_Scores & scores)
+  void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType>& transitions,
+                                            OpenSwath::SpectrumAccessPtr swath_map, OpenSwath::SpectrumAccessPtr ms1_map, OpenMS::DIAScoring& diascoring,
+                                            const PeptideType& pep, OpenSwath_Scores& scores)
   {
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
 
@@ -91,7 +91,7 @@ namespace OpenMS
     diascoring.dia_isotope_scores(transitions, (*spectrum), imrmfeature, scores.isotope_correlation, scores.isotope_overlap);
     // Mass deviation score
     diascoring.dia_massdiff_score(transitions, (*spectrum), normalized_library_intensity,
-        scores.massdev_score, scores.weighted_massdev_score);
+                                  scores.massdev_score, scores.weighted_massdev_score);
 
     // Presence of b/y series score
     OpenMS::AASequence aas;
@@ -105,7 +105,7 @@ namespace OpenMS
     diascoring.score_with_isotopes((*spectrum), transitions, scores.dotprod_score_dia, scores.manhatt_score_dia);
 
     // MS1 ppm score : check that the map is not NULL and contains spectra
-    if (ms1_map && ms1_map->getNrSpectra() > 0) 
+    if (ms1_map && ms1_map->getNrSpectra() > 0)
     {
       OpenSwath::SpectrumPtr ms1_spectrum = getAddedSpectra_(ms1_map, imrmfeature->getRT(), add_up_spectra_);
       diascoring.dia_ms1_massdiff_score(precursor_mz, ms1_spectrum, scores.ms1_ppm_score);
@@ -114,11 +114,11 @@ namespace OpenMS
   }
 
   void OpenSwathScoring::calculateChromatographicScores(
-        OpenSwath::IMRMFeature* imrmfeature,
-        const std::vector<std::string>& native_ids,
-        const std::vector<double>& normalized_library_intensity,
-        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        OpenSwath_Scores & scores)
+    OpenSwath::IMRMFeature* imrmfeature,
+    const std::vector<std::string>& native_ids,
+    const std::vector<double>& normalized_library_intensity,
+    std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+    OpenSwath_Scores& scores)
   {
     OpenSwath::MRMScoring mrmscore_;
     mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
@@ -148,8 +148,8 @@ namespace OpenMS
       scores.xcorr_ms1_shape_score = mrmscore_.calcMS1XcorrShape_score();
     }
 
-    if (su_.use_nr_peaks_score_) 
-    { 
+    if (su_.use_nr_peaks_score_)
+    {
       scores.nr_peaks = boost::numeric_cast<int>(imrmfeature->size());
     }
 
@@ -158,30 +158,32 @@ namespace OpenMS
     {
       scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
       // everything below S/N 1 can be set to zero (and the log safely applied)
-      if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
-      else { scores.log_sn_score = std::log(scores.sn_ratio); }
+      if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }else { scores.log_sn_score = std::log(scores.sn_ratio); }
     }
   }
 
   void OpenSwathScoring::calculateLibraryScores(
-        OpenSwath::IMRMFeature* imrmfeature,
-        const std::vector<TransitionType> & transitions,
-        const PeptideType& pep,
-        const double normalized_feature_rt,
-        OpenSwath_Scores & scores)
+    OpenSwath::IMRMFeature* imrmfeature,
+    const std::vector<TransitionType>& transitions,
+    const PeptideType& pep,
+    const double normalized_feature_rt,
+    OpenSwath_Scores& scores)
   {
     std::vector<double> normalized_library_intensity;
     getNormalized_library_intensities_(transitions, normalized_library_intensity);
 
     std::vector<std::string> native_ids;
     OpenSwath::MRMScoring mrmscore_;
-    for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
+    for (Size i = 0; i < transitions.size(); i++)
+    {
+      native_ids.push_back(transitions[i].getNativeID());
+    }
 
     if (su_.use_library_score_)
     {
-      mrmscore_.calcLibraryScore(imrmfeature, transitions, 
-          scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan, 
-          scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
+      mrmscore_.calcLibraryScore(imrmfeature, transitions,
+                                 scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan,
+                                 scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
     }
 
     // Retention time score
@@ -197,24 +199,24 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathScoring::getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-      std::vector<double>& normalized_library_intensity)
+  void OpenSwathScoring::getNormalized_library_intensities_(const std::vector<TransitionType>& transitions,
+                                                            std::vector<double>& normalized_library_intensity)
   {
     normalized_library_intensity.clear();
-    for (Size i = 0; i < transitions.size(); i++) 
+    for (Size i = 0; i < transitions.size(); i++)
     {
       normalized_library_intensity.push_back(transitions[i].getLibraryIntensity());
     }
-    for (Size i = 0; i < normalized_library_intensity.size(); i++) 
-    { 
+    for (Size i = 0; i < normalized_library_intensity.size(); i++)
+    {
       // the library intensity should never be below zero
-      if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; } 
-    } 
+      if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; }
+    }
     OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
   }
 
-  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
-      double RT, int nr_spectra_to_add)
+  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
+                                                            double RT, int nr_spectra_to_add)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
     int closest_idx = boost::numeric_cast<int>(indices[0]);
@@ -246,4 +248,3 @@ namespace OpenMS
   }
 
 }
-

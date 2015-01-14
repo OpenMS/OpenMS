@@ -254,14 +254,14 @@ namespace OpenMS
     if (pattern.getMassShiftCount() == 1)
     {
       // We are detecting peptide singlets.
-      similarity = averagine_similarity_ + averagine_similarity_scaling_*(1 - averagine_similarity_);
+      similarity = averagine_similarity_ + averagine_similarity_scaling_ * (1 - averagine_similarity_);
     }
     else
     {
       // We are detecting peptide doublets or triplets or ...
       similarity = averagine_similarity_;
     }
-    
+
     for (unsigned peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
     {
       vector<double> isotope_pattern;

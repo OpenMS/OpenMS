@@ -136,7 +136,7 @@ namespace OpenMS
         // (break ties by total abundance):
         IntList charges; // sorted charge states (best first)
         orderBest_(q_it->second.abundances, charges);
-        if (charges.empty()) continue; // only identified, not quantified
+        if (charges.empty()) continue;  // only identified, not quantified
         Int best_charge = charges[0];
 
         // quantify according to the best charge state only:
@@ -322,7 +322,7 @@ namespace OpenMS
       {
         stats_.too_few_peptides++;
         if (!include_all)
-          continue; // not enough proteotypic peptides
+          continue;  // not enough proteotypic peptides
       }
 
       vector<String> peptides; // peptides selected for quantification

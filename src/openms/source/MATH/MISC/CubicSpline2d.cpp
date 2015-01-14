@@ -94,9 +94,9 @@ namespace OpenMS
     unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
     if (x_[i] > x || x_[x_.size() - 1] == x)
     {
-        --i;
+      --i;
     }
-    
+
     double xx = x - x_[i];
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
   }
@@ -117,9 +117,9 @@ namespace OpenMS
     unsigned i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin();
     if (x_[i] > x || x_[x_.size() - 1] == x)
     {
-        --i;
+      --i;
     }
-    
+
     double xx = x - x_[i];
     if (order == 1)
     {

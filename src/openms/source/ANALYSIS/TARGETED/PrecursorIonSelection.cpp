@@ -831,7 +831,7 @@ namespace OpenMS
                       }
                     }
                   } // for(UInt s_prot_id = 0; s_prot_id <...
-                  // add only if this protein doesn't exist as a hit yet
+                    // add only if this protein doesn't exist as a hit yet
                   if (!exists)
                   {
                     if (!all_prot_ids.empty())
@@ -1129,9 +1129,9 @@ namespace OpenMS
         // print info
         std::cout << "rt " << new_features[c].getRT()
                   << " mz: " <<  new_features[c].getMZ()
-          // << " delta_p_max "<< new_features[c].getMetaValue("delta_p_max")
-          //                                          << " delta_p_max_protein_acc "<< new_features[c].getMetaValue("delta_p_max_protein_acc")
-                  << " msms_score " << new_features[c].getMetaValue("msms_score");
+        // << " delta_p_max "<< new_features[c].getMetaValue("delta_p_max")
+        //                                          << " delta_p_max_protein_acc "<< new_features[c].getMetaValue("delta_p_max_protein_acc")
+        << " msms_score " << new_features[c].getMetaValue("msms_score");
         if (new_features[c].metaValueExists("penalized"))
         {
           std::cout << " penalized? " << new_features[c].getMetaValue("penalized");
@@ -1269,7 +1269,7 @@ namespace OpenMS
       for (UInt i = 0; i < hits.size(); ++i)
       {
         if (prot_id_counter_[hits[i].getAccession()].size() < min_pep_ids_)
-          continue; // if this protein has less than 3 peptides it isn't identified
+          continue;  // if this protein has less than 3 peptides it isn't identified
         // for debugging purposes
         ++prot_id_count;
         // is this already combined?

@@ -45,7 +45,7 @@ namespace OpenMS
     setName(SpectraSTSimilarityScore::getProductName());
   }
 
-  SpectraSTSimilarityScore::SpectraSTSimilarityScore(const SpectraSTSimilarityScore & source) :
+  SpectraSTSimilarityScore::SpectraSTSimilarityScore(const SpectraSTSimilarityScore& source) :
     PeakSpectrumCompareFunctor(source)
   {
   }
@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  SpectraSTSimilarityScore & SpectraSTSimilarityScore::operator=(const SpectraSTSimilarityScore & source)
+  SpectraSTSimilarityScore& SpectraSTSimilarityScore::operator=(const SpectraSTSimilarityScore& source)
   {
     if (this != &source)
     {
@@ -63,12 +63,12 @@ namespace OpenMS
     return *this;
   }
 
-  double SpectraSTSimilarityScore::operator()(const PeakSpectrum & spec) const
+  double SpectraSTSimilarityScore::operator()(const PeakSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
 
-  double SpectraSTSimilarityScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const
+  double SpectraSTSimilarityScore::operator()(const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {
     double score(0);
     BinnedSpectrum bin1(1, 1, s1);
@@ -80,31 +80,31 @@ namespace OpenMS
     float magnitude1(0);
     float magnitude2(0);
     for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin();
-          iter1 < bin1.getBins().end(); ++iter1)
+         iter1 < bin1.getBins().end(); ++iter1)
     {
-      magnitude1 += pow((double) * iter1, 2);
+      magnitude1 += pow((double) *iter1, 2);
     }
     magnitude1 = sqrt(magnitude1);
 
     //normalize bins of bin1
     for (SparseVector<float>::SparseVectorIterator iter1 = bin1.getBins().begin();
-          iter1 < bin1.getBins().end(); ++iter1)
+         iter1 < bin1.getBins().end(); ++iter1)
     {
-      *iter1 = (float) * iter1 / magnitude1;
+      *iter1 = (float) *iter1 / magnitude1;
     }
 
     for (SparseVector<float>::SparseVectorIterator iter2 = bin2.getBins().begin();
-          iter2 < bin2.getBins().end(); ++iter2)
+         iter2 < bin2.getBins().end(); ++iter2)
     {
-      magnitude2 += pow((double) * iter2, 2);
+      magnitude2 += pow((double) *iter2, 2);
     }
     magnitude2 = sqrt(magnitude2);
 
     //normalize bins of bin2
     for (SparseVector<float>::SparseVectorIterator iter2 = bin2.getBins().begin();
-          iter2 < bin2.getBins().end(); ++iter2)
+         iter2 < bin2.getBins().end(); ++iter2)
     {
-      *iter2 = (float) * iter2 / magnitude2;
+      *iter2 = (float) *iter2 / magnitude2;
     }
 
     Size shared_bins = min(bin1.getBinNumber(), bin2.getBinNumber());
@@ -120,7 +120,7 @@ namespace OpenMS
 
   }
 
-  double SpectraSTSimilarityScore::operator()(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2) const
+  double SpectraSTSimilarityScore::operator()(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2) const
   {
     double score(0);
 
@@ -136,7 +136,7 @@ namespace OpenMS
     return score;
   }
 
-  bool SpectraSTSimilarityScore::preprocess(PeakSpectrum & spec,
+  bool SpectraSTSimilarityScore::preprocess(PeakSpectrum& spec,
                                             float remove_peak_intensity_threshold,
                                             UInt cut_peaks_below,
                                             Size min_peak_number,
@@ -168,24 +168,24 @@ namespace OpenMS
     return spec.size() >= min_peak_number;
   }
 
-  BinnedSpectrum SpectraSTSimilarityScore::transform(const PeakSpectrum & spec)
+  BinnedSpectrum SpectraSTSimilarityScore::transform(const PeakSpectrum& spec)
   {
     BinnedSpectrum bin(1, 1, spec);
     float magnitude(0);
     for (SparseVector<float>::SparseVectorIterator iter = bin.getBins().begin(); iter < bin.getBins().end(); ++iter)
     {
-      magnitude += pow((double) * iter, 2);
+      magnitude += pow((double) *iter, 2);
     }
     magnitude = sqrt(magnitude);
     //normalize bins
     for (SparseVector<float>::SparseVectorIterator iter = bin.getBins().begin(); iter < bin.getBins().end(); ++iter)
     {
-      *iter = (float) * iter / magnitude;
+      *iter = (float) *iter / magnitude;
     }
     return bin;
   }
 
-  double SpectraSTSimilarityScore::dot_bias(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2, double dot_product) const
+  double SpectraSTSimilarityScore::dot_bias(const BinnedSpectrum& bin1, const BinnedSpectrum& bin2, double dot_product) const
   {
     double numerator(0);
 

@@ -82,7 +82,7 @@ protected:
     setMinFloat_("RT_distance", 0.0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -165,7 +165,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDeMeanderize tool;
   return tool.main(argc, argv);

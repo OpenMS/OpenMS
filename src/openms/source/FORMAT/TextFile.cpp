@@ -166,4 +166,5 @@ namespace OpenMS
   {
     return buffer_.end();
   }
+
 } // namespace OpenMS

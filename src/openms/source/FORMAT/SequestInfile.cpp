@@ -75,7 +75,7 @@ namespace OpenMS
     setStandardEnzymeInfo_();
   }
 
-  SequestInfile::SequestInfile(const SequestInfile & sequest_infile)
+  SequestInfile::SequestInfile(const SequestInfile& sequest_infile)
   {
     enzyme_info_ = sequest_infile.getEnzymeInfo_(),
     database_ = sequest_infile.getDatabase(),
@@ -112,7 +112,7 @@ namespace OpenMS
     PTMname_residues_mass_type_.clear();
   }
 
-  SequestInfile & SequestInfile::operator=(const SequestInfile & sequest_infile)
+  SequestInfile& SequestInfile::operator=(const SequestInfile& sequest_infile)
   {
     if (this == &sequest_infile)
       return *this;
@@ -148,7 +148,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool SequestInfile::operator==(const SequestInfile & sequest_infile) const
+  bool SequestInfile::operator==(const SequestInfile& sequest_infile) const
   {
     bool equal = true;
 
@@ -186,7 +186,7 @@ namespace OpenMS
 
   void
   SequestInfile::store(
-    const String & filename)
+    const String& filename)
   {
     ofstream ofs(filename.c_str());
     if (!ofs)
@@ -196,7 +196,7 @@ namespace OpenMS
     float dyn_n_term_mod(0.0), dyn_c_term_mod(0.0), stat_n_term_mod(0.0), stat_c_term_mod(0.0), stat_n_term_prot_mod(0.0), stat_c_term_prot_mod(0.0);
 
     map<char, float> stat_mods, dyn_mods;
-    map<char, float> * mods_p = NULL;
+    map<char, float>* mods_p = NULL;
 
     // compute the masses for the amino acids, divided into fixed and optional modifications
     float mass(0.0);
@@ -356,7 +356,7 @@ namespace OpenMS
     ofs.clear();
   }
 
-  const map<String, vector<String> > & SequestInfile::getEnzymeInfo_() const
+  const map<String, vector<String> >& SequestInfile::getEnzymeInfo_() const
   {
     return enzyme_info_;
   }
@@ -384,7 +384,7 @@ namespace OpenMS
   }
 
   void
-  SequestInfile::addEnzymeInfo(vector<String> & enzyme_info)
+  SequestInfile::addEnzymeInfo(vector<String>& enzyme_info)
   {
     // remove duplicates from the concerned amino acids
     set<char> aas;
@@ -413,62 +413,62 @@ namespace OpenMS
     }
   }
 
-  const String & SequestInfile::getDatabase() const
+  const String& SequestInfile::getDatabase() const
   {
     return database_;
   }
 
-  void SequestInfile::setDatabase(const String & database)
+  void SequestInfile::setDatabase(const String& database)
   {
     database_ = database;
   }
 
-  const String & SequestInfile::getNeutralLossesForIons() const
+  const String& SequestInfile::getNeutralLossesForIons() const
   {
     return neutral_losses_for_ions_;
   }
 
-  void SequestInfile::setNeutralLossesForIons(const String & neutral_losses_for_ions)
+  void SequestInfile::setNeutralLossesForIons(const String& neutral_losses_for_ions)
   {
     neutral_losses_for_ions_ = neutral_losses_for_ions;
   }
 
-  const String & SequestInfile::getIonSeriesWeights() const
+  const String& SequestInfile::getIonSeriesWeights() const
   {
     return ion_series_weights_;
   }
 
-  void SequestInfile::setIonSeriesWeights(const String & ion_series_weights)
+  void SequestInfile::setIonSeriesWeights(const String& ion_series_weights)
   {
     ion_series_weights_ = ion_series_weights;
   }
 
-  const String & SequestInfile::getPartialSequence() const
+  const String& SequestInfile::getPartialSequence() const
   {
     return partial_sequence_;
   }
 
-  void SequestInfile::setPartialSequence(const String & partial_sequence)
+  void SequestInfile::setPartialSequence(const String& partial_sequence)
   {
     partial_sequence_ = partial_sequence;
   }
 
-  const String & SequestInfile::getSequenceHeaderFilter() const
+  const String& SequestInfile::getSequenceHeaderFilter() const
   {
     return sequence_header_filter_;
   }
 
-  void SequestInfile::setSequenceHeaderFilter(const String & sequence_header_filter)
+  void SequestInfile::setSequenceHeaderFilter(const String& sequence_header_filter)
   {
     sequence_header_filter_ = sequence_header_filter;
   }
 
-  const String & SequestInfile::getProteinMassFilter() const
+  const String& SequestInfile::getProteinMassFilter() const
   {
     return protein_mass_filter_;
   }
 
-  void SequestInfile::setProteinMassFilter(const String & protein_mass_filter)
+  void SequestInfile::setProteinMassFilter(const String& protein_mass_filter)
   {
     protein_mass_filter_ = protein_mass_filter;
   }
@@ -689,20 +689,20 @@ namespace OpenMS
     residues_in_upper_case_ = residues_in_upper_case;
   }
 
-  const map<String, vector<String> > & SequestInfile::getModifications() const
+  const map<String, vector<String> >& SequestInfile::getModifications() const
   {
     return PTMname_residues_mass_type_;
   }
 
-  void SequestInfile::handlePTMs(const String & modification_line, const String & modifications_filename, const bool monoisotopic)
+  void SequestInfile::handlePTMs(const String& modification_line, const String& modifications_filename, const bool monoisotopic)
   {
     PTMname_residues_mass_type_.clear();
     // to store the information about modifications from the ptm xml file
     map<String, pair<String, String> > ptm_informations;
-    if (!modification_line.empty())       // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
+    if (!modification_line.empty()) // if modifications are used look whether whether composition and residues (and type and name) is given, the name (type) is used (then the modifications file is needed) or only the mass and residues (and type and name) is given
     {
       vector<String> modifications, mod_parts;
-      modification_line.split(':', modifications);       // get the single modifications
+      modification_line.split(':', modifications); // get the single modifications
 
       // to get masses from a formula
       EmpiricalFormula add_formula, substract_formula;
@@ -737,7 +737,7 @@ namespace OpenMS
             mass.erase(0, 1);
           if (mass.hasSuffix("+"))
             mass.erase(mass.length() - 1, 1);
-          if (mass.hasSuffix("-"))             // a - sign at the end will not be converted
+          if (mass.hasSuffix("-")) // a - sign at the end will not be converted
           {
             mass.erase(mass.length() - 1, 1);
             mass.insert(0, "-");
@@ -746,7 +746,7 @@ namespace OpenMS
           if (String(mass.toFloat()) == mass)
             mass_or_composition_or_name = 0;
         }
-        catch (Exception::ConversionError & /*c_e*/)
+        catch (Exception::ConversionError& /*c_e*/)
         {
           mass_or_composition_or_name = -1;
         }
@@ -754,7 +754,7 @@ namespace OpenMS
         // check whether it is a name (look it up in the corresponding file)
         if (mass_or_composition_or_name == -1)
         {
-          if (ptm_informations.empty())             // if the ptm xml file has not been read yet, read it
+          if (ptm_informations.empty()) // if the ptm xml file has not been read yet, read it
           {
             if (!File::exists(modifications_filename))
             {
@@ -771,9 +771,9 @@ namespace OpenMS
           // if the modification cannot be found
           if (ptm_informations.find(mod_parts.front()) != ptm_informations.end())
           {
-            mass = ptm_informations[mod_parts.front()].first;             // composition
-            residues = ptm_informations[mod_parts.front()].second;             // residues
-            name = mod_parts.front();             // name
+            mass = ptm_informations[mod_parts.front()].first; // composition
+            residues = ptm_informations[mod_parts.front()].second; // residues
+            name = mod_parts.front(); // name
 
             mass_or_composition_or_name = 2;
           }
@@ -805,7 +805,7 @@ namespace OpenMS
             if (mass_or_composition_or_name == -1)
               mass_or_composition_or_name = 1;
           }
-          catch (Exception::ParseError & /*pe*/)
+          catch (Exception::ParseError& /*pe*/)
           {
             PTMname_residues_mass_type_.clear();
             throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, *mod_i, "There's something wrong with this modification. Aborting!");

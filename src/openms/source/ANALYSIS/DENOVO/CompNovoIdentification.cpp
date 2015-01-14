@@ -64,12 +64,12 @@ namespace OpenMS
   {
   }
 
-  CompNovoIdentification::CompNovoIdentification(const CompNovoIdentification & rhs) :
+  CompNovoIdentification::CompNovoIdentification(const CompNovoIdentification& rhs) :
     CompNovoIdentificationBase(rhs)
   {
   }
 
-  CompNovoIdentification & CompNovoIdentification::operator=(const CompNovoIdentification & rhs)
+  CompNovoIdentification& CompNovoIdentification::operator=(const CompNovoIdentification& rhs)
   {
     if (this != &rhs)
     {
@@ -82,7 +82,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIdentification::getIdentifications(vector<PeptideIdentification> & pep_ids, const PeakMap & exp)
+  void CompNovoIdentification::getIdentifications(vector<PeptideIdentification>& pep_ids, const PeakMap& exp)
   {
     Size count(1);
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
@@ -111,8 +111,8 @@ namespace OpenMS
         double etd_rt = (it + 1)->getRT();
         double etd_mz = (it + 1)->getPrecursors().begin()->getMZ();
 
-        if (fabs(etd_rt - cid_rt) < 10 &&         // RT distance is not too large
-            fabs(etd_mz - cid_mz) < 0.01)             // same precursor used
+        if (fabs(etd_rt - cid_rt) < 10 && // RT distance is not too large
+            fabs(etd_mz - cid_mz) < 0.01) // same precursor used
         {
           PeakSpectrum ETD_spec(*(++it));
 
@@ -128,7 +128,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentification::getIdentification(PeptideIdentification & id, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec)
+  void CompNovoIdentification::getIdentification(PeptideIdentification& id, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec)
   {
     PeakSpectrum new_CID_spec(CID_spec), new_ETD_spec(ETD_spec);
     windowMower_(new_CID_spec, 0.3, 1);
@@ -476,7 +476,7 @@ namespace OpenMS
       hit.setScore(cid_score + etd_score);
 
       hit.setSequence(getModifiedAASequence_(*it));
-      hit.setCharge((Int)charge);   //TODO unify charge interface: int or size?
+      hit.setCharge((Int)charge); //TODO unify charge interface: int or size?
       hits.push_back(hit);
       //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << etd_score << " " << cid_score + etd_score << endl;
     }
@@ -565,12 +565,12 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentification::getETDSpectrum_(PeakSpectrum & spec, const String & sequence, Size /* charge */, double prefix, double suffix)
+  void CompNovoIdentification::getETDSpectrum_(PeakSpectrum& spec, const String& sequence, Size /* charge */, double prefix, double suffix)
   {
     Peak1D p;
     p.setIntensity(1.0f);
 
-    double c_pos(17.0 + prefix);     // TODO high mass accuracy!!
+    double c_pos(17.0 + prefix); // TODO high mass accuracy!!
     double z_pos(3.0 + suffix);
     //double b_pos(0.0 + prefix);
     //double y_pos(18.0 + suffix);
@@ -647,7 +647,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentification::reducePermuts_(set<String> & permuts, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, double prefix, double suffix)
+  void CompNovoIdentification::reducePermuts_(set<String>& permuts, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec, double prefix, double suffix)
   {
     if (permuts.size() < max_subscore_number_)
     {
@@ -730,7 +730,7 @@ namespace OpenMS
   }
 
 // divide and conquer algorithm of the sequencing
-  void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, Map<double, CompNovoIonScoring::IonScore> & ion_scores)
+  void CompNovoIdentification::getDecompositionsDAC_(set<String>& sequences, Size left, Size right, double peptide_weight, const PeakSpectrum& CID_spec, const PeakSpectrum& ETD_spec, Map<double, CompNovoIonScoring::IonScore>& ion_scores)
   {
     double offset_suffix(CID_spec[left].getPosition()[0] - 19.0);
     double offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
@@ -968,7 +968,7 @@ namespace OpenMS
 
   }
 
-  double CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge)
+  double CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge)
   {
     CompNovoIonScoring ion_scoring;
     double precursor_mass_tolerance((double)param_.getValue("precursor_mass_tolerance"));
@@ -1012,7 +1012,7 @@ namespace OpenMS
         Size i = 0;
         for (vector<double>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3, ++i)
         {
-          if (best_correlation == 0 || *it3 > (best_correlation * 1.25))           // must be really better!
+          if (best_correlation == 0 || *it3 > (best_correlation * 1.25)) // must be really better!
           {
             best_correlation = *it3;
             best_pos = i;

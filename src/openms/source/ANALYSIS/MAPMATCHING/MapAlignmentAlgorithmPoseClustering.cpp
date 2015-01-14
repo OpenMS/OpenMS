@@ -74,14 +74,14 @@ namespace OpenMS
   {
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap & map, TransformationDescription & trafo)
+  void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap& map, TransformationDescription& trafo)
   {
     ConsensusMap map_scene;
     MapConversion::convert(1, map, map_scene, max_num_peaks_considered_);
     align(map_scene, trafo);
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align(const MSExperiment<> & map, TransformationDescription & trafo)
+  void MapAlignmentAlgorithmPoseClustering::align(const MSExperiment<>& map, TransformationDescription& trafo)
   {
     ConsensusMap map_scene;
     MSExperiment<> map2(map);
@@ -89,11 +89,11 @@ namespace OpenMS
     align(map_scene, trafo);
   }
 
-  void MapAlignmentAlgorithmPoseClustering::align(const ConsensusMap & map, TransformationDescription & trafo)
+  void MapAlignmentAlgorithmPoseClustering::align(const ConsensusMap& map, TransformationDescription& trafo)
   {
     // TODO: move this to updateMembers_? (if consensusMap prevails)
     // TODO: why does superimposer work on consensus map???
-    const ConsensusMap & map_model = reference_;
+    const ConsensusMap& map_model = reference_;
     ConsensusMap map_scene = map;
 
     // run superimposer to find the global transformation
@@ -122,12 +122,12 @@ namespace OpenMS
     pairfinder_.run(input, result);
 
     // calculate the local transformation
-    si_trafo.invert();         // to undo the transformation applied above
+    si_trafo.invert(); // to undo the transformation applied above
     TransformationDescription::DataPoints data;
     for (ConsensusMap::Iterator it = result.begin(); it != result.end();
          ++it)
     {
-      if (it->size() == 2)           // two matching features
+      if (it->size() == 2) // two matching features
       {
         ConsensusFeature::iterator feat_it = it->begin();
         double y = feat_it->getRT();

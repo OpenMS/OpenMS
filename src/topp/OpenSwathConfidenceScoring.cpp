@@ -36,7 +36,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 
-#include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h> 
+#include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -129,27 +129,27 @@ public:
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
     registerInputFile_("lib", "<file>", "", "Assay library");
     setValidFormats_("lib", ListUtils::create<String>("traML"));
-    registerOutputFile_("out", "<file>", "", 
+    registerOutputFile_("out", "<file>", "",
                         "Output file (results with confidence scores)");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("trafo", "<file>", "", "Retention time transformation",
                        false);
     setValidFormats_("trafo", ListUtils::create<String>("trafoXML"));
     registerIntOption_("decoys", "<number>", 1000, "Number of decoy assays to "
-                       "select from the library for every true assay (0 for "
-                       "\"all\")", false);
+                                                   "select from the library for every true assay (0 for "
+                                                   "\"all\")", false);
     setMinInt_("decoys", 0);
     registerIntOption_("transitions", "<number>", 6, "Number of transitions "
-                       "per feature to consider (highest intensities first; "
-                       "0 for \"all\")", false);
+                                                     "per feature to consider (highest intensities first; "
+                                                     "0 for \"all\")", false);
     setMinInt_("transitions", 0);
 
     registerTOPPSubsection_("GLM",
                             "Parameters of the binomial GLM");
-    registerDoubleOption_("GLM:intercept", "<value>", 3.87333466, 
+    registerDoubleOption_("GLM:intercept", "<value>", 3.87333466,
                           "Intercept term", false, true);
     registerDoubleOption_("GLM:delta_rt", "<value>", -0.02898629, "Coefficient "
-                          "of retention time difference", false, true);
+                                                                  "of retention time difference", false, true);
     registerDoubleOption_("GLM:dist_int", "<value>", -7.75880768,
                           "Coefficient of intensity distance", false, true);
   }
@@ -198,7 +198,7 @@ public:
     scoring.scoreMap(features);
 
     LOG_DEBUG << "Storing results..." << endl;
-    addDataProcessing_(features, 
+    addDataProcessing_(features,
                        getProcessingInfo_(DataProcessing::DATA_PROCESSING));
     FeatureXMLFile().store(out, features);
 

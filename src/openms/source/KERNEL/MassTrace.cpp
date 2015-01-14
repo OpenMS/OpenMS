@@ -251,7 +251,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace appears to be empty! Aborting...", String(trace_peaks_.size()));
     }
     fwhm_start_idx_ = 0;
-    fwhm_end_idx_ = trace_peaks_.size()-1;
+    fwhm_end_idx_ = trace_peaks_.size() - 1;
     fwhm_ = std::fabs(trace_peaks_[fwhm_end_idx_].getRT() - trace_peaks_[fwhm_start_idx_].getRT());
   }
 

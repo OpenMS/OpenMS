@@ -49,7 +49,7 @@
 
 namespace OpenMS
 {
-  TOPPASIOMappingDialog::TOPPASIOMappingDialog(TOPPASEdge * parent)
+  TOPPASIOMappingDialog::TOPPASIOMappingDialog(TOPPASEdge* parent)
   {
     edge_ = parent;
     setupUi(this);
@@ -62,7 +62,7 @@ namespace OpenMS
   int TOPPASIOMappingDialog::firstExec()
   {
     // check if only 1 parameter, if yes: select it
-    if (source_combo->count() == 2)     // <select> + 1 parameter
+    if (source_combo->count() == 2) // <select> + 1 parameter
     {
       source_combo->setCurrentIndex(1);
     }
@@ -88,15 +88,15 @@ namespace OpenMS
   {
     target_input_param_indices_.clear();
 
-    TOPPASVertex * source = edge_->getSourceVertex();
-    TOPPASVertex * target = edge_->getTargetVertex();
+    TOPPASVertex* source = edge_->getSourceVertex();
+    TOPPASVertex* target = edge_->getTargetVertex();
 
-    TOPPASToolVertex * source_tool = qobject_cast<TOPPASToolVertex *>(source);
-    TOPPASToolVertex * target_tool = qobject_cast<TOPPASToolVertex *>(target);
-    TOPPASMergerVertex * source_merger = qobject_cast<TOPPASMergerVertex *>(source);
-    TOPPASMergerVertex * target_merger = qobject_cast<TOPPASMergerVertex *>(target);
-    TOPPASInputFileListVertex * source_list = qobject_cast<TOPPASInputFileListVertex *>(source);
-    TOPPASOutputFileListVertex * target_list = qobject_cast<TOPPASOutputFileListVertex *>(target);
+    TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
+    TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
+    TOPPASMergerVertex* source_merger = qobject_cast<TOPPASMergerVertex*>(source);
+    TOPPASMergerVertex* target_merger = qobject_cast<TOPPASMergerVertex*>(target);
+    TOPPASInputFileListVertex* source_list = qobject_cast<TOPPASInputFileListVertex*>(source);
+    TOPPASOutputFileListVertex* target_list = qobject_cast<TOPPASOutputFileListVertex*>(target);
 
 
     if (source_tool)
@@ -131,7 +131,7 @@ namespace OpenMS
 
         source_combo->addItem(item_name.toQString());
       }
-      if (source_combo->count() == 2)       // only 1 parameter
+      if (source_combo->count() == 2) // only 1 parameter
       {
         source_combo->setCurrentIndex(1);
       }
@@ -205,7 +205,7 @@ namespace OpenMS
         target_combo->addItem(item_name.toQString());
         target_input_param_indices_.push_back(param_counter);
       }
-      if (target_combo->count() == 2)       // only 1 parameter
+      if (target_combo->count() == 2) // only 1 parameter
       {
         target_combo->setCurrentIndex(1);
       }
@@ -242,13 +242,13 @@ namespace OpenMS
 
   void TOPPASIOMappingDialog::checkValidity_()
   {
-    const QString & source_text = source_combo->currentText();
-    const QString & target_text = target_combo->currentText();
+    const QString& source_text = source_combo->currentText();
+    const QString& target_text = target_combo->currentText();
 
-    TOPPASVertex * source = edge_->getSourceVertex();
-    TOPPASVertex * target = edge_->getTargetVertex();
-    TOPPASToolVertex * source_tool = qobject_cast<TOPPASToolVertex *>(source);
-    TOPPASToolVertex * target_tool = qobject_cast<TOPPASToolVertex *>(target);
+    TOPPASVertex* source = edge_->getSourceVertex();
+    TOPPASVertex* target = edge_->getTargetVertex();
+    TOPPASToolVertex* source_tool = qobject_cast<TOPPASToolVertex*>(source);
+    TOPPASToolVertex* target_tool = qobject_cast<TOPPASToolVertex*>(target);
 
     if (source_text == "<select>")
     {

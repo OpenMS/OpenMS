@@ -58,7 +58,7 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fmt, Int number_of_phospho_sites)
+  PeptideHit AScore::compute(PeptideHit& hit, RichPeakSpectrum& real_spectrum, double fmt, Int number_of_phospho_sites)
   {
     String without_phospho_str(hit.getSequence().toString());
     size_t found = without_phospho_str.find("(Phospho)");
@@ -75,7 +75,7 @@ namespace OpenMS
       return PeptideHit(-1, 0, hit.getCharge(), without_phospho);
     }
     TheoreticalSpectrumGenerator spectrum_generator;
-    vector<RichPeakSpectrum> th_spectra;     //typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
+    vector<RichPeakSpectrum> th_spectra; //typedef MSSpectrum<RichPeak1D> RichPeakSpectrum;
     ///produce theoretical spectra
     if (number_of_STY < number_of_phospho_sites)
     {
@@ -144,23 +144,23 @@ namespace OpenMS
     ///prepare peak depth for all windows in the actual spectrum - END
     UInt N;
     vector<vector<double> >::iterator side_scores = peptide_site_scores.begin();
-    for (vector<RichPeakSpectrum>::iterator it = th_spectra.begin(); it < th_spectra.end(); ++it, ++side_scores)    //each theoretical spectrum
+    for (vector<RichPeakSpectrum>::iterator it = th_spectra.begin(); it < th_spectra.end(); ++it, ++side_scores) //each theoretical spectrum
     {
-      N = UInt(it->size());       //real or theo!!
+      N = UInt(it->size()); //real or theo!!
       UInt i = 1;
       side_scores->resize(10);
       while (i <= 10)
       {
         //Auslagern
         UInt n = 0;
-        for (Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth)         //each 100 m/z window
+        for (Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth) //each 100 m/z window
         {
           n += numberOfMatchedIons_(*it, windows_with_all_peak_depths[depth], i, fmt);
         }
         //auslagern_end
         double p = (double)i / 100;
         double cum_socre = computeCumulativeScore(N, n, p);
-        (*side_scores)[i - 1] = (-10 * log10(cum_socre));    //computeCumulativeScore(N,n,p);
+        (*side_scores)[i - 1] = (-10 * log10(cum_socre)); //computeCumulativeScore(N,n,p);
         ++i;
       }
     }
@@ -196,11 +196,11 @@ namespace OpenMS
     {
       vector<RichPeakSpectrum> site_determining_ions;
       compute_site_determining_ions(th_spectra, *hp, hit.getCharge(), site_determining_ions);
-      N = UInt(site_determining_ions[0].size());       // all possibilities have the same number
+      N = UInt(site_determining_ions[0].size()); // all possibilities have the same number
       double p = (double)hp->peak_depth / 100;
       Int n = 0;
       //Auslagern
-      for (Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth)       //each 100 m/z window
+      for (Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth) //each 100 m/z window
       {
         n += numberOfMatchedIons_(site_determining_ions[0], windows_with_all_peak_depths[depth], (Size)p, fmt);
       }
@@ -208,7 +208,7 @@ namespace OpenMS
       double P_first = computeCumulativeScore(N, n, p);
       Int n2 = 0;
       //Auslagern
-      for (Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth)       //each 100 m/z window
+      for (Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth) //each 100 m/z window
       {
         n2 += numberOfMatchedIons_(site_determining_ions[1], windows_with_all_peak_depths[depth], (Size)p, fmt);
       }
@@ -259,7 +259,7 @@ namespace OpenMS
     return score;
   }
 
-  void AScore::computeHighestPeptides(std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, vector<vector<Size> > & permutations)
+  void AScore::computeHighestPeptides(std::vector<std::vector<double> >& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, vector<vector<Size> >& permutations)
   {
     sites.clear();
     sites.resize(permutations[0].size());
@@ -269,12 +269,12 @@ namespace OpenMS
       double current_score = peptideScore_(peptide_site_scores[it]);
       ranking.insert(pair<double, Size>(current_score, it));
     }
-    vector<Size> & hps = permutations[ranking.rbegin()->second /*it->second*/];       //highest peptide score
+    vector<Size>& hps = permutations[ranking.rbegin()->second /*it->second*/]; //highest peptide score
     for (Size i = 0; i < hps.size(); ++i)
     {
       multimap<double, Size>::reverse_iterator rev = ranking.rbegin();
       sites[i].first = hps[i];
-      sites[i].seq_1 = rev->second;          //it->second;
+      sites[i].seq_1 = rev->second; //it->second;
       bool peptide_not_found = true;
       do
       {
@@ -333,7 +333,7 @@ namespace OpenMS
     }
   }
 
-  void AScore::compute_site_determining_ions(vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, vector<RichPeakSpectrum> & site_determining_ions)
+  void AScore::compute_site_determining_ions(vector<RichPeakSpectrum>& th_spectra, ProbablePhosphoSites& candidates, Int charge, vector<RichPeakSpectrum>& site_determining_ions)
   {
     site_determining_ions.clear();
     site_determining_ions.resize(2);
@@ -425,7 +425,7 @@ namespace OpenMS
     site_determining_ions[1].sortByPosition();
   }
 
-  Int AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fmt)
+  Int AScore::numberOfMatchedIons_(const RichPeakSpectrum& th, const RichPeakSpectrum& windows, Size depth, double fmt)
   {
     Int n = 0;
     for (Size i = 0; i < windows.size() && i <= depth; ++i)
@@ -437,14 +437,14 @@ namespace OpenMS
     return n;
   }
 
-  double AScore::peptideScore_(std::vector<double> & scores)
+  double AScore::peptideScore_(std::vector<double>& scores)
   {
     return (scores[0] * 0.5
             + scores[1] * 0.75
-            + scores[2]           //*1
-            + scores[3]           //*1
-            + scores[4]           //*1
-            + scores[5]           //*1
+            + scores[2] //*1
+            + scores[3] //*1
+            + scores[4] //*1
+            + scores[5] //*1
             + scores[6] * 0.75
             + scores[7] * 0.5
             + scores[8] * 0.25
@@ -452,7 +452,7 @@ namespace OpenMS
            / 10;
   }
 
-  vector<Size> AScore::computeTupel_(AASequence & without_phospho)
+  vector<Size> AScore::computeTupel_(AASequence& without_phospho)
   {
     vector<Size> tupel;
     String unmodified = without_phospho.toUnmodifiedString();

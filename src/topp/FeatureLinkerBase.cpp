@@ -69,7 +69,7 @@ public:
   }
 
 protected:
-  void registerOptionsAndFlags_()   // only for "unlabeled" algorithms!
+  void registerOptionsAndFlags_() // only for "unlabeled" algorithms!
   {
     registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "input files separated by blanks", true);
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
@@ -79,7 +79,7 @@ protected:
     registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
   }
 
-  ExitCodes common_main_(FeatureGroupingAlgorithm * algorithm,
+  ExitCodes common_main_(FeatureGroupingAlgorithm* algorithm,
                          bool labeled = false)
   {
     //-------------------------------------------------------------
@@ -118,7 +118,7 @@ protected:
     ConsensusMap out_map;
     if (file_type == FileTypes::FEATUREXML)
     {
-      vector<FeatureMap > maps(ins.size());
+      vector<FeatureMap> maps(ins.size());
       FeatureXMLFile f;
       for (Size i = 0; i < ins.size(); ++i)
       {

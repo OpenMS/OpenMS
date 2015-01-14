@@ -48,7 +48,7 @@ namespace OpenMS
   {
   }
 
-  ModificationDefinition::ModificationDefinition(const ModificationDefinition & rhs) :
+  ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) :
     term_spec_(rhs.term_spec_),
     mod_(rhs.mod_),
     fixed_modification_(rhs.fixed_modification_),
@@ -56,7 +56,7 @@ namespace OpenMS
   {
   }
 
-  ModificationDefinition::ModificationDefinition(const String & mod) :
+  ModificationDefinition::ModificationDefinition(const String& mod) :
     term_spec_(ResidueModification::ANYWHERE),
     mod_(0),
     fixed_modification_(true),
@@ -65,7 +65,7 @@ namespace OpenMS
     setModification(mod);
   }
 
-  ModificationDefinition & ModificationDefinition::operator=(const ModificationDefinition & rhs)
+  ModificationDefinition& ModificationDefinition::operator=(const ModificationDefinition& rhs)
   {
     if (this != &rhs)
     {
@@ -77,7 +77,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool ModificationDefinition::operator==(const ModificationDefinition & rhs) const
+  bool ModificationDefinition::operator==(const ModificationDefinition& rhs) const
   {
     return term_spec_ == rhs.term_spec_ &&
            mod_ == rhs.mod_ &&
@@ -85,7 +85,7 @@ namespace OpenMS
            max_occurences_ == rhs.max_occurences_;
   }
 
-  bool ModificationDefinition::operator!=(const ModificationDefinition & rhs) const
+  bool ModificationDefinition::operator!=(const ModificationDefinition& rhs) const
   {
     return !(*this == rhs);
   }
@@ -94,7 +94,7 @@ namespace OpenMS
   {
   }
 
-  bool ModificationDefinition::operator<(const ModificationDefinition & rhs) const
+  bool ModificationDefinition::operator<(const ModificationDefinition& rhs) const
   {
     return this->getModification() < rhs.getModification();
   }
@@ -119,7 +119,7 @@ namespace OpenMS
     return fixed_modification_;
   }
 
-  void ModificationDefinition::setModification(const String & modification)
+  void ModificationDefinition::setModification(const String& modification)
   {
     //cerr << "setModification(" << modification << ")" << endl;
     mod_ = &ModificationsDB::getInstance()->getModification(modification);

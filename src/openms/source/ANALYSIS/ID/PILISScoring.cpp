@@ -53,12 +53,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PILISScoring::PILISScoring(const PILISScoring & rhs) :
+  PILISScoring::PILISScoring(const PILISScoring& rhs) :
     DefaultParamHandler(rhs)
   {
   }
 
-  PILISScoring & PILISScoring::operator=(const PILISScoring & rhs)
+  PILISScoring& PILISScoring::operator=(const PILISScoring& rhs)
   {
     if (this != &rhs)
     {
@@ -71,7 +71,7 @@ namespace OpenMS
   {
   }
 
-  void PILISScoring::getScore(PeptideIdentification & id)
+  void PILISScoring::getScore(PeptideIdentification& id)
   {
     if (id.getHits().empty())
     {
@@ -106,7 +106,7 @@ namespace OpenMS
     }
   }
 
-  void PILISScoring::getScores(vector<PeptideIdentification> & ids)
+  void PILISScoring::getScores(vector<PeptideIdentification>& ids)
   {
     // get all but the first scores
     vector<double> global_scores;
@@ -137,7 +137,7 @@ namespace OpenMS
     return;
   }
 
-  void PILISScoring::getScore_(PeptideIdentification & id, double global_slope, double global_intercept)
+  void PILISScoring::getScore_(PeptideIdentification& id, double global_slope, double global_intercept)
   {
     if (id.getHits().empty())
     {
@@ -215,7 +215,7 @@ namespace OpenMS
     }
   }
 
-  void PILISScoring::getFitParameter_(double & slope, double & intercept, const vector<double> & scores, double threshold)
+  void PILISScoring::getFitParameter_(double& slope, double& intercept, const vector<double>& scores, double threshold)
   {
     slope = 0;
     intercept = 0;
@@ -262,7 +262,7 @@ namespace OpenMS
     }
   }
 
-  void PILISScoring::getSurvivalFunction_(Map<UInt, double> & points, vector<DPosition<2> > & survival_function)
+  void PILISScoring::getSurvivalFunction_(Map<UInt, double>& points, vector<DPosition<2> >& survival_function)
   {
     // normalize the score density
     double sum(0);

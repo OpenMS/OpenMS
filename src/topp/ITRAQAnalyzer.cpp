@@ -137,16 +137,16 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     Param tmp;
-    tmp.insert("Extraction:", ItraqChannelExtractor(ItraqQuantifier::FOURPLEX).getParameters());    // type is irrelevant - ini is the same
-    tmp.insert("Quantification:", ItraqQuantifier(ItraqQuantifier::FOURPLEX).getParameters());    // type is irrelevant - ini is the same
+    tmp.insert("Extraction:", ItraqChannelExtractor(ItraqQuantifier::FOURPLEX).getParameters()); // type is irrelevant - ini is the same
+    tmp.insert("Quantification:", ItraqQuantifier(ItraqQuantifier::FOURPLEX).getParameters()); // type is irrelevant - ini is the same
     tmp.setValue("MetaInformation:Program", "OpenMS::ITRAQAnalyzer", "", ListUtils::create<String>("advanced"));
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -233,12 +233,12 @@ protected:
           labels.push_back(one_label);
         }
       }
-      msq.registerExperiment(exp, labels);       //add assays
+      msq.registerExperiment(exp, labels); //add assays
       msq.assignUIDs();
       MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS2LABEL;
-      msq.setAnalysisSummaryQuantType(quant_type);      //add analysis_summary_
+      msq.setAnalysisSummaryQuantType(quant_type); //add analysis_summary_
 
-      msq.addConsensusMap(consensus_map_quant);      //add ITRAQAnalyzer result
+      msq.addConsensusMap(consensus_map_quant); //add ITRAQAnalyzer result
       //~ add AuditCollection - no such concept in TOPPTools yet
       MzQuantMLFile file;
       file.store(out_mzq, msq);
@@ -258,7 +258,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPITRAQAnalyzer tool;
   return tool.main(argc, argv);

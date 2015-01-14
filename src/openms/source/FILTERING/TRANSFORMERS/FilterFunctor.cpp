@@ -51,12 +51,12 @@ namespace OpenMS
   {
   }
 
-  FilterFunctor::FilterFunctor(const FilterFunctor & source) :
+  FilterFunctor::FilterFunctor(const FilterFunctor& source) :
     DefaultParamHandler(source)
   {
   }
 
-  FilterFunctor & FilterFunctor::operator=(const FilterFunctor & source)
+  FilterFunctor& FilterFunctor::operator=(const FilterFunctor& source)
   {
     if (this != &source)
     {

@@ -70,7 +70,7 @@ namespace OpenMS
   }
 
 // Constructor. Takes centroide values and deisotopes them
-  Deisotoper::Deisotoper(CentroidData & pCentroidData)  // Data objects containing centroid values
+  Deisotoper::Deisotoper(CentroidData& pCentroidData) // Data objects containing centroid values
   {
     go(pCentroidData);
   }
@@ -84,8 +84,8 @@ namespace OpenMS
 // Operators
 
 // Writes data to out stream using the << operator
-  ostream & operator<<(ostream & pOut, // output stream
-                       Deisotoper & pDeisotoper) //
+  ostream& operator<<(ostream& pOut, // output stream
+                      Deisotoper& pDeisotoper)   //
   {
     list<DeconvPeak> p;
     list<DeconvPeak>::iterator pi;
@@ -96,7 +96,7 @@ namespace OpenMS
     {
       if (pDeisotoper.getShortReportFlag())
       {
-        pOut << *((CentroidPeak *) &(*pi)) << endl;
+        pOut << *((CentroidPeak*) &(*pi)) << endl;
       }
       else
       {
@@ -108,7 +108,7 @@ namespace OpenMS
   }
 
 // Takes centroide values and deisotopes them
-  void Deisotoper::go(CentroidData & pCentroidData)  // Data objects containing centroid values
+  void Deisotoper::go(CentroidData& pCentroidData) // Data objects containing centroid values
   {
     int cnt, charge;
     double alpha;
@@ -123,7 +123,7 @@ namespace OpenMS
 
     if (SuperHirnParameters::instance()->getMinIntensity() < SuperHirnParameters::instance()->getIntensityFloor())
     {
-      pCentroidData.setNoise(30.0);       // set noise level at 30 prcentile
+      pCentroidData.setNoise(30.0); // set noise level at 30 prcentile
       fTheta = pCentroidData.getNoise();
     }
     else
@@ -155,7 +155,7 @@ namespace OpenMS
           for (charge = SuperHirnParameters::instance()->getMaxFeatureChrg(); charge >= SuperHirnParameters::instance()->getMinFeatureChrg(); --charge)
           {
 
-            matched = IsotopicDist::getMatchingPeaks(pi, end, charge, alpha, fTheta, matchedPeaks);             // get peak that match isotopic pattern of charge
+            matched = IsotopicDist::getMatchingPeaks(pi, end, charge, alpha, fTheta, matchedPeaks); // get peak that match isotopic pattern of charge
             if (matched && pi->getIntensity() >= fTheta) // subtract isotopic match from peaks if match is significant
             {
               /*
@@ -213,7 +213,7 @@ namespace OpenMS
 
         if (most_intense->getIntensity() < pi->getIntensity())
         {
-          most_intense = pi;           // store most intense peak
+          most_intense = pi; // store most intense peak
         }
       }
       end = pi;
@@ -224,7 +224,7 @@ namespace OpenMS
         {
 // cout << "remove: " << pi->getMass() << " " << pi->getIntensity() << endl;
           pi = fDeconvPeaks.erase(pi);
-          if (pi != fDeconvPeaks.begin())           // FLO: Fix windows error (crash "could not decrement")
+          if (pi != fDeconvPeaks.begin()) // FLO: Fix windows error (crash "could not decrement")
             --pi;
         }
       }

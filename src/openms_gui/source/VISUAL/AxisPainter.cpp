@@ -41,7 +41,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  void AxisPainter::paint(QPainter * painter, QPaintEvent *, const double & min, const double & max, const GridVector & grid,
+  void AxisPainter::paint(QPainter* painter, QPaintEvent*, const double& min, const double& max, const GridVector& grid,
                           const Int width, const Int height, const AxisPainter::Alignment alignment, const UInt margin,
                           bool show_legend, String legend, bool shorten_number,
                           bool is_log, bool is_inverse_orientation)
@@ -289,7 +289,7 @@ namespace OpenMS
     }
   }
 
-  void AxisPainter::getShortenedNumber_(QString & short_num, double number)
+  void AxisPainter::getShortenedNumber_(QString& short_num, double number)
   {
     if (number < 1000.0)
     {

@@ -46,7 +46,7 @@ using std::endl;
 namespace OpenMS
 {
 
-  Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget * parent, Spectrum3DCanvas & canvas_3d) :
+  Spectrum3DOpenGLCanvas::Spectrum3DOpenGLCanvas(QWidget* parent, Spectrum3DCanvas& canvas_3d) :
     QGLWidget(parent),
     canvas_3d_(canvas_3d)
   {
@@ -442,7 +442,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); ++i)
     {
-      const LayerData & layer = canvas_3d_.getLayer(i);
+      const LayerData& layer = canvas_3d_.getLayer(i);
       if (layer.visible)
       {
         if ((Int)layer.param.getValue("dot:shade_mode"))
@@ -530,7 +530,7 @@ namespace OpenMS
 
     for (Size i = 0; i < canvas_3d_.getLayerCount(); i++)
     {
-      const LayerData & layer = canvas_3d_.getLayer(i);
+      const LayerData& layer = canvas_3d_.getLayer(i);
       if (layer.visible)
       {
         recalculateDotGradient_(i);
@@ -871,7 +871,7 @@ namespace OpenMS
     return scaledintensity;
   }
 
-  void Spectrum3DOpenGLCanvas::normalizeAngle(int * angle)
+  void Spectrum3DOpenGLCanvas::normalizeAngle(int* angle)
   {
     while (*angle < 0)
     {
@@ -909,12 +909,12 @@ namespace OpenMS
     }
   }
 
-  void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent * e)
+  void Spectrum3DOpenGLCanvas::focusOutEvent(QFocusEvent* e)
   {
     canvas_3d_.focusOutEvent(e);
   }
 
-  void Spectrum3DOpenGLCanvas::mousePressEvent(QMouseEvent * e)
+  void Spectrum3DOpenGLCanvas::mousePressEvent(QMouseEvent* e)
   {
     mouse_move_begin_ = e->pos();
     mouse_move_end_ = e->pos();
@@ -928,7 +928,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent * e)
+  void Spectrum3DOpenGLCanvas::mouseMoveEvent(QMouseEvent* e)
   {
     if (e->buttons() & Qt::LeftButton)
     {
@@ -955,7 +955,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum3DOpenGLCanvas::mouseReleaseEvent(QMouseEvent * e)
+  void Spectrum3DOpenGLCanvas::mouseReleaseEvent(QMouseEvent* e)
   {
     if (canvas_3d_.action_mode_ == SpectrumCanvas::AM_ZOOM && e->button() == Qt::LeftButton)
     {

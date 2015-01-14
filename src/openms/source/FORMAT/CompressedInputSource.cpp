@@ -46,7 +46,7 @@ using namespace xercesc;
 namespace OpenMS
 {
 
-  CompressedInputSource::CompressedInputSource(const String & file_path, const String & header, MemoryManager * const manager) :
+  CompressedInputSource::CompressedInputSource(const String& file_path, const String& header, MemoryManager* const manager) :
     xercesc::InputSource(manager),
     head_(header)
   {
@@ -60,17 +60,17 @@ namespace OpenMS
     //  it as is.
     //
     Internal::StringManager strman;
-    XMLCh * file = strman.convert(file_path.c_str());
+    XMLCh* file = strman.convert(file_path.c_str());
     if (xercesc::XMLPlatformUtils::isRelative(file, manager))
     {
-      XMLCh * curDir = xercesc::XMLPlatformUtils::getCurrentDirectory(manager);
+      XMLCh* curDir = xercesc::XMLPlatformUtils::getCurrentDirectory(manager);
 
       XMLSize_t curDirLen = XMLString::stringLen(curDir);
       XMLSize_t filePathLen = XMLString::stringLen(file);
-      XMLCh * fullDir = (XMLCh *) manager->allocate
-                        (
+      XMLCh* fullDir = (XMLCh*) manager->allocate
+                       (
         (curDirLen + filePathLen + 2) * sizeof(XMLCh)
-                        ); //new XMLCh [ curDirLen + filePathLen + 2];
+                       );  //new XMLCh [ curDirLen + filePathLen + 2];
 
       XMLString::copyString(fullDir, curDir);
       fullDir[curDirLen] = chForwardSlash;
@@ -81,19 +81,19 @@ namespace OpenMS
 
       setSystemId(fullDir);
 
-      manager->deallocate(curDir);  //delete [] curDir;
-      manager->deallocate(fullDir);  //delete [] fullDir;
+      manager->deallocate(curDir); //delete [] curDir;
+      manager->deallocate(fullDir); //delete [] fullDir;
     }
     else
     {
-      XMLCh * tmpBuf = XMLString::replicate(file, manager);
+      XMLCh* tmpBuf = XMLString::replicate(file, manager);
       XMLPlatformUtils::removeDotSlash(tmpBuf, manager);
       setSystemId(tmpBuf);
-      manager->deallocate(tmpBuf);  //delete [] tmpBuf;
+      manager->deallocate(tmpBuf); //delete [] tmpBuf;
     }
   }
 
-  CompressedInputSource::CompressedInputSource(const XMLCh * const file, const String & header, MemoryManager * const manager) :
+  CompressedInputSource::CompressedInputSource(const XMLCh* const file, const String& header, MemoryManager* const manager) :
     xercesc::InputSource(manager),
     head_(header)
   {
@@ -108,14 +108,14 @@ namespace OpenMS
     //
     if (xercesc::XMLPlatformUtils::isRelative(file, manager))
     {
-      XMLCh * curDir = xercesc::XMLPlatformUtils::getCurrentDirectory(manager);
+      XMLCh* curDir = xercesc::XMLPlatformUtils::getCurrentDirectory(manager);
 
       XMLSize_t curDirLen = XMLString::stringLen(curDir);
       XMLSize_t filePathLen = XMLString::stringLen(file);
-      XMLCh * fullDir = (XMLCh *) manager->allocate
-                        (
+      XMLCh* fullDir = (XMLCh*) manager->allocate
+                       (
         (curDirLen + filePathLen + 2) * sizeof(XMLCh)
-                        ); //new XMLCh [ curDirLen + filePathLen + 2];
+                       );  //new XMLCh [ curDirLen + filePathLen + 2];
 
       XMLString::copyString(fullDir, curDir);
       fullDir[curDirLen] = chForwardSlash;
@@ -126,15 +126,15 @@ namespace OpenMS
 
       setSystemId(fullDir);
 
-      manager->deallocate(curDir);  //delete [] curDir;
-      manager->deallocate(fullDir);  //delete [] fullDir;
+      manager->deallocate(curDir); //delete [] curDir;
+      manager->deallocate(fullDir); //delete [] fullDir;
     }
     else
     {
-      XMLCh * tmpBuf = XMLString::replicate(file, manager);
+      XMLCh* tmpBuf = XMLString::replicate(file, manager);
       XMLPlatformUtils::removeDotSlash(tmpBuf, manager);
       setSystemId(tmpBuf);
-      manager->deallocate(tmpBuf);  //delete [] tmpBuf;
+      manager->deallocate(tmpBuf); //delete [] tmpBuf;
     }
   }
 
@@ -142,11 +142,11 @@ namespace OpenMS
   {
   }
 
-  BinInputStream * CompressedInputSource::makeStream() const
+  BinInputStream* CompressedInputSource::makeStream() const
   {
     if (head_[0] == 'B' && head_[1] == 'Z')
     {
-      Bzip2InputStream * retStrm = new Bzip2InputStream(Internal::StringManager().convert(getSystemId()));
+      Bzip2InputStream* retStrm = new Bzip2InputStream(Internal::StringManager().convert(getSystemId()));
       if (!retStrm->getIsOpen())
       {
         delete retStrm;
@@ -156,7 +156,7 @@ namespace OpenMS
     }
     else /*     (bz[0] == g1 && bz[1] == g2), where char g1 = 0x1f and char g2 = 0x8b */
     {
-      GzipInputStream * retStrm = new GzipInputStream(Internal::StringManager().convert(getSystemId()));
+      GzipInputStream* retStrm = new GzipInputStream(Internal::StringManager().convert(getSystemId()));
       if (!retStrm->getIsOpen())
       {
         delete retStrm;

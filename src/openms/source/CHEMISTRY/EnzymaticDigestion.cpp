@@ -61,7 +61,7 @@ namespace OpenMS
     for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
     {
       String tmp = *it;
-      if (tmp.trim().hasPrefix("#")) continue; // skip comments
+      if (tmp.trim().hasPrefix("#")) continue;  // skip comments
       StringList components;
       tmp.split(' ', components);
       if (components.size() != 4)
@@ -250,8 +250,8 @@ namespace OpenMS
     {
       return true; // we don't care about terminal ends
     }
-    else
-    { // either SPEC_SEMI or SPEC_FULL
+    else // either SPEC_SEMI or SPEC_FULL
+    {
       bool spec_c = false, spec_n = false;
 
       // test each end
@@ -292,7 +292,7 @@ namespace OpenMS
     {
       ++count;
     }
-    if (use_log_model_) missed_cleavages_ = 0; // log model has missed cleavages built-in
+    if (use_log_model_) missed_cleavages_ = 0;  // log model has missed cleavages built-in
 
     // missed cleavages
     Size sum = count;
@@ -313,7 +313,7 @@ namespace OpenMS
     SignedSize missed_cleavages = missed_cleavages_;
 
     if (use_log_model_)
-      missed_cleavages = 0; // log model has missed cleavages build-in
+      missed_cleavages = 0;  // log model has missed cleavages build-in
 
     //missed cleavage iterators
     vector<AASequence::ConstIterator> mc_iterators;

@@ -90,7 +90,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -166,7 +166,7 @@ for (vector<MSChromatogram<> >::iterator it = chroms.begin(); it != chroms.end()
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPMapNormalizer tool;
   return tool.main(argc, argv);

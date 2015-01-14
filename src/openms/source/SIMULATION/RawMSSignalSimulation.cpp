@@ -274,7 +274,7 @@ namespace OpenMS
       Size line_number = 1;
       for (TextFile::ConstIterator tf_it = tf.begin(); tf_it != tf.end(); ++tf_it, ++line_number)
       {
-        if (tf_it->empty() || tf_it->hasPrefix("#")) continue; // skip comments
+        if (tf_it->empty() || tf_it->hasPrefix("#")) continue;  // skip comments
 
         String line = *tf_it;
         StringList cols;
@@ -483,7 +483,7 @@ namespace OpenMS
         for (Size scan = 0; scan < experiment.size(); ++scan)
         {
           if ((*experiments[i])[scan].empty())
-            continue; // we do not care if the spectrum wasn't touched at all
+            continue;  // we do not care if the spectrum wasn't touched at all
           // append all points from temp to org
           experiment[scan].insert(experiment[scan].end(), (*experiments[i])[scan].begin(), (*experiments[i])[scan].end());
           // delete from child experiment to save memory (otherwise the merge would double it!)
@@ -755,7 +755,7 @@ namespace OpenMS
       {
         ProductModel<2>::IntensityType intensity = pm.getIntensity(DPosition<2>(rt, *it_grid)) * distortion;
         if (intensity <= 0.0)
-          continue; // intensity cutoff (below that we don't want to see a signal)
+          continue;  // intensity cutoff (below that we don't want to see a signal)
 
         point.setMZ(*it_grid);
         point.setIntensity(intensity);
@@ -835,7 +835,7 @@ namespace OpenMS
         double distortion = double(exp_iter->getMetaValue("distortion"));
         ProductModel<2>::IntensityType intensity = pm.getIntensity(DPosition<2>(rt, mz)) * distortion;
         if (intensity <= 0.0)
-          continue; // intensity cutoff (below that we don't want to see a signal)
+          continue;  // intensity cutoff (below that we don't want to see a signal)
 
         // update min&max
         if (rt_min > rt)
@@ -909,7 +909,7 @@ namespace OpenMS
     // find scan in experiment at which our elution starts
     SimTypes::MSSimExperiment::ConstIterator exp_it = experiment.RTBegin(rt_em_start);
     if (exp_it == experiment.end())
-      --exp_it; // we need the last valid RT below, so .end() is not useful
+      --exp_it;  // we need the last valid RT below, so .end() is not useful
 
     DoubleList elution_intensities;
     DoubleList elution_bounds;
@@ -1263,7 +1263,7 @@ namespace OpenMS
           }
         }
         if (break_scan)
-          break; // skip remaining points of the scan (we reached the end of the grid)
+          break;  // skip remaining points of the scan (we reached the end of the grid)
 
         int_sum += experiment[i][j].getIntensity();
 

@@ -128,7 +128,7 @@ protected:
     public MSDataWritingConsumer
   {
 
-  public:
+public:
 
     PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
       MSDataWritingConsumer(filename),
@@ -139,21 +139,21 @@ protected:
 
     void processSpectrum_(MapType::SpectrumType& s)
     {
-      if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return;}
+      if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return; }
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
-      s = sout;  // todo: swap? (requires implementation)
+      s = sout; // todo: swap? (requires implementation)
     }
 
-    void processChromatogram_(MapType::ChromatogramType & c)
+    void processChromatogram_(MapType::ChromatogramType& c)
     {
       MapType::ChromatogramType c_out;
       pp_.pick(c, c_out);
       c = c_out;
     }
 
-  private:
+private:
 
     PeakPickerHiRes pp_;
     std::vector<Int> ms_levels_;
@@ -172,7 +172,7 @@ protected:
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return PeakPickerHiRes().getDefaults();
   }
@@ -194,7 +194,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -280,7 +280,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPeakPickerHiRes tool;
   return tool.main(argc, argv);

@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget * parent) :
+  PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<PeptideHit>()
   {

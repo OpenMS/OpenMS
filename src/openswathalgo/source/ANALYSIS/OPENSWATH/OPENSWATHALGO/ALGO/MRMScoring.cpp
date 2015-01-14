@@ -137,7 +137,7 @@ namespace OpenSwath
         * normalized_library_intensity[i]);
 #ifdef MRMSCORING_TESTING
       std::cout << "_xcoel_weighted " << i << " " << i << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][i])->first << " weight " <<
-        normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
+      normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
       weights += normalized_library_intensity[i] * normalized_library_intensity[i];
 #endif
       for (std::size_t j = i + 1; j < xcorr_matrix_.size(); j++)
@@ -149,7 +149,7 @@ namespace OpenSwath
           * normalized_library_intensity[j] * 2);
 #ifdef MRMSCORING_TESTING
         std::cout << "_xcoel_weighted " << i << " " << j << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->first << " weight " <<
-          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
+        normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
         weights += normalized_library_intensity[i] * normalized_library_intensity[j];
 #endif
 
@@ -204,7 +204,7 @@ namespace OpenSwath
         * normalized_library_intensity[i]);
 #ifdef MRMSCORING_TESTING
       std::cout << "_xcorr_weighted " << i << " " << i << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][i])->second << " weight " <<
-        normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
+      normalized_library_intensity[i] * normalized_library_intensity[i] << std::endl;
 #endif
       for (std::size_t j = i + 1; j < xcorr_matrix_.size(); j++)
       {
@@ -214,7 +214,7 @@ namespace OpenSwath
           * normalized_library_intensity[j] * 2);
 #ifdef MRMSCORING_TESTING
         std::cout << "_xcorr_weighted " << i << " " << j << " " << Scoring::xcorrArrayGetMaxPeak(xcorr_matrix_[i][j])->second << " weight " <<
-          normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
+        normalized_library_intensity[i] * normalized_library_intensity[j] * 2 << std::endl;
 #endif
       }
     }

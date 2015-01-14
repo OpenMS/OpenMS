@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  Element::Element(const Element & e) :
+  Element::Element(const Element& e) :
     name_(e.name_),
     symbol_(e.symbol_),
     atomic_number_(e.atomic_number_),
@@ -60,12 +60,12 @@ namespace OpenMS
   {
   }
 
-  Element::Element(const String & name,
-                   const String & symbol,
+  Element::Element(const String& name,
+                   const String& symbol,
                    UInt atomic_number,
                    double average_weight,
                    double mono_weight,
-                   const IsotopeDistribution & isotopes) :
+                   const IsotopeDistribution& isotopes) :
     name_(name),
     symbol_(symbol),
     atomic_number_(atomic_number),
@@ -109,37 +109,37 @@ namespace OpenMS
     return mono_weight_;
   }
 
-  void Element::setIsotopeDistribution(const IsotopeDistribution & distribution)
+  void Element::setIsotopeDistribution(const IsotopeDistribution& distribution)
   {
     isotopes_ = distribution;
   }
 
-  const IsotopeDistribution & Element::getIsotopeDistribution() const
+  const IsotopeDistribution& Element::getIsotopeDistribution() const
   {
     return isotopes_;
   }
 
-  void Element::setName(const String & name)
+  void Element::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & Element::getName() const
+  const String& Element::getName() const
   {
     return name_;
   }
 
-  void Element::setSymbol(const String & symbol)
+  void Element::setSymbol(const String& symbol)
   {
     symbol_ = symbol;
   }
 
-  const String & Element::getSymbol() const
+  const String& Element::getSymbol() const
   {
     return symbol_;
   }
 
-  Element & Element::operator=(const Element & element)
+  Element& Element::operator=(const Element& element)
   {
     name_ = element.name_;
     symbol_ = element.symbol_;
@@ -150,7 +150,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool Element::operator==(const Element & element) const
+  bool Element::operator==(const Element& element) const
   {
     return name_ == element.name_ &&
            symbol_ == element.symbol_ &&
@@ -160,12 +160,12 @@ namespace OpenMS
            isotopes_ == element.isotopes_;
   }
 
-  bool Element::operator!=(const Element & element) const
+  bool Element::operator!=(const Element& element) const
   {
     return !(*this == element);
   }
 
-  std::ostream & operator<<(std::ostream & os, const Element & element)
+  std::ostream& operator<<(std::ostream& os, const Element& element)
   {
     os  << element.name_ << " "
     << element.symbol_ << " "

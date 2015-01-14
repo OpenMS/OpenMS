@@ -42,7 +42,7 @@ namespace OpenMS
   bool JavaInfo::canRun(String java_executable)
   {
     QProcess qp;
-    qp.start(java_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly);   // does automatic escaping etc...
+    qp.start(java_executable.toQString(), QStringList() << "-version", QIODevice::ReadOnly); // does automatic escaping etc...
     bool success = qp.waitForFinished();
     return success;
   }

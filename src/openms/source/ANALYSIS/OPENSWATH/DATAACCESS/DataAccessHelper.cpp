@@ -37,7 +37,7 @@
 
 namespace OpenMS
 {
-  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum<> & spectrum)
+  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum<>& spectrum)
   {
     // recreate a spectrum from the data arrays!
     OpenSwath::BinaryDataArrayPtr mz_arr = sptr->getMZArray();
@@ -52,7 +52,7 @@ namespace OpenMS
     }
   }
 
-  OpenSwath::SpectrumPtr OpenSwathDataAccessHelper::convertToSpectrumPtr(const OpenMS::MSSpectrum<> & spectrum)
+  OpenSwath::SpectrumPtr OpenSwathDataAccessHelper::convertToSpectrumPtr(const OpenMS::MSSpectrum<>& spectrum)
   {
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
@@ -68,7 +68,7 @@ namespace OpenMS
     return sptr;
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<> & chromatogram, const OpenSwath::ChromatogramPtr cptr)
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(OpenMS::MSChromatogram<>& chromatogram, const OpenSwath::ChromatogramPtr cptr)
   {
     OpenSwath::BinaryDataArrayPtr rt_arr = cptr->getTimeArray();
     OpenSwath::BinaryDataArrayPtr int_arr = cptr->getIntensityArray();
@@ -82,7 +82,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp)
+  void OpenSwathDataAccessHelper::convertTargetedExp(const OpenMS::TargetedExperiment& transition_exp_, OpenSwath::LightTargetedExperiment& transition_exp)
   {
     //copy proteins
     for (Size i = 0; i < transition_exp_.getProteins().size(); i++)
@@ -115,7 +115,7 @@ namespace OpenMS
       // legacy
 #if 1
       if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") &&
-          transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1" )
+          transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1")
       {
         t.decoy = true;
       }
@@ -128,7 +128,7 @@ namespace OpenMS
         t.decoy = true;
       }
       else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
-          transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
+               transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008")) // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
@@ -150,7 +150,7 @@ namespace OpenMS
     }
   }
 
-  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptide & p)
+  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptide& p)
   {
     OpenSwath::LightModification m;
     OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
@@ -167,25 +167,25 @@ namespace OpenMS
     p.protein_refs.clear();
     if (!pep.protein_refs.empty())
     {
-      p.protein_refs.insert( p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end() ); 
+      p.protein_refs.insert(p.protein_refs.begin(), pep.protein_refs.begin(), pep.protein_refs.end());
     }
 
     // Mapping of peptide modifications
     {
       OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
-      if ( !aa_sequence.getNTerminalModification().empty())
+      if (!aa_sequence.getNTerminalModification().empty())
       {
-          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
-          m.location = -1;
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+        ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
+        m.location = -1;
+        m.unimod_id = rmod.getUniModAccession();
+        p.modifications.push_back(m);
       }
-      if ( !aa_sequence.getCTerminalModification().empty())
+      if (!aa_sequence.getCTerminalModification().empty())
       {
-          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
-          m.location = boost::numeric_cast<int>(aa_sequence.size());
-          m.unimod_id = rmod.getUniModAccession();
-          p.modifications.push_back(m);
+        ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
+        m.location = boost::numeric_cast<int>(aa_sequence.size());
+        m.unimod_id = rmod.getUniModAccession();
+        p.modifications.push_back(m);
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
@@ -205,14 +205,13 @@ namespace OpenMS
     // transition_exp.peptides.push_back(p);
   }
 
-  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
+  void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide& peptide, AASequence& aa_sequence)
   {
-      aa_sequence = AASequence::fromString(peptide.sequence);
-      for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
-      {
-        TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
-      }
+    aa_sequence = AASequence::fromString(peptide.sequence);
+    for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
+    {
+      TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
+    }
   }
-
 
 }

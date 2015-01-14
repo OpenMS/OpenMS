@@ -103,7 +103,7 @@ protected:
     setMinInt_("first_column", 0);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     //-------------------------------------------------------------
@@ -144,7 +144,7 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPFuzzyDiff tool;
   return tool.main(argc, argv);

@@ -52,7 +52,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  BiGaussModel::BiGaussModel(const BiGaussModel & source) :
+  BiGaussModel::BiGaussModel(const BiGaussModel& source) :
     InterpolationModel(source)
   {
     setParameters(source.getParameters());
@@ -63,7 +63,7 @@ namespace OpenMS
   {
   }
 
-  BiGaussModel & BiGaussModel::operator=(const BiGaussModel & source)
+  BiGaussModel& BiGaussModel::operator=(const BiGaussModel& source)
   {
     if (&source == this)
       return *this;
@@ -77,7 +77,7 @@ namespace OpenMS
 
   void BiGaussModel::setSamples()
   {
-    LinearInterpolation::container_type & data = interpolation_.getData();
+    LinearInterpolation::container_type& data = interpolation_.getData();
     data.clear();
     if (max_ == min_)
       return;

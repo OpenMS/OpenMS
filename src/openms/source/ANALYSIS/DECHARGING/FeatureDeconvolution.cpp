@@ -320,7 +320,7 @@ namespace OpenMS
     }
     Int max_minority_bound = param_.getValue("max_minority_bound");
     double thresh_logp = adduct_lowest_log_p * max_minority_bound +
-                         adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
+                         adduct_highest_log_p* std::max(q_max - max_minority_bound, 0);
 
 
     // create mass difference list

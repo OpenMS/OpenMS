@@ -52,14 +52,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  GradientVisualizer::GradientVisualizer(bool editable, QWidget * parent) :
+  GradientVisualizer::GradientVisualizer(bool editable, QWidget* parent) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<Gradient>()
   {
     nextrow_ = 0;
   }
 
-  void GradientVisualizer::load(Gradient & g)
+  void GradientVisualizer::load(Gradient& g)
   {
     ptr_ = &g;
     temp_ = g;
@@ -201,7 +201,7 @@ namespace OpenMS
     timepoints_ = temp_.getTimepoints();
 
     //Add labels to display eluent-timepoint-percentage-triplets.
-    QLabel * label = new QLabel("Eluent names\\Timepoints", this);
+    QLabel* label = new QLabel("Eluent names\\Timepoints", this);
     viewlayout_->addWidget(label, 0, 0, 1, (int)temp_.getTimepoints().size());
     label->show();
     nextrow_++;
@@ -213,7 +213,7 @@ namespace OpenMS
     for (Size i = 0; i < timepoints_.size(); ++i)
     {
       //Add labels to display eluent-timepoint-percentage-triplets.
-      QLabel * label1 = new QLabel(String(timepoints_[i]).c_str(), this);
+      QLabel* label1 = new QLabel(String(timepoints_[i]).c_str(), this);
       viewlayout_->addWidget(label1, 1, (int)(i + 1));
       label1->show();
       gradientlabel_.push_back(label1);
@@ -225,7 +225,7 @@ namespace OpenMS
     for (Size i = 0; i < eluents_.size(); ++i)
     {
 
-      QLabel * eluent = new QLabel(eluents_[i].c_str(), this);
+      QLabel* eluent = new QLabel(eluents_[i].c_str(), this);
       viewlayout_->addWidget(eluent, nextrow_, 0);
       eluent->show();
       gradientlabel_.push_back(eluent);
@@ -247,7 +247,7 @@ namespace OpenMS
   void GradientVisualizer::removeData_()
   {
     //Remove QLineEdits
-    std::vector<QLineEdit *>::iterator iter2;
+    std::vector<QLineEdit*>::iterator iter2;
 
     for (iter2 = gradientdata_.begin(); iter2 < gradientdata_.end(); ++iter2)
     {
@@ -261,7 +261,7 @@ namespace OpenMS
     }
 
     //Remove QLabels
-    std::vector<QLabel *>::iterator iter_label;
+    std::vector<QLabel*>::iterator iter_label;
 
     for (iter_label = gradientlabel_.begin(); iter_label < gradientlabel_.end(); ++iter_label)
     {

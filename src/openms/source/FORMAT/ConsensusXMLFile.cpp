@@ -253,7 +253,7 @@ namespace OpenMS
       String file_version = "";
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
-        file_version = "1.0"; //default version is 1.0
+        file_version = "1.0";  //default version is 1.0
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -642,7 +642,7 @@ namespace OpenMS
       os << " experiment_type=\"" << consensus_map.getExperimentType() << "\"";
     }
     os
-      << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
+    << " xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
 
     // user param
     writeUserParam_("userParam", os, consensus_map, 1);

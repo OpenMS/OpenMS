@@ -77,7 +77,7 @@ public:
 
 protected:
 
-  void removeDuplicates_(vector<PeptideIdentification> & peptides)
+  void removeDuplicates_(vector<PeptideIdentification>& peptides)
   {
     // there is no "PeptideIdentification::operator<", so we can't use a set
     // or sort + unique to filter out duplicates...
@@ -111,7 +111,7 @@ protected:
     setValidFormats_("id_out", ListUtils::create<String>("idXML"));
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in"), out = getStringOption_("out"),
            id_out = getStringOption_("id_out");
@@ -206,7 +206,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDSplitter tool;
   return tool.main(argc, argv);

@@ -100,7 +100,7 @@ namespace OpenMS
     cout << "############## END DEBUG -- FEATURE MAPS ##############" << endl;
 #else
     if (feature_maps.empty())
-      cout << stage; // just to avoid warnings of unused parameters
+      cout << stage;  // just to avoid warnings of unused parameters
 #endif
   }
 
@@ -157,7 +157,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This labeler returned by the Factory is invalid!", product_name->c_str()); 
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "This labeler returned by the Factory is invalid!", product_name->c_str());
       }
     }
 

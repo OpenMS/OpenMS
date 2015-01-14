@@ -153,7 +153,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // constructor for the object feature:
-  SHFeature::SHFeature(MS2Feature * ms2)
+  SHFeature::SHFeature(MS2Feature* ms2)
   {
 
     MONO_MZ = ms2->getPrecursorMZ();
@@ -222,7 +222,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // copy constructor:
-  SHFeature::SHFeature(const SHFeature & tmp)
+  SHFeature::SHFeature(const SHFeature& tmp)
   {
 
     MONO_MZ = tmp.MONO_MZ;
@@ -270,7 +270,7 @@ namespace OpenMS
 
 ////////////////////////////////////////////////
 // constructor for the object feature:
-  SHFeature::SHFeature(const SHFeature * tmp)
+  SHFeature::SHFeature(const SHFeature* tmp)
   {
     MONO_MZ = tmp->MONO_MZ;
     MONO_MZ_ORIGINAL = tmp->MONO_MZ_ORIGINAL;
@@ -347,7 +347,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy operator:
-  SHFeature & SHFeature::operator=(const SHFeature & tmp)
+  SHFeature& SHFeature::operator=(const SHFeature& tmp)
   {
     MONO_MZ = tmp.MONO_MZ;
     MONO_MZ_ORIGINAL = tmp.MONO_MZ_ORIGINAL;
@@ -404,7 +404,7 @@ namespace OpenMS
 
 /////////////////////////////////////////////////
 // equal operator:
-  bool SHFeature::operator==(const SHFeature & tmp)
+  bool SHFeature::operator==(const SHFeature& tmp)
   {
 
     if (tmp.feature_ID == this->feature_ID)
@@ -460,7 +460,7 @@ namespace OpenMS
     printf(",LCMS-ID: %d", get_spectrum_ID());
     //printf(",M.ID:%d",get_MASTER_ID());
     printf("\n");
-    MS2Info * tmp = get_best_MS2_SCAN(0.0);
+    MS2Info* tmp = get_best_MS2_SCAN(0.0);
     if (tmp != NULL)
     {
       tmp->show_info();
@@ -492,7 +492,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // add MS/MS info to the feature:
-  void SHFeature::add_MS2_info(MS2Info * in)
+  void SHFeature::add_MS2_info(MS2Info* in)
   {
 
     if (in != NULL)
@@ -503,7 +503,7 @@ namespace OpenMS
       // if StoreAllLowProbMS2Scans is true, then store all
       // low quality scans unless a high quality is available
       // otherwise use only the one with the highest peptide probaility
-      MS2Info * thisMS2 = NULL;
+      MS2Info* thisMS2 = NULL;
       if (SuperHirnParameters::instance()->storeAllLowProbabilityMS2Scans())
       {
         thisMS2 = get_best_MS2_SCAN();
@@ -556,7 +556,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // add MS/MS info to the feature:
-  void SHFeature::add_MS2_info(map<double, vector<MS2Info> > * in)
+  void SHFeature::add_MS2_info(map<double, vector<MS2Info> >* in)
   {
 
     MS2_SCANS.clear();
@@ -583,7 +583,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // functions to set/access machted features:
-  void SHFeature::add_matched_feature(SHFeature * in)
+  void SHFeature::add_matched_feature(SHFeature* in)
   {
 
     //////////////////////////////////////////////////////
@@ -667,10 +667,10 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // get the best ms2 scan with highest peptide probability:
-  MS2Info * SHFeature::get_best_MS2_SCAN()
+  MS2Info* SHFeature::get_best_MS2_SCAN()
   {
 
-    MS2Info * out = NULL;
+    MS2Info* out = NULL;
     if (get_MS2_info())
     {
 
@@ -680,7 +680,7 @@ namespace OpenMS
       map<int, SHFeature>::iterator P = matched_feature_list.begin();
       while (P != matched_feature_list.end())
       {
-        MS2Info * TMP = (*P).second.get_best_MS2_SCAN();
+        MS2Info* TMP = (*P).second.get_best_MS2_SCAN();
         if (TMP != NULL)
         {
           if (TMP->get_PEP_PROB() > out->get_PEP_PROB())
@@ -696,10 +696,10 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // get the best ms2 scan with highest peptide probability:
-  MS2Info * SHFeature::get_best_MS2_SCAN(double PP_T)
+  MS2Info* SHFeature::get_best_MS2_SCAN(double PP_T)
   {
 
-    MS2Info * out = NULL;
+    MS2Info* out = NULL;
     if (get_MS2_info(PP_T))
     {
 
@@ -710,7 +710,7 @@ namespace OpenMS
       while (P != matched_feature_list.end())
       {
 // MS2Info* TMP = (*P).second.get_best_MS2_SCAN(PP_T);    PKUNSZT THIS SHOULD BE THE CORRECT LINE?
-        MS2Info * TMP = (*P).second.get_best_MS2_SCAN();
+        MS2Info* TMP = (*P).second.get_best_MS2_SCAN();
         if (TMP != NULL)
         {
           if (TMP->get_PEP_PROB() > out->get_PEP_PROB())
@@ -786,7 +786,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // get feature at a certain LC-MS by LC_MS id
-  SHFeature * SHFeature::get_feature(int id)
+  SHFeature* SHFeature::get_feature(int id)
   {
 
     // check if its teh own:
@@ -917,11 +917,11 @@ namespace OpenMS
 // created based on a MS2 trace, charge state is unknown ( = -1 )
 // -> derivce the charge state from the matched feature (if this is
 // also not -1
-  void SHFeature::deriveChargeStates(SHFeature * in)
+  void SHFeature::deriveChargeStates(SHFeature* in)
   {
 
-    SHFeature * deriveFeature = NULL;
-    SHFeature * adjustFeature = NULL;
+    SHFeature* deriveFeature = NULL;
+    SHFeature* adjustFeature = NULL;
 
     // find the feature to derive:
     if (in->get_charge_state() == -1)
@@ -963,254 +963,499 @@ namespace OpenMS
 
   }
 
-      bool SHFeature::check_MS2_empty()
-    {
-      return MS2_SCANS.empty();
-    }
+  bool SHFeature::check_MS2_empty()
+  {
+    return MS2_SCANS.empty();
+  }
 
-    void SHFeature::removeAllMS2Information()
-    {
-      return MS2_SCANS.clear();
-    }
+  void SHFeature::removeAllMS2Information()
+  {
+    return MS2_SCANS.clear();
+  }
 
-    int SHFeature::get_MS2_SCANS_SIZE()
-    {
-      return (int) MS2_SCANS.size();
-    }
+  int SHFeature::get_MS2_SCANS_SIZE()
+  {
+    return (int) MS2_SCANS.size();
+  }
 
-    std::map<double, std::vector<MS2Info> > * SHFeature::get_MS2_SCAN_MAP()
-    {
-      return &MS2_SCANS;
-    }
+  std::map<double, std::vector<MS2Info> >* SHFeature::get_MS2_SCAN_MAP()
+  {
+    return &MS2_SCANS;
+  }
 
-    std::map<double, std::vector<MS2Info> >::iterator SHFeature::get_MS2_SCANS_START()
-    {   return MS2_SCANS.begin(); }
-    std::map<double, std::vector<MS2Info> >::iterator SHFeature::get_MS2_SCANS_END()
-    {   return MS2_SCANS.end(); }
+  std::map<double, std::vector<MS2Info> >::iterator SHFeature::get_MS2_SCANS_START()
+  {
+    return MS2_SCANS.begin();
+  }
 
-    void SHFeature::setFeatureExtraInformation(std::string in)
-    {   featureExtraInformation = in; }
-    std::string SHFeature::getFeatureExtraInformation()
-    {   return featureExtraInformation; }
+  std::map<double, std::vector<MS2Info> >::iterator SHFeature::get_MS2_SCANS_END()
+  {
+    return MS2_SCANS.end();
+  }
 
-    std::map<int, SHFeature> * SHFeature::get_match_list_REFERENCE()
-    {   return &matched_feature_list; }
-    std::map<int, SHFeature> SHFeature::get_match_list()
-    {   return matched_feature_list; }
-    std::map<int, SHFeature>::iterator SHFeature::get_match_list_start()
-    {   return matched_feature_list.begin(); }
-    std::map<int, SHFeature>::iterator SHFeature::get_match_list_end()
-    {   return matched_feature_list.end(); }
-    std::map<int, SHFeature>::iterator SHFeature::find_match_by_id(int ID)
-    {   return matched_feature_list.find(ID); }
+  void SHFeature::setFeatureExtraInformation(std::string in)
+  {
+    featureExtraInformation = in;
+  }
 
-    // get feature at a certain LC-MS by LC_MS id
-    SHFeature * get_feature(int);
+  std::string SHFeature::getFeatureExtraInformation()
+  {
+    return featureExtraInformation;
+  }
 
-    // get the total peak are over all matched features:
-    void SHFeature::erase_match_list()
-    {   matched_feature_list.clear(); }
-    // return number of times this feature has been seen = nb_replicates in list plus 1!
-    int SHFeature::get_replicate_match_nb()
-    {   return (int) (matched_feature_list.size() + 1); }
-    int SHFeature::get_matching_nb()
-    {   return get_replicate_match_nb(); }
-    
-    ///////////////////////////////
-    // start here all the get / set
-    // function to access the
-    // variables of the class
+  std::map<int, SHFeature>* SHFeature::get_match_list_REFERENCE()
+  {
+    return &matched_feature_list;
+  }
 
-    // access the parent mass of feature, calculated from the SQ
-    double SHFeature::get_MZ()
-    {   return MONO_MZ; }
-    void SHFeature::set_MZ(double in)
-    {   MONO_MZ = in; }
-    double SHFeature::get_MZ_START()
-    {   return MONO_MZ_START; }
-    void SHFeature::set_MZ_START(double IN)
-    {   MONO_MZ_START = IN; }
-    double SHFeature::get_MZ_END()
-    {   return MONO_MZ_END; }
-    void SHFeature::set_MZ_END(double IN)
-    {   MONO_MZ_END = IN; }
+  std::map<int, SHFeature> SHFeature::get_match_list()
+  {
+    return matched_feature_list;
+  }
 
-    double SHFeature::get_THEO_MZ()
-    {   return get_best_MS2_SCAN()->get_MONO_MZ(); }
-    double SHFeature::get_THEO_MZ(double T)
-    {   return get_best_MS2_SCAN(T)->get_MONO_MZ(); }
-    std::string SHFeature::get_AC()
-    {   return get_best_MS2_SCAN()->get_AC(); }
-    std::string SHFeature::get_AC(double T)
-    {   return get_best_MS2_SCAN(T)->get_AC(); }
-    bool SHFeature::check_AC(std::string IN)
-    {   return get_best_MS2_SCAN()->compare_AC(IN); }
-    bool SHFeature::check_AC(std::string IN, double T)
-    {   return get_best_MS2_SCAN(T)->compare_AC(IN); }
-    std::string SHFeature::get_SQ()
-    {   return get_best_MS2_SCAN()->get_SQ(); }
-    std::string SHFeature::get_SQ(double T)
-    {   return get_best_MS2_SCAN(T)->get_SQ(); }
-    std::string SHFeature::get_TOTAL_SQ()
-    {   return get_best_MS2_SCAN()->get_TOTAL_SQ(); }
-    std::string SHFeature::get_TOTAL_SQ(double T)
-    {   return get_best_MS2_SCAN(T)->get_TOTAL_SQ(); }
-    std::string SHFeature::get_MOD_SQ()
-    {   return get_best_MS2_SCAN()->get_MOD_SQ(); }
-    std::string SHFeature::get_MOD_SQ(double T)
-    {   return get_best_MS2_SCAN(T)->get_MOD_SQ(); }
-    double SHFeature::get_pep_prob()
-    {   return get_best_MS2_SCAN()->get_PEP_PROB(); }
-    double SHFeature::get_pep_prob(double T)
-    {   return get_best_MS2_SCAN(T)->get_PEP_PROB(); }
-    std::string SHFeature::get_MS2_TYPE_TAG()
-    {   return get_best_MS2_SCAN()->get_MS2_TYPE_TAG(); }
-    std::string SHFeature::get_MS2_TYPE_TAG(double T)
-    {   return get_best_MS2_SCAN(T)->get_MS2_TYPE_TAG(); }
-    int SHFeature::get_MS2_scan()
-    {   return get_best_MS2_SCAN()->get_SCAN_START(); }
-    int SHFeature::get_MS2_scan(double T)
-    {   return get_best_MS2_SCAN(T)->get_SCAN_START(); }
-    std::map<double, std::vector<MS2Info> > * SHFeature::get_MS2_SCAN_LIST()
-    {   return &(MS2_SCANS); }
-    std::map<double, std::vector<MS2Info> >::iterator SHFeature::get_MS2_SCAN_LIST_START()
-    {   return MS2_SCANS.begin(); }
-    std::map<double, std::vector<MS2Info> >::iterator SHFeature::get_MS2_SCAN_LIST_END()
-    {   return MS2_SCANS.end(); }
+  std::map<int, SHFeature>::iterator SHFeature::get_match_list_start()
+  {
+    return matched_feature_list.begin();
+  }
 
-    int SHFeature::get_scan_number()
-    {   return scan_apex; }
-    void SHFeature::set_scan_number(int IN)
-    {   scan_apex = IN; }
-    int SHFeature::get_scan_start()
-    {   return scan_start; }
-    void SHFeature::set_scan_start(int IN)
-    {   scan_start = IN; }
-    int SHFeature::get_scan_end()
-    {   return scan_end; }
-    void SHFeature::set_scan_end(int IN)
-    {   scan_end = IN; }
-    int SHFeature::get_charge_state()
-    {   return charge_state; }
-    void SHFeature::set_charge_state(int IN)
-    {   charge_state = IN; }
-    void SHFeature::set_peak_area(float IN)
-    {   total_peak_area = IN; }
-    double SHFeature::get_peak_area()
-    {   return total_peak_area; }
-    double SHFeature::get_apex_peak_intensity()
-    {   return apex_peak_intensity; }
-    void SHFeature::set_apex_peak_intensity(double in)
-    {   apex_peak_intensity = in; }
-    void SHFeature::normalize_peak_area_by_factor(double factor)
-    {   total_peak_area *= factor; }
+  std::map<int, SHFeature>::iterator SHFeature::get_match_list_end()
+  {
+    return matched_feature_list.end();
+  }
 
-    double SHFeature::get_alignment_error_up()
-    {   return alignment_error_up; }
-    void SHFeature::set_alignment_error_up(double IN)
-    {   alignment_error_up = IN; }
-    double SHFeature::get_alignment_error_down()
-    {   return alignment_error_down; }
-    void SHFeature::set_alignment_error_down(double IN)
-    {   alignment_error_down = IN; }
+  std::map<int, SHFeature>::iterator SHFeature::find_match_by_id(int ID)
+  {
+    return matched_feature_list.find(ID);
+  }
 
-    void SHFeature::set_SCORE_HOLDER(double IN)
-    {   SCORE_HOLDER = IN; }
-    double SHFeature::get_SCORE_HOLDER()
-    {   return SCORE_HOLDER; }
+  // get feature at a certain LC-MS by LC_MS id
+  SHFeature* get_feature(int);
 
-    double SHFeature::get_retention_time()
-    {   return TR; }
-    void SHFeature::set_retention_time(double IN)
-    {   TR = IN; }
-    double SHFeature::get_retention_time_START()
-    {   return TR_START; }
-    void SHFeature::set_retention_time_START(double IN)
-    {   TR_START = IN; }
-    double SHFeature::get_retention_time_END()
-    {   return TR_END; }
-    void SHFeature::set_retention_time_END(double IN)
-    {   TR_END = IN; }
+  // get the total peak are over all matched features:
+  void SHFeature::erase_match_list()
+  {
+    matched_feature_list.clear();
+  }
 
-    // original mz and Tr coordinates
-    double SHFeature::get_raw_retention_time_apex()
-    {   return TR_APEX; }
-    void SHFeature::set_raw_retention_time_apex(double IN)
-    {   TR_APEX = IN; }
-    double SHFeature::get_raw_MZ()
-    {   return MONO_MZ_ORIGINAL; }
-    void SHFeature::set_raw_MZ(double IN)
-    {   MONO_MZ_ORIGINAL = IN; }
+  // return number of times this feature has been seen = nb_replicates in list plus 1!
+  int SHFeature::get_replicate_match_nb()
+  {
+    return (int) (matched_feature_list.size() + 1);
+  }
 
-    // feature ID:
-    void SHFeature::set_feature_ID(int IN)
-    {   feature_ID = IN; }
-    int SHFeature::get_feature_ID()
-    {   return feature_ID; }
+  int SHFeature::get_matching_nb()
+  {
+    return get_replicate_match_nb();
+  }
 
-    void SHFeature::set_spectrum_ID(int IN)
-    {
-      spectrum_ID = IN;
-      /*
-       if( MS2TraceFeature != NULL){
-       MS2TraceFeature.set
-       }
-       */
-    }
+  ///////////////////////////////
+  // start here all the get / set
+  // function to access the
+  // variables of the class
 
-    int SHFeature::get_spectrum_ID()
-    {   return spectrum_ID; }
+  // access the parent mass of feature, calculated from the SQ
+  double SHFeature::get_MZ()
+  {
+    return MONO_MZ;
+  }
 
-    void SHFeature::set_MASTER_ID(int IN)
-    {   MASTER_ID = IN; }
-    int SHFeature::get_MASTER_ID()
-    {   return MASTER_ID; }
+  void SHFeature::set_MZ(double in)
+  {
+    MONO_MZ = in;
+  }
 
-    // get/set the peak score
-    double SHFeature::get_peak_score()
-    {   return PEAK_SCORE; }
-    void SHFeature::set_peak_score(double in)
-    {   PEAK_SCORE = in; }
+  double SHFeature::get_MZ_START()
+  {
+    return MONO_MZ_START;
+  }
 
-    // feature PI:
-    double SHFeature::get_FEATURE_PI()
-    {   return PI; }
-    void SHFeature::set_FEATURE_PI(double IN)
-    {   PI = IN; }
+  void SHFeature::set_MZ_START(double IN)
+  {
+    MONO_MZ_START = IN;
+  }
 
-    // LC elution profile
-    void SHFeature::setLCelutionProfile(FeatureLCProfile * IN)
-    {   LCprofile = IN; }
-    FeatureLCProfile * SHFeature::getLCelutionProfile()
-    {   return LCprofile; }
+  double SHFeature::get_MZ_END()
+  {
+    return MONO_MZ_END;
+  }
 
-    /////////////////////////////////////////////
-    // status if feature has been matched:
-    bool SHFeature::get_feature_match_status()
-    {   return feature_match_status; }
-    void SHFeature::set_feature_match_status(bool IN)
-    {   feature_match_status = IN; }
+  void SHFeature::set_MZ_END(double IN)
+  {
+    MONO_MZ_END = IN;
+  }
 
-    ///////////////////////////////////////////
-    // access the MS2 feature
-    void SHFeature::addMS2Feature(MS2Feature * in)
-    {   MS2TraceFeature = new MS2Feature(in); }
-    void SHFeature::removeMS2Feature()
-    {   delete MS2TraceFeature; MS2TraceFeature = NULL; }
-    MS2Feature * SHFeature::getMS2Feature()
-    {   return MS2TraceFeature; }
+  double SHFeature::get_THEO_MZ()
+  {
+    return get_best_MS2_SCAN()->get_MONO_MZ();
+  }
 
-    double SHFeature::getSignalToNoise()
-    {   return SignalToNoise; }
-    void SHFeature::setSignalToNoise(double in)
-    {   SignalToNoise = in; }
+  double SHFeature::get_THEO_MZ(double T)
+  {
+    return get_best_MS2_SCAN(T)->get_MONO_MZ();
+  }
 
-    double SHFeature::getBackgroundNoiseLevel()
-    {   return BackgroundNoise; }
-    void SHFeature::setBackgroundNoiseLevel(double in)
-    {   BackgroundNoise = in; }
+  std::string SHFeature::get_AC()
+  {
+    return get_best_MS2_SCAN()->get_AC();
+  }
 
-    double SHFeature::get_MONO_H()
-    {   return _MONO_H; }
+  std::string SHFeature::get_AC(double T)
+  {
+    return get_best_MS2_SCAN(T)->get_AC();
+  }
+
+  bool SHFeature::check_AC(std::string IN)
+  {
+    return get_best_MS2_SCAN()->compare_AC(IN);
+  }
+
+  bool SHFeature::check_AC(std::string IN, double T)
+  {
+    return get_best_MS2_SCAN(T)->compare_AC(IN);
+  }
+
+  std::string SHFeature::get_SQ()
+  {
+    return get_best_MS2_SCAN()->get_SQ();
+  }
+
+  std::string SHFeature::get_SQ(double T)
+  {
+    return get_best_MS2_SCAN(T)->get_SQ();
+  }
+
+  std::string SHFeature::get_TOTAL_SQ()
+  {
+    return get_best_MS2_SCAN()->get_TOTAL_SQ();
+  }
+
+  std::string SHFeature::get_TOTAL_SQ(double T)
+  {
+    return get_best_MS2_SCAN(T)->get_TOTAL_SQ();
+  }
+
+  std::string SHFeature::get_MOD_SQ()
+  {
+    return get_best_MS2_SCAN()->get_MOD_SQ();
+  }
+
+  std::string SHFeature::get_MOD_SQ(double T)
+  {
+    return get_best_MS2_SCAN(T)->get_MOD_SQ();
+  }
+
+  double SHFeature::get_pep_prob()
+  {
+    return get_best_MS2_SCAN()->get_PEP_PROB();
+  }
+
+  double SHFeature::get_pep_prob(double T)
+  {
+    return get_best_MS2_SCAN(T)->get_PEP_PROB();
+  }
+
+  std::string SHFeature::get_MS2_TYPE_TAG()
+  {
+    return get_best_MS2_SCAN()->get_MS2_TYPE_TAG();
+  }
+
+  std::string SHFeature::get_MS2_TYPE_TAG(double T)
+  {
+    return get_best_MS2_SCAN(T)->get_MS2_TYPE_TAG();
+  }
+
+  int SHFeature::get_MS2_scan()
+  {
+    return get_best_MS2_SCAN()->get_SCAN_START();
+  }
+
+  int SHFeature::get_MS2_scan(double T)
+  {
+    return get_best_MS2_SCAN(T)->get_SCAN_START();
+  }
+
+  std::map<double, std::vector<MS2Info> >* SHFeature::get_MS2_SCAN_LIST()
+  {
+    return &(MS2_SCANS);
+  }
+
+  std::map<double, std::vector<MS2Info> >::iterator SHFeature::get_MS2_SCAN_LIST_START()
+  {
+    return MS2_SCANS.begin();
+  }
+
+  std::map<double, std::vector<MS2Info> >::iterator SHFeature::get_MS2_SCAN_LIST_END()
+  {
+    return MS2_SCANS.end();
+  }
+
+  int SHFeature::get_scan_number()
+  {
+    return scan_apex;
+  }
+
+  void SHFeature::set_scan_number(int IN)
+  {
+    scan_apex = IN;
+  }
+
+  int SHFeature::get_scan_start()
+  {
+    return scan_start;
+  }
+
+  void SHFeature::set_scan_start(int IN)
+  {
+    scan_start = IN;
+  }
+
+  int SHFeature::get_scan_end()
+  {
+    return scan_end;
+  }
+
+  void SHFeature::set_scan_end(int IN)
+  {
+    scan_end = IN;
+  }
+
+  int SHFeature::get_charge_state()
+  {
+    return charge_state;
+  }
+
+  void SHFeature::set_charge_state(int IN)
+  {
+    charge_state = IN;
+  }
+
+  void SHFeature::set_peak_area(float IN)
+  {
+    total_peak_area = IN;
+  }
+
+  double SHFeature::get_peak_area()
+  {
+    return total_peak_area;
+  }
+
+  double SHFeature::get_apex_peak_intensity()
+  {
+    return apex_peak_intensity;
+  }
+
+  void SHFeature::set_apex_peak_intensity(double in)
+  {
+    apex_peak_intensity = in;
+  }
+
+  void SHFeature::normalize_peak_area_by_factor(double factor)
+  {
+    total_peak_area *= factor;
+  }
+
+  double SHFeature::get_alignment_error_up()
+  {
+    return alignment_error_up;
+  }
+
+  void SHFeature::set_alignment_error_up(double IN)
+  {
+    alignment_error_up = IN;
+  }
+
+  double SHFeature::get_alignment_error_down()
+  {
+    return alignment_error_down;
+  }
+
+  void SHFeature::set_alignment_error_down(double IN)
+  {
+    alignment_error_down = IN;
+  }
+
+  void SHFeature::set_SCORE_HOLDER(double IN)
+  {
+    SCORE_HOLDER = IN;
+  }
+
+  double SHFeature::get_SCORE_HOLDER()
+  {
+    return SCORE_HOLDER;
+  }
+
+  double SHFeature::get_retention_time()
+  {
+    return TR;
+  }
+
+  void SHFeature::set_retention_time(double IN)
+  {
+    TR = IN;
+  }
+
+  double SHFeature::get_retention_time_START()
+  {
+    return TR_START;
+  }
+
+  void SHFeature::set_retention_time_START(double IN)
+  {
+    TR_START = IN;
+  }
+
+  double SHFeature::get_retention_time_END()
+  {
+    return TR_END;
+  }
+
+  void SHFeature::set_retention_time_END(double IN)
+  {
+    TR_END = IN;
+  }
+
+  // original mz and Tr coordinates
+  double SHFeature::get_raw_retention_time_apex()
+  {
+    return TR_APEX;
+  }
+
+  void SHFeature::set_raw_retention_time_apex(double IN)
+  {
+    TR_APEX = IN;
+  }
+
+  double SHFeature::get_raw_MZ()
+  {
+    return MONO_MZ_ORIGINAL;
+  }
+
+  void SHFeature::set_raw_MZ(double IN)
+  {
+    MONO_MZ_ORIGINAL = IN;
+  }
+
+  // feature ID:
+  void SHFeature::set_feature_ID(int IN)
+  {
+    feature_ID = IN;
+  }
+
+  int SHFeature::get_feature_ID()
+  {
+    return feature_ID;
+  }
+
+  void SHFeature::set_spectrum_ID(int IN)
+  {
+    spectrum_ID = IN;
+    /*
+     if( MS2TraceFeature != NULL){
+     MS2TraceFeature.set
+     }
+     */
+  }
+
+  int SHFeature::get_spectrum_ID()
+  {
+    return spectrum_ID;
+  }
+
+  void SHFeature::set_MASTER_ID(int IN)
+  {
+    MASTER_ID = IN;
+  }
+
+  int SHFeature::get_MASTER_ID()
+  {
+    return MASTER_ID;
+  }
+
+  // get/set the peak score
+  double SHFeature::get_peak_score()
+  {
+    return PEAK_SCORE;
+  }
+
+  void SHFeature::set_peak_score(double in)
+  {
+    PEAK_SCORE = in;
+  }
+
+  // feature PI:
+  double SHFeature::get_FEATURE_PI()
+  {
+    return PI;
+  }
+
+  void SHFeature::set_FEATURE_PI(double IN)
+  {
+    PI = IN;
+  }
+
+  // LC elution profile
+  void SHFeature::setLCelutionProfile(FeatureLCProfile* IN)
+  {
+    LCprofile = IN;
+  }
+
+  FeatureLCProfile* SHFeature::getLCelutionProfile()
+  {
+    return LCprofile;
+  }
+
+  /////////////////////////////////////////////
+  // status if feature has been matched:
+  bool SHFeature::get_feature_match_status()
+  {
+    return feature_match_status;
+  }
+
+  void SHFeature::set_feature_match_status(bool IN)
+  {
+    feature_match_status = IN;
+  }
+
+  ///////////////////////////////////////////
+  // access the MS2 feature
+  void SHFeature::addMS2Feature(MS2Feature* in)
+  {
+    MS2TraceFeature = new MS2Feature(in);
+  }
+
+  void SHFeature::removeMS2Feature()
+  {
+    delete MS2TraceFeature; MS2TraceFeature = NULL;
+  }
+
+  MS2Feature* SHFeature::getMS2Feature()
+  {
+    return MS2TraceFeature;
+  }
+
+  double SHFeature::getSignalToNoise()
+  {
+    return SignalToNoise;
+  }
+
+  void SHFeature::setSignalToNoise(double in)
+  {
+    SignalToNoise = in;
+  }
+
+  double SHFeature::getBackgroundNoiseLevel()
+  {
+    return BackgroundNoise;
+  }
+
+  void SHFeature::setBackgroundNoiseLevel(double in)
+  {
+    BackgroundNoise = in;
+  }
+
+  double SHFeature::get_MONO_H()
+  {
+    return _MONO_H;
+  }
 
 }

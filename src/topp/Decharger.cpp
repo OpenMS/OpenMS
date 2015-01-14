@@ -114,7 +114,7 @@ protected:
     registerSubsection_("algorithm", "Feature decharging algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the FeatureDecharger param
     FeatureDeconvolution fdc;
@@ -123,7 +123,7 @@ protected:
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -134,7 +134,7 @@ protected:
     String outfile_p = getStringOption_("outpairs");
 
     FeatureDeconvolution fdc;
-    Param const & dc_param = getParam_().copy("algorithm:FeatureDeconvolution:", true);
+    Param const& dc_param = getParam_().copy("algorithm:FeatureDeconvolution:", true);
 
     writeDebug_("Parameters passed to Decharger", dc_param, 3);
 
@@ -187,7 +187,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPDecharger tool;
   return tool.main(argc, argv);

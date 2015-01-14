@@ -46,7 +46,7 @@
 
   @param is The input stream to be parsed.
 */
-void OpenMS::ims::IMSAlphabetTextParser::parse(std::istream & is)
+void OpenMS::ims::IMSAlphabetTextParser::parse(std::istream& is)
 {
   // first make sure the store is empty
   elements_.clear();
@@ -59,7 +59,7 @@ void OpenMS::ims::IMSAlphabetTextParser::parse(std::istream & is)
     std::string::size_type i = line.find_first_not_of(delimits);
     if (i == std::string::npos || comments.find(line[i]) != std::string::npos)
     {
-      continue;       // skip comment lines
+      continue; // skip comment lines
     }
     std::istringstream input(line);
     input >> name >> mass;

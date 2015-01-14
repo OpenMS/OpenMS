@@ -85,7 +85,7 @@ namespace OpenMS
     return metadata_only_;
   }
 
-  void FeatureFileOptions::setRTRange(const DRange<1> & range)
+  void FeatureFileOptions::setRTRange(const DRange<1>& range)
   {
     rt_range_ = range;
     has_rt_range_ = true;
@@ -96,12 +96,12 @@ namespace OpenMS
     return has_rt_range_;
   }
 
-  const DRange<1> & FeatureFileOptions::getRTRange() const
+  const DRange<1>& FeatureFileOptions::getRTRange() const
   {
     return rt_range_;
   }
 
-  void FeatureFileOptions::setMZRange(const DRange<1> & range)
+  void FeatureFileOptions::setMZRange(const DRange<1>& range)
   {
     mz_range_ = range;
     has_mz_range_ = true;
@@ -111,7 +111,7 @@ namespace OpenMS
   {
     return has_mz_range_;
   }
-  
+
   bool FeatureFileOptions::getSizeOnly() const
   {
     return size_only_;
@@ -121,13 +121,13 @@ namespace OpenMS
   {
     size_only_ = size_only;
   }
-  
-  const DRange<1> & FeatureFileOptions::getMZRange() const
+
+  const DRange<1>& FeatureFileOptions::getMZRange() const
   {
     return mz_range_;
   }
 
-  void FeatureFileOptions::setIntensityRange(const DRange<1> & range)
+  void FeatureFileOptions::setIntensityRange(const DRange<1>& range)
   {
     intensity_range_ = range;
     has_intensity_range_ = true;
@@ -138,7 +138,7 @@ namespace OpenMS
     return has_intensity_range_;
   }
 
-  const DRange<1> & FeatureFileOptions::getIntensityRange() const
+  const DRange<1>& FeatureFileOptions::getIntensityRange() const
   {
     return intensity_range_;
   }

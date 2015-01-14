@@ -54,7 +54,7 @@ namespace OpenMS
            peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
       if (pep_it->getHits().empty())
-        continue; // shouldn't be the case
+        continue;  // shouldn't be the case
       annotations_.insert(pep_it->getHits()[0].getSequence());
     }
   }

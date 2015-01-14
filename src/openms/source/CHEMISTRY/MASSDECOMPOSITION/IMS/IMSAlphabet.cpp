@@ -50,7 +50,7 @@ namespace OpenMS
   namespace ims
   {
 
-    const IMSAlphabet::name_type & IMSAlphabet::getName(size_type index) const
+    const IMSAlphabet::name_type& IMSAlphabet::getName(size_type index) const
     {
       return getElement(index).getName();
     }
@@ -60,19 +60,19 @@ namespace OpenMS
       return getElement(index).getMass();
     }
 
-    IMSAlphabet::mass_type IMSAlphabet::getMass(const name_type & name) const
+    IMSAlphabet::mass_type IMSAlphabet::getMass(const name_type& name) const
     {
       return getElement(name).getMass();
     }
 
-    bool IMSAlphabet::hasName(const name_type & name) const
+    bool IMSAlphabet::hasName(const name_type& name) const
     {
       return std::find_if(elements_.begin(), elements_.end(),
                           unaryCompose(std::bind2nd(std::equal_to<name_type>(), name),
                                        std::mem_fun_ref(&element_type::getName))) < elements_.end();
     }
 
-    const IMSAlphabet::element_type & IMSAlphabet::getElement(const name_type & name) const
+    const IMSAlphabet::element_type& IMSAlphabet::getElement(const name_type& name) const
     {
       const_iterator cit = elements_.begin();
       for (; cit != elements_.end(); ++cit)
@@ -85,7 +85,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, name + " was not found in IMSAlphabet!", String(name));
     }
 
-    void IMSAlphabet::setElement(const name_type & name, mass_type mass, bool forced)
+    void IMSAlphabet::setElement(const name_type& name, mass_type mass, bool forced)
     {
       bool found = false;
       for (size_type i = 0; i < elements_.size(); ++i)
@@ -104,7 +104,7 @@ namespace OpenMS
       }
     }
 
-    bool IMSAlphabet::erase(const name_type & name)
+    bool IMSAlphabet::erase(const name_type& name)
     {
       bool found = false;
       iterator it = elements_.begin();
@@ -156,12 +156,12 @@ namespace OpenMS
       std::sort(elements_.begin(), elements_.end(), MassSortingCriteria_());
     }
 
-    void IMSAlphabet::load(const std::string & fname)
+    void IMSAlphabet::load(const std::string& fname)
     {
       this->load(fname, new IMSAlphabetTextParser);
     }
 
-    void IMSAlphabet::load(const std::string & fname, IMSAlphabetParser<> * parser)
+    void IMSAlphabet::load(const std::string& fname, IMSAlphabetParser<>* parser)
     {
       parser->load(fname);
       this->clear();
@@ -174,7 +174,7 @@ namespace OpenMS
       this->sortByValues();
     }
 
-    std::ostream & operator<<(std::ostream & os, const IMSAlphabet & alphabet)
+    std::ostream& operator<<(std::ostream& os, const IMSAlphabet& alphabet)
     {
       for (IMSAlphabet::size_type i = 0; i < alphabet.size(); ++i)
       {

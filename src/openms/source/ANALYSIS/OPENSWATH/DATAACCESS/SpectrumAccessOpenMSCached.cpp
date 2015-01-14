@@ -48,7 +48,7 @@ namespace OpenMS
     CachedmzML cache;
     cache.createMemdumpIndex(filename_cached_);
     spectra_index_ = cache.getSpectraIndex();
-    chrom_index_ = cache.getChromatogramIndex();;
+    chrom_index_ = cache.getChromatogramIndex();
 
     // open the filestream
     ifs_.open(filename_cached_.c_str(), std::ios::binary);
@@ -62,7 +62,7 @@ namespace OpenMS
     ifs_.close();
   }
 
-  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs) :
+  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached& rhs) :
     meta_ms_experiment_(rhs.meta_ms_experiment_),
     ifs_(rhs.filename_cached_.c_str(), std::ios::binary),
     filename_(rhs.filename_),
@@ -71,24 +71,24 @@ namespace OpenMS
   {
   }
 
-  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSCached::lightClone() const 
+  boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMSCached::lightClone() const
   {
     return boost::shared_ptr<SpectrumAccessOpenMSCached>(new SpectrumAccessOpenMSCached(*this));
   }
 
-  OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) 
+  OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id)
   {
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     int ms_level = -1;
     double rt = -1.0;
 
-    if ( !ifs_.seekg(spectra_index_[id]) )
+    if (!ifs_.seekg(spectra_index_[id]))
     {
       std::cerr << "Error while reading spectrum " << id << " - seekg created an error when trying to change position to " << spectra_index_[id] << "." << std::endl;
       std::cerr << "Maybe an invalid position was supplied to seekg, this can happen for example when reading large files (>2GB) on 32bit systems." << std::endl;
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Error while changing position of input stream pointer.", filename_cached_);
+                                  "Error while changing position of input stream pointer.", filename_cached_);
     }
 
     CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
@@ -107,17 +107,17 @@ namespace OpenMS
     return meta;
   }
 
-  OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id) 
+  OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id)
   {
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
 
-    if ( !ifs_.seekg(chrom_index_[id]) )
+    if (!ifs_.seekg(chrom_index_[id]))
     {
       std::cerr << "Error while reading chromatogram " << id << " - seekg created an error when trying to change position to " << chrom_index_[id] << "." << std::endl;
       std::cerr << "Maybe an invalid position was supplied to seekg, this can happen for example when reading large files (>2GB) on 32bit systems." << std::endl;
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Error while changing position of input stream pointer.", filename_cached_);
+                                  "Error while changing position of input stream pointer.", filename_cached_);
     }
 
     CachedmzML::readChromatogramFast(rt_array, intensity_array, ifs_);

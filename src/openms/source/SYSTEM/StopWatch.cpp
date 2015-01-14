@@ -100,7 +100,7 @@ namespace OpenMS
 #endif
   }
 
-  StopWatch::StopWatch(const StopWatch & stop_watch) :
+  StopWatch::StopWatch(const StopWatch& stop_watch) :
     is_running_(stop_watch.is_running_),
     start_secs_(stop_watch.start_secs_),
     start_usecs_(stop_watch.start_usecs_),
@@ -378,7 +378,7 @@ namespace OpenMS
     return (double)(temp_value / 1000000.0);
   }
 
-  StopWatch & StopWatch::operator=(const StopWatch & stop_watch)
+  StopWatch& StopWatch::operator=(const StopWatch& stop_watch)
   {
     if (this == &stop_watch)
     {
@@ -398,7 +398,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool StopWatch::operator==(const StopWatch & stop_watch) const
+  bool StopWatch::operator==(const StopWatch& stop_watch) const
   {
     return start_secs_ == stop_watch.start_secs_
            && start_usecs_ == stop_watch.start_usecs_
@@ -410,7 +410,6 @@ namespace OpenMS
            && current_system_time_ == stop_watch.current_system_time_;
   }
 
-
   String StopWatch::toString(double time)
   {
     int d(0), h(0), m(0);
@@ -419,19 +418,19 @@ namespace OpenMS
     TimeType time_i = (TimeType) time; // trunc to integer
 
     // compute days
-    d = int(time_i / (3600*24));
-    time_i -= d*(3600*24);
-    time -= d*(3600*24);
+    d = int(time_i / (3600 * 24));
+    time_i -= d * (3600 * 24);
+    time -= d * (3600 * 24);
 
     // hours
     h = int(time_i / 3600);
-    time_i -= h*3600;
-    time -= h*3600;
+    time_i -= h * 3600;
+    time -= h * 3600;
 
     // minutes
     m = int(time_i / 60);
-    time_i -= m*60;
-    time -= m*60;
+    time_i -= m * 60;
+    time -= m * 60;
 
     s_single = time;
     s = (double) time_i;
@@ -440,14 +439,14 @@ namespace OpenMS
     String s_d = String(d);
     String s_h = String(h).fillLeft('0', 2) + ":";
     String s_m = String(m).fillLeft('0', 2) + ":";
-    String s_s = String(s).fillLeft('0', 2); // if we show seconds in combination with minutes, we round to nominal 
+    String s_s = String(s).fillLeft('0', 2); // if we show seconds in combination with minutes, we round to nominal
 
     String s_s_single = String::number(s_single, 2); // second (shown by itself with no minutes) has two digits after decimal
 
-    return ( (d>0 ? s_d + "d " + s_h + s_m + s_s + " h" :
-             (h>0 ?              s_h + s_m + s_s + " h" :
-             (m>0 ?                    s_m + s_s + " m" :
-             (                        s_s_single + " s")))));
+    return (d > 0 ? s_d + "d " + s_h + s_m + s_s + " h" :
+            (h > 0 ? s_h + s_m + s_s + " h" :
+             (m > 0 ? s_m + s_s + " m" :
+               (s_s_single + " s"))));
 
   }
 

@@ -470,9 +470,9 @@ protected:
     setValidStrings_("enzyme:name", enzymes);
 
     registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
-                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
-                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
-                          "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
+                                                                                               "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage sites must match."
+                                                                                                                                                     "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage sites must match."
+                                                                                                                                                                                                           "\n  '" + EnzymaticDigestion::NamesOfSpecificity[2] + "': allow all peptide hits no matter their context. Therefore, the enzyme chosen does not play a role here", false);
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
     setValidStrings_("enzyme:specificity", spec);
@@ -905,7 +905,7 @@ protected:
       {
         const String& acc = p_hit->getAccession();
         if (acc_to_prot.has(acc) // accession needs to exist in new FASTA file
-            && masterset.find(acc_to_prot[acc]) != masterset.end())
+           && masterset.find(acc_to_prot[acc]) != masterset.end())
         { // this accession was there already
           new_protein_hits.push_back(*p_hit);
           String seq;

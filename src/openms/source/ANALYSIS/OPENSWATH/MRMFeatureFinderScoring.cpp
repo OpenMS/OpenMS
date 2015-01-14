@@ -264,8 +264,8 @@ namespace OpenMS
       imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
 
       LOG_DEBUG << "scoring feature " << (*mrmfeature) << " == " << mrmfeature->getMetaValue("PeptideRef") <<
-        " [ expected RT " << PeptideRefMap_[mrmfeature->getMetaValue("PeptideRef")]->rt << " / " << expected_rt << " ]" <<
-        " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
+      " [ expected RT " << PeptideRefMap_[mrmfeature->getMetaValue("PeptideRef")]->rt << " / " << expected_rt << " ]" <<
+      " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
 
       int group_size = boost::numeric_cast<int>(transition_group.size());
       if (group_size == 0)
@@ -402,7 +402,7 @@ namespace OpenMS
       }
       pep_hit_.setSequence(AASequence::fromString(pep->sequence));
 
-      // set protein accession numbers 
+      // set protein accession numbers
       for (Size k = 0; k < pep->protein_refs.size(); k++)
       {
         PeptideEvidence pe;
@@ -508,7 +508,7 @@ namespace OpenMS
       if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
       {
         std::cerr << "Error: Transition " + transition->getNativeID() + " from group " +
-          transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
+        transition->getPeptideRef() + " does not have a corresponding chromatogram" << std::endl;
         if (strict_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -546,7 +546,7 @@ namespace OpenMS
       if (chromatogram.empty())
       {
         std::cerr << "Error: Could not find any points for chromatogram " + transition->getNativeID() + \
-          ". Maybe your retention time transformation is off?" << std::endl;
+        ". Maybe your retention time transformation is off?" << std::endl;
         if (strict_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -588,4 +588,3 @@ namespace OpenMS
   }
 
 }
-

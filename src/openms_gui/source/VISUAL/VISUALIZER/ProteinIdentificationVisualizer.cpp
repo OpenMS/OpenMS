@@ -50,7 +50,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget * parent, MetaDataBrowser * caller) :
+  ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget* parent, MetaDataBrowser* caller) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<ProteinIdentification>()
   {
@@ -80,14 +80,14 @@ namespace OpenMS
 
     addSeparator_();
     addLabel_("Show protein hits with score equal or better than a threshold.");
-    QPushButton * button;
+    QPushButton* button;
     addLineEditButton_("Score threshold", filter_threshold_, button, "Filter");
     connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()));
 
     finishAdding_();
   }
 
-  void ProteinIdentificationVisualizer::load(ProteinIdentification & s, int tree_item_id)
+  void ProteinIdentificationVisualizer::load(ProteinIdentification& s, int tree_item_id)
   {
     ptr_ = &s;
     temp_ = s;
@@ -153,7 +153,7 @@ namespace OpenMS
       date.set(identification_date_->text());
       ptr_->setDateTime(date);
     }
-    catch (exception & /*e*/)
+    catch (exception& /*e*/)
     {
       if (date.isNull())
       {

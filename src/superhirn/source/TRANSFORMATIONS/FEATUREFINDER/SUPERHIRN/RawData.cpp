@@ -65,8 +65,8 @@ namespace OpenMS
 // Operators
 
 // Writes data to out stream using the << operator
-  ostream & operator<<(ostream & pOut, // output stream
-                       RawData & pRawData) //
+  ostream& operator<<(ostream& pOut, // output stream
+                      RawData& pRawData)   //
   {
     vector<double> m, h;
     vector<double>::iterator mi, hi;

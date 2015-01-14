@@ -47,12 +47,12 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions & DTA2DFile::getOptions()
+  PeakFileOptions& DTA2DFile::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions & DTA2DFile::getOptions() const
+  const PeakFileOptions& DTA2DFile::getOptions() const
   {
     return options_;
   }

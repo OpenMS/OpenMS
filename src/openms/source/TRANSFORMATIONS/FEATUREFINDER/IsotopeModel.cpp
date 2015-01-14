@@ -71,7 +71,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IsotopeModel::IsotopeModel(const IsotopeModel & source) :
+  IsotopeModel::IsotopeModel(const IsotopeModel& source) :
     InterpolationModel(source)
   {
     setParameters(source.getParameters());
@@ -82,7 +82,7 @@ namespace OpenMS
   {
   }
 
-  IsotopeModel & IsotopeModel::operator=(const IsotopeModel & source)
+  IsotopeModel& IsotopeModel::operator=(const IsotopeModel& source)
   {
     if (&source == this)
       return *this;
@@ -119,12 +119,12 @@ namespace OpenMS
     return EmpiricalFormula(form);
   }
 
-  const IsotopeDistribution & IsotopeModel::getIsotopeDistribution() const
+  const IsotopeDistribution& IsotopeModel::getIsotopeDistribution() const
   {
     return isotope_distribution_;
   }
 
-  void IsotopeModel::setSamples(const EmpiricalFormula & formula)
+  void IsotopeModel::setSamples(const EmpiricalFormula& formula)
   {
     typedef std::vector<double> ContainerType;
     ContainerType isotopes_exact;
@@ -169,7 +169,7 @@ namespace OpenMS
     if (param_.getValue("isotope:mode:mode") == "Gaussian")
     {
       // Actual width for values in the smooth table for normal distribution
-      peak_width = isotope_stdev_ * 4.0;  // MAGIC alert, num stdev for smooth table for normal distribution
+      peak_width = isotope_stdev_ * 4.0; // MAGIC alert, num stdev for smooth table for normal distribution
       ContainerType peak_shape_values_x;
       for (double coord = -peak_width; coord <= peak_width;
            coord += interpolation_step_)
@@ -198,9 +198,9 @@ namespace OpenMS
     ///
     // fold the Gaussian/Lorentzian at each averagine peak, i.e. fill linear interpolation
     ///
-    const ContainerType & left = isotopes_exact;
-    const ContainerType & right = peak_shape_values_y;
-    ContainerType & result = interpolation_.getData();
+    const ContainerType& left = isotopes_exact;
+    const ContainerType& right = peak_shape_values_y;
+    ContainerType& result = interpolation_.getData();
     result.clear();
 
     SignedSize r_max = std::min(SignedSize(left.size() + right.size() - 1),

@@ -123,7 +123,7 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return ConsensusID().getDefaults();
   }
@@ -147,7 +147,7 @@ protected:
     registerSubsection_("algorithm", "Consensus algorithm section");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     FileTypes::Type in_type = FileHandler::getType(in);
@@ -186,7 +186,7 @@ protected:
       for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
       {
         pep_id_it->assignRanks();
-        PeptideIdentification pep_copy = *pep_id_it;             // copy, for modifying it later
+        PeptideIdentification pep_copy = *pep_id_it; // copy, for modifying it later
         String file_origin = (String)pep_id_it->getMetaValue("file_origin");
         String scoring = (String)pep_id_it->getIdentifier();
 
@@ -263,7 +263,7 @@ protected:
             }
             //cout << pep_id_it->getIdentifier() << endl;
           }
-          if (hits.size()==0) continue; // hit did not pass the filter
+          if (hits.size() == 0) continue;  // hit did not pass the filter
           pep_copy.setHits(hits);
           tmp.ids.push_back(pep_copy);
           prec_data.push_back(tmp);
@@ -388,7 +388,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPConsensusID tool;
   return tool.main(argc, argv);

@@ -170,7 +170,7 @@ namespace OpenMS
     defaults_.setMinInt("deconvolution:fitting:max_iteration", 1);
 
     //this->subsections_.push_back("SignalToNoiseEstimationParameter");
-    SignalToNoiseEstimatorMeanIterative<MSSpectrum<> > sne;      // make sure this is the same as in pick()!
+    SignalToNoiseEstimatorMeanIterative<MSSpectrum<> > sne; // make sure this is the same as in pick()!
     Param param_sne_defaults =  sne.getDefaults();
     Param::ParamIterator param_it = param_sne_defaults.begin();
     for (; param_it != param_sne_defaults.end(); ++param_it)
@@ -222,8 +222,8 @@ namespace OpenMS
   bool PeakPickerCWT::getMaxPosition_
     (PeakIterator first,
     PeakIterator last,
-    const ContinuousWaveletTransform & wt,
-    PeakArea_ & area,
+    const ContinuousWaveletTransform& wt,
+    PeakArea_& area,
     Int distance_from_scan_border,
     Int ms_level,
     double peak_bound_cwt,
@@ -322,10 +322,10 @@ namespace OpenMS
 
   bool PeakPickerCWT::getPeakEndPoints_(PeakIterator first,
                                         PeakIterator last,
-                                        PeakArea_ & area,
+                                        PeakArea_& area,
                                         Int distance_from_scan_border,
-                                        Int & peak_left_index,
-                                        Int & peak_right_index, ContinuousWaveletTransformNumIntegration & wt)
+                                        Int& peak_left_index,
+                                        Int& peak_right_index, ContinuousWaveletTransformNumIntegration& wt)
   {
     // the Maximum may neither be the first or last point in the signal
     if ((area.max <= first) || (area.max >= last - 1))
@@ -372,7 +372,7 @@ namespace OpenMS
             break;
           }
           // now check the value to the left of the problematic value
-          if ((it_help - 2)->getIntensity() > (it_help - 1)->getIntensity())                   // we probably ran into another peak
+          if ((it_help - 2)->getIntensity() > (it_help - 1)->getIntensity()) // we probably ran into another peak
           {
 #ifdef DEBUG_PEAK_PICKING
             std::cout << "((it_help-2)->getIntensity() > (it_help-1)->getIntensity()"  << std::endl;
@@ -464,7 +464,7 @@ namespace OpenMS
             break;
           }
           // now check the value to the right of the problematic value
-          if ((it_help + 2)->getIntensity() > (it_help + 1)->getIntensity())                   // we probably ran into another peak
+          if ((it_help + 2)->getIntensity() > (it_help + 1)->getIntensity()) // we probably ran into another peak
           {
 #ifdef DEBUG_PEAK_PICKING
             std::cout << "(it_help+2)->getIntensity() > (it_help+1)->getIntensity())"  << std::endl;
@@ -552,7 +552,7 @@ namespace OpenMS
     return false;
   }
 
-  void PeakPickerCWT::getPeakCentroid_(PeakArea_ & area)
+  void PeakPickerCWT::getPeakCentroid_(PeakArea_& area)
   {
     PeakIterator left_it = area.max - 1, right_it = area.max;
     double max_intensity = area.max->getIntensity();
@@ -593,7 +593,7 @@ namespace OpenMS
     return height / (1 + pow(lambda * (x - pos), 2));
   }
 
-  void PeakPickerCWT::initializeWT_(ContinuousWaveletTransformNumIntegration & wt, double & peak_bound_cwt, double & peak_bound_ms2_level_cwt)
+  void PeakPickerCWT::initializeWT_(ContinuousWaveletTransformNumIntegration& wt, double& peak_bound_cwt, double& peak_bound_ms2_level_cwt)
   {
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "PeakPickerCWT<D>::initialize_ peak_bound_" << peak_bound_ <<  std::endl;
@@ -668,7 +668,7 @@ namespace OpenMS
 
   }
 
-  void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_ & area, double & area_left, double & area_right)
+  void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_& area, double& area_left, double& area_right)
   {
     area_left += area.left->getIntensity() * ((area.left + 1)->getMZ() - area.left->getMZ()) * 0.5;
     area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max - 1)->getMZ()) * 0.5;
@@ -690,7 +690,7 @@ namespace OpenMS
   }
 
   PeakShape PeakPickerCWT::fitPeakShape_
-    (const PeakPickerCWT::PeakArea_ & area,
+    (const PeakPickerCWT::PeakArea_& area,
     bool enable_centroid_fit)
   {
 
@@ -799,9 +799,9 @@ namespace OpenMS
       }
 
       double left_width =    height / peak_area_left
-                              * atan(sqrt(height / area.left->getIntensity() - 1.));
+                          * atan(sqrt(height / area.left->getIntensity() - 1.));
       double right_width =  height / peak_area_right
-                               * atan(sqrt(height / area.right->getIntensity() - 1.));
+                           * atan(sqrt(height / area.right->getIntensity() - 1.));
 
 
       // TODO: test different heights; recompute widths; compute area
@@ -848,8 +848,8 @@ namespace OpenMS
 
       // first the Lorentz peak ...
       // (see equation 8.14 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*arctan(...) )
-      double left_width = max_intensity / peak_area_left * atan(sqrt(max_intensity / left_intensity - 1.));
-      double right_width = max_intensity / peak_area_right * atan(sqrt(max_intensity / right_intensity - 1.));
+      double left_width = max_intensity / peak_area_left* atan(sqrt(max_intensity / left_intensity - 1.));
+      double right_width = max_intensity / peak_area_right* atan(sqrt(max_intensity / right_intensity - 1.));
 
       PeakShape lorentz(max_intensity, area.max->getMZ(),
                         left_width, right_width, peak_area_left + peak_area_right,
@@ -859,8 +859,8 @@ namespace OpenMS
 
       // now the Sech2 peak ...
       // (see equation 8.17 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*sqrt(...) )
-      left_width  = max_intensity / peak_area_left * sqrt(1. - left_intensity / max_intensity);
-      right_width  = max_intensity / peak_area_right * sqrt(1. - right_intensity / max_intensity);
+      left_width  = max_intensity / peak_area_left* sqrt(1. - left_intensity / max_intensity);
+      right_width  = max_intensity / peak_area_right* sqrt(1. - right_intensity / max_intensity);
 
       PeakShape sech(max_intensity, area.max->getMZ(),
                      left_width, right_width,
@@ -890,7 +890,7 @@ namespace OpenMS
     }
   }
 
-  bool PeakPickerCWT::deconvolutePeak_(PeakShape & shape, std::vector<PeakShape> & peak_shapes, double peak_bound_cwt)
+  bool PeakPickerCWT::deconvolutePeak_(PeakShape& shape, std::vector<PeakShape>& peak_shapes, double peak_bound_cwt)
   {
     // scaling for charge one
     float scaling_DC = (float) param_.getValue("deconvolution:scaling");
@@ -1027,7 +1027,7 @@ namespace OpenMS
 
   }
 
-  void PeakPickerCWT::addPeak_(std::vector<PeakShape> & peaks_DC, PeakArea_ & area, double left_width, double right_width, OptimizePeakDeconvolution::Data & data)
+  void PeakPickerCWT::addPeak_(std::vector<PeakShape>& peaks_DC, PeakArea_& area, double left_width, double right_width, OptimizePeakDeconvolution::Data& data)
   {
     // just enter a peak using equally spaced peak positions
 
@@ -1045,8 +1045,8 @@ namespace OpenMS
       peaks_DC[i].mz_position = area.left->getMZ() + dist / 2 + i * dist;
 
       std::vector<double>::iterator it_help = lower_bound(data.positions.begin(),
-                                                              data.positions.end(),
-                                                              peaks_DC[i].mz_position);
+                                                          data.positions.end(),
+                                                          peaks_DC[i].mz_position);
       if (it_help != data.positions.end())
       {
         peaks_DC[i].height =
@@ -1071,10 +1071,10 @@ namespace OpenMS
 
   Int PeakPickerCWT::getNumberOfPeaks_(ConstPeakIterator first,
                                        ConstPeakIterator last,
-                                       std::vector<double> & peak_values,
+                                       std::vector<double>& peak_values,
                                        Int direction,
                                        double resolution,
-                                       ContinuousWaveletTransformNumIntegration & wt,
+                                       ContinuousWaveletTransformNumIntegration& wt,
                                        double peak_bound_cwt)
   {
     double noise_level = peak_bound_;
@@ -1146,7 +1146,7 @@ namespace OpenMS
     return found;
   }
 
-  Int PeakPickerCWT::determineChargeState_(std::vector<double> & peak_values)
+  Int PeakPickerCWT::determineChargeState_(std::vector<double>& peak_values)
   {
     Int charge;
     Int peaks = (Int)peak_values.size() / 2;
@@ -1178,8 +1178,8 @@ namespace OpenMS
     return charge;
   }
 
-  double PeakPickerCWT::correlate_(const PeakShape & peak,
-                                   const PeakPickerCWT::PeakArea_ & area,
+  double PeakPickerCWT::correlate_(const PeakShape& peak,
+                                   const PeakPickerCWT::PeakArea_& area,
                                    Int direction) const
   {
     // compute the averages
@@ -1226,7 +1226,7 @@ namespace OpenMS
     return (SSxy * SSxy) / (SSxx * SSyy);
   }
 
-  void PeakPickerCWT::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
+  void PeakPickerCWT::pickExperiment(const MSExperiment<>& input, MSExperiment<>& output)
   {
     // if estimatePeakWidth-flag is set estimate it
     if (param_.getValue("estimate_peak_width") == "true")
@@ -1246,7 +1246,7 @@ namespace OpenMS
     output.clear(true);
 
     // copy the experimental settings
-    static_cast<ExperimentalSettings &>(output) = input;
+    static_cast<ExperimentalSettings&>(output) = input;
     output.resize(input.size());
     // pick peaks on each scan
     startProgress(0, input.size(), "picking peaks");
@@ -1263,7 +1263,7 @@ namespace OpenMS
 #pragma omp critical (PeakPickerCWT_PickExperiment)
 #endif
       {
-        setProgress(++progress);             //do not use 'i' here, as each thread will be assigned different blocks
+        setProgress(++progress); //do not use 'i' here, as each thread will be assigned different blocks
       }
     }
     //optimize peak positions
@@ -1277,7 +1277,7 @@ namespace OpenMS
 
   }
 
-  void PeakPickerCWT::pick(const MSSpectrum<> & input, MSSpectrum<> & output)
+  void PeakPickerCWT::pick(const MSSpectrum<>& input, MSSpectrum<>& output)
   {
     // copy the spectrum meta data
     output.clear(true);
@@ -1444,7 +1444,7 @@ namespace OpenMS
         it_pick_begin = area.right;
         distance_from_scan_border = distance(raw_peak_array.begin(), it_pick_begin);
 
-      }               //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt, area, distance_from_scan_border, ms_level, direction))
+      } //end while (getMaxPosition_(it_pick_begin, it_pick_end, wt, area, distance_from_scan_border, ms_level, direction))
       it_pick_begin = raw_peak_array.begin();
     }
     while (number_of_peaks != 0);
@@ -1633,10 +1633,10 @@ namespace OpenMS
 
         }
       }
-    }         // if (peak_shapes.size() > 0)
+    } // if (peak_shapes.size() > 0)
   }
 
-  double PeakPickerCWT::estimatePeakWidth(const MSExperiment<> & input)
+  double PeakPickerCWT::estimatePeakWidth(const MSExperiment<>& input)
   {
     // The peak widths which are tested
     // Note that the limit is 1 Da in Peak Width. The Wavelet has a certain tolerance, but very broad peaks (e.g. top-down MS) will not be found
@@ -1649,7 +1649,7 @@ namespace OpenMS
     Param p_backup = param_;
 
     // use a high S/N to ensure we only look at high peaks.. low noise peaks might distort the FWHM
-    param_.setValue("signal_to_noise", 10); 
+    param_.setValue("signal_to_noise", 10);
 
     // determine spectrum used for estimation
     // use the one with the highest tic
@@ -1664,7 +1664,7 @@ namespace OpenMS
 
     // now sort the index_tic_vec according to tic and get the three highest spectra
     sort(index_tic_vec.begin(), index_tic_vec.end(), PairComparatorSecondElement<std::pair<Size, double> >());
-    
+
     std::vector<double> best_FWHMs;
     for (Size i = 0; i < 3 && i < index_tic_vec.size(); ++i)
     {
@@ -1734,7 +1734,7 @@ namespace OpenMS
         }
         if (min_found && slopes[s] / m_min < 0.5)
         {
-          double pw = observed_FWHM[s+1];
+          double pw = observed_FWHM[s + 1];
 #ifdef DEBUG_PEAK_PICKING2
           std::cout << "peak_width = " << pw << std::endl;
 #endif
@@ -1748,7 +1748,7 @@ namespace OpenMS
     if (best_FWHMs.empty())
     {
       std::cout << "Could not estimate peak width!" << std::endl;
-    } 
+    }
     else
     {
       for (Size s = 0; s < best_FWHMs.size(); ++s)
@@ -1761,7 +1761,7 @@ namespace OpenMS
     }
 
     // restore old param set
-    param_ = p_backup; 
+    param_ = p_backup;
 
     return avg_width;
   }

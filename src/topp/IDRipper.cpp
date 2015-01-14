@@ -53,7 +53,7 @@ using namespace OpenMS;
   @page TOPP_IDRipper IDRipper
 
   @brief IDRipper splits the protein/peptide identification of an idXML file into several idXML files according their annotated file origin.
- 
+
   <center>
   <table>
   <tr>
@@ -67,7 +67,7 @@ using namespace OpenMS;
   </tr>
   </table>
   </center>
- 
+
   <B>Example</B>
 
   <p>Assuming each peptide identification in a given idXML-file is annotated with its file origin (e.g. IDRipper_test.idXML) :</p>
@@ -114,7 +114,7 @@ protected:
     registerStringOption_("out_path", "<file>", "", "Directory for the idXML-files after ripping according file_origin tag. If out_path is set, out is ignored.", false, false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -178,7 +178,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDRipper tool;
   return tool.main(argc, argv);

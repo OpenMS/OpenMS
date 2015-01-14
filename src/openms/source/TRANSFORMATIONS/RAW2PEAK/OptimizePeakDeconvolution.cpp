@@ -214,10 +214,12 @@ namespace OpenMS
             double denom_inv = 1. / (1. + pow(p_width * diff, 2));
 
             double ddl_left
-              = (current_position <= p_position) ? -2* p_height* pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+              = (current_position <= p_position) ? -2* p_height* pow(diff, 2) * p_width * pow(denom_inv, 2) :
+                  0;
 
             double ddl_right
-              = (current_position  > p_position) ? -2* p_height* pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+              = (current_position  > p_position) ? -2* p_height* pow(diff, 2) * p_width * pow(denom_inv, 2) :
+                  0;
 
             // left and right width are the same for all peaks,
             // the sums of the derivations over all peaks are stored in the first two columns
@@ -244,10 +246,10 @@ namespace OpenMS
 
             double ddl_left  = (current_position <= p_position)
                                ? -2* p_height* sinh_term* diff* pow(denom_inv, 3) :
-                               0;
+                                 0;
             double ddl_right = (current_position  > p_position)
                                ? -2* p_height* sinh_term* diff* pow(denom_inv, 3) :
-                               0;
+                                 0;
 
             J(current_point, 0) = J(current_point, 0) + ddl_left;
             J(current_point, 1) = J(current_point, 1) + ddl_right;
@@ -497,22 +499,22 @@ namespace OpenMS
         if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
         {
           PeakShape p = peaks[current_peak];
-          double x_left_endpoint = p.mz_position + 1 / p.left_width * sqrt(p.height / 1 - 1);
-          double x_right_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
+          double x_left_endpoint = p.mz_position + 1 / p.left_width* sqrt(p.height / 1 - 1);
+          double x_right_endpoint = p.mz_position + 1 / p.right_width* sqrt(p.height / 1 - 1);
 #ifdef DEBUG_DECONV
           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
           std::cout << "p.height" << p.height << std::endl;
 #endif
-          double area_left = -p.height / p.left_width * atan(p.left_width * (x_left_endpoint - p.mz_position));
-          double area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_right_endpoint));
+          double area_left = -p.height / p.left_width* atan(p.left_width * (x_left_endpoint - p.mz_position));
+          double area_right = -p.height / p.right_width* atan(p.right_width * (p.mz_position - x_right_endpoint));
           peaks[current_peak].area = area_left + area_right;
 
         }
         else                   //It's a Sech - Peak
         {
           PeakShape p = peaks[current_peak];
-          double x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-          double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+          double x_left_endpoint = p.mz_position + 1 / p.left_width* boost::math::acosh(sqrt(p.height / 0.001));
+          double x_right_endpoint = p.mz_position + 1 / p.right_width* boost::math::acosh(sqrt(p.height / 0.001));
 #ifdef DEBUG_DECONV
           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
           std::cout << "p.height" << p.height << std::endl;

@@ -38,12 +38,12 @@ using namespace std;
 
 namespace OpenMS
 {
-    
-  MinimumDistance::MinimumDistance(const int &cluster_index, const int &nearest_neighbour_index, const double &distance)
-  :cluster_index_(cluster_index), nearest_neighbour_index_(nearest_neighbour_index), distance_(distance)
+
+  MinimumDistance::MinimumDistance(const int& cluster_index, const int& nearest_neighbour_index, const double& distance) :
+    cluster_index_(cluster_index), nearest_neighbour_index_(nearest_neighbour_index), distance_(distance)
   {
   }
-  
+
   int MinimumDistance::getClusterIndex() const
   {
     return cluster_index_;
@@ -51,19 +51,19 @@ namespace OpenMS
 
   int MinimumDistance::getNearestNeighbourIndex() const
   {
-    return  nearest_neighbour_index_;
+    return nearest_neighbour_index_;
   }
 
   bool MinimumDistance::operator<(MinimumDistance other) const
   {
     return distance_ < other.distance_;
   }
-  
+
   bool MinimumDistance::operator>(MinimumDistance other) const
   {
     return distance_ > other.distance_;
   }
-  
+
   bool MinimumDistance::operator==(MinimumDistance other) const
   {
     return distance_ == other.distance_;

@@ -77,13 +77,13 @@ using namespace std;
     </CENTER>
 
     If there is a lot of verbose or deprecated information in the given qcml file at @p in that can be purged.
-    
+
     - @p qp_accessions A list of cv accessions that should be removed. If empty, the usual suspects will be removed.
     - @p run the file that defined the run under which the qp for the attachment is aggregated as MZML file. The file is only used to extract the run name from the file name;
     - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given;
-    
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
-    
+
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox).
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCShrinker.cli
     <B>INI file documentation of this tool:</B>
@@ -161,7 +161,7 @@ protected:
     {
       for (Size i = 0; i < qp_accs.size(); ++i)
       {
-        qcmlfile.removeAttachment(target_run,qp_accs[i]);
+        qcmlfile.removeAttachment(target_run, qp_accs[i]);
       }
     }
 

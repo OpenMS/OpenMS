@@ -42,7 +42,7 @@
 namespace OpenMS
 {
 
-  PeakWidthEstimator::PeakWidthEstimator(const MSExperiment<Peak1D> & exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > & boundaries)
+  PeakWidthEstimator::PeakWidthEstimator(const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries)
   {
     std::vector<double> peaks_mz;
     std::vector<double> peaks_width;
@@ -58,26 +58,26 @@ namespace OpenMS
            it_mz < it_rt->end() && it_mz_boundary < it_rt_boundaries->end();
            ++it_mz, ++it_mz_boundary)
       {
-          peaks_mz.push_back(it_mz->getMZ());
-          peaks_width.push_back((*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min);
+        peaks_mz.push_back(it_mz->getMZ());
+        peaks_width.push_back((*it_mz_boundary).mz_max - (*it_mz_boundary).mz_min);
       }
     }
 
     mz_min_ = peaks_mz.front();
     mz_max_ = peaks_mz.back();
-    bspline_ = new BSpline2d(peaks_mz, peaks_width, std::min(500.0, (mz_max_ - mz_min_)/2), BSpline2d::BC_ZERO_SECOND, 1);
-      
+    bspline_ = new BSpline2d(peaks_mz, peaks_width, std::min(500.0, (mz_max_ - mz_min_) / 2), BSpline2d::BC_ZERO_SECOND, 1);
+
     if (!(*bspline_).ok())
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unable to fit B-spline to data.", "");
     }
   }
-  
+
   PeakWidthEstimator::~PeakWidthEstimator()
   {
     delete bspline_;
   }
-  
+
   double PeakWidthEstimator::getPeakWidth(double mz)
   {
     double width;

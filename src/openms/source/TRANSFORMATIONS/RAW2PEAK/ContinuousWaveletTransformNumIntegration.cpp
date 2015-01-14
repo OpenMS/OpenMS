@@ -38,7 +38,7 @@
 namespace OpenMS
 {
   double ContinuousWaveletTransformNumIntegration::integrate_
-    (const std::vector<double> & processed_input,
+    (const std::vector<double>& processed_input,
     double spacing_data,
     int index)
   {

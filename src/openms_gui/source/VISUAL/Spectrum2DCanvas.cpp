@@ -70,7 +70,7 @@ namespace OpenMS
 {
   using namespace Internal;
 
-  Spectrum2DCanvas::Spectrum2DCanvas(const Param & preferences, QWidget * parent) :
+  Spectrum2DCanvas::Spectrum2DCanvas(const Param& preferences, QWidget* parent) :
     SpectrumCanvas(preferences, parent)
   {
     //Parameter handling
@@ -106,7 +106,7 @@ namespace OpenMS
   {
   }
 
-  void Spectrum2DCanvas::highlightPeak_(QPainter & painter, const PeakIndex & peak)
+  void Spectrum2DCanvas::highlightPeak_(QPainter& painter, const PeakIndex& peak)
   {
     if (!peak.isValid())
       return;
@@ -127,7 +127,7 @@ namespace OpenMS
     }
     else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
     {
-      const LayerData & layer = getCurrentLayer();
+      const LayerData& layer = getCurrentLayer();
       const ExperimentSharedPtrType exp = layer.getPeakData();
 
       // create iterator on chromatogram spectrum passed by PeakIndex
@@ -146,7 +146,7 @@ namespace OpenMS
 
     if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) // highlight: chromatogram
     {
-      const LayerData & layer = getCurrentLayer();
+      const LayerData& layer = getCurrentLayer();
       const ExperimentSharedPtrType exp = layer.getPeakData();
 
       vector<MSChromatogram<> >::const_iterator iter = exp->getChromatograms().begin();
@@ -163,7 +163,7 @@ namespace OpenMS
     painter.restore();
   }
 
-  PeakIndex Spectrum2DCanvas::findNearestPeak_(const QPoint & pos)
+  PeakIndex Spectrum2DCanvas::findNearestPeak_(const QPoint& pos)
   {
     ///no layers => return invalid peak index
     if (layers_.empty())
@@ -234,7 +234,7 @@ namespace OpenMS
     }
     else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
     {
-      const LayerData & layer = getCurrentLayer();
+      const LayerData& layer = getCurrentLayer();
 
       MSExperiment<Peak1D> exp;
       exp = *layer.getPeakData();
@@ -242,7 +242,7 @@ namespace OpenMS
 
       for (vector<MSChromatogram<> >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
       {
-        if (iter->empty()) {continue;} // ensure that empty chromatograms are not examined (iter->front = segfault)
+        if (iter->empty()) {continue; } // ensure that empty chromatograms are not examined (iter->front = segfault)
         MSChromatogram<>::ConstIterator cit = iter->begin();
 
         // for (MSChromatogram<>::ConstIterator cit = iter->begin(); cit != iter->end(); ++cit)
@@ -275,9 +275,9 @@ namespace OpenMS
     return max_pi;
   }
 
-  void Spectrum2DCanvas::paintDots_(Size layer_index, QPainter & painter)
+  void Spectrum2DCanvas::paintDots_(Size layer_index, QPainter& painter)
   {
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
 
     //update factors (snap and percentage)
     double snap_factor = snap_factors_[layer_index];
@@ -306,10 +306,10 @@ namespace OpenMS
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
 
-    if (layer.type == LayerData::DT_PEAK)   //peaks
+    if (layer.type == LayerData::DT_PEAK) //peaks
     {
       // renaming some values for readability
-      const ExperimentType & peak_map = *layer.getPeakData();
+      const ExperimentType& peak_map = *layer.getPeakData();
       const double rt_min = visible_area_.minPosition()[1];
       const double rt_max = visible_area_.maxPosition()[1];
       const double mz_min = visible_area_.minPosition()[0];
@@ -415,9 +415,9 @@ namespace OpenMS
         double pixel_height = abs(p1.y() - p2.y());
 
         // when data is zoomed in to single peaks these are visualized as circles
-        double pen_width = qMax( 1.0, isMzToXAxis()
-            ? min(pixel_width * min_spacing_mz, pixel_height * average_spacing_rt)
-            : min(pixel_width * average_spacing_rt, pixel_height * min_spacing_mz) );
+        double pen_width = qMax(1.0, isMzToXAxis()
+                                ? min(pixel_width * min_spacing_mz, pixel_height * average_spacing_rt)
+                                : min(pixel_width * average_spacing_rt, pixel_height * min_spacing_mz));
 
         // few data points expected: more expensive drawing of all datapoints (circles or points depending on zoom level)
         paintAllIntensities_(layer_index, pen_width, painter);
@@ -509,10 +509,10 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintPrecursorPeaks_(Size layer_index, QPainter & painter)
+  void Spectrum2DCanvas::paintPrecursorPeaks_(Size layer_index, QPainter& painter)
   {
-    const LayerData & layer = getLayer(layer_index);
-    const ExperimentType & peak_map = *layer.getPeakData();
+    const LayerData& layer = getLayer(layer_index);
+    const ExperimentType& peak_map = *layer.getPeakData();
 
     for (ExperimentType::ConstIterator i = peak_map.RTBegin(visible_area_.minPosition()[1]);
          i != peak_map.RTEnd(visible_area_.maxPosition()[1]);
@@ -522,14 +522,14 @@ namespace OpenMS
       if (i->getMSLevel() == 2 && !i->getPrecursors().empty())
       {
         QPoint pos_ms2;
-        dataToWidget_(i->getPrecursors()[0].getMZ(), i->getRT(), pos_ms2);   // position of precursor in MS2
+        dataToWidget_(i->getPrecursors()[0].getMZ(), i->getRT(), pos_ms2); // position of precursor in MS2
 
         ExperimentType::ConstIterator prec = peak_map.getPrecursorSpectrum(i);
 
         if (prec != peak_map.end())
         {
           QPoint pos_ms1;
-          dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(), pos_ms1);  // position of precursor in MS1
+          dataToWidget_(i->getPrecursors()[0].getMZ(), prec->getRT(), pos_ms1); // position of precursor in MS1
           QPen p;
           p.setColor(Qt::black);
           painter.setPen(p);
@@ -554,14 +554,14 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintAllIntensities_(Size layer_index, double pen_width, QPainter & painter)
+  void Spectrum2DCanvas::paintAllIntensities_(Size layer_index, double pen_width, QPainter& painter)
   {
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
-    QVector<QPolygon> coloredPoints( layer.gradient.precalculatedSize() );
+    QVector<QPolygon> coloredPoints(layer.gradient.precalculatedSize());
 
-    const ExperimentType & map = *layer.getPeakData();
+    const ExperimentType& map = *layer.getPeakData();
     const double rt_min = visible_area_.minPosition()[1];
     const double rt_max = visible_area_.maxPosition()[1];
     const double mz_min = visible_area_.minPosition()[0];
@@ -582,7 +582,7 @@ namespace OpenMS
         {
           // store point in the array of its color
           Int colorIndex = precalculatedColorIndex_(i->getIntensity(), layer.gradient, snap_factor);
-          coloredPoints[ colorIndex ].push_back( pos );
+          coloredPoints[colorIndex].push_back(pos);
         }
       }
     }
@@ -590,19 +590,21 @@ namespace OpenMS
     // avoiding low-intensity points obscuring the high-intensity ones
     painter.save();
     QPen newPointsPen;
-    newPointsPen.setWidthF( pen_width );
-    for ( Int colorIx = 0; colorIx < coloredPoints.size(); colorIx++ ) {
-        const QPolygon& pointsArr = coloredPoints[colorIx];
-        if ( pointsArr.size() ) {
-            newPointsPen.setColor( layer.gradient.precalculatedColorByIndex( colorIx ) );
-            painter.setPen( newPointsPen );
-            painter.drawPoints( pointsArr );
-        }
+    newPointsPen.setWidthF(pen_width);
+    for (Int colorIx = 0; colorIx < coloredPoints.size(); colorIx++)
+    {
+      const QPolygon& pointsArr = coloredPoints[colorIx];
+      if (pointsArr.size())
+      {
+        newPointsPen.setColor(layer.gradient.precalculatedColorByIndex(colorIx));
+        painter.setPen(newPointsPen);
+        painter.drawPoints(pointsArr);
+      }
     }
     painter.restore();
   }
 
-  void Spectrum2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter & painter)
+  void Spectrum2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter& painter)
   {
     //set painter to black (we operate directly on the pixels for all colored data)
     painter.setPen(Qt::black);
@@ -610,8 +612,8 @@ namespace OpenMS
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
 
-    const LayerData & layer = getLayer(layer_index);
-    const ExperimentType & map = *layer.getPeakData();
+    const LayerData& layer = getLayer(layer_index);
+    const ExperimentType& map = *layer.getPeakData();
     const double rt_min = visible_area_.minPosition()[1];
     const double rt_max = visible_area_.maxPosition()[1];
     const double mz_min = visible_area_.minPosition()[0];
@@ -637,7 +639,7 @@ namespace OpenMS
       {
         if (map[i].getRT() >= rt_end)
         {
-          scan_index = i;   //store last scan index for next RT pixel
+          scan_index = i; //store last scan index for next RT pixel
           break;
         }
         if (map[i].getMSLevel() == 1 && map[i].size() > 0)
@@ -675,7 +677,7 @@ namespace OpenMS
               max = map[s][p].getIntensity();
             }
           }
-          peak_indices[i] = p;   //store last peak index for next m/z pixel
+          peak_indices[i] = p; //store last peak index for next m/z pixel
         }
 
         //draw to buffer
@@ -758,7 +760,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintIcon_(const QPoint & pos, const QRgb & color, const String & icon, Size s, QPainter & p) const
+  void Spectrum2DCanvas::paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const
   {
     p.save();
     p.setPen(color);
@@ -799,11 +801,11 @@ namespace OpenMS
     p.restore();
   }
 
-  void Spectrum2DCanvas::paintTraceConvexHulls_(Size layer_index, QPainter & painter)
+  void Spectrum2DCanvas::paintTraceConvexHulls_(Size layer_index, QPainter& painter)
   {
     painter.setPen(Qt::black);
 
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
     for (FeatureMapType::ConstIterator i = layer.getFeatureMap()->begin(); i != layer.getFeatureMap()->end(); ++i)
     {
       if (i->getRT() >= visible_area_.minPosition()[1] &&
@@ -813,16 +815,16 @@ namespace OpenMS
           layer.filters.passes(*i)
           )
       {
-        bool hasIdentifications = i->getPeptideIdentifications().size()>0
-                               && i->getPeptideIdentifications()[0].getHits().size()>0;
+        bool hasIdentifications = i->getPeptideIdentifications().size() > 0
+                                  && i->getPeptideIdentifications()[0].getHits().size() > 0;
         paintConvexHulls_(i->getConvexHulls(), hasIdentifications, painter);
       }
     }
   }
 
-  void Spectrum2DCanvas::paintFeatureConvexHulls_(Size layer_index, QPainter & painter)
+  void Spectrum2DCanvas::paintFeatureConvexHulls_(Size layer_index, QPainter& painter)
   {
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
     for (FeatureMapType::ConstIterator i = layer.getFeatureMap()->begin(); i != layer.getFeatureMap()->end(); ++i)
     {
       if (i->getRT() >= visible_area_.minPosition()[1] &&
@@ -847,17 +849,17 @@ namespace OpenMS
           points.setPoint(index, pos);
         }
         //cout << "Hull: " << hull << " Points: " << points.size()<<endl;
-        bool hasIdentifications = i->getPeptideIdentifications().size()>0
-                               && i->getPeptideIdentifications()[0].getHits().size()>0;
-        painter.setPen( hasIdentifications ? Qt::darkGreen : Qt::darkBlue );
+        bool hasIdentifications = i->getPeptideIdentifications().size() > 0
+                                  && i->getPeptideIdentifications()[0].getHits().size() > 0;
+        painter.setPen(hasIdentifications ? Qt::darkGreen : Qt::darkBlue);
         painter.drawPolygon(points);
       }
     }
   }
 
-  void Spectrum2DCanvas::paintIdentifications_(Size layer_index, QPainter & painter)
+  void Spectrum2DCanvas::paintIdentifications_(Size layer_index, QPainter& painter)
   {
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
     vector<PeptideIdentification>::const_iterator pep_begin, pep_end;
     if (layer.type == LayerData::DT_FEATURE)
     {
@@ -906,7 +908,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D> & hulls, bool hasIdentifications, QPainter & painter)
+  void Spectrum2DCanvas::paintConvexHulls_(const vector<ConvexHull2D>& hulls, bool hasIdentifications, QPainter& painter)
   {
     QPolygon points;
 
@@ -925,14 +927,14 @@ namespace OpenMS
       }
       painter.setPen(QPen(Qt::white, 5, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin));
       painter.drawPolygon(points);
-      painter.setPen(QPen( hasIdentifications ? Qt::green : Qt::blue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+      painter.setPen(QPen(hasIdentifications ? Qt::green : Qt::blue, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
       painter.drawPolygon(points);
     }
   }
 
-  void Spectrum2DCanvas::paintConsensusElements_(Size layer_index, QPainter & p)
+  void Spectrum2DCanvas::paintConsensusElements_(Size layer_index, QPainter& p)
   {
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
 
     for (ConsensusMapType::ConstIterator i = layer.getConsensusMap()->begin(); i != layer.getConsensusMap()->end(); ++i)
     {
@@ -940,12 +942,12 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintConsensusElement_(Size layer_index, const ConsensusFeature & cf, QPainter & p, bool use_buffer)
+  void Spectrum2DCanvas::paintConsensusElement_(Size layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer)
   {
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
 
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
 
     if (isConsensusFeatureVisible_(cf, layer_index) && layer.filters.passes(cf))
     {
@@ -986,7 +988,7 @@ namespace OpenMS
 
   }
 
-  bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature & ce, Size layer_index)
+  bool Spectrum2DCanvas::isConsensusFeatureVisible_(const ConsensusFeature& ce, Size layer_index)
   {
     // check the centroid first
     if (ce.getRT() >= visible_area_.minPosition()[1] &&
@@ -1070,7 +1072,7 @@ namespace OpenMS
     }
 
     //try to find the right layer to project
-    const LayerData * layer = 0;
+    const LayerData* layer = 0;
     //first choice: current layer
     if (layer_count != 0 && getCurrentLayer().type == LayerData::DT_PEAK)
     {
@@ -1184,7 +1186,7 @@ namespace OpenMS
 
     current_layer_ = getLayerCount() - 1;
 
-    if (layers_.back().type == LayerData::DT_PEAK)   //peak data
+    if (layers_.back().type == LayerData::DT_PEAK) //peak data
     {
       update_buffer_ = true;
       //Abort if no data points are contained
@@ -1483,7 +1485,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintEvent(QPaintEvent * e)
+  void Spectrum2DCanvas::paintEvent(QPaintEvent* e)
   {
     //Only fill background if no layer is present
     if (getLayerCount() == 0)
@@ -1541,7 +1543,7 @@ namespace OpenMS
         {
           if (getLayer(i).type == LayerData::DT_PEAK)
           {
-           // nothing .. currently
+            // nothing .. currently
           }
           else if (getLayer(i).type == LayerData::DT_FEATURE)
           {
@@ -1689,7 +1691,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::drawCoordinates_(QPainter & painter, const PeakIndex & peak)
+  void Spectrum2DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
   {
     if (!peak.isValid())
       return;
@@ -1720,8 +1722,8 @@ namespace OpenMS
 
     case LayerData::DT_PEAK:
     {
-      const Peak1D & p = peak.getPeak(*getCurrentLayer().getPeakData());
-      const MSSpectrum<> & s = peak.getSpectrum(*getCurrentLayer().getPeakData());
+      const Peak1D& p = peak.getPeak(*getCurrentLayer().getPeakData());
+      const MSSpectrum<>& s = peak.getSpectrum(*getCurrentLayer().getPeakData());
       mz = p.getMZ();
       rt = s.getRT();
       it = p.getIntensity();
@@ -1744,7 +1746,7 @@ namespace OpenMS
 
     case LayerData::DT_CHROMATOGRAM:
     {
-      const LayerData & layer = getCurrentLayer();
+      const LayerData& layer = getCurrentLayer();
 
       MSExperiment<Peak1D> exp;
       exp = *layer.getPeakData();
@@ -1777,19 +1779,22 @@ namespace OpenMS
       lines.push_back("Quality: " + QString::number(quality, 'f', 4));
       // peptide identifications
       const PeptideIdentification* pis = NULL;
-      if ( f && f->getPeptideIdentifications().size() > 0 ) {
+      if (f && f->getPeptideIdentifications().size() > 0)
+      {
         pis = &f->getPeptideIdentifications()[0];
       }
-      else if ( cf && cf->getPeptideIdentifications().size() > 0 ) {
+      else if (cf && cf->getPeptideIdentifications().size() > 0)
+      {
         pis = &cf->getPeptideIdentifications()[0];
       }
-      if ( pis && pis->getHits().size() ) {
-          Size nHits = pis->getHits().size();
-          for (Size j = 0; j < nHits; ++j)
-          {
-            lines.push_back( "Peptide" + ( nHits > 1 ? "[" + QString::number(j+1) + "]" : "" ) + ": "
-                             + pis->getHits()[j].getSequence().toString().toQString() );
-          }
+      if (pis && pis->getHits().size())
+      {
+        Size nHits = pis->getHits().size();
+        for (Size j = 0; j < nHits; ++j)
+        {
+          lines.push_back("Peptide" + (nHits > 1 ? "[" + QString::number(j + 1) + "]" : "") + ": "
+                          + pis->getHits()[j].getSequence().toString().toQString());
+        }
       }
     }
 
@@ -1799,7 +1804,7 @@ namespace OpenMS
       for (ConsensusFeature::HandleSetType::const_iterator it = sub_features.begin(); it != sub_features.end(); ++it)
       {
         lines.push_back("Feature m/z: " + QLocale::c().toString(it->getMZ(), 'f', 5) + // adds group separators (consistency with intensity)
-                        "  rt: " + QLocale::c().toString(it->getRT(), 'f', 2) +        // adds group separators (consistency with intensity)
+                        "  rt: " + QLocale::c().toString(it->getRT(), 'f', 2) + // adds group separators (consistency with intensity)
                         "   q: " + QString::number(it->getCharge(), 'f', 2) +
                         "  intensity: " + QLocale::c().toString(it->getIntensity(), 'f', 2)); // adds group separators (every 1e3), to better visualize large numbers (e.g. 23.009.646.54,3)
       }
@@ -1808,7 +1813,7 @@ namespace OpenMS
     drawText_(painter, lines);
   }
 
-  void Spectrum2DCanvas::drawDeltas_(QPainter & painter, const PeakIndex & start, const PeakIndex & end)
+  void Spectrum2DCanvas::drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end)
   {
     if (!start.isValid())
       return;
@@ -1882,7 +1887,7 @@ namespace OpenMS
     //draw text
     QStringList lines;
     lines.push_back("RT delta:  " + QString::number(rt, 'f', 2));
-    lines.push_back("m/z delta: " + QString::number(mz, 'f', 6) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
+    lines.push_back("m/z delta: " + QString::number(mz, 'f', 6) + " (" + QString::number(ppm, 'f', 1) + " ppm)");
     if (boost::math::isinf(it) || boost::math::isnan(it))
     {
       lines.push_back("Int ratio: n/a");
@@ -1894,7 +1899,7 @@ namespace OpenMS
     drawText_(painter, lines);
   }
 
-  void Spectrum2DCanvas::mousePressEvent(QMouseEvent * e)
+  void Spectrum2DCanvas::mousePressEvent(QMouseEvent* e)
   {
     last_mouse_pos_ = e->pos();
 
@@ -1923,9 +1928,9 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::mouseMoveEvent(QMouseEvent * e)
+  void Spectrum2DCanvas::mouseMoveEvent(QMouseEvent* e)
   {
-    grabKeyboard();     // (re-)grab keyboard after it has been released by unhandled key
+    grabKeyboard(); // (re-)grab keyboard after it has been released by unhandled key
     QPoint pos = e->pos();
     PointType data_pos = widgetToData_(pos);
     emit sendCursorStatus(data_pos[0], data_pos[1]);
@@ -1946,7 +1951,7 @@ namespace OpenMS
         if (getCurrentLayer().type == LayerData::DT_FEATURE)
         {
           //add meta info
-          const FeatureMapType::FeatureType & f = selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
+          const FeatureMapType::FeatureType& f = selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
           std::vector<String> keys;
           f.getKeys(keys);
           for (Size m = 0; m < keys.size(); ++m)
@@ -1957,7 +1962,7 @@ namespace OpenMS
         else if (getCurrentLayer().type == LayerData::DT_PEAK)
         {
           //meta info
-          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(*getCurrentLayer().getPeakData());
+          const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(*getCurrentLayer().getPeakData());
           for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
           {
             if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
@@ -1983,7 +1988,7 @@ namespace OpenMS
         else if (getCurrentLayer().type == LayerData::DT_CONSENSUS)      // ConsensusFeature
         {
           //add meta info
-          const ConsensusFeature & f = selected_peak_.getFeature(*getCurrentLayer().getConsensusMap());
+          const ConsensusFeature& f = selected_peak_.getFeature(*getCurrentLayer().getConsensusMap());
           std::vector<String> keys;
           f.getKeys(keys);
           for (Size m = 0; m < keys.size(); ++m)
@@ -2016,7 +2021,7 @@ namespace OpenMS
       if (e->buttons() & Qt::LeftButton)
       {
         rubber_band_.setGeometry(QRect(last_mouse_pos_, pos).normalized());
-        rubber_band_.show();         //if the mouse button is pressed before the zoom key is pressed
+        rubber_band_.show(); //if the mouse button is pressed before the zoom key is pressed
 
         update_(__PRETTY_FUNCTION__);
       }
@@ -2025,7 +2030,7 @@ namespace OpenMS
     {
       if (e->buttons() & Qt::LeftButton)
       {
-        if (getCurrentLayer().modifiable && getCurrentLayer().type == LayerData::DT_FEATURE && selected_peak_.isValid())       //move feature
+        if (getCurrentLayer().modifiable && getCurrentLayer().type == LayerData::DT_FEATURE && selected_peak_.isValid()) //move feature
         {
           PointType new_data = widgetToData_(pos);
           double mz = new_data[0];
@@ -2091,7 +2096,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::mouseReleaseEvent(QMouseEvent * e)
+  void Spectrum2DCanvas::mouseReleaseEvent(QMouseEvent* e)
   {
     if (e->button() == Qt::LeftButton)
     {
@@ -2119,7 +2124,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::contextMenuEvent(QContextMenuEvent * e)
+  void Spectrum2DCanvas::contextMenuEvent(QContextMenuEvent* e)
   {
     //Abort if there are no layers
     if (layers_.empty())
@@ -2130,12 +2135,12 @@ namespace OpenMS
     double mz = widgetToData_(e->pos())[0];
     double rt = widgetToData_(e->pos())[1];
 
-    const LayerData & layer = getCurrentLayer();
+    const LayerData& layer = getCurrentLayer();
 
-    QMenu * context_menu = new QMenu(this);
+    QMenu* context_menu = new QMenu(this);
 
-    QAction * a = 0;
-    QAction * result = 0;
+    QAction* a = 0;
+    QAction* result = 0;
 
     //Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + layer.name;
@@ -2148,7 +2153,7 @@ namespace OpenMS
 
     context_menu->addAction("Layer meta data");
 
-    QMenu * settings_menu = new QMenu("Settings");
+    QMenu* settings_menu = new QMenu("Settings");
     settings_menu->addAction("Show/hide grid lines");
     settings_menu->addAction("Show/hide axis legends");
     context_menu->addSeparator();
@@ -2167,7 +2172,7 @@ namespace OpenMS
       //find nearest survey scan
       SignedSize size = getCurrentLayer().getPeakData()->size();
       Int current = getCurrentLayer().getPeakData()->RTBegin(rt) - getCurrentLayer().getPeakData()->begin();
-      if (current == size)  // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
+      if (current == size) // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
       {
         current = 0;
       }
@@ -2209,8 +2214,8 @@ namespace OpenMS
         ++i;
       }
       sort(indices.rbegin(), indices.rend());
-      QMenu * ms1_scans = context_menu->addMenu("Survey scan in 1D");
-      QMenu * ms1_meta = context_menu->addMenu("Survey scan meta data");
+      QMenu* ms1_scans = context_menu->addMenu("Survey scan in 1D");
+      QMenu* ms1_meta = context_menu->addMenu("Survey scan meta data");
       context_menu->addSeparator();
       for (i = 0; i < (Int)indices.size(); ++i)
       {
@@ -2238,8 +2243,8 @@ namespace OpenMS
       }
 
       //add surrounding fragment scans
-      QMenu * msn_scans = new QMenu("fragment scan in 1D");
-      QMenu * msn_meta = new QMenu("fragment scan meta data");
+      QMenu* msn_scans = new QMenu("fragment scan in 1D");
+      QMenu* msn_meta = new QMenu("fragment scan meta data");
       DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
       DPosition<2> p2 = widgetToData_(e->pos() - QPoint(10, 10));
       double rt_min = min(p1[1], p2[1]);
@@ -2304,9 +2309,9 @@ namespace OpenMS
       double mz_min = min(p1[0], p2[0]);
       double mz_max = max(p1[0], p2[0]);
 
-      QMenu * meta = new QMenu("Feature meta data");
+      QMenu* meta = new QMenu("Feature meta data");
       bool present = false;
-      FeatureMapType & features = *getCurrentLayer_().getFeatureMap();
+      FeatureMapType& features = *getCurrentLayer_().getFeatureMap();
       // feature meta data menu
       for (FeatureMapType::Iterator it = features.begin(); it != features.end(); ++it)
       {
@@ -2353,9 +2358,9 @@ namespace OpenMS
       double mz_min = min(p1[0], p2[0]);
       double mz_max = max(p1[0], p2[0]);
 
-      QMenu * consens_meta = new QMenu("Consensus meta data");
+      QMenu* consens_meta = new QMenu("Consensus meta data");
       bool present = false;
-      ConsensusMapType & features = *getCurrentLayer_().getConsensusMap();
+      ConsensusMapType& features = *getCurrentLayer_().getConsensusMap();
       //consensus feature meta data menu
       for (ConsensusMapType::Iterator it = features.begin(); it != features.end(); ++it)
       {
@@ -2434,8 +2439,8 @@ namespace OpenMS
         }
         */
 
-      QMenu * msn_chromatogram  = 0;
-      QMenu * msn_chromatogram_meta = 0;
+      QMenu* msn_chromatogram  = 0;
+      QMenu* msn_chromatogram_meta = 0;
 
       if (!map_precursor_to_chrom_idx.empty())
       {
@@ -2451,7 +2456,7 @@ namespace OpenMS
           {
             precursor_string = QString::number(mit->first.getMZ()) + " : " + String(mit->first.getMetaValue("peptide_sequence")).toQString() + " (" + QString::number(mit->first.getCharge()) + "+)";
           }
-          QMenu * msn_precursor = msn_chromatogram->addMenu(precursor_string);  // neuer Eintrag für jeden Precursor
+          QMenu* msn_precursor = msn_chromatogram->addMenu(precursor_string); // neuer Eintrag für jeden Precursor
 
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms
           a = msn_precursor->addAction(QString("Show all"));
@@ -2481,7 +2486,7 @@ namespace OpenMS
           if (result->text() == "Show all")
           {
             std::vector<int> chrom_indices;
-            const QList<QVariant> & res = result->data().toList();
+            const QList<QVariant>& res = result->data().toList();
             for (Int i = 0; i != res.size(); ++i)
             {
               chrom_indices.push_back(res[i].toInt());
@@ -2577,14 +2582,14 @@ namespace OpenMS
     e->accept();
   }
 
-  void Spectrum2DCanvas::finishContextMenu_(QMenu * context_menu, QMenu * settings_menu)
+  void Spectrum2DCanvas::finishContextMenu_(QMenu* context_menu, QMenu* settings_menu)
   {
     //finish settings menu
     settings_menu->addSeparator();
     settings_menu->addAction("Preferences");
 
     //create save menu
-    QMenu * save_menu = new QMenu("Save");
+    QMenu* save_menu = new QMenu("Save");
     save_menu->addAction("Layer");
     save_menu->addAction("Visible layer data");
     save_menu->addAction("As image");
@@ -2604,13 +2609,13 @@ namespace OpenMS
   void Spectrum2DCanvas::showCurrentLayerPreferences()
   {
     Internal::Spectrum2DPrefDialog dlg(this);
-    LayerData & layer = getCurrentLayer_();
+    LayerData& layer = getCurrentLayer_();
 
-    ColorSelector * bg_color = dlg.findChild<ColorSelector *>("bg_color");
-    QComboBox * mapping = dlg.findChild<QComboBox *>("mapping");
-    MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
-    QComboBox * feature_icon = dlg.findChild<QComboBox *>("feature_icon");
-    QSpinBox * feature_icon_size = dlg.findChild<QSpinBox *>("feature_icon_size");
+    ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
+    QComboBox* mapping = dlg.findChild<QComboBox*>("mapping");
+    MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
+    QComboBox* feature_icon = dlg.findChild<QComboBox*>("feature_icon");
+    QSpinBox* feature_icon_size = dlg.findChild<QSpinBox*>("feature_icon_size");
 
     bg_color->setColor(QColor(param_.getValue("background_color").toQString()));
     if (isMzToXAxis())
@@ -2650,7 +2655,7 @@ namespace OpenMS
 
   void Spectrum2DCanvas::saveCurrentLayer(bool visible)
   {
-    const LayerData & layer = getCurrentLayer();
+    const LayerData& layer = getCurrentLayer();
 
     //determine proposed filename
     String proposed_name = param_.getValue("default_path");
@@ -2659,7 +2664,7 @@ namespace OpenMS
       proposed_name = layer.filename;
     }
 
-    if (layer.type == LayerData::DT_PEAK)   //peak data
+    if (layer.type == LayerData::DT_PEAK) //peak data
     {
       QString selected_filter = "";
       QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)", &selected_filter);
@@ -2693,7 +2698,7 @@ namespace OpenMS
           }
         }
 
-        if (visible)     //only visible data
+        if (visible) //only visible data
         {
           ExperimentType out;
           getVisiblePeakData(out);
@@ -2719,7 +2724,7 @@ namespace OpenMS
         {
           file_name += ".featureXML";
         }
-        if (visible)     //only visible data
+        if (visible) //only visible data
         {
           FeatureMapType out;
           getVisibleFeatureData(out);
@@ -2745,7 +2750,7 @@ namespace OpenMS
           file_name += ".consensusXML";
         }
 
-        if (visible)     //only visible data
+        if (visible) //only visible data
         {
           ConsensusMapType out;
           getVisibleConsensusData(out);
@@ -2769,30 +2774,36 @@ namespace OpenMS
     //update nearest peak
     selected_peak_.clear();
     recalculateRanges_(0, 1, 2);
-    resetZoom(false);     //no repaint as this is done in intensityModeChange_() anyway
+    resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
     intensityModeChange_();
     modificationStatus_(i, false);
   }
 
-  void Spectrum2DCanvas::translateVisibleArea_( double mzShiftRel, double rtShiftRel )
+  void Spectrum2DCanvas::translateVisibleArea_(double mzShiftRel, double rtShiftRel)
   {
     double rtShift = rtShiftRel * visible_area_.height();
     double mzShift = mzShiftRel * visible_area_.width();
-    AreaType newArea( visible_area_ );
+    AreaType newArea(visible_area_);
     // shift the visible area avoiding moving out data range bounds
-    if ( mzShift > 0 ) {
-        newArea.setMaxX( qMin( overall_data_range_.maxX(), visible_area_.maxX() + mzShift ) );
-        newArea.setMinX( qMax( overall_data_range_.minX(), newArea.maxX() - visible_area_.width() ) );
-    } else {
-        newArea.setMinX( qMax( overall_data_range_.minX(), visible_area_.minX() + mzShift ) );
-        newArea.setMaxX( qMin( overall_data_range_.maxX(), newArea.minX() + visible_area_.width() ) );
+    if (mzShift > 0)
+    {
+      newArea.setMaxX(qMin(overall_data_range_.maxX(), visible_area_.maxX() + mzShift));
+      newArea.setMinX(qMax(overall_data_range_.minX(), newArea.maxX() - visible_area_.width()));
     }
-    if ( rtShift > 0 ) {
-        newArea.setMaxY( qMin( overall_data_range_.maxY(), visible_area_.maxY() + rtShift ) );
-        newArea.setMinY( qMax( overall_data_range_.minY(), newArea.maxY() - visible_area_.height() ) );
-    } else {
-        newArea.setMinY( qMax( overall_data_range_.minY(), visible_area_.minY() + rtShift ) );
-        newArea.setMaxY( qMin( overall_data_range_.maxY(), newArea.minY() + visible_area_.height() ) );
+    else
+    {
+      newArea.setMinX(qMax(overall_data_range_.minX(), visible_area_.minX() + mzShift));
+      newArea.setMaxX(qMin(overall_data_range_.maxX(), newArea.minX() + visible_area_.width()));
+    }
+    if (rtShift > 0)
+    {
+      newArea.setMaxY(qMin(overall_data_range_.maxY(), visible_area_.maxY() + rtShift));
+      newArea.setMinY(qMax(overall_data_range_.minY(), newArea.maxY() - visible_area_.height()));
+    }
+    else
+    {
+      newArea.setMinY(qMax(overall_data_range_.minY(), visible_area_.minY() + rtShift));
+      newArea.setMaxY(qMin(overall_data_range_.maxY(), newArea.minY() + visible_area_.height()));
     }
     //change visible area
     changeVisibleArea_(newArea);
@@ -2801,29 +2812,29 @@ namespace OpenMS
 
   void Spectrum2DCanvas::translateLeft_()
   {
-    if ( isMzToXAxis() ) translateVisibleArea_( -0.05, 0.0 );
-    else translateVisibleArea_( 0.0, -0.05 );
+    if (isMzToXAxis()) translateVisibleArea_(-0.05, 0.0);
+    else translateVisibleArea_(0.0, -0.05);
   }
 
   void Spectrum2DCanvas::translateRight_()
   {
-    if ( isMzToXAxis() ) translateVisibleArea_( 0.05, 0.0 );
-    else translateVisibleArea_( 0.0, 0.05 );
+    if (isMzToXAxis()) translateVisibleArea_(0.05, 0.0);
+    else translateVisibleArea_(0.0, 0.05);
   }
 
   void Spectrum2DCanvas::translateForward_()
   {
-    if ( isMzToXAxis() ) translateVisibleArea_( 0.0, 0.05 );
-    else translateVisibleArea_( 0.05, 0.0 );
+    if (isMzToXAxis()) translateVisibleArea_(0.0, 0.05);
+    else translateVisibleArea_(0.05, 0.0);
   }
 
   void Spectrum2DCanvas::translateBackward_()
   {
-    if ( isMzToXAxis() ) translateVisibleArea_( 0.0, -0.05 );
-    else translateVisibleArea_( -0.05, 0.0 );
+    if (isMzToXAxis()) translateVisibleArea_(0.0, -0.05);
+    else translateVisibleArea_(-0.05, 0.0);
   }
 
-  void Spectrum2DCanvas::keyPressEvent(QKeyEvent * e)
+  void Spectrum2DCanvas::keyPressEvent(QKeyEvent* e)
   {
     // CTRL+ALT+H => hidden action
     if ((e->modifiers() & Qt::ControlModifier) && (e->modifiers() & Qt::AltModifier) && (e->key() == Qt::Key_H))
@@ -2859,7 +2870,7 @@ namespace OpenMS
     }
 
     // Delete features
-    LayerData & layer = getCurrentLayer_();
+    LayerData& layer = getCurrentLayer_();
     if (getCurrentLayer().modifiable && layer.type == LayerData::DT_FEATURE && selected_peak_.isValid() && e->key() == Qt::Key_Delete)
     {
       layer.getFeatureMap()->erase(layer.getFeatureMap()->begin() + selected_peak_.peak);
@@ -2876,7 +2887,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::keyReleaseEvent(QKeyEvent * e)
+  void Spectrum2DCanvas::keyReleaseEvent(QKeyEvent* e)
   {
     //zoom if in zoom mode and a valid rectangle is selected
     if (action_mode_ == AM_ZOOM && rubber_band_.isVisible())
@@ -2900,14 +2911,14 @@ namespace OpenMS
     SpectrumCanvas::keyReleaseEvent(e);
   }
 
-  void Spectrum2DCanvas::mouseDoubleClickEvent(QMouseEvent * e)
+  void Spectrum2DCanvas::mouseDoubleClickEvent(QMouseEvent* e)
   {
-    LayerData & current_layer = getCurrentLayer_();
+    LayerData& current_layer = getCurrentLayer_();
 
     if (current_layer.modifiable && current_layer.type == LayerData::DT_FEATURE)
     {
       Feature tmp;
-      if (selected_peak_.isValid())       //edit existing feature
+      if (selected_peak_.isValid()) //edit existing feature
       {
         FeatureEditDialog dialog(this);
         dialog.setFeature((*current_layer.getFeatureMap())[selected_peak_.peak]);
@@ -3003,7 +3014,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::mergeIntoLayer(Size i, vector<PeptideIdentification> & peptides)
+  void Spectrum2DCanvas::mergeIntoLayer(Size i, vector<PeptideIdentification>& peptides)
   {
     OPENMS_PRECONDITION(i < layers_.size(), "Spectrum2DCanvas::mergeIntoLayer(i, peptides) index overflow");
     OPENMS_PRECONDITION(layers_[i].type == LayerData::DT_IDENT, "Spectrum2DCanvas::mergeIntoLayer(i, peptides) non-identification layer selected");

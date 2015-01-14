@@ -46,13 +46,14 @@ namespace OpenMS
   {
   }
 
-  SpectrumAccessOpenMS::SpectrumAccessOpenMS(const SpectrumAccessOpenMS & rhs) :
+  SpectrumAccessOpenMS::SpectrumAccessOpenMS(const SpectrumAccessOpenMS& rhs) :
     ms_experiment_(rhs.ms_experiment_)
-  {}
+  {
+  }
 
   boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessOpenMS::lightClone() const
   {
-    return boost::shared_ptr<SpectrumAccessOpenMS>( new SpectrumAccessOpenMS(*this));
+    return boost::shared_ptr<SpectrumAccessOpenMS>(new SpectrumAccessOpenMS(*this));
   }
 
   OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id)

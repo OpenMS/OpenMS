@@ -486,7 +486,7 @@ protected:
 
       if (getFlag_("continue") && File::exists(file_name_variant))
       {
-        continue; 
+        continue;
       }
 
       MzMLFile().store(file_name_variant, new_exp);

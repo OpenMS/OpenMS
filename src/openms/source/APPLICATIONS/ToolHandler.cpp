@@ -309,9 +309,9 @@ namespace OpenMS
       for (Size i_t = 0; i_t < tools.size(); ++i_t)
       {
         if (i == 0 && i_t == 0)
-          tools_external_ = tools[i_t]; // init
+          tools_external_ = tools[i_t];  // init
         else
-          tools_external_.append(tools[i_t]); // append
+          tools_external_.append(tools[i_t]);  // append
       }
     }
     tools_external_.name = "GenericWrapper";

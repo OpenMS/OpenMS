@@ -397,14 +397,14 @@ protected:
 
   bool checkMetaOk(const MetaInfoInterface& mi, const StringList& meta_info)
   {
-    if (!mi.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
+    if (!mi.metaValueExists(meta_info[0])) return true;  // not having the meta value means passing the test
 
     DataValue v_data = mi.getMetaValue(meta_info[0]);
     DataValue v_user;
     if (v_data.valueType() == DataValue::STRING_VALUE) v_user = String(meta_info[2]);
     else if (v_data.valueType() == DataValue::INT_VALUE) v_user = String(meta_info[2]).toInt();
     else if (v_data.valueType() == DataValue::DOUBLE_VALUE) v_user = String(meta_info[2]).toDouble();
-    else if (v_data.valueType() == DataValue::STRING_LIST) v_user = (StringList)ListUtils::create<String>(meta_info[2]);
+    else if (v_data.valueType() == DataValue::STRING_LIST) v_user = (StringList) ListUtils::create<String>(meta_info[2]);
     else if (v_data.valueType() == DataValue::INT_LIST) v_user = ListUtils::create<Int>(meta_info[2]);
     else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = ListUtils::create<double>(meta_info[2]);
     else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
@@ -491,8 +491,7 @@ protected:
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
     bool indexed_file;
-    if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true; }
-    else {indexed_file = false; }
+    if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true; }else {indexed_file = false; }
 
     MSNumpressCoder::NumpressConfig npconfig_mz;
     MSNumpressCoder::NumpressConfig npconfig_int;

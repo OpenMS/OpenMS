@@ -133,8 +133,8 @@ namespace OpenMS
         // to the left
         size_t k = 2;
 
-        bool previous_zero_left(false);    // no need to extend peak if previous intensity was zero
-        bool previous_zero_right(false);   // no need to extend peak if previous intensity was zero
+        bool previous_zero_left(false); // no need to extend peak if previous intensity was zero
+        bool previous_zero_right(false); // no need to extend peak if previous intensity was zero
         size_t missing_left(0);
         size_t missing_right(0);
 
@@ -232,8 +232,8 @@ namespace OpenMS
       // std::cout << "--------------------" << std::endl;
 
       double central_peak_mz = mz_array[candidate.pos], central_peak_int = int_array[candidate.pos];
-      double left_neighbor_mz = mz_array[candidate.pos - 1];   //, left_neighbor_int = int_array[candidate.pos - 1];
-      double right_neighbor_mz = mz_array[candidate.pos + 1];   //, right_neighbor_int = int_array[candidate.pos + 1];
+      double left_neighbor_mz = mz_array[candidate.pos - 1]; //, left_neighbor_int = int_array[candidate.pos - 1];
+      double right_neighbor_mz = mz_array[candidate.pos + 1]; //, right_neighbor_int = int_array[candidate.pos + 1];
 
 
       std::vector<double> raw_mz_values;

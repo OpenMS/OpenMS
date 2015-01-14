@@ -48,38 +48,38 @@ using namespace std;
 
         @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerIterative "high_res" algorithm.
 <CENTER>
-	<table>
-		<tr>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
       <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ PeakPickerIterative \f$ \longrightarrow \f$</td>
-			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-		</tr>
-		<tr>
-			<td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=3> any tool operating on MS peak data @n (in mzML format)</td>
-		</tr>
-		<tr>
+        </tr>
+        <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterGaussian </td>
-		</tr>
+        </tr>
     <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
     </tr>
-	</table>
+    </table>
 </CENTER>
 
-	The conversion of the ''raw'' ion count data acquired
-	by the machine into peak lists for further processing
-	is usually called peak picking. The choice of the algorithm
-	should mainly depend on the resolution of the data.
+    The conversion of the ''raw'' ion count data acquired
+    by the machine into peak lists for further processing
+    is usually called peak picking. The choice of the algorithm
+    should mainly depend on the resolution of the data.
   As the name implies, the @ref OpenMS::PeakPickerIterative "high_res"
   algorithm is fit for high resolution data.
 
-	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
+    @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
-	<B>The command line parameters of this tool are:</B>
+    <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PeakPickerIterative.cli
 
-	For the parameters of the algorithm section see the algorithm documentation: @n
+    For the parameters of the algorithm section see the algorithm documentation: @n
     @ref OpenMS::PeakPickerIterative "PeakPickerIterative" @n
 
 */
@@ -89,35 +89,35 @@ typedef MSExperiment<Peak1D> MapType;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPPeakPickerIterative
-  : public TOPPBase
+class TOPPPeakPickerIterative :
+  public TOPPBase
 {
- public:
+public:
 
-  TOPPPeakPickerIterative()
-    : TOPPBase("PeakPickerIterative","Finds mass spectrometric peaks in profile mass spectra.", false)
+  TOPPPeakPickerIterative() :
+    TOPPBase("PeakPickerIterative", "Finds mass spectrometric peaks in profile mass spectra.", false)
   {
   }
 
- protected:
+protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in","<file>","","input file ");
-    setValidFormats_("in",ListUtils::create<String>("mzML"));
+    registerInputFile_("in", "<file>", "", "input file ");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerOutputFile_("out","<file>","","output file");
-    setValidFormats_("out",ListUtils::create<String>("mzML"));
+    registerOutputFile_("out", "<file>", "", "output file");
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String&) const
   {
     return PeakPickerIterative().getDefaults();
   }
 
-  ExitCodes main_(int , const char**)
+  ExitCodes main_(int, const char**)
   {
 
     String in = getStringOption_("in");
@@ -130,23 +130,22 @@ class TOPPPeakPickerIterative
 
     MzMLFile f;
     f.setLogType(log_type_);
-    f.load(in,exp);
+    f.load(in, exp);
     PeakPickerIterative pp;
     pp.setParameters(picker_param);
     pp.setLogType(log_type_);
     pp.pickExperiment(exp, out_exp);
 
     addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::PEAK_PICKING));
-    f.store(out,out_exp); 
+    f.store(out, out_exp);
 
     return EXECUTION_OK;
   }
 
 };
 
-int main( int argc, const char** argv )
+int main(int argc, const char** argv)
 {
   TOPPPeakPickerIterative tool;
-  return tool.main(argc,argv);
+  return tool.main(argc, argv);
 }
-

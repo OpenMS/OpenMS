@@ -390,7 +390,7 @@ protected:
     for (PeptideQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
          ++q_it)
     {
-      if (q_it->second.total_abundances.empty()) continue; // not quantified
+      if (q_it->second.total_abundances.empty()) continue;  // not quantified
 
       StringList accessions;
       for (set<String>::const_iterator acc_it =
@@ -482,7 +482,7 @@ protected:
     {
       for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
              proteins_.getIndistinguishableProteins().begin(); group_it !=
-             proteins_.getIndistinguishableProteins().end(); ++group_it)
+           proteins_.getIndistinguishableProteins().end(); ++group_it)
       {
         StringList& accessions = leader_to_group[group_it->accessions[0]].first;
         accessions = group_it->accessions;
@@ -498,7 +498,7 @@ protected:
     for (ProteinQuant::const_iterator q_it = quant.begin(); q_it != quant.end();
          ++q_it)
     {
-      if (q_it->second.total_abundances.empty()) continue; // not quantified
+      if (q_it->second.total_abundances.empty()) continue;  // not quantified
 
       if (leader_to_group.empty())
       {
@@ -559,7 +559,7 @@ protected:
     String what = (proteins ? "Protein" : "Peptide");
     bool old = out.modifyStrings(false);
     out << "# " + what + " abundances computed from file '" +
-      getStringOption_("in") + "'" << endl;
+    getStringOption_("in") + "'" << endl;
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
@@ -585,7 +585,7 @@ protected:
       if (value != "false") params += *it + "=" + value + ", ";
     }
     if (params.empty()) params = "(none)";
-    else params.resize(params.size() - 2); // remove trailing ", "
+    else params.resize(params.size() - 2);  // remove trailing ", "
     out << "# Parameters (relevant only): " + params << endl;
 
     if (files_.size() > 1)
@@ -644,7 +644,6 @@ protected:
     LOG_INFO << endl;
   }
 
-
   ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
@@ -696,7 +695,7 @@ protected:
         files_[i].filename = proteins[i].getIdentifier();
       }
       // protein inference results in the idXML?
-      if (protein_groups.empty() && (proteins.size() == 1) && 
+      if (protein_groups.empty() && (proteins.size() == 1) &&
           (!proteins[0].getHits().empty()))
       {
         proteins_ = proteins[0];
@@ -725,7 +724,7 @@ protected:
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
         IdXMLFile().load(protein_groups, proteins, peptides);
-        if (proteins.empty() || 
+        if (proteins.empty() ||
             proteins[0].getIndistinguishableProteins().empty())
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");

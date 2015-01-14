@@ -51,7 +51,7 @@ using namespace std;
   @page TOPP_SpectraMerger SpectraMerger
 
   @brief Allows to add up several spectra.
- 
+
   <center>
   <table>
   <tr>
@@ -65,7 +65,7 @@ using namespace std;
   </tr>
   </table>
   </center>
- 
+
   @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
   This tool can add several consecutive scans, increasing S/N ratio (for MS1 and above) or merge scans which stem from similar precursors (for MS2 and above).
@@ -105,12 +105,12 @@ protected:
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return SpectraMerger().getParameters();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parsing parameters
@@ -158,7 +158,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSpectraMerger tool;
   return tool.main(argc, argv);

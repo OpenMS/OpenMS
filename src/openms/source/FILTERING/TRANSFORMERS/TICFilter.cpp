@@ -51,12 +51,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  TICFilter::TICFilter(const TICFilter & source) :
+  TICFilter::TICFilter(const TICFilter& source) :
     FilterFunctor(source)
   {
   }
 
-  TICFilter & TICFilter::operator=(const TICFilter & source)
+  TICFilter& TICFilter::operator=(const TICFilter& source)
   {
     if (this != &source)
     {

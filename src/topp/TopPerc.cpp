@@ -97,7 +97,7 @@ using namespace std;
   <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_TopPerc.html
 
-  Percolator is written by Lukas Käll (http://per-colator.com/ Copyright Lukas Käll <lukas.kall@scilifelab.se>)
+  Percolator is written by Lukas Kll (http://per-colator.com/ Copyright Lukas Kll <lukas.kall@scilifelab.se>)
 */
 
 // We do not want this class to show up in the docu:
@@ -130,7 +130,7 @@ protected:
             int rank = hit->getRank();
             int charge = hit->getCharge();
 
-            String spec_ref = it->getMetaValue("spectrum_id").toQString().toStdString();           //TODO consider other spectraIDFormats or keep index only in metavalue
+            String spec_ref = it->getMetaValue("spectrum_id").toQString().toStdString(); //TODO consider other spectraIDFormats or keep index only in metavalue
             vector<String> scan_id;
             spec_ref.split("scan=", scan_id);
 
@@ -160,9 +160,9 @@ protected:
             double energy = denovoScore - rawScore;
             double ln_eval = -log(hit->getMetaValue("MS:1002053").toString().toDouble());
             int isotopeError = hit->getMetaValue("IsotopeError").toString().toInt();
-            double lnExplainedIonCurrentRatio = log(hit->getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001);           // @andsi: wtf?!
-            double lnNTermIonCurrentRatio = log(hit->getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001);           // @andsi: wtf?!
-            double lnCTermIonCurrentRatio = log(hit->getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001);           // @andsi: wtf?!
+            double lnExplainedIonCurrentRatio = log(hit->getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001); // @andsi: wtf?!
+            double lnNTermIonCurrentRatio = log(hit->getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001); // @andsi: wtf?!
+            double lnCTermIonCurrentRatio = log(hit->getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001); // @andsi: wtf?!
             double lnMS2IonCurrent = log(hit->getMetaValue("MS2IonCurrent").toString().toDouble());
             double expMass = it->getMZ();
             double calcMass = hit->getMetaValue("calcMZ");
@@ -229,7 +229,7 @@ protected:
                          (String)lnNTermIonCurrentRatio + out_sep + (String)lnCTermIonCurrentRatio + out_sep + (String)lnMS2IonCurrent
                          + out_sep + (String)expMass + out_sep + (String)pepLen + out_sep + (String)dM + out_sep + (String)absdM + out_sep +
                          (String)meanErrorTop7 + out_sep + (String)sqMeanErrorTop7 + out_sep + (String)stdevErrorTop7 +
-                         out_sep + String(ss.str()) + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + 
+                         out_sep + String(ss.str()) + String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep +
                          peptide_with_modifications + out_sep + protein + out_sep;
 
             // peptide Spectrum Hit pushed to the output file
@@ -533,40 +533,40 @@ protected:
 
       // Find out which ions are in XTandem-File and take only these as features
       stringstream ss_ion;
-      if (peptide_ids.front().getHits().front().getMetaValue("a_score").toString() != "" && 
+      if (peptide_ids.front().getHits().front().getMetaValue("a_score").toString() != "" &&
           peptide_ids.front().getHits().front().getMetaValue("a_ions").toString() != "")
       {
         ss_ion << "frac_ion_a" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("b_score").toString() != "" && 
+      if (peptide_ids.front().getHits().front().getMetaValue("b_score").toString() != "" &&
           peptide_ids.front().getHits().front().getMetaValue("b_ions").toString() != "")
       {
         ss_ion << "frac_ion_b" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("c_score").toString() != "" && 
+      if (peptide_ids.front().getHits().front().getMetaValue("c_score").toString() != "" &&
           peptide_ids.front().getHits().front().getMetaValue("c_ions").toString() != "")
       {
         ss_ion << "frac_ion_c" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("x_score").toString() != "" && 
+      if (peptide_ids.front().getHits().front().getMetaValue("x_score").toString() != "" &&
           peptide_ids.front().getHits().front().getMetaValue("x_ions").toString() != "")
       {
         ss_ion << "frac_ion_x" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("y_score").toString() != "" && 
+      if (peptide_ids.front().getHits().front().getMetaValue("y_score").toString() != "" &&
           peptide_ids.front().getHits().front().getMetaValue("y_ions").toString() != "")
       {
         ss_ion << "frac_ion_y" << ",";
       }
-      if (peptide_ids.front().getHits().front().getMetaValue("z_score").toString() != "" && 
+      if (peptide_ids.front().getHits().front().getMetaValue("z_score").toString() != "" &&
           peptide_ids.front().getHits().front().getMetaValue("z_ions").toString() != "")
       {
         ss_ion << "frac_ion_z" << ",";
       }
 
       // Create header for the features
-      String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() + 
-        ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
+      String featureset = "SpecId,Label,ScanNr,hyperscore,deltascore," + ss_ion.str() +
+                          ",Mass,dM,absdM,PepLen," + ss.str() + "enzN,enzC,enzInt,Peptide,Proteins";
       StringList txt_header0 = ListUtils::create<String>(featureset);
       // Insert the header with the features names to the file
       txt.addLine(ListUtils::concatenate(txt_header0, out_sep));
@@ -590,32 +590,32 @@ protected:
           // Find out correct ion types and get its Values
           stringstream ss_ion_2;
 
-          if (it->getHits().front().getMetaValue("a_score").toString() != "" && 
+          if (it->getHits().front().getMetaValue("a_score").toString() != "" &&
               it->getHits().front().getMetaValue("a_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("a_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("b_score").toString() != "" && 
+          if (it->getHits().front().getMetaValue("b_score").toString() != "" &&
               it->getHits().front().getMetaValue("b_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("b_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("c_score").toString() != "" && 
+          if (it->getHits().front().getMetaValue("c_score").toString() != "" &&
               it->getHits().front().getMetaValue("c_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("c_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("x_score").toString() != "" && 
+          if (it->getHits().front().getMetaValue("x_score").toString() != "" &&
               it->getHits().front().getMetaValue("x_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("x_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("y_score").toString() != "" && 
+          if (it->getHits().front().getMetaValue("y_score").toString() != "" &&
               it->getHits().front().getMetaValue("y_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("y_ions")) / length << out_sep;
           }
-          if (it->getHits().front().getMetaValue("z_score").toString() != "" && 
+          if (it->getHits().front().getMetaValue("z_score").toString() != "" &&
               it->getHits().front().getMetaValue("z_ions").toString() != "")
           {
             ss_ion_2 << double(it->getHits().front().getMetaValue("z_ions")) / length << out_sep;
@@ -655,10 +655,10 @@ protected:
 
           // One PeptideSpectrumHit with all its features
           String lis = "_tandem_output_file_target_" + scannumber + "_" + String(charge) +
-            "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) + 
-            out_sep + String(deltascore) + out_sep + ss_ion_2.str() + String(mh) + out_sep + 
-            String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + String(ss.str()) + 
-            String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
+                       "_1" + out_sep + String(label) + out_sep + scannumber + out_sep + String(hyperscore) +
+                       out_sep + String(deltascore) + out_sep + ss_ion_2.str() + String(mh) + out_sep +
+                       String(dm) + out_sep + String(absdM) + out_sep + String(length) + out_sep + String(ss.str()) +
+                       String(enzN) + out_sep + String(enzC) + out_sep + String(enzInt) + out_sep + peptide + out_sep + protein;
 
           // peptide Spectrum Hit pushed to the output file
           txt.addLine(lis);
@@ -872,11 +872,11 @@ protected:
         if (hit->getSequence() == aat)
         {
           //get aa before/after/charge and metainfo
-          hit->setMetaValue("MS:1001492", boost::lexical_cast<double>(pep_map[sid][1]));        //svm score
-          double qv = boost::lexical_cast<double>(pep_map[sid][2]);        // q-value
+          hit->setMetaValue("MS:1001492", boost::lexical_cast<double>(pep_map[sid][1])); //svm score
+          double qv = boost::lexical_cast<double>(pep_map[sid][2]); // q-value
           hit->setMetaValue("MS:1001491", qv);
           hit->setScore(qv);
-          hit->setMetaValue("MS:1001493", boost::lexical_cast<double>(pep_map[sid][3]));        //pep
+          hit->setMetaValue("MS:1001493", boost::lexical_cast<double>(pep_map[sid][3])); //pep
           hit->setSequence(aat);
           it->insertHit(*hit);
         }

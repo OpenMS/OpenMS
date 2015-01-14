@@ -84,7 +84,7 @@ protected:
     setMinFloat_("step", 0.001);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in"), out = getStringOption_("out");
 
@@ -93,7 +93,7 @@ protected:
     TransformationDescription::DataPoints data;
 
     double min = getDoubleOption_("min"), max = getDoubleOption_("max"),
-               step = getDoubleOption_("step");
+           step = getDoubleOption_("step");
     if (max <= min)
     {
       data = trafo_in.getDataPoints();
@@ -131,7 +131,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPTransformationEvaluation tool;
   return tool.main(argc, argv);

@@ -47,14 +47,14 @@ namespace OpenMS
   {
   }
 
-  DocumentIdentifier::DocumentIdentifier(const DocumentIdentifier & source) :
+  DocumentIdentifier::DocumentIdentifier(const DocumentIdentifier& source) :
     id_(source.id_),
     file_path_(source.file_path_),
     file_type_(source.file_type_)
   {
   }
 
-  DocumentIdentifier & DocumentIdentifier::operator=(const DocumentIdentifier & source)
+  DocumentIdentifier& DocumentIdentifier::operator=(const DocumentIdentifier& source)
   {
     if (&source == this)
     {
@@ -72,17 +72,17 @@ namespace OpenMS
   {
   }
 
-  void DocumentIdentifier::setIdentifier(const String & id)
+  void DocumentIdentifier::setIdentifier(const String& id)
   {
     id_ = id;
   }
 
-  const String & DocumentIdentifier::getIdentifier() const
+  const String& DocumentIdentifier::getIdentifier() const
   {
     return id_;
   }
 
-  void DocumentIdentifier::setLoadedFilePath(const String & file_name)
+  void DocumentIdentifier::setLoadedFilePath(const String& file_name)
   {
     // only change the path if we need to, otherwise low and upper case might be altered by Qt, making comparison in tests more tricky
     // i.e., a call to this will report unmatched strings
@@ -98,29 +98,29 @@ namespace OpenMS
     }
   }
 
-  const String & DocumentIdentifier::getLoadedFilePath() const
+  const String& DocumentIdentifier::getLoadedFilePath() const
   {
     return file_path_;
   }
 
-  void DocumentIdentifier::setLoadedFileType(const String & file_name)
+  void DocumentIdentifier::setLoadedFileType(const String& file_name)
   {
     file_type_ = FileHandler::getTypeByContent(file_name);
   }
 
-  const FileTypes::Type & DocumentIdentifier::getLoadedFileType() const
+  const FileTypes::Type& DocumentIdentifier::getLoadedFileType() const
   {
     return file_type_;
   }
 
-  void DocumentIdentifier::swap(DocumentIdentifier & from)
+  void DocumentIdentifier::swap(DocumentIdentifier& from)
   {
     std::swap(id_, from.id_);
     std::swap(file_path_, from.file_path_);
     std::swap(file_type_, from.file_type_);
   }
 
-  bool DocumentIdentifier::operator==(const DocumentIdentifier & rhs) const
+  bool DocumentIdentifier::operator==(const DocumentIdentifier& rhs) const
   {
     return id_ == rhs.id_;
   }

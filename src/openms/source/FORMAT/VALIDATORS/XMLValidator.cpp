@@ -52,7 +52,7 @@ namespace OpenMS
   {
   }
 
-  bool XMLValidator::isValid(const String & filename, const String & schema, std::ostream & os)
+  bool XMLValidator::isValid(const String& filename, const String& schema, std::ostream& os)
   {
     filename_ = filename;
     os_ = &os;
@@ -68,12 +68,12 @@ namespace OpenMS
     {
       XMLPlatformUtils::Initialize();
     }
-    catch (const XMLException & toCatch)
+    catch (const XMLException& toCatch)
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + Internal::StringManager().convert(toCatch.getMessage()));
     }
 
-    SAX2XMLReader * parser = XMLReaderFactory::createXMLReader();
+    SAX2XMLReader* parser = XMLReaderFactory::createXMLReader();
     parser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);
     parser->setFeature(XMLUni::fgSAX2CoreValidation, true);
     parser->setFeature(XMLUni::fgXercesDynamic, false);
@@ -106,27 +106,27 @@ namespace OpenMS
     return valid_;
   }
 
-  void XMLValidator::warning(const SAXParseException & exception)
+  void XMLValidator::warning(const SAXParseException& exception)
   {
-    char * message = XMLString::transcode(exception.getMessage());
+    char* message = XMLString::transcode(exception.getMessage());
     String error_message = String("Validation warning in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
     (*os_) << error_message << endl;
     valid_ = false;
     XMLString::release(&message);
   }
 
-  void XMLValidator::error(const SAXParseException & exception)
+  void XMLValidator::error(const SAXParseException& exception)
   {
-    char * message = XMLString::transcode(exception.getMessage());
+    char* message = XMLString::transcode(exception.getMessage());
     String error_message = String("Validation error in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
     (*os_) << error_message << endl;
     valid_ = false;
     XMLString::release(&message);
   }
 
-  void XMLValidator::fatalError(const SAXParseException & exception)
+  void XMLValidator::fatalError(const SAXParseException& exception)
   {
-    char * message = XMLString::transcode(exception.getMessage());
+    char* message = XMLString::transcode(exception.getMessage());
     String error_message = String("Validation error in file '") + filename_ + "' line " + (UInt) exception.getLineNumber() + " column " + (UInt) exception.getColumnNumber() + ": " + message;
     (*os_) << error_message << endl;
     valid_ = false;

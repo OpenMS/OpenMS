@@ -69,7 +69,7 @@ using namespace std;
 </CENTER>
 
     Reference:\n
-		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+        Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
     This tool provides an algorithm to align the retention time scales of multiple input files, correcting shifts and distortions between them. Retention time adjustment may be necessary to correct for chromatography differences e.g. before data from multiple LC-MS runs can be combined (feature grouping), or when one run should be annotated with peptide identifications obtained in a different run.
 
@@ -79,8 +79,8 @@ using namespace std;
 
     @see @ref TOPP_MapAlignerPoseClustering @ref TOPP_MapAlignerSpectrum @ref TOPP_MapRTTransformer
 
-		Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
-		
+        Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version. This behavior is generally desired since (some) modifications can cause retention time shifts.
+
     Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "b_spline" model. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
     - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
@@ -111,7 +111,7 @@ public:
 
 private:
   template <typename TMapType, typename TFileType>
-  void loadInitialMaps_(vector<TMapType>& maps, StringList& ins, 
+  void loadInitialMaps_(vector<TMapType>& maps, StringList& ins,
                         TFileType& input_file)
   {
     // custom progress logger for this task:
@@ -129,8 +129,8 @@ private:
   // helper function to avoid code duplication between consensusXML and
   // featureXML storage operations:
   template <typename TMapType, typename TFileType>
-  void storeTransformedMaps_(vector<TMapType>& maps, StringList& outs, 
-                            TFileType& output_file)
+  void storeTransformedMaps_(vector<TMapType>& maps, StringList& outs,
+                             TFileType& output_file)
   {
     // custom progress logger for this task:
     ProgressLogger progresslogger;
@@ -140,7 +140,7 @@ private:
     {
       progresslogger.setProgress(i);
       //annotate output with data processing info:
-      addDataProcessing_(maps[i], 
+      addDataProcessing_(maps[i],
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
       output_file.store(outs[i], maps[i]);
     }
@@ -153,7 +153,7 @@ private:
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, trafos.size(), 
+    progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
     for (Size i = 0; i < transformations.size(); ++i)
     {
@@ -170,7 +170,7 @@ private:
     registerSubsection_("model", "Options to control the modeling of retention time transformations from data");
   }
 
-  Param getSubsectionDefaults_(const String & section) const
+  Param getSubsectionDefaults_(const String& section) const
   {
     if (section == "algorithm")
     {
@@ -181,7 +181,7 @@ private:
     {
       return getModelDefaults("b_spline");
     }
-    
+
     return Param(); // this shouldn't happen
   }
 
@@ -227,14 +227,13 @@ private:
       {
         algorithm.fitModel(model_type, model_params, transformations);
       }
-      MapAlignmentTransformer::transformFeatureMaps(feature_maps, 
+      MapAlignmentTransformer::transformFeatureMaps(feature_maps,
                                                     transformations);
       if (!output_files.empty())
       {
         storeTransformedMaps_(feature_maps, output_files, fxml_file);
       }
     }
-
     //-------------------------------------------------------------
     // perform consensus alignment
     //-------------------------------------------------------------
@@ -249,7 +248,7 @@ private:
       {
         algorithm.fitModel(model_type, model_params, transformations);
       }
-      MapAlignmentTransformer::transformConsensusMaps(consensus_maps, 
+      MapAlignmentTransformer::transformConsensusMaps(consensus_maps,
                                                       transformations);
       if (!output_files.empty())
       {

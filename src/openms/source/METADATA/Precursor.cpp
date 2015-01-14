@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  Precursor::Precursor(const Precursor & source) :
+  Precursor::Precursor(const Precursor& source) :
     CVTermList(source),
     Peak1D(source),
     activation_methods_(source.activation_methods_),
@@ -69,7 +69,7 @@ namespace OpenMS
   {
   }
 
-  Precursor & Precursor::operator=(const Precursor & source)
+  Precursor& Precursor::operator=(const Precursor& source)
   {
     if (&source == this)
       return *this;
@@ -86,7 +86,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool Precursor::operator==(const Precursor & rhs) const
+  bool Precursor::operator==(const Precursor& rhs) const
   {
     return activation_methods_ == rhs.activation_methods_ &&
            activation_energy_ == rhs.activation_energy_ &&
@@ -98,22 +98,22 @@ namespace OpenMS
            CVTermList::operator==(rhs);
   }
 
-  bool Precursor::operator!=(const Precursor & rhs) const
+  bool Precursor::operator!=(const Precursor& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const set<Precursor::ActivationMethod> & Precursor::getActivationMethods() const
+  const set<Precursor::ActivationMethod>& Precursor::getActivationMethods() const
   {
     return activation_methods_;
   }
 
-  set<Precursor::ActivationMethod> & Precursor::getActivationMethods()
+  set<Precursor::ActivationMethod>& Precursor::getActivationMethods()
   {
     return activation_methods_;
   }
 
-  void Precursor::setActivationMethods(const set<Precursor::ActivationMethod> & activation_methods)
+  void Precursor::setActivationMethods(const set<Precursor::ActivationMethod>& activation_methods)
   {
     activation_methods_ = activation_methods;
   }
@@ -159,17 +159,17 @@ namespace OpenMS
     return;
   }
 
-  std::vector<Int> & Precursor::getPossibleChargeStates()
+  std::vector<Int>& Precursor::getPossibleChargeStates()
   {
     return possible_charge_states_;
   }
 
-  const std::vector<Int> & Precursor::getPossibleChargeStates() const
+  const std::vector<Int>& Precursor::getPossibleChargeStates() const
   {
     return possible_charge_states_;
   }
 
-  void Precursor::setPossibleChargeStates(const std::vector<Int> & possible_charge_states)
+  void Precursor::setPossibleChargeStates(const std::vector<Int>& possible_charge_states)
   {
     possible_charge_states_ = possible_charge_states;
   }

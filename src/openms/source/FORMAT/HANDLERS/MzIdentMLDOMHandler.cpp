@@ -454,23 +454,23 @@ namespace OpenMS
             current_cv->getNodeType() == DOMNode::ELEMENT_NODE) // is element - possibly not necessary after getElementsByTagName
         {
           DOMElement* element_param = dynamic_cast<xercesc::DOMElement*>(current_cv);
-          if ((string)XMLString::transcode(element_param->getTagName()) == "cvParam")
+          if ((string) XMLString::transcode(element_param->getTagName()) == "cvParam")
           {
             ret_cv.addCVTerm(parseCvParam_(element_param));
           }
-          else if ((string)XMLString::transcode(element_param->getTagName()) == "userParam")
+          else if ((string) XMLString::transcode(element_param->getTagName()) == "userParam")
           {
             ret_up.insert(parseUserParam_(element_param));
           }
-          else if ((string)XMLString::transcode(element_param->getTagName()) == "PeptideEvidence"
-                  || (string)XMLString::transcode(element_param->getTagName()) == "PeptideEvidenceRef"
-                  || (string)XMLString::transcode(element_param->getTagName()) == "SpectrumIdentificationItem")
+          else if ((string) XMLString::transcode(element_param->getTagName()) == "PeptideEvidence"
+                  || (string) XMLString::transcode(element_param->getTagName()) == "PeptideEvidenceRef"
+                  || (string) XMLString::transcode(element_param->getTagName()) == "SpectrumIdentificationItem")
           {
             //here it's okay to do nothing
           }
           else
           {
-            LOG_WARN << "Misplaced elements ignored in 'ParamGroup' in " << (string)XMLString::transcode(element_param->getTagName()) << endl;
+            LOG_WARN << "Misplaced elements ignored in 'ParamGroup' in " << (string) XMLString::transcode(element_param->getTagName()) << endl;
           }
         }
       }
@@ -566,7 +566,7 @@ namespace OpenMS
           String swname, swversion;
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "SoftwareName") //must have exactly one SoftwareName
+            if ((string) XMLString::transcode(child->getTagName()) == "SoftwareName") //must have exactly one SoftwareName
             {
               DOMNodeList* element_pg = child->getChildNodes();
 
@@ -639,11 +639,11 @@ namespace OpenMS
           DOMElement* child = element_dbs->getFirstElementChild();
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "Seq")
+            if ((string) XMLString::transcode(child->getTagName()) == "Seq")
             {
-              seq = (string)XMLString::transcode(child->getTextContent());
+              seq = (string) XMLString::transcode(child->getTextContent());
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "cvParam")
+            else if ((string) XMLString::transcode(child->getTagName()) == "cvParam")
             {
               cvs.addCVTerm(parseCvParam_(child));
             }
@@ -774,11 +774,11 @@ namespace OpenMS
           DOMElement* child = element_si->getFirstElementChild();
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "InputSpectra")
+            if ((string) XMLString::transcode(child->getTagName()) == "InputSpectra")
             {
               spectra_data_ref = XMLString::transcode(child->getAttribute(XMLString::transcode("spectraData_ref")));
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "SearchDatabaseRef")
+            else if ((string) XMLString::transcode(child->getTagName()) == "SearchDatabaseRef")
             {
               searchDatabase_ref = XMLString::transcode(child->getAttribute(XMLString::transcode("searchDatabase_ref")));
             }
@@ -837,16 +837,16 @@ namespace OpenMS
           DOMElement* child = element_sip->getFirstElementChild();
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "SearchType")
+            if ((string) XMLString::transcode(child->getTagName()) == "SearchType")
             {
               searchtype = parseCvParam_(child->getFirstElementChild());
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "AdditionalSearchParams")
+            else if ((string) XMLString::transcode(child->getTagName()) == "AdditionalSearchParams")
             {
               pair<CVTermList, map<String, DataValue> > as_params = parseParamGroup_(child->getChildNodes());
               sp = findSearchParameters_(as_params); // this must be renamed!!
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "ModificationParams") // TODO @all where to store the specificities?
+            else if ((string) XMLString::transcode(child->getTagName()) == "ModificationParams") // TODO @all where to store the specificities?
             {
               vector<String> fix, var;
               DOMElement* sm = child->getFirstElementChild();
@@ -876,7 +876,7 @@ namespace OpenMS
                 DOMElement* sub = sm->getFirstElementChild();
                 while (sub)
                 {
-                  if ((string)XMLString::transcode(sub->getTagName()) == "cvParam")
+                  if ((string) XMLString::transcode(sub->getTagName()) == "cvParam")
                   {
                     String mname = XMLString::transcode(sub->getAttribute(XMLString::transcode("name")));
 //                    ResidueModification m = ModificationsDB::getInstance()->getModification(mname);
@@ -896,7 +896,7 @@ namespace OpenMS
                       var.push_back(mod);
                     }
                   }
-                  else if ((string)XMLString::transcode(sub->getTagName()) == "SpecificityRules")
+                  else if ((string) XMLString::transcode(sub->getTagName()) == "SpecificityRules")
                   {
                     specificity_rules.consumeCVTerms(parseParamGroup_(sub->getChildNodes()).first.getCVTerms());
                     // this is further ignored for now - nowhere to store
@@ -912,7 +912,7 @@ namespace OpenMS
               sp.fixed_modifications = fix;
               sp.variable_modifications = var;
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "Enzymes") // TODO @all : where store multiple enzymes for one identificationrun?
+            else if ((string) XMLString::transcode(child->getTagName()) == "Enzymes") // TODO @all : where store multiple enzymes for one identificationrun?
             {
               DOMElement* enzyme = child->getFirstElementChild(); //Enzyme elements
               while (enzyme)
@@ -945,7 +945,7 @@ namespace OpenMS
                 while (sub)
                 {
                   //SiteRegex unstorable just now
-                  if ((string)XMLString::transcode(sub->getTagName()) == "EnzymeName")
+                  if ((string) XMLString::transcode(sub->getTagName()) == "EnzymeName")
                   {
                     set<String> enzymes_terms;
                     cv_.getAllChildTerms(enzymes_terms, "MS:1001045"); // cleavage agent name
@@ -987,7 +987,7 @@ namespace OpenMS
                 enzyme = enzyme->getNextElementSibling();
               }
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "FragmentTolerance")
+            else if ((string) XMLString::transcode(child->getTagName()) == "FragmentTolerance")
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               //+- take the numerically greater
@@ -997,7 +997,7 @@ namespace OpenMS
                 sp.peak_mass_tolerance = f_tol;
               }
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "ParentTolerance")
+            else if ((string) XMLString::transcode(child->getTagName()) == "ParentTolerance")
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               //+- take the numerically greater
@@ -1007,7 +1007,7 @@ namespace OpenMS
                 sp.precursor_tolerance = p_tol;
               }
             }
-            else if ((string)XMLString::transcode(child->getTagName()) == "Threshold")
+            else if ((string) XMLString::transcode(child->getTagName()) == "Threshold")
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               tcv = params.first;
@@ -1059,18 +1059,18 @@ namespace OpenMS
           String id = XMLString::transcode(element_in->getAttribute(XMLString::transcode("id")));
           String location = XMLString::transcode(element_in->getAttribute(XMLString::transcode("location")));
 
-          if ((string)XMLString::transcode(element_in->getTagName()) == "SpectraData")
+          if ((string) XMLString::transcode(element_in->getTagName()) == "SpectraData")
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
             //      <SpectrumIDFormat> omitted for now, not reflectable by our member structures
             sd_map_.insert(make_pair(id, location));
           }
-          else if ((string)XMLString::transcode(element_in->getTagName()) == "SourceFile")
+          else if ((string) XMLString::transcode(element_in->getTagName()) == "SourceFile")
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
             sr_map_.insert(make_pair(id, location));
           }
-          else if ((string)XMLString::transcode(element_in->getTagName()) == "SearchDatabase")
+          else if ((string) XMLString::transcode(element_in->getTagName()) == "SearchDatabase")
           {
             //      <FileFormat> omitted for now, not reflectable by our member structures
             DateTime releaseDate;
@@ -1079,12 +1079,12 @@ namespace OpenMS
             //assumed that <DatabaseName> is the first child, following cv omitted for now
             String dbname = "";
             DOMElement* pren = element_in->getFirstElementChild();
-            if ((string)XMLString::transcode(pren->getTagName()) == "userParam")
+            if ((string) XMLString::transcode(pren->getTagName()) == "userParam")
             {
               CVTerm param = parseCvParam_(pren->getFirstElementChild());
               dbname = param.getValue();
             }
-            else if ((string)XMLString::transcode(pren->getTagName()) == "cvParam")
+            else if ((string) XMLString::transcode(pren->getTagName()) == "cvParam")
             {
               pair<String, DataValue> param = parseUserParam_(pren->getFirstElementChild());
               dbname = param.second.toString();
@@ -1115,7 +1115,7 @@ namespace OpenMS
           DOMElement* element_res = element_lis->getFirstElementChild();
           while (element_res)
           {
-            if ((string)XMLString::transcode(element_res->getTagName()) == "SpectrumIdentificationResult")
+            if ((string) XMLString::transcode(element_res->getTagName()) == "SpectrumIdentificationResult")
             {
               String spectra_data_ref = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectraData_ref"))); //ref to the sourcefile, could be useful but now nowhere to store
               String spectrumID = XMLString::transcode(element_res->getAttribute(XMLString::transcode("spectrumID")));
@@ -1131,7 +1131,7 @@ namespace OpenMS
               DOMElement* child = element_res->getFirstElementChild();
               while (child)
               {
-                if ((string)XMLString::transcode(child->getTagName()) == "SpectrumIdentificationItem")
+                if ((string) XMLString::transcode(child->getTagName()) == "SpectrumIdentificationItem")
                 {
                   parseSpectrumIdentificationItemElement_(child, pep_id_->back(), sil);
                 }
@@ -1409,7 +1409,7 @@ namespace OpenMS
           DOMElement* child = element_pr->getFirstElementChild();
           while (child)
           {
-            if ((string)XMLString::transcode(child->getTagName()) == "ProteinAmbiguityGroup")
+            if ((string) XMLString::transcode(child->getTagName()) == "ProteinAmbiguityGroup")
             {
               parseProteinAmbiguityGroupElement_(child, pro_id_->back());
             }
@@ -1429,7 +1429,7 @@ namespace OpenMS
       DOMElement* child = proteinAmbiguityGroupElement->getFirstElementChild();
       while (child)
       {
-        if ((string)XMLString::transcode(child->getTagName()) == "ProteinDetectionHypothesis")
+        if ((string) XMLString::transcode(child->getTagName()) == "ProteinDetectionHypothesis")
         {
           parseProteinDetectionHypothesisElement_(child, protein_identification);
         }
@@ -1464,7 +1464,7 @@ namespace OpenMS
             current_sib->getNodeType() == DOMNode::ELEMENT_NODE)
         {
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
-          if ((string)XMLString::transcode(element_sib->getTagName()) == "PeptideSequence")
+          if ((string) XMLString::transcode(element_sib->getTagName()) == "PeptideSequence")
           {
             DOMNode* tn = element_sib->getFirstChild();
             if (tn->getNodeType() == DOMNode::TEXT_NODE)
@@ -1488,7 +1488,7 @@ namespace OpenMS
             current_sib->getNodeType() == DOMNode::ELEMENT_NODE)
         {
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
-          if ((string)XMLString::transcode(element_sib->getTagName()) == "SubstitutionModification")
+          if ((string) XMLString::transcode(element_sib->getTagName()) == "SubstitutionModification")
           {
 
             String location = XMLString::transcode(element_sib->getAttribute(XMLString::transcode("location")));
@@ -1519,7 +1519,7 @@ namespace OpenMS
             current_sib->getNodeType() == DOMNode::ELEMENT_NODE)
         {
           DOMElement* element_sib = dynamic_cast<xercesc::DOMElement*>(current_sib);
-          if ((string)XMLString::transcode(element_sib->getTagName()) == "Modification")
+          if ((string) XMLString::transcode(element_sib->getTagName()) == "Modification")
           {
             int index = -1;
             try

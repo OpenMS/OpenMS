@@ -221,7 +221,7 @@ namespace OpenMS
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
     tools_tree_view_ = createTOPPToolsTreeWidget(topp_tools_bar);
     topp_tools_bar->setWidget(tools_tree_view_);
-    connect(tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
+    connect(tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem *, int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
     windows->addAction(topp_tools_bar->toggleViewAction());
 
     //log window
@@ -1118,9 +1118,9 @@ namespace OpenMS
                            "Sturm et al., BMC Bioinformatics (2008), 9, 163<BR>"
                            "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>"
                            ).arg(VersionInfo::getVersion().toQString()
-                           ).arg( // if we have a revision, embed it also into the shown version number
-                              VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");
-    
+                                 ).arg( // if we have a revision, embed it also into the shown version number
+      VersionInfo::getRevision() != "" ? QString(" (") + VersionInfo::getRevision().toQString() + ")" : "");
+
     QLabel* text_label = new QLabel(text, dlg);
     grid->addWidget(text_label, 0, 1, Qt::AlignTop | Qt::AlignLeft);
 

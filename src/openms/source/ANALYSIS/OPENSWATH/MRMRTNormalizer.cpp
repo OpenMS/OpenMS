@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {
-  std::pair<double, double > MRMRTNormalizer::llsm_fit(std::vector<std::pair<double, double> >& pairs)
+  std::pair<double, double> MRMRTNormalizer::llsm_fit(std::vector<std::pair<double, double> >& pairs)
   {
     std::vector<double> x, y;
 
@@ -65,7 +65,7 @@ namespace OpenMS
     c0 = lin_reg.getIntercept();
     c1 = lin_reg.getSlope();
 
-    return(std::make_pair(c0,c1));
+    return std::make_pair(c0, c1);
   }
 
   double MRMRTNormalizer::llsm_rsq(std::vector<std::pair<double, double> >& pairs)
@@ -91,27 +91,27 @@ namespace OpenMS
     return lin_reg.getRSquared();
   }
 
-  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients)
+  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double>& coefficients)
   {
     double rss = 0;
 
     for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
     {
-      rss += pow(it->second - (coefficients.first + ( coefficients.second * it->first)), 2);
+      rss += pow(it->second - (coefficients.first + (coefficients.second * it->first)), 2);
     }
 
     return rss;
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers(
-      std::vector<std::pair<double, double> >& pairs,
-      std::pair<double, double >& coefficients, double max_threshold)
+    std::vector<std::pair<double, double> >& pairs,
+    std::pair<double, double>& coefficients, double max_threshold)
   {
     std::vector<std::pair<double, double> > alsoinliers;
 
     for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
     {
-      if (pow(it->second - (coefficients.first + ( coefficients.second * it->first)), 2) < max_threshold)
+      if (pow(it->second - (coefficients.first + (coefficients.second * it->first)), 2) < max_threshold)
       {
         alsoinliers.push_back(*it);
       }
@@ -121,13 +121,13 @@ namespace OpenMS
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersRANSAC(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
-      double coverage_limit, size_t max_iterations, double max_rt_threshold, size_t sampling_size)
+    std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+    double coverage_limit, size_t max_iterations, double max_rt_threshold, size_t sampling_size)
   {
     size_t n = sampling_size;
     size_t k = (size_t)max_iterations;
-    double t = max_rt_threshold*max_rt_threshold;
-    size_t d = (size_t)(coverage_limit*pairs.size());
+    double t = max_rt_threshold * max_rt_threshold;
+    size_t d = (size_t)(coverage_limit * pairs.size());
 
     if (n < 5)
     {
@@ -157,7 +157,7 @@ namespace OpenMS
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::ransac(
-      std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test)
+    std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test)
   {
     // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
 
@@ -166,35 +166,35 @@ namespace OpenMS
     double besterror = std::numeric_limits<double>::max();
     double bettererror;
 #ifdef DEBUG_MRMRTNORMALIZER
-    std::pair<double, double > bestcoeff;
+    std::pair<double, double> bestcoeff;
     double betterrsq = 0;
     double bestrsq = 0;
 #endif
 
-    for (size_t ransac_int=0; ransac_int<k; ransac_int++)
+    for (size_t ransac_int = 0; ransac_int < k; ransac_int++)
     {
       std::vector<std::pair<double, double> > pairs_shuffled = pairs;
 
-      if (!test)
-      { // disables random selection in test mode
+      if (!test) // disables random selection in test mode
+      {
         std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
       }
 
       maybeinliers.clear();
       test_points.clear();
-      std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+n, std::back_inserter(maybeinliers) );
-      std::copy( pairs_shuffled.begin()+n, pairs_shuffled.end(), std::back_inserter(test_points) );
+      std::copy(pairs_shuffled.begin(), pairs_shuffled.begin() + n, std::back_inserter(maybeinliers));
+      std::copy(pairs_shuffled.begin() + n, pairs_shuffled.end(), std::back_inserter(test_points));
 
-      std::pair<double, double > coeff = llsm_fit(maybeinliers);
+      std::pair<double, double> coeff = llsm_fit(maybeinliers);
 
-      alsoinliers = llsm_rss_inliers(test_points,coeff,t);
+      alsoinliers = llsm_rss_inliers(test_points, coeff, t);
 
       if (alsoinliers.size() > d)
       {
         betterdata = maybeinliers;
-        betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
-        std::pair<double, double > bettercoeff = llsm_fit(betterdata);
-        bettererror = llsm_rss(betterdata,bettercoeff);
+        betterdata.insert(betterdata.end(), alsoinliers.begin(), alsoinliers.end());
+        std::pair<double, double> bettercoeff = llsm_fit(betterdata);
+        bettererror = llsm_rss(betterdata, bettercoeff);
 #ifdef DEBUG_MRMRTNORMALIZER
         betterrsq = llsm_rsq(betterdata);
 #endif
@@ -224,7 +224,7 @@ namespace OpenMS
     std::cout << "=======ENDPOINTS=======" << std::endl;
 #endif
 
-    return(bestdata);
+    return bestdata;
   }
 
   int MRMRTNormalizer::jackknifeOutlierCandidate(std::vector<double>& x, std::vector<double>& y)
@@ -270,13 +270,13 @@ namespace OpenMS
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersIterative(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
-      double coverage_limit, bool use_chauvenet, std::string method)
+    std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+    double coverage_limit, bool use_chauvenet, std::string method)
   {
     if (pairs.size() < 2)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Need at least 2 points for the regression.");
+                                       "Need at least 2 points for the regression.");
     }
 
     // Removes outliers from vector of pairs until upper rsq and lower coverage limits are reached.
@@ -332,7 +332,7 @@ namespace OpenMS
         else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            String("Method ") + method + " is not a valid method for removeOutliersIterative");
+                                           String("Method ") + method + " is not a valid method for removeOutliersIterative");
         }
 
         // remove if residual is an outlier according to Chauvenet's criterion

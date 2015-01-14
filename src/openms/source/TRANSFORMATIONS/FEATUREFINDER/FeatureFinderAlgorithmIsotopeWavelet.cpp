@@ -192,7 +192,7 @@ namespace OpenMS
       std::cout.flush();
 #endif
 
-      if (c_ref.size() <= 1)                 //unable to do transform anything
+      if (c_ref.size() <= 1) //unable to do transform anything
       {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
         std::cout << "scan empty or consisting of a single data point. Skipping." << std::endl;
@@ -201,7 +201,7 @@ namespace OpenMS
         continue;
       }
 
-      if (!hr_data_)                   //LowRes data
+      if (!hr_data_) //LowRes data
       {
         iwt->initializeScan((*this->map_)[i]);
         for (UInt c = 0; c < max_charge_; ++c)

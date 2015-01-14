@@ -41,14 +41,14 @@
 namespace OpenMS
 {
 
-  Annotation1DTextItem::Annotation1DTextItem(const PointType & position, const QString & text, int flags) :
+  Annotation1DTextItem::Annotation1DTextItem(const PointType& position, const QString& text, int flags) :
     Annotation1DItem(text),
     position_(position),
     flags_(flags)
   {
   }
 
-  Annotation1DTextItem::Annotation1DTextItem(const Annotation1DTextItem & rhs) :
+  Annotation1DTextItem::Annotation1DTextItem(const Annotation1DTextItem& rhs) :
     Annotation1DItem(rhs)
   {
     position_ = rhs.getPosition();
@@ -59,7 +59,7 @@ namespace OpenMS
   {
   }
 
-  void Annotation1DTextItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  void Annotation1DTextItem::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
     //translate mz/intensity to pixel coordinates
     QPoint pos;
@@ -75,18 +75,18 @@ namespace OpenMS
     }
   }
 
-  void Annotation1DTextItem::move(const PointType & delta)
+  void Annotation1DTextItem::move(const PointType& delta)
   {
     position_.setX(position_.getX() + delta.getX());
     position_.setY(position_.getY() + delta.getY());
   }
 
-  void Annotation1DTextItem::setPosition(const Annotation1DTextItem::PointType & position)
+  void Annotation1DTextItem::setPosition(const Annotation1DTextItem::PointType& position)
   {
     position_ = position;
   }
 
-  const Annotation1DTextItem::PointType & Annotation1DTextItem::getPosition() const
+  const Annotation1DTextItem::PointType& Annotation1DTextItem::getPosition() const
   {
     return position_;
   }
@@ -101,7 +101,7 @@ namespace OpenMS
     return flags_;
   }
 
-  void Annotation1DTextItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
+  void Annotation1DTextItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
   {
     DRange<3> data_range = canvas->getDataRange();
 

@@ -118,9 +118,9 @@ namespace OpenMS
         parent_parent_tag = *(open_tags_.end() - 3);
       }
 
-       static const XMLCh* s_type = xercesc::XMLString::transcode("type");
-       static const XMLCh* s_value = xercesc::XMLString::transcode("value");
-       static const XMLCh* s_name = xercesc::XMLString::transcode("name");
+      static const XMLCh* s_type = xercesc::XMLString::transcode("type");
+      static const XMLCh* s_value = xercesc::XMLString::transcode("value");
+      static const XMLCh* s_name = xercesc::XMLString::transcode("name");
 
       if (tag_ == "cvParam")
       {
@@ -1322,7 +1322,7 @@ namespace OpenMS
       }
     }
 
-    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap >& fm, UInt indentation_level)
+    void MzQuantMLHandler::writeFeature_(String& feature_xml, const std::vector<FeatureMap>& fm, UInt indentation_level)
     {
       //TODO: remove dummy
       //os << "\n featurewriter: " << identifier_prefix << "-" << String(identifier) << "-" << String(indentation_level) << "\n";
@@ -1335,7 +1335,7 @@ namespace OpenMS
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());
 
-      for (std::vector<FeatureMap >::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
+      for (std::vector<FeatureMap>::const_iterator fat = fm.begin(); fat != fm.end(); ++fat)
       {
         for (std::vector<Feature>::const_iterator fit = fat->begin(); fit != fat->end(); ++fit)
         {

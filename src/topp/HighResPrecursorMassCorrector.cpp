@@ -97,7 +97,7 @@ protected:
     setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
-  void getPrecursors_(const PeakMap & exp, vector<Precursor> & precursors, vector<double> & precursors_rt)
+  void getPrecursors_(const PeakMap& exp, vector<Precursor>& precursors, vector<double>& precursors_rt)
   {
     for (Size i = 0; i != exp.size(); ++i)
     {
@@ -112,7 +112,7 @@ protected:
     }
   }
 
-  void writeHist(String out_csv, const vector<double> & deltaMZs, const vector<double> & mzs, const vector<double> & rts)
+  void writeHist(String out_csv, const vector<double>& deltaMZs, const vector<double>& mzs, const vector<double>& rts)
   {
     //cout << "writting data" << endl;
     ofstream csv_file(out_csv.c_str());
@@ -131,11 +131,11 @@ protected:
   }
 
 protected:
-  void correct(PeakMap & exp, vector<double> & deltaMZs, vector<double> & mzs, vector<double> & rts)
+  void correct(PeakMap& exp, vector<double>& deltaMZs, vector<double>& mzs, vector<double>& rts)
   {
     // load experiment and extract precursors
-    vector<Precursor> precursors;  // precursor
-    vector<double> precursors_rt;  // RT of precursor MS2 spectrum
+    vector<Precursor> precursors; // precursor
+    vector<double> precursors_rt; // RT of precursor MS2 spectrum
     getPrecursors_(exp, precursors, precursors_rt);
 
     for (Size i = 0; i != precursors_rt.size(); ++i)
@@ -195,7 +195,7 @@ protected:
     }
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     const string in_mzml(getStringOption_("in"));
     const string out_mzml(getStringOption_("out"));
@@ -225,11 +225,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPHiResPrecursorMassCorrector tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

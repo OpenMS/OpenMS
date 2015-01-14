@@ -46,7 +46,7 @@ namespace OpenMS
     {
       for (std::size_t j = 0; j < exp->getSpectra()[i].getDataProcessing().size(); j++)
       {
-        const OpenMS::DataProcessing & dp = exp->getSpectra()[i].getDataProcessing()[j];
+        const OpenMS::DataProcessing& dp = exp->getSpectra()[i].getDataProcessing()[j];
         if (dp.metaValueExists("cached_data"))
         {
           is_cached = true;
@@ -57,13 +57,13 @@ namespace OpenMS
     {
       for (std::size_t j = 0; j < exp->getChromatograms()[i].getDataProcessing().size(); j++)
       {
-        const OpenMS::DataProcessing & dp = exp->getChromatograms()[i].getDataProcessing()[j];
+        const OpenMS::DataProcessing& dp = exp->getChromatograms()[i].getDataProcessing()[j];
         if (dp.metaValueExists("cached_data"))
         {
           is_cached = true;
         }
       }
-      }
+    }
     return is_cached;
   }
 
@@ -82,5 +82,4 @@ namespace OpenMS
     }
   }
 
-}//end Namespace
-
+} //end Namespace

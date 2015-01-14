@@ -57,16 +57,16 @@ namespace OpenMS
     //////////////////////////////////////////////////////////////
     //DELEGATE
     //////////////////////////////////////////////////////////////
-    ListEditorDelegate::ListEditorDelegate(QObject * parent) :
+    ListEditorDelegate::ListEditorDelegate(QObject* parent) :
       QItemDelegate(parent)
     {
     }
 
-    QWidget * ListEditorDelegate::createEditor(QWidget * parent, const QStyleOptionViewItem &, const QModelIndex & index) const
+    QWidget* ListEditorDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem&, const QModelIndex& index) const
     {
       if (type_ == ListEditor::INPUT_FILE)
       {
-        QLineEdit * editor = new QLineEdit(parent);
+        QLineEdit* editor = new QLineEdit(parent);
         //editor->setReadOnly(true);
         QString str = index.data(Qt::DisplayRole).toString();
 
@@ -78,7 +78,7 @@ namespace OpenMS
       }
       else if (type_ == ListEditor::OUTPUT_FILE)
       {
-        QLineEdit * editor = new QLineEdit(parent);
+        QLineEdit* editor = new QLineEdit(parent);
         //editor->setReadOnly(true);
         QString str = index.data(Qt::DisplayRole).toString();
         file_name_ = QFileDialog::getSaveFileName(editor, tr("Output File List"), str);
@@ -87,7 +87,7 @@ namespace OpenMS
       }
       else if (type_ == ListEditor::STRING && restrictions_ != "")
       {
-        QComboBox * editor = new QComboBox(parent);
+        QComboBox* editor = new QComboBox(parent);
         QStringList list;
         list.append("");
         list += restrictions_.toQString().split(",");
@@ -96,14 +96,14 @@ namespace OpenMS
       }
       else
       {
-        QLineEdit * editor = new QLineEdit(parent);
+        QLineEdit* editor = new QLineEdit(parent);
         editor->setFocusPolicy(Qt::StrongFocus);
 
         return editor;
       }
     }
 
-    void ListEditorDelegate::setEditorData(QWidget * editor, const QModelIndex & index) const
+    void ListEditorDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
     {
       if (index.isValid())
       {
@@ -113,53 +113,53 @@ namespace OpenMS
         {
           if (!file_name_.isNull())
           {
-            static_cast<QLineEdit *>(editor)->setText(file_name_);
+            static_cast<QLineEdit*>(editor)->setText(file_name_);
           }
         }
-        else if (qobject_cast<QComboBox *>(editor))
+        else if (qobject_cast<QComboBox*>(editor))
         {
-          int index = static_cast<QComboBox *>(editor)->findText(str);
+          int index = static_cast<QComboBox*>(editor)->findText(str);
           if (index == -1)
           {
             index = 0;
           }
-          static_cast<QComboBox *>(editor)->setCurrentIndex(index);
+          static_cast<QComboBox*>(editor)->setCurrentIndex(index);
         }
-        else if (qobject_cast<QLineEdit *>(editor))
+        else if (qobject_cast<QLineEdit*>(editor))
         {
-          static_cast<QLineEdit *>(editor)->setText(str);
+          static_cast<QLineEdit*>(editor)->setText(str);
         }
       }
     }
 
-    void ListEditorDelegate::setModelData(QWidget * editor, QAbstractItemModel * model, const QModelIndex & index) const
+    void ListEditorDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
     {
       QVariant present_value = index.data(Qt::DisplayRole);
       QVariant new_value;
       if (index.column() == 0)
       {
-        if (qobject_cast<QComboBox *>(editor))        //Drop-down list for enums
+        if (qobject_cast<QComboBox*>(editor)) //Drop-down list for enums
         {
-          new_value = QVariant(static_cast<QComboBox *>(editor)->currentText());
+          new_value = QVariant(static_cast<QComboBox*>(editor)->currentText());
         }
         else if (type_ == ListEditor::INPUT_FILE || type_ == ListEditor::OUTPUT_FILE)
         {
-          new_value = QVariant(static_cast<QLineEdit *>(editor)->text());         //file_name_;
+          new_value = QVariant(static_cast<QLineEdit*>(editor)->text()); //file_name_;
           file_name_ = "\0";
         }
         else
         {
-          if (type_ == ListEditor::FLOAT && static_cast<QLineEdit *>(editor)->text() == "")
+          if (type_ == ListEditor::FLOAT && static_cast<QLineEdit*>(editor)->text() == "")
           {
             new_value = QVariant("0.0");
           }
-          else if (type_ == ListEditor::INT && static_cast<QLineEdit *>(editor)->text() == "")
+          else if (type_ == ListEditor::INT && static_cast<QLineEdit*>(editor)->text() == "")
           {
             new_value = QVariant("0");
           }
           else
           {
-            new_value = QVariant(static_cast<QLineEdit *>(editor)->text());
+            new_value = QVariant(static_cast<QLineEdit*>(editor)->text());
           }
         }
         //check if it matches the restrictions or is empty
@@ -197,7 +197,7 @@ namespace OpenMS
           }
           break;
 
-          case ListEditor::FLOAT:               //check if valid float
+          case ListEditor::FLOAT: //check if valid float
           {
             bool ok;
             new_value.toString().toDouble(&ok);
@@ -245,7 +245,7 @@ namespace OpenMS
       }
     }
 
-    void ListEditorDelegate::updateEditorGeometry(QWidget * editor, const QStyleOptionViewItem & option, const QModelIndex &) const
+    void ListEditorDelegate::updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, const QModelIndex&) const
     {
       editor->setGeometry(option.rect);
     }
@@ -255,7 +255,7 @@ namespace OpenMS
       type_ = type;
     }
 
-    void ListEditorDelegate::setRestrictions(const String & restrictions)
+    void ListEditorDelegate::setRestrictions(const String& restrictions)
     {
       restrictions_ = restrictions;
     }
@@ -273,7 +273,7 @@ namespace OpenMS
     //////////////////////////////////////////////////////////////
     //LISTTABLE
     //////////////////////////////////////////////////////////////
-    ListTable::ListTable(QWidget * parent) :
+    ListTable::ListTable(QWidget* parent) :
       QListWidget(parent)
     {
     }
@@ -294,13 +294,13 @@ namespace OpenMS
       return list_;
     }
 
-    void ListTable::setList(const StringList & list, ListEditor::Type type)
+    void ListTable::setList(const StringList& list, ListEditor::Type type)
     {
       type_ = type;
 
       for (UInt i = 0; i < list.size(); ++i)
       {
-        QListWidgetItem * item = new QListWidgetItem(list[i].toQString());
+        QListWidgetItem* item = new QListWidgetItem(list[i].toQString());
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 
         insertItem(i, item);
@@ -312,7 +312,7 @@ namespace OpenMS
     void ListTable::createNewRow()
     {
 
-      QListWidgetItem * item = 0;
+      QListWidgetItem* item = 0;
       switch (type_)
       {
       case ListEditor::INT:
@@ -340,12 +340,12 @@ namespace OpenMS
       takeItem(currentRow());
     }
 
-  }  //namespace Internal
+  } //namespace Internal
 
   ////////////////////////////////////////////////////////////
   //ListEditor
   ////////////////////////////////////////////////////////////
-  ListEditor::ListEditor(QWidget * parent, QString title) :
+  ListEditor::ListEditor(QWidget* parent, QString title) :
     QDialog(parent)
   {
     listTable_ = new Internal::ListTable(this);
@@ -362,13 +362,13 @@ namespace OpenMS
     connect(newRowButton_, SIGNAL(clicked()), listTable_, SLOT(createNewRow()));
     connect(removeRowButton_, SIGNAL(clicked()), listTable_, SLOT(removeCurrentRow()));
 
-    QDialogButtonBox * rightLayout = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Vertical);
+    QDialogButtonBox* rightLayout = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Vertical);
     rightLayout->addButton(newRowButton_, QDialogButtonBox::ActionRole);
     rightLayout->addButton(removeRowButton_, QDialogButtonBox::ActionRole);
 
     connect(rightLayout, SIGNAL(accepted()), this, SLOT(accept()));
     connect(rightLayout, SIGNAL(rejected()), this, SLOT(reject()));
-    QHBoxLayout * mainLayout = new QHBoxLayout;
+    QHBoxLayout* mainLayout = new QHBoxLayout;
     mainLayout->addWidget(listTable_);
     mainLayout->addWidget(rightLayout);
     setLayout(mainLayout);
@@ -382,14 +382,14 @@ namespace OpenMS
     return listTable_->getList();
   }
 
-  void ListEditor::setList(const StringList & list, ListEditor::Type type)
+  void ListEditor::setList(const StringList& list, ListEditor::Type type)
   {
     type_ = type;
     listTable_->setList(list, type_);
     listDelegate_->setType(type_);
   }
 
-  void ListEditor::setListRestrictions(const String & restrictions)
+  void ListEditor::setListRestrictions(const String& restrictions)
   {
     listDelegate_->setRestrictions(restrictions);
   }

@@ -41,9 +41,12 @@ namespace OpenMS
 {
 
   // keep this in sync with enum ChromatogramType
-  const char * const ChromatogramSettings::ChromatogramNames[] = {"mass chromatogram", "total ion current chromatogram", "selected ion current chromatogram" ,"base peak chromatogram",
-                                                                  "selected ion monitoring chromatogram" ,"selected reaction monitoring chromatogram" ,"electromagnetic radiation chromatogram",
-                                                                  "absorption chromatogram", "emission chromatogram", "unknown chromatogram"}; // last entry should be "unknown", since this is the default in FileInfo.cpp
+  const char* const ChromatogramSettings::ChromatogramNames[] =
+  {
+    "mass chromatogram", "total ion current chromatogram", "selected ion current chromatogram", "base peak chromatogram",
+    "selected ion monitoring chromatogram", "selected reaction monitoring chromatogram", "electromagnetic radiation chromatogram",
+    "absorption chromatogram", "emission chromatogram", "unknown chromatogram"
+  };                                                                                                                                           // last entry should be "unknown", since this is the default in FileInfo.cpp
 
   ChromatogramSettings::ChromatogramSettings() :
     MetaInfoInterface(),
@@ -59,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  ChromatogramSettings::ChromatogramSettings(const ChromatogramSettings & source) :
+  ChromatogramSettings::ChromatogramSettings(const ChromatogramSettings& source) :
     MetaInfoInterface(source),
     native_id_(source.native_id_),
     comment_(source.comment_),
@@ -77,7 +80,7 @@ namespace OpenMS
   {
   }
 
-  ChromatogramSettings & ChromatogramSettings::operator=(const ChromatogramSettings & source)
+  ChromatogramSettings& ChromatogramSettings::operator=(const ChromatogramSettings& source)
   {
     if (&source == this)
       return *this;
@@ -96,7 +99,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool ChromatogramSettings::operator==(const ChromatogramSettings & rhs) const
+  bool ChromatogramSettings::operator==(const ChromatogramSettings& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
            native_id_ == rhs.native_id_ &&
@@ -110,124 +113,124 @@ namespace OpenMS
            type_ == rhs.type_;
   }
 
-  bool ChromatogramSettings::operator!=(const ChromatogramSettings & rhs) const
+  bool ChromatogramSettings::operator!=(const ChromatogramSettings& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const String & ChromatogramSettings::getComment() const
+  const String& ChromatogramSettings::getComment() const
   {
     return comment_;
   }
 
-  void ChromatogramSettings::setComment(const String & comment)
+  void ChromatogramSettings::setComment(const String& comment)
   {
     comment_ = comment;
   }
 
-  const InstrumentSettings & ChromatogramSettings::getInstrumentSettings() const
+  const InstrumentSettings& ChromatogramSettings::getInstrumentSettings() const
   {
     return instrument_settings_;
   }
 
-  InstrumentSettings & ChromatogramSettings::getInstrumentSettings()
+  InstrumentSettings& ChromatogramSettings::getInstrumentSettings()
   {
     return instrument_settings_;
   }
 
-  void ChromatogramSettings::setInstrumentSettings(const InstrumentSettings & instrument_settings)
+  void ChromatogramSettings::setInstrumentSettings(const InstrumentSettings& instrument_settings)
   {
     instrument_settings_ = instrument_settings;
   }
 
-  const AcquisitionInfo & ChromatogramSettings::getAcquisitionInfo() const
+  const AcquisitionInfo& ChromatogramSettings::getAcquisitionInfo() const
   {
     return acquisition_info_;
   }
 
-  AcquisitionInfo & ChromatogramSettings::getAcquisitionInfo()
+  AcquisitionInfo& ChromatogramSettings::getAcquisitionInfo()
   {
     return acquisition_info_;
   }
 
-  void ChromatogramSettings::setAcquisitionInfo(const AcquisitionInfo & acquisition_info)
+  void ChromatogramSettings::setAcquisitionInfo(const AcquisitionInfo& acquisition_info)
   {
     acquisition_info_ = acquisition_info;
   }
 
-  const SourceFile & ChromatogramSettings::getSourceFile() const
+  const SourceFile& ChromatogramSettings::getSourceFile() const
   {
     return source_file_;
   }
 
-  SourceFile & ChromatogramSettings::getSourceFile()
+  SourceFile& ChromatogramSettings::getSourceFile()
   {
     return source_file_;
   }
 
-  void ChromatogramSettings::setSourceFile(const SourceFile & source_file)
+  void ChromatogramSettings::setSourceFile(const SourceFile& source_file)
   {
     source_file_ = source_file;
   }
 
-  const Precursor & ChromatogramSettings::getPrecursor() const
+  const Precursor& ChromatogramSettings::getPrecursor() const
   {
     return precursor_;
   }
 
-  Precursor & ChromatogramSettings::getPrecursor()
+  Precursor& ChromatogramSettings::getPrecursor()
   {
     return precursor_;
   }
 
-  void ChromatogramSettings::setPrecursor(const Precursor & precursor)
+  void ChromatogramSettings::setPrecursor(const Precursor& precursor)
   {
     precursor_ = precursor;
   }
 
-  const Product & ChromatogramSettings::getProduct() const
+  const Product& ChromatogramSettings::getProduct() const
   {
     return product_;
   }
 
-  Product & ChromatogramSettings::getProduct()
+  Product& ChromatogramSettings::getProduct()
   {
     return product_;
   }
 
-  void ChromatogramSettings::setProduct(const Product & product)
+  void ChromatogramSettings::setProduct(const Product& product)
   {
     product_ = product;
   }
 
-  std::ostream & operator<<(std::ostream & os, const ChromatogramSettings & /*spec*/)
+  std::ostream& operator<<(std::ostream& os, const ChromatogramSettings& /*spec*/)
   {
     os << "-- CHROMATOGRAMSETTINGS BEGIN --" << std::endl;
     os << "-- CHROMATOGRAMSETTINGS END --" << std::endl;
     return os;
   }
 
-  const String & ChromatogramSettings::getNativeID() const
+  const String& ChromatogramSettings::getNativeID() const
   {
     return native_id_;
   }
 
-  void ChromatogramSettings::setNativeID(const String & native_id)
+  void ChromatogramSettings::setNativeID(const String& native_id)
   {
     native_id_ = native_id;
   }
 
-  const vector<DataProcessing> & ChromatogramSettings::getDataProcessing() const
+  const vector<DataProcessing>& ChromatogramSettings::getDataProcessing() const
   {
     return data_processing_;
   }
 
-  vector<DataProcessing> & ChromatogramSettings::getDataProcessing()
+  vector<DataProcessing>& ChromatogramSettings::getDataProcessing()
   {
     return data_processing_;
   }
 
-  void ChromatogramSettings::setDataProcessing(const vector<DataProcessing> & processing_method)
+  void ChromatogramSettings::setDataProcessing(const vector<DataProcessing>& processing_method)
   {
     data_processing_ = processing_method;
   }

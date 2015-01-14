@@ -208,7 +208,7 @@ namespace OpenMS
     StringList args;
     for (int i = 0; i < argc; ++i)
     {
-      if (String(argv[i]).has(' ')) args.push_back(String("\"") + argv[i] + String("\"")); // surround with quotes if argument contains a space
+      if (String(argv[i]).has(' ')) args.push_back(String("\"") + argv[i] + String("\""));  // surround with quotes if argument contains a space
       else args.push_back(argv[i]);
     }
     writeDebug_(String(" >> ") + ListUtils::concatenate(args, " "), 1);
@@ -406,7 +406,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     debug_level_ = getParamAsInt_("debug", 0);
     writeDebug_(String("Debug level (after ini file): ") + String(debug_level_), 1);
-    if (debug_level_ > 0) Log_debug.insert(cout); // allows to use LOG_DEBUG << "something" << std::endl;
+    if (debug_level_ > 0) Log_debug.insert(cout);  // allows to use LOG_DEBUG << "something" << std::endl;
 
     //-------------------------------------------------------------
     //progress logging
@@ -723,7 +723,7 @@ namespace OpenMS
       }
 
       if (it->type == ParameterInformation::TEXT)
-        cerr << ConsoleUtils::breakString(tmp + desc_tmp, 0, 10); // no indentation for text
+        cerr << ConsoleUtils::breakString(tmp + desc_tmp, 0, 10);  // no indentation for text
       else
         cerr << ConsoleUtils::breakString(tmp + desc_tmp, offset, 10);
       cerr << "\n";
@@ -835,7 +835,7 @@ namespace OpenMS
     {
     case DataValue::STRING_VALUE:
       if (entry.valid_strings.empty())
-        argument = "<text>"; // name?
+        argument = "<text>";  // name?
       else
         argument = "<choice>";
       break;
@@ -1721,7 +1721,7 @@ namespace OpenMS
   {
     size_t pos = name.find_last_of(':');
     if (pos == string::npos)
-      return ""; // delimiter not found
+      return "";  // delimiter not found
 
     return name.substr(0, pos);
   }
@@ -2226,7 +2226,7 @@ namespace OpenMS
       }
     }
   }
-  
+
   void TOPPBase::addDataProcessing_(FeatureMap& map, const DataProcessing& dp) const
   {
     map.getDataProcessing().push_back(dp);
@@ -2242,7 +2242,7 @@ namespace OpenMS
     }
     StringList type_list = ToolHandler::getTypes(tool_name_);
     if (type_list.size() == 0)
-      type_list.push_back(""); // no type for most tools (except GenericWrapper)
+      type_list.push_back("");  // no type for most tools (except GenericWrapper)
 
     for (Size i = 0; i < type_list.size(); ++i)
     {
@@ -2574,7 +2574,7 @@ namespace OpenMS
               break;
             }
             if (!queue.empty())
-              queue.pop_front(); // argument was already used
+              queue.pop_front();  // argument was already used
           }
           LOG_DEBUG << "Setting parameter value: " << pos->second->name << " to " << value << std::endl;
           cmd_params.setValue(pos->second->name, value);

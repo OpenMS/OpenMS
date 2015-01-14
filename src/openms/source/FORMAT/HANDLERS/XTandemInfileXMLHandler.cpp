@@ -43,7 +43,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    XTandemInfileXMLHandler::XTandemInfileXMLHandler(const String & filename, vector<XTandemInfileNote> & notes, XTandemInfile * infile) :
+    XTandemInfileXMLHandler::XTandemInfileXMLHandler(const String& filename, vector<XTandemInfileNote>& notes, XTandemInfile* infile) :
       XMLHandler(filename, ""),
       notes_(notes),
       infile_(infile)
@@ -56,7 +56,7 @@ namespace OpenMS
 
     }
 
-    void XTandemInfileXMLHandler::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+    void XTandemInfileXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
 
       tag_ = String(sm_.convert(qname));
@@ -79,7 +79,7 @@ namespace OpenMS
 
     }
 
-    void XTandemInfileXMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+    void XTandemInfileXMLHandler::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
       tag_ = String(sm_.convert(qname)).trim();
       if (tag_ == "note")
@@ -88,7 +88,7 @@ namespace OpenMS
       }
     }
 
-    void XTandemInfileXMLHandler::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+    void XTandemInfileXMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
       String value = ((String)sm_.convert(chars)).trim();
       if (tag_ == "note")
@@ -100,5 +100,5 @@ namespace OpenMS
       }
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

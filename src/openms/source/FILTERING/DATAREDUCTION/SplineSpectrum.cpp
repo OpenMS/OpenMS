@@ -226,8 +226,8 @@ namespace OpenMS
 
   double SplineSpectrum::Navigator::eval(double mz)
   {
-    if (mz < (*packages_)[last_package_].getMzMin())
-    { // look left
+    if (mz < (*packages_)[last_package_].getMzMin()) // look left
+    {
       for (int i = (int) last_package_; i >= 0; --i)
       {
         if (mz > (*packages_)[i].getMzMax())
@@ -242,8 +242,8 @@ namespace OpenMS
         }
       }
     }
-    else
-    { // look right
+    else // look right
+    {
       for (size_t i = last_package_; i < (size_t)(*packages_).size(); ++i)
       {
         if (mz < (*packages_)[i].getMzMin())

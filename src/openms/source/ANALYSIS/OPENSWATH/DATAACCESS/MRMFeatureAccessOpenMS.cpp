@@ -117,7 +117,7 @@ namespace OpenMS
   std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it) 
+    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it)
     {
       v.push_back(it->first);
     }

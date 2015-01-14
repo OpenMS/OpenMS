@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  InstrumentSettings::InstrumentSettings(const InstrumentSettings & source) :
+  InstrumentSettings::InstrumentSettings(const InstrumentSettings& source) :
     MetaInfoInterface(source),
     scan_mode_(source.scan_mode_),
     zoom_scan_(source.zoom_scan_),
@@ -62,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  InstrumentSettings & InstrumentSettings::operator=(const InstrumentSettings & source)
+  InstrumentSettings& InstrumentSettings::operator=(const InstrumentSettings& source)
   {
     if (&source == this)
       return *this;
@@ -76,7 +76,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool InstrumentSettings::operator==(const InstrumentSettings & rhs) const
+  bool InstrumentSettings::operator==(const InstrumentSettings& rhs) const
   {
     return scan_mode_ == rhs.scan_mode_ &&
            zoom_scan_  == rhs.zoom_scan_ &&
@@ -85,7 +85,7 @@ namespace OpenMS
            MetaInfoInterface::operator==(rhs);
   }
 
-  bool InstrumentSettings::operator!=(const InstrumentSettings & rhs) const
+  bool InstrumentSettings::operator!=(const InstrumentSettings& rhs) const
   {
     return !(operator==(rhs));
   }
@@ -110,12 +110,12 @@ namespace OpenMS
     polarity_ = polarity;
   }
 
-  const std::vector<ScanWindow> & InstrumentSettings::getScanWindows() const
+  const std::vector<ScanWindow>& InstrumentSettings::getScanWindows() const
   {
     return scan_windows_;
   }
 
-  std::vector<ScanWindow> & InstrumentSettings::getScanWindows()
+  std::vector<ScanWindow>& InstrumentSettings::getScanWindows()
   {
     return scan_windows_;
   }

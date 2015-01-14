@@ -51,7 +51,7 @@ namespace OpenMS
 
   }
 
-  void PepXMLFileMascot::load(const String & filename, map<String, vector<AASequence> > & peptides)
+  void PepXMLFileMascot::load(const String& filename, map<String, vector<AASequence> >& peptides)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -71,7 +71,7 @@ namespace OpenMS
     fixed_modifications_ = vector<String>();
   }
 
-  void PepXMLFileMascot::matchModification_(double mass, String & modification_description)
+  void PepXMLFileMascot::matchModification_(double mass, String& modification_description)
   {
     UInt i = 0;
     bool found = false;
@@ -92,7 +92,7 @@ namespace OpenMS
     }
   }
 
-  void PepXMLFileMascot::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes)
+  void PepXMLFileMascot::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
   {
     String element = sm_.convert(qname);
 
@@ -150,7 +150,7 @@ namespace OpenMS
     }
   }
 
-  void PepXMLFileMascot::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void PepXMLFileMascot::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     String element = sm_.convert(qname);
 

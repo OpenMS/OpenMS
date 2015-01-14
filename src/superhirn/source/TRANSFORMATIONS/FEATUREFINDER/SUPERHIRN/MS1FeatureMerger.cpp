@@ -76,7 +76,7 @@ namespace OpenMS
    */
 ////////////////////////////////////////////////
 // constructor for the object ana_summarizer:
-  MS1FeatureMerger::MS1FeatureMerger(LCMS * in)
+  MS1FeatureMerger::MS1FeatureMerger(LCMS* in)
   {
     lcmsMap = in;
   }
@@ -108,7 +108,7 @@ namespace OpenMS
       createMZFeatureClusters();
 
       // process the mz clusters
-      map<double, vector<SHFeature *> >::iterator M = mzClusters.begin();
+      map<double, vector<SHFeature*> >::iterator M = mzClusters.begin();
       while (M != mzClusters.end())
       {
         if (M->second.size() > 1)
@@ -144,13 +144,13 @@ namespace OpenMS
     vector<SHFeature>::iterator I = lcmsMap->get_feature_list_begin();
     while (I != lcmsMap->get_feature_list_end())
     {
-      SHFeature * fea = &(*I);
+      SHFeature* fea = &(*I);
 
-      map<double, vector<SHFeature *> >::iterator F = mzClusters.lower_bound(fea->get_MZ());
+      map<double, vector<SHFeature*> >::iterator F = mzClusters.lower_bound(fea->get_MZ());
 
       if (mzClusters.empty())
       {
-        vector<SHFeature *> tmp;
+        vector<SHFeature*> tmp;
         tmp.push_back(fea);
         mzClusters.insert(make_pair(fea->get_MZ(), tmp));
 
@@ -165,7 +165,7 @@ namespace OpenMS
         }
         else
         {
-          vector<SHFeature *> tmp;
+          vector<SHFeature*> tmp;
           tmp.push_back(fea);
           mzClusters.insert(make_pair(fea->get_MZ(), tmp));
         }
@@ -181,7 +181,7 @@ namespace OpenMS
         }
         else
         {
-          vector<SHFeature *> tmp;
+          vector<SHFeature*> tmp;
           tmp.push_back(fea);
           mzClusters.insert(make_pair(fea->get_MZ(), tmp));
         }
@@ -205,7 +205,7 @@ namespace OpenMS
 
         if (!found)
         {
-          vector<SHFeature *> tmp;
+          vector<SHFeature*> tmp;
           tmp.push_back(fea);
           mzClusters.insert(make_pair(fea->get_MZ(), tmp));
         }
@@ -219,7 +219,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // compare if a feature belongs to another feature
-  bool MS1FeatureMerger::compareMZFeatureBeloning(SHFeature * A, SHFeature * B)
+  bool MS1FeatureMerger::compareMZFeatureBeloning(SHFeature* A, SHFeature* B)
   {
 
     if ((A->getLCelutionProfile() == NULL) || (B->getLCelutionProfile() == NULL))
@@ -251,7 +251,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // process a vector of m/z features
-  void MS1FeatureMerger::processMZFeatureVector(vector<SHFeature *> * mapF)
+  void MS1FeatureMerger::processMZFeatureVector(vector<SHFeature*>* mapF)
   {
 
     unsigned int length = -1;
@@ -264,15 +264,15 @@ namespace OpenMS
     {
 
       length = (unsigned int) mapF->size();
-      vector<SHFeature *>::iterator SEARCHER = mapF->begin();
+      vector<SHFeature*>::iterator SEARCHER = mapF->begin();
       while (SEARCHER != mapF->end())
       {
 
         // take the first one as a reference:
-        SHFeature * loc = *SEARCHER;
+        SHFeature* loc = *SEARCHER;
 
         // find features to merge:
-        vector<SHFeature *>::iterator F = SEARCHER;
+        vector<SHFeature*>::iterator F = SEARCHER;
         ++F;
         F = findFeaturesToMerge(loc, F, mapF);
         ++SEARCHER;
@@ -282,27 +282,27 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // find to this feature the features which should be merged
-  vector<SHFeature *>::iterator MS1FeatureMerger::findFeaturesToMerge(SHFeature * search,
-                                                                      vector<SHFeature *>::iterator mapCurrent, vector<SHFeature *> * Fmap)
+  vector<SHFeature*>::iterator MS1FeatureMerger::findFeaturesToMerge(SHFeature* search,
+                                                                     vector<SHFeature*>::iterator mapCurrent, vector<SHFeature*>* Fmap)
   {
 
     bool log10Intens = true;
 
     // get the elution profile:
-    FeatureLCProfile * searchLC = search->getLCelutionProfile();
+    FeatureLCProfile* searchLC = search->getLCelutionProfile();
     while (mapCurrent != Fmap->end())
     {
 
       // check absolute retention time difference:
       bool toMerge = false;
-      SHFeature * mergedTarget = (*mapCurrent);
+      SHFeature* mergedTarget = (*mapCurrent);
       double deltaTr = fabs(search->get_retention_time() - mergedTarget->get_retention_time());
       if (deltaTr <= SuperHirnParameters::instance()->getInitialTrTolerance())
       {
 
         // compare the end / start of the elution peak:
-        MS1Signal * start;
-        MS1Signal * end;
+        MS1Signal* start;
+        MS1Signal* end;
         if (search->get_retention_time() < mergedTarget->get_retention_time())
         {
           start = &(searchLC->getLastLCelutionSignal()->second);
@@ -360,7 +360,7 @@ namespace OpenMS
 
 /////////////////////////////////////////////////////////////////////////////
 // merge the target to the search feature
-  void MS1FeatureMerger::mergeFeatures(SHFeature * target, SHFeature * toMerge)
+  void MS1FeatureMerger::mergeFeatures(SHFeature* target, SHFeature* toMerge)
   {
 
     double TOT_AREA = target->get_peak_area() + toMerge->get_peak_area();
@@ -377,8 +377,8 @@ namespace OpenMS
       / TOT_AREA);
 
     // merge first the elution profiles:
-    FeatureLCProfile * targetLC = target->getLCelutionProfile();
-    FeatureLCProfile * mergeLC = toMerge->getLCelutionProfile();
+    FeatureLCProfile* targetLC = target->getLCelutionProfile();
+    FeatureLCProfile* mergeLC = toMerge->getLCelutionProfile();
 
     // add points of the toMerge to the target:
     map<int, MS1Signal>::iterator LC = mergeLC->getLCelutionSignalsStart();
@@ -407,10 +407,10 @@ namespace OpenMS
 
 //////////////////////////////////////////////////////////////////
 // Compute a varietiy of parameters for the LC elution peak
-  void MS1FeatureMerger::computeNewMS1FeatureParameters(SHFeature * in)
+  void MS1FeatureMerger::computeNewMS1FeatureParameters(SHFeature* in)
   {
 
-    FeatureLCProfile * lcProfile = in->getLCelutionProfile();
+    FeatureLCProfile* lcProfile = in->getLCelutionProfile();
 
     // define the apex treshold:
     double maxIntens = -1;
@@ -426,7 +426,7 @@ namespace OpenMS
 
     // get the MS peak above noise to copmute:
     double THRESHOLD = maxIntens / in->getSignalToNoise();
-    vector<MS1Signal *> computeMap;
+    vector<MS1Signal*> computeMap;
     LC = lcProfile->getLCelutionSignalsStart();
 
     in->set_scan_start((*LC).second.scan);
@@ -447,7 +447,7 @@ namespace OpenMS
     if (!computeMap.empty())
     {
 
-      vector<MS1Signal *>::iterator P = computeMap.begin();
+      vector<MS1Signal*>::iterator P = computeMap.begin();
 
       double TOT_AREA = 0;
       double start_TR = 0;

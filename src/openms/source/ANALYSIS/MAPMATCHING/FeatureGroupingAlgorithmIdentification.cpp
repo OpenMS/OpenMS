@@ -69,7 +69,7 @@ namespace OpenMS
   struct SortPepHit
   {
     bool
-    operator()(const PepHit & a, const PepHit & b) const
+    operator()(const PepHit& a, const PepHit& b) const
     {
       if (a.pep_sequence != b.pep_sequence)
       {
@@ -86,7 +86,7 @@ namespace OpenMS
   struct SortPepHitbyMap
   {
     bool
-    operator()(const PepHit & a, const PepHit & b) const
+    operator()(const PepHit& a, const PepHit& b) const
     {
       return a.pep_map_nr < b.pep_map_nr;
     }
@@ -94,7 +94,7 @@ namespace OpenMS
   };
 
   void
-  FeatureGroupingAlgorithmIdentification::group(const std::vector<FeatureMap> & maps, ConsensusMap & out)
+  FeatureGroupingAlgorithmIdentification::group(const std::vector<FeatureMap>& maps, ConsensusMap& out)
   {
     // check that the number of maps is ok
     if (maps.size() < 2)
@@ -127,7 +127,7 @@ namespace OpenMS
 
     std::vector<FeatureMap> feature_maps = maps; // copy maps, so that they can be changed. // ???? größte map als erste!?
 
-    for (Size i = 0; i < feature_maps.size(); ++i)   // feature maps
+    for (Size i = 0; i < feature_maps.size(); ++i) // feature maps
     {
       //    feature_maps[i].sortByRT();
 
@@ -140,10 +140,10 @@ namespace OpenMS
       // features
       for (Size j = 0; j < feature_maps[i].size(); ++j)
       {
-        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k)   // peptide identifications
+        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k) // peptide identifications
         {
           std::vector<PeptideHit> peptide_hits;
-          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l)   // peptide hits
+          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l) // peptide hits
           {
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
 
@@ -175,11 +175,11 @@ namespace OpenMS
       }
 
       // standard deviation: num_var
-      for (Size j = 0; j < feature_maps[i].size(); ++j)   // features
+      for (Size j = 0; j < feature_maps[i].size(); ++j) // features
       {
-        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k)   // peptide identifications
+        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k) // peptide identifications
         {
-          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l)   // peptide hits
+          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l) // peptide hits
           {
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
 
@@ -218,10 +218,10 @@ namespace OpenMS
       // features
       for (Size j = 0; j < feature_maps[i].size(); ++j)
       {
-        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k)   // petide identifications
+        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k) // petide identifications
         {
           std::vector<PeptideHit> peptide_hits;
-          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l)   // peptide hits
+          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l) // peptide hits
           {
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
 
@@ -270,18 +270,18 @@ namespace OpenMS
     // holds all the identifications I discard in the steps three to five, so that the reason can be assigned to the features as a meta value
     std::vector<PepHit> discarded_pephits;
 
-    for (Size i = 0; i < feature_maps.size(); ++i)   // feature maps
+    for (Size i = 0; i < feature_maps.size(); ++i) // feature maps
     {
       std::vector<PepHit> pep_hits_map;
 
-      for (Size j = 0; j < feature_maps[i].size(); ++j)   // features
+      for (Size j = 0; j < feature_maps[i].size(); ++j) // features
       {
-        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k)   // petide identifications
+        for (Size k = 0; k < feature_maps[i][j].getPeptideIdentifications().size(); ++k) // petide identifications
         {
-          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l)   // peptide hits
+          for (Size l = 0; l < feature_maps[i][j].getPeptideIdentifications()[k].getHits().size(); ++l) // peptide hits
           {
             PeptideHit peptide_hit = feature_maps[i][j].getPeptideIdentifications()[k].getHits()[l];
-            if (peptide_hit.getMetaValue("IDAlgorithm") == "true")   // put all hits that are not yet discarded in a vector
+            if (peptide_hit.getMetaValue("IDAlgorithm") == "true") // put all hits that are not yet discarded in a vector
             {
               double xcorr_pep;
               if (peptide_hit.metaValueExists("XCorr"))
@@ -308,7 +308,7 @@ namespace OpenMS
         pep_hits_initial[pep_hits_map[0].pep_sequence].push_back(pep_hits_map[0]);
         for (std::vector<PepHit>::iterator iter = pep_hits_map.begin(); iter != pep_hits_map.end() - 1; ++iter)
         {
-          if (iter->pep_sequence != (iter + 1)->pep_sequence)   // only one feature from every map for every identification
+          if (iter->pep_sequence != (iter + 1)->pep_sequence) // only one feature from every map for every identification
           {
             pep_hits_initial[(iter + 1)->pep_sequence].push_back(*(iter + 1));
           }
@@ -361,7 +361,7 @@ namespace OpenMS
        }
        }	*/
 
-      if (stand_dev_mz > mz_stdev_threshold)   // discard the consensus features which have a higher m/z standard deviation
+      if (stand_dev_mz > mz_stdev_threshold) // discard the consensus features which have a higher m/z standard deviation
       {
         for (std::vector<PepHit>::iterator itervec = itermap->second.begin(); itervec != itermap->second.end(); ++itervec)
         {
@@ -421,7 +421,7 @@ namespace OpenMS
           bool same_feature = false;
           Size i = 0;
 
-          while (i < ((--pep_hits_xcorr.end())->second).size())   // und immer dran denken: .end() zeigt hinter die map/den vector!!!
+          while (i < ((--pep_hits_xcorr.end())->second).size()) // und immer dran denken: .end() zeigt hinter die map/den vector!!!
           {
             Size j = 0;
             while (j < (itermap->second).size())
@@ -573,11 +573,11 @@ namespace OpenMS
     for (std::vector<PepHit>::iterator iter = discarded_pephits.begin(); iter != discarded_pephits.end(); ++iter)
     {
       std::vector<PeptideHit> peptide_hits;
-      for (Size l = 0; l < feature_maps[iter->pep_map_nr][iter->pep_feature_nr].getPeptideIdentifications()[iter->pep_ident_nr].getHits().size(); ++l)   // peptide hits
+      for (Size l = 0; l < feature_maps[iter->pep_map_nr][iter->pep_feature_nr].getPeptideIdentifications()[iter->pep_ident_nr].getHits().size(); ++l) // peptide hits
       {
         PeptideHit peptide_hit = feature_maps[iter->pep_map_nr][iter->pep_feature_nr].getPeptideIdentifications()[iter->pep_ident_nr].getHits()[l];
 
-        if (l == iter->pep_hit_nr)   // ist das der hit, den ich im vektor habe?
+        if (l == iter->pep_hit_nr) // ist das der hit, den ich im vektor habe?
         {
           peptide_hit.setMetaValue("IDAlgorithm", iter->pep_id_algorithm);
           peptide_hits.push_back(peptide_hit);
@@ -625,7 +625,7 @@ namespace OpenMS
       }
     }
 
-    for (Size i = 1; i < feature_maps.size(); ++i)   // feature maps
+    for (Size i = 1; i < feature_maps.size(); ++i) // feature maps
     {
       // Add protein identifications to result map
       consensus_map_0.getProteinIdentifications().insert(consensus_map_0.getProteinIdentifications().end(),

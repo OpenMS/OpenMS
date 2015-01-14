@@ -40,7 +40,7 @@ namespace OpenMS
   {
   }
 
-  PeakMarker::PeakMarker(const PeakMarker & source) :
+  PeakMarker::PeakMarker(const PeakMarker& source) :
     DefaultParamHandler(source)
   {
   }
@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  PeakMarker & PeakMarker::operator=(const PeakMarker & source)
+  PeakMarker& PeakMarker::operator=(const PeakMarker& source)
   {
     if (this != &source)
     {

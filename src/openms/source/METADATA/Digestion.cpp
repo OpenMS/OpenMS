@@ -50,7 +50,7 @@ namespace OpenMS
 
   }
 
-  Digestion::Digestion(const Digestion & source) :
+  Digestion::Digestion(const Digestion& source) :
     SampleTreatment(source),
     enzyme_(source.enzyme_),
     digestion_time_(source.digestion_time_),
@@ -65,13 +65,13 @@ namespace OpenMS
 
   }
 
-  SampleTreatment * Digestion::clone() const
+  SampleTreatment* Digestion::clone() const
   {
-    SampleTreatment * tmp = new Digestion(*this);
+    SampleTreatment* tmp = new Digestion(*this);
     return tmp;
   }
 
-  Digestion & Digestion::operator=(const Digestion & source)
+  Digestion& Digestion::operator=(const Digestion& source)
   {
     if (&source == this)
       return *this;
@@ -85,12 +85,12 @@ namespace OpenMS
     return *this;
   }
 
-  bool Digestion::operator==(const SampleTreatment & rhs) const
+  bool Digestion::operator==(const SampleTreatment& rhs) const
   {
     if (type_ != rhs.getType())
       return false;
 
-    const Digestion * tmp = dynamic_cast<const Digestion *>(&rhs);
+    const Digestion* tmp = dynamic_cast<const Digestion*>(&rhs);
     return SampleTreatment::operator==(* tmp) &&
            enzyme_ == tmp->enzyme_ &&
            digestion_time_ == tmp->digestion_time_ &&
@@ -98,12 +98,12 @@ namespace OpenMS
            ph_ == tmp->ph_;
   }
 
-  const String & Digestion::getEnzyme() const
+  const String& Digestion::getEnzyme() const
   {
     return enzyme_;
   }
 
-  void Digestion::setEnzyme(const String & enzyme)
+  void Digestion::setEnzyme(const String& enzyme)
   {
     enzyme_ = enzyme;
   }

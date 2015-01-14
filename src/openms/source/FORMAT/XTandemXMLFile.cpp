@@ -178,7 +178,7 @@ namespace OpenMS
       String att_str;
       if (optionalAttributeAsString_(att_str, attributes, "a_score")) hit.setMetaValue("a_score", att_str.toDouble());
       if (optionalAttributeAsString_(att_str, attributes, "a_ions")) hit.setMetaValue("a_ions", att_str.toInt());
-      
+
       if (optionalAttributeAsString_(att_str, attributes, "b_score")) hit.setMetaValue("b_score", att_str.toDouble());
       if (optionalAttributeAsString_(att_str, attributes, "b_ions")) hit.setMetaValue("b_ions", att_str.toInt());
 
@@ -202,7 +202,7 @@ namespace OpenMS
       String pre = attributeAsString_(attributes, "pre");
       if (!pre.empty())
       {
-        pe.setAABefore(pre[pre.size()-1]);
+        pe.setAABefore(pre[pre.size() - 1]);
       }
 
       // get amino acid after

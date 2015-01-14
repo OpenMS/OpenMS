@@ -53,12 +53,12 @@ namespace OpenMS
     updateMembers_();
   }
 
-  CompNovoIonScoringCID::CompNovoIonScoringCID(const CompNovoIonScoringCID & rhs) :
+  CompNovoIonScoringCID::CompNovoIonScoringCID(const CompNovoIonScoringCID& rhs) :
     CompNovoIonScoringBase(rhs)
   {
   }
 
-  CompNovoIonScoringCID & CompNovoIonScoringCID::operator=(const CompNovoIonScoringCID & rhs)
+  CompNovoIonScoringCID& CompNovoIonScoringCID::operator=(const CompNovoIonScoringCID& rhs)
   {
     if (this != &rhs)
     {
@@ -71,7 +71,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIonScoringCID::scoreSpectrum(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge)
+  void CompNovoIonScoringCID::scoreSpectrum(Map<double, IonScore>& ion_scores, PeakSpectrum& CID_spec, double precursor_weight, Size charge)
   {
     for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
     {
@@ -161,7 +161,7 @@ namespace OpenMS
     ion_scores[(CID_spec.end() - 1)->getPosition()[0]].score = 1;
   }
 
-  void CompNovoIonScoringCID::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec)
+  void CompNovoIonScoringCID::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore>& ion_scores, const PeakSpectrum& CID_spec)
   {
     double precursor_mass_tolerance = (double)param_.getValue("precursor_mass_tolerance");
     vector<double> diffs;

@@ -50,39 +50,39 @@ namespace OpenMS
   // (@ 117; +2 the value is 0.1 not 0.0 as confirmed by ABSciex)
   const double ItraqConstants::ISOTOPECORRECTIONS_FOURPLEX[4][4] =
   {
-    {0.0, 1.0, 5.9, 0.2},   //114
+    {0.0, 1.0, 5.9, 0.2}, //114
     {0.0, 2.0, 5.6, 0.1},
     {0.0, 3.0, 4.5, 0.1},
-    {0.1, 4.0, 3.5, 0.1}    //117
+    {0.1, 4.0, 3.5, 0.1} //117
   };
 
   //taken from Applied Biosystems Website
   // http://www.absciex.com/Documents/Support/AB_SCIEX_Question_and_Answer.xls
   const double ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX[8][4] =
   {
-    {0.00, 0.00, 6.89, 0.22},   //113
+    {0.00, 0.00, 6.89, 0.22}, //113
     {0.00, 0.94, 5.90, 0.16},
     {0.00, 1.88, 4.90, 0.10},
     {0.00, 2.82, 3.90, 0.07},
     {0.06, 3.77, 2.99, 0.00},
     {0.09, 4.71, 1.88, 0.00},
     {0.14, 5.66, 0.87, 0.00},
-    {0.27, 7.44, 0.18, 0.00}    //121
+    {0.27, 7.44, 0.18, 0.00} //121
   };
 
   //taken from ThermoFischer Scientific
   // http://www.piercenet.com/coapdfs/CofA-90064-SPECS.pdf
   const double ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX[6][4] =
   {
-    {0.00, 0.00, 0.00, 0.00},      //126
-    {0.00, 0.00, 0.00, 0.00},      //127
-    {0.00, 0.00, 0.00, 0.00},      //128
-    {0.00, 0.00, 0.00, 0.00},      //129
-    {0.00, 0.00, 0.00, 0.00},      //130
-    {0.00, 0.00, 0.00, 0.00},      //131
+    {0.00, 0.00, 0.00, 0.00}, //126
+    {0.00, 0.00, 0.00, 0.00}, //127
+    {0.00, 0.00, 0.00, 0.00}, //128
+    {0.00, 0.00, 0.00, 0.00}, //129
+    {0.00, 0.00, 0.00, 0.00}, //130
+    {0.00, 0.00, 0.00, 0.00}, //131
   };
 
-  StringList ItraqConstants::getIsotopeMatrixAsStringList(const int itraq_type, const IsotopeMatrices & isotope_corrections)
+  StringList ItraqConstants::getIsotopeMatrixAsStringList(const int itraq_type, const IsotopeMatrices& isotope_corrections)
   {
     OPENMS_PRECONDITION(itraq_type < SIZE_OF_ITRAQ_TYPES && itraq_type >= 0, "Error while trying to access invalid isotope correction matrix.");
 
@@ -105,7 +105,7 @@ namespace OpenMS
     return isotopes;
   }
 
-  void ItraqConstants::updateIsotopeMatrixFromStringList(const int itraq_type, const StringList & channels, IsotopeMatrices & isotope_corrections)
+  void ItraqConstants::updateIsotopeMatrixFromStringList(const int itraq_type, const StringList& channels, IsotopeMatrices& isotope_corrections)
   {
     // TODO: make generic .. why do we need to initialize all matrices, we are only interested in itraq_type
     isotope_corrections.resize(SIZE_OF_ITRAQ_TYPES);
@@ -122,8 +122,8 @@ namespace OpenMS
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected one ':', got this: '" + (*it) + "'");
       }
-      result[0] = result[0].trim();       // hold channel name
-      result[1] = result[1].trim();       // holds 4 values
+      result[0] = result[0].trim(); // hold channel name
+      result[1] = result[1].trim(); // holds 4 values
 
       Int channel = result[0].toInt();
       Int line = 0;
@@ -172,7 +172,7 @@ namespace OpenMS
     }
   }
 
-  void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType & map)
+  void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType& map)
   {
     static Map<Int, double> reporter_mass_exact;
     if (reporter_mass_exact.size() == 0 && (itraq_type == EIGHTPLEX || itraq_type == FOURPLEX)) // exact monoisotopic reporter ion masses (taken from AB Sciex)
@@ -223,7 +223,7 @@ namespace OpenMS
 #endif
   }
 
-  void ItraqConstants::updateChannelMap(const StringList & active_channels, ChannelMapType & map)
+  void ItraqConstants::updateChannelMap(const StringList& active_channels, ChannelMapType& map)
   {
     // split the channels key:name pairs apart
     for (StringList::const_iterator it = active_channels.begin(); it != active_channels.end(); ++it)
@@ -255,7 +255,7 @@ namespace OpenMS
     }
   }
 
-  Matrix<double> ItraqConstants::translateIsotopeMatrix(const int & itraq_type, const IsotopeMatrices & isotope_corrections)
+  Matrix<double> ItraqConstants::translateIsotopeMatrix(const int& itraq_type, const IsotopeMatrices& isotope_corrections)
   {
     // translate isotope_corrections to a channel_frequency matrix
 
@@ -284,7 +284,7 @@ namespace OpenMS
         {
           if (i != 7 && j != 7)
           {
-            if (j < i && i <= j + 2)      // -2, -1 cases of row 'i'
+            if (j < i && i <= j + 2) // -2, -1 cases of row 'i'
             {
               channel_frequency.setValue(j, i, isotope_corrections[itraq_type].getValue(i, j - i + 2) / 100);
             }

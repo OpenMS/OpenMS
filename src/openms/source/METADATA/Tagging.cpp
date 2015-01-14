@@ -48,7 +48,7 @@ namespace OpenMS
     type_ = "Tagging";
   }
 
-  Tagging::Tagging(const Tagging & source) :
+  Tagging::Tagging(const Tagging& source) :
     Modification(source),
     mass_shift_(source.mass_shift_),
     variant_(source.variant_)
@@ -61,7 +61,7 @@ namespace OpenMS
     //????
   }
 
-  Tagging & Tagging::operator=(const Tagging & source)
+  Tagging& Tagging::operator=(const Tagging& source)
   {
     if (&source == this)
       return *this;
@@ -73,20 +73,20 @@ namespace OpenMS
     return *this;
   }
 
-  bool Tagging::operator==(const SampleTreatment & rhs) const
+  bool Tagging::operator==(const SampleTreatment& rhs) const
   {
     if (type_ != rhs.getType())
       return false;
 
-    const Tagging * tmp = dynamic_cast<const Tagging *>(&rhs);
+    const Tagging* tmp = dynamic_cast<const Tagging*>(&rhs);
     return Modification::operator==(rhs)
-    && mass_shift_ == tmp->mass_shift_
-    && variant_ == tmp->variant_;
+           && mass_shift_ == tmp->mass_shift_
+           && variant_ == tmp->variant_;
   }
 
-  SampleTreatment * Tagging::clone() const
+  SampleTreatment* Tagging::clone() const
   {
-    SampleTreatment * tmp = new Tagging(*this);
+    SampleTreatment* tmp = new Tagging(*this);
     return tmp;
   }
 
@@ -100,12 +100,12 @@ namespace OpenMS
     mass_shift_ = mass_shift;
   }
 
-  const Tagging::IsotopeVariant & Tagging::getVariant() const
+  const Tagging::IsotopeVariant& Tagging::getVariant() const
   {
     return variant_;
   }
 
-  void Tagging::setVariant(const Tagging::IsotopeVariant & variant)
+  void Tagging::setVariant(const Tagging::IsotopeVariant& variant)
   {
     variant_ = variant;
   }

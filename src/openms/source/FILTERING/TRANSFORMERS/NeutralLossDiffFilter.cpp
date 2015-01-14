@@ -49,12 +49,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  NeutralLossDiffFilter::NeutralLossDiffFilter(const NeutralLossDiffFilter & source) :
+  NeutralLossDiffFilter::NeutralLossDiffFilter(const NeutralLossDiffFilter& source) :
     FilterFunctor(source)
   {
   }
 
-  NeutralLossDiffFilter & NeutralLossDiffFilter::operator=(const NeutralLossDiffFilter & source)
+  NeutralLossDiffFilter& NeutralLossDiffFilter::operator=(const NeutralLossDiffFilter& source)
   {
     if (this != &source)
     {

@@ -45,14 +45,14 @@ namespace OpenMS
   {
   }
 
-  ModificationDefinitionsSet::ModificationDefinitionsSet(const ModificationDefinitionsSet & rhs) :
+  ModificationDefinitionsSet::ModificationDefinitionsSet(const ModificationDefinitionsSet& rhs) :
     variable_mods_(rhs.variable_mods_),
     fixed_mods_(rhs.fixed_mods_),
     max_mods_per_peptide_(rhs.max_mods_per_peptide_)
   {
   }
 
-  ModificationDefinitionsSet::ModificationDefinitionsSet(const StringList & fixed_modifications, const StringList & variable_modifications) :
+  ModificationDefinitionsSet::ModificationDefinitionsSet(const StringList& fixed_modifications, const StringList& variable_modifications) :
     max_mods_per_peptide_(0)
   {
     setModifications(fixed_modifications, variable_modifications);
@@ -87,7 +87,7 @@ namespace OpenMS
     return variable_mods_.size();
   }
 
-  void ModificationDefinitionsSet::addModification(const ModificationDefinition & mod_def)
+  void ModificationDefinitionsSet::addModification(const ModificationDefinition& mod_def)
   {
     if (mod_def.isFixedModification())
     {
@@ -100,7 +100,7 @@ namespace OpenMS
     return;
   }
 
-  void ModificationDefinitionsSet::setModifications(const set<ModificationDefinition> & mods)
+  void ModificationDefinitionsSet::setModifications(const set<ModificationDefinition>& mods)
   {
     fixed_mods_.clear();
     variable_mods_.clear();
@@ -119,12 +119,12 @@ namespace OpenMS
     return;
   }
 
-  void ModificationDefinitionsSet::setModifications(const String & fixed_modifications, const String & variable_modifications)
+  void ModificationDefinitionsSet::setModifications(const String& fixed_modifications, const String& variable_modifications)
   {
     setModifications(ListUtils::create<String>(fixed_modifications), ListUtils::create<String>(variable_modifications));
   }
 
-  void ModificationDefinitionsSet::setModifications(const StringList & fixed_modifications, const StringList & variable_modifications)
+  void ModificationDefinitionsSet::setModifications(const StringList& fixed_modifications, const StringList& variable_modifications)
   {
     fixed_mods_.clear();
     variable_mods_.clear();
@@ -177,12 +177,12 @@ namespace OpenMS
     return mod_names;
   }
 
-  const set<ModificationDefinition> & ModificationDefinitionsSet::getFixedModifications() const
+  const set<ModificationDefinition>& ModificationDefinitionsSet::getFixedModifications() const
   {
     return fixed_mods_;
   }
 
-  const set<ModificationDefinition> & ModificationDefinitionsSet::getVariableModifications() const
+  const set<ModificationDefinition>& ModificationDefinitionsSet::getVariableModifications() const
   {
     return variable_mods_;
   }
@@ -207,7 +207,7 @@ namespace OpenMS
     return mod_names;
   }
 
-  ModificationDefinitionsSet & ModificationDefinitionsSet::operator=(const ModificationDefinitionsSet & rhs)
+  ModificationDefinitionsSet& ModificationDefinitionsSet::operator=(const ModificationDefinitionsSet& rhs)
   {
     if (this != &rhs)
     {
@@ -218,7 +218,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool ModificationDefinitionsSet::isCompatible(const AASequence & peptide) const
+  bool ModificationDefinitionsSet::isCompatible(const AASequence& peptide) const
   {
     set<String> var_names(getVariableModificationNames()), fixed_names(getFixedModificationNames());
     // no modifications present and needed
@@ -294,14 +294,14 @@ namespace OpenMS
     return true;
   }
 
-  bool ModificationDefinitionsSet::operator==(const ModificationDefinitionsSet & rhs) const
+  bool ModificationDefinitionsSet::operator==(const ModificationDefinitionsSet& rhs) const
   {
     return variable_mods_ == rhs.variable_mods_ &&
            fixed_mods_ == rhs.fixed_mods_ &&
            max_mods_per_peptide_ == rhs.max_mods_per_peptide_;
   }
 
-  bool ModificationDefinitionsSet::operator!=(const ModificationDefinitionsSet & rhs) const
+  bool ModificationDefinitionsSet::operator!=(const ModificationDefinitionsSet& rhs) const
   {
     return !(*this == rhs);
   }

@@ -37,10 +37,10 @@
 namespace OpenMS
 {
 
-  void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-    std::vector< ExtractionCoordinates > & coordinates,
-    OpenMS::TargetedExperiment & transition_exp_used,
-    const double rt_extraction_window, const bool ms1) const
+  void ChromatogramExtractor::prepare_coordinates(std::vector<OpenSwath::ChromatogramPtr>& output_chromatograms,
+                                                  std::vector<ExtractionCoordinates>& coordinates,
+                                                  OpenMS::TargetedExperiment& transition_exp_used,
+                                                  const double rt_extraction_window, const bool ms1) const
   {
     // hash of the peptide reference containing all transitions
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
@@ -52,8 +52,7 @@ namespace OpenMS
 
     // Determine iteration size (nr peptides or nr transitions)
     Size itersize;
-    if (ms1) {itersize = transition_exp_used.getPeptides().size();}
-    else     {itersize = transition_exp_used.getTransitions().size();}
+    if (ms1) {itersize = transition_exp_used.getPeptides().size(); }else     {itersize = transition_exp_used.getTransitions().size(); }
 
     for (Size i = 0; i < itersize; i++)
     {
@@ -64,17 +63,17 @@ namespace OpenMS
       TargetedExperiment::Peptide pep;
       OpenMS::ReactionMonitoringTransition transition;
 
-      if (ms1) 
+      if (ms1)
       {
         pep = transition_exp_used.getPeptides()[i];
         transition = (*peptide_trans_map[pep.id][0]);
         coord.mz = transition.getPrecursorMZ();
         coord.id = pep.id;
       }
-      else 
+      else
       {
         transition = transition_exp_used.getTransitions()[i];
-        pep = transition_exp_used.getPeptideByRef(transition.getPeptideRef()); 
+        pep = transition_exp_used.getPeptideByRef(transition.getPeptideRef());
         coord.mz = transition.getProductMZ();
         coord.id = transition.getNativeID();
       }
@@ -86,7 +85,7 @@ namespace OpenMS
         if (rt_extraction_window < 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
+                                           "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
         }
         coord.rt_end = -1;
         coord.rt_start = 0;
@@ -105,7 +104,7 @@ namespace OpenMS
   }
 
   bool ChromatogramExtractor::outsideExtractionWindow_(const ReactionMonitoringTransition& transition, double current_rt,
-                                 const TransformationDescription& trafo, double rt_extraction_window)
+                                                       const TransformationDescription& trafo, double rt_extraction_window)
   {
     if (rt_extraction_window < 0)
     {
@@ -119,8 +118,8 @@ namespace OpenMS
     // other way round.
     double expected_rt = PeptideRTMap_[transition.getPeptideRef()];
     double de_normalized_experimental_rt = trafo.apply(expected_rt);
-    if (current_rt < de_normalized_experimental_rt - rt_extraction_window / 2.0 || 
-        current_rt > de_normalized_experimental_rt + rt_extraction_window / 2.0 )
+    if (current_rt < de_normalized_experimental_rt - rt_extraction_window / 2.0 ||
+        current_rt > de_normalized_experimental_rt + rt_extraction_window / 2.0)
     {
       return true;
     }
@@ -146,24 +145,24 @@ namespace OpenMS
 
   void ChromatogramExtractor::populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window)
   {
-      // Store the peptide retention times in an intermediate map
-      PeptideRTMap_.clear();
-      for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
+    // Store the peptide retention times in an intermediate map
+    PeptideRTMap_.clear();
+    for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
+    {
+      const TargetedExperiment::Peptide& pep = transition_exp.getPeptides()[i];
+      if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
       {
-        const TargetedExperiment::Peptide& pep = transition_exp.getPeptides()[i];
-        if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
+        // we don't have retention times -> this is only a problem if we actually
+        // wanted to use the RT limit feature.
+        if (rt_extraction_window >= 0)
         {
-          // we don't have retention times -> this is only a problem if we actually
-          // wanted to use the RT limit feature.
-          if (rt_extraction_window >= 0)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                             "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
-          }
-          continue;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                           "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
         }
-        PeptideRTMap_[pep.id] = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+        continue;
       }
+      PeptideRTMap_[pep.id] = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+    }
   }
 
 }

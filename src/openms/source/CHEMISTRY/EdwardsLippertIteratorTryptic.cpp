@@ -41,7 +41,7 @@ namespace OpenMS
   {
   }
 
-  EdwardsLippertIteratorTryptic::EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic & rhs) :
+  EdwardsLippertIteratorTryptic::EdwardsLippertIteratorTryptic(const EdwardsLippertIteratorTryptic& rhs) :
     EdwardsLippertIterator(rhs)
   {
   }
@@ -50,7 +50,7 @@ namespace OpenMS
   {
   }
 
-  EdwardsLippertIteratorTryptic & EdwardsLippertIteratorTryptic::operator=(const EdwardsLippertIteratorTryptic & rhs)
+  EdwardsLippertIteratorTryptic& EdwardsLippertIteratorTryptic::operator=(const EdwardsLippertIteratorTryptic& rhs)
   {
     if (this != &rhs)
     {

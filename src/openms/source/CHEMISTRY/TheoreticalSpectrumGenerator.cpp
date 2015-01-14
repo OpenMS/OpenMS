@@ -105,12 +105,12 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator & rhs) :
+  TheoreticalSpectrumGenerator::TheoreticalSpectrumGenerator(const TheoreticalSpectrumGenerator& rhs) :
     DefaultParamHandler(rhs)
   {
   }
 
-  TheoreticalSpectrumGenerator & TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator & rhs)
+  TheoreticalSpectrumGenerator& TheoreticalSpectrumGenerator::operator=(const TheoreticalSpectrumGenerator& rhs)
   {
     if (this != &rhs)
     {
@@ -123,7 +123,7 @@ namespace OpenMS
   {
   }
 
-  void TheoreticalSpectrumGenerator::getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge) const
+  void TheoreticalSpectrumGenerator::getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide, Int charge) const
   {
     bool add_b_ions(param_.getValue("add_b_ions").toBool());
     bool add_y_ions(param_.getValue("add_y_ions").toBool());
@@ -163,7 +163,7 @@ namespace OpenMS
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons(RichPeakSpectrum & spec) const
+  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons(RichPeakSpectrum& spec) const
   {
     bool add_metainfo(param_.getValue("add_metainfo").toBool());
 
@@ -225,7 +225,7 @@ namespace OpenMS
     spec.sortByPosition();
   }
 
-  void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum & spectrum, const AASequence & peptide, Residue::ResidueType res_type, Int charge) const
+  void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum& spectrum, const AASequence& peptide, Residue::ResidueType res_type, Int charge) const
   {
     if (peptide.empty())
     {
@@ -457,7 +457,7 @@ namespace OpenMS
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge) const
+  void TheoreticalSpectrumGenerator::addPrecursorPeaks(RichPeakSpectrum& spec, const AASequence& peptide, Int charge) const
   {
     bool add_metainfo(param_.getValue("add_metainfo").toBool());
     double pre_int((double)param_.getValue("precursor_intensity"));

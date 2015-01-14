@@ -63,7 +63,7 @@ namespace OpenMS
   std::vector<Feature> FeatureFinderAlgorithmSHCtrl::extractPeaks(Vec datavec)
   {
 
-    SuperHirnParameters::instance()->initIsotopeDist_ = false;      // reset this so that the IsotopeDist gets reinitalized
+    SuperHirnParameters::instance()->initIsotopeDist_ = false; // reset this so that the IsotopeDist gets reinitalized
 
     FTPeakDetectController controller;
     controller.startScanParsing(datavec);
@@ -83,7 +83,7 @@ namespace OpenMS
       f.setCharge(charge);
 
       double rt = (*p).get_retention_time();
-      rt *= 60.0;       // convert back
+      rt *= 60.0; // convert back
       f.setRT(rt);
 
       double darea = (*p).get_peak_area();
@@ -149,7 +149,7 @@ namespace OpenMS
 
     //def->search_tag("MS1 LC retention time resolution", &DB);
     // Key: ms1:tr_resolution
-    SuperHirnParameters::instance()->ms1TRResolution_ = param.getValue("ms1:tr_resolution");      //0.01;
+    SuperHirnParameters::instance()->ms1TRResolution_ = param.getValue("ms1:tr_resolution"); //0.01;
 
     // Key: ms1:intensity_threshold
     // float thresh = 1000;
@@ -164,19 +164,19 @@ namespace OpenMS
     // MS1 max inter scan distance
     // Key: ms1:max_inter_scan_rt_distance
     SuperHirnParameters::instance()->maxInterScanRetentionTimeDistance_ = param.getValue(
-      "ms1:max_inter_scan_rt_distance");              // 0.1;
+      "ms1:max_inter_scan_rt_distance"); // 0.1;
 
     // def->search_tag("FT peak detect MS1 min nb peak members", &min_nb_cluster_members);
     // Key: ms1:min_nb_cluster_members
-    SuperHirnParameters::instance()->minNbClusterMembers_ = param.getValue("ms1:min_nb_cluster_members");     // 4
+    SuperHirnParameters::instance()->minNbClusterMembers_ = param.getValue("ms1:min_nb_cluster_members"); // 4
 
     //def->search_tag("Detectable isotope factor",&DB);
     // Key: ms1:detectable_isotope_factor
-    SuperHirnParameters::instance()->detectableIsotopeFactor_ = param.getValue("ms1:detectable_isotope_factor");     // 0.05;
+    SuperHirnParameters::instance()->detectableIsotopeFactor_ = param.getValue("ms1:detectable_isotope_factor"); // 0.05;
 
     // def->search_tag("IntensityCV",&DB);
     // Key: ms1:intensity_cv
-    SuperHirnParameters::instance()->intensityCV_ = param.getValue("ms1:intensity_cv");     // 0.9;
+    SuperHirnParameters::instance()->intensityCV_ = param.getValue("ms1:intensity_cv"); // 0.9;
 
     // ----------------------------------------------------------------------
     // from void FT_PEAK_DETECT_initializer::init_all(){
@@ -184,23 +184,23 @@ namespace OpenMS
 
     //def->search_tag("Centroid window width",&INT);
     // Key: centroiding:window_width
-    SuperHirnParameters::instance()->centroidWindowWidth_ = param.getValue("centroiding:window_width");     // 5;
+    SuperHirnParameters::instance()->centroidWindowWidth_ = param.getValue("centroiding:window_width"); // 5;
 
     //def->search_tag("Absolute isotope mass precision",&DB);
     // Key: centroiding:absolute_isotope_mass_precision
-    SuperHirnParameters::instance()->massTolDa_ = param.getValue("centroiding:absolute_isotope_mass_precision");     // 0.01;
+    SuperHirnParameters::instance()->massTolDa_ = param.getValue("centroiding:absolute_isotope_mass_precision"); // 0.01;
 
     //def->search_tag("Relative isotope mass precision",&DB);
     // Key: centroiding:relative_isotope_mass_precision
-    SuperHirnParameters::instance()->massTolPpm_ = param.getValue("centroiding:relative_isotope_mass_precision");     // 10;
+    SuperHirnParameters::instance()->massTolPpm_ = param.getValue("centroiding:relative_isotope_mass_precision"); // 10;
 
     //def->search_tag("Minimal peak height",&DB);
     // Key: centroiding:minimal_peak_height
-    SuperHirnParameters::instance()->minIntensity_ = param.getValue("centroiding:minimal_peak_height");     // 0.0;
+    SuperHirnParameters::instance()->minIntensity_ = param.getValue("centroiding:minimal_peak_height"); // 0.0;
 
     //def->search_tag("Min. Centroid MS Signal Intensity",&DB);
     // Key: centroiding:min_ms_signal_intensity
-    SuperHirnParameters::instance()->intensityFloor_ = param.getValue("centroiding:min_ms_signal_intensity");     // 50; //in config its 50, but in CentroidData it's 1;
+    SuperHirnParameters::instance()->intensityFloor_ = param.getValue("centroiding:min_ms_signal_intensity"); // 50; //in config its 50, but in CentroidData it's 1;
 
     /*
      //def->search_tag("Report mono peaks",&INT);
@@ -219,12 +219,12 @@ namespace OpenMS
     //def->search_tag("MS1 retention time tolerance", &TMP);
     // Key: ms1:retention_time_tolerance
     // Unit: min
-    SuperHirnParameters::instance()->trTol_ = param.getValue("ms1:retention_time_tolerance");     // 0.5;
+    SuperHirnParameters::instance()->trTol_ = param.getValue("ms1:retention_time_tolerance"); // 0.5;
 
     //  def->search_tag("MS1 m/z tolerance", &TMP);
     // Key: ms1:mz_tolerance
     // Unit: ppm
-    SuperHirnParameters::instance()->mzTolPpm_ = param.getValue("ms1:mz_tolerance");     // 0.0;
+    SuperHirnParameters::instance()->mzTolPpm_ = param.getValue("ms1:mz_tolerance"); // 0.0;
     // ConsensusIsotopePattern::FT_MZ_TOLERANCE = SHFeature::PPM_MZ_TOL;
 
     // MS2_M2_matcher parameters:
@@ -278,66 +278,66 @@ namespace OpenMS
     //def->search_tag("Activation of MS1 feature merging post processing", &TMP_B);
     // Key: ms1_feature_merger:active
 // MS1FeatureMerger::MS1_FEATURE_CLUSTERING = param.getValue("ms1_feature_merger:active").toBool(); //1;
-    SuperHirnParameters::instance()->ms1FeatureClustering_ = param.getValue("ms1_feature_merger:active").toBool();     //1;
+    SuperHirnParameters::instance()->ms1FeatureClustering_ = param.getValue("ms1_feature_merger:active").toBool(); //1;
 
     //def->search_tag("MS1 LC retention time resolution", &TMP); // belongs to MS1 PEAK DETECTION PARAMETERS FOR THE DIFFERENT FILTER METHODS:
     // Key: ms1_feature_merger:tr_resolution
 // MS1FeatureMerger::MS1_PEAK_AREA_TR_RESOLUTION = param.getValue("ms1_feature_merger:tr_resolution"); //0.01;
-    SuperHirnParameters::instance()->ms1PeakAreaTrResolution_ = param.getValue("ms1_feature_merger:tr_resolution");     //0.01;
+    SuperHirnParameters::instance()->ms1PeakAreaTrResolution_ = param.getValue("ms1_feature_merger:tr_resolution"); //0.01;
 
     //def->search_tag("Initial Apex Tr tolerance", &TMP);
     // Key: ms1_feature_merger:initial_apex_tr_tolerance
 // MS1FeatureMerger::INITIAL_TR_TOLERANCE = param.getValue("ms1_feature_merger:initial_apex_tr_tolerance"); //5.0;
     SuperHirnParameters::instance()->initialTrTolerance_ = param.getValue(
-      "ms1_feature_merger:initial_apex_tr_tolerance");           //5.0;
+      "ms1_feature_merger:initial_apex_tr_tolerance"); //5.0;
 
     //def->search_tag("MS1 feature Tr merging tolerance", &TMP);
     // Key: ms1_feature_merger:feature_merging_tr_tolerance
 // MS1FeatureMerger::MS1_FEATURE_MERGING_TR_TOLERANCE = param.getValue(
 // "ms1_feature_merger:feature_merging_tr_tolerance"); //1.0;
     SuperHirnParameters::instance()->ms1FeatureMergingTrTolerance_ = param.getValue(
-      "ms1_feature_merger:feature_merging_tr_tolerance");           //1.0;
+      "ms1_feature_merger:feature_merging_tr_tolerance"); //1.0;
 
     //def->search_tag("Percentage of intensity variation between LC border peaks", &TMP);
     // Key: ms1_feature_merger:intensity_variation_percentage
 // MS1FeatureMerger::PERCENTAGE_INTENSITY_ELUTION_BORDER_VARIATION = param.getValue(
 // "ms1_feature_merger:intensity_variation_percentage"); //25;
     SuperHirnParameters::instance()->percentageIntensityElutionBorderVariation_ = param.getValue(
-      "ms1_feature_merger:intensity_variation_percentage");           //25;
+      "ms1_feature_merger:intensity_variation_percentage"); //25;
 
     //def->search_tag("PPM value for the m/z clustering of merging candidates", &TMP);
     // Key: ms1_feature_merger:ppm_tolerance_for_mz_clustering
     SuperHirnParameters::instance()->ppmToleranceForMZClustering_ = param.getValue(
-      "ms1_feature_merger:ppm_tolerance_for_mz_clustering");           //10;
+      "ms1_feature_merger:ppm_tolerance_for_mz_clustering"); //10;
 
     /////////////////////////////////////////////////
     // what information is extracted from the LC/MS or mastermap:
     //  def->search_tag("start elution window", &TMP);
     // Key: ms1_feature_selection_options:start_elution_window
     // Unit: min
-    SuperHirnParameters::instance()->minTR_ = param.getValue("ms1_feature_selection_options:start_elution_window");     //0;
+    SuperHirnParameters::instance()->minTR_ = param.getValue("ms1_feature_selection_options:start_elution_window"); //0;
 
     //  def->search_tag("end elution window", &TMP);
     // Key: ms1_feature_selection_options:end_elution_window
     // Unit: min
-    SuperHirnParameters::instance()->maxTR_ = param.getValue("ms1_feature_selection_options:end_elution_window");     //180;
+    SuperHirnParameters::instance()->maxTR_ = param.getValue("ms1_feature_selection_options:end_elution_window"); //180;
 
     //def->search_tag("MS1 feature mz range min", &TMP);
     // Key: ms1_feature_selection_options:mz_range_min
-    SuperHirnParameters::instance()->minFeatureMZ_ = param.getValue("ms1_feature_selection_options:mz_range_min");     //0;
+    SuperHirnParameters::instance()->minFeatureMZ_ = param.getValue("ms1_feature_selection_options:mz_range_min"); //0;
 
     //def->search_tag("MS1 feature mz range max", &TMP );
     // Key: ms1_feature_selection_options:mz_range_max
-    SuperHirnParameters::instance()->maxFeatureMZ_ = param.getValue("ms1_feature_selection_options:mz_range_max");     //2000;
+    SuperHirnParameters::instance()->maxFeatureMZ_ = param.getValue("ms1_feature_selection_options:mz_range_max"); //2000;
 
     //def->search_tag("MS1 feature CHRG range min", &TMP_I );
     // Key: ms1_feature_selection_options:chrg_range_min
-    SuperHirnParameters::instance()->minFeatureChrg_ = param.getValue("ms1_feature_selection_options:chrg_range_min");     //1;
+    SuperHirnParameters::instance()->minFeatureChrg_ = param.getValue("ms1_feature_selection_options:chrg_range_min"); //1;
     //Deisotoper::sfMinCharge = param.getValue("ms1_feature_selection_options:chrg_range_min"); //1;
 
     //def->search_tag("MS1 feature CHRG range max", &TMP_I );
     // Key: ms1_feature_selection_options:chrg_range_max
-    SuperHirnParameters::instance()->maxFeatureChrg_ = param.getValue("ms1_feature_selection_options:chrg_range_max");     //5;
+    SuperHirnParameters::instance()->maxFeatureChrg_ = param.getValue("ms1_feature_selection_options:chrg_range_max"); //5;
     //Deisotoper::sfMaxCharge = param.getValue("ms1_feature_selection_options:chrg_range_max"); //5;
 
     /////////////////////////////////////////////////

@@ -45,7 +45,7 @@
 #include <string>
 #include <cstring>
 #include <cstdio>
-#include <algorithm>    // std::min
+#include <algorithm> // std::min
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
@@ -109,12 +109,12 @@ namespace OpenMS
       }
     }
 
-    LogStreamBuf * LogStream::rdbuf()
+    LogStreamBuf* LogStream::rdbuf()
     {
-      return (LogStreamBuf *)std::ios::rdbuf();
+      return (LogStreamBuf*)std::ios::rdbuf();
     }
 
-    LogStreamBuf * LogStream::operator->()
+    LogStreamBuf* LogStream::operator->()
     {
       return rdbuf();
     }
@@ -148,7 +148,7 @@ namespace OpenMS
       return ++log_cache_counter_;
     }
 
-    bool LogStreamBuf::isInCache_(std::string const & line)
+    bool LogStreamBuf::isInCache_(std::string const& line)
     {
       //cout << "LogCache (count)" << log_cache_.count(line) << endl;
       if (log_cache_.count(line) == 0)
@@ -171,7 +171,7 @@ namespace OpenMS
       }
     }
 
-    std::string LogStreamBuf::addToCache_(std::string const & line)
+    std::string LogStreamBuf::addToCache_(std::string const& line)
     {
       std::string extra_message = "";
 
@@ -234,8 +234,8 @@ namespace OpenMS
           // prepare the output
           if (!stream_list_.empty())
           {
-            char * line_start = pbase();
-            char * line_end = pbase();
+            char* line_start = pbase();
+            char* line_end = pbase();
 
             static char buf[BUFFER_LENGTH];
 
@@ -324,7 +324,7 @@ namespace OpenMS
     }
 
     string LogStreamBuf::expandPrefix_
-      (const std::string & prefix, time_t time) const
+      (const std::string& prefix, time_t time) const
     {
       string::size_type   index = 0;
       Size copied_index = 0;
@@ -342,44 +342,44 @@ namespace OpenMS
         if (index < prefix.size())
         {
           char    buffer[64] = "";
-          char * buf = &(buffer[0]);
+          char* buf = &(buffer[0]);
 
           switch (prefix[index + 1])
           {
-          case '%':           // append a '%' (escape sequence)
+          case '%': // append a '%' (escape sequence)
             result.append("%");
             break;
 
-          case 'y':           // append the message type (error/warning/information)
+          case 'y': // append the message type (error/warning/information)
             result.append(level_);
             break;
 
-          case 'T':           // time: HH:MM:SS
+          case 'T': // time: HH:MM:SS
             strftime(buf, 64, "%H:%M:%S", localtime(&time));
             result.append(buf);
             break;
 
-          case 't':           // time: HH:MM
+          case 't': // time: HH:MM
             strftime(buf, 64, "%H:%M", localtime(&time));
             result.append(buf);
             break;
 
-          case 'D':           // date: DD.MM.YYYY
+          case 'D': // date: DD.MM.YYYY
             strftime(buf, 64, "%Y/%m/%d", localtime(&time));
             result.append(buf);
             break;
 
-          case 'd':           // date: DD.MM.
+          case 'd': // date: DD.MM.
             strftime(buf, 64, "%m/%d", localtime(&time));
             result.append(buf);
             break;
 
-          case 'S':           // time+date: DD.MM.YYYY, HH:MM:SS
+          case 'S': // time+date: DD.MM.YYYY, HH:MM:SS
             strftime(buf, 64, "%Y/%m/%d, %H:%M:%S", localtime(&time));
             result.append(buf);
             break;
 
-          case 's':           // time+date: DD.MM., HH:MM
+          case 's': // time+date: DD.MM., HH:MM
             strftime(buf, 64, "%m/%d, %H:%M", localtime(&time));
             result.append(buf);
             break;
@@ -423,7 +423,7 @@ namespace OpenMS
       registered_at_ = 0;
     }
 
-    void LogStreamNotifier::registerAt(LogStream & log)
+    void LogStreamNotifier::registerAt(LogStream& log)
     {
       unregister();
 
@@ -432,7 +432,7 @@ namespace OpenMS
     }
 
     // keep the given buffer
-    LogStream::LogStream(LogStreamBuf * buf, bool delete_buf, std::ostream * stream) :
+    LogStream::LogStream(LogStreamBuf* buf, bool delete_buf, std::ostream* stream) :
       std::ios(buf),
       std::ostream(buf),
       delete_buffer_(delete_buf)
@@ -454,7 +454,7 @@ namespace OpenMS
       }
     }
 
-    void LogStream::insert(std::ostream & stream)
+    void LogStream::insert(std::ostream& stream)
     {
       if (!bound_() || hasStream_(stream))
       {
@@ -467,7 +467,7 @@ namespace OpenMS
       rdbuf()->stream_list_.push_back(s_struct);
     }
 
-    void LogStream::remove(std::ostream & stream)
+    void LogStream::remove(std::ostream& stream)
     {
       if (!bound_())
         return;
@@ -482,7 +482,7 @@ namespace OpenMS
       }
     }
 
-    void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
+    void LogStream::insertNotification(std::ostream& s, LogStreamNotifier& target)
     {
       if (!bound_())
         return;
@@ -493,7 +493,7 @@ namespace OpenMS
       (*it).target = &target;
     }
 
-    LogStream::StreamIterator LogStream::findStream_(const std::ostream & s)
+    LogStream::StreamIterator LogStream::findStream_(const std::ostream& s)
     {
       StreamIterator list_it = rdbuf()->stream_list_.begin();
       for (; list_it != rdbuf()->stream_list_.end(); ++list_it)
@@ -507,7 +507,7 @@ namespace OpenMS
       return list_it;
     }
 
-    bool LogStream::hasStream_(std::ostream & stream)
+    bool LogStream::hasStream_(std::ostream& stream)
     {
       if (!bound_())
         return false;
@@ -515,7 +515,7 @@ namespace OpenMS
       return findStream_(stream) != rdbuf()->stream_list_.end();
     }
 
-    void LogStream::setPrefix(const std::ostream & s, const string & prefix)
+    void LogStream::setPrefix(const std::ostream& s, const string& prefix)
     {
       if (!bound_())
         return;
@@ -527,7 +527,7 @@ namespace OpenMS
       }
     }
 
-    void LogStream::setPrefix(const string & prefix)
+    void LogStream::setPrefix(const string& prefix)
     {
       if (!bound_())
         return;
@@ -545,12 +545,12 @@ namespace OpenMS
 
     bool LogStream::bound_() const
     {
-      LogStream * non_const_this = const_cast<LogStream *>(this);
+      LogStream* non_const_this = const_cast<LogStream*>(this);
 
       return non_const_this->rdbuf() != 0;
     }
 
-  }   // namespace Logger
+  } // namespace Logger
 
   // global StreamHandler
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;

@@ -42,7 +42,7 @@
 #include <QDir>
 
 #if defined(Q_WS_MAC)
-  #include <CoreServices/CoreServices.h>
+#include <CoreServices/CoreServices.h>
 #endif
 
 #include <iostream>
@@ -92,7 +92,7 @@ namespace OpenMS
     static OpenMSOSInfo getOSInfo()
     {
       OpenMSOSInfo info;
-#if defined(WIN32)  // Windows
+#if defined(WIN32) // Windows
       info.os = OS_WINDOWS;
       info.arch = getArchOnWin();
       info.os_version = getWinOSVersion();
@@ -105,7 +105,7 @@ namespace OpenMS
       // query gestalt for detailed osx version information
       // NOTE: Gestalt will be deprecated at some point in the future where we
       //       have to look for a better solution
-      SInt32 majorVersion,minorVersion,bugFixVersion;
+      SInt32 majorVersion, minorVersion, bugFixVersion;
       Gestalt(gestaltSystemVersionMajor, &majorVersion);
       Gestalt(gestaltSystemVersionMinor, &minorVersion);
       Gestalt(gestaltSystemVersionBugFix, &bugFixVersion);
@@ -192,7 +192,7 @@ namespace OpenMS
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-int main(int /*argc*/, const char ** /*argv*/)
+int main(int /*argc*/, const char** /*argv*/)
 {
   cout << "OpenMS Version:" << "\n";
   cout << "==================" << "\n";

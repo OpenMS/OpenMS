@@ -52,7 +52,7 @@ namespace OpenMS
   {
   }
 
-  PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile &)
+  PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile&)
   {
   }
 
@@ -60,24 +60,24 @@ namespace OpenMS
   {
   }
 
-  PepNovoOutfile & PepNovoOutfile::operator=(const PepNovoOutfile &)
+  PepNovoOutfile& PepNovoOutfile::operator=(const PepNovoOutfile&)
   {
     return *this;
   }
 
-  bool PepNovoOutfile::operator==(const PepNovoOutfile &) const
+  bool PepNovoOutfile::operator==(const PepNovoOutfile&) const
   {
     return true;
   }
 
   void
   PepNovoOutfile::load(
-    const string & result_filename,
-    vector<PeptideIdentification> & peptide_identifications,
-    ProteinIdentification & protein_identification,
-    const double & score_threshold,
-    const IndexPosMappingType & index_to_precursor,
-    const map<String, String> & pnovo_modkey_to_mod_id
+    const string& result_filename,
+    vector<PeptideIdentification>& peptide_identifications,
+    ProteinIdentification& protein_identification,
+    const double& score_threshold,
+    const IndexPosMappingType& index_to_precursor,
+    const map<String, String>& pnovo_modkey_to_mod_id
     )
   {
     // generally used variables
@@ -94,7 +94,7 @@ namespace OpenMS
       sequence,
       sequence_with_mods;
 
-    DateTime datetime = DateTime::now();     // there's no date given from PepNovo
+    DateTime datetime = DateTime::now(); // there's no date given from PepNovo
     protein_identification.setDateTime(datetime);
 
     peptide_identifications.clear();
@@ -108,8 +108,8 @@ namespace OpenMS
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, result_filename);
     }
 
-    Size line_number(0);     // used to report in which line an error occurred
-    Size id_count(0);        // number of IDs seen (not necessarily the ones finally returned)
+    Size line_number(0); // used to report in which line an error occurred
+    Size id_count(0); // number of IDs seen (not necessarily the ones finally returned)
 
     getSearchEngineAndVersion(result_filename, protein_identification);
     //if information could not be retrieved from the outfile use defaults
@@ -122,7 +122,7 @@ namespace OpenMS
     protein_identification.setIdentifier(identifier);
 
     map<String, String> mod_mask_map;
-    const vector<String> & mods = protein_identification.getSearchParameters().variable_modifications;
+    const vector<String>& mods = protein_identification.getSearchParameters().variable_modifications;
     for (vector<String>::const_iterator mod_it = mods.begin(); mod_it != mods.end(); ++mod_it)
     {
       if (mod_it->empty())
@@ -160,10 +160,10 @@ namespace OpenMS
     Size index;
     while (getline(result_file, line))
     {
-      if (!line.empty() && (line[line.length() - 1] < 33)) line.resize(line.length() - 1); // remove weird EOL character
+      if (!line.empty() && (line[line.length() - 1] < 33)) line.resize(line.length() - 1);  // remove weird EOL character
       line.trim();
       ++line_number;
-      if (line.hasPrefix(">> "))         // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
+      if (line.hasPrefix(">> ")) // >> 1 /home/shared/pepnovo/4611_raw_ms2_picked.mzXML.1001.2.dta
       {
         ++id_count;
         if (!peptide_identification.empty() && !peptide_identification.getHits().empty())
@@ -190,7 +190,7 @@ namespace OpenMS
         //cout<<"INDEX: "<<index<<endl;
         peptide_identification = PeptideIdentification();
         bool success = false;
-        if (index_to_precursor.size()>0)
+        if (index_to_precursor.size() > 0)
         {
           if (index_to_precursor.find(index) != index_to_precursor.end())
           {
@@ -201,8 +201,8 @@ namespace OpenMS
           else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
         }
 
-        if (!success)
-        { // try to reconstruct from title entry (usually sensible when MGF is supplied to PepNovo)
+        if (!success) // try to reconstruct from title entry (usually sensible when MGF is supplied to PepNovo)
+        {
           try
           {
             if (substrings.size() >= 4)
@@ -228,7 +228,7 @@ namespace OpenMS
       }
       else if (line.hasPrefix("#Index"))         // #Index  Prob    Score   N-mass  C-Mass  [M+H]   Charge  Sequence
       {
-        if (columns.empty())           // map the column names to their column number
+        if (columns.empty()) // map the column names to their column number
         {
           line.split('\t', substrings);
           for (vector<String>::const_iterator s_i = substrings.begin(); s_i != substrings.end(); ++s_i)
@@ -321,8 +321,8 @@ namespace OpenMS
 
   void
   PepNovoOutfile::getSearchEngineAndVersion(
-    const String & pepnovo_output_without_parameters_filename,
-    ProteinIdentification & protein_identification)
+    const String& pepnovo_output_without_parameters_filename,
+    ProteinIdentification& protein_identification)
   {
     ifstream pepnovo_output_without_parameters(pepnovo_output_without_parameters_filename.c_str());
     if (!pepnovo_output_without_parameters)

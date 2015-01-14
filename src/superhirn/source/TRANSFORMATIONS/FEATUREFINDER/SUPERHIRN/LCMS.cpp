@@ -83,7 +83,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  LCMS::LCMS(const LCMS * tmp)
+  LCMS::LCMS(const LCMS* tmp)
   {
     spec_name = tmp->spec_name;
     spectrum_id = tmp->spectrum_id;
@@ -95,7 +95,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  LCMS::LCMS(const LCMS & tmp)
+  LCMS::LCMS(const LCMS& tmp)
   {
     spec_name = tmp.spec_name;
     spectrum_id = tmp.spectrum_id;
@@ -107,7 +107,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  LCMS & LCMS::operator=(const LCMS & tmp)
+  LCMS& LCMS::operator=(const LCMS& tmp)
   {
 
     spec_name = tmp.spec_name;
@@ -184,7 +184,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // search the list of feature for the one with input ID:
-  SHFeature * LCMS::find_feature_by_ID(int ID)
+  SHFeature* LCMS::find_feature_by_ID(int ID)
   {
 
     vector<SHFeature>::iterator p = feature_list.begin();
@@ -215,7 +215,7 @@ namespace OpenMS
     while (p != feature_list.end())
     {
 
-      SHFeature * PEAK = NULL;
+      SHFeature* PEAK = NULL;
       // get the peak at a charge state:
       PEAK = &(*p);
 
@@ -235,7 +235,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////////////////////
 // remove a feature from the LC/MS run:
-  void LCMS::remove_feature(SHFeature * in)
+  void LCMS::remove_feature(SHFeature* in)
   {
     vector<SHFeature>::iterator P = find(feature_list.begin(), feature_list.end(), in);
     if (P != feature_list.end())
@@ -247,7 +247,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////////////////////
 // remove a feature from the LC/MS run by ID:
-  void LCMS::remove_feature_by_ID(SHFeature * in)
+  void LCMS::remove_feature_by_ID(SHFeature* in)
   {
     remove_feature_by_ID(in->get_feature_ID());
   }
@@ -272,7 +272,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////
 // get alignment error at specific TR:
-  void LCMS::get_alignment_error(double in, double * UP, double * DOWN)
+  void LCMS::get_alignment_error(double in, double* UP, double* DOWN)
   {
 
     if (!ALIGNMENT_ERROR.empty())
@@ -387,22 +387,38 @@ namespace OpenMS
 
   // get the whole feature list:
   void LCMS::clear_feature_list()
-  {   return feature_list.clear(); }
+  {
+    return feature_list.clear();
+  }
+
   std::vector<SHFeature> LCMS::get_feature_list()
-  {   return feature_list; }
-  std::vector<SHFeature> * LCMS::get_feature_list_reference()
-  {   return &feature_list; }
+  {
+    return feature_list;
+  }
+
+  std::vector<SHFeature>* LCMS::get_feature_list_reference()
+  {
+    return &feature_list;
+  }
+
   bool LCMS::check_feature_list_empty()
-  {   return feature_list.empty(); }
+  {
+    return feature_list.empty();
+  }
 
   // access end /start of list:
   std::vector<SHFeature>::iterator LCMS::get_feature_list_begin()
-  {   return feature_list.begin(); }
+  {
+    return feature_list.begin();
+  }
+
   std::vector<SHFeature>::iterator LCMS::get_feature_list_end()
-  {   return feature_list.end(); }
+  {
+    return feature_list.end();
+  }
 
   // add a new feature to the list:
-  void LCMS::add_feature(SHFeature * IN)
+  void LCMS::add_feature(SHFeature* IN)
   {
 
     if (IN->get_feature_ID() == -1)
@@ -422,38 +438,73 @@ namespace OpenMS
 
   // remove a feature by iterator and return the iterator to the next element
   std::vector<SHFeature>::iterator LCMS::remove_feature_from_list(std::vector<SHFeature>::iterator IN)
-  {   return feature_list.erase(IN); }
+  {
+    return feature_list.erase(IN);
+  }
 
   // get number of feature added:
   unsigned int LCMS::get_nb_features()
-  {   return (unsigned int) feature_list.size(); }
+  {
+    return (unsigned int) feature_list.size();
+  }
 
   std::string LCMS::get_spec_name()
-  {   return spec_name; }
+  {
+    return spec_name;
+  }
+
   void LCMS::set_spec_name(std::string IN)
-  {   spec_name = IN; }
+  {
+    spec_name = IN;
+  }
 
   // set / get spectrum id:
   int LCMS::get_spectrum_ID()
-  {   return spectrum_id; }
+  {
+    return spectrum_id;
+  }
+
   void LCMS::set_spectrum_ID(int IN)
-  {   spectrum_id = IN; }
+  {
+    spectrum_id = IN;
+  }
 
   // access the raw data names:
   void LCMS::remove_raw_spec_name(int ID)
-  {   raw_spec_names.erase(ID); }
+  {
+    raw_spec_names.erase(ID);
+  }
+
   void LCMS::add_raw_spec_name(int ID, std::string name)
-  {   raw_spec_names.insert(make_pair(ID, name)); }
+  {
+    raw_spec_names.insert(make_pair(ID, name));
+  }
+
   bool LCMS::check_raw_spec_name_empty()
-  {   return raw_spec_names.empty(); }
+  {
+    return raw_spec_names.empty();
+  }
+
   std::map<int, std::string>::iterator LCMS::get_raw_spec_name_start()
-  {   return raw_spec_names.begin(); }
+  {
+    return raw_spec_names.begin();
+  }
+
   std::map<int, std::string>::iterator LCMS::get_raw_spec_name_end()
-  {   return raw_spec_names.end(); }
+  {
+    return raw_spec_names.end();
+  }
+
   std::map<int, std::string> LCMS::get_raw_spec_name_map()
-  {   return raw_spec_names; }
+  {
+    return raw_spec_names;
+  }
+
   int LCMS::get_nb_raw_specs()
-  {   return (int) raw_spec_names.size(); }
+  {
+    return (int) raw_spec_names.size();
+  }
+
   std::string LCMS::get_raw_spec_name(int ID)
   {
     std::map<int, std::string>::iterator p = raw_spec_names.find(ID);
@@ -520,8 +571,13 @@ namespace OpenMS
 
   // access MASTER run ID:
   void LCMS::set_MASTER_ID(int IN)
-  {   MASTER_ID = IN; }
+  {
+    MASTER_ID = IN;
+  }
+
   int LCMS::get_MASTER_ID()
-  {   return MASTER_ID; }
+  {
+    return MASTER_ID;
+  }
 
 }

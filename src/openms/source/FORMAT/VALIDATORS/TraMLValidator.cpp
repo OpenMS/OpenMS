@@ -41,7 +41,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    TraMLValidator::TraMLValidator(const CVMappings & mapping, const ControlledVocabulary & cv) :
+    TraMLValidator::TraMLValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       SemanticValidator(mapping, cv)
     {
       setCheckUnits(true);
@@ -51,5 +51,5 @@ namespace OpenMS
     {
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

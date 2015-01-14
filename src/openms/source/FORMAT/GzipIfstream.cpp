@@ -38,7 +38,7 @@
 using namespace std;
 namespace OpenMS
 {
-  GzipIfstream::GzipIfstream(const char * filename) :
+  GzipIfstream::GzipIfstream(const char* filename) :
     gzfile_(NULL), n_buffer_(0), stream_at_end_(false)
   {
     open(filename);
@@ -54,7 +54,7 @@ namespace OpenMS
     close();
   }
 
-  size_t GzipIfstream::read(char * s, size_t n)
+  size_t GzipIfstream::read(char* s, size_t n)
   {
     if (gzfile_ != NULL)
     {
@@ -77,13 +77,13 @@ namespace OpenMS
     }
   }
 
-  void GzipIfstream::open(const char * filename)
+  void GzipIfstream::open(const char* filename)
   {
     if (gzfile_ != NULL)
     {
       close();
     }
-    gzfile_ = gzopen(filename, "rb");       //read binary: always open in binary mode because windows and mac open in text mode
+    gzfile_ = gzopen(filename, "rb"); //read binary: always open in binary mode because windows and mac open in text mode
 
     //aborting, ahhh!
     if (gzfile_ == NULL)

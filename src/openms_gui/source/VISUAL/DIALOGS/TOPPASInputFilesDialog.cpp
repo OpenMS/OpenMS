@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {
-  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList & list)
+  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList& list)
   {
     setupUi(this);
 
@@ -61,7 +61,7 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::showFileDialog()
   {
-    QStringList file_names = QFileDialog::getOpenFileNames(this, tr("Select input file(s)"), tr(""), tr(/*valid filetypes*/ ""));
+    QStringList file_names = QFileDialog::getOpenFileNames(this, tr("Select input file(s)"), tr(""), tr( /*valid filetypes*/ ""));
     if (!file_names.isEmpty())
     {
       input_file_list->addItems(file_names);
@@ -70,7 +70,7 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::removeSelected()
   {
-    QList<QListWidgetItem *> selected_items = input_file_list->selectedItems();
+    QList<QListWidgetItem*> selected_items = input_file_list->selectedItems();
     foreach(QListWidgetItem * item, selected_items)
     {
       input_file_list->takeItem(input_file_list->row(item));
@@ -82,7 +82,7 @@ namespace OpenMS
     input_file_list->clear();
   }
 
-  void TOPPASInputFilesDialog::getFilenames(QStringList & files)
+  void TOPPASInputFilesDialog::getFilenames(QStringList& files)
   {
     files.clear();
     for (int i = 0; i < input_file_list->count(); ++i)
@@ -95,7 +95,7 @@ namespace OpenMS
 
   void TOPPASInputFilesDialog::editCurrentItem()
   {
-    QListWidgetItem * item = input_file_list->currentItem();
+    QListWidgetItem* item = input_file_list->currentItem();
     if (!item)
     {
       return;
@@ -133,13 +133,13 @@ namespace OpenMS
       return;
     }
 
-    if (direction == true)     // move upwards
+    if (direction == true) // move upwards
     {
       if (row == 0)
       {
         return;
       }
-      QListWidgetItem * item = input_file_list->takeItem(row);
+      QListWidgetItem* item = input_file_list->takeItem(row);
       input_file_list->insertItem(row - 1, item);
       input_file_list->setCurrentItem(item);
     }
@@ -149,7 +149,7 @@ namespace OpenMS
       {
         return;
       }
-      QListWidgetItem * item = input_file_list->takeItem(row);
+      QListWidgetItem* item = input_file_list->takeItem(row);
       input_file_list->insertItem(row + 1, item);
       input_file_list->setCurrentItem(item);
     }

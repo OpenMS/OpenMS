@@ -101,7 +101,7 @@ protected:
 
     // output files
     registerOutputFile_("out", "<file>", "", "output of the treatment file after XIC filtering.");
-    setValidFormats_("out", ListUtils::create<String>("mzML"));    
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
   }
 
   void filterByFoldChange(const MSExperiment<>& exp1, const MSExperiment<>& exp2,

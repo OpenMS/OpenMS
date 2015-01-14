@@ -56,7 +56,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ZhangSimilarityScore::ZhangSimilarityScore(const ZhangSimilarityScore & source) :
+  ZhangSimilarityScore::ZhangSimilarityScore(const ZhangSimilarityScore& source) :
     PeakSpectrumCompareFunctor(source)
   {
   }
@@ -65,7 +65,7 @@ namespace OpenMS
   {
   }
 
-  ZhangSimilarityScore & ZhangSimilarityScore::operator=(const ZhangSimilarityScore & source)
+  ZhangSimilarityScore& ZhangSimilarityScore::operator=(const ZhangSimilarityScore& source)
   {
     if (this != &source)
     {
@@ -74,20 +74,20 @@ namespace OpenMS
     return *this;
   }
 
-  double ZhangSimilarityScore::operator()(const PeakSpectrum & spec) const
+  double ZhangSimilarityScore::operator()(const PeakSpectrum& spec) const
   {
     return operator()(spec, spec);
   }
 
-  double ZhangSimilarityScore::operator()(const PeakSpectrum & s1, const PeakSpectrum & s2) const
+  double ZhangSimilarityScore::operator()(const PeakSpectrum& s1, const PeakSpectrum& s2) const
   {
     const double tolerance = (double)param_.getValue("tolerance");
     bool use_linear_factor = param_.getValue("use_linear_factor").toBool();
     bool use_gaussian_factor = param_.getValue("use_gaussian_factor").toBool();
     double score(0), sum(0), sum1(0), sum2(0) /*, squared_sum1(0), squared_sum2(0)*/;
 
-    // TODO remove parameter 
-    if (param_.getValue("is_relative_tolerance").toBool() )
+    // TODO remove parameter
+    if (param_.getValue("is_relative_tolerance").toBool())
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }

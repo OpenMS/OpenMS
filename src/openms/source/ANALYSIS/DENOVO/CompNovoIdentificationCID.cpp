@@ -65,13 +65,13 @@ namespace OpenMS
     updateMembers_();
   }
 
-  CompNovoIdentificationCID::CompNovoIdentificationCID(const CompNovoIdentificationCID & rhs) :
+  CompNovoIdentificationCID::CompNovoIdentificationCID(const CompNovoIdentificationCID& rhs) :
     CompNovoIdentificationBase(rhs)
   {
     updateMembers_();
   }
 
-  CompNovoIdentificationCID & CompNovoIdentificationCID::operator=(const CompNovoIdentificationCID & rhs)
+  CompNovoIdentificationCID& CompNovoIdentificationCID::operator=(const CompNovoIdentificationCID& rhs)
   {
     if (this != &rhs)
     {
@@ -85,7 +85,7 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIdentificationCID::getIdentifications(vector<PeptideIdentification> & pep_ids, const PeakMap & exp)
+  void CompNovoIdentificationCID::getIdentifications(vector<PeptideIdentification>& pep_ids, const PeakMap& exp)
   {
     Size count(1);
     for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
@@ -116,7 +116,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationCID::getIdentification(PeptideIdentification & id, const PeakSpectrum & CID_spec)
+  void CompNovoIdentificationCID::getIdentification(PeptideIdentification& id, const PeakSpectrum& CID_spec)
   {
     //if (CID_spec.getPrecursors().begin()->getMZ() > 1000.0)
     //{
@@ -142,7 +142,7 @@ namespace OpenMS
     normalizer.filterSpectrum(new_CID_spec);
 
     Size charge(2);
-    double precursor_weight(0);     // [M+H]+
+    double precursor_weight(0); // [M+H]+
     if (!CID_spec.getPrecursors().empty())
     {
       // believe charge of spectrum?
@@ -378,7 +378,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
       hit.setScore(cid_score);
 
       hit.setSequence(getModifiedAASequence_(*it));
-      hit.setCharge((Int)charge);   //TODO unify charge interface: int or size?
+      hit.setCharge((Int)charge); //TODO unify charge interface: int or size?
       hits.push_back(hit);
       //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << endl;
     }
@@ -444,7 +444,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
     return;
   }
 
-  void CompNovoIdentificationCID::reducePermuts_(set<String> & permuts, const PeakSpectrum & CID_spec, double prefix, double suffix)
+  void CompNovoIdentificationCID::reducePermuts_(set<String>& permuts, const PeakSpectrum& CID_spec, double prefix, double suffix)
   {
     if (permuts.size() < max_subscore_number_)
     {
@@ -512,7 +512,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
   }
 
 // divide and conquer algorithm of the sequencing
-  void CompNovoIdentificationCID::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, Map<double, CompNovoIonScoringCID::IonScore> & ion_scores)
+  void CompNovoIdentificationCID::getDecompositionsDAC_(set<String>& sequences, Size left, Size right, double peptide_weight, const PeakSpectrum& CID_spec, Map<double, CompNovoIonScoringCID::IonScore>& ion_scores)
   {
     static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
     double offset_suffix(CID_spec[left].getPosition()[0] - oxonium_mass);

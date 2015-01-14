@@ -59,7 +59,7 @@ namespace OpenMS
     {
     }
 
-    void GumbelDistributionFitter::setInitialParameters(const GumbelDistributionFitResult & param)
+    void GumbelDistributionFitter::setInitialParameters(const GumbelDistributionFitResult& param)
     {
       init_param_ = param;
     }
@@ -69,10 +69,10 @@ namespace OpenMS
       int inputs() const { return m_inputs; }
       int values() const { return m_values; }
 
-      GumbelDistributionFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data)
-      : m_inputs(dimensions), m_values(data->size()), m_data(data) {}
+      GumbelDistributionFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data) :
+        m_inputs(dimensions), m_values(data->size()), m_data(data) {}
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+      int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
       {
         double a = x(0);
         double b = x(1);
@@ -86,8 +86,9 @@ namespace OpenMS
         }
         return 0;
       }
+
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+      int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
       {
         double a = x(0);
         double b = x(1);
@@ -98,11 +99,11 @@ namespace OpenMS
           double z = exp((a - the_x) / b);
           double f = z * exp(-1 * z);
           double part_dev_a = (f - pow(z, 2) * exp(-1 * z)) / pow(b, 2);
-          J(i,0) = part_dev_a;
+          J(i, 0) = part_dev_a;
           double dev_z =  ((the_x - a) / pow(b, 2));
           double cum = f * dev_z;
           double part_dev_b = ((cum - z * cum) * b - f) / pow(b, 2);
-          J(i,1) = part_dev_b;
+          J(i, 1) = part_dev_b;
         }
         return 0;
       }
@@ -111,14 +112,14 @@ namespace OpenMS
       const std::vector<DPosition<2> >* m_data;
     };
 
-    GumbelDistributionFitter::GumbelDistributionFitResult GumbelDistributionFitter::fit(vector<DPosition<2> > & input)
+    GumbelDistributionFitter::GumbelDistributionFitResult GumbelDistributionFitter::fit(vector<DPosition<2> >& input)
     {
 
-      Eigen::VectorXd x_init (2);
+      Eigen::VectorXd x_init(2);
       x_init(0) = init_param_.a;
       x_init(1) = init_param_.b;
-      GumbelDistributionFunctor functor (2, &input);
-      Eigen::LevenbergMarquardt<GumbelDistributionFunctor> lmSolver (functor);
+      GumbelDistributionFunctor functor(2, &input);
+      Eigen::LevenbergMarquardt<GumbelDistributionFunctor> lmSolver(functor);
       Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
       //the states are poorly documented. after checking the source, we believe that
@@ -136,8 +137,8 @@ namespace OpenMS
       cout << formula.str() << endl;
 #endif
 
-      return GumbelDistributionFitResult (x_init(0), x_init(1));
+      return GumbelDistributionFitResult(x_init(0), x_init(1));
     }
 
-  }   //namespace Math
+  } //namespace Math
 } // namespace OpenMS

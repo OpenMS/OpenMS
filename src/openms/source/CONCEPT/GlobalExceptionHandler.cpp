@@ -36,7 +36,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
-#include <cstdlib>  // for getenv in terminate()
+#include <cstdlib> // for getenv in terminate()
 //#include <sys/types.h>
 #include <csignal> // for SIGSEGV and kill
 
@@ -110,7 +110,7 @@ namespace OpenMS
       abort();
     }
 
-    void GlobalExceptionHandler::set(const std::string & file, int line, const std::string & function, const std::string & name, const std::string & message) throw()
+    void GlobalExceptionHandler::set(const std::string& file, int line, const std::string& function, const std::string& name, const std::string& message) throw()
     {
       GlobalExceptionHandler::name_() = name;
       GlobalExceptionHandler::line_() = line;
@@ -119,22 +119,22 @@ namespace OpenMS
       GlobalExceptionHandler::function_() = function;
     }
 
-    void GlobalExceptionHandler::setName(const std::string & name) throw()
+    void GlobalExceptionHandler::setName(const std::string& name) throw()
     {
       GlobalExceptionHandler::name_() = name;
     }
 
-    void GlobalExceptionHandler::setMessage(const std::string & message) throw()
+    void GlobalExceptionHandler::setMessage(const std::string& message) throw()
     {
       GlobalExceptionHandler::what_() = message;
     }
 
-    void GlobalExceptionHandler::setFile(const std::string & file) throw()
+    void GlobalExceptionHandler::setFile(const std::string& file) throw()
     {
       GlobalExceptionHandler::file_() = file;
     }
 
-    void GlobalExceptionHandler::setFunction(const std::string & function) throw()
+    void GlobalExceptionHandler::setFunction(const std::string& function) throw()
     {
       GlobalExceptionHandler::function_() = function;
     }

@@ -89,7 +89,7 @@ namespace OpenMS
     return;
   }
 
-  void PoseClusteringShiftSuperimposer::run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation)
+  void PoseClusteringShiftSuperimposer::run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)
   {
     typedef ConstRefVector<ConsensusMap> PeakPointerArray_;
     typedef Math::LinearInterpolation<double, double> LinearInterpolationType_;
@@ -141,9 +141,9 @@ namespace OpenMS
     // Select the most abundant data points only.  After that, disallow modifications
     // (we tend to have annoying issues with const_iterator versus iterator).
     PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
-    const PeakPointerArray_ & model_map(model_map_ini);
+    const PeakPointerArray_& model_map(model_map_ini);
     PeakPointerArray_ scene_map_ini(map_scene.begin(), map_scene.end());
-    const PeakPointerArray_ & scene_map(scene_map_ini);
+    const PeakPointerArray_& scene_map(scene_map_ini);
     {
       // truncate the data as necessary
       // casting to SignedSize is done on PURPOSE here! (num_used_points will be maximal if -1 is used)
@@ -410,7 +410,7 @@ namespace OpenMS
           std::sort(buffer.begin(), buffer.end(), std::greater<double>());
           double freq_intercept = shift_hash_.getData().front();
           double freq_slope = (shift_hash_.getData().back() - shift_hash_.getData().front()) / double(buffer.size())
-                                  / scaling_histogram_crossing_slope;
+                              / scaling_histogram_crossing_slope;
           if (!freq_slope || !buffer.size())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
@@ -461,7 +461,7 @@ namespace OpenMS
         const Size data_size = shift_hash_.getData().size();
         Size data_range_begin = 0;
         Size data_range_end = data_size;
-        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
+        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop) // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
           double mean = statistics.mean() + data_range_begin;

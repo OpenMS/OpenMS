@@ -55,13 +55,13 @@ namespace OpenMS
 #if 1
     // use (RT,MZ,IT) as "unique" identifier
     if (fabs(lhs.getRT() - rhs.getRT()) > rt_dev)
-      return false; // TODO MAGIC_ALERT
+      return false;  // TODO MAGIC_ALERT
 
     if (fabs(lhs.getMZ() - rhs.getMZ()) > mz_dev)
-      return false; // TODO MAGIC_ALERT
+      return false;  // TODO MAGIC_ALERT
 
     if (fabs(lhs.getIntensity() - rhs.getIntensity()) > int_dev)
-      return false; // TODO MAGIC_ALERT
+      return false;  // TODO MAGIC_ALERT
 
     if (use_charge && (lhs.getCharge() != rhs.getCharge()))
       return false;

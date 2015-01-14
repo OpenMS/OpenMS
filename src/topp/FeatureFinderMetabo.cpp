@@ -228,13 +228,13 @@ protected:
       {
         m_traces_final = splitted_mtraces;
       }
-    } 
-    else
-    { // no elution peak detection
+    }
+    else // no elution peak detection
+    {
       m_traces_final = m_traces;
       for (std::vector<MassTrace>::iterator it  = m_traces_final.begin();
-                                            it != m_traces_final.end();
-                                            ++it)
+           it != m_traces_final.end();
+           ++it)
       {
         it->disableFHWM();
         if (ffm_param.getValue("use_smoothed_intensities").toBool())
@@ -286,15 +286,15 @@ protected:
     if (feat_map.size() > 0)
     {
       set<IonSource::Polarity> pols;
-      for (Size i=0; i < ms_peakmap.size(); ++i)
+      for (Size i = 0; i < ms_peakmap.size(); ++i)
       {
         pols.insert(ms_peakmap[i].getInstrumentSettings().getPolarity());
       }
       // concat to single string
       StringList sl_pols;
       for (set<IonSource::Polarity>::const_iterator it = pols.begin();
-                                                    it !=pols.end();
-                                                    ++it)
+           it != pols.end();
+           ++it)
       {
         sl_pols.push_back(String(IonSource::NamesOfPolarity[*it]));
       }

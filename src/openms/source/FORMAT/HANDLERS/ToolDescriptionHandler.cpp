@@ -43,7 +43,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    ToolDescriptionHandler::ToolDescriptionHandler(const String & filename, const String & version) :
+    ToolDescriptionHandler::ToolDescriptionHandler(const String& filename, const String& version) :
       ParamXMLHandler(p_, filename, version),
       p_(),
       tde_(),
@@ -58,7 +58,7 @@ namespace OpenMS
     {
     }
 
-    void ToolDescriptionHandler::startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes)
+    void ToolDescriptionHandler::startElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
       if (in_ini_section_)
       {
@@ -132,7 +132,7 @@ namespace OpenMS
       error(LOAD, "ToolDescriptionHandler::startElement(): Unkown element found: '" + tag_ + "', ignoring.");
     }
 
-    void ToolDescriptionHandler::characters(const XMLCh * const chars, const XMLSize_t length)
+    void ToolDescriptionHandler::characters(const XMLCh* const chars, const XMLSize_t length)
     {
       if (in_ini_section_)
       {
@@ -170,7 +170,7 @@ namespace OpenMS
         error(LOAD, "ToolDescriptionHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
     }
 
-    void ToolDescriptionHandler::endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname)
+    void ToolDescriptionHandler::endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname)
     {
       String endtag_ = sm_.convert(qname);
       if (in_ini_section_ && endtag_ != "ini_param")
@@ -207,20 +207,20 @@ namespace OpenMS
         return;  // TODO...handle other end tags?
     }
 
-    void ToolDescriptionHandler::writeTo(std::ostream & /*os*/)
+    void ToolDescriptionHandler::writeTo(std::ostream& /*os*/)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
 
-    void ToolDescriptionHandler::setToolDescriptions(const std::vector<ToolDescription> & tds)
+    void ToolDescriptionHandler::setToolDescriptions(const std::vector<ToolDescription>& tds)
     {
       td_vec_ = tds;
     }
 
-    const std::vector<ToolDescription> & ToolDescriptionHandler::getToolDescriptions() const
+    const std::vector<ToolDescription>& ToolDescriptionHandler::getToolDescriptions() const
     {
       return td_vec_;
     }
 
-  }   //namespace Internal
+  } //namespace Internal
 } // namespace OpenMS

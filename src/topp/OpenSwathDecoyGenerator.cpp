@@ -90,8 +90,8 @@ using namespace OpenMS;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPOpenSwathDecoyGenerator
-: public TOPPBase
+class TOPPOpenSwathDecoyGenerator :
+  public TOPPBase
 {
 public:
 
@@ -106,7 +106,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ('traML')");
     setValidFormats_("in", ListUtils::create<String>("traML"));
-    
+
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", ListUtils::create<String>("traML"));
 
@@ -126,7 +126,7 @@ protected:
     registerDoubleOption_("precursor_mass_shift", "<double>", 0.0, "Mass shift to apply to the precursor ion", false);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
@@ -177,7 +177,7 @@ protected:
 
 };
 
-int main(int argc, const char **argv)
+int main(int argc, const char** argv)
 {
   TOPPOpenSwathDecoyGenerator gen;
   return gen.main(argc, argv);

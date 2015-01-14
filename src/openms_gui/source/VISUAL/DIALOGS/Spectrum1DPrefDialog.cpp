@@ -41,11 +41,11 @@ namespace OpenMS
 {
   namespace Internal
   {
-    Spectrum1DPrefDialog::Spectrum1DPrefDialog(QWidget * parent) :
+    Spectrum1DPrefDialog::Spectrum1DPrefDialog(QWidget* parent) :
       QDialog(parent)
     {
       setupUi(this);
     }
 
-  }   //namespace Internal
+  } //namespace Internal
 } //namspace OpenMS

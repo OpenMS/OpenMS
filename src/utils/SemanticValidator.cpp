@@ -58,11 +58,11 @@ using namespace std;
     file. The CV-mapping file describes the validity of CV-terms for a given
     tag inside the XML. The CV-mapping file conforms to the CvMapping XML
     schema (found at /share/OpenMS/SCHEMAS/CvMapping.xsd or
-    http://www.psidev.info/sites/default/files/CvMapping.xsd). 
+    http://www.psidev.info/sites/default/files/CvMapping.xsd).
 
     Example files that can be semantically validated using this tool are mzML,
     TraML, mzIdentML, mzData or any XML file.
-    
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_SemanticValidator.cli
     <B>INI file documentation of this tool:</B>

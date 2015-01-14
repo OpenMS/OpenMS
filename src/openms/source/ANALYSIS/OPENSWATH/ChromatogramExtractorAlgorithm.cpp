@@ -42,11 +42,11 @@ namespace OpenMS
 {
 
   void ChromatogramExtractorAlgorithm::extract_value_tophat(
-      const std::vector<double>::const_iterator& mz_start, 
-            std::vector<double>::const_iterator& mz_it,
-      const std::vector<double>::const_iterator& mz_end,
-            std::vector<double>::const_iterator& int_it,
-      const double& mz, double& integrated_intensity, const double& mz_extraction_window, bool ppm)
+    const std::vector<double>::const_iterator& mz_start,
+    std::vector<double>::const_iterator& mz_it,
+    const std::vector<double>::const_iterator& mz_end,
+    std::vector<double>::const_iterator& int_it,
+    const double& mz, double& integrated_intensity, const double& mz_extraction_window, bool ppm)
   {
     integrated_intensity = 0;
     if (mz_start == mz_end)
@@ -73,7 +73,7 @@ namespace OpenMS
     // advance the mz / int iterator until we hit the m/z value of the next transition
     while (mz_it != mz_end && (*mz_it) < mz)
     {
-      mz_it++; 
+      mz_it++;
       int_it++;
     }
 
@@ -84,7 +84,7 @@ namespace OpenMS
     // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
     if (mz_it == mz_end)
     {
-      --mz_walker; 
+      --mz_walker;
       --int_walker;
     }
 
@@ -104,8 +104,8 @@ namespace OpenMS
     }
     while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
     {
-      integrated_intensity += (*int_walker); 
-      --mz_walker; 
+      integrated_intensity += (*int_walker);
+      --mz_walker;
       --int_walker;
     }
     mz_walker  = mz_it;
@@ -117,16 +117,16 @@ namespace OpenMS
     }
     while (mz_walker != mz_end && (*mz_walker) > left && (*mz_walker) < right)
     {
-      integrated_intensity += (*int_walker); 
-      ++mz_walker; 
+      integrated_intensity += (*int_walker);
+      ++mz_walker;
       ++int_walker;
     }
   }
 
   void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
-      std::vector< OpenSwath::ChromatogramPtr >& output, 
-      std::vector<ExtractionCoordinates> extraction_coordinates, double mz_extraction_window,
-      bool ppm, String filter)
+                                                            std::vector<OpenSwath::ChromatogramPtr>& output,
+                                                            std::vector<ExtractionCoordinates> extraction_coordinates, double mz_extraction_window,
+                                                            bool ppm, String filter)
   {
     Size input_size = input->getNrSpectra();
     if (input_size < 1)
@@ -137,16 +137,16 @@ namespace OpenMS
     if (output.size() != extraction_coordinates.size())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Output and extraction coordinates need to have the same size");
+                                       "Output and extraction coordinates need to have the same size");
     }
 
     int used_filter = getFilterNr_(filter);
     // assert that they are sorted!
-    if (std::adjacent_find(extraction_coordinates.begin(), extraction_coordinates.end(), 
-          ExtractionCoordinates::SortExtractionCoordinatesReverseByMZ) != extraction_coordinates.end())
+    if (std::adjacent_find(extraction_coordinates.begin(), extraction_coordinates.end(),
+                           ExtractionCoordinates::SortExtractionCoordinatesReverseByMZ) != extraction_coordinates.end())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Input to extractChromatogram needs to be sorted by m/z");
+                                       "Input to extractChromatogram needs to be sorted by m/z");
     }
 
     //go through all spectra
@@ -176,17 +176,17 @@ namespace OpenMS
       {
         double integrated_intensity = 0;
         double current_rt = s_meta.RT;
-        if (extraction_coordinates[k].rt_end - extraction_coordinates[k].rt_start > 0 && 
-             (current_rt < extraction_coordinates[k].rt_start || 
-              current_rt > extraction_coordinates[k].rt_end) )
+        if (extraction_coordinates[k].rt_end - extraction_coordinates[k].rt_start > 0 &&
+            (current_rt<extraction_coordinates[k].rt_start ||
+                        current_rt> extraction_coordinates[k].rt_end))
         {
           continue;
         }
 
         if (used_filter == 1)
         {
-          extract_value_tophat( mz_start, mz_it, mz_end, int_it,
-                  extraction_coordinates[k].mz, integrated_intensity, mz_extraction_window, ppm);
+          extract_value_tophat(mz_start, mz_it, mz_end, int_it,
+                               extraction_coordinates[k].mz, integrated_intensity, mz_extraction_window, ppm);
         }
         else if (used_filter == 2)
         {

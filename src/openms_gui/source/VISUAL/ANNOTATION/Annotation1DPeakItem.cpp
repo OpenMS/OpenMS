@@ -41,7 +41,7 @@
 namespace OpenMS
 {
 
-  Annotation1DPeakItem::Annotation1DPeakItem(const PointType & peak_position, const QString & text, const QColor & color) :
+  Annotation1DPeakItem::Annotation1DPeakItem(const PointType& peak_position, const QString& text, const QColor& color) :
     Annotation1DItem(text),
     peak_position_(peak_position),
     position_(peak_position),
@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  Annotation1DPeakItem::Annotation1DPeakItem(const Annotation1DPeakItem & rhs) :
+  Annotation1DPeakItem::Annotation1DPeakItem(const Annotation1DPeakItem& rhs) :
     Annotation1DItem(rhs)
   {
     peak_position_ = rhs.peak_position_;
@@ -61,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  void Annotation1DPeakItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  void Annotation1DPeakItem::draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
     painter.save();
 
@@ -122,8 +122,8 @@ namespace OpenMS
       QLineF bottom(bounding_box_.x(), bounding_box_.y() + bounding_box_.height(), bounding_box_.x() + bounding_box_.width(), bounding_box_.y() + bounding_box_.height());
 
       QLineF::IntersectType itype;
-      QPointF * ip = new QPointF();
-      QPointF * closest_ip = new QPointF(-10e10, -10e10);
+      QPointF* ip = new QPointF();
+      QPointF* closest_ip = new QPointF(-10e10, -10e10);
       bool found_intersection = false;
 
       // intersection with top
@@ -187,28 +187,28 @@ namespace OpenMS
     painter.restore();
   }
 
-  void Annotation1DPeakItem::move(const PointType & delta)
+  void Annotation1DPeakItem::move(const PointType& delta)
   {
     position_.setX(position_.getX() + delta.getX());
     position_.setY(position_.getY() + delta.getY());
   }
 
-  void Annotation1DPeakItem::setPosition(const Annotation1DPeakItem::PointType & position)
+  void Annotation1DPeakItem::setPosition(const Annotation1DPeakItem::PointType& position)
   {
     position_ = position;
   }
 
-  const Annotation1DPeakItem::PointType & Annotation1DPeakItem::getPosition() const
+  const Annotation1DPeakItem::PointType& Annotation1DPeakItem::getPosition() const
   {
     return position_;
   }
 
-  const Annotation1DPeakItem::PointType & Annotation1DPeakItem::getPeakPosition() const
+  const Annotation1DPeakItem::PointType& Annotation1DPeakItem::getPeakPosition() const
   {
     return peak_position_;
   }
 
-  void Annotation1DPeakItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
+  void Annotation1DPeakItem::ensureWithinDataRange(Spectrum1DCanvas* const canvas)
   {
     DRange<3> data_range = canvas->getDataRange();
 
@@ -233,12 +233,12 @@ namespace OpenMS
     }
   }
 
-  void Annotation1DPeakItem::setColor(const QColor & color)
+  void Annotation1DPeakItem::setColor(const QColor& color)
   {
     color_ = color;
   }
 
-  const QColor & Annotation1DPeakItem::getColor() const
+  const QColor& Annotation1DPeakItem::getColor() const
   {
     return color_;
   }

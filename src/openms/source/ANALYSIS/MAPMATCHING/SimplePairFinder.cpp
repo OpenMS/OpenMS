@@ -53,7 +53,7 @@ namespace OpenMS
     Base::defaultsToParam_();
   }
 
-  void SimplePairFinder::run(const std::vector<ConsensusMap> & input_maps, ConsensusMap & result_map)
+  void SimplePairFinder::run(const std::vector<ConsensusMap>& input_maps, ConsensusMap& result_map)
   {
     if (input_maps.size() != 2)
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "exactly two input maps required");
@@ -163,7 +163,7 @@ namespace OpenMS
     pair_min_quality_ = (double)param_.getValue("similarity:pair_min_quality");
   }
 
-  double SimplePairFinder::similarity_(ConsensusFeature const & left, ConsensusFeature const & right) const
+  double SimplePairFinder::similarity_(ConsensusFeature const& left, ConsensusFeature const& right) const
   {
     double right_intensity(right.getIntensity());
     if (right_intensity == 0)

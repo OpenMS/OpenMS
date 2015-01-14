@@ -46,7 +46,7 @@ namespace OpenMS
 
   }
 
-  SampleTreatment::SampleTreatment(const String & type) :
+  SampleTreatment::SampleTreatment(const String& type) :
     MetaInfoInterface(),
     type_(type),
     comment_()
@@ -54,7 +54,7 @@ namespace OpenMS
 
   }
 
-  SampleTreatment::SampleTreatment(const SampleTreatment & source) :
+  SampleTreatment::SampleTreatment(const SampleTreatment& source) :
     MetaInfoInterface(source),
     type_(source.type_),
     comment_(source.comment_)
@@ -67,7 +67,7 @@ namespace OpenMS
 
   }
 
-  SampleTreatment & SampleTreatment::operator=(const SampleTreatment & source)
+  SampleTreatment& SampleTreatment::operator=(const SampleTreatment& source)
   {
     if (&source == this)
       return *this;
@@ -78,22 +78,22 @@ namespace OpenMS
     return *this;
   }
 
-  const String & SampleTreatment::getType() const
+  const String& SampleTreatment::getType() const
   {
     return type_;
   }
 
-  const String & SampleTreatment::getComment() const
+  const String& SampleTreatment::getComment() const
   {
     return comment_;
   }
 
-  void SampleTreatment::setComment(const String & comment)
+  void SampleTreatment::setComment(const String& comment)
   {
     comment_ = comment;
   }
 
-  bool SampleTreatment::operator==(const SampleTreatment & rhs) const
+  bool SampleTreatment::operator==(const SampleTreatment& rhs) const
   {
     return MetaInfoInterface::operator==(rhs) &&
            comment_ == rhs.comment_;

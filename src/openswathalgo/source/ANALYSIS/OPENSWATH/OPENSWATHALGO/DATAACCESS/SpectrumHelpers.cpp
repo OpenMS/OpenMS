@@ -43,9 +43,9 @@ namespace OpenSwath
 {
 
   void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
-                        const std::vector<double> & windowsCenter, double width,
-                        std::vector<double> & integratedWindowsIntensity,
-                        std::vector<double> & integratedWindowsMZ,
+                        const std::vector<double>& windowsCenter, double width,
+                        std::vector<double>& integratedWindowsIntensity,
+                        std::vector<double>& integratedWindowsMZ,
                         bool remZero)
   {
     std::vector<double>::const_iterator beg = windowsCenter.begin();
@@ -73,12 +73,12 @@ namespace OpenSwath
 
   /// integrate all masses in window
   bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
-                       double mz_end, double & mz, double & intensity, bool centroided)
+                       double mz_end, double& mz, double& intensity, bool centroided)
   {
     //check precondtion
-    OPENSWATH_PRECONDITION( std::adjacent_find(spectrum->getMZArray()->data.begin(),
-            spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
-          "Precondition violated: m/z vector needs to be sorted!" )
+    OPENSWATH_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
+                                              spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
+                           "Precondition violated: m/z vector needs to be sorted!")
 
     intensity = 0;
     if (!centroided)
@@ -93,11 +93,11 @@ namespace OpenSwath
 
       // this assumes that the spectra are sorted!
       std::vector<double>::const_iterator mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(),
-        spectrum->getMZArray()->data.end(), mz_start);
+                                                                   spectrum->getMZArray()->data.end(), mz_start);
       std::vector<double>::const_iterator mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
       // also advance intensity iterator now
-      std::iterator_traits< std::vector<double>::const_iterator >::difference_type iterator_pos = std::distance((std::vector<double>::const_iterator)spectrum->getMZArray()->data.begin(), mz_it);
+      std::iterator_traits<std::vector<double>::const_iterator>::difference_type iterator_pos = std::distance((std::vector<double>::const_iterator)spectrum->getMZArray()->data.begin(), mz_it);
       std::advance(int_it, iterator_pos);
 
       for (; mz_it != mz_it_end; ++mz_it, ++int_it)

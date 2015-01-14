@@ -104,7 +104,7 @@ public:
 
     double eval(const double& x) const
     {
-      return (* interpolator_)(x);
+      return (*interpolator_)(x);
     }
 
     ~AkimaInterpolator()

@@ -47,7 +47,7 @@ namespace OpenMS
   {
   }
 
-  ClusterFunctor::ClusterFunctor(const ClusterFunctor & /*source*/)
+  ClusterFunctor::ClusterFunctor(const ClusterFunctor& /*source*/)
   {
   }
 
@@ -55,7 +55,7 @@ namespace OpenMS
   {
   }
 
-  ClusterFunctor & ClusterFunctor::operator=(const ClusterFunctor & /*source*/)
+  ClusterFunctor& ClusterFunctor::operator=(const ClusterFunctor& /*source*/)
   {
     return *this;
   }
@@ -67,7 +67,7 @@ namespace OpenMS
     Factory<ClusterFunctor>::registerProduct(AverageLinkage::getProductName(), &AverageLinkage::create);
   }
 
-  ClusterFunctor::InsufficientInput::InsufficientInput(const char * file, int line, const char * function, const char * message) throw() :
+  ClusterFunctor::InsufficientInput::InsufficientInput(const char* file, int line, const char* function, const char* message) throw() :
     BaseException(file, line, function, "ClusterFunctor::InsufficentInput", message)
   {
   }

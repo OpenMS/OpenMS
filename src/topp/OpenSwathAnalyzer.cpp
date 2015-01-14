@@ -95,13 +95,14 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPOpenSwathAnalyzer : public TOPPBase
+class TOPPOpenSwathAnalyzer :
+  public TOPPBase
 {
 public:
 
   TOPPOpenSwathAnalyzer() :
-  TOPPBase("OpenSwathAnalyzer",
-           "Picks peaks and finds features in an SRM experiment.", true)
+    TOPPBase("OpenSwathAnalyzer",
+             "Picks peaks and finds features in an SRM experiment.", true)
   {
   }
 
@@ -109,7 +110,7 @@ protected:
 
   typedef MSExperiment<Peak1D> MapType;
 
-  void registerModelOptions_(const String &default_model)
+  void registerModelOptions_(const String& default_model)
   {
     registerTOPPSubsection_("model", "Options to control the modeling of retention time transformations from data");
     registerStringOption_("model:type", "<name>", default_model, "Type of model", false, true);
@@ -162,12 +163,12 @@ protected:
 
   }
 
-  Param getSubsectionDefaults_(const String &) const
+  Param getSubsectionDefaults_(const String&) const
   {
     return MRMFeatureFinderScoring().getDefaults();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
 
     StringList file_list = getStringList_("swath_files");
@@ -194,16 +195,16 @@ protected:
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 
     // Create the output map, load the input TraML file and the chromatograms
-    boost::shared_ptr<MapType> exp (new MapType());
+    boost::shared_ptr<MapType> exp(new MapType());
     FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
 
     std::cout << "Loading TraML file" << std::endl;
     {
-      TargetedExperiment *transition_exp__ = new TargetedExperiment();
-      TargetedExperiment &transition_exp_ = *transition_exp__;
+      TargetedExperiment* transition_exp__ = new TargetedExperiment();
+      TargetedExperiment& transition_exp_ = *transition_exp__;
       {
-        TraMLFile *t = new TraMLFile;
+        TraMLFile* t = new TraMLFile;
         t->load(tr_file, transition_exp_);
         delete t;
       }
@@ -219,7 +220,7 @@ protected:
     if (file_list.size() == 0)
     {
       MRMFeatureFinderScoring featureFinder;
-      boost::shared_ptr<MapType> empty_swath_map (new MapType());
+      boost::shared_ptr<MapType> empty_swath_map(new MapType());
       featureFinder.setParameters(feature_finder_param);
       featureFinder.setLogType(log_type_);
       featureFinder.setStrictFlag(!nostrict);
@@ -242,7 +243,7 @@ protected:
     {
       MRMFeatureFinderScoring featureFinder;
       MzMLFile swath_file;
-      boost::shared_ptr<MapType> swath_map (new MapType());
+      boost::shared_ptr<MapType> swath_map(new MapType());
       FeatureMap featureFile;
       cout << "Loading file " << file_list[i] << endl;
 
@@ -310,7 +311,7 @@ protected:
 
 };
 
-int main(int argc, const char **argv)
+int main(int argc, const char** argv)
 {
   TOPPOpenSwathAnalyzer tool;
   return tool.main(argc, argv);

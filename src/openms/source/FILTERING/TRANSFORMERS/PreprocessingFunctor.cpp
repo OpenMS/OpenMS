@@ -51,7 +51,7 @@ namespace OpenMS
   {
   }
 
-  PreprocessingFunctor::PreprocessingFunctor(const PreprocessingFunctor & source) :
+  PreprocessingFunctor::PreprocessingFunctor(const PreprocessingFunctor& source) :
     DefaultParamHandler(source)
   {
 
@@ -74,7 +74,7 @@ namespace OpenMS
     Factory<PreprocessingFunctor>::registerProduct(BernNorm::getProductName(), &BernNorm::create);
   }
 
-  PreprocessingFunctor & PreprocessingFunctor::operator=(const PreprocessingFunctor & source)
+  PreprocessingFunctor& PreprocessingFunctor::operator=(const PreprocessingFunctor& source)
   {
     if (this != &source)
     {

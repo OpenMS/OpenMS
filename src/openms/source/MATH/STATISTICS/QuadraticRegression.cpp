@@ -40,16 +40,34 @@ namespace OpenMS
   {
 
     QuadraticRegression::QuadraticRegression() :
-      a_(0), b_(0), c_(0), chi_squared_(0) {}
+      a_(0), b_(0), c_(0), chi_squared_(0)
+    {
+    }
 
-    double QuadraticRegression::eval(double x) const {return a_ + b_*x + c_*x*x;}
+    double QuadraticRegression::eval(double x) const
+    {
+      return a_ + b_ * x + c_ * x * x;
+    }
 
-    double QuadraticRegression::getA() const {return a_;}
-    double QuadraticRegression::getB() const {return b_;}
-    double QuadraticRegression::getC() const {return c_;}
-    double QuadraticRegression::getChiSquared() const {return chi_squared_;}
+    double QuadraticRegression::getA() const
+    {
+      return a_;
+    }
 
+    double QuadraticRegression::getB() const
+    {
+      return b_;
+    }
+
+    double QuadraticRegression::getC() const
+    {
+      return c_;
+    }
+
+    double QuadraticRegression::getChiSquared() const
+    {
+      return chi_squared_;
+    }
 
   }
 }
-

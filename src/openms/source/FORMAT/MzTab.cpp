@@ -710,8 +710,8 @@ namespace OpenMS
     return names;
   }
 
-  MzTabParameter::MzTabParameter()
-    : CV_label_(""),
+  MzTabParameter::MzTabParameter() :
+    CV_label_(""),
     accession_(""),
     name_(""),
     value_("")
@@ -919,8 +919,8 @@ namespace OpenMS
     }
   }
 
-  MzTabString::MzTabString()
-    : value_()
+  MzTabString::MzTabString() :
+    value_()
   {
   }
 
@@ -951,8 +951,8 @@ namespace OpenMS
 
   }
 
-  MzTabBoolean::MzTabBoolean()
-    : value_(false)
+  MzTabBoolean::MzTabBoolean() :
+    value_(false)
   {
 
   }
@@ -1092,8 +1092,8 @@ namespace OpenMS
 
   }
 
-  MzTabInteger::MzTabInteger()
-    : value_(0)
+  MzTabInteger::MzTabInteger() :
+    value_(0)
   {
   }
 
@@ -1214,8 +1214,8 @@ namespace OpenMS
     state_ = MZTAB_CELLSTATE_INF;
   }
 
-  MzTabDouble::MzTabDouble()
-    : value_(0.0)
+  MzTabDouble::MzTabDouble() :
+    value_(0.0)
   {
   }
 

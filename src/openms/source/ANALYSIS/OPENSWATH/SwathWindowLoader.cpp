@@ -44,13 +44,13 @@
 namespace OpenMS
 {
 
-  static bool SortSwathMapByLower(const OpenSwath::SwathMap & left, const OpenSwath::SwathMap & right)
+  static bool SortSwathMapByLower(const OpenSwath::SwathMap& left, const OpenSwath::SwathMap& right)
   {
     return left.upper < right.upper;
   }
 
-  void SwathWindowLoader::annotateSwathMapsFromFile(const std::string & filename,
-    std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort)
+  void SwathWindowLoader::annotateSwathMapsFromFile(const std::string& filename,
+                                                    std::vector<OpenSwath::SwathMap>& swath_maps, bool doSort)
   {
     std::vector<double> swath_prec_lower_, swath_prec_upper_;
     readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
@@ -72,15 +72,15 @@ namespace OpenMS
       if (j >= swath_prec_lower_.size())
       {
         std::cerr << "Trying to access annotation for SWATH map " << j <<
-          " but there are only " << swath_prec_lower_.size() << " windows in the" <<
-          " swath_windows_file. Please check your input." << std::endl;
+        " but there are only " << swath_prec_lower_.size() << " windows in the" <<
+        " swath_windows_file. Please check your input." << std::endl;
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "The number of SWATH maps read from the raw data and from the annotation file do not match.");
+                                         "The number of SWATH maps read from the raw data and from the annotation file do not match.");
       }
 
       std::cout << "Re-annotate from file: SWATH " <<
-        swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " <<
-        swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
+      swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " <<
+      swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
 
       swath_maps[i].lower = swath_prec_lower_[j];
       swath_maps[i].upper = swath_prec_upper_[j];
@@ -90,15 +90,15 @@ namespace OpenMS
     if (j != swath_prec_upper_.size())
     {
       std::cerr << "The number of SWATH maps read from the raw data (" <<
-        j << ") and from the annotation file (" << swath_prec_upper_.size() << ") do not match." << std::endl;
+      j << ") and from the annotation file (" << swath_prec_upper_.size() << ") do not match." << std::endl;
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-          "The number of SWATH maps read from the raw data and from the annotation file do not match.");
+                                       "The number of SWATH maps read from the raw data and from the annotation file do not match.");
     }
   }
 
-  void SwathWindowLoader::readSwathWindows(const std::string & filename,
-    std::vector<double> & swath_prec_lower_,
-    std::vector<double> & swath_prec_upper_ )
+  void SwathWindowLoader::readSwathWindows(const std::string& filename,
+                                           std::vector<double>& swath_prec_lower_,
+                                           std::vector<double>& swath_prec_upper_)
   {
     std::ifstream data(filename.c_str());
     std::string line;

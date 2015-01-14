@@ -61,7 +61,8 @@ namespace OpenMS
   int MS2Fragment::OutlierAttribute = 1;
 
   MS2Fragment::MS2Fragment()
-  {}
+  {
+  }
 
 ////////////////////////////////////////////////
 // constructor for the object MS2Fragment:
@@ -111,7 +112,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2Fragment
-  MS2Fragment::MS2Fragment(const MS2Fragment & tmp)
+  MS2Fragment::MS2Fragment(const MS2Fragment& tmp)
   {
     precursorMZ = tmp.precursorMZ;
     precursorCHRG = tmp.precursorCHRG;
@@ -128,7 +129,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // class copy constructor of MS2Fragment
-  MS2Fragment::MS2Fragment(const MS2Fragment * tmp)
+  MS2Fragment::MS2Fragment(const MS2Fragment* tmp)
   {
     precursorMZ = tmp->precursorMZ;
     precursorCHRG = tmp->precursorCHRG;
@@ -146,7 +147,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // copy constructor:
-  MS2Fragment & MS2Fragment::operator=(const MS2Fragment & tmp)
+  MS2Fragment& MS2Fragment::operator=(const MS2Fragment& tmp)
   {
     precursorMZ = tmp.precursorMZ;
     precursorCHRG = tmp.precursorCHRG;
@@ -203,20 +204,75 @@ namespace OpenMS
     // otherwise use retention time:
     return getTR();
   }
-  
 
-  double MS2Fragment::getPrecursorMZ(){ return precursorMZ; }
-  void MS2Fragment::setPrecursorMZ(double iMZ){ precursorMZ = iMZ; }
-  int MS2Fragment::getPrecursorCHRG(){ return precursorCHRG; }
-  double MS2Fragment::getTR(){return TR; }
-  double MS2Fragment::getStartTR(){return trStart; }
-  double MS2Fragment::getEndTR(){return trEnd; }
-  double MS2Fragment::getFragmentMz(){return fragmentMZ; }
-  void MS2Fragment::setFragmentMz(double iMz){fragmentMZ = iMz; }
-  int MS2Fragment::getCHRG(){return z; }
-  int MS2Fragment::getApexScan(){return scan; }
-  int MS2Fragment::getStartScan(){return scanStart; }
-  int MS2Fragment::getEndScan(){return scanEnd; }
-  double MS2Fragment::getFragmentPeakArea(){return intensityArea; }
-  void MS2Fragment::setFragmentPeakArea(double iIntens){intensityArea = iIntens; }
+  double MS2Fragment::getPrecursorMZ()
+  {
+    return precursorMZ;
+  }
+
+  void MS2Fragment::setPrecursorMZ(double iMZ)
+  {
+    precursorMZ = iMZ;
+  }
+
+  int MS2Fragment::getPrecursorCHRG()
+  {
+    return precursorCHRG;
+  }
+
+  double MS2Fragment::getTR()
+  {
+    return TR;
+  }
+
+  double MS2Fragment::getStartTR()
+  {
+    return trStart;
+  }
+
+  double MS2Fragment::getEndTR()
+  {
+    return trEnd;
+  }
+
+  double MS2Fragment::getFragmentMz()
+  {
+    return fragmentMZ;
+  }
+
+  void MS2Fragment::setFragmentMz(double iMz)
+  {
+    fragmentMZ = iMz;
+  }
+
+  int MS2Fragment::getCHRG()
+  {
+    return z;
+  }
+
+  int MS2Fragment::getApexScan()
+  {
+    return scan;
+  }
+
+  int MS2Fragment::getStartScan()
+  {
+    return scanStart;
+  }
+
+  int MS2Fragment::getEndScan()
+  {
+    return scanEnd;
+  }
+
+  double MS2Fragment::getFragmentPeakArea()
+  {
+    return intensityArea;
+  }
+
+  void MS2Fragment::setFragmentPeakArea(double iIntens)
+  {
+    intensityArea = iIntens;
+  }
+
 }

@@ -50,12 +50,12 @@ namespace OpenMS
   {
   }
 
-  MarkerMower::MarkerMower(const MarkerMower & source) :
+  MarkerMower::MarkerMower(const MarkerMower& source) :
     DefaultParamHandler(source)
   {
   }
 
-  MarkerMower & MarkerMower::operator=(const MarkerMower & source)
+  MarkerMower& MarkerMower::operator=(const MarkerMower& source)
   {
     if (this != &source)
     {
@@ -64,12 +64,12 @@ namespace OpenMS
     return *this;
   }
 
-  void MarkerMower::filterPeakSpectrum(PeakSpectrum & spectrum)
+  void MarkerMower::filterPeakSpectrum(PeakSpectrum& spectrum)
   {
     filterSpectrum(spectrum);
   }
 
-  void MarkerMower::filterPeakMap(PeakMap & exp)
+  void MarkerMower::filterPeakMap(PeakMap& exp)
   {
     for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
@@ -78,7 +78,7 @@ namespace OpenMS
   }
 
   ///@todo violates DefaultParamHandler interface (Andreas)
-  void MarkerMower::insertmarker(PeakMarker * pm)
+  void MarkerMower::insertmarker(PeakMarker* pm)
   {
     markers_.push_back(pm);
   }

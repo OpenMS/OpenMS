@@ -49,32 +49,32 @@ namespace OpenMS
 {
 
   Annotations1DContainer::Annotations1DContainer() :
-    std::list<Annotation1DItem *>()
+    std::list<Annotation1DItem*>()
   {
   }
 
-  Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer & rhs) :
-    std::list<Annotation1DItem *>()
+  Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer& rhs) :
+    std::list<Annotation1DItem*>()
   {
     //copy annotations
-    Annotation1DItem * new_item = 0;
+    Annotation1DItem* new_item = 0;
     for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
     {
-      const Annotation1DDistanceItem * distance_item = dynamic_cast<const Annotation1DDistanceItem *>(*it);
+      const Annotation1DDistanceItem* distance_item = dynamic_cast<const Annotation1DDistanceItem*>(*it);
       if (distance_item)
       {
         new_item = new Annotation1DDistanceItem(*distance_item);
         push_back(new_item);
         continue;
       }
-      const Annotation1DTextItem * text_item = dynamic_cast<const Annotation1DTextItem *>(*it);
+      const Annotation1DTextItem* text_item = dynamic_cast<const Annotation1DTextItem*>(*it);
       if (text_item)
       {
         new_item = new Annotation1DTextItem(*text_item);
         push_back(new_item);
         continue;
       }
-      const Annotation1DPeakItem * peak_item = dynamic_cast<const Annotation1DPeakItem *>(*it);
+      const Annotation1DPeakItem* peak_item = dynamic_cast<const Annotation1DPeakItem*>(*it);
       if (peak_item)
       {
         new_item = new Annotation1DPeakItem(*peak_item);
@@ -84,7 +84,7 @@ namespace OpenMS
     }
   }
 
-  Annotations1DContainer & Annotations1DContainer::operator=(const Annotations1DContainer & rhs)
+  Annotations1DContainer& Annotations1DContainer::operator=(const Annotations1DContainer& rhs)
   {
     if (this != &rhs)
     {
@@ -96,24 +96,24 @@ namespace OpenMS
       //clear list
       clear();
       //copy annotations
-      Annotation1DItem * new_item = 0;
+      Annotation1DItem* new_item = 0;
       for (ConstIterator it = rhs.begin(); it != rhs.end(); ++it)
       {
-        const Annotation1DDistanceItem * distance_item = dynamic_cast<const Annotation1DDistanceItem *>(*it);
+        const Annotation1DDistanceItem* distance_item = dynamic_cast<const Annotation1DDistanceItem*>(*it);
         if (distance_item)
         {
           new_item = new Annotation1DDistanceItem(*distance_item);
           push_back(new_item);
           continue;
         }
-        const Annotation1DTextItem * text_item = dynamic_cast<const Annotation1DTextItem *>(*it);
+        const Annotation1DTextItem* text_item = dynamic_cast<const Annotation1DTextItem*>(*it);
         if (text_item)
         {
           new_item = new Annotation1DTextItem(*text_item);
           push_back(new_item);
           continue;
         }
-        const Annotation1DPeakItem * peak_item = dynamic_cast<const Annotation1DPeakItem *>(*it);
+        const Annotation1DPeakItem* peak_item = dynamic_cast<const Annotation1DPeakItem*>(*it);
         if (peak_item)
         {
           new_item = new Annotation1DPeakItem(*peak_item);
@@ -133,7 +133,7 @@ namespace OpenMS
     }
   }
 
-  Annotation1DItem * Annotations1DContainer::getItemAt(const QPoint & pos) const
+  Annotation1DItem* Annotations1DContainer::getItemAt(const QPoint& pos) const
   {
     for (ConstIterator it = begin(); it != end(); ++it)
     {
@@ -145,18 +145,18 @@ namespace OpenMS
     return 0;
   }
 
-  void Annotations1DContainer::selectItemAt(const QPoint & pos)
+  void Annotations1DContainer::selectItemAt(const QPoint& pos)
   {
-    Annotation1DItem * item = getItemAt(pos);
+    Annotation1DItem* item = getItemAt(pos);
     if (item != 0)
     {
       item->setSelected(true);
     }
   }
 
-  void Annotations1DContainer::deselectItemAt(const QPoint & pos)
+  void Annotations1DContainer::deselectItemAt(const QPoint& pos)
   {
-    Annotation1DItem * item = getItemAt(pos);
+    Annotation1DItem* item = getItemAt(pos);
     if (item != 0)
     {
       item->setSelected(false);

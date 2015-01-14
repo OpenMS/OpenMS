@@ -85,12 +85,12 @@ namespace OpenMS
     // draw ticks (for now)
     if (!caret_positions_.empty())
     {
-      QPoint caret;        // draw ^ to indicate theoretical position
+      QPoint caret; // draw ^ to indicate theoretical position
       for (PositionsType::iterator it = caret_positions_.begin(); it != caret_positions_.end(); ++it)
       {
         canvas->dataToWidget(it->getX(), it->getY(), caret, flipped, true);
-        painter.drawLine(caret.x(), caret.y(), caret.x()+4, caret.y() + 4);
-        painter.drawLine(caret.x(), caret.y(), caret.x()-4, caret.y() + 4);
+        painter.drawLine(caret.x(), caret.y(), caret.x() + 4, caret.y() + 4);
+        painter.drawLine(caret.x(), caret.y(), caret.x() - 4, caret.y() + 4);
         //std::cout << "caret: " << caret.x() << "," << caret.y() << "\n";
       }
     }
@@ -148,8 +148,8 @@ namespace OpenMS
       QLineF bottom(bounding_box_.x(), bounding_box_.y() + bounding_box_.height(), bounding_box_.x() + bounding_box_.width(), bounding_box_.y() + bounding_box_.height());
 
       QLineF::IntersectType itype;
-      QPointF * ip = new QPointF();
-      QPointF * closest_ip = new QPointF(-10e10, -10e10);
+      QPointF* ip = new QPointF();
+      QPointF* closest_ip = new QPointF(-10e10, -10e10);
       bool found_intersection = false;
 
       // intersection with top
@@ -207,14 +207,14 @@ namespace OpenMS
     //painter.drawText(bounding_box_, Qt::AlignLeft, text_);
     //std::cout << "Text to draw: " << st_.text() << " @ " << bounding_box_.topLeft().x() << "," << bounding_box_.topLeft().y() << "\n\n";
     painter.drawStaticText(bounding_box_.topLeft(), st_);
-    
-    
+
+
     //QRect rect = QRect(10, 30, 180, 20);
     //painter.translate( rect.topLeft() );
     //doc_.drawContents( &painter, bounding_box_ );
     //painter.
-    
-    
+
+
     if (selected_)
     {
       drawBoundingBox_(painter);

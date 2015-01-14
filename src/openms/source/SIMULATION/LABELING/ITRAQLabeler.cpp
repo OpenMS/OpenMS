@@ -388,7 +388,7 @@ namespace OpenMS
         intensity = (double) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;
       }
-      (* m)(ch, 0) = intensity * factor;
+      (*m)(ch, 0) = intensity * factor;
       ++ch;
     }
 

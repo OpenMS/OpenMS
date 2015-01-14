@@ -49,14 +49,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  TOPPViewOpenDialog::TOPPViewOpenDialog(const String & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent) :
+  TOPPViewOpenDialog::TOPPViewOpenDialog(const String& data_name, bool as_window, bool as_2d, bool cutoff, QWidget* parent) :
     QDialog(parent),
     map_as_2d_disabled_(false)
   {
     setupUi(this);
 
     //init map view
-    QButtonGroup * button_group = new QButtonGroup(this);
+    QButtonGroup* button_group = new QButtonGroup(this);
     button_group->addButton(d1_);
     button_group->addButton(d2_);
     button_group->addButton(d3_);
@@ -91,7 +91,7 @@ namespace OpenMS
     button_group->addButton(window_);
     button_group->addButton(layer_);
     button_group->addButton(merge_);
-    connect(button_group, SIGNAL(buttonClicked(QAbstractButton *)), this, SLOT(updateViewMode_(QAbstractButton *)));
+    connect(button_group, SIGNAL(buttonClicked(QAbstractButton*)), this, SLOT(updateViewMode_(QAbstractButton*)));
     if (!as_window)
     {
       layer_->setChecked(true);
@@ -177,7 +177,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewOpenDialog::updateViewMode_(QAbstractButton * button)
+  void TOPPViewOpenDialog::updateViewMode_(QAbstractButton* button)
   {
     if (button == layer_ || button == merge_)
     {
@@ -193,7 +193,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewOpenDialog::setMergeLayers(const Map<Size, String> & layers)
+  void TOPPViewOpenDialog::setMergeLayers(const Map<Size, String>& layers)
   {
     //remove all items
     merge_combo_->clear();

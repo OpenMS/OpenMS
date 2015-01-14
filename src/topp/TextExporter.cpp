@@ -224,7 +224,7 @@ namespace OpenMS
   {
     bool old = out.modifyStrings(false);
     out << "#RUN" << "run_id" << "score_type" << "score_direction"
-        << "date_time" << "search_engine_version" << "parameters" << nl;
+    << "date_time" << "search_engine_version" << "parameters" << nl;
     out.modifyStrings(old);
   }
 
@@ -233,7 +233,7 @@ namespace OpenMS
   {
     bool old = out.modifyStrings(false);
     out << "#PROTEIN" << "score" << "rank" << "accession" << "coverage"
-        << "sequence" << nl;
+    << "sequence" << nl;
     out.modifyStrings(old);
   }
 
@@ -241,7 +241,7 @@ namespace OpenMS
   SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
   {
     out << hit.getScore() << hit.getRank() << hit.getAccession()
-        << hit.getCoverage() << hit.getSequence();
+    << hit.getCoverage() << hit.getSequence();
     return out;
   }
 
@@ -295,7 +295,7 @@ namespace OpenMS
     // using ISODate ensures that TOPP tests will run through regardless of
     // locale setting
     out << pid.getDateTime().toString(Qt::ISODate).toStdString()
-        << pid.getSearchEngineVersion();
+    << pid.getSearchEngineVersion();
     // search parameters
     ProteinIdentification::SearchParameters sp = pid.getSearchParameters();
     out << sp << nl;
@@ -316,7 +316,7 @@ namespace OpenMS
     if (what.empty()) out << "#rt";
     else out << "#" + what << "rt";
     out << "mz" << "score" << "rank" << "sequence" << "charge" << "aa_before"
-        << "aa_after" << "score_type" << "search_identifier" << "accessions";
+    << "aa_after" << "score_type" << "search_identifier" << "accessions";
     if (incl_pred_rt) out << "predicted_rt";
 
     if (incl_first_dim) out << "rt_first_dim" << "predicted_rt_first_dim";
@@ -336,12 +336,12 @@ namespace OpenMS
     if (!pes.empty())
     {
       out << hit.getScore() << hit.getRank() << hit.getSequence()
-          << hit.getCharge() << pes[0].getAABefore() << pes[0].getAAAfter();
+      << hit.getCharge() << pes[0].getAABefore() << pes[0].getAAAfter();
     }
     else
     {
       out << hit.getScore() << hit.getRank() << hit.getSequence()
-          << hit.getCharge() << PeptideEvidence::UNKNOWN_AA << PeptideEvidence::UNKNOWN_AA;
+      << hit.getCharge() << PeptideEvidence::UNKNOWN_AA << PeptideEvidence::UNKNOWN_AA;
     }
     return out;
   }
@@ -593,7 +593,7 @@ protected:
           if (minimal)
           {
             output << citer->getRT() << citer->getMZ()
-                   << citer->getIntensity();
+            << citer->getIntensity();
           }
           else
           {
@@ -601,8 +601,8 @@ protected:
             if (citer->getConvexHulls().size() > 0)
             {
               output << citer->getConvexHulls().begin()->
-                getBoundingBox().minX() << citer->getConvexHulls().begin()->
-                getBoundingBox().maxX();
+              getBoundingBox().minX() << citer->getConvexHulls().begin()->
+              getBoundingBox().maxX();
             }
             else
             {
@@ -815,8 +815,8 @@ protected:
               if (pos != prot_runs.end())
               {
                 cerr << "Warning while exporting '" << in
-                     << "': protein identification run ID '" << run_id
-                     << "' occurs more than once" << endl;
+                << "': protein identification run ID '" << run_id
+                << "' occurs more than once" << endl;
               }
               else prot_runs[run_id] = max_prot_run;
             }
@@ -842,9 +842,9 @@ protected:
             for (Size i = 0; i <= max_prot_run; ++i)
             {
               output << "peptide_" + String(i)
-                     << "n_diff_peptides_" + String(i)
-                     << "protein_" + String(i)
-                     << "n_diff_proteins_" + String(i);
+              << "n_diff_peptides_" + String(i)
+              << "protein_" + String(i)
+              << "n_diff_proteins_" + String(i);
             }
           }
           output << nl;
@@ -896,7 +896,7 @@ protected:
                   acc_it->substitute('/', '_');
                 }
                 output << ListUtils::concatenate(seqs, "/") << seqs.size()
-                       << ListUtils::concatenate(accs, "/") << accs.size();
+                << ListUtils::concatenate(accs, "/") << accs.size();
               }
             }
             output << nl;
@@ -987,7 +987,7 @@ protected:
                consensus_map.getFileDescriptions().end(); ++fdit)
           {
             output << "MAP" << fdit->first << fdit->second.filename
-                   << fdit->second.label << fdit->second.size;
+            << fdit->second.label << fdit->second.size;
             for (std::set<String>::const_iterator kit =
                    all_file_desc_meta_keys.begin(); kit !=
                  all_file_desc_meta_keys.end(); ++kit)

@@ -108,7 +108,7 @@ namespace OpenMS
     {
       if (matching_peptides.find(targeted_exp.peptides[i].id) != matching_peptides.end())
       {
-        transition_exp_used.peptides.push_back( targeted_exp.peptides[i] );
+        transition_exp_used.peptides.push_back(targeted_exp.peptides[i]);
         for (Size j = 0; j < targeted_exp.peptides[i].protein_refs.size(); j++)
         {
           matching_proteins.insert(targeted_exp.peptides[i].protein_refs[j]);
@@ -119,17 +119,17 @@ namespace OpenMS
     {
       if (matching_proteins.find(targeted_exp.proteins[i].id) != matching_proteins.end())
       {
-        transition_exp_used.proteins.push_back( targeted_exp.proteins[i] );
+        transition_exp_used.proteins.push_back(targeted_exp.proteins[i]);
       }
     }
   }
 
-  std::pair<double,double> OpenSwathHelper::estimateRTRange(OpenSwath::LightTargetedExperiment & exp)
+  std::pair<double, double> OpenSwathHelper::estimateRTRange(OpenSwath::LightTargetedExperiment& exp)
   {
-    if (exp.getPeptides().empty()) 
+    if (exp.getPeptides().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Input list of targets is empty.");
+                                       "Input list of targets is empty.");
     }
     double max = exp.getPeptides()[0].rt;
     double min = exp.getPeptides()[0].rt;
@@ -138,19 +138,19 @@ namespace OpenMS
       if (exp.getPeptides()[i].rt < min) min = exp.getPeptides()[i].rt;
       if (exp.getPeptides()[i].rt > max) max = exp.getPeptides()[i].rt;
     }
-    return std::make_pair(min,max);
+    return std::make_pair(min, max);
   }
 
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
-      OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
-      bool useQualCutoff, double qualCutoff)
+    OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType& transition_group_map,
+    bool useQualCutoff, double qualCutoff)
   {
     std::map<std::string, double> result;
     for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-        trgroup_it != transition_group_map.end(); ++trgroup_it)
+         trgroup_it != transition_group_map.end(); ++trgroup_it)
     {
       // we need at least one feature to find the best one
-      OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
+      OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType* transition_group = &trgroup_it->second;
       if (transition_group->getFeatures().size() == 0)
       {
         std::cout << "Did not find any features for group " + transition_group->getTransitionGroupID() << std::endl;
@@ -158,7 +158,7 @@ namespace OpenMS
       }
 
       // Find the feature with the highest score
-      MRMFeature * bestf = NULL;
+      MRMFeature* bestf = NULL;
       double highest_score = 0;
       for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
            mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
@@ -171,14 +171,14 @@ namespace OpenMS
       }
 
       // Skip if we did not find a feature or do not exceed a certain quality
-      if (!bestf || (useQualCutoff && bestf->getOverallQuality() < qualCutoff) ) 
+      if (!bestf || (useQualCutoff && bestf->getOverallQuality() < qualCutoff))
       {
         continue;
       }
 
       // If we have a found a best feature, add it to the vector
       String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-      result[ pepref ] = bestf->getRT();
+      result[pepref] = bestf->getRT();
     }
     return result;
   }

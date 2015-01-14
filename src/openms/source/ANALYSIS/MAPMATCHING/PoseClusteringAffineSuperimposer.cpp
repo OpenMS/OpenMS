@@ -108,7 +108,7 @@ namespace OpenMS
   }
 
   void
-  PoseClusteringAffineSuperimposer::run(const ConsensusMap & map_model, const ConsensusMap & map_scene, TransformationDescription & transformation)
+  PoseClusteringAffineSuperimposer::run(const ConsensusMap& map_model, const ConsensusMap& map_scene, TransformationDescription& transformation)
   {
 
     if (map_model.empty() || map_scene.empty())
@@ -163,9 +163,9 @@ namespace OpenMS
     // Select the most abundant data points only.  After that, disallow modifications
     // (we tend to have annoying issues with const_iterator versus iterator).
     PeakPointerArray_ model_map_ini(map_model.begin(), map_model.end());
-    const PeakPointerArray_ & model_map(model_map_ini);
+    const PeakPointerArray_& model_map(model_map_ini);
     PeakPointerArray_ scene_map_ini(map_scene.begin(), map_scene.end());
-    const PeakPointerArray_ & scene_map(scene_map_ini);
+    const PeakPointerArray_& scene_map(scene_map_ini);
     {
       // truncate the data as necessary
       const Size num_used_points = (Int) param_.getValue("num_used_points");
@@ -485,7 +485,7 @@ namespace OpenMS
         std::sort(buffer.begin(), buffer.end(), std::greater<double>());
         double freq_intercept = scaling_hash_1.getData().front();
         double freq_slope = (scaling_hash_1.getData().back() - scaling_hash_1.getData().front()) / double(buffer.size())
-                                / scaling_histogram_crossing_slope;
+                            / scaling_histogram_crossing_slope;
         if (!freq_slope || !buffer.size())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
@@ -534,7 +534,7 @@ namespace OpenMS
       const Size data_size = scaling_hash_1.getData().size();
       Size data_range_begin = 0;
       Size data_range_end = data_size;
-      for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
+      for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop) // MAGIC ALERT: number of loops
       {
         statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
         double mean = statistics.mean() + data_range_begin;
@@ -808,7 +808,7 @@ namespace OpenMS
           std::sort(buffer.begin(), buffer.end(), std::greater<double>());
           double freq_intercept = rt_low_hash_.getData().front();
           double freq_slope = (rt_low_hash_.getData().back() - rt_low_hash_.getData().front()) / double(buffer.size())
-                                  / scaling_histogram_crossing_slope;
+                              / scaling_histogram_crossing_slope;
           if (!freq_slope || !buffer.size())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
@@ -830,7 +830,7 @@ namespace OpenMS
           std::sort(buffer.begin(), buffer.end(), std::greater<double>());
           double freq_intercept = rt_high_hash_.getData().front();
           double freq_slope = (rt_high_hash_.getData().back() - rt_high_hash_.getData().front()) / double(buffer.size())
-                                  / scaling_histogram_crossing_slope;
+                              / scaling_histogram_crossing_slope;
           if (!freq_slope || !buffer.size())
           {
             // in fact these conditions are actually impossible, but let's be really sure ;-)
@@ -899,7 +899,7 @@ namespace OpenMS
         const Size data_size = rt_low_hash_.getData().size();
         Size data_range_begin = 0;
         Size data_range_end = data_size;
-        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
+        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop) // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
           double mean = statistics.mean() + data_range_begin;
@@ -928,7 +928,7 @@ namespace OpenMS
         const Size data_size = rt_high_hash_.getData().size();
         Size data_range_begin = 0;
         Size data_range_end = data_size;
-        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop)   // MAGIC ALERT: number of loops
+        for (UInt loop = 0; loop < loops_mean_stdev_cutoff; ++loop) // MAGIC ALERT: number of loops
         {
           statistics.update(data_begin + data_range_begin, data_begin + data_range_end);
           double mean = statistics.mean() + data_range_begin;
@@ -988,7 +988,7 @@ namespace OpenMS
     {
       Param params;
       const double slope = ((rt_high_image - rt_low_image) /
-                                (rt_high - rt_low));
+                            (rt_high - rt_low));
       params.setValue("slope", slope);
 
       const double intercept = rt_low_image - rt_low * slope;
@@ -999,7 +999,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Superimposer could not compute an initial transformation! You can try to increase 'max_num_peaks_considered' to solve this.", String(intercept * slope));
       }
 
-      transformation.fitModel("linear", params);       // no data, but explicit parameters
+      transformation.fitModel("linear", params); // no data, but explicit parameters
     }
 
     setProgress(++actual_progress);

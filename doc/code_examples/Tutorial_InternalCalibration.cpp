@@ -39,6 +39,7 @@ using namespace std;
 int main(int argc, const char** argv)
 {
   if (argc < 2) return 1;
+
   // the path to the data should be given on the command line
   String tutorial_data_path(argv[1]);
 

@@ -113,7 +113,7 @@ namespace OpenMS
         }
         else if (type == "output-file")
         {
-          tags.push_back("output file");          
+          tags.push_back("output file");
           param_.setValue(name, value, description, tags);
         }
         else if (type == "float" || type == "double")
@@ -135,7 +135,7 @@ namespace OpenMS
           {
             val.split(':', parts);
             if (parts.size() != 2)
-              val.split('-', parts); //for downward compatibility
+              val.split('-', parts);  //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -161,7 +161,7 @@ namespace OpenMS
           {
             val.split(':', parts);
             if (parts.size() != 2)
-              val.split('-', parts); //for downward compatibility
+              val.split('-', parts);  //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -216,8 +216,8 @@ namespace OpenMS
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         list_.tags = ListUtils::create<String>(tags_string);
-        
-        
+
+
         //parse name/type
         list_.type = attributeAsString_(attributes, "type");
         // handle in-/output file correctly
@@ -233,12 +233,12 @@ namespace OpenMS
         }
 
         list_.name = path_ + attributeAsString_(attributes, "name");
-        
+
         //parse description, if present
         list_.description = "";
         optionalAttributeAsString_(list_.description, attributes, "description");
         list_.description.substitute("#br#", "\n");
-        
+
         //advanced
         String advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
@@ -254,7 +254,7 @@ namespace OpenMS
         {
           list_.tags.push_back("required");
         }
-        
+
         list_.restrictions_index = attributes.getIndex(s_restrictions);
         if (list_.restrictions_index != -1)
         {
@@ -340,7 +340,7 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts); //for downward compatibility
+              list_.restrictions.split('-', parts);  //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -365,7 +365,7 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts); //for downward compatibility
+              list_.restrictions.split('-', parts);  //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")

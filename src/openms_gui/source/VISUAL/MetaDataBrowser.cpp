@@ -83,7 +83,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MetaDataBrowser::MetaDataBrowser(bool editable, QWidget * parent, bool modal) :
+  MetaDataBrowser::MetaDataBrowser(bool editable, QWidget* parent, bool modal) :
     QDialog(parent),
     editable_(editable)
   {
@@ -92,8 +92,8 @@ namespace OpenMS
     setModal(modal);
 
     //splitter to hold treewidget and the right part (on a dummy widget)
-    QGridLayout * grid = new QGridLayout(this);
-    QSplitter * splitter = new QSplitter(Qt::Horizontal, this);
+    QGridLayout* grid = new QGridLayout(this);
+    QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
     grid->addWidget(splitter, 0, 0);
 
     //Create the tree for exploring data
@@ -106,7 +106,7 @@ namespace OpenMS
     splitter->addWidget(treeview_);
 
     //create a dummy widget to hold a grid layout and the item stack
-    QWidget * dummy = new QWidget(splitter);
+    QWidget* dummy = new QWidget(splitter);
     splitter->addWidget(dummy);
     grid = new QGridLayout(dummy);
     grid->setColumnStretch(0, 1);
@@ -135,9 +135,9 @@ namespace OpenMS
 
     status_list_ = "";
 
-  }  //end of constructor
+  } //end of constructor
 
-  void MetaDataBrowser::connectVisualizer_(BaseVisualizerGUI * ptr)
+  void MetaDataBrowser::connectVisualizer_(BaseVisualizerGUI* ptr)
   {
     connect(ptr, SIGNAL(sendStatus(std::string)), this, SLOT(setStatus(std::string)));
   }
@@ -154,7 +154,7 @@ namespace OpenMS
 
   void MetaDataBrowser::showDetails_()
   {
-    QList<QTreeWidgetItem *> list = treeview_->selectedItems();
+    QList<QTreeWidgetItem*> list = treeview_->selectedItems();
     if (list.empty())
       return;
 
@@ -168,7 +168,7 @@ namespace OpenMS
       //call internal store function of all active visualizer objects
       for (int i = 0; i < ws_->count(); ++i)
       {
-        dynamic_cast<BaseVisualizerGUI *>(ws_->widget(i))->store();
+        dynamic_cast<BaseVisualizerGUI*>(ws_->widget(i))->store();
       }
       if (status_list_.length() != 0)
       {
@@ -176,7 +176,7 @@ namespace OpenMS
         QMessageBox::warning(this, tr("Save warning"), status_list_.c_str());
       }
     }
-    catch (exception & e)
+    catch (exception& e)
     {
       cout << "Exception while trying to save modifications." << endl << e.what() << endl;
     }
@@ -191,15 +191,15 @@ namespace OpenMS
   //-------------------------------------------------------------------------------
 
   //Visualizing AcquisitionInfo object
-  void MetaDataBrowser::visualize_(AcquisitionInfo & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(AcquisitionInfo& meta, QTreeWidgetItem* parent)
   {
-    AcquisitionInfoVisualizer * visualizer = new AcquisitionInfoVisualizer(isEditable(), this);
+    AcquisitionInfoVisualizer* visualizer = new AcquisitionInfoVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Acquisition Info" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -212,21 +212,21 @@ namespace OpenMS
     //Get Aquisition objects
     visualizeAll_(meta, item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing Acquisition object
-  void MetaDataBrowser::visualize_(Acquisition & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Acquisition& meta, QTreeWidgetItem* parent)
   {
-    AcquisitionVisualizer * visualizer = new AcquisitionVisualizer(isEditable(), this);
+    AcquisitionVisualizer* visualizer = new AcquisitionVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Acquisition" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -236,21 +236,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing ContactPerson object
-  void MetaDataBrowser::visualize_(ContactPerson & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(ContactPerson& meta, QTreeWidgetItem* parent)
   {
-    ContactPersonVisualizer * visualizer = new ContactPersonVisualizer(isEditable(), this);
+    ContactPersonVisualizer* visualizer = new ContactPersonVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "ContactPerson" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -260,21 +260,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing Digestion object
-  void MetaDataBrowser::visualize_(Digestion & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Digestion& meta, QTreeWidgetItem* parent)
   {
-    DigestionVisualizer * visualizer = new DigestionVisualizer(isEditable(), this);
+    DigestionVisualizer* visualizer = new DigestionVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Digestion" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -284,21 +284,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing ExperimentalSettings object
-  void MetaDataBrowser::visualize_(ExperimentalSettings & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(ExperimentalSettings& meta, QTreeWidgetItem* parent)
   {
-    ExperimentalSettingsVisualizer * visualizer = new ExperimentalSettingsVisualizer(isEditable(), this);
+    ExperimentalSettingsVisualizer* visualizer = new ExperimentalSettingsVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "ExperimentalSettings" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -308,7 +308,7 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<DocumentIdentifier &>(meta), item);
+    visualize_(dynamic_cast<DocumentIdentifier&>(meta), item);
 
     //check for Sample
     visualize_(meta.getSample(), item);
@@ -328,15 +328,15 @@ namespace OpenMS
     //check for HPLC
     visualize_(meta.getHPLC(), item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing Gradient object
-  void MetaDataBrowser::visualize_(Gradient & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Gradient& meta, QTreeWidgetItem* parent)
   {
-    GradientVisualizer * visualizer = new GradientVisualizer(isEditable(), this);
+    GradientVisualizer* visualizer = new GradientVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
@@ -354,15 +354,15 @@ namespace OpenMS
   }
 
   //Visualizing HPLC object
-  void MetaDataBrowser::visualize_(HPLC & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(HPLC& meta, QTreeWidgetItem* parent)
   {
-    HPLCVisualizer * visualizer = new HPLCVisualizer(isEditable(), this);
+    HPLCVisualizer* visualizer = new HPLCVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "HPLC" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -379,9 +379,9 @@ namespace OpenMS
   }
 
   //Visualizing PeptideIdentification object
-  void MetaDataBrowser::visualize_(PeptideIdentification & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(PeptideIdentification& meta, QTreeWidgetItem* parent)
   {
-    PeptideIdentificationVisualizer * visualizer = new PeptideIdentificationVisualizer(isEditable(), this, this);
+    PeptideIdentificationVisualizer* visualizer = new PeptideIdentificationVisualizer(isEditable(), this, this);
 
     QStringList labels;
     int id = ws_->addWidget(visualizer);
@@ -389,7 +389,7 @@ namespace OpenMS
 
     visualizer->load(meta, id);
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -405,18 +405,18 @@ namespace OpenMS
     //list all peptides hits in the tree
     for (Size i = 0; i < meta.getHits().size(); ++i)
     {
-      visualize_(const_cast<PeptideHit &>(meta.getHits()[i]), item);
+      visualize_(const_cast<PeptideHit&>(meta.getHits()[i]), item);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing ProteinIdentification object
-  void MetaDataBrowser::visualize_(ProteinIdentification & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(ProteinIdentification& meta, QTreeWidgetItem* parent)
   {
-    ProteinIdentificationVisualizer * visualizer = new ProteinIdentificationVisualizer(isEditable(), this, this);
+    ProteinIdentificationVisualizer* visualizer = new ProteinIdentificationVisualizer(isEditable(), this, this);
 
     QStringList labels;
     int id = ws_->addWidget(visualizer);
@@ -424,7 +424,7 @@ namespace OpenMS
 
     visualizer->load(meta, id);
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -439,24 +439,24 @@ namespace OpenMS
 
     for (Size i = 0; i < meta.getHits().size(); ++i)
     {
-      visualize_(const_cast<ProteinHit &>(meta.getHits()[i]), item);
+      visualize_(const_cast<ProteinHit&>(meta.getHits()[i]), item);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing InstrumentSettings object
-  void MetaDataBrowser::visualize_(InstrumentSettings & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(InstrumentSettings& meta, QTreeWidgetItem* parent)
   {
-    InstrumentSettingsVisualizer * visualizer = new InstrumentSettingsVisualizer(isEditable(), this);
+    InstrumentSettingsVisualizer* visualizer = new InstrumentSettingsVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "InstrumentSettings" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -469,21 +469,21 @@ namespace OpenMS
     //ScanWindows
     visualizeAll_(meta.getScanWindows(), item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing Instrument object
-  void MetaDataBrowser::visualize_(Instrument & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Instrument& meta, QTreeWidgetItem* parent)
   {
-    InstrumentVisualizer * visualizer = new InstrumentVisualizer(isEditable(), this);
+    InstrumentVisualizer* visualizer = new InstrumentVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Instrument" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -505,21 +505,21 @@ namespace OpenMS
     //Software
     visualize_(meta.getSoftware(), item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing IonDetector object
-  void MetaDataBrowser::visualize_(IonDetector & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(IonDetector& meta, QTreeWidgetItem* parent)
   {
-    IonDetectorVisualizer * visualizer = new IonDetectorVisualizer(isEditable(), this);
+    IonDetectorVisualizer* visualizer = new IonDetectorVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "IonDetector" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -529,21 +529,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing IonSource object
-  void MetaDataBrowser::visualize_(IonSource & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(IonSource& meta, QTreeWidgetItem* parent)
   {
-    IonSourceVisualizer * visualizer = new IonSourceVisualizer(isEditable(), this);
+    IonSourceVisualizer* visualizer = new IonSourceVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "IonSource" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -553,21 +553,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing MassAnalyzer object
-  void MetaDataBrowser::visualize_(MassAnalyzer & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(MassAnalyzer& meta, QTreeWidgetItem* parent)
   {
-    MassAnalyzerVisualizer * visualizer = new MassAnalyzerVisualizer(isEditable(), this);
+    MassAnalyzerVisualizer* visualizer = new MassAnalyzerVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "MassAnalyzer" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -577,22 +577,22 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing MetaInfoDescription object
-  void MetaDataBrowser::visualize_(MetaInfoDescription & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(MetaInfoDescription& meta, QTreeWidgetItem* parent)
   {
-    MetaInfoDescriptionVisualizer * visualizer = new MetaInfoDescriptionVisualizer(isEditable(), this);
+    MetaInfoDescriptionVisualizer* visualizer = new MetaInfoDescriptionVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     String name = String("MetaInfoDescription ") + meta.getName();
     labels << name.c_str() << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -605,15 +605,15 @@ namespace OpenMS
     //check for DataProcessing
     visualizeAll_(meta.getDataProcessing(), item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing MetaInfoInterface object
-  void MetaDataBrowser::visualize_(MetaInfoInterface & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(MetaInfoInterface& meta, QTreeWidgetItem* parent)
   {
-    MetaInfoVisualizer * visualizer = new MetaInfoVisualizer(isEditable(), this);
+    MetaInfoVisualizer* visualizer = new MetaInfoVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
@@ -631,15 +631,15 @@ namespace OpenMS
   }
 
   //Visualizing modification object
-  void MetaDataBrowser::visualize_(Modification & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Modification& meta, QTreeWidgetItem* parent)
   {
-    ModificationVisualizer * visualizer = new ModificationVisualizer(isEditable(), this);
+    ModificationVisualizer* visualizer = new ModificationVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Modification" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -649,15 +649,15 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing PeptideHit object
-  void MetaDataBrowser::visualize_(PeptideHit & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(PeptideHit& meta, QTreeWidgetItem* parent)
   {
-    PeptideHitVisualizer * visualizer = new PeptideHitVisualizer(isEditable(), this);
+    PeptideHitVisualizer* visualizer = new PeptideHitVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     String name = String("Pep ") + meta.getSequence().toString() + " (" + meta.getScore() + ')';
@@ -666,7 +666,7 @@ namespace OpenMS
     QStringList labels;
     labels << qs_name << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -676,21 +676,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing Precursor object
-  void MetaDataBrowser::visualize_(Precursor & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Precursor& meta, QTreeWidgetItem* parent)
   {
-    PrecursorVisualizer * visualizer = new PrecursorVisualizer(isEditable(), this);
+    PrecursorVisualizer* visualizer = new PrecursorVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Precursor" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -700,21 +700,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing Product object
-  void MetaDataBrowser::visualize_(Product & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Product& meta, QTreeWidgetItem* parent)
   {
-    ProductVisualizer * visualizer = new ProductVisualizer(isEditable(), this);
+    ProductVisualizer* visualizer = new ProductVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Product" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -724,21 +724,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing DataProcessing object
-  void MetaDataBrowser::visualize_(DataProcessing & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(DataProcessing& meta, QTreeWidgetItem* parent)
   {
-    DataProcessingVisualizer * visualizer = new DataProcessingVisualizer(isEditable(), this);
+    DataProcessingVisualizer* visualizer = new DataProcessingVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "DataProcessing" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -751,15 +751,15 @@ namespace OpenMS
     //Software object
     visualize_(meta.getSoftware(), item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing ProteinHit object
-  void MetaDataBrowser::visualize_(ProteinHit & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(ProteinHit& meta, QTreeWidgetItem* parent)
   {
-    ProteinHitVisualizer * visualizer = new ProteinHitVisualizer(isEditable(), this);
+    ProteinHitVisualizer* visualizer = new ProteinHitVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     String name = String("Prot ") + meta.getAccession() + " (" + meta.getScore() + ')';
@@ -768,7 +768,7 @@ namespace OpenMS
     QStringList labels;
     labels << qs_name << QString::number(ws_->addWidget(visualizer)) << QString::number(meta.getScore());
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -778,21 +778,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing ProteinHit object
-  void MetaDataBrowser::visualize_(ScanWindow & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(ScanWindow& meta, QTreeWidgetItem* parent)
   {
-    ScanWindowVisualizer * visualizer = new ScanWindowVisualizer(isEditable(), this);
+    ScanWindowVisualizer* visualizer = new ScanWindowVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Scan window" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -802,20 +802,20 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing sample object
-  void MetaDataBrowser::visualize_(Sample & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Sample& meta, QTreeWidgetItem* parent)
   {
-    SampleVisualizer * visualizer = new SampleVisualizer(isEditable(), this);
+    SampleVisualizer* visualizer = new SampleVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << (String("Sample ") + meta.getName()).c_str() << QString::number(ws_->addWidget(visualizer));
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -832,17 +832,17 @@ namespace OpenMS
       {
         if (meta.getTreatment(i).getType() == "Digestion")
         {
-          visualize_((const_cast<Digestion &>(dynamic_cast<const Digestion &>(meta.getTreatment(i)))), item);
+          visualize_((const_cast<Digestion&>(dynamic_cast<const Digestion&>(meta.getTreatment(i)))), item);
         }
         else if (meta.getTreatment(i).getType() == "Modification")
         {
           //Cast SampleTreatment reference to a const modification reference
-          visualize_((const_cast<Modification &>(dynamic_cast<const Modification &>(meta.getTreatment(i)))), item);
+          visualize_((const_cast<Modification&>(dynamic_cast<const Modification&>(meta.getTreatment(i)))), item);
 
         }
         else if (meta.getTreatment(i).getType() == "Tagging")
         {
-          visualize_((const_cast<Tagging &>(dynamic_cast<const Tagging &>(meta.getTreatment(i)))), item);
+          visualize_((const_cast<Tagging&>(dynamic_cast<const Tagging&>(meta.getTreatment(i)))), item);
         }
       }
     }
@@ -850,21 +850,21 @@ namespace OpenMS
     //subsamples
     visualizeAll_(meta.getSubsamples(), item);
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing Software object
-  void MetaDataBrowser::visualize_(Software & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Software& meta, QTreeWidgetItem* parent)
   {
-    SoftwareVisualizer * visualizer = new SoftwareVisualizer(isEditable(), this);
+    SoftwareVisualizer* visualizer = new SoftwareVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "Software" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -874,21 +874,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing SourceFile object
-  void MetaDataBrowser::visualize_(SourceFile & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(SourceFile& meta, QTreeWidgetItem* parent)
   {
-    SourceFileVisualizer * visualizer = new SourceFileVisualizer(isEditable(), this);
+    SourceFileVisualizer* visualizer = new SourceFileVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "SourceFile" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -898,21 +898,21 @@ namespace OpenMS
       item = new QTreeWidgetItem(parent, labels);
     }
 
-    visualize_(dynamic_cast<MetaInfoInterface &>(meta), item);
+    visualize_(dynamic_cast<MetaInfoInterface&>(meta), item);
 
     connectVisualizer_(visualizer);
   }
 
   //Visualizing SpectrumSettings object
-  void MetaDataBrowser::visualize_(SpectrumSettings & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(SpectrumSettings& meta, QTreeWidgetItem* parent)
   {
-    SpectrumSettingsVisualizer * visualizer = new SpectrumSettingsVisualizer(isEditable(), this);
+    SpectrumSettingsVisualizer* visualizer = new SpectrumSettingsVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
     labels << "SpectrumSettings" << QString::number(ws_->addWidget(visualizer));
 
-    QTreeWidgetItem * item;
+    QTreeWidgetItem* item;
     if (parent == 0)
     {
       item = new QTreeWidgetItem(treeview_, labels);
@@ -951,9 +951,9 @@ namespace OpenMS
   }
 
   //Visualizing tagging object
-  void MetaDataBrowser::visualize_(Tagging & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(Tagging& meta, QTreeWidgetItem* parent)
   {
-    TaggingVisualizer * visualizer = new TaggingVisualizer(isEditable(), this);
+    TaggingVisualizer* visualizer = new TaggingVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
@@ -971,9 +971,9 @@ namespace OpenMS
   }
 
   //Visualizing tagging object
-  void MetaDataBrowser::visualize_(DocumentIdentifier & meta, QTreeWidgetItem * parent)
+  void MetaDataBrowser::visualize_(DocumentIdentifier& meta, QTreeWidgetItem* parent)
   {
-    DocumentIdentifierVisualizer * visualizer = new DocumentIdentifierVisualizer(isEditable(), this);
+    DocumentIdentifierVisualizer* visualizer = new DocumentIdentifierVisualizer(isEditable(), this);
     visualizer->load(meta);
 
     QStringList labels;
@@ -993,12 +993,12 @@ namespace OpenMS
   void MetaDataBrowser::filterHits_(double threshold, bool higher_better, int tree_item_id)
   {
     // find item in tree belonging to PeptideIdentification object
-    QTreeWidgetItem * item = treeview_->findItems(QString::number(tree_item_id), Qt::MatchExactly | Qt::MatchRecursive, 1).first();
+    QTreeWidgetItem* item = treeview_->findItems(QString::number(tree_item_id), Qt::MatchExactly | Qt::MatchRecursive, 1).first();
 
     //set the items visible or not visible depending to their score and the current threshold
     for (int i = 0; i < item->childCount(); ++i)
     {
-      QTreeWidgetItem * child = item->child(i);
+      QTreeWidgetItem* child = item->child(i);
 
       if ((higher_better && child->text(2).toFloat() <= threshold) || (!higher_better && child->text(2).toFloat() >= threshold))
       {
@@ -1019,7 +1019,7 @@ namespace OpenMS
   void MetaDataBrowser::showAllHits_(int tree_item_id)
   {
     // find item in tree belonging to PeptideIdentification object
-    QTreeWidgetItem * item = treeview_->findItems(QString::number(tree_item_id), Qt::MatchExactly | Qt::MatchRecursive, 1).first();
+    QTreeWidgetItem* item = treeview_->findItems(QString::number(tree_item_id), Qt::MatchExactly | Qt::MatchRecursive, 1).first();
 
     //set the items visible or not visible depending to their score and the current threshold
     for (int i = 0; i < item->childCount(); ++i)
@@ -1032,7 +1032,7 @@ namespace OpenMS
     treeview_->expandItem(item);
   }
 
-  void MetaDataBrowser::add(Feature & feature)
+  void MetaDataBrowser::add(Feature& feature)
   {
     //peptide ids
     for (std::vector<PeptideIdentification>::iterator it = feature.getPeptideIdentifications().begin(); it != feature.getPeptideIdentifications().end(); ++it)
@@ -1040,12 +1040,12 @@ namespace OpenMS
       add(*it);
     }
 
-    add(static_cast<MetaInfoInterface &>(feature));
+    add(static_cast<MetaInfoInterface&>(feature));
 
     treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
   }
 
-  void MetaDataBrowser::add(ConsensusFeature & feature)
+  void MetaDataBrowser::add(ConsensusFeature& feature)
   {
     //peptide ids
     for (std::vector<PeptideIdentification>::iterator it = feature.getPeptideIdentifications().begin(); it != feature.getPeptideIdentifications().end(); ++it)
@@ -1053,15 +1053,15 @@ namespace OpenMS
       add(*it);
     }
 
-    add(static_cast<MetaInfoInterface &>(feature));
+    add(static_cast<MetaInfoInterface&>(feature));
 
     treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
   }
 
-  void MetaDataBrowser::add(ConsensusMap & map)
+  void MetaDataBrowser::add(ConsensusMap& map)
   {
     //identifier
-    add(static_cast<DocumentIdentifier &>(map));
+    add(static_cast<DocumentIdentifier&>(map));
 
     // protein identifications
     for (Size i = 0; i < map.getProteinIdentifications().size(); ++i)
@@ -1075,7 +1075,7 @@ namespace OpenMS
       add(map.getUnassignedPeptideIdentifications()[i]);
     }
 
-    add(static_cast<MetaInfoInterface &>(map));
+    add(static_cast<MetaInfoInterface&>(map));
 
     treeview_->expandItem(treeview_->findItems(QString::number(0), Qt::MatchExactly, 1).first());
   }

@@ -562,7 +562,7 @@ namespace OpenMS
     {
       LOG_INFO << "Attempting to call 'gnuplot' ...";
       String cmd = String("gnuplot \"") + gp_file + "\"";
-      if (system(cmd.c_str()))  // 0 is success!
+      if (system(cmd.c_str())) // 0 is success!
       {
         LOG_WARN << "Calling 'gnuplot' on '" << gp_file << "' failed. Please create plots manually." << std::endl;
       }

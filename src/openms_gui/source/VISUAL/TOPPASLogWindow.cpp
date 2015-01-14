@@ -45,23 +45,23 @@ using namespace std;
 namespace OpenMS
 {
 
-  TOPPASLogWindow::TOPPASLogWindow(QWidget * parent) :
+  TOPPASLogWindow::TOPPASLogWindow(QWidget* parent) :
     QTextEdit(parent),
     max_length_(-1)
   {
     // trim if required
-    connect (this, SIGNAL(textChanged()), this, SLOT(trimText_())); 
+    connect(this, SIGNAL(textChanged()), this, SLOT(trimText_()));
   }
 
   TOPPASLogWindow::~TOPPASLogWindow()
   {
   }
 
-  void TOPPASLogWindow::contextMenuEvent(QContextMenuEvent * e)
+  void TOPPASLogWindow::contextMenuEvent(QContextMenuEvent* e)
   {
-    QMenu * menu = createStandardContextMenu();
+    QMenu* menu = createStandardContextMenu();
     menu->addAction("Clear");
-    QAction * selected = menu->exec(e->globalPos());
+    QAction* selected = menu->exec(e->globalPos());
     if (selected && selected->text() == "Clear")
     {
       clear();
@@ -69,27 +69,25 @@ namespace OpenMS
     delete menu;
   }
 
-
   void TOPPASLogWindow::trimText_()
   {
-     if (max_length_ <= 0) return;
+    if (max_length_ <= 0) return;
 
-     if (this->toPlainText().size() > max_length_)
-     {
-       this->setPlainText(this->toPlainText().right(max_length_/2));
-       //std::cerr << "cut text to " << this->toPlainText().size() << "\n";
-     }
+    if (this->toPlainText().size() > max_length_)
+    {
+      this->setPlainText(this->toPlainText().right(max_length_ / 2));
+      //std::cerr << "cut text to " << this->toPlainText().size() << "\n";
+    }
   }
+
   int TOPPASLogWindow::maxLength() const
   {
-     return (max_length_);
+    return max_length_;
   }
-  
 
   void TOPPASLogWindow::setMaxLength(int max_length)
   {
     max_length_ = max_length;
   }
-
 
 } //namespace OpenMS

@@ -620,8 +620,8 @@ namespace OpenMS
         String sidres;
         UInt64 sir =  UniqueIdGenerator::getUniqueId();
         sidres += String("\t\t\t<SpectrumIdentificationResult spectraData_ref=\"")
-                + String(spd_ids.begin()->second) + String("\" spectrumID=\"")
-                + sid + String("\" id=\"") + String(sir) + String("\"> \n");
+                  + String(spd_ids.begin()->second) + String("\" spectrumID=\"")
+                  + sid + String("\" id=\"") + String(sir) + String("\"> \n");
         //map.begin access ok here because make sure at least one "UNKOWN" element is in the spd_ids map
 
         for (std::vector<PeptideHit>::const_iterator jt = it->getHits().begin(); jt != it->getHits().end(); ++jt)
@@ -712,7 +712,7 @@ namespace OpenMS
 
           std::vector<UInt64> pevid_ids;
           if (pit == pep_ids.end())
-          {        
+          {
             std::vector<PeptideEvidence> peptide_evidences = jt->getPeptideEvidences();
             // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
             for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
@@ -784,11 +784,11 @@ namespace OpenMS
           //write SpectrumIdentificationResult elements
           UInt64 sii =  UniqueIdGenerator::getUniqueId();
           sidres += String("\t\t\t\t<SpectrumIdentificationItem passThreshold=\"")
-                  + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"")
-                  + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz
-                  + String("\" experimentalMassToCharge=\"") + emz
-                  + String("\" chargeState=\"") + c +  String("\" id=\"")
-                  + String(sii) + String("\"> \n");
+                    + pte + String("\" rank=\"") + r + String("\" peptide_ref=\"")
+                    + String(pepid) + String("\" calculatedMassToCharge=\"") + cmz
+                    + String("\" experimentalMassToCharge=\"") + emz
+                    + String("\" chargeState=\"") + c +  String("\" id=\"")
+                    + String(sii) + String("\"> \n");
 
           //TODO @mths: passThreshold attr.
           if (pevid_ids.empty())
@@ -1101,5 +1101,6 @@ namespace OpenMS
       }
       s += String(indent, '\t') + "</ModificationParams>" + "\n";
     }
+
   } //namespace Internal
 } // namespace OpenMS

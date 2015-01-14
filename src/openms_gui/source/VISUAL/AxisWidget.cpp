@@ -54,7 +54,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  AxisWidget::AxisWidget(AxisPainter::Alignment alignment, const char * legend, QWidget * parent) :
+  AxisWidget::AxisWidget(AxisPainter::Alignment alignment, const char* legend, QWidget* parent) :
     QWidget(parent),
     is_log_(false),
     show_legend_(true),
@@ -85,14 +85,14 @@ namespace OpenMS
   {
   }
 
-  void AxisWidget::paintEvent(QPaintEvent * e)
+  void AxisWidget::paintEvent(QPaintEvent* e)
   {
     QPainter painter(this);
     paint(&painter, e);
     painter.end();
   }
 
-  void AxisWidget::paint(QPainter * painter, QPaintEvent * e)
+  void AxisWidget::paint(QPainter* painter, QPaintEvent* e)
   {
     AxisPainter::paint(painter, e, min_, max_, grid_line_,
                        width(), height(), alignment_, margin_,
@@ -190,7 +190,7 @@ namespace OpenMS
     return show_legend_;
   }
 
-  const String & AxisWidget::getLegend()
+  const String& AxisWidget::getLegend()
   {
     return legend_;
   }
@@ -209,7 +209,7 @@ namespace OpenMS
     return is_inverse_orientation_;
   }
 
-  void AxisWidget::setLegend(const String & legend)
+  void AxisWidget::setLegend(const String& legend)
   {
     legend_ = legend;
     if (!show_legend_)
@@ -226,7 +226,7 @@ namespace OpenMS
     }
   }
 
-  const AxisWidget::GridVector & AxisWidget::gridLines()
+  const AxisWidget::GridVector& AxisWidget::gridLines()
   {
     return grid_line_;
   }

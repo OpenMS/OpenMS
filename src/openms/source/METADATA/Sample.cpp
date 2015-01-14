@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  Sample::Sample(const Sample & source) :
+  Sample::Sample(const Sample& source) :
     MetaInfoInterface(source),
     name_(source.name_),
     number_(source.number_),
@@ -66,13 +66,13 @@ namespace OpenMS
     subsamples_(source.subsamples_)
   {
     //delete old treatments
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
+    for (list<SampleTreatment*>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
     {
       delete(*it);
     }
     treatments_.clear();
     //copy treatments
-    for (list<SampleTreatment *>::const_iterator it = source.treatments_.begin(); it != source.treatments_.end(); ++it)
+    for (list<SampleTreatment*>::const_iterator it = source.treatments_.begin(); it != source.treatments_.end(); ++it)
     {
       treatments_.push_back((*it)->clone());
     }
@@ -80,13 +80,13 @@ namespace OpenMS
 
   Sample::~Sample()
   {
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
+    for (list<SampleTreatment*>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
     {
       delete(*it);
     }
   }
 
-  Sample & Sample::operator=(const Sample & source)
+  Sample& Sample::operator=(const Sample& source)
   {
     if (&source == this)
       return *this;
@@ -102,13 +102,13 @@ namespace OpenMS
     subsamples_ = source.subsamples_;
     MetaInfoInterface::operator=(source);
     //delete old treatments
-    for (list<SampleTreatment *>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
+    for (list<SampleTreatment*>::iterator it = treatments_.begin(); it != treatments_.end(); ++it)
     {
       delete(*it);
     }
     treatments_.clear();
     //copy treatments
-    for (list<SampleTreatment *>::const_iterator it = source.treatments_.begin(); it != source.treatments_.end(); ++it)
+    for (list<SampleTreatment*>::const_iterator it = source.treatments_.begin(); it != source.treatments_.end(); ++it)
     {
       treatments_.push_back((*it)->clone());
     }
@@ -116,7 +116,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool Sample::operator==(const Sample & rhs) const
+  bool Sample::operator==(const Sample& rhs) const
   {
     if (
       name_ != rhs.name_ ||
@@ -136,8 +136,8 @@ namespace OpenMS
     }
 
     //treatments
-    list<SampleTreatment *>::const_iterator it2 = rhs.treatments_.begin();
-    for (list<SampleTreatment *>::const_iterator it = treatments_.begin(); it != treatments_.end(); ++it, ++it2)
+    list<SampleTreatment*>::const_iterator it2 = rhs.treatments_.begin();
+    for (list<SampleTreatment*>::const_iterator it = treatments_.begin(); it != treatments_.end(); ++it, ++it2)
     {
       if (*it != *it2)
         return false;
@@ -145,42 +145,42 @@ namespace OpenMS
     return true;
   }
 
-  const String & Sample::getName() const
+  const String& Sample::getName() const
   {
     return name_;
   }
 
-  void Sample::setName(const String & name)
+  void Sample::setName(const String& name)
   {
     name_ = name;
   }
 
-  const String & Sample::getOrganism() const
+  const String& Sample::getOrganism() const
   {
     return organism_;
   }
 
-  void Sample::setOrganism(const String & organism)
+  void Sample::setOrganism(const String& organism)
   {
     organism_ = organism;
   }
 
-  const String & Sample::getNumber() const
+  const String& Sample::getNumber() const
   {
     return number_;
   }
 
-  void Sample::setNumber(const String & number)
+  void Sample::setNumber(const String& number)
   {
     number_ = number;
   }
 
-  const String & Sample::getComment() const
+  const String& Sample::getComment() const
   {
     return comment_;
   }
 
-  void Sample::setComment(const String & comment)
+  void Sample::setComment(const String& comment)
   {
     comment_ = comment;
   }
@@ -225,28 +225,28 @@ namespace OpenMS
     concentration_ = concentration;
   }
 
-  const vector<Sample> & Sample::getSubsamples() const
+  const vector<Sample>& Sample::getSubsamples() const
   {
     return subsamples_;
   }
 
-  vector<Sample> & Sample::getSubsamples()
+  vector<Sample>& Sample::getSubsamples()
   {
     return subsamples_;
   }
 
-  void Sample::setSubsamples(const vector<Sample> & subsamples)
+  void Sample::setSubsamples(const vector<Sample>& subsamples)
   {
     subsamples_ = subsamples;
   }
 
-  void Sample::addTreatment(const SampleTreatment & treatment, Int before_position)
+  void Sample::addTreatment(const SampleTreatment& treatment, Int before_position)
   {
     if (before_position > Int(treatments_.size()))
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, before_position, treatments_.size());
     }
-    list<SampleTreatment *>::iterator it;
+    list<SampleTreatment*>::iterator it;
     if (before_position >= 0)
     {
       it = treatments_.begin();
@@ -259,17 +259,17 @@ namespace OpenMS
     {
       it = treatments_.end();
     }
-    SampleTreatment * tmp = treatment.clone();
+    SampleTreatment* tmp = treatment.clone();
     treatments_.insert(it, tmp);
   }
 
-  const SampleTreatment & Sample::getTreatment(UInt position) const
+  const SampleTreatment& Sample::getTreatment(UInt position) const
   {
     if (position >= treatments_.size())
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
     }
-    list<SampleTreatment *>::const_iterator it = treatments_.begin();
+    list<SampleTreatment*>::const_iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
     {
       ++it;
@@ -277,13 +277,13 @@ namespace OpenMS
     return **it;
   }
 
-  SampleTreatment & Sample::getTreatment(UInt position)
+  SampleTreatment& Sample::getTreatment(UInt position)
   {
     if (position >= treatments_.size())
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
     }
-    list<SampleTreatment *>::const_iterator it = treatments_.begin();
+    list<SampleTreatment*>::const_iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
     {
       ++it;
@@ -297,7 +297,7 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, treatments_.size());
     }
-    list<SampleTreatment *>::iterator it = treatments_.begin();
+    list<SampleTreatment*>::iterator it = treatments_.begin();
     for (Size i = 0; i < position; ++i)
     {
       ++it;

@@ -305,7 +305,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // inputs raw /centroided  data into the object:
-  void ProcessData::add_scan_raw_data(int SCAN, double TR, CentroidData * centroidedData)
+  void ProcessData::add_scan_raw_data(int SCAN, double TR, CentroidData* centroidedData)
   {
 
     Deisotoper dei;
@@ -344,7 +344,7 @@ namespace OpenMS
     while (P != PEAK_LIST.end())
     {
 
-      MSPeak * PEAK = &(*P);
+      MSPeak* PEAK = &(*P);
 
       // check if its above the min. intensity:
       if (filterDeisotopicMSPeak(PEAK))
@@ -370,7 +370,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // check if the ms peak is in the selected mz, z, int range
-  bool ProcessData::filterDeisotopicMSPeak(MSPeak * PEAK)
+  bool ProcessData::filterDeisotopicMSPeak(MSPeak* PEAK)
   {
 
     //////////////////////////
@@ -403,7 +403,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // insert a newly observed mz into the data structure
-  void ProcessData::insert_new_observed_mz(MSPeak * PEAK)
+  void ProcessData::insert_new_observed_mz(MSPeak* PEAK)
   {
 
     /*
@@ -441,7 +441,7 @@ namespace OpenMS
 ///////////////////////////////////////////////////////////////////////////////
 // insert an already observed mz into the data structure, checks
 // if it belongs to an existing LC elution peak or starts a new one:
-  void ProcessData::insert_observed_mz(ProcessData::main_iterator LCP, MSPeak * PEAK)
+  void ProcessData::insert_observed_mz(ProcessData::main_iterator LCP, MSPeak* PEAK)
   {
 
     ////////////////////////////////////////////////////
@@ -574,13 +574,13 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // check if a peak with this scan number belong to this elution cluster:
-  bool ProcessData::check_elution_peak_belong(MZ_series_ITERATOR P, MSPeak * PEAK)
+  bool ProcessData::check_elution_peak_belong(MZ_series_ITERATOR P, MSPeak* PEAK)
   {
 
     // get the last element:
     multimap<int, MSPeak>::reverse_iterator q = P->rbegin();
     //  int last_scan = (*q).first;
-    MSPeak * last_peak = &(q->second);
+    MSPeak* last_peak = &(q->second);
 
     // avoid clustering of masses within the same scan:
     if (PEAK->get_Scan() == last_peak->get_Scan())
@@ -730,7 +730,7 @@ namespace OpenMS
     processMSPeaks(&(*Q_SER));
 
     // create the object:
-    LCElutionPeak * tmp = new LCElutionPeak(Q_SER, this_MZ);
+    LCElutionPeak* tmp = new LCElutionPeak(Q_SER, this_MZ);
     // analyze the peak, i.e. compute parameters
     tmp->analyzeLCElutionPeak();
 
@@ -743,14 +743,14 @@ namespace OpenMS
 ///////////////////////////////////////////////////////////////////////////////
 // process a series of MS peaks
 // set the signal to noise level:
-  void ProcessData::processMSPeaks(multimap<int, MSPeak> * in)
+  void ProcessData::processMSPeaks(multimap<int, MSPeak>* in)
   {
 
     multimap<int, MSPeak>::iterator I = in->begin();
     while (I != in->end())
     {
 
-      MSPeak * peak = &(I->second);
+      MSPeak* peak = &(I->second);
       double bgLevel = backgroundController->getBackgroundLevel(peak->get_MZ(), peak->get_retention_time());
       double SN = peak->get_intensity() / bgLevel;
       peak->setSignalToNoise(SN);
@@ -763,7 +763,7 @@ namespace OpenMS
 ///////////////////////////////////////////////////////////////////////////////
 // checks if a mz value has already been seen,
 // also look for very close ones and cluster them
-  ProcessData::main_iterator ProcessData::check_MZ_occurence(MSPeak * PEAK)
+  ProcessData::main_iterator ProcessData::check_MZ_occurence(MSPeak* PEAK)
   {
 
     /*
@@ -888,7 +888,7 @@ namespace OpenMS
 // returns 1 if ok
 // returns 0 if not
 // returns -1 if scan range exceeded
-  int ProcessData::compareIteratorToPeak(MSPeak * peak, ProcessData::main_iterator check)
+  int ProcessData::compareIteratorToPeak(MSPeak* peak, ProcessData::main_iterator check)
   {
 
     // check the fragment mass difference:
@@ -912,7 +912,7 @@ namespace OpenMS
     // get the last ms peak in the elution peak:
 
     std::vector<elution_peak>::reverse_iterator it = (check->second).rbegin();
-    MSPeak * lastPeak = &(it->rbegin()->second);
+    MSPeak* lastPeak = &(it->rbegin()->second);
     // charge state:
     if (peak->get_Chrg() != lastPeak->get_Chrg())
     {
@@ -924,7 +924,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////////////
 // converts DeconvPeak list to MSPeak vector
-  void ProcessData::convert_ms_peaks(int SCAN, double TR, list<DeconvPeak> & DECONVPEAK, vector<MSPeak> & MSPEAK)
+  void ProcessData::convert_ms_peaks(int SCAN, double TR, list<DeconvPeak>& DECONVPEAK, vector<MSPeak>& MSPEAK)
   {
 
     list<DeconvPeak>::iterator mpi;
@@ -947,12 +947,12 @@ namespace OpenMS
 ///////////////////////////////////////////////////////////////////////////////
 // go back to the MS1 level and
 // find the correct precursor mass by mz and z:
-  void ProcessData::adjustCorrectToMS1Precursor(double * precursorMZ, int z, int MS1scan, int MS2Scan)
+  void ProcessData::adjustCorrectToMS1Precursor(double* precursorMZ, int z, int MS1scan, int MS2Scan)
   {
 
     // if higher isotope picked for MS/MS, then need to start searching
     // the monoisotopic mass at lower m/z value:
-    MSPeak * preCursorPeak = NULL;
+    MSPeak* preCursorPeak = NULL;
     double saveIsotopeDistance = 6;
     double searchMzLowerBound = *precursorMZ - saveIsotopeDistance;
     main_iterator P = pMZ_LIST.lower_bound(searchMzLowerBound);
@@ -961,7 +961,7 @@ namespace OpenMS
     {
 
       std::vector<elution_peak>::reverse_iterator Pend = (P->second).rbegin();
-      MSPeak * myPeak = &(Pend->rbegin()->second);
+      MSPeak* myPeak = &(Pend->rbegin()->second);
       // compare the charge states:
       if (myPeak->get_Chrg() == z)
       {
@@ -1002,23 +1002,45 @@ namespace OpenMS
 
   }
 
-  int ProcessData::getNbMSTraces(){ return (int) pMZ_LIST.size(); }
+  int ProcessData::getNbMSTraces()
+  {
+    return (int) pMZ_LIST.size();
+  }
 
-
-  double ProcessData::getMinimalIntensityLevel(){return SuperHirnParameters::instance()->getIntensityThreshold(); }
+  double ProcessData::getMinimalIntensityLevel()
+  {
+    return SuperHirnParameters::instance()->getIntensityThreshold();
+  }
 
   // add the scan vs TR index to the data structure:
   // void add_scan_TR_index(std::map<int, float> IN){scan_TR_index = IN;};
 
   // get the processed data:
-  LCMSCData * ProcessData::getProcessedData(){return data_; }
+  LCMSCData* ProcessData::getProcessedData()
+  {
+    return data_;
+  }
 
   // increase the LC_elution_profile counter:
-  void ProcessData::increase_LC_elution_peak_counter(){LC_elution_peak_counter++; }
-  unsigned int ProcessData::get_LC_elution_peak_counter(){return LC_elution_peak_counter; }
+  void ProcessData::increase_LC_elution_peak_counter()
+  {
+    LC_elution_peak_counter++;
+  }
+
+  unsigned int ProcessData::get_LC_elution_peak_counter()
+  {
+    return LC_elution_peak_counter;
+  }
 
   // get the maximal scan distance between two same monoisotopic masses
-  int ProcessData::getMaxScanDistance(){ return max_inter_scan_distance; }
-  void ProcessData::setMaxScanDistance(int in){ max_inter_scan_distance = in; }
+  int ProcessData::getMaxScanDistance()
+  {
+    return max_inter_scan_distance;
+  }
+
+  void ProcessData::setMaxScanDistance(int in)
+  {
+    max_inter_scan_distance = in;
+  }
 
 }

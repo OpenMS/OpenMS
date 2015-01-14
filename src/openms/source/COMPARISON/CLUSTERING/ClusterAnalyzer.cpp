@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  ClusterAnalyzer & ClusterAnalyzer::operator=(const ClusterAnalyzer & source)
+  ClusterAnalyzer& ClusterAnalyzer::operator=(const ClusterAnalyzer& source)
   {
     //ALWAYS CHECK FOR SELF ASSIGNEMT!
     if (this == &source)
@@ -64,7 +64,7 @@ namespace OpenMS
     return *this;
   }
 
-  std::vector<float> ClusterAnalyzer::averageSilhouetteWidth(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original)
+  std::vector<float> ClusterAnalyzer::averageSilhouetteWidth(const std::vector<BinaryTreeNode>& tree, const DistanceMatrix<float>& original)
   {
     //throw exception if cannot be legal clustering
     if (tree.size() < 1)
@@ -72,10 +72,10 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
     }
 
-    std::vector<float> average_silhouette_widths;       //for each step from the average silhouette widths of the clusters
-    std::map<Size, float> interdist_i;      //for each element i holds the min. average intercluster distance in cluster containing i
-    std::map<Size, Size> cluster_with_interdist;      //for each element i holds which cluster originated the min. intercluster distance
-    std::map<Size, float> intradist_i;      //for each element i holds the average intracluster distance in [i]
+    std::vector<float> average_silhouette_widths; //for each step from the average silhouette widths of the clusters
+    std::map<Size, float> interdist_i; //for each element i holds the min. average intercluster distance in cluster containing i
+    std::map<Size, Size> cluster_with_interdist; //for each element i holds which cluster originated the min. intercluster distance
+    std::map<Size, float> intradist_i; //for each element i holds the average intracluster distance in [i]
 
     //initial leafs
     std::set<Size> leafs;
@@ -132,7 +132,7 @@ namespace OpenMS
     }
 
     //subsequent cluster states after silhouette calc
-    for (Size t = 0; t < tree.size() - 1; ++t)   //last steps silhouettes would be all 0 respectively not defined
+    for (Size t = 0; t < tree.size() - 1; ++t) //last steps silhouettes would be all 0 respectively not defined
     {
 
       for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
@@ -141,11 +141,11 @@ namespace OpenMS
         std::vector<Size>::iterator in_left = std::find(clusters[tree[t].left_child].begin(), clusters[tree[t].left_child].end(), *it);
         std::vector<Size>::iterator in_right = std::find(clusters[tree[t].right_child].begin(), clusters[tree[t].right_child].end(), *it);
 
-        if (in_left == clusters[tree[t].left_child].end() && in_right == clusters[tree[t].right_child].end())    //*it (!element_of) left or right
+        if (in_left == clusters[tree[t].left_child].end() && in_right == clusters[tree[t].right_child].end()) //*it (!element_of) left or right
         {
           //intradist_i is always kept
           //handle interdist:
-          if (tree[t].left_child != cluster_with_interdist[*it] && tree[t].right_child != cluster_with_interdist[*it])          //s(i)_nr (!element_of) left or right
+          if (tree[t].left_child != cluster_with_interdist[*it] && tree[t].right_child != cluster_with_interdist[*it]) //s(i)_nr (!element_of) left or right
           {
             float interdist_merged(0);
             for (Size j = 0; j < clusters[tree[t].left_child].size(); ++j)
@@ -166,7 +166,7 @@ namespace OpenMS
           else           //s(i)_nr (element_of) left or right
           {
             //calculate interdist_i to merged
-            Size k;             //the one cluster of the two merged which does NOT contain s(i)_nr
+            Size k; //the one cluster of the two merged which does NOT contain s(i)_nr
             if (tree[t].right_child != cluster_with_interdist[*it])
             {
               k = tree[t].right_child;
@@ -217,7 +217,7 @@ namespace OpenMS
         }
         else         //i (element_of) left or right
         {
-          Size k, l;          //k is the cluster that is one of the merged but not the one containing i, l the cluster containing i
+          Size k, l; //k is the cluster that is one of the merged but not the one containing i, l the cluster containing i
           if (in_left == clusters[tree[t].left_child].end())
           {
             l = tree[t].right_child;
@@ -229,7 +229,7 @@ namespace OpenMS
             k = tree[t].right_child;
           }
 
-          if (k != cluster_with_interdist[*it])          //s(i)_nr (!element_of) left or right cluster
+          if (k != cluster_with_interdist[*it]) //s(i)_nr (!element_of) left or right cluster
           {
             //interdist_i is kept
             //but intradist_i has to be updated
@@ -305,7 +305,7 @@ namespace OpenMS
       */
 
       //calculate average silhouette width for clusters and then overall average silhouette width for cluster step
-      float average_overall_silhouette(0);       // from cluster step
+      float average_overall_silhouette(0); // from cluster step
       /* to manually retrace
       std::vector<float> silhouettes(original.dimensionsize(),0.0);
       */
@@ -339,7 +339,7 @@ namespace OpenMS
     return average_silhouette_widths;
   }
 
-  std::vector<float> ClusterAnalyzer::dunnIndices(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original, const bool tree_from_singlelinkage)
+  std::vector<float> ClusterAnalyzer::dunnIndices(const std::vector<BinaryTreeNode>& tree, const DistanceMatrix<float>& original, const bool tree_from_singlelinkage)
   {
     //throw exception if cannot be legal clustering
     if (tree.size() < 1)
@@ -524,11 +524,11 @@ namespace OpenMS
       */
 
     }
-    all_dunn_indices.push_back(0.0);     //last one is clearly 0
+    all_dunn_indices.push_back(0.0); //last one is clearly 0
     return all_dunn_indices;
   }
 
-  void ClusterAnalyzer::cut(const Size cluster_quantity, const std::vector<BinaryTreeNode> & tree, std::vector<std::vector<Size> > & clusters)
+  void ClusterAnalyzer::cut(const Size cluster_quantity, const std::vector<BinaryTreeNode>& tree, std::vector<std::vector<Size> >& clusters)
   {
     if (cluster_quantity == 0)
     {
@@ -587,7 +587,7 @@ namespace OpenMS
     std::sort(clusters.begin(), clusters.end());
   }
 
-  void ClusterAnalyzer::cut(const Size cluster_quantity, const std::vector<BinaryTreeNode> & tree, std::vector<std::vector<BinaryTreeNode> > & subtrees)
+  void ClusterAnalyzer::cut(const Size cluster_quantity, const std::vector<BinaryTreeNode>& tree, std::vector<std::vector<BinaryTreeNode> >& subtrees)
   {
     if (cluster_quantity == 0)
     {
@@ -626,7 +626,7 @@ namespace OpenMS
     }
   }
 
-  float ClusterAnalyzer::averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode> & tree)
+  float ClusterAnalyzer::averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode>& tree)
   {
     if (cluster_quantity == 0)
     {
@@ -673,14 +673,14 @@ namespace OpenMS
     return aberration;
   }
 
-  std::vector<float> ClusterAnalyzer::cohesion(const std::vector<std::vector<Size> > & clusters, const DistanceMatrix<float> & original)
+  std::vector<float> ClusterAnalyzer::cohesion(const std::vector<std::vector<Size> >& clusters, const DistanceMatrix<float>& original)
   {
     if (clusters.empty() || clusters.size() > original.dimensionsize())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "invalid clustering");
     }
 
-    float av_dist(0);     // average of all pairwise distances
+    float av_dist(0); // average of all pairwise distances
     for (Size i = 0; i < original.dimensionsize(); ++i)
     {
       for (Size j = i + 1; j < original.dimensionsize(); ++j)
@@ -694,7 +694,7 @@ namespace OpenMS
     cohesions.reserve(clusters.size());
     for (Size i = 0; i < clusters.size(); ++i)
     {
-      float av_c_dist(0);       // all pairwise distances in cluster i
+      float av_c_dist(0); // all pairwise distances in cluster i
       for (Size j = 0; j < clusters[i].size(); ++j)
       {
         for (Size k = 0; k < j; ++k)
@@ -714,7 +714,7 @@ namespace OpenMS
     return cohesions;
   }
 
-  String ClusterAnalyzer::newickTree(const std::vector<BinaryTreeNode> & tree, const bool include_distance)
+  String ClusterAnalyzer::newickTree(const std::vector<BinaryTreeNode>& tree, const bool include_distance)
   {
     std::set<Size> leafs;
     for (Size i = 0; i < tree.size(); ++i)
@@ -784,7 +784,7 @@ namespace OpenMS
     //~example inspectable with: http://cgi-www.daimi.au.dk/cgi-chili/phyfi/go [BMC Bioinformatics 2006, 7:315]
   }
 
-  bool compareBinaryTreeNode(const BinaryTreeNode & x, const BinaryTreeNode & y)
+  bool compareBinaryTreeNode(const BinaryTreeNode& x, const BinaryTreeNode& y)
   {
     return x.distance < y.distance;
   }

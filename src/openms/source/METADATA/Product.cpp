@@ -47,7 +47,7 @@ namespace OpenMS
   {
   }
 
-  Product::Product(const Product & source) :
+  Product::Product(const Product& source) :
     CVTermList(source),
     mz_(source.mz_),
     window_low_(source.window_low_),
@@ -59,7 +59,7 @@ namespace OpenMS
   {
   }
 
-  Product & Product::operator=(const Product & source)
+  Product& Product::operator=(const Product& source)
   {
     if (&source == this)
       return *this;
@@ -72,7 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool Product::operator==(const Product & rhs) const
+  bool Product::operator==(const Product& rhs) const
   {
     return mz_ == rhs.mz_ &&
            window_low_ == rhs.window_low_ &&
@@ -80,7 +80,7 @@ namespace OpenMS
            CVTermList::operator==(rhs);
   }
 
-  bool Product::operator!=(const Product & rhs) const
+  bool Product::operator!=(const Product& rhs) const
   {
     return !(operator==(rhs));
   }

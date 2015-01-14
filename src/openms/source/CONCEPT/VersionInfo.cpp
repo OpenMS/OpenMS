@@ -48,26 +48,26 @@ namespace OpenMS
 {
   const VersionInfo::VersionDetails VersionInfo::VersionDetails::EMPTY;
 
-  bool VersionInfo::VersionDetails::operator<(const VersionInfo::VersionDetails & rhs) const
+  bool VersionInfo::VersionDetails::operator<(const VersionInfo::VersionDetails& rhs) const
   {
     return (this->version_major  < rhs.version_major)
            || (this->version_major == rhs.version_major && this->version_minor  < rhs.version_minor)
            || (this->version_major == rhs.version_major && this->version_minor == rhs.version_minor && this->version_patch < rhs.version_patch);
   }
 
-  bool VersionInfo::VersionDetails::operator==(const VersionInfo::VersionDetails & rhs) const
+  bool VersionInfo::VersionDetails::operator==(const VersionInfo::VersionDetails& rhs) const
   {
     return this->version_major == rhs.version_major &&
-      this->version_minor == rhs.version_minor &&
-      this->version_patch == rhs.version_patch;
+           this->version_minor == rhs.version_minor &&
+           this->version_patch == rhs.version_patch;
   }
 
-  bool VersionInfo::VersionDetails::operator>(const VersionInfo::VersionDetails & rhs) const
+  bool VersionInfo::VersionDetails::operator>(const VersionInfo::VersionDetails& rhs) const
   {
     return !(*this < rhs || *this == rhs);
   }
 
-  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const String & version) //static
+  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const String& version) //static
   {
     VersionInfo::VersionDetails result;
 
@@ -80,7 +80,7 @@ namespace OpenMS
     {
       result.version_major = String(version.substr(0, first_dot)).toInt();
     }
-    catch (Exception::ConversionError & /*e*/)
+    catch (Exception::ConversionError& /*e*/)
     {
       return VersionInfo::VersionDetails::EMPTY;
     }
@@ -91,7 +91,7 @@ namespace OpenMS
     {
       result.version_minor = String(version.substr(first_dot + 1, second_dot)).toInt();
     }
-    catch (Exception::ConversionError & /*e*/)
+    catch (Exception::ConversionError& /*e*/)
     {
       return VersionInfo::VersionDetails::EMPTY;
     }
@@ -106,7 +106,7 @@ namespace OpenMS
     {
       result.version_patch = String(version.substr(second_dot + 1, third_dot)).toInt();
     }
-    catch (Exception::ConversionError & /*e*/)
+    catch (Exception::ConversionError& /*e*/)
     {
       return VersionInfo::VersionDetails::EMPTY;
     }

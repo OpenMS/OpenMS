@@ -46,7 +46,7 @@ namespace OpenMS
 
   }
 
-  MetaInfo::MetaInfo(const MetaInfo & rhs)
+  MetaInfo::MetaInfo(const MetaInfo& rhs)
   {
     *this = rhs;
   }
@@ -56,7 +56,7 @@ namespace OpenMS
 
   }
 
-  MetaInfo & MetaInfo::operator=(const MetaInfo & rhs)
+  MetaInfo& MetaInfo::operator=(const MetaInfo& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -66,17 +66,17 @@ namespace OpenMS
     return *this;
   }
 
-  bool MetaInfo::operator==(const MetaInfo & rhs) const
+  bool MetaInfo::operator==(const MetaInfo& rhs) const
   {
     return index_to_value_ == rhs.index_to_value_;
   }
 
-  bool MetaInfo::operator!=(const MetaInfo & rhs) const
+  bool MetaInfo::operator!=(const MetaInfo& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const DataValue & MetaInfo::getValue(const String & name) const
+  const DataValue& MetaInfo::getValue(const String& name) const
   {
     map<UInt, DataValue>::const_iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
@@ -86,7 +86,7 @@ namespace OpenMS
     return DataValue::EMPTY;
   }
 
-  const DataValue & MetaInfo::getValue(UInt index) const
+  const DataValue& MetaInfo::getValue(UInt index) const
   {
     map<UInt, DataValue>::const_iterator it = index_to_value_.find(index);
     if (it != index_to_value_.end())
@@ -96,22 +96,22 @@ namespace OpenMS
     return DataValue::EMPTY;
   }
 
-  void MetaInfo::setValue(const String & name, const DataValue & value)
+  void MetaInfo::setValue(const String& name, const DataValue& value)
   {
     index_to_value_[registry_.getIndex(name)] = value;
   }
 
-  void MetaInfo::setValue(UInt index, const DataValue & value)
+  void MetaInfo::setValue(UInt index, const DataValue& value)
   {
     index_to_value_[index] = value;
   }
 
-  MetaInfoRegistry & MetaInfo::registry()
+  MetaInfoRegistry& MetaInfo::registry()
   {
     return registry_;
   }
 
-  bool MetaInfo::exists(const String & name) const
+  bool MetaInfo::exists(const String& name) const
   {
     try
     {
@@ -136,7 +136,7 @@ namespace OpenMS
     return true;
   }
 
-  void MetaInfo::removeValue(const String & name)
+  void MetaInfo::removeValue(const String& name)
   {
     map<UInt, DataValue>::iterator it = index_to_value_.find(registry_.getIndex(name));
     if (it != index_to_value_.end())
@@ -154,7 +154,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfo::getKeys(vector<String> & keys) const
+  void MetaInfo::getKeys(vector<String>& keys) const
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
@@ -164,7 +164,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfo::getKeys(vector<UInt> & keys) const
+  void MetaInfo::getKeys(vector<UInt>& keys) const
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;

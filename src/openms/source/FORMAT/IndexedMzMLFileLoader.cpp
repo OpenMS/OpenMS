@@ -45,18 +45,19 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions & IndexedMzMLFileLoader::getOptions()
+  PeakFileOptions& IndexedMzMLFileLoader::getOptions()
   {
     return options_;
   }
 
-  const PeakFileOptions & IndexedMzMLFileLoader::getOptions() const
+  const PeakFileOptions& IndexedMzMLFileLoader::getOptions() const
   {
     return options_;
   }
 
-  void IndexedMzMLFileLoader::setOptions(const PeakFileOptions & options)
+  void IndexedMzMLFileLoader::setOptions(const PeakFileOptions& options)
   {
-      options_ = options;
+    options_ = options;
   }
+
 }

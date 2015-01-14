@@ -57,7 +57,7 @@ namespace OpenMS
     class XMLCleaner_
     {
 public:
-      explicit XMLCleaner_(XMLHandler * handler) :
+      explicit XMLCleaner_(XMLHandler* handler) :
         p_(handler)
       {
 
@@ -69,14 +69,14 @@ public:
       }
 
 private:
-      XMLHandler * p_;
+      XMLHandler* p_;
     };
 
     XMLFile::XMLFile()
     {
     }
 
-    XMLFile::XMLFile(const String & schema_location, const String & version) :
+    XMLFile::XMLFile(const String& schema_location, const String& version) :
       schema_location_(schema_location),
       schema_version_(version)
     {
@@ -91,7 +91,7 @@ private:
       enforced_encoding_ = encoding;
     }
 
-    void XMLFile::parse_(const String & filename, XMLHandler * handler)
+    void XMLFile::parse_(const String& filename, XMLHandler* handler)
     {
       // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
@@ -107,12 +107,12 @@ private:
       {
         xercesc::XMLPlatformUtils::Initialize();
       }
-      catch (const xercesc::XMLException & toCatch)
+      catch (const xercesc::XMLException& toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("Error during initialization: ") + StringManager().convert(toCatch.getMessage()));
       }
 
-      xercesc::SAX2XMLReader * parser = xercesc::XMLReaderFactory::createXMLReader();
+      xercesc::SAX2XMLReader* parser = xercesc::XMLReaderFactory::createXMLReader();
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpaces, false);
       parser->setFeature(xercesc::XMLUni::fgSAX2CoreNameSpacePrefixes, false);
 
@@ -125,7 +125,7 @@ private:
       file.read(tmp_bz, 2);
       tmp_bz[2] = '\0';
       String bz = String(tmp_bz);
-      xercesc::InputSource * source;
+      xercesc::InputSource* source;
 
       char g1 = 0x1f;
       char g2 = 0;
@@ -155,21 +155,21 @@ private:
         delete(parser);
         delete source;
       }
-      catch (const xercesc::XMLException & toCatch)
+      catch (const xercesc::XMLException& toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("XMLException: ") + StringManager().convert(toCatch.getMessage()));
       }
-      catch (const xercesc::SAXException & toCatch)
+      catch (const xercesc::SAXException& toCatch)
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "", String("SAXException: ") + StringManager().convert(toCatch.getMessage()));
       }
-      catch (const XMLHandler::EndParsingSoftly & /*toCatch*/)
+      catch (const XMLHandler::EndParsingSoftly& /*toCatch*/)
       {
         //nothing to do here, as this exception is used to softly abort the parsing for whatever reason.
       }
     }
 
-    void XMLFile::save_(const String & filename, XMLHandler * handler) const
+    void XMLFile::save_(const String& filename, XMLHandler* handler) const
     {
       // open file in binary mode to avoid any line ending conversions
       std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
@@ -193,7 +193,7 @@ private:
       else return String(to_encode).substitute("\t", "&#x9;");
     }
 
-    bool XMLFile::isValid(const String & filename, std::ostream & os)
+    bool XMLFile::isValid(const String& filename, std::ostream& os)
     {
       if (schema_location_.empty())
       {
@@ -203,10 +203,10 @@ private:
       return XMLValidator().isValid(filename, current_location, os);
     }
 
-    const String & XMLFile::getVersion() const
+    const String& XMLFile::getVersion() const
     {
       return schema_version_;
     }
 
-  }   // namespace Internal
+  } // namespace Internal
 } // namespace OpenMS

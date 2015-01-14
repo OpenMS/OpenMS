@@ -110,7 +110,7 @@ namespace OpenMS
     index_to_unit_[13] = "";
   }
 
-  MetaInfoRegistry::MetaInfoRegistry(const MetaInfoRegistry & rhs)
+  MetaInfoRegistry::MetaInfoRegistry(const MetaInfoRegistry& rhs)
   {
     *this = rhs;
   }
@@ -120,7 +120,7 @@ namespace OpenMS
 
   }
 
-  MetaInfoRegistry & MetaInfoRegistry::operator=(const MetaInfoRegistry & rhs)
+  MetaInfoRegistry& MetaInfoRegistry::operator=(const MetaInfoRegistry& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -136,7 +136,7 @@ namespace OpenMS
     return *this;
   }
 
-  UInt MetaInfoRegistry::registerName(const String & name, const String & description, const String & unit) const
+  UInt MetaInfoRegistry::registerName(const String& name, const String& description, const String& unit) const
   {
     UInt rv;
 #pragma omp critical (MetaInfoRegistry)
@@ -158,7 +158,7 @@ namespace OpenMS
     return rv;
   }
 
-  void MetaInfoRegistry::setDescription(UInt index, const String & description)
+  void MetaInfoRegistry::setDescription(UInt index, const String& description)
   {
     bool found;
 #pragma omp critical (MetaInfoRegistry)
@@ -175,7 +175,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoRegistry::setDescription(const String & name, const String & description)
+  void MetaInfoRegistry::setDescription(const String& name, const String& description)
   {
     bool found;
 #pragma omp critical (MetaInfoRegistry)
@@ -193,7 +193,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoRegistry::setUnit(UInt index, const String & unit)
+  void MetaInfoRegistry::setUnit(UInt index, const String& unit)
   {
     bool found;
 #pragma omp critical (MetaInfoRegistry)
@@ -210,7 +210,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoRegistry::setUnit(const String & name, const String & unit)
+  void MetaInfoRegistry::setUnit(const String& name, const String& unit)
   {
     bool found;
 #pragma omp critical (MetaInfoRegistry)
@@ -228,7 +228,7 @@ namespace OpenMS
     }
   }
 
-  UInt MetaInfoRegistry::getIndex(const String & name) const
+  UInt MetaInfoRegistry::getIndex(const String& name) const
   {
     UInt rv;
     bool found = false;
@@ -264,7 +264,7 @@ namespace OpenMS
     return result;
   }
 
-  String MetaInfoRegistry::getDescription(const String & name) const
+  String MetaInfoRegistry::getDescription(const String& name) const
   {
     String rv;
     UInt index = getIndex(name);
@@ -294,7 +294,7 @@ namespace OpenMS
     return result;
   }
 
-  String MetaInfoRegistry::getUnit(const String & name) const
+  String MetaInfoRegistry::getUnit(const String& name) const
   {
     String rv;
     UInt index = getIndex(name);

@@ -49,7 +49,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  PeptideIdentificationVisualizer::PeptideIdentificationVisualizer(bool editable, QWidget * parent, MetaDataBrowser * caller) :
+  PeptideIdentificationVisualizer::PeptideIdentificationVisualizer(bool editable, QWidget* parent, MetaDataBrowser* caller) :
     BaseVisualizerGUI(editable, parent),
     BaseVisualizer<PeptideIdentification>()
   {
@@ -64,14 +64,14 @@ namespace OpenMS
 
     addSeparator_();
     addLabel_("Show peptide hits with score equal or better than a threshold.");
-    QPushButton * button;
+    QPushButton* button;
     addLineEditButton_("Score threshold", filter_threshold_, button, "Filter");
     connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()));
 
     finishAdding_();
   }
 
-  void PeptideIdentificationVisualizer::load(PeptideIdentification & s, int tree_item_id)
+  void PeptideIdentificationVisualizer::load(PeptideIdentification& s, int tree_item_id)
   {
     ptr_ = &s;
     temp_ = s;

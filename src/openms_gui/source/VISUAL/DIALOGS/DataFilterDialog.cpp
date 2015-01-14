@@ -47,7 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  DataFilterDialog::DataFilterDialog(DataFilters::DataFilter & filter, QWidget * parent) :
+  DataFilterDialog::DataFilterDialog(DataFilters::DataFilter& filter, QWidget* parent) :
     QDialog(parent),
     filter_(filter)
   {
@@ -96,7 +96,7 @@ namespace OpenMS
     }
   }
 
-  void DataFilterDialog::field_changed_(const QString & field)
+  void DataFilterDialog::field_changed_(const QString& field)
   {
     QString op(op_->currentText());
     if (field == "Meta data")
@@ -111,7 +111,7 @@ namespace OpenMS
     }
   }
 
-  void DataFilterDialog::op_changed_(const QString & op)
+  void DataFilterDialog::op_changed_(const QString& op)
   {
     QString field(field_->currentText());
     if (op != "exists")
@@ -198,7 +198,7 @@ namespace OpenMS
     {
       filter_.field = DataFilters::META_DATA;
       filter_.meta_name = meta_name_field;
-      if (not_numerical)       // entered value is not numerical, store it in value_string (as String)
+      if (not_numerical) // entered value is not numerical, store it in value_string (as String)
       {
         filter_.value_string = String(value);
         filter_.value_is_numerical = false;

@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  ExperimentalSettings::ExperimentalSettings(const ExperimentalSettings & source) :
+  ExperimentalSettings::ExperimentalSettings(const ExperimentalSettings& source) :
     MetaInfoInterface(source),
     DocumentIdentifier(source),
     sample_(source.sample_),
@@ -73,7 +73,7 @@ namespace OpenMS
   {
   }
 
-  ExperimentalSettings & ExperimentalSettings::operator=(const ExperimentalSettings & source)
+  ExperimentalSettings& ExperimentalSettings::operator=(const ExperimentalSettings& source)
   {
     if (&source == this)
       return *this;
@@ -93,7 +93,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool ExperimentalSettings::operator==(const ExperimentalSettings & rhs) const
+  bool ExperimentalSettings::operator==(const ExperimentalSettings& rhs) const
   {
     return sample_ == rhs.sample_ &&
            source_files_ == rhs.source_files_ &&
@@ -108,134 +108,134 @@ namespace OpenMS
            DocumentIdentifier::operator==(rhs);
   }
 
-  bool ExperimentalSettings::operator!=(const ExperimentalSettings & rhs) const
+  bool ExperimentalSettings::operator!=(const ExperimentalSettings& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const Sample & ExperimentalSettings::getSample() const
+  const Sample& ExperimentalSettings::getSample() const
   {
     return sample_;
   }
 
-  Sample & ExperimentalSettings::getSample()
+  Sample& ExperimentalSettings::getSample()
   {
     return sample_;
   }
 
-  void ExperimentalSettings::setSample(const Sample & sample)
+  void ExperimentalSettings::setSample(const Sample& sample)
   {
     sample_ = sample;
   }
 
-  const vector<SourceFile> & ExperimentalSettings::getSourceFiles() const
+  const vector<SourceFile>& ExperimentalSettings::getSourceFiles() const
   {
     return source_files_;
   }
 
-  vector<SourceFile> & ExperimentalSettings::getSourceFiles()
+  vector<SourceFile>& ExperimentalSettings::getSourceFiles()
   {
     return source_files_;
   }
 
-  void ExperimentalSettings::setSourceFiles(const vector<SourceFile> & source_file)
+  void ExperimentalSettings::setSourceFiles(const vector<SourceFile>& source_file)
   {
     source_files_ = source_file;
   }
 
-  const vector<ContactPerson> & ExperimentalSettings::getContacts() const
+  const vector<ContactPerson>& ExperimentalSettings::getContacts() const
   {
     return contacts_;
   }
 
-  vector<ContactPerson> & ExperimentalSettings::getContacts()
+  vector<ContactPerson>& ExperimentalSettings::getContacts()
   {
     return contacts_;
   }
 
-  void ExperimentalSettings::setContacts(const std::vector<ContactPerson> & contacts)
+  void ExperimentalSettings::setContacts(const std::vector<ContactPerson>& contacts)
   {
     contacts_ = contacts;
   }
 
-  const Instrument & ExperimentalSettings::getInstrument() const
+  const Instrument& ExperimentalSettings::getInstrument() const
   {
     return instrument_;
   }
 
-  Instrument & ExperimentalSettings::getInstrument()
+  Instrument& ExperimentalSettings::getInstrument()
   {
     return instrument_;
   }
 
-  void ExperimentalSettings::setInstrument(const Instrument & instrument)
+  void ExperimentalSettings::setInstrument(const Instrument& instrument)
   {
     instrument_ = instrument;
   }
 
-  const DateTime & ExperimentalSettings::getDateTime() const
+  const DateTime& ExperimentalSettings::getDateTime() const
   {
     return datetime_;
   }
 
-  void ExperimentalSettings::setDateTime(const DateTime & date)
+  void ExperimentalSettings::setDateTime(const DateTime& date)
   {
     datetime_ = date;
   }
 
-  const HPLC & ExperimentalSettings::getHPLC() const
+  const HPLC& ExperimentalSettings::getHPLC() const
   {
     return hplc_;
   }
 
-  HPLC & ExperimentalSettings::getHPLC()
+  HPLC& ExperimentalSettings::getHPLC()
   {
     return hplc_;
   }
 
-  void ExperimentalSettings::setHPLC(const HPLC & hplc)
+  void ExperimentalSettings::setHPLC(const HPLC& hplc)
   {
     hplc_ = hplc;
   }
 
-  std::ostream & operator<<(std::ostream & os, const ExperimentalSettings & /*exp*/)
+  std::ostream& operator<<(std::ostream& os, const ExperimentalSettings& /*exp*/)
   {
     os << "-- EXPERIMENTALSETTINGS BEGIN --" << std::endl;
     os << "-- EXPERIMENTALSETTINGS END --" << std::endl;
     return os;
   }
 
-  const vector<ProteinIdentification> & ExperimentalSettings::getProteinIdentifications() const
+  const vector<ProteinIdentification>& ExperimentalSettings::getProteinIdentifications() const
   {
     return protein_identifications_;
   }
 
-  vector<ProteinIdentification> & ExperimentalSettings::getProteinIdentifications()
+  vector<ProteinIdentification>& ExperimentalSettings::getProteinIdentifications()
   {
     return protein_identifications_;
   }
 
-  void ExperimentalSettings::setProteinIdentifications(const vector<ProteinIdentification> & protein_identifications)
+  void ExperimentalSettings::setProteinIdentifications(const vector<ProteinIdentification>& protein_identifications)
   {
     protein_identifications_ = protein_identifications;
   }
 
-  const String & ExperimentalSettings::getComment() const
+  const String& ExperimentalSettings::getComment() const
   {
     return comment_;
   }
 
-  void ExperimentalSettings::setComment(const String & comment)
+  void ExperimentalSettings::setComment(const String& comment)
   {
     comment_ = comment;
   }
 
-  const String & ExperimentalSettings::getFractionIdentifier() const
+  const String& ExperimentalSettings::getFractionIdentifier() const
   {
     return fraction_identifier_;
   }
 
-  void ExperimentalSettings::setFractionIdentifier(const String & fraction_identifier)
+  void ExperimentalSettings::setFractionIdentifier(const String& fraction_identifier)
   {
     fraction_identifier_ = fraction_identifier;
   }

@@ -43,7 +43,7 @@ namespace OpenMS
 {
   using namespace ms; // numpress namespace
 
-  void MSNumpressCoder::encodeNP_(const std::vector<double>& in, String& result, const NumpressConfig & config)
+  void MSNumpressCoder::encodeNP_(const std::vector<double>& in, String& result, const NumpressConfig& config)
   {
     if (in.empty()) return;
 
@@ -90,7 +90,7 @@ namespace OpenMS
         if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize); }
         byteCount = numpress::MSNumpress::encodeLinear(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance) // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeLinear(numpressed, unpressed);
         }
@@ -101,7 +101,7 @@ namespace OpenMS
       {
         byteCount = numpress::MSNumpress::encodePic(&in[0], dataSize, &numpressed[0]);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance) // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodePic(numpressed, unpressed);
         }
@@ -113,7 +113,7 @@ namespace OpenMS
         if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize); }
         byteCount = numpress::MSNumpress::encodeSlof(&in[0], dataSize, &numpressed[0], fixedPoint);
         numpressed.resize(byteCount);
-        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
+        if (config.numpressErrorTolerance) // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeSlof(numpressed, unpressed);
         }
@@ -142,7 +142,7 @@ namespace OpenMS
       {
         if (PIC == config.np_compression) // integer rounding, abs accuracy is +- 0.5
         {
-          for (n = static_cast<int>(dataSize)-1; n>=0; n-- ) // check for overflow, strange rounding
+          for (n = static_cast<int>(dataSize) - 1; n >= 0; n--) // check for overflow, strange rounding
           {
             if ((!boost::math::isfinite(unpressed[n])) || (fabs(in[n] - unpressed[n]) >= 1.0))
             {
@@ -152,7 +152,7 @@ namespace OpenMS
         }
         else // check for tolerance as well as overflow
         {
-          for (n=static_cast<int>(dataSize)-1; n>=0; n--)
+          for (n = static_cast<int>(dataSize) - 1; n >= 0; n--)
           {
             double u = unpressed[n];
             double d = in[n];
@@ -217,12 +217,12 @@ namespace OpenMS
     }
   }
 
-  void MSNumpressCoder::decodeNP_(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
+  void MSNumpressCoder::decodeNP_(const std::string& in, std::vector<double>& out, const NumpressConfig& config)
   {
     decodeNPInternal_(reinterpret_cast<const unsigned char*>(in.c_str()), in.size(), out, config);
   }
 
-  void MSNumpressCoder::decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig & config)
+  void MSNumpressCoder::decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig& config)
   {
     out.clear();
     if (in_size == 0) return;

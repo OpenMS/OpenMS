@@ -178,8 +178,8 @@ namespace OpenMS
       if (line.size() ==  (result.size() == 0 ? line_len : short_line_len) && short_line_len > 8 && line.rfind(' ') != String::npos)
       {
         String last_word = line.suffix(' ');
-        if (last_word.length() < 4)
-        { // shorten by last word (will move to the next line)
+        if (last_word.length() < 4) // shorten by last word (will move to the next line)
+        {
           line = line.prefix(line.size() - last_word.length());
           advance_size -= last_word.size(); // + actual chars
         }

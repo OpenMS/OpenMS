@@ -545,17 +545,17 @@ protected:
       }
       SVMData dummy;
       double cv_quality = svm.performCrossValidation(encoded_training_sample,
-                                                         dummy,
-                                                         false,
-                                                         start_values,
-                                                         step_sizes,
-                                                         end_values,
-                                                         number_of_partitions,
-                                                         number_of_runs,
-                                                         optimized_parameters,
-                                                         additive_cv,
-                                                         output_flag,
-                                                         "performances_" + digest + ".txt");
+                                                     dummy,
+                                                     false,
+                                                     start_values,
+                                                     step_sizes,
+                                                     end_values,
+                                                     number_of_partitions,
+                                                     number_of_runs,
+                                                     optimized_parameters,
+                                                     additive_cv,
+                                                     output_flag,
+                                                     "performances_" + digest + ".txt");
 
       String debug_string = "Best parameters found in cross validation:";
 

@@ -180,53 +180,53 @@ namespace OpenMS
       }
 
       *log_dest_ << std::boolalpha <<
-        prefix << "FAILED: '" << message << "'\n" <<
-        prefix << "\n" <<
-        prefix << "  input:\tin1\tin2\n" <<
-        prefix << "  line:\t" << line_num_1_ << '\t' << line_num_2_ << "\n" <<
-        prefix << "  pos/col:\t" << input_line_1_.line_position_ << '/' << prefix1.line_column << '\t' << input_line_2_.line_position_ << '/' << prefix2.line_column << "\n" <<
-        prefix << " --------------------------------\n" <<
-        prefix << "  is_number:\t" << element_1_.is_number << '\t' << element_2_.is_number << "\n" <<
-        prefix << "  numbers:\t" << element_1_.number << '\t' << element_2_.number << "\n" <<
-        prefix << "  is_space:\t" << element_1_.is_space << '\t' << element_2_.is_space << "\n" <<
-        prefix << "  is_letter:\t" << (!element_1_.is_number && !element_1_.is_space) << '\t' << (!element_2_.is_number && !element_2_.is_space) << "\n" <<
-        prefix << "  letters:\t\"" << element_1_.letter << "\"\t\"" << element_2_.letter << "\"\n" <<
-        prefix << "  char_codes:\t" << static_cast<UInt>(element_1_.letter) << "\t" << static_cast<UInt>(element_2_.letter) << "\n" <<
-        prefix << " --------------------------------\n" <<
-        prefix << "  relative_max:        " << ratio_max_ << "\n" <<
-        prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
-        prefix << " --------------------------------\n" <<
-        prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
-        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+      prefix << "FAILED: '" << message << "'\n" <<
+      prefix << "\n" <<
+      prefix << "  input:\tin1\tin2\n" <<
+      prefix << "  line:\t" << line_num_1_ << '\t' << line_num_2_ << "\n" <<
+      prefix << "  pos/col:\t" << input_line_1_.line_position_ << '/' << prefix1.line_column << '\t' << input_line_2_.line_position_ << '/' << prefix2.line_column << "\n" <<
+      prefix << " --------------------------------\n" <<
+      prefix << "  is_number:\t" << element_1_.is_number << '\t' << element_2_.is_number << "\n" <<
+      prefix << "  numbers:\t" << element_1_.number << '\t' << element_2_.number << "\n" <<
+      prefix << "  is_space:\t" << element_1_.is_space << '\t' << element_2_.is_space << "\n" <<
+      prefix << "  is_letter:\t" << (!element_1_.is_number && !element_1_.is_space) << '\t' << (!element_2_.is_number && !element_2_.is_space) << "\n" <<
+      prefix << "  letters:\t\"" << element_1_.letter << "\"\t\"" << element_2_.letter << "\"\n" <<
+      prefix << "  char_codes:\t" << static_cast<UInt>(element_1_.letter) << "\t" << static_cast<UInt>(element_2_.letter) << "\n" <<
+      prefix << " --------------------------------\n" <<
+      prefix << "  relative_max:        " << ratio_max_ << "\n" <<
+      prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
+      prefix << " --------------------------------\n" <<
+      prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
+      prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
       writeWhitelistCases_(prefix);
 
       *log_dest_
-        << prefix << "\n"
-        << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
-        << prefix << "\n"
-        << prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
-        << prefix << prefix1.prefix << "!\n"
-        << prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
-        << prefix <<  "\n"
-        << prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
-        << prefix << prefix2.prefix << "!\n"
-        << prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
-        << prefix << "\n\n"
-        << "Easy Access:" << "\n"
-        << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
-        << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
-        << "\n"
-        #ifdef WIN32
-        << "TortoiseMerge"
-        << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
-        << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
-        #else
-        << "diff"
-        << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
-        << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
-        #endif
-        << std::endl;
+      << prefix << "\n"
+      << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
+      << prefix << "\n"
+      << prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
+      << prefix << prefix1.prefix << "!\n"
+      << prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
+      << prefix <<  "\n"
+      << prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
+      << prefix << prefix2.prefix << "!\n"
+      << prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
+      << prefix << "\n\n"
+      << "Easy Access:" << "\n"
+      << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
+      << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
+      << "\n"
+#ifdef WIN32
+      << "TortoiseMerge"
+      << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
+      << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
+#else
+      << "diff"
+      << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
+      << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
+#endif
+      << std::endl;
     }
 
     // If verbose level is low, report only the first error.
@@ -249,13 +249,13 @@ namespace OpenMS
       }
 
       *log_dest_ <<
-        prefix << "PASSED.\n" <<
-        prefix << '\n' <<
-        prefix << "  relative_max:        " << ratio_max_ << '\n' <<
-        prefix << "  relative_acceptable: " << ratio_max_allowed_ << '\n' <<
-        prefix << '\n' <<
-        prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
-        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+      prefix << "PASSED.\n" <<
+      prefix << '\n' <<
+      prefix << "  relative_max:        " << ratio_max_ << '\n' <<
+      prefix << "  relative_acceptable: " << ratio_max_allowed_ << '\n' <<
+      prefix << '\n' <<
+      prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
+      prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
       writeWhitelistCases_(prefix);
 
@@ -264,20 +264,20 @@ namespace OpenMS
       if (line_num_1_max_ == -1 && line_num_2_max_ == -1)
       {
         *log_dest_ <<
-          prefix << "No numeric differences were found.\n" <<
-          prefix << std::endl;
+        prefix << "No numeric differences were found.\n" <<
+        prefix << std::endl;
       }
       else
       {
         *log_dest_ <<
-          prefix << "Maximum relative error was attained at these lines, enclosed in \"\":\n" <<
-          prefix << '\n' <<
-          QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_max_ << ":\n" <<
-          "\"" << line_str_1_max_ << "\"\n" <<
-          '\n' <<
-          QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_max_ << ":\n" <<
-          "\"" << line_str_2_max_ << "\"\n" <<
-          std::endl;
+        prefix << "Maximum relative error was attained at these lines, enclosed in \"\":\n" <<
+        prefix << '\n' <<
+        QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_max_ << ":\n" <<
+        "\"" << line_str_1_max_ << "\"\n" <<
+        '\n' <<
+        QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_max_ << ":\n" <<
+        "\"" << line_str_2_max_ << "\"\n" <<
+        std::endl;
       }
     }
     return;
@@ -541,14 +541,14 @@ namespace OpenMS
     for (line_string.clear(); ++line_number, std::getline(input_stream, line_string); )
     {
       if (line_string.empty())
-        continue; // shortcut
+        continue;  // shortcut
       std::string::const_iterator iter = line_string.begin(); // loop initialization
       for (; iter != line_string.end() && isspace((unsigned char)*iter); ++iter)
       {
       }
       // skip over whitespace
       if (iter != line_string.end())
-        break; // line is not empty or whitespace only
+        break;  // line is not empty or whitespace only
     }
   }
 
@@ -597,8 +597,8 @@ namespace OpenMS
     if (!whitelist_cases_.empty())
     {
       *log_dest_ <<
-        prefix << '\n' <<
-        prefix << "  whitelist cases:\n";
+      prefix << '\n' <<
+      prefix << "  whitelist cases:\n";
       Size length = 0;
       for (std::map<String, UInt>::const_iterator wlcit =
              whitelist_cases_.begin(); wlcit != whitelist_cases_.end();
@@ -612,9 +612,9 @@ namespace OpenMS
            ++wlcit)
       {
         *log_dest_ <<
-          prefix << "    " << std::setw(length + 3) << std::left <<
-          ("\"" + wlcit->first + "\"") << std::setw(3) << std::right <<
-          wlcit->second << "x\n";
+        prefix << "    " << std::setw(length + 3) << std::left <<
+        ("\"" + wlcit->first + "\"") << std::setw(3) << std::right <<
+        wlcit->second << "x\n";
       }
     }
   }
