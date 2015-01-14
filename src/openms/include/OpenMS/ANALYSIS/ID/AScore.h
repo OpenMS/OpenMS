@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: David Wojnar $
-// $Authors: David Wojnar $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: David Wojnar, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef  OPENMS_ANALYSIS_ID_ASCORE_H
@@ -41,29 +41,30 @@
 
 namespace OpenMS
 {
-  class PeptideHit;
-  class AASequence;
-  struct ProbablePhosphoSites
-  {
+class PeptideHit;
+class AASequence;
+struct ProbablePhosphoSites
+{
     Size first;
     Size second;
-    Size seq_1;
-    Size seq_2;
-    Size peak_depth;
+    Size seq_1; // index of best permutation with site in phosphorilated state
+    Size seq_2; // index of permutation with site in unphosphorilated state
+    Size peak_depth; // filtering level that gave rise to maximum discriminatory score
     Size AScore;
-  };
-  /**
+};
+/**
       @brief Implementation of the Ascore
-      For a given peptide sequence and its MS^2 spectrum it is tried to identify the most probable phosphorylation-site(s).
-      For each phosphorylation site a score is calculated, which is an indicator for the probability that this site is phosphorylated.
+      For a given peptide sequence and its MS/MS spectrum it identifies the most probable phosphorylation-site(s).
+      For each phosphorylation site a probability score is calculated.
       The algorithm is implemented according to Beausoleil et al.
 
   */
-  class OPENMS_DLLAPI AScore
-  {
-public:
+class OPENMS_DLLAPI AScore
+{
+  public:
     ///Default constructor
     AScore();
+
     ///Destructor
     ~AScore();
 
@@ -77,29 +78,32 @@ public:
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fmt, Int number_of_phospho_sites);
+    PeptideHit compute(PeptideHit & hit, RichPeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
 
-    ///Computes the cumulative binomial probabilities.
-    double computeCumulativeScore(UInt N, UInt n, double p);
+    ///Computes the site determining_ions for the given AS and sequences in candidates
+    void computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, std::vector<RichPeakSpectrum> & site_determining_ions) const;
+
+    /// return all phospho sites
+    std::vector<Size> getSites(AASequence & without_phospho) const;
+
+    /// caclucalte all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
+    std::vector<std::vector<Size> > computePermutations(std::vector<Size> sites, Int n_phosphorylation_events) const;
+
+    /// Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!
+    Size numberOfMatchedIons(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;
+
+    /// Computes the peptide score according to Beausoleil et al. page 1291
+    double peptideScore(const std::vector<double> & scores) const;
 
     /**
         @brief Finds the peptides with the highest PeptideScores and outputs all information for computing the AScore
         @note This function assumes that there are more permutations than the assumed number of phosphorylations!
     */
-    void computeHighestPeptides(std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, std::vector<std::vector<Size> > & permutations);
-    ///Computes the site determining_ions for the given AS and sequences in candidates
-    void compute_site_determining_ions(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, std::vector<RichPeakSpectrum> & site_determining_ions);
-private:
-    ///computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by Position!
-    Int numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fmt);
-    ///computes the peptide score according to Beausoleil et al. page 1291
-    double peptideScore_(std::vector<double> & scores);
-public:
-    ///helperfunction
-    std::vector<Size> computeTupel_(AASequence & without_phospho);
-    ///helper function
-    std::vector<std::vector<Size> > computePermutations_(std::vector<Size> tupel, Int number_of_phospho_sites);
-  };
+    void determineHighestScoringPermutations(const std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, const std::vector<std::vector<Size> > & permutations) const;
+
+    /// Computes the cumulative binomial probabilities.
+    double computeCumulativeScore(Size N, Size n, double p) const;
+};
 
 } // namespace OpenMS
 
