@@ -898,6 +898,7 @@ namespace OpenMS
     else
     {
       value_ = value;
+      value_.trim();
     }
   }
 

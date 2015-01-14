@@ -3030,8 +3030,9 @@ namespace OpenMS
     {
       IDMapper im;
       Param p = im.getParameters();
-      p.setValue("rt_tolerance", numeric_limits<double>::max());
+      p.setValue("rt_tolerance", 5.0);
       im.setParameters(p);
+      showLogMessage_(LS_NOTICE, "Note", "Mapping matches with 5 sec tolerance and no m/z limit to spectra...");
       im.annotate((*layer.getPeakData()), identifications, true, true);
     }
     else
@@ -3040,6 +3041,8 @@ namespace OpenMS
     }
     return true;
   }
+
+
   void TOPPViewBase::annotateWithID()
   {
     const LayerData& layer = getActiveCanvas()->getCurrentLayer();

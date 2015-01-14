@@ -51,7 +51,6 @@ namespace OpenMS
 MassTraceDetection::MassTraceDetection() :
     DefaultParamHandler("MassTraceDetection"), ProgressLogger()
 {
-    // defaults_.setValue( "name" , 1 , "descript" );
     defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass deviation (in ppm).");
     defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are removed as noise.");
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
@@ -67,9 +66,6 @@ MassTraceDetection::MassTraceDetection() :
     defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", ListUtils::create<String>("advanced"));
     defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
     defaults_.setValue("max_trace_length", 300.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
-
-
-
 
     defaultsToParam_();
 
@@ -400,7 +396,6 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 }
                 --trace_down_idx;
                 ++down_scan_counter;
-
 
                 // trace termination criterion: max allowed number of
                 // consecutive outliers reached OR cancel extension if

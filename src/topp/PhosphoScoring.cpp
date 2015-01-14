@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
-// $Authors: David Wojnar $
+// $Authors: David Wojnar, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
-
 
 using namespace OpenMS;
 using namespace std;
@@ -93,15 +92,150 @@ public:
 
 protected:
 
+  // spectrum must not contain 0 intensity peaks and must be sorted by m/z
+  template <typename SpectrumType>
+  static void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
+  {
+    if (in.empty())
+    {
+      return;
+    }
+
+    SpectrumType old_spectrum = in;
+
+    // determine charge seeds and extend them
+    vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
+    vector<Int> features(old_spectrum.size(), -1);
+    Int feature_number = 0;
+
+    for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
+    {
+      double current_mz = old_spectrum[current_peak].getPosition()[0];
+
+      for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
+      {
+        // try to extend isotopes from mono-isotopic peak
+        // if extension larger then min_isopeaks possible:
+        //   - save charge q in mono_isotopic_peak[]
+        //   - annotate all isotopic peaks with feature number
+        if (features[current_peak] == -1)   // only process peaks which have no assigned feature number
+        {
+          bool has_min_isopeaks = true;
+          vector<Size> extensions;
+          for (Size i = 0; i < max_isopeaks; ++i)
+          {
+            double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
+            Size p = old_spectrum.findNearest(expected_mz);
+            double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
+            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)   // test for missing peak
+            {
+              if (i < min_isopeaks)
+              {
+                has_min_isopeaks = false;
+              }
+              break;
+            }
+            else
+            {
+              // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
+              Size n_extensions = extensions.size();
+              if (n_extensions != 0)
+              {
+                if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
+                {
+                  if (i < min_isopeaks)
+                  {
+                    has_min_isopeaks = false;
+                  }
+                  break;
+                }
+              }
+
+              // averagine check passed
+              extensions.push_back(p);
+            }
+          }
+
+          if (has_min_isopeaks)
+          {
+            //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
+            mono_isotopic_peak[current_peak] = q;
+            for (Size i = 0; i != extensions.size(); ++i)
+            {
+              features[extensions[i]] = feature_number;
+            }
+            feature_number++;
+          }
+        }
+      }
+    }
+
+    in.clear(false);
+    for (Size i = 0; i != old_spectrum.size(); ++i)
+    {
+      Int z = mono_isotopic_peak[i];
+      if (keep_only_deisotoped)
+      {
+        if (z == 0)
+        {
+          continue;
+        }
+
+        // if already single charged or no decharging selected keep peak as it is
+        if (!make_single_charged)
+        {
+          in.push_back(old_spectrum[i]);
+        }
+        else
+        {
+          RichPeak1D p = old_spectrum[i];
+          p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+          in.push_back(p);
+        }
+      }
+      else
+      {
+        // keep all unassigned peaks
+        if (features[i] < 0)
+        {
+          in.push_back(old_spectrum[i]);
+          continue;
+        }
+
+        // convert mono-isotopic peak with charge assigned by deisotoping
+        if (z != 0)
+        {
+          if (!make_single_charged)
+          {
+            in.push_back(old_spectrum[i]);
+          }
+          else
+          {
+            RichPeak1D p = old_spectrum[i];
+            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+            in.push_back(p);
+          }
+        }
+      }
+    }
+
+    in.sortByPosition();
+  }
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file which contains MSMS spectra", false);
+    registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra", false);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output with annotated phosphorylation scores");
-    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Fragment mass error", false);
+    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.05, "Fragment mass error", false);
+
+    StringList fragment_mass_tolerance_unit_valid_strings;
+    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
+    registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment m", false, false);
+    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);
 
     addEmptyLine_();
   }
@@ -111,15 +245,14 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    //Param alg_param = getParam_().copy("algorithm:", true);
 
     String in(getStringOption_("in"));
     String id(getStringOption_("id"));
     String out(getStringOption_("out"));
     double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
-    AScore scoring_function;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
+    AScore ascore;
+
     RichPeakMap exp;
     //-------------------------------------------------------------
     // loading input
@@ -128,7 +261,22 @@ protected:
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_out;
     IdXMLFile().load(id, prot_ids, pep_ids);
-    MzMLFile().load(in, exp);
+
+    MzMLFile f;
+    f.setLogType(log_type_);
+
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+    f.getOptions() = options;
+    f.load(in, exp);
+    exp.sortSpectra(true);
+
+    for (Size i = 0; i != exp.getNrSpectra(); ++i)
+    {
+      deisotopeAndSingleChargeMSSpectrum_(exp.getSpectrum(i), 2, 5, fragment_mass_tolerance, fragment_mass_unit_ppm);
+    }
+
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -149,27 +297,9 @@ protected:
         {
           PeptideHit scored_hit = *hit;
           RichPeakSpectrum& temp  = *it;
-          //compute number of possible phosphorylation sites
-          Int number_of_phospho_sites = 0;
-          {
-            String without_phospho_str(scored_hit.getSequence().toString());
-            size_t found = without_phospho_str.find("(Phospho)");
-            while (found != string::npos)
-            {
-              without_phospho_str.erase(found, String("(Phospho)").size());
-              found = without_phospho_str.find("(Phospho)");
-            }
-            AASequence without_phospho = AASequence::fromString(without_phospho_str);
-            double prec = hits->getMZ();
-            double prec_mz = prec * scored_hit.getCharge();
-            prec_mz -= scored_hit.getCharge();
-            double mono_weight = without_phospho.getMonoWeight();
-            double ha = prec_mz - mono_weight;
-            double nps = ha / 79.966331; // 79.966331 = mass of HPO3
-            number_of_phospho_sites = (Int)floor(nps + 0.5);
-          }
+
           PeptideHit phospho_sites;
-          phospho_sites = scoring_function.compute(scored_hit, temp, fragment_mass_tolerance, number_of_phospho_sites);
+          phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm);
           scored_peptides.push_back(phospho_sites);
         }
 
