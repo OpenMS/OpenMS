@@ -173,7 +173,6 @@ protected:
     String out = getStringOption_("out");
     String out_mzq = getStringOption_("out_mzq");
 
-
     //prevent loading of fragment spectra
     PeakFileOptions options;
     options.setMSLevels(vector<Int>(1, 1));
@@ -186,6 +185,19 @@ protected:
     PeakMap exp;
     f.load(in, exp);
     exp.updateRanges();
+
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType  spectrum_type = exp[0].getType();
+
+    if (spectrum_type == SpectrumSettings::RAWDATA)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected.");
+    }
 
     //load seeds
     FeatureMap seeds;

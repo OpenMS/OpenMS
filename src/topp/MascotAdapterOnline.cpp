@@ -168,6 +168,19 @@ protected:
     fh.loadExperiment(in, exp, in_type, log_type_);
     writeDebug_(String("Spectra loaded: ") + exp.size(), 2);
 
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+    }
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+
+    if (spectrum_type == SpectrumSettings::RAWDATA)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected.");
+    }
+
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------

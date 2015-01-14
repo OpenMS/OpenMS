@@ -447,20 +447,34 @@ public:
 
       Size progress = 0;
       startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
-      for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
+
+      if (!input.getNrSpectra() == 0)
       {
-        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+        // determine type of spectral data (profile or centroided)
+        SpectrumSettings::SpectrumType original_spectrum_type = input[0].getType();
+
+        if (original_spectrum_type == SpectrumSettings::PEAKS)
         {
-          output[scan_idx] = input[scan_idx];
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
         }
-        else
+
+        for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
-          std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
-          pick(input[scan_idx], output[scan_idx], boundaries_s);
-          boundaries_spec.push_back(boundaries_s);
+          if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+          {
+            output[scan_idx] = input[scan_idx];
+          }
+          else
+          {
+            std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
+            pick(input[scan_idx], output[scan_idx], boundaries_s);
+            boundaries_spec.push_back(boundaries_s);
+          }
+          setProgress(++progress);
         }
-        setProgress(++progress);
       }
+
+
       for (Size i = 0; i < input.getChromatograms().size(); ++i)
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;
@@ -491,25 +505,38 @@ public:
       // copy experimental settings
       static_cast<ExperimentalSettings &>(output) = *input.getExperimentalSettings();
 
-      // resize output with respect to input
-      output.resize(input.size());
-
       Size progress = 0;
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
-      for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
+
+      if (!input.getNrSpectra() == 0)
       {
-        if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+        // determine type of spectral data (profile or centroided)
+        SpectrumSettings::SpectrumType spectrum_type = input[0].getType();
+
+        if (spectrum_type == SpectrumSettings::PEAKS)
         {
-          output[scan_idx] = input[scan_idx];
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
         }
-        else
+
+        // resize output with respect to input
+        output.resize(input.size());
+
+        for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
-          MSSpectrum<PeakType> s = input[scan_idx];
-          s.sortByPosition();
-          pick(s, output[scan_idx]);
+          if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
+          {
+            output[scan_idx] = input[scan_idx];
+          }
+          else
+          {
+            MSSpectrum<PeakType> s = input[scan_idx];
+            s.sortByPosition();
+            pick(s, output[scan_idx]);
+          }
+          setProgress(++progress);
         }
-        setProgress(++progress);
       }
+
       for (Size i = 0; i < input.getNrChromatograms(); ++i)
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;

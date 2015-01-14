@@ -162,7 +162,7 @@ protected:
     mz_data_file.setLogType(log_type_);
     MSExperiment<Peak1D> ms_peakmap;
     std::vector<Int> ms_level(1, 1);
-    (mz_data_file.getOptions()).setMSLevels(ms_level);
+    mz_data_file.getOptions().setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
 
     if (ms_peakmap.empty())
@@ -170,6 +170,14 @@ protected:
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
+    }
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = ms_peakmap[0].getType();
+
+    if (spectrum_type == SpectrumSettings::RAWDATA)
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected.");
     }
 
     // make sure the spectra are sorted by m/z

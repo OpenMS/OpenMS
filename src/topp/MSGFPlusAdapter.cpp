@@ -290,6 +290,19 @@ protected:
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
 
+      if (exp.getSpectra().empty())
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+      }
+
+      // determine type of spectral data (profile or centroided)
+      SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+
+      if (spectrum_type == SpectrumSettings::RAWDATA)
+      {
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected.");
+      }
+
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         String id = it->getNativeID(); // expected format: "... scan=#"

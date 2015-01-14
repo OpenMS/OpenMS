@@ -214,7 +214,7 @@
 		<userParam name="mzml_id" type="xsd:string" value="LiSt20140228_H5M8_044_V12_Lysat_E1_R3"/>
 		<spectrumList count="16" defaultDataProcessingRef="dp_sp_0">
 			<spectrum id="controllerType=0 controllerNumber=1 scan=5529" index="0" defaultArrayLength="3238" dataProcessingRef="dp_sp_0">
-				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
+				<cvParam cvRef="MS" accession="MS:1000128" name="profile spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />

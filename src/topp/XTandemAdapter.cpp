@@ -246,6 +246,19 @@ protected:
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
 
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+    }
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+
+    if (spectrum_type == SpectrumSettings::RAWDATA)
+    {
+      throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected.");
+    }
+
     // we need to replace the native id with a simple numbering schema, to be able to
     // map the IDs back to the spectra (RT, and MZ information)
     Size native_id(0);
