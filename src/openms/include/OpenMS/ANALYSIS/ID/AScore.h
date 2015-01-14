@@ -78,19 +78,19 @@ class OPENMS_DLLAPI AScore
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(PeptideHit & hit, RichPeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm);
+    PeptideHit compute(PeptideHit & hit, RichPeakSpectrum &real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const;
 
     ///Computes the site determining_ions for the given AS and sequences in candidates
-    void computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, std::vector<RichPeakSpectrum> & site_determining_ions);
+    void computeSiteDeterminingIons(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, std::vector<RichPeakSpectrum> & site_determining_ions) const;
 
     /// return all phospho sites
-    std::vector<Size> getSites(AASequence & without_phospho);
+    std::vector<Size> getSites(AASequence & without_phospho) const;
 
-    /// caclucalte all n_phosphorilation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorilation_events)
-    std::vector<std::vector<Size> > computePermutations(std::vector<Size> sites, Int n_phosphorilation_events);
+    /// caclucalte all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
+    std::vector<std::vector<Size> > computePermutations(std::vector<Size> sites, Int n_phosphorylation_events) const;
 
     /// Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!
-    Size numberOfMatchedIons(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false);
+    Size numberOfMatchedIons(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm = false) const;
 
     /// Computes the peptide score according to Beausoleil et al. page 1291
     double peptideScore(const std::vector<double> & scores) const;
@@ -99,10 +99,10 @@ class OPENMS_DLLAPI AScore
         @brief Finds the peptides with the highest PeptideScores and outputs all information for computing the AScore
         @note This function assumes that there are more permutations than the assumed number of phosphorylations!
     */
-    void determineHighestScoringPermutations(const std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, const std::vector<std::vector<Size> > & permutations);
+    void determineHighestScoringPermutations(const std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, const std::vector<std::vector<Size> > & permutations) const;
 
     /// Computes the cumulative binomial probabilities.
-    double computeCumulativeScore(Size N, Size n, double p);
+    double computeCumulativeScore(Size N, Size n, double p) const;
 };
 
 } // namespace OpenMS

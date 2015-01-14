@@ -58,18 +58,18 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm)
+  PeptideHit AScore::compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fragment_mass_tolerance, bool fragment_mass_unit_ppm) const
   {
     String with_phospho_string = hit.getSequence().toString();
 
-    // count number of phosphorilation events
-    Size number_of_phosphorilation_events = 0;
+    // count number of phosphorylation events
+    Size number_of_phosphorylation_events = 0;
     for (Size i = with_phospho_string.find("Phospho"); i != std::string::npos; i = with_phospho_string.find("Phospho", i + 7))
     {
-      ++number_of_phosphorilation_events;
+      ++number_of_phosphorylation_events;
     }
 
-    // create variant of the peptide with all phosphorilations removed
+    // create variant of the peptide with all phosphorylations removed
     String without_phospho_str(hit.getSequence().toString());
     without_phospho_str.substitute("(Phospho)", "");
     AASequence without_phospho = AASequence::fromString(without_phospho_str);
@@ -80,7 +80,7 @@ namespace OpenMS
     // count number of potential phospho sites
     Size number_of_STY = std::count(umps.begin(), umps.end(), 'S') + std::count(umps.begin(), umps.end(), 'T') + std::count(umps.begin(), umps.end(), 'Y');
 
-    if (real_spectrum.empty() || number_of_phosphorilation_events == 1 || number_of_STY == 0)
+    if (real_spectrum.empty() || number_of_phosphorylation_events == 1 || number_of_STY == 0)
     {
       return hit;
     }
@@ -88,16 +88,16 @@ namespace OpenMS
     TheoreticalSpectrumGenerator spectrum_generator;
     vector<RichPeakSpectrum> th_spectra;
 
-    // produce theoretical spectra with all combinations with the number of phosphorilation events
-    if (number_of_STY < number_of_phosphorilation_events)
+    // produce theoretical spectra with all combinations with the number of phosphorylation events
+    if (number_of_STY < number_of_phosphorylation_events)
     {
-      number_of_phosphorilation_events = number_of_STY;
+      number_of_phosphorylation_events = number_of_STY;
     }
 
     // determine all phospho sites
     vector<Size> sites(getSites(without_phospho));
 
-    vector<vector<Size> > permutations(computePermutations(sites, number_of_phosphorilation_events));
+    vector<vector<Size> > permutations(computePermutations(sites, number_of_phosphorylation_events));
 
     th_spectra.resize(permutations.size());
     for (Size i = 0; i < permutations.size(); ++i)
@@ -132,7 +132,7 @@ namespace OpenMS
     // prepare peak depth for all windows in the actual spectrum
     {
       double biggest_window = real_spectrum.back().getMZ();
-      Size number_of_windows = static_cast<Size>(ceil(biggest_window / 100) + 0.5);
+      Size number_of_windows = static_cast<Size>(ceil(biggest_window / 100));
 
       windows_top10.resize(number_of_windows);
 
@@ -244,7 +244,7 @@ namespace OpenMS
     return phospho;
   }
 
-  double AScore::computeCumulativeScore(Size N, Size n, double p)
+  double AScore::computeCumulativeScore(Size N, Size n, double p) const
   {
     OPENMS_PRECONDITION(n <= N, "The number of matched ions (n) can be at most as large as the number of trials (N).");
     OPENMS_PRECONDITION(p >= 0 && p <= 1.0, "p must be a probability [0,1].");
@@ -265,7 +265,7 @@ namespace OpenMS
     return score;
   }
 
-  void AScore::determineHighestScoringPermutations(const std::vector<std::vector<double> >& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size> >& permutations)
+  void AScore::determineHighestScoringPermutations(const std::vector<std::vector<double> >& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size> >& permutations) const
   {
     // For every phospho site of the highest (weighted) scoring phospho site assignment:
     // 1. determine the next best (weighted) score assignment with this site in unphosporilated state.
@@ -366,7 +366,7 @@ namespace OpenMS
     }
   }
 
-  void AScore::computeSiteDeterminingIons(vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, vector<RichPeakSpectrum> & site_determining_ions)
+  void AScore::computeSiteDeterminingIons(vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, vector<RichPeakSpectrum> & site_determining_ions) const
   {
     site_determining_ions.clear();
     site_determining_ions.resize(2);
@@ -471,7 +471,7 @@ namespace OpenMS
     site_determining_ions[1].sortByPosition();
   }
 
-  Size AScore::numberOfMatchedIons(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm)
+  Size AScore::numberOfMatchedIons(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fragment_mass_tolerance, bool fragment_mass_tolerance_ppm) const
   {
     Size n = 0;
     for (Size i = 0; i < windows.size() && i <= depth; ++i)
@@ -498,6 +498,7 @@ namespace OpenMS
 
   double AScore::peptideScore(const std::vector<double> & scores) const
   {
+    OPENMS_PRECONDITION(scores.size() == 10, "Scores vector must contain a score for every peak level."); 
     return (scores[0] * 0.5
             + scores[1] * 0.75
             + scores[2]
@@ -511,7 +512,7 @@ namespace OpenMS
            / 10.0;
   }
 
-  vector<Size> AScore::getSites(AASequence& without_phospho)
+  vector<Size> AScore::getSites(AASequence& without_phospho) const
   {
     vector<Size> tupel;
     String unmodified = without_phospho.toUnmodifiedString();
@@ -525,10 +526,10 @@ namespace OpenMS
     return tupel;
   }
 
-  vector<vector<Size> > AScore::computePermutations(vector<Size> sites, Int n_phosphorilation_events)
+  vector<vector<Size> > AScore::computePermutations(vector<Size> sites, Int n_phosphorylation_events) const
   {
-    // Only one phosphorilation event? Then return every site is a permutation.
-    if (n_phosphorilation_events == 1)
+    // Only one phosphorylation event? Then return every site is a permutation.
+    if (n_phosphorylation_events == 1)
     {
       vector<vector<Size>  > permutations;
       for (Size i = 0; i < sites.size(); ++i)
@@ -540,14 +541,14 @@ namespace OpenMS
       return permutations;
     }
     // All sites are phosphorilated? Return one permutation containing all sites at once.
-    else if (sites.size() == (Size)n_phosphorilation_events)
+    else if (sites.size() == (Size)n_phosphorylation_events)
     {
       vector<vector<Size> > permutations;
       permutations.push_back(sites);
       return permutations;
     }
     else
-    // Generate all n_phosphorilation_events sized sets from sites
+    // Generate all n_phosphorylation_events sized sets from sites
     {
       vector<vector<Size> > permutations;
       vector<Size> head;
@@ -555,7 +556,7 @@ namespace OpenMS
       // all permutations with first site selected
       head.push_back(sites[0]);
       vector<Size> tupel_left(++sites.begin(), sites.end());
-      Int tail_phospho_sites = n_phosphorilation_events - 1;
+      Int tail_phospho_sites = n_phosphorylation_events - 1;
       tail = computePermutations(tupel_left, tail_phospho_sites);
       for (vector<vector<Size> >::iterator it = tail.begin(); it < tail.end(); ++it)
       {
@@ -565,10 +566,9 @@ namespace OpenMS
       }
 
       // all permutations with first site not selected
-      vector<vector<Size> > other_possibilities(computePermutations(tupel_left, n_phosphorilation_events));
+      vector<vector<Size> > other_possibilities(computePermutations(tupel_left, n_phosphorylation_events));
       permutations.insert(permutations.end(), other_possibilities.begin(), other_possibilities.end());
       return permutations;
     }
   }
-
 } // namespace OpenMS
