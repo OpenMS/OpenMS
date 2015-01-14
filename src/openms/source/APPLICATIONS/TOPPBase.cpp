@@ -1386,7 +1386,7 @@ namespace OpenMS
       // if required or set by user, do some validity checks
       if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
       {
-        //check if files are readable/writeable
+        //check if files are readable/writable
         if (p.type == ParameterInformation::INPUT_FILE_LIST)
         {
           inputFileReadable_(tmp, name);

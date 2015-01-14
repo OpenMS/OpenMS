@@ -504,7 +504,7 @@ private:
     static void printToVoid_(const char* /*s*/);
 
     svm_parameter* param_; // the parameters for the svm
-    svm_model* model_; // the learnt svm discriminant
+    svm_model* model_; // the learned svm discriminant
     double sigma_; // for the oligo kernel (amount of positional smearing)
     std::vector<double> sigmas_; // for the combined oligo kernel (amount of positional smearing)
     std::vector<double> gauss_table_; // lookup table for fast computation of the oligo kernel

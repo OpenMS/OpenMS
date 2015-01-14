@@ -93,7 +93,7 @@ private:
 
     void XMLFile::parse_(const String & filename, XMLHandler * handler)
     {
-      // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FatureXMLFile, is used again)
+      // ensure handler->reset() is called to save memory (in case the XMLFile reader, e.g. FeatureXMLFile, is used again)
       XMLCleaner_ clean(handler);
 
       //try to open file
