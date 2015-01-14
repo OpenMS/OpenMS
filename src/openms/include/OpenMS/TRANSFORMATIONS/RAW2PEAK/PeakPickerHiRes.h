@@ -414,13 +414,14 @@ public:
      *
      * @param input  input map in profile mode
      * @param output  output map with picked peaks
+     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centoided spectrum is passed 
      */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const
+    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const
     {
         std::vector<std::vector<PeakBoundary> > boundaries_spec;
         std::vector<std::vector<PeakBoundary> > boundaries_chrom;
-        pickExperiment(input, output, boundaries_spec, boundaries_chrom);
+        pickExperiment(input, output, boundaries_spec, boundaries_chrom, check_spectrum_type);
     }
 
     /**
@@ -432,6 +433,7 @@ public:
      * @param output  output map with picked peaks
      * @param boundaries_spec  boundaries of the picked peaks in spectra
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
+     * @param check_spectrum_type  if set, checks spectrum type and throws an exception if a centoided spectrum is passed 
      */
     template <typename PeakType, typename ChromatogramPeakT>
     void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, const bool check_spectrum_type = true) const
