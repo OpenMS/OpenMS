@@ -177,7 +177,10 @@ protected:
 
     if (spectrum_type == SpectrumSettings::RAWDATA)
     {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected.");
+      if (!getFlag_("force"))
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected.");
+      }
     }
 
     // make sure the spectra are sorted by m/z

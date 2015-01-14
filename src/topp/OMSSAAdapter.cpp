@@ -774,7 +774,10 @@ protected:
 
       if (spectrum_type == SpectrumSettings::RAWDATA)
       {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected.");
+        if (!getFlag_("force"))
+        {
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected.");
+        }
       }
 
       int chunk(0);

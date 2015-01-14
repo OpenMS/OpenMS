@@ -434,7 +434,7 @@ public:
      * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
      */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom) const
+    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom, const bool check_spectrum_type = true) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -453,7 +453,7 @@ public:
         // determine type of spectral data (profile or centroided)
         SpectrumSettings::SpectrumType original_spectrum_type = input[0].getType();
 
-        if (original_spectrum_type == SpectrumSettings::PEAKS)
+        if (original_spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
         {
           throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
         }
@@ -497,7 +497,7 @@ public:
       Currently we have to give up const-correctness but we know that everything on disc is constant
     */
     template <typename PeakType, typename ChromatogramPeakT>
-    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const
+    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output, const bool check_spectrum_type = true) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -513,7 +513,7 @@ public:
         // determine type of spectral data (profile or centroided)
         SpectrumSettings::SpectrumType spectrum_type = input[0].getType();
 
-        if (spectrum_type == SpectrumSettings::PEAKS)
+        if (spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
         {
           throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
         }

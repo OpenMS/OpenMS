@@ -231,12 +231,6 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
-    //check for peak type (profile data required)
-    if (!ms_exp_raw.empty() && PeakTypeEstimator().estimateType(ms_exp_raw[0].begin(), ms_exp_raw[0].end()) == SpectrumSettings::PEAKS)
-    {
-      writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
-    }
-
     //check if spectra are sorted
     for (Size i = 0; i < ms_exp_raw.size(); ++i)
     {
@@ -257,12 +251,12 @@ protected:
       }
     }
 
-
     //-------------------------------------------------------------
     // pick
     //-------------------------------------------------------------
     MSExperiment<> ms_exp_peaks;
-    pp.pickExperiment(ms_exp_raw, ms_exp_peaks);
+    bool check_spectrum_type = !getFlag_("force");
+    pp.pickExperiment(ms_exp_raw, ms_exp_peaks, check_spectrum_type);
 
     //-------------------------------------------------------------
     // writing output
