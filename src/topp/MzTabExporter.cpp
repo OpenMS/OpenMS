@@ -650,6 +650,23 @@ protected:
 //        MzTabString db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
 //        MzTabString db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
 
+        // currently we don't save how many channels we saved in a consensus feature so we scan the file
+        // for the maximum max index in a consensus feature and take this as number of study variables
+        Size n_study_variables = 0;
+        for (Size i = 0; i < consensus_map.size(); ++i)
+        {
+          const ConsensusFeature& c = consensus_map[i];
+          ConsensusFeature::HandleSetType fs = c.getFeatures();
+          for (ConsensusFeature::HandleSetType::const_iterator fit = fs.begin(); fit != fs.end(); ++fit)
+          {
+            if (fit->getMapIndex() > n_study_variables)
+            {
+              n_study_variables = fit->getMapIndex();
+            }
+          }
+        }
+        ++n_study_variables;  // map index starts at 0, study variables at 1
+
         MzTab mztab;
         MzTabMetaData meta_data;
 
@@ -663,12 +680,35 @@ protected:
 
         meta_data.variable_mod = generateMzTabStringFromModifications(var_mods);
         meta_data.fixed_mod = generateMzTabStringFromModifications(fixed_mods);
-
+        meta_data.peptide_search_engine_score[1] = MzTabParameter();
         meta_data.psm_search_engine_score[1] = MzTabParameter(); // TODO insert search engine information
         MzTabMSRunMetaData ms_run;
         ms_run.location = MzTabString(in_id);
         meta_data.ms_run[1] = ms_run;
         mztab.setMetaData(meta_data);
+
+        // pre-analyze data for occuring meta values at consensus feature and peptide hit level
+        // these are used to build optional columns containing the meta values in internal data structures
+        set<String> consensus_feature_user_value_keys;
+        set<String> peptide_hit_user_value_keys;
+        for (Size i = 0; i < consensus_map.size(); ++i)
+        {
+          const ConsensusFeature& c = consensus_map[i];
+          vector<String> keys;
+          c.getKeys(keys);
+          consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
+
+          const vector<PeptideIdentification>& pep_ids = c.getPeptideIdentifications();
+          for (vector<PeptideIdentification>::const_iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
+          {
+            for (vector<PeptideHit>::const_iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+            {
+              vector<String> ph_keys;
+              hit->getKeys(ph_keys);
+              peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
+            }
+          }
+        }
 
         MzTabPeptideSectionRows rows;
 
@@ -676,6 +716,35 @@ protected:
         {
           MzTabPeptideSectionRow row;
           const ConsensusFeature& c = consensus_map[i];
+
+          // create opt_ column for peptide sequence containing modification
+          MzTabOptionalColumnEntry opt_global_modified_sequence;
+          opt_global_modified_sequence.first = String("opt_global_modified_sequence");
+          row.opt_.push_back(opt_global_modified_sequence);
+
+          // create opt_ columns for consensus feature (peptide) user values
+          for (set<String>::const_iterator mit = consensus_feature_user_value_keys.begin(); mit != consensus_feature_user_value_keys.end(); ++mit)
+          {
+            MzTabOptionalColumnEntry opt_entry;
+            const String& key = *mit;
+            opt_entry.first = String("opt_peptide_") + key;
+            if (c.metaValueExists(key))
+            {
+              opt_entry.second = MzTabString(c.getMetaValue(key).toString());
+            } // otherwise it is default ("null")
+            row.opt_.push_back(opt_entry);
+          }
+
+          // create opt_ columns for psm (PeptideHit) user values
+          for (set<String>::const_iterator mit = peptide_hit_user_value_keys.begin(); mit != peptide_hit_user_value_keys.end(); ++mit)
+          {
+            MzTabOptionalColumnEntry opt_entry;
+            const String& key = *mit;
+            opt_entry.first = String("opt_psm_") + key;
+            // leave value empty as we have to fill it with the value from the best peptide hit
+            row.opt_.push_back(opt_entry);
+          }
+
           row.mass_to_charge = MzTabDouble(c.getMZ());
           MzTabDoubleList rt_list;
           vector<MzTabDouble> rts;
@@ -686,24 +755,114 @@ protected:
           row.retention_time_window = rt_window;
           row.charge = MzTabInteger(c.getCharge());
 
-          ConsensusFeature::HandleSetType fs = c.getFeatures();
-          Size index = 0;
-          for (ConsensusFeature::HandleSetType::const_iterator fit = fs.begin(); fit != fs.end(); ++fit, ++index)
+          // initialize columns
+          for (Size study_variable = 1; study_variable <= n_study_variables; ++study_variable)
           {
-//            Size index = std::distance(fit, fs.begin());
-            row.peptide_abundance_stdev_study_variable[index];
-            row.peptide_abundance_std_error_study_variable[index];
-            row.peptide_abundance_study_variable[index] = MzTabDouble(fit->getIntensity());
-            row.best_search_engine_score[index] = MzTabDouble();
-            row.search_engine_score_ms_run[index][1] = MzTabDouble();
+            row.peptide_abundance_stdev_study_variable[study_variable] = MzTabDouble();
+            row.peptide_abundance_std_error_study_variable[study_variable] = MzTabDouble();
+            row.peptide_abundance_study_variable[study_variable] = MzTabDouble();
+          }
+
+          ConsensusFeature::HandleSetType fs = c.getFeatures();
+          for (ConsensusFeature::HandleSetType::const_iterator fit = fs.begin(); fit != fs.end(); ++fit)
+          {
+            Size study_variable = fit->getMapIndex() + 1;
+            row.peptide_abundance_stdev_study_variable[study_variable];
+            row.peptide_abundance_std_error_study_variable[study_variable];
+            row.peptide_abundance_study_variable[study_variable] = MzTabDouble(fit->getIntensity());
+          }
+
+          row.best_search_engine_score[1] = MzTabDouble();
+          row.search_engine_score_ms_run[1][1] = MzTabDouble();
+
+          vector<PeptideIdentification> pep_ids = c.getPeptideIdentifications();
+          if (!pep_ids.empty())
+          {
+            if (pep_ids.size() != 1)
+            {
+              throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Consensus features might contain at most one identification. Run IDConflictResolver first to remove ambiguities!");
+            }
+
+            pep_ids[0].assignRanks();
+            const PeptideHit& best_ph = pep_ids[0].getHits()[0];
+            const AASequence& aas = best_ph.getSequence();
+            row.sequence = MzTabString(aas.toUnmodifiedString());
+
+            MzTabModificationList mod_list;
+            vector<MzTabModification> mods;
+            if (aas.isModified())
+            {
+              for (Size ai = 0; ai != aas.size(); ++ai)
+              {
+                if (aas.isModified(ai))
+                {
+                  MzTabModification mod;
+                  String mod_name = aas[ai].getModification();
+                  ModificationsDB* mod_db = ModificationsDB::getInstance();
+
+                  // MzTab standard is to just report Unimod accession.
+                  MzTabString unimod_accession = MzTabString(mod_db->getModification(mod_name).getUniModAccession());
+                  mod.setModificationIdentifier(unimod_accession);
+                  vector<std::pair<Size, MzTabParameter> > pos;
+                  pos.push_back(make_pair(ai + 1, MzTabParameter()));
+                  mod.setPositionsAndParameters(pos);
+                  mods.push_back(mod);
+                }
+              }
+            }
+            mod_list.set(mods);
+            row.modifications = mod_list;
+
+            const set<String>& accessions = best_ph.extractProteinAccessions();
+            const vector<PeptideEvidence> peptide_evidences = best_ph.getPeptideEvidences();
+
+            row.unique = accessions.size() == 1 ? MzTabBoolean(true) : MzTabBoolean(false);
+            // select accession of first peptide_evidence as representative ("leading") accession
+            row.accession = peptide_evidences.empty() ? MzTabString("null") : MzTabString(peptide_evidences[0].getProteinAccession());
+
+            row.best_search_engine_score[1] = MzTabDouble(best_ph.getScore());
+
+            // fill opt_ columns
+
+            // find opt_global_modified_sequence in opt_ and set it to the OpenMS amino acid string (easier human readable than unimod accessions)
+            for (Size i = 0; i != row.opt_.size(); ++i)
+            {
+              MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+              if (opt_entry.first == String("opt_global_modified_sequence"))
+              {
+                opt_entry.second = MzTabString(aas.toString());
+              }
+            }
+
+            // fill opt_ column of psm
+            vector<String> ph_keys;
+            best_ph.getKeys(ph_keys);
+            for (Size k = 0; k != ph_keys.size(); ++k)
+            {
+              const String& key = ph_keys[k];
+
+              // find matching entry in opt_ (TODO: speed this up)
+              for (Size i = 0; i != row.opt_.size(); ++i)
+              {
+                MzTabOptionalColumnEntry& opt_entry = row.opt_[i];
+
+                if (opt_entry.first == String("opt_psm_") + key)
+                {
+                  opt_entry.second = MzTabString(best_ph.getMetaValue(key).toString());
+                }
+              }
+            }
           }
 
           rows.push_back(row);
         }
 
+        mztab.setPeptideSectionRows(rows);
         MzTabFile().store(out, mztab);
         return EXECUTION_OK;
       }
+
 
       return EXECUTION_OK;
     }
