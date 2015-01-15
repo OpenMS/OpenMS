@@ -571,6 +571,8 @@ protected:
       */
       seqan::StringSet<seqan::Peptide> prot_DB;
 
+      bool has_DB_duplicates(false);
+
       for (Size i = 0; i != proteins.size(); ++i)
       {
         String seq = proteins[i].sequence.remove('*');
@@ -584,12 +586,14 @@ protected:
         // check for duplicate proteins
         if (acc_to_prot.has(acc))
         {
-          writeLog_(String("PeptideIndexer: Warning, protein identifiers should be unique to a database. Identifier '") + acc + String("' found multiple times."));
+          LOG_WARN << "PeptideIndexer: Warning, protein identifiers should be unique to a database. Identifier '" << acc << "' found multiple times.\n";
+          has_DB_duplicates = true;
           // check if sequence is identical
           const seqan::Peptide& tmp_prot = prot_DB[acc_to_prot[acc]];
           if (String(begin(tmp_prot), end(tmp_prot)) != seq)
           {
-            writeLog_(String("PeptideIndexer: protein identifier '" + acc + "' found multiple times with different sequences" + (il_equivalent ? " (I/L substituted)" : "") + ":\n" + String(begin(tmp_prot), end(tmp_prot)) + "\nvs.\n" + seq + "\n! Please fix the database and run PeptideIndexer again!"));
+            LOG_ERROR << "PeptideIndexer: protein identifier '" << acc << "' found multiple times with different sequences" << (il_equivalent ? " (I/L substituted)" : "") 
+                      << ":\n" << tmp_prot << "\nvs.\n" << seq << "\n! Please fix the database and run PeptideIndexer again!" << std::endl;
             return INPUT_FILE_CORRUPT;
           }
           // remove duplicate sequence from 'proteins', since 'prot_DB' and 'proteins' need to correspond 1:1 (later indexing depends on it)
@@ -607,6 +611,8 @@ protected:
         }
         
       }
+      // make sure the warnings above are printed to screen
+      if (has_DB_duplicates) LOG_WARN << std::endl;
 
       /**
         BUILD Peptide DB
