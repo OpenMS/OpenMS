@@ -51,31 +51,31 @@ using namespace std;
     <table>
       <tr>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PhosphoScoring \f$ \longrightarrow \f$</td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PhosphoScoring \f$ \longrightarrow \f$</td>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
       </tr>
       <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PeptideIndexer </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
       </tr>
     </table>
   </CENTER>
 
-  @experimental This TOPP tool is not well tested and not all features might be working correctly.
+  @experimental This TOPP tool is not well tested and some features might not be working correctly.
 
   This tool performs phosphorylation analysis and site localization.
-  Input files are a MS/MS an spectrum file as well as the corresponding identification file.
+  Input files are an LC-MS/MS data file as well as the corresponding identification file.
   Firstly, the peptide identifications are mapped onto the spectra.
-  Secondly, the tools uses at the moment an implementation of the Ascore according to Beausoleil <em>et al.<em> in order to localize the most probable phosphorylation sites.
+  Secondly, the tool uses an implementation of the Ascore according to Beausoleil <em>et al.</em> in order to localize the most probable phosphorylation sites.
 
   For details, see:\n
   Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based approach for high-throughput protein phosphorylation analysis and site localization</a> (Nat. Biotechnol., 2006, PMID: 16964243).
 
 
-  <!-- <B>The command line parameters of this tool are:</B>
+  <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PhosphoScoring.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_PhosphoScoring.html -->
+  @htmlinclude TOPP_PhosphoScoring.html
 */
 
 
