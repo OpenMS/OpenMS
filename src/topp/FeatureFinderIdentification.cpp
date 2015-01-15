@@ -136,23 +136,23 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file (LC-MS raw data)");
+    registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("id", "<file>", "", "Input file (peptide identifications)");
+    registerInputFile_("id", "<file>", "", "Input file: peptide identifications derived directly from 'in'");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Output file (features)");
+    registerInputFile_("id_ext", "<file>", "", "Input file: 'external' peptide identifications (e.g. via alignment)", false);
+    setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
+    registerOutputFile_("out", "<file>", "", "Output file: features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("lib_out", "<file>", "", "Output file (assay library)", false);
+    registerOutputFile_("lib_out", "<file>", "", "Output file: assay library", false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("chrom_out", "<file>", "", "Output file (chromatograms)", false);
+    registerOutputFile_("chrom_out", "<file>", "", "Output file: chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("trafo_out", "<file>", "", "Output file (RT transformation)", false);
+    registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
-    registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge. 'adapt': adapt (extend) RT windows based on IDs; 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs (requires further processing of results).", false);
-    setValidStrings_("extract:reference_rt", refs);
     registerDoubleOption_("extract:rt_window", "<value>", 60.0, "RT window size (in sec.) for chromatogram extraction.", false);
     setMinFloat_("extract:rt_window", 0.0);
     registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
@@ -162,9 +162,12 @@ protected:
     setMaxFloat_("extract:isotope_pmin", 1.0);
 
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
-    registerDoubleOption_("detect:peak_width", "<value>", 30.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
+    registerDoubleOption_("detect:peak_width", "<value>", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter)", false);
     setMinFloat_("detect:peak_width", 0.0);
-    registerFlag_("detect:all_features", "Return all features detected by OpenSWATH for an assay, instead of only the best one. (This requires further processing of the results.)", true);
+    registerDoubleOption_("detect:min_peak_width", "<value>", 0.2, "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.", false, true);
+    setMinFloat_("detect:min_peak_width", 0.0);
+    registerDoubleOption_("detect:mapping_tolerance", "<value>", 10.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
+    setMinFloat_("detect:mapping_tolerance", 0.0);
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
     StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
@@ -185,214 +188,120 @@ protected:
   }
 
   typedef MSExperiment<Peak1D> PeakMap;
+  typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
+  typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  // mapping: charge -> pointer to peptides
-  typedef map<Int, vector<PeptideIdentification*> > ChargeMap;
+  // mapping: RT (not necessarily unique) -> pointer to peptide
+  typedef multimap<double, PeptideIdentification*> RTMap;
+  // mapping: charge -> RT -> pointer to peptide
+  typedef map<Int, RTMap> ChargeMap;
   // mapping: sequence -> charge -> pointer to peptide
   typedef map<AASequence, ChargeMap> PeptideMap;
 
+  // region in RT in which a peptide elutes:
+  struct RTRegion
+  {
+    double start, end;
+    map<Int, vector<double> > evidence; // mapping: charge -> RT of ID
+  };
+
   PeakMap ms_data_; // input LC-MS data
-  TargetedExperiment library_; // assay library
+  PeakMap chrom_data_; // accumulated chromatograms (XICs)
+  bool keep_chromatograms_; // keep/output chromatogram data?
+  TargetedExperiment library_; // accumulated assays for peptides
+  bool keep_library_; // keep/output assay data?
   CVTerm rt_term_; // controlled vocabulary term for reference RT
-  IsotopeDistribution iso_dist_; // isotope distribution for current peptide
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   String reference_rt_; // value of "reference_rt" parameter
-  double rt_tolerance_; // half the RT window width
+  double rt_window_; // RT window width
+  double mz_window_; // m/z window width
+  bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
+  double isotope_pmin_; // min. isotope probability
+  double mapping_tolerance_; // RT tolerance for mapping IDs to features
+  String elution_model_; // choice of elution model
+  ChromatogramExtractor extractor_; // OpenSWATH chromatogram extractor
+  MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
+
+
+  // like "median", but returns the middle-right value for an even number of
+  // values (no averaging of the middle two):
+  double getMedoid_(vector<double>& sorted_values)
+  {
+    if (sorted_values.size() == 1) return sorted_values[0]; // common case
+    vector<double>::iterator start = sorted_values.begin();
+    if (sorted_values.size() % 2 == 0) ++start;
+    return Math::median(start, sorted_values.end(), true);
+  }
 
 
   // add transitions for a peptide ion to the library:
-  void addTransitions_(const String& peptide_id, double mz, Int charge)
+  void generateTransitions_(const String& peptide_id, double mz, Int charge,
+                            const IsotopeDistribution& iso_dist,
+                            vector<ReactionMonitoringTransition>& transitions)
   {
+    transitions.resize(iso_dist.size());
     // go through different isotopes:
     Size counter = 0;
-    for (IsotopeDistribution::ConstIterator iso_it = iso_dist_.begin();
-         iso_it != iso_dist_.end(); ++iso_it, ++counter)
+    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin();
+         iso_it != iso_dist.end(); ++iso_it, ++counter)
     {
-      String annotation = "i" + String(counter);
+      String annotation = "i" + String(counter + 1);
       String transition_name = peptide_id + "_" + annotation;
 
-      ReactionMonitoringTransition transition;
-      transition.setNativeID(transition_name);
-      transition.setPrecursorMZ(mz);
-      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
-                              float(counter) / charge);
-      transition.setLibraryIntensity(iso_it->second);
-      transition.setMetaValue("annotation", annotation);
-      transition.setPeptideRef(peptide_id);
-      library_.addTransition(transition);
+      transitions[counter].setNativeID(transition_name);
+      transitions[counter].setPrecursorMZ(mz);
+      transitions[counter].setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
+                                        float(counter) / charge);
+      transitions[counter].setLibraryIntensity(iso_it->second);
+      transitions[counter].setMetaValue("annotation", annotation);
+      transitions[counter].setPeptideRef(peptide_id);
     }
   }
 
-  // add an assay (peptide and transitions) to the library:
-  void addAssay_(TargetedExperiment::Peptide& peptide, const AASequence& seq,
-                 const ChargeMap::value_type& charge_data)
+
+  void setPeptideRT_(TargetedExperiment::Peptide& peptide, double rt)
   {
-    // get reference RT(s):
-    DoubleList rts;
-    if (charge_data.second.size() == 1) // only one peptide ID
-    {
-      rts.push_back(charge_data.second[0]->getRT());
-    }
-    else if (reference_rt_ == "score")
-    {
-      rts.resize(1);
-      double best_score = 0.0; // to avoid compiler warning (real init below)
-      for (ChargeMap::mapped_type::const_iterator pi_it =
-             charge_data.second.begin(); pi_it != charge_data.second.end();
-           ++pi_it)
-      {
-        const PeptideHit& hit = (*pi_it)->getHits()[0];
-        bool higher_better = (*pi_it)->isHigherScoreBetter();
-        if ((pi_it == charge_data.second.begin()) || // initial case
-            (higher_better && (hit.getScore() > best_score)) ||
-            (!higher_better && (hit.getScore() < best_score)))
-        {
-          best_score = hit.getScore();
-          rts[0] = (*pi_it)->getRT();
-        }
-      }
-    }
-    else if (reference_rt_ == "intensity")
-    {
-      rts.resize(1);
-      double highest_intensity = -1;
-      for (ChargeMap::mapped_type::const_iterator pi_it =
-             charge_data.second.begin(); pi_it != charge_data.second.end();
-           ++pi_it)
-      {
-        // find precursor:
-        double ms2_rt = (*pi_it)->getRT();
-        double prec_mz = (*pi_it)->getMZ();
-        // construct objects for use in "lower_bound" (custom comparison
-        // functions involving different types don't work in older version of
-        // MS Visual Studio):
-        MSSpectrum<> rt_compare;
-        rt_compare.setRT(ms2_rt);
-        Peak1D mz_compare;
-        mz_compare.setMZ(prec_mz);
-        // "lower_bound" gives the MS1 spectrum _after_ the MS2 of the ID:
-        PeakMap::ConstIterator ms1_it = lower_bound(ms_data_.begin(),
-                                                    ms_data_.end(), rt_compare,
-                                                    MSSpectrum<>::RTLess());
-        // the following shouldn't happen, but might if input is combined IDs
-        // from different samples - use the current ID only if we have to:
-        if ((ms1_it == ms_data_.begin()) && (highest_intensity < 0))
-        {
-          rts[0] = ms2_rt;
-          continue;
-        }
-        --ms1_it;
-        MSSpectrum<>::ConstIterator peak_it =
-          lower_bound(ms1_it->begin(), ms1_it->end(), mz_compare,
-                      Peak1D::MZLess());
-        if (peak_it == ms1_it->end())
-        {
-          --peak_it; // assuming the spectrum isn't empty, which it shouldn't be
-        }
-        // check if previous peak is closer to the precursor in m/z:
-        else if ((peak_it != ms1_it->begin()) &&
-                 (fabs(peak_it->getMZ() - prec_mz) <
-                  fabs((--peak_it)->getMZ() - prec_mz)))
-        {
-          ++peak_it;
-        }
-        if (peak_it->getIntensity() > highest_intensity)
-        {
-          highest_intensity = peak_it->getIntensity();
-          rts[0] = ms2_rt;
-        }
-      }
-    }
-    else // "median", "all", or "adapt"
-    {
-      for (ChargeMap::mapped_type::const_iterator pi_it =
-             charge_data.second.begin(); pi_it != charge_data.second.end();
-           ++pi_it)
-      {
-        rts.push_back((*pi_it)->getRT());
-      }
-      if (reference_rt_ != "all")
-      {
-        sort(rts.begin(), rts.end());
-        bool median_fallback = false; // use "median" to resolve ties in "adapt"
-
-        if (reference_rt_ == "adapt")
-        {
-          // store RT region as pair (length, start point) for easier sorting:
-          vector<pair<double, double> > rt_regions;
-          rt_regions.push_back(make_pair(rt_tolerance_ * 2.0,
-                                         rts[0] - rt_tolerance_));
-          for (DoubleList::iterator rt_it = ++rts.begin(); rt_it != rts.end();
-               ++rt_it)
-          {
-            pair<double, double>& rt_region = rt_regions.back();
-            if (rt_region.second + rt_region.first >= *rt_it - rt_tolerance_)
-            { // regions overlap, join them (same start point, new length):
-              rt_region.first = *rt_it + rt_tolerance_ - rt_region.second;
-            }
-            else // no overlap, start new region:
-            {
-              rt_regions.push_back(make_pair(rt_tolerance_ * 2.0,
-                                             *rt_it - rt_tolerance_));
-            }
-          }
-          sort(rt_regions.begin(), rt_regions.end()); // sort regions by size
-          double rt_window = rt_regions.back().first;
-          peptide.setMetaValue("rt_window", rt_window);
-          // are there multiple regions of maximal size?
-          Int n = rt_regions.size() - 2; // second to last, counting from zero
-          while ((n >= 0) && (rt_regions[n].first == rt_window)) --n;
-          if (n == Int(rt_regions.size()) - 2) // only one longest region
-          {
-            double rt_start = rt_regions.back().second;
-            peptide.setMetaValue("rt_start", rt_start);
-            peptide.setMetaValue("rt_end", rt_start + rt_window);
-            rts.resize(1);
-            rts[0] = rt_start + rt_window / 2.0;
-          }
-          else // multiple longest regions -> resolve using median below
-          {
-            median_fallback = true;
-            rts.clear();
-            for (++n; n < Int(rt_regions.size()); ++n)
-            {
-              rts.push_back(rt_regions[n].second + rt_regions[n].first / 2.0);
-            }
-          }
-        }
-        if ((reference_rt_ == "median") || median_fallback)
-        {
-          DoubleList::iterator start = rts.begin();
-          // even number of IDs? don't take the RT _between_ the middle ones!
-          if (rts.size() % 2 == 0) ++start;
-          rts[0] = Math::median(start, rts.end(), true);
-          rts.resize(1);
-        }
-      }
-    }
-
-    // complete peptide information:
-    Int charge = charge_data.first;
-    peptide.setChargeState(charge);
-    peptide.id = peptide.sequence + "/" + String(charge);
-    double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
-
-    TargetedExperiment::Peptide copy = peptide;
-    for (Size i = 0; i < rts.size(); ++i)
-    {
-      rt_term_.setValue(trafo_.apply(rts[i]));
-      TargetedExperiment::RetentionTime rt;
-      rt.addCVTerm(rt_term_);
-      peptide.rts.push_back(rt);
-      if (rts.size() > 1) peptide.id += ":" + String(i + 1); // use multiple IDs
-      library_.addPeptide(peptide);
-      addTransitions_(peptide.id, mz, charge);
-      peptide = copy; // reset
-    }
+    peptide.rts.clear();
+    rt_term_.setValue(trafo_.apply(rt));
+    TargetedExperiment::RetentionTime te_rt;
+    te_rt.addCVTerm(rt_term_);
+    peptide.rts.push_back(te_rt);
   }
 
+
+  double calculateFitQuality_(const TraceFitter* fitter, 
+                              const MassTraces& traces)
+  {
+    double mre = 0.0;
+    double total_weights = 0.0;
+    double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
+    double rt_end = min(fitter->getUpperRTBound(), 
+                        traces[0].peaks.back().first);
+
+    for (MassTraces::const_iterator tr_it = traces.begin();
+         tr_it != traces.end(); ++tr_it)
+    {
+      for (vector<pair<double, const Peak1D*> >::const_iterator p_it = 
+             tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
+      {
+        double rt = p_it->first;
+        if ((rt >= rt_start) && (rt <= rt_end))
+        {
+          double model_value = fitter->getValue(rt);
+          double diff = fabs(model_value * tr_it->theoretical_int -
+                             p_it->second->getIntensity());
+          mre += diff / model_value;
+          total_weights += tr_it->theoretical_int;
+        }
+      }
+    }
+    return mre / total_weights;
+  }
+
+
+/*
   // fit models of elution profiles to all features:
-  void fitElutionModels_(FeatureMap& features, bool asymmetric = true)
+  void fitElutionModels_(FeatureMap& features)
   {
     // assumptions:
     // - all features have subordinates (for the mass traces/transitions)
@@ -400,6 +309,7 @@ protected:
     // - all convex hulls in one feature contain the same number (> 0) of points
     // - the y coordinates of the hull points store the intensities
 
+    bool asymmetric = (elution_model_ == "asymmetric");
     double add_zeros = getDoubleOption_("model:add_zeros");
     bool weighted = !getFlag_("model:unweighted_fit");
     bool impute = !getFlag_("model:no_imputation");
@@ -409,7 +319,7 @@ protected:
     map<String, const ReactionMonitoringTransition*> trans_ids;
     for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
            library_.getTransitions().begin(); trans_it !=
-         library_.getTransitions().end(); ++trans_it)
+           library_.getTransitions().end(); ++trans_it)
     {
       trans_ids[trans_it->getNativeID()] = &(*trans_it);
     }
@@ -458,33 +368,27 @@ protected:
 
       vector<Peak1D> peaks;
       // reserve space once, to avoid copying and invalidating pointers:
-      Size points_per_hull = feat_it->getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
+      const Feature& sub = feat_it->getSubordinates()[0];
+      Size points_per_hull = sub.getConvexHulls()[0].getHullPoints().size();
       peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
                     (add_zeros > 0.0)); // don't forget additional zero point
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces traces;
+      MassTraces traces;
       traces.max_trace = 0;
       // need a mass trace for every transition, plus maybe one for add. zeros:
       traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
       for (vector<Feature>::iterator sub_it =
              feat_it->getSubordinates().begin(); sub_it !=
-           feat_it->getSubordinates().end(); ++sub_it)
+             feat_it->getSubordinates().end(); ++sub_it)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace trace;
+        MassTrace trace;
         trace.peaks.reserve(points_per_hull);
-        if (sub_it->metaValueExists("isotope_probability"))
-        {
-          trace.theoretical_int = sub_it->getMetaValue("isotope_probability");
-        }
-        else
-        {
-          String native_id = sub_it->getMetaValue("native_id");
-          trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
-          sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
-        }
+        String native_id = sub_it->getMetaValue("native_id");
+        trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
+        sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
         const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
         for (ConvexHull2D::PointArrayTypeConstIterator point_it =
                hull.getHullPoints().begin(); point_it !=
-             hull.getHullPoints().end(); ++point_it)
+               hull.getHullPoints().end(); ++point_it)
         {
           double intensity = point_it->getY();
           if (intensity > 0.0) // only use non-zero intensities for fitting
@@ -500,6 +404,7 @@ protected:
         if (!trace.peaks.empty()) traces.push_back(trace);
       }
 
+      // find the trace with maximal intensity:
       Size max_trace = 0;
       double max_intensity = 0;
       for (Size i = 0; i < traces.size(); ++i)
@@ -518,7 +423,7 @@ protected:
 
       if (add_zeros > 0.0)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace trace;
+        MassTrace trace;
         trace.peaks.reserve(2);
         trace.theoretical_int = add_zeros;
         Peak1D peak;
@@ -570,31 +475,7 @@ protected:
       double mre = -1.0; // mean relative error
       if (fit_success)
       {
-        mre = 0.0;
-        double total_weights = 0.0;
-        double rt_start = max(fitter->getLowerRTBound(),
-                              traces[0].peaks[0].first);
-        double rt_end = min(fitter->getUpperRTBound(),
-                            traces[0].peaks.rbegin()->first);
-
-        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces::
-             iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
-        {
-          for (vector<pair<double, const Peak1D*> >::iterator p_it =
-                 tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
-          {
-            double rt = p_it->first;
-            if ((rt >= rt_start) && (rt <= rt_end))
-            {
-              double model_value = fitter->getValue(rt);
-              double diff = fabs(model_value * tr_it->theoretical_int -
-                                 p_it->second->getIntensity());
-              mre += diff / model_value;
-              total_weights += tr_it->theoretical_int;
-            }
-          }
-        }
-        mre /= total_weights;
+        mre = calculateFitQuality_(fitter, traces);
       }
       feat_it->setMetaValue("model_error", mre);
 
@@ -763,6 +644,265 @@ protected:
       }
     }
   }
+*/
+
+  void getRTRegions_(const ChargeMap& peptide_data, 
+                     vector<RTRegion>& rt_regions)
+  {
+    vector<pair<double, Int> > rts; // RTs and charges
+    // use RTs from all charge states here to get a more complete picture:
+    for (ChargeMap::const_iterator cm_it = peptide_data.begin();
+         cm_it != peptide_data.end(); ++cm_it)
+    {
+      for (RTMap::const_iterator rt_it = cm_it->second.begin();
+           rt_it != cm_it->second.end(); ++rt_it)
+      {
+        rts.push_back(make_pair(rt_it->first, cm_it->first));
+      }
+    }
+    sort(rts.begin(), rts.end());
+    double rt_tolerance = rt_window_ / 2.0;
+
+    for (vector<pair<double, Int> >::iterator rt_it = rts.begin();
+         rt_it != rts.end(); ++rt_it)
+    {
+      // create a new region?
+      if (rt_regions.empty() ||
+          (rt_regions.back().end < rt_it->first - rt_tolerance))
+      {
+        RTRegion region;
+        region.start = rt_it->first - rt_tolerance;
+        rt_regions.push_back(region);
+      }
+      rt_regions.back().end = rt_it->first + rt_tolerance;
+      rt_regions.back().evidence[rt_it->second].push_back(rt_it->first);
+    }
+  }
+
+
+  void filterFeatures_(FeatureMap& features, const RTMap& rt_data, 
+                       set<PeptideIdentification*> assigned_ids)
+  {
+    // map IDs to features (based on RT):
+    map<Size, vector<PeptideIdentification*> > feat_ids;
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      double rt_min = features[i].getMetaValue("leftWidth");
+      double rt_max = features[i].getMetaValue("rightWidth");
+      if (mapping_tolerance_ > 0.0)
+      {
+        double abs_tol = mapping_tolerance_;
+        if (abs_tol < 1.0)
+        {
+          abs_tol *= (rt_max - rt_min);
+        }
+        rt_min -= abs_tol;
+        rt_max += abs_tol;
+      }
+      RTMap::const_iterator lower = rt_data.lower_bound(rt_min);
+      RTMap::const_iterator upper = rt_data.upper_bound(rt_max);
+      for (; lower != upper; ++lower)
+      {
+        feat_ids[i].push_back(lower->second);
+      }
+    }
+    if (!feat_ids.empty()) // find the "best" feature (with the most IDs)
+    {
+      Size best_index = 0;
+      Size best_count = 0;
+      // @TODO: this could be wrapped in a loop to extract more than one feature
+      // (in that case, "feat_ids" must be updated to account for assigned IDs)
+      for (map<Size, vector<PeptideIdentification*> >::iterator fi_it = 
+             feat_ids.begin(); fi_it != feat_ids.end(); ++fi_it)
+      {
+        Size current_index = fi_it->first;
+        Size current_count = fi_it->second.size();
+        if ((current_count > best_count) ||
+            ((current_count == best_count) && // break ties by feature quality
+             (features[current_index].getOverallQuality() >
+              features[best_index].getOverallQuality())))
+        {
+          best_count = current_count;
+          best_index = current_index;
+        }
+      }
+      // retain best feature:
+      features[0] = features[best_index];
+      features[0].getPeptideIdentifications().resize(best_count);
+      for (Size i = 0; i < best_count; ++i)
+      {
+        features[0].getPeptideIdentifications()[i] = *(feat_ids[best_index][i]);
+        assigned_ids.insert(feat_ids[best_index][i]);
+      }
+      features.resize(1);
+    }
+    else // no feature found that is supported by an ID :-(
+    {
+      features.clear();
+    }
+  }
+
+
+  void detectFeaturesOnePeptide_(const PeptideMap::value_type& peptide_data,
+                                 FeatureMap& features, bool trust_rt)
+  {
+    TargetedExperiment library;
+    TargetedExperiment::Peptide peptide;
+
+    const AASequence& seq = peptide_data.first;
+    LOG_DEBUG << "\nPeptide: " << seq.toString() << endl;
+    peptide.sequence = seq.toString();
+
+    // keep track of protein accessions:
+    const PeptideHit& hit = 
+      peptide_data.second.begin()->second.begin()->second->getHits()[0];
+    set<String> accessions = hit.extractProteinAccessions();
+    // missing protein accession would crash OpenSWATH algorithms:
+    if (accessions.empty()) accessions.insert("not_available");
+    peptide.protein_refs = vector<String>(accessions.begin(), accessions.end());
+    for (set<String>::iterator acc_it = accessions.begin(); 
+         acc_it != accessions.end(); ++acc_it)
+    {
+      TargetedExperiment::Protein protein;
+      protein.id = *acc_it;
+      library.addProtein(protein);
+    }
+
+    // get isotope distribution for peptide:
+    IsotopeDistribution iso_dist = 
+      seq.getFormula(Residue::Full, 0).getIsotopeDistribution(10);
+    iso_dist.trimLeft(isotope_pmin_);
+    iso_dist.trimRight(isotope_pmin_);
+    iso_dist.renormalize();
+
+    // get regions in which peptide elutes (ideally only one):
+    vector<RTRegion> rt_regions;
+    getRTRegions_(peptide_data.second, rt_regions);
+    LOG_DEBUG << "Found " << rt_regions.size() << " RT region(s)." << endl;
+
+    // go through different charge states:
+    for (ChargeMap::const_iterator cm_it = peptide_data.second.begin(); 
+         cm_it != peptide_data.second.end(); ++cm_it)
+    {
+      Int charge = cm_it->first;
+      double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
+      LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << endl;
+      peptide.setChargeState(charge);
+      peptide.id = peptide.sequence + "/" + String(charge);
+
+      // we want to detect one feature per peptide, charge state and RT region 
+      // (provided there is an ID for that charge in the region) - there is 
+      // always only one peptide in the library!
+      Size counter = 0;
+      for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
+           reg_it != rt_regions.end(); ++reg_it)
+      {
+        if (reg_it->evidence.count(charge))
+        {
+          LOG_DEBUG << "Region " << counter + 1 << " (RT: "
+                    << float(reg_it->start) << "-" << float(reg_it->end) << ")"
+                    << endl;
+          vector<TargetedExperiment::Peptide> lib_peps(1, peptide);
+          if (rt_regions.size() > 1)
+          {
+            lib_peps[0].id = peptide.id + ":" + String(++counter);
+          }
+          // use center of region as RT of assay (for chrom. extraction):
+          double assay_rt = (reg_it->start + reg_it->end) / 2.0;
+          setPeptideRT_(lib_peps[0], assay_rt);
+          library.setPeptides(lib_peps);
+          vector<ReactionMonitoringTransition> transitions;
+          generateTransitions_(lib_peps[0].id, mz, charge, iso_dist, 
+                               transitions);
+          library.setTransitions(transitions);
+
+          // extract chromatograms:
+          double rt_window = reg_it->end - reg_it->start;
+          PeakMap chrom_data;
+          extractor_.extractChromatograms(ms_data_, chrom_data, library,
+                                          mz_window_, mz_window_ppm_, trafo_,
+                                          rt_window, "tophat");
+          LOG_DEBUG << "Extracted " << chrom_data.getNrChromatograms()
+                    << " chromatogram(s)." << endl;
+
+          // adjust library RTs (use medoid of IDs, not center of region,
+          // to improve OpenSWATH scoring):
+          // note: OpenSWATH uses only the first RT given for a peptide (see
+          // "OpenSwathDataAccessHelper::convertTargetedPeptide")
+          assay_rt = getMedoid_(reg_it->evidence[charge]);
+          lib_peps = library.getPeptides();
+          setPeptideRT_(lib_peps[0], assay_rt);
+          library.setPeptides(lib_peps);
+          if (keep_library_) library_ += library;
+
+          // find chromatographic peaks:
+          FeatureMap current_features;
+          feat_finder_.pickExperiment(chrom_data, current_features, library,
+                                      trafo_, ms_data_);
+          LOG_DEBUG << "Found " << current_features.size() << " feature(s)."
+                    << endl;
+
+          // which features are correct?
+          const RTMap& rt_data = cm_it->second;
+          set<PeptideIdentification*> assigned_ids;
+          if (trust_rt)
+          { // those that contain peptide IDs!
+            filterFeatures_(current_features, rt_data, assigned_ids);
+            LOG_DEBUG << "Features left after filtering: "
+                      << current_features.size() << endl;
+          }
+          features += current_features;
+          // store unassigned IDs:
+          for (RTMap::const_iterator rt_it = rt_data.begin();
+               rt_it != rt_data.end(); ++rt_it)
+          {
+            if (!assigned_ids.count(rt_it->second))
+            {
+              const PeptideIdentification& pep_id = *(rt_it->second);
+              features.getUnassignedPeptideIdentifications().push_back(pep_id);
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+  void runFeatureDetection_(vector<PeptideIdentification>& peptides,
+                            FeatureMap& features, bool external_ids = false)
+  {
+    //-------------------------------------------------------------
+    // prepare peptide map
+    //-------------------------------------------------------------
+    LOG_INFO << "Preparing mapping of peptide data..." << endl;
+    PeptideMap peptide_map;
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+         pep_it != peptides.end(); ++pep_it)
+    {
+      if (pep_it->getHits().empty()) continue;
+      pep_it->sort();
+      PeptideHit& hit = pep_it->getHits()[0];
+      pep_it->getHits().resize(1);
+      Int charge = hit.getCharge();
+      double rt = pep_it->getRT();
+      peptide_map[hit.getSequence()][charge].insert(make_pair(rt, &(*pep_it)));
+    }
+
+    //-------------------------------------------------------------
+    // iterate over peptides
+    //-------------------------------------------------------------
+    LOG_INFO << "Processing peptides sequentially..." << endl;
+
+    for (PeptideMap::iterator pm_it = peptide_map.begin();
+         pm_it != peptide_map.end(); ++pm_it)
+    {
+      FeatureMap current_features;
+      detectFeaturesOnePeptide_(*pm_it, current_features, !external_ids);
+      features += current_features;
+    }
+    LOG_DEBUG << "Found " << features.size() << " features in total." << endl;
+  }
+
 
   ExitCodes main_(int, const char**)
   {
@@ -771,19 +911,21 @@ protected:
     //-------------------------------------------------------------
     String in = getStringOption_("in");
     String id = getStringOption_("id");
+    String id_ext = getStringOption_("id_ext");
     String out = getStringOption_("out");
     String lib_out = getStringOption_("lib_out");
+    keep_library_ = !lib_out.empty();
     String chrom_out = getStringOption_("chrom_out");
+    keep_chromatograms_ = !chrom_out.empty();
     String trafo_out = getStringOption_("trafo_out");
-    reference_rt_ = getStringOption_("extract:reference_rt");
-    double rt_window = getDoubleOption_("extract:rt_window");
-    rt_tolerance_ = rt_window / 2.0;
-    double mz_window = getDoubleOption_("extract:mz_window");
-    bool mz_window_ppm = mz_window >= 1;
-    double isotope_pmin = getDoubleOption_("extract:isotope_pmin");
-    bool all_features = getFlag_("detect:all_features");
+    rt_window_ = getDoubleOption_("extract:rt_window");
+    mz_window_ = getDoubleOption_("extract:mz_window");
+    mz_window_ppm_ = mz_window_ >= 1;
+    isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
     double peak_width = getDoubleOption_("detect:peak_width");
-    String elution_model = getStringOption_("model:type");
+    double min_peak_width = getDoubleOption_("detect:min_peak_width");
+    mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
+    elution_model_ = getStringOption_("model:type");
 
     //-------------------------------------------------------------
     // load input
@@ -808,181 +950,55 @@ protected:
       TransformationXMLFile().store(trafo_out, trafo_);
     }
 
-    vector<PeptideIdentification> peptides;
-    vector<ProteinIdentification> proteins;
-    IdXMLFile().load(id, proteins, peptides);
-
-    //-------------------------------------------------------------
-    // prepare peptide map
-    //-------------------------------------------------------------
-    LOG_INFO << "Preparing mapping of peptide data..." << endl;
-    PeptideMap peptide_map;
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
-    {
-      if (pep_it->getHits().empty()) continue;
-      pep_it->sort();
-      PeptideHit& hit = pep_it->getHits()[0];
-      peptide_map[hit.getSequence()][hit.getCharge()].push_back(&(*pep_it));
-    }
-
-    //-------------------------------------------------------------
-    // create assay library from peptides
-    //-------------------------------------------------------------
-    LOG_INFO << "Creating assay library..." << endl;
-    set<String> protein_accessions;
-
-    for (PeptideMap::iterator pm_it = peptide_map.begin();
-         pm_it != peptide_map.end(); ++pm_it)
-    {
-      const AASequence& seq = pm_it->first;
-      // LOG_DEBUG << "Peptide: " << seq.toString() << endl;
-
-      // keep track of protein accessions:
-      const PeptideHit& hit = pm_it->second.begin()->second[0]->getHits()[0];
-
-      set<String> current_accessions = hit.extractProteinAccessions();
-      // missing protein accession would crash OpenSwath algorithms:
-      if (current_accessions.empty())
-      {
-        current_accessions.insert("not_available");
-      }
-      protein_accessions.insert(current_accessions.begin(),
-                                current_accessions.end());
-
-      // get isotope distribution for peptide:
-      iso_dist_ = seq.getFormula(Residue::Full, 0).getIsotopeDistribution(10);
-      iso_dist_.trimLeft(isotope_pmin);
-      iso_dist_.trimRight(isotope_pmin);
-      iso_dist_.renormalize();
-
-      // create assay for current peptide (fill in charge etc. later):
-      TargetedExperiment::Peptide peptide;
-      peptide.sequence = seq.toString();
-      peptide.protein_refs = vector<String>(current_accessions.begin(),
-                                            current_accessions.end());
-
-      // go through different charge states:
-      for (ChargeMap::iterator cm_it = pm_it->second.begin();
-           cm_it != pm_it->second.end(); ++cm_it)
-      {
-        addAssay_(peptide, seq, *cm_it);
-      }
-    }
-    // add protein references:
-    for (set<String>::iterator acc_it = protein_accessions.begin();
-         acc_it != protein_accessions.end(); ++acc_it)
-    {
-      TargetedExperiment::Protein protein;
-      protein.id = *acc_it;
-      library_.addProtein(protein);
-    }
-
-    if (!lib_out.empty())
-    {
-      TraMLFile().store(lib_out, library_);
-    }
-
-    //-------------------------------------------------------------
-    // extract chromatograms
-    //-------------------------------------------------------------
-    LOG_INFO << "Extracting chromatograms..." << endl;
-    ChromatogramExtractor extractor;
-    PeakMap chrom_data;
-    extractor.setLogType(log_type_);
-    if (reference_rt_ != "adapt")
-    {
-      extractor.extractChromatograms(ms_data_, chrom_data, library_, mz_window,
-                                     mz_window_ppm, trafo_, rt_window,
-                                     "tophat");
-    }
-    else
-    {
-      trafo_.invert(); // needed to reverse RT transformation below
-      vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-      for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
-             library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
-      {
-        const TargetedExperiment::Peptide& peptide =
-          library_.getPeptideByRef(trans_it->getPeptideRef());
-        ChromatogramExtractor::ExtractionCoordinates current;
-        current.id = trans_it->getNativeID();
-        current.mz = trans_it->getProductMZ();
-        if (peptide.metaValueExists("rt_start"))
-        {
-          current.rt_start = peptide.getMetaValue("rt_start");
-          current.rt_end = peptide.getMetaValue("rt_end");
-        }
-        else
-        {
-          // is this an intuitive way to store/access the RT?!
-          double rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].
-                      getValue().toString().toDouble();
-          rt = trafo_.apply(rt); // reverse RT transformation
-          double rt_win = rt_window;
-          if (peptide.metaValueExists("rt_window"))
-          {
-            rt_win = peptide.getMetaValue("rt_window");
-          }
-          current.rt_start = rt - rt_win * 0.5;
-          current.rt_end = rt + rt_win * 0.5;
-        }
-        coords.push_back(current);
-      }
-      sort(coords.begin(), coords.end(), ChromatogramExtractor::
-           ExtractionCoordinates::SortExtractionCoordinatesByMZ);
-
-      boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
-      OpenSwath::SpectrumAccessPtr input =
-        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-      vector<OpenSwath::ChromatogramPtr> output;
-      for (Size i = 0; i < coords.size(); ++i)
-      {
-        OpenSwath::ChromatogramPtr cp(new OpenSwath::Chromatogram);
-        output.push_back(cp);
-      }
-      vector<MSChromatogram<> > chromatograms;
-      extractor.extractChromatograms(input, output, coords, mz_window,
-                                     mz_window_ppm, "tophat");
-      extractor.return_chromatogram(output, coords, library_, (*shared)[0],
-                                    chromatograms, false);
-      chrom_data.setChromatograms(chromatograms);
-      trafo_.invert(); // revert the "invert" above!
-    }
-    ms_data_.reset(); // not needed anymore, free up the memory
-    if (!chrom_out.empty())
-    {
-      MzMLFile().store(chrom_out, chrom_data);
-    }
-
-    //-------------------------------------------------------------
-    // find chromatographic peaks
-    //-------------------------------------------------------------
-    LOG_INFO << "Finding chromatographic peaks..." << endl;
-    FeatureMap features;
-    MRMFeatureFinderScoring mrm_finder;
-    Param params = mrm_finder.getParameters();
-    params.setValue("stop_report_after_feature",
-                    all_features ? -1 : 1);
-    if (elution_model != "none") params.setValue("write_convex_hull", "true");
-    params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
+    // initialize algorithm classes needed later:
+    extractor_.setLogType(log_type_);
+    Param params = feat_finder_.getParameters();
+    params.setValue("stop_report_after_feature", -1); // return all features
+    if (elution_model_ != "none") params.setValue("write_convex_hull", "true");
+    if (min_peak_width < 1.0) min_peak_width *= peak_width;
+    params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
-    mrm_finder.setParameters(params);
-    mrm_finder.setLogType(log_type_);
-    mrm_finder.setStrictFlag(false);
-    mrm_finder.pickExperiment(chrom_data, features, library_, trafo_, ms_data_);
+    feat_finder_.setParameters(params);
+    feat_finder_.setLogType(log_type_);
+    feat_finder_.setStrictFlag(false);
+
+    // "internal" IDs:
+    vector<PeptideIdentification> peptides;
+    vector<ProteinIdentification> proteins;
+    IdXMLFile().load(id, proteins, peptides);
+    FeatureMap features;
+    runFeatureDetection_(peptides, features);
+    features.setProteinIdentifications(proteins);
+
+    // "external" IDs:
+    if (!id_ext.empty())
+    {
+      vector<PeptideIdentification> peptides_ext;
+      vector<ProteinIdentification> proteins_ext;
+      IdXMLFile().load(id_ext, proteins, peptides_ext);
+      FeatureMap features_ext;
+      runFeatureDetection_(peptides_ext, features_ext, true);
+      features_ext.setProteinIdentifications(proteins_ext);
+    }
+
+    ms_data_.reset(); // not needed anymore, free up the memory
+
+
+
+    // combine both sets of features...
+
 
     // @TODO add method for resolving overlaps if "reference_rt" is "all"
-    if (elution_model != "none")
-    {
-      fitElutionModels_(features, elution_model == "asymmetric");
-    }
+    // @FIXME
+    // if (elution_model_ != "none")
+    // {
+    //   fitElutionModels_(features);
+    // }
 
     //-------------------------------------------------------------
     // fill in missing feature data
@@ -1002,8 +1018,11 @@ protected:
                feat_it->getSubordinates().begin(); sub_it !=
              feat_it->getSubordinates().end(); ++sub_it)
         {
-          double abs_mz_tol = mz_window / 2.0;
-          if (mz_window_ppm) abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
+          double abs_mz_tol = mz_window_ / 2.0;
+          if (mz_window_ppm_)
+          {
+            abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
+          }
           ConvexHull2D hull;
           hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));
           hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + abs_mz_tol));
