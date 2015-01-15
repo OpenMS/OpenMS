@@ -179,7 +179,7 @@ protected:
     {
       if (!getFlag_("force"))
       {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected.");
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided spectra expected. To enforce processing of the data set the -force flag.");
       }
     }
 

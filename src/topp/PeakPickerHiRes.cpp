@@ -90,6 +90,9 @@ using namespace std;
 
   For the parameters of the algorithm section see the algorithm documentation: @ref OpenMS::PeakPickerHiRes "PeakPickerHiRes"
 
+  Be aware that applying the algorithm to already picked data results in an error message and program exit or corrupted output data.
+  Advanced users may skip the check for already centroided data using the flag "-force" (useful e.g. if spectrum annotations in the data files are wrong).
+
   In the following table you, can find example values of the most important algorithm parameters for
   different instrument types. @n These parameters are not valid for all instruments of that type,
   but can be used as a starting point for finding suitable parameters.
