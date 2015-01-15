@@ -489,7 +489,7 @@ protected:
 
         // there is one special case if we are at a node where the last
         // character before this node is a digesting start and the first
-        // outgoing char prevents digestion but not one of the left childs.
+        // outgoing char prevents digestion but not one of the left children.
         // then we have to pay attention on not skipping this edge that could
         // possible be a peptide candidate
         bool have_to_go_in = false;

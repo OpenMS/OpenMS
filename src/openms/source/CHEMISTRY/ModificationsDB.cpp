@@ -399,7 +399,7 @@ namespace OpenMS
       modification_names_[(*it)->getFullId()].insert(*it);
       // e.g. Oxidation
       modification_names_[(*it)->getId()].insert(*it);
-      // e.g. Oxidated
+      // e.g. Oxidized
       modification_names_[(*it)->getFullName()].insert(*it);
       // e.g. UniMod:312
       modification_names_[(*it)->getUniModAccession()].insert(*it);

@@ -317,7 +317,7 @@ namespace OpenMS
 
     void MzQuantMLHandler::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
-      //if there is data between the element tags - !attention if element is derived from a xsd:list type, each list entry is a charecters call :(
+      //if there is data between the element tags - !attention if element is derived from a xsd:list type, each list entry is a characters call :(
 
       if (tag_ == "PeptideSequence")
       {

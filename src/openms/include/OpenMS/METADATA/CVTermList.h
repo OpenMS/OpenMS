@@ -111,7 +111,7 @@ public:
     /// checks whether the term has a value
     bool hasCVTerm(const String& accession) const;
 
-    /// checks whether the stored terms fulfil a given CVMappingRule
+    /// checks whether the stored terms fulfill a given CVMappingRule
     /// TODO : implement
     //bool checkCVTerms(const CVMappingRule & rule, const ControlledVocabulary & cv) const;
 

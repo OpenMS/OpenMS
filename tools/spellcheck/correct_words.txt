@@ -8,10 +8,12 @@
 Redistributions
 Tuebingen
 Freie
+Eberhard
 Karls
 ETH
 Universitaet
 Lund
+MERCHANTABILITY
 # }}}
 
 ###################################
@@ -113,6 +115,12 @@ Florian
 Zeller
 Peter
 Kunszt
+Johan
+Helge
+Lennart
+Ralf
+Nicolai
+Ivar
 # }}}
 
 ###################################
@@ -186,6 +194,8 @@ cdot
 ClusterMethod
 Const
 C'Tor
+gnuplot
+getter
 IMPL
 Longman
 lookup

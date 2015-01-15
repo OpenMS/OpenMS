@@ -269,7 +269,7 @@ namespace OpenMS
   {
     String c = classification;
     c.toLower();
-    if (c == "artifact" || c == "artefact") // unimod uses Artefact (BE) not Artifcat (AE)
+    if (c == "artifact" || c == "artefact") // unimod uses Artefact (BE) not Artifact (AE)
     {
       classification_ = ARTIFACT;
       return;
