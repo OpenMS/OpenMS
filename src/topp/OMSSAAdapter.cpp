@@ -764,6 +764,22 @@ protected:
       ms2_spec_count = map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
+      if (map.getSpectra().empty())
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+      }
+
+      // determine type of spectral data (profile or centroided)
+      SpectrumSettings::SpectrumType spectrum_type = map[0].getType();
+
+      if (spectrum_type == SpectrumSettings::RAWDATA)
+      {
+        if (!getFlag_("force"))
+        {
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
+        }
+      }
+
       int chunk(0);
       int chunk_size(getIntOption_("chunk_size"));
       if (chunk_size <= 0)
