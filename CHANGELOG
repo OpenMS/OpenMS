@@ -45,9 +45,7 @@ New tools:
 Deprecated tools:
   - DBExporter (TOPP)
   - DBImporter (TOPP)
-  - ExecutePipeline (TOPP)
   - FeatureFinderRaw (TOPP)
-  - IDEvaluatorGUI (UTIL)
   - SILACAnalyzer (TOPP)
 
 General:
