@@ -450,16 +450,8 @@ public:
       Size progress = 0;
       startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
 
-      if (!input.getNrSpectra() == 0)
+      if (input.getNrSpectra() > 0)
       {
-        // determine type of spectral data (profile or centroided)
-        SpectrumSettings::SpectrumType original_spectrum_type = input[0].getType();
-
-        if (original_spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
-        {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
-        }
-
         for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
         {
           if (!ListUtils::contains(ms_levels_, input[scan_idx].getMSLevel()))
@@ -469,6 +461,15 @@ public:
           else
           {
             std::vector<PeakBoundary> boundaries_s; // peak boundaries of a single spectrum
+
+            // determine type of spectral data (profile or centroided)
+            SpectrumSettings::SpectrumType spectrum_type = input[scan_idx].getType();
+
+            if (spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
+            {
+              throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
+            }
+
             pick(input[scan_idx], output[scan_idx], boundaries_s);
             boundaries_spec.push_back(boundaries_s);
           }
@@ -510,15 +511,8 @@ public:
       Size progress = 0;
       startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
 
-      if (!input.getNrSpectra() == 0)
+      if (input.getNrSpectra() > 0)
       {
-        // determine type of spectral data (profile or centroided)
-        SpectrumSettings::SpectrumType spectrum_type = input[0].getType();
-
-        if (spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
-        {
-          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
-        }
 
         // resize output with respect to input
         output.resize(input.size());
@@ -533,6 +527,15 @@ public:
           {
             MSSpectrum<PeakType> s = input[scan_idx];
             s.sortByPosition();
+
+            // determine type of spectral data (profile or centroided)
+            SpectrumSettings::SpectrumType spectrum_type = s.getType();
+
+            if (spectrum_type == SpectrumSettings::PEAKS && check_spectrum_type)
+            {
+              throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Centroided data provided but profile spectra expected.");
+            }
+
             pick(s, output[scan_idx]);
           }
           setProgress(++progress);
