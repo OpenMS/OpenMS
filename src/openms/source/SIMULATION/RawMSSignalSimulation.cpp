@@ -377,8 +377,8 @@ namespace OpenMS
     this->startProgress(0, features.size(), "RawMSSignal");
 
     Size progress(0);
-    // we have a bit of code duplication here but this eases the parallelization
-    // step
+    // we have a bit of code duplication here but this eases the
+    // parallelization step
     if (experiment.size() == 1) // MS only
     {
       for (FeatureMap::iterator feature_it = features.begin();
