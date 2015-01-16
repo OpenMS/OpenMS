@@ -140,14 +140,20 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("id", "<file>", "", "Input file: peptide identifications derived directly from 'in'");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
-    registerInputFile_("id_ext", "<file>", "", "Input file: 'external' peptide identifications (e.g. via alignment)", false);
+    registerInputFile_("id_ext", "<file>", "", "Input file: 'external' peptide identifications (e.g. from aligned runs)", false);
     setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file: features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("lib_out", "<file>", "", "Output file: assay library", false);
+    registerOutputFile_("out_ext", "<file>", "", "Output file: features ('external' IDs)", false);
+    setValidFormats_("out_ext", ListUtils::create<String>("featureXML"));
+    registerOutputFile_("lib_out", "<file>", "", "Output file: assay library ('internal' IDs)", false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("chrom_out", "<file>", "", "Output file: chromatograms", false);
+    registerOutputFile_("lib_ext_out", "<file>", "", "Output file: assay library ('external' IDs)", false);
+    setValidFormats_("lib_ext_out", ListUtils::create<String>("traML"));
+    registerOutputFile_("chrom_out", "<file>", "", "Output file: chromatograms ('internal' IDs)", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
+    registerOutputFile_("chrom_ext_out", "<file>", "", "Output file: chromatograms ('external' IDs)", false);
+    setValidFormats_("chrom_ext_out", ListUtils::create<String>("mzML"));
     registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
@@ -207,9 +213,9 @@ protected:
 
   PeakMap ms_data_; // input LC-MS data
   PeakMap chrom_data_; // accumulated chromatograms (XICs)
-  bool keep_chromatograms_; // keep/output chromatogram data?
+  bool keep_chromatograms_; // keep chromatogram data for output?
   TargetedExperiment library_; // accumulated assays for peptides
-  bool keep_library_; // keep/output assay data?
+  bool keep_library_; // keep assay data for output?
   CVTerm rt_term_; // controlled vocabulary term for reference RT
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   String reference_rt_; // value of "reference_rt" parameter
@@ -231,6 +237,26 @@ protected:
     vector<double>::iterator start = sorted_values.begin();
     if (sorted_values.size() % 2 == 0) ++start;
     return Math::median(start, sorted_values.end(), true);
+  }
+
+
+  // remove duplicate entries from a vector
+  void removeDuplicateProteins_(TargetedExperiment& library)
+  {
+    // no "TargetedExperiment::Protein::operator<" defined, need to improvise:
+    vector<TargetedExperiment::Protein> proteins;
+    set<String> ids;
+    for (vector<TargetedExperiment::Protein>::const_iterator it = 
+           library.getProteins().begin(); it != library.getProteins().end();
+         ++it)
+    {
+      if (!ids.count(it->id)) // new protein
+      {
+        proteins.push_back(*it);
+        ids.insert(it->id);
+      }
+    }
+    library.setProteins(proteins);
   }
 
 
@@ -743,6 +769,31 @@ protected:
   }
 
 
+  void ensureConvexHulls_(Feature& feature)
+  {
+    if (feature.getConvexHulls().empty()) // add hulls for mass traces
+    {
+      double rt_min = feature.getMetaValue("leftWidth");
+      double rt_max = feature.getMetaValue("rightWidth");
+      for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
+           sub_it != feature.getSubordinates().end(); ++sub_it)
+      {
+        double abs_mz_tol = mz_window_ / 2.0;
+        if (mz_window_ppm_)
+        {
+          abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
+        }
+        ConvexHull2D hull;
+        hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() - abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() + abs_mz_tol));
+        feature.getConvexHulls().push_back(hull);
+      }
+    }
+  }
+
+
   void detectFeaturesOnePeptide_(const PeptideMap::value_type& peptide_data,
                                  FeatureMap& features, bool trust_rt)
   {
@@ -825,6 +876,19 @@ protected:
           LOG_DEBUG << "Extracted " << chrom_data.getNrChromatograms()
                     << " chromatogram(s)." << endl;
 
+          if (keep_chromatograms_)
+          {
+            Size n_chrom = (chrom_data.getNrChromatograms() + 
+                            chrom_data_.getNrChromatograms());
+            chrom_data_.reserveSpaceChromatograms(n_chrom);
+            for (vector<MSChromatogram<> >::const_iterator ch_it = 
+                   chrom_data.getChromatograms().begin(); ch_it !=
+                   chrom_data.getChromatograms().end(); ++ch_it)
+            {
+              chrom_data_.addChromatogram(*ch_it);
+            }
+          }
+
           // adjust library RTs (use medoid of IDs, not center of region,
           // to improve OpenSWATH scoring):
           // note: OpenSWATH uses only the first RT given for a peptide (see
@@ -833,6 +897,7 @@ protected:
           lib_peps = library.getPeptides();
           setPeptideRT_(lib_peps[0], assay_rt);
           library.setPeptides(lib_peps);
+
           if (keep_library_) library_ += library;
 
           // find chromatographic peaks:
@@ -850,6 +915,16 @@ protected:
             filterFeatures_(current_features, rt_data, assigned_ids);
             LOG_DEBUG << "Features left after filtering: "
                       << current_features.size() << endl;
+          }
+          // complete feature annotation:
+          for (FeatureMap::Iterator feat_it = current_features.begin();
+               feat_it != current_features.end(); ++feat_it)
+          {
+            feat_it->setMZ(mz);
+            feat_it->setCharge(charge);
+            ensureConvexHulls_(*feat_it);
+            // remove "fake" IDs added by OpenSWATH:
+            if (!trust_rt) feat_it->getPeptideIdentifications().clear();
           }
           features += current_features;
           // store unassigned IDs:
@@ -913,10 +988,11 @@ protected:
     String id = getStringOption_("id");
     String id_ext = getStringOption_("id_ext");
     String out = getStringOption_("out");
+    String out_ext = getStringOption_("out_ext");
     String lib_out = getStringOption_("lib_out");
-    keep_library_ = !lib_out.empty();
+    String lib_ext_out = getStringOption_("lib_ext_out");
     String chrom_out = getStringOption_("chrom_out");
-    keep_chromatograms_ = !chrom_out.empty();
+    String chrom_ext_out = getStringOption_("chrom_ext_out");
     String trafo_out = getStringOption_("trafo_out");
     rt_window_ = getDoubleOption_("extract:rt_window");
     mz_window_ = getDoubleOption_("extract:mz_window");
@@ -961,6 +1037,8 @@ protected:
     params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width);
+    // does disabling the signal-to-noise threshold help or hurt?
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
     feat_finder_.setParameters(params);
@@ -972,66 +1050,60 @@ protected:
     vector<ProteinIdentification> proteins;
     IdXMLFile().load(id, proteins, peptides);
     FeatureMap features;
+    keep_library_ = !lib_out.empty();
+    keep_chromatograms_ = !chrom_out.empty();
     runFeatureDetection_(peptides, features);
     features.setProteinIdentifications(proteins);
+    if (keep_library_)
+    {
+      removeDuplicateProteins_(library_);
+      TraMLFile().store(lib_out, library_);
+      library_.clear(true);
+    }
+    if (keep_chromatograms_)
+    {
+      addDataProcessing_(chrom_data_,
+                         getProcessingInfo_(DataProcessing::FILTERING));
+      MzMLFile().store(chrom_out, chrom_data_);
+      chrom_data_.clear(true);
+    }
 
     // "external" IDs:
+    FeatureMap features_ext;
     if (!id_ext.empty())
     {
       vector<PeptideIdentification> peptides_ext;
       vector<ProteinIdentification> proteins_ext;
-      IdXMLFile().load(id_ext, proteins, peptides_ext);
-      FeatureMap features_ext;
+      IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+      keep_library_ = !lib_ext_out.empty();
+      keep_chromatograms_ = !chrom_ext_out.empty();
       runFeatureDetection_(peptides_ext, features_ext, true);
       features_ext.setProteinIdentifications(proteins_ext);
+      if (keep_library_)
+      {
+        removeDuplicateProteins_(library_);
+        TraMLFile().store(lib_ext_out, library_);
+        library_.clear(true);
+      }
+      if (keep_chromatograms_)
+      {
+        addDataProcessing_(chrom_data_,
+                           getProcessingInfo_(DataProcessing::FILTERING));
+        MzMLFile().store(chrom_ext_out, chrom_data_);
+        chrom_data_.clear(true);
+      }
     }
 
     ms_data_.reset(); // not needed anymore, free up the memory
 
-
-
     // combine both sets of features...
 
-
-    // @TODO add method for resolving overlaps if "reference_rt" is "all"
     // @FIXME
     // if (elution_model_ != "none")
     // {
     //   fitElutionModels_(features);
     // }
 
-    //-------------------------------------------------------------
-    // fill in missing feature data
-    //-------------------------------------------------------------
-    LOG_INFO << "Adapting feature data..." << endl;
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
-    {
-      feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
-      feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
-                         getCharge());
-      double rt_min = feat_it->getMetaValue("leftWidth");
-      double rt_max = feat_it->getMetaValue("rightWidth");
-      if (feat_it->getConvexHulls().empty()) // add hulls for mass traces
-      {
-        for (vector<Feature>::iterator sub_it =
-               feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
-        {
-          double abs_mz_tol = mz_window_ / 2.0;
-          if (mz_window_ppm_)
-          {
-            abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
-          }
-          ConvexHull2D hull;
-          hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));
-          hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + abs_mz_tol));
-          hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() - abs_mz_tol));
-          hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() + abs_mz_tol));
-          feat_it->getConvexHulls().push_back(hull);
-        }
-      }
-    }
 
     //-------------------------------------------------------------
     // write output
@@ -1041,6 +1113,14 @@ protected:
     addDataProcessing_(features,
                        getProcessingInfo_(DataProcessing::QUANTITATION));
     FeatureXMLFile().store(out, features);
+
+    if (!out_ext.empty())
+    {
+      features_ext.ensureUniqueId();
+      addDataProcessing_(features_ext,
+                         getProcessingInfo_(DataProcessing::QUANTITATION));
+      FeatureXMLFile().store(out_ext, features_ext);
+    }
 
     return EXECUTION_OK;
   }
