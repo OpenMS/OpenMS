@@ -62,10 +62,10 @@ General:
   - Removed GSL dependencies
   - Introduced low memory versions of various algorithms
   - OpenMS now offers a single interface for different implementations to access mass spectrometric data
-    - in memory
-	- on disk with index
-	- cached on disc for fast access
-	as well as a chainable, low memory sequential processor of MS data (using a separate interface)
+      - in memory
+      - on disk with index
+      - cached on disc for fast access
+    as well as a chainable, low memory sequential processor of MS data (using a separate interface)
   - pyOpenMS now supports python 3.x
   - Refactored AASequence, major speed improvement (~40x) for construction of unmodified sequences
 
