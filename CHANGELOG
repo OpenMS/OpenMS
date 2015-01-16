@@ -345,7 +345,7 @@ TOFCalibration	-	algorithm:PeakPicker:optimization:iterations	int	15	1:
 XMLValidator	+	in	input-file			*.mzML,*.mzData,*.featureXML,*.mzid,*.idXML,*.consensusXML,*.mzXML,*.ini,*.pepXML,*.TraML,*.xml
 XMLValidator	-	in	input-file			*.mzML,*.mzData,*.featureXML,*.idXML,*.consensusXML,*.mzXML,*.ini,*.pepXML
 
-Resolved issues:
+Resolved issues and merged pull requests:
   #644 Fix header macros
   #649 Fix ms numpress
   #651 [INTERNAL,API] Removal of the GSL
