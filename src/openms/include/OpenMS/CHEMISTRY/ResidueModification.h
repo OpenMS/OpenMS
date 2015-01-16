@@ -59,7 +59,7 @@ namespace OpenMS
 
           getFullId()           = "Oxidation (M)"
           getId()               = "Oxidation"
-          getFullName()         = "Oxidation or Hydoxylation"
+          getFullName()         = "Oxidation or Hydroxylation"
           getUniModAccession()  = "UniMod:312"
   */
   class OPENMS_DLLAPI ResidueModification

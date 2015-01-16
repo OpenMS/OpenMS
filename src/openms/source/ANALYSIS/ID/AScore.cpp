@@ -192,12 +192,12 @@ namespace OpenMS
     {
       determineHighestScoringPermutations(peptide_site_scores, phospho_sites, permutations);
 
-      // intialize score
+      // initialize score
       phospho.setScore(peptideScore(peptide_site_scores[phospho_sites[0].seq_1]));
     }
 
     {
-      // initialize score with highest peptide score (aka heighest weighted score)
+      // initialize score with highest peptide score (aka highest weighted score)
       multimap<double, Size> ranking;
       for (Size i = 0; i != peptide_site_scores.size(); ++i)
       {
@@ -268,12 +268,12 @@ namespace OpenMS
   void AScore::determineHighestScoringPermutations(const std::vector<std::vector<double> >& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const vector<vector<Size> >& permutations) const
   {
     // For every phospho site of the highest (weighted) scoring phospho site assignment:
-    // 1. determine the next best (weighted) score assignment with this site in unphosporilated state.
+    // 1. determine the next best (weighted) score assignment with this site in unphosporylated state.
     // 2. determine the filtering level (peak depths) that maximizes the (unweighted) score difference between these two assignments
 
     sites.clear();
 
-    // take first set of phosho site assignments
+    // take first set of phospho site assignments
     sites.resize(permutations[0].size());
 
     multimap<double, Size> ranking;
@@ -288,7 +288,7 @@ namespace OpenMS
 
     const vector<Size> & best_peptide_sites = permutations[ranking.rbegin()->second]; // sites of the assignment that achieved the highest weighted score
 
-    for (Size i = 0; i < best_peptide_sites.size(); ++i)  // for each phosphorilated site
+    for (Size i = 0; i < best_peptide_sites.size(); ++i)  // for each phosphorylated site
     {
       multimap<double, Size>::reverse_iterator rev = ranking.rbegin();
       sites[i].first = best_peptide_sites[i]; // store the site
@@ -373,10 +373,10 @@ namespace OpenMS
     TheoreticalSpectrumGenerator spectrum_generator;
     AASequence pref, suf, pref_with_phospho_first, pref_with_phospho_second, suf_with_phospho_first, suf_with_phospho_second;
     RichPeakSpectrum prefix, suffix, prefix_with_phospho_first, prefix_with_phospho_second, suffix_with_phospho_second, suffix_with_phospho_first;
-    Size permutation_with_site_phosphorilated = candidates.seq_1;
-    Size permutation_with_site_not_phosphorilated = candidates.seq_2;
-    AASequence first(AASequence::fromString(th_spectra[permutation_with_site_phosphorilated].getName()));
-    AASequence second(AASequence::fromString(th_spectra[permutation_with_site_not_phosphorilated].getName()));
+    Size permutation_with_site_phosphorylated = candidates.seq_1;
+    Size permutation_with_site_not_phosphorylated = candidates.seq_2;
+    AASequence first(AASequence::fromString(th_spectra[permutation_with_site_phosphorylated].getName()));
+    AASequence second(AASequence::fromString(th_spectra[permutation_with_site_not_phosphorylated].getName()));
 
     if (candidates.first < candidates.second)
     {
@@ -540,7 +540,7 @@ namespace OpenMS
       }
       return permutations;
     }
-    // All sites are phosphorilated? Return one permutation containing all sites at once.
+    // All sites are phosphorylated? Return one permutation containing all sites at once.
     else if (sites.size() == (Size)n_phosphorylation_events)
     {
       vector<vector<Size> > permutations;

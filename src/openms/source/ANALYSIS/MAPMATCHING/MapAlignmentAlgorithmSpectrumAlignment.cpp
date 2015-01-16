@@ -49,7 +49,7 @@ namespace OpenMS
     setName("MapAlignmentAlgorithmSpectrumAlignment");
     defaults_.setValue("gapcost", 1.0, " This Parameter stands for the cost of opining a gap in the Alignment. A Gap means that one Spectrum can not be aligned directly to another Spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagen as a insert or delete of the spectrum in the map. The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and has to be punished a bit, so such only in case  it 's a good choice to open a gap, if the score is bad enough. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
     defaults_.setMinFloat("gapcost", 0.0);
-    defaults_.setValue("affinegapcost", 0.5, " This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure gap match gap match.  There for the punishment for the extension of a gap has to be lower than the normal gapcost. If the the result of the aligmnet show high compression, it is a good idea to lower the affine gapcost or the normal gapcost.");
+    defaults_.setValue("affinegapcost", 0.5, " This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure gap match gap match.  There for the punishment for the extension of a gap has to be lower than the normal gapcost. If the the result of the alignment show high compression, it is a good idea to lower the affine gapcost or the normal gapcost.");
     defaults_.setMinFloat("affinegapcost", 0.0);
     defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered Spectra, these Spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of Spectra are selected, which has a score higher or same of the threshold.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("cutoff_score", 0.0);
@@ -106,7 +106,7 @@ namespace OpenMS
 
     //if it's possible, built 4 blocks. These can be individually be aligned.
     std::vector<Size> alignpoint;
-    //saving the first cordinates
+    //saving the first coordinates
     alignpoint.push_back(0);
     alignpoint.push_back(0);
     //4 blocks : 0-0.25 ,0.25-50,0.50-0.75,1 The data points must have a high similarity score
@@ -152,7 +152,7 @@ namespace OpenMS
     //save also the endpoint as a data point
     alignpoint.push_back(pattern.size() - 1);
     alignpoint.push_back(tempalign.size() - 1);
-    //the distance of two data points have to be greater than 3, if not the spline would thrown an Expection
+    //the distance of two data points have to be greater than 3, if not the spline would thrown an Exception
     //do a affine gap alignment of the block of the data points x1,y1,x2,y2
 
     std::vector<Int> xcoordinate;

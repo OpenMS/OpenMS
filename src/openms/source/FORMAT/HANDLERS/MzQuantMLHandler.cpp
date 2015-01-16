@@ -1330,7 +1330,7 @@ namespace OpenMS
 
       std::vector<UInt64> fid;
       std::vector<float> fin, fwi, fqu;
-//      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref) TODO renoved unused variables
+//      std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref) TODO removed unused variables
 //      std::vector<std::vector<float> > f2i;
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());

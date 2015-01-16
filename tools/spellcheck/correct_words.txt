@@ -451,6 +451,7 @@ Faires
 # Classnames, functions and closely related {{{
 ###################################
 # {{{Classnames
+SILACAnalyzer
 LowLevelComparator
 IDEvaluatorGUI
 AxisWidget
@@ -730,6 +731,13 @@ maximus
 
 ApprLineFit
 GeometricTools
+DataCollection
+IdentificationRuns
+PeptideEvidences
+SequenceCollection
+spectradata
+XSValue
+
 # }}}
 
 ###################################
@@ -755,6 +763,15 @@ ltnote
 ###################################
 # common technical words {{{
 ###################################
+LLVM
+tokenize
+Wikipedia
+Exabyte
+Exbibit
+Exbibyte
+subelement
+subdirectory
+NaN
 peaklist
 doi
 pubmed
@@ -945,6 +962,10 @@ Javascript
 ###################################
 # common Mass spectrometry and OpenMS words {{{
 ###################################
+Histidin
+Leucin
+Phenylalanin
+PSM’s
 pepID
 Carboxymethyl
 paramXML
@@ -1117,6 +1138,10 @@ Transcodes
 sulfoxide
 codon
 immonium
+
+Askenazi
+Savitski
+Sweetman
 # }}}
 
 ###################################

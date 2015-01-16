@@ -213,7 +213,7 @@ namespace OpenMS
     // reset internal state:
     esi_impurity_probabilities_.clear();
     esi_adducts_.clear();
-    // cumulate probabilities in list
+    // accumulate probabilities in list
     double summed_probability(0);
     for (Size i = 0; i < esi_charge_impurity.size(); ++i)
     {

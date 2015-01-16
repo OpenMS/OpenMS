@@ -270,7 +270,7 @@ private:
       /// members
       String name_;
       EmpiricalFormula ef_;
-      double mass_; // computed from ef_.getMonoWeight(), but stored explicitly for efficency
+      double mass_; // computed from ef_.getMonoWeight(), but stored explicitly for efficiency
       int charge_;
       bool is_intrinsic_;
       uint mol_multiplier_;
