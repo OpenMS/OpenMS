@@ -106,8 +106,16 @@ do
         | while read i
         do
             TOOL_NAME=$(echo $i | sed -E "s/^. //")
+            TOOL_DESCR=$(${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep " -- " | head -n 1 | sed -E 's/.* -- (.*)$/\1/' | sed -E 's/\.$//')
             TOOL_STATUS=$(${BIN_DIR}/${TOOL_NAME} --help 2>&1 | grep -e "Common.*options" | sed -E 's/.*Common (.*) options.*/\1/')
-            echo "  - ${TOOL_NAME} (${TOOL_STATUS})"
+            if [[ ${TOOL_DESCR} != "" ]]
+            then
+                echo "  - ${TOOL_NAME} -- ${TOOL_DESCR} (${TOOL_STATUS})"
+            else
+                echo "  - ${TOOL_NAME} (${TOOL_STATUS})"
+            fi
+
+
         done
     echo
 done

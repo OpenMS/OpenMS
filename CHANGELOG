@@ -14,13 +14,18 @@ Release date: January 2015
 
 OpenMS 2.0 is the first release after the switch to git and a complete overhaul of the
 build system. It introduces a considerable number of new features and bug fixes.
+
 Furthermore, we removed the dependency to GSL and replaced the functionality using
-Eigen3 and Wildmagic.
+Eigen3 and Wildmagic. Thus, the OpenMS core and the full build are now under a more
+permissive non-GPL (e.g., Apache or BSD) license.
 
 File formats:
   - mzQuantML support (experimental)
   - mzIdentML support (experimental)
   - mzTab support (experimental)
+  - Indexed mzML support
+  - Support for numpress encoding in mzML
+  - Major speed improvement in mzML / mzXML parsing (up to 4x for some setups)
 
 TOPPView:
   - Support for visualizing mass fingerprinting hits from featureXML along with their raw spectra in MS1
@@ -28,37 +33,51 @@ TOPPView:
   - Improved display of m/z, RT, and intensity values 1D and 2D view
 
 New tools:
-  - FeatureFinderIdentification (TOPP)
-  - FeatureFinderMultiplex (TOPP)
-  - FidoAdapter (TOPP)
-  - LowMemPeakPickerHiRes (UTIL)
-  - LowMemPeakPickerHiRes_RandomAccess (UTIL)
+  - FeatureFinderIdentification -- Detects features in MS1 data based on peptide identifications (TOPP)
+  - FeatureFinderMultiplex -- Determination of peak ratios in LC-MS data (TOPP)
+  - FidoAdapter -- Runs the protein inference engine Fido (TOPP)
+  - LowMemPeakPickerHiRes -- Finds mass spectrometric peaks in profile mass spectra (UTIL)
+  - LowMemPeakPickerHiRes_RandomAccess -- Finds mass spectrometric peaks in profile mass spectra (UTIL)
   - MRMTransitionGroupPicker (UTIL)
-  - MSGFPlusAdapter (TOPP)
-  - MetaboliteSpectralMatcher (UTIL)
-  - OpenSwathWorkflow (UTIL)
-  - PeakPickerIterative (UTIL)
-  - RTAnnotator (UTIL)
-  - SimpleSearchEngine (UTIL)
-  - TopPerc (TOPP)
+  - MSGFPlusAdapter -- MS/MS database search using MS-GF+ (TOPP)
+  - MetaboliteSpectralMatcher -- Find potential HMDB ids within the given mass error window (UTIL)
+  - OpenSwathWorkflow -- Complete workflow to run OpenSWATH (UTIL)
+  - PeakPickerIterative -- Finds mass spectrometric peaks in profile mass spectra (UTIL)
+  - RTAnnotator -- Annotates identification files that are missing the RT field (UTIL)
+  - SimpleSearchEngine -- Annotates MS/MS spectra using SimpleSearchEngine (UTIL)
+  - TopPerc -- Facilitate input to Percolator and reintegrate (TOPP)
 
 Deprecated tools:
-  - DBExporter (TOPP)
-  - DBImporter (TOPP)
-  - FeatureFinderRaw (TOPP)
-  - SILACAnalyzer (TOPP)
+  - DBExporter -- Exports data from an OpenMS database to a file (TOPP)
+  - DBImporter -- Imports data to an OpenMS database (TOPP)
+  - FeatureFinderRaw -- Determination of peak ratios in LC-MS data (TOPP)
+  - SILACAnalyzer -- Determination of peak ratios in LC-MS data (TOPP)
+
+Tools with major changes:
+  - OpenSWATH now supports MS1 extraction and labelled workflows
+  - OpenSWATHWorkflow single binary (high performance integrated workflow)
+  - IsobaricAnalyzer now supports TMT 10-plex
 
 General:
   - Removed GSL dependencies
+  - Introduced low memory versions of various algorithms
+  - OpenMS now offers a single interface for different implementations to access mass spectrometric data
+    - in memory
+	- on disk with index
+	- cached on disc for fast access
+	as well as a chainable, low memory sequential processor of MS data (using a separate interface)
+  - pyOpenMS now supports python 3.x
+  - Refactored AASequence, major speed improvement (~40x) for construction of unmodified sequences
 
 Third party software:
   - Added Fido support
   - Added MS-GF+ support
 
 Changes to the Build System / Package System:
-  - Restructured repository layout
+  - Restructured repository layout and build system
   - Added support for Travis CI
   - Simplified pyOpenMS build system
+  - Support for Visual Studio 2013
 
 Changed parameters:
 
