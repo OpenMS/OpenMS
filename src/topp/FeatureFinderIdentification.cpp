@@ -172,6 +172,8 @@ protected:
     setMinFloat_("detect:peak_width", 0.0);
     registerDoubleOption_("detect:min_peak_width", "<value>", 0.2, "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.", false, true);
     setMinFloat_("detect:min_peak_width", 0.0);
+    registerDoubleOption_("detect:signal_to_noise", "<value>", 0.5, "Signal-to-noise threshold for OpenSWATH feature detection", false, true);
+    setMinFloat_("detect:signal_to_noise", 0.1);
     registerDoubleOption_("detect:mapping_tolerance", "<value>", 10.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
     setMinFloat_("detect:mapping_tolerance", 0.0);
 
@@ -1000,6 +1002,7 @@ protected:
     isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
     double peak_width = getDoubleOption_("detect:peak_width");
     double min_peak_width = getDoubleOption_("detect:min_peak_width");
+    double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
     mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
     elution_model_ = getStringOption_("model:type");
 
@@ -1032,13 +1035,15 @@ protected:
     params.setValue("stop_report_after_feature", -1); // return all features
     if (elution_model_ != "none") params.setValue("write_convex_hull", "true");
     if (min_peak_width < 1.0) min_peak_width *= peak_width;
-    params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
-    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-    params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
                     peak_width);
-    // does disabling the signal-to-noise threshold help or hurt?
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.0);
+    params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
+    // disabling the signal-to-noise threshold (setting the parameter to zero)
+    // totally breaks the OpenSWATH feature detection (no features found)!
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
+                    signal_to_noise);
+    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
+    params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
     feat_finder_.setParameters(params);
