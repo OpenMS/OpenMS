@@ -4,6 +4,72 @@ PyOpenMSChecker:
   IgnoreMethods:
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+    # TODO items (nested STL etc)
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    OpenMS::SvmTheoreticalSpectrumGenerator::SvmModelParameterSet:
+        # STL attributes
+        - class_models
+        - reg_models
+        - _intensities
+        - ion_types
+        - secondary_types
+
+    OpenMS::ProteinResolver::ISDGroup:
+        # STL pointer attributes / list
+        - proteins
+        - peptides
+        - msd_groups # TODO no converter for List
+
+    OpenMS::ProteinResolver::MSDGroup:
+        # STL pointer attributes / list
+        - proteins
+        - peptides
+        - isd_group # raw pointer
+
+    OpenMS::PeptideAndProteinQuant::PeptideData:
+        # STL attributes / map
+        - abundances 
+        - total_abundances 
+    OpenMS::PeptideAndProteinQuant::ProteinData:
+        # STL attributes / map
+        - abundances 
+        - total_abundances 
+
+    OpenMS::ProteinResolver::PeptideEntry:
+        - proteins # std::list
+
+    OpenMS::Base64:
+        # unwrappable type (QByteArray)
+        - decodeSingleString
+
+    OpenMS::ResidueDB:
+        - getResidue
+        - getModifiedResidue
+        - getModifiedResidue
+        # POINTER # libcpp_set[ Residue * ] getResidues(String & residue_set) nogil except +
+        - getResidues
+        # Cannot get ResidueDB since its constructor and destructor is private ... 
+        - getInstance
+
+    OpenMS::BinnedSpectrum:
+        ## SparseVector[ float ]  getBins() nogil except +
+        - getBins() nogil except +
+
+    OpenMS::SimTypes::SimRandomNumberGenerator:
+        - getBiologicalRng
+        - getTechnicalRng
+        - setBiologicalRngSeed
+        - setTechnicalRngSeed
+
+    OpenMS::FeatureHandle:
+        - asMutable()
+
+    OpenMS::UnimodXMLFile:
+        # TODO raw ptr in vector
+        - load
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Manual
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -20,8 +86,8 @@ PyOpenMSChecker:
         # unwrappable type
         - biological_rng
         - technical_rng
-    OpenMS::ProteinResolver::PeptideEntry:
-        - proteins # std::list
+
+
     OpenMS::MzTabUnitIdMetaData:
         - title
         - description
@@ -55,6 +121,7 @@ PyOpenMSChecker:
     OpenMS::SILACPoint:
         - mz_positions
         - intensities
+
     OpenMS::SILACLabeler:
         - setUpHook
         - postDigestHook
@@ -104,6 +171,7 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed enums / Attributes of enums that are wrapped already
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     OpenMS::PeakShape:
         - Type
     OpenMS::ProteinIdentification:
@@ -562,8 +630,12 @@ PyOpenMSChecker:
   IgnoreNames:
 
     ########################################################################
-    #        Manually cureated list of classes we do not want to wrap
+    #        Manually curated list of classes we do not want to wrap
     ########################################################################
+
+    # renamed classes (they exist but under a different name)
+    - OpenMS::PeakShape::Type
+    - OpenMS::ResidueModification::Term_Specificity
 
     # rarely used classes
     - OpenMS::WeightWrapper
@@ -592,6 +664,9 @@ PyOpenMSChecker:
     - OpenMS::FileWatcher
     - OpenMS::MSDataTransformingConsumer # not really useful since it uses function pointers
     - OpenMS::NoopMSDataConsumer
+    - OpenMS::MSDataChainingConsumer 
+    - OpenMS::GUIProgressLoggerImpl
+    - OpenMS::ProgressLogger::ProgressLoggerImpl
 
     # MzTab internals -> maybe when its finished!
     - OpenMS::MzTabSpectraRef
@@ -614,6 +689,20 @@ PyOpenMSChecker:
     - OpenMS::MzTabNullNaNAndInfAbleInterface
     - OpenMS::MzTabDoubleList
     - OpenMS::MzTabStringList
+    - OpenMS::MzTabIntegerList
+    - OpenMS::MzTabAssayMetaData
+    - OpenMS::MzTabContactMetaData 
+    - OpenMS::MzTabCVMetaData 
+    - OpenMS::MzTabInstrumentMetaData
+    - OpenMS::MzTabMetaData
+    - OpenMS::MzTabModificationMetaData
+    - OpenMS::MzTabMSRunMetaData
+    - OpenMS::MzTabPSMSectionRow 
+    - OpenMS::MzTabSampleMetaData
+    - OpenMS::MzTabSoftwareMetaData
+    - OpenMS::MzTabStudyVariableMetaData
+
+    - OpenMS::Internal::MzIdentMLDOMHandler
 
     # MultiplexFiltering
     - OpenMS::MultiplexFiltering
@@ -625,6 +714,11 @@ PyOpenMSChecker:
     - OpenMS::MultiplexFiltering::PeakReference
     - OpenMS::GridBasedClustering
     - OpenMS::MinimumDistance
+    - OpenMS::MultiplexClustering
+    - OpenMS::MultiplexClustering::MultiplexDistance
+    - OpenMS::SplineSpectrum::Navigator
+    - OpenMS::MultiplexFilteringCentroided
+    - OpenMS::MultiplexFilteringProfile
 
     # CONCEPT
     - OpenMS::SingletonRegistry
@@ -723,6 +817,8 @@ PyOpenMSChecker:
     - OpenMS::BinaryTreeNode
 
     # COMPARISON - mostly functors
+    - OpenMS::OptimizePick::OptPeakFunctor
+    - OpenMS::LevMarqFitter1D::GenericFunctor
     - OpenMS::EGHTraceFitter::EGHTraceFunctor
     - OpenMS::TraceFitter::GenericFunctor
     - OpenMS::SpectralMatchScoreComparator
