@@ -339,6 +339,13 @@ PyOpenMSChecker:
         - extract_value_tophat
         - extract_value_bartlett
 
+    OpenMS::ChromatogramExtractorAlgorithm:
+        - extract_value_tophat
+
+    OpenMS::ChromatogramExtractorAlgorithm::ExtractionCoordinates:
+        - SortExtractionCoordinatesByMZ
+        - SortExtractionCoordinatesReverseByMZ
+
     OpenMS::LinearResamplerAlign:
         - raster
         - raster_align
@@ -567,8 +574,9 @@ PyOpenMSChecker:
     - OpenMS::StringUtils
     - OpenMS::StringListUtils
     - OpenMS::ListUtils
+    - OpenMS::SysInfo
 
-    # prduces compile error
+    # produces compile error
     - OpenMS::IsotopeWaveletTransform::TransSpectrum
 
     # Algorithm class only
@@ -583,6 +591,7 @@ PyOpenMSChecker:
     - OpenMS::StopFileWatcher
     - OpenMS::FileWatcher
     - OpenMS::MSDataTransformingConsumer # not really useful since it uses function pointers
+    - OpenMS::NoopMSDataConsumer
 
     # MzTab internals -> maybe when its finished!
     - OpenMS::MzTabSpectraRef
@@ -605,6 +614,17 @@ PyOpenMSChecker:
     - OpenMS::MzTabNullNaNAndInfAbleInterface
     - OpenMS::MzTabDoubleList
     - OpenMS::MzTabStringList
+
+    # MultiplexFiltering
+    - OpenMS::MultiplexFiltering
+    - OpenMS::MultiplexFilterResult
+    - OpenMS::MultiplexFilterResultPeak 
+    - OpenMS::MultiplexFilterResultRaw
+    - OpenMS::MultiplexPeakPattern
+    - OpenMS::MultiplexFiltering::BlackListEntry
+    - OpenMS::MultiplexFiltering::PeakReference
+    - OpenMS::GridBasedClustering
+    - OpenMS::MinimumDistance
 
     # CONCEPT
     - OpenMS::SingletonRegistry
@@ -672,6 +692,7 @@ PyOpenMSChecker:
     - OpenMS::Interfaces::Spectrum
     - OpenMS::Interfaces::BinaryDataArray
     - OpenMS::Interfaces::SpectrumMeta
+    - OpenMS::Interfaces::IMSDataConsumer
 
     # KERNEL - internals and ranges
     - OpenMS::RangeManager
@@ -702,6 +723,12 @@ PyOpenMSChecker:
     - OpenMS::BinaryTreeNode
 
     # COMPARISON - mostly functors
+    - OpenMS::EGHTraceFitter::EGHTraceFunctor
+    - OpenMS::TraceFitter::GenericFunctor
+    - OpenMS::SpectralMatchScoreComparator
+    - OpenMS::PrecursorMassComparator
+    - OpenMS::FloatsWithTolLess
+    - OpenMS::IntsInRangeLess
     - OpenMS::PeakSpectrumCompareFunctor
     - OpenMS::BinnedSpectrumCompareFunctor::IncompatibleBinning
     - OpenMS::BinnedSpectrumCompareFunctor
@@ -727,7 +754,7 @@ PyOpenMSChecker:
     - OpenMS::DBoundingBox
     - OpenMS::DRange
 
-    # Iterators, comperators, helpers
+    # Iterators, comparators, helpers
     - OpenMS::Internal::SemanticValidator::CVTerm
     - OpenMS::AASequence::ConstIterator
     - OpenMS::Internal::IntensityIteratorWrapper
@@ -999,6 +1026,7 @@ PyOpenMSChecker:
     - OpenMS::Math::GumbelDistributionFitter::GumbelDistributionFitResult
     - OpenMS::Math::Histogram
     - OpenMS::Math::LinearRegression
+    - OpenMS::Math::QuadraticRegression
     - OpenMS::Math::ROCCurve
     - OpenMS::Math::ROCCurve::simsortdec
 
