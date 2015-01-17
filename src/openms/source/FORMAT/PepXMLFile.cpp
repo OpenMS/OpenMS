@@ -598,8 +598,7 @@ namespace OpenMS
     {
       fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'");
     }
-
-    // clean up duplicate ProteinHits in ProteinIdentifications:
+    // clean up duplicate ProteinHits in each ProteinIdentification separatly:
     // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
@@ -790,8 +789,7 @@ namespace OpenMS
       hit.setAccession(protein);
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
-      current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
-      insertHit(hit);
+      current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->insertHit(hit);
     }
     else if (element == "search_result") // parent: "spectrum_query"
     { // creates a new PeptideIdentification
@@ -804,9 +802,8 @@ namespace OpenMS
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
-      current_peptide_.setIdentifier(
-        current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
-        getIdentifier());
+      String identifier = current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->getIdentifier();
+      current_peptide_.setIdentifier(identifier);
     }
     else if (element == "spectrum_query") // parent: "msms_run_summary"
     {
@@ -1102,8 +1099,9 @@ namespace OpenMS
       }
 
       search_engine_ = attributeAsString_(attributes, "search_engine");
-      // generate identifier from search engine and date:
-      prot_id_ = search_engine_ + "_" + date_.getDate();
+
+      // generate a unique identifier for every search engine run.
+      prot_id_ = search_engine_ + "_" + date_.getDate() + "_" + date_.getTime();
 
       search_id_ = 1;
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
@@ -1251,6 +1249,15 @@ namespace OpenMS
     }
     else if (element == "search_summary")
     {
+      // In idXML we only store search engine and date as identifier, but to distinguish two identification runs these values must be unique.
+      // As a workaround to support multiple runs, we make the date unique by adding one second for every additional identification run.   
+      UInt hour, minute, second;
+      date_.getTime(hour, minute, second);
+      hour = (hour + (minute + (second + 1) / 60) / 60) % 24;
+      minute = (minute + (second + 1) / 60) % 60;
+      second = (second + 1) % 60;
+      date_.setTime(hour, minute, second);
+
       current_proteins_.back()->setSearchParameters(params_);
     }
   }
