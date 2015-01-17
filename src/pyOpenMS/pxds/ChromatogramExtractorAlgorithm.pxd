@@ -1,3 +1,4 @@
+from smart_ptr cimport shared_ptr
 from ProgressLogger cimport *
 from OpenSwathDataStructures cimport *
 from SpectrumAccessOpenMS cimport *
