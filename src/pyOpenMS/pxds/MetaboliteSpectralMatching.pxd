@@ -20,3 +20,50 @@ cdef extern from "<OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>" namespace "
 
         void run(MSExperiment[Peak1D,ChromatogramPeak] & exp, MzTab& mz_tab) nogil except +
 
+    cdef cppclass SpectralMatch:
+
+        SpectralMatch() nogil except +
+        SpectralMatch(SpectralMatch) nogil except + 
+
+        double getObservedPrecursorMass() nogil except +
+        void setObservedPrecursorMass(double)nogil except +
+
+        double getObservedPrecursorRT() nogil except +
+        void setObservedPrecursorRT(double)nogil except +
+
+        double getFoundPrecursorMass() nogil except +
+        void setFoundPrecursorMass(double)nogil except +
+
+        Int getFoundPrecursorCharge() nogil except +
+        void setFoundPrecursorCharge(Int)nogil except +
+
+        double getMatchingScore() nogil except +
+        void setMatchingScore(double)nogil except +
+
+        Size getObservedSpectrumIndex() nogil except +
+        void setObservedSpectrumIndex(Size)nogil except +
+
+        Size getMatchingSpectrumIndex() nogil except +
+        void setMatchingSpectrumIndex(Size)nogil except +
+
+        String getPrimaryIdentifier() nogil except +
+        void setPrimaryIdentifier(String)nogil except +
+
+        String getSecondaryIdentifier() nogil except +
+        void setSecondaryIdentifier(String)nogil except +
+
+        String getCommonName() nogil except +
+        void setCommonName(String)nogil except +
+
+        String getSumFormula() nogil except +
+        void setSumFormula(String)nogil except +
+
+        String getInchiString() nogil except +
+        void setInchiString(String)nogil except +
+
+        String getSMILESString() nogil except +
+        void setSMILESString(String)nogil except +
+
+        String getPrecursorAdduct() nogil except +
+        void setPrecursorAdduct(String)nogil except +
+
