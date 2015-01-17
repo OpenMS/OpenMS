@@ -1,5 +1,7 @@
 from ProgressLogger cimport *
+from OpenSwathDataStructures cimport *
 from SpectrumAccessOpenMS cimport *
+from ISpectrumAccess cimport *
 from libcpp cimport bool
 
 # typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
@@ -14,12 +16,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>" 
         ChromatogramExtractorAlgorithm(ChromatogramExtractorAlgorithm) nogil except + 
 
         void extractChromatograms(
-            # OpenSwath::SpectrumAccessPtr input, 
-            shared_ptr[ SpectrumAccessOpenMS ] input,
+            shared_ptr[ ISpectrumAccess ] input,
             libcpp_vector[ shared_ptr[OSChromatogram] ] & output, 
             libcpp_vector[ ExtractionCoordinates ] extraction_coordinates, 
             double mz_extraction_window,
-            bool ppm, String filter) nogil except +
+            bool ppm, String filter) nogil except + # wrap-ignore
 
         # void extract_value_tophat # -> uses iterators
 
