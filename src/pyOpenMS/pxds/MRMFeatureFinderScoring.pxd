@@ -1,11 +1,16 @@
-from String cimport *
+from Types cimport *
 from MSExperiment cimport *
 from FeatureMap cimport *
 from TargetedExperiment cimport *
 from TransformationDescription cimport *
 from DefaultParamHandler cimport *
 from ProgressLogger cimport *
-from libcpp cimport bool
+from SpectrumAccessOpenMS cimport *
+from ISpectrumAccess cimport *
+from MRMTransitionGroup cimport *
+
+# typedef OpenSwath::LightTransition TransitionType;
+# typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType; 
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespace "OpenMS":
 
@@ -24,3 +29,14 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
 
         void setStrictFlag(bool flag) nogil except +
 
+        void setMS1Map( shared_ptr[ SpectrumAccessOpenMS ] ms1_map) nogil except +
+        # TODO for ISpectrumAccess
+        # void setMS1Map( shared_ptr[ ISpectrumAccess ] ms1_map) nogil except +
+
+        # TODO for ISpectrumAccess
+        # void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo,
+        #                      OpenSwath::SpectrumAccessPtr swath_map, FeatureMap& output);
+        void scorePeakgroups(MRMTransitionGroup[MSSpectrum[Peak1D], LightTransition] transition_group, TransformationDescription trafo,
+                             shared_ptr[ ISpectrumAccess ] swath_map, FeatureMap& output) nogil except +
+          
+           

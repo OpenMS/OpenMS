@@ -2,6 +2,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
 from MRMFeature cimport *
 from ReactionMonitoringTransition cimport *
+from LightTargetedExperiment cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
 
@@ -11,6 +12,7 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
 
         # wrap-instances:
         #   MRMTransitionGroup := MRMTransitionGroup[MSSpectrum[Peak1D], ReactionMonitoringTransition]
+        #   LightMRMTransitionGroup := MRMTransitionGroup[MSSpectrum[Peak1D], LightTransition]
 
         MRMTransitionGroup() nogil except +
         MRMTransitionGroup(MRMTransitionGroup &) nogil except +

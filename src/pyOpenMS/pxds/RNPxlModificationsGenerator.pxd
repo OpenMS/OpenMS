@@ -1,3 +1,4 @@
+from Types cimport *
 from ProgressLogger cimport *
 from DefaultParamHandler cimport *
 from MSSpectrum cimport *
@@ -26,8 +27,8 @@ cdef extern from "<OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>" namespa
         RNPxlModificationMassesResult() nogil except +
         RNPxlModificationMassesResult(RNPxlModificationMassesResult) nogil except + 
 
-        libcpp_map[String, double] mod_masses # empirical formula -> mass
+        # libcpp_map[String, double] mod_masses # empirical formula -> mass
         # libcpp_map[String, libcpp_set[String] ] mod_combinations # empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
-        libcpp_map<Size, String> mod_formula_idx
+        # libcpp_map[Size, String] mod_formula_idx
 
 

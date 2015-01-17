@@ -485,7 +485,10 @@ public:
 
        @return Returns whether the groups are still valid (which is the case if only whole groups, if any, were removed).
     */
-    static bool updateProteinGroups(const std::vector<ProteinIdentification::ProteinGroup>& groups, const std::vector<ProteinHit>& hits, std::vector<ProteinIdentification::ProteinGroup>& filtered_groups);
+    static bool updateProteinGroups(
+            const std::vector<ProteinIdentification::ProteinGroup>& groups,
+            const std::vector<ProteinHit>& hits,
+            std::vector<ProteinIdentification::ProteinGroup>& filtered_groups);
 
   };
 
