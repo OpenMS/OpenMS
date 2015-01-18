@@ -95,6 +95,33 @@ PyOpenMSChecker:
         - loadSize
         - isValid
 
+    OpenMS::RNPxlModificationMassesResult:
+        # STL attributes
+        - mod_masses
+        - mod_combinations
+        - mod_formula_idx
+
+    OpenMS::ElementDB:
+        # const pointer and Map
+        - getInstance
+        - getNames
+        - getSymbols
+        - getAtomicNumbers
+        - getElement
+        - getElement
+
+    OpenMS::IsobaricQuantifierStatistics:
+        # STL attributes
+        - empty_channels
+
+    OpenMS::PrecursorIonSelectionPreprocessing:
+        # TODO STL map
+        - getProtMasses
+        - getProteinRTMap
+        - getProteinPTMap
+        - getProteinPeptideSequenceMap
+        - getFixedModifications
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Manual
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -483,6 +510,7 @@ PyOpenMSChecker:
         - peaks
     OpenMS::HiddenMarkovModel:
         - write # stream
+        - calculateEmissionProbabilities # ptr inside Map
     OpenMS::MarkerMower:
         - insertmarker
     OpenMS::ProteinResolver::ProteinEntry:
@@ -508,6 +536,7 @@ PyOpenMSChecker:
         - fullDimensionUnit
         - fullDimensionUnitRT
         - fullDimensionUnitMZ
+
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Factory pattern / create methods
