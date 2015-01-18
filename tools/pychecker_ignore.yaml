@@ -5,18 +5,21 @@ PyOpenMSChecker:
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # TODO items (nested STL etc)
+    #  - go through these, some of them might need some work done 
+    #  - status Jan 2015 (Release 2.0)
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    # OpenMS::PeakMarker:
+    #     - apply
 
     OpenMS::DefaultParamHandler:
         - DefaultParamHandler
         - getSubsections
-
     OpenMS::ims::RealMassDecomposer:
         - getDecompositions
     OpenMS::ims::MassDecomposer:
         - getDecomposition
         - getAllDecompositions
-
     OpenMS::Spline2d:
         - eval
         - derivatives
@@ -32,15 +35,6 @@ PyOpenMSChecker:
     OpenMS::LocalLinearMap:
         - getCord
         - neigh
-    OpenMS::PeakMarker:
-        - apply
-    OpenMS::ims::IMSIsotopeDistribution::Peak:
-        - Peak
-
-    OpenMS::Tagging:
-        - clone
-        - getVariant
-        - setVariant
     OpenMS::DocumentIdentifier:
         - swap
     OpenMS::ModifiedPeptideGenerator:
@@ -58,17 +52,12 @@ PyOpenMSChecker:
     OpenMS::TransformationModelInterpolated:
         - TransformationModelInterpolated
     OpenMS::Param:
-        - findFirst
-        - findNext
-        - findEntry
-        - findNode
+        # argc **
         - parseCommandLine
     OpenMS::FeatureMap:
         - getAnnotationStatistics
     OpenMS::BinnedSpectrum:
         - getBins
-    OpenMS::QTClusterFinder:
-        - create
     OpenMS::PSProteinInference:
         - getNumberOfProtIdsPeptideRule
     OpenMS::FilterFunctor:
@@ -91,28 +80,15 @@ PyOpenMSChecker:
         - getNeighbors # boost map
     OpenMS::SvmTheoreticalSpectrumGeneratorSet:
         - simulate
-    OpenMS::FeatureFinderAlgorithmIsotopeWavelet:
-        # raw ptr
-        - createHRData
-        - create
     OpenMS::MzMLFile:
         - loadSize
         - isValid
     OpenMS::Map:
         - has
         - equals
-    OpenMS::SVMWrapper:
-        # External lib
-        - performCrossValidation
-        - getDecisionValues
-        - scaleData
-        - computeKernelMatrix
-        - getSVCProbabilities
-        - getLabels
-        - kernelOligo
     OpenMS::MascotXMLFile:
         - load
-        - generateRTMapping
+        - generateRTMapping # it
     OpenMS::ControlledVocabulary:
         - getTerms
     OpenMS::PILISIdentification:
@@ -146,16 +122,6 @@ PyOpenMSChecker:
         - getPeakFlag
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces:
         - computeIntensityProfile
-    OpenMS::MzTabFile:
-        - storeProteinReliabilityColumn
-        - storePeptideReliabilityColumn
-        - storePSMReliabilityColumn
-        - storeSmallMoleculeReliabilityColumn
-        - storeProteinUriColumn
-        - storePeptideUriColumn
-        - storePSMUriColumn
-        - storeSmallMoleculeUriColumn
-        - storeProteinGoTerms
 
     OpenMS::SvmTheoreticalSpectrumGenerator::SvmModelParameterSet:
         # STL attributes
@@ -213,10 +179,6 @@ PyOpenMSChecker:
 
     OpenMS::FeatureHandle:
         - asMutable
-
-    OpenMS::UnimodXMLFile:
-        # TODO raw ptr in vector
-        - load
 
     OpenMS::ConfidenceScoring:
         # other attributes
@@ -328,7 +290,6 @@ PyOpenMSChecker:
         - biological_rng
         - technical_rng
 
-
     OpenMS::MzTabUnitIdMetaData:
         - title
         - description
@@ -373,7 +334,6 @@ PyOpenMSChecker:
         - postRawTandemMSHook
         - create
 
-
     # static elements
     OpenMS::ChromatogramSettings:
         - ChromatogramNames
@@ -396,8 +356,6 @@ PyOpenMSChecker:
         - readOutHeader
     OpenMS::PeakPickerRapid:
         - computeTPG
-    OpenMS::MSQuantifications:
-        - NamesOfQuantTypes # renamed
     OpenMS::ProteinResolver:
         # pointers
         - getPeptideIdentification
@@ -408,15 +366,23 @@ PyOpenMSChecker:
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     OpenMS::PeakPickerSH:
         - pick
+    OpenMS::MzTabFile:
+        - storeProteinReliabilityColumn
+        - storePeptideReliabilityColumn
+        - storePSMReliabilityColumn
+        - storeSmallMoleculeReliabilityColumn
+        - storeProteinUriColumn
+        - storePeptideUriColumn
+        - storePSMUriColumn
+        - storeSmallMoleculeUriColumn
+        - storeProteinGoTerms
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed enums / Attributes of enums that are wrapped already
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-    OpenMS::PeakShape:
-        - Type
     OpenMS::ProteinIdentification:
-        - findHit
+        - findHit # iterator
         # names
         - NamesOfPeakMassType
         - NamesOfDigestionEnzyme
@@ -447,17 +413,21 @@ PyOpenMSChecker:
         - NamesOfScanMode
     OpenMS::SpectrumSettings:
         - NamesOfSpectrumType
+    OpenMS::Instrument:
+        - NamesOfIonOpticsType
+    OpenMS::MSQuantifications:
+        - NamesOfQuantTypes
+    OpenMS::IonDetector:
+        - Type
+        - AcquisitionMode
+        - NamesOfType
+        - NamesOfAcquisitionMode
     OpenMS::PrecursorIonSelection:
         - Type
         - getNextPrecursorsSeq # immutable types by reference
         - getPeptideProteinCounter # not implemented
     OpenMS::PeakShape:
         - Type
-    OpenMS::IonDetector:
-        - Type
-        - AcquisitionMode
-        - NamesOfType
-        - NamesOfAcquisitionMode
     OpenMS::PILISCrossValidation::Option:
         - Option # renamed constructor
         - Type
@@ -467,7 +437,7 @@ PyOpenMSChecker:
         - XRefType
     OpenMS::ProteinResolver::ResolverResult:
         - type
-        # attributes
+        # attributes (raw ptrs)
         - isds
         - msds
         - protein_entries
@@ -479,14 +449,16 @@ PyOpenMSChecker:
         - consensus_map
     OpenMS::ims::Weights:
         - Weights
-    OpenMS::Instrument:
-        - NamesOfIonOpticsType
     OpenMS::PeptideAndProteinQuant::PeptideData:
-        - PeptideData # renamed constructor
+        - PeptideData # constructor
     OpenMS::PeptideAndProteinQuant::ProteinData:
-        - ProteinData # renamed constructor
+        - ProteinData # constructor
     OpenMS::PeptideAndProteinQuant::Statistics:
-        - Statistics # renamed constructor
+        - Statistics # constructor
+    OpenMS::ims::IMSIsotopeDistribution::Peak:
+        - Peak # constructor
+    OpenMS::PeakShape:
+        - Type
 
     # Legacy functions only
     OpenMS::OnDiscMSExperiment:
@@ -624,6 +596,15 @@ PyOpenMSChecker:
         - setModelDescription
 
     # Not part of the public interface
+    OpenMS::SVMWrapper:
+        # External lib
+        - performCrossValidation
+        - getDecisionValues
+        - scaleData
+        - computeKernelMatrix
+        - getSVCProbabilities
+        - getLabels
+        - kernelOligo
     OpenMS::FeatureDistance:
         - infinity
     OpenMS::Digestion:
@@ -710,6 +691,16 @@ PyOpenMSChecker:
     # Raw pointers
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    OpenMS::QTClusterFinder:
+        - create
+    OpenMS::FeatureFinderAlgorithmIsotopeWavelet:
+        - createHRData
+        - create
+    OpenMS::UnimodXMLFile:
+        # TODO should now work ... 
+        - load
+    OpenMS::Tagging:
+        - clone
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
@@ -861,6 +852,7 @@ PyOpenMSChecker:
         - getIsotopeCorrectionMatrix
         - getReferenceChannel
     OpenMS::EdwardsLippertIterator:
+        # see base class
         - setFastaFile
         - getFastaFile
         - setSpectrum
@@ -894,7 +886,6 @@ PyOpenMSChecker:
         - int_list_
         - dou_list_
 
-
   # The following classes are ignore completely
   IgnoreNames:
 
@@ -909,13 +900,6 @@ PyOpenMSChecker:
     # rarely used classes
     - OpenMS::WeightWrapper
     - OpenMS::FileTypes # no need for them, the actual types are at OpenMS::FileTypes::Types
-
-    # Do not expose List, String and Utils methods - Python has better ones
-    - OpenMS::String
-    - OpenMS::StringUtils
-    - OpenMS::StringListUtils
-    - OpenMS::ListUtils
-    - OpenMS::SysInfo
 
     # produces compile error
     - OpenMS::IsotopeWaveletTransform::TransSpectrum
@@ -971,8 +955,6 @@ PyOpenMSChecker:
     - OpenMS::MzTabSoftwareMetaData
     - OpenMS::MzTabStudyVariableMetaData
 
-    - OpenMS::Internal::MzIdentMLDOMHandler
-
     # MultiplexFiltering
     - OpenMS::MultiplexFiltering
     - OpenMS::MultiplexFilterResult
@@ -988,6 +970,14 @@ PyOpenMSChecker:
     - OpenMS::SplineSpectrum::Navigator
     - OpenMS::MultiplexFilteringCentroided
     - OpenMS::MultiplexFilteringProfile
+
+    # Do not expose List, String and Utils methods - Python has better ones
+    - OpenMS::String
+    - OpenMS::StringUtils
+    - OpenMS::StringListUtils
+    - OpenMS::ListUtils
+    - OpenMS::SysInfo
+
 
     # CONCEPT
     - OpenMS::SingletonRegistry
@@ -1142,7 +1132,7 @@ PyOpenMSChecker:
     - OpenMS::ConstRefVector
     - OpenMS::ConstRefVector::ConstRefVectorConstIterator
     - OpenMS::ConstRefVector::ConstRefVectorIterator
-    - OpenMS::Constants # maybe we also need constants ?
+    - OpenMS::Constants # TODO maybe we also need constants ?
     - OpenMS::DBAdapter
     - OpenMS::DBConnection
     - OpenMS::DBConnection::InvalidQuery
@@ -1339,6 +1329,7 @@ PyOpenMSChecker:
     - OpenMS::Internal::MzDataValidator
     - OpenMS::Internal::MzIdentMLHandler
     - OpenMS::Internal::MzIdentMLValidator
+    - OpenMS::Internal::MzIdentMLDOMHandler
     - OpenMS::Internal::MzIterator
     - OpenMS::Internal::MzMLHandler
     - OpenMS::Internal::MzMLHandlerHelper
