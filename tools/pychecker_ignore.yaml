@@ -51,6 +51,9 @@ PyOpenMSChecker:
         - getResidues
         # Cannot get ResidueDB since its constructor and destructor is private ... 
         - getInstance
+        # iterator
+        - beginResidue
+        - endResidue
 
     OpenMS::BinnedSpectrum:
         ## SparseVector[ float ]  getBins() nogil except +
@@ -121,6 +124,9 @@ PyOpenMSChecker:
         - getProteinPTMap
         - getProteinPeptideSequenceMap
         - getFixedModifications
+
+    OpenMS::CompNovoIonScoringCID:
+        - scoreSpectrum
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Manual
@@ -518,10 +524,6 @@ PyOpenMSChecker:
         - fasta_entry
         - indis
         - type
-    OpenMS::ResidueDB:
-        # iterator
-        - beginResidue
-        - endResidue
     # char pointer
     OpenMS::Peak2D:
         - shortDimensionName
