@@ -2353,14 +2353,14 @@ String MzTabFile::generateMzTabSmallMoleculeHeader_(Size ms_runs, Size n_best_se
 
   for (Size i = 0; i != assays; ++i)
   {
-    header.push_back(String("smallmolecule_abundance_assay[") + String(i) + String("]"));
+    header.push_back(String("smallmolecule_abundance_assay[") + String(i + 1) + String("]"));
   }
 
   for (Size i = 0; i != study_variables; ++i)
   {
-    header.push_back(String("smallmolecule_abundance_study_variable[") + String(i) + String("]"));
-    header.push_back(String("smallmolecule_abundance_stdev_study_variable[") + String(i) + String("]"));
-    header.push_back(String("smallmolecule_abundance_std_error_study_variable[") + String(i) + String("]"));
+    header.push_back(String("smallmolecule_abundance_study_variable[") + String(i + 1) + String("]"));
+    header.push_back(String("smallmolecule_abundance_stdev_study_variable[") + String(i + 1) + String("]"));
+    header.push_back(String("smallmolecule_abundance_std_error_study_variable[") + String(i + 1) + String("]"));
   }
 
   // copy optional column names to header
