@@ -21,3 +21,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>"
         size_t getNrChromatograms() nogil except +
         libcpp_string getChromatogramNativeID(int id_) nogil except +
 
+        # NAMESPACE # boost::shared_ptr[ OpenSwath::ISpectrumAccess ] lightClone() nogil except +
+
