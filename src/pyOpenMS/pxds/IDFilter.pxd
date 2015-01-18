@@ -58,3 +58,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
                 libcpp_vector[ProteinHit]& hits,
                 libcpp_vector[ProteinGroup]& filtered_groups) nogil except +
 
+        bool getBestHit(libcpp_vector[ PeptideIdentification ] identifications,
+                        bool assume_sorted, PeptideHit & best_hit) nogil except +
+
+

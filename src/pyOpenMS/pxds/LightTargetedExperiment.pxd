@@ -61,3 +61,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         libcpp_vector[ LightPeptide ]  getPeptides() nogil except +
         libcpp_vector[ LightProtein ]  getProteins() nogil except +
 
+        LightPeptide getPeptideByRef(libcpp_string & ref) nogil except +
+
