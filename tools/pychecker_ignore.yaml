@@ -7,6 +7,156 @@ PyOpenMSChecker:
     # TODO items (nested STL etc)
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    OpenMS::DefaultParamHandler:
+        - DefaultParamHandler
+        - getSubsections
+
+    OpenMS::ims::RealMassDecomposer:
+        - getDecompositions
+    OpenMS::ims::MassDecomposer:
+        - getDecomposition
+        - getAllDecompositions
+
+    OpenMS::Spline2d:
+        - eval
+        - derivatives
+    OpenMS::TransformationModelBSpline:
+        - evaluate
+        - getDefaultParameters
+    OpenMS::TransformationModelLinear:
+        # TODO 
+        - TransformationModelLinear
+        - evaluate
+        - getParameters
+        - invert
+    OpenMS::LocalLinearMap:
+        - getCord
+        - neigh
+    OpenMS::PeakMarker:
+        - apply
+    OpenMS::ims::IMSIsotopeDistribution::Peak:
+        - Peak
+
+    OpenMS::Tagging:
+        - clone
+        - getVariant
+        - setVariant
+    OpenMS::DocumentIdentifier:
+        - swap
+    OpenMS::ModifiedPeptideGenerator:
+        - applyFixedModifications
+        - applyVariableModifications
+    OpenMS::TransformationModel:
+        - evaluate
+        - getDefaultParameters
+    OpenMS::SeedListGenerator:
+        # STL wrapped key
+        - generateSeedLists
+    OpenMS::SvmTheoreticalSpectrumGenerator:
+        # boost rng
+        - simulate
+    OpenMS::TransformationModelInterpolated:
+        - TransformationModelInterpolated
+    OpenMS::Param:
+        - findFirst
+        - findNext
+        - findEntry
+        - findNode
+        - parseCommandLine
+    OpenMS::FeatureMap:
+        - getAnnotationStatistics
+    OpenMS::BinnedSpectrum:
+        - getBins
+    OpenMS::QTClusterFinder:
+        - create
+    OpenMS::PSProteinInference:
+        - getNumberOfProtIdsPeptideRule
+    OpenMS::FilterFunctor:
+        - apply
+    OpenMS::ContinuousWaveletTransformNumIntegration:
+        - transform
+        - init
+    OpenMS::SplineSpectrum:
+        - getNavigator
+    OpenMS::ComplementMarker:
+        - getProductName
+    OpenMS::PeakPickerIterative:
+        - updateMembers_
+    OpenMS::InternalCalibration:
+        - calibrateMapList
+    OpenMS::QTCluster:
+        - add
+        - getElements
+        - update
+        - getNeighbors # boost map
+    OpenMS::SvmTheoreticalSpectrumGeneratorSet:
+        - simulate
+    OpenMS::FeatureFinderAlgorithmIsotopeWavelet:
+        # raw ptr
+        - createHRData
+        - create
+    OpenMS::MzMLFile:
+        - loadSize
+        - isValid
+    OpenMS::Map:
+        - has
+        - equals
+    OpenMS::SVMWrapper:
+        # External lib
+        - performCrossValidation
+        - getDecisionValues
+        - scaleData
+        - computeKernelMatrix
+        - getSVCProbabilities
+        - getLabels
+        - kernelOligo
+    OpenMS::MascotXMLFile:
+        - load
+        - generateRTMapping
+    OpenMS::ControlledVocabulary:
+        - getTerms
+    OpenMS::PILISIdentification:
+        - getIdentifications
+    OpenMS::OpenSwathScoring:
+        - calculateChromatographicScores
+        - calculateLibraryScores
+        - calculateDIAScores
+    OpenMS::PeptideAndProteinQuant:
+        # wrapped key map
+        - getPeptideResults
+        - getProteinResults
+    OpenMS::Gradient:
+        - getPercentages
+    OpenMS::Fitter1D:
+        - fit1d
+    OpenMS::MassTraceDetection:
+        - updateIterativeWeightedMeanMZ
+    OpenMS::ClusteringGrid:
+        # TODO 
+        - getClusters
+    OpenMS::PepXMLFileMascot:
+        # TODO map
+        - load
+    OpenMS::CompNovoIonScoring:
+        # TODO map
+        - scoreSpectra
+    OpenMS::OptimizePick:
+        - optimize
+    OpenMS::FeatureFinder:
+        - getPeakFlag
+    OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTraces:
+        - computeIntensityProfile
+    OpenMS::MzTabFile:
+        - storeProteinReliabilityColumn
+        - storePeptideReliabilityColumn
+        - storePSMReliabilityColumn
+        - storeSmallMoleculeReliabilityColumn
+        - storeProteinUriColumn
+        - storePeptideUriColumn
+        - storePSMUriColumn
+        - storeSmallMoleculeUriColumn
+        - storeProteinGoTerms
+
     OpenMS::SvmTheoreticalSpectrumGenerator::SvmModelParameterSet:
         # STL attributes
         - class_models
@@ -55,10 +205,6 @@ PyOpenMSChecker:
         - beginResidue
         - endResidue
 
-    OpenMS::BinnedSpectrum:
-        ## SparseVector[ float ]  getBins() nogil except +
-        - getBins() nogil except +
-
     OpenMS::SimTypes::SimRandomNumberGenerator:
         - getBiologicalRng
         - getTechnicalRng
@@ -66,7 +212,7 @@ PyOpenMSChecker:
         - setTechnicalRngSeed
 
     OpenMS::FeatureHandle:
-        - asMutable()
+        - asMutable
 
     OpenMS::UnimodXMLFile:
         # TODO raw ptr in vector
@@ -127,6 +273,42 @@ PyOpenMSChecker:
 
     OpenMS::CompNovoIonScoringCID:
         - scoreSpectrum
+
+    OpenMS::DIAScoring:
+        - dia_isotope_scores
+        - dia_massdiff_score
+    OpenMS::PILISCrossValidation:
+        - setOptions
+        - scoreHits
+    OpenMS::ims::IntegerMassDecomposer:
+        - getDecomposition
+        - getAllDecompositions
+        - getNumberOfDecompositions
+    OpenMS::InterpolationModel:
+        - getSamples
+    OpenMS::MapAlignmentEvaluationAlgorithm:
+        - evaluate
+        - isSameHandle
+    OpenMS::IsotopeMarker:
+        - getProductName
+    OpenMS::TwoDOptimization:
+        - getPenalties
+        - setPenalties
+        - optimize
+    OpenMS::ModifierRep:
+        - getModificationsForMass
+    OpenMS_Matrix:
+        - row
+        - col
+        - setMatrix
+    OpenMS::IsotopeWavelet:
+        - init
+        - getInstance
+        - getAveragine
+    OpenMS::Math::LinearInterpolation:
+        - getData
+        - getData
+        - setData
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Manual
@@ -311,6 +493,12 @@ PyOpenMSChecker:
         - isSortedByRT
         - size
         - empty
+        - getExperimentalSettings # TODO 
+
+    OpenMS::OptimizationFunctions::PenaltyFactors:
+        # renamed constructor
+        - PenaltyFactors
+        - PenaltyFactors
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Renamed methods
@@ -387,6 +575,10 @@ PyOpenMSChecker:
     OpenMS::ConsensusFeature:
         - getPositionRange
         - getIntensityRange
+        - getFeatures
+    OpenMS::Param::ParamNode:
+        - findEntry
+        - findNode
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Others
@@ -450,11 +642,13 @@ PyOpenMSChecker:
 
     OpenMS::MRMFeatureFinderScoring:
         - mapExperimentToTransitionList
+        - scorePeakgroups
 
     OpenMS::SpectrumAccessOpenMS:
         - getSpectraMetaInfo
         - getChromatogramMetaInfo
         - getSpectrumMetaById
+        - lightClone
 
     OpenMS::Spectrum:
         - defaultArrayLength
@@ -462,6 +656,7 @@ PyOpenMSChecker:
     OpenSwath::MRMScoring:
         - getXCorrMatrix
         - initializeXCorrMatrix
+        - initializeMS1XCorr
         - calcLibraryScore
         - calcSNScore
 
@@ -473,6 +668,8 @@ PyOpenMSChecker:
     OpenMS::ChromatogramExtractor:
         - extract_value_tophat
         - extract_value_bartlett
+        - prepare_coordinates
+        - return_chromatogram
 
     OpenMS::ChromatogramExtractorAlgorithm:
         - extract_value_tophat
@@ -494,6 +691,7 @@ PyOpenMSChecker:
         - selectSwathTransitions
         - checkSwathMap
         - selectSwathTransitions
+        - simpleFindBestFeature
 
     OpenMS::EmgScoring:
         - calcElutionFitScore
@@ -506,6 +704,7 @@ PyOpenMSChecker:
         - getSpectrumMetaById
         - getSpectraMetaInfo
         - getChromatogramMetaInfo
+        - lightClone
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # Raw pointers
@@ -538,7 +737,12 @@ PyOpenMSChecker:
         - fullDimensionUnit
         - fullDimensionUnitRT
         - fullDimensionUnitMZ
+        - getPosition # position type
+        - setPosition
 
+    OpenMS::Peak1D:
+        - getPosition # position type
+        - setPosition
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Factory pattern / create methods
