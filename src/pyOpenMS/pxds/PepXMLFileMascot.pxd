@@ -9,11 +9,11 @@ from AASequence cimport *
 
 cdef extern from "<OpenMS/FORMAT/PepXMLFileMascot.h>" namespace "OpenMS":
     
-    cdef cppclass PepXMLFileMascot(XMLHandler,XMLFile) :
-        # wrap-inherits:
-        #  XMLHandler
-        #  XMLFile
+    cdef cppclass PepXMLFileMascot :
+
         PepXMLFileMascot() nogil except +
         PepXMLFileMascot(PepXMLFileMascot) nogil except + #wrap-ignore
-        void load(String & filename, libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides) nogil except +
+
+        # TODO map
+        # void load(String & filename, libcpp_map[ String, libcpp_vector[ AASequence ] ] & peptides) nogil except +
 

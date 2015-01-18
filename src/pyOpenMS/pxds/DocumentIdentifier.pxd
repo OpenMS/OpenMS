@@ -32,5 +32,6 @@ cdef extern from "<OpenMS/METADATA/DocumentIdentifier.h>" namespace "OpenMS":
         # get the file_name_ which is the absolute path to the file loaded from
         String getLoadedFilePath() nogil except +
 
-        void swap(DocumentIdentifier & from_) nogil except +
+        # Errors in C++
+        # void swap(DocumentIdentifier & from_) nogil except +
 

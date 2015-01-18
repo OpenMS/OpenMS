@@ -40,5 +40,5 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>" namespa
         # void scorePeakgroups(MRMTransitionGroup[MSSpectrum[Peak1D], LightTransition] transition_group, TransformationDescription trafo,
         #                      shared_ptr[ SpectrumAccessOpenMS ] swath_map, FeatureMap& output) nogil except +
           
-        void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp) nogil except +
+        void prepareProteinPeptideMaps_(LightTargetedExperiment& transition_exp) nogil except +
            
