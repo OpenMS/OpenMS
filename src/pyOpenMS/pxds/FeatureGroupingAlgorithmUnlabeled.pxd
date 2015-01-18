@@ -13,5 +13,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled
         void group(libcpp_vector[ FeatureMap ] & maps, ConsensusMap & out) nogil except +
         # POINTER # FeatureGroupingAlgorithm * create() nogil except +
         String getProductName() nogil except +
-        void addToGroup(int map_id, const FeatureMap & feature_map) nogil except +
+        void addToGroup(int map_id, FeatureMap feature_map) nogil except +
+        void setReference(int map_id, FeatureMap map) nogil except +
+        ConsensusMap getResultMap() nogil except +
 
