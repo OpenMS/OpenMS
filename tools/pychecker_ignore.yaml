@@ -69,6 +69,32 @@ PyOpenMSChecker:
         # TODO raw ptr in vector
         - load
 
+    OpenMS::ConfidenceScoring:
+        # other attributes
+        - intercept
+        - rt_coef
+        - int_coef
+        - min_rt
+        - max_rt
+
+    OpenMS::ModificationsDB:
+        # Cannot get ModificationsDB since its constructor and destructor is private ... 
+        # POINTER 
+        - getInstance
+        - searchTerminalModifications
+        - searchModifications
+        - searchModifications
+        - getBestModificationsByMonoMass
+        - getBestModificationsByDiffMonoMass
+
+    OpenMS::ModifiedRep:
+        # TODO immutable types by reference
+        - getModificationsForMass
+
+    OpenMS::ConfidenceScoring:
+        - loadSize
+        - isValid
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Manual
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -283,6 +309,10 @@ PyOpenMSChecker:
     OpenMS::MSChromatogram:
         - RTBegin
         - RTEnd
+        # Maybe TODO 
+        - getFloatDataArrays
+        - getStringDataArrays
+        - getIntegerDataArrays
 
     # std::ifstream/ofstream
     OpenMS::CachedmzML:
@@ -354,6 +384,10 @@ PyOpenMSChecker:
         - MZBegin
         - MZEnd
         - MZEnd
+        # Maybe TODO 
+        - getFloatDataArrays
+        - getStringDataArrays
+        - getIntegerDataArrays
 
     OpenMS::ConsensusMap:
         - swap
