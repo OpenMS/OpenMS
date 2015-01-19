@@ -409,7 +409,7 @@ protected:
 
     TIndex index_; ///< seqan suffix array
 
-    TIter* it_; ///< seqan suffix array iterator
+    TIter it_; ///< seqan suffix array iterator
 
     /**
     @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.
