@@ -14,10 +14,3 @@ cdef extern from "<OpenMS/MATH/MISC/Spline2d.h>" namespace "OpenMS":
         # ValType eval(ValType x) nogil except +
         # ValType derivatives(ValType x, unsigned order) nogil except +
 
-        # /** evaluate spline at position x */
-        # ValType eval(ValType x) const
-        # {
-        #   return spline_( getNormIndex(x) )(1);
-        # }
-        # /** evaluates the spline derivative of the given order */
-        # ValType derivatives(ValType x, unsigned order) const

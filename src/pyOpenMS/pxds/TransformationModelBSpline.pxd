@@ -2,10 +2,9 @@ from Types cimport *
 from TransformationModel cimport *
 from BSpline2d cimport *
 
-#    typedef std::pair<double, double> DataPoint;
-#    /// Vector of coordinate pairs
-#    typedef std::vector<DataPoint> DataPoints;
-#
+# typedef std::pair<double, double> DataPoint;
+# typedef std::vector<DataPoint> DataPoints;
+
 cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS":
     
     cdef cppclass TransformationModelBSpline(TransformationModel) :
