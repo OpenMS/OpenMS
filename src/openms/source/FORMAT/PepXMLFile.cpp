@@ -983,6 +983,12 @@ namespace OpenMS
       AminoAcidModification aa_mod;
       optionalAttributeAsString_(aa_mod.description, attributes, "description");
       aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
+
+      // somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
+      if (fabs(aa_mod.massdiff.toDouble()) < 0.0005)
+      {
+        return;
+      }
       optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
       aa_mod.mass = attributeAsDouble_(attributes, "mass");
       aa_mod.terminus = attributeAsString_(attributes, "terminus");
@@ -1214,9 +1220,59 @@ namespace OpenMS
       for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
       {
         const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
+
         if (residue == 0)
         {
-          error(LOAD, String("Cannot parse modification of unknown amino acid '") + it->aminoacid + "'");
+          double new_mass = it->massdiff.toDouble();
+          if (it->aminoacid == "" && it->terminus =="n")
+          {
+            vector<String> mods;
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, 0.001, ResidueModification::N_TERM);
+            if (!mods.empty())
+            {
+              if (!temp_aa_sequence.hasNTerminalModification())
+              {
+                temp_aa_sequence.setNTerminalModification(mods[0]);
+              }
+              else
+              {
+                error(LOAD, String("Trying to add modification to modified terminal '") + it->aminoacid + "', delta mass: " +
+                      it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+              }
+            }
+            else
+            {
+              error(LOAD, String("Cannot find terminal modification '") + it->aminoacid + "', delta mass: " +
+                    it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+            }
+          }
+          else if (it->aminoacid == "" && it->terminus =="c")
+          {
+            vector<String> mods;
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, 0.001, ResidueModification::C_TERM);
+            if (!mods.empty())
+            {
+              if (!temp_aa_sequence.hasCTerminalModification())
+              {
+                temp_aa_sequence.setCTerminalModification(mods[0]);
+              }
+              else
+              {
+                error(LOAD, String("Trying to add modification to modified terminal '") + it->aminoacid + "', delta mass: " +
+                      it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+              }
+            }
+            else
+            {
+              error(LOAD, String("Cannot find terminal modification '") + it->aminoacid + "', delta mass: " +
+                    it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+            }
+          }
+          else
+          {
+            error(LOAD, String("Cannot parse modification of unknown amino acid '") + it->aminoacid + "', delta mass: " +
+                  it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+          }
         }
         else
         {
