@@ -211,10 +211,17 @@ protected:
         FeatureXMLFile f;
         f.load(in_feature, feature_map);
 
-        vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();
-        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
-        vector<String> var_mods = sp.variable_modifications;
-        vector<String> fixed_mods = sp.fixed_modifications;
+        vector<ProteinIdentification> prot_ids = feature_map.getProteinIdentifications();        
+        vector<String> var_mods, fixed_mods;
+        MzTabString db, db_version;
+        if (!prot_ids.empty())
+        {
+          ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+          var_mods = sp.variable_modifications;
+          fixed_mods = sp.fixed_modifications;
+          db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
+          db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
+        }
 
         meta_data.variable_mod = generateMzTabStringFromVariableModifications(var_mods);
         meta_data.fixed_mod = generateMzTabStringFromFixedModifications(fixed_mods);
@@ -443,16 +450,16 @@ protected:
         vector<PeptideIdentification> pep_ids;
         IdXMLFile().load(in_id, prot_ids, pep_ids, document_id);
 
-        if (prot_ids.empty())
+        vector<String> var_mods, fixed_mods;
+        MzTabString db, db_version;
+        if (!prot_ids.empty())
         {
-          //TODO
+          ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+          var_mods = sp.variable_modifications;
+          fixed_mods = sp.fixed_modifications;
+          db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
+          db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
         }
-
-        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
-        vector<String> var_mods = sp.variable_modifications;
-        vector<String> fixed_mods = sp.fixed_modifications;
-        MzTabString db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
-        MzTabString db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
 
         MzTab mztab;
         MzTabMetaData meta_data;
@@ -644,11 +651,16 @@ protected:
         c.load(in_consensus, consensus_map);
 
         vector<ProteinIdentification> prot_ids = consensus_map.getProteinIdentifications();
-        ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
-        vector<String> var_mods = sp.variable_modifications;
-        vector<String> fixed_mods = sp.fixed_modifications;
-//        MzTabString db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
-//        MzTabString db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
+        vector<String> var_mods, fixed_mods;
+        MzTabString db, db_version;
+        if (!prot_ids.empty())
+        {
+          ProteinIdentification::SearchParameters sp = prot_ids[0].getSearchParameters();
+          var_mods = sp.variable_modifications;
+          fixed_mods = sp.fixed_modifications;
+          db = sp.db.empty() ? MzTabString() : MzTabString(sp.db);
+          db_version = sp.db_version.empty() ? MzTabString() : MzTabString(sp.db_version);
+        }
 
         // currently we don't save how many channels we saved in a consensus feature so we scan the file
         // for the maximum max index in a consensus feature and take this as number of study variables
