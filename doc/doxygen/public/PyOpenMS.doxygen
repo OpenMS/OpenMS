@@ -246,6 +246,9 @@ comment to the pxd file. For some examples, look into the addons folder:
 - Attachment.pyx 
   - for a vector< vector<String> > to get returned
 
+- ChromatogramExtractorAlgorithm.h 
+  - for an example of a abstract base class (ISpectrumAccess), to see how it is handled please refer to the ./addons folder
+
 Make sure that you _always_ declare your objects (all C++ and all Cython
 objects need to be declared) using cdef Type name. Otherwise you get "Cannot
 convert ... to Python object" errors.

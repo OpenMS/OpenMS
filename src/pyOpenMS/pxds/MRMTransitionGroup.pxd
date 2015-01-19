@@ -2,6 +2,7 @@ from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
 from MRMFeature cimport *
 from ReactionMonitoringTransition cimport *
+from LightTargetedExperiment cimport *
 from MSSpectrum cimport *
 from Peak1D cimport *
 
@@ -40,4 +41,5 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
         void addFeature(MRMFeature feature) nogil except +
 
         void getLibraryIntensity(libcpp_vector[double] result) nogil except+
+        #   LightMRMTransitionGroup := MRMTransitionGroup[MSSpectrum[Peak1D], LightTransition]
 

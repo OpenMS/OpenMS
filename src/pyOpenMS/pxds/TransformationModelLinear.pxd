@@ -10,5 +10,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>" nam
     cdef cppclass TransformationModelLinear(TransformationModel):
         # wrap-inherits:
         #   TransformationModel
-        pass
+
         void getDefaultParameters(Param &)
+
+        # TransformationModelLinear(DataPoints & data, Param & params) nogil except +
+        # double evaluate(double value) nogil except +
+        # void getParameters(double & slope, double & intercept) nogil except +
+        void invert() nogil except +
+

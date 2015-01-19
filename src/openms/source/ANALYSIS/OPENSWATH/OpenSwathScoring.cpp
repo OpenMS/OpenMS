@@ -58,14 +58,14 @@ namespace OpenMS
   {
   }
 
-  void OpenSwathScoring::initialize(double rt_normalization_factor_,
-    int add_up_spectra_, double spacing_for_spectra_resampling_,
-    OpenSwath_Scores_Usage & su_)
+  void OpenSwathScoring::initialize(double rt_normalization_factor,
+    int add_up_spectra, double spacing_for_spectra_resampling,
+    OpenSwath_Scores_Usage & su)
   {
-    this->rt_normalization_factor_ = rt_normalization_factor_;
-    this->add_up_spectra_ = add_up_spectra_;
-    this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling_;
-    this->su_ = su_;
+    this->rt_normalization_factor_ = rt_normalization_factor;
+    this->add_up_spectra_ = add_up_spectra;
+    this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
+    this->su_ = su;
   }
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,

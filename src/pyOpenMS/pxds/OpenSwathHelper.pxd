@@ -3,6 +3,7 @@ from ChromatogramPeak cimport *
 from Peak1D cimport *
 from ProgressLogger cimport *
 from TargetedExperiment cimport *
+from LightTargetedExperiment cimport *
 from TransformationDescription cimport *
 from libcpp cimport bool
 
@@ -17,5 +18,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
                                 double min_upper_edge_dist
                                 ) nogil except +
 
+
+        libcpp_pair[double, double] estimateRTRange(LightTargetedExperiment exp) nogil except +
+
+        # static std::map<std::string, double> simpleFindBestFeature(
+        #     OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+        #     bool useQualCutoff = false, double qualCutoff = 0.0);
 
 

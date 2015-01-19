@@ -31,3 +31,5 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         void run(FeatureMap & , MzTab & ) nogil except +
         void run(ConsensusMap&, MzTab&) nogil except +
 
+        void init() nogil except +
+

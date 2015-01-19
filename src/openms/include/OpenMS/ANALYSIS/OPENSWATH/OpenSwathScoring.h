@@ -420,15 +420,15 @@ var_yseries_score   -0.0327896378737766
      *
      * Sets the parameters for the scoring.
      *
-     * @param rt_normalization_factor_ Specifies the range of the normalized retention time space
-     * @param add_up_spectra_ How many spectra to add up (default 1)
-     * @param spacing_for_spectra_resampling_ Spacing factor for spectra addition
-     * @param su_ Which scores to actually compute
+     * @param rt_normalization_factor Specifies the range of the normalized retention time space
+     * @param add_up_spectra How many spectra to add up (default 1)
+     * @param spacing_for_spectra_resampling Spacing factor for spectra addition
+     * @param su Which scores to actually compute
      *
     */
-    void initialize(double rt_normalization_factor_,
-      int add_up_spectra_, double spacing_for_spectra_resampling_,
-      OpenSwath_Scores_Usage & su_);
+    void initialize(double rt_normalization_factor,
+      int add_up_spectra, double spacing_for_spectra_resampling,
+      OpenSwath_Scores_Usage & su);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
      *
