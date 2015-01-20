@@ -123,7 +123,8 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output: identification results with scored/grouped proteins");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerStringOption_("exe", "<path>", "", "Path to the executable to use, or to the directory containing the 'Fido' and 'FidoChooseParameters' executables; may be empty if the executables are globally available.", false);
+    registerInputFile_("fido_executable", "<path>", "Fido", "Path to the Fido executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("fidochooseparameters_executable", "<path>", "FidoChooseParameters", "Path to the FidoChooseParameters executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
     registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
@@ -436,7 +437,8 @@ protected:
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    String exe = getStringOption_("exe");
+    String fido_executable = getStringOption_("fido_executable");
+    String fidochooseparam_executable = getStringOption_("fidochooseparameters_executable");
     String prob_param = getStringOption_("prob_param");
     bool separate_runs = getFlag_("separate_runs");
     bool keep_zero_group = getFlag_("keep_zero_group");
@@ -446,16 +448,15 @@ protected:
     bool choose_params = ((prob_protein == 0.0) && (prob_peptide == 0.0) &&
                           (prob_spurious == 0.0)); // use FidoChooseParameters?
 
-    if (exe.empty()) // expect executables in PATH
+    if (fido_executable.empty()) // expect executables in PATH
     {
-      exe = choose_params ? "FidoChooseParameters" : "Fido";
+      fido_executable = "Fido";
     }
-    else if (File::isDirectory(exe)) // expect executables in directory
+
+    if (fidochooseparam_executable.empty()) // expect executables in PATH
     {
-      exe += QString(QDir::separator()) + 
-        (choose_params ? "FidoChooseParameters" : "Fido");
+      fidochooseparam_executable = "FidoChooseParameters";
     }
-    // else: expect full path to correct executable
 
     // input data:
     vector<ProteinIdentification> proteins;
@@ -541,7 +542,8 @@ protected:
            prot_it != proteins.end(); ++prot_it, ++counter)
       {
         LOG_INFO << "Protein identification run " << counter << ":" << endl;
-        fido_success = runFido_(*prot_it, peptides, choose_params, exe,
+        String executable = choose_params ? fidochooseparam_executable : fido_executable;
+        fido_success = runFido_(*prot_it, peptides, choose_params, executable,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group, 
                                 counter);
@@ -582,7 +584,9 @@ protected:
           all_proteins.insertHit(*(map_it->second));
         }
 
-        fido_success = runFido_(all_proteins, peptides, choose_params, exe, 
+        String executable = choose_params ? fidochooseparam_executable : fido_executable;
+
+        fido_success = runFido_(all_proteins, peptides, choose_params, executable,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group);
         // write Fido probabilities into protein scores:
@@ -601,7 +605,8 @@ protected:
       }
       else // there is only one ID run
       {
-        fido_success = runFido_(proteins[0], peptides, choose_params, exe, 
+        String executable = choose_params ? fidochooseparam_executable : fido_executable;
+        fido_success = runFido_(proteins[0], peptides, choose_params, executable,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group);
       }
