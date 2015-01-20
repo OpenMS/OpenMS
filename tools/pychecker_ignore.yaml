@@ -386,6 +386,8 @@ PyOpenMSChecker:
         # names
         - NamesOfPeakMassType
         - NamesOfDigestionEnzyme
+    OpenMS::BaseFeature:
+        - NamesOfAnnotationState 
     OpenMS::MassAnalyzer:
         - NamesOfAnalyzerType
         - NamesOfResolutionMethod
@@ -701,6 +703,7 @@ PyOpenMSChecker:
         - load
     OpenMS::Tagging:
         - clone
+        - NamesOfIsotopeVariant
     OpenMS::FeatureFinderAlgorithmPickedHelperStructs::MassTrace:
         - max_peak
         - peaks
