@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,7 +69,7 @@ namespace OpenMS
     if (layer.type == LayerData::DT_PEAK)
     {
       // open new 1D widget with the current default parameters
-      Spectrum1DWidget * w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
+      Spectrum1DWidget* w = new Spectrum1DWidget(tv_->getSpectrumParameters(1), (QWidget *)tv_->getWorkspace());
       // add data
       if (!w->canvas()->addLayer(exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
       {
@@ -86,7 +86,8 @@ namespace OpenMS
       if (ms_level == 1)
       {
         // set visible area to visible area in 2D view
-        w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
+        SpectrumCanvas::AreaType a = tv_->getActiveCanvas()->getVisibleArea();
+        w->canvas()->setVisibleArea(a);
       }
 
       String caption = layer.name;
@@ -125,106 +126,116 @@ namespace OpenMS
 
   void TOPPViewIdentificationViewBehavior::addPeakAnnotations_(const std::vector<PeptideIdentification>& ph)
   {
-      LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
+    // called anew for every click on a spectrum
+    LayerData& current_layer = tv_->getActive1DWidget()->canvas()->getCurrentLayer();
 
-      if (current_layer.getCurrentSpectrum().empty())
-      {
-        LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
-      }
+    if (current_layer.getCurrentSpectrum().empty())
+    {
+      LOG_WARN << "Spectrum is empty! Nothing to annotate!" << std::endl;
+    }
 
-      double ppm_threshold = 5;
+    // mass precision to match a peak's m/z to a feature m/z
+    // m/z values of features are usually an average over multiple scans...
+    double ppm = 0.5;
 
-      std::vector<QColor> cols;
-      cols.push_back(Qt::blue);
-      cols.push_back(Qt::green);
-      cols.push_back(Qt::red);
-      cols.push_back(Qt::gray);
-      cols.push_back(Qt::darkYellow);
+    std::vector<QColor> cols;
+    cols.push_back(Qt::blue);
+    cols.push_back(Qt::green);
+    cols.push_back(Qt::red);
+    cols.push_back(Qt::gray);
+    cols.push_back(Qt::darkYellow);
 
 
-      if (!current_layer.getCurrentSpectrum().isSorted())
-      {
-        QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
-        return;
-      }
-      for (std::vector<PeptideIdentification>::const_iterator it = ph.begin();
-                                                              it!= ph.end();
-                                                              ++it)
-      {
-        if (!it->hasMZ()) continue;
-        double mz = it->getMZ();
-        Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
+    if (!current_layer.getCurrentSpectrum().isSorted())
+    {
+      QMessageBox::warning(tv_, "Error", "The spectrum is not sorted! Aborting!");
+      return;
+    }
+    for (std::vector<PeptideIdentification>::const_iterator it = ph.begin();
+                                                            it!= ph.end();
+                                                            ++it)
+    {
+      if (!it->hasMZ()) continue;
+      double mz = it->getMZ();
+      Size peak_idx = current_layer.getCurrentSpectrum().findNearest(mz);
         
-        // m/z fits ?
-        if ( (mz-current_layer.getCurrentSpectrum()[peak_idx].getMZ())/mz*1e6 > ppm_threshold) continue;
+      // m/z fits ?
+      if ( abs(mz - current_layer.getCurrentSpectrum()[peak_idx].getMZ()) / mz * 1e6 > ppm) continue;
 
-        double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
+      double peak_int = current_layer.getCurrentSpectrum()[peak_idx].getIntensity();
 
-        Annotation1DCaret* first_dit(0);
-        // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
-        std::map<String, StringList> formula_to_names;
-        for (std::vector< PeptideHit >::const_iterator ith = it->getHits().begin();
-                                                       ith!= it->getHits().end();
-                                                       ++ith)
+      Annotation1DCaret* first_dit(0);
+      // we could have many many hits for different compounds which have the exact same sum formula... so first group by sum formula
+      std::map<String, StringList> formula_to_names;
+      for (std::vector< PeptideHit >::const_iterator ith = it->getHits().begin();
+                                                      ith!= it->getHits().end();
+                                                      ++ith)
+      {
+        if (ith->metaValueExists("identifier") && ith->metaValueExists("chemical_formula"))
         {
-          if (ith->metaValueExists("name") && ith->metaValueExists("sumformula"))
+          String name = ith->getMetaValue("identifier");
+          if (name.length() > 20) 
           {
-            String name = ith->getMetaValue("name");
-            if (name.length() > 20) 
-            {
-              name = name.substr(0, 17) + "...";
-            }
-            formula_to_names[ith->getMetaValue("sumformula")].push_back(name);
+            name = name.substr(0, 17) + "...";
           }
+          formula_to_names[ith->getMetaValue("chemical_formula")].push_back(name);
         }
-
-        // assemble annotation (each formula gets a paragraph)
-        String text = "<html><body>";
-        Size i(0);
-        for (std::map<String, StringList>::iterator ith = formula_to_names.begin();
-                                                    ith!= formula_to_names.end();
-                                                    ++ith)
+        else
         {
-          if (++i >= 4)
-          { // at this point, this is the 4th entry.. which we don't show any more...
-            text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(std::distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
-            break;
-          }
-          text += String("<b><span style=\"color:") + cols[i].name() + "\">" + ith->first + "</span></b><br>\n";
-          // carets for isotope profile
-          EmpiricalFormula ef(ith->first);
-          IsotopeDistribution id = ef.getIsotopeDistribution(3); // three isotopes at most
-          double int_factor = peak_int / id.begin()->second;
-          Annotation1DCaret::PositionsType points;
-          Size itic(0);
-          for (IsotopeDistribution::ConstIterator iti = id.begin(); iti != id.end(); ++iti)
-          {
-            points.push_back(Annotation1DCaret::PointType(mz + itic*Constants::C13C12_MASSDIFF_U, iti->second * int_factor));
-            ++itic;
-          }
-          Annotation1DCaret* ditem = new Annotation1DCaret(points,
-                                                           QString(),
-                                                           cols[i]);
-          ditem->setSelected(false);
-          temporary_annotations_.push_back(ditem); // for removal (no ownership)
-          current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
-          if (first_dit==0) first_dit = ditem; // remember first item (we append the text, when ready)
-
-          // list of compound names  (shorten if required)
-          if (ith->second.size() > 3)
-          {
-            Size s = ith->second.size();
-            ith->second[3] = String("...") + (s-3) + " more";
-            ith->second.resize(4);
-          }
-          text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";
-        }
-        text += "</body></html>";
-        if (first_dit!=0)
-        {
-          first_dit->setRichText(text.toQString());
+          StringList msg;
+          if (!ith->metaValueExists("identifier")) msg.push_back("identifier");
+          if (!ith->metaValueExists("chemical_formula")) msg.push_back("chemical_formula");
+          LOG_WARN << "Missing meta-value(s): " << ListUtils::concatenate(msg, ", ") << ". Cannot annotate!\n";
         }
       }
+
+      // assemble annotation (each formula gets a paragraph)
+      String text = "<html><body>";
+      Size i(0);
+      for (std::map<String, StringList>::iterator ith = formula_to_names.begin();
+                                                  ith!= formula_to_names.end();
+                                                  ++ith)
+      {
+        if (++i >= 4)
+        { // at this point, this is the 4th entry.. which we don't show any more...
+          text += String("<b><span style=\"color:") + cols[i].name() + "\">..." + Size(std::distance(formula_to_names.begin(), formula_to_names.end()) - 4 + 1) + " more</span></b><br>";
+          break;
+        }
+        text += String("<b><span style=\"color:") + cols[i].name() + "\">" + ith->first + "</span></b><br>\n";
+        // carets for isotope profile
+        EmpiricalFormula ef(ith->first);
+        IsotopeDistribution id = ef.getIsotopeDistribution(3); // three isotopes at most
+        double int_factor = peak_int / id.begin()->second;
+        Annotation1DCaret::PositionsType points;
+        Size itic(0);
+        for (IsotopeDistribution::ConstIterator iti = id.begin(); iti != id.end(); ++iti)
+        {
+          points.push_back(Annotation1DCaret::PointType(mz + itic*Constants::C13C12_MASSDIFF_U, iti->second * int_factor));
+          ++itic;
+        }
+        Annotation1DCaret* ditem = new Annotation1DCaret(points,
+                                                          QString(),
+                                                          cols[i]);
+        ditem->setSelected(false);
+        temporary_annotations_.push_back(ditem); // for removal (no ownership)
+        current_layer.getCurrentAnnotations().push_front(ditem); // for visualization (ownership)
+        if (first_dit==0) first_dit = ditem; // remember first item (we append the text, when ready)
+
+        // list of compound names  (shorten if required)
+        if (ith->second.size() > 3)
+        {
+          Size s = ith->second.size();
+          ith->second[3] = String("...") + (s-3) + " more";
+          ith->second.resize(4);
+        }
+        text += " - " + ListUtils::concatenate(ith->second, "<br> - ") + "<br>\n";
+      }
+      text += "</body></html>";
+      if (first_dit!=0)
+      {
+        first_dit->setRichText(text.toQString());
+      }
+    }
   }
 
   void TOPPViewIdentificationViewBehavior::activate1DSpectrum(int index)
@@ -580,7 +591,8 @@ namespace OpenMS
       removeTheoreticalSpectrumLayer_();
     }
 
-    tv_->getActive1DWidget()->canvas()->resetZoom();
+    // the next line is meant to be disabled to allow switching between spectra without loosing the current view range (to compare across spectra)
+    // tv_->getActive1DWidget()->canvas()->resetZoom();
   }
 
   void TOPPViewIdentificationViewBehavior::removeTheoreticalSpectrumLayer_()
@@ -590,7 +602,7 @@ namespace OpenMS
     {
       Spectrum1DCanvas * canvas_1D = spectrum_widget_1D->canvas();
 
-      // Find the automatical generated layer with theoretical spectrum and remove it and the associated alignment.
+      // Find the automatically generated layer with theoretical spectrum and remove it and the associated alignment.
       // before activating the next normal spectrum
       Size lc = canvas_1D->getLayerCount();
       for (Size i = 0; i != lc; ++i)

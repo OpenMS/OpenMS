@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -213,7 +213,7 @@ namespace OpenMS
     // reset internal state:
     esi_impurity_probabilities_.clear();
     esi_adducts_.clear();
-    // cumulate probabilities in list
+    // accumulate probabilities in list
     double summed_probability(0);
     for (Size i = 0; i < esi_charge_impurity.size(); ++i)
     {

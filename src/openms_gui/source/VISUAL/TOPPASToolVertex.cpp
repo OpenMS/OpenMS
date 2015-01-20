@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -550,7 +550,7 @@ namespace OpenMS
     getInputParameters(in_params);
     getOutputParameters(out_params);
 
-    bool ini_round_dependent = false; // indicates if we need a new ini file for each round (usually GenericWrapper issue)
+    bool ini_round_dependent = false; // indicates if we need a new INI file for each round (usually GenericWrapper issue)
 
     for (int round = 0; round < round_total_; ++round)
     {
@@ -591,16 +591,22 @@ namespace OpenMS
         if (store_to_ini)
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
+          {
             param_tmp.setValue(param_name, StringListUtils::fromQStringList(file_list));
+          }
           else
           {
             if (file_list.size() > 1)
+            {
               throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            }
             param_tmp.setValue(param_name, String(file_list[0]));
           }
         }
         else
+        {
           args << file_list;
+        }
 
       }
 
@@ -675,9 +681,16 @@ namespace OpenMS
       connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
 
       // enqueue process
+      String msg_enqueue = String("\nEnqueue: \"") + File::getExecutablePath() + name_ + "\" \"" + String(args.join("\" \"")) + "\"\n";
       if (round == 0)
       {
-        LOG_DEBUG << "\nEnqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"\n" << std::endl;
+        // active if TOPPAS is run with --debug; will print to console
+        LOG_DEBUG << msg_enqueue << std::endl;
+        // show sys-call in logWindow of TOPPAS (or console for non-gui)
+        if ((int) param_tmp.getValue("debug") > 0)
+        {
+          ts->logTOPPOutput(msg_enqueue.toQString());
+        }
       }
       toolScheduledSlot();
       ts->enqueueProcess(TOPPASScene::TOPPProcess(p, File::findExecutable(name_).toQString(), args, this));

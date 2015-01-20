@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -322,9 +322,10 @@ public:
     131072, // 17 Trp Tryptophan (W)
     262144, // 18 Tyr Tyrosine (Y)
     524288, // 19 Val Valine (V)
-    12, // 20 Aspartic Acid, Asparagine (B)
-    96, // 21 Glutamic Acid, Glutamine (Z)
-    static_cast<unsigned>(-1), // 22 Unknown (matches ALL)
+    // ambiguous AA's
+    4+8, //  Aspartic Acid (D), Asparagine(N) == (B)
+    32+64, // Glutamic Acid(E), Glutamine(Q) == (Z)
+     static_cast<unsigned>(-1), // 22 Unknown (matches ALL)
     static_cast<unsigned>(-1), // 23 Terminator (dummy)
   };
 
@@ -337,8 +338,8 @@ public:
                                               TIterPosA iterPosA,
                                               TTreeIteratorB iterB_,
                                               TIterPosB iterPosB,
-                                              TErrors errorsLeft,
-                                              TErrors classErrorsLeft)
+                                              TErrors errorsLeft, // always 0 for our case
+                                              TErrors classErrorsLeft) // ambiguous AA's allowed
   {
     if (enumerateA && !goDown(iterA)) return;
 
@@ -397,7 +398,7 @@ public:
             if ((x_prot == 'X') || (x_prot == 'B') || (x_prot == 'Z'))
             {
               if (ec == 0) break;
-              --ec;
+              --ec; // decrease class error tokens
             }
 
             // dealing with 'X' in peptide sequence: only match exactly 'X' in
@@ -458,7 +459,7 @@ protected:
     setValidFormats_("fasta", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
+    registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prefixed - see 'prefix' flag below) to the accessions in the protein database to indicate decoy proteins.", false);
     registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
     setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
 
@@ -483,7 +484,7 @@ protected:
     registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
     registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
     registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
-    registerIntOption_("aaa_max", "<number>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z', and 'X'", false);
+    registerIntOption_("aaa_max", "<number>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
     setMinInt_("aaa_max", 0);
     registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
   }
@@ -561,7 +562,7 @@ protected:
     writeDebug_("Collecting peptides...", 1);
 
     seqan::FoundProteinFunctor func(enzyme); // stores the matches (need to survive local scope which follows)
-    Map<String, Size> acc_to_prot; // build map: accessions to proteins
+    Map<String, Size> acc_to_prot; // build map: accessions to FASTA protein index
 
     { // new scope - forget data after search
 
@@ -570,24 +571,48 @@ protected:
       */
       seqan::StringSet<seqan::Peptide> prot_DB;
 
+      bool has_DB_duplicates(false);
+
       for (Size i = 0; i != proteins.size(); ++i)
       {
-        // build protein DB
         String seq = proteins[i].sequence.remove('*');
         if (il_equivalent)
-        {
-          seq.substitute('I', 'J').substitute('L', 'J');
+        { // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
+          seq.substitute('L', 'I');
         }
-        seqan::appendValue(prot_DB, seq.c_str());
 
-        // consistency check
+        
         String acc = proteins[i].identifier;
+        // check for duplicate proteins
         if (acc_to_prot.has(acc))
         {
-          writeLog_(String("PeptideIndexer: error, identifiers of proteins should be unique to a database, identifier '") + acc + String("' found multipe times."));
+          LOG_WARN << "PeptideIndexer: Warning, protein identifiers should be unique to a database. Identifier '" << acc << "' found multiple times.\n";
+          has_DB_duplicates = true;
+          // check if sequence is identical
+          const seqan::Peptide& tmp_prot = prot_DB[acc_to_prot[acc]];
+          if (String(begin(tmp_prot), end(tmp_prot)) != seq)
+          {
+            LOG_ERROR << "PeptideIndexer: protein identifier '" << acc << "' found multiple times with different sequences" << (il_equivalent ? " (I/L substituted)" : "") 
+                      << ":\n" << tmp_prot << "\nvs.\n" << seq << "\n! Please fix the database and run PeptideIndexer again!" << std::endl;
+            return INPUT_FILE_CORRUPT;
+          }
+          // remove duplicate sequence from 'proteins', since 'prot_DB' and 'proteins' need to correspond 1:1 (later indexing depends on it)
+          // The other option would be to allow two identical entries, but later on, only the last one will be reported (making the first protein an orphan; implementation details below)
+          // Thus, the only safe option is to remove the duplicate from 'proteins' and not to add it to 'prot_DB'
+          proteins.erase(proteins.begin()+i);
+          // try this index again in the next loop (--i is save since this condition is met only when i>0)
+          --i;
+        } 
+        else
+        {
+          // extend protein DB
+          seqan::appendValue(prot_DB, seq.c_str());
+          acc_to_prot[acc] = i;
         }
-        acc_to_prot[acc] = i;
+        
       }
+      // make sure the warnings above are printed to screen
+      if (has_DB_duplicates) LOG_WARN << std::endl;
 
       /**
         BUILD Peptide DB
@@ -601,8 +626,8 @@ protected:
         {
           String seq = it2->getSequence().toUnmodifiedString().remove('*');
           if (il_equivalent)
-          {
-            seq.substitute('I', 'J').substitute('L', 'J');
+          { // convert  L to I; warning: do not use 'J', since Seqan does not know about it and will convert 'J' to 'X'
+            seq.substitute('L', 'I');
           }
           appendValue(pep_DB, seq.c_str());
         }
@@ -623,7 +648,7 @@ protected:
         {
           seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasick> pattern(pep_DB);
           seqan::FoundProteinFunctor func_threads(enzyme);
-          writeDebug_("Finding peptide/protein matches...", 1);
+          writeDebug_("Finding peptide/protein matches ...", 1);
 
 #pragma omp for
           for (SignedSize i = 0; i < protDB_length; ++i)
@@ -666,7 +691,7 @@ protected:
       /// check if every peptide was found:
       if (func.pep_to_prot.size() != length(pep_DB))
       {
-        /** search using SA, which supports mismatches (introduced by resolving ambiguous AA's by e.g. Mascot) -- expensive! */
+        // search using SA, which supports mismatches (introduced by resolving ambiguous AA's by e.g. Mascot) -- expensive!
         writeLog_(String("Using suffix array to find ambiguous matches..."));
 
         // search peptides which remained unidentified during Aho-Corasick (might be all if 'full_tolerant_search' is enabled)
@@ -783,23 +808,10 @@ protected:
           {
             protein_is_decoy[accession] = (prefix && accession.hasPrefix(decoy_string)) || (!prefix && accession.hasSuffix(decoy_string));
           }
-
-          /*
-          /// STATS
-          String acc = proteins[*it_i].identifier;
-          // is the mapped protein in this run?
-          if (accession_to_runidxs[acc].find(run_idx) ==
-              accession_to_runidxs[acc].end())
-          {
-            ++stats_new_proteins; // this peptide was matched to a new protein
-          }
-          // remove proteins which we already saw (what remains is orphaned):
-          runidx_to_accessions[run_idx].erase(acc);
-          */
         }
 
         ///
-        // add information whether this is a decoy hit
+        /// is this a decoy hit?
         ///
         bool matches_target(false);
         bool matches_decoy(false);
@@ -907,11 +919,13 @@ protected:
         if (acc_to_prot.has(acc) // accession needs to exist in new FASTA file
             && masterset.find(acc_to_prot[acc]) != masterset.end())
         { // this accession was there already
-          new_protein_hits.push_back(*p_hit);
           String seq;
-          if (write_protein_sequence) seq = proteins[acc_to_prot[acc]].sequence;
-          else seq = "";
-          new_protein_hits.back().setSequence(seq);
+          if (write_protein_sequence) 
+          {
+            seq = proteins[acc_to_prot[acc]].sequence;
+          }
+          p_hit->setSequence(seq);
+          new_protein_hits.push_back(*p_hit);
           masterset.erase(acc_to_prot[acc]); // remove from master (at the end only new proteins remain)
         }
         else // old hit is orphaned
@@ -928,7 +942,10 @@ protected:
       {
         ProteinHit hit;
         hit.setAccession(proteins[*it].identifier);
-        if (write_protein_sequence) hit.setSequence(proteins[*it].sequence);
+        if (write_protein_sequence)
+        {
+          hit.setSequence(proteins[*it].sequence);
+        }
         new_protein_hits.push_back(hit);
         ++stats_new_proteins;
       }
@@ -943,8 +960,7 @@ protected:
       {
         for (vector<ProteinHit>::iterator hit_it = id_it->getHits().begin(); hit_it != id_it->getHits().end(); ++hit_it)
         {
-          if (protein_is_decoy[hit_it->getAccession()]) hit_it->setMetaValue("target_decoy", "decoy");
-          else hit_it->setMetaValue("target_decoy", "target");
+          hit_it->setMetaValue("target_decoy", (protein_is_decoy[hit_it->getAccession()] ? "decoy" : "target"));
         }
       }
     }
@@ -953,7 +969,7 @@ protected:
     LOG_INFO << "  new proteins: " << stats_new_proteins << "\n";
     LOG_INFO << "  orphaned proteins: " << stats_orphaned_proteins << (keep_unreferenced_proteins ? " (all kept)" : " (all removed)") << "\n";
 
-    writeDebug_("Ended reindexing", 1);
+    writeDebug_("Reindexing finished!", 1);
 
     //-------------------------------------------------------------
     // writing output
@@ -972,7 +988,7 @@ protected:
                << "   - as a last resort: use the 'allow_unmatched' option to accept unmatched peptides\n"
                << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
 
-      LOG_WARN << "Result files were written, but program will exit with error code" << std::endl;
+      LOG_WARN << "Result files were written, but PeptideIndexer will exit with error code." << std::endl;
       return UNEXPECTED_RESULT;
     }
 

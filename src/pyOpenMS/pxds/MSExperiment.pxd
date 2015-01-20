@@ -66,6 +66,9 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         # Size of experiment
         UInt64 getSize() nogil except +
         int   size() nogil except + # TODO deprecate for 1.12
+        void resize(Size s) nogil except +
+        bool empty() nogil except +
+        void reserve(Size s) nogil except +
         Size getNrSpectra() nogil except +
         Size getNrChromatograms() nogil except +
         libcpp_vector[unsigned int] getMSLevels() nogil except +  # wrap-ignore

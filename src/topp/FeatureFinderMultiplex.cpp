@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1224,6 +1224,11 @@ private:
     file.setLogType(log_type_);
     file.load(in_, exp);
 
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS1 spectra in input file.");
+    }
+
     // update m/z and RT ranges
     exp.updateRanges();
 
@@ -1231,7 +1236,13 @@ private:
     exp.sortSpectra();
 
     // determine type of spectral data (profile or centroided)
-    bool centroided = (PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end()) == SpectrumSettings::PEAKS);
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+    if (spectrum_type == SpectrumSettings::UNKNOWN)
+    {
+      spectrum_type = PeakTypeEstimator().estimateType(exp[0].begin(), exp[0].end());
+    }
+
+    bool centroided = spectrum_type == SpectrumSettings::PEAKS;
 
     /**
      * pick peaks
@@ -1239,6 +1250,7 @@ private:
     MSExperiment<Peak1D> exp_picked;
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_s; // peak boundaries for spectra
     std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_exp_c; // peak boundaries for chromatograms
+
     if (!centroided)
     {
       PeakPickerHiRes picker;
