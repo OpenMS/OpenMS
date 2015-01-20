@@ -49,11 +49,12 @@ export BUILD_NAME=${_build_name}
 export DISPLAY=:99.0
 sh -e /etc/init.d/xvfb start
 
-# add search engines to PATH
-export PATH=${SOURCE_DIRECTORY}/_searchengines/MyriMatch:$PATH
-export PATH=${SOURCE_DIRECTORY}/_searchengines/OMSSA:$PATH
-export PATH=${SOURCE_DIRECTORY}/_searchengines/XTandem:$PATH
-export PATH=${SOURCE_DIRECTORY}/_searchengines/MSGFPlus:$PATH
+# add thirdparty binaries (e.g. search engines) to PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/MyriMatch:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/OMSSA:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/XTandem:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/MSGFPlus:$PATH
+export PATH=${SOURCE_DIRECTORY}/_thirdparty/Fido:$PATH
 
 # if we perform style tests, add cppcheck to path
 if [ $ENABLE_STYLE_TESTING == "On" ]; then
