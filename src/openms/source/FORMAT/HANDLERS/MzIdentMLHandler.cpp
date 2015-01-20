@@ -614,12 +614,12 @@ namespace OpenMS
           sid = String(it->getMetaValue("spectrum_id"));
           if (sid.empty())
           {
-            if (emz.empty())
+              if (it->getMZ() != it->getMZ())
             {
               emz = "nan";
               LOG_WARN << "Found no spectrum reference and no mz position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
             }
-            if (ert.empty())
+            if (it->getRT() != it->getRT())
             {
               ert = "nan";
               LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
