@@ -144,16 +144,10 @@ protected:
     setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file: features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("out_ext", "<file>", "", "Output file: features ('external' IDs)", false);
-    setValidFormats_("out_ext", ListUtils::create<String>("featureXML"));
     registerOutputFile_("lib_out", "<file>", "", "Output file: assay library ('internal' IDs)", false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("lib_ext_out", "<file>", "", "Output file: assay library ('external' IDs)", false);
-    setValidFormats_("lib_ext_out", ListUtils::create<String>("traML"));
     registerOutputFile_("chrom_out", "<file>", "", "Output file: chromatograms ('internal' IDs)", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("chrom_ext_out", "<file>", "", "Output file: chromatograms ('external' IDs)", false);
-    setValidFormats_("chrom_ext_out", ListUtils::create<String>("mzML"));
     registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
@@ -199,11 +193,11 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  // mapping: RT (not necessarily unique) -> pointer to peptide
-  typedef multimap<double, PeptideIdentification*> RTMap;
+  // mapping: RT (not necessarily unique) -> (pointer to peptide, is external?)
+  typedef multimap<double, pair<PeptideIdentification*, bool> > RTMap;
   // mapping: charge -> RT -> pointer to peptide
   typedef map<Int, RTMap> ChargeMap;
-  // mapping: sequence -> charge -> pointer to peptide
+  // mapping: sequence -> charge -> RT -> pointer to peptide
   typedef map<AASequence, ChargeMap> PeptideMap;
 
   // region in RT in which a peptide elutes:
@@ -708,8 +702,7 @@ protected:
   }
 
 
-  void filterFeatures_(FeatureMap& features, const RTMap& rt_data, 
-                       set<PeptideIdentification*> assigned_ids)
+  void annotateFeatures_(FeatureMap& features, const RTMap& rt_data)
   {
     // map IDs to features (based on RT):
     map<Size, vector<PeptideIdentification*> > feat_ids;
@@ -731,15 +724,17 @@ protected:
       RTMap::const_iterator upper = rt_data.upper_bound(rt_max);
       for (; lower != upper; ++lower)
       {
-        feat_ids[i].push_back(lower->second);
+        // only use "internal" IDs:
+        if (!lower->second.second) feat_ids[i].push_back(lower->second.first);
       }
     }
-    if (!feat_ids.empty()) // find the "best" feature (with the most IDs)
+
+    set<PeptideIdentification*> assigned_ids;
+    if (!feat_ids.empty())
     {
+      // find the "best" feature (with the most IDs):
       Size best_index = 0;
       Size best_count = 0;
-      // @TODO: this could be wrapped in a loop to extract more than one feature
-      // (in that case, "feat_ids" must be updated to account for assigned IDs)
       for (map<Size, vector<PeptideIdentification*> >::iterator fi_it = 
              feat_ids.begin(); fi_it != feat_ids.end(); ++fi_it)
       {
@@ -754,19 +749,24 @@ protected:
           best_index = current_index;
         }
       }
-      // retain best feature:
-      features[0] = features[best_index];
-      features[0].getPeptideIdentifications().resize(best_count);
+      // assign IDs:
+      features[best_index].getPeptideIdentifications().resize(best_count);
       for (Size i = 0; i < best_count; ++i)
       {
-        features[0].getPeptideIdentifications()[i] = *(feat_ids[best_index][i]);
+        features[best_index].getPeptideIdentifications()[i] = 
+          *(feat_ids[best_index][i]);
         assigned_ids.insert(feat_ids[best_index][i]);
       }
-      features.resize(1);
     }
-    else // no feature found that is supported by an ID :-(
+    // store unassigned IDs:
+    for (RTMap::const_iterator rt_it = rt_data.begin(); rt_it != rt_data.end();
+         ++rt_it)
     {
-      features.clear();
+      if (!assigned_ids.count(rt_it->second.first))
+      {
+        const PeptideIdentification& pep_id = *(rt_it->second.first);
+        features.getUnassignedPeptideIdentifications().push_back(pep_id);
+      }
     }
   }
 
@@ -797,7 +797,7 @@ protected:
 
 
   void detectFeaturesOnePeptide_(const PeptideMap::value_type& peptide_data,
-                                 FeatureMap& features, bool trust_rt)
+                                 FeatureMap& features)
   {
     TargetedExperiment library;
     TargetedExperiment::Peptide peptide;
@@ -808,7 +808,7 @@ protected:
 
     // keep track of protein accessions:
     const PeptideHit& hit = 
-      peptide_data.second.begin()->second.begin()->second->getHits()[0];
+      peptide_data.second.begin()->second.begin()->second.first->getHits()[0];
     set<String> accessions = hit.extractProteinAccessions();
     // missing protein accession would crash OpenSWATH algorithms:
     if (accessions.empty()) accessions.insert("not_available");
@@ -869,6 +869,8 @@ protected:
                                transitions);
           library.setTransitions(transitions);
 
+          if (keep_library_) library_ += library;
+
           // extract chromatograms:
           double rt_window = reg_it->end - reg_it->start;
           PeakMap chrom_data;
@@ -891,17 +893,6 @@ protected:
             }
           }
 
-          // adjust library RTs (use medoid of IDs, not center of region,
-          // to improve OpenSWATH scoring):
-          // note: OpenSWATH uses only the first RT given for a peptide (see
-          // "OpenSwathDataAccessHelper::convertTargetedPeptide")
-          assay_rt = getMedoid_(reg_it->evidence[charge]);
-          lib_peps = library.getPeptides();
-          setPeptideRT_(lib_peps[0], assay_rt);
-          library.setPeptides(lib_peps);
-
-          if (keep_library_) library_ += library;
-
           // find chromatographic peaks:
           FeatureMap current_features;
           feat_finder_.pickExperiment(chrom_data, current_features, library,
@@ -909,15 +900,6 @@ protected:
           LOG_DEBUG << "Found " << current_features.size() << " feature(s)."
                     << endl;
 
-          // which features are correct?
-          const RTMap& rt_data = cm_it->second;
-          set<PeptideIdentification*> assigned_ids;
-          if (trust_rt)
-          { // those that contain peptide IDs!
-            filterFeatures_(current_features, rt_data, assigned_ids);
-            LOG_DEBUG << "Features left after filtering: "
-                      << current_features.size() << endl;
-          }
           // complete feature annotation:
           for (FeatureMap::Iterator feat_it = current_features.begin();
                feat_it != current_features.end(); ++feat_it)
@@ -925,59 +907,31 @@ protected:
             feat_it->setMZ(mz);
             feat_it->setCharge(charge);
             ensureConvexHulls_(*feat_it);
-            // remove "fake" IDs added by OpenSWATH:
-            if (!trust_rt) feat_it->getPeptideIdentifications().clear();
+            // remove "fake" IDs generated by OpenSWATH:
+            feat_it->getPeptideIdentifications().clear();
           }
+          // which features are supported by IDs?
+          const RTMap& rt_data = cm_it->second;
+          annotateFeatures_(current_features, rt_data);
+
           features += current_features;
-          // store unassigned IDs:
-          for (RTMap::const_iterator rt_it = rt_data.begin();
-               rt_it != rt_data.end(); ++rt_it)
-          {
-            if (!assigned_ids.count(rt_it->second))
-            {
-              const PeptideIdentification& pep_id = *(rt_it->second);
-              features.getUnassignedPeptideIdentifications().push_back(pep_id);
-            }
-          }
         }
       }
     }
   }
 
 
-  void runFeatureDetection_(vector<PeptideIdentification>& peptides,
-                            FeatureMap& features, bool external_ids = false)
+  void addPeptideToMap_(PeptideIdentification& peptide, PeptideMap& peptide_map,
+                        bool external = false)
   {
-    //-------------------------------------------------------------
-    // prepare peptide map
-    //-------------------------------------------------------------
-    LOG_INFO << "Preparing mapping of peptide data..." << endl;
-    PeptideMap peptide_map;
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
-    {
-      if (pep_it->getHits().empty()) continue;
-      pep_it->sort();
-      PeptideHit& hit = pep_it->getHits()[0];
-      pep_it->getHits().resize(1);
-      Int charge = hit.getCharge();
-      double rt = pep_it->getRT();
-      peptide_map[hit.getSequence()][charge].insert(make_pair(rt, &(*pep_it)));
-    }
-
-    //-------------------------------------------------------------
-    // iterate over peptides
-    //-------------------------------------------------------------
-    LOG_INFO << "Processing peptides sequentially..." << endl;
-
-    for (PeptideMap::iterator pm_it = peptide_map.begin();
-         pm_it != peptide_map.end(); ++pm_it)
-    {
-      FeatureMap current_features;
-      detectFeaturesOnePeptide_(*pm_it, current_features, !external_ids);
-      features += current_features;
-    }
-    LOG_DEBUG << "Found " << features.size() << " features in total." << endl;
+    if (peptide.getHits().empty()) return;
+    peptide.sort();
+    PeptideHit& hit = peptide.getHits()[0];
+    peptide.getHits().resize(1);
+    Int charge = hit.getCharge();
+    double rt = peptide.getRT();
+    pair<PeptideIdentification*, bool> pep_pair = make_pair(&peptide, external);
+    peptide_map[hit.getSequence()][charge].insert(make_pair(rt, pep_pair));
   }
 
 
@@ -990,11 +944,8 @@ protected:
     String id = getStringOption_("id");
     String id_ext = getStringOption_("id_ext");
     String out = getStringOption_("out");
-    String out_ext = getStringOption_("out_ext");
     String lib_out = getStringOption_("lib_out");
-    String lib_ext_out = getStringOption_("lib_ext_out");
     String chrom_out = getStringOption_("chrom_out");
-    String chrom_ext_out = getStringOption_("chrom_ext_out");
     String trafo_out = getStringOption_("trafo_out");
     rt_window_ = getDoubleOption_("extract:rt_window");
     mz_window_ = getDoubleOption_("extract:mz_window");
@@ -1033,6 +984,7 @@ protected:
     extractor_.setLogType(log_type_);
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
+    params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
     if (elution_model_ != "none") params.setValue("write_convex_hull", "true");
     if (min_peak_width < 1.0) min_peak_width *= peak_width;
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
@@ -1054,11 +1006,54 @@ protected:
     vector<PeptideIdentification> peptides;
     vector<ProteinIdentification> proteins;
     IdXMLFile().load(id, proteins, peptides);
+    // "external" IDs:
+    vector<PeptideIdentification> peptides_ext;
+    vector<ProteinIdentification> proteins_ext;
+    if (!id_ext.empty()) IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
+
+    //-------------------------------------------------------------
+    // prepare peptide map
+    //-------------------------------------------------------------
+    LOG_INFO << "Preparing mapping of peptide data..." << endl;
+    PeptideMap peptide_map;
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+         pep_it != peptides.end(); ++pep_it)
+    {
+      addPeptideToMap_(*pep_it, peptide_map);
+    }
+    for (vector<PeptideIdentification>::iterator pep_it = peptides_ext.begin();
+         pep_it != peptides_ext.end(); ++pep_it)
+    {
+      addPeptideToMap_(*pep_it, peptide_map, true);
+    }
+
+    //-------------------------------------------------------------
+    // run feature detection
+    //-------------------------------------------------------------
+    LOG_INFO << "Running feature detection..." << endl;
     FeatureMap features;
     keep_library_ = !lib_out.empty();
     keep_chromatograms_ = !chrom_out.empty();
-    runFeatureDetection_(peptides, features);
+    for (PeptideMap::iterator pm_it = peptide_map.begin();
+         pm_it != peptide_map.end(); ++pm_it)
+    {
+      FeatureMap current_features;
+      detectFeaturesOnePeptide_(*pm_it, current_features);
+      features += current_features;
+    }
+    LOG_DEBUG << "Found " << features.size() << " features in total." << endl;
+    ms_data_.reset(); // not needed anymore, free up the memory
     features.setProteinIdentifications(proteins);
+
+    // @FIXME
+    // if (elution_model_ != "none")
+    // {
+    //   fitElutionModels_(features);
+    // }
+
+    //-------------------------------------------------------------
+    // write output
+    //-------------------------------------------------------------
     if (keep_library_)
     {
       removeDuplicateProteins_(library_);
@@ -1073,59 +1068,11 @@ protected:
       chrom_data_.clear(true);
     }
 
-    // "external" IDs:
-    FeatureMap features_ext;
-    if (!id_ext.empty())
-    {
-      vector<PeptideIdentification> peptides_ext;
-      vector<ProteinIdentification> proteins_ext;
-      IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
-      keep_library_ = !lib_ext_out.empty();
-      keep_chromatograms_ = !chrom_ext_out.empty();
-      runFeatureDetection_(peptides_ext, features_ext, true);
-      features_ext.setProteinIdentifications(proteins_ext);
-      if (keep_library_)
-      {
-        removeDuplicateProteins_(library_);
-        TraMLFile().store(lib_ext_out, library_);
-        library_.clear(true);
-      }
-      if (keep_chromatograms_)
-      {
-        addDataProcessing_(chrom_data_,
-                           getProcessingInfo_(DataProcessing::FILTERING));
-        MzMLFile().store(chrom_ext_out, chrom_data_);
-        chrom_data_.clear(true);
-      }
-    }
-
-    ms_data_.reset(); // not needed anymore, free up the memory
-
-    // combine both sets of features...
-
-    // @FIXME
-    // if (elution_model_ != "none")
-    // {
-    //   fitElutionModels_(features);
-    // }
-
-
-    //-------------------------------------------------------------
-    // write output
-    //-------------------------------------------------------------
     LOG_INFO << "Writing results..." << endl;
     features.ensureUniqueId();
     addDataProcessing_(features,
                        getProcessingInfo_(DataProcessing::QUANTITATION));
     FeatureXMLFile().store(out, features);
-
-    if (!out_ext.empty())
-    {
-      features_ext.ensureUniqueId();
-      addDataProcessing_(features_ext,
-                         getProcessingInfo_(DataProcessing::QUANTITATION));
-      FeatureXMLFile().store(out_ext, features_ext);
-    }
 
     return EXECUTION_OK;
   }
