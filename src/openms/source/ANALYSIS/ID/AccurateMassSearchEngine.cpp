@@ -1204,7 +1204,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping file must contain \"database_name\t{NAME}\" as first line.!", line);
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
         }
       }
       else if (line_count == 2)
@@ -1218,7 +1218,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping file must contain \"database_version\t{VERSION}\" as first line.!", line);
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
         }
       }
 
