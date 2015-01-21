@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ using namespace std;
 /**
     @page UTILS_QCCalculator QCCalculator
 
-    @brief Calculates basic quality parameters from MS experiments and subsequent analysis data as identification or feature detection.
+    @brief Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
 
     <CENTER>
       <table>
@@ -85,8 +85,8 @@ using namespace std;
       </table>
     </CENTER>
 
-    The calculated quality parameters include file origin, spectra distribution, aquisition details, ion current stability ( & tic ), id accuracy statistics and feature statistics.
-    The MS experiments base name is used as name to the qcml element that is comprising all quality parameter values for the given run (including the given downstream analysis data).  
+    The calculated quality parameters or data compiled as attachments for easy plotting input include file origin, spectra distribution, aquisition details, ion current stability ( & TIC ), id accuracy statistics and feature statistics.
+    The MS experiments base name is used as name to the qcML element that is comprising all quality parameter values for the given run (including the given downstream analysis data).
     
     - @p id produces quality parameter values for the identification file;
     - @p feature produces quality parameter values for the feature file;
@@ -94,7 +94,7 @@ using namespace std;
     some quality parameter calculation are only available if both feature and ids are given.
     - @p remove_duplicate_features only needed when you work with a set of merged features. Then considers duplicate features only once.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCCalculator.cli

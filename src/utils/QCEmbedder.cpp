@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ using namespace std;
 /**
     @page UTILS_QCEmbedder QCEmbedder
 
-    @brief Attaches a table or an image to a given qc parameter.
+    @brief This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
 
     <CENTER>
       <table>
@@ -81,7 +81,8 @@ using namespace std;
       </table>
     </CENTER>
 
-    If there is additional data from external tools to a certain quality control parameter (qp) in the qcml file at @p in, it can be attached in tabluar (csv) format or as png image file.
+    If there is additional data from external tools to a certain quality parameter (qp) in the qcML file at @p in, it can be attached in tabluar (csv) format or as png image file.
+    If no corresponding quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
 
     - @p qp_att_acc defines the qp cv accession of the qp to which the table/image is attached.
     - @p cv_acc defines the cv accession of the attachment.
@@ -91,7 +92,7 @@ using namespace std;
     - @p plot if a plot image is to be attached to a qp, this has to be specified here.
     - @p table if a table is to be attached to a qp, this has to be specified here.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox).
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCEmbedder.cli
