@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,13 +96,13 @@
   - @subpage UTILS_AccurateMassSearch - Find potential HMDB ids within the given mass error window.
 
   <b>Quality control</b>
-  - @subpage UTILS_QCCalculator -
-  - @subpage UTILS_QCImporter -
-  - @subpage UTILS_QCEmbedder -
-  - @subpage UTILS_QCExporter -
-  - @subpage UTILS_QCExtractor -
-  - @subpage UTILS_QCMerger -
-  - @subpage UTILS_QCShrinker -
+  - @subpage UTILS_QCCalculator - Calculates basic quality parameters from MS experiments and compiles data for subsequent QC into a qcML file.
+  - @subpage UTILS_QCImporter - Will import several quality parameter from a tabular (text) format into a qcML file - counterpart to QCExporter.
+  - @subpage UTILS_QCExporter - Will extract several quality parameter from several run/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
+  - @subpage UTILS_QCEmbedder - This application is used to embed tables or plots generated externally as attachments to existing quality parameters in qcML files.
+  - @subpage UTILS_QCExtractor - Extracts a table attachment of a given quality parameter from a qcML file as tabular (text) format.
+  - @subpage UTILS_QCMerger - Merges two qcML files together.
+  - @subpage UTILS_QCShrinker - This application is used to remove extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
 
   <b>Deprecated</b>

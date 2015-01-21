@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,7 +71,7 @@ public:
     virtual ~MzIdentMLFile();
 
     /**
-        @brief Loads a map from a MzIdentML file.
+        @brief Loads the identifications from a MzIdentML file.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -79,7 +79,7 @@ public:
     void load(const String& filename, Identification& id);
 
     /**
-        @brief Loads a map from a MzIdentML file.
+        @brief Loads the identifications from a MzIdentML file.
 
         @exception Exception::FileNotFound is thrown if the file could not be opened
         @exception Exception::ParseError is thrown if an error occurs during parsing
@@ -87,14 +87,14 @@ public:
     void load(const String& filename, std::vector<ProteinIdentification>& poid, std::vector<PeptideIdentification>& peid);
 
     /**
-        @brief Stores a map in a MzIdentML file.
+        @brief Stores the identifications in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String& filename, const std::vector<ProteinIdentification>& poid, const std::vector<PeptideIdentification>& peid) const;
 
     /**
-        @brief Stores a map in a MzIdentML file.
+        @brief Stores the identifications in a MzIdentML file.
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
