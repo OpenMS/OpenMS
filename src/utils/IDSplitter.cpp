@@ -56,6 +56,7 @@ using namespace std;
 
     This performs the reverse operation as IDMapper.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_IDSplitter.cli
     <B>INI file documentation of this tool:</B>

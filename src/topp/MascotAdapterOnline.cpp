@@ -89,6 +89,7 @@ using namespace std;
 
     @note Mascot returns incomplete/incorrect protein assignments for most identified peptides (due to protein-level grouping/filtering). By default the protein associations are therefore not included in the output of this adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run after this tool to get correct assignments. The flag @p keep_protein_links can be used to override this behavior.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MascotAdapterOnline.cli
     <B>INI file documentation of this tool:</B>

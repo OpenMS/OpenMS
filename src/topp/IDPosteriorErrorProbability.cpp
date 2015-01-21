@@ -87,6 +87,7 @@ using namespace std;
     The plots are saved as a gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file which contains all steps of the estimation. If this fails, the user has to run Gnuplot manually
     or adjust the PATH environment such that this tool can find it.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDPosteriorErrorProbability.cli
     <B>INI file documentation of this tool:</B>

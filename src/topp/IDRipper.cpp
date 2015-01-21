@@ -84,6 +84,7 @@ using namespace OpenMS;
 
   <B>NOTE: The meta value file origin is removed by the <tt>IDSplitter</tt>!!</B>
 
+  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IDRipper.cli
   <B>INI file documentation of this tool:</B>

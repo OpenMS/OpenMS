@@ -96,6 +96,7 @@ using namespace std;
 
     Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCCalculator.cli
     <B>INI file documentation of this tool:</B>
