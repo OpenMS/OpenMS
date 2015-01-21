@@ -68,6 +68,7 @@ namespace OpenMS
     refine_max_valid_evalue_(1000),
     number_of_missed_cleavages_(1),
     default_parameters_file_(""),
+    output_results_("all"),
     max_valid_evalue_(1000)
   {
 
@@ -435,9 +436,9 @@ namespace OpenMS
     //<note type="input" label="output, one sequence copy">no</note>
     //<note>values = yes|no, set to yes to produce only one copy of each protein sequence in the output xml</note>
     //<note type="input" label="output, results">valid</note>
-    writeNote_(os, "input", "output, results", "all");
-    used_labels.insert("output, results");
     //<note>values = all|valid|stochastic</note>
+    writeNote_(os, "input", "output, results", output_results_);
+    used_labels.insert("output, results");    
     //<note type="input" label="output, maximum valid expectation value">0.1</note>
     writeNote_(os, "input", "output, maximum valid expectation value", String(max_valid_evalue_));
     used_labels.insert("output, maximum valid expectation value");
@@ -665,6 +666,23 @@ namespace OpenMS
   UInt XTandemInfile::getNumberOfMissedCleavages() const
   {
     return number_of_missed_cleavages_;
+  }
+
+  void XTandemInfile::setOutputResults(String result)
+  {
+    if (result == "valid" || result == "all" || result == "stochastic")
+    {
+      output_results_ = result;
+    }
+    else
+    {
+      throw OpenMS::Exception::FailedAPICall(__FILE__, __LINE__, __FUNCTION__, "Invalid result type provided (must be either all, valid or stochastic).: '" + result + "'");
+    }
+  }
+
+  String XTandemInfile::getOutputResults() const
+  {
+    return output_results_;
   }
 
   bool XTandemInfile::isRefining() const

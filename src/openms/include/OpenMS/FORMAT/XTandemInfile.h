@@ -176,6 +176,12 @@ public:
     /// returns the number of missed cleavages allowed
     UInt getNumberOfMissedCleavages() const;
 
+    /// sets the output result type ("all", "valid" or "stochastic")
+    void setOutputResults(String result);
+
+    /// returns the output result type ("all", "valid" or "stochastic")
+    String getOutputResults() const;
+
     /// sets the max valid E-value allowed in the list
     void setMaxValidEValue(double value);
 
@@ -286,6 +292,8 @@ protected:
     String default_parameters_file_;
 
     // output parameters
+    String output_results_;
+
     double max_valid_evalue_;
 
     /** 

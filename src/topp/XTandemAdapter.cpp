@@ -161,7 +161,14 @@ protected:
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
     registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "Cleavage site of the used enzyme as regular expression ([RK]|{P} (i.e. tryptic clevage) is default, [X]|[X] (i.e. every site, \"...reset the scoring, maximum missed cleavage site parameter to something like 50\" - from the xtandem documentation).", false);
-    registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "Maximal E-Value of a hit to be reported", false);
+    registerStringOption_("output_results", "<result reporting>", "all", "Which hits should be reported. All, valid ones (passing the E-Ealue threshold), or stochastic (failing the threshold)", false);
+    valid_strings.clear();
+    valid_strings.push_back("all");
+    valid_strings.push_back("valid");
+    valid_strings.push_back("stochastic");
+    setValidStrings_("output_results", valid_strings);
+
+    registerDoubleOption_("max_valid_expect", "<E-Value>", 0.1, "Maximal E-Value of a hit to be reported (only evaluated if 'output_result' is 'valid' or 'stochastic'", false);
     registerFlag_("refinement", "Enable the refinement. For most applications (especially when using FDR, PEP approaches) it is NOT recommended to set this flag.");
     registerFlag_("semi_cleavage", "If set, both termini must NOT follow the cutting rule. For most applications it is NOT recommended to set this flag.");
   }
@@ -329,6 +336,7 @@ protected:
     infile.setNumberOfThreads(getIntOption_("threads"));
     infile.setModifications(ModificationDefinitionsSet(getStringList_("fixed_modifications"), getStringList_("variable_modifications")));
     infile.setTaxon("OpenMS_dummy_taxonomy");
+    infile.setOutputResults(getStringOption_("output_results"));
     infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
     infile.setCleavageSite(getStringOption_("cleavage_site"));
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
