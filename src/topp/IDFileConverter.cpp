@@ -134,7 +134,7 @@ protected:
                        "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
                        "- a single file in a search engine-specific XML format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,idXML,mzid,tsv"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
@@ -382,6 +382,31 @@ protected:
           }
         }
       }
+      else if (in_type == FileTypes::TSV)
+      {
+        ProteinIdentification protein_id;
+        protein_id.setSearchEngineVersion("");
+        protein_id.setSearchEngine("XTandem");
+        protein_identifications.push_back(protein_id);
+
+        TextFile tf;
+        tf.load(in, true, -1, true);
+        for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
+        {
+          PeptideIdentification pepid;
+          StringList peps;
+          it->split('\t', peps, false);
+          std::vector<PeptideHit> hits;
+          for (StringList::const_iterator sit=peps.begin(); sit != peps.end(); ++sit)
+          {
+            PeptideHit hit;
+            hit.setSequence(AASequence::fromString(*sit));
+            hits.push_back(hit);
+          }
+          pepid.setHits(hits);
+          peptide_identifications.push_back(pepid);
+        }
+      }
       else
       {
         writeLog_("Unknown input file type given. Aborting!");
@@ -431,17 +456,22 @@ protected:
         for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
         {
           const PeptideHit& hit = peptide_identifications[i].getHits()[l];
-          fasta << ">" << hit.getSequence().toUnmodifiedString() << "|" << count++
-                << "|" << hit.getSequence().toString() << endl;
           String seq = hit.getSequence().toUnmodifiedString();
+          std::set<String> prot = hit.extractProteinAccessions();
+          fasta << ">" << seq
+                << " " << ++count
+                << " " << hit.getSequence().toString() 
+                << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
+                << "\n";
           // FASTA files should have at most 60 characters of sequence info per line
           for (Size j = 0; j < seq.size(); j += 60)
           {
             Size k = min(j + 60, seq.size());
-            fasta << string(seq[j], seq[k]) << endl;
+            fasta << seq.substr(j, k - j) << "\n";
           }
         }
       }
+      fasta.close();
     }
     else
     {
