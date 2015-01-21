@@ -74,6 +74,13 @@ using namespace std;
     </table>
 </CENTER>
 
+IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem)
+into other (OpenMS-specific) formats.
+For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. OMSSAAdapter) to avoid the extra conversion step.
+
+The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
+Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits.
+Lines starting with "#" are ignored by the parser.
 
 Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quite comprehensive, to the extent that the original data can be
 represented in the simpler idXML format.
@@ -81,7 +88,7 @@ represented in the simpler idXML format.
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
 information for the use of ProteinProphet.
 
-Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
+Support for conversion to/from mzIdentML (.mzid) is still experimental and may loose information.
 
 <B>Details on additional parameters:</B>
 
@@ -133,6 +140,7 @@ protected:
                        "Input file or directory containing the data to convert. This may be:\n"
                        "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
                        "- a single file in a search engine-specific XML format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml),\n"
+                       "- a single file (tab separated) in text format (one line for all peptide sequences matching a spectrum (topN hits)"
                        "- for Sequest results, a directory containing .out files.\n");
     setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,idXML,mzid,tsv"));
 
@@ -391,8 +399,12 @@ protected:
 
         TextFile tf;
         tf.load(in, true, -1, true);
-        for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
+        for (TextFile::Iterator it = tf.begin(); it != tf.end(); ++it)
         {
+          it->trim();
+          // skip empty and comment lines
+          if (it->empty() || it->hasPrefix("#")) continue;
+
           PeptideIdentification pepid;
           StringList peps;
           it->split('\t', peps, false);
