@@ -88,7 +88,7 @@ represented in the simpler idXML format.
 In contrast, support for converting from idXML to pepXML is limited. The purpose here is simply to create pepXML files containing the relevant
 information for the use of ProteinProphet.
 
-Support for conversion to/from mzIdentML (.mzid) is still experimental and may loose information.
+Support for conversion to/from mzIdentML (.mzid) is still experimental and may lose information.
 
 <B>Details on additional parameters:</B>
 
