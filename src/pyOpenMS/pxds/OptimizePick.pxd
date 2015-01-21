@@ -8,13 +8,12 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
     cdef cppclass OptimizePick "OpenMS::OptimizePick":
         OptimizePick() nogil except +
         OptimizePick(OptimizePick) nogil except + #wrap-ignore
-        # NAMESPACE #  OptimizePick(struct OptimizationFunctions::PenaltyFactors & penalties_, int max_iteration_, double eps_abs_, double eps_rel_) nogil except +
-        # NAMESPACE # struct OptimizationFunctions::PenaltyFactors  getPenalties() nogil except +
-        # NAMESPACE # struct OptimizationFunctions::PenaltyFactors  getPenalties() nogil except +
-        # NAMESPACE # void setPenalties(struct OptimizationFunctions::PenaltyFactors & penalties) nogil except +
+        OptimizePick(OptimizationFunctions_PenaltyFactors penalties_, int max_iteration_) nogil except +
+        OptimizationFunctions_PenaltyFactors getPenalties() nogil except +
+        void setPenalties(OptimizationFunctions_PenaltyFactors penalties) nogil except +
         unsigned int  getNumberIterations() nogil except +
         void setNumberIterations(int max_iteration) nogil except +
-        # void optimize(libcpp_vector[ PeakShape ] & peaks, Data & data) nogil except +
+        # void optimize(libcpp_vector[ PeakShape ] & peaks, OptimizePick_Data & data) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "OpenMS::OptimizationFunctions":
     
@@ -27,8 +26,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "OpenMS::OptimizePick":
     
-    cdef cppclass Data "OpenMS::OptimizePick::Data":
-        Data(Data) nogil except + #wrap-ignore
+    cdef cppclass OptimizePick_Data "OpenMS::OptimizePick::Data":
+        OptimizePick_Data(OptimizePick_Data) nogil except + #wrap-ignore
         libcpp_vector[ double ] positions
         libcpp_vector[ double ] signal
         # TODO STL attribute

@@ -91,6 +91,17 @@
                 </xs:restriction>
               </xs:simpleType>
             </xs:element>
+            <xs:element name="force" default="false">
+              <xs:annotation>
+                <xs:documentation>Overwrite tool specific checks.</xs:documentation>
+              </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="true"/>
+                  <xs:enumeration value="false"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:element>
             <xs:element name="test" default="false">
               <xs:annotation>
                 <xs:documentation>Enables the test mode (needed for internal use only)</xs:documentation>

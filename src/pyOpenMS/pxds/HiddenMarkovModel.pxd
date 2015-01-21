@@ -50,6 +50,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         void deletePredecessorState(HMMState * state) nogil except +
         void addSuccessorState(HMMState * state) nogil except +
         void deleteSuccessorState(HMMState * state) nogil except +
-        # POINTER # libcpp_set[ HMMState * ]  getPredecessorStates() nogil except +
-        # POINTER # libcpp_set[ HMMState * ]  getSuccessorStates() nogil except +
+        # TODO needs autowrap > 0.5.1 
+        # libcpp_set[ HMMState * ]  getPredecessorStates() nogil except +
+        # libcpp_set[ HMMState * ]  getSuccessorStates() nogil except +
 

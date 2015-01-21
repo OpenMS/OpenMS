@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1083,7 +1083,7 @@ namespace OpenMS
           MzTabString ppmerr;
           ppmerr.set(String((*tab_it)[hit_idx].getErrorPPM()));
           MzTabOptionalColumnEntry col0;
-          col0.first = "opt_ppm_error";
+          col0.first = "opt_global_ppm_error";
           col0.second = ppmerr;
           optionals.push_back(col0);
 
@@ -1092,7 +1092,7 @@ namespace OpenMS
           MzTabString addion;
           addion.set(addion_temp);
           MzTabOptionalColumnEntry col1;
-          col1.first = "opt_adduct_ion";
+          col1.first = "opt_global_adduct_ion";
           col1.second = addion;
           optionals.push_back(col1);
           ++adduct_stats[addion_temp]; // just some stats
@@ -1106,7 +1106,7 @@ namespace OpenMS
           MzTabString sim_score;
           sim_score.set(sim_score_temp2);
           MzTabOptionalColumnEntry col2;
-          col2.first = "opt_isosim_score";
+          col2.first = "opt_global_isosim_score";
           col2.second = sim_score;
           optionals.push_back(col2);
 
@@ -1117,7 +1117,7 @@ namespace OpenMS
           MzTabString id_group_str;
           id_group_str.set(id_group_temp);
           MzTabOptionalColumnEntry col3;
-          col3.first = "opt_id_group";
+          col3.first = "opt_global_id_group";
           col3.second = id_group_str;
           optionals.push_back(col3);
           mztab_row_record.opt_ = optionals;

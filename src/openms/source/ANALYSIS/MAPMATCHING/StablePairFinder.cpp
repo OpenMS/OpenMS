@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,7 +125,7 @@ namespace OpenMS
     // iterate over all feature pairs, find nearest neighbors:
     // TODO: iterate over SENSIBLE RT (and m/z) window -- sort the maps beforehand
     //       to save a lot of processing time...
-    //       Once done, remove the warning in the description of the 'use_idenfications' parameter
+    //       Once done, remove the warning in the description of the 'use_identifications' parameter
     for (UInt fi0 = 0; fi0 < input_maps[0].size(); ++fi0)
     {
       const ConsensusFeature& feat0 = input_maps[0][fi0];

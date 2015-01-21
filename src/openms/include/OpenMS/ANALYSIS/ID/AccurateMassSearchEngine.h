@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -270,7 +270,7 @@ private:
       /// members
       String name_;
       EmpiricalFormula ef_;
-      double mass_; // computed from ef_.getMonoWeight(), but stored explicitly for efficency
+      double mass_; // computed from ef_.getMonoWeight(), but stored explicitly for efficiency
       int charge_;
       bool is_intrinsic_;
       uint mol_multiplier_;

@@ -63,6 +63,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::R
         ANYWHERE
         C_TERM
         N_TERM
+        PROTEIN_C_TERM
+        PROTEIN_N_TERM
         NUMBER_OF_TERM_SPECIFICITY
 
 cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS::ResidueModification":
