@@ -1050,94 +1050,77 @@ protected:
                           const vector<double>& log2_C,
                           const vector<double>& log2_gamma)
   {
-    vector<Size> pos_obs; // positive observations (here: "true positives")
-    vector<Size> neg_obs; // negative observations (here: "false positives")
+    vector<Size> valid_obs; // observations for training (no "maybes"/unknowns)
+    Size n_neg, n_pos; // number of positive/negative observations
     for (Size i = 0; i < labels.size(); ++i)
     {
-      if (labels[i] == 0.0) neg_obs.push_back(i);
-      else if (labels[i] == 1.0) pos_obs.push_back(i);
+      if (labels[i] == 0.0)
+      {
+        valid_obs.push_back(i);
+        ++n_neg;
+      }
+      else if (labels[i] == 1.0)
+      {
+        valid_obs.push_back(i);
+        ++n_pos;
+      }
     }
-    if (pos_obs.size() < n_parts)
+    LOG_DEBUG << "Positive observations: " << n_pos 
+              << "\nNegative observations: " << n_neg << endl;
+    if (n_pos < n_parts)
     {
       String msg = "not enough positive observations for " + 
         String(n_parts) + "-fold cross-validation";
       throw Exception::MissingInformation(__FILE__, __LINE__, 
                                           __PRETTY_FUNCTION__, msg);
     }
-    if (neg_obs.size() < n_parts)
+    if (n_neg < n_parts)
     {
       String msg = ("not enough negative observations for " + 
                     String(n_parts) + "-fold cross-validation");
       throw Exception::MissingInformation(__FILE__, __LINE__, 
                                           __PRETTY_FUNCTION__, msg);
     }
-    random_shuffle(pos_obs.begin(), pos_obs.end());
-    random_shuffle(neg_obs.begin(), neg_obs.end());
 
-    // Cross-validation: We consider positive and negative observations
-    // separately ("stratified sampling"). We split the pos./neg. observations
-    // evenly into N partitions. In turn, we use one partition for testing, all
-    // the others for training SVMs with different parameters.
-    vector<vector<Size> > partitions(n_parts);
-    for (; n_parts > 0; --n_parts)
+    struct svm_problem svm_data;
+    svm_data.l = valid_obs.size();
+    svm_data.y = new double[svm_data.l];
+    svm_data.x = new svm_node*[svm_data.l];
+    for (Size i = 0; i < Size(svm_data.l); ++i)
     {
-      // integer division should do what we want here:
-      Size pos_part = pos_obs.size() / n_parts;
-      Size neg_part = neg_obs.size() / n_parts;
-      // split partitions off the back of the obs. vector (simplifies removing):
-      for (Size i = 1; i <= pos_part; ++i)
-      {
-        Size index = pos_obs[pos_obs.size() - i];
-        partitions[n_parts - 1].push_back(index);
-      }
-      for (Size i = 1; i <= neg_part; ++i)
-      {
-        Size index = neg_obs[neg_obs.size() - i];
-        partitions[n_parts - 1].push_back(index);
-      }
-      // remove parts that were just used:
-      pos_obs.resize(pos_obs.size() - pos_part);
-      neg_obs.resize(neg_obs.size() - neg_part);
+      Size obs_index = valid_obs[i];
+      svm_data.y[i] = labels[obs_index];
+      svm_data.x[i] = &(svm_nodes[obs_index][0]);
     }
 
-    for (Size test_set = 0; test_set < partitions.size(); ++test_set)
+    // classification performance for different parameter pairs:
+    SVMPerformance performance;
+    for (vector<double>::const_iterator c_it = log2_C.begin(); 
+         c_it != log2_C.end(); ++c_it)
     {
-      struct svm_problem svm_data;
-      svm_data.l = (pos_obs.size() + neg_obs.size() - 
-                    partitions[test_set].size());
-      svm_data.y = new double[svm_data.l];
-      svm_data.x = new svm_node*[svm_data.l];
-      Size obs_index = 0;
-      for (Size train_set = 0; train_set < partitions.size(); ++train_set)
+      svm_params.C = pow(2.0, *c_it);
+      for (vector<double>::const_iterator g_it = log2_gamma.begin();
+           g_it != log2_gamma.end(); ++g_it)
       {
-        if (train_set == test_set) continue;
-        for (vector<Size>::iterator it = partitions[train_set].begin();
-             it != partitions[train_set].end(); ++it)
+        svm_params.gamma = pow(2.0, *g_it);
+        LOG_DEBUG << "Parameters: C = " << svm_params.C << ", gamma = "
+                  << svm_params.gamma << endl;
+        vector<double> targets(svm_data.l);
+        svm_cross_validation(&svm_data, &svm_params, n_parts, &(targets[0]));
+        Size n_correct = 0;
+        for (Size i = 0; i < Size(svm_data.l); ++i)
         {
-          svm_data.x[obs_index] = &(svm_nodes[*it][0]);
-          svm_data.y[obs_index] = labels[*it];
-          ++obs_index;
+          if (targets[i] == svm_data.y[i]) n_correct++;
         }
+        double ratio = n_correct / double(svm_data.l);
+        performance[make_pair(svm_params.C, svm_params.gamma)] = ratio;
+        LOG_DEBUG << "Performance: " << n_correct << " correct ("
+                  << float(ratio * 100.0) << "%)" << endl;
       }
-
-      // classification performance for different parameter pairs:
-      SVMPerformance performance;
-      for (vector<double>::const_iterator c_it = log2_C.begin(); 
-           c_it != log2_C.end(); ++c_it)
-      {
-        svm_params.C = pow(2.0, *c_it);
-        for (vector<double>::const_iterator g_it = log2_gamma.begin();
-             g_it != log2_gamma.end(); ++g_it)
-        {
-          svm_params.gamma = pow(2.0, *g_it);
-          struct svm_model* model = svm_train(&svm_data, &svm_params);
-        }
-      }
-
-      delete[] svm_data.y;
-      delete[] svm_data.x;
     }
-       
+    
+    delete[] svm_data.y;
+    delete[] svm_data.x;
   }
 
 
