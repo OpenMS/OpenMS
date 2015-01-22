@@ -37,8 +37,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
@@ -49,12 +47,11 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <svm.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -130,6 +127,7 @@ public:
     rt_term_.setCVIdentifierRef("MS");
     rt_term_.setAccession("MS:1000896");
     rt_term_.setName("normalized retention time");
+    score_metavalues_ = "initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelutio,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score";
   }
 
 protected:
@@ -171,6 +169,16 @@ protected:
     registerDoubleOption_("detect:mapping_tolerance", "<value>", 10.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
     setMinFloat_("detect:mapping_tolerance", 0.0);
 
+    registerTOPPSubsection_("svm", "Parameters for scoring features using a support vector machine (SVM)");
+    registerIntOption_("svm:xval", "<number>", 5, "Number of partitions for cross-validation", false);
+    setMinInt_("svm:xval", 1);
+    registerStringOption_("svm:kernel", "<choice>", "RBF", "SVM kernel", false);
+    setValidStrings_("svm:kernel", ListUtils::create<String>("RBF,linear"));
+    String values = "-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15";
+    registerDoubleList_("svm:log2_C", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'C' during parameter optimization. A value 'x' is used as 'C = 2^x'.", false);
+    values = "-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3";
+    registerDoubleList_("svm:log2_gamma", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'gamma' during parameter optimization (RBF kernel only). A value 'x' is used as 'gamma = 2^x'.", false);
+
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
     StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
     registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
@@ -207,12 +215,16 @@ protected:
     map<Int, vector<double> > evidence; // mapping: charge -> RT of ID
   };
 
+  // mapping: (SVM param. C, SVM param. gamma) -> classification performance
+  typedef map<pair<double, double>, double> SVMPerformance;
+
   PeakMap ms_data_; // input LC-MS data
   PeakMap chrom_data_; // accumulated chromatograms (XICs)
   bool keep_chromatograms_; // keep chromatogram data for output?
   TargetedExperiment library_; // accumulated assays for peptides
   bool keep_library_; // keep assay data for output?
   CVTerm rt_term_; // controlled vocabulary term for reference RT
+  String score_metavalues_;
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   String reference_rt_; // value of "reference_rt" parameter
   double rt_window_; // RT window width
@@ -290,7 +302,7 @@ protected:
     peptide.rts.push_back(te_rt);
   }
 
-
+/*
   double calculateFitQuality_(const TraceFitter* fitter, 
                               const MassTraces& traces)
   {
@@ -321,7 +333,6 @@ protected:
   }
 
 
-/*
   // fit models of elution profiles to all features:
   void fitElutionModels_(FeatureMap& features)
   {
@@ -704,68 +715,108 @@ protected:
 
   void annotateFeatures_(FeatureMap& features, const RTMap& rt_data)
   {
-    // map IDs to features (based on RT):
-    map<Size, vector<PeptideIdentification*> > feat_ids;
-    for (Size i = 0; i < features.size(); ++i)
-    {
-      double rt_min = features[i].getMetaValue("leftWidth");
-      double rt_max = features[i].getMetaValue("rightWidth");
-      if (mapping_tolerance_ > 0.0)
-      {
-        double abs_tol = mapping_tolerance_;
-        if (abs_tol < 1.0)
-        {
-          abs_tol *= (rt_max - rt_min);
-        }
-        rt_min -= abs_tol;
-        rt_max += abs_tol;
-      }
-      RTMap::const_iterator lower = rt_data.lower_bound(rt_min);
-      RTMap::const_iterator upper = rt_data.upper_bound(rt_max);
-      for (; lower != upper; ++lower)
-      {
-        // only use "internal" IDs:
-        if (!lower->second.second) feat_ids[i].push_back(lower->second.first);
-      }
-    }
-
-    set<PeptideIdentification*> assigned_ids;
-    if (!feat_ids.empty())
-    {
-      // find the "best" feature (with the most IDs):
-      Size best_index = 0;
-      Size best_count = 0;
-      for (map<Size, vector<PeptideIdentification*> >::iterator fi_it = 
-             feat_ids.begin(); fi_it != feat_ids.end(); ++fi_it)
-      {
-        Size current_index = fi_it->first;
-        Size current_count = fi_it->second.size();
-        if ((current_count > best_count) ||
-            ((current_count == best_count) && // break ties by feature quality
-             (features[current_index].getOverallQuality() >
-              features[best_index].getOverallQuality())))
-        {
-          best_count = current_count;
-          best_index = current_index;
-        }
-      }
-      // assign IDs:
-      features[best_index].getPeptideIdentifications().resize(best_count);
-      for (Size i = 0; i < best_count; ++i)
-      {
-        features[best_index].getPeptideIdentifications()[i] = 
-          *(feat_ids[best_index][i]);
-        assigned_ids.insert(feat_ids[best_index][i]);
-      }
-    }
-    // store unassigned IDs:
+    Size n_internal_ids = 0;
     for (RTMap::const_iterator rt_it = rt_data.begin(); rt_it != rt_data.end();
          ++rt_it)
     {
-      if (!assigned_ids.count(rt_it->second.first))
+      if (!rt_it->second.second) n_internal_ids++;
+      // @TODO: should we filter out the external IDs?
+    }
+    if (n_internal_ids > 0) // validate based on internal IDs
+    {
+      // map IDs to features (based on RT):
+      map<Size, vector<PeptideIdentification*> > feat_ids;
+      for (Size i = 0; i < features.size(); ++i)
       {
-        const PeptideIdentification& pep_id = *(rt_it->second.first);
-        features.getUnassignedPeptideIdentifications().push_back(pep_id);
+        double rt_min = features[i].getMetaValue("leftWidth");
+        double rt_max = features[i].getMetaValue("rightWidth");
+        if (mapping_tolerance_ > 0.0)
+        {
+          double abs_tol = mapping_tolerance_;
+          if (abs_tol < 1.0)
+          {
+            abs_tol *= (rt_max - rt_min);
+          }
+          rt_min -= abs_tol;
+          rt_max += abs_tol;
+        }
+        RTMap::const_iterator lower = rt_data.lower_bound(rt_min);
+        RTMap::const_iterator upper = rt_data.upper_bound(rt_max);
+        int id_count = 0;
+        for (; lower != upper; ++lower)
+        {
+          // only use "internal" IDs:
+          if (!lower->second.second)
+          {
+            feat_ids[i].push_back(lower->second.first);
+            ++id_count;
+          }
+        }
+        features[i].setMetaValue("n_total_ids", n_internal_ids);
+        features[i].setMetaValue("n_matching_ids", id_count);
+        if (id_count > 0) // matching IDs -> feature may be correct
+        {
+          features[i].setMetaValue("feature_class", "ambiguous");
+        }
+        else // no matching IDs -> feature is wrong
+        {
+          features[i].setMetaValue("feature_class", "false_positive");
+        }
+      }
+
+      set<PeptideIdentification*> assigned_ids;
+      if (!feat_ids.empty())
+      {
+        // find the "best" feature (with the most IDs):
+        Size best_index = 0;
+        Size best_count = 0;
+        for (map<Size, vector<PeptideIdentification*> >::iterator fi_it = 
+               feat_ids.begin(); fi_it != feat_ids.end(); ++fi_it)
+        {
+          Size current_index = fi_it->first;
+          Size current_count = fi_it->second.size();
+          if ((current_count > best_count) ||
+              ((current_count == best_count) && // break ties by feature quality
+               (features[current_index].getOverallQuality() >
+                features[best_index].getOverallQuality())))
+          {
+            best_count = current_count;
+            best_index = current_index;
+          }
+        }
+        // assign IDs:
+        if (best_count > 0)
+        {
+          features[best_index].getPeptideIdentifications().resize(best_count);
+          for (Size i = 0; i < best_count; ++i)
+          {
+            features[best_index].getPeptideIdentifications()[i] = 
+              *(feat_ids[best_index][i]);
+            // we define the (one) feature with most matching IDs as correct:
+            features[best_index].setMetaValue("feature_class", "true_positive");
+            assigned_ids.insert(feat_ids[best_index][i]);
+          }
+        }
+      }
+      // store unassigned IDs:
+      for (RTMap::const_iterator rt_it = rt_data.begin();
+           rt_it != rt_data.end(); ++rt_it)
+      {
+        if (!assigned_ids.count(rt_it->second.first))
+        {
+          const PeptideIdentification& pep_id = *(rt_it->second.first);
+          features.getUnassignedPeptideIdentifications().push_back(pep_id);
+        }
+      }
+    }
+    else // only external IDs -> no validation possible
+    {
+      for (FeatureMap::iterator feat_it = features.begin(); 
+           feat_it != features.end(); ++feat_it)
+      {
+        feat_it->setMetaValue("n_total_ids", 0);
+        feat_it->setMetaValue("n_matching_ids", -1);
+        feat_it->setMetaValue("feature_class", "unknown");
       }
     }
   }
@@ -932,6 +983,211 @@ protected:
     double rt = peptide.getRT();
     pair<PeptideIdentification*, bool> pep_pair = make_pair(&peptide, external);
     peptide_map[hit.getSequence()][charge].insert(make_pair(rt, pep_pair));
+  }
+
+
+  void scaleSVMData_(vector<vector<double> >& predictor_values,
+                     const vector<String>& predictors)
+  {
+    for (Size i = 0; i < predictors.size(); ++i)
+    {
+      vector<double>::iterator pv_begin = predictor_values[i].begin();
+      vector<double>::iterator pv_end = predictor_values[i].end();
+      double vmin = *min_element(pv_begin, pv_end);
+      double vmax = *max_element(pv_begin, pv_end);
+      if (vmin == vmax)
+      {
+        LOG_DEBUG << "Predictor '" + predictors[i] + "' is uninformative." 
+                  << endl;
+        predictor_values[i].clear();
+        continue;
+      }
+      double range = vmax - vmin;
+      for (vector<double>::iterator it = pv_begin; it != pv_end; ++it)
+      {
+        *it = (*it - vmin) / range;
+      }
+    }
+  }
+
+
+  void convertSVMData_(vector<vector<double> >& predictor_values,
+                       vector<vector<struct svm_node> >& svm_nodes)
+  {
+    Size n_obs = predictor_values[0].size();
+    svm_nodes.resize(n_obs);
+    Size skipped_predictors = 0;
+    for (Size pred_index = 0; pred_index < predictor_values.size(); 
+         ++pred_index)
+    {
+      if (predictor_values[pred_index].empty()) // uninformative predictor
+      {
+        skipped_predictors++;
+        continue;
+      }
+      for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
+      {
+        double value = predictor_values[pred_index][obs_index];
+        if (value > 0)
+        {
+          svm_node node = {pred_index - skipped_predictors, value};
+          svm_nodes[obs_index].push_back(node);
+        }
+      }
+    }
+    svm_node final = {-1, 0.0};
+    for (vector<vector<struct svm_node> >::iterator it = svm_nodes.begin();
+         it != svm_nodes.end(); ++it)
+    {
+      it->push_back(final);
+    }
+  }
+
+
+  void optimizeSVMParams_(vector<double> labels,
+                          vector<vector<struct svm_node> >& svm_nodes, 
+                          struct svm_parameter& svm_params, Size n_parts,
+                          const vector<double>& log2_C,
+                          const vector<double>& log2_gamma)
+  {
+    vector<Size> pos_obs; // positive observations (here: "true positives")
+    vector<Size> neg_obs; // negative observations (here: "false positives")
+    for (Size i = 0; i < labels.size(); ++i)
+    {
+      if (labels[i] == 0.0) neg_obs.push_back(i);
+      else if (labels[i] == 1.0) pos_obs.push_back(i);
+    }
+    if (pos_obs.size() < n_parts)
+    {
+      String msg = "not enough positive observations for " + 
+        String(n_parts) + "-fold cross-validation";
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+    if (neg_obs.size() < n_parts)
+    {
+      String msg = ("not enough negative observations for " + 
+                    String(n_parts) + "-fold cross-validation");
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+    random_shuffle(pos_obs.begin(), pos_obs.end());
+    random_shuffle(neg_obs.begin(), neg_obs.end());
+
+    // Cross-validation: We consider positive and negative observations
+    // separately ("stratified sampling"). We split the pos./neg. observations
+    // evenly into N partitions. In turn, we use one partition for testing, all
+    // the others for training SVMs with different parameters.
+    vector<vector<Size> > partitions(n_parts);
+    for (; n_parts > 0; --n_parts)
+    {
+      // integer division should do what we want here:
+      Size pos_part = pos_obs.size() / n_parts;
+      Size neg_part = neg_obs.size() / n_parts;
+      // split partitions off the back of the obs. vector (simplifies removing):
+      for (Size i = 1; i <= pos_part; ++i)
+      {
+        Size index = pos_obs[pos_obs.size() - i];
+        partitions[n_parts - 1].push_back(index);
+      }
+      for (Size i = 1; i <= neg_part; ++i)
+      {
+        Size index = neg_obs[neg_obs.size() - i];
+        partitions[n_parts - 1].push_back(index);
+      }
+      // remove parts that were just used:
+      pos_obs.resize(pos_obs.size() - pos_part);
+      neg_obs.resize(neg_obs.size() - neg_part);
+    }
+
+    for (Size test_set = 0; test_set < partitions.size(); ++test_set)
+    {
+      struct svm_problem svm_data;
+      svm_data.l = (pos_obs.size() + neg_obs.size() - 
+                    partitions[test_set].size());
+      svm_data.y = new double[svm_data.l];
+      svm_data.x = new svm_node*[svm_data.l];
+      Size obs_index = 0;
+      for (Size train_set = 0; train_set < partitions.size(); ++train_set)
+      {
+        if (train_set == test_set) continue;
+        for (vector<Size>::iterator it = partitions[train_set].begin();
+             it != partitions[train_set].end(); ++it)
+        {
+          svm_data.x[obs_index] = &(svm_nodes[*it][0]);
+          svm_data.y[obs_index] = labels[*it];
+          ++obs_index;
+        }
+      }
+
+      // classification performance for different parameter pairs:
+      SVMPerformance performance;
+      for (vector<double>::const_iterator c_it = log2_C.begin(); 
+           c_it != log2_C.end(); ++c_it)
+      {
+        svm_params.C = pow(2.0, *c_it);
+        for (vector<double>::const_iterator g_it = log2_gamma.begin();
+             g_it != log2_gamma.end(); ++g_it)
+        {
+          svm_params.gamma = pow(2.0, *g_it);
+          struct svm_model* model = svm_train(&svm_data, &svm_params);
+        }
+      }
+
+      delete[] svm_data.y;
+      delete[] svm_data.x;
+    }
+       
+  }
+
+
+  void classifyFeatures_(FeatureMap& features)
+  {
+    vector<double> labels(features.size());
+    for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
+    {
+      String feature_class = features[feat_index].getMetaValue("feature_class");
+      if (feature_class == "true_positive") labels[feat_index] = 1.0;
+      else if (feature_class == "unknown") labels[feat_index] = -1.0;
+      else if (feature_class == "ambiguous") labels[feat_index] = 0.5;
+      // else labels[feat_index] = 0.0; // "false_positive", zero is default
+    }
+
+    vector<String> predictors = ListUtils::create<String>(score_metavalues_);
+    // values for all featues per predictor (this way around to simplify scaling
+    // of predictors):
+    vector<vector<double> > predictor_values(predictors.size());
+    for (Size pred_index = 0; pred_index < predictors.size(); ++pred_index)
+    {
+      const String& metavalue = predictors[pred_index];
+      predictor_values[pred_index].resize(features.size());
+      for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
+      {
+        predictor_values[pred_index][feat_index] = 
+          double(features[feat_index].getMetaValue(metavalue));
+      }
+    }
+
+    scaleSVMData_(predictor_values, predictors);
+
+    vector<vector<struct svm_node> > svm_nodes;
+    convertSVMData_(predictor_values, svm_nodes);
+
+    struct svm_parameter svm_params;
+    svm_params.svm_type = C_SVC;
+    String svm_kernel = getStringOption_("svm:kernel");
+    svm_params.kernel_type = (svm_kernel == "RBF") ? RBF : LINEAR;
+    svm_params.eps = 0.001;
+    svm_params.cache_size = 100.0;
+    svm_params.nr_weight = 0; // use weighting of unbalanced classes?
+    svm_params.shrinking = 0; // use shrinking heuristics?
+    svm_params.probability = 1;
+
+    Size n_parts = getIntOption_("svm:xval");
+    vector<double> log2_C = getDoubleList_("svm:log2_C");
+    vector<double> log2_gamma = getDoubleList_("svm:log2_gamma");
+    optimizeSVMParams_(labels, svm_nodes, svm_params, n_parts, log2_C, 
+                       log2_gamma);
   }
 
 
