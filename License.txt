@@ -52,3 +52,10 @@ MyriMatch:
   - URL and source code: http://fenchurch.mc.vanderbilt.edu/software.php
   - License available at: http://www.apache.org/licenses/LICENSE-2.0.txt
 
+MSGF+:
+  - URL and source code: http://proteomics.ucsd.edu/Software/MSGFPlus/ 
+  - License available at: http://sourceforge.net/p/open-ms/code/HEAD/tree/THIRDPARTY/All/MSGFPlus/LICENSE.txt
+
+Fido:
+  - URL and source code: https://noble.gs.washington.edu/proj/fido/
+  - License available at: https://gist.github.com/hendrikweisser/2d10eb8bf1e370e6dfbb 
