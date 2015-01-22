@@ -115,12 +115,12 @@ namespace OpenMS
             // TODO: throw ?
             LOG_DEBUG << "Could not read 100 characters from file." << std::endl;
           }
+          pclose(fp); //moved pclose outside of fgets condition - cant move it out of not nullpointer condition because pclose(null pointer is undefined behaviour)
         }
         else
         {
           LOG_DEBUG << "output shaping: stty size command failed." << std::endl;
         }
-        pclose(fp);
 #endif
       }
       --console_width_; // to add the \n at the end of each line without forcing another line break on windows
