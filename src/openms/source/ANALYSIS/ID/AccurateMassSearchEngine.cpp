@@ -561,11 +561,19 @@ namespace OpenMS
       // store information from query hits in AccurateMassSearchResult objects
       for (Size i = hit_idx.first; i < hit_idx.second; ++i)
       {
-        // check if DB entry is compatible to the adduct
-        if (!it->isCompatible(EmpiricalFormula(mass_mappings_[i].formula)))
+        try
         {
-          // only written if TOPP tool has --debug
-          LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << it->getName() << "'. Omitting.\n";
+          // check if DB entry is compatible to the adduct
+          if (!it->isCompatible(EmpiricalFormula(mass_mappings_[i].formula)))
+          {
+            // only written if TOPP tool has --debug
+            LOG_DEBUG << "'" << mass_mappings_[i].formula << "' cannot have adduct '" << it->getName() << "'. Omitting.\n";
+            continue;
+          }
+        }
+        catch (Exception::ParseError)
+        {
+          LOG_DEBUG << "Error parsing the EmpiricalFormula: '" + mass_mappings_[i].formula << "'. This might be solved by adding an unsupported element to the OpenMS Elements.xml" << std::endl;
           continue;
         }
 
