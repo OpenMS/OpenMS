@@ -68,6 +68,7 @@ using namespace std;
     by the <b>svm_model</b> parameter in the command line or the ini file.
     This file should have been produced by the @ref TOPP_PTModel application.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PTPredict.cli
     <B>INI file documentation of this tool:</B>

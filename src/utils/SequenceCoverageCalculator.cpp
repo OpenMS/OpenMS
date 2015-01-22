@@ -52,6 +52,7 @@ using namespace std;
 
     @brief Prints information about idXML files.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_SequenceCoverageCalculator.cli
     <B>INI file documentation of this tool:</B>

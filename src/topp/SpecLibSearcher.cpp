@@ -76,6 +76,7 @@ using namespace std;
 
     @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_SpecLibSearcher.cli
     <B>INI file documentation of this tool:</B>

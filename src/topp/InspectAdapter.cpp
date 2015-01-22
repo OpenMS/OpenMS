@@ -123,6 +123,7 @@ using namespace std;
                 </li>
     </ol>
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_InspectAdapter.cli
     <B>INI file documentation of this tool:</B>

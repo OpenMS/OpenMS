@@ -80,6 +80,7 @@ using namespace std;
           This should be a serious concern, since the target/decoy annotation in a previous step has probably a misconfigured database (see @ref TOPP_PeptideIndexer).
 
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FalseDiscoveryRate.cli
     <B>INI file documentation of this tool:</B>

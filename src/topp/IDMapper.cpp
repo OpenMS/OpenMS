@@ -93,6 +93,7 @@ using namespace std;
     Peptide positions are always matched against centroid positions. By default, the consensus centroids are used. However, if @p consensus:use_subelements is set, the centroids of sub-features are considered instead.
     In this case, a peptide identification is mapped to a consensus feature if any of its sub-features matches.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDMapper.cli
     <B>INI file documentation of this tool:</B>

@@ -80,6 +80,7 @@ using namespace std;
     peptide has charge 0, spectra for all charges from 'min_charge' to 'max_charge'
     are generated.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PILISSpectraGenerator.cli
     <B>INI file documentation of this tool:</B>

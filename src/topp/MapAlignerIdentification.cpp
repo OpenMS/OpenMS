@@ -89,6 +89,7 @@ using namespace std;
     The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
     @htmlinclude OpenMS_MapAlignerIdentificationModel.parameters @n
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B> @n
     @verbinclude TOPP_MapAlignerIdentification.cli
     <B>INI file documentation of this tool:</B>

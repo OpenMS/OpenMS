@@ -60,7 +60,7 @@ using namespace std;
 /**
     @page UTILS_QCExporter QCExporter
 
-    @brief Will extract several qp from several run/sets in a tabular format.
+    @brief Will extract several quality parameter from several run/sets from a qcML file into a tabular (text) format - counterpart to QCImporter.
 
     <CENTER>
       <table>
@@ -80,7 +80,7 @@ using namespace std;
       </table>
     </CENTER>
 
-    The data contained as values of the qp of a qcml file at @p in can be exported in tabluar (csv) format.
+    The data contained as values of the qp of a qcML file at @p in can be exported in tabluar (csv) format.
 
     - @p names The name of the target runs or sets to be exported from. If empty, from all will be exported.
     - @p mapping The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.
