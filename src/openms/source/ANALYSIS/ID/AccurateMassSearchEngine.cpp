@@ -943,31 +943,23 @@ namespace OpenMS
           mztab_row_record.inchi_key = inchi_key;
 
           // set description field (we use it for the common name of the compound)
-          String name_temp = entry->second[0];
           MzTabString common_name;
-          common_name.set(name_temp);
-
+          common_name.set(entry->second[0]);
           mztab_row_record.description = common_name;
 
-
-          // set mass_to_charge field
-          double mz_temp = (*tab_it)[hit_idx].getAdductMass();
+          // set mass_to_charge field (observed mass)
           MzTabDouble mass_to_charge;
-          mass_to_charge.set(mz_temp);
-
+          mass_to_charge.set((*tab_it)[hit_idx].getAdductMass());
           mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
-          double exp_mz_tmp = (*tab_it)[hit_idx].getQueryMass();
-          MzTabDouble exp_mass_to_charge;
-          exp_mass_to_charge.set(exp_mz_tmp);
+          MzTabDouble exp_mass_to_charge; // neutral mass
+          exp_mass_to_charge.set((*tab_it)[hit_idx].getQueryMass());
+          mztab_row_record.exp_mass_to_charge = exp_mass_to_charge;
 
           // set charge field
-          Int ch_temp = (*tab_it)[hit_idx].getCharge();
           MzTabDouble mcharge;
-          mcharge.set(ch_temp);
-
+          mcharge.set((*tab_it)[hit_idx].getCharge());
           mztab_row_record.charge = mcharge;
-
 
           // set RT field
           MzTabDouble rt_temp;
@@ -975,15 +967,12 @@ namespace OpenMS
           std::vector<MzTabDouble> rt_temp3(1, rt_temp);
           MzTabDoubleList observed_rt;
           observed_rt.set(rt_temp3);
-
           mztab_row_record.retention_time = observed_rt;
-
 
           // set database field
           String dbname_temp = database_name_;
           MzTabString dbname;
           dbname.set(dbname_temp);
-
           mztab_row_record.database = dbname;
 
 
@@ -991,7 +980,6 @@ namespace OpenMS
           String dbver_temp = database_version_;
           MzTabString dbversion;
           dbversion.set(dbver_temp);
-
           mztab_row_record.database_version = dbversion;
 
           MzTabParameterList search_engines;
@@ -1008,7 +996,6 @@ namespace OpenMS
           std::vector<MzTabDouble> int_temp3;
 
           bool single_intensity = (indiv_ints.size() == 0);
-
           if (single_intensity)
           {
             double int_temp((*tab_it)[hit_idx].getObservedIntensity());
