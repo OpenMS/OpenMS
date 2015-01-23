@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -117,6 +118,7 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+
 class TOPPFeatureFinderIdentification :
   public TOPPBase
 {
@@ -127,7 +129,7 @@ public:
     rt_term_.setCVIdentifierRef("MS");
     rt_term_.setAccession("MS:1000896");
     rt_term_.setName("normalized retention time");
-    score_metavalues_ = "initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelutio,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score";
+    score_metavalues_ = "initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score";
   }
 
 protected:
@@ -178,6 +180,8 @@ protected:
     registerDoubleList_("svm:log2_C", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'C' during parameter optimization. A value 'x' is used as 'C = 2^x'.", false);
     values = "-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3";
     registerDoubleList_("svm:log2_gamma", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'gamma' during parameter optimization (RBF kernel only). A value 'x' is used as 'gamma = 2^x'.", false);
+    registerOutputFile_("svm:xval_out", "<file>", "", "Output file: SVM cross-validation (parameter optimization) results", false);
+    setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
     StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
@@ -991,6 +995,7 @@ protected:
   {
     for (Size i = 0; i < predictors.size(); ++i)
     {
+      if (predictor_values[i].empty()) continue;
       vector<double>::iterator pv_begin = predictor_values[i].begin();
       vector<double>::iterator pv_end = predictor_values[i].end();
       double vmin = *min_element(pv_begin, pv_end);
@@ -1035,6 +1040,8 @@ protected:
         }
       }
     }
+    LOG_DEBUG << "Number of predictors for SVM: "
+              << predictor_values.size() - skipped_predictors << endl;
     svm_node final = {-1, 0.0};
     for (vector<vector<struct svm_node> >::iterator it = svm_nodes.begin();
          it != svm_nodes.end(); ++it)
@@ -1044,14 +1051,38 @@ protected:
   }
 
 
+  void writeXvalResults_(const String& path, const SVMPerformance& performance)
+  {
+    ofstream outstr(path.c_str());
+    SVOutStream output(outstr);
+    output.modifyStrings(false);
+    output << "log2_C" << "log2_gamma" << "performance" << nl;
+    for (SVMPerformance::const_iterator it = performance.begin();
+         it != performance.end(); ++it)
+    {
+      output << it->first.first << it->first.second << it->second << nl;
+    }
+  }
+
+
   void optimizeSVMParams_(vector<double> labels,
                           vector<vector<struct svm_node> >& svm_nodes, 
-                          struct svm_parameter& svm_params, Size n_parts,
-                          const vector<double>& log2_C,
-                          const vector<double>& log2_gamma)
+                          struct svm_parameter& svm_params)
   {
+    Size n_parts = getIntOption_("svm:xval");
+    vector<double> log2_C = getDoubleList_("svm:log2_C");
+    vector<double> log2_gamma;
+    if (svm_params.kernel_type == RBF)
+    {
+      log2_gamma = getDoubleList_("svm:log2_gamma");
+    }
+    else
+    {
+      log2_gamma.push_back(0.0);
+    }
+
     vector<Size> valid_obs; // observations for training (no "maybes"/unknowns)
-    Size n_neg, n_pos; // number of positive/negative observations
+    Size n_neg = 0, n_pos = 0; // number of positive/negative observations
     for (Size i = 0; i < labels.size(); ++i)
     {
       if (labels[i] == 0.0)
@@ -1103,8 +1134,6 @@ protected:
            g_it != log2_gamma.end(); ++g_it)
       {
         svm_params.gamma = pow(2.0, *g_it);
-        LOG_DEBUG << "Parameters: C = " << svm_params.C << ", gamma = "
-                  << svm_params.gamma << endl;
         vector<double> targets(svm_data.l);
         svm_cross_validation(&svm_data, &svm_params, n_parts, &(targets[0]));
         Size n_correct = 0;
@@ -1113,15 +1142,22 @@ protected:
           if (targets[i] == svm_data.y[i]) n_correct++;
         }
         double ratio = n_correct / double(svm_data.l);
-        performance[make_pair(svm_params.C, svm_params.gamma)] = ratio;
-        LOG_DEBUG << "Performance: " << n_correct << " correct ("
+        performance[make_pair(*c_it, *g_it)] = ratio;
+        LOG_DEBUG << "Performance (log2_C = " << *c_it << ", log2_gamma = "
+                  << *g_it << "): " << n_correct << " correct ("
                   << float(ratio * 100.0) << "%)" << endl;
       }
     }
+
+    String xval_out = getStringOption_("svm:xval_out");
+    if (!xval_out.empty()) writeXvalResults_(xval_out, performance);
     
     delete[] svm_data.y;
     delete[] svm_data.x;
   }
+
+
+  static void printNull_(const char*) {} // to suppress LIBSVM output
 
 
   void classifyFeatures_(FeatureMap& features)
@@ -1146,6 +1182,15 @@ protected:
       predictor_values[pred_index].resize(features.size());
       for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
       {
+        if (!features[feat_index].metaValueExists(metavalue))
+        {
+          LOG_ERROR << "Metavalue '" << metavalue 
+                    << "' missing for feature '"
+                    << features[feat_index].getUniqueId() << " (index " 
+                    << feat_index << ")" << endl;
+          predictor_values[pred_index].clear();
+          break;
+        }
         predictor_values[pred_index][feat_index] = 
           double(features[feat_index].getMetaValue(metavalue));
       }
@@ -1158,19 +1203,16 @@ protected:
 
     struct svm_parameter svm_params;
     svm_params.svm_type = C_SVC;
-    String svm_kernel = getStringOption_("svm:kernel");
-    svm_params.kernel_type = (svm_kernel == "RBF") ? RBF : LINEAR;
+    String kernel = getStringOption_("svm:kernel");
+    svm_params.kernel_type = (kernel == "RBF") ? RBF : LINEAR;
     svm_params.eps = 0.001;
     svm_params.cache_size = 100.0;
     svm_params.nr_weight = 0; // use weighting of unbalanced classes?
     svm_params.shrinking = 0; // use shrinking heuristics?
     svm_params.probability = 1;
 
-    Size n_parts = getIntOption_("svm:xval");
-    vector<double> log2_C = getDoubleList_("svm:log2_C");
-    vector<double> log2_gamma = getDoubleList_("svm:log2_gamma");
-    optimizeSVMParams_(labels, svm_nodes, svm_params, n_parts, log2_C, 
-                       log2_gamma);
+    svm_set_print_string_function(&printNull_); // suppress output of LIBSVM
+    optimizeSVMParams_(labels, svm_nodes, svm_params);
   }
 
 
@@ -1283,6 +1325,8 @@ protected:
     LOG_DEBUG << "Found " << features.size() << " features in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
     features.setProteinIdentifications(proteins);
+
+    classifyFeatures_(features);
 
     // @FIXME
     // if (elution_model_ != "none")
