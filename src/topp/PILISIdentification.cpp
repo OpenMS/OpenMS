@@ -86,7 +86,7 @@ using namespace std;
 
     @todo Check for missing precursors (Hiwi)
 */
-
+//@deprecated Deprecated in OpenMS 2.0
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
