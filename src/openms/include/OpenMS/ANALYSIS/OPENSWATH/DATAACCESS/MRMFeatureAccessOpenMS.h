@@ -174,6 +174,10 @@ public:
 
     double getValueAtRT(double RT)
     {
+      // Note that MZBegin does not seem to return the same iterator on
+      // different setups, see https://github.com/OpenMS/OpenMS/issues/1163
+      //  -- a quick fix is to add a small number to RT to make the tests work:
+      RT += 0.00001;
       typename OpenMS::MSSpectrum<PeakT>::const_iterator it = chromatogram_.MZBegin(RT);
       return sn_.getSignalToNoise(*it);
     }
