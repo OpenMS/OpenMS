@@ -194,6 +194,9 @@ public:
     /// set state of semi cleavage
     void setSemiCleavage(const bool semi_cleavage);
 
+    /// set if misassignment of precursor to first and second 13C isotopic peak should also be considered
+    void setAllowIsotopeError(const bool allow_isotope_error);
+
     /// set state of refine setting
     void setRefine(const bool refine);
 
@@ -283,6 +286,8 @@ protected:
 
     /// semi cleavage
     bool semi_cleavage_;
+
+    bool allow_isotope_error_;
 
     double refine_max_valid_evalue_;
 

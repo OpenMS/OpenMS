@@ -7,7 +7,7 @@
 	<note type="input" label="spectrum, fragment monoisotopic mass error">13</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error plus">14</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error minus">15</note>
-	<note type="input" label="spectrum, parent monoisotopic mass isotope error">no</note>
+	<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
 	<note type="input" label="spectrum, fragment monoisotopic mass error units">ppm</note>
 	<note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
 	<note type="input" label="spectrum, fragment mass type">monoisotopic</note>

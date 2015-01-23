@@ -65,6 +65,7 @@ namespace OpenMS
     cleavage_site_("[RK]|{P}"),
     refine_(true),
     semi_cleavage_(true),
+    allow_isotope_error_(true),
     refine_max_valid_evalue_(1000),
     number_of_missed_cleavages_(1),
     default_parameters_file_(""),
@@ -162,14 +163,8 @@ namespace OpenMS
     writeNote_(os, "input", "spectrum, parent monoisotopic mass error minus", String(precursor_mass_tolerance_minus_));
     used_labels.insert("spectrum, parent monoisotopic mass error minus");
     //<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
-    if (precursor_mass_type_ == XTandemInfile::MONOISOTOPIC)
-    {
-      writeNote_(os, "input", "spectrum, parent monoisotopic mass isotope error", "yes");
-    }
-    else
-    {
-      writeNote_(os, "input", "spectrum, parent monoisotopic mass isotope error", "no");
-    }
+    String allow = allow_isotope_error_ ? "yes" : "no";
+    writeNote_(os, "input", "spectrum, parent monoisotopic mass isotope error", allow);
     used_labels.insert("spectrum, parent monoisotopic mass isotope error");
     //<note type="input" label="spectrum, fragment monoisotopic mass error units">Daltons</note>
     //<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
@@ -698,6 +693,11 @@ namespace OpenMS
   void XTandemInfile::setSemiCleavage(const bool semi_cleavage)
   {
     semi_cleavage_ = semi_cleavage;
+  }
+
+  void XTandemInfile::setAllowIsotopeError(const bool allow_isotope_error)
+  {
+    allow_isotope_error_ = allow_isotope_error;
   }
   
   void XTandemInfile::setCleavageSite(const String& cleavage_site)
