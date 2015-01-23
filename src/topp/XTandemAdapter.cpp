@@ -141,6 +141,12 @@ protected:
     registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 4, "Maximum precursor charge", false);
 
+    registerStringOption_("allow_isotope_error", "<error>", "yes", "If set, misassignment to the first and second isotopic 13C peak are also considered.", false);
+    valid_strings.clear();
+    valid_strings.push_back("yes");
+    valid_strings.push_back("no");
+    setValidStrings_("allow_isotope_error", valid_strings);
+
     registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
@@ -343,6 +349,8 @@ protected:
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
     infile.setRefine(getFlag_("refinement"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
+    bool allow_isotope_error = getStringOption_("allow_isotope_error") == "yes" ? true : false;
+    infile.setAllowIsotopeError(allow_isotope_error);
 
     infile.write(input_filename);
 
