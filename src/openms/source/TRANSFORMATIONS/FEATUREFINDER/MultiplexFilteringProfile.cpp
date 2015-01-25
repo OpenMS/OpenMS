@@ -60,8 +60,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFilteringProfile::MultiplexFilteringProfile(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String out_debug) :
-    MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, out_debug), exp_profile_(exp_profile), boundaries_(boundaries)
+  MultiplexFilteringProfile::MultiplexFilteringProfile(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling) :
+    MultiplexFiltering(exp_picked, patterns, peaks_per_peptide_min, peaks_per_peptide_max, missing_peaks, intensity_cutoff, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling), exp_profile_(exp_profile), boundaries_(boundaries)
   {
     if (exp_profile_.size() != exp_picked_.size())
     {
@@ -194,14 +194,6 @@ namespace OpenMS
           int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
           if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
           {
-            if (debug_)
-            {
-              Peak2D data_point;
-              data_point.setRT(rt_picked);
-              data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(1); // filter 1 failed
-              debug_rejected.push_back(data_point);
-            }
             continue;
           }
 
@@ -212,14 +204,6 @@ namespace OpenMS
           bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices);
           if (bluntVeto)
           {
-            if (debug_)
-            {
-              Peak2D data_point;
-              data_point.setRT(rt_picked);
-              data_point.setMZ(peak_position[peak]);
-              data_point.setIntensity(2); // filter 2 failed
-              debug_rejected.push_back(data_point);
-            }
             continue;
           }
 
@@ -236,14 +220,6 @@ namespace OpenMS
             int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
             if (peaks_found_in_all_peptides_spline < peaks_per_peptide_min_)
             {
-              if (debug_)
-              {
-                Peak2D data_point;
-                data_point.setRT(rt_picked);
-                data_point.setMZ(mz);
-                data_point.setIntensity(3); // filter 3 failed
-                debug_rejected.push_back(data_point);
-              }
               continue;
             }
 
@@ -255,14 +231,6 @@ namespace OpenMS
             bool zero_peak = zerothPeakFilter(patterns_[pattern], intensities_actual);
             if (zero_peak)
             {
-              if (debug_)
-              {
-                Peak2D data_point;
-                data_point.setRT(rt_picked);
-                data_point.setMZ(mz);
-                data_point.setIntensity(4); // filter 4 failed
-                debug_rejected.push_back(data_point);
-              }
               continue;
             }
 
@@ -273,14 +241,6 @@ namespace OpenMS
             bool peptide_similarity = peptideSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline);
             if (!peptide_similarity)
             {
-              if (debug_)
-              {
-                Peak2D data_point;
-                data_point.setRT(rt_picked);
-                data_point.setMZ(mz);
-                data_point.setIntensity(5); // filter 5 failed
-                debug_rejected.push_back(data_point);
-              }
               continue;
             }
 
@@ -291,29 +251,12 @@ namespace OpenMS
             bool averagine_similarity = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
             if (!averagine_similarity)
             {
-              if (debug_)
-              {
-                Peak2D data_point;
-                data_point.setRT(rt_picked);
-                data_point.setMZ(mz);
-                data_point.setIntensity(6); // filter 6 failed
-                debug_rejected.push_back(data_point);
-              }
               continue;
             }
 
             /**
              * All filters passed.
              */
-            if (debug_)
-            {
-              Peak2D data_point;
-              data_point.setRT(rt_picked);
-              data_point.setMZ(mz);
-              data_point.setIntensity(intensities_actual[1]); // all filters passed
-              debug_filtered.push_back(data_point);
-            }
-
             // add raw data point to list that passed all filters
             MultiplexFilterResultRaw result_raw(mz, mz_shifts_actual, intensities_actual);
             results_raw.push_back(result_raw);
@@ -354,16 +297,6 @@ namespace OpenMS
 
       // add results of this pattern to list
       filter_results.push_back(result);
-
-      // write debug output
-      if (debug_)
-      {
-        // Writes for each peak pattern two debug files.
-        // One containing rejected data points. The intensity encodes which of the six filters failed.
-        // The second file containing data points that passed all filters.
-        writeDebug(pattern, true, debug_rejected);
-        writeDebug(pattern, false, debug_filtered);
-      }
     }
 
     endProgress();
