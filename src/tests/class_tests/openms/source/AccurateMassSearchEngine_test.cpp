@@ -254,7 +254,10 @@ sl.push_back("xml-stylesheet");
 sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
 // for some reason, Windows and Linux give slightly different results
-fsc.setAcceptableAbsolute((3.04011223650013 - 3.04011223637974)*1.1);
+// fsc.setAcceptableAbsolute((3.04011223650013 - 3.04011223637974)*1.1); // 1.3242891228060217e-10
+// also Linux may give slightly different results depending on optimization level (O0 vs O1) 
+// note that the default value for TEST_REAL_SIMILAR is 1e-5, see ./source/CONCEPT/ClassTest.cpp
+fsc.setAcceptableAbsolute(1e-8);
 
 
 START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
