@@ -79,11 +79,10 @@ namespace OpenMS
          * @param boundaries    peak boundaries for exp_picked
          * @param rt_typical    elution time of a characteristic peptide in the sample
          * @param rt_minimum    shortest elution time i.e. all peptides appearing for a shorter time are being ignored
-         * @param out_debug    directory for debug output
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum, String out_debug);
+        MultiplexClustering(const MSExperiment<Peak1D>& exp_profile, const MSExperiment<Peak1D>& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum);
         
         /**
          * @brief constructor
@@ -93,11 +92,10 @@ namespace OpenMS
          * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
          * @param rt_typical    elution time of a characteristic peptide in the sample
          * @param rt_minimum    shortest elution time i.e. all peptides appearing for a shorter time are being ignored
-         * @param out_debug    directory for debug output
          * 
          * @throw Exception::IllegalArgument if centroided data and the corresponding list of peak boundaries do not contain same number of spectra
          */
-        MultiplexClustering(const MSExperiment<Peak1D>& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum, String out_debug);
+        MultiplexClustering(const MSExperiment<Peak1D>& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum);
         
         /**
          * @brief cluster filter results
@@ -143,37 +141,6 @@ namespace OpenMS
 
         private:
         /**
-         * @brief structure for debug output
-         * 
-         * Position of a filter result data point
-         * and ID of the cluster it belongs to.
-         */
-        struct DebugPoint
-        {
-            double rt;
-            double mz;
-            double cluster;
-        };
-        
-        /**
-         * @brief write debug output
-         * 
-         * Debug data written to file.
-         * 
-         * @param points    data points for debug output
-         * @param pattern    pattern ID
-         */
-        void writeDebug_(std::vector<DebugPoint> points, int pattern) const;
-
-        /**
-         * @brief returns a colour for ID
-         * 
-         * @param c    integer ID
-         * @return string for one of 50 colours
-         */
-        String getColour_(int c) const;
-
-        /**
          * @brief grid spacing for clustering
          */
         std::vector<double> grid_spacing_mz_;
@@ -194,15 +161,6 @@ namespace OpenMS
          */
         double rt_minimum_;
         
-        /**
-         * @brief directory for debug output
-         */
-        String out_debug_;
-        
-        /**
-         * @brief debug mode
-         */
-        bool debug_;
    };
   
 }
