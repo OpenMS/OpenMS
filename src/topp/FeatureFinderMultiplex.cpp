@@ -1293,14 +1293,14 @@ private:
     if (centroided)
     {
       // centroided data
-      MultiplexClustering clustering(exp, mz_tolerance_, mz_unit_, rt_typical_, rt_min_, out_debug_);
+      MultiplexClustering clustering(exp, mz_tolerance_, mz_unit_, rt_typical_, rt_min_);
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
     }
     else
     {
       // profile data
-      MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_, out_debug_);
+      MultiplexClustering clustering(exp, exp_picked, boundaries_exp_s, rt_typical_, rt_min_);
       clustering.setLogType(log_type_);
       cluster_results = clustering.cluster(filter_results);
     }

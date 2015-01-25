@@ -138,10 +138,6 @@ namespace OpenMS
       // data structure storing peaks which pass all filters
       MultiplexFilterResult result;
 
-      // m/z position is rejected by a particular filter (or passing all of them)
-      vector<Peak2D> debug_rejected;
-      vector<Peak2D> debug_filtered;
-
       // iterate over spectra
       MSExperiment<Peak1D>::Iterator it_rt_profile;
       MSExperiment<Peak1D>::ConstIterator it_rt_picked;
