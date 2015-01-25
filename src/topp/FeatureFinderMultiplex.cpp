@@ -90,7 +90,7 @@ using namespace boost::math;
 /**
   @page TOPP_FeatureFinderMultiplex FeatureFinderMultiplex
 
-  @brief Identifies peptide pairs in LC-MS data and determines their relative abundance.
+  @brief Detects peptide pairs in LC-MS data and determines their relative abundance.
 
 <CENTER>
   <table>
@@ -109,7 +109,7 @@ using namespace boost::math;
   </table>
 </CENTER>
 
-  FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It identifies pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we first explain the algorithm and then discuss the tuning of its parameters.
+  FeatureFinderMultiplex is a tool for the fully automated analysis of quantitative proteomics data. It detects pairs of isotopic envelopes with fixed m/z separation. It requires no prior sequence identification of the peptides. In what follows we outline the algorithm.
 
   <b>Algorithm</b>
 
@@ -129,40 +129,6 @@ using namespace boost::math;
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_FeatureFinderMultiplex.html
 
-  <b>Parameter Tuning</b>
-
-  FeatureFinderMultiplex can detect isotope patterns of any number of peptides, i.e. doublets (pairs), triplets, quadruplets et cetera.
-
-  <i>input:</i>
-  - in [*.mzML] - LC-MS dataset to be analyzed
-  - ini [*.ini] - file containing all parameters (see discussion below)
-
-  <i>output:</i>
-  - out [*.consensusXML] - contains the list of identified peptide multiples (retention time and m/z of the lightest peptide, ratios)
-  - out_features [*.featureXML] - contains the list of individual peptides
-  - out_mzq [*.mzq] - contains the results in mzQuantML format
-
-  The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
-
-  Parameters in section <i>algorithm:</i>
-  - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
-  - <i>rt_typical</i> - Upper bound for the retention time [s] over which a characteristic peptide elutes.
-  - <i>rt_min</i> - Lower bound for the retentions time [s].
-  - <i>intensity_cutoff</i> - Lower bound for the intensity of isotopic peaks in a peptide pattern.
-  - <i>peptide_similarity</i> - Lower bound for the Pearson correlation coefficient, which measures how well intensity profiles of different isotopic peaks correlate.
-  - <i>averagine_similarity</i> - Lower bound for the Pearson correlation coefficient, which measures how well the isotope patterns match the theoretical averagine model.
-
-  Parameters in section <i>algorithm:</i>
-  - <i>labels</i> - Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [][Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see section <i>labels</i>.
-  - <i>charge</i> - Range of charge states in the sample, i.e. min charge : max charge.
-  - <i>missed_cleavages</i> - Maximum number of missed cleavages.
-  - <i>isotopes_per_peptide</i> - Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide.
-
- Parameters in section <i>labels:</i>
- This section contains a list of all isotopic labels currently available for analysis with FeatureFinderMultiplex.
-
- <b>References:</b>
-  @n L. Nilse, M. Sturm, D. Trudgian, M. Salek, P. Sims, K. Carroll, S. Hubbard,  <a href="http://www.springerlink.com/content/u40057754100v71t">SILACAnalyzer - a tool for differential quantitation of stable isotope derived data</a>, in F. Masulli, L. Peterson, and R. Tagliaferri (Eds.): CIBB 2009, LNBI 6160, pp. 4555, 2010.
 */
 
 // We do not want this class to show up in the docu:
@@ -212,7 +178,7 @@ public:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Raw LC-MS data to be analyzed. (Profile data required. Will not work with centroided data!)");
+    registerInputFile_("in", "<file>", "", "LC-MS dataset in centroid or profile mode");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Set of all identified peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false);
     setValidFormats_("out", ListUtils::create<String>("consensusXML"));
