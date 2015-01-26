@@ -588,46 +588,47 @@ protected:
       std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;
 
       //check if the meta data indicates that this is peak data
-      UInt meta_type = SpectrumSettings::UNKNOWN;
-      if (exp.size() > 0)
+      map<Size, UInt> map_ms_level_to_annotated_type;
+      for (Size i = 0; i != exp.size(); ++i)
       {
-        for (Size i = 0; i < exp[0].getDataProcessing().size(); ++i)
-        {
-          if (exp[0].getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
-          {
-            meta_type = SpectrumSettings::PEAKS;
-          }
-        }
+        map_ms_level_to_annotated_type[exp[i].getMSLevel()] = exp[i].getType();
       }
-      //determine type (search for the first scan with at least 5 peaks)
-      UInt type = SpectrumSettings::UNKNOWN;
-      UInt i = 0;
-      while (i < exp.size() && exp[i].size() < 5)
-      {
-        ++i;
-      }
-      if (i != exp.size())
-      {
-        type = PeakTypeEstimator().estimateType(exp[i].begin(), exp[i].end());
-      }
-      os << "\n"
-         << "Peak type (metadata): " << SpectrumSettings::NamesOfSpectrumType[meta_type] << "\n"
-         << "Peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << "\n";
-      //if raw data, determine the spacing
-      if (type == SpectrumSettings::RAWDATA)
-      {
-        vector<float> spacing;
-        for (Size j = 1; j < exp[i].size(); ++j)
-        {
-          spacing.push_back(exp[i][j].getMZ() - exp[i][j - 1].getMZ());
-        }
-        sort(spacing.begin(), spacing.end());
-        os << "Estimated raw data spacing: " << spacing[spacing.size() / 2] << " (min: " << spacing[0] << ", max: " << spacing.back() << ")" << "\n";
-        os_tsv << "estimated raw data spacing" << "\t" << spacing[spacing.size() / 2] << "\n"
-               << "estimated raw data spacing (min)" << "\t" << spacing[0] << "\n"
-               << "estimated raw data spacing (max)" << "\t" << spacing.back() << "\n";
-      }
+
       os << "\n";
+      for (map<Size, UInt>::const_iterator m_it = map_ms_level_to_annotated_type.begin(); m_it != map_ms_level_to_annotated_type.end(); ++m_it)
+      {
+        os << "Peak type (metadata): level " << m_it->first << ": " << SpectrumSettings::NamesOfSpectrumType[m_it->second] << "\n";
+        if (m_it->first == SpectrumSettings::UNKNOWN)
+        {
+          //determine type (search for the first scan of this level with at least 5 peaks)
+          UInt type = SpectrumSettings::UNKNOWN;
+          Size i = 0;
+          for (; i != exp.size(); ++i)
+          {
+             if (exp[i].size() > 5 && exp[i].getMSLevel() == m_it->first)
+             {
+               type = PeakTypeEstimator().estimateType(exp[i].begin(), exp[i].end());
+               break;
+             }
+          }
+          os << "Peak type (estimated): " << SpectrumSettings::NamesOfSpectrumType[type] << "\n";
+          //if raw data, determine the spacing
+          if (type == SpectrumSettings::RAWDATA)
+          {
+            vector<float> spacing;
+            for (Size j = 1; j < exp[i].size(); ++j)
+            {
+              spacing.push_back(exp[i][j].getMZ() - exp[i][j - 1].getMZ());
+            }
+            sort(spacing.begin(), spacing.end());
+            os << "Estimated raw data spacing: " << spacing[spacing.size() / 2] << " (min: " << spacing[0] << ", max: " << spacing.back() << ")" << "\n";
+            os_tsv << "estimated raw data spacing" << "\t" << spacing[spacing.size() / 2] << "\n"
+                   << "estimated raw data spacing (min)" << "\t" << spacing[0] << "\n"
+                   << "estimated raw data spacing (max)" << "\t" << spacing.back() << "\n";
+          }
+          os << "\n";
+        }
+      }
 
       //basic info
       exp.updateRanges();
@@ -674,7 +675,7 @@ protected:
       // show meta data array names
       for (MSExperiment<Peak1D>::iterator it = exp.begin(); it != exp.end(); ++it)
       {
-        for (i = 0; i < it->getFloatDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getFloatDataArrays().size(); ++i)
         {
           String name = it->getFloatDataArrays()[i].getName();
           if (meta_names.has(name))
@@ -686,7 +687,7 @@ protected:
             meta_names[name] = 1;
           }
         }
-        for (i = 0; i < it->getIntegerDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getIntegerDataArrays().size(); ++i)
         {
           String name = it->getIntegerDataArrays()[i].getName();
           if (meta_names.has(name))
@@ -698,7 +699,7 @@ protected:
             meta_names[name] = 1;
           }
         }
-        for (i = 0; i < it->getStringDataArrays().size(); ++i)
+        for (Size i = 0; i < it->getStringDataArrays().size(); ++i)
         {
           String name = it->getStringDataArrays()[i].getName();
           if (meta_names.has(name))
