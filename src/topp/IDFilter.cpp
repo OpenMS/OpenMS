@@ -231,17 +231,13 @@ protected:
     registerFlag_("unique", "If a peptide hit occurs more than once per PSM, only one instance is kept.");
     registerFlag_("unique_per_protein", "Only peptides matching exactly one protein are kept. Remember that isoforms count as different proteins!");
     registerFlag_("keep_unreferenced_protein_hits", "Proteins not referenced by a peptide are retained in the ids.");
-    registerFlag_("removeDecoys", "Remove Proteins with the idDecoy flag. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
+    registerFlag_("remove_decoys", "Remove proteins according to the information in the user parameters. Usually used in combination with 'delete_unreferenced_peptide_hits'.");
     registerFlag_("delete_unreferenced_peptide_hits", "Peptides not referenced by any protein are deleted in the ids. Usually used in combination with 'score:prot' or 'thresh:prot'.");
 
     //setSectionDescription("RT", "Filters peptides using meta-data annotated by RT predict. The criterion is always the p-value (for having a deviation between observed and predicted RT equal or bigger than allowed).");
 
   }
 
-  static bool is_decoy(ProteinHit& ph)
-  {
-    return ph.metaValueExists("isDecoy") && (String)ph.getMetaValue("isDecoy") == "true";
-  }
 
   ExitCodes main_(int, const char**)
   {
@@ -325,7 +321,7 @@ protected:
     bool mz_error_filtering = (mz_error < 0) ? false : true;
     bool mz_error_unit_ppm = (getStringOption_("mz:unit") == "ppm") ? true : false;
 
-    bool remove_decoys = getFlag_("removeDecoys");
+    bool remove_decoys = getFlag_("remove_decoys");
 
     //-------------------------------------------------------------
     // reading input
@@ -358,17 +354,8 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    std::set<String> applied_filters;
 
-    if (remove_decoys)
-    {
-      for (Size i = 0; i < protein_identifications.size(); ++i)
-      {
-        vector<ProteinHit> vph = protein_identifications[i].getHits();
-        vph.erase(std::remove_if(vph.begin(), vph.end(), is_decoy), vph.end());
-        protein_identifications[i].setHits(vph);
-      }
-    }
+    std::set<String> applied_filters;
 
 
     // Filtering peptide identification according to set criteria
@@ -538,6 +525,7 @@ protected:
     }
 
     // Filtering protein identifications according to set criteria
+    
     for (Size i = 0; i < protein_identifications.size(); i++)
     {
       if (!protein_identifications[i].getHits().empty())
@@ -572,9 +560,20 @@ protected:
           ProteinIdentification temp_identification = filtered_protein_identification;
           IDFilter::filterIdentificationsByBestNHits(temp_identification, best_n_protein_hits, filtered_protein_identification);
         }
+        
+        if (remove_decoys)
+        {
+          applied_filters.insert("Filtering decoy proteins ...\n");
+          ProteinIdentification temp_identification = filtered_protein_identification;
+          IDFilter::filterIdentificationsByDecoy(temp_identification, filtered_protein_identification);
+        }
 
+        
+        // Clean-up references!
+        
         if (!keep_unreferenced_protein_hits)
         {
+          applied_filters.insert("Filtering unreferenced protein hits ...\n");
           ProteinIdentification temp_identification = filtered_protein_identification;
           IDFilter::removeUnreferencedProteinHits(temp_identification, filtered_peptide_identifications, filtered_protein_identification);
         }
