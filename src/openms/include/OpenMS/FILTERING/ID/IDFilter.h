@@ -258,6 +258,42 @@ public:
         filtered_identification.assignRanks();
       }
     }
+    
+    
+    /**
+     @brief filters a ProteinIdentification or PeptideIdentification corresponding to their decoy information.
+     
+     Checks for "target_decoy" or "isDecoy" metadata and removes a Protein/Peptide if the values
+     are "decoy" or "true" respectively.
+     */
+    template <class IdentificationType>
+    static void filterIdentificationsByDecoy(const IdentificationType& identification, IdentificationType& filtered_identification)
+    {
+      typedef typename IdentificationType::HitType HitType;
+      std::vector<HitType> temp_hits;
+      std::vector<HitType> filtered_hits;
+      
+      filtered_identification = identification;
+      filtered_identification.setHits(std::vector<HitType>());
+      
+      for (typename std::vector<HitType>::const_iterator it = identification.getHits().begin();
+           it != identification.getHits().end();
+           ++it)
+      {
+        bool isDecoy = ((it->metaValueExists("isDecoy") && (String)it->getMetaValue("isDecoy") == "true") ||
+                        (it->metaValueExists("target_decoy") && (String)it->getMetaValue("target_decoy") == "decoy"));
+        if (!isDecoy)
+        {
+          filtered_hits.push_back(*it);
+        }
+      }
+      
+      if (!filtered_hits.empty())
+      {
+        filtered_identification.setHits(filtered_hits);
+        filtered_identification.assignRanks();
+      }
+    }
 
     /// filters a PeptideIdentification keeping only the best scoring hits (if @p strict is set, keeping only the best hit only if it is the only hit with that score)
     static void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
