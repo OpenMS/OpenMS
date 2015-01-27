@@ -205,18 +205,18 @@ protected:
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
   typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  // mapping: RT (not necessarily unique) -> (pointer to peptide, is external?)
-  typedef multimap<double, pair<PeptideIdentification*, bool> > RTMap;
-  // mapping: charge -> RT -> pointer to peptide
-  typedef map<Int, RTMap> ChargeMap;
-  // mapping: sequence -> charge -> RT -> pointer to peptide
+  // mapping: RT (not necessarily unique) -> pointer to peptide
+  typedef multimap<double, PeptideIdentification*> RTMap;
+  // mapping: charge -> internal/external: (RT -> pointer to peptide)
+  typedef map<Int, pair<RTMap, RTMap> > ChargeMap;
+  // mapping: sequence -> charge -> internal/external ID information
   typedef map<AASequence, ChargeMap> PeptideMap;
 
   // region in RT in which a peptide elutes:
   struct RTRegion
   {
     double start, end;
-    map<Int, vector<double> > evidence; // mapping: charge -> RT of ID
+    set<Int> charges; // charge states for which there are IDs in the region
   };
 
   // classification performance for different SVM param. combinations (C/gamma):
@@ -691,8 +691,15 @@ protected:
     for (ChargeMap::const_iterator cm_it = peptide_data.begin();
          cm_it != peptide_data.end(); ++cm_it)
     {
-      for (RTMap::const_iterator rt_it = cm_it->second.begin();
-           rt_it != cm_it->second.end(); ++rt_it)
+      // "internal" IDs:
+      for (RTMap::const_iterator rt_it = cm_it->second.first.begin();
+           rt_it != cm_it->second.first.end(); ++rt_it)
+      {
+        rts.push_back(make_pair(rt_it->first, cm_it->first));
+      }
+      // "external" IDs:
+      for (RTMap::const_iterator rt_it = cm_it->second.second.begin();
+           rt_it != cm_it->second.second.end(); ++rt_it)
       {
         rts.push_back(make_pair(rt_it->first, cm_it->first));
       }
@@ -712,21 +719,14 @@ protected:
         rt_regions.push_back(region);
       }
       rt_regions.back().end = rt_it->first + rt_tolerance;
-      rt_regions.back().evidence[rt_it->second].push_back(rt_it->first);
+      rt_regions.back().charges.insert(rt_it->second);
     }
   }
 
 
   void annotateFeatures_(FeatureMap& features, const RTMap& rt_data)
   {
-    Size n_internal_ids = 0;
-    for (RTMap::const_iterator rt_it = rt_data.begin(); rt_it != rt_data.end();
-         ++rt_it)
-    {
-      if (!rt_it->second.second) n_internal_ids++;
-      // @TODO: should we filter out the external IDs?
-    }
-    if (n_internal_ids > 0) // validate based on internal IDs
+    if (!rt_data.empty()) // validate based on internal IDs
     {
       // map IDs to features (based on RT):
       map<Size, vector<PeptideIdentification*> > feat_ids;
@@ -749,14 +749,10 @@ protected:
         int id_count = 0;
         for (; lower != upper; ++lower)
         {
-          // only use "internal" IDs:
-          if (!lower->second.second)
-          {
-            feat_ids[i].push_back(lower->second.first);
-            ++id_count;
-          }
+          feat_ids[i].push_back(lower->second);
+          ++id_count;
         }
-        features[i].setMetaValue("n_total_ids", n_internal_ids);
+        features[i].setMetaValue("n_total_ids", rt_data.size());
         features[i].setMetaValue("n_matching_ids", id_count);
         if (id_count > 0) // matching IDs -> feature may be correct
         {
@@ -806,9 +802,9 @@ protected:
       for (RTMap::const_iterator rt_it = rt_data.begin();
            rt_it != rt_data.end(); ++rt_it)
       {
-        if (!rt_it->second.second && !assigned_ids.count(rt_it->second.first))
+        if (!assigned_ids.count(rt_it->second))
         {
-          const PeptideIdentification& pep_id = *(rt_it->second.first);
+          const PeptideIdentification& pep_id = *(rt_it->second);
           features.getUnassignedPeptideIdentifications().push_back(pep_id);
         }
       }
@@ -862,9 +858,18 @@ protected:
     peptide.sequence = seq.toString();
 
     // keep track of protein accessions:
-    const PeptideHit& hit = 
-      peptide_data.second.begin()->second.begin()->second.first->getHits()[0];
-    set<String> accessions = hit.extractProteinAccessions();
+    set<String> accessions;
+    const pair<RTMap, RTMap>& pair = peptide_data.second.begin()->second;
+    if (!pair.first.empty())
+    {
+      const PeptideHit& hit = pair.first.begin()->second->getHits()[0];
+      accessions = hit.extractProteinAccessions();
+    }
+    else
+    {
+      const PeptideHit& hit = pair.second.begin()->second->getHits()[0];
+      accessions = hit.extractProteinAccessions();
+    }
     // missing protein accession would crash OpenSWATH algorithms:
     if (accessions.empty()) accessions.insert("not_available");
     peptide.protein_refs = vector<String>(accessions.begin(), accessions.end());
@@ -905,7 +910,7 @@ protected:
       for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
            reg_it != rt_regions.end(); ++reg_it)
       {
-        if (reg_it->evidence.count(charge))
+        if (reg_it->charges.count(charge))
         {
           LOG_DEBUG << "Region " << counter + 1 << " (RT: "
                     << float(reg_it->start) << "-" << float(reg_it->end) << ")"
@@ -965,8 +970,8 @@ protected:
             // remove "fake" IDs generated by OpenSWATH:
             feat_it->getPeptideIdentifications().clear();
           }
-          // which features are supported by IDs?
-          const RTMap& rt_data = cm_it->second;
+          // which features are supported by "internal" IDs?
+          const RTMap& rt_data = cm_it->second.first;
           annotateFeatures_(current_features, rt_data);
 
           features += current_features;
@@ -985,8 +990,15 @@ protected:
     peptide.getHits().resize(1);
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
-    pair<PeptideIdentification*, bool> pep_pair = make_pair(&peptide, external);
-    peptide_map[hit.getSequence()][charge].insert(make_pair(rt, pep_pair));
+    RTMap::value_type pair = make_pair(rt, &peptide);
+    if (!external)
+    {
+      peptide_map[hit.getSequence()][charge].first.insert(pair);
+    }
+    else
+    {
+      peptide_map[hit.getSequence()][charge].second.insert(pair);
+    }
   }
 
 
