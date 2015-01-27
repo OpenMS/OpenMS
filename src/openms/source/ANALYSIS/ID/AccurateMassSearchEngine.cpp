@@ -601,12 +601,11 @@ namespace OpenMS
       ams_result.setCharge(0); // cannot be NaN since Int, and -1 would be confusing too...
       ams_result.setErrorPPM(std::numeric_limits<double>::quiet_NaN());
       ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
-      ams_result.setFoundAdduct("-");
-      ams_result.setEmpiricalFormula("");
-      ams_result.setMatchingHMDBids(std::vector<String>(1, "--dummy--"));
+      ams_result.setFoundAdduct("null");
+      ams_result.setEmpiricalFormula("null");
+      ams_result.setMatchingHMDBids(std::vector<String>(1, "null"));
       results.push_back(ams_result);
     }
-
 
     return;
   }
@@ -910,57 +909,59 @@ namespace OpenMS
 
           // set the identifier field
           String hid_temp = matching_ids[id_idx];
-          MzTabString hmdb_id;
-          hmdb_id.set(hid_temp);
-          std::vector<MzTabString> hmdb_id_dummy;
-          hmdb_id_dummy.push_back(hmdb_id);
-          MzTabStringList string_dummy_list;
-          string_dummy_list.set(hmdb_id_dummy);
 
-          mztab_row_record.identifier = string_dummy_list;
+          bool db_hit = (hid_temp != "null");
 
-          // set the chemical formula field
-          MzTabString chem_form;
-          String form_temp = (*tab_it)[hit_idx].getFormulaString();
-          chem_form.set(form_temp);
+          if (db_hit)
+          {
+            MzTabString hmdb_id;
+            hmdb_id.set(hid_temp);
+            std::vector<MzTabString> hmdb_id_dummy;
+            hmdb_id_dummy.push_back(hmdb_id);
+            MzTabStringList string_dummy_list;
+            string_dummy_list.set(hmdb_id_dummy);
+            mztab_row_record.identifier = string_dummy_list;
 
-          mztab_row_record.chemical_formula = chem_form;
+            // set the chemical formula field
+            MzTabString chem_form;
+            String form_temp = (*tab_it)[hit_idx].getFormulaString();
+            chem_form.set(form_temp);
 
-          HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(hid_temp);
+            mztab_row_record.chemical_formula = chem_form;
 
-          // set the smiles field
-          String smi_temp = entry->second[1]; // extract SMILES from struct mapping file
-          MzTabString smi_string;
-          smi_string.set(smi_temp);
+            HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(hid_temp);
 
-          mztab_row_record.smiles = smi_string;
+            // set the smiles field
+            String smi_temp = entry->second[1]; // extract SMILES from struct mapping file
+            MzTabString smi_string;
+            smi_string.set(smi_temp);
 
-          // set the inchi_key field
-          String inchi_temp = entry->second[2]; // extract INCHIKEY from struct mapping file
-          MzTabString inchi_key;
-          inchi_key.set(inchi_temp);
+            mztab_row_record.smiles = smi_string;
 
-          mztab_row_record.inchi_key = inchi_key;
+            // set the inchi_key field
+            String inchi_temp = entry->second[2]; // extract INCHIKEY from struct mapping file
+            MzTabString inchi_key;
+            inchi_key.set(inchi_temp);
 
-          // set description field (we use it for the common name of the compound)
-          MzTabString common_name;
-          common_name.set(entry->second[0]);
-          mztab_row_record.description = common_name;
+            mztab_row_record.inchi_key = inchi_key;
 
-          // set mass_to_charge field (observed mass)
-          MzTabDouble mass_to_charge;
-          mass_to_charge.set((*tab_it)[hit_idx].getAdductMass());
-          mztab_row_record.calc_mass_to_charge = mass_to_charge;
+            // set description field (we use it for the common name of the compound)
+            MzTabString common_name;
+            common_name.set(entry->second[0]);
+            mztab_row_record.description = common_name;
 
-          MzTabDouble exp_mass_to_charge; // neutral mass
-          exp_mass_to_charge.set((*tab_it)[hit_idx].getQueryMass());
-          mztab_row_record.exp_mass_to_charge = exp_mass_to_charge;
+            // set mass_to_charge field (observed mass)
+            MzTabDouble mass_to_charge;
+            mass_to_charge.set((*tab_it)[hit_idx].getAdductMass());
+            mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
-          // set charge field
-          MzTabDouble mcharge;
-          mcharge.set((*tab_it)[hit_idx].getCharge());
-          mztab_row_record.charge = mcharge;
+            // set charge field
+            MzTabDouble mcharge;
+            mcharge.set((*tab_it)[hit_idx].getCharge());
+            mztab_row_record.charge = mcharge;
+          }
 
+          // experimental RT, m/z, database field and version, search engine and (null) score is also set if no db entry was matched
           // set RT field
           MzTabDouble rt_temp;
           rt_temp.set((*tab_it)[hit_idx].getObservedRT());
@@ -969,12 +970,15 @@ namespace OpenMS
           observed_rt.set(rt_temp3);
           mztab_row_record.retention_time = observed_rt;
 
+          MzTabDouble exp_mass_to_charge; // neutral mass
+          exp_mass_to_charge.set((*tab_it)[hit_idx].getQueryMass());
+          mztab_row_record.exp_mass_to_charge = exp_mass_to_charge;
+
           // set database field
           String dbname_temp = database_name_;
           MzTabString dbname;
           dbname.set(dbname_temp);
           mztab_row_record.database = dbname;
-
 
           // set database_version field
           String dbver_temp = database_version_;
@@ -989,7 +993,6 @@ namespace OpenMS
           MzTabDouble null_score;
           mztab_row_record.best_search_engine_score[1] = null_score; // set null
           mztab_row_record.search_engine_score_ms_run[1][1] = null_score; // set null
-
 
           // check if we deal with a feature or consensus feature
           std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
@@ -1068,38 +1071,46 @@ namespace OpenMS
 
           // ppm error
           MzTabString ppmerr;
-          ppmerr.set(String((*tab_it)[hit_idx].getErrorPPM()));
+          if (db_hit)
+          {
+            ppmerr.set(String((*tab_it)[hit_idx].getErrorPPM()));
+          }
           MzTabOptionalColumnEntry col0;
           col0.first = "opt_global_ppm_error";
           col0.second = ppmerr;
           optionals.push_back(col0);
 
-          // set found adduct ion
-          String addion_temp((*tab_it)[hit_idx].getFoundAdduct());
+          // set found adduct ion          
           MzTabString addion;
-          addion.set(addion_temp);
+          if (db_hit)
+          {
+            String addion_temp((*tab_it)[hit_idx].getFoundAdduct());
+            addion.set(addion_temp);
+            ++adduct_stats[addion_temp]; // just some stats
+            adduct_stats_unique[addion_temp].insert(id_group); // stats ...
+          }
           MzTabOptionalColumnEntry col1;
           col1.first = "opt_global_adduct_ion";
           col1.second = addion;
           optionals.push_back(col1);
-          ++adduct_stats[addion_temp]; // just some stats
-
 
           // set isotope similarity score
-          double sim_score_temp((*tab_it)[hit_idx].getIsotopesSimScore());
-          std::stringstream read_in;
-          read_in << sim_score_temp;
-          String sim_score_temp2(read_in.str());
           MzTabString sim_score;
-          sim_score.set(sim_score_temp2);
+          if (db_hit)
+          {
+            double sim_score_temp((*tab_it)[hit_idx].getIsotopesSimScore());
+            std::stringstream read_in;
+            read_in << sim_score_temp;
+            String sim_score_temp2(read_in.str());
+            sim_score.set(sim_score_temp2);
+          }
+
           MzTabOptionalColumnEntry col2;
           col2.first = "opt_global_isosim_score";
           col2.second = sim_score;
           optionals.push_back(col2);
 
-
-          // set id group; rows with the same id group number originated from the same feature
-          adduct_stats_unique[addion_temp].insert(id_group); // stats ...
+          // set id group; rows with the same id group number originated from the same feature          
           String id_group_temp(id_group);
           MzTabString id_group_str;
           id_group_str.set(id_group_temp);
@@ -1296,10 +1307,9 @@ namespace OpenMS
 
     }
 
-    // add our dummy, so mzTab annotation does not discard 'not-found' features
-    std::vector<String> dummy_data(3, "-");
-    dummy_data[0] = "--dummy--";
-    hmdb_properties_mapping_["--dummy--"] = dummy_data;
+    // add a null entry, so mzTab annotation does not discard 'not-found' features
+    std::vector<String> dummy_data(3, "null");
+    hmdb_properties_mapping_["null"] = dummy_data;
 
     return;
   }

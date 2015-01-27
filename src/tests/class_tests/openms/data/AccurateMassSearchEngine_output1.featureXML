@@ -1178,10 +1178,10 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
-					<userParam type="stringList" name="description" value="[--dummy--]"/>
-					<userParam type="string" name="modifications" value="-"/>
-					<userParam type="string" name="chemical_formula" value=""/>
+					<userParam type="stringList" name="identifier" value="[null]"/>
+					<userParam type="stringList" name="description" value="[null]"/>
+					<userParam type="string" name="modifications" value="null"/>
+					<userParam type="string" name="chemical_formula" value="null"/>
 					<userParam type="float" name="ppm_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -1379,10 +1379,10 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
-					<userParam type="stringList" name="description" value="[--dummy--]"/>
-					<userParam type="string" name="modifications" value="-"/>
-					<userParam type="string" name="chemical_formula" value=""/>
+					<userParam type="stringList" name="identifier" value="[null]"/>
+					<userParam type="stringList" name="description" value="[null]"/>
+					<userParam type="string" name="modifications" value="null"/>
+					<userParam type="string" name="chemical_formula" value="null"/>
 					<userParam type="float" name="ppm_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -1545,10 +1545,10 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
-					<userParam type="stringList" name="description" value="[--dummy--]"/>
-					<userParam type="string" name="modifications" value="-"/>
-					<userParam type="string" name="chemical_formula" value=""/>
+					<userParam type="stringList" name="identifier" value="[null]"/>
+					<userParam type="stringList" name="description" value="[null]"/>
+					<userParam type="string" name="modifications" value="null"/>
+					<userParam type="string" name="chemical_formula" value="null"/>
 					<userParam type="float" name="ppm_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
@@ -2329,10 +2329,10 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
-					<userParam type="stringList" name="description" value="[--dummy--]"/>
-					<userParam type="string" name="modifications" value="-"/>
-					<userParam type="string" name="chemical_formula" value=""/>
+					<userParam type="stringList" name="identifier" value="[null]"/>
+					<userParam type="stringList" name="description" value="[null]"/>
+					<userParam type="string" name="modifications" value="null"/>
+					<userParam type="string" name="chemical_formula" value="null"/>
 					<userParam type="float" name="ppm_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>

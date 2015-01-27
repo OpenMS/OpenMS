@@ -298,7 +298,7 @@ START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
     ABORT_IF(sm_rows.size() != fm_id_list.size())
     for (Size i = 0; i < sm_rows.size(); ++i)
     {
-        String sm_formula = sm_rows[i].chemical_formula.get();
+        String sm_formula = sm_rows[i].chemical_formula.toCellString();
         TEST_STRING_EQUAL(sm_formula, fm_id_list[i]);
     }
   }
