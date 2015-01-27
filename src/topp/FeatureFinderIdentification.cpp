@@ -1374,7 +1374,7 @@ protected:
     }
 
     // initialize algorithm classes needed later:
-    extractor_.setLogType(log_type_);
+    extractor_.setLogType(ProgressLogger::NONE);
     Param params = feat_finder_.getParameters();
     params.setValue("stop_report_after_feature", -1); // return all features
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
@@ -1392,7 +1392,7 @@ protected:
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
     feat_finder_.setParameters(params);
-    feat_finder_.setLogType(log_type_);
+    feat_finder_.setLogType(ProgressLogger::NONE);
     feat_finder_.setStrictFlag(false);
 
     // "internal" IDs:

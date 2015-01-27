@@ -192,7 +192,7 @@ namespace OpenMS
     {
       if (trgroup_it->second.getChromatograms().size() > 0) {counter++; }
     }
-    std::cout << "Will analyse " << counter << " peptides with a total of " << transition_exp.getTransitions().size() << " transitions " << std::endl;
+    LOG_INFO << "Will analyse " << counter << " peptides with a total of " << transition_exp.getTransitions().size() << " transitions " << std::endl;
 
     //
     // Step 3
