@@ -1318,6 +1318,7 @@ protected:
       double pred = svm_predict_probability(model, &(svm_nodes[i][0]), probs);
       features[i].setMetaValue("predicted_class", pred);
       features[i].setMetaValue("predicted_probability", probs[0]);
+      features[i].setOverallQuality(probs[0]); // @TODO: is this a good idea?
     }
     
     svm_free_model_content(model);
