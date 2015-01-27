@@ -176,7 +176,7 @@ protected:
     setMinInt_("svm:xval", 1);
     registerStringOption_("svm:kernel", "<choice>", "RBF", "SVM kernel", false);
     setValidStrings_("svm:kernel", ListUtils::create<String>("RBF,linear"));
-    String values = "-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15";
+    String values = "-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20";
     registerDoubleList_("svm:log2_C", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'C' during parameter optimization. A value 'x' is used as 'C = 2^x'.", false);
     values = "-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3";
     registerDoubleList_("svm:log2_gamma", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'gamma' during parameter optimization (RBF kernel only). A value 'x' is used as 'gamma = 2^x'.", false);
@@ -219,8 +219,8 @@ protected:
     map<Int, vector<double> > evidence; // mapping: charge -> RT of ID
   };
 
-  // mapping: (SVM param. C, SVM param. gamma) -> classification performance
-  typedef map<pair<double, double>, double> SVMPerformance;
+  // classification performance for different SVM param. combinations (C/gamma):
+  typedef vector<vector<double> > SVMPerformance;
 
   PeakMap ms_data_; // input LC-MS data
   PeakMap chrom_data_; // accumulated chromatograms (XICs)
@@ -806,7 +806,7 @@ protected:
       for (RTMap::const_iterator rt_it = rt_data.begin();
            rt_it != rt_data.end(); ++rt_it)
       {
-        if (!assigned_ids.count(rt_it->second.first))
+        if (!rt_it->second.second && !assigned_ids.count(rt_it->second.first))
         {
           const PeptideIdentification& pep_id = *(rt_it->second.first);
           features.getUnassignedPeptideIdentifications().push_back(pep_id);
@@ -899,7 +899,7 @@ protected:
       peptide.id = peptide.sequence + "/" + String(charge);
 
       // we want to detect one feature per peptide, charge state and RT region 
-      // (provided there is an ID for that charge in the region) - there is 
+      // (provided there is an ID for that charge in the region) - so there is 
       // always only one peptide in the library!
       Size counter = 0;
       for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
@@ -1051,22 +1051,94 @@ protected:
   }
 
 
-  void writeXvalResults_(const String& path, const SVMPerformance& performance)
+  void writeXvalResults_(const String& path, const SVMPerformance& performance,
+                         const vector<double>& log2_C, 
+                         const vector<double>& log2_gamma)
   {
     ofstream outstr(path.c_str());
     SVOutStream output(outstr);
     output.modifyStrings(false);
     output << "log2_C" << "log2_gamma" << "performance" << nl;
-    for (SVMPerformance::const_iterator it = performance.begin();
-         it != performance.end(); ++it)
+    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
     {
-      output << it->first.first << it->first.second << it->second << nl;
+      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
+      {
+        output << log2_C[c_index] << log2_gamma[g_index] 
+               << performance[g_index][c_index] << nl;
+      }
     }
+  }
+
+
+  pair<double, double> chooseBestSVMParams_(const SVMPerformance& performance,
+                                            const vector<double>& log2_C, 
+                                            const vector<double>& log2_gamma)
+  {
+    // which parameter set(s) achieved best cross-validation performance?
+    double best_value = 0.0;
+    vector<pair<Size, Size> > best_indexes;
+    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
+    {
+      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
+      {
+        double value = performance[g_index][c_index];
+        if (value == best_value)
+        {
+          best_indexes.push_back(make_pair(g_index, c_index));
+        }
+        else if (value > best_value)
+        {
+          best_value = value;
+          best_indexes.clear();
+          best_indexes.push_back(make_pair(g_index, c_index));
+        }
+      }
+    }
+    LOG_INFO << "Best cross-validation performance: " 
+             << float(best_value * 100.0) << "% correct" << endl;
+    if (best_indexes.size() == 1)
+    {
+      return make_pair(log2_C[best_indexes[0].second],
+                       log2_gamma[best_indexes[0].first]);
+    }
+    // break ties between parameter sets - look at "neighboring" parameters:
+    multimap<pair<double, Size>, Size> tiebreaker;
+    for (Size i = 0; i < best_indexes.size(); ++i)
+    {
+      const pair<Size, Size>& indexes = best_indexes[i];
+      Size n_neighbors = 0;
+      double neighbor_value = 0.0;
+      if (indexes.first > 0)
+      {
+        neighbor_value += performance[indexes.first - 1][indexes.second];
+        ++n_neighbors;
+      }
+      if (indexes.first + 1 < log2_gamma.size())
+      {
+        neighbor_value += performance[indexes.first + 1][indexes.second];
+        ++n_neighbors;
+      }
+      if (indexes.second > 0)
+      {
+        neighbor_value += performance[indexes.first][indexes.second - 1];
+        ++n_neighbors;
+      }
+      if (indexes.second + 1 < log2_C.size())
+      {
+        neighbor_value += performance[indexes.first][indexes.second + 1];
+        ++n_neighbors;
+      }
+      neighbor_value /= n_neighbors; // avg. performance of neighbors
+      tiebreaker.insert(make_pair(make_pair(neighbor_value, n_neighbors), i));
+    }
+    const pair<Size, Size>& indexes = best_indexes[tiebreaker.rbegin()->second];
+    return make_pair(log2_C[indexes.second], log2_gamma[indexes.first]);
   }
 
 
   void optimizeSVMParams_(vector<double> labels,
                           vector<vector<struct svm_node> >& svm_nodes, 
+                          struct svm_problem& svm_data,
                           struct svm_parameter& svm_params)
   {
     Size n_parts = getIntOption_("svm:xval");
@@ -1096,8 +1168,6 @@ protected:
         ++n_pos;
       }
     }
-    LOG_DEBUG << "Positive observations: " << n_pos 
-              << "\nNegative observations: " << n_neg << endl;
     if (n_pos < n_parts)
     {
       String msg = "not enough positive observations for " + 
@@ -1112,8 +1182,9 @@ protected:
       throw Exception::MissingInformation(__FILE__, __LINE__, 
                                           __PRETTY_FUNCTION__, msg);
     }
+    LOG_INFO << "Training SVM on " << valid_obs.size() << " observations ("
+             << n_pos << " positive, " << n_neg << " negative)." << endl;
 
-    struct svm_problem svm_data;
     svm_data.l = valid_obs.size();
     svm_data.y = new double[svm_data.l];
     svm_data.x = new svm_node*[svm_data.l];
@@ -1124,16 +1195,18 @@ protected:
       svm_data.x[i] = &(svm_nodes[obs_index][0]);
     }
 
+    LOG_INFO << "Running cross-validation to find optimal SVM parameters..."
+             << endl;
     // classification performance for different parameter pairs:
-    SVMPerformance performance;
-    for (vector<double>::const_iterator c_it = log2_C.begin(); 
-         c_it != log2_C.end(); ++c_it)
+    SVMPerformance performance(log2_gamma.size());
+    // vary "C"s in inner loop to keep results for all "C"s in one vector:
+    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
     {
-      svm_params.C = pow(2.0, *c_it);
-      for (vector<double>::const_iterator g_it = log2_gamma.begin();
-           g_it != log2_gamma.end(); ++g_it)
+      svm_params.gamma = pow(2.0, log2_gamma[g_index]);
+      performance[g_index].resize(log2_C.size());
+      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
       {
-        svm_params.gamma = pow(2.0, *g_it);
+        svm_params.C = pow(2.0, log2_C[c_index]);
         vector<double> targets(svm_data.l);
         svm_cross_validation(&svm_data, &svm_params, n_parts, &(targets[0]));
         Size n_correct = 0;
@@ -1142,18 +1215,27 @@ protected:
           if (targets[i] == svm_data.y[i]) n_correct++;
         }
         double ratio = n_correct / double(svm_data.l);
-        performance[make_pair(*c_it, *g_it)] = ratio;
-        LOG_DEBUG << "Performance (log2_C = " << *c_it << ", log2_gamma = "
-                  << *g_it << "): " << n_correct << " correct ("
-                  << float(ratio * 100.0) << "%)" << endl;
+        performance[g_index][c_index] = ratio;
+        LOG_DEBUG << "Performance (log2_C = " << log2_C[c_index]
+                  << ", log2_gamma = " << log2_gamma[g_index] << "): "
+                  << n_correct << " correct (" << float(ratio * 100.0) << "%)"
+                  << endl;
       }
     }
 
     String xval_out = getStringOption_("svm:xval_out");
-    if (!xval_out.empty()) writeXvalResults_(xval_out, performance);
+    if (!xval_out.empty())
+    {
+      writeXvalResults_(xval_out, performance, log2_C, log2_gamma);
+    }
     
-    delete[] svm_data.y;
-    delete[] svm_data.x;
+    pair<double, double> best_params = chooseBestSVMParams_(performance, log2_C,
+                                                            log2_gamma);
+    LOG_INFO << "Best SVM parameters: log2_C = " << best_params.first
+             << ", log2_gamma = " << best_params.second << endl;
+
+    svm_params.C = pow(2.0, best_params.first);
+    svm_params.gamma = pow(2.0, best_params.second);
   }
 
 
@@ -1211,8 +1293,25 @@ protected:
     svm_params.shrinking = 0; // use shrinking heuristics?
     svm_params.probability = 1;
 
+    struct svm_problem svm_data;
     svm_set_print_string_function(&printNull_); // suppress output of LIBSVM
-    optimizeSVMParams_(labels, svm_nodes, svm_params);
+    optimizeSVMParams_(labels, svm_nodes, svm_data, svm_params);
+
+    // train SVM on the full dataset:
+    struct svm_model* model = svm_train(&svm_data, &svm_params);
+    // obtain predictions for all features (including those used for training):
+    double probs[2];
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      double pred = svm_predict_probability(model, &(svm_nodes[i][0]), probs);
+      features[i].setMetaValue("predicted_class", pred);
+      features[i].setMetaValue("predicted_probability", probs[0]);
+    }
+    
+    svm_free_model_content(model);
+    // free memory reserved in function "optimizeSVMParams_":
+    delete[] svm_data.y;
+    delete[] svm_data.x;
   }
 
 
