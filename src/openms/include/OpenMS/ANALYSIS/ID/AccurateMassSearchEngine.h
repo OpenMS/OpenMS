@@ -68,29 +68,64 @@ public:
     /// assignment operator
     AccurateMassSearchResult& operator=(const AccurateMassSearchResult&);
 
-    /// getter & setter methods
-    double getAdductMass() const;
-    void setAdductMass(const double&);
+    /// get the m/z of the small molecule + adduct
+    double getObservedMZ() const;
 
+    /// set the m/z of the small molecule + adduct
+    void setObservedMZ(const double&);
+
+    /// get the theoretical m/z of the small molecule + adduct
+    double getCalculatedMZ() const;
+
+    /// set the theoretical m/z of the small molecule + adduct
+    void setCalculatedMZ(const double&);
+
+    /// get the mass used to query the database (uncharged small molecule)
     double getQueryMass() const;
+
+    /// set the mass used to query the database (uncharged small molecule)
     void setQueryMass(const double&);
 
+    /// get the mass returned by the query (uncharged small molecule)
     double getFoundMass() const;
+
+    /// set the mass returned by the query (uncharged small molecule)
     void setFoundMass(const double&);
 
+    /// get the charge
     Int getCharge() const;
+
+    /// set the charge
     void setCharge(const Int&);
 
-    double getErrorPPM() const;
-    void setErrorPPM(const double&);
+    /// get the error between found and query mass in ppm
+    double getDBErrorPPM() const;
 
+    /// set the error between found and query mass in ppm
+    void setDBErrorPPM(const double);
+
+    /// get the error between observed and theoretical m/z in ppm
+    double getErrorPPM() const;
+
+    /// set the error between observed and theoretical m/z in ppm
+    void setErrorPPM(const double);
+
+    /// get the observed rt
     double getObservedRT() const;
+
+    /// set the observed rt
     void setObservedRT(const double& rt);
 
+    /// get the observed intensity
     double getObservedIntensity() const;
+
+    /// set the observed intensity
     void setObservedIntensity(const double&);
 
+    /// get the observed intensities
     std::vector<double> getIndividualIntensities() const;
+
+    /// set the observed intensities
     void setIndividualIntensities(const std::vector<double>&);
 
     Size getMatchingIndex() const;
@@ -117,10 +152,12 @@ public:
 
 private:
     /// Stored information/results of DB query
-    double adduct_mass_;
+    double observed_mz_;
+    double theoretical_mz_;
     double query_mass_;
     double found_mass_;
     Int charge_;
+    double db_error_ppm_;
     double error_ppm_;
     double observed_rt_;
     double observed_intensity_;
@@ -172,7 +209,7 @@ public:
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
 
        */
-    void queryByMass(const double& observed_mass, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByMZ(const double& observed_mass_to_charge, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
     void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
     void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
@@ -246,7 +283,11 @@ private:
 
       AdductInfo_(const String& name, const EmpiricalFormula& adduct, int charge, bool is_intrinsic = false, uint mol_multiplier = 1);
 
+      /// returns the neutral mass of the small molecule without adduct (creates monomer fron nmer, decharges and removes the adduct (given m/z of [nM+Adduct]/|charge| returns mass of [M])
       double getNeutralMass(double observed_mz) const;
+
+      /// returns the m/z of the small molecule with neutral mass @p neutral_mass if the adduct is added (given mass of [M] returns m/z of [nM+Adduct]/|charge|)
+      double getMZ(double neutral_mass) const;
 
       /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e.a if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
       /// If the negative parts are present in @p db_entry, true is returned.

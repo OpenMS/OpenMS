@@ -96,19 +96,19 @@ String id_list_pos[] = {"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4", "
 String id_list_neg[] = {/*"C32H28O11",*/ "C17H17Cl2N", "C10H13N5O5", "C6H14O6S2"};
                         // 588.16316173 this cannot be since its +2, but we restrict to +1 (or -1)
                         //                   305.073804963  283.091668551   246.02317956
-START_SECTION((void queryByMass(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)))
+START_SECTION((void queryByMZ(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)))
 {
   std::vector<AccurateMassSearchResult> hmdb_results_pos, hmdb_results_neg;
   // test not initialized
-  TEST_EXCEPTION(Exception::IllegalArgument, ams_pos.queryByMass(query_mass_pos, 1.0, "positive", hmdb_results_pos)); // 'ams_pos' not initialized
+  TEST_EXCEPTION(Exception::IllegalArgument, ams_pos.queryByMZ(query_mass_pos, 1.0, "positive", hmdb_results_pos)); // 'ams_pos' not initialized
   ams_pos.init();
   ams_neg.init();
 
   // test invalid scan polarity
-  TEST_EXCEPTION(Exception::InvalidParameter, ams_pos.queryByMass(query_mass_pos, 1.0, "blabla", hmdb_results_pos)); // invalid scan_polarity
+  TEST_EXCEPTION(Exception::InvalidParameter, ams_pos.queryByMZ(query_mass_pos, 1.0, "blabla", hmdb_results_pos)); // invalid scan_polarity
 
   // test the actual query
-  ams_pos.queryByMass(query_mass_pos, 1.0, "positive", hmdb_results_pos);
+  ams_pos.queryByMZ(query_mass_pos, 1.0, "positive", hmdb_results_pos);
 
   Size id_list_pos_length(sizeof(id_list_pos)/sizeof(id_list_pos[0]));
   Size id_list_neg_length(sizeof(id_list_neg)/sizeof(id_list_neg[0]));
@@ -124,7 +124,7 @@ START_SECTION((void queryByMass(const double& observed_mass, const Int& observed
           // std::cout << hmdb_results_pos[i].getFormulaString() << std::endl;
       }
   }
-  ams_pos.queryByMass(query_mass_neg, -1.0, "positive", hmdb_results_neg);  // this is not 100% correct, since we are still searching with positive adducts.
+  ams_pos.queryByMZ(query_mass_neg, -1.0, "positive", hmdb_results_neg);  // this is not 100% correct, since we are still searching with positive adducts.
   // However, it does not matter if +z or -z, since any FF will just give +1, even in negative mode
 
   TEST_EQUAL(hmdb_results_neg.size(), id_list_neg_length)
