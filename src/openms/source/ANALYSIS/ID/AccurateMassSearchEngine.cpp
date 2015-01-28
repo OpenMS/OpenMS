@@ -506,6 +506,8 @@ namespace OpenMS
                                                                                  "Edit the list if you wish to exclude/include adducts. "
                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
 
+    defaults_.setValue("store_empty_hits", "false", "Include rows for masses that did not yield any hit.");
+    defaults_.setValidStrings("store_empty_hits", ListUtils::create<String>(("false,true")));
 
     defaultsToParam_();
 
@@ -591,12 +593,12 @@ namespace OpenMS
 
     }
 
-    // if result is empty, add a 'not-found' indicator
-    if (results.empty())
+    // if result is empty, add a 'not-found' indicator if empty hits should be stored
+    if (results.empty() && store_empty_hits_)
     {
       AccurateMassSearchResult ams_result;
       ams_result.setAdductMass(observed_mass);
-      ams_result.setQueryMass(std::numeric_limits<double>::quiet_NaN());
+      ams_result.setQueryMass(observed_mass);
       ams_result.setFoundMass(std::numeric_limits<double>::quiet_NaN());
       ams_result.setCharge(0); // cannot be NaN since Int, and -1 would be confusing too...
       ams_result.setErrorPPM(std::numeric_limits<double>::quiet_NaN());
@@ -970,8 +972,8 @@ namespace OpenMS
           observed_rt.set(rt_temp3);
           mztab_row_record.retention_time = observed_rt;
 
-          MzTabDouble exp_mass_to_charge; // neutral mass
-          exp_mass_to_charge.set((*tab_it)[hit_idx].getQueryMass());
+          MzTabDouble exp_mass_to_charge;
+          exp_mass_to_charge.set((*tab_it)[hit_idx].getAdductMass());
           mztab_row_record.exp_mass_to_charge = exp_mass_to_charge;
 
           // set database field
@@ -1110,14 +1112,27 @@ namespace OpenMS
           col2.second = sim_score;
           optionals.push_back(col2);
 
+          // set neutral masse
+          MzTabString neutral_mass_string;
+          if (db_hit)
+          {
+            String neutral_mass((*tab_it)[hit_idx].getQueryMass());
+            neutral_mass_string.fromCellString(neutral_mass);
+          }
+
+          MzTabOptionalColumnEntry col3;
+          col3.first = "opt_global_neutral_mass";
+          col3.second = neutral_mass_string;
+          optionals.push_back(col3);
+
           // set id group; rows with the same id group number originated from the same feature          
           String id_group_temp(id_group);
           MzTabString id_group_str;
           id_group_str.set(id_group_temp);
-          MzTabOptionalColumnEntry col3;
-          col3.first = "opt_global_id_group";
-          col3.second = id_group_str;
-          optionals.push_back(col3);
+          MzTabOptionalColumnEntry col4;
+          col4.first = "opt_global_id_group";
+          col4.second = id_group_str;
+          optionals.push_back(col4);
           mztab_row_record.opt_ = optionals;
           all_sm_rows.push_back(mztab_row_record);
         }
@@ -1158,6 +1173,7 @@ namespace OpenMS
     neg_adducts_fname_ = (String)param_.getValue("negative_adducts_file");
     if (neg_adducts_fname_.trim().empty()) neg_adducts_fname_ = (String)defaults_.getValue("negative_adducts_file");
 
+    store_empty_hits_ = param_.getValue("store_empty_hits").toBool();
     // database names might have changed, so parse files again before next query
     is_initialized_ = false;
   }

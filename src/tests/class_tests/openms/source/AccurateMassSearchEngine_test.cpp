@@ -80,6 +80,8 @@ AccurateMassSearchEngine ams_neg;
 Param ams_param;
 ams_param.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
 ams_param.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
+ams_param.setValue("store_empty_hits", "true");
+
 ams_pos.setParameters(ams_param);
 ams_neg.setParameters(ams_param);
 

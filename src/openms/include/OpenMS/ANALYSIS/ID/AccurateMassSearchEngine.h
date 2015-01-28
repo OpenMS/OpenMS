@@ -345,6 +345,8 @@ private:
 
     String database_name_;
     String database_version_;
+
+    bool store_empty_hits_;
   };
 
 }
