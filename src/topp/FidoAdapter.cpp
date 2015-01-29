@@ -313,28 +313,34 @@ protected:
                 double& prob_spurious, const String& temp_dir,
                 bool keep_zero_group = false, Size counter = 0)
   {
+    QStringList current_fido_params = QStringList(fido_params);
+    
     LOG_INFO << "Generating temporary files for Fido..." << endl;
     String num = counter ? "." + String(counter) : "";
     String input_graph = temp_dir + "fido_input_graph" + num + ".txt";
-    fido_params.replaceInStrings("INPUT_GRAPH", input_graph.toQString());
+    current_fido_params.replaceInStrings("INPUT_GRAPH", input_graph.toQString());
+
     writePSMGraph_(peptides, input_graph, getStringOption_("prob_param"),
                    protein.getIdentifier());
     if (choose_params)
     {
       String input_proteins = temp_dir + "fido_input_proteins" + num + ".txt";
-      fido_params.replaceInStrings("INPUT_PROTEINS",
+      current_fido_params.replaceInStrings("INPUT_PROTEINS",
                                    input_proteins.toQString());
       writeProteinLists_(protein, input_proteins);
       LOG_INFO << "Running Fido with parameter estimation..." << endl;
     }
     else LOG_INFO << "Running Fido with fixed parameters..." << endl;
     
+    //debug!
+    cout << String(current_fido_params.join(",")) << endl;
+    
     QProcess fido;
-    fido.start(exe.toQString(), fido_params);
+    fido.start(exe.toQString(), current_fido_params);
     
     if (!fido.waitForFinished(-1))
     {
-      String cmd = exe + " \"" + String(fido_params.join("\" \"")) + "\"";
+      String cmd = exe + " \"" + String(current_fido_params.join("\" \"")) + "\"";
       LOG_ERROR << "Fatal error running Fido (command: '" + cmd + "').\n"
       << "Does the Fido executable exist?" << endl;
       return false;
@@ -386,13 +392,12 @@ protected:
     output.split("\n", lines);
     
     // edit ProteinIdentification with Fido information and scores but save old information and scores in MetaInfo
-    const String old_engine = protein.getSearchEngine();
-    protein.setMetaValue("Peptide Search Engine", old_engine);
+    
+    //const String old_engine = protein.getSearchEngine();
+    //protein.setMetaValue("Database Search Engine", old_engine);
     
     const String old_scoretype = protein.getScoreType();
-    const bool old_higherscore = protein.isHigherScoreBetter();
     
-    protein.setSearchEngine("Fido");
     protein.setScoreType("Posterior Probability");
     protein.setHigherScoreBetter(true);
     protein.setDateTime(DateTime::now());
@@ -421,22 +426,16 @@ protected:
             ++zero_proteins;
             if (!keep_zero_group) continue;
           }
+          
           // de-sanitize:
           accession = sanitized_accessions_.right.find(accession)->second;
           
           // look up corresponding hits and update scores
           std::vector<ProteinHit>::iterator hit = protein.findHit(accession);
-          
+
           //  while saving possible old ones (if there are any)
           if (!old_scoretype.empty()) {
-            double old_score = hit->getScore();
-            String old_higherscore_str = "";
-            if (old_higherscore){
-              old_higherscore_str = "higher";
-            } else {
-              old_higherscore_str = "lower";
-            }
-            hit->setMetaValue(old_scoretype+"_"+old_higherscore_str+"_isBetter", old_score);
+            hit->setMetaValue(old_scoretype+"_score", hit->getScore());
           }
           
           hit->setScore(group.probability);
@@ -566,6 +565,9 @@ protected:
     }
     if (log2_states) fido_params << QString::number(log2_states);
     
+    // save this template param QString so  it doesnt get overwritten when running Fido multiple times
+    
+    
     // actually run Fido now and process its output:
     bool fido_success = false;
     
@@ -587,6 +589,8 @@ protected:
     {
       //one Identification run to merge all hits
       ProteinIdentification all_proteins;
+      //set SearchEngine to Fido since they might disagree for different runs.
+      all_proteins.setSearchEngine("Fido");
       
       // make sure identifiers match (otherwise "IdXMLFile::store" complains):
       all_proteins.setIdentifier("");
@@ -620,6 +624,11 @@ protected:
       fido_success = runFido_(all_proteins, peptides, choose_params, executable,
                               fido_params, prob_protein, prob_peptide,
                               prob_spurious, temp_dir, keep_zero_group);
+      
+      // Remove the old SearchEngineParams by clearing everything
+      // and adding the edited and merged proteins
+      proteins.clear();
+      proteins.push_back(all_proteins);
     }
     
     // write output:
