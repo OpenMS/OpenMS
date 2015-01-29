@@ -856,6 +856,14 @@ protected:
     const AASequence& seq = peptide_data.first;
     LOG_DEBUG << "\nPeptide: " << seq.toString() << endl;
     peptide.sequence = seq.toString();
+    // @NOTE: Technically, "TargetedExperiment::Peptide" stores the unmodified
+    // sequence and the modifications separately. Unfortunately, creating the
+    // modifications vector is complex and there is currently no convenient
+    // conversion function (see "TargetedExperimentHelper::getAASequence" for
+    // the reverse conversion). However, "Peptide" is later converted to
+    // "OpenSwath::LightPeptide" anyway, and this is done via "AASequence" (see
+    // "OpenSwathDataAccessHelper::convertTargetedPeptide"). So for our purposes
+    // it works to just store the sequence including modifications in "Peptide".
 
     // keep track of protein accessions:
     set<String> accessions;
