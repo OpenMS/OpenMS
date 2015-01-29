@@ -34,8 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
-#include <WildMagic/Wm5Vector2.h>
-#include <WildMagic/Wm5ApprLineFit2.h>
+#include <Wm5Vector2.h>
+#include <Wm5ApprLineFit2.h>
 
 namespace OpenMS
 {
