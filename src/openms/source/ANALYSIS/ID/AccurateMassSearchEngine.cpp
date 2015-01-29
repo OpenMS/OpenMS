@@ -489,7 +489,7 @@ namespace OpenMS
 
   void AccurateMassSearchResult::outputResults() const
   {
-    std::cout << "adduct_mass: " << std::setprecision(8) << observed_mz_ << "\n";
+    std::cout << "observed mz: " << std::setprecision(8) << observed_mz_ << "\n";
     std::cout << "query_mass: " << query_mass_ << "\n";
     std::cout << "found_mass: " << found_mass_ << "\n";
     std::cout << "charge: " << charge_ << "\n";
@@ -844,7 +844,7 @@ namespace OpenMS
       hit.setMetaValue("charge", it_row->getCharge());
       hit.setMetaValue("modifications", it_row->getFoundAdduct());
       hit.setMetaValue("chemical_formula", it_row->getFormulaString());
-      hit.setMetaValue("ppm_error", it_row->getDBErrorPPM());
+      hit.setMetaValue("ppm_db_error", it_row->getDBErrorPPM());
       f.getPeptideIdentifications().back().insertHit(hit);
     }
   }
