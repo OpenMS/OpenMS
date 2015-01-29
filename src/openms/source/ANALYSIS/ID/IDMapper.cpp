@@ -171,7 +171,11 @@ namespace OpenMS
                 was_added = true;
                 if (mapping[cm_index].count(i) == 0)
                 {
-                  map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+                  // Store the map index of the peptide feature in the id the feature was mapped to.
+                  PeptideIdentification id_pep = ids[i];
+                  id_pep.setMetaValue("map index", it_handle->getMapIndex());
+                  
+                  map[cm_index].getPeptideIdentifications().push_back(id_pep);
                   ++assigned[i];
                   mapping[cm_index].insert(i);
                 }
