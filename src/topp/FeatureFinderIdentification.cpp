@@ -176,9 +176,9 @@ protected:
     setMinInt_("svm:xval", 1);
     registerStringOption_("svm:kernel", "<choice>", "RBF", "SVM kernel", false);
     setValidStrings_("svm:kernel", ListUtils::create<String>("RBF,linear"));
-    String values = "-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20";
+    String values = "-5,-3,-1,1,3,5,7,9,11,13,15";
     registerDoubleList_("svm:log2_C", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'C' during parameter optimization. A value 'x' is used as 'C = 2^x'.", false);
-    values = "-15,-14,-13,-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3";
+    values = "-15,-13,-11,-9,-7,-5,-3,-1,1,3";
     registerDoubleList_("svm:log2_gamma", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'gamma' during parameter optimization (RBF kernel only). A value 'x' is used as 'gamma = 2^x'.", false);
     registerOutputFile_("svm:xval_out", "<file>", "", "Output file: SVM cross-validation (parameter optimization) results", false);
     setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
@@ -239,6 +239,7 @@ protected:
   String elution_model_; // choice of elution model
   ChromatogramExtractor extractor_; // OpenSWATH chromatogram extractor
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
+  ProgressLogger prog_log_;
 
 
   // like "median", but returns the middle-right value for an even number of
@@ -1217,6 +1218,9 @@ protected:
 
     LOG_INFO << "Running cross-validation to find optimal SVM parameters..."
              << endl;
+    Size prog_counter = 0;
+    prog_log_.startProgress(1, log2_gamma.size() * log2_C.size(),
+                            "testing SVM parameters");
     // classification performance for different parameter pairs:
     SVMPerformance performance(log2_gamma.size());
     // vary "C"s in inner loop to keep results for all "C"s in one vector:
@@ -1236,12 +1240,14 @@ protected:
         }
         double ratio = n_correct / double(svm_data.l);
         performance[g_index][c_index] = ratio;
+        prog_log_.setProgress(++prog_counter);
         LOG_DEBUG << "Performance (log2_C = " << log2_C[c_index]
                   << ", log2_gamma = " << log2_gamma[g_index] << "): "
                   << n_correct << " correct (" << float(ratio * 100.0) << "%)"
                   << endl;
       }
     }
+    prog_log_.endProgress();
 
     String xval_out = getStringOption_("svm:xval_out");
     if (!xval_out.empty())
@@ -1357,6 +1363,7 @@ protected:
     double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
     mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
     elution_model_ = getStringOption_("model:type");
+    prog_log_.setLogType(log_type_);
 
     //-------------------------------------------------------------
     // load input
@@ -1435,13 +1442,17 @@ protected:
     FeatureMap features;
     keep_library_ = !lib_out.empty();
     keep_chromatograms_ = !chrom_out.empty();
+    Size prog_counter = 0;
+    prog_log_.startProgress(1, peptide_map.size(), "running feature detection");
     for (PeptideMap::iterator pm_it = peptide_map.begin();
          pm_it != peptide_map.end(); ++pm_it)
     {
       FeatureMap current_features;
       detectFeaturesOnePeptide_(*pm_it, current_features);
       features += current_features;
+      prog_log_.setProgress(++prog_counter);
     }
+    prog_log_.endProgress();
     LOG_DEBUG << "Found " << features.size() << " features in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
     features.setProteinIdentifications(proteins);
