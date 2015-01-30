@@ -773,6 +773,12 @@
 		<PeptideHit score="-2.40700006484985" sequence="RDSG" charge="1" aa_before="A" aa_after="S" protein_refs="PH_174">
 		</PeptideHit>
 	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="450.26" RT="4149.49" >
+		<PeptideHit score="-2.33899998664856" sequence="RDABBA" charge="1" aa_before="L" aa_after="A" protein_refs="PH_173">
+		</PeptideHit>
+		<PeptideHit score="-2.40700006484985" sequence="RDSBBG" charge="1" aa_before="A" aa_after="S" protein_refs="PH_174">
+		</PeptideHit>
+	</UnassignedPeptideIdentification>
 	<mapList count="4">
 		<map id="0" name="" label="iTRAQ_114_myReference" size="31">
 			<userParam type="int" name="channel_name" value="114"/>

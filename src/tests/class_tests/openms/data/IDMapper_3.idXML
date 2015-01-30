@@ -794,6 +794,12 @@
 			<PeptideHit score="-2.40700006484985" sequence="RDSG" charge="1" aa_before="A" aa_after="S" protein_refs="PH_174" >
 			</PeptideHit>
 		</PeptideIdentification>
+		<PeptideIdentification score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="450.26" RT="4149.49" >
+			<PeptideHit score="-2.33899998664856" sequence="RDABBA" charge="1" aa_before="L" aa_after="A" protein_refs="PH_173" >
+			</PeptideHit>
+			<PeptideHit score="-2.40700006484985" sequence="RDSBBG" charge="1" aa_before="A" aa_after="S" protein_refs="PH_174" >
+			</PeptideHit>
+		</PeptideIdentification>
 		<PeptideIdentification score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="114.09" RT="4149.49" >
 			<PeptideHit score="-1.75" sequence="MWN" charge="1" aa_before="T" aa_after="G" protein_refs="PH_175" >
 			</PeptideHit>
