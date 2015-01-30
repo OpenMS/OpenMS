@@ -259,10 +259,11 @@ public:
       @param ids PeptideIdentification for the ConsensusFeatures
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
+      @param annotate_ids_with_subelements Store map index of FeatureHandle in peptide identification?
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
     */
-    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false);
+    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false);
 
 protected:
     void updateMembers_();

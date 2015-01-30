@@ -455,11 +455,11 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 
     mapper.annotate(cm, peptide_ids, protein_ids);
 
-    TEST_EQUAL(cm[0].getPeptideIdentifications().size(), 2);
+    TEST_EQUAL(cm[0].getPeptideIdentifications().size(), 1);
     TEST_EQUAL(cm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),
     AASequence::fromString("ACSF"));
     TEST_EQUAL(cm.getUnassignedPeptideIdentifications().size(),
-    peptide_ids.size() - 2);
+    peptide_ids.size() - 1);
 
     cm[0].getPeptideIdentifications().clear();
     cm.getUnassignedPeptideIdentifications().clear();

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<?xml-stylesheet type="text/xsl" href="file:////home/lars/Code/git/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<?xml-stylesheet type="text/xsl" href="file:////raid/sturm/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.5" experiment_type="itraq" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<IdentificationRun id="PI_0" date="2008-10-29T10:17:55" search_engine="InsPecT" search_engine_version="20080404">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="average" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="2" peak_mass_tolerance="0.5" >
@@ -375,28 +375,6 @@
 	</IdentificationRun>
 	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="117.1" RT="4101.48" >
 		<PeptideHit score="-1.78600001335144" sequence="ACSF" charge="1" aa_before="R" aa_after="P" protein_refs="PH_163">
-		</PeptideHit>
-		<PeptideHit score="-1.79799997806549" sequence="AHSN" charge="1" aa_before="T" aa_after="Q" protein_refs="PH_164">
-		</PeptideHit>
-		<PeptideHit score="-1.91100001335144" sequence="ASHN" charge="1" aa_before="L" aa_after="T" protein_refs="PH_165">
-		</PeptideHit>
-		<PeptideHit score="-2.14299988746643" sequence="AHSL" charge="1" aa_before="V" aa_after="M" protein_refs="PH_166">
-		</PeptideHit>
-		<PeptideHit score="-2.16000008583069" sequence="ASHL" charge="1" aa_before="Q" aa_after="A" protein_refs="PH_167">
-		</PeptideHit>
-		<PeptideHit score="-2.16000008583069" sequence="ASHI" charge="1" aa_before="P" aa_after="S" protein_refs="PH_168">
-		</PeptideHit>
-		<PeptideHit score="-2.19199991226196" sequence="AHSD" charge="1" aa_before="R" aa_after="V" protein_refs="PH_169">
-		</PeptideHit>
-		<PeptideHit score="-2.2260000705719" sequence="ASHGG" charge="1" aa_before="V" aa_after="T" protein_refs="PH_170">
-		</PeptideHit>
-		<PeptideHit score="-2.23600006103516" sequence="ASSY" charge="1" aa_before="I" aa_after="F" protein_refs="PH_171">
-		</PeptideHit>
-		<PeptideHit score="-2.26500010490417" sequence="APAGN" charge="1" aa_before="N" aa_after="V" protein_refs="PH_172">
-		</PeptideHit>
-	</UnassignedPeptideIdentification>
-	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="117.1" RT="4101.48" >
-		<PeptideHit score="-1.78600001335144" sequence="ACSTUF" charge="1" aa_before="R" aa_after="P" protein_refs="PH_163">
 		</PeptideHit>
 		<PeptideHit score="-1.79799997806549" sequence="AHSN" charge="1" aa_before="T" aa_after="Q" protein_refs="PH_164">
 		</PeptideHit>
@@ -1146,12 +1124,6 @@
 				<PeptideHit score="-2.33899998664856" sequence="RDAA" charge="1" aa_before="L" aa_after="A" protein_refs="PH_173">
 				</PeptideHit>
 				<PeptideHit score="-2.40700006484985" sequence="RDSG" charge="1" aa_before="A" aa_after="S" protein_refs="PH_174">
-				</PeptideHit>
-			</PeptideIdentification>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="Inspect" higher_score_better="true" significance_threshold="1" MZ="450.26" RT="4149.49" >
-				<PeptideHit score="-2.33899998664856" sequence="RDABBA" charge="1" aa_before="L" aa_after="A" protein_refs="PH_173">
-				</PeptideHit>
-				<PeptideHit score="-2.40700006484985" sequence="RDSBBG" charge="1" aa_before="A" aa_after="S" protein_refs="PH_174">
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

@@ -158,6 +158,7 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
     registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
+    registerFlag_("consensus:annotate_ids_with_subelements", "Store the map index of the sub-feature in the peptide ID.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -214,6 +215,7 @@ protected:
       file.load(in, map);
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
+      bool annotate_ids_with_subelements = getFlag_("consensus:annotate_ids_with_subelements");
 
       mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements);
 
