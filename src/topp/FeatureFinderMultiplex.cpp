@@ -213,10 +213,10 @@ public:
       defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks.");
       defaults.setMinFloat("intensity_cutoff", 0.0);
       defaults.setValue("peptide_similarity", 0.5, "Two peptides in a multiplet are expected to have the same isotopic pattern. This parameter is a lower bound on their similarity.");
-      defaults.setMinFloat("peptide_similarity", 0.0);
+      defaults.setMinFloat("peptide_similarity", -1.0);
       defaults.setMaxFloat("peptide_similarity", 1.0);
       defaults.setValue("averagine_similarity", 0.4, "The isotopic pattern of a peptide should resemble the averagine model at this m/z position. This parameter is a lower bound on similarity between measured isotopic pattern and the averagine model.");
-      defaults.setMinFloat("averagine_similarity", 0.0);
+      defaults.setMinFloat("averagine_similarity", -1.0);
       defaults.setMaxFloat("averagine_similarity", 1.0);
       defaults.setValue("averagine_similarity_scaling", 0.75, "Let x denote this scaling factor, and p the averagine similarity parameter. For the detection of single peptides, the averagine parameter p is replaced by p' = p + x(1-p), i.e. x = 0 -> p' = p and x = 1 -> p' = 1. (For knock_out = true, peptide doublets and singlets are detected simulataneously. For singlets, the peptide similarity filter is irreleavant. In order to compensate for this 'missing filter', the averagine parameter p is replaced by the more restrictive p' when searching for singlets.)", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("averagine_similarity_scaling", 0.0);
