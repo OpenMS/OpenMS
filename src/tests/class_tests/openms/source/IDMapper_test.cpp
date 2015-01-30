@@ -417,9 +417,13 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
   TOLERANCE_ABSOLUTE(0.01);
 
   std::vector<ProteinIdentification> protein_ids;
+  std::vector<ProteinIdentification> protein_ids2;
   std::vector<PeptideIdentification> peptide_ids;
+  std::vector<PeptideIdentification> peptide_ids2;
   String document_id;
+  String document_id2;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_3.idXML"), protein_ids, peptide_ids, document_id);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDMapper_5.idXML"), protein_ids2, peptide_ids2, document_id2);
 
   ConsensusXMLFile cons_file;
 
@@ -443,6 +447,18 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     cons_file.store(tmp_filename,cons_map);
     WHITELIST("<?xml-stylesheet");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_3_out2.consensusXML"));
+  }
+
+  {
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    ConsensusMap cons_map;
+    cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_5.consensusXML"), cons_map);
+    mapper.annotate(cons_map, peptide_ids2, protein_ids2, true, true);
+    cons_file.store(tmp_filename,cons_map);
+    //cons_file.store("/home/lars/Dropbox/InstituteMacBook/LN1/x.consensusXML",cons_map);
+    WHITELIST("<?xml-stylesheet");
+    TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_5_out1.consensusXML"));
   }
 
   // check charge-specific matching:
