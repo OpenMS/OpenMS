@@ -57,20 +57,20 @@ using namespace std;
  @brief Runs the protein inference engine Fido.
  
  <CENTER>
- <table>
- <tr>
- <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
- <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FidoAdapter \f$ \longrightarrow \f$</td>
- <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
- </tr>
- <tr>
- <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeptideIndexer\n(with @p annotate_proteins option) </td>
- <td VALIGN="middle" ALIGN="center" ROWSPAN=2> @ref TOPP_ProteinQuantifier\n(via @p protein_groups parameter) </td>
- </tr>
- <tr>
- <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability\n(with @p prob_correct option) </td>
- </tr>
- </table>
+   <table>
+     <tr>
+       <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+       <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FidoAdapter \f$ \longrightarrow \f$</td>
+       <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+     </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeptideIndexer\n(with @p annotate_proteins option) </td>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=2> @ref TOPP_ProteinQuantifier\n(via @p protein_groups parameter) </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability\n(with @p prob_correct option) </td>
+    </tr>
+   </table>
  </CENTER>
  
  This tool wraps the protein inference algorithm Fido (http://noble.gs.washington.edu/proj/fido/). Fido uses a Bayesian probabilistic model to group and score proteins based on peptide-spectrum matches. It was published in:
@@ -392,7 +392,8 @@ protected:
     }
     output.split("\n", lines);
     
-    // edit ProteinIdentification with Fido information and scores but save old information and scores in MetaInfo
+    // edit ProteinIdentification with Fido information and scores but save old
+    // information and scores in MetaInfo
     
     //const String old_engine = protein.getSearchEngine();
     //protein.setMetaValue("Database Search Engine", old_engine);
@@ -415,8 +416,11 @@ protected:
       istringstream line(*line_it);
       ProteinIdentification::ProteinGroup group;
       line >> group.probability;
+      
       // parse accessions:
       String accession;
+      
+      // save old scoretype
       String old_scoretype_meta;
       
       while (line)
@@ -438,15 +442,20 @@ protected:
 
           //  while saving possible old ones (if there are any)
           if (!old_scoretype.empty()) {
+            
             hit->setMetaValue(old_scoretype+"_score", hit->getScore());
+            
           } else {
+            
             if (hit->metaValueExists("old_score_type"))
             {
               old_scoretype_meta = hit->getMetaValue("old_score_type");
+              
               if(!old_scoretype_meta.empty())
               {
                 hit->setMetaValue(old_scoretype_meta+"_score", hit->getScore());
               }
+              
               hit->removeMetaValue("old_score_type");
             }
           }
