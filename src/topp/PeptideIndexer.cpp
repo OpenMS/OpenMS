@@ -83,39 +83,56 @@ using namespace std;
         This tool will also give you some target/decoy statistics when its done. Look carefully!
 
 
-  This tool supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
+  This tool supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified 
+  by @p OpenMS.ini:id_db_dir (see @subpage TOPP_advanced).
 
   By default the tool will fail if an unmatched peptide occurs, i.e. the database does not contain the corresponding protein.
   You can force the tool to return successfully in this case by using the flag @p allow_unmatched.
 
-  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
-  This will cause this peptide not to be found by exactly matching its sequence to the database. However, we can recover these cases by using tolerant search (done automatically).
+  Some search engines (such as Mascot) will replace ambiguous amino acids ('B', 'Z', and 'X') in the protein database with unambiguous 
+  amino acids in the reported peptides, e.g. exchange 'X' with 'H'.
+  This will cause this peptide not to be found by exactly matching its sequence to the database. However, we can recover these cases
+  by using tolerant search (done automatically).
 
   Two search modes are available:
-    - exact: Peptide sequences require exact match in protein database.
+    - exact: [default mode] Peptide sequences require exact match in protein database.
              If at least one protein hit is found, no tolerant search is used for this peptide.
              If no protein for this peptide can be found, tolerant matching is automatically used for this peptide.
     - tolerant:
              Allow ambiguous amino acids in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
              This mode might yield more protein hits for some peptides (those that contain ambiguous amino acids).
+             Tolerant search also allows for real sequence mismatches (see 'mismatches_max'), in case you want to find related proteins which
+             might be the origin of a peptide if it had a SNP for example.
 
-  Independent of whether exact or tolerant search is used, we require ambiguous amino acids in peptide sequences to match exactly in the protein DB (i.e. 'X' in a peptide only matches 'X' in the database).
+  The exact mode is much faster (about 10 times) and consumes less memory (about 2.5 times),
+  but might fail to report a few protein hits with ambiguous amino acids for some peptides. Usually these proteins are putative, however.
+  The exact mode also supports usage of multiple threads (@p threads option) to speed up computation even further, at the cost of some memory.
+  If tolerant searching needs to be done for unassigned peptides,
+  the latter will consume the major share of the runtime.
+  Independent of whether exact or tolerant search is used, we require ambiguous amino acids in peptide sequences to match exactly in the
+  protein DB (i.e. 'X' in a peptide only matches 'X' in the database).
 
-  The exact mode is much faster (about 10 times) and consumes less memory (about 2.5 times), but might fail to report a few protein hits with ambiguous amino acids for some peptides. Usually these proteins are putative, however.
-  The exact mode also supports usage of multiple threads (@p threads option) to speed up computation even further, at the cost of some memory. This is only for the exact search (Aho-Corasick algorithm), however. If tolerant searching needs to be done for unassigned peptides, the latter will consume the major share of the runtime.
+  Leucine/Isoleucine:
+  Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences. 
+  Since the two have the exact same chemical composition and mass, they generally cannot be distinguished by mass spectrometry. 
+  If a peptide containing 'I' was reported as a match for a spectrum, a peptide containing 'L' instead would be an equally good match (and vice versa). 
+  To account for this inherent ambiguity, setting the flag @p IL_equivalent causes 'I' and 'L' to be considered as indistinguishable.@n
+  For example, if the sequence "PEPTIDE" (matching "Protein1") was identified as a search hit, 
+  but the database additionally contained "PEPTLDE" (matching "Protein2"), running PeptideIndexer with the @p IL_equivalent option would 
+  report both "Protein1" and "Protein2" as accessions for "PEPTIDE".
+  (This is independent of the error-tolerant search controlled by @p full_tolerant_search and @p aaa_max.)
 
-  Further complications can arise due to the presence of the isobaric amino acids isoleucine ('I') and leucine ('L') in protein sequences. Since the two have the exact same chemical composition and mass, they generally cannot be distinguished by mass spectrometry. If a peptide containing 'I' was reported as a match for a spectrum, a peptide containing 'L' instead would be an equally good match (and vice versa). To account for this inherent ambiguity, setting the flag @p IL_equivalent causes 'I' and 'L' to be considered as indistinguishable.@n
-  For example, if the sequence "PEPTIDE" (matching "Protein1") was identified as a search hit, but the database additionally contained "PEPTLDE" (matching "Protein2"), running PeptideIndexer with the @p IL_equivalent option would report both "Protein1" and "Protein2" as accessions for "PEPTIDE". (This is independent of the error-tolerant search controlled by @p full_tolerant_search and @p aaa_max.)
-
+  Enzyme specificity:
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
   By default, we demand that the peptide is fully tryptic (i.e. the enzyme parameter is set to "trypsin" and specificity is "full").
   So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
-  We make one exception for peptides starting at the second amino acid of a protein if the first amino acid of that protein is methionine (M), which is usually cleaved off in vivo. For example, the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
+  We make one exception for peptides starting at the second amino acid of a protein if the first amino acid of that protein is methionine (M), 
+  which is usually cleaved off in vivo. For example, the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
+  You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) 
+  or <tt>none</tt> (essentially allowing all hits, no matter their context).
 
-  You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) or <tt>none</tt> (essentially allowing all hits, no matter their context).
+  @note For mzid in-/out- put, you are temporarily asked to use IDFileConverter as a wrapper.
 
-
-  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PeptideIndexer.cli
   <B>INI file documentation of this tool:</B>
@@ -130,7 +147,7 @@ struct PeptideProteinMatchInformation
   /// the amino acid after the peptide in the protein
   char AABefore;
 
-  /// the amino acid befor the peptide in the protein
+  /// the amino acid before the peptide in the protein
   char AAAfter;
 
   /// the position of the peptide in the protein
@@ -339,7 +356,7 @@ public:
                                               TIterPosA iterPosA,
                                               TTreeIteratorB iterB_,
                                               TIterPosB iterPosB,
-                                              TErrors errorsLeft, // always 0 for our case
+                                              TErrors errorsLeft, // usually 0 for our case
                                               TErrors classErrorsLeft) // ambiguous AA's allowed
   {
     if (enumerateA && !goDown(iterA)) return;
@@ -412,7 +429,7 @@ public:
             }
           }
           else
-          {
+          { // real mismatches (e.g., when checking for SNP's)
             if (e == 0) break;
             --e;
           }
@@ -485,8 +502,10 @@ protected:
     registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
     registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
     registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
-    registerIntOption_("aaa_max", "<number>", 4, "Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
+    registerIntOption_("aaa_max", "<number>", 4, "[tolerant search only] Maximal number of ambiguous amino acids (AAA) allowed when matching to a protein database with AAA's. AAA's are 'B', 'Z' and 'X'", false);
     setMinInt_("aaa_max", 0);
+    registerIntOption_("mismatches_max", "<number>", 0, "[tolerant search only] Maximal number of real mismatches (will be used after checking for ambiguous AA's (see 'aaa_max' option). In general this param should only be changed if you want to look for other potential origins of a peptide which might have unknown SNPs or alike.", false);
+    setMinInt_("mismatches_max", 0);
     registerFlag_("IL_equivalent", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable)");
   }
 
@@ -638,6 +657,16 @@ protected:
 
       /** first, try Aho Corasick (fast) -- using exact matching only */
       bool SA_only = getFlag_("full_tolerant_search");
+      UInt max_mismatches = getIntOption_("mismatches_max");
+      
+      if (!SA_only && (max_mismatches > 0))
+      { // this combination is not allowed, and we want the user to make a conscious decision about it
+        LOG_ERROR << "Error: Exact matching in combination with #mismatches > 0 is not allowed.\n"
+                  << "       Either use full tolerant search ('full_tolerant_search') or set 'mismatches_max' back to '0'."
+                  << "       Aborting..." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      };
+
       if (!SA_only)
       {
         StopWatch sw;
@@ -733,10 +762,7 @@ protected:
         TTreeIter pep_Iter(pep_Index);
 
         UInt max_aaa = getIntOption_("aaa_max");
-        seqan::_approximateAminoAcidTreeSearch<true, true>(func_SA, pep_Iter, 0u, prot_Iter, 0u, 0u, max_aaa);
-
-        //seqan::save(indexSA(prot_Index), "c:\\tmp\\prot_Index.sa");
-        //seqan::save(indexDir(prot_Index), "c:\\tmp\\prot_Index.dir");
+        seqan::_approximateAminoAcidTreeSearch<true, true>(func_SA, pep_Iter, 0u, prot_Iter, 0u, max_mismatches, max_aaa);
 
         // augment results with SA hits
         func.filter_passed += func_SA.filter_passed;
@@ -887,12 +913,12 @@ protected:
 
 
     /// exit if no peptides were matched to decoy
-    if (stats_count_m_d + stats_count_m_td == 0)
+    if ((stats_count_m_d + stats_count_m_td) == 0)
     {
       String msg("No peptides were matched to the decoy portion of the database! Did you provide the correct concatenated database? Are your 'decoy_string' (=" + getStringOption_("decoy_string") + ") and 'prefix' (=" + String(getFlag_("prefix")) + ") settings correct?");
       if (getStringOption_("missing_decoy_action") == "error")
       {
-        LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nQuitting..." << std::endl;
+        LOG_ERROR << "Error: " << msg << "\nSet 'missing_decoy_action' to 'warn' if you are sure this is ok!\nAborting ..." << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
@@ -989,7 +1015,7 @@ protected:
                << "   - as a last resort: use the 'allow_unmatched' option to accept unmatched peptides\n"
                << "     (note that unmatched peptides cannot be used for FDR calculation or quantification)\n";
 
-      LOG_WARN << "Result files were written, but PeptideIndexer will exit with error code." << std::endl;
+      LOG_WARN << "Result files were written, but PeptideIndexer will exit with an error code." << std::endl;
       return UNEXPECTED_RESULT;
     }
 
