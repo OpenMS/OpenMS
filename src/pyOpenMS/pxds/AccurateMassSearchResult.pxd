@@ -20,8 +20,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         void setFoundMass(double & m) nogil except +
         double getCharge() nogil except +
         void setCharge(double & ch) nogil except +
-        double getErrorPPM() nogil except +
-        void setErrorPPM(double & ppm) nogil except +
+        double getMZErrorPPM() nogil except +
+        void setMZErrorPPM(double & ppm) nogil except +
+        double getDBErrorPPM() nogil except +
+        void setDBErrorPPM(double & ppm) nogil except +
         double getObservedRT() nogil except +
         void setObservedRT(double & rt) nogil except +
         double getObservedIntensity() nogil except +

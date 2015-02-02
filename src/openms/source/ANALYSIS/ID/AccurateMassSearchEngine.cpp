@@ -260,7 +260,7 @@ namespace OpenMS
     found_mass_(),
     charge_(),
     db_error_ppm_(),
-    error_ppm_(),
+    mz_error_ppm_(),
     observed_rt_(),
     observed_intensity_(),
     individual_intensities_(),
@@ -288,7 +288,7 @@ namespace OpenMS
     found_mass_(source.found_mass_),
     charge_(source.charge_),
     db_error_ppm_(source.db_error_ppm_),
-    error_ppm_(source.error_ppm_),
+    mz_error_ppm_(source.mz_error_ppm_),
     observed_rt_(source.observed_rt_),
     observed_intensity_(source.observed_intensity_),
     individual_intensities_(source.individual_intensities_),
@@ -313,7 +313,7 @@ namespace OpenMS
     found_mass_ = rhs.found_mass_;
     charge_ = rhs.charge_;
     db_error_ppm_ = rhs.db_error_ppm_;
-    error_ppm_ = rhs.error_ppm_;
+    mz_error_ppm_ = rhs.mz_error_ppm_;
     observed_rt_ = rhs.observed_rt_;
     observed_intensity_ = rhs.observed_intensity_;
     individual_intensities_ = rhs.individual_intensities_;
@@ -387,14 +387,14 @@ namespace OpenMS
     db_error_ppm_ = ppm;
   }
 
-  double AccurateMassSearchResult::getErrorPPM() const
+  double AccurateMassSearchResult::getMZErrorPPM() const
   {
-    return error_ppm_;
+    return mz_error_ppm_;
   }
 
-  void AccurateMassSearchResult::setErrorPPM(const double ppm)
+  void AccurateMassSearchResult::setMZErrorPPM(const double ppm)
   {
-    error_ppm_ = ppm;
+    mz_error_ppm_ = ppm;
   }
 
   double AccurateMassSearchResult::getObservedRT() const
@@ -493,6 +493,7 @@ namespace OpenMS
     std::cout << "query_mass: " << query_mass_ << "\n";
     std::cout << "found_mass: " << found_mass_ << "\n";
     std::cout << "charge: " << charge_ << "\n";
+    std::cout << "m/z error ppm: " << mz_error_ppm_ << "\n";
     std::cout << "db error ppm: " << db_error_ppm_ << "\n";
     std::cout << "observed rt: " << observed_rt_ << "\n";
     std::cout << "observed intensity: " << observed_intensity_ << "\n";
@@ -623,7 +624,7 @@ namespace OpenMS
         ams_result.setFoundMass(found_mass);
         ams_result.setCharge(observed_charge);
         ams_result.setDBErrorPPM(found_db_error_ppm);
-        ams_result.setErrorPPM(error_ppm);
+        ams_result.setMZErrorPPM(error_ppm);
         ams_result.setMatchingIndex(i);
         ams_result.setFoundAdduct(it->getName());
         ams_result.setEmpiricalFormula(mass_mappings_[i].formula);
@@ -647,7 +648,7 @@ namespace OpenMS
       ams_result.setFoundMass(std::numeric_limits<double>::quiet_NaN());
       ams_result.setCharge(0); // cannot be NaN since Int, and -1 would be confusing too...
       ams_result.setDBErrorPPM(std::numeric_limits<double>::quiet_NaN());
-      ams_result.setErrorPPM(std::numeric_limits<double>::quiet_NaN());
+      ams_result.setMZErrorPPM(std::numeric_limits<double>::quiet_NaN());
       ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
       ams_result.setFoundAdduct("null");
       ams_result.setEmpiricalFormula("null");
@@ -845,6 +846,7 @@ namespace OpenMS
       hit.setMetaValue("modifications", it_row->getFoundAdduct());
       hit.setMetaValue("chemical_formula", it_row->getFormulaString());
       hit.setMetaValue("ppm_db_error", it_row->getDBErrorPPM());
+      hit.setMetaValue("ppm_mz_error", it_row->getMZErrorPPM());
       f.getPeptideIdentifications().back().insertHit(hit);
     }
   }

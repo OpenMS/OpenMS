@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////abi-data/sachsenb/OpenMS_IDE/share/OpenMS/XSL/ConsensusXML.xsl"?>
 <consensusXML version="1.5" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2015-01-29T10:02:50" search_engine="AccurateMassSearch" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2015-02-02T11:27:53" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -51,6 +51,7 @@
 					<userParam type="string" name="modifications" value="M+CH3CN+Na;1+"/>
 					<userParam type="string" name="chemical_formula" value="C27H41NO6"/>
 					<userParam type="float" name="ppm_db_error" value="3.27878002614627"/>
+					<userParam type="float" name="ppm_mz_error" value="0.85520839708392"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -59,6 +60,7 @@
 					<userParam type="string" name="modifications" value="M+2CH3CN+H;1+"/>
 					<userParam type="string" name="chemical_formula" value="C27H36O6"/>
 					<userParam type="float" name="ppm_db_error" value="1.85708936951023"/>
+					<userParam type="float" name="ppm_mz_error" value="3.60543926190325"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -67,6 +69,7 @@
 					<userParam type="string" name="modifications" value="2M+Na;1+"/>
 					<userParam type="string" name="chemical_formula" value="C17H22O2"/>
 					<userParam type="float" name="ppm_db_error" value="4.77291201682341"/>
+					<userParam type="float" name="ppm_mz_error" value="6.60380929668417"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -91,6 +94,7 @@
 					<userParam type="string" name="modifications" value="M+Na;1+"/>
 					<userParam type="string" name="chemical_formula" value="C26H52NO7P"/>
 					<userParam type="float" name="ppm_db_error" value="0.872382711675025"/>
+					<userParam type="float" name="ppm_mz_error" value="2.85112119331524"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -99,6 +103,7 @@
 					<userParam type="string" name="modifications" value="M+C3H8O+Na+H;1+"/>
 					<userParam type="string" name="chemical_formula" value="C27H40O6"/>
 					<userParam type="float" name="ppm_db_error" value="0.314109719947377"/>
+					<userParam type="float" name="ppm_mz_error" value="2.28119050395874"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -107,6 +112,7 @@
 					<userParam type="string" name="modifications" value="2M+NH4;1+"/>
 					<userParam type="string" name="chemical_formula" value="C15H21NO3"/>
 					<userParam type="float" name="ppm_db_error" value="2.29375445619844"/>
+					<userParam type="float" name="ppm_mz_error" value="4.23333937898292"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -130,6 +136,7 @@
 					<userParam type="string" name="modifications" value="M+C3H8O+Na+H;1+"/>
 					<userParam type="string" name="chemical_formula" value="C26H46O6"/>
 					<userParam type="float" name="ppm_db_error" value="3.89502395168216"/>
+					<userParam type="float" name="ppm_mz_error" value="5.32478307875666"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -138,6 +145,7 @@
 					<userParam type="string" name="modifications" value="2M+NH4;1+"/>
 					<userParam type="string" name="chemical_formula" value="C12H24N2O4"/>
 					<userParam type="float" name="ppm_db_error" value="2.28787301841604"/>
+					<userParam type="float" name="ppm_mz_error" value="0.173350000597733"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -161,6 +169,7 @@
 					<userParam type="string" name="modifications" value="2M+3H2O+2H;2+"/>
 					<userParam type="string" name="chemical_formula" value="C31H48O2S2"/>
 					<userParam type="float" name="ppm_db_error" value="3.75258875617195"/>
+					<userParam type="float" name="ppm_mz_error" value="1.54379113864934"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -169,6 +178,7 @@
 					<userParam type="string" name="modifications" value="2M+CH3CN+Na;1+"/>
 					<userParam type="string" name="chemical_formula" value="C11H20N4O2"/>
 					<userParam type="float" name="ppm_db_error" value="3.35632436531017"/>
+					<userParam type="float" name="ppm_mz_error" value="0.946001121457097"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -192,6 +202,7 @@
 					<userParam type="string" name="modifications" value="M+2H;2+"/>
 					<userParam type="string" name="chemical_formula" value="C60H86O18"/>
 					<userParam type="float" name="ppm_db_error" value="0.0344469089812133"/>
+					<userParam type="float" name="ppm_mz_error" value="1.96664078334561"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="2"/>
@@ -200,6 +211,7 @@
 					<userParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
 					<userParam type="string" name="chemical_formula" value="C48H86O18P2"/>
 					<userParam type="float" name="ppm_db_error" value="0.5762861988799"/>
+					<userParam type="float" name="ppm_mz_error" value="2.53312889827762"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -223,6 +235,7 @@
 					<userParam type="string" name="modifications" value="M+Na;1+"/>
 					<userParam type="string" name="chemical_formula" value="C26H54NO7P"/>
 					<userParam type="float" name="ppm_db_error" value="2.24316731130663"/>
+					<userParam type="float" name="ppm_mz_error" value="4.15692372815291"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="1"/>
@@ -231,6 +244,7 @@
 					<userParam type="string" name="modifications" value="M+CH3CN+H;1+"/>
 					<userParam type="string" name="chemical_formula" value="C24H40N8O4"/>
 					<userParam type="float" name="ppm_db_error" value="1.50490936524701"/>
+					<userParam type="float" name="ppm_mz_error" value="0.619029389828732"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="1"/>
@@ -239,6 +253,7 @@
 					<userParam type="string" name="modifications" value="M+C3H8O+Na+H;1+"/>
 					<userParam type="string" name="chemical_formula" value="C27H42O6"/>
 					<userParam type="float" name="ppm_db_error" value="1.86839740788392"/>
+					<userParam type="float" name="ppm_mz_error" value="3.58909641200099"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="1"/>
@@ -247,6 +262,7 @@
 					<userParam type="string" name="modifications" value="2M+CH3CN+Na;1+"/>
 					<userParam type="string" name="chemical_formula" value="C13H23NO3"/>
 					<userParam type="float" name="ppm_db_error" value="0.993699755981556"/>
+					<userParam type="float" name="ppm_mz_error" value="1.13088730267666"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>
@@ -270,6 +286,7 @@
 					<userParam type="string" name="modifications" value="2M+Na;1+"/>
 					<userParam type="string" name="chemical_formula" value="C10H14N2O6"/>
 					<userParam type="float" name="ppm_db_error" value="1.10086865829722"/>
+					<userParam type="float" name="ppm_mz_error" value="0.981013699259957"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -278,6 +295,7 @@
 					<userParam type="string" name="modifications" value="2M+K;1+"/>
 					<userParam type="string" name="chemical_formula" value="C9H18N2O4S"/>
 					<userParam type="float" name="ppm_db_error" value="0.904265524810633"/>
+					<userParam type="float" name="ppm_mz_error" value="2.87385230109891"/>
 				</PeptideHit>
 			</PeptideIdentification>
 		</consensusElement>

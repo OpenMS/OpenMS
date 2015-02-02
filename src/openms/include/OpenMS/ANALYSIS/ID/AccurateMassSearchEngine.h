@@ -105,10 +105,10 @@ public:
     void setDBErrorPPM(const double);
 
     /// get the error between observed and theoretical m/z in ppm
-    double getErrorPPM() const;
+    double getMZErrorPPM() const;
 
     /// set the error between observed and theoretical m/z in ppm
-    void setErrorPPM(const double);
+    void setMZErrorPPM(const double);
 
     /// get the observed rt
     double getObservedRT() const;
@@ -158,7 +158,7 @@ private:
     double found_mass_;
     Int charge_;
     double db_error_ppm_;
-    double error_ppm_;
+    double mz_error_ppm_;
     double observed_rt_;
     double observed_intensity_;
     std::vector<double> individual_intensities_;
@@ -289,7 +289,7 @@ private:
       /// returns the m/z of the small molecule with neutral mass @p neutral_mass if the adduct is added (given mass of [M] returns m/z of [nM+Adduct]/|charge|)
       double getMZ(double neutral_mass) const;
 
-      /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e.a if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
+      /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
       /// If the negative parts are present in @p db_entry, true is returned.
       bool isCompatible(EmpiricalFormula db_entry) const;
 
