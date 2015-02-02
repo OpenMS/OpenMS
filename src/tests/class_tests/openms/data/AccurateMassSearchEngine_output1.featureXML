@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <featureMap version="1.6" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<IdentificationRun id="PI_0" date="2015-01-13T15:05:03" search_engine="AccurateMassSearch" search_engine_version="">
+	<IdentificationRun id="PI_0" date="2015-02-02T11:26:51" search_engine="AccurateMassSearch" search_engine_version="">
 		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 		</SearchParameters>
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
@@ -13,7 +13,7 @@
 			<intensity>36310.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.09303e-005</overallquality>
+			<overallquality>2.09303e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="275.25" y="160.074747981592" />
@@ -74,7 +74,8 @@
 					<userParam type="stringList" name="description" value="[Panaxydol chlorohydrin]"/>
 					<userParam type="string" name="modifications" value="M+H+Na;2+"/>
 					<userParam type="string" name="chemical_formula" value="C17H25ClO2"/>
-					<userParam type="float" name="ppm_error" value="-2.68045265071093"/>
+					<userParam type="float" name="ppm_db_error" value="2.68044546590378"/>
+					<userParam type="float" name="ppm_mz_error" value="9.33349084914409"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -82,7 +83,8 @@
 					<userParam type="stringList" name="description" value="[Glutaminyl-Methionine,Methionyl-Glutamine,Methionyl-Gamma-glutamate,Gamma-glutamyl-Methionine]"/>
 					<userParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
 					<userParam type="string" name="chemical_formula" value="C10H19N3O4S"/>
-					<userParam type="float" name="ppm_error" value="-2.59003643663402"/>
+					<userParam type="float" name="ppm_db_error" value="2.59002972836265"/>
+					<userParam type="float" name="ppm_mz_error" value="9.09578385294428"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -90,7 +92,8 @@
 					<userParam type="stringList" name="description" value="[Dehydroaporheine,Murrayacine]"/>
 					<userParam type="string" name="modifications" value="M+CH3CN+2H;2+"/>
 					<userParam type="string" name="chemical_formula" value="C18H15NO2"/>
-					<userParam type="float" name="ppm_error" value="-4.94264214026128"/>
+					<userParam type="float" name="ppm_db_error" value="4.9426177106707"/>
+					<userParam type="float" name="ppm_mz_error" value="11.1320630671628"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -98,7 +101,8 @@
 					<userParam type="stringList" name="description" value="[Methionyl-Serine,Serinyl-Methionine]"/>
 					<userParam type="string" name="modifications" value="M+2CH3CN+2H;2+"/>
 					<userParam type="string" name="chemical_formula" value="C8H16N2O4S"/>
-					<userParam type="float" name="ppm_error" value="-3.04011223650013"/>
+					<userParam type="float" name="ppm_db_error" value="3.04010299424582"/>
+					<userParam type="float" name="ppm_mz_error" value="9.09576729861009"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -106,7 +110,8 @@
 					<userParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
 					<userParam type="string" name="modifications" value="M+H;1+"/>
 					<userParam type="string" name="chemical_formula" value="C10H9NO"/>
-					<userParam type="float" name="ppm_error" value="-4.30525877039142"/>
+					<userParam type="float" name="ppm_db_error" value="4.30524023521814"/>
+					<userParam type="float" name="ppm_mz_error" value="11.1320796216071"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
@@ -114,7 +119,8 @@
 					<userParam type="stringList" name="description" value="[Hydralazine]"/>
 					<userParam type="string" name="modifications" value="M;1+"/>
 					<userParam type="string" name="chemical_formula" value="C8H8N4"/>
-					<userParam type="float" name="ppm_error" value="0.682575394067964"/>
+					<userParam type="float" name="ppm_db_error" value="0.68257585997745"/>
+					<userParam type="float" name="ppm_mz_error" value="0.68257585997745"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T141"/>
@@ -125,7 +131,7 @@
 		<feature id="f_12112469906802307848">
 			<position dim="0">308.25</position>
 			<position dim="1">160.075018056482</position>
-			<intensity>3.02411e+007</intensity>
+			<intensity>3.02411e+07</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.0183443</overallquality>
@@ -413,7 +419,8 @@
 					<userParam type="stringList" name="description" value="[Indoleacetaldehyde]"/>
 					<userParam type="string" name="modifications" value="M+H;1+"/>
 					<userParam type="string" name="chemical_formula" value="C10H9NO"/>
-					<userParam type="float" name="ppm_error" value="-4.22656729101524"/>
+					<userParam type="float" name="ppm_db_error" value="4.22654942721968"/>
+					<userParam type="float" name="ppm_mz_error" value="11.0538845115515"/>
 				</PeptideHit>
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="1"/>
@@ -421,7 +428,8 @@
 					<userParam type="stringList" name="description" value="[Hydralazine]"/>
 					<userParam type="string" name="modifications" value="M;1+"/>
 					<userParam type="string" name="chemical_formula" value="C8H8N4"/>
-					<userParam type="float" name="ppm_error" value="0.760771315118182"/>
+					<userParam type="float" name="ppm_db_error" value="0.760771893891617"/>
+					<userParam type="float" name="ppm_mz_error" value="0.760771893891617"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T10_T33_T94"/>
@@ -434,7 +442,7 @@
 		<feature id="f_5576845964105266947">
 			<position dim="0">316.5</position>
 			<position dim="1">160.134470512512</position>
-			<intensity>2.15267e+006</intensity>
+			<intensity>2.15267e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00129416</overallquality>
@@ -708,7 +716,8 @@
 					<userParam type="stringList" name="description" value="[Propionylcholine,Methacholine]"/>
 					<userParam type="string" name="modifications" value="M;1+"/>
 					<userParam type="string" name="chemical_formula" value="C8H18NO2"/>
-					<userParam type="float" name="ppm_error" value="4.47553552766251"/>
+					<userParam type="float" name="ppm_db_error" value="4.47555555817042"/>
+					<userParam type="float" name="ppm_mz_error" value="4.47555555817042"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T43_T106_T170"/>
@@ -721,7 +730,7 @@
 		<feature id="f_2737147212367465006">
 			<position dim="0">284.75</position>
 			<position dim="1">161.060231720537</position>
-			<intensity>1.76241e+008</intensity>
+			<intensity>1.76241e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.106575</overallquality>
@@ -1109,7 +1118,8 @@
 					<userParam type="stringList" name="description" value="[6-Methylcoumarin,Viburtinal,7-Methyl-2-benzofurancarboxaldehyde]"/>
 					<userParam type="string" name="modifications" value="M+H;1+"/>
 					<userParam type="string" name="chemical_formula" value="C10H8O2"/>
-					<userParam type="float" name="ppm_error" value="3.28496615634438"/>
+					<userParam type="float" name="ppm_db_error" value="3.28497694738247"/>
+					<userParam type="float" name="ppm_mz_error" value="3.54767427121029"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T4_T13_T49"/>
@@ -1125,7 +1135,7 @@
 			<intensity>18965.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>1.09325e-005</overallquality>
+			<overallquality>1.09325e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="256.75" y="161.132153124789" />
@@ -1178,11 +1188,12 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
-					<userParam type="stringList" name="description" value="[--dummy--]"/>
-					<userParam type="string" name="modifications" value="-"/>
-					<userParam type="string" name="chemical_formula" value=""/>
-					<userParam type="float" name="ppm_error" value="nan"/>
+					<userParam type="stringList" name="identifier" value="[null]"/>
+					<userParam type="stringList" name="description" value="[null]"/>
+					<userParam type="string" name="modifications" value="null"/>
+					<userParam type="string" name="chemical_formula" value="null"/>
+					<userParam type="float" name="ppm_db_error" value="nan"/>
+					<userParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T160"/>
@@ -1193,7 +1204,7 @@
 		<feature id="f_10893964381505000125">
 			<position dim="0">284.5</position>
 			<position dim="1">163.039965127824</position>
-			<intensity>1.94672e+006</intensity>
+			<intensity>1.94672e+06</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.00113951</overallquality>
@@ -1379,11 +1390,12 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
-					<userParam type="stringList" name="description" value="[--dummy--]"/>
-					<userParam type="string" name="modifications" value="-"/>
-					<userParam type="string" name="chemical_formula" value=""/>
-					<userParam type="float" name="ppm_error" value="nan"/>
+					<userParam type="stringList" name="identifier" value="[null]"/>
+					<userParam type="stringList" name="description" value="[null]"/>
+					<userParam type="string" name="modifications" value="null"/>
+					<userParam type="string" name="chemical_formula" value="null"/>
+					<userParam type="float" name="ppm_db_error" value="nan"/>
+					<userParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T41_T102"/>
@@ -1545,11 +1557,12 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
-					<userParam type="stringList" name="description" value="[--dummy--]"/>
-					<userParam type="string" name="modifications" value="-"/>
-					<userParam type="string" name="chemical_formula" value=""/>
-					<userParam type="float" name="ppm_error" value="nan"/>
+					<userParam type="stringList" name="identifier" value="[null]"/>
+					<userParam type="stringList" name="description" value="[null]"/>
+					<userParam type="string" name="modifications" value="null"/>
+					<userParam type="string" name="chemical_formula" value="null"/>
+					<userParam type="float" name="ppm_db_error" value="nan"/>
+					<userParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T69_T134"/>
@@ -1561,7 +1574,7 @@
 		<feature id="f_3062115439946092212">
 			<position dim="0">267.25</position>
 			<position dim="1">163.077368733932</position>
-			<intensity>1.81771e+008</intensity>
+			<intensity>1.81771e+08</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
 			<overallquality>0.110367</overallquality>
@@ -2329,11 +2342,12 @@
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="0" sequence="" charge="0">
 					<userParam type="int" name="charge" value="0"/>
-					<userParam type="stringList" name="identifier" value="[--dummy--]"/>
-					<userParam type="stringList" name="description" value="[--dummy--]"/>
-					<userParam type="string" name="modifications" value="-"/>
-					<userParam type="string" name="chemical_formula" value=""/>
-					<userParam type="float" name="ppm_error" value="nan"/>
+					<userParam type="stringList" name="identifier" value="[null]"/>
+					<userParam type="stringList" name="description" value="[null]"/>
+					<userParam type="string" name="modifications" value="null"/>
+					<userParam type="string" name="chemical_formula" value="null"/>
+					<userParam type="float" name="ppm_db_error" value="nan"/>
+					<userParam type="float" name="ppm_mz_error" value="nan"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T3_T12_T48_T61_T101"/>
@@ -2546,7 +2560,8 @@
 					<userParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
 					<userParam type="string" name="modifications" value="M+2Na;2+"/>
 					<userParam type="string" name="chemical_formula" value="C17H20N2S"/>
-					<userParam type="float" name="ppm_error" value="-2.41984173140684"/>
+					<userParam type="float" name="ppm_db_error" value="2.41983587578701"/>
+					<userParam type="float" name="ppm_mz_error" value="8.72991504451016"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T59"/>
@@ -2560,7 +2575,7 @@
 			<intensity>35837.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.06578e-005</overallquality>
+			<overallquality>2.06578e-05</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="252.75" y="165.05608834397" />
@@ -2619,7 +2634,8 @@
 					<userParam type="stringList" name="description" value="[Promazine,Promethazine]"/>
 					<userParam type="string" name="modifications" value="M+2Na;2+"/>
 					<userParam type="string" name="chemical_formula" value="C17H20N2S"/>
-					<userParam type="float" name="ppm_error" value="4.08900225421709"/>
+					<userParam type="float" name="ppm_db_error" value="4.08901897422489"/>
+					<userParam type="float" name="ppm_mz_error" value="3.12765626533952"/>
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="label" value="T121"/>
