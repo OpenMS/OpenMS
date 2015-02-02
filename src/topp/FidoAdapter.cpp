@@ -127,7 +127,7 @@ protected:
     registerInputFile_("fido_executable", "<path>", "Fido", "Path to the Fido executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("fidochooseparameters_executable", "<path>", "FidoChooseParameters", "Path to the FidoChooseParameters executable to use; may be empty if the executable is globally available.", true, false, ListUtils::create<String>("skipexists"));
     registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
-    registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them");
+    registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single ProteinIdentification runs.");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
@@ -313,6 +313,7 @@ protected:
                 double& prob_spurious, const String& temp_dir,
                 bool keep_zero_group = false, Size counter = 0)
   {
+    //create a copy of params so the templates can be overwritten with different values
     QStringList current_fido_params = QStringList(fido_params);
     
     LOG_INFO << "Generating temporary files for Fido..." << endl;
@@ -416,6 +417,8 @@ protected:
       line >> group.probability;
       // parse accessions:
       String accession;
+      String old_scoretype_meta;
+      
       while (line)
       {
         line >> accession;
@@ -436,6 +439,16 @@ protected:
           //  while saving possible old ones (if there are any)
           if (!old_scoretype.empty()) {
             hit->setMetaValue(old_scoretype+"_score", hit->getScore());
+          } else {
+            if (hit->metaValueExists("old_score_type"))
+            {
+              old_scoretype_meta = hit->getMetaValue("old_score_type");
+              if(!old_scoretype_meta.empty())
+              {
+                hit->setMetaValue(old_scoretype_meta+"_score", hit->getScore());
+              }
+              hit->removeMetaValue("old_score_type");
+            }
           }
           
           hit->setScore(group.probability);
@@ -565,8 +578,6 @@ protected:
     }
     if (log2_states) fido_params << QString::number(log2_states);
     
-    // save this template param QString so  it doesnt get overwritten when running Fido multiple times
-    
     
     // actually run Fido now and process its output:
     bool fido_success = false;
@@ -609,6 +620,7 @@ protected:
              prot_it->getHits().rbegin(); hit_it !=
              prot_it->getHits().rend(); ++hit_it)
         {
+          (*hit_it).setMetaValue("old_score_type",prot_it->getScoreType());
           hit_map[hit_it->getAccession()] = &(*hit_it);
         }
       }
@@ -626,7 +638,7 @@ protected:
                               prob_spurious, temp_dir, keep_zero_group);
       
       // Remove the old SearchEngineParams by clearing everything
-      // and adding the edited and merged proteins
+      // and adding the scored and merged proteins
       proteins.clear();
       proteins.push_back(all_proteins);
     }
