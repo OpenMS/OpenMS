@@ -25,11 +25,13 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterIdentificationsByScore(PeptideIdentification& identification, double threshold_score, PeptideIdentification& filtered_identification) nogil except +
         void filterIdentificationsByBestNHits(PeptideIdentification& identification, Size n, PeptideIdentification& filtered_identification) nogil except +
         void filterIdentificationsByBestNToMHits(PeptideIdentification& identification, Size n, Size m, PeptideIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByDecoy(PeptideIdentification& identification, PeptideIdentification& filtered_identification) nogil except +
 
         void filterIdentificationsByThreshold(ProteinIdentification& identification, double threshold_fraction, ProteinIdentification& filtered_identification) nogil except +
         void filterIdentificationsByScore(ProteinIdentification& identification, double threshold_score, ProteinIdentification& filtered_identification) nogil except +
         void filterIdentificationsByBestNHits(ProteinIdentification& identification, Size n, ProteinIdentification& filtered_identification) nogil except +
         void filterIdentificationsByBestNToMHits(ProteinIdentification& identification, Size n, Size m, ProteinIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByDecoy(ProteinIdentification& identification, ProteinIdentification& filtered_identification) nogil except +
 
         void filterIdentificationsByBestHits(PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict) nogil except +
 
