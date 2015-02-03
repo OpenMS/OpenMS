@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         AccurateMassSearchEngine() nogil except +
         AccurateMassSearchEngine(AccurateMassSearchEngine) nogil except + #wrap-ignore
 
-        void queryByMass(double observed_mass, Int observed_charge, String ion_mode, 
+        void queryByMZ(double observed_mz, Int observed_charge, String ion_mode, 
                          libcpp_vector[ AccurateMassSearchResult ] & ) nogil except +
 
         void queryByFeature(Feature feature, Size feature_index, String ion_mode, 
