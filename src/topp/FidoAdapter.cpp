@@ -451,7 +451,7 @@ protected:
             {
               old_scoretype_meta = hit->getMetaValue("old_score_type");
               
-              if(!old_scoretype_meta.empty())
+              if (!old_scoretype_meta.empty())
               {
                 hit->setMetaValue(old_scoretype_meta+"_score", hit->getScore());
               }
