@@ -457,6 +457,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     p5.setValue("mz_measure","ppm");
     p5.setValue("ignore_charge", "true");
     p5.setValue("consensus:use_subelements", "true");
+    p5.setValue("consensus:annotate_ids_with_subelements", "true");
     mapper5.setParameters(p5);
 
     std::string tmp_filename;
