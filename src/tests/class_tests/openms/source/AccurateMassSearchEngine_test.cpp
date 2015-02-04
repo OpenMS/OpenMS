@@ -103,7 +103,7 @@ END_SECTION
 Param ams_param;
 ams_param.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
 ams_param.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
-ams_param.setValue("store_empty_hits", "true");
+ams_param.setValue("keep_unidentified_masses", "true");
 AccurateMassSearchEngine ams;
 ams.setParameters(ams_param);
 
@@ -122,7 +122,7 @@ START_SECTION((void queryByMZ(const double& observed_mass, const Int& observed_c
   // test the actual query
   {
     Param ams_param_tmp = ams_param;
-    ams_param_tmp.setValue("mass_error_value", 7.0);
+    ams_param_tmp.setValue("mass_error_value", 17.0);
     ams.setParameters(ams_param_tmp);
     ams.init();
     // -- positive mode
@@ -131,28 +131,30 @@ START_SECTION((void queryByMZ(const double& observed_mass, const Int& observed_c
     double mz = m / 1 + EmpiricalFormula("Na").getMonoWeight() - Constants::ELECTRON_MASS_U; // assume M+Na;+1 as charge
     std::cout << "mz query mass:" << mz << "\n\n";
     // we'll get some other hits as well...
-    String id_list_pos[] = {"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4", "C17H11N5" /* this one we want! */,
+    String id_list_pos[] = {"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4",
+                            "C17H11N5" /* this one we want! */,
                             "C10H14NO6P", "C14H12O4", "C7H6O2"};
+                         //{"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4", "C17H11N5", "C10H14NO6P", "C14H12O4", "C7H6O2"};
+
+                         // 290.05475446	C14H14N2OS2	HMDB:HMDB38641 missing
+
     Size id_list_pos_length(sizeof(id_list_pos)/sizeof(id_list_pos[0]));
-    ams.queryByMZ(mz, 3, "positive", hmdb_results_pos);
+    ams.queryByMZ(mz, 1, "positive", hmdb_results_pos);
     ams.setParameters(ams_param); // reset to default 5ppm
     ams.init();
     TEST_EQUAL(hmdb_results_pos.size(), id_list_pos_length)
-    //ABORT_IF(hmdb_results_pos.size() != id_list_pos_length)
+    ABORT_IF(hmdb_results_pos.size() != id_list_pos_length)
     for (Size i = 0; i < id_list_pos_length; ++i)
     {
       TEST_STRING_EQUAL(hmdb_results_pos[i].getFormulaString(), id_list_pos[i])
       std::cout << hmdb_results_pos[i] << std::endl;
     }
-    TEST_EQUAL(hmdb_results_pos[0].getFormulaString(), "C17H20N2S"); // correct hit?
-    TEST_REAL_SIMILAR(hmdb_results_pos[0].getQueryMass(), m); // was the mass correctly reconstructed internally?
-    TEST_REAL_SIMILAR(abs(hmdb_results_pos[0].getDBErrorPPM()), 2.3362841772012248); // ppm error within float precision? 
-    TEST_REAL_SIMILAR(abs(hmdb_results_pos[0].getMZErrorPPM()), 2.1619544798636037); // ppm error within float precision? 
+    TEST_EQUAL(hmdb_results_pos[4].getFormulaString(), "C17H11N5"); // correct hit?
+    TEST_REAL_SIMILAR(hmdb_results_pos[4].getQueryMass(), m); // was the mass correctly reconstructed internally?
+    TEST_REAL_SIMILAR(abs(hmdb_results_pos[4].getMZErrorPPM()), 0.0); // ppm error within float precision? 
 
   }
   
-  exit(0);
-
   // -- negative mode 
   // expected hit: C17H20N2S with neutral mass ~284.13472	
   {
@@ -166,7 +168,6 @@ START_SECTION((void queryByMZ(const double& observed_mass, const Int& observed_c
     std::cout << hmdb_results_neg[0] << std::endl;
     TEST_EQUAL(hmdb_results_neg[0].getFormulaString(), "C17H20N2S"); // correct hit?
     TEST_REAL_SIMILAR(hmdb_results_neg[0].getQueryMass(), m); // was the mass correctly reconstructed internally?
-    TEST_EQUAL(abs(hmdb_results_neg[0].getDBErrorPPM()) < 0.0002, true); // ppm error within float precision? .. should be ~0.0001560..
     TEST_EQUAL(abs(hmdb_results_neg[0].getMZErrorPPM()) < 0.0002, true); // ppm error within float precision? .. should be ~0.0001576..
   }
 }
@@ -291,12 +292,6 @@ StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
-// for some reason, Windows and Linux give slightly different results
-// fsc.setAcceptableAbsolute((3.04011223650013 - 3.04011223637974)*1.1); // 1.3242891228060217e-10
-// also Linux may give slightly different results depending on optimization level (O0 vs O1) 
-// note that the default value for TEST_REAL_SIMILAR is 1e-5, see ./source/CONCEPT/ClassTest.cpp
-fsc.setAcceptableAbsolute(1e-8);
-
 
 START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
 {
@@ -316,36 +311,13 @@ START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
     String tmp_mztab_file;
     NEW_TMP_FILE(tmp_mztab_file);
     MzTabFile().store(tmp_mztab_file, test_mztab);
-
-    StringList fm_id_list;
-    for (Size i = 0; i < exp_fm.size() ; ++i)
-    {
-      std::vector<PeptideHit> hits = exp_fm[i].getPeptideIdentifications()[0].getHits();
-      for (Size j = 0; j < hits.size(); ++j)
-      {
-        String chem = hits[j].getMetaValue("chemical_formula");
-        StringList x(hits[j].getMetaValue("identifier").toStringList().size(), chem);
-        fm_id_list.insert(fm_id_list.end(), x.begin(),x.end());
-      }
-    }
-
-    // test mzTab output
-    MzTabSmallMoleculeSectionRows sm_rows = test_mztab.getSmallMoleculeSectionRows();
-    TEST_EQUAL(sm_rows.size(), fm_id_list.size())
-
-    ABORT_IF(sm_rows.size() != fm_id_list.size())
-    for (Size i = 0; i < sm_rows.size(); ++i)
-    {
-        String sm_formula = sm_rows[i].chemical_formula.toCellString();
-        TEST_STRING_EQUAL(sm_formula, fm_id_list[i]);
-    }
+    TEST_EQUAL(fsc.compareFiles(tmp_mztab_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_featureXML.mzTab")), true);
   }
 }
 END_SECTION
 
 
 START_SECTION((void run(ConsensusMap& cmap, MzTab& mztab_out)))
-{
   ConsensusMap exp_cm;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.consensusXML"), exp_cm);
   MzTab test_mztab2;
@@ -361,38 +333,10 @@ START_SECTION((void run(ConsensusMap& cmap, MzTab& mztab_out)))
   String tmp_mztab_file;
   NEW_TMP_FILE(tmp_mztab_file);
   MzTabFile().store(tmp_mztab_file, test_mztab2);
-
-  StringList cons_id_list;
-  for (Size i = 0; i < exp_cm.size() ; ++i)
-  {
-    std::vector<PeptideHit> hits = exp_cm[i].getPeptideIdentifications()[0].getHits();
-    for (Size j = 0; j < hits.size(); ++j)
-    {
-      String chem = hits[j].getMetaValue("chemical_formula");
-      // ignore dummies (== unannotated features)
-      if (!chem.empty()) {
-        StringList x(hits[j].getMetaValue("identifier").toStringList().size(), chem);
-        cons_id_list.insert(cons_id_list.end(), x.begin(),x.end());
-      }
-    }
-  }
-
-  // test mzTab output
-  MzTabSmallMoleculeSectionRows sm_rows = test_mztab2.getSmallMoleculeSectionRows();
-  TEST_EQUAL(sm_rows.size(), cons_id_list.size())
-
-  ABORT_IF(sm_rows.size() != cons_id_list.size())
-  for (Size i = 0; i < sm_rows.size(); ++i)
-  {
-    String sm_formula = sm_rows[i].chemical_formula.get();
-    TEST_STRING_EQUAL(sm_formula, cons_id_list[i]);
-  }
-
-}
+  TEST_EQUAL(fsc.compareFiles(tmp_mztab_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_consensusXML.mzTab")), true);
 END_SECTION
 
 START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map))
-{
   FeatureMap exp_fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
   FeatureMap fm_p = exp_fm;
@@ -414,8 +358,6 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
 
   fm_p[0].setMetaValue("scan_polarity", "negative"); // should run ok
   ams.run(fm_p, mzt);
-
-}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -148,12 +148,6 @@ namespace OpenMS
     /// set the charge
     void setCharge(const Int&);
 
-    /// get the error between found and query mass in ppm
-    double getDBErrorPPM() const;
-
-    /// set the error between found and query mass in ppm
-    void setDBErrorPPM(const double);
-
     /// get the error between observed and theoretical m/z in ppm
     double getMZErrorPPM() const;
 
@@ -207,7 +201,6 @@ private:
     double observed_mass_;
     double db_mass_;
     Int charge_;
-    double db_error_ppm_;
     double mz_error_ppm_;
     double observed_rt_;
     double observed_intensity_;
@@ -330,7 +323,7 @@ private:
     void parseMappingFile_(const String&);
     void parseStructMappingFile_(const String&);
     void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
-    void searchMass_(const double& neutral_query_mass, std::pair<Size, Size>& hit_indices) const;
+    void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
     /// add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
@@ -397,7 +390,7 @@ private:
     String database_name_;
     String database_version_;
 
-    bool store_empty_hits_;
+    bool keep_unidentified_masses_;
   };
 
 }

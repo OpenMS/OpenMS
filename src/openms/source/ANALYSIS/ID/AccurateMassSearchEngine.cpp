@@ -254,33 +254,29 @@ namespace OpenMS
     return AdductInfo(cp_str, ef, charge, mol_multiplier);
   }
 
-
   /// default constructor
   AccurateMassSearchResult::AccurateMassSearchResult() :
-    observed_mz_(),
-    theoretical_mz_(),
-    observed_mass_(),
-    db_mass_(),
-    charge_(),
-    db_error_ppm_(),
-    mz_error_ppm_(),
-    observed_rt_(),
-    observed_intensity_(),
-    individual_intensities_(),
-    matching_index_(),
-    source_feature_index_(),
-    found_adduct_(),
-    empirical_formula_(),
-    matching_hmdb_ids_(),
-    isotopes_sim_score_(-1.0)
+  observed_mz_(),
+  theoretical_mz_(),
+  observed_mass_(),
+  db_mass_(),
+  charge_(),
+  mz_error_ppm_(),
+  observed_rt_(),
+  observed_intensity_(),
+  individual_intensities_(),
+  matching_index_(),
+  source_feature_index_(),
+  found_adduct_(),
+  empirical_formula_(),
+  matching_hmdb_ids_(),
+  isotopes_sim_score_(-1.0)
   {
-
   }
 
   /// default destructor
   AccurateMassSearchResult::~AccurateMassSearchResult()
   {
-
   }
 
   /// copy constructor
@@ -290,7 +286,6 @@ namespace OpenMS
     observed_mass_(source.observed_mass_),
     db_mass_(source.db_mass_),
     charge_(source.charge_),
-    db_error_ppm_(source.db_error_ppm_),
     mz_error_ppm_(source.mz_error_ppm_),
     observed_rt_(source.observed_rt_),
     observed_intensity_(source.observed_intensity_),
@@ -302,7 +297,6 @@ namespace OpenMS
     matching_hmdb_ids_(source.matching_hmdb_ids_),
     isotopes_sim_score_(source.isotopes_sim_score_)
   {
-
   }
 
   /// assignment operator
@@ -315,7 +309,6 @@ namespace OpenMS
     observed_mass_ = rhs.observed_mass_;
     db_mass_ = rhs.db_mass_;
     charge_ = rhs.charge_;
-    db_error_ppm_ = rhs.db_error_ppm_;
     mz_error_ppm_ = rhs.mz_error_ppm_;
     observed_rt_ = rhs.observed_rt_;
     observed_intensity_ = rhs.observed_intensity_;
@@ -378,16 +371,6 @@ namespace OpenMS
   void AccurateMassSearchResult::setCharge(const Int& ch)
   {
     charge_ = ch;
-  }
-
-  double AccurateMassSearchResult::getDBErrorPPM() const
-  {
-    return db_error_ppm_;
-  }
-
-  void AccurateMassSearchResult::setDBErrorPPM(const double ppm)
-  {
-    db_error_ppm_ = ppm;
   }
 
   double AccurateMassSearchResult::getMZErrorPPM() const
@@ -492,14 +475,15 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const AccurateMassSearchResult& amsr)
   {
-    os << "observed m/z: " << std::setprecision(std::numeric_limits<double>::digits10 + 2) << amsr.observed_mz_ << "\n";
-    os << "charge: " << amsr.charge_ << "\n";
-    os << "query mass (observed): " << amsr.observed_mass_ << "\n";
-    os << "DB mass: " << amsr.db_mass_ << "\n";
-    os << "m/z error ppm: " << amsr.mz_error_ppm_ << "\n";
-    os << "DB error ppm: " << amsr.db_error_ppm_ << "\n";
+    // set maximum precision
+    std::streamsize old_precision = os.precision(std::numeric_limits<double>::digits10 + 2);
     os << "observed RT: " << amsr.observed_rt_ << "\n";
     os << "observed intensity: " << amsr.observed_intensity_ << "\n";
+    os << "observed m/z: " <<  amsr.observed_mz_ << "\n";
+    os << "m/z error ppm: " << amsr.mz_error_ppm_ << "\n";
+    os << "charge: " << amsr.charge_ << "\n";
+    os << "query mass (observed): " << amsr.observed_mass_ << "\n";
+    os << "theoretical (neutral) mass: " << amsr.db_mass_ << "\n";
     os << "matching idx: " << amsr.matching_index_ << "\n";
     os << "adduct: " << amsr.found_adduct_ << "\n";
     os << "emp. formula: " << amsr.empirical_formula_ << "\n";
@@ -509,8 +493,10 @@ namespace OpenMS
       os << " " << amsr.matching_hmdb_ids_[i];
     }
     os << "\n";
-    os << "isocheck sim score: " << amsr.isotopes_sim_score_ << "\n";
-
+    os << "isotope similarity score: " << amsr.isotopes_sim_score_ << "\n";
+    
+    // restore precision
+    os.precision(old_precision);
     return os;
   }
 
@@ -545,13 +531,10 @@ namespace OpenMS
     defaults_.setValue("negative_adducts_file", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
-
-    defaults_.setValue("store_empty_hits", "false", "Include rows for masses that did not yield any hit.");
-    defaults_.setValidStrings("store_empty_hits", ListUtils::create<String>(("false,true")));
+    defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
+    defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
 
     defaultsToParam_();
-
-    this->setLogType(CMD);
   }
 
   AccurateMassSearchEngine::~AccurateMassSearchEngine()
@@ -560,7 +543,7 @@ namespace OpenMS
 
 /// public methods
 
-  void AccurateMassSearchEngine::queryByMZ(const double& observed_mass_to_charge, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
+  void AccurateMassSearchEngine::queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
   {
     if (!is_initialized_)
     {
@@ -584,7 +567,7 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
 
-
+    std::pair<Size, Size> hit_idx;
     for (std::vector<AdductInfo>::const_iterator it = it_s; it != it_e; ++it)
     {
       if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
@@ -594,9 +577,31 @@ namespace OpenMS
       }
 
       // get potential hits as indices in masskey_table
-      double neutral_mass = it->getNeutralMass(observed_mass_to_charge); // calculate mass of uncharged small molecule without adduct mass
-      std::pair<Size, Size> hit_idx;
-      searchMass_(neutral_mass, hit_idx);
+      double neutral_mass = it->getNeutralMass(observed_mz); // calculate mass of uncharged small molecule without adduct mass
+
+      // Our database is just a set of neutral masses (i.e., without adducts)
+      // However, given is either an absolute m/z tolerance or a ppm tolerance for the observed m/z
+      // We now need an upper bound on the absolute allowed mass difference, given the above tolerance in m/z.
+      // The selected candidates then have an mass tolerance which corresponds to the user's m/z tolerance.
+      // (the other approach is to precompute m/z values for all combinations of adducts, charges and DB entries -- too much)
+      double diff_mz;
+      // check if mass error window is given in ppm or Da
+      if (mass_error_unit_ == "ppm")
+      {
+        // convert ppm to absolute m/z tolerance for the current candidate
+        diff_mz = (observed_mz / 1e6) * mass_error_value_;
+      }
+      else
+      {
+        diff_mz = mass_error_value_;
+      }
+      // convert absolute m/z diff to absolute mass diff
+      // What about the adduct?
+      // absolute mass error: the adduct itself is irrelevant here since its a constant for both the theoretical and observed mass
+      //       ppm tolerance: the diff_mz accounts for it already (heavy adducts lead to larger m/z tolerance)
+      double diff_mass = diff_mz * std::abs(it->getCharge()); // do not use observed charge (could be 0=unknown)
+
+      searchMass_(neutral_mass, diff_mass, hit_idx);
 
       //std::cerr << ion_mode_internal_ << " adduct: " << adduct_name << ", " << adduct_mass << " Da, " << query_mass << " qm(against DB), " << charge << " q\n";
 
@@ -611,19 +616,17 @@ namespace OpenMS
           continue;
         }
 
-        double db_mass(mass_mappings_[i].mass);
-        double error_ppm_db = (db_mass - neutral_mass) / db_mass * 1e6; // negative values are allowed!
-
+        // compute ppm errors
+        double db_mass = mass_mappings_[i].mass;
         double theoretical_mz = it->getMZ(db_mass);
-        double error_ppm_mz = (theoretical_mz - observed_mass_to_charge) / theoretical_mz * 1e6; // negative values are allowed!
+        double error_ppm_mz = (theoretical_mz - observed_mz) / theoretical_mz * 1e6; // negative values are allowed!
 
         AccurateMassSearchResult ams_result;
-        ams_result.setObservedMZ(observed_mass_to_charge);
+        ams_result.setObservedMZ(observed_mz);
         ams_result.setCalculatedMZ(theoretical_mz);
         ams_result.setQueryMass(neutral_mass);
         ams_result.setFoundMass(db_mass);
-        ams_result.setCharge(observed_charge);
-        ams_result.setDBErrorPPM(error_ppm_db);
+        ams_result.setCharge(std::abs(it->getCharge())); // use theoretical adducts charge (is always valid); native charge might be zero
         ams_result.setMZErrorPPM(error_ppm_mz);
         ams_result.setMatchingIndex(i);
         ams_result.setFoundAdduct(it->getName());
@@ -639,15 +642,14 @@ namespace OpenMS
     }
 
     // if result is empty, add a 'not-found' indicator if empty hits should be stored
-    if (results.empty() && store_empty_hits_)
+    if (results.empty() && keep_unidentified_masses_)
     {
       AccurateMassSearchResult ams_result;
-      ams_result.setObservedMZ(observed_mass_to_charge);
+      ams_result.setObservedMZ(observed_mz);
       ams_result.setCalculatedMZ(std::numeric_limits<double>::quiet_NaN());
       ams_result.setQueryMass(std::numeric_limits<double>::quiet_NaN());
       ams_result.setFoundMass(std::numeric_limits<double>::quiet_NaN());
-      ams_result.setCharge(0); // cannot be NaN since Int, and -1 would be confusing too...
-      ams_result.setDBErrorPPM(std::numeric_limits<double>::quiet_NaN());
+      ams_result.setCharge(observed_charge);
       ams_result.setMZErrorPPM(std::numeric_limits<double>::quiet_NaN());
       ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
       ams_result.setFoundAdduct("null");
@@ -841,11 +843,10 @@ namespace OpenMS
         }
         names.push_back(entry->second[0]);
       }
+      hit.setCharge(it_row->getCharge());
       hit.setMetaValue("description", names);
-      hit.setMetaValue("charge", it_row->getCharge());
       hit.setMetaValue("modifications", it_row->getFoundAdduct());
       hit.setMetaValue("chemical_formula", it_row->getFormulaString());
-      hit.setMetaValue("ppm_db_error", it_row->getDBErrorPPM());
       hit.setMetaValue("ppm_mz_error", it_row->getMZErrorPPM());
       f.getPeptideIdentifications().back().insertHit(hit);
     }
@@ -1123,10 +1124,10 @@ namespace OpenMS
           MzTabString ppmerr;
           if (db_hit)
           {
-            ppmerr.set(String((*tab_it)[hit_idx].getDBErrorPPM()));
+            ppmerr.set(String((*tab_it)[hit_idx].getMZErrorPPM()));
           }
           MzTabOptionalColumnEntry col0;
-          col0.first = "opt_global_db_ppm_error";
+          col0.first = "opt_global_mz_ppm_error";
           col0.second = ppmerr;
           optionals.push_back(col0);
 
@@ -1160,7 +1161,7 @@ namespace OpenMS
           col2.second = sim_score;
           optionals.push_back(col2);
 
-          // set neutral masse
+          // set neutral mass
           MzTabString neutral_mass_string;
           if (db_hit)
           {
@@ -1221,7 +1222,7 @@ namespace OpenMS
     neg_adducts_fname_ = (String)param_.getValue("negative_adducts_file");
     if (neg_adducts_fname_.trim().empty()) neg_adducts_fname_ = (String)defaults_.getValue("negative_adducts_file");
 
-    store_empty_hits_ = param_.getValue("store_empty_hits").toBool();
+    keep_unidentified_masses_ = param_.getValue("keep_unidentified_masses").toBool();
     // database names might have changed, so parse files again before next query
     is_initialized_ = false;
   }
@@ -1399,19 +1400,8 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::searchMass_(const double& neutral_query_mass, std::pair<Size, Size>& hit_indices) const
+  void AccurateMassSearchEngine::searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const
   {
-    double diff_mz;
-    // check if mass error window is given in ppm or Da
-    if (mass_error_unit_ == "ppm")
-    {
-      diff_mz = (neutral_query_mass / 1e6) * mass_error_value_;
-    }
-    else
-    {
-      diff_mz = mass_error_value_;
-    }
-
     //LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
 
     // binary search for formulas which are within diff_mz distance
@@ -1420,8 +1410,8 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There are no entries found in mass-to-ids mapping file! Aborting... ", "0");
     }
 
-    std::vector<MappingEntry_>::const_iterator lower_it = std::lower_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass - diff_mz, CompareEntryAndMass_()); // first element equal or larger
-    std::vector<MappingEntry_>::const_iterator upper_it = std::upper_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass + diff_mz, CompareEntryAndMass_()); // first element greater than
+    std::vector<MappingEntry_>::const_iterator lower_it = std::lower_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass - diff_mass, CompareEntryAndMass_()); // first element equal or larger
+    std::vector<MappingEntry_>::const_iterator upper_it = std::upper_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass + diff_mass, CompareEntryAndMass_()); // first element greater than
 
     //std::cout << *lower_it << " " << *upper_it << "idx: " << lower_it - masskey_table_.begin() << " " << upper_it - masskey_table_.begin() << std::endl;
     Size start_idx = std::distance(mass_mappings_.begin(), lower_it);
