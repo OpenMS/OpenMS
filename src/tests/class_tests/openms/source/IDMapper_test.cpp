@@ -456,7 +456,6 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_5.consensusXML"), cons_map);
     mapper.annotate(cons_map, peptide_ids2, protein_ids2, true, true);
     cons_file.store(tmp_filename,cons_map);
-    //cons_file.store("/home/lars/Dropbox/InstituteMacBook/LN1/x.consensusXML",cons_map);
     WHITELIST("<?xml-stylesheet");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_5_out1.consensusXML"));
   }
