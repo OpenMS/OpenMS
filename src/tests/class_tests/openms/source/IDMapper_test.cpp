@@ -450,11 +450,20 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
   }
 
   {
+    IDMapper mapper5;
+    Param p5 = mapper5.getParameters();
+    p5.setValue("rt_tolerance", 20.0);
+    p5.setValue("mz_tolerance", 20.0);
+    p5.setValue("mz_measure","ppm");
+    p5.setValue("ignore_charge", "true");
+    p5.setValue("consensus:use_subelements", "true");
+    mapper5.setParameters(p5);
+
     std::string tmp_filename;
     NEW_TMP_FILE(tmp_filename);
     ConsensusMap cons_map;
     cons_file.load(OPENMS_GET_TEST_DATA_PATH("IDMapper_5.consensusXML"), cons_map);
-    mapper.annotate(cons_map, peptide_ids2, protein_ids2, true, true);
+    mapper5.annotate(cons_map, peptide_ids2, protein_ids2, true, true);
     cons_file.store(tmp_filename,cons_map);
     WHITELIST("<?xml-stylesheet");
     TEST_FILE_SIMILAR(tmp_filename,OPENMS_GET_TEST_DATA_PATH("IDMapper_5_out1.consensusXML"));
