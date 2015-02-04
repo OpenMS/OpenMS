@@ -26,7 +26,7 @@
       <ITEM name="AtomicNumber" value="1" type="int" />
       <NODE name="Isotopes">
         <NODE name="1">
-          <ITEM name="RelativeAbundance" value="1" type="float" />
+          <ITEM name="RelativeAbundance" value="100.0" type="float" />
           <ITEM name="AtomicMass" value="2.01410178" type="float" />
         </NODE>
       </NODE>
@@ -37,7 +37,7 @@
       <ITEM name="AtomicNumber" value="1" type="int" />
       <NODE name="Isotopes">
         <NODE name="1">
-          <ITEM name="RelativeAbundance" value="1" type="float" />
+          <ITEM name="RelativeAbundance" value="100.0" type="float" />
           <ITEM name="AtomicMass" value="3.01604927" type="float" />
         </NODE>
       </NODE>
