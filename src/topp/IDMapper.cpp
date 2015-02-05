@@ -217,7 +217,7 @@ protected:
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
       bool annotate_ids_with_subelements = getFlag_("consensus:annotate_ids_with_subelements");
 
-      mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements);
+      mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements);
 
       //annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
