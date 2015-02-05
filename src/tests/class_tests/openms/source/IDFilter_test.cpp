@@ -228,7 +228,7 @@ START_SECTION((void filterIdentificationsByExclusionPeptides(const PeptideIdenti
   peptides.insert("THPYGHAIVAGIERYPSK");
   peptides.insert("AITSDFANQAKTVLQNFK");
 
-  IDFilter::filterIdentificationsByExclusionPeptides(identification, peptides, identification2);
+  IDFilter::filterIdentificationsByExclusionPeptides(identification, peptides, false, identification2);
   peptide_hits = identification2.getHits();
   TEST_EQUAL(identification2.getScoreType(), "Mascot")
 

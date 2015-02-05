@@ -353,19 +353,18 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification,
                                                           const set<String>& peptides,
+                                                          bool ignore_modifications,
                                                           PeptideIdentification& filtered_identification)
   {
-    String protein_sequences;
-    String accession_sequences;
     vector<PeptideHit> filtered_peptide_hits;
-    PeptideHit temp_peptide_hit;
 
     filtered_identification = identification;
     filtered_identification.setHits(vector<PeptideHit>());
 
     for (Size i = 0; i < identification.getHits().size(); i++)
     {
-      if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().toString()) == peptides.end())
+      String query = ignore_modifications ? identification.getHits()[i].getSequence().toUnmodifiedString() : identification.getHits()[i].getSequence().toString();
+      if (find(peptides.begin(), peptides.end(), query) == peptides.end())
       {
         filtered_peptide_hits.push_back(identification.getHits()[i]);
       }
