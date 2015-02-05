@@ -223,7 +223,7 @@ protected:
     registerIntOption_("min_length", "<integer>", 0, "Keep only peptide hits with a length greater or equal this value. Value 0 will have no filter effect.", false);
     setMinInt_("min_length", 0);
     registerIntOption_("max_length", "<integer>", 0, "Keep only peptide hits with a length less or equal this value. Value 0 will have no filter effect. Value is overridden by min_length, i.e. if max_length < min_length, max_length will be ignored.", false);
-    setMaxInt_("max_length", 0);
+    setMinInt_("max_length", 0);
     registerIntOption_("min_charge", "<integer>", 1, "Keep only peptide hits for tandem spectra with charge greater or equal this value.", false);
     setMinInt_("min_charge", 1);
     registerFlag_("var_mods", "Keep only peptide hits with variable modifications (fixed modifications from SearchParameters will be ignored).", false);
