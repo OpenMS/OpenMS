@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
 
         void filterIdentificationsByProteins(PeptideIdentification& identification, libcpp_vector[FASTAEntry]& proteins, PeptideIdentification& filtered_identification, bool no_protein_identifiers) nogil except +
         void filterIdentificationsByProteins(ProteinIdentification& identification, libcpp_vector[FASTAEntry]& proteins, ProteinIdentification& filtered_identification) nogil except +
-        void filterIdentificationsByExclusionPeptides(PeptideIdentification& identification, libcpp_set[String]& peptides, PeptideIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByExclusionPeptides(PeptideIdentification& identification, libcpp_set[String]& peptides, bool ignore_modifications, PeptideIdentification& filtered_identification) nogil except +
         void filterIdentificationsByLength(PeptideIdentification& identification, PeptideIdentification& filtered_identification, Size min_length, Size max_length) nogil except +
         void filterIdentificationsByCharge(PeptideIdentification& identification, Int charge, PeptideIdentification& filtered_identification) nogil except +
 

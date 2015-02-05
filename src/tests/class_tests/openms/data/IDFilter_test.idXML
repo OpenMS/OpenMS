@@ -34,6 +34,8 @@
       </PeptideHit>
       <PeptideHit score="10.37" sequence="TLCHHDATFDNLVWTPK" charge="2" >
       </PeptideHit>
+      <PeptideHit score="10" sequence="MSLLSNM(Oxidation)ISIVKVGYNAR" charge="2" >
+      </PeptideHit>
     </PeptideIdentification>
   </IdentificationRun>
 </IdXML>
