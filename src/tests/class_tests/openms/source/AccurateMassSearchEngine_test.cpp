@@ -107,8 +107,11 @@ ams_param.setValue("keep_unidentified_masses", "true");
 AccurateMassSearchEngine ams;
 ams.setParameters(ams_param);
 
+START_SECTION(void init())
+  NOT_TESTABLE // tested below
+END_SECTION
 
-START_SECTION((void queryByMZ(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)))
+START_SECTION((void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
 {
   std::vector<AccurateMassSearchResult> hmdb_results_pos;
 
@@ -179,7 +182,7 @@ ams_feat_test.setParameters(ams_param);
 ams_feat_test.init();
 String feat_query_pos[] = {"C23H45NO4", "C20H37NO3", "C22H41NO"};
 
-START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results)))
+START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
 {
   Feature test_feat;
   test_feat.setRT(300.0);
@@ -219,7 +222,7 @@ START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_i
 END_SECTION
 
 
-START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results)))
+START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const))
 {
   ConsensusFeature cons_feat;
   cons_feat.setRT(300.0);
@@ -293,7 +296,7 @@ sl.push_back("xml-stylesheet");
 sl.push_back("IdentificationRun");
 fsc.setWhitelist(sl);
 
-START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
+START_SECTION((void run(FeatureMap&, MzTab&) const))
 {
   FeatureMap exp_fm;
   FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
@@ -317,7 +320,7 @@ START_SECTION((void run(FeatureMap& fmap, MzTab& mztab_out)))
 END_SECTION
 
 
-START_SECTION((void run(ConsensusMap& cmap, MzTab& mztab_out)))
+START_SECTION((void run(ConsensusMap&, MzTab&) const))
   ConsensusMap exp_cm;
   ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.consensusXML"), exp_cm);
   MzTab test_mztab2;

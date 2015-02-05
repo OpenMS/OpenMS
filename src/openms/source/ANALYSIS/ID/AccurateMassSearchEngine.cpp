@@ -258,7 +258,7 @@ namespace OpenMS
   AccurateMassSearchResult::AccurateMassSearchResult() :
   observed_mz_(),
   theoretical_mz_(),
-  observed_mass_(),
+  searched_mass_(),
   db_mass_(),
   charge_(),
   mz_error_ppm_(),
@@ -283,7 +283,7 @@ namespace OpenMS
   AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) :
     observed_mz_(source.observed_mz_),
     theoretical_mz_(source.theoretical_mz_),
-    observed_mass_(source.observed_mass_),
+    searched_mass_(source.searched_mass_),
     db_mass_(source.db_mass_),
     charge_(source.charge_),
     mz_error_ppm_(source.mz_error_ppm_),
@@ -306,7 +306,7 @@ namespace OpenMS
 
     observed_mz_ = rhs.observed_mz_;
     theoretical_mz_ = rhs.theoretical_mz_;
-    observed_mass_ = rhs.observed_mass_;
+    searched_mass_ = rhs.searched_mass_;
     db_mass_ = rhs.db_mass_;
     charge_ = rhs.charge_;
     mz_error_ppm_ = rhs.mz_error_ppm_;
@@ -345,12 +345,12 @@ namespace OpenMS
 
   double AccurateMassSearchResult::getQueryMass() const
   {
-    return observed_mass_;
+    return searched_mass_;
   }
 
   void AccurateMassSearchResult::setQueryMass(const double& m)
   {
-    observed_mass_ = m;
+    searched_mass_ = m;
   }
 
   double AccurateMassSearchResult::getFoundMass() const
@@ -482,11 +482,11 @@ namespace OpenMS
     os << "observed m/z: " <<  amsr.observed_mz_ << "\n";
     os << "m/z error ppm: " << amsr.mz_error_ppm_ << "\n";
     os << "charge: " << amsr.charge_ << "\n";
-    os << "query mass (observed): " << amsr.observed_mass_ << "\n";
+    os << "query mass (searched): " << amsr.searched_mass_ << "\n";
     os << "theoretical (neutral) mass: " << amsr.db_mass_ << "\n";
     os << "matching idx: " << amsr.matching_index_ << "\n";
-    os << "adduct: " << amsr.found_adduct_ << "\n";
     os << "emp. formula: " << amsr.empirical_formula_ << "\n";
+    os << "adduct: " << amsr.found_adduct_ << "\n";
     os << "matching HMDB ids:";
     for (Size i = 0; i < amsr.matching_hmdb_ids_.size(); ++i)
     {

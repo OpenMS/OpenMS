@@ -198,7 +198,7 @@ private:
     /// Stored information/results of DB query
     double observed_mz_;
     double theoretical_mz_;
-    double observed_mass_;
+    double searched_mass_;
     double db_mass_;
     Int charge_;
     double mz_error_ppm_;
@@ -254,7 +254,7 @@ public:
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
 
        */
-    void queryByMZ(const double& observed_mass_to_charge, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
     void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
     void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
