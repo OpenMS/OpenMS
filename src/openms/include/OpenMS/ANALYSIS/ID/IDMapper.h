@@ -138,7 +138,6 @@ public:
       // calculate the actual mapping
       std::multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
       std::multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
-      Size matches(0);
       // to achieve O(n) complexity we now move along the spectra
       // and for each spectrum we look at the peptide id's with the allowed RT range
       // once we finish a spectrum, we simply move back in the peptide id window a little to get from the
