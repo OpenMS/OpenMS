@@ -47,15 +47,65 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <iosfwd>
 #include <vector>
 
 namespace OpenMS
 {
   class EmpiricalFormula;
 
+  class OPENMS_DLLAPI AdductInfo
+  {
+
+  public: 
+    /**
+      C'tor, to build a representation of an adduct.
+
+      @param name Identifier as given in the Positive/Negative-Adducts file, e.g. 'M+2K-H;1+'
+      @param adduct Formula of the adduct, e.g. '2K-H'
+      @param charge The charge (must not be 0; can be negative), e.g. 1
+      @param is_intrinsic True for a molecule without an explicit adduct, e.g. 'M;-1'
+      @param mol_multiplier Molecular multiplier, e.g. for charged dimers '2M+H;+1'
+
+    **/
+    AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, uint mol_multiplier = 1);
+
+    /// returns the neutral mass of the small molecule without adduct (creates monomer from nmer, decharges and removes the adduct (given m/z of [nM+Adduct]/|charge| returns mass of [M])
+    double getNeutralMass(double observed_mz) const;
+
+    /// returns the m/z of the small molecule with neutral mass @p neutral_mass if the adduct is added (given mass of [M] returns m/z of [nM+Adduct]/|charge|)
+    double getMZ(double neutral_mass) const;
+
+    /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
+    /// If the negative parts are present in @p db_entry, true is returned.
+    bool isCompatible(EmpiricalFormula db_entry) const;
+
+    /// get charge of adduct
+    int getCharge() const;
+
+    /// original string used for parsing
+    const String& getName() const;
+
+    /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
+    /// e.g. M+H;1+
+    /// 'M' can have multipliers, e.g. '2M + H;1+' (for a singly charged dimer)
+    static AdductInfo parseAdductString(const String& adduct);
+
+  private:
+    /// hide default C'tor
+    AdductInfo();
+
+    /// members
+    String name_; //< arbitrary name, only used for error reporting
+    EmpiricalFormula ef_; //< EF for the actual adduct e.g. 'H' in 2M+H;+1
+    double mass_; //< computed from ef_.getMonoWeight(), but stored explicitly for efficiency
+    int charge_;  //< negative or positive charge; must not be 0
+    uint mol_multiplier_; //< Mol multiplier, e.g. 2 in 2M+H;+1
+  };
+
   class OPENMS_DLLAPI AccurateMassSearchResult
   {
-public:
+  public:
     /// Default constructor
     AccurateMassSearchResult();
 
@@ -97,12 +147,6 @@ public:
 
     /// set the charge
     void setCharge(const Int&);
-
-    /// get the error between found and query mass in ppm
-    double getDBErrorPPM() const;
-
-    /// set the error between found and query mass in ppm
-    void setDBErrorPPM(const double);
 
     /// get the error between observed and theoretical m/z in ppm
     double getMZErrorPPM() const;
@@ -148,16 +192,15 @@ public:
 
     // double computeCombinedScore(); // not implemented
     // debug/output functions
-    void outputResults() const;
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AccurateMassSearchResult& amsr);
 
 private:
     /// Stored information/results of DB query
     double observed_mz_;
     double theoretical_mz_;
-    double query_mass_;
-    double found_mass_;
+    double searched_mass_;
+    double db_mass_;
     Int charge_;
-    double db_error_ppm_;
     double mz_error_ppm_;
     double observed_rt_;
     double observed_intensity_;
@@ -171,6 +214,8 @@ private:
 
     double isotopes_sim_score_;
   };
+
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AccurateMassSearchResult& amsr);
 
   /**
     @brief An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
@@ -209,7 +254,7 @@ public:
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
 
        */
-    void queryByMZ(const double& observed_mass_to_charge, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
     void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
     void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
@@ -274,53 +319,11 @@ private:
 
       return ion_mode_internal;
     }
-
-
-    class OPENMS_DLLAPI AdductInfo_
-    {
-
-    public: 
-
-      AdductInfo_(const String& name, const EmpiricalFormula& adduct, int charge, bool is_intrinsic = false, uint mol_multiplier = 1);
-
-      /// returns the neutral mass of the small molecule without adduct (creates monomer fron nmer, decharges and removes the adduct (given m/z of [nM+Adduct]/|charge| returns mass of [M])
-      double getNeutralMass(double observed_mz) const;
-
-      /// returns the m/z of the small molecule with neutral mass @p neutral_mass if the adduct is added (given mass of [M] returns m/z of [nM+Adduct]/|charge|)
-      double getMZ(double neutral_mass) const;
-
-      /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
-      /// If the negative parts are present in @p db_entry, true is returned.
-      bool isCompatible(EmpiricalFormula db_entry) const;
-
-      /// get charge of adduct
-      int getCharge() const;
-
-      /// original string used for parsing
-      const String& getName() const;
-
-      /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
-      /// e.g. M+H;1+
-      /// 'M' can have multipliers, e.g. '2M + H;1+' (for a singly charged dimer)
-      static AdductInfo_ parseAdductString(const String& adduct);
-
-    private:
-      /// hide default C'tor
-      AdductInfo_();
-
-      /// members
-      String name_;
-      EmpiricalFormula ef_;
-      double mass_; // computed from ef_.getMonoWeight(), but stored explicitly for efficiency
-      int charge_;
-      bool is_intrinsic_;
-      uint mol_multiplier_;
-    };
     
     void parseMappingFile_(const String&);
     void parseStructMappingFile_(const String&);
-    void parseAdductsFile_(const String& filename, std::vector<AdductInfo_>& result);
-    void searchMass_(const double& neutral_query_mass, std::pair<Size, Size>& hit_indices) const;
+    void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
+    void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
     /// add search results to a Consensus/Feature
     void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
@@ -381,13 +384,13 @@ private:
     String db_mapping_file_;
     String db_struct_file_;
 
-    std::vector<AdductInfo_> pos_adducts_;
-    std::vector<AdductInfo_> neg_adducts_;
+    std::vector<AdductInfo> pos_adducts_;
+    std::vector<AdductInfo> neg_adducts_;
 
     String database_name_;
     String database_version_;
 
-    bool store_empty_hits_;
+    bool keep_unidentified_masses_;
   };
 
 }
