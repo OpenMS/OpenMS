@@ -1019,7 +1019,7 @@ public:
   {
     map.sortByPosition();
     map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-    map.setExperimentType("multiplex");
+    map.setExperimentType("labeled_MS1");
 
     // annotate maps
     for (unsigned i = 0; i < samples_labels_.size(); ++i)
