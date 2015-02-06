@@ -196,8 +196,9 @@ protected:
     registerFlag_("whitelist:by_seq_only", "Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
 
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");
-    registerInputFile_("blacklist:peptides", "<file>", "", "Peptides having the same sequence as any peptide in this file will be filtered out\n", false);
+    registerInputFile_("blacklist:peptides", "<file>", "", "Peptides having the same sequence and modification assignment as any peptide in this file will be filtered out. Use with blacklist:ignore_modification flag to only compare by sequence.\n", false);
     setValidFormats_("blacklist:peptides", ListUtils::create<String>("idXML"));
+    registerFlag_("blacklist:ignore_modifications", "Compare blacklisted peptides by sequence only.\n", false);
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false);
@@ -307,6 +308,7 @@ protected:
     bool no_protein_identifiers = getFlag_("whitelist:by_seq_only");
 
     String exclusion_peptides_file_name = getStringOption_("blacklist:peptides").trim();
+    bool exlusion_peptides_ignore_modifications = getFlag_("blacklist:ignore_modifications");
 
     double pv_rt_filtering = getDoubleOption_("rt:p_value");
     double pv_rt_filtering_1st_dim = getDoubleOption_("rt:p_value_1st_dim");
@@ -342,7 +344,14 @@ protected:
              it != identifications_exclusion[i].getHits().end();
              ++it)
         {
-          exclusion_peptides.insert(it->getSequence().toString());
+          if (exlusion_peptides_ignore_modifications)
+          {
+            exclusion_peptides.insert(it->getSequence().toUnmodifiedString());
+          }
+          else
+          {
+            exclusion_peptides.insert(it->getSequence().toString());
+          }
         }
       }
     }
@@ -431,7 +440,7 @@ protected:
       {
         applied_filters.insert("Filtering by exclusion peptide blacklisting ...\n");
         PeptideIdentification temp_identification = filtered_identification;
-        IDFilter::filterIdentificationsByExclusionPeptides(temp_identification, exclusion_peptides, filtered_identification);
+        IDFilter::filterIdentificationsByExclusionPeptides(temp_identification, exclusion_peptides, exlusion_peptides_ignore_modifications, filtered_identification);
       }
 
       if (unique)
