@@ -228,7 +228,7 @@ namespace OpenMS
     Int ms_level,
     double peak_bound_cwt,
     double peak_bound_ms2_level_cwt,
-    Int direction)
+    Int direction) const
   {
     // ATTENTION! It is assumed that the resolution==1 (no resolution higher than 1).
     // Comment: Who cares ??
@@ -325,7 +325,7 @@ namespace OpenMS
                                         PeakArea_ & area,
                                         Int distance_from_scan_border,
                                         Int & peak_left_index,
-                                        Int & peak_right_index, ContinuousWaveletTransformNumIntegration & wt)
+                                        Int & peak_right_index, ContinuousWaveletTransformNumIntegration & wt) const
   {
     // the Maximum may neither be the first or last point in the signal
     if ((area.max <= first) || (area.max >= last - 1))
@@ -445,10 +445,10 @@ namespace OpenMS
 #ifdef DEBUG_PEAK_PICKING
         std::cout << "while right endpoint " << std::endl;
 #endif
-        //      if the values are still falling to the right, everything is ok.
+        // if the values are still falling to the right, everything is ok.
         if (it_help->getIntensity() > (it_help + 1)->getIntensity())
         {
-          ++it_help;
+          ++it_help; // i.e. rightmost point is inclusive (not a past-end iterator)
 #ifdef DEBUG_PEAK_PICKING
           std::cout << "it_help " << it_help->getMZ() << std::endl;
 #endif
@@ -552,7 +552,7 @@ namespace OpenMS
     return false;
   }
 
-  void PeakPickerCWT::getPeakCentroid_(PeakArea_ & area)
+  void PeakPickerCWT::getPeakCentroid_(PeakArea_& area) const
   {
     PeakIterator left_it = area.max - 1, right_it = area.max;
     double max_intensity = area.max->getIntensity();
@@ -565,35 +565,32 @@ namespace OpenMS
     {
       w += left_it->getIntensity() * left_it->getMZ();
       sum += left_it->getIntensity();
-      if (left_it != area.left)
-        --left_it;
-      else
-        break;
+      if (left_it != area.left) --left_it;
+      else break;
     }
 
+    // todo: make right point inclusive
     while ((right_it < area.right) && (right_it->getIntensity() >= rel_peak_height))
     {
       w += right_it->getIntensity() * right_it->getMZ();
       sum += right_it->getIntensity();
-      if (right_it != area.right)
-        ++right_it;
+      if (right_it != area.right) ++right_it;
     }
 
     area.centroid_position = w / sum;
 
 #ifdef DEBUG_PEAK_PICKING
-
     std::cout << "________Centroid is___________ " << area.centroid_position << std::endl;
 #endif
 
   }
 
-  double PeakPickerCWT::lorentz_(double height, double lambda, double pos, double x)
+  double PeakPickerCWT::lorentz_(double height, double lambda, double pos, double x) const
   {
     return height / (1 + pow(lambda * (x - pos), 2));
   }
 
-  void PeakPickerCWT::initializeWT_(ContinuousWaveletTransformNumIntegration & wt, double & peak_bound_cwt, double & peak_bound_ms2_level_cwt)
+  void PeakPickerCWT::initializeWT_(ContinuousWaveletTransformNumIntegration & wt, double & peak_bound_cwt, double & peak_bound_ms2_level_cwt) const
   {
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "PeakPickerCWT<D>::initialize_ peak_bound_" << peak_bound_ <<  std::endl;
@@ -668,30 +665,31 @@ namespace OpenMS
 
   }
 
-  void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_ & area, double & area_left, double & area_right)
+  void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_& area, double& area_left, double& area_right)
   {
+    area_left = 0.0;
+    // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
     area_left += area.left->getIntensity() * ((area.left + 1)->getMZ() - area.left->getMZ()) * 0.5;
     area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max - 1)->getMZ()) * 0.5;
-
-    for (PeakIterator pi = area.left + 1; pi < area.max; pi++)
+    for (PeakIterator pi = area.left + 1; pi < area.max; ++pi)
     {
       double step = ((pi)->getMZ() - (pi - 1)->getMZ());
       area_left += step * pi->getIntensity();
     }
 
+    // same with right side
+    // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
+    area_right = 0.0;
     area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right - 1)->getMZ()) * 0.5;
-    area_right += (area.max + 1)->getIntensity() *  ((area.max + 2)->getMZ() - (area.max + 1)->getMZ()) * 0.5;
-
-    for (PeakIterator pi = area.max + 2; pi < area.right; pi++)
+    area_right += area.max->getIntensity() *  ((area.max + 1)->getMZ() - (area.max)->getMZ()) * 0.5;
+    for (PeakIterator pi = area.max + 1; pi < area.right; ++pi)
     {
       double step = ((pi)->getMZ() - (pi - 1)->getMZ());
       area_right += step * pi->getIntensity();
     }
   }
 
-  PeakShape PeakPickerCWT::fitPeakShape_
-    (const PeakPickerCWT::PeakArea_ & area,
-    bool enable_centroid_fit)
+  PeakShape PeakPickerCWT::fitPeakShape_(const PeakPickerCWT::PeakArea_& area) const
   {
 
 #ifdef DEBUG_PEAK_PICKING
@@ -702,195 +700,57 @@ namespace OpenMS
     double left_intensity  =  area.left->getIntensity();
     double right_intensity = area.right->getIntensity();
 
-    if (enable_centroid_fit)
+#ifdef DEBUG_PEAK_PICKING
+    std::cout << "fit at the peak maximum " << std::endl;
+#endif
+    // compute peak areas from the left and right minima
+    double peak_area_left, peak_area_right;
+    getPeakArea_(area, peak_area_left, peak_area_right);
+
+    // first the Lorentz peak ...
+    // (see equation 8.14 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*arctan(...) )
+    double left_width = max_intensity / peak_area_left * atan(sqrt(max_intensity / left_intensity - 1.));
+    double right_width = max_intensity / peak_area_right * atan(sqrt(max_intensity / right_intensity - 1.));
+
+    PeakShape lorentz(max_intensity, area.max->getMZ(),
+                      left_width, right_width, peak_area_left + peak_area_right,
+                      PeakShape::LORENTZ_PEAK);
+
+    lorentz.r_value = correlate_(lorentz, area);
+
+    // now the Sech2 peak ...
+    // (see equation 8.17 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*sqrt(...) )
+    left_width  = max_intensity / peak_area_left * sqrt(1. - left_intensity / max_intensity);
+    right_width  = max_intensity / peak_area_right * sqrt(1. - right_intensity / max_intensity);
+
+    PeakShape sech(max_intensity, area.max->getMZ(),
+                    left_width, right_width,
+                    peak_area_left + peak_area_right,
+                    PeakShape::SECH_PEAK);
+
+    sech.r_value = correlate_(sech, area);
+
+#ifdef DEBUG_PEAK_PICKING
+
+    std::cout << "r: " << lorentz.r_value << " " << sech.r_value << std::endl;
+    std::cout << "pos: " << lorentz.mz_position <<  " " << sech.mz_position << std::endl;
+    std::cout << "w1, w2: " << lorentz.left_width << " " << lorentz.right_width << " "
+              << sech.left_width << " " << sech.right_width << std::endl;
+    std::cout << "h: " << lorentz.height << std::endl;
+#endif
+
+    // take shape with higher correlation (Sech2 can be NaN, so Lorentzian might be the only option)
+    if ((lorentz.r_value > sech.r_value) || boost::math::isnan(sech.r_value))
     {
-#ifdef DEBUG_PEAK_PICKING
-      std::cout << "Fit at the peak centroid" << std::endl;
-#endif
-
-      //avoid zero width
-      float minimal_endpoint_centroid_distance = 0.01f;
-      if ((fabs(area.left->getMZ() - area.centroid_position[0]) < minimal_endpoint_centroid_distance)
-         || (fabs(area.right->getMZ() - area.centroid_position[0]) < minimal_endpoint_centroid_distance))
-      {
-#ifdef DEBUG_PEAK_PICKING
-        std::cout << "The distance between centroid and the endpoints is too small!" << std::endl;
-#endif
-
-        return PeakShape();
-      }
-      // the maximal position was taken directly from the cwt.
-      // first we do a "regular" fit of the left half
-      // TODO: avoid zero width!
-
-#ifdef DEBUG_PEAK_PICKING
-
-      std::cout << "Left end point: "         << area.left->getMZ()
-                << " centroid: "              << area.centroid_position
-                << " right end point: "       << area.right->getMZ()
-                << std::endl;
-      std::cout << " point left of centroid:" << (area.left_behind_centroid)->getMZ()
-                << std::endl;
-#endif
-
-      // lorentzian fit
-
-      // estimate the width parameter of the left peak side
-      PeakIterator left_it = area.left_behind_centroid;
-      double x0 = area.centroid_position[0];
-      double l_sqrd = 0.;
-      Int n = 0;
-      while (left_it - 1 >= area.left)
-      {
-        double x1 = left_it->getMZ();
-        double x2 = (left_it - 1)->getMZ();
-        double c = (left_it - 1)->getIntensity() / left_it->getIntensity();
-        l_sqrd += (1 - c) / (c * (pow((x2 - x0), 2)) - pow((x1 - x0), 2));
-        --left_it;
-        ++n;
-      }
-      double left_heigth = area.left_behind_centroid->getIntensity() / (1 + l_sqrd * pow(area.left_behind_centroid->getMZ() - area.centroid_position[0], 2));
-
-      // estimate the width parameter of the right peak side
-      PeakIterator right_it = area.left_behind_centroid + 1;
-      l_sqrd = 0.;
-      n = 0;
-      while (right_it + 1 <= area.right)
-      {
-        double x1 = right_it->getMZ();
-        double x2 = (right_it + 1)->getMZ();
-        double c = (right_it + 1)->getIntensity() / right_it->getIntensity();
-        l_sqrd += (1 - c) / (c * (pow((x1 - x0), 2)) - pow((x2 - x0), 2));
-        ++right_it;
-        ++n;
-      }
-
-      //estimate the heigth
-      double right_heigth = (area.left_behind_centroid + 1)->getIntensity() / (1 + l_sqrd * pow((area.left_behind_centroid + 1)->getMZ() - area.centroid_position[0], 2));
-
-      double height = std::min(left_heigth, right_heigth);
-
-      // compute the left and right area
-      double peak_area_left = 0.;
-      //                peak_area_left += area.left->getIntensity() * (  (area.left+1)->getMZ()
-      //                                                                                                                 -    area.left->getMZ()  ) * 0.5;
-      //                peak_area_left += height * (area.centroid_position[0]-area.left_behind_centroid->getMZ()) * 0.5;
-      // do not integrate to compute the area but sum up the intensities
-      // first we take the positions of the end points of the left area
-      peak_area_left += area.left->getIntensity() + height;
-      // then add the position left
-      for (PeakIterator pi = area.left + 1; pi <= area.left_behind_centroid; pi++)
-      {
-        //                      double step = ((pi)->getMZ() - (pi-1)->getMZ());
-        //                      peak_area_left += step * pi->getIntensity();
-        peak_area_left += pi->getIntensity();
-      }
-
-      double peak_area_right = 0.;
-      //                peak_area_right += area.right->getIntensity() * ((area.right)->getMZ()
-      //                                                                                                                 - (area.right-1)->getMZ()  ) * 0.5;
-      //                peak_area_right += height * ( (area.left_behind_centroid+1)->getMZ()-area.centroid_position[0]) * 0.5;
-      peak_area_right += area.right->getIntensity() + height;
-      for (PeakIterator pi = area.left_behind_centroid + 1; pi < area.right; pi++)
-      {
-        //                      double step = ((pi)->getMZ() - (pi-1)->getMZ());
-        //                      peak_area_right += step * pi->getIntensity();
-        peak_area_right += pi->getIntensity();
-      }
-
-      double left_width =    height / peak_area_left
-                              * atan(sqrt(height / area.left->getIntensity() - 1.));
-      double right_width =  height / peak_area_right
-                               * atan(sqrt(height / area.right->getIntensity() - 1.));
-
-
-      // TODO: test different heights; recompute widths; compute area
-      PeakShape lorentz(height, area.centroid_position[0], left_width, right_width,
-                        peak_area_left + peak_area_right, PeakShape::LORENTZ_PEAK);
-
-      lorentz.r_value = correlate_(lorentz, area);
-
-#ifdef DEBUG_PEAK_PICKING
-
-      std::cout << "lorentz r: " << lorentz.r_value << " " << "pos: " << lorentz.mz_position << std::endl;
-      std::cout << "w1, w2: " << lorentz.left_width << " " << lorentz.right_width << std::endl;
-      std::cout << "h: " << lorentz.height << std::endl;
-#endif
-
       return lorentz;
     }
-    else // no fitting on centroids
+    else
     {
-#ifdef DEBUG_PEAK_PICKING
-      std::cout << "fit at the peak maximum " << std::endl;
-#endif
-      // determine the left half of the peak area
-      double peak_area_left = 0.;
-      // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
-      peak_area_left += area.left->getIntensity() * ((area.left + 1)->getMZ() - area.left->getMZ()) * 0.5;
-      peak_area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max - 1)->getMZ()) * 0.5;
-      for (PeakIterator pi = area.left + 1; pi < area.max; ++pi)
-      {
-        double step = ((pi)->getMZ() - (pi - 1)->getMZ());
-        peak_area_left += step * pi->getIntensity();
-      }
-
-      // same with right side
-      // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
-      double peak_area_right = 0.;
-      peak_area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right - 1)->getMZ()) * 0.5;
-      peak_area_right += area.max->getIntensity() *  ((area.max + 1)->getMZ() - (area.max)->getMZ()) * 0.5;
-      for (PeakIterator pi = area.max + 1; pi < area.right; ++pi)
-      {
-        double step = ((pi)->getMZ() - (pi - 1)->getMZ());
-        peak_area_right += step * pi->getIntensity();
-      }
-
-      // first the Lorentz peak ...
-      // (see equation 8.14 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*arctan(...) )
-      double left_width = max_intensity / peak_area_left * atan(sqrt(max_intensity / left_intensity - 1.));
-      double right_width = max_intensity / peak_area_right * atan(sqrt(max_intensity / right_intensity - 1.));
-
-      PeakShape lorentz(max_intensity, area.max->getMZ(),
-                        left_width, right_width, peak_area_left + peak_area_right,
-                        PeakShape::LORENTZ_PEAK);
-
-      lorentz.r_value = correlate_(lorentz, area);
-
-      // now the Sech2 peak ...
-      // (see equation 8.17 on p. 74 in Dissertation of Eva Lange -- the equation has a typo: it should say A_r instead of A, i.e. lambda_r = h/A_r*sqrt(...) )
-      left_width  = max_intensity / peak_area_left * sqrt(1. - left_intensity / max_intensity);
-      right_width  = max_intensity / peak_area_right * sqrt(1. - right_intensity / max_intensity);
-
-      PeakShape sech(max_intensity, area.max->getMZ(),
-                     left_width, right_width,
-                     peak_area_left + peak_area_right,
-                     PeakShape::SECH_PEAK);
-
-      sech.r_value = correlate_(sech, area);
-
-#ifdef DEBUG_PEAK_PICKING
-
-      std::cout << "r: " << lorentz.r_value << " " << sech.r_value << std::endl;
-      std::cout << "pos: " << lorentz.mz_position <<  " " << sech.mz_position << std::endl;
-      std::cout << "w1, w2: " << lorentz.left_width << " " << lorentz.right_width << " "
-                << sech.left_width << " " << sech.right_width << std::endl;
-      std::cout << "h: " << lorentz.height << std::endl;
-#endif
-
-      // take shape with higher correlation (Sech2 can be NaN, so Lorentzian might be the only option)
-      if ((lorentz.r_value > sech.r_value) || boost::math::isnan(sech.r_value))
-      {
-        return lorentz;
-      }
-      else
-      {
-        return sech;
-      }
+      return sech;
     }
   }
 
-  bool PeakPickerCWT::deconvolutePeak_(PeakShape & shape, std::vector<PeakShape> & peak_shapes, double peak_bound_cwt)
+  bool PeakPickerCWT::deconvolutePeak_(PeakShape & shape, std::vector<PeakShape> & peak_shapes, double peak_bound_cwt) const
   {
     // scaling for charge one
     float scaling_DC = (float) param_.getValue("deconvolution:scaling");
@@ -1075,7 +935,7 @@ namespace OpenMS
                                        Int direction,
                                        double resolution,
                                        ContinuousWaveletTransformNumIntegration & wt,
-                                       double peak_bound_cwt)
+                                       double peak_bound_cwt) const
   {
     double noise_level = peak_bound_;
     double noise_level_cwt = peak_bound_cwt;
@@ -1146,7 +1006,7 @@ namespace OpenMS
     return found;
   }
 
-  Int PeakPickerCWT::determineChargeState_(std::vector<double> & peak_values)
+  Int PeakPickerCWT::determineChargeState_(std::vector<double> & peak_values) const
   {
     Int charge;
     Int peaks = (Int)peak_values.size() / 2;
@@ -1277,7 +1137,7 @@ namespace OpenMS
 
   }
 
-  void PeakPickerCWT::pick(const MSSpectrum<> & input, MSSpectrum<> & output)
+  void PeakPickerCWT::pick(const MSSpectrum<> & input, MSSpectrum<> & output) const
   {
     // copy the spectrum meta data
     output.clear(true);
@@ -1377,8 +1237,7 @@ namespace OpenMS
       {
         // if the signal to noise ratio at the max position is too small
         // the peak isn't considered
-
-        if ((area.max  != it_pick_end) && (sne.getSignalToNoise(area.max) < signal_to_noise_))
+        if ((area.max != it_pick_end) && (sne.getSignalToNoise(area.max) < signal_to_noise_))
         {
           it_pick_begin = area.max;
           distance_from_scan_border = distance(raw_peak_array.begin(), it_pick_begin);
@@ -1386,8 +1245,11 @@ namespace OpenMS
           continue;
         }
         else if (area.max >= it_pick_end)
+        {
           break;
-        //search for the endpoints of the peak
+        }
+        
+        // search for the endpoints of the peak
         regular_endpoints = getPeakEndPoints_(it_pick_begin,
                                               it_pick_end,
                                               area,
@@ -1395,7 +1257,7 @@ namespace OpenMS
                                               peak_left_index,
                                               peak_right_index, wt);
 
-        // compute the centroid position
+        // compute the centroid position (area.centroid_position)
         getPeakCentroid_(area);
 
         // if the peak achieves a minimal width, start the peak fitting
@@ -1409,7 +1271,7 @@ namespace OpenMS
           // << std::endl;
           // #endif
           // determine the best fitting Lorentzian or sech2 function
-          PeakShape shape = fitPeakShape_(area, centroid_fit);
+          PeakShape shape = fitPeakShape_(area);
           shape.setLeftEndpoint((input.begin() + distance(raw_peak_array.begin(), area.left)));
           shape.setRightEndpoint((input.begin() + distance(raw_peak_array.begin(), area.right)));
           if (shape.getRightEndpoint() == input.end())
