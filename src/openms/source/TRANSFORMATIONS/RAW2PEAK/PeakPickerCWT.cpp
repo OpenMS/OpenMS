@@ -558,7 +558,6 @@ namespace OpenMS
     double max_intensity = area.max->getIntensity();
     double rel_peak_height = max_intensity * (double)param_.getValue("centroid_percentage");
     double sum = 0., w = 0.;
-    area.centroid_position = area.max->getMZ();
 
     // compute the centroid position (use weighted mean)
     while ((left_it >= area.left) && (left_it->getIntensity() >= rel_peak_height))
@@ -569,12 +568,13 @@ namespace OpenMS
       else break;
     }
 
-    // todo: make right point inclusive
-    while ((right_it < area.right) && (right_it->getIntensity() >= rel_peak_height))
+    // right point is inclusive (but should normally not be reached due to intensity cutoff)
+    while ((right_it <= area.right) && (right_it->getIntensity() >= rel_peak_height))
     {
       w += right_it->getIntensity() * right_it->getMZ();
       sum += right_it->getIntensity();
       if (right_it != area.right) ++right_it;
+      else break;
     }
 
     area.centroid_position = w / sum;
@@ -1470,7 +1470,7 @@ namespace OpenMS
         {
           //store output peak
           Peak1D picked_peak;
-          // store area as intensity, the maximal intensity is stored in the metadataarrays
+          // store area as intensity, the maximal intensity is stored in the metadata arrays
           picked_peak.setIntensity(peak_shapes[i].area);
           picked_peak.setMZ(peak_shapes[i].mz_position);
           output.push_back(picked_peak);
