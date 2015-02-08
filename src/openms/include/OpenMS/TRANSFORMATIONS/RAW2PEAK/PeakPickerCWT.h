@@ -181,7 +181,7 @@ protected:
     };
 
 
-    /// Computes the peak's left and right area
+    /// Compute the peak's left and right area
     static void getPeakArea_(const PeakArea_ & area, double & area_left, double & area_right);
 
     /// Returns the best fitting peakshape

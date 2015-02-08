@@ -668,26 +668,24 @@ namespace OpenMS
   void PeakPickerCWT::getPeakArea_(const PeakPickerCWT::PeakArea_& area, double& area_left, double& area_right)
   {
     area_left = 0.0;
-    // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
-    area_left += area.left->getIntensity() * ((area.left + 1)->getMZ() - area.left->getMZ()) * 0.5;
-    area_left += area.max->getIntensity() *  (area.max->getMZ() - (area.max - 1)->getMZ()) * 0.5;
-    for (PeakIterator pi = area.left + 1; pi < area.max; ++pi)
+    // this does not depend on equal peak spacing
+    for (PeakIterator pi = area.left; pi < area.max; ++pi)
     {
-      double step = ((pi)->getMZ() - (pi - 1)->getMZ());
-      area_left += step * pi->getIntensity();
+      PeakIterator pi_next = pi + 1;
+      area_left += (pi->getIntensity() + pi_next->getIntensity()) / 2 // average intensity 
+                   * (pi_next->getMZ() - pi->getMZ()); // m/z diff
     }
 
-    // same with right side
-    // warning: this depends on equal peak spacing: better would be (i1+i2)*(mz2-mz1)
+    // same with right side (reverse order to sum up small numbers first (numerical stability))
     area_right = 0.0;
-    area_right += area.right->getIntensity() * ((area.right)->getMZ() - (area.right - 1)->getMZ()) * 0.5;
-    area_right += area.max->getIntensity() *  ((area.max + 1)->getMZ() - (area.max)->getMZ()) * 0.5;
-    for (PeakIterator pi = area.max + 1; pi < area.right; ++pi)
+    for (PeakIterator pi = area.right; pi > area.max; --pi)
     {
-      double step = ((pi)->getMZ() - (pi - 1)->getMZ());
-      area_right += step * pi->getIntensity();
+      PeakIterator pi_prev = pi - 1;
+      area_right += (pi->getIntensity() + pi_prev->getIntensity()) / 2 // average intensity 
+                    * (pi->getMZ() - pi_prev->getMZ()); // m/z diff
     }
   }
+
 
   PeakShape PeakPickerCWT::fitPeakShape_(const PeakPickerCWT::PeakArea_& area) const
   {
