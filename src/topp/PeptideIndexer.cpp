@@ -102,7 +102,8 @@ using namespace std;
              Allow ambiguous amino acids in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
              This mode might yield more protein hits for some peptides (those that contain ambiguous amino acids).
              Tolerant search also allows for real sequence mismatches (see 'mismatches_max'), in case you want to find related proteins which
-             might be the origin of a peptide if it had a SNP for example.
+             might be the origin of a peptide if it had a SNP for example. Runtime increase is moderate when allowing a single
+             mismatch, but rises drastically for two or more.
 
   The exact mode is much faster (about 10 times) and consumes less memory (about 2.5 times),
   but might fail to report a few protein hits with ambiguous amino acids for some peptides. Usually these proteins are putative, however.
