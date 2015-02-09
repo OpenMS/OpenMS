@@ -594,34 +594,34 @@
 			<UserParam type="float" name="Fido_prob_spurious" value="0"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="1,PH_13"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="1,PH_14"/>
-			<UserParam type="string" name="indistinguishable_proteins_2" value="1,PH_19"/>
-			<UserParam type="string" name="indistinguishable_proteins_3" value="1,PH_20"/>
-			<UserParam type="string" name="indistinguishable_proteins_4" value="1,PH_21"/>
-			<UserParam type="string" name="indistinguishable_proteins_5" value="1,PH_23"/>
-			<UserParam type="string" name="indistinguishable_proteins_6" value="1,PH_24"/>
-			<UserParam type="string" name="indistinguishable_proteins_7" value="1,PH_26"/>
-			<UserParam type="string" name="indistinguishable_proteins_8" value="1,PH_29"/>
-			<UserParam type="string" name="indistinguishable_proteins_9" value="1,PH_39"/>
-			<UserParam type="string" name="indistinguishable_proteins_10" value="1,PH_41"/>
-			<UserParam type="string" name="indistinguishable_proteins_11" value="1,PH_52"/>
-			<UserParam type="string" name="indistinguishable_proteins_12" value="1,PH_61"/>
-			<UserParam type="string" name="indistinguishable_proteins_13" value="1,PH_69"/>
-			<UserParam type="string" name="indistinguishable_proteins_14" value="1,PH_73"/>
-			<UserParam type="string" name="indistinguishable_proteins_15" value="1,PH_70,PH_71"/>
-			<UserParam type="string" name="indistinguishable_proteins_16" value="0.9999999999,PH_72"/>
-			<UserParam type="string" name="indistinguishable_proteins_17" value="0.9999988095,PH_51"/>
-			<UserParam type="string" name="indistinguishable_proteins_18" value="0.9999985926,PH_49"/>
-			<UserParam type="string" name="indistinguishable_proteins_19" value="0.9999928573,PH_58"/>
-			<UserParam type="string" name="indistinguishable_proteins_20" value="0.9999860593,PH_22"/>
-			<UserParam type="string" name="indistinguishable_proteins_21" value="0.9955946929,PH_90"/>
-			<UserParam type="string" name="indistinguishable_proteins_22" value="0.9820792206,PH_59"/>
-			<UserParam type="string" name="indistinguishable_proteins_23" value="0.9472752191,PH_109"/>
-			<UserParam type="string" name="indistinguishable_proteins_24" value="0.9366879406,PH_17"/>
-			<UserParam type="string" name="indistinguishable_proteins_25" value="0.9366879406,PH_40"/>
-			<UserParam type="string" name="indistinguishable_proteins_26" value="0.9228327521,PH_64"/>
-			<UserParam type="string" name="indistinguishable_proteins_27" value="0.9064509792,PH_103"/>
-			<UserParam type="string" name="indistinguishable_proteins_28" value="0.8928299093,PH_78"/>
-			<UserParam type="string" name="indistinguishable_proteins_29" value="0.8728226813,PH_53"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="1,PH_21"/>
+			<UserParam type="string" name="indistinguishable_proteins_3" value="1,PH_23"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="1,PH_24"/>
+			<UserParam type="string" name="indistinguishable_proteins_5" value="1,PH_26"/>
+			<UserParam type="string" name="indistinguishable_proteins_6" value="1,PH_29"/>
+			<UserParam type="string" name="indistinguishable_proteins_7" value="1,PH_39"/>
+			<UserParam type="string" name="indistinguishable_proteins_8" value="1,PH_41"/>
+			<UserParam type="string" name="indistinguishable_proteins_9" value="1,PH_52"/>
+			<UserParam type="string" name="indistinguishable_proteins_10" value="1,PH_61"/>
+			<UserParam type="string" name="indistinguishable_proteins_11" value="1,PH_69"/>
+			<UserParam type="string" name="indistinguishable_proteins_12" value="1,PH_73"/>
+			<UserParam type="string" name="indistinguishable_proteins_13" value="0.9999999999,PH_72"/>
+			<UserParam type="string" name="indistinguishable_proteins_14" value="0.9999988095,PH_51"/>
+			<UserParam type="string" name="indistinguishable_proteins_15" value="0.9999985926,PH_49"/>
+			<UserParam type="string" name="indistinguishable_proteins_16" value="0.9999985744,PH_19"/>
+			<UserParam type="string" name="indistinguishable_proteins_17" value="0.9999980891,PH_20"/>
+			<UserParam type="string" name="indistinguishable_proteins_18" value="0.9999928573,PH_58"/>
+			<UserParam type="string" name="indistinguishable_proteins_19" value="0.9999860593,PH_22"/>
+			<UserParam type="string" name="indistinguishable_proteins_20" value="0.9955946929,PH_90"/>
+			<UserParam type="string" name="indistinguishable_proteins_21" value="0.9820792206,PH_59"/>
+			<UserParam type="string" name="indistinguishable_proteins_22" value="0.9472752191,PH_109"/>
+			<UserParam type="string" name="indistinguishable_proteins_23" value="0.9366879406,PH_17"/>
+			<UserParam type="string" name="indistinguishable_proteins_24" value="0.9366879406,PH_40"/>
+			<UserParam type="string" name="indistinguishable_proteins_25" value="0.9228327521,PH_64"/>
+			<UserParam type="string" name="indistinguishable_proteins_26" value="0.9064509792,PH_103"/>
+			<UserParam type="string" name="indistinguishable_proteins_27" value="0.8928299093,PH_78"/>
+			<UserParam type="string" name="indistinguishable_proteins_28" value="0.8728226813,PH_53"/>
+			<UserParam type="string" name="indistinguishable_proteins_29" value="0.8685017911,PH_70,PH_71"/>
 			<UserParam type="string" name="indistinguishable_proteins_30" value="0.8455213075,PH_57,PH_65"/>
 			<UserParam type="string" name="indistinguishable_proteins_31" value="0.8381058782,PH_118"/>
 			<UserParam type="string" name="indistinguishable_proteins_32" value="0.820197279,PH_36,PH_37,PH_62,PH_63"/>
