@@ -72,7 +72,8 @@ using namespace std;
     be at the same RT as calibrant_2_reference. This only applies if calibrant_1* has a smaller RT than calibrant_2*.
     Otherwise the values are swapped.
 
-    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDRTCalibration.cli
     <B>INI file documentation of this tool:</B>
