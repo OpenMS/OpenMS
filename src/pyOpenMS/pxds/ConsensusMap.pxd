@@ -46,6 +46,14 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         bool operator==(ConsensusMap) nogil except +
         bool operator!=(ConsensusMap) nogil except +
 
+        int size() nogil except +
+        bool empty() nogil except +
+        void reserve(Size s) nogil except +
+        ConsensusFeature operator[](int) nogil except + #wrap-upper-limit:size()
+        void push_back(ConsensusFeature spec) nogil except +
+
+        ConsensusMap iadd(ConsensusMap) nogil except + # wrap-as:operator+=
+
         void clear(bool clear_meta_data) nogil except +
         void clear() nogil except +
 
@@ -74,10 +82,6 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         libcpp_vector[ConsensusFeature].iterator end(
                 )   nogil except +  # wrap-iter-end:__iter__(ConsensusFeature)
 
-        int   size()  nogil except +
-
-        ConsensusFeature operator[](int)      nogil except +
-
         # wrapped in ../addons/ConsensusMap.pyx:
         void applyMemberFunction(Size(* fun)()) nogil except + # wrap-ignore
 
@@ -97,3 +101,4 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
         String getExperimentType() nogil except +
         void setExperimentType(String experiment_type) nogil except +
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -289,6 +289,22 @@ protected:
       MzMLFile f;
       f.getOptions().addMSLevel(2);
       f.load(exp_name, exp);
+
+      if (exp.getSpectra().empty())
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+      }
+
+      // determine type of spectral data (profile or centroided)
+      SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+
+      if (spectrum_type == SpectrumSettings::RAWDATA)
+      {
+        if (!getFlag_("force"))
+        {
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
+        }
+      }
 
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {

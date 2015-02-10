@@ -199,7 +199,7 @@ template<class T> bool BSplineBase<T>::setDomain(const T *x,
     // Copy the x array into our storage.
     base->X.resize(nx);
     std::copy(x, x+nx, base->X.begin());
-    NX = base->X.size();
+    NX = static_cast<int>(base->X.size());
 
     // The Setup() method determines the number and size of node intervals.
     if (Setup(num_nodes)) {

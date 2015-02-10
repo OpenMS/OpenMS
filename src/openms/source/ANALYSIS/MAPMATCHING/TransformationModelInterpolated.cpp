@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,13 +34,13 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
+// Spline2dInterpolator
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
+
 #include <map>
 #include <vector>
 #include <algorithm>
 #include <numeric>
-
-// Spline2dInterpolator
-#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 // AkimaInterpolator
 #include <Wm5IntpAkimaNonuniform1.h>
@@ -99,7 +99,7 @@ public:
     {
       if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) 0) delete interpolator_;
       // re-construct a new interpolator
-      interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(x.size(), &x.front(), &y.front());
+      interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
 
     double eval(const double& x) const

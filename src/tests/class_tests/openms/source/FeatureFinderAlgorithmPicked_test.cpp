@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,14 +36,13 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
+///////////////////////////
 
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
-
-///////////////////////////
 
 START_TEST(FeatureFinderAlgorithmPicked, "$Id$")
 
@@ -54,11 +53,11 @@ using namespace OpenMS;
 using namespace OpenMS::Math;
 using namespace std;
 
-typedef FeatureFinderAlgorithmPicked<Peak1D> FFPP;
+typedef FeatureFinderAlgorithmPicked FFPP;
 
 FFPP* ptr = 0;
 FFPP* nullPointer = 0;
-FeatureFinderAlgorithm<Peak1D>* ffA_nullPointer = 0;
+FeatureFinderAlgorithm* ffA_nullPointer = 0;
 
 START_SECTION((FeatureFinderAlgorithmPicked()))
 	ptr = new FFPP;
@@ -69,13 +68,8 @@ START_SECTION((~FeatureFinderAlgorithmPicked()))
 	delete ptr;
 END_SECTION
 
-START_SECTION([EXTRA] FeatureFinderAlgorithmPicked() - with RichPeak1D)
-	FeatureFinderAlgorithmPicked<RichPeak1D> ffa;
-	NOT_TESTABLE
-END_SECTION
-
 START_SECTION((static FeatureFinderAlgorithm<PeakType>* create()))
-	FeatureFinderAlgorithm<Peak1D>* ptr2 = FFPP::create();
+  FeatureFinderAlgorithm* ptr2 = FFPP::create();
   TEST_NOT_EQUAL(ptr2,ffA_nullPointer)
 	delete ptr2;
 END_SECTION

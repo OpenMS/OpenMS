@@ -5,10 +5,10 @@
 	</SearchParameters>
 	<IdentificationRun date="2014-08-04T15:32:46" search_engine="" search_engine_version="" search_parameters_ref="SP_0" >
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="0" RT="0" >
-			<PeptideHit score="40" sequence="PEPTIDE" charge="2"/>
+			<PeptideHit score="40" sequence="PEPTIDETTT" charge="2"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="0" MZ="0" RT="0" >
-			<PeptideHit score="30" sequence="PEPTLDE" charge="2"/>
+			<PeptideHit score="30" sequence="PEPTLDETTT" charge="2"/>
         </PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

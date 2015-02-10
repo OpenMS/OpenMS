@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -614,6 +614,16 @@ namespace OpenMS
           sid = String(it->getMetaValue("spectrum_id"));
           if (sid.empty())
           {
+              if (it->getMZ() != it->getMZ())
+            {
+              emz = "nan";
+              LOG_WARN << "Found no spectrum reference and no mz position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+            }
+            if (it->getRT() != it->getRT())
+            {
+              ert = "nan";
+              LOG_WARN << "Found no spectrum reference and no RT position of identified spectrum! You are probabliy converting from an old format with insufficient data provision. Setting 'nan' - downstream applications might fail unless you set the references right." << std::endl;
+            }
             sid = String("MZ:") + emz + String("@RT:") + ert;
           }
         }

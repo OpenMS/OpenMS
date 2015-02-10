@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -123,6 +123,7 @@ using namespace std;
 
   @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_OMSSAAdapter.cli
     <B>INI file documentation of this tool:</B>
@@ -763,6 +764,22 @@ protected:
       fh.loadExperiment(inputfile_name, map, in_type, log_type_);
       ms2_spec_count = map.size();
       writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
+
+      if (map.getSpectra().empty())
+      {
+        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+      }
+
+      // determine type of spectral data (profile or centroided)
+      SpectrumSettings::SpectrumType spectrum_type = map[0].getType();
+
+      if (spectrum_type == SpectrumSettings::RAWDATA)
+      {
+        if (!getFlag_("force"))
+        {
+          throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
+        }
+      }
 
       int chunk(0);
       int chunk_size(getIntOption_("chunk_size"));

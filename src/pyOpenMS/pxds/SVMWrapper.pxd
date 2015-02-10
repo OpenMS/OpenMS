@@ -40,6 +40,7 @@ cdef extern from "<OpenMS/ANALYSIS/SVM/SVMWrapper.h>" namespace "OpenMS":
         void setWeights(libcpp_vector[ int ] &weight_labels, libcpp_vector[ double ] &weights) nogil except +
         # void createRandomPartitions(svm_problem *problem, Size number, libcpp_vector[ svm_problem * ] &partitions) nogil except +
         void createRandomPartitions(SVMData &problem, Size number, libcpp_vector[ SVMData ] &problems) nogil except +
+        # TODO: Mismatch between C++ return type ([u'svm_problem *']) and Python return type (['void']) in function public mergePartitions:
         # svm_problem * mergePartitions(libcpp_vector[ svm_problem * ] &problems, Size except) nogil except +
         void mergePartitions(libcpp_vector[ SVMData ] &problems, Size except_, SVMData &merged_problem) nogil except +
         # void getLabels(svm_problem *problem, libcpp_vector[ double ] &labels) nogil except +

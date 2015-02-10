@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,14 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_DATASTRUCTURES_BIGSTRING_H
 #define OPENMS_DATASTRUCTURES_BIGSTRING_H
 
-#include <vector>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
+#include <vector>
 
 namespace OpenMS
 {
@@ -62,7 +64,7 @@ public:
     /**
     @brief copy constructor
     */
-    BigString(const BigString & bs);
+    BigString(const BigString& bs);
 
     /**
     @brief destructor
@@ -73,7 +75,7 @@ public:
     @brief add new string to bigString
     @param new_entry FASTAEntry to be added to big_string
     */
-    void add(FASTAEntry const & new_entry);
+    void add(FASTAEntry const& new_entry);
 
     /**
     @brief setter for separator character by default $
@@ -107,13 +109,13 @@ public:
     @return FASTAEntry describing the protein
     @throw InvalidValue if a peptide is part of two different fasta entrys
     */
-    void getPeptide(FASTAEntry & entry, Size start, Size length);
+    void getPeptide(FASTAEntry& entry, Size start, Size length);
 
     /**
     @brief returns bigString
     @return const reference to bigString
     */
-    const String & getBigString() const;
+    const String& getBigString() const;
 
 protected:
 

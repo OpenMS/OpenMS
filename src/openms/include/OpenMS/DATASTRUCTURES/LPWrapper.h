@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,12 +31,17 @@
 // $Maintainer: Alexandra Zerck $
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
+
 #ifndef OPENMS_DATASTRUCTURES_LPWRAPPER_H
 #define OPENMS_DATASTRUCTURES_LPWRAPPER_H
 
-#include <limits>
+#include <OpenMS/DATASTRUCTURES/String.h> // for String
 
-#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+#include <OpenMS/config.h>
+
+#include <limits>
 
 // do NOT include glpk and CoinOr headers here, as they define bad stuff, which ripples through OpenMS then...
 // include them in LPWrapper.cpp where they do not harm
@@ -142,11 +147,11 @@ public:
 
     // problem creation/manipulation
     /// adds a row to the LP matrix, returns index
-    Int addRow(std::vector<Int> row_indices, std::vector<double> row_values, const String & name);
+    Int addRow(std::vector<Int> row_indices, std::vector<double> row_values, const String& name);
     /// adds an empty column to the LP matrix, returns index
     Int addColumn();
     /// adds a column to the LP matrix, returns index
-    Int addColumn(std::vector<Int> column_indices, std::vector<double> column_values, const String & name);
+    Int addColumn(std::vector<Int> column_indices, std::vector<double> column_values, const String& name);
 
     /**
       @brief Adds a row with boundaries to the LP matrix, returns index
@@ -160,7 +165,7 @@ public:
       @param upper_bound
       @param type Type of the row 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addRow(std::vector<Int> & row_indices, std::vector<double> & row_values, const String & name, double lower_bound, double upper_bound, Type type);
+    Int addRow(std::vector<Int>& row_indices, std::vector<double>& row_values, const String& name, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Adds a column with boundaries to the LP matrix, returns index
@@ -172,20 +177,20 @@ public:
       @param upper_bound
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addColumn(std::vector<Int> & column_indices, std::vector<double> & column_values, const String & name, double lower_bound, double upper_bound, Type type);
+    Int addColumn(std::vector<Int>& column_indices, std::vector<double>& column_values, const String& name, double lower_bound, double upper_bound, Type type);
 
     /// delete index-th row
     void deleteRow(Int index);
     /// sets name of the index-th column
-    void setColumnName(Int index, const String & name);
+    void setColumnName(Int index, const String& name);
     /// gets name of the index-th column
     String getColumnName(Int index);
     /// sets name of the index-th row
     String getRowName(Int index);
     /// gets index of the row with name
-    Int getRowIndex(const String & name);
+    Int getRowIndex(const String& name);
     /// gets index of the column with name
-    Int getColumnIndex(const String & name);
+    Int getColumnIndex(const String& name);
     /// gets column's upper bound
     double getColumnUpperBound(Int index);
     /// gets column's lower bound
@@ -195,7 +200,7 @@ public:
     /// gets row's lower bound
     double getRowLowerBound(Int index);
     /// sets name of the index-th row
-    void setRowName(Int index, const String & name);
+    void setRowName(Int index, const String& name);
 
     /**
       @brief Set column bounds.
@@ -269,7 +274,7 @@ public:
       @param filename output filename, if the filename ends with '.gz' it will be compressed
       @param format MPS-format is supported by GLPK and COIN-OR; LP and GLPK-formats only by GLPK
      */
-    void writeProblem(const String & filename, const WriteFormat format) const;
+    void writeProblem(const String& filename, const WriteFormat format) const;
 
     /**
       @brief solve problems, parameters like enabled heuristics can be given via solver_param
@@ -281,7 +286,7 @@ public:
 
       @return solver dependent (todo: fix)
     */
-    Int solve(SolverParam & solver_param, const Size verbose_level = 0);
+    Int solve(SolverParam& solver_param, const Size verbose_level = 0);
 
     /**
       @brief Get solution status.
@@ -295,7 +300,7 @@ public:
     double getColumnValue(Int index);
 
     Int getNumberOfNonZeroEntriesInRow(Int idx);
-    void getMatrixRow(Int idx, std::vector<Int> & indexes);
+    void getMatrixRow(Int idx, std::vector<Int>& indexes);
 
     /// choose solver; by default, only GLPK is available
     /// set this only at the very beginning of building your model, as otherwise your model is incomplete

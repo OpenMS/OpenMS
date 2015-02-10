@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,7 @@ using namespace std;
 /**
     @page UTILS_QCShrinker QCShrinker
 
-    @brief This application is used to remove the verbose table attachments from a qcml file that are not needed anymore, e.g. for a final report.
+    @brief This application is used to remove extra verbose table attachments from a qcML file that are not needed anymore, e.g. for a final report.
 
     <CENTER>
       <table>
@@ -82,7 +82,7 @@ using namespace std;
     - @p run the file that defined the run under which the qp for the attachment is aggregated as MZML file. The file is only used to extract the run name from the file name;
     - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given;
     
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
     
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCShrinker.cli

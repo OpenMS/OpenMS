@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -50,7 +51,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  GaussFitter1D::GaussFitter1D(const GaussFitter1D & source) :
+  GaussFitter1D::GaussFitter1D(const GaussFitter1D& source) :
     MaxLikeliFitter1D(source)
   {
     updateMembers_();
@@ -60,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  GaussFitter1D & GaussFitter1D::operator=(const GaussFitter1D & source)
+  GaussFitter1D& GaussFitter1D::operator=(const GaussFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -71,7 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  GaussFitter1D::QualityType GaussFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  GaussFitter1D::QualityType GaussFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
     min_ = max_ = set[0].getPos();
@@ -92,7 +93,7 @@ namespace OpenMS
     }
 
     // build model
-    model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("GaussModel"));
+    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;

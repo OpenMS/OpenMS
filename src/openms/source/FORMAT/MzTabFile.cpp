@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -2353,14 +2353,14 @@ String MzTabFile::generateMzTabSmallMoleculeHeader_(Size ms_runs, Size n_best_se
 
   for (Size i = 0; i != assays; ++i)
   {
-    header.push_back(String("smallmolecule_abundance_assay[") + String(i) + String("]"));
+    header.push_back(String("smallmolecule_abundance_assay[") + String(i + 1) + String("]"));
   }
 
   for (Size i = 0; i != study_variables; ++i)
   {
-    header.push_back(String("smallmolecule_abundance_study_variable[") + String(i) + String("]"));
-    header.push_back(String("smallmolecule_abundance_stdev_study_variable[") + String(i) + String("]"));
-    header.push_back(String("smallmolecule_abundance_std_error_study_variable[") + String(i) + String("]"));
+    header.push_back(String("smallmolecule_abundance_study_variable[") + String(i + 1) + String("]"));
+    header.push_back(String("smallmolecule_abundance_stdev_study_variable[") + String(i + 1) + String("]"));
+    header.push_back(String("smallmolecule_abundance_std_error_study_variable[") + String(i + 1) + String("]"));
   }
 
   // copy optional column names to header

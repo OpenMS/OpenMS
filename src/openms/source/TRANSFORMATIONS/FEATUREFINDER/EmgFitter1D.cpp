@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,11 +36,13 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/Factory.h>
+
 #include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS
 {
-  int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+  int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
   {
     Size n = m_data->n;
     EmgFitter1D::RawDataArrayType set = m_data->set;
@@ -64,8 +66,9 @@ namespace OpenMS
     }
     return 0;
   }
+
   // compute Jacobian matrix for the different parameters
-  int EmgFitter1D::EgmFitterFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+  int EmgFitter1D::EgmFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
   {
     Size n =  m_data->n;
     EmgFitter1D::RawDataArrayType set = m_data->set;
@@ -85,7 +88,7 @@ namespace OpenMS
     // iterate over all points of the signal
     for (Size i = 0; i < n; i++)
     {
-        EmgFitter1D::CoordinateType t = set[i].getPos();
+      EmgFitter1D::CoordinateType t = set[i].getPos();
 
       exp1 = exp(((w * w) / (2 * s * s)) - ((t - z) / s));
       exp2 = (1 + exp((-emg_const / sqrt_2) * (((t - z) / w) - w / s)));
@@ -120,7 +123,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  EmgFitter1D::EmgFitter1D(const EmgFitter1D & source) :
+  EmgFitter1D::EmgFitter1D(const EmgFitter1D& source) :
     LevMarqFitter1D(source)
   {
     setParameters(source.getParameters());
@@ -131,7 +134,7 @@ namespace OpenMS
   {
   }
 
-  EmgFitter1D & EmgFitter1D::operator=(const EmgFitter1D & source)
+  EmgFitter1D& EmgFitter1D::operator=(const EmgFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -143,7 +146,7 @@ namespace OpenMS
     return *this;
   }
 
-  EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // Calculate bounding box
     min_ = max_ = set[0].getPos();
@@ -173,14 +176,14 @@ namespace OpenMS
 
     // Optimize parameter with Levenberg-Marquardt algorithm
 //    CoordinateType x_init[4] = { height_, width_, symmetry_, retention_ };
-    Eigen::VectorXd x_init (4);
+    Eigen::VectorXd x_init(4);
     x_init(0) = height_;
     x_init(1) = width_;
     x_init(2) = symmetry_;
     x_init(3) = retention_;
     if (symmetric_ == false)
     {
-      EgmFitterFunctor functor (4, &d);
+      EgmFitterFunctor functor(4, &d);
       optimize_(x_init, functor);
     }
 
@@ -198,7 +201,7 @@ namespace OpenMS
 #endif
 
     // build model
-    model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("EmgModel"));
+    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("EmgModel"));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;
@@ -232,7 +235,7 @@ namespace OpenMS
     return correlation;
   }
 
-  void EmgFitter1D::setInitialParameters_(const RawDataArrayType & set)
+  void EmgFitter1D::setInitialParameters_(const RawDataArrayType& set)
   {
     // sum over all intensities
     CoordinateType sum = 0.0;

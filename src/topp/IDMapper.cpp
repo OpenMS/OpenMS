@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,6 +93,7 @@ using namespace std;
     Peptide positions are always matched against centroid positions. By default, the consensus centroids are used. However, if @p consensus:use_subelements is set, the centroids of sub-features are considered instead.
     In this case, a peptide identification is mapped to a consensus feature if any of its sub-features matches.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDMapper.cli
     <B>INI file documentation of this tool:</B>
@@ -157,6 +158,7 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
     registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
+    registerFlag_("consensus:annotate_ids_with_subelements", "Store the map index of the sub-feature in the peptide ID.", true);
   }
 
   ExitCodes main_(int, const char**)
@@ -213,8 +215,9 @@ protected:
       file.load(in, map);
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
+      bool annotate_ids_with_subelements = getFlag_("consensus:annotate_ids_with_subelements");
 
-      mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements);
+      mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements);
 
       //annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));

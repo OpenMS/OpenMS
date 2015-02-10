@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #define OPENMS_DATASTRUCTURES_DRANGE_H
 
 #include <OpenMS/DATASTRUCTURES/DIntervalBase.h>
+#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {
@@ -76,9 +78,9 @@ public:
     ///Types that describe the kind of intersection between two ranges
     enum DRangeIntersection
     {
-      Disjoint,         ///< No intersection
-      Intersects,       ///< Intersection
-      Inside            ///< One contains the other
+      Disjoint, ///< No intersection
+      Intersects, ///< Intersection
+      Inside ///< One contains the other
     };
 
     //@}
@@ -99,19 +101,19 @@ public:
     }
 
     /// Constructor that takes two Points and constructs a range.
-    DRange(const PositionType & lower, const PositionType & upper) :
+    DRange(const PositionType& lower, const PositionType& upper) :
       Base(lower, upper)
     {
     }
 
     /// Copy constructor.
-    DRange(const DRange & range) :
+    DRange(const DRange& range) :
       Base(range)
     {
     }
 
     /// Copy constructor for the base class
-    DRange(const Base & range) :
+    DRange(const Base& range) :
       Base(range)
     {
     }
@@ -127,14 +129,14 @@ public:
     }
 
     /// Assignment operator
-    DRange & operator=(const DRange & rhs)
+    DRange& operator=(const DRange& rhs)
     {
       Base::operator=(rhs);
       return *this;
     }
 
     /// Assignment operator for the base class
-    DRange & operator=(const Base & rhs)
+    DRange& operator=(const Base& rhs)
     {
       Base::operator=(rhs);
       return *this;
@@ -150,13 +152,13 @@ public:
     /**@name Predicates */
     //@{
     ///Equality operator
-    bool operator==(const DRange & rhs) const
+    bool operator==(const DRange& rhs) const
     {
       return Base::operator==(rhs);
     }
 
     /// Equality operator
-    bool operator==(const Base & rhs) const
+    bool operator==(const Base& rhs) const
     {
       return Base::operator==(rhs);
     }
@@ -167,7 +169,7 @@ public:
          @param position The point's position.
          @returns true if point lies inside this area.
     */
-    bool encloses(const PositionType & position) const
+    bool encloses(const PositionType& position) const
     {
       for (UInt i = 0; i != D; i++)
       {
@@ -193,7 +195,7 @@ public:
     }
 
     /// Returns the smallest range containing this range and @p other_range
-    DRange united(const DRange<D> & other_range) const
+    DRange united(const DRange<D>& other_range) const
     {
       PositionType united_min;
       PositionType united_max;
@@ -217,7 +219,7 @@ public:
 
          @param range The max_ range.
     */
-    DRangeIntersection intersects(const DRange & range) const
+    DRangeIntersection intersects(const DRange& range) const
     {
       //check if r.min_ is in this area
       if (encloses(range.min_))
@@ -259,7 +261,7 @@ public:
          @param range The max_ range.
          @returns True if the areas intersect (i.e. they intersect or one contains the other).
     */
-    bool isIntersected(const DRange & range) const
+    bool isIntersected(const DRange& range) const
     {
       //check if r.min_ is in this area
       if (encloses(range.min_))
@@ -306,7 +308,7 @@ public:
 
   ///Print the contents to a stream.
   template <UInt D>
-  std::ostream & operator<<(std::ostream & os, const DRange<D> & area)
+  std::ostream& operator<<(std::ostream& os, const DRange<D>& area)
   {
     os << "--DRANGE BEGIN--" << std::endl;
     os << "MIN --> " << area.min_ << std::endl;

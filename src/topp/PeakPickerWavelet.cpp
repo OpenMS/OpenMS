@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -133,7 +133,7 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output peak file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
-    registerFlag_("write_peak_meta_data", "Write additional information about the picked peaks (maximal intensity, left and right area...) into the mzML-file.Attention: this can blow up files,as 7 arrays are stored per spectrum!", true);
+    registerFlag_("write_peak_meta_data", "Write additional information about the picked peaks (maximal intensity, left and right area...) into the mzML-file. Attention: this can blow up files, since seven arrays are stored per spectrum!", true);
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/Factory.h>
 
 #include <numeric>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -57,7 +58,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ExtendedIsotopeFitter1D::ExtendedIsotopeFitter1D(const ExtendedIsotopeFitter1D & source) :
+  ExtendedIsotopeFitter1D::ExtendedIsotopeFitter1D(const ExtendedIsotopeFitter1D& source) :
     MaxLikeliFitter1D(source)
   {
     updateMembers_();
@@ -67,7 +68,7 @@ namespace OpenMS
   {
   }
 
-  ExtendedIsotopeFitter1D & ExtendedIsotopeFitter1D::operator=(const ExtendedIsotopeFitter1D & source)
+  ExtendedIsotopeFitter1D& ExtendedIsotopeFitter1D::operator=(const ExtendedIsotopeFitter1D& source)
   {
     if (&source == this)
       return *this;
@@ -78,7 +79,7 @@ namespace OpenMS
     return *this;
   }
 
-  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
+  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
   {
     // build model
     if (charge_ == 0)
@@ -101,7 +102,7 @@ namespace OpenMS
         max_ += stdev1_;
       }
 
-      model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -113,7 +114,7 @@ namespace OpenMS
     }
     else
     {
-      model = static_cast<InterpolationModel *>(Factory<BaseModel<1> >::create("ExtendedIsotopeModel"));
+      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("ExtendedIsotopeModel"));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");

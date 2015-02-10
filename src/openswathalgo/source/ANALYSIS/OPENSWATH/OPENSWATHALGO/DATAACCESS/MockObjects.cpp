@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h>
+
+#include <string>
 
 namespace OpenSwath
 {
@@ -86,8 +88,8 @@ namespace OpenSwath
   std::vector<std::string> MockMRMFeature::getPrecursorIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, boost::shared_ptr<MockFeature> >::const_iterator 
-        it = m_precursor_features.begin(); it != m_precursor_features.end(); ++it) 
+    for (std::map<std::string, boost::shared_ptr<MockFeature> >::const_iterator
+         it = m_precursor_features.begin(); it != m_precursor_features.end(); ++it)
     {
       v.push_back(it->first);
     }

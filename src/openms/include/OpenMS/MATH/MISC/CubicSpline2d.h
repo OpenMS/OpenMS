@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,8 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H_
-#define OPENMS_MATH_MISC_CUBICSPLINE2D_H_
+#ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H
+#define OPENMS_MATH_MISC_CUBICSPLINE2D_H
 
 #include <OpenMS/config.h>
 
@@ -106,4 +106,4 @@ private:
 
 }
 
-#endif /* CUBICSPLINE2D_H_ */
+#endif /* OPENMS_MATH_MISC_CUBICSPLINE2D_H */

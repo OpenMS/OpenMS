@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
 
     cdef cppclass FASTAFile:
 
-        FASTAFile()                  nogil except +
-        FASTAFile(FASTAFile)   nogil except + #wrap-ignore
+        FASTAFile() nogil except +
+        FASTAFile(FASTAFile) nogil except + #wrap-ignore
 
         void load(String& filename, libcpp_vector[FASTAEntry] & data) nogil except +
         void store(String& filename, libcpp_vector[FASTAEntry] & data) nogil except +

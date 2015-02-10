@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,8 @@
 // $Authors: Erhan Kenar $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING
-#define OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING
+#ifndef OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H
+#define OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -51,137 +51,138 @@
 
 namespace OpenMS
 {
-struct OPENMS_DLLAPI PrecursorMassComparator
-{
-    bool operator() (const MSSpectrum<Peak1D>& a, const MSSpectrum<Peak1D>& b)
-    {
-        return a.getPrecursors()[0].getMZ() < b.getPrecursors()[0].getMZ();
-    }
 
-} PrecursorMZLess;
+  struct OPENMS_DLLAPI PrecursorMassComparator
+  {
+      bool operator() (const MSSpectrum<Peak1D>& a, const MSSpectrum<Peak1D>& b)
+      {
+          return a.getPrecursors()[0].getMZ() < b.getPrecursors()[0].getMZ();
+      }
 
-class OPENMS_DLLAPI SpectralMatch
-{
-public:
-    /// Default constructor
-    SpectralMatch();
+  } PrecursorMZLess;
 
-    /// Default destructor
-    ~SpectralMatch();
+  class OPENMS_DLLAPI SpectralMatch
+  {
+  public:
+      /// Default constructor
+      SpectralMatch();
 
-    /// Copy constructor
-    SpectralMatch(const SpectralMatch&);
+      /// Default destructor
+      ~SpectralMatch();
 
-    /// Assignment operator
-    SpectralMatch& operator=(const SpectralMatch&);
+      /// Copy constructor
+      SpectralMatch(const SpectralMatch&);
 
-    double getObservedPrecursorMass() const;
-    void setObservedPrecursorMass(const double&);
+      /// Assignment operator
+      SpectralMatch& operator=(const SpectralMatch&);
 
-    double getObservedPrecursorRT() const;
-    void setObservedPrecursorRT(const double&);
+      double getObservedPrecursorMass() const;
+      void setObservedPrecursorMass(const double&);
 
-    double getFoundPrecursorMass() const;
-    void setFoundPrecursorMass(const double&);
+      double getObservedPrecursorRT() const;
+      void setObservedPrecursorRT(const double&);
 
-    Int getFoundPrecursorCharge() const;
-    void setFoundPrecursorCharge(const Int&);
+      double getFoundPrecursorMass() const;
+      void setFoundPrecursorMass(const double&);
 
-    double getMatchingScore() const;
-    void setMatchingScore(const double&);
+      Int getFoundPrecursorCharge() const;
+      void setFoundPrecursorCharge(const Int&);
 
-    Size getObservedSpectrumIndex() const;
-    void setObservedSpectrumIndex(const Size&);
+      double getMatchingScore() const;
+      void setMatchingScore(const double&);
 
-    Size getMatchingSpectrumIndex() const;
-    void setMatchingSpectrumIndex(const Size&);
+      Size getObservedSpectrumIndex() const;
+      void setObservedSpectrumIndex(const Size&);
 
-    String getPrimaryIdentifier() const;
-    void setPrimaryIdentifier(const String&);
+      Size getMatchingSpectrumIndex() const;
+      void setMatchingSpectrumIndex(const Size&);
 
-    String getSecondaryIdentifier() const;
-    void setSecondaryIdentifier(const String&);
+      String getPrimaryIdentifier() const;
+      void setPrimaryIdentifier(const String&);
 
-    String getCommonName() const;
-    void setCommonName(const String&);
+      String getSecondaryIdentifier() const;
+      void setSecondaryIdentifier(const String&);
 
-    String getSumFormula() const;
-    void setSumFormula(const String&);
+      String getCommonName() const;
+      void setCommonName(const String&);
 
-    String getInchiString() const;
-    void setInchiString(const String&);
+      String getSumFormula() const;
+      void setSumFormula(const String&);
 
-    String getSMILESString() const;
-    void setSMILESString(const String&);
+      String getInchiString() const;
+      void setInchiString(const String&);
 
-    String getPrecursorAdduct() const;
-    void setPrecursorAdduct(const String&);
+      String getSMILESString() const;
+      void setSMILESString(const String&);
 
-
-private:
-    double observed_precursor_mass_;
-    double observed_precursor_rt_;
-    double found_precursor_mass_;
-    Int found_precursor_charge_;
-    double matching_score_;
-    Size observed_spectrum_idx_;
-    Size matching_spectrum_idx_;
-
-    // further meta information
-    String primary_id_;
-    String secondary_id_;
-    String common_name_;
-    String sum_formula_;
-    String inchi_string_;
-    String smiles_string_;
-    String precursor_adduct_;
-
-};
-
-struct OPENMS_DLLAPI SpectralMatchScoreComparator
-{
-    bool operator() (const SpectralMatch& a, const SpectralMatch& b)
-    {
-        return a.getMatchingScore() > b.getMatchingScore();
-    }
-
-} SpectralMatchScoreGreater;
+      String getPrecursorAdduct() const;
+      void setPrecursorAdduct(const String&);
 
 
+  private:
+      double observed_precursor_mass_;
+      double observed_precursor_rt_;
+      double found_precursor_mass_;
+      Int found_precursor_charge_;
+      double matching_score_;
+      Size observed_spectrum_idx_;
+      Size matching_spectrum_idx_;
+
+      // further meta information
+      String primary_id_;
+      String secondary_id_;
+      String common_name_;
+      String sum_formula_;
+      String inchi_string_;
+      String smiles_string_;
+      String precursor_adduct_;
+
+  };
+
+  struct OPENMS_DLLAPI SpectralMatchScoreComparator
+  {
+      bool operator() (const SpectralMatch& a, const SpectralMatch& b)
+      {
+          return a.getMatchingScore() > b.getMatchingScore();
+      }
+
+  } SpectralMatchScoreGreater;
 
 
-class OPENMS_DLLAPI MetaboliteSpectralMatching :
-public DefaultParamHandler,
-public ProgressLogger
-{
-public:
-    /// Default constructor
-    MetaboliteSpectralMatching();
-
-    /// Default destructor
-    virtual ~MetaboliteSpectralMatching();
-
-    /// hyperscore computation
-    double computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const double&, const double&);
-
-    /// main method of MetaboliteSpectralMatching
-    void run(MSExperiment<>&, MzTab&);
 
 
-protected:
-    virtual void updateMembers_();
+  class OPENMS_DLLAPI MetaboliteSpectralMatching :
+  public DefaultParamHandler,
+  public ProgressLogger
+  {
+  public:
+      /// Default constructor
+      MetaboliteSpectralMatching();
 
-private:
-    /// private member functions
-    void exportMzTab_(const std::vector<SpectralMatch>&, MzTab&);
+      /// Default destructor
+      virtual ~MetaboliteSpectralMatching();
 
-    double precursor_mz_error_;
-    double fragment_mz_error_;
-    String mz_error_unit_;
-    String ion_mode_;
+      /// hyperscore computation
+      double computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const double&, const double&);
 
-    String report_mode_;
-};
+      /// main method of MetaboliteSpectralMatching
+      void run(MSExperiment<>&, MzTab&);
+
+
+  protected:
+      virtual void updateMembers_();
+
+  private:
+      /// private member functions
+      void exportMzTab_(const std::vector<SpectralMatch>&, MzTab&);
+
+      double precursor_mz_error_;
+      double fragment_mz_error_;
+      String mz_error_unit_;
+      String ion_mode_;
+
+      String report_mode_;
+  };
 
 
 }
@@ -189,4 +190,4 @@ private:
 
 
 
-#endif // OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING
+#endif // OPENMS_ANALYSIS_ID_METABOLITESPECTRALMATCHING_H

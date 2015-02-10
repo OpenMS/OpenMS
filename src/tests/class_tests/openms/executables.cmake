@@ -5,6 +5,7 @@ set(concept_executables_list
   FactoryBase_test
   Factory_test
   FuzzyStringComparator_test
+  #GlobalExceptionHandler_test
   SingletonRegistry_test
   StreamHandler_test
   VersionInfo_test
@@ -18,6 +19,7 @@ set(concept_executables_list
 
 set(datastructures_executables_list
   Adduct_test
+  #BinaryTreeNode_test
   ClusteringGrid_test
   CVMappingRule_test
   CVMappingTerm_test
@@ -45,17 +47,20 @@ set(datastructures_executables_list
   Map_test
   MassExplainer_test
   Matrix_test
+  #MatrixUtils_test
   Param_test
   QTCluster_test
   RangeManager_test
   SparseVector_test
   StringListUtils_test
+  StringUtils_test
   String_test
   SuffixArrayPeptideFinder_test
   SuffixArraySeqan_test
   SuffixArrayTrypticCompressed_test
   SuffixArrayTrypticSeqan_test
   SuffixArray_test
+  #ToolDescription_test
 )
 
 set(metadata_executables_list
@@ -72,6 +77,8 @@ set(metadata_executables_list
   Gradient_test
   HPLC_test
   DocumentIDTagger_test
+  Identification_test
+  IdentificationHit_test
   InstrumentSettings_test
   Instrument_test
   IonDetector_test
@@ -82,6 +89,8 @@ set(metadata_executables_list
   MetaInfoRegistry_test
   MetaInfo_test
   Modification_test
+  MSQuantifications_test
+  PeptideEvidence_test
   PeptideHit_test
   PeptideIdentification_test
   Precursor_test
@@ -93,6 +102,7 @@ set(metadata_executables_list
   ScanWindow_test
   Software_test
   SourceFile_test
+  SpectrumIdentification_test
   SpectrumSettings_test
   Tagging_test
 )
@@ -150,6 +160,7 @@ set(format_executables_list
   DTAFile_test
   EDTAFile_test
   FASTAFile_test
+  FeatureFileOptions_test
   FeatureXMLFile_test
   FileHandler_test
   FileTypes_test
@@ -169,6 +180,7 @@ set(format_executables_list
   MascotInfile_test
   MascotRemoteQuery_test
   MascotXMLFile_test
+  #MSDataWritingConsumer_test
   MsInspectFile_test
   MzDataFile_test
   MzIdentMLFile_test
@@ -179,7 +191,10 @@ set(format_executables_list
   MzMLValidator_test
   MzTab_test
   MzTabFile_test
+  MzQuantMLFile_test
+  #MzQuantMLValidator_test
   MzXMLFile_test
+  NoopMSDataConsumer_test
   TraMLValidator_test
   OMSSACSVFile_test
   OMSSAXMLFile_test
@@ -199,6 +214,7 @@ set(format_executables_list
   SpecArrayFile_test
   SwathFile_test
   SwathFileConsumer_test
+  SwathWindowLoader_test
   TextFile_test
   ToolDescriptionFile_test
   TraMLFile_test
@@ -229,11 +245,15 @@ set(math_executables_list
   LinearInterpolation_test
   LinearRegression_test
   MathFunctions_test
+  #MSNumpress_test
   NNLS_test
   NonNegativeLeastSquaresSolver_test
   PosteriorErrorProbabilityModel_test
+  #QuadraticRegression_test
+  #RegressionUtils_test
   ROCCurve_test
   StatisticFunctions_test
+  #Spline2d_test
 )
 
 set(filtering_executables_list
@@ -365,8 +385,9 @@ set(analysis_executables_list
   ConfidenceScoring_test
   ConsensusID_test
   ConsensusMapNormalizerAlgorithmThreshold_test
-  #ConsensusMapNormalizerAlgorithmMedian_test
-  #ConsensusMapNormalizerAlgorithmQuantile_test
+  ConsensusMapNormalizerAlgorithmMedian_test
+  ConsensusMapNormalizerAlgorithmQuantile_test
+  #DataAccessHelper_test
   DeNovoAlgorithm_test
   DeNovoIdentification_test
   DeNovoIonScoring_test
@@ -374,6 +395,7 @@ set(analysis_executables_list
   FalseDiscoveryRate_test
   FeatureDeconvolution_test
   FeatureDistance_test
+  FeatureGroupingAlgorithmIdentification_test
   FeatureGroupingAlgorithmLabeled_test
   FeatureGroupingAlgorithmQT_test
   FeatureGroupingAlgorithmUnlabeled_test
@@ -383,6 +405,7 @@ set(analysis_executables_list
   IDMapper_test
   IDRipper_test
   ILPDCWrapper_test
+  IncludeExcludeTarget_test
   InclusionExclusionList_test
   IsobaricChannelExtractor_test
   IsobaricIsotopeCorrector_test
@@ -411,6 +434,7 @@ set(analysis_executables_list
   MapAlignmentTransformer_test
   MassDecompositionAlgorithm_test
   MassDecomposition_test
+  MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
   OfflinePrecursorIonSelection_test
   PeptideAndProteinQuant_test
@@ -430,11 +454,13 @@ set(analysis_executables_list
   PSLPFormulation_test
   PSProteinInference_test
   QTClusterFinder_test
-  #QuantitativeExperimentalDesign_test
+  QuantitativeExperimentalDesign_test
   ReactionMonitoringTransition_test
+  RNPxlModificationsGenerator_test
   SVMWrapper_test
   SimplePairFinder_test
   StablePairFinder_test
+  #TargetedExperimentHelper_test
   TransformationDescription_test
   TransformationModel_test
   TransformationModelBSpline_test
@@ -444,6 +470,7 @@ set(analysis_executables_list
 
 set(applications_executables_list
   INIUpdater_test
+  #MapAlignerBase_test
   TOPPBase_test
   ToolHandler_test
   ParameterInformation_test
@@ -467,6 +494,7 @@ set(transformations_executables_list
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
   FeatureFinderAlgorithm_test
+  FeatureFinderDefs_test
   FeatureFinder_test
   Fitter1D_test
   GaussFitter1D_test
@@ -484,7 +512,9 @@ set(transformations_executables_list
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
+  PeakPickerIterative_test
   PeakPickerMaxima_test
+  PeakPickerSH_test
   PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,7 @@ namespace OpenMS
 
     // find the first ms1 scan in the experiment
     followUpScan = baseExperiment.begin();
-    while (followUpScan->getMSLevel() != 1 && followUpScan != baseExperiment.end())
+    while (followUpScan != baseExperiment.end() && followUpScan->getMSLevel() != 1)
     {
       ++followUpScan;
     }
@@ -70,13 +70,14 @@ namespace OpenMS
   void IsobaricChannelExtractor::PuritySate_::advanceFollowUp(const double rt)
   {
     // advance follow up scan until we found a ms1 scan with a bigger RT
+    if (followUpScan != baseExperiment.end()) ++followUpScan;
     while (followUpScan != baseExperiment.end())
     {
-      ++followUpScan;
       if (followUpScan->getMSLevel() == 1 && followUpScan->getRT() > rt)
       {
         break;
       }
+      ++followUpScan;
     }
 
     // check if we found one
@@ -352,7 +353,7 @@ namespace OpenMS
 
     // ------------------------------------------------------------------------------
     // compute total intensity
-    int idx = precursor_peak_idx - 1;
+    int idx = static_cast<int>(precursor_peak_idx) - 1;
     while (idx >= 0 && precursor_spec[idx].getMZ() > fuzzy_lower_mz)
     {
       if (precursor_spec[idx].getMZ() > strict_lower_mz)
@@ -368,7 +369,7 @@ namespace OpenMS
       --idx;
     }
 
-    idx = precursor_peak_idx + 1;
+    idx = static_cast<int>(precursor_peak_idx) + 1;
     while (idx < static_cast<int>(precursor_spec.size()) && precursor_spec[idx].getMZ() < fuzzy_upper_mz)
     {
       if (precursor_spec[idx].getMZ() < strict_upper_mz)

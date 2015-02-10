@@ -52,6 +52,7 @@ OPTIONS:
    -r      Refence branch [default: develop]
    -f      Perform uncrustify even if the current HEAD is dirty (files where modified).
    -n      Dry-run. Only show what would be uncrustify(ed).
+   -b      Create separate branch.
    -v      Verbose
 EOF
 }
@@ -67,8 +68,9 @@ REF_BRANCH=
 VERBOSE=0
 FORCE=0
 DRY=0
+CREATE_BRANCH=0
 
-while getopts “hr:vfn” OPTION
+while getopts “hr:vfnb” OPTION
 do
   case $OPTION in
     h)
@@ -86,6 +88,9 @@ do
       ;;
     n)
       DRY=1
+      ;;
+    b)
+      CREATE_BRANCH=1
       ;;
     ?)
       usage
@@ -130,7 +135,20 @@ branch_name=$(git rev-parse --abbrev-ref HEAD)
 print_if_verbose "Applying to branch ${branch_name}"
 
 # get modified files .. including only *.cpp and *.h, but no tests
-modified_files=$(git diff --name-only ${branch_name} $(git merge-base ${branch_name} ${REF_BRANCH}) | grep -e '.cpp$' -e '.h$' | grep -v '_test.cpp$')
+modified_files=$(git diff --name-only ${branch_name} $(git merge-base ${branch_name} ${REF_BRANCH}) | grep -e '.cpp$' -e '.h$' | grep -v '_test.cpp$' | grep -v 'thirdparty')
+
+# create uncrustified branch 
+if [ $CREATE_BRANCH == 1 ]; then
+  uncrustify_branch_name=${branch_name}_uncrustify
+  echo "Creating and switching to uncrustify branch ${uncrustify_branch_name}"
+  echo "Run git commit -a to commit uncrustified files afterwards!"
+
+  if [ $DRY -ne 1 ]; then
+    git checkout -b ${uncrustify_branch_name} ${branch_name}
+  else
+    echo "git checkout -b ${uncrustify_branch_name} ${branch_name}"
+  fi
+fi
 
 for f in $modified_files; do
   print_if_verbose "Uncrustify file: $f"

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,12 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H
 #define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
-#include <vector>
-#include <string>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <boost/shared_ptr.hpp>
+#include <string>
+#include <vector>
 
 namespace OpenSwath
 {
@@ -59,8 +60,8 @@ public:
       This function guarantees to produce a copy of the underlying object that
       provides thread-safe concurrent read access to the underlying data. It
       should be implemented with minimal copy-overhead to make this operation
-      as fast as possible. 
-      
+      as fast as possible.
+
       To use this function, each thread should call this function to produce an
       individual copy on which it can operate.
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,7 +55,7 @@ namespace OpenMS
       MSSpectrum<Peak1D>::ConstIterator it_mz;
       std::vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
       for (it_mz = it_rt->begin(), it_mz_boundary = it_rt_boundaries->begin();
-           it_mz < it_rt->end(), it_mz_boundary < it_rt_boundaries->end();
+           it_mz < it_rt->end() && it_mz_boundary < it_rt_boundaries->end();
            ++it_mz, ++it_mz_boundary)
       {
           peaks_mz.push_back(it_mz->getMZ());
