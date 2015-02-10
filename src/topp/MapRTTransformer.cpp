@@ -79,7 +79,8 @@ using namespace std;
 
     @note As output options, either 'out' or 'trafo_out' has to be provided. They can be used together.
 
-    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B> @n
     @verbinclude TOPP_MapRTTransformer.cli
     <B>INI file documentation of this tool:</B>

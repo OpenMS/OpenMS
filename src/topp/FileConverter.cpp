@@ -107,7 +107,7 @@ using namespace std;
   @ref OpenMS::KroenikFile "kroenik"
   @ref OpenMS::EDTAFile "edta"
 
-  See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
+  @note See @ref TOPP_IDFileConverter for similar functionality for protein/peptide identification file formats.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_FileConverter.cli

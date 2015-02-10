@@ -139,7 +139,8 @@ using namespace std;
 
   With the @p id:first_dim_rt flag, the additional columns @p rt_first_dim and @p predicted_rt_first_dim are included for @p PEPTIDE lines.
 
-  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TextExporter.cli
   <B>INI file documentation of this tool:</B>
