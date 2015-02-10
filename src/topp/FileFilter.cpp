@@ -106,7 +106,7 @@ using namespace std;
     MS2 and higher spectra can be filtered according to precursor m/z (see 'pc_mz'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
     If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'pc_mz' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
 
-    @note For conversion from/to mzIdentML (mzid) format, currently the @ref TOPP_IDFileConverter tool has to be used.
+    @note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FileFilter.cli
