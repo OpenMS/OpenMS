@@ -114,7 +114,7 @@ using namespace OpenMS;
     @htmlinclude TOPP_PrecursorIonSelector.html
 
     For the parameters of the algorithm section see the algorithm's documentation: @n
-        @ref OpenMS::PrecursorIonSelection @n
+    @ref OpenMS::PrecursorIonSelection @n
 
 */
 
@@ -143,8 +143,9 @@ protected:
     registerOutputFile_("next_feat", "<output file>", "", "feature map (featureXML) file with the selected precursors", false);
     setValidFormats_("next_feat", ListUtils::create<String>("featureXML"));
 
-    registerStringOption_("ids", "<id file>", "", "file containing results of identification");
+    registerInputFile_("ids", "<id file>", "", "file containing results of identification");
     setValidFormats_("ids", ListUtils::create<String>("idXML"));
+    
     registerIntOption_("num_precursors", "<Int>", 1, "number of precursors to be selected", false);
     registerInputFile_("raw_data", "<file>", "", "Input profile data.", false);
     setValidFormats_("raw_data", ListUtils::create<String>("mzML"));
