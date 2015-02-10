@@ -24,8 +24,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         void setCharge(double & ch) nogil except +
         double getMZErrorPPM() nogil except +
         void setMZErrorPPM(double & ppm) nogil except +
-        double getDBErrorPPM() nogil except +
-        void setDBErrorPPM(double & ppm) nogil except +
         double getObservedRT() nogil except +
         void setObservedRT(double & rt) nogil except +
         double getObservedIntensity() nogil except +
@@ -40,7 +38,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         void setMatchingHMDBids(libcpp_vector[ String ] & match_ids) nogil except +
         double getIsotopesSimScore() nogil except +
         void setIsotopesSimScore(double & sim_score) nogil except +
-        void outputResults() nogil except +
         libcpp_vector[double] getIndividualIntensities() nogil except +
         void setIndividualIntensities(libcpp_vector[double]) nogil except +
         Size getSourceFeatureIndex() nogil except +
