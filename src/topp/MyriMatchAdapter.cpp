@@ -82,6 +82,7 @@
 
   Use debug level >=1 to keep intermediate PepXML and config files for manual inspection.
 
+  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MyriMatchAdapter.cli
     <B>INI file documentation of this tool:</B>

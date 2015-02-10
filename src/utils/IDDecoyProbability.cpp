@@ -69,6 +69,7 @@ using namespace std;
     The probabilities are calculated using bayes law, similar to PeptideProphet.
     This implementation is much simpler than that of PeptideProphet.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_IDDecoyProbability.cli
     <B>INI file documentation of this tool:</B>

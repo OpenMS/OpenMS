@@ -107,6 +107,7 @@ using namespace std;
     If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level and use 'mz' option for MS1 and 'pc_mz' for MS2 data.
     Then merge them again. RT can be filtered at any step.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FileFilter.cli
     <B>INI file documentation of this tool:</B>

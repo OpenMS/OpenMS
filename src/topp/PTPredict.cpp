@@ -68,6 +68,7 @@ using namespace std;
     by the <b>svm_model</b> parameter in the command line or the ini file.
     This file should have been produced by the @ref TOPP_PTModel application.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PTPredict.cli
     <B>INI file documentation of this tool:</B>
@@ -113,7 +114,6 @@ protected:
     vector<double> predicted_labels;
     map<String, double> predicted_data;
     svm_problem* training_data = NULL;
-    svm_problem* prediction_data = NULL;
     UInt border_length = 0;
     UInt k_mer_length = 0;
     double sigma = 0;
@@ -211,6 +211,8 @@ protected:
 
       temp_peptides.insert(temp_peptides.end(), it_from, it_to);
       temp_labels.resize(temp_peptides.size(), 0);
+
+      svm_problem* prediction_data = NULL;
 
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
       {

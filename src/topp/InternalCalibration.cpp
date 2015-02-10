@@ -79,6 +79,7 @@ using namespace std;
 
   @note The tool assumes the input data is already picked or feature maps.
 
+  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_InternalCalibration.cli
   <B>INI file documentation of this tool:</B>

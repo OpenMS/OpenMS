@@ -79,12 +79,12 @@ using namespace std;
       </table>
     </CENTER>
 
-    The two or more given files (see parameter @p in) are merged. If a run/set exisits in several files, the qp of these are merged as well.
+    The two or more given files (see parameter @p in) are merged. If a run/set exisits in several files, the quality parameters of these are merged as well.
     Several runs from qcml files can be comprised in a set.
     
     - @p setname If the runs of the given input files are to be comprised in a set, this will be the name of the set.
 
-    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox, safari).
     
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCMerger.cli

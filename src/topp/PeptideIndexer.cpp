@@ -115,6 +115,7 @@ using namespace std;
   You can relax the requirements further by choosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) or <tt>none</tt> (essentially allowing all hits, no matter their context).
 
 
+  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PeptideIndexer.cli
   <B>INI file documentation of this tool:</B>

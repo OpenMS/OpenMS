@@ -131,6 +131,7 @@ using namespace std;
     The model can be used in @ref TOPP_PTPredict, to predict the likelihood
     for peptides to be proteotypic.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PTModel.cli
     <B>INI file documentation of this tool:</B>

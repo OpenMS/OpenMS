@@ -40,10 +40,13 @@ cdef extern from "<OpenMS/FORMAT/XTandemInfile.h>" namespace "OpenMS":
         Int getMaxPrecursorCharge() nogil except +
         void setNumberOfMissedCleavages(UInt missed_cleavages) nogil except +
         UInt getNumberOfMissedCleavages() nogil except +
+        void setOutputResults(String result) nogil except +
+        String getOutputResults() nogil except +
         void setMaxValidEValue(double value) nogil except +
         double getMaxValidEValue() nogil except +
         bool isRefining() nogil except +
         void setSemiCleavage(bool semi_cleavage) nogil except +
+        void setAllowIsotopeError(bool allow_isotope_error) nogil except +
         void setRefine(bool refine) nogil except +
         void write(String & filename) nogil except +
         void load(String & filename) nogil except +

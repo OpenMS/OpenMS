@@ -174,13 +174,41 @@ public:
 
     double getValueAtRT(double RT)
     {
-      typename OpenMS::MSSpectrum<PeakT>::const_iterator it = chromatogram_.MZBegin(RT);
-      return sn_.getSignalToNoise(*it);
+      if (chromatogram_.empty()) {return -1;}
+
+      // Note that MZBegin does not seem to return the same iterator on
+      // different setups, see https://github.com/OpenMS/OpenMS/issues/1163
+      typename OpenMS::MSSpectrum<PeakT>::const_iterator iter = chromatogram_.MZEnd(RT);
+
+      // ensure that iter is valid
+      if (iter == chromatogram_.end()) 
+      {
+        iter--;
+      }
+
+      typename OpenMS::MSSpectrum<PeakT>::const_iterator prev = iter;
+      if (prev != chromatogram_.begin() ) 
+      {
+        prev--;
+      }
+
+      if (std::fabs(prev->getMZ() - RT) < std::fabs(iter->getMZ() - RT) )
+      {
+        // prev is closer to the apex
+        return sn_.getSignalToNoise(*prev);
+      }
+      else
+      {
+        // iter is closer to the apex
+        return sn_.getSignalToNoise(*iter);
+      }
     }
 
 private:
+
     const OpenMS::MSSpectrum<PeakT>& chromatogram_;
     OpenMS::SignalToNoiseEstimatorMedian<OpenMS::MSSpectrum<PeakT> > sn_;
+
   };
 
 }

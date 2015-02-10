@@ -54,7 +54,7 @@ namespace OpenMS
   class OPENMS_DLLAPI SuffixArrayPeptideFinder :
     public WeightWrapper
   {
-
+    //@deprecated Deprecated in OpenMS 2.0 - only used by PILISIdentification (experimental TOPP tool)
 public:
 
     /**

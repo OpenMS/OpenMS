@@ -80,6 +80,7 @@ using namespace std;
 
   @experimental This algorithm and underlying format is work in progress and might change.
 
+  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MzTabExporter.cli
     <B>INI file documentation of this tool:</B>

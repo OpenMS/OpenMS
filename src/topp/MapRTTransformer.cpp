@@ -79,6 +79,7 @@ using namespace std;
 
     @note As output options, either 'out' or 'trafo_out' has to be provided. They can be used together.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B> @n
     @verbinclude TOPP_MapRTTransformer.cli
     <B>INI file documentation of this tool:</B>

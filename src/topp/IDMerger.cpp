@@ -75,6 +75,7 @@ using namespace std;
 
   Alternatively, with the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
 
+  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IDMerger.cli
   <B>INI file documentation of this tool:</B>

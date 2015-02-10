@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef MODIFIEDPEPTIDEGENERATOR_H
-#define MODIFIEDPEPTIDEGENERATOR_H
+#ifndef OPENMS_ANALYSIS_RNPXL_MODIFIEDPEPTIDEGENERATOR_H
+#define OPENMS_ANALYSIS_RNPXL_MODIFIEDPEPTIDEGENERATOR_H
 
 #include <vector>
 #include <map>

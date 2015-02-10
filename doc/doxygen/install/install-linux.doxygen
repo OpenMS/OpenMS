@@ -19,8 +19,8 @@
   by:
 
   \code
+  # Assuming you are in ~/Development
   git clone https://github.com/OpenMS/OpenMS.git
-  cd OpenMS
   \endcode
 
   @section bin_dep Dependencies obtainable in binary form
@@ -36,7 +36,7 @@
 
   <b>Required packages and libraries</b>
 
-  Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.5,
+  Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.6 (> 4.7 for the GUI),
   patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
   For the complete feature set to be enabled, %OpenMS needs recent versions of
@@ -46,6 +46,9 @@
 
   Building the documentation from the development version requires doxygen > 1.5.4 and
   pdflatex/texlive/texlive-full.
+  
+  Building the Python extensions pyOpenMS requires Python (> 2.6), Cython (>
+  0.19), nose testing and numpy.
 
   For the most common distributions, these commands will install most of the libraries:
 
@@ -68,9 +71,9 @@
   <tr>
     <td><B>Ubuntu/Debian <br/>(10.04/6.0 or later recommended)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make
+    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make git
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
-      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev
+      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libbz2-dev
     </pre></td>
 
   </tr>
@@ -121,6 +124,7 @@
   cmake -DBUILD_TYPE=LIST ../contrib
   cmake -DBUILD_TYPE=SEQAN ../contrib
   cmake -DBUILD_TYPE=WILDMAGIC ../contrib
+  cmake -DBUILD_TYPE=EIGEN ../contrib
   \endcode
 
   To avoid problems while building the libraries contained in the contrib
@@ -131,13 +135,11 @@
 
   It is assumed that you have successfully built and installed all dependencies
   and are in the root folder of the OpenMS tree (see above in @ref
-  checkout_and_build for instructions how to obtain OpenMS sources).
+  checkout_and_build for instructions how to obtain OpenMS sources either from
+  a release version or from the most recent development branch).
 
-  <a href="http://www.cmake.org/">CMake</a> is used to check the system and create the 'Makefile'.
-
-  Create a build directory beside the %OpenMS root directory of the extracted
-  source package (or the cloned git repository of %OpenMS), e.g., OpenMS-build (see
-  above note on out-of-source builds.)
+  The next step is to create a build directory beside the %OpenMS root
+  directory e.g., OpenMS-build (see above note on out-of-source builds).
 
   \code
   # Assuming you are in ~/Development and OpenMS is also located in
@@ -147,7 +149,9 @@
   \endcode
 
   In the %OpenMS build directory we execute %CMake to \a configure %OpenMS. You
-  should substitute \c /PATH/TO/contrib/ with the above path to the build contrib.
+  should substitute \c /PATH/TO/contrib/ with the above path to the build
+  contrib. Make sure you use the \a absolute (and not relative) path for the
+  contrib to avoid any potential issues. 
 
   \code
   cmake -DCMAKE_PREFIX_PATH="/PATH/TO/contrib;/usr;/usr/local" -DBOOST_USE_STATIC=OFF ../OpenMS
@@ -264,6 +268,13 @@
       As building parts of the documentation and running certain tests requires
       a running X Server, this flag can be used to disable those parts of the
       documentation and the tests that need an X Server. (Default: On)</td>
+    </tr>
+    <tr>
+      <td valign="top">\c WITH_GUI</td>
+      <td>Defines if the OpenMS GUI tools (TOPPView, TOPPAS) should be built or
+      not. These components need Qt > 4.7 which may not be available on some
+      systems (specifically older CentOS / RHEL servers). If you plan to use
+      OpenMS without a GUI, set this flag to "Off" (Default: On)</td>
     </tr>
     <tr>
       <td valign="top">\c ENABLE_TUTORIALS</td>

@@ -77,6 +77,7 @@ using namespace std;
     missing RT. This tool performs the annotation of the identification given the
     source file to the identification process.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_RTAnnotator.cli
     <B>INI file documentation of this tool:</B>

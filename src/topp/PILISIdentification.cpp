@@ -78,6 +78,7 @@ using namespace std;
     peptide in a separate line, either only the sequence or additionally
     with weight and charge in the second and third column.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_PILISIdentification.cli
     <B>INI file documentation of this tool:</B>
@@ -85,7 +86,7 @@ using namespace std;
 
     @todo Check for missing precursors (Hiwi)
 */
-
+//@deprecated Deprecated in OpenMS 2.0
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES

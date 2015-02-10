@@ -71,6 +71,7 @@ using namespace std;
 
   The output can be used as a blacklist filter input to @ref TOPP_IDFilter, to remove certain peptides.
 
+    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_Digestor.cli
     <B>INI file documentation of this tool:</B>

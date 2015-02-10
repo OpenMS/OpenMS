@@ -61,7 +61,7 @@ using namespace std;
 /**
     @page UTILS_QCImporter QCImporter
 
-    @brief This application is used embed tables or pictures generated externally as attachments to existing quality parameters in the targeted run/set meant to have attachments. If no quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
+    @brief Will import several quality parameter from a tabular (text) format into a qcML file - counterpart to QCExporter.
 
     <CENTER>
       <table>
@@ -81,7 +81,7 @@ using namespace std;
       </table>
     </CENTER>
 
-    If there is additional data from external tools in tabular format containing additional quality control parameter (qp) to runs or sets, or even new runs, in the qcml file at @p in it can be imported to complete the qcml file, written subsequently to @p out.
+    If there is additional data from external tools in tabular format containing additional quality parameter (qp) to runs or sets, or even new runs, these can be imported into the qcML file. For an example see the examples in the share directory.
 
     - @p table The table containing the additional qp values in the columns. First row is considered containing the header. The target run or set names/ids are indicated by column "raw data file", so each row after the header will contain the values of qps for that run.
     - @p mapping The mapping of the table header to the according qp cvs, also in csv format. The first row is considered containing the headers as in the table. The second row is considered the according qp cv accessions.

@@ -358,6 +358,13 @@ START_SECTION((Int solve(SolverParam &solver_param, const Size verbose_level=0))
   lp2.solve(param);
   TEST_EQUAL(lp2.getColumnValue(0),1)
   TEST_EQUAL(lp2.getColumnValue(1),1)
+
+  // Test an integer problem
+  lp2.readProblem(OPENMS_GET_TEST_DATA_PATH("LPWrapper_test_integer.mps"),"MPS");
+  lp2.setObjectiveSense(LPWrapper::MAX);
+  lp2.solve(param);
+  TEST_EQUAL(lp2.getColumnValue(0),2)
+  TEST_EQUAL(lp2.getColumnValue(1),2)
 }
 END_SECTION
 
