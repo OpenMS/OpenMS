@@ -63,7 +63,8 @@
 /**
    @page TOPP_MSGFPlusAdapter MSGFPlusAdapter
 
-   @brief
+   @brief Adapter for the MS-GF+ protein identification (database search) engine.
+
 <CENTER>
     <table>
         <tr>
@@ -78,15 +79,15 @@
     </table>
 </CENTER>
 
-    MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.
+    MS-GF+ must be installed before this wrapper can be used. Please make sure that Java and MS-GF+ are working.@n
+    The following MS-GF+ version is required: MS-GF+ Beta (v10089) (7/31/2014). At the time of writing, it can be downloaded from http://omics.pnl.gov/software/ms-gf. Older versions will not work properly.
 
     Input spectra for MS-GF+ have to be centroided; profile spectra are ignored.
 
+    The first time MS-GF+ is applied to a database (FASTA file), it will index the file contents and generate a number of auxiliary files in the same directory as the database (e.g. for "db.fasta": "db.canno", "db.cnlap", "db.csarr" and "db.cseq" will be generated). It is advisable to keep these files for future MS-GF+ searches, to save the indexing step.@n
     This adapter supports relative database filenames, which (when not found in the current working directory) are looked up in the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
-    The adapter works in three steps: First MS-GF+ is run on the input MS data and the sequence database, producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool. Finally, the .tsv file is parsed and a result in idXML format is generated.
-
-    This adapter has been tested mostly with the following MS-GF+ version: MS-GF+ Beta (v10089) (7/31/2014)
+    The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool. Finally, the .tsv file is parsed and a result in idXML format is generated.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_MSGFplusAdapter.cli
