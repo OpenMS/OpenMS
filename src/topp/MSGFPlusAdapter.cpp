@@ -69,7 +69,7 @@
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MSGFplusAdapter \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MSGFPlusAdapter \f$ \longrightarrow \f$</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
@@ -90,9 +90,9 @@
     The adapter works in three steps to generate an idXML file: First MS-GF+ is run on the input MS data and the sequence database, producing an mzIdentML (.mzid) output file containing the search results. This file is then converted to a text file (.tsv) using MS-GF+' "MzIDToTsv" tool. Finally, the .tsv file is parsed and a result in idXML format is generated.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_MSGFplusAdapter.cli
+    @verbinclude TOPP_MSGFPlusAdapter.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MSGFplusAdapter.html
+    @htmlinclude TOPP_MSGFPlusAdapter.html
 */
 
 // We do not want this class to show up in the docu:
