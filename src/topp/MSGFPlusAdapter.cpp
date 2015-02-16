@@ -109,7 +109,7 @@ class MSGFPlusAdapter :
 {
 public:
   MSGFPlusAdapter() :
-    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", false),
+    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),

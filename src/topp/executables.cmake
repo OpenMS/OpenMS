@@ -98,7 +98,6 @@ TextExporter
 TMTAnalyzer
 TOFCalibration
 XTandemAdapter
-TopPerc
 )
 
 ## all targets requiring OpenMS_GUI
