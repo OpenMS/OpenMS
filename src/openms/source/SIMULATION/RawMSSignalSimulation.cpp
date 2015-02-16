@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -377,8 +377,8 @@ namespace OpenMS
     this->startProgress(0, features.size(), "RawMSSignal");
 
     Size progress(0);
-    // we have a bit of code duplication here but this eases the parallelization
-    // step
+    // we have a bit of code duplication here but this eases the
+    // parallelization step
     if (experiment.size() == 1) // MS only
     {
       for (FeatureMap::iterator feature_it = features.begin();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,8 @@ struct ProbablePhosphoSites
 {
     Size first;
     Size second;
-    Size seq_1; // index of best permutation with site in phosphorilated state
-    Size seq_2; // index of permutation with site in unphosphorilated state
+    Size seq_1; // index of best permutation with site in phosphorylated state
+    Size seq_2; // index of permutation with site in unphosphorylated state
     Size peak_depth; // filtering level that gave rise to maximum discriminatory score
     Size AScore;
 };
@@ -86,7 +86,7 @@ class OPENMS_DLLAPI AScore
     /// return all phospho sites
     std::vector<Size> getSites(AASequence & without_phospho) const;
 
-    /// caclucalte all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
+    /// calculate all n_phosphorylation_events sized sets of phospho sites (all versions of the peptides with exactly n_phosphorylation_events)
     std::vector<std::vector<Size> > computePermutations(std::vector<Size> sites, Int n_phosphorylation_events) const;
 
     /// Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!

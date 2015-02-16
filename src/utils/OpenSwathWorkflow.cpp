@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1005,7 +1005,7 @@ namespace OpenMS
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_OpenSwathWorkflow Workflow
+  @page UTILS_OpenSwathWorkflow OpenSwathWorkflow
 
   @brief Complete workflow to run OpenSWATH
 
@@ -1016,15 +1016,15 @@ namespace OpenMS
   It executes the following steps in order:
 
   <ul>
-    <li>Reading of input files, can be provided as one single mzML or multiple "split" mzML (one per SWATH) </li>
+    <li>Reading of input files, which can be provided as one single mzML or multiple "split" mzMLs (one per SWATH)</li>
     <li>Computing the retention time transformation using RT-normalization peptides</li>
     <li>Reading of the transition list</li>
     <li>Extracting the specified transitions</li>
-    <li>Scoring the peakgroups in the extracted ion chromatograms (XIC)</li>
-    <li>Reporting the peakgroups and the chromatograms</li>
+    <li>Scoring the peak groups in the extracted ion chromatograms (XIC)</li>
+    <li>Reporting the peak groups and the chromatograms</li>
   </ul>
 
-  Look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") to see the available parameters and more functionality.
+  See below or have a look at the INI file (via "OpenSwathWorkflow -write_ini myini.ini") for available parameters and more functionality.
 
   <h3>Input: SWATH maps and transition list </h3>
   SWATH maps can be provided as mzML files, either as single file directly from
@@ -1055,6 +1055,11 @@ namespace OpenMS
 
   In addition, the extracted chromatograms can be written out using the
   -out_chrom parameter.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_OpenSwathWorkflow.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_OpenSwathWorkflow.html
 
 */
 

@@ -5,6 +5,8 @@ from libcpp.set cimport set as libcpp_set
 # from GridFeature cimport *
 from AASequence cimport *
 
+# typedef OpenMSBoost::unordered_map<Size, std::multimap<double, GridFeature*> > NeighborMap;
+
 cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
     
     cdef cppclass QTCluster "OpenMS::QTCluster":
@@ -19,4 +21,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
         # POINTER # bool update(libcpp_map[ Size, GridFeature * ] & removed) nogil except +
         double getQuality() nogil except +
         libcpp_set[ AASequence ]  getAnnotations() nogil except +
+        void setInvalid() nogil except +
+        bool isInvalid() nogil except +
+        # NeighborMap getNeighbors() nogil except +
 

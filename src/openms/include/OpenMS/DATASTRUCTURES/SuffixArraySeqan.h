@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -135,7 +135,7 @@ protected:
     typedef seqan::Iter<TIndex, seqan::VSTree<TIterSpec> > TIter;
 
     // TODO ??? was: typedef seqan::Index<seqan::String<char>, seqan::Index_ESA<seqan::TopDown<seqan::ParentLinks<seqan::Preorder> > > > TIndex;
-
+    // @deprecated Deprecated in OpenMS 2.0 - only used by SuffixArrayPeptideFinder - used by PILISIdentification (experimental TOPP tool)
 public:
 
     /**
@@ -409,7 +409,7 @@ protected:
 
     TIndex index_; ///< seqan suffix array
 
-    TIter* it_; ///< seqan suffix array iterator
+    TIter it_; ///< seqan suffix array iterator
 
     /**
     @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.

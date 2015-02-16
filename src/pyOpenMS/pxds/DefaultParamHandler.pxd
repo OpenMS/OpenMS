@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DefaultParamHandler.h>" namespace "Open
 
         # DefaultParamHandler(String & name) nogil except +
         # DefaultParamHandler(DefaultParamHandler & rhs) nogil except +
-        # libcpp_vector[ String ]  getSubsections() nogil except +
+        # libcpp_vector[ String ] getSubsections() nogil except +
 
         void setParameters(Param &param)  nogil except +
         Param getParameters()  nogil except +

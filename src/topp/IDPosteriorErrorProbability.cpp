@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,6 +86,8 @@ using namespace std;
     A peptide hit is assumed to be a target if its q-value is smaller than fdr_for_targets_smaller.
     The plots are saved as a gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file which contains all steps of the estimation. If this fails, the user has to run Gnuplot manually
     or adjust the PATH environment such that this tool can find it.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDPosteriorErrorProbability.cli

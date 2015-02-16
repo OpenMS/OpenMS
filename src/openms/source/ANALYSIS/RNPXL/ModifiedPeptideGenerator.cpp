@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,7 +65,7 @@ namespace OpenMS
           continue;
         }
 
-        // Term specifity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
+        // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
         const ResidueModification::Term_Specificity& term_spec = fixed_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
@@ -89,7 +89,7 @@ namespace OpenMS
     // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
     if (var_mods_begin == var_mods_end || max_variable_mods_per_peptide == 0)
     {
-      // if unmodifed peptides should be kept return the original list of digested peptides
+      // if unmodified peptides should be kept return the original list of digested peptides
       if (keep_unmodified)
       {
         all_modified_peptides.push_back(peptide);
@@ -116,7 +116,8 @@ namespace OpenMS
       modified_peptides.push_back(peptide);
     }
 
-    //iterate over each residue and build compatibility mapping describing which amino acid (peptide index) is compatible with which modification
+    //iterate over each residue and build compatibility mapping describing
+    //which amino acid (peptide index) is compatible with which modification
     map<int, vector<ResidueModification> > map_compatibility;
 
     for (AASequence::ConstIterator residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
@@ -138,7 +139,9 @@ namespace OpenMS
           continue;
         }
 
-        // Term specifity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
+        // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM
+        // (currently no explicit support in OpenMS for protein C-term and
+        // protein N-term)
         const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
         if (term_spec == ResidueModification::ANYWHERE)
         {
@@ -155,7 +158,8 @@ namespace OpenMS
       }
     }
 
-    // Check if no compatible site that can be modified by variable modification. If so just return peptides without variable modifications.
+    // Check if no compatible site that can be modified by variable
+    // modification. If so just return peptides without variable modifications.
     const Size compatible_mod_sites = map_compatibility.size();
     if (compatible_mod_sites == 0)
     {

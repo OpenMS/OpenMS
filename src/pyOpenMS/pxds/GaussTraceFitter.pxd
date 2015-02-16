@@ -22,4 +22,5 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>" nam
         double computeTheoretical(MassTrace & trace, Size k) nogil except +
         double getArea() nogil except +
         String getGnuplotFormula(MassTrace & trace, char function_name, double baseline, double rt_shift) nogil except +
+        double getValue(double rt) nogil except +
 

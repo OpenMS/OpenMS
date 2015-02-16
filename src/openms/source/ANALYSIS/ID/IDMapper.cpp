@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,7 +95,7 @@ namespace OpenMS
     ignore_charge_ = param_.getValue("ignore_charge") == "true";
   }
 
-  void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements)
+  void IDMapper::annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements, bool annotate_ids_with_subelements)
   {
     // validate "RT" and "MZ" metavalues exist
     checkHits_(ids);
@@ -171,7 +171,14 @@ namespace OpenMS
                 was_added = true;
                 if (mapping[cm_index].count(i) == 0)
                 {
-                  map[cm_index].getPeptideIdentifications().push_back(ids[i]);
+                  // Store the map index of the peptide feature in the id the feature was mapped to.
+                  PeptideIdentification id_pep = ids[i];
+                  if (annotate_ids_with_subelements)
+                  {
+                    id_pep.setMetaValue("map index", it_handle->getMapIndex());
+                  }
+                  
+                  map[cm_index].getPeptideIdentifications().push_back(id_pep);
                   ++assigned[i];
                   mapping[cm_index].insert(i);
                 }

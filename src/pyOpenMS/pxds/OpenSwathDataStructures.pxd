@@ -19,6 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStruct
         void setMZArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 
+  # boost::shared_ptr<OpenSwath::Spectrum> OpenSwath::SpectrumPtr;
   ctypedef shared_ptr[OSSpectrum] OSSpectrumPtr
 
   # See addons/OSChromatogram.pyx
@@ -30,5 +31,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStruct
         void setTimeArray(OSBinaryDataArrayPtr data) #wrap-ignore
         void setIntensityArray(OSBinaryDataArrayPtr data) #wrap-ignore
 
+  # boost::shared_ptr<OpenSwath::Chromatogram> OpenSwath::ChromatogramPtr;
   ctypedef shared_ptr[OSChromatogram] OSChromatogramPtr
 

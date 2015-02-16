@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -138,7 +138,6 @@ public:
       // calculate the actual mapping
       std::multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
       std::multimap<double, Size>::const_iterator identifications_iterator = identifications_precursors.begin();
-      Size matches(0);
       // to achieve O(n) complexity we now move along the spectra
       // and for each spectrum we look at the peptide id's with the allowed RT range
       // once we finish a spectrum, we simply move back in the peptide id window a little to get from the
@@ -259,10 +258,11 @@ public:
       @param ids PeptideIdentification for the ConsensusFeatures
       @param protein_ids ProteinIdentification for the ConsensusMap
       @param measure_from_subelements Do distance estimate from FeatureHandles instead of Centroid
+      @param annotate_ids_with_subelements Store map index of FeatureHandle in peptide identification?
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'
     */
-    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false);
+    void annotate(ConsensusMap& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, bool measure_from_subelements = false, bool annotate_ids_with_subelements = false);
 
 protected:
     void updateMembers_();

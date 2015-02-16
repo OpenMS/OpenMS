@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -105,10 +105,10 @@ Some information about the supported input types:
   @ref OpenMS::XTandemXMLFile "XTandem.xml"
   @ref OpenMS::SequestOutfile "Sequest .out directory"
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDFileConverter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDFileConverter.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_IDFileConverter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_IDFileConverter.html
 
 */
 

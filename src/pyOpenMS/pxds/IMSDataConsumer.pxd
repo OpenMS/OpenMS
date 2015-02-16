@@ -1,10 +1,11 @@
 from ExperimentalSettings cimport *
 from Types cimport *
 
-cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS::Interfaces":
+cdef extern from "<OpenMS/INTERFACES/IMSDataConsumer.h>" namespace "OpenMS::Interfaces":
 
     cdef cppclass IMSDataConsumer[SpectrumType, ChromatogramType]:
         # wrap-ignore
+        # ABSTRACT class
 
         void consumeSpectrum(SpectrumType &)
 
