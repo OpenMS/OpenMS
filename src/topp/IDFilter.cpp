@@ -211,7 +211,7 @@ protected:
 
     registerTOPPSubsection_("mz", "Filtering by mz");
     registerDoubleOption_("mz:error", "<float>", -1, "Filtering by deviation to theoretical mass (disabled for negative values).", false);
-    registerStringOption_("mz:unit", "<String>", "ppm", "Absolute or relativ error.", false);
+    registerStringOption_("mz:unit", "<String>", "ppm", "Absolute or relative error.", false);
     setValidStrings_("mz:unit", ListUtils::create<String>("Da,ppm"));
 
     registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
@@ -386,7 +386,7 @@ protected:
     }
 
     // Filtering peptide identification according to set criteria
-    for (Size i = 0; i < identifications.size(); i++)
+    for (Size i = 0; i < identifications.size(); ++i)
     {
       if (unique_per_protein)
       {
@@ -396,9 +396,10 @@ protected:
         {
           if (!it->metaValueExists("protein_references"))
           {
-            writeLog_("IDFilter: Warning, filtering with 'unique_per_protein' can only be done after indexing the file with 'PeptideIndexer' first.");
+            LOG_ERROR << "Error: Filtering with 'unique_per_protein' can only be done after indexing the file with 'PeptideIndexer'." << std::endl;
+            return INCOMPATIBLE_INPUT_DATA;
           }
-          if (it->metaValueExists("protein_references") && (String)it->getMetaValue("protein_references") == "unique")
+          else if ((String)it->getMetaValue("protein_references") == "unique")
           {
             hits.push_back(*it);
           }
@@ -635,6 +636,7 @@ protected:
     if (filtered_protein_identifications.size() == 0) LOG_INFO << "0 / 0";
     else LOG_INFO << filtered_protein_identifications[0].getHits().size() << " / " << protein_identifications[0].getHits().size();
     LOG_INFO << std::endl;
+    
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
