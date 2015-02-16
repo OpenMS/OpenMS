@@ -214,11 +214,45 @@ namespace OpenMS
     }
   }
 
+  bool EnzymaticDigestion::isCleavageSiteInString_(const String& protein, const String::const_iterator& iterator) const
+  {
+    switch (enzyme_)
+    {
+    case ENZYME_TRYPSIN:
+      if (use_log_model_)
+      {
+	//TODO: throw not implemented exception
+      }
+      else // naive digestion
+      {
+        // R or K at the end and not P afterwards
+        return (*iterator == 'R' || *iterator == 'K') && ((iterator + 1) == protein.end() || *(iterator + 1) != 'P');
+      }
+
+    default:
+      return false;
+    }
+  }
+
   void EnzymaticDigestion::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator) const
   {
     while (iterator != protein.end())
     {
       if (isCleavageSite_(protein, iterator))
+      {
+        ++iterator;
+        return;
+      }
+      ++iterator;
+    }
+    return;
+  }
+
+  void EnzymaticDigestion::nextCleavageSiteInString_(const String& sequence, String::const_iterator& iterator) const
+  {
+    while (iterator != sequence.end())
+    {
+      if (isCleavageSiteInString_(sequence, iterator))
       {
         ++iterator;
         return;
@@ -365,6 +399,76 @@ namespace OpenMS
           ++b;
           ++e;
           ++pos;
+        }
+      }
+    }
+  }
+
+  void EnzymaticDigestion::digestUnmodifiedString(const String& sequence, vector<pair<String::const_iterator, String::const_iterator> >& output, Size min_length = 0) const
+  {
+    // initialization
+    SignedSize count = 1;
+    output.clear();
+
+    SignedSize missed_cleavages = missed_cleavages_;
+
+    // missed cleavage iterators
+    vector<String::ConstIterator> mc_iterators;
+
+    if (missed_cleavages != 0)
+    {
+      mc_iterators.push_back(sequence.begin());
+    }
+
+    String::const_iterator begin = sequence.begin();
+    String::const_iterator end = sequence.begin();
+    while (nextCleavageSiteInString_(sequence, end), end != sequence.end())
+    {
+      ++count;
+      if (missed_cleavages != 0)
+      {
+        mc_iterators.push_back(end);
+      }
+      // store begin and (one after) end position of subsequence
+      if (end - begin >= min_length)
+        output.push_back(make_pair(begin, end));
+      begin = end;
+    }
+    // add last sequence
+    if (end - begin >= min_length)
+      output.push_back(make_pair(begin, end));
+
+    if (missed_cleavages != 0)
+    {
+      mc_iterators.push_back(end);
+    }
+
+    // missed cleavages
+    if (mc_iterators.size() > 2) //there is at least one cleavage site!
+    {
+      // resize to number of fragments
+      Size sum = count;
+
+      for (SignedSize i = 1; i < count; ++i)
+      {
+        if (i > missed_cleavages_)
+	{
+          break;
+	}
+        sum += count - i;
+      }
+
+      // generate fragments with missed cleavages
+      for (SignedSize i = 1; ((i <= missed_cleavages_) && (count > i)); ++i)
+      {
+        vector<String::const_iterator>::const_iterator b = mc_iterators.begin();
+        vector<String::const_iterator>::const_iterator e = b + (i + 1);
+        while (e != mc_iterators.end())
+        {
+          if (*e - *b >= min_length)
+            output.push_back(make_pair(*b, *e));
+          ++b;
+          ++e;
         }
       }
     }
