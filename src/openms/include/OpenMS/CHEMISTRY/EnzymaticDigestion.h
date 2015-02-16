@@ -72,7 +72,6 @@ public:
     /// Names of the Specificity
     static const std::string NamesOfSpecificity[SIZE_OF_SPECIFICITY];
 
-
     /// Default constructor
     EnzymaticDigestion();
 
@@ -81,7 +80,6 @@ public:
 
     /// Assignment operator
     EnzymaticDigestion& operator=(const EnzymaticDigestion& rhs);
-
 
     /// Returns the number of missed cleavages for the digestion
     SignedSize getMissedCleavages() const;
@@ -108,6 +106,9 @@ public:
     /// Performs the enzymatic digestion of a protein.
     void digest(const AASequence& protein, std::vector<AASequence>& output) const;
 
+    /// Performs the enzymatic digestion of a unmodified protein String.
+    void digestUnmodifiedString(const String& sequence, std::vector<std::pair<String::const_iterator, String::const_iterator> >& output, Size min_length) const;
+  
     /// Returns the number of peptides a digestion of @p protein would yield under the current enzyme and missed cleavage settings.
     Size peptideCount(const AASequence& protein);
 
@@ -117,6 +118,12 @@ public:
 protected:
     /// Returns the naive cleavage site positions without specificity
     std::vector<Size> tokenize_(const String& sequence) const;
+
+    /// moves the iterator @p p behind (i.e., C-term) the next cleavage site of the @p sequence
+    void nextCleavageSiteInString_(const String & sequence, String::const_iterator & p) const;
+
+    /// tests if position pointed to by @p p (N-term side) is a valid cleavage site
+    bool isCleavageSiteInString_(const String & sequence, const String::const_iterator & p) const;
 
     /// Number of missed cleavages
     SignedSize missed_cleavages_;
