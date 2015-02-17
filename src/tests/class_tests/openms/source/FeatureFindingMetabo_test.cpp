@@ -33,11 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+
 
 ///////////////////////////
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
@@ -70,9 +72,7 @@ END_SECTION
 MSExperiment<Peak1D> input;
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_input1.mzML"), input);
 
-FeatureMap exp_fm, test_fm;
-FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML"), exp_fm);
-// exp_fm.sortByMZ();
+FeatureMap test_fm;
 
 std::vector<MassTrace> output_mt, splitted_mt, filtered_mt;
 
@@ -82,25 +82,28 @@ test_mtd.run(input, output_mt);
 ElutionPeakDetection test_epd;
 test_epd.detectPeaks(output_mt, splitted_mt);
 
+FuzzyStringComparator fsc;
+//fsc.setAcceptableAbsolute(1e-8);
+StringList sl;
+sl.push_back("xml-stylesheet");
+sl.push_back("<featureMap");
+fsc.setWhitelist(sl);
 
-
-TOLERANCE_RELATIVE(1.01)
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &)))
 {
     FeatureFindingMetabo test_ffm;
     test_ffm.run(splitted_mt, test_fm);
     test_fm.sortByMZ();
-    TEST_EQUAL(test_fm.size(), exp_fm.size());
 
-    ABORT_IF(exp_fm.size() != test_fm.size())
+    test_fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-    for (Size i = 0; i < exp_fm.size(); ++i)
-    {
-      TEST_EQUAL(test_fm[i].getMetaValue(3), exp_fm[i].getMetaValue(3));
-      TEST_REAL_SIMILAR(test_fm[i].getRT(), exp_fm[i].getRT());
-      TEST_REAL_SIMILAR(test_fm[i].getMZ(), exp_fm[i].getMZ());
-      TEST_REAL_SIMILAR(exp_fm[i].getIntensity(), test_fm[i].getIntensity());
-    }
+    // test annotation of input
+    String tmp_file;
+    NEW_TMP_FILE(tmp_file);
+    FeatureXMLFile ff;
+    ff.store(tmp_file, test_fm);
+    TEST_EQUAL(fsc.compareFiles(tmp_file, OPENMS_GET_TEST_DATA_PATH("FeatureFindingMetabo_output1.featureXML")), true);
+
 }
 END_SECTION
 
