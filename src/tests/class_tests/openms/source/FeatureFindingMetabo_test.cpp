@@ -83,11 +83,15 @@ ElutionPeakDetection test_epd;
 test_epd.detectPeaks(output_mt, splitted_mt);
 
 FuzzyStringComparator fsc;
-//fsc.setAcceptableAbsolute(1e-8);
+fsc.setAcceptableRelative(1.001);
+fsc.setAcceptableAbsolute(1);
 StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("<featureMap");
 fsc.setWhitelist(sl);
+
+//std::cout << "\n\n" << fsc.compareStrings("529090", "529091") << "\n\n\n";
+
 
 START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &)))
 {
