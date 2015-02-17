@@ -35,7 +35,7 @@
 		</map>
 	</mapList>
 	<consensusElementList>
-		<consensusElement id="e_16627578304933075941" quality="0">
+		<consensusElement id="e_16627578304933075941" quality="0" charge="2">
 			<centroid rt="3611.09208" mz="769.393789466471" it="1.50524e+06"/>
 			<groupedElementList>
 				<element map="0" id="0" rt="3611.09208" mz="114.1112" it="682505"/>
@@ -46,9 +46,8 @@
 			<userParam type="float" name="precursor_purity" value="1"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=2"/>
 			<userParam type="float" name="precursor_intensity" value="5251952.5"/>
-			<userParam type="int" name="precursor_charge" value="2"/>
 		</consensusElement>
-		<consensusElement id="e_13229490167902618598" quality="0">
+		<consensusElement id="e_13229490167902618598" quality="0" charge="3">
 			<centroid rt="3611.39772" mz="421.558584883603" it="2.37883e+06"/>
 			<groupedElementList>
 				<element map="0" id="1" rt="3611.39772" mz="114.1112" it="897312"/>
@@ -59,9 +58,8 @@
 			<userParam type="float" name="precursor_purity" value="0.692433623198553"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=4"/>
 			<userParam type="float" name="precursor_intensity" value="7365030"/>
-			<userParam type="int" name="precursor_charge" value="3"/>
 		</consensusElement>
-		<consensusElement id="e_5024549519481199379" quality="0">
+		<consensusElement id="e_5024549519481199379" quality="0" charge="3">
 			<centroid rt="3611.7015" mz="447.907085078449" it="2.64587e+06"/>
 			<groupedElementList>
 				<element map="0" id="2" rt="3611.7015" mz="114.1112" it="946024"/>
@@ -72,9 +70,8 @@
 			<userParam type="float" name="precursor_purity" value="0.824560653224408"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=6"/>
 			<userParam type="float" name="precursor_intensity" value="6835636"/>
-			<userParam type="int" name="precursor_charge" value="3"/>
 		</consensusElement>
-		<consensusElement id="e_6211693768620736135" quality="0">
+		<consensusElement id="e_6211693768620736135" quality="0" charge="3">
 			<centroid rt="3612.0051" mz="407.579288484896" it="1.70608e+06"/>
 			<groupedElementList>
 				<element map="0" id="3" rt="3612.0051" mz="114.1112" it="623919"/>
@@ -85,9 +82,8 @@
 			<userParam type="float" name="precursor_purity" value="0.731295499808224"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=8"/>
 			<userParam type="float" name="precursor_intensity" value="6762358"/>
-			<userParam type="int" name="precursor_charge" value="3"/>
 		</consensusElement>
-		<consensusElement id="e_2727934422266510952" quality="0">
+		<consensusElement id="e_2727934422266510952" quality="0" charge="2">
 			<centroid rt="3612.31176" mz="748.901794746371" it="1.76225e+06"/>
 			<groupedElementList>
 				<element map="0" id="4" rt="3612.31176" mz="114.1112" it="684796"/>
@@ -98,7 +94,6 @@
 			<userParam type="float" name="precursor_purity" value="1"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=10"/>
 			<userParam type="float" name="precursor_intensity" value="5464634.5"/>
-			<userParam type="int" name="precursor_charge" value="2"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>

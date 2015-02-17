@@ -90,8 +90,8 @@ using namespace std;
     to use target-decoy databases for peptide identifications. The false discovery rates (FDRs) can be
     calculated using the @ref TOPP_FalseDiscoveryRate tool.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ConsensusID.cli
     <B>INI file documentation of this tool:</B>

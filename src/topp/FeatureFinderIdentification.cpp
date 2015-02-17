@@ -116,9 +116,13 @@ using namespace std;
 
         @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
 
-        @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+        @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
         <B>The command line parameters of this tool are:</B>
         @verbinclude TOPP_FeatureFinderIdentification.cli
+        <B>INI file documentation of this tool:</B>
+        @htmlinclude TOPP_FeatureFinderIdentification.html
+
 */
 
 // We do not want this class to show up in the docu:

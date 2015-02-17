@@ -80,11 +80,12 @@ using namespace std;
 
   @experimental This algorithm and underlying format is work in progress and might change.
 
-  @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MzTabExporter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MzTabExporter.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MzTabExporter.html
  */
 
 // We do not want this class to show up in the docu:
