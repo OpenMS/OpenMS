@@ -247,7 +247,7 @@ protected:
 
     quantifier.quantify(consensus_map_raw, consensus_map_quant);
 
-    // assign unique ID to output file (this might throw an exception.. but thats ok, as we want the program to quit then)
+    // assign unique ID to output file (this might throw an exception... but that's ok, as we want the program to quit then)
     if (getStringOption_("id_pool").trim().length() > 0) getDocumentIDTagger_().tag(consensus_map_quant);
 
     //-------------------------------------------------------------
@@ -265,8 +265,8 @@ protected:
       it->second.filename = in;
     }
 
-    ConsensusXMLFile cm_file;
-    cm_file.store(out, consensus_map_quant);
+    consensus_map_quant.ensureUniqueId();
+    ConsensusXMLFile().store(out, consensus_map_quant);
 
     return EXECUTION_OK;
   }
