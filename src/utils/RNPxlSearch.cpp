@@ -68,7 +68,7 @@
 
 #include <map>
 #include <algorithm>
-
+ 
 #ifdef _OPENMP
 #include <omp.h>
 #define NUMBER_OF_THREADS (omp_get_num_threads())
@@ -794,6 +794,31 @@ private:
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
   }
 
+  struct IndexedString
+  {
+    String::const_iterator begin;
+    String::const_iterator end; // one after last character in substring
+
+    bool operator<(IndexedString other) const
+    {
+      if (end-begin < other.end-other.begin) return true;
+
+      if (end-begin > other.end-other.begin) return false;
+
+      // same size
+      String::const_iterator b = begin;
+      String::const_iterator bo = other.begin;
+
+      for (; b != end; ++b, ++bo)
+      {
+        if (*b < *bo) return true;
+        if (*b > *bo) return false;
+      }
+
+      return false;
+    }
+  };
+
   ExitCodes main_(int, const char**)
   {
     ProgressLogger progresslogger;
@@ -939,39 +964,43 @@ private:
     progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
-    set<std::string> processed_petides;
+    set<IndexedString> processed_petides;
 
     // set minimum size of peptide after digestion
-    HasInvalidPeptideLengthPredicate has_invalid_length(getIntOption_("peptide:min_size"));
+    Size min_peptide_length = getIntOption_("peptide:min_size");
+
+    Size count_proteins = 0;
+    Size count_peptides = 0;
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
     for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
     {
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+      ++count_proteins;
+      
       IF_MASTERTHREAD
       {
         progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
       }
 
-      const AASequence& seq = AASequence::fromString(fasta_db[fasta_index].sequence);
+      vector<pair<String::const_iterator, String::const_iterator> > current_digest;
+      digestor.digestUnmodifiedString(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
-      vector<AASequence> current_digest;
-      digestor.digest(seq, current_digest);
-
-      // c++ STL pattern for deleting entries from vector based on predicate evaluation
-      current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), has_invalid_length), current_digest.end());
-
-      for (vector<AASequence>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+      for (vector<pair<String::const_iterator, String::const_iterator> >::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
       {
-        const std::string& s = cit->toUnmodifiedString();
-
         bool already_processed = false;
+        IndexedString string_idx;
+        string_idx.begin = cit->first;
+        string_idx.end = cit->second;
 #ifdef _OPENMP
 #pragma omp critical (processed_peptides_access)
 #endif
         {
-          if (processed_petides.find(s) != processed_petides.end())
+          if (processed_petides.find(string_idx) != processed_petides.end())
           {
             // peptide (and all modified variants) already processed so skip it
             already_processed = true;
@@ -987,16 +1016,21 @@ private:
 #pragma omp critical (processed_peptides_access)
 #endif
         {
-          processed_petides.insert(s);
+          processed_petides.insert(string_idx);
         }
 
+#ifdef _OPENMP
+#pragma omp atomic
+#endif
+        ++count_peptides;
         vector<AASequence> all_modified_peptides;
 
         // no critial section is needed despite ResidueDB not beeing thread sage.
-	// It is only written to on introduction of novel modified residues. These resdiues have been already added above (single thread context).
+	// It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
-          ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), *cit);
-          ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), *cit, max_variable_mods_per_peptide, all_modified_peptides);
+          AASequence aas = AASequence::fromString(String(cit->first, cit->second));
+          ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), aas);
+          ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
         }
 
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
@@ -1068,6 +1102,10 @@ private:
       }
     }
     progresslogger.endProgress();
+
+    cout << "Proteins: " << count_proteins << endl;
+    cout << "Peptides: " << count_peptides << endl;
+    cout << "Processed peptides: " << processed_petides.size() << endl;
 
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
