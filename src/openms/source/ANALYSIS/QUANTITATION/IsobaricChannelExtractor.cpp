@@ -159,17 +159,17 @@ namespace OpenMS
     defaults_.setValue("keep_unannotated_precursor", "true", "Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.");
     defaults_.setValidStrings("keep_unannotated_precursor", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intensity of the individual reporter ions to be used extracted.");
+    defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intensity of the individual reporter ions to be extracted.");
     defaults_.setMinFloat("min_reporter_intensity", 0.0);
 
-    defaults_.setValue("discard_low_intensity_quantifications", "false", "Remove all reporter intensities if a single reporter is below the threshold given in min_reporter_intensity.");
+    defaults_.setValue("discard_low_intensity_quantifications", "false", "Remove all reporter intensities if a single reporter is below the threshold given in 'min_reporter_intensity'.");
     defaults_.setValidStrings("discard_low_intensity_quantifications", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("min_precursor_purity", 0.0, "Minimum fraction of the total intensity in the isolation window of the precursor spectrum attributable to the selected precursor.");
     defaults_.setMinFloat("min_precursor_purity", 0.0);
     defaults_.setMaxFloat("min_precursor_purity", 1.0);
 
-    defaults_.setValue("precursor_isotope_deviation", 10.0, "Maximum allowed deviation in ppm between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.");
+    defaults_.setValue("precursor_isotope_deviation", 10.0, "Maximum allowed deviation (in ppm) between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.");
     defaults_.setMinFloat("precursor_isotope_deviation", 0.0);
     defaults_.addTag("precursor_isotope_deviation", "advanced");
 
