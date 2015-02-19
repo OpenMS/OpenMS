@@ -756,14 +756,25 @@ private:
     }
   }
 
-  void postProcessHits_(const PeakMap& exp, const vector<vector<PeptideHit> >& peptide_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits)
+  // Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
+  struct AnnotatedHit
   {
-    for (vector<vector<PeptideHit> >::const_iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
-    {
-      if (!pit->empty())
-      {
-        Size scan_index = pit - peptide_hits.begin();
+    AASequence sequence;
+    String nucleotide_formula;
+    double score;
+  };
 
+  void postProcessHits_(const PeakMap& exp, const vector<vector<AnnotatedHit> > annotated_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits, const RNPxlModificationMassesResult& mm)
+  {
+    IDFilter filter;
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      if (!annotated_hits[scan_index].empty())
+      {
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi;
 	pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
@@ -771,27 +782,41 @@ private:
         pi.setHigherScoreBetter(true);
         pi.setRT(exp[scan_index].getRT());
         pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
-        pi.setHits(*pit);
-        pi.assignRanks();
-        peptide_ids.push_back(pi);
+        Size charge = exp[scan_index].getPrecursors()[0].getCharge();
+
+	// create full peptide hit structure from annotated hits
+	vector<PeptideHit> phs;
+	for (vector<AnnotatedHit>::const_iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
+	{
+	  PeptideHit ph;
+	  ph.setCharge(charge);
+	  ph.setSequence(a_it->sequence);
+	  ph.setScore(a_it->score);
+          ph.setMetaValue(String("RNPxl:RNA"), *mm.mod_combinations.at(a_it->nucleotide_formula).begin()); // return first nucleotide formula matching current empirical formula and mass
+          ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(a_it->nucleotide_formula).getMonoWeight()); // RNA uncharged mass
+	  phs.push_back(ph);
+	}
+
+	pi.setHits(phs);
+	pi.assignRanks();
+
+        // only store top n hits
+        PeptideIdentification temp_identification = pi;
+        filter.filterIdentificationsByBestNHits(temp_identification, top_hits, pi);
+#ifdef _OPENMP
+#pragma omp critical (peptide_ids_access)
+#endif
+        {
+          peptide_ids.push_back(pi);
+	}
       }
-    }
-
-    IDFilter filter;
-
-    // only store top n hits
-    for (vector<PeptideIdentification>::iterator pids_it = peptide_ids.begin(); pids_it != peptide_ids.end(); ++pids_it)
-    {
-      PeptideIdentification& pi = *pids_it;
-      PeptideIdentification temp_identification = pi;
-      filter.filterIdentificationsByBestNHits(temp_identification, top_hits, pi);
     }
 
     // protein identifications (leave as is...)
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("RNPxlSearch");
-    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());    
   }
 
   struct IndexedString
@@ -818,6 +843,7 @@ private:
       return false;
     }
   };
+
 
   ExitCodes main_(int, const char**)
   {
@@ -948,7 +974,7 @@ private:
     // create spectrum generator
     TheoreticalSpectrumGenerator spectrum_generator;
 
-    vector<vector<PeptideHit> > peptide_hits(spectra.size(), vector<PeptideHit>());
+    vector<vector<AnnotatedHit> > annotated_hits(spectra.size(), vector<AnnotatedHit>());
 
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
     FASTAFile fastaFile;
@@ -1084,17 +1110,17 @@ private:
               }
 
               // add peptide hit
-              PeptideHit hit;
-              hit.setSequence(candidate);
-              hit.setMetaValue(String("RNPxl:RNA"), *mm.mod_combinations.at(rna_mod_it->first).begin()); // return first nucleotide formula matching current empirical formula and mass
-              hit.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(rna_mod_it->first).getMonoWeight()); // RNA uncharged mass
-              hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
-              hit.setScore(score);
+	      AnnotatedHit ah;
+
+              ah.sequence = candidate;
+              ah.score = score;
+	      ah.nucleotide_formula = rna_mod_it->first;
 #ifdef _OPENMP
-#pragma omp critical (peptide_hits_access)
+#pragma omp critical (annotated_hits_access)
 #endif
               {
-                peptide_hits[scan_index].push_back(hit);
+
+                annotated_hits[scan_index].push_back(ah);
               }
             }
           }
@@ -1110,7 +1136,7 @@ private:
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
     progresslogger.startProgress(0, 1, "Post-processing PSMs...");
-    postProcessHits_(spectra, peptide_hits, protein_ids, peptide_ids, report_top_hits);
+    postProcessHits_(spectra, annotated_hits, protein_ids, peptide_ids, report_top_hits, mm);
     progresslogger.endProgress();
 
     // annotate RNPxl related information to hits and create report
