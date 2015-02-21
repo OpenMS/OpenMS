@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <?xml-stylesheet type="text/xsl" href="file:////Users/aiche/dev/openms/openms-head/share/OpenMS/XSL/ConsensusXML.xsl"?>
-<consensusXML version="1.5" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<consensusXML version="1.5" id="12345" experiment_type="labeled_MS2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<userParam type="int" name="isoquant:scans_noquant" value="0"/>
 	<userParam type="int" name="isoquant:scans_total" value="5"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
