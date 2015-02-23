@@ -70,7 +70,7 @@ public:
 
     /// Constructor
     PeakPickerMaxima(double signal_to_noise, double spacing_difference = 1.5,
-        double spacing_difference_gap = 1.5, double sn_window_length = 200,
+        double spacing_difference_gap = 4.0, double sn_window_length = 200,
         unsigned missing = 2);
 
     /// Destructor
