@@ -181,7 +181,7 @@ namespace OpenMS
         candidate.left_boundary = i - k + 1;
 
         // If we walked one too far, lets backtrack
-        // if (missing_left >= missing_) candidate.left_boundary--;
+        if (missing_left >= missing_) candidate.left_boundary--;
 
         // to the right
         k = 2;
@@ -220,7 +220,7 @@ namespace OpenMS
         candidate.right_boundary = i + k - 1;
 
         // If we walked one too far, lets backtrack
-        // if (missing_right >= missing_) candidate.left_boundary--;
+        if (missing_right >= missing_) candidate.right_boundary--;
 
         // jump over raw data points that have been considered already
         i = i + k - 1;
