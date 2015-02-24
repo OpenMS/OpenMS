@@ -87,7 +87,6 @@ public:
   /// assignment operator
   FeatureHypothesis & operator=(const FeatureHypothesis & rhs);
 
-
   // getter & setter
   Size getSize() const
   {
@@ -223,10 +222,8 @@ public:
   /// Default destructor
   virtual ~FeatureFindingMetabo();
 
-
   /// main method of FeatureFindingMetabo
   void run(std::vector<MassTrace> &, FeatureMap &);
-
 
 protected:
   virtual void updateMembers_();

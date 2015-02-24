@@ -44,7 +44,6 @@
 #include <sstream>
 #include <fstream>
 
-
 #include <boost/dynamic_bitset.hpp>
 
 namespace OpenMS
@@ -252,74 +251,6 @@ namespace OpenMS
     return iso_score;
   }
 
-  bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis& feat_hypo)
-  {
-    if (feat_hypo.getSize() == 1)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
-    }
-
-    std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
-
-    //    for (Size i = 0; i < all_ints.size(); ++i)
-    //    {
-    //        std::cout << "i: " << i << " " << all_ints[i] << std::endl;
-    //    }
-
-    double mono_int(all_ints[0]);
-
-    svm_node* nodes;
-
-    nodes = new svm_node[7];
-
-
-    nodes[0].index = 1;
-    nodes[0].value = (feat_hypo.getCentroidMZ() - svm_feat_centers_[0]) / svm_feat_scales_[0];
-
-    Size i = 2;
-
-    Size feat_size(feat_hypo.getSize());
-
-    if (feat_size > 6)
-    {
-      feat_size = 6;
-    }
-
-    for (; i - 1 < feat_size; ++i)
-    {
-      nodes[i - 1].index = static_cast<Int>(i);
-
-      double ratio((all_ints[i - 1] / mono_int));
-
-      // std::cout << i << " " << ratio << " " << std::flush;
-
-      if (ratio > 1.0)
-      {
-        delete[] nodes;
-        return false;
-      }
-
-      double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
-      nodes[i - 1].value = tmp_val;
-    }
-
-
-    for (; i < 7; ++i)
-    {
-      nodes[i - 1].index = static_cast<Int>(i);
-      nodes[i - 1].value = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
-    }
-
-    nodes[6].index = -1;
-    nodes[6].value = 0;
-
-    double predict = svm_predict(isotope_filt_svm_, nodes);
-
-    delete[] nodes;
-
-    return (predict == 2.0) ? true : false;
-  }
-
   bool FeatureFindingMetabo::isLegalIsotopePattern2_(FeatureHypothesis& feat_hypo)
   {
     if (feat_hypo.getSize() == 1)
@@ -489,6 +420,11 @@ namespace OpenMS
     return mz_score;
   }
 
+#if 0
+
+
+  DEAD CODE
+
   double FeatureFindingMetabo::scoreMZ2_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
   {
     double mu((1.003355 * (double)iso_pos) / (double)charge);
@@ -529,75 +465,145 @@ namespace OpenMS
     return mz_score;
   }
 
-//double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
-//{
-//    double sigma_mult(3.0);
-//    double center((1.001156 * (double)iso_pos + 0.001349) / (double)charge);
 
-//    double mz1(tr1.getCentroidMZ());
-//    double mz2(tr2.getCentroidMZ());
+  bool FeatureFindingMetabo::isLegalIsotopePattern_(FeatureHypothesis& feat_hypo)
+  {
+    if (feat_hypo.getSize() == 1)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot compute isotope pattern on a single mass trace!", String(feat_hypo.getSize()));
+    }
 
-//    double centered_mz(std::fabs(mz2 - mz1) - center);
+    std::vector<double> all_ints = feat_hypo.getAllIntensities(use_smoothed_intensities_);
 
-//    // setup gaussian mixture model for valid isotopic m/z distances
-//    //double iso_mz_diff(1.002245);
+    //    for (Size i = 0; i < all_ints.size(); ++i)
+    //    {
+    //        std::cout << "i: " << i << " " << all_ints[i] << std::endl;
+    //    }
 
-//    // std::cout << "iso_pos: " << iso_pos << " charge: " << charge << " mz_diff" << centered_mz << std::endl;
+    double mono_int(all_ints[0]);
 
-//    double mu1(0.000981383);
-//    double sigma1(0.001657985);
-//    double mu2(-0.00559452);
-//    double sigma2(0.00118085);
+    svm_node* nodes;
 
-//    double mt_sigma1(tr1.getCentroidSD());
-//    double mt_sigma2(tr2.getCentroidSD());
-//    // double mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
-//    double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
-//    // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
+    nodes = new svm_node[7];
 
 
-//    double score_sigma1(std::sqrt(sigma1 * sigma1 + mt_variances));
-//    double score_sigma2(std::sqrt(sigma2 * sigma2 + mt_variances));
+    nodes[0].index = 1;
+    nodes[0].value = (feat_hypo.getCentroidMZ() - svm_feat_centers_[0]) / svm_feat_scales_[0];
 
-//    // std::cout << "score_sigma1: " << score_sigma1 << std::endl;
-//    // std::cout << "score_sigma2: " << score_sigma2 << std::endl;
+    Size i = 2;
 
+    Size feat_size(feat_hypo.getSize());
 
-//    double mz_score(0.0);
+    if (feat_size > 6)
+    {
+      feat_size = 6;
+    }
 
+    for (; i - 1 < feat_size; ++i)
+    {
+      nodes[i - 1].index = static_cast<Int>(i);
 
-//    if (iso_pos == 1)
-//    {
-//        if ((centered_mz < mu1 + sigma_mult * score_sigma1) && (centered_mz > mu1 - sigma_mult * score_sigma1))
-//        {
-//            double tmp_exponent1((centered_mz - mu1) / score_sigma1);
-//            mz_score = std::exp(-0.5 * tmp_exponent1 * tmp_exponent1);
+      double ratio((all_ints[i - 1] / mono_int));
 
-//        }
-//    }
-//    else
-//    {
-//        if ((centered_mz < mu1 + sigma_mult * score_sigma1) && (centered_mz > mu2 - sigma_mult * score_sigma2))
-//        {
-//            double tmp_exponent1((centered_mz - mu1) / score_sigma1);
-//            double tmp_exponent2((centered_mz - mu2) / score_sigma2);
+      // std::cout << i << " " << ratio << " " << std::flush;
 
-//            double mz_score1(std::exp(-0.5 * tmp_exponent1 * tmp_exponent1));
-//            double mz_score2(std::exp(-0.5 * tmp_exponent2 * tmp_exponent2));
+      if (ratio > 1.0)
+      {
+        delete[] nodes;
+        return false;
+      }
 
-//            mz_score = (mz_score1 > mz_score2) ? mz_score1 : mz_score2;
-
-//        }
-//    }
-//    // std::cout<< tr1.getLabel() << "_" << tr2.getLabel() << " mz score: " << mz_score << std::endl;
-
-//    // double diff_mz(mz2-mz1);
-//    // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
-
-//    return mz_score;
-//}
+      double tmp_val((ratio - svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1]);
+      nodes[i - 1].value = tmp_val;
+    }
 
 
+    for (; i < 7; ++i)
+    {
+      nodes[i - 1].index = static_cast<Int>(i);
+      nodes[i - 1].value = (-svm_feat_centers_[i - 1]) / svm_feat_scales_[i - 1];
+    }
+
+    nodes[6].index = -1;
+    nodes[6].value = 0;
+
+    double predict = svm_predict(isotope_filt_svm_, nodes);
+
+    delete[] nodes;
+
+    return (predict == 2.0) ? true : false;
+  }
+
+
+
+  double FeatureFindingMetabo::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge)
+  {
+      double sigma_mult(3.0);
+      double center((1.001156 * (double)iso_pos + 0.001349) / (double)charge);
+  
+      double mz1(tr1.getCentroidMZ());
+      double mz2(tr2.getCentroidMZ());
+  
+      double centered_mz(std::fabs(mz2 - mz1) - center);
+  
+      // setup gaussian mixture model for valid isotopic m/z distances
+      //double iso_mz_diff(1.002245);
+  
+      // std::cout << "iso_pos: " << iso_pos << " charge: " << charge << " mz_diff" << centered_mz << std::endl;
+  
+      double mu1(0.000981383);
+      double sigma1(0.001657985);
+      double mu2(-0.00559452);
+      double sigma2(0.00118085);
+  
+      double mt_sigma1(tr1.getCentroidSD());
+      double mt_sigma2(tr2.getCentroidSD());
+      // double mt_variances1(mt_sigma1*mt_sigma1 + mt_sigma2*mt_sigma2);
+      double mt_variances(std::exp(2 * std::log(mt_sigma1)) + std::exp(2 * std::log(mt_sigma2)));
+      // std::cout << "mt1: " << mt_sigma1 << " mt2: " << mt_sigma2 << " mt_variances: " << mt_variances << " old " << mt_variances1 <<  std::endl;
+  
+  
+      double score_sigma1(std::sqrt(sigma1 * sigma1 + mt_variances));
+      double score_sigma2(std::sqrt(sigma2 * sigma2 + mt_variances));
+  
+      // std::cout << "score_sigma1: " << score_sigma1 << std::endl;
+      // std::cout << "score_sigma2: " << score_sigma2 << std::endl;
+  
+  
+      double mz_score(0.0);
+  
+  
+      if (iso_pos == 1)
+      {
+          if ((centered_mz < mu1 + sigma_mult * score_sigma1) && (centered_mz > mu1 - sigma_mult * score_sigma1))
+          {
+              double tmp_exponent1((centered_mz - mu1) / score_sigma1);
+              mz_score = std::exp(-0.5 * tmp_exponent1 * tmp_exponent1);
+  
+          }
+      }
+      else
+      {
+          if ((centered_mz < mu1 + sigma_mult * score_sigma1) && (centered_mz > mu2 - sigma_mult * score_sigma2))
+          {
+              double tmp_exponent1((centered_mz - mu1) / score_sigma1);
+              double tmp_exponent2((centered_mz - mu2) / score_sigma2);
+  
+              double mz_score1(std::exp(-0.5 * tmp_exponent1 * tmp_exponent1));
+              double mz_score2(std::exp(-0.5 * tmp_exponent2 * tmp_exponent2));
+  
+              mz_score = (mz_score1 > mz_score2) ? mz_score1 : mz_score2;
+  
+          }
+      }
+      // std::cout<< tr1.getLabel() << "_" << tr2.getLabel() << " mz score: " << mz_score << std::endl;
+  
+      // double diff_mz(mz2-mz1);
+      // std::cout << tr1.getLabel() << "_" << tr2.getLabel() << " diffmz: " << diff_mz << " charge " << charge << " isopos: " << iso_pos << " score: " << mz_score << std::endl ;
+  
+      return mz_score;
+  }
+#endif
 
   double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
   {
@@ -994,3 +1000,4 @@ namespace OpenMS
   } // end of FeatureFindingMetabo::run
 
 }
+
