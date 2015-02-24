@@ -210,7 +210,6 @@ namespace OpenMS
     found_masstraces.clear();
 
     // gather all peaks that are potential chromatographic peak apices
-    typedef std::multimap<double, std::pair<Size, Size> > MapIdxSortedByInt;
     MSExperiment<Peak1D> work_exp;
 
     MapIdxSortedByInt chrom_apeces;
@@ -292,18 +291,27 @@ namespace OpenMS
     // discard last spectrum's offset
     spec_offsets.pop_back();
 
-    // Size min_flank_scans(3);
-    boost::dynamic_bitset<> peak_visited(peak_count);
-    Size trace_number(1);
-
     // *********************************************************************
     // Step 2: start extending mass traces beginning with the apex peak (go
     // through all peaks in order of decreasing intensity)
     // *********************************************************************
+    run_(chrom_apeces, scan_time, peak_count, work_exp, spec_offsets, found_masstraces);
+
+    return;
+  } // end of MassTraceDetection::run
+
+  void MassTraceDetection::run_(const MapIdxSortedByInt& chrom_apeces, double scan_time, Size peak_count, 
+      const MSExperiment<Peak1D> & work_exp, const std::vector<Size>& spec_offsets, std::vector<MassTrace> & found_masstraces)
+  {
+
+    // Size min_flank_scans(3);
+    boost::dynamic_bitset<> peak_visited(peak_count);
+    Size trace_number(1);
+
     this->startProgress(0, peak_count, "mass trace detection");
     Size peaks_detected(0);
 
-    for (MapIdxSortedByInt::reverse_iterator m_it = chrom_apeces.rbegin(); m_it != chrom_apeces.rend(); ++m_it)
+    for (MapIdxSortedByInt::const_reverse_iterator m_it = chrom_apeces.rbegin(); m_it != chrom_apeces.rend(); ++m_it)
     {
       Size apex_scan_idx(m_it->second.first);
       Size apex_peak_idx(m_it->second.second);
@@ -564,8 +572,7 @@ namespace OpenMS
 
     this->endProgress();
 
-    return;
-  } // end of MassTraceDetection::run
+  }
 
   void MassTraceDetection::updateMembers_()
   {
