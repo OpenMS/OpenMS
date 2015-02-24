@@ -69,18 +69,22 @@ public:
     virtual ~MassTraceDetection();
 
     /** @name Helper methods
-        */
+    */
+
     /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
     void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
 
     /** @name Main computation methods
-        */
+    */
+
     /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.
     void run(const MSExperiment<Peak1D> &, std::vector<MassTrace> &);
 
     /// Invokes the run method (see above) on merely a subregion of a @ref MSExperiment map.
     void run(MSExperiment<Peak1D>::ConstAreaIterator & begin, MSExperiment<Peak1D>::ConstAreaIterator & end, std::vector<MassTrace> & found_masstraces);
 
+    /** @name Private methods and members 
+    */
 protected:
     virtual void updateMembers_();
 
