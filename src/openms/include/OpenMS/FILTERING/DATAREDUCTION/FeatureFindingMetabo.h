@@ -88,100 +88,28 @@ public:
   FeatureHypothesis & operator=(const FeatureHypothesis & rhs);
 
   // getter & setter
-  Size getSize() const
-  {
-    return iso_pattern_.size();
-  }
+  Size getSize() const;
 
-  String getLabel() const
-  {
-    String label;
+  String getLabel() const;
 
-    if (iso_pattern_.size() > 0)
-    {
-      label = iso_pattern_[0]->getLabel();
-    }
+  /// Collect all labels of the isotope patterns
+  std::vector<String> getLabels() const;
 
-    for (Size i = 1; i < iso_pattern_.size(); ++i)
-    {
-      String tmp_str = "_" + iso_pattern_[i]->getLabel();
-      label += tmp_str;
-    }
+  double getScore() const;
 
-    return label;
-  }
+  void setScore(const double & score);
 
-  std::vector<String> getLabels() const
-  {
-    std::vector<String> tmp_labels;
+  SignedSize getCharge() const;
 
-    for (Size i = 0; i < iso_pattern_.size(); ++i)
-    {
-      tmp_labels.push_back(iso_pattern_[i]->getLabel());
-    }
+  void setCharge(const SignedSize & ch);
 
-    return tmp_labels;
-  }
+  std::vector<double> getAllIntensities(bool smoothed = false);
 
-  double getScore() const
-  {
-    return feat_score_;
-  }
+  double getCentroidMZ() const;
 
-  void setScore(const double & score)
-  {
-    feat_score_ = score;
-  }
+  double getCentroidRT() const;
 
-  SignedSize getCharge() const
-  {
-    return charge_;
-  }
-
-  void setCharge(const SignedSize & ch)
-  {
-    charge_ = ch;
-  }
-
-  std::vector<double> getAllIntensities(bool smoothed = false)
-  {
-    std::vector<double> tmp;
-
-    for (Size i = 0; i < iso_pattern_.size(); ++i)
-    {
-        tmp.push_back(iso_pattern_[i]->getIntensity(smoothed));
-    }
-
-    return tmp;
-  }
-
-  double getCentroidMZ() const
-  {
-    if (iso_pattern_.empty())
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
-    }
-
-    return iso_pattern_[0]->getCentroidMZ();
-  }
-
-  double getCentroidRT() const
-  {
-    if (iso_pattern_.empty())
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
-    }
-    return iso_pattern_[0]->getCentroidRT();
-  }
-
-  double getFWHM(bool use_smoothed_ints = false) const
-  {
-    if (iso_pattern_.empty())
-    {
-      return 0.0;
-    }
-    return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
-  }
+  double getFWHM(bool use_smoothed_ints = false) const;
 
   /// addMassTrace
   void addMassTrace(MassTrace &);
@@ -216,6 +144,7 @@ class OPENMS_DLLAPI FeatureFindingMetabo :
     public ProgressLogger
 {
 public:
+
   /// Default constructor
   FeatureFindingMetabo();
 
@@ -226,10 +155,11 @@ public:
   void run(std::vector<MassTrace> &, FeatureMap &);
 
 protected:
+
   virtual void updateMembers_();
 
-
 private:
+
   /// private member functions
   double computeOLSCoeff_(const std::vector<double> &, const std::vector<double> &);
   double computeCosineSim_(const std::vector<double> &, const std::vector<double> &);
@@ -237,16 +167,16 @@ private:
   svm_model * isotope_filt_svm_;
   std::vector<double> svm_feat_centers_;
   std::vector<double> svm_feat_scales_;
-  bool isLegalIsotopePattern_(FeatureHypothesis &);
+  // bool isLegalIsotopePattern_(FeatureHypothesis &);
   bool isLegalIsotopePattern2_(FeatureHypothesis &);
 
-  //bool isLegalAveraginePattern(FeatureHypothesis&);
+  // bool isLegalAveraginePattern(FeatureHypothesis&);
   void loadIsotopeModel_(const String&);
 
   double total_intensity_;
 
   double scoreMZ_(const MassTrace &, const MassTrace &, Size, Size);
-  double scoreMZ2_(const MassTrace &, const MassTrace &, Size, Size);
+  // double scoreMZ2_(const MassTrace &, const MassTrace &, Size, Size);
   double scoreRT_(const MassTrace &, const MassTrace &);
 
   double computeAveragineSimScore_(const std::vector<double> &, const double &);
@@ -254,7 +184,6 @@ private:
   // double scoreTraceSim_(MassTrace, MassTrace);
   // double scoreIntRatio_(double, double, Size);
   void findLocalFeatures_(std::vector<MassTrace *> &, std::vector<FeatureHypothesis> &);
-
 
   /// parameter stuff
   double local_rt_range_;

@@ -999,5 +999,104 @@ namespace OpenMS
     return;
   } // end of FeatureFindingMetabo::run
 
+  //
+  // FeatureHypothesis
+  //
+
+  std::vector<double> FeatureHypothesis::getAllIntensities(bool smoothed)
+  {
+    std::vector<double> tmp;
+
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+        tmp.push_back(iso_pattern_[i]->getIntensity(smoothed));
+    }
+
+    return tmp;
+  }
+
+  double FeatureHypothesis::getCentroidMZ() const
+  {
+    if (iso_pattern_.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid MZ!", String(iso_pattern_.size()));
+    }
+
+    return iso_pattern_[0]->getCentroidMZ();
+  }
+
+  double FeatureHypothesis::getCentroidRT() const
+  {
+    if (iso_pattern_.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FeatureHypothesis is empty, no centroid RT!", String(iso_pattern_.size()));
+    }
+    return iso_pattern_[0]->getCentroidRT();
+  }
+
+  double FeatureHypothesis::getFWHM(bool use_smoothed_ints) const
+  {
+    if (iso_pattern_.empty())
+    {
+      return 0.0;
+    }
+    return iso_pattern_[0]->estimateFWHM(use_smoothed_ints);
+  }
+
+  Size FeatureHypothesis::getSize() const
+  {
+    return iso_pattern_.size();
+  }
+
+  String FeatureHypothesis::getLabel() const
+  {
+    String label;
+
+    if (iso_pattern_.size() > 0)
+    {
+      label = iso_pattern_[0]->getLabel();
+    }
+
+    for (Size i = 1; i < iso_pattern_.size(); ++i)
+    {
+      String tmp_str = "_" + iso_pattern_[i]->getLabel();
+      label += tmp_str;
+    }
+
+    return label;
+  }
+
+  std::vector<String> FeatureHypothesis::getLabels() const
+  {
+    std::vector<String> tmp_labels;
+
+    for (Size i = 0; i < iso_pattern_.size(); ++i)
+    {
+      tmp_labels.push_back(iso_pattern_[i]->getLabel());
+    }
+
+    return tmp_labels;
+  }
+
+  double FeatureHypothesis::getScore() const
+  {
+    return feat_score_;
+  }
+
+  void FeatureHypothesis::setScore(const double & score)
+  {
+    feat_score_ = score;
+  }
+
+  SignedSize FeatureHypothesis::getCharge() const
+  {
+    return charge_;
+  }
+
+  void FeatureHypothesis::setCharge(const SignedSize & ch)
+  {
+    charge_ = ch;
+  }
+
 }
 
