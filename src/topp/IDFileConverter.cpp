@@ -93,8 +93,9 @@ Some search engine output files (like pepXML, mascotXML, Sequest .out files) may
 pepXML files can contain results from multiple experiments. However, the idXML format does not support this. The @p mz_name parameter (or @p mz_file, if given) thus serves to define what parts to extract from the pepXML.
 
 @p scan_regex: \n
-For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time. For example, if the format of the "pep_scan_title" elements is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract the number. (However, the format in this example is actually covered by the defaults.)
-
+For Mascot results exported to XML, the scan numbers (used to look up retention times using @p mz_file) should be given in the "pep_scan_title" XML elements, but the format can vary. If the defaults fail to extract the scan numbers, a Perl-style regular expression can be given through the advanced parameter @p scan_regex, and will be used instead. The regular expression should contain a named group "SCAN" matching the scan number or "RT" matching the actual retention time. For example, if the format of the "pep_scan_title" elements is "scan=123", where 123 is the scan number, the expression "scan=(?<SCAN>\\d+)" can be used to extract the number. (However, the format in this example is actually covered by the defaults.)\n
+For Percolator tab-delimited output, information is extracted from the "PSMId" column. By default, extraction of scan numbers and charge states is supported for MS-GF+ Percolator results (retention times and precursor m/z values can then be looked up in the raw data via @p mz_file).
+In a user-defined regular expression, the named groups "SCAN" (scan number), "CHARGE" (charge state), "RT" (retention time) and "MZ" (precursor m/z) are supported. The parameter @p count_from_zero defines whether scans are counted from zero or from one (default) in the number extracted via "SCAN". If "CHARGE", "RT" and "MZ" are present, it is not necessary to look up any information in the raw data, so @p mz_file is not needed.
 
 Some information about the supported input types:
   @ref OpenMS::MzIdentMLFile "mzIdentML"
@@ -105,6 +106,7 @@ Some information about the supported input types:
   @ref OpenMS::OMSSAXMLFile "omssaXML"
   @ref OpenMS::XTandemXMLFile "XTandem.xml"
   @ref OpenMS::SequestOutfile "Sequest .out directory"
+  @ref OpenMS::PercolatorOutfile "Percolator tab-delimited output"
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IDFileConverter.cli
@@ -147,14 +149,14 @@ protected:
     registerInputFile_("mz_file", "<file>", "", "[pepXML, Sequest, Mascot, X! Tandem, Percolator only] Retention times will be looked up in this file", false);
     setValidFormats_("mz_file", ListUtils::create<String>("mzML,mzXML,mzData"));
     addEmptyLine_();
-    registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
-                                                 "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
     registerStringOption_("score_type", "<choice>", "qvalue", "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
     setValidStrings_("score_type", ListUtils::create<String>("score,qvalue,PEP"));
 
+    registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
+                                                 "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
     registerStringOption_("scan_regex", "<expression>", "", "[Mascot, Percolator only] Regular expression used to extract the scan number or retention time. See documentation for details.", false, true);
     registerFlag_("count_from_zero", "[Percolator only] Scan numbers extracted by 'scan_regex' start counting at zero (default: start at one).", true);
   }
