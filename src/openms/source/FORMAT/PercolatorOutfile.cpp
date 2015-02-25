@@ -79,19 +79,23 @@ namespace OpenMS
         {
           if (match["RT"].matched)
           {
-            rt = String(match["RT"].str()).toDouble();
+            String rt_val = match["RT"].str();
+            if (!rt_val.empty()) rt = rt_val.toDouble();
           }
           if (match["MZ"].matched)
           {
-            mz = String(match["MZ"].str()).toDouble();
+            String mz_val = match["MZ"].str();
+            if (!mz_val.empty()) mz = mz_val.toDouble();
           }
           if (match["CHARGE"].matched)
           {
-            charge = String(match["CHARGE"].str()).toInt();
+            String charge_val = match["CHARGE"].str();
+            if (!charge_val.empty()) charge = charge_val.toInt();
           }
           if (match["SCAN"].matched)
           {
-            scan_number = String(match["SCAN"].str()).toInt();
+            String scan_val = match["SCAN"].str();
+            if (!scan_val.empty()) scan_number = scan_val.toInt();
             if (!ex_it->count_from_zero) --scan_number;
           }
           return true;
