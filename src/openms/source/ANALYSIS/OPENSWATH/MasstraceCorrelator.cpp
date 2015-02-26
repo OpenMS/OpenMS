@@ -140,7 +140,7 @@ namespace OpenMS
 
   void MasstraceCorrelator::scoreHullpoints(std::vector< std::pair< double, double> >& hull_points1, 
       std::vector< std::pair< double, double> >& hull_points2, int& lag, 
-      double& lag_intensity, double& pearson_score, double min_corr, int max_lag, double mindiff)
+      double& lag_intensity, double& pearson_score, double min_corr, int /* max_lag */, double mindiff)
   {
 
     // TODO
@@ -313,7 +313,9 @@ namespace OpenMS
           // mark this masstrace as used already, thus we cannot use it as a seed any more
           used_already[j] = 0;
 
+#ifdef DEBUG_MASSTRACES
           nr_peaks_added++;
+#endif
 
           Peak1D peak;
           peak.setMZ(max_intensities[j].first);
