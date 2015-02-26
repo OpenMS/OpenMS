@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #ifdef TESTING
 #define DEBUG_MASSTRACES
@@ -89,7 +91,7 @@ class TOPPCorrelateMasstraces
  public:
 
   TOPPCorrelateMasstraces()
-    : TOPPBase("CorrelateMasstraces","Correlate masstraces in SWATH maps based on their elution profile.", false)
+    : TOPPBase("CorrelateMasstraces","Correlate precursor masstraces with fragment ion masstraces in SWATH maps based on their elution profile.", false)
   {
   }
 
@@ -174,6 +176,7 @@ class TOPPCorrelateMasstraces
    *
    * TODO: incorporate elements from DIAUmpire
    *  - allow ions to be assigned to multiple precursors
+   *  - also generate mass traces from the unfragmented precursors
    *
   */
   void MS1CentricClustering(ConsensusMap& MS1_feature_map, ConsensusMap& MS2_feature_map, 
