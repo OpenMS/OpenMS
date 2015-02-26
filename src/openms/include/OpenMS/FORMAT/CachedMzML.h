@@ -35,7 +35,7 @@
 #ifndef OPENMS_FORMAT_CACHEDMZML_H
 #define OPENMS_FORMAT_CACHEDMZML_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenSWATHAlgo/DATAACCESS/ISpectrumAccess.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>

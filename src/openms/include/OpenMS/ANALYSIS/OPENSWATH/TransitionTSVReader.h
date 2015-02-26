@@ -36,7 +36,7 @@
 #define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVREADER_H
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenSWATHAlgo/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
