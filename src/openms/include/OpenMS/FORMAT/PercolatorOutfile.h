@@ -46,7 +46,11 @@
 
 namespace OpenMS
 {
+  /**
+     @brief Class for reading Percolator tab-delimited output files.
 
+     For PSM-level output, the file extension should be ".psms".
+  */
   class OPENMS_DLLAPI PercolatorOutfile
   {
 
