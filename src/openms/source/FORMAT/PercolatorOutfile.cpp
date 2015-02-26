@@ -47,14 +47,16 @@ namespace OpenMS
 
   PercolatorOutfile::PercolatorOutfile()
   {
-    // MS-GF+ Percolator (mzid?) format:
     PSMInfoExtractor extractor;
+    // MS-GF+ Percolator (mzid?) format:
     extractor.re.assign("_SII_(?<SCAN>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+");
     extractor.count_from_zero = false;
     extractors_.push_back(extractor);
-
-    // Mascot Percolator format:
-    // TODO
+    // Mascot Percolator format (RT may be missing, e.g. for searches via
+    // ProteomeDiscoverer):
+    extractor.re.assign("spectrum:[^;]+(scans:)|(spectrum=)(?<SCAN>\\d+)[^;]+;rt:(?<RT>\\d.(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>[-+]\\d+)");
+    extractor.count_from_zero = true;
+    extractors_.push_back(extractor);
   }
 
 
