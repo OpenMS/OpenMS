@@ -1,0 +1,29 @@
+<ttd>
+	<tool status="external">
+		<category>Identification</category>
+		// multiple of these are allowed
+		<type>Percolator</type>
+		#name# -- for internal use only
+		// multiple of these allowed (same # as 'types') - for external only
+		<external>
+      <text>
+        <onstartup>Running Percolator...</onstartup>
+        <onfail>Something went wrong. Is the Percolator executable globally accessible?</onfail>
+        <onfinish>Percolator finished successfully.</onfinish>
+      </text>    
+		  <e_category>Identification</e_category>
+		  <cloptions>--only-psms --results "%2" "%1"</cloptions>
+		  <path>percolator</path>
+		  <workingdirectory>.</workingdirectory>
+		  <mappings>
+			<mapping id="1" cl="%%in" />
+			<mapping id="2" cl="%TMP/%BASENAME[%%in].csv" />
+			<file_post location="%TMP/%BASENAME[%%in].csv.psms" target="out" />
+		  </mappings>
+		  <ini_param>
+			<ITEM name="in" value="" type="string" description="Input file: Percolator tab-delimited input (valid formats: 'csv')" tags="input file" />
+			<ITEM name="out" value="" type="string" description="Output file: Percolator tab-delimited output (valid formats: 'csv')" tags="output file" />
+		  </ini_param>
+		</external>
+	</tool>
+</ttd>
