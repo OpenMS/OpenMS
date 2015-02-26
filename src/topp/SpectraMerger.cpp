@@ -36,6 +36,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/SpectraAverager.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 
 #include <algorithm>
