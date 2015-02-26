@@ -174,7 +174,7 @@ namespace OpenMS
 
   }
 
-  void MasstraceCorrelator::createConsensusMapCache(ConsensusMap& map, 
+  void MasstraceCorrelator::createConsensusMapCache(const ConsensusMap& map, 
     std::vector< masstracePointsType >& feature_points,
     std::vector< std::pair<double,double> >& max_intensities, 
     std::vector< double >& rt_cache)

@@ -108,7 +108,16 @@ namespace OpenMS
         double& lag_intensity, double& pearson_score, double min_corr,
         int max_lag, double mindiff = 0.1);
 
-    void createConsensusMapCache(ConsensusMap& map,
+    /* Create a cache of the features in a consensus map
+     *
+     * This creates a cache of the input consensus map by creating the
+     * following data structures:
+     *  - a vector of mass traces (each mass trace is simply a vector of <RT,Intensity>
+     *  - a vector of maximal intensities (max_rt, max_int)
+     *  - a vector of retention times of the feature
+     *
+    */
+    void createConsensusMapCache(const ConsensusMap& map,
         std::vector<masstracePointsType>& feature_points,
         std::vector<std::pair<double, double> >& max_intensities,
         std::vector<double>& rt_cache);
