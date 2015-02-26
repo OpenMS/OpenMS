@@ -186,7 +186,7 @@ class TOPPCorrelateMasstraces
     double min_pscore = getDoubleOption_("min_pearson_correlation");
     int max_lag = getIntOption_("max_lag");
     double rt_max_distance = getDoubleOption_("max_rt_apex_difference");
-    int min_nr_ions = getIntOption_("min_nr_ions");
+    Size min_nr_ions = (Size)getIntOption_("min_nr_ions");
     bool unassigned = getFlag_("assign_unassigned_to_all");
     // to consider all signals within 2 seconds equal makes sense with
     // 3.2 seconds between each recording => each swath will be within
@@ -236,33 +236,49 @@ class TOPPCorrelateMasstraces
       if (mz_cache_ms1[i] < swath_lower || mz_cache_ms1[i] > swath_upper) continue;
       ms1_assignment_map[i].clear();
 
+      // Identify a given precursor and get its RT (current_rt) 
+      // 
+      // Obtain a pointer to the beginning of the RT vector of all MS2 features
+      // (and decrement by one since in the loop we first increment the ptr)
       current_rt = rt_cache_ms1[i];
       rt_cache_ptr = &rt_cache_ms2[0];
       --rt_cache_ptr;
+
       for (Size j=0; j<MS2_feature_map.size(); ++j)
       {
         ++rt_cache_ptr;
 
         // First check whether this feature is within a suitable RT distance
         // and that is not already used.
-        if(fabs(current_rt - (*rt_cache_ptr) ) > rt_max_distance ) continue;
-        if(ms2feature_used[j]) continue;
+        // Check whether the feature is already used
+        //  TODO : this implies we can assign only one feature to one
+        //         precursor, we might have to change that! See DIA Umpire!
+        if (fabs(current_rt - (*rt_cache_ptr) ) > rt_max_distance ) continue;
+        if (ms2feature_used[j]) continue;
 
 #ifdef DEBUG_MASSTRACES
-        // for(Size kk=0; kk<f1_points.size(); kk++)
-        // { cout << f1_points[kk].first << " f/s " << f1_points[kk].second << endl; }
-        // cout << " above prec, below frag " << endl;
-        // for(Size kk=0; kk<f2_points.size(); kk++)
-        // { cout << f2_points[kk].first << " f/s " << f2_points[kk].second << endl; }
+        for(Size kk=0; kk<f1_points.size(); kk++)
+        { 
+          cout << f1_points[kk].first << " f/s " << f1_points[kk].second << endl; 
+        }
+        cout << " above prec, below frag " << endl;
+        for (Size kk=0; kk<f2_points.size(); kk++)
+        { 
+          cout << f2_points[kk].first << " f/s " << f2_points[kk].second << endl; 
+        }
 #endif
 
+        // Score the MS1 mass trace against the MS2 mass trace
         int lag; double lag_intensity; double pearson_score;
         mtcorr.scoreHullpoints(feature_points_ms1[i], feature_points_ms2[j], 
             lag, lag_intensity, pearson_score, min_pscore, max_lag, mindiff);
 
         if (pearson_score > min_pscore && lag >= -max_lag && lag <= max_lag)
         {
-          // cout <<  "assign fragment to precursor! " << f1.getMZ() << " -> " << f2.getMZ() << " [scores " <<  lag << " " << pearson_score << "]" << endl;
+#ifdef DEBUG_MASSTRACES
+          cout <<  "assign fragment to precursor! " << f1.getMZ() << " -> " << f2.getMZ() << 
+            " [scores " <<  lag << " " << pearson_score << "]" << endl;
+#endif
           ms2feature_used[j] = true;
           ms1_assignment_map[i].push_back(j);
           std::vector< double > feature_arr;
@@ -273,9 +289,6 @@ class TOPPCorrelateMasstraces
           feature_arr.push_back(lag_intensity); // lag intensity
           feature_attributes[i].push_back(feature_arr);
         }
-
-        //cout << lag << " lag / pscore " << pearson_score << endl;
-        // cout << "MS2 mass trace " << j << " at " << f2.getMZ() << " and " << f2.getRT( ) << " with " << f2.getIntensity() << endl;
       }
 
       // only keep those assignments which have enough ions
@@ -287,19 +300,25 @@ class TOPPCorrelateMasstraces
 #ifdef DEBUG_MASSTRACES
       if (ms1_assignment_map[i].size() > 1)
       {
-        // cout << i << " idx " << " " << f1 << " size " <<  MS1_feature_map[i].size() << endl;
+        cout << i << " idx " << " " << f1 << " size " <<  MS1_feature_map[i].size() << endl;
         cout << " to precursor " << i << " i assigned " << ms1_assignment_map[i].size() << " points" << endl;
       }
-      // cout << "MS1 mass trace " << i << " at " << f1.getMZ() << " and " << f1.getRT( ) << " with " << f1.getIntensity() << endl;
+      cout << "MS1 mass trace " << i << " at " << f1.getMZ() << " and " << f1.getRT( ) << " with " << f1.getIntensity() << endl;
 #endif
+
     }
     endProgress();
 
     // Stats
     Size cnt_ms2_used = 0;
     Size cnt_ms1_used = 0;
-    for (Size i = 0; i < MS1_feature_map.size(); i++) {if(!ms1_assignment_map[i].empty()) {cnt_ms1_used++;}}
-    for (Size i = 0; i < ms2feature_used.size(); i++) {if(ms2feature_used[i]) {cnt_ms2_used++;}}
+    for (Size i = 0; i < MS1_feature_map.size(); i++) 
+    {
+      if (!ms1_assignment_map[i].empty()) cnt_ms1_used++;
+    }
+    for (Size i = 0; i < ms2feature_used.size(); i++) {
+      if (ms2feature_used[i]) cnt_ms2_used++;
+    }
 
     std::cout <<"I have assigned " << cnt_ms2_used << " (out of " << MS2_feature_map.size() << 
       ") MS2 features to " << cnt_ms1_used << " (out of " << MS1_feature_map.size() << ") MS1 features " << std::endl;
