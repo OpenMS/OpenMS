@@ -32,12 +32,12 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h"
+#include "OpenSWATHAlgo/OpenSwathAlgoConfig.h"
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
+#include "OpenSWATHAlgo/ALGO/MRMScoring.h"
+#include "OpenSWATHAlgo/DATAACCESS/MockObjects.h"
+#include "OpenSWATHAlgo/DATAACCESS/DataStructures.h"
+#include "OpenSWATHAlgo/DATAACCESS/TransitionExperiment.h"
 
 #ifdef USE_BOOST_UNIT_TEST
 

@@ -32,9 +32,9 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transitions.h>
+#include <OpenSWATHAlgo/DATAACCESS/TransitionHelper.h>
+#include <OpenSWATHAlgo/DATAACCESS/TransitionExperiment.h>
+#include <OpenSWATHAlgo/DATAACCESS/Transitions.h>
 
 #ifdef USE_BOOST_UNIT_TEST
 
