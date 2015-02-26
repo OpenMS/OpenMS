@@ -109,7 +109,7 @@ class TOPPClusterMassTraces
     int min_peak_nr = getIntOption_("min_peak_nr");
     double max_rt_apex_difference_ = getDoubleOption_("max_rt_apex_difference");
     double add_precursor = getDoubleOption_("add_precursor");
-    double max_intensity_cutoff_ = getDoubleOption_("max_intensity_cutoff");
+    // double max_intensity_cutoff_ = getDoubleOption_("max_intensity_cutoff");
 
     ConsensusXMLFile consensus_f;
     consensus_f.setLogType(log_type_);
@@ -132,7 +132,7 @@ class TOPPClusterMassTraces
     OpenMS::MasstraceCorrelator mtcorr;
     mtcorr.setLogType(log_type_); 
     mtcorr.createPseudoSpectra(masstrace_map, pseudo_spectra, min_peak_nr,
-        min_pearson_correlation_, max_lag_, max_rt_apex_difference_, max_intensity_cutoff_);
+        min_pearson_correlation_, max_lag_, max_rt_apex_difference_/* , max_intensity_cutoff_ */);
     pseudo_spectra.sortSpectra();
 
     // If we want to set a specific precursor, do this now
