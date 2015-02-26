@@ -49,7 +49,7 @@ START_TEST(CorrelateMasstraces, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION((virtual void match_elution_arrays()))
+START_SECTION((virtual void matchMassTraces_()))
 {
 
   OpenMS::MasstraceCorrelator mtcorr;
@@ -77,7 +77,7 @@ START_SECTION((virtual void match_elution_arrays()))
   }
 
   vec1.clear(); vec2.clear();
-  mtcorr.match_elution_arrays(data1_2d, data2_2d, vec1, vec2, 0.1);
+  mtcorr.matchMassTraces_(data1_2d, data2_2d, vec1, vec2, 0.1);
 
   TEST_EQUAL(vec1.size(), 7);
   TEST_EQUAL(vec2.size(), 7);
@@ -99,7 +99,7 @@ START_SECTION((virtual void match_elution_arrays()))
   TEST_EQUAL(vec2[6], 0);
 
   vec1.clear(); vec2.clear();
-  mtcorr.match_elution_arrays(data2_2d, data1_2d, vec2, vec1, 0.1);
+  mtcorr.matchMassTraces_(data2_2d, data1_2d, vec2, vec1, 0.1);
 
   TEST_EQUAL(vec1.size(), 7);
   TEST_EQUAL(vec2.size(), 7);
@@ -121,7 +121,7 @@ START_SECTION((virtual void match_elution_arrays()))
   TEST_EQUAL(vec2[6], 0);
 
   vec1.clear(); vec2.clear();
-  mtcorr.match_elution_arrays(data1_2d, data2_2d, vec1, vec2, 1.5);
+  mtcorr.matchMassTraces_(data1_2d, data2_2d, vec1, vec2, 1.5);
 
   TEST_EQUAL(vec1.size(), 6);
   TEST_EQUAL(vec2.size(), 6);
@@ -175,7 +175,7 @@ START_SECTION((virtual void match_elution_arrays_no_padding()))
   TEST_EQUAL(vec2.size(), 0);
   // if we do not pad the ends, this means that we do not add zeros to the first vector that is shorter in RT
   bool pad_ends = false;
-  mtcorr.match_elution_arrays(data1_2d, data2_2d, vec1, vec2, 0.1, pad_ends);
+  mtcorr.matchMassTraces_(data1_2d, data2_2d, vec1, vec2, 0.1, pad_ends);
 
   TEST_EQUAL(vec1.size(), 5);
   TEST_EQUAL(vec2.size(), 5);
@@ -196,7 +196,7 @@ START_SECTION((virtual void match_elution_arrays_no_padding()))
   TEST_EQUAL(vec1.size(), 0);
   TEST_EQUAL(vec2.size(), 0);
   // if we do pad the ends, this means that we do add zeros to the first vector that is shorter in RT
-  mtcorr.match_elution_arrays(data1_2d, data2_2d, vec1, vec2, 0.1, true);
+  mtcorr.matchMassTraces_(data1_2d, data2_2d, vec1, vec2, 0.1, true);
 
   TEST_EQUAL(vec1.size(), 8);
   TEST_EQUAL(vec2.size(), 8);
