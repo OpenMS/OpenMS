@@ -5,6 +5,7 @@ set(directory source/APPLICATIONS/UTILS)
 set(UTILS_executables
 AccurateMassSearch
 ClusterMassTraces
+ClusterMassTracesByPrecursor
 CVInspector
 DeMeanderize
 DecoyDatabase

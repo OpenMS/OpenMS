@@ -130,8 +130,8 @@ class TOPPCorrelateMasstraces
 
     // bool ms1_centric = getFlag_("ms1_centric");
 
-    DoubleReal swath_lower = getDoubleOption_("swath_lower");
-    DoubleReal swath_upper = getDoubleOption_("swath_upper");
+    double swath_lower = getDoubleOption_("swath_lower");
+    double swath_upper = getDoubleOption_("swath_upper");
 
     // Load input:
     // - MS1 feature map containing the MS1 mass traces
@@ -164,12 +164,16 @@ class TOPPCorrelateMasstraces
 
   /** @brief Cluster fragments ions with their corresponding precursors 
    *
-   * *****************************************************
-   * Variant 2: we look for the precursor and for each precursor we assign
-   * fragments
+   * This is based on the ETISEQ algorithm and works as follows:
    *
-   * for each precursor determine which are the most likely fragments and then
-   * assign those to the precursor
+   *  - Identify the precursor traces
+   *  - For each precursor determine which are the most likely fragments and
+   *    then assign those to the precursor
+   *  - Assign unassigned fragments to scans
+   *  - Create actual precursor spectra
+   *
+   * TODO: incorporate elements from DIAUmpire
+   *  - allow ions to be assigned to multiple precursors
    *
   */
   void MS1CentricClustering(ConsensusMap& MS1_feature_map, ConsensusMap& MS2_feature_map, 
@@ -179,9 +183,9 @@ class TOPPCorrelateMasstraces
     // -----------------------------------
     // Parameters 
     // -----------------------------------
-    DoubleReal min_pscore = getDoubleOption_("min_pearson_correlation");
+    double min_pscore = getDoubleOption_("min_pearson_correlation");
     int max_lag = getIntOption_("max_lag");
-    DoubleReal rt_max_distance = getDoubleOption_("max_rt_apex_difference");
+    double rt_max_distance = getDoubleOption_("max_rt_apex_difference");
     int min_nr_ions = getIntOption_("min_nr_ions");
     bool unassigned = getFlag_("assign_unassigned_to_all");
     // to consider all signals within 2 seconds equal makes sense with
@@ -252,7 +256,7 @@ class TOPPCorrelateMasstraces
         // { cout << f2_points[kk].first << " f/s " << f2_points[kk].second << endl; }
 #endif
 
-        int lag; double lag_intensity; DoubleReal pearson_score;
+        int lag; double lag_intensity; double pearson_score;
         mtcorr.scoreHullpoints(feature_points_ms1[i], feature_points_ms2[j], 
             lag, lag_intensity, pearson_score, min_pscore, max_lag, mindiff);
 
