@@ -32,10 +32,10 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
+#ifndef OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
+#define OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
 #include <map>
 #include <vector>
 #include <string>
@@ -64,4 +64,4 @@ namespace OpenSwath
 
 } //end namespace
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H
+#endif // OPENSWATHALGO_DATAACCESS_TRANSITIONHELPER_H

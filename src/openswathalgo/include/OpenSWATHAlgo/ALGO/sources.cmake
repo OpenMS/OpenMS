@@ -1,5 +1,5 @@
 ### the directory name
-set(directory include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO)
+set(directory include/OpenSWATHAlgo/ALGO)
 
 ### list all header files of the directory here
 set(sources_list_h
@@ -15,7 +15,7 @@ foreach(i ${sources_list_h})
 endforeach(i)
 
 ### source group definition
-source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\ALGO" FILES ${sources_h})
+source_group("Header Files\\OpenSWATHAlgo\\ALGO" FILES ${sources_h})
 set_source_files_properties(${directory}/sources.cmake PROPERTIES HEADER_FILE_ONLY TRUE)
 
 set(OpenSWATHALGO_ALGO_sources_h ${sources_h})

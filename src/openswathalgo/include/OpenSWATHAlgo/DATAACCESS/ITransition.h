@@ -32,13 +32,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H
+#ifndef OPENSWATHALGO_DATAACCESS_ITRANSITION_H
+#define OPENSWATHALGO_DATAACCESS_ITRANSITION_H
 
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
 
 namespace OpenSwath
 {
@@ -83,4 +83,4 @@ public:
 
 } //end Namespace OpenSwath
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ITRANSITION_H
+#endif // OPENSWATHALGO_DATAACCESS_ITRANSITION_H

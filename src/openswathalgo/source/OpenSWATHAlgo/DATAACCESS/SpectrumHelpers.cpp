@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/Macros.h>
+#include <OpenSWATHAlgo/DATAACCESS/SpectrumHelpers.h>
+#include <OpenSWATHAlgo/Macros.h>
 
 #include <algorithm>
 #include <numeric>

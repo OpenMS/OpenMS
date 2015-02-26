@@ -32,10 +32,10 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_SWATHMAP_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_SWATHMAP_H
+#ifndef OPENSWATHALGO_DATAACCESS_SWATHMAP_H
+#define OPENSWATHALGO_DATAACCESS_SWATHMAP_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenSWATHAlgo/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenSwath
 {
@@ -54,4 +54,4 @@ namespace OpenSwath
 
 } //end Namespace OpenSwath
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
+#endif // OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H

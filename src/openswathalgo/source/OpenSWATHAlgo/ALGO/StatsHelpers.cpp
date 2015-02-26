@@ -32,7 +32,7 @@
 // $Authors: Witold Wolski  $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
+#include "OpenSWATHAlgo/ALGO/StatsHelpers.h"
 
 #include <algorithm>
 #include <numeric>

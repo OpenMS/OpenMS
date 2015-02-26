@@ -32,7 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transitions.h>
+#include <OpenSWATHAlgo/DATAACCESS/Transitions.h>
 
 namespace OpenSwath
 {

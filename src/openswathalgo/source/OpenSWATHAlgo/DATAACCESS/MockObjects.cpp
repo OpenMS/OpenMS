@@ -32,7 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h>
+#include <OpenSWATHAlgo/DATAACCESS/MockObjects.h>
 
 #include <string>
 

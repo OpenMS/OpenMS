@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 ### the directory name
-set(directory source/ANALYSIS/OPENSWATH/OPENSWATHALGO)
+set(directory source/OpenSWATHAlgo)
 
 ### list all files of the directory here
 set(sources_algo_list
@@ -66,11 +66,11 @@ set(OpenSwathAlgoFiles)
 list(APPEND OpenSwathAlgoFiles ${sources_algo})
 list(APPEND OpenSwathAlgoFiles ${sources_dataaccess})
 
-source_group("Source Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\DATAACESS" FILES ${sources_dataaccess})
-source_group("Source Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\ALGO" FILES ${sources_algo})
+source_group("Source Files\\OpenSWATHAlgo\\DATAACESS" FILES ${sources_dataaccess})
+source_group("Source Files\\OpenSWATHAlgo\\ALGO" FILES ${sources_algo})
 
 ## the header directory
-set(header_directory include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO)
+set(header_directory include/OpenSWATHAlgo)
 
 ## add groups for headers
 set(header_algo_list
@@ -108,5 +108,5 @@ list(APPEND OpenSwathAlgoFiles ${header_dataaccess})
 # installation and export
 set(OpenSwathAlgoHeaders ${header_algo} ${header_dataaccess})
 
-source_group("Header Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\DATAACESS" FILES ${header_dataaccess})
-source_group("Header Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\ALGO" FILES ${header_algo})
+source_group("Header Files\\OpenSWATHAlgo\\DATAACESS" FILES ${header_dataaccess})
+source_group("Header Files\\OpenSWATHAlgo\\ALGO" FILES ${header_algo})

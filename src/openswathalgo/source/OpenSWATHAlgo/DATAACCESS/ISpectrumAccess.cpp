@@ -32,7 +32,7 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenSWATHAlgo/DATAACCESS/ISpectrumAccess.h>
 
 
 namespace OpenSwath

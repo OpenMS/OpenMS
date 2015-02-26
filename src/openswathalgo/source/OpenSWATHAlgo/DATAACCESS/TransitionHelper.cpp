@@ -32,8 +32,8 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenSWATHAlgo/DATAACCESS/TransitionHelper.h>
+#include <OpenSWATHAlgo/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenSwath
 {

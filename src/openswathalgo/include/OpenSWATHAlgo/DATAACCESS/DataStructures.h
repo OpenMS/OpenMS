@@ -32,14 +32,14 @@
 // $Authors: Darren Kessner, Hannes Roest, Witold Wolski$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
+#ifndef OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
+#define OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
 
 #include <string>
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
 
 namespace OpenSwath
 {
@@ -232,4 +232,4 @@ public:
   typedef boost::shared_ptr<Spectrum> SpectrumPtr;
 } //end Namespace OpenSwath
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
+#endif // OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H

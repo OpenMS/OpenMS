@@ -32,21 +32,21 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
+#ifndef OPENSWATHALGO_ALGO_MRMSCORING_H
+#define OPENSWATHALGO_ALGO_MRMSCORING_H
 
 #include <string>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <boost/numeric/conversion/cast.hpp>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
-//#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/DIAHelpers.h"
+#include "OpenSWATHAlgo/DATAACCESS/ISpectrumAccess.h"
+#include "OpenSWATHAlgo/DATAACCESS/ITransition.h"
+#include "OpenSWATHAlgo/DATAACCESS/TransitionExperiment.h"
+#include "OpenSWATHAlgo/ALGO/StatsHelpers.h"
+#include "OpenSWATHAlgo/ALGO/Scoring.h"
+//#include "OpenSWATHAlgo/ALGO/DIAHelpers.h"
 
 namespace OpenSwath
 {
@@ -157,4 +157,4 @@ private:
   };
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_MRMSCORING_H
+#endif // OPENSWATHALGO_ALGO_MRMSCORING_H

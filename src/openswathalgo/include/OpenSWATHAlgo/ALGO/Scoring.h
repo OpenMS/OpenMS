@@ -32,14 +32,14 @@
 // $Authors: Hannes Roest$
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H
+#ifndef OPENSWATHALGO_ALGO_SCORING_H
+#define OPENSWATHALGO_ALGO_SCORING_H
 
 #include <numeric>
 #include <map>
 #include <vector>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
 
 namespace OpenSwath
 {
@@ -119,4 +119,4 @@ namespace OpenSwath
   }
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_SCORING_H
+#endif // OPENSWATHALGO_ALGO_SCORING_H

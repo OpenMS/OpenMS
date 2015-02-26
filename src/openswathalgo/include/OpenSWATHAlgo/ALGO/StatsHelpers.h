@@ -32,10 +32,10 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H
+#ifndef OPENSWATHALGO_ALGO_STATSHELPERS_H
+#define OPENSWATHALGO_ALGO_STATSHELPERS_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -234,4 +234,4 @@ public:
 
 } //end namespace OpenSwath
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_ALGO_STATSHELPERS_H
+#endif // OPENSWATHALGO_ALGO_STATSHELPERS_H

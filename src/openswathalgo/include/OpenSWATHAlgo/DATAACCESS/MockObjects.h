@@ -32,11 +32,11 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
+#ifndef OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
+#define OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/DATAACCESS/ITransition.h>
 
 #include <boost/shared_ptr.hpp>
 #include <map>
@@ -141,4 +141,4 @@ public:
 
 } //end namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H
+#endif // OPENSWATHALGO_DATAACCESS_MOCKOBJECTS_H

@@ -32,12 +32,12 @@
 // $Authors: Hannes Roest, Witold Wolski $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H
+#ifndef OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H
+#define OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
+#include <OpenSWATHAlgo/DATAACCESS/DataStructures.h>
 #include <boost/shared_ptr.hpp>
 #include <string>
 #include <vector>
@@ -90,4 +90,4 @@ public:
   typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H
+#endif // OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H

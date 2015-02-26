@@ -32,13 +32,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONS_H
-#define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONS_H
+#ifndef OPENSWATHALGO_DATAACCESS_TRANSITIONS_H
+#define OPENSWATHALGO_DATAACCESS_TRANSITIONS_H
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
+#include <OpenSWATHAlgo/OpenSwathAlgoConfig.h>
 #include <string>
 #include <vector>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenSWATHAlgo/DATAACCESS/TransitionExperiment.h>
 
 namespace OpenSwath
 {
@@ -72,4 +72,4 @@ namespace OpenSwath
 
 }
 
-#endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_TRANSITIONS_H
+#endif // OPENSWATHALGO_DATAACCESS_TRANSITIONS_H
