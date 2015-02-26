@@ -32,21 +32,13 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_KERNEL_MASSTRACECORRELATOR_H 
-#define OPENMS_KERNEL_MASSTRACECORRELATOR_H 
+#ifndef OPENMS_ANALYSIS_OPENSWATH_MASSTRACECORRELATOR_H 
+#define OPENMS_ANALYSIS_OPENSWATH_MASSTRACECORRELATOR_H 
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/MRMScoring.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
-#include <OpenMS/KERNEL/ConsensusFeature.h>
-#include <fstream>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 bool SortDoubleDoublePairFirst(const std::pair<double, double>& left,
     const std::pair<double, double>& right);
@@ -57,7 +49,7 @@ namespace OpenMS
   /**
    @brief Correlates individual masstraces found in mass spectrometric maps
 
-   The MasstraceCorrelator offers sevearl functions to correlate individual
+   The MasstraceCorrelator offers several functions to correlate individual
    mass traces using the normalized Cross-Correlation and pearson scoring of
    the OpenSWATH module.
 
@@ -83,25 +75,22 @@ namespace OpenMS
      * vector).
      *
      * It basically makes an all-vs-all comparison of all masstraces against
-     * each other and scores them on how similar they are in their elution
-     * profiles.
+     * each other and scores them on how similar they are in their mass traces.
      *
      * This assumes that the consensus feature is only from one (SWATH) map
      * This assumes that the consensus map is sorted by intensity
-     *
-     * (maybe) @todo use template peak type
      *
     */
     void createPseudoSpectra(ConsensusMap& map, MSExperiment<Peak1D>& pseudo_spectra,
         Size min_peak_nr, double min_correlation, int max_lag,
         double max_rt_apex_difference);
 
-    /* Score two elution profiles against each other
+    /* Score two mass traces against each other
      *
-     * This function scores two elution profiles (vector of <RT,Intensity>) against each other:
+     * This function scores two mass traces (vector of <RT,Intensity>) against each other:
      *
      *  - The algorithm first creates 2 arrays that contain matched intensities
-     *    in RT-space (accounting for missing data points and uniqual length)
+     *    in RT-space (accounting for missing data points and unequal length)
      *  - Next, these arrays are scored using cross-correlation scores and
      *    pearson coefficients.
      *
@@ -151,7 +140,7 @@ namespace OpenMS
      * are less than mindiff apart, the two entries are considered to be equal,
      * otherwise one is assumed to be zero).
      *
-     * This is useful for matching elution profiles that are not of the exact same
+     * This is useful for matching mass traces that are not of the exact same
      * length and/or have missing values.
      *
      * @param hull_points1 The first input mass trace
