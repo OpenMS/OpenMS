@@ -422,7 +422,7 @@ protected:
       }
       else
       {
-        writeLog_("Unknown input file type given. Aborting!");
+        writeLog_("Error: Unknown input file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
