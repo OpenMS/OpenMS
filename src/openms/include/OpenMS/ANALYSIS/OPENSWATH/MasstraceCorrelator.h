@@ -97,9 +97,12 @@ namespace OpenMS
 
     /* Score two elution profiles against each other
      *
-     * This function scores two elution profiles against each other:
-     * First it creates 2 arrays that contain the corresponding intensities in RT-space
-     * Then these arrays are scored using Cross-correlation scores and pearson coefficients.
+     * This function scores two elution profiles (vector of <RT,Intensity>) against each other:
+     *
+     *  - The algorithm first creates 2 arrays that contain matched intensities
+     *    in RT-space (accounting for missing data points and uniqual length)
+     *  - Next, these arrays are scored using cross-correlation scores and
+     *    pearson coefficients.
      *
      * The pairs need to be sorted by the first entry (RT)
     */
@@ -124,7 +127,7 @@ namespace OpenMS
 
   private:
 
-    /** @brief Match up two elution profile arrays
+    /** @brief Match up two mass traces with potentially missing values
      *
      * This takes two 2D arrays of pairs (RT, int) and matches the entries to each
      * other on basis of RT, writing the corresponding intensities in the two
@@ -132,8 +135,9 @@ namespace OpenMS
      * entries are considered to be equal, otherwise one is assumed to be zero).
      * This is useful for matching elution profiles that are not of the exact same
      * length and/or have missing values.
+     *
     */
-    void match_elution_arrays(std::vector<std::pair<double, double> >& hull_points1,
+    void matchMassTraces_(std::vector<std::pair<double, double> >& hull_points1,
         std::vector<std::pair<double, double> >& hull_points2,
         std::vector<double>& vec1, std::vector<double>& vec2, double mindiff,
         double padEnds = true);

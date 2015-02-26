@@ -61,18 +61,19 @@ namespace OpenMS
   {
   }
 
-  void MasstraceCorrelator::match_elution_arrays(std::vector< std::pair< double, double> >& hull_points1,
+  void MasstraceCorrelator::matchMassTraces_(std::vector< std::pair< double, double> >& hull_points1,
       std::vector< std::pair< double, double> >& hull_points2,
       std::vector<double>& vec1, std::vector<double>& vec2, double mindiff, double padEnds)
   {
 
     Size k=0,m=0;
+
     // If we do not pad the ends, we advance the longer array until the shorter one starts
-    if(!padEnds)
+    if (!padEnds)
     {
-      while(k<hull_points1.size() && m<hull_points2.size() )
+      while (k<hull_points1.size() && m<hull_points2.size() )
       {
-        if(fabs(hull_points1[k].first - hull_points2[m].first) < mindiff)
+        if (fabs(hull_points1[k].first - hull_points2[m].first) < mindiff)
         {
           break;
         }
@@ -88,9 +89,9 @@ namespace OpenMS
     
     }
 
-    while(k<hull_points1.size() && m<hull_points2.size() )
+    while (k<hull_points1.size() && m<hull_points2.size() )
     {
-        if(fabs(hull_points1[k].first - hull_points2[m].first) < mindiff)
+        if (fabs(hull_points1[k].first - hull_points2[m].first) < mindiff)
         {
             vec1.push_back(hull_points1[k].second);
             vec2.push_back(hull_points2[m].second);
@@ -117,18 +118,18 @@ namespace OpenMS
     }
 
     // If we do not pad the ends, we can return now
-    if(!padEnds) {return;}
+    if (!padEnds) {return;}
 
     // If one vector is not at the end, we need to copy the rest and fill up with
     // zeros in the other.
-    while(k<hull_points1.size())
+    while (k<hull_points1.size())
     {
       vec1.push_back(hull_points1[k].second);
       vec2.push_back(0);
       k++;
     }
 
-    while(m<hull_points2.size())
+    while (m<hull_points2.size())
     {
       vec1.push_back(0);
       vec2.push_back(hull_points2[m].second);
@@ -143,15 +144,9 @@ namespace OpenMS
       double& lag_intensity, double& pearson_score, double min_corr, int /* max_lag */, double mindiff)
   {
 
-    // TODO
-    // there may be missing datapoints in here
-    // we could resample using the  <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-    // we assume that they are sorted in RT space 
-    //
     std::vector<double> vec1;
     std::vector<double> vec2;
-    // 10% of all time to match the arrays
-    match_elution_arrays(hull_points1, hull_points2, vec1, vec2, mindiff);
+    matchMassTraces_(hull_points1, hull_points2, vec1, vec2, mindiff);
 
     pearson_score = Math::pearsonCorrelationCoefficient(vec1.begin(), vec1.end(), vec2.begin(), vec2.end() );
     // If the correlation is below the minimum level, we can already return at this point
