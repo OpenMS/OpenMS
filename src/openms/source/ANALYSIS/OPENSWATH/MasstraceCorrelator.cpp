@@ -61,8 +61,9 @@ namespace OpenMS
   {
   }
 
-  void MasstraceCorrelator::matchMassTraces_(std::vector< std::pair< double, double> >& hull_points1,
-      std::vector< std::pair< double, double> >& hull_points2,
+  void MasstraceCorrelator::matchMassTraces_(
+      const masstracePointsType& hull_points1,
+      const masstracePointsType& hull_points2,
       std::vector<double>& vec1, std::vector<double>& vec2, double mindiff, double padEnds)
   {
 
@@ -91,30 +92,30 @@ namespace OpenMS
 
     while (k<hull_points1.size() && m<hull_points2.size() )
     {
-        if (fabs(hull_points1[k].first - hull_points2[m].first) < mindiff)
-        {
-            vec1.push_back(hull_points1[k].second);
-            vec2.push_back(hull_points2[m].second);
-            m++; k++;
-        }
-        else if (hull_points1[k].first > hull_points2[m].first )
-        {
-            //need to advance m, assume that vector 1 is zero
-            vec1.push_back(0);
-            vec2.push_back(hull_points2[m].second);
-            m++;
-        }
-        else if (hull_points1[k].first < hull_points2[m].first )
-        {
-            //need to advance k, assume that vector 2 is zero
-            vec1.push_back(hull_points1[k].second);
-            vec2.push_back(0);
-            k++;
-        }
-        else 
-        {
-          cout << "Error, cannot be here" << endl;
-        }
+      if (fabs(hull_points1[k].first - hull_points2[m].first) < mindiff)
+      {
+        vec1.push_back(hull_points1[k].second);
+        vec2.push_back(hull_points2[m].second);
+        m++; k++;
+      }
+      else if (hull_points1[k].first > hull_points2[m].first )
+      {
+        //need to advance m, assume that vector 1 is zero
+        vec1.push_back(0);
+        vec2.push_back(hull_points2[m].second);
+        m++;
+      }
+      else if (hull_points1[k].first < hull_points2[m].first )
+      {
+        //need to advance k, assume that vector 2 is zero
+        vec1.push_back(hull_points1[k].second);
+        vec2.push_back(0);
+        k++;
+      }
+      else 
+      {
+        cout << "Error, cannot be here" << endl;
+      }
     }
 
     // If we do not pad the ends, we can return now
@@ -138,10 +139,9 @@ namespace OpenMS
 
   }
 
-
-  void MasstraceCorrelator::scoreHullpoints(std::vector< std::pair< double, double> >& hull_points1, 
-      std::vector< std::pair< double, double> >& hull_points2, int& lag, 
-      double& lag_intensity, double& pearson_score, double min_corr, int /* max_lag */, double mindiff)
+  void MasstraceCorrelator::scoreHullpoints(const masstracePointsType& hull_points1, const masstracePointsType& hull_points2,
+        int& lag, double& lag_intensity, double& pearson_score, 
+        const double min_corr, const int /* max_lag */, const double mindiff)
   {
 
     std::vector<double> vec1;
@@ -149,8 +149,12 @@ namespace OpenMS
     matchMassTraces_(hull_points1, hull_points2, vec1, vec2, mindiff);
 
     pearson_score = Math::pearsonCorrelationCoefficient(vec1.begin(), vec1.end(), vec2.begin(), vec2.end() );
+
     // If the correlation is below the minimum level, we can already return at this point
-    if(pearson_score <= min_corr) {return;}
+    if (pearson_score <= min_corr) 
+    {
+      return;
+    }
 
     OpenSwath::MRMScoring mrmscore;
 #if 0
