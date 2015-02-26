@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow, Andreas Bertsch $
+// $Authors: Chris Bielow, Andreas Bertsch, Lars Nilse $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -98,6 +98,9 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output mzML file with merged spectra.");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
+
+    registerStringOption_("averaging_method", "<method>", "none", "Method of averaging spectra.", false);
+    setValidStrings_("averaging_method", ListUtils::create<String>("none,spectra"));
 
     registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.", false);
     setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method"));
