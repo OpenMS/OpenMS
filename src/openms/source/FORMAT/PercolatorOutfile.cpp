@@ -54,7 +54,7 @@ namespace OpenMS
     extractors_.push_back(extractor);
     // Mascot Percolator format (RT may be missing, e.g. for searches via
     // ProteomeDiscoverer):
-    extractor.re.assign("spectrum:[^;]+(scans:)|(spectrum=)(?<SCAN>\\d+)[^;]+;rt:(?<RT>\\d.(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>[-+]\\d+)");
+    extractor.re.assign("spectrum:[^;]+(scans:)|(spectrum=)(?<SCAN>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
     extractor.count_from_zero = true;
     extractors_.push_back(extractor);
   }
@@ -311,17 +311,17 @@ namespace OpenMS
              << endl;
     if (no_charge > 0)
     {
-      LOG_WARN << no_charge << " peptide hits without charge state information" 
+      LOG_WARN << no_charge << " peptide hits without charge state information."
                << endl;
     }
     if (no_rt > 0)
     {
-      LOG_WARN << no_rt << " peptide hits without retention time information" 
+      LOG_WARN << no_rt << " peptide hits without retention time information." 
                << endl;
     }
     if (no_mz > 0)
     {
-      LOG_WARN << no_mz << " peptide hits without mass-to-charge information" 
+      LOG_WARN << no_mz << " peptide hits without mass-to-charge information." 
                << endl;
     }
   }
