@@ -49,6 +49,18 @@ using namespace OpenMS;
   Input is a consensus map containing individual mass traces, the output may be
   spectra containing all clustered features.
 
+  Mass traces are clustered independend of precursor traces in another map
+  (this is the more simple approach)  and pseudo spectra are created without
+  any precursors assigned. This is useful for 
+
+   - clustering of features in an MS1 map (isotope traces, charge states etc)
+   - clustering of features in an SWATH map (fragment ions from the same precursor, isotope traces, charge states etc)
+
+  On the clustered fragments in an MS2 map, one can then (optionally) do 
+
+   - de novo searches 
+   - calculate the most likely precursor(s) and DB-search
+
 */
 
 // We do not want this class to show up in the docu:
