@@ -135,9 +135,9 @@ protected:
     registerInputFile_("in", "<path/file>", "",
                        "Input file or directory containing the data to convert. This may be:\n"
                        "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
-                       "- a single file in a search engine-specific XML format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: csv),\n"
+                       "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms),\n"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,csv,idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,idXML,mzid"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
@@ -389,7 +389,7 @@ protected:
           }
         }
       }
-      else if (in_type == FileTypes::CSV) // Percolator
+      else if (in_type == FileTypes::PSMS) // Percolator
       {
         String mz_file = getStringOption_("mz_file");
         MSExperiment<> experiment;
