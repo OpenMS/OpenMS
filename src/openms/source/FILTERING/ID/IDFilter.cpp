@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,8 @@ namespace OpenMS
   void IDFilter::filterIdentificationsUnique(const PeptideIdentification& identification,
                                              PeptideIdentification& filtered_identification)
   {
+    // there's no "PeptideHit::operator<" defined, so we can't use a set nor
+    // "sort" + "unique" from the standard library
     vector<PeptideHit> hits;
     filtered_identification = identification;
     vector<PeptideHit> temp_hits = identification.getHits();
@@ -294,7 +296,7 @@ namespace OpenMS
 
     for (Size i = 0; i < identification.getHits().size(); i++)
     {
-      if (no_protein_identifiers || accession_sequences == "*") // filter by sequence alone if no protein accesssions are available
+      if (no_protein_identifiers || accession_sequences == "*") // filter by sequence alone if no protein accessions are available
       {
         if (protein_sequences.find(identification.getHits()[i].getSequence().toUnmodifiedString()) != String::npos)
         {
@@ -303,7 +305,7 @@ namespace OpenMS
       }
       else // filter by protein accessions
       {
-        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(identification.getHits()[i]);
+        std::set<String> protein_accessions = identification.getHits()[i].extractProteinAccessions();
         for (set<String>::const_iterator ac_it = protein_accessions.begin(); ac_it != protein_accessions.end(); ++ac_it)
         {
           if (accession_sequences.find("*" + *ac_it) != String::npos)
@@ -351,19 +353,18 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification,
                                                           const set<String>& peptides,
+                                                          bool ignore_modifications,
                                                           PeptideIdentification& filtered_identification)
   {
-    String protein_sequences;
-    String accession_sequences;
     vector<PeptideHit> filtered_peptide_hits;
-    PeptideHit temp_peptide_hit;
 
     filtered_identification = identification;
     filtered_identification.setHits(vector<PeptideHit>());
 
     for (Size i = 0; i < identification.getHits().size(); i++)
     {
-      if (find(peptides.begin(), peptides.end(), identification.getHits()[i].getSequence().toString()) == peptides.end())
+      String query = ignore_modifications ? identification.getHits()[i].getSequence().toUnmodifiedString() : identification.getHits()[i].getSequence().toString();
+      if (find(peptides.begin(), peptides.end(), query) == peptides.end())
       {
         filtered_peptide_hits.push_back(identification.getHits()[i]);
       }
@@ -445,7 +446,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::removeUnreferencedProteinHits(const ProteinIdentification& identification, const vector<PeptideIdentification> peptide_identifications, ProteinIdentification& filtered_identification)
+  void IDFilter::removeUnreferencedProteinHits(const ProteinIdentification& identification, const vector<PeptideIdentification>& peptide_identifications, ProteinIdentification& filtered_identification)
   {
     const String& run_identifier = identification.getIdentifier();
 
@@ -460,7 +461,7 @@ namespace OpenMS
         // extract protein accessions of each peptide hit
         for (Size j = 0; j != tmp_pep_hits.size(); ++j)
         {
-          const std::set<String>& protein_accessions = PeptideHit::extractProteinAccessions(tmp_pep_hits[j]);
+          const std::set<String>& protein_accessions = tmp_pep_hits[j].extractProteinAccessions();
           proteinaccessions_with_peptides.insert(protein_accessions.begin(), protein_accessions.end());
         }
       }
@@ -486,7 +487,7 @@ namespace OpenMS
   }
 
   void IDFilter::removeUnreferencedPeptideHits(const ProteinIdentification& identification,
-                                               std::vector<PeptideIdentification>& peptide_identifications,
+                                               vector<PeptideIdentification>& peptide_identifications,
                                                bool delete_unreferenced_peptide_hits /* = false */)
   {
     const String& run_identifier = identification.getIdentifier();
@@ -499,7 +500,7 @@ namespace OpenMS
       all_prots.insert(temp_protein_hits[j].getAccession());
     }
 
-    std::vector<PeptideIdentification> filtered_peptide_identifications;
+    vector<PeptideIdentification> filtered_peptide_identifications;
     // remove peptides which are not referenced
     for (Size i = 0; i != peptide_identifications.size(); ++i)
     {
@@ -555,7 +556,7 @@ namespace OpenMS
     return (value >= low) && (value <= high);
   }
 
-  void IDFilter::filterIdentificationsByRT(const std::vector<PeptideIdentification>& identifications, double min_rt, double max_rt, std::vector<PeptideIdentification>& filtered_identifications)
+  void IDFilter::filterIdentificationsByRT(const vector<PeptideIdentification>& identifications, double min_rt, double max_rt, vector<PeptideIdentification>& filtered_identifications)
   {
     filtered_identifications.clear();
 
@@ -568,7 +569,7 @@ namespace OpenMS
     }
   }
 
-  void IDFilter::filterIdentificationsByMZ(const std::vector<PeptideIdentification>& identifications, double min_mz, double max_mz, std::vector<PeptideIdentification>& filtered_identifications)
+  void IDFilter::filterIdentificationsByMZ(const vector<PeptideIdentification>& identifications, double min_mz, double max_mz, vector<PeptideIdentification>& filtered_identifications)
   {
     filtered_identifications.clear();
 
@@ -579,6 +580,47 @@ namespace OpenMS
         filtered_identifications.push_back(identifications[i]);
       }
     }
+  }
+
+  bool IDFilter::updateProteinGroups(const vector<ProteinIdentification::ProteinGroup>& groups, const vector<ProteinHit>& hits, vector<ProteinIdentification::ProteinGroup>& filtered_groups)
+  {
+    bool valid = true;
+
+    // we'll do lots of look-ups, so use a suitable data structure:
+    set<String> accessions;
+    for (vector<ProteinHit>::const_iterator hit_it = hits.begin();
+         hit_it != hits.end(); ++hit_it)
+    {
+      accessions.insert(hit_it->getAccession());
+    }
+
+    filtered_groups.clear();
+    filtered_groups.reserve(groups.size());
+    for (vector<ProteinIdentification::ProteinGroup>::const_iterator group_it =
+           groups.begin(); group_it != groups.end(); ++group_it)
+    {
+      ProteinIdentification::ProteinGroup filtered;
+      filtered.accessions.reserve(group_it->accessions.size());
+      for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
+           acc_it != group_it->accessions.end(); ++acc_it)
+      {
+        if (accessions.count(*acc_it) > 0)
+        {
+          filtered.accessions.push_back(*acc_it);
+        }
+      }
+      if (!filtered.accessions.empty())
+      {
+        if (filtered.accessions.size() < group_it->accessions.size())
+        {
+          valid = false; // some proteins removed from group
+        }
+        filtered.probability = group_it->probability;
+        filtered_groups.push_back(filtered);
+      }
+    }
+    
+    return valid;
   }
 
 } // namespace OpenMS

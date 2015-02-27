@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -91,7 +91,7 @@ namespace OpenMS
       isotope_distributions_[index].optional_begin = begin;
       isotope_distributions_[index].optional_end = end;
 
-      //scale the distibution to a maximum of 1
+      //scale the distribution to a maximum of 1
       double max = 0.0;
       for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
       {

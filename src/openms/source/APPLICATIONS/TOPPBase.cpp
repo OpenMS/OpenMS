@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -169,6 +169,7 @@ namespace OpenMS
     registerStringOption_("write_ctd", "<out_dir>", "", "Writes the common tool description file(s) (Toolname(s).ctd) to <out_dir>", false, true);
     registerStringOption_("write_wsdl", "<file>", "", "Writes the default WSDL file", false, true);
     registerFlag_("no_progress", "Disables progress logging to command line", true);
+    registerFlag_("force", "Overwrite tool specific checks.", true);
     if (id_tag_support_)
     {
       registerStringOption_("id_pool", "<file>", "", String("ID pool file to DocumentID's for all generated output files. Disabled by default. (Set to 'main' to use ") + String() + id_tagger_.getPoolFile() + ")", false);
@@ -1386,7 +1387,7 @@ namespace OpenMS
       // if required or set by user, do some validity checks
       if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
       {
-        //check if files are readable/writeable
+        //check if files are readable/writable
         if (p.type == ParameterInformation::INPUT_FILE_LIST)
         {
           inputFileReadable_(tmp, name);

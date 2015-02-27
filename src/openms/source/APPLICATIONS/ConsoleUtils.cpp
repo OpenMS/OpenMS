@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -104,7 +104,6 @@ namespace OpenMS
           char buff[100];
           if (fgets(buff, sizeof(buff), fp) != NULL)
           {
-            pclose(fp);
             String output(buff);
             StringList components;
             output.split(' ', components);
@@ -116,6 +115,7 @@ namespace OpenMS
             // TODO: throw ?
             LOG_DEBUG << "Could not read 100 characters from file." << std::endl;
           }
+          pclose(fp); //moved pclose outside of fgets condition - cant move it out of not nullpointer condition because pclose(null pointer is undefined behaviour)
         }
         else
         {
@@ -186,7 +186,7 @@ namespace OpenMS
       }
 
       i += advance_size;
-      String s_intend = (result.size() == 0 ? "" : String(indentation, ' ')); // first line no intendation
+      String s_intend = (result.size() == 0 ? "" : String(indentation, ' ')); // first line no indentation
       String r = s_intend + (result.size() == 0 ? line : line.trim()); // intended lines get trimmed
       result.push_back(r); //(r.fillRight(' ', (UInt) line_len));
     }

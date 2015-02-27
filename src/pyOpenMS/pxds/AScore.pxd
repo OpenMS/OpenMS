@@ -22,25 +22,37 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
         AScore() nogil except +
         AScore(AScore) nogil except + # wrap-ignore
 
-        PeptideHit compute(PeptideHit & hit, MSSpectrum[RichPeak1D] & real_spectrum,
-                     double fmt, int n_sites) nogil except +
+        PeptideHit compute(PeptideHit & hit,
+                           MSSpectrum[RichPeak1D] & real_spectrum, 
+                           double fmt, int n_sites) nogil except +
+
+        #Computes the site determing_ions for the given AS and sequences in candidates
+        void computeSiteDeterminingIons(libcpp_vector[MSSpectrum[RichPeak1D]] & th_spectra,
+                                           ProbablePhosphoSites & candidates,
+                                           Int charge,
+                                           libcpp_vector[MSSpectrum[RichPeak1D]] & site_determining_ions) nogil except +
+
+        # return all phospho sites
+        libcpp_vector[ size_t ] getSites(AASequence & without_phospho) nogil except +
+
+        libcpp_vector[ libcpp_vector[ size_t ] ] computePermutations(libcpp_vector[ size_t ] sites,
+                                                 Int n_phosphorylation_events) nogil except +
+
+        # Computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by position!
+        Size numberOfMatchedIons(MSSpectrum[RichPeak1D] th, MSSpectrum[RichPeak1D] windows, 
+                                 Size depth, double fragment_mass_tolerance, 
+                                 bool fragment_mass_tolerance_ppm ) nogil except +
+
+        double peptideScore(libcpp_vector[double] scores) nogil except +
 
         # Computes the cumulative binomial probabilities.
-        double computeCumulativeScore(UInt N, UInt n, double p) nogil except +
+        double computeCumulativeScore(Size N, Size n, double p) nogil except +
 
         # Finds the peptides with the highest PeptideScores and outputs all informations for computing the AScore
         # This function assumes that there are more permutations than the assumed number of phosphorylations!
-        void computeHighestPeptides(libcpp_vector[libcpp_vector[double] ] & peptide_site_scores,
+        void determineHighestScoringPermutations(libcpp_vector[libcpp_vector[double] ] & peptide_site_scores,
                                     libcpp_vector[ProbablePhosphoSites] & sites,
                                     libcpp_vector[libcpp_vector[size_t] ] & permutations) nogil except +
-
-        #Computes the site determing_ions for the given AS and sequences in candidates
-        void compute_site_determining_ions(libcpp_vector[MSSpectrum[RichPeak1D]] & th_spectra, ProbablePhosphoSites & candidates, Int charge, libcpp_vector[MSSpectrum[RichPeak1D]] & site_determining_ions) nogil except +
-
-        libcpp_vector[ size_t ] computeTupel_(AASequence & without_phospho) nogil except +
-        libcpp_vector[ libcpp_vector[ size_t ] ] computePermutations_(libcpp_vector[ size_t ] tupel,
-                                                 Int number_of_phospho_sites) nogil except +
-
 
     cdef cppclass ProbablePhosphoSites:
 

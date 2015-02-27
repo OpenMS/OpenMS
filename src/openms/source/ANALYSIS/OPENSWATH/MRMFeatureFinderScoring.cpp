@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -497,7 +497,7 @@ namespace OpenMS
       chromatogram_map[input->getChromatogramNativeID(i)] = boost::numeric_cast<int>(i);
     }
 
-    // Iterate thorugh all transitions and store the transition with the
+    // Iterate through all transitions and store the transition with the
     // corresponding chromatogram in the corresponding transition group
     Size progress = 0;
     startProgress(0, nr_chromatograms, "Mapping transitions to chromatograms ");

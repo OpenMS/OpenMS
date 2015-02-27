@@ -1,0 +1,842 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="http://localhost/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/interact.pep.xsl"?>
+<msms_pipeline_analysis date="2015-01-06T13:43:06" summary_xml="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/interact.pep.xml" xmlns="http://regis-web.systemsbiology.net/pepXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://regis-web.systemsbiology.net/pepXML http://localhost/pepXML_v117.xsd">
+<analysis_summary analysis="xpress" time="2015-01-06T13:43:35">
+<xpressratio_summary version="2.1 (TPP v4.7 POLAR VORTEX DEV r6466 rev 0, Build 201403291448 (MinGW))" author="Jimmy Eng" same_scan_range="Y" labeled_residues="nK" xpress_light="0" massdiff="n,6.031817 K,6.031817" masstol="20.000000" ppmtol="1" min_num_chromatogram_points="5" min_num_isotope_peaks="1"/>
+</analysis_summary>
+<analysis_summary analysis="peptideprophet" time="2015-01-06T13:43:10">
+<peptideprophet_summary version="PeptideProphet  (TPP v4.7 POLAR VORTEX rev 0, Build 201402281256 (MinGW))" author="AKeller@ISB" min_prob="0.13" options=" MINPROB=0.13 ACCMASS RT NONTT NONPARAM DECOY=SHUFFLED " est_tot_num_correct="3602.9">
+<inputfile name="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/H_LN1.pep.xml"/>
+<inputfile name="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/L_LN1.pep.xml"/>
+<roc_error_data charge="all">
+<roc_data_point min_prob="0.9999" sensitivity="0.3716" error="0.0000" num_corr="1339" num_incorr="0"/>
+<error_point error="0.0000" min_prob="1.0000" num_corr="623" num_incorr="0"/>
+</roc_error_data>
+<roc_error_data charge="2" charge_est_correct="2300.8">
+<roc_data_point min_prob="0.9999" sensitivity="0.2621" error="0.0000" num_corr="603" num_incorr="0"/>
+<error_point error="0.0000" min_prob="1.0000" num_corr="237" num_incorr="0"/>
+</roc_error_data>
+<roc_error_data charge="3" charge_est_correct="1302.2">
+<roc_data_point min_prob="0.9999" sensitivity="0.5652" error="0.0000" num_corr="736" num_incorr="0"/>
+<error_point error="0.0000" min_prob="1.0000" num_corr="388" num_incorr="0"/>
+</roc_error_data>
+<distribution_point fvalue="-4.90" obs_1_distr="0" model_1_pos_distr="0.00" model_1_neg_distr="0.00" obs_2_distr="0" model_2_pos_distr="0.00" model_2_neg_distr="0.00" obs_3_distr="0" model_3_pos_distr="0.00" model_3_neg_distr="0.00" obs_4_distr="0" model_4_pos_distr="0.00" model_4_neg_distr="0.00" obs_5_distr="0" model_5_pos_distr="0.00" model_5_neg_distr="0.00" obs_6_distr="0" model_6_pos_distr="0.00" model_6_neg_distr="0.00" obs_7_distr="0" model_7_pos_distr="0.00" model_7_neg_distr="0.00"/>
+<mixture_model precursor_ion_charge="1" comments="using 2+ positive distributions to identify candidates ('-1') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="0" num_iterations="21">
+<mixturemodel_distribution name="X! Tandem discrim score [fval]	negmean: -1.00">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable trypsin term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.003000" neg_bandwidth="0.003000">
+<point value="-0.031000" pos_dens="0.090475" neg_dens="0.330358"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="kernel density SSRCalc RT [RT]" pos_bandwidth="0.331012" neg_bandwidth="0.331012">
+<point value="-2.010000" pos_dens="0.006344" neg_dens="0.178095"/>
+</mixturemodel>
+</mixture_model>
+<mixture_model precursor_ion_charge="2" comments="using no. tolerable trypsin term. [ntt] 0 data as pseudonegatives" prior_probability="0.774" est_tot_correct="2300.8" tot_num_spectra="3115" num_iterations="26">
+<mixturemodel_distribution name="X! Tandem discrim score [fval]	negmean: 2.41">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="6.99079"/>
+<parameter name="stdev" value="3.30057"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="2.4083"/>
+<parameter name="stdev" value="1.59872"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable trypsin term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="1.000"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.000"/>
+<parameter name="nmc&gt;=3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="1.000"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.000"/>
+<parameter name="nmc&gt;=3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.003000" neg_bandwidth="0.003000">
+<point value="-0.031000" pos_dens="0.090475" neg_dens="0.330358"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="kernel density SSRCalc RT [RT]" pos_bandwidth="0.331012" neg_bandwidth="0.331012">
+<point value="-2.010000" pos_dens="0.006344" neg_dens="0.178095"/>
+</mixturemodel>
+</mixture_model>
+<mixture_model precursor_ion_charge="3" comments="using no. tolerable trypsin term. [ntt] 0 data as pseudonegatives" prior_probability="0.742" est_tot_correct="1302.2" tot_num_spectra="2170" num_iterations="26">
+<mixturemodel_distribution name="X! Tandem discrim score [fval]	negmean: 1.24">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="8.00434"/>
+<parameter name="stdev" value="3.87901"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="1.2418"/>
+<parameter name="stdev" value="1.35763"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable trypsin term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="1.000"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.000"/>
+<parameter name="nmc&gt;=3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="1.000"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.000"/>
+<parameter name="nmc&gt;=3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.003000" neg_bandwidth="0.003000">
+<point value="-0.031000" pos_dens="0.090475" neg_dens="0.330358"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.000"/>
+<parameter name="-2" value="0.000"/>
+<parameter name="-1" value="0.000"/>
+<parameter name="0" value="1.000"/>
+<parameter name="1" value="0.000"/>
+<parameter name="2" value="0.000"/>
+<parameter name="3" value="0.000"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="kernel density SSRCalc RT [RT]" pos_bandwidth="0.331012" neg_bandwidth="0.331012">
+<point value="-2.010000" pos_dens="0.006344" neg_dens="0.178095"/>
+</mixturemodel>
+</mixture_model>
+<mixture_model precursor_ion_charge="4" comments="using 3+ positive distributions to identify candidates ('-4') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="0" num_iterations="21">
+<mixturemodel_distribution name="X! Tandem discrim score [fval]	negmean: -1.00">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable trypsin term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.003000" neg_bandwidth="0.003000">
+<point value="-0.031000" pos_dens="0.090475" neg_dens="0.330358"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="kernel density SSRCalc RT [RT]" pos_bandwidth="0.331012" neg_bandwidth="0.331012">
+<point value="-2.010000" pos_dens="0.006344" neg_dens="0.178095"/>
+</mixturemodel>
+</mixture_model>
+<mixture_model precursor_ion_charge="5" comments="using 3+ positive distributions to identify candidates ('-5') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="0" num_iterations="21">
+<mixturemodel_distribution name="X! Tandem discrim score [fval]	negmean: -1.00">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable trypsin term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.003000" neg_bandwidth="0.003000">
+<point value="-0.031000" pos_dens="0.090475" neg_dens="0.330358"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="kernel density SSRCalc RT [RT]" pos_bandwidth="0.331012" neg_bandwidth="0.331012">
+<point value="-2.010000" pos_dens="0.006344" neg_dens="0.178095"/>
+</mixturemodel>
+</mixture_model>
+<mixture_model precursor_ion_charge="6" comments="using 3+ positive distributions to identify candidates ('-6') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="0" num_iterations="21">
+<mixturemodel_distribution name="X! Tandem discrim score [fval]	negmean: -1.00">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable trypsin term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.003000" neg_bandwidth="0.003000">
+<point value="-0.031000" pos_dens="0.090475" neg_dens="0.330358"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="kernel density SSRCalc RT [RT]" pos_bandwidth="0.331012" neg_bandwidth="0.331012">
+<point value="-2.010000" pos_dens="0.006344" neg_dens="0.178095"/>
+</mixturemodel>
+</mixture_model>
+<mixture_model precursor_ion_charge="7" comments="using 3+ positive distributions to identify candidates ('-7') above background ('0')" prior_probability="0.000" est_tot_correct="0.0" tot_num_spectra="0" num_iterations="21">
+<mixturemodel_distribution name="X! Tandem discrim score [fval]	negmean: -1.00">
+<posmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</posmodel_distribution>
+<negmodel_distribution type="non-parametric">
+<parameter name="mean" value="0"/>
+<parameter name="stdev" value="0"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. tolerable trypsin term. [ntt]">
+<posmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="ntt=0" value="0.333"/>
+<parameter name="ntt=1" value="0.333"/>
+<parameter name="ntt=2" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel_distribution name="no. missed enz. cleavages [nmc]">
+<posmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="nmc=0" value="0.333"/>
+<parameter name="1&lt;=nmc&lt;=2" value="0.333"/>
+<parameter name="nmc&gt;=3" value="0.333"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="Accurate Mass Model" pos_bandwidth="0.003000" neg_bandwidth="0.003000">
+<point value="-0.031000" pos_dens="0.090475" neg_dens="0.330358"/>
+</mixturemodel>
+<mixturemodel_distribution name="isotopic peak mass difference [IsoMassDiff]">
+<posmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</posmodel_distribution>
+<negmodel_distribution>
+<parameter name="-3" value="0.143"/>
+<parameter name="-2" value="0.143"/>
+<parameter name="-1" value="0.143"/>
+<parameter name="0" value="0.143"/>
+<parameter name="1" value="0.143"/>
+<parameter name="2" value="0.143"/>
+<parameter name="3" value="0.143"/>
+</negmodel_distribution>
+</mixturemodel_distribution>
+<mixturemodel name="kernel density SSRCalc RT [RT]" pos_bandwidth="0.331012" neg_bandwidth="0.331012">
+<point value="-2.010000" pos_dens="0.006344" neg_dens="0.178095"/>
+</mixturemodel>
+</mixture_model>
+</peptideprophet_summary>
+</analysis_summary>
+<analysis_summary analysis="database_refresh" time="2015-01-06T13:43:07"/>
+<analysis_summary analysis="interact" time="2015-01-06T13:43:03">
+<interact_summary filename="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/interact.pep.xml" directory="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1">
+<inputfile name="H_LN1.tandem.pep.xml" directory="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1"/>
+<inputfile name="L_LN1.tandem.pep.xml" directory="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1"/>
+</interact_summary>
+</analysis_summary>
+<dataset_derivation generation_no="0"/>
+<msms_run_summary base_name="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/H_LN1" search_engine="X! Tandem" msManufacturer="Thermo Scientific" msModel="Q Exactive" msIonization="nanoelectrospray" msMassAnalyzer="quadrupole" msDetector="inductive detector" raw_data_type="raw" raw_data=".mzXML">
+<sample_enzyme name="trypsin">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/H_LN1" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
+<search_database local_path="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" type="AA"/>
+<enzymatic_search_constraint enzyme="trypsin" max_num_internal_cleavages="0" min_number_termini="2"/>
+<aminoacid_modification aminoacid="C" massdiff="57.0215" mass="160.0306" variable="N"/>
+<aminoacid_modification aminoacid="K" massdiff="34.0631" mass="162.1581" variable="N"/>
+<aminoacid_modification aminoacid="C" massdiff="-17.0265" mass="143.0041" variable="Y" symbol="^"/>
+<!--X! Tandem n-terminal AA variable modification-->
+<aminoacid_modification aminoacid="E" massdiff="-18.0106" mass="111.0320" variable="Y" symbol="^"/>
+<!--X! Tandem n-terminal AA variable modification-->
+<aminoacid_modification aminoacid="Q" massdiff="-17.0265" mass="111.0321" variable="Y" symbol="^"/>
+<!--X! Tandem n-terminal AA variable modification-->
+<terminal_modification terminus="n" massdiff="34.0632" mass="35.0711" protein_terminus="N" variable="N"/>
+<terminal_modification terminus="c" massdiff="0.0003" mass="17.0031" protein_terminus="N" variable="N"/>
+<terminal_modification terminus="n" massdiff="42.0106" mass="77.0817" protein_terminus="N" variable="Y" symbol="^"/>
+<!--X! Tandem n-terminal AA variable modification-->
+<!-- Input parameters -->
+<parameter name="list path, taxonomy information" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/taxonomy.xml"/>
+<parameter name="output, histogram column width" value="30"/>
+<parameter name="output, histograms" value="yes"/>
+<parameter name="output, maximum valid expectation value" value="10"/>
+<parameter name="output, parameters" value="yes"/>
+<parameter name="output, path" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/H_LN1.tandem"/>
+<parameter name="output, path hashing" value="no"/>
+<parameter name="output, performance" value="yes"/>
+<parameter name="output, proteins" value="yes"/>
+<parameter name="output, results" value="valid"/>
+<parameter name="output, sequences" value="yes"/>
+<parameter name="output, sort results by" value="spectrum"/>
+<parameter name="output, spectra" value="yes"/>
+<parameter name="protein, C-terminal residue modification mass" value="0.0"/>
+<parameter name="protein, N-terminal residue modification mass" value="0.0"/>
+<parameter name="protein, cleavage C-terminal mass change" value="+17.00305"/>
+<parameter name="protein, cleavage N-terminal mass change" value="+1.00794"/>
+<parameter name="protein, cleavage semi" value="no"/>
+<parameter name="protein, cleavage site" value="[KR]|{P}"/>
+<parameter name="protein, quick acetyl" value="no"/>
+<parameter name="protein, quick pyrolidone" value="no"/>
+<parameter name="protein, taxon" value="mydatabase"/>
+<parameter name="refine" value="no"/>
+<parameter name="refine, maximum valid expectation value" value="0.1"/>
+<parameter name="refine, spectrum synthesis" value="no"/>
+<parameter name="residue, modification mass" value="57.021464@C,34.063117@[,34.063117@K"/>
+<parameter name="residue, potential modification mass" value=""/>
+<parameter name="scoring, a ions" value="no"/>
+<parameter name="scoring, b ions" value="yes"/>
+<parameter name="scoring, c ions" value="no"/>
+<parameter name="scoring, cyclic permutation" value="yes"/>
+<parameter name="scoring, maximum missed cleavage sites" value="0"/>
+<parameter name="scoring, minimum ion count" value="4"/>
+<parameter name="scoring, x ions" value="no"/>
+<parameter name="scoring, y ions" value="yes"/>
+<parameter name="spectrum, dynamic range" value="100.0"/>
+<parameter name="spectrum, fragment mass type" value="monoisotopic"/>
+<parameter name="spectrum, fragment monoisotopic mass error" value="20"/>
+<parameter name="spectrum, fragment monoisotopic mass error units" value="ppm"/>
+<parameter name="spectrum, minimum fragment mz" value="150.0"/>
+<parameter name="spectrum, minimum parent m+h" value="500.0"/>
+<parameter name="spectrum, minimum peaks" value="15"/>
+<parameter name="spectrum, parent monoisotopic mass error minus" value="10"/>
+<parameter name="spectrum, parent monoisotopic mass error plus" value="10"/>
+<parameter name="spectrum, parent monoisotopic mass error units" value="ppm"/>
+<parameter name="spectrum, parent monoisotopic mass isotope error" value="no"/>
+<parameter name="spectrum, path" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/H_LN1.mzXML"/>
+<parameter name="spectrum, threads" value="10"/>
+<parameter name="spectrum, total peaks" value="50"/>
+<parameter name="spectrum, use conditioning" value="yes"/>
+<parameter name="spectrum, use contrast angle" value="no"/>
+<parameter name="spectrum, use neutral loss window" value="no"/>
+<parameter name="spectrum, use noise suppression" value="yes"/>
+<!-- Unused input parameters -->
+<parameter name="gpmdb, add" value="no"/>
+<parameter name="gpmdb, anonymous" value="no"/>
+<parameter name="protein, use minimal annotations" value="yes"/>
+<parameter name="refine, cleavage semi" value="yes"/>
+<parameter name="refine, point mutations" value="no"/>
+<parameter name="refine, potential C-terminus modifications" value=""/>
+<parameter name="refine, potential N-terminus modifications" value=""/>
+<parameter name="refine, potential modification mass" value=""/>
+<parameter name="refine, unanticipated cleavage" value="no"/>
+<parameter name="refine, use potential modifications for full refinement" value="no"/>
+<parameter name="scoring, pluggable scoring" value="no"/>
+<parameter name="spectrum, contrast angle" value="40"/>
+<!-- Performance parameters -->
+<parameter name="list path, sequence source #1" value="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta"/>
+<parameter name="list path, sequence source description #1" value="no description"/>
+<parameter name="modelling, duplicate peptide ids" value="0"/>
+<parameter name="modelling, duplicate proteins" value="30"/>
+<parameter name="modelling, estimated false positives" value="1631"/>
+<parameter name="modelling, spectrum noise suppression ratio" value="0.00"/>
+<parameter name="modelling, total peptides used" value="1485409"/>
+<parameter name="modelling, total proteins used" value="40544"/>
+<parameter name="modelling, total spectra assigned" value="1343"/>
+<parameter name="modelling, total spectra used" value="9418"/>
+<parameter name="modelling, total unique assigned" value="1300"/>
+<parameter name="process, start time" value="2015:01:06:12:07:44"/>
+<parameter name="process, version" value="X! Tandem Sledgehammer (2013.09.01.1)"/>
+<parameter name="quality values" value="111 129 78 77 60 44 48 51 46 42 31 29 24 20 13 19 11 9 9 8"/>
+<parameter name="refining, # input models" value="0"/>
+<parameter name="refining, # input spectra" value="0"/>
+<parameter name="refining, # partial cleavage" value="0"/>
+<parameter name="refining, # point mutations" value="0"/>
+<parameter name="refining, # potential C-terminii" value="0"/>
+<parameter name="refining, # potential N-terminii" value="0"/>
+<parameter name="refining, # unanticipated cleavage" value="0"/>
+<parameter name="timing, initial modelling total (sec)" value="6.08"/>
+<parameter name="timing, initial modelling/spectrum (sec)" value="0.0006"/>
+<parameter name="timing, load sequence models (sec)" value="0.45"/>
+<parameter name="timing, refinement/spectrum (sec)" value="0.0000"/>
+</search_summary>
+<analysis_timestamp analysis="xpress" time="2015-01-06T13:43:35" id="1">
+<xpressratio_timestamp xpress_light="0"/>
+</analysis_timestamp>
+<analysis_timestamp analysis="peptideprophet" time="2015-01-06T13:43:10" id="1"/>
+<analysis_timestamp analysis="database_refresh" time="2015-01-06T13:43:07" id="1">
+<database_refresh_timestamp database="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" min_num_enz_term="2"/>
+</analysis_timestamp>
+<spectrum_query spectrum="H_LN1.01671.01671.2" start_scan="1671" end_scan="1671" precursor_neutral_mass="1606.7507" assumed_charge="2" index="1" retention_time_sec="383.877">
+<search_result>
+<search_hit hit_rank="1" peptide="TGSESSQTGTSTTSSR" peptide_prev_aa="R" peptide_next_aa="N" protein="sp|P23588|IF4B_HUMAN" protein_descr="Eukaryotic translation initiation factor 4B OS=Homo sapiens GN=EIF4B PE=1 SV=2" num_tot_proteins="1" num_matched_ions="7" tot_num_ions="30" calc_neutral_pep_mass="1606.7499" massdiff="0.001" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+<modification_info mod_nterm_mass="35.0711" mod_cterm_mass="17.0031" modified_peptide="n[35]TGSESSQTGTSTTSSR"/>
+<search_score name="hyperscore" value="19.4"/>
+<search_score name="nextscore" value="13.9"/>
+<search_score name="bscore" value="8.2"/>
+<search_score name="yscore" value="9.1"/>
+<search_score name="cscore" value="0"/>
+<search_score name="zscore" value="0"/>
+<search_score name="ascore" value="0"/>
+<search_score name="xscore" value="0"/>
+<search_score name="expect" value="0.033"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0.7911" all_ntt_prob="(0.7911,0.7911,0.7911)">
+<search_score_summary>
+<parameter name="fval" value="2.8985"/>
+<parameter name="ntt" value="2"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="0.001"/>
+<parameter name="isomassd" value="0"/>
+<parameter name="RT" value="72.48"/>
+<parameter name="RT_score" value="1.36"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="xpress">
+<xpressratio_result light_firstscan="1605" light_lastscan="1837" light_mass="1601.7254" heavy_firstscan="1605" heavy_lastscan="1837" heavy_mass="1607.7572" mass_tol="20.0000" ratio="1:0.24" heavy2light_ratio="1:4.17" light_area="1.10e+007" heavy_area="2.68e+006" decimal_ratio="4.11"/>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="H_LN1.30513.30513.2" start_scan="30513" end_scan="30513" precursor_neutral_mass="1724.9702" assumed_charge="2" index="809" retention_time_sec="4120.79">
+<search_result>
+<search_hit hit_rank="1" peptide="DLADELALVDVIEDK" peptide_prev_aa="K" peptide_next_aa="L" protein="sp|P00338|LDHA_HUMAN" protein_descr="L-lactate dehydrogenase A chain OS=Homo sapiens GN=LDHA PE=1 SV=2" num_tot_proteins="1" num_matched_ions="10" tot_num_ions="28" calc_neutral_pep_mass="1724.9724" massdiff="-0.002" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+<modification_info mod_nterm_mass="35.0711" mod_cterm_mass="17.0031" modified_peptide="n[35]DLADELALVDVIEDK[162]">
+<mod_aminoacid_mass position="15" mass="162.1581"/>
+</modification_info>
+<search_score name="hyperscore" value="28.8"/>
+<search_score name="nextscore" value="8.0"/>
+<search_score name="bscore" value="9.7"/>
+<search_score name="yscore" value="9.7"/>
+<search_score name="cscore" value="0"/>
+<search_score name="zscore" value="0"/>
+<search_score name="ascore" value="0"/>
+<search_score name="xscore" value="0"/>
+<search_score name="expect" value="0.0002"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="0.9938" all_ntt_prob="(0.9938,0.9938,0.9938)">
+<search_score_summary>
+<parameter name="fval" value="6.9022"/>
+<parameter name="ntt" value="2"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="-0.002"/>
+<parameter name="isomassd" value="0"/>
+<parameter name="RT" value="3464.93"/>
+<parameter name="RT_score" value="-0.73"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="xpress">
+<xpressratio_result light_firstscan="30457" light_lastscan="30660" light_mass="1713.9160" heavy_firstscan="30457" heavy_lastscan="30660" heavy_mass="1725.9797" mass_tol="20.0000" ratio="1:0.27" heavy2light_ratio="1:3.70" light_area="5.39e+007" heavy_area="1.46e+007" decimal_ratio="3.68"/>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+</msms_run_summary>
+<msms_run_summary base_name="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/L_LN1" search_engine="X! Tandem" msManufacturer="Thermo Scientific" msModel="Q Exactive" msIonization="nanoelectrospray" msMassAnalyzer="quadrupole" msDetector="inductive detector" raw_data_type="raw" raw_data=".mzXML">
+<sample_enzyme name="trypsin">
+<specificity cut="KR" no_cut="P" sense="C"/>
+</sample_enzyme>
+<search_summary base_name="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/L_LN1" search_engine="X! Tandem" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
+<search_database local_path="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" type="AA"/>
+<enzymatic_search_constraint enzyme="trypsin" max_num_internal_cleavages="0" min_number_termini="2"/>
+<aminoacid_modification aminoacid="C" massdiff="57.0215" mass="160.0306" variable="N"/>
+<aminoacid_modification aminoacid="K" massdiff="28.0313" mass="156.1263" variable="N"/>
+<aminoacid_modification aminoacid="C" massdiff="-17.0265" mass="143.0041" variable="Y" symbol="^"/>
+<!--X! Tandem n-terminal AA variable modification-->
+<aminoacid_modification aminoacid="E" massdiff="-18.0106" mass="111.0320" variable="Y" symbol="^"/>
+<!--X! Tandem n-terminal AA variable modification-->
+<aminoacid_modification aminoacid="Q" massdiff="-17.0265" mass="111.0321" variable="Y" symbol="^"/>
+<!--X! Tandem n-terminal AA variable modification-->
+<terminal_modification terminus="n" massdiff="28.0314" mass="29.0392" protein_terminus="N" variable="N"/>
+<terminal_modification terminus="c" massdiff="0.0003" mass="17.0031" protein_terminus="N" variable="N"/>
+<terminal_modification terminus="n" massdiff="42.0106" mass="71.0498" protein_terminus="N" variable="Y" symbol="^"/>
+<!--X! Tandem n-terminal AA variable modification-->
+<!-- Input parameters -->
+<parameter name="list path, taxonomy information" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/taxonomy.xml"/>
+<parameter name="output, histogram column width" value="30"/>
+<parameter name="output, histograms" value="yes"/>
+<parameter name="output, maximum valid expectation value" value="10"/>
+<parameter name="output, parameters" value="yes"/>
+<parameter name="output, path" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/L_LN1.tandem"/>
+<parameter name="output, path hashing" value="no"/>
+<parameter name="output, performance" value="yes"/>
+<parameter name="output, proteins" value="yes"/>
+<parameter name="output, results" value="valid"/>
+<parameter name="output, sequences" value="yes"/>
+<parameter name="output, sort results by" value="spectrum"/>
+<parameter name="output, spectra" value="yes"/>
+<parameter name="protein, C-terminal residue modification mass" value="0.0"/>
+<parameter name="protein, N-terminal residue modification mass" value="0.0"/>
+<parameter name="protein, cleavage C-terminal mass change" value="+17.00305"/>
+<parameter name="protein, cleavage N-terminal mass change" value="+1.00794"/>
+<parameter name="protein, cleavage semi" value="no"/>
+<parameter name="protein, cleavage site" value="[KR]|{P}"/>
+<parameter name="protein, quick acetyl" value="no"/>
+<parameter name="protein, quick pyrolidone" value="no"/>
+<parameter name="protein, taxon" value="mydatabase"/>
+<parameter name="refine" value="no"/>
+<parameter name="refine, maximum valid expectation value" value="0.1"/>
+<parameter name="refine, spectrum synthesis" value="no"/>
+<parameter name="residue, modification mass" value="57.021464@C,28.031300@[,28.031300@K"/>
+<parameter name="residue, potential modification mass" value=""/>
+<parameter name="scoring, a ions" value="no"/>
+<parameter name="scoring, b ions" value="yes"/>
+<parameter name="scoring, c ions" value="no"/>
+<parameter name="scoring, cyclic permutation" value="yes"/>
+<parameter name="scoring, maximum missed cleavage sites" value="0"/>
+<parameter name="scoring, minimum ion count" value="4"/>
+<parameter name="scoring, x ions" value="no"/>
+<parameter name="scoring, y ions" value="yes"/>
+<parameter name="spectrum, dynamic range" value="100.0"/>
+<parameter name="spectrum, fragment mass type" value="monoisotopic"/>
+<parameter name="spectrum, fragment monoisotopic mass error" value="20"/>
+<parameter name="spectrum, fragment monoisotopic mass error units" value="ppm"/>
+<parameter name="spectrum, minimum fragment mz" value="150.0"/>
+<parameter name="spectrum, minimum parent m+h" value="500.0"/>
+<parameter name="spectrum, minimum peaks" value="15"/>
+<parameter name="spectrum, parent monoisotopic mass error minus" value="10"/>
+<parameter name="spectrum, parent monoisotopic mass error plus" value="10"/>
+<parameter name="spectrum, parent monoisotopic mass error units" value="ppm"/>
+<parameter name="spectrum, parent monoisotopic mass isotope error" value="no"/>
+<parameter name="spectrum, path" value="c:/Inetpub/wwwroot/ISB/data/user-data/Lars/20141217_tMS2_tests/TPP/LN1/L_LN1.mzXML"/>
+<parameter name="spectrum, threads" value="10"/>
+<parameter name="spectrum, total peaks" value="50"/>
+<parameter name="spectrum, use conditioning" value="yes"/>
+<parameter name="spectrum, use contrast angle" value="no"/>
+<parameter name="spectrum, use neutral loss window" value="no"/>
+<parameter name="spectrum, use noise suppression" value="yes"/>
+<!-- Unused input parameters -->
+<parameter name="gpmdb, add" value="no"/>
+<parameter name="gpmdb, anonymous" value="no"/>
+<parameter name="protein, use minimal annotations" value="yes"/>
+<parameter name="refine, cleavage semi" value="yes"/>
+<parameter name="refine, point mutations" value="no"/>
+<parameter name="refine, potential C-terminus modifications" value=""/>
+<parameter name="refine, potential N-terminus modifications" value=""/>
+<parameter name="refine, potential modification mass" value=""/>
+<parameter name="refine, unanticipated cleavage" value="no"/>
+<parameter name="refine, use potential modifications for full refinement" value="no"/>
+<parameter name="scoring, pluggable scoring" value="no"/>
+<parameter name="spectrum, contrast angle" value="40"/>
+<!-- Performance parameters -->
+<parameter name="list path, sequence source #1" value="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta"/>
+<parameter name="list path, sequence source description #1" value="no description"/>
+<parameter name="modelling, duplicate peptide ids" value="2"/>
+<parameter name="modelling, duplicate proteins" value="30"/>
+<parameter name="modelling, estimated false positives" value="3360"/>
+<parameter name="modelling, spectrum noise suppression ratio" value="0.00"/>
+<parameter name="modelling, total peptides used" value="1621922"/>
+<parameter name="modelling, total proteins used" value="40544"/>
+<parameter name="modelling, total spectra assigned" value="4196"/>
+<parameter name="modelling, total spectra used" value="9418"/>
+<parameter name="modelling, total unique assigned" value="3905"/>
+<parameter name="process, start time" value="2015:01:06:12:09:23"/>
+<parameter name="process, version" value="X! Tandem Sledgehammer (2013.09.01.1)"/>
+<parameter name="quality values" value="374 356 323 257 237 188 176 169 142 146 109 122 92 70 52 52 53 47 39 41"/>
+<parameter name="refining, # input models" value="0"/>
+<parameter name="refining, # input spectra" value="0"/>
+<parameter name="refining, # partial cleavage" value="0"/>
+<parameter name="refining, # point mutations" value="0"/>
+<parameter name="refining, # potential C-terminii" value="0"/>
+<parameter name="refining, # potential N-terminii" value="0"/>
+<parameter name="refining, # unanticipated cleavage" value="0"/>
+<parameter name="timing, initial modelling total (sec)" value="6.76"/>
+<parameter name="timing, initial modelling/spectrum (sec)" value="0.0007"/>
+<parameter name="timing, load sequence models (sec)" value="0.48"/>
+<parameter name="timing, refinement/spectrum (sec)" value="0.0000"/>
+</search_summary>
+<analysis_timestamp analysis="xpress" time="2015-01-06T13:43:35" id="1">
+<xpressratio_timestamp xpress_light="0"/>
+</analysis_timestamp>
+<analysis_timestamp analysis="peptideprophet" time="2015-01-06T13:43:10" id="1"/>
+<analysis_timestamp analysis="database_refresh" time="2015-01-06T13:43:07" id="1">
+<database_refresh_timestamp database="c:/Inetpub/wwwroot/ISB/data/user-data/proteome-databases/uniprot-human-Nov26-2013-reference-reviewed-canonical-without-isoforms_plus-shuffled.fasta" min_num_enz_term="2"/>
+</analysis_timestamp>
+<spectrum_query spectrum="L_LN1.01594.01594.3" start_scan="1594" end_scan="1594" precursor_neutral_mass="1760.8205" assumed_charge="3" index="810" retention_time_sec="374.116">
+<search_result>
+<search_hit hit_rank="1" peptide="GDTPGHATPGHGGATSSAR" peptide_prev_aa="R" peptide_next_aa="K" protein="sp|O75533|SF3B1_HUMAN" protein_descr="Splicing factor 3B subunit 1 OS=Homo sapiens GN=SF3B1 PE=1 SV=3" num_tot_proteins="1" num_matched_ions="15" tot_num_ions="72" calc_neutral_pep_mass="1760.8194" massdiff="0.001" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+<modification_info mod_nterm_mass="29.0392" mod_cterm_mass="17.0031" modified_peptide="n[29]GDTPGHATPGHGGATSSAR"/>
+<search_score name="hyperscore" value="34.2"/>
+<search_score name="nextscore" value="8.0"/>
+<search_score name="bscore" value="9.3"/>
+<search_score name="yscore" value="9.7"/>
+<search_score name="cscore" value="0"/>
+<search_score name="zscore" value="0"/>
+<search_score name="ascore" value="0"/>
+<search_score name="xscore" value="0"/>
+<search_score name="expect" value="0.0001"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="1.0000" all_ntt_prob="(1.0000,1.0000,1.0000)">
+<search_score_summary>
+<parameter name="fval" value="7.9410"/>
+<parameter name="ntt" value="2"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="0.001"/>
+<parameter name="isomassd" value="0"/>
+<parameter name="RT" value="-407.37"/>
+<parameter name="RT_score" value="2.18"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="xpress">
+<xpressratio_result light_firstscan="1537" light_lastscan="1674" light_mass="1761.8267" heavy_firstscan="1537" heavy_lastscan="1674" heavy_mass="1767.8585" mass_tol="20.0000" ratio="1:0.31" heavy2light_ratio="1:3.23" light_area="4.70e+006" heavy_area="1.44e+006" decimal_ratio="3.26"/>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+<spectrum_query spectrum="L_LN1.30586.30586.3" start_scan="30586" end_scan="30586" precursor_neutral_mass="2556.3259" assumed_charge="3" index="3790" retention_time_sec="4131.05">
+<search_result>
+<search_hit hit_rank="1" peptide="TLVLSNLSYSATEETLQEVFEK" peptide_prev_aa="K" peptide_next_aa="A" protein="sp|P19338|NUCL_HUMAN" protein_descr="Nucleolin OS=Homo sapiens GN=NCL PE=1 SV=3" num_tot_proteins="1" num_matched_ions="10" tot_num_ions="84" calc_neutral_pep_mass="2556.3215" massdiff="0.004" num_tol_term="2" num_missed_cleavages="0" is_rejected="0">
+<modification_info mod_nterm_mass="29.0392" mod_cterm_mass="17.0031" modified_peptide="n[29]TLVLSNLSYSATEETLQEVFEK[156]">
+<mod_aminoacid_mass position="22" mass="156.1263"/>
+</modification_info>
+<search_score name="hyperscore" value="27.1"/>
+<search_score name="nextscore" value="8.0"/>
+<search_score name="bscore" value="9.8"/>
+<search_score name="yscore" value="8.5"/>
+<search_score name="cscore" value="0"/>
+<search_score name="zscore" value="0"/>
+<search_score name="ascore" value="0"/>
+<search_score name="xscore" value="0"/>
+<search_score name="expect" value="1.3e-007"/>
+<analysis_result analysis="peptideprophet">
+<peptideprophet_result probability="1.0000" all_ntt_prob="(1.0000,1.0000,1.0000)">
+<search_score_summary>
+<parameter name="fval" value="9.9662"/>
+<parameter name="ntt" value="2"/>
+<parameter name="nmc" value="0"/>
+<parameter name="massd" value="0.004"/>
+<parameter name="isomassd" value="0"/>
+<parameter name="RT" value="3644.05"/>
+<parameter name="RT_score" value="-1.04"/>
+</search_score_summary>
+</peptideprophet_result>
+</analysis_result>
+<analysis_result analysis="xpress">
+<xpressratio_result light_firstscan="30584" light_lastscan="30640" light_mass="2557.3288" heavy_firstscan="30584" heavy_lastscan="30640" heavy_mass="2569.3924" mass_tol="20.0000" ratio="0.62:1" heavy2light_ratio="1.61:1" light_area="5.36e+005" heavy_area="8.65e+005" decimal_ratio="0.62"/>
+</analysis_result>
+</search_hit>
+</search_result>
+</spectrum_query>
+</msms_run_summary>
+</msms_pipeline_analysis>

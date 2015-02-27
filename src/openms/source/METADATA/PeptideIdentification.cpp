@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -264,7 +264,7 @@ namespace OpenMS
     std::vector<PeptideHit> filtered;
     for (std::vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
     {
-      set<String> hit_accessions = PeptideHit::extractProteinAccessions(*h_it);
+      set<String> hit_accessions = h_it->extractProteinAccessions();
       set<String> intersect;
       set_intersection(hit_accessions.begin(), hit_accessions.end(), accession.begin(), accession.end(), std::inserter(intersect, intersect.begin()));
       if (!intersect.empty())
@@ -275,7 +275,7 @@ namespace OpenMS
     return filtered;
   }
 
-  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
   const DataValue& PeptideIdentification::getMetaValue(const String& name) const
   {
     if (name == "RT" || name == "MZ")
@@ -286,7 +286,7 @@ namespace OpenMS
     return MetaInfoInterface::getMetaValue(name);
   }
 
-  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  /// re-implemented from MetaValueInterface as a precaution against deprecated usage of "RT" and "MZ" values
   void PeptideIdentification::setMetaValue(const String& name, const DataValue& value)
   {
     if (name == "RT" || name == "MZ")

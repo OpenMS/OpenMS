@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -857,8 +857,6 @@ protected:
                           spec.getFloatDataArrays()[3][peak_index], //left width
                           spec.getFloatDataArrays()[4][peak_index], //right width
                           spec[peak_index].getIntensity(), //area is stored in peak intensity
-                          std::vector<Peak1D>::iterator(),
-                          std::vector<Peak1D>::iterator(),
                           PeakShape::Type(Int(spec.getFloatDataArrays()[5][peak_index]))); //shape
           peak_shapes.push_back(shape);
           ++set_iter;

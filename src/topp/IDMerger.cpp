@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,6 +74,8 @@ using namespace std;
   If an additional file is given through the @p add_to parameter, identifications from the main inputs (@p in) are added to that file, but only for those peptide sequences that were not already present. Only the best peptide hit per identification (MS2 spectrum) is taken into account; peptide identifications and their corresponding protein identifications are transferred.
 
   Alternatively, with the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
+
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IDMerger.cli
@@ -373,7 +375,7 @@ protected:
             pep_it->getHits().resize(1); // restrict to best hit for simplicity
             peptides.push_back(*pep_it);
 
-            set<String> protein_accessions = PeptideHit::extractProteinAccessions(hit);
+            set<String> protein_accessions = hit.extractProteinAccessions();
 
             // copy over proteins:
             for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)

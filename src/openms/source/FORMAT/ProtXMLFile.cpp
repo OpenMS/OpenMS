@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -168,10 +168,13 @@ namespace OpenMS
     else if (tag == "indistinguishable_protein")
     {
       String protein_name = attributeAsString_(attributes, "protein_name");
+      // current last protein is from the same "indistinguishable" group:
+      double score = prot_id_->getHits().back().getScore();
       registerProtein_(protein_name);
-      // score of group leader might not be transferrable (due to protein length
-      // etc.), so we set it to -1
-      prot_id_->getHits().back().setScore(-1);
+      // score of group leader might technically not be transferable (due to
+      // protein length etc.), but we still transfer it to allow filtering of
+      // proteins by score without disrupting the groups:
+      prot_id_->getHits().back().setScore(score);
     }
     else if (tag == "peptide")
     {

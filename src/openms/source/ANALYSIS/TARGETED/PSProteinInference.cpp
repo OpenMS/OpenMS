@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -108,7 +108,7 @@ namespace OpenMS
     // first get all protein accessions:
     for (Size p = 0; p < peptide_ids.size(); ++p)
     {
-      const set<String> accs = PeptideHit::extractProteinAccessions(peptide_ids[p].getHits()[0]);
+      const set<String> accs = peptide_ids[p].getHits()[0].extractProteinAccessions();
       all_accs.insert(accs.begin(), accs.end());
     }
 
@@ -136,7 +136,7 @@ namespace OpenMS
       // get column indices for all corresponding proteins
       vector<Int> indices;
 
-      const std::set<String> accs = PeptideHit::extractProteinAccessions(peptide_ids[p].getHits()[0]);
+      const std::set<String> accs = peptide_ids[p].getHits()[0].extractProteinAccessions();
 
       for (std::set<String>::const_iterator accs_it = accs.begin(); accs_it != accs.end(); ++accs_it)
       {
@@ -179,7 +179,7 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide Id contains more than 1 peptide hit", String(ids[i].getHits().size()));
       }
 
-      const std::set<String> accs = PeptideHit::extractProteinAccessions(ids[i].getHits()[0]);
+      const std::set<String> accs = ids[i].getHits()[0].extractProteinAccessions();
 
       String seq = ids[i].getHits()[0].getSequence().toUnmodifiedString();
       double score = ids[i].getHits()[0].getScore();

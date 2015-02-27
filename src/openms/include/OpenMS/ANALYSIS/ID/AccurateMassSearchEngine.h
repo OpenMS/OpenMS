@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,91 +47,175 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <iosfwd>
 #include <vector>
 
 namespace OpenMS
 {
-    class OPENMS_DLLAPI AccurateMassSearchResult
-    {
-    public:
-        /// Default constructor
-        AccurateMassSearchResult();
+  class EmpiricalFormula;
 
-        /// Default destructor
-        ~AccurateMassSearchResult();
+  class OPENMS_DLLAPI AdductInfo
+  {
 
-        /// copy constructor
-        AccurateMassSearchResult(const AccurateMassSearchResult& );
+  public: 
+    /**
+      C'tor, to build a representation of an adduct.
 
-        /// assignment operator
-        AccurateMassSearchResult & operator=(const AccurateMassSearchResult& );
+      @param name Identifier as given in the Positive/Negative-Adducts file, e.g. 'M+2K-H;1+'
+      @param adduct Formula of the adduct, e.g. '2K-H'
+      @param charge The charge (must not be 0; can be negative), e.g. 1
+      @param is_intrinsic True for a molecule without an explicit adduct, e.g. 'M;-1'
+      @param mol_multiplier Molecular multiplier, e.g. for charged dimers '2M+H;+1'
 
-        /// getter & setter methods
-        double getAdductMass() const;
-        void setAdductMass(const double&);
+    **/
+    AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, uint mol_multiplier = 1);
 
-        double getQueryMass() const;
-        void setQueryMass(const double&);
+    /// returns the neutral mass of the small molecule without adduct (creates monomer from nmer, decharges and removes the adduct (given m/z of [nM+Adduct]/|charge| returns mass of [M])
+    double getNeutralMass(double observed_mz) const;
 
-        double getFoundMass() const;
-        void setFoundMass(const double&);
+    /// returns the m/z of the small molecule with neutral mass @p neutral_mass if the adduct is added (given mass of [M] returns m/z of [nM+Adduct]/|charge|)
+    double getMZ(double neutral_mass) const;
 
-        Int getCharge() const;
-        void setCharge(const Int&);
+    /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
+    /// If the negative parts are present in @p db_entry, true is returned.
+    bool isCompatible(EmpiricalFormula db_entry) const;
 
-        double getErrorPPM() const;
-        void setErrorPPM(const double&);
+    /// get charge of adduct
+    int getCharge() const;
 
-        double getObservedRT() const;
-        void setObservedRT(const double& rt);
+    /// original string used for parsing
+    const String& getName() const;
 
-        double getObservedIntensity() const;
-        void setObservedIntensity(const double&);
+    /// parse an adduct string containing a formula (must contain 'M') and charge, separated by ';'.
+    /// e.g. M+H;1+
+    /// 'M' can have multipliers, e.g. '2M + H;1+' (for a singly charged dimer)
+    static AdductInfo parseAdductString(const String& adduct);
 
-        std::vector<double> getIndividualIntensities() const;
-        void setIndividualIntensities(const std::vector<double>&);
+  private:
+    /// hide default C'tor
+    AdductInfo();
 
-        Size getMatchingIndex() const;
-        void setMatchingIndex(const Size&);
+    /// members
+    String name_; //< arbitrary name, only used for error reporting
+    EmpiricalFormula ef_; //< EF for the actual adduct e.g. 'H' in 2M+H;+1
+    double mass_; //< computed from ef_.getMonoWeight(), but stored explicitly for efficiency
+    int charge_;  //< negative or positive charge; must not be 0
+    uint mol_multiplier_; //< Mol multiplier, e.g. 2 in 2M+H;+1
+  };
 
-        Size getSourceFeatureIndex() const;
-        void setSourceFeatureIndex(const Size&);
+  class OPENMS_DLLAPI AccurateMassSearchResult
+  {
+  public:
+    /// Default constructor
+    AccurateMassSearchResult();
 
-        const String& getFoundAdduct() const;
-        void setFoundAdduct(const String&);
+    /// Default destructor
+    ~AccurateMassSearchResult();
 
-        const String& getFormulaString() const;
-        void setEmpiricalFormula(const String&);
+    /// copy constructor
+    AccurateMassSearchResult(const AccurateMassSearchResult&);
 
-        const std::vector<String>& getMatchingHMDBids() const;
-        void setMatchingHMDBids(const std::vector<String>&);
+    /// assignment operator
+    AccurateMassSearchResult& operator=(const AccurateMassSearchResult&);
 
-        double getIsotopesSimScore() const;
-        void setIsotopesSimScore(const double&);
+    /// get the m/z of the small molecule + adduct
+    double getObservedMZ() const;
 
-        // double computeCombinedScore(); // not implemented
-        // debug/output functions
-        void outputResults() const;
+    /// set the m/z of the small molecule + adduct
+    void setObservedMZ(const double&);
 
-    private:
-        /// Stored information/results of DB query
-        double adduct_mass_;
-        double query_mass_;
-        double found_mass_;
-        Int charge_;
-        double error_ppm_;
-        double observed_rt_;
-        double observed_intensity_;
-        std::vector<double> individual_intensities_;
-        Size matching_index_;
-        Size source_feature_index_;
+    /// get the theoretical m/z of the small molecule + adduct
+    double getCalculatedMZ() const;
 
-        String found_adduct_;
-        String empirical_formula_;
-        std::vector<String> matching_hmdb_ids_;
+    /// set the theoretical m/z of the small molecule + adduct
+    void setCalculatedMZ(const double&);
 
-        double isotopes_sim_score_;
-    };
+    /// get the mass used to query the database (uncharged small molecule)
+    double getQueryMass() const;
+
+    /// set the mass used to query the database (uncharged small molecule)
+    void setQueryMass(const double&);
+
+    /// get the mass returned by the query (uncharged small molecule)
+    double getFoundMass() const;
+
+    /// set the mass returned by the query (uncharged small molecule)
+    void setFoundMass(const double&);
+
+    /// get the charge
+    Int getCharge() const;
+
+    /// set the charge
+    void setCharge(const Int&);
+
+    /// get the error between observed and theoretical m/z in ppm
+    double getMZErrorPPM() const;
+
+    /// set the error between observed and theoretical m/z in ppm
+    void setMZErrorPPM(const double);
+
+    /// get the observed rt
+    double getObservedRT() const;
+
+    /// set the observed rt
+    void setObservedRT(const double& rt);
+
+    /// get the observed intensity
+    double getObservedIntensity() const;
+
+    /// set the observed intensity
+    void setObservedIntensity(const double&);
+
+    /// get the observed intensities
+    std::vector<double> getIndividualIntensities() const;
+
+    /// set the observed intensities
+    void setIndividualIntensities(const std::vector<double>&);
+
+    Size getMatchingIndex() const;
+    void setMatchingIndex(const Size&);
+
+    Size getSourceFeatureIndex() const;
+    void setSourceFeatureIndex(const Size&);
+
+    const String& getFoundAdduct() const;
+    void setFoundAdduct(const String&);
+
+    const String& getFormulaString() const;
+    void setEmpiricalFormula(const String&);
+
+    const std::vector<String>& getMatchingHMDBids() const;
+    void setMatchingHMDBids(const std::vector<String>&);
+
+    double getIsotopesSimScore() const;
+    void setIsotopesSimScore(const double&);
+
+    // double computeCombinedScore(); // not implemented
+    // debug/output functions
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AccurateMassSearchResult& amsr);
+
+private:
+    /// Stored information/results of DB query
+    double observed_mz_;
+    double theoretical_mz_;
+    double searched_mass_;
+    double db_mass_;
+    Int charge_;
+    double mz_error_ppm_;
+    double observed_rt_;
+    double observed_intensity_;
+    std::vector<double> individual_intensities_;
+    Size matching_index_;
+    Size source_feature_index_;
+
+    String found_adduct_;
+    String empirical_formula_;
+    std::vector<String> matching_hmdb_ids_;
+
+    double isotopes_sim_score_;
+  };
+
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AccurateMassSearchResult& amsr);
 
   /**
     @brief An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
@@ -155,7 +239,7 @@ namespace OpenMS
 
     @ingroup Analysis_ID
   */
-    class OPENMS_DLLAPI AccurateMassSearchEngine :
+  class OPENMS_DLLAPI AccurateMassSearchEngine :
     public DefaultParamHandler,
     public ProgressLogger
   {
@@ -170,21 +254,21 @@ public:
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
 
        */
-    void queryByMass(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results);
-    void queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results);
-    void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results);
+    void queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByFeature(const Feature& feature, const Size& feature_index, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
+    void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const;
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
-    void run(FeatureMap&, MzTab&);
+    void run(FeatureMap&, MzTab&) const;
 
     /// main method of AccurateMassSearchEngine
     /// input map is not const, since it will get annotated with results
-    void run(ConsensusMap&, MzTab&);
+    /// @note Call init() before calling run!
+    void run(ConsensusMap&, MzTab&) const;
 
-    /// the internal ion-mode used depending on annotation of input data if "ion_mode" was set to 'auto'
-    /// if run() was not called yet, this will be identical to 'ion_mode', i.e. 'auto' will no be resolved yet
-    const String& getInternalIonMode();
+    /// parse database and adduct files
+    void init();
 
 protected:
     virtual void updateMembers_();
@@ -193,67 +277,64 @@ private:
     /// private member functions
 
     /// if ion-mode is auto, this will set the internal mode according to input data
-    template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map)
+    /// @throw InvalidParameter if ion mode cannot be resolved
+    template <typename MAPTYPE> String resolveAutoMode_(const MAPTYPE& map) const
     {
-       String ion_mode_detect_msg = "";
-       if (map.size() > 0 && map[0].metaValueExists("scan_polarity"))
-       {
-         StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
-         if (pols.size() == 1 && pols[0].size() > 0)
-         {
+      String ion_mode_internal;
+      String ion_mode_detect_msg = "";
+      if (map.size() > 0)
+      {
+        if (map[0].metaValueExists("scan_polarity"))
+        {
+          StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
+          if (pols.size() == 1 && pols[0].size() > 0)
+          {
             pols[0].toLower();
             if (pols[0] == "positive" || pols[0] == "negative")
             {
-              ion_mode_internal_ = pols[0];
-              LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal_ << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
+              ion_mode_internal = pols[0];
+              LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
             }
             else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
-         }
-         else
-         {
-           ion_mode_detect_msg = String("ambiguous ion mode: ") + String(map[0].getMetaValue("scan_polarity"));
-         }
-       }
-       else
-       {
-         ion_mode_detect_msg = String("Meta value 'scan_polarity' not found in first element of (Consensus-)Feature map!");
-       }
+          }
+          else
+          {
+            ion_mode_detect_msg = String("ambiguous ion mode: ") + String(map[0].getMetaValue("scan_polarity"));
+          }
+        }
+        else
+        {
+          ion_mode_detect_msg = String("Meta value 'scan_polarity' not found in (Consensus-)Feature map");
+        }
+      }
+      else
+      { // do nothing, since map is
+        LOG_INFO << "Meta value 'scan_polarity' cannot be determined since (Consensus-)Feature map is empty!" << std::endl;
+      }
 
-       if (ion_mode_detect_msg.size() > 0)
-       {
-         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
-       }
+      if (ion_mode_detect_msg.size() > 0)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
+      }
+
+      return ion_mode_internal;
     }
-
-    /// parse database and adduct files
-    void init_();
-
-    bool is_initialized_; // true if init_() was called without any subsequent param changes
-
+    
     void parseMappingFile_(const String&);
     void parseStructMappingFile_(const String&);
-    void parseAdductsFile_(const String& filename, StringList& result);
-    void searchMass_(const double&, std::vector<Size>& hit_indices);
+    void parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result);
+    void searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const;
 
     /// add search results to a Consensus/Feature
-    void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&);
+    void annotate_(const std::vector<AccurateMassSearchResult>&, BaseFeature&) const;
 
-    /**
-      @brief given an adduct and an observed mass, we compute the neutral mass (without adduct) and the theoretical charge (of the adduct)
-
-    */
-    void computeNeutralMassFromAdduct_(const double& observed_mass, const String& adduct_string, double& neutral_mass, Int& charge_value);
-
-    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y);
-    double computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y);
-    double computeIsotopePatternSimilarity_(const Feature&, const EmpiricalFormula&);
-
-
-    String ion_mode_internal_;
+    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const;
+    double computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y) const;
+    double computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const;
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
-    void exportMzTab_(const QueryResultsTable&, MzTab&);
+    void exportMzTab_(const QueryResultsTable& overall_results, MzTab& mztab_out) const;
 
     /// private member variables
     typedef std::vector<std::vector<String> > MassIDMapping;
@@ -267,26 +348,29 @@ private:
     };
     std::vector<MappingEntry_> mass_mappings_;
 
-    struct CompareEntryAndMass_     // defined here to allow for inlining by compiler
+    struct CompareEntryAndMass_ // defined here to allow for inlining by compiler
     {
-       double asMass( const MappingEntry_& v ) const
-       {
-          return v.mass;
-       }
+      double asMass(const MappingEntry_& v) const
+      {
+        return v.mass;
+      }
 
-       double asMass( double t ) const
-       {
-          return t;
-       }
+      double asMass(double t) const
+      {
+        return t;
+      }
 
-       template< typename T1, typename T2 >
-       bool operator()( T1 const& t1, T2 const& t2 ) const
-       {
-           return asMass(t1) < asMass(t2);
-       }
+      template <typename T1, typename T2>
+      bool operator()(T1 const& t1, T2 const& t2) const
+      {
+        return asMass(t1) < asMass(t2);
+      }
+
     };
 
     HMDBPropsMapping hmdb_properties_mapping_;
+
+    bool is_initialized_; //< true if init_() was called without any subsequent param changes
 
     /// parameter stuff
     double mass_error_value_;
@@ -300,8 +384,13 @@ private:
     String db_mapping_file_;
     String db_struct_file_;
 
-    StringList pos_adducts_;
-    StringList neg_adducts_;
+    std::vector<AdductInfo> pos_adducts_;
+    std::vector<AdductInfo> neg_adducts_;
+
+    String database_name_;
+    String database_version_;
+
+    bool keep_unidentified_masses_;
   };
 
 }

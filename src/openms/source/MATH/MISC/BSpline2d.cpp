@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ namespace OpenMS
 
   bool BSpline2d::solve(const std::vector<double>& y)
   {
-    OPENMS_PRECONDITION(spline_->nX() == y.size(), "y vector passed to 'BSpline2d::solve' must match size of x.")
+    OPENMS_PRECONDITION(static_cast<Size>(spline_->nX()) == y.size(), "y vector passed to 'BSpline2d::solve' must match size of x.")
     // pass vector as array
     return spline_->solve(&y[0]);
   }

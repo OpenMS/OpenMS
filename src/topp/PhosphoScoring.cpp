@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: David Wojnar $
-// $Authors: David Wojnar $
+// $Authors: David Wojnar, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -39,43 +39,44 @@
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 
-
 using namespace OpenMS;
 using namespace std;
 
 /**
   @page TOPP_PhosphoScoring PhosphoScoring
 
-  @brief Tool to score phosphorylation sites of a peptide.
+  @brief Tool to score phosphorylation sites of peptides.
 
   <CENTER>
     <table>
       <tr>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PhosphoScoring \f$ \longrightarrow \f$</td>
+        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PhosphoScoring \f$ \longrightarrow \f$</td>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
       </tr>
       <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PeptideIndexer </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer </td>
       </tr>
     </table>
   </CENTER>
 
-  @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+  @experimental This TOPP tool is not well tested and some features might not be working correctly.
 
-  Tool for phosphorylation analysis and site localization.
-  Input files are a MSMS spectrum file as well as the corresponding identification file.
-  Firstly, the two files are mapped.
-  Secondly, The tools uses at the moment an implementation of the Ascore according
-  to Beausoleil et al. in order to localize the most probable phosphorylation sites.
+  This tool performs phosphorylation analysis and site localization.
+  Input files are an LC-MS/MS data file as well as the corresponding identification file.
+  Firstly, the peptide identifications are mapped onto the spectra.
+  Secondly, the tool uses an implementation of the Ascore according to Beausoleil <em>et al.</em> in order to localize the most probable phosphorylation sites.
 
-  For details: Beausoleil et al.
+  For details, see:\n
+  Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based approach for high-throughput protein phosphorylation analysis and site localization</a> (Nat. Biotechnol., 2006, PMID: 16964243).
 
-  <!-- <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_PhosphoScoring.cli
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_PhosphoScoring.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_PhosphoScoring.html -->
+  @htmlinclude TOPP_PhosphoScoring.html
 */
 
 
@@ -87,21 +88,157 @@ class TOPPPhosphoScoring :
 {
 public:
   TOPPPhosphoScoring() :
-    TOPPBase("PhosphoScoring", "Scores potential phosphorylation sites and thereby tries to localize the most probable sites.")
+    TOPPBase("PhosphoScoring", "Scores potential phosphorylation sites in order to localize the most probable sites.")
   {
   }
 
 protected:
 
+  // spectrum must not contain 0 intensity peaks and must be sorted by m/z
+  template <typename SpectrumType>
+  static void deisotopeAndSingleChargeMSSpectrum_(SpectrumType& in, Int min_charge, Int max_charge, double fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 3, Size max_isopeaks = 10, bool make_single_charged = true)
+  {
+    if (in.empty())
+    {
+      return;
+    }
+
+    SpectrumType old_spectrum = in;
+
+    // determine charge seeds and extend them
+    vector<Size> mono_isotopic_peak(old_spectrum.size(), 0);
+    vector<Int> features(old_spectrum.size(), -1);
+    Int feature_number = 0;
+
+    for (Size current_peak = 0; current_peak != old_spectrum.size(); ++current_peak)
+    {
+      double current_mz = old_spectrum[current_peak].getPosition()[0];
+
+      for (Int q = max_charge; q >= min_charge; --q)   // important: test charge hypothesis from high to low
+      {
+        // try to extend isotopes from mono-isotopic peak
+        // if extension larger then min_isopeaks possible:
+        //   - save charge q in mono_isotopic_peak[]
+        //   - annotate all isotopic peaks with feature number
+        if (features[current_peak] == -1)   // only process peaks which have no assigned feature number
+        {
+          bool has_min_isopeaks = true;
+          vector<Size> extensions;
+          for (Size i = 0; i < max_isopeaks; ++i)
+          {
+            double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
+            Size p = old_spectrum.findNearest(expected_mz);
+            double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
+            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)   // test for missing peak
+            {
+              if (i < min_isopeaks)
+              {
+                has_min_isopeaks = false;
+              }
+              break;
+            }
+            else
+            {
+              // TODO: include proper averagine model filtering. for now start at the second peak to test hypothesis
+              Size n_extensions = extensions.size();
+              if (n_extensions != 0)
+              {
+                if (old_spectrum[p].getIntensity() > old_spectrum[extensions[n_extensions - 1]].getIntensity())
+                {
+                  if (i < min_isopeaks)
+                  {
+                    has_min_isopeaks = false;
+                  }
+                  break;
+                }
+              }
+
+              // averagine check passed
+              extensions.push_back(p);
+            }
+          }
+
+          if (has_min_isopeaks)
+          {
+            //cout << "min peaks at " << current_mz << " " << " extensions: " << extensions.size() << endl;
+            mono_isotopic_peak[current_peak] = q;
+            for (Size i = 0; i != extensions.size(); ++i)
+            {
+              features[extensions[i]] = feature_number;
+            }
+            feature_number++;
+          }
+        }
+      }
+    }
+
+    in.clear(false);
+    for (Size i = 0; i != old_spectrum.size(); ++i)
+    {
+      Int z = mono_isotopic_peak[i];
+      if (keep_only_deisotoped)
+      {
+        if (z == 0)
+        {
+          continue;
+        }
+
+        // if already single charged or no decharging selected keep peak as it is
+        if (!make_single_charged)
+        {
+          in.push_back(old_spectrum[i]);
+        }
+        else
+        {
+          RichPeak1D p = old_spectrum[i];
+          p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+          in.push_back(p);
+        }
+      }
+      else
+      {
+        // keep all unassigned peaks
+        if (features[i] < 0)
+        {
+          in.push_back(old_spectrum[i]);
+          continue;
+        }
+
+        // convert mono-isotopic peak with charge assigned by deisotoping
+        if (z != 0)
+        {
+          if (!make_single_charged)
+          {
+            in.push_back(old_spectrum[i]);
+          }
+          else
+          {
+            RichPeak1D p = old_spectrum[i];
+            p.setMZ(p.getMZ() * z - (z - 1) * Constants::PROTON_MASS_U);
+            in.push_back(p);
+          }
+        }
+      }
+    }
+
+    in.sortByPosition();
+  }
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file which contains MSMS spectra", false);
+    registerInputFile_("in", "<file>", "", "Input file with MS/MS spectra", false);
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output with annotated phosphorylation scores");
-    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Fragment mass error", false);
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
+    registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.05, "Fragment mass error", false);
+
+    StringList fragment_mass_tolerance_unit_valid_strings;
+    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
+    registerStringOption_("fragment_mass_unit", "<unit>", "Da", "Unit of fragment mass error", false, false);
+    setValidStrings_("fragment_mass_unit", fragment_mass_tolerance_unit_valid_strings);
 
     addEmptyLine_();
   }
@@ -111,15 +248,14 @@ protected:
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    //Param alg_param = getParam_().copy("algorithm:", true);
 
     String in(getStringOption_("in"));
     String id(getStringOption_("id"));
     String out(getStringOption_("out"));
     double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
-    AScore scoring_function;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    bool fragment_mass_unit_ppm = getStringOption_("fragment_mass_unit") == "Da" ? false : true;
+    AScore ascore;
+
     RichPeakMap exp;
     //-------------------------------------------------------------
     // loading input
@@ -128,7 +264,22 @@ protected:
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_out;
     IdXMLFile().load(id, prot_ids, pep_ids);
-    MzMLFile().load(in, exp);
+
+    MzMLFile f;
+    f.setLogType(log_type_);
+
+    PeakFileOptions options;
+    options.clearMSLevels();
+    options.addMSLevel(2);
+    f.getOptions() = options;
+    f.load(in, exp);
+    exp.sortSpectra(true);
+
+    for (Size i = 0; i != exp.getNrSpectra(); ++i)
+    {
+      deisotopeAndSingleChargeMSSpectrum_(exp.getSpectrum(i), 2, 5, fragment_mass_tolerance, fragment_mass_unit_ppm);
+    }
+
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -149,27 +300,9 @@ protected:
         {
           PeptideHit scored_hit = *hit;
           RichPeakSpectrum& temp  = *it;
-          //compute number of possible phosphorylation sites
-          Int number_of_phospho_sites = 0;
-          {
-            String without_phospho_str(scored_hit.getSequence().toString());
-            size_t found = without_phospho_str.find("(Phospho)");
-            while (found != string::npos)
-            {
-              without_phospho_str.erase(found, String("(Phospho)").size());
-              found = without_phospho_str.find("(Phospho)");
-            }
-            AASequence without_phospho = AASequence::fromString(without_phospho_str);
-            double prec = hits->getMZ();
-            double prec_mz = prec * scored_hit.getCharge();
-            prec_mz -= scored_hit.getCharge();
-            double mono_weight = without_phospho.getMonoWeight();
-            double ha = prec_mz - mono_weight;
-            double nps = ha / 79.966331; // 79.966331 = mass of HPO3
-            number_of_phospho_sites = (Int)floor(nps + 0.5);
-          }
+
           PeptideHit phospho_sites;
-          phospho_sites = scoring_function.compute(scored_hit, temp, fragment_mass_tolerance, number_of_phospho_sites);
+          phospho_sites = ascore.compute(scored_hit, temp, fragment_mass_tolerance, fragment_mass_unit_ppm);
           scored_peptides.push_back(phospho_sites);
         }
 

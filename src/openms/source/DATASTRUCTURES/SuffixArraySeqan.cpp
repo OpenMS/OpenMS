@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,30 +32,33 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
+
+#include <seqan/index/index_shims.h>
+
+#include <string>
 #include <cmath>
-#include <ctime>
 #include <cstdio>
+#include <ctime>
 #include <fstream>
 #include <stack>
 #include <typeinfo>
 
-#include <OpenMS/CHEMISTRY/ModifierRep.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
 //using namespace seqan; // do not use since seqan defines a class set, which makes std::set ambiguous
 using namespace std;
-
 
 namespace OpenMS
 {
 
   // constructor
-  SuffixArraySeqan::SuffixArraySeqan(const String & st, const String & sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
+  SuffixArraySeqan::SuffixArraySeqan(const String& st, const String& sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
     WeightWrapper(weight_mode),
+    it_(),
     s_(st),
     number_of_modifications_(0),
     use_tags_(false),
@@ -74,7 +77,7 @@ namespace OpenMS
     }
     //creating array with aminoacid masses
 
-    ResidueDB * rdb = ResidueDB::getInstance();
+    ResidueDB* rdb = ResidueDB::getInstance();
 
     char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
@@ -85,7 +88,7 @@ namespace OpenMS
 
     for (Size z = 0; z < strlen(aa); ++z)
     {
-      const Residue * r = rdb->getResidue(aa[z]);
+      const Residue* r = rdb->getResidue(aa[z]);
       masse_[(int)aa[z]] = this->getWeight(*r, Residue::Internal);
     }
 
@@ -108,12 +111,12 @@ namespace OpenMS
       index_ = index;
     }
 
-    it_ = new TIter(index_);
+    it_ = TIter(index_);
     // TODO was: it_ = new Iter<TIndex, VSTree< TopDown< ParentLinks<Preorder> > > > (index_);
 
   }
 
-  SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source) :
+  SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan& source) :
     SuffixArray(source),
     WeightWrapper(source),
     index_(source.index_),
@@ -135,7 +138,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SuffixArraySeqan::save(const String & file_name)
+  bool SuffixArraySeqan::save(const String& file_name)
   {
     if (!seqan::save(index_, file_name.c_str()))
     {
@@ -144,7 +147,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SuffixArraySeqan::open(const String & file_name)
+  bool SuffixArraySeqan::open(const String& file_name)
   {
     if (!seqan::open(index_, file_name.c_str()))
     {
@@ -169,7 +172,6 @@ namespace OpenMS
   //destructor
   SuffixArraySeqan::~SuffixArraySeqan()
   {
-
   }
 
   String SuffixArraySeqan::toString()
@@ -177,13 +179,13 @@ namespace OpenMS
     return "";
   }
 
-  void SuffixArraySeqan::setTags(const vector<String> & tags)
+  void SuffixArraySeqan::setTags(const vector<String>& tags)
   {
     tags_ = tags;
     use_tags_ = true;
   }
 
-  const vector<String> & SuffixArraySeqan::getTags()
+  const vector<String>& SuffixArraySeqan::getTags()
   {
     return tags_;
   }
@@ -212,7 +214,7 @@ namespace OpenMS
     return number_of_modifications_;
   }
 
-  SignedSize SuffixArraySeqan::findFirst_(const vector<double> & spec, double & m, SignedSize start, SignedSize  end)
+  SignedSize SuffixArraySeqan::findFirst_(const vector<double>& spec, double& m, SignedSize start, SignedSize  end)
   {
 
     if (end - start <= 1)
@@ -235,13 +237,13 @@ namespace OpenMS
     return middle + 1;
   }
 
-  SignedSize SuffixArraySeqan::findFirst_(const vector<double> & spec, double & m)
+  SignedSize SuffixArraySeqan::findFirst_(const vector<double>& spec, double& m)
   {
     return findFirst_(spec, m, 0, spec.size() - 1);
   }
 
   // finds all occurrences of a given spectrum
-  void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > > & candidates, const vector<double> & spec)
+  void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > >& candidates, const vector<double>& spec)
   {
     if (spec.empty())
     {
@@ -269,11 +271,11 @@ namespace OpenMS
     {
       for (Size i = 0; i < tags_.size(); ++i)
       {
-        it_ = new TIter(index_);
+        it_ = TIter(index_);
 
         seqan::String<char> s(tags_.at(i).c_str());
-        goDown(*it_, s);
-        seqan::String<Size> occs = getOccurrences(*it_);
+        goDown(it_, s);
+        seqan::String<Size> occs = getOccurrences(it_);
         for (Size j = 0; j < length(occs); ++j)
         {
           tag_indices.push_back(occs[j]);
@@ -282,7 +284,7 @@ namespace OpenMS
       sort(tag_indices.begin(), tag_indices.end());
     }
 
-    it_ = new TIter(index_);
+    it_ = TIter(index_);
 
     // preparing result vector
     //vector<vector<pair<pair<SignedSize, SignedSize>,double> > > res;
@@ -297,15 +299,15 @@ namespace OpenMS
     history.push(map<double, SignedSize>());
 
     double m = getWeight(EmpiricalFormula("H2O"));
-    goNext_(*it_, m, allm, history);
-    //goNextSubTree(*it_);
+    goNext_(it_, m, allm, history);
+    //goNextSubTree(it_);
     SignedSize nres = 0;
 
     SignedSize steps4 = 0;
     //iterating over suffix array
-    while (!atEnd(*it_))
+    while (!atEnd(it_))
     {
-      SignedSize start_index_in_text = getOccurrence(*it_);
+      SignedSize start_index_in_text = getOccurrence(it_);
       char start_char = s_[start_index_in_text];
       char next_char = ((Size)start_index_in_text == seqan::length(s_) - 1) ? 'R' : s_[start_index_in_text + 1];
 
@@ -316,8 +318,8 @@ namespace OpenMS
       // pattern or for the start indicated by the separator character
       if (start_index_in_text == 0 || start_char == '$' || isDigestingEnd(start_char, next_char))
       {
-        SignedSize edge_length = length(parentEdgeLabel(*it_));
-        SignedSize length_till_node = length(representative(*it_)) - edge_length;
+        SignedSize edge_length = length(parentEdgeLabel(it_));
+        SignedSize length_till_node = length(representative(it_)) - edge_length;
 
         double subm = 0;
         double mm = 0;
@@ -341,19 +343,19 @@ namespace OpenMS
           subm += masse_[(int)cc];
           mm = m + subm;
 
-          // we always have to substract the mass of the start character (either $ or for trypsin K or R)
+          // we always have to subtract the mass of the start character (either $ or for trypsin K or R)
           double newm = (mm - masse_[(SignedSize)start_char]);
 
-          // if we reached the maxmimal mass we can directly skip the sub tree
+          // if we reached the maximal mass we can directly skip the sub tree
           if (newm > mmax + tol_)
           {
             allm.push(0);
             history.push(map<double, SignedSize>());
-            goNextSubTree_(*it_, m, allm, history);
+            goNextSubTree_(it_, m, allm, history);
             br = true;
             break;
           }
-          // if we are reaching a separetor character
+          // if we are reaching a separator character
           if ((i < 1 && length_till_node < 1) ? false : (cc == '$'))
           {
             // either we are not using tags or we have already seen one of the tags
@@ -390,7 +392,7 @@ namespace OpenMS
                   double mass_with_mods = newm + found_masses.at(o);
                   ++steps4;
                   // getting all occurences and adding the to the specific masses
-                  seqan::String<Size> occ = getOccurrences(*it_);
+                  seqan::String<Size> occ = getOccurrences(it_);
 
                   nres += length(occ);
                   for (Size k = 0; k < length(occ); ++k)
@@ -411,7 +413,7 @@ namespace OpenMS
             // because of having reached a separator we can skip the sub tree
             history.push(map<double, SignedSize>());
             allm.push(0);
-            goNextSubTree_(*it_, m, allm, history);
+            goNextSubTree_(it_, m, allm, history);
             br = true;
             break;
           }
@@ -456,7 +458,7 @@ namespace OpenMS
                 // getting all occurrences and adding the to the specific masses
                 ++steps4;
 
-                seqan::String<Size> occ = getOccurrences(*it_);
+                seqan::String<Size> occ = getOccurrences(it_);
                 //nres+=length(occ);
                 for (Size k = 0; k < length(occ); k++)
                 {
@@ -481,12 +483,13 @@ namespace OpenMS
         if (!br)
         {
           m = mm;
-          //because of the on-the-fly mass update the updated mass differs from actual mass, so from time to time we can correct the actual mass
+          //because of the on-the-fly mass update the updated mass differs from
+          //actual mass, so from time to time we can correct the actual mass
           //TODO: why would that be?! (Andreas)
           if (steps4 > 1000)
           {
             double mpart = getWeight(EmpiricalFormula("H2O"));
-            seqan::String<char> seq = representative(*it_);
+            seqan::String<char> seq = representative(it_);
             for (Size w = 0; w < length(seq); ++w)
             {
               mpart += masse_[(int)seq[w]];
@@ -496,7 +499,7 @@ namespace OpenMS
           }
           history.push(map<double, SignedSize>(modification_map));
           allm.push(subm);
-          goNext_(*it_, m, allm, history);
+          goNext_(it_, m, allm, history);
         }
 
       }
@@ -504,7 +507,7 @@ namespace OpenMS
       {
         history.push(map<double, SignedSize>());
         allm.push(0);
-        goNextSubTree_(*it_, m, allm, history);
+        goNextSubTree_(it_, m, allm, history);
       }
     }
 
@@ -530,14 +533,14 @@ namespace OpenMS
 
   void SuffixArraySeqan::printStatistic()
   {
-    it_ = new TIter(index_);
+    it_ = TIter(index_);
 
     vector<pair<SignedSize, SignedSize> > out_number;
     vector<pair<SignedSize, SignedSize> > edge_length;
     vector<SignedSize> leafe_depth;
-    //goNext(*it_);
-    goNextSubTree_(*it_);
-    parseTree_(*it_, out_number, edge_length, leafe_depth);
+    //goNext(it_);
+    goNextSubTree_(it_);
+    parseTree_(it_, out_number, edge_length, leafe_depth);
     for (Size i = 0; i < leafe_depth.size(); i++)
     {
       cout << leafe_depth.at(i) << ",";

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,10 +72,9 @@ using namespace std;
 
     @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested!
 
-    This tool counts the peptide sequences that match a protein accession. From this count for all protein hits
-  in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences
-  identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in
-  general to remove bad identifications.
+    This tool counts the peptide sequences that match a protein accession. From this count for all protein hits in the respective id run, only those proteins are accepted that have at least a given number of peptides sequences identified. The peptide identifications should be prefiltered with respect to false discovery rate and the score in general to remove bad identifications.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ProteinInference.cli
@@ -163,7 +162,7 @@ protected:
         }
 
         // for all protein accessions
-        set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
+        set<String> protein_accessions = it2->extractProteinAccessions();
         for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
         {
           acc_peptides[*it3][charge].insert(pep_seq);
@@ -204,7 +203,7 @@ protected:
       it1->setHits(vector<PeptideHit>());
       for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
       {
-        set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
+        set<String> protein_accessions = it2->extractProteinAccessions();
         for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
         {
           if (accepted_proteins.find(*it3) != accepted_proteins.end())

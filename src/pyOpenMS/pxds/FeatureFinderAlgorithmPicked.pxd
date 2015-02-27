@@ -9,14 +9,10 @@ from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS":
 
-    cdef cppclass FeatureFinderAlgorithmPicked[PeakT](DefaultParamHandler):
+    cdef cppclass FeatureFinderAlgorithmPicked(DefaultParamHandler):
 
         # wrap-inherits:
         #    DefaultParamHandler
-        #
-        # wrap-instances:
-        #    FeatureFinderAlgorithmPicked := FeatureFinderAlgorithmPicked[Peak1D]
-
         FeatureFinderAlgorithmPicked()      nogil except +
 
         void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap & output, FeatureFinder & ff) nogil except +
@@ -25,12 +21,12 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
         void setSeeds(FeatureMap& seeds) nogil except +
 
-        # static FeatureFinderAlgorithm<PeakType>* create()
+        # static FeatureFinderAlgorithm* create()
 
 #
 # static methods are wrapped like this:
 #
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS::FeatureFinderAlgorithmPicked<OpenMS::Peak1D>":
+cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPicked.h>" namespace "OpenMS::FeatureFinderAlgorithmPicked":
 
     String getProductName()   nogil except + # wrap-attach:FeatureFinderAlgorithmPicked

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ namespace OpenMS
   PeakPickerMRM::PeakPickerMRM() :
     DefaultParamHandler("PeakPickerMRM")
   {
-    // NEW default settings: recommeded:
+    // NEW default settings: recommended:
     //
     // sgolay_frame_length = 9  (29.7s on our data)
     // gauss_width = 30  (if even gauss is used)
@@ -98,7 +98,7 @@ namespace OpenMS
         "using method \'" << method_ << "\'" << std::endl;
 
     picked_chrom.clear(true);
-    // Crowdad has its own methods, so we can call the wrapper directly
+    // Crawdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
     {
       pickChromatogramCrawdad_(chromatogram, picked_chrom);

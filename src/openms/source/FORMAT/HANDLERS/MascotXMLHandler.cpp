@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -429,7 +429,7 @@ namespace OpenMS
           }
 
           // pepXML can contain more hits than MascotXML; hence we try to match all of them...
-          // run-time is O(n^2) in the number of petide hits; should be a very small number
+          // run-time is O(n^2) in the number of peptide hits; should be a very small number
 
           for (Size i = 0; i < temp_peptide_hits.size(); ++i)
           {

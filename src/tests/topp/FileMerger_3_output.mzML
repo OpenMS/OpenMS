@@ -14,12 +14,12 @@
 		<sourceFileList count="2">
 			<sourceFile id="sf_sp_0" name="FileMerger_3_input1.dta" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="157c05945aae6e864090d1033611ab0c048193a7" />
-				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_1" name="FileMerger_3_input2.dta" location="<TEST_DATA_PATH>">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="bbee73d177ce92065984b078309de6dcd0db4a2c" />
-				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 		</sourceFileList>
@@ -96,7 +96,7 @@
 						<binary>AAAAAAAAaUAAAAAAAMByQAAAAAAAAHlA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AAAwQQAAQEEAAFBB</binary>
@@ -140,7 +140,7 @@
 						<binary>AAAAAADAgkAAAAAAAACJQAAAAAAAQI9A</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AACoQQAAsEEAALhB</binary>

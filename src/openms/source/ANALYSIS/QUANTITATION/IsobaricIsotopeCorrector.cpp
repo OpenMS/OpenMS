@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -109,7 +109,7 @@ namespace OpenMS
       }
       solveNNLS_(correction_matrix, m_b, m_x);
 
-      // update the ouput consensus map with the corrected intensities
+      // update the output consensus map with the corrected intensities
       float cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency

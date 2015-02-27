@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -197,7 +197,7 @@ namespace OpenMS
         symbols_[symbol] = e;
         atomic_numbers_[an] = e;
 
-        // add all the individual isotopes as separat elements
+        // add all the individual isotopes as separate elements
         for (IsotopeDistribution::ConstIterator iit = isotopes.begin(); iit != isotopes.end(); ++iit)
         {
           String iso_name = "(" + String(iit->first) + ")" + name;
@@ -212,7 +212,7 @@ namespace OpenMS
           iso_isotopes.set(iso_container);
 
           /*
-          // print name, symbal and atomic mass of the current isotope
+          // print name, symbol and atomic mass of the current isotope
           cout << "Isotope Name: " << iso_name << " Symbol: " << iso_symbol << " AtomicMass: " << iso_mono_weight << endl;
           */
 

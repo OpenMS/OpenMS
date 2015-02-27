@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -166,37 +166,63 @@ namespace OpenMS
       double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
       hit.setScore(hyperscore);
 
+      // get mass
+      double mass(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
+      hit.setMetaValue("mass", mass);
+
+      // get delta
+      double delta(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("delta"))))).toDouble());
+      hit.setMetaValue("delta", delta);
+
+      // try to get a, b, c, x, y, z score (optional)
+      String att_str;
+      if (optionalAttributeAsString_(att_str, attributes, "a_score")) hit.setMetaValue("a_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "a_ions")) hit.setMetaValue("a_ions", att_str.toInt());
+      
+      if (optionalAttributeAsString_(att_str, attributes, "b_score")) hit.setMetaValue("b_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "b_ions")) hit.setMetaValue("b_ions", att_str.toInt());
+
+      if (optionalAttributeAsString_(att_str, attributes, "c_score")) hit.setMetaValue("c_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "c_ions")) hit.setMetaValue("c_ions", att_str.toInt());
+
+      if (optionalAttributeAsString_(att_str, attributes, "x_score")) hit.setMetaValue("x_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "x_ions")) hit.setMetaValue("x_ions", att_str.toInt());
+
+      if (optionalAttributeAsString_(att_str, attributes, "y_score")) hit.setMetaValue("y_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "y_ions")) hit.setMetaValue("y_ions", att_str.toInt());
+
+      if (optionalAttributeAsString_(att_str, attributes, "z_score")) hit.setMetaValue("z_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "z_ions")) hit.setMetaValue("z_ions", att_str.toInt());
+
       // get sequence of peptide
-      String seq(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("seq")))));
+      String seq = attributeAsString_(attributes, "seq");
       hit.setSequence(AASequence::fromString(seq));
 
       // get amino acid before
-      String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
+      String pre = attributeAsString_(attributes, "pre");
       if (!pre.empty())
       {
-        pe.setAABefore(pre[pre.size() - 1]);
+        pe.setAABefore(pre[pre.size()-1]);
       }
 
       // get amino acid after
-      String post(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("post")))));
+      String post = attributeAsString_(attributes, "post");
       if (!post.empty())
       {
         pe.setAAAfter(post[0]);
       }
 
       // get expectation value
-      double expect(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
-      hit.setMetaValue("E-Value", expect);
+      String expect = attributeAsString_(attributes, "expect");
+      hit.setMetaValue("E-Value", expect.toDouble());
 
       // get precursor m/z
       //double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
       //hit.setMetaValue("MZ", mh); // not needed, set by the XTandem Adapter itself
 
       // spectrum id
-      String id_string(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("id")))));
-      vector<String> split;
-      id_string.split('.', split);
-      UInt id(split[0].toInt());
+      String id_string = attributeAsString_(attributes, "id");
+      UInt id(id_string.prefix('.').toInt());
       // hit.setMetaValue("RT_index", id);
       actual_id_ = id;
 

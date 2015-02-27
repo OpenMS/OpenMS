@@ -36,6 +36,7 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
+RTAnnotator
 RTEvaluation
 SemanticValidator
 SequenceCoverageCalculator
@@ -43,6 +44,7 @@ SimpleSearchEngine
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
+TopPerc
 XMLValidator
 #SimpleSearchEngine
 #RNPxlSearch

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -198,6 +198,36 @@ START_SECTION((template < typename T > static String concatenate(const std::vect
   tmp.push_back("2\n");
   tmp.push_back("3\n");
   TEST_EQUAL(ListUtils::concatenate(tmp),"1\n2\n3\n")
+}
+END_SECTION
+
+START_SECTION((template <typename T> static Int getIndex(const std::vector<T>& container, const E& elem)))
+{
+  IntList ints;
+  ints.push_back(4);
+  ints.push_back(3);
+  ints.push_back(1);
+  ints.push_back(2);
+
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 0), -1);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 1), 2);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 2), 3);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 3), 1);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 4), 0);
+  TEST_EQUAL(ListUtils::getIndex<Int>(ints, 5), -1);
+
+  StringList strings;
+  strings.push_back("four");
+  strings.push_back("three");
+  strings.push_back("one");
+  strings.push_back("two");
+
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "zero"), -1);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "one"), 2);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "two"), 3);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "three"), 1);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "four"), 0);
+  TEST_EQUAL(ListUtils::getIndex<String>(strings, "five"), -1);
 }
 END_SECTION
 

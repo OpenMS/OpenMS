@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -306,7 +306,7 @@ namespace OpenMS
         std::cout << hits[h].getScore() << " >= " << new_pep_ids[i].getSignificanceThreshold() << " "
                   << hits[h].getMetaValue("Rank") << std::endl;
 #endif
-        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(hits[h]);
+        std::set<String> protein_accessions = hits[h].extractProteinAccessions();
         std::set<String>::const_iterator acc_it = protein_accessions.begin();
         for (; acc_it != protein_accessions.end(); ++acc_it)
         {
@@ -805,7 +805,7 @@ namespace OpenMS
           for (UInt pep_hit = 0; pep_hit < pep_hits.size(); ++pep_hit)
           {
             // get their accessions
-            std::set<String> accs = PeptideHit::extractProteinAccessions(pep_hits[pep_hit]);
+            std::set<String> accs = pep_hits[pep_hit].extractProteinAccessions();
             //std::cout << accs.size() << std::endl;
             const std::vector<ProteinIdentification>& prot_ids = features.getProteinIdentifications();
             // get ProteinIds for accession and save them
@@ -1161,7 +1161,7 @@ namespace OpenMS
                     << pep_ids[0].getSignificanceThreshold() << " "
                     << pep_ids[0].getHits()[0].getMetaValue("Rank");
 
-          std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(pep_ids[0].getHits()[0]);
+          std::set<String> protein_accessions = pep_ids[0].getHits()[0].extractProteinAccessions();
           if (!protein_accessions.empty())
           {
             String acc = *protein_accessions.begin();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,17 +35,18 @@
 #ifndef OPENMS_DATASTRUCTURES_COMPOMER_H
 #define OPENMS_DATASTRUCTURES_COMPOMER_H
 
-#include <vector>
-#include <map>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/OpenMSConfig.h>
 
-#include <OpenMS/CONCEPT/Macros.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <map>
+#include <vector>
 
 namespace OpenMS
 {
 
-  class String;
   class Adduct;
+  class String;
 
   /**
     @brief Holds information on an edge connecting two features from a (putative) charge ladder

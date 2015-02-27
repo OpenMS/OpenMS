@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -443,9 +443,6 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
             Size start_idx(lower_it - mz_keys.begin());
             Size end_idx(upper_it - mz_keys.begin());
 
-            // double max_hyper_score(0.0);
-            // Size best_idx(start_idx);
-
             //std::cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << std::endl;
 
             std::vector<SpectralMatch> partial_results;
@@ -543,13 +540,7 @@ void MetaboliteSpectralMatching::updateMembers_()
 void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& overall_results, MzTab& mztab_out)
 {
     // iterate the overall results table
-
-    String unit_id("MetSpecMatch");
-    MzTabSmallMoleculeSectionData sm_data_section;
     MzTabSmallMoleculeSectionRows all_sm_rows;
-
-    // Size id_group(1);
-
 
     for (Size id_idx = 0; id_idx < overall_results.size(); ++id_idx)
     {
@@ -602,7 +593,7 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
         MzTabDouble mass_to_charge;
         mass_to_charge.set(mz_temp);
 
-        mztab_row_record.mass_to_charge = mass_to_charge;
+        mztab_row_record.exp_mass_to_charge = mass_to_charge;  //TODO: distinguish the experimental precursor mass and spectral library precursor mass (later should probably go into cv_opt_ column)
 
 
         // set charge field
@@ -650,8 +641,10 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
         int_temp2.set(int_temp);
         int_temp3.push_back(int_temp2);
 
-        mztab_row_record.smallmolecule_abundance_sub = int_temp3;
-
+        for (Size i = 0; i != int_temp3.size(); ++i)
+        {
+          mztab_row_record.smallmolecule_abundance_study_variable[i + 1] = int_temp3[i];
+        }
 
         // set smallmolecule_abundance_stdev_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
         double stdev_temp(0.0);
@@ -661,8 +654,10 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
 
         stdev_temp3.push_back(stdev_temp2);
 
-        mztab_row_record.smallmolecule_abundance_stdev_sub = stdev_temp3;
-
+        for (Size i = 0; i != stdev_temp3.size(); ++i)
+        {
+          mztab_row_record.smallmolecule_abundance_stdev_study_variable[i + 1] = stdev_temp3[i];
+        }
 
         // set smallmolecule_abundance_std_error_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
         double stderr_temp(0.0);
@@ -672,8 +667,10 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
 
         stderr_temp3.push_back(stderr_temp2);
 
-        mztab_row_record.smallmolecule_abundance_std_error_sub = stderr_temp3;
-
+        for (Size i = 0; i != stderr_temp3.size(); ++i)
+        {
+          mztab_row_record.smallmolecule_abundance_std_error_study_variable[i + 1] = stderr_temp3[i];
+        }
 
         // optional columns:
         std::vector<MzTabOptionalColumnEntry> optionals;
@@ -721,6 +718,7 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
         optionals.push_back(col3);
 
         // set source spectra index
+        // TODO: this should use spectra_ref column
         String source_idx = String(current_id.getObservedSpectrumIndex());
         MzTabString source_idx_str;
         source_idx_str.set(source_idx);
@@ -734,8 +732,7 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
         all_sm_rows.push_back(mztab_row_record);
     }
 
-    sm_data_section[unit_id] = all_sm_rows;
-    mztab_out.setSmallMoleculeSectionData(sm_data_section);
+  mztab_out.setSmallMoleculeSectionRows(all_sm_rows);
 
 }
 

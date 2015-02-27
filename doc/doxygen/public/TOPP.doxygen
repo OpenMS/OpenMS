@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -110,13 +110,13 @@
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
 
-
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
   - @subpage TOPP_CompNovoCID - Performs a peptide/protein identification with the CompNovo engine in CID mode.
   - @subpage TOPP_InspectAdapter - Identifies MS/MS spectra using Inspect (external).
   - @subpage TOPP_MascotAdapter - Identifies MS/MS spectra using Mascot (external).
   - @subpage TOPP_MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
+  - @subpage TOPP_MSGFPlusAdapter - Identifies MS/MS spectra using MSGFPlus (external).
   - @subpage TOPP_MyriMatchAdapter - Identifies MS/MS spectra using MyriMatch (external).
   - @subpage TOPP_OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
   - @subpage TOPP_PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
@@ -126,12 +126,14 @@
   <b>Protein/Peptide Processing</b>
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
+  - @subpage TOPP_FidoAdapter - Runs the protein inference engine Fido.
   - @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
   - @subpage TOPP_IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
   - @subpage TOPP_IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards.
   - @subpage TOPP_PeptideIndexer - Refreshes the protein references for all peptide hits.
+  - @subpage TOPP_PhosphoScoring - Scores potential phosphorylation sites in order to localize the most probable sites.
   - @subpage TOPP_ProteinInference - Infer proteins from a list of (high-confidence) peptides.
 <!--  %% removed from Docu (still available in TOPP) because of operability
 - @subpage TOPP_PILISIdentification - Trains the PILIS model using a given set of spectra and identifications.

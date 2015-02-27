@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -110,7 +110,7 @@ namespace OpenMS
       std::vector<double> score2v;
       for (; beg != end; ++beg, ++xx)
       {
-        //std::cout << "analysing transtion" << xx << beg->second.size()
+        //std::cout << "analysing transition" << xx << beg->second.size()
         //    << " " << beg->first << std::endl;
         double score1;
         double score2;

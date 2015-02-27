@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -92,6 +93,8 @@ using namespace std;
     Peptide positions are always matched against centroid positions. By default, the consensus centroids are used. However, if @p consensus:use_subelements is set, the centroids of sub-features are considered instead.
     In this case, a peptide identification is mapped to a consensus feature if any of its sub-features matches.
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDMapper.cli
     <B>INI file documentation of this tool:</B>
@@ -99,10 +102,10 @@ using namespace std;
 
     On the peptide side, two sources for m/z values are possible (see parameter @p mz_reference): 1. m/z of the precursor of the MS2 spectrum that gave rise to the peptide identification;
     2. theoretical masses computed from the amino acid sequences of peptide hits.
-    (When using theoretical masses, make sure that peptide modifications were identified correctly. OpenMS currently "forgets" mass shifts that it can't assign to modifications - if that 
+    (When using theoretical masses, make sure that peptide modifications were identified correctly. OpenMS currently "forgets" mass shifts that it can't assign to modifications - if that
     happens, masses computed from peptide sequences will be off.)
 
-    @deprecated The parameter handling of this tool has been reworked. For greater consistency with other tools, the parameters @p rt_delta and @p mz_delta have been renamed to @p rt_tolerance 
+    @deprecated The parameter handling of this tool has been reworked. For greater consistency with other tools, the parameters @p rt_delta and @p mz_delta have been renamed to @p rt_tolerance
     and @p mz_tolerance. The possible values of the @p mz_reference parameter have also been renamed. The default value of @p mz_tolerance has been increased from 1 ppm to a more realistic 20 ppm.\n
     Most importantly, the @p use_centroids parameter from previous versions has been split into two parameters, @p feature:use_centroid_rt and @p feature:use_centroid_mz. In OpenMS 1.6, peptide
     identifications would be matched only against monoisotopic mass traces of features if @p mz_reference was @p PeptideMass; otherwise, all mass traces would be used. This implicit behaviour has
@@ -129,7 +132,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
-    setValidFormats_("id", ListUtils::create<String>("idXML"));
+    setValidFormats_("id", ListUtils::create<String>("mzid,idXML"));
     registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,mzq"));
     registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
@@ -156,24 +159,39 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Additional options for consensusXML input");
     registerFlag_("consensus:use_subelements", "Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches.");
+    registerFlag_("consensus:annotate_ids_with_subelements", "Store the map index of the sub-feature in the peptide ID.", true);
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     // LOG_DEBUG << "Starting..." << endl;
-    String in = getStringOption_("in");
-    FileTypes::Type in_type = FileHandler::getType(in);
-    String out = getStringOption_("out");
 
     //----------------------------------------------------------------
-    // load idXML
+    // load ids
     //----------------------------------------------------------------
     // LOG_DEBUG << "Loading idXML..." << endl;
+    String id = getStringOption_("id");
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
-    String document_id;
-    IdXMLFile().load(getStringOption_("id"), protein_ids, peptide_ids, document_id);
+    FileTypes::Type in_type = FileHandler::getType(id);
+    if (in_type == FileTypes::IDXML)
+    {
+      IdXMLFile().load(id, protein_ids, peptide_ids);
+    }
+    else if (in_type == FileTypes::MZIDENTML)
+    {
+      MzIdentMLFile().load(id, protein_ids, peptide_ids);
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__,
+                                       __PRETTY_FUNCTION__,
+                                       "wrong id fileformat");
+    }
 
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    in_type = FileHandler::getType(in);
     //----------------------------------------------------------------
     //create mapper
     //----------------------------------------------------------------
@@ -198,8 +216,9 @@ protected:
       file.load(in, map);
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
+      bool annotate_ids_with_subelements = getFlag_("consensus:annotate_ids_with_subelements");
 
-      mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements);
+      mapper.annotate(map, peptide_ids, protein_ids, measure_from_subelements, annotate_ids_with_subelements);
 
       //annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
@@ -258,7 +277,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPIDMapper tool;
   return tool.main(argc, argv);

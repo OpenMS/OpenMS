@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,12 +35,15 @@
 #ifndef OPENMS_DATASTRUCTURES_CVMAPPINGRULE_H
 #define OPENMS_DATASTRUCTURES_CVMAPPINGRULE_H
 
+#include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
+
 #include <vector>
 
 namespace OpenMS
 {
+  class CVMappingTerm;
+
   /**
       @brief Representation of a CV Mapping rule used by CVMappings
 
@@ -72,28 +75,28 @@ public:
     CVMappingRule();
 
     /// Copy constructor
-    CVMappingRule(const CVMappingRule & rhs);
+    CVMappingRule(const CVMappingRule& rhs);
 
     /// Destructor
     virtual ~CVMappingRule();
 
     /// Assignment operator
-    CVMappingRule & operator=(const CVMappingRule & rhs);
+    CVMappingRule& operator=(const CVMappingRule& rhs);
 
     /** @name Accessors
     */
     //@{
     /// sets the identifier of the rule
-    void setIdentifier(const String & identifier);
+    void setIdentifier(const String& identifier);
 
     /// returns the identifier of the rule
-    const String & getIdentifier() const;
+    const String& getIdentifier() const;
 
     /// sets the path of the element, where this rule is allowed
-    void setElementPath(const String & element_path);
+    void setElementPath(const String& element_path);
 
     /// returns the path of the element, where this rule is allowed
-    const String & getElementPath() const;
+    const String& getElementPath() const;
 
     /// sets the requirement level of this rule
     void setRequirementLevel(RequirementLevel level);
@@ -108,29 +111,29 @@ public:
     CombinationsLogic getCombinationsLogic() const;
 
     /// sets the scope path of the rule
-    void setScopePath(const String & path);
+    void setScopePath(const String& path);
 
     /// returns the scope path of the rule
-    const String & getScopePath() const;
+    const String& getScopePath() const;
 
     /// sets the terms which are allowed
-    void setCVTerms(const std::vector<CVMappingTerm> & cv_terms);
+    void setCVTerms(const std::vector<CVMappingTerm>& cv_terms);
 
     /// returns the allowed terms
-    const std::vector<CVMappingTerm> & getCVTerms() const;
+    const std::vector<CVMappingTerm>& getCVTerms() const;
 
     /// adds a term to the allowed terms
-    void addCVTerm(const CVMappingTerm & cv_terms);
+    void addCVTerm(const CVMappingTerm& cv_terms);
     //@}
 
     /** @name Predicates
     */
     //@{
     /// equality operator
-    bool operator==(const CVMappingRule & rhs) const;
+    bool operator==(const CVMappingRule& rhs) const;
 
     /// inequality operator
-    bool operator!=(const CVMappingRule & rhs) const;
+    bool operator!=(const CVMappingRule& rhs) const;
     //@}
 
 protected:

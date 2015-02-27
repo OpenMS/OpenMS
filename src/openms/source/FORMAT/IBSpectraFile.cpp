@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 // we need the quantitation types to extract the appropriate channels
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
@@ -238,7 +240,8 @@ namespace OpenMS
       else
       {
         // protein name:
-        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(cFeature.getPeptideIdentifications()[0].getHits()[0]);
+        const PeptideHit& peptide_hit = cFeature.getPeptideIdentifications()[0].getHits()[0];
+        std::set<String> protein_accessions = peptide_hit.extractProteinAccessions();
         if (protein_accessions.size() != 1)
         {
           if (!allow_non_unique) continue; // we only want unique peptides

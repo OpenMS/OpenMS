@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -322,7 +322,7 @@ public:
           spectrum->setMSLevel(1);
         }
 
-        // add either datapoint or mass traces (depending on template argument value)
+        // add either data point or mass traces (depending on template argument value)
         ContainerAdd_<typename Container::const_iterator, add_mass_traces>::addData_(spectrum, iter);
       }
     }
@@ -906,7 +906,8 @@ private:
         if (iter->metaValueExists("num_of_masstraces"))
         {
           Size mts = iter->getMetaValue("num_of_masstraces");
-          for (Size i=0; i<mts; ++i)
+          int charge = (iter->getCharge()==0 ? 1 : iter->getCharge()); // set to 1 if charge is 0, otherwise div/0 below
+          for (Size i = 0; i < mts; ++i)
           {
             String meta_name = String("masstrace_intensity_") + i;
             if (!iter->metaValueExists(meta_name))
@@ -915,7 +916,7 @@ private:
             }
             spectrum->insert(spectrum->end(), PeakType());
             spectrum->back().setIntensity(iter->getMetaValue(meta_name));
-            spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U/iter->getCharge()*i);
+            spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U / charge * i);
           }
         }
         else ContainerAdd_<ContainerIterator, false>::addData_(spectrum, iter);

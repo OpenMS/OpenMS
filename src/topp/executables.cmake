@@ -22,6 +22,7 @@ FeatureFinderMultiplex
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT
+FidoAdapter
 FileConverter
 FileFilter
 FileInfo
@@ -51,6 +52,7 @@ MascotAdapter
 MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
+MSGFPlusAdapter
 MyriMatchAdapter
 MzTabExporter
 NoiseFilterGaussian

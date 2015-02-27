@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,22 +32,20 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 #include <QtCore/QString>
-
-#include <boost/spirit/include/qi.hpp>
-
-#include <string>
+#include <cstddef>
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
-#include <sstream>
 #include <limits>
-#include <algorithm>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -77,7 +75,7 @@ namespace OpenMS
 
   String::String(const char* s, SizeType length)
   {
-    string::operator=(StringConversions::toString(s, length) );
+    string::operator=(StringConversions::toString(s, length));
   }
 
   String::String(const char c) :

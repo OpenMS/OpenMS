@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,12 @@
 #ifndef OPENMS_DATASTRUCTURES_CONSTREFVECTOR_H
 #define OPENMS_DATASTRUCTURES_CONSTREFVECTOR_H
 
-#include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
-#include <vector>
-#include <typeinfo>
 #include <algorithm>
+#include <typeinfo>
+#include <vector>
 
 namespace OpenMS
 {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -324,7 +324,7 @@ namespace OpenMS
             }
           }
 
-          std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(p_hit);
+          std::set<String> protein_accessions = p_hit.extractProteinAccessions();
           std::set<UInt> ids;
           for (std::set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
           {
@@ -413,7 +413,7 @@ namespace OpenMS
 
       optionalAttributeAsString_(file_version, attributes, "version");
       if (file_version == "")
-        file_version = "1.0"; //default version is 1.0
+        file_version = "1.0";  //default version is 1.0
       if (file_version.toDouble() > version_.toDouble())
       {
         warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
@@ -729,7 +729,10 @@ namespace OpenMS
     else if (tag == "IdentificationRun")
     {
       if (prot_ids_->size() == 0)
-        prot_ids_->push_back(prot_id_); // add empty <ProteinIdentification> if there was none so far (thats where the IdentificationRun parameters are stored)
+      {
+        // add empty <ProteinIdentification> if there was none so far (that's where the IdentificationRun parameters are stored)
+        prot_ids_->push_back(prot_id_);
+      }
       prot_id_ = ProteinIdentification();
       last_meta_ = 0;
       prot_id_in_run_ = false;
@@ -792,7 +795,7 @@ namespace OpenMS
     groups.clear();
     Size g_id = 0;
     String current_meta = group_name + "_" + String(g_id);
-    while (last_meta_->metaValueExists(current_meta))
+    while (last_meta_->metaValueExists(current_meta)) // assumes groups have incremental g_IDs
     {
       // convert to proper ProteinGroup
       ProteinIdentification::ProteinGroup g;

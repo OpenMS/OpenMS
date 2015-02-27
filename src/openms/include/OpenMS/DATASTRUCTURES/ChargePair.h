@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,12 @@
 #ifndef OPENMS_DATASTRUCTURES_CHARGEPAIR_H
 #define OPENMS_DATASTRUCTURES_CHARGEPAIR_H
 
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/OpenMSConfig.h>
+
 #include <iosfwd>
 #include <vector>
-
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
 
 namespace OpenMS
 {
@@ -64,19 +65,19 @@ public:
     ChargePair();
 
     /// Constructor from map index, element index and Feature
-    ChargePair(const Size & index0,
-               const Size & index1,
-               const Int & charge0,
-               const Int & charge1,
-               const Compomer & compomer,
-               const double & mass_diff,
+    ChargePair(const Size& index0,
+               const Size& index1,
+               const Int& charge0,
+               const Int& charge1,
+               const Compomer& compomer,
+               const double& mass_diff,
                const bool active);
 
     /// Copy constructor
-    ChargePair(const ChargePair & rhs);
+    ChargePair(const ChargePair& rhs);
 
     /// Assignment operator
-    ChargePair & operator=(const ChargePair & rhs);
+    ChargePair& operator=(const ChargePair& rhs);
 
     /// Destructor
     virtual ~ChargePair();
@@ -98,10 +99,10 @@ public:
     void setElementIndex(UInt pairID, Size e);
 
     /// Returns the Id of the compomer that explains the mass difference
-    const Compomer & getCompomer() const;
+    const Compomer& getCompomer() const;
 
     /// Set the compomer id
-    void setCompomer(const Compomer & compomer);
+    void setCompomer(const Compomer& compomer);
 
     /// Returns the mass difference
     double getMassDiff() const;
@@ -123,10 +124,10 @@ public:
     //@}
 
     /// Equality operator
-    virtual bool operator==(const ChargePair & i) const;
+    virtual bool operator==(const ChargePair& i) const;
 
     /// Equality operator
-    virtual bool operator!=(const ChargePair & i) const;
+    virtual bool operator!=(const ChargePair& i) const;
 
 protected:
 
@@ -149,7 +150,7 @@ protected:
   };
 
   ///Print the contents of a ChargePair to a stream.
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const ChargePair & cons);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ChargePair& cons);
 
 } // namespace OpenMS
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -605,8 +605,7 @@ namespace OpenMS
     {
       fatalError(LOAD, "Found no experiment with name '" + experiment_name + "'");
     }
-
-    // clean up duplicate ProteinHits in ProteinIdentifications:
+    // clean up duplicate ProteinHits in each ProteinIdentification separatly:
     // (can't use "sort" and "unique" because no "op<" defined for ProteinHit)
     for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
          prot_it != proteins.end(); ++prot_it)
@@ -797,8 +796,7 @@ namespace OpenMS
       hit.setAccession(protein);
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
-      current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
-      insertHit(hit);
+      current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->insertHit(hit);
     }
     else if (element == "search_result") // parent: "spectrum_query"
     { // creates a new PeptideIdentification
@@ -811,9 +809,8 @@ namespace OpenMS
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       // depending on the numbering scheme used in the pepXML, "search_id_"
       // may appear to be "out of bounds" - see NOTE above:
-      current_peptide_.setIdentifier(
-        current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->
-        getIdentifier());
+      String identifier = current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->getIdentifier();
+      current_peptide_.setIdentifier(identifier);
     }
     else if (element == "spectrum_query") // parent: "msms_run_summary"
     {
@@ -993,6 +990,12 @@ namespace OpenMS
       AminoAcidModification aa_mod;
       optionalAttributeAsString_(aa_mod.description, attributes, "description");
       aa_mod.massdiff = attributeAsString_(attributes, "massdiff");
+
+      // somehow very small fixed modification (electron mass?) gets annotated by X!Tandem. Don't add them as they interfere with other modifications.
+      if (fabs(aa_mod.massdiff.toDouble()) < 0.0005)
+      {
+        return;
+      }
       optionalAttributeAsString_(aa_mod.aminoacid, attributes, "aminoacid");
       aa_mod.mass = attributeAsDouble_(attributes, "mass");
       aa_mod.terminus = attributeAsString_(attributes, "terminus");
@@ -1109,8 +1112,9 @@ namespace OpenMS
       }
 
       search_engine_ = attributeAsString_(attributes, "search_engine");
-      // generate identifier from search engine and date:
-      prot_id_ = search_engine_ + "_" + date_.getDate();
+
+      // generate a unique identifier for every search engine run.
+      prot_id_ = search_engine_ + "_" + date_.getDate() + "_" + date_.getTime();
 
       search_id_ = 1;
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
@@ -1223,9 +1227,59 @@ namespace OpenMS
       for (vector<AminoAcidModification>::const_iterator it = fixed_modifications_.begin(); it != fixed_modifications_.end(); ++it)
       {
         const Residue* residue = ResidueDB::getInstance()->getResidue(it->aminoacid);
+
         if (residue == 0)
         {
-          error(LOAD, String("Cannot parse modification of unknown amino acid '") + it->aminoacid + "'");
+          double new_mass = it->massdiff.toDouble();
+          if (it->aminoacid == "" && it->terminus =="n")
+          {
+            vector<String> mods;
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, 0.001, ResidueModification::N_TERM);
+            if (!mods.empty())
+            {
+              if (!temp_aa_sequence.hasNTerminalModification())
+              {
+                temp_aa_sequence.setNTerminalModification(mods[0]);
+              }
+              else
+              {
+                error(LOAD, String("Trying to add modification to modified terminal '") + it->aminoacid + "', delta mass: " +
+                      it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+              }
+            }
+            else
+            {
+              error(LOAD, String("Cannot find terminal modification '") + it->aminoacid + "', delta mass: " +
+                    it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+            }
+          }
+          else if (it->aminoacid == "" && it->terminus =="c")
+          {
+            vector<String> mods;
+            ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, new_mass, 0.001, ResidueModification::C_TERM);
+            if (!mods.empty())
+            {
+              if (!temp_aa_sequence.hasCTerminalModification())
+              {
+                temp_aa_sequence.setCTerminalModification(mods[0]);
+              }
+              else
+              {
+                error(LOAD, String("Trying to add modification to modified terminal '") + it->aminoacid + "', delta mass: " +
+                      it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+              }
+            }
+            else
+            {
+              error(LOAD, String("Cannot find terminal modification '") + it->aminoacid + "', delta mass: " +
+                    it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+            }
+          }
+          else
+          {
+            error(LOAD, String("Cannot parse modification of unknown amino acid '") + it->aminoacid + "', delta mass: " +
+                  it->massdiff + " mass: " + String(it->mass) + " variable: " + String(it->variable) + " terminus: " + it->terminus + " description: " + it->description);
+          }
         }
         else
         {
@@ -1258,6 +1312,15 @@ namespace OpenMS
     }
     else if (element == "search_summary")
     {
+      // In idXML we only store search engine and date as identifier, but to distinguish two identification runs these values must be unique.
+      // As a workaround to support multiple runs, we make the date unique by adding one second for every additional identification run.   
+      UInt hour, minute, second;
+      date_.getTime(hour, minute, second);
+      hour = (hour + (minute + (second + 1) / 60) / 60) % 24;
+      minute = (minute + (second + 1) / 60) % 60;
+      second = (second + 1) % 60;
+      date_.setTime(hour, minute, second);
+
       current_proteins_.back()->setSearchParameters(params_);
     }
   }

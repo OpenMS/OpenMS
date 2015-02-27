@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,7 +128,7 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("Sp")), 310.3)
 			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("Sf")), 0.05)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[0].getMetaValue("Ions")), "18/64")
-            set<String> protein_accessions = PeptideHit::extractProteinAccessions(peptide_identifications[0].getHits()[0]);
+            set<String> protein_accessions = peptide_identifications[0].getHits()[0].extractProteinAccessions();
             TEST_EQUAL(protein_accessions.size(), 3)
             if (protein_accessions.size() == 3 )
 			{

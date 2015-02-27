@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -504,7 +504,7 @@ private:
     static void printToVoid_(const char* /*s*/);
 
     svm_parameter* param_; // the parameters for the svm
-    svm_model* model_; // the learnt svm discriminant
+    svm_model* model_; // the learned svm discriminant
     double sigma_; // for the oligo kernel (amount of positional smearing)
     std::vector<double> sigmas_; // for the combined oligo kernel (amount of positional smearing)
     std::vector<double> gauss_table_; // lookup table for fast computation of the oligo kernel

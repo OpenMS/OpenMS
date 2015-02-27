@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -246,7 +246,7 @@ namespace OpenMS
           {
             right_bound = mid_element_idx;
           }
-          else             // or to the right...
+          else // or to the right...
           {
             left_bound = mid_element_idx;
           }
@@ -385,7 +385,7 @@ namespace OpenMS
     double scan_time(mt.getScanTime());
     Size win_size = std::ceil(chrom_fwhm_ / scan_time);
     // add smoothed data (original data is still accessible)
-    smoothData(mt, win_size);
+    smoothData(mt, static_cast<Int>(win_size));
 
     // debug intensities
 
@@ -464,7 +464,7 @@ namespace OpenMS
       Size last_idx(0);
 
       // add last data point as last minimum (to grep the last chunk of the MT)
-      mins.push_back(mt.getSize()-1);
+      mins.push_back(mt.getSize() - 1);
 
       for (Size min_idx = 0; min_idx < mins.size(); ++min_idx)
       {

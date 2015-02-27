@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,7 +132,7 @@ namespace OpenMS
       //ignore pairs that cannot be paired
       if (fabs(xit->getMZ() - yit->getMZ()) > variation)
       {
-        if (xit->getMZ() < yit->getMZ()) // while effizienter?
+        if (xit->getMZ() < yit->getMZ()) // is while more efficient ?
         {
           Peak1D consensuspeak;
           consensuspeak.setMZ(xit->getMZ());
@@ -245,7 +245,7 @@ namespace OpenMS
                                 y[ystart + j - 1].getMZ(),
                                 x[xstart + i - 1].getIntensity(),
                                 y[ystart + j - 1].getIntensity());
-        //dynaminc programming step
+        //dynamic programming step
         if ((((dparray[i][j - 1]) > (dparray[i - 1][j - 1] + align)) ? (dparray[i][j - 1]) : (dparray[i - 1][j - 1] + align)) /*== max*/ > dparray[i - 1][j])
         {
           if (dparray[i - 1][j - 1] + align > dparray[i][j - 1])

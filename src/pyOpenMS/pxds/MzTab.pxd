@@ -4,10 +4,6 @@ from libcpp.string cimport string as libcpp_string
 
 cdef extern from "<OpenMS/FORMAT/MzTab.h>" namespace "OpenMS":
 
-    cdef cppclass MzTabUnitIdMetaData:
-        MzTabUnitIdMetaData() nogil except +
-        MzTabUnitIdMetaData(MzTabUnitIdMetaData) nogil except +
-
     cdef cppclass MzTab:
 
         MzTab() nogil except +
@@ -20,7 +16,4 @@ cdef extern from "<OpenMS/FORMAT/MzTab.h>" namespace "OpenMS":
         # MzTabProteinSectionData getProteinSectionData() const
         # MzTabPeptideSectionData getPeptideSectionData() const
         # MzTabSmallMoleculeSectionData getSmallMoleculeSectionData() const
-
-
-
 

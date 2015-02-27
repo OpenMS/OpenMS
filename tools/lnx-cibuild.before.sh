@@ -68,8 +68,8 @@ if [ $ENABLE_STYLE_TESTING == "On" ]; then
   popd
 else
   # regular builds .. get the search engine executables
-  svn checkout http://svn.code.sf.net/p/open-ms/code/THIRDPARTY/SEARCHENGINES/Linux/64bit/ _searchengines
+  svn checkout http://svn.code.sf.net/p/open-ms/code/THIRDPARTY/Linux/64bit/ _thirdparty
   # remove .svn otherwise we can't check out the other search engines into the same directory (TODO: maybe switch to wget)
-  rm _searchengines/.svn -R -f
-  svn checkout http://svn.code.sf.net/p/open-ms/code/THIRDPARTY/SEARCHENGINES/All/ _searchengines
+  rm _thirdparty/.svn -R -f
+  svn checkout http://svn.code.sf.net/p/open-ms/code/THIRDPARTY/All/ _thirdparty
 fi

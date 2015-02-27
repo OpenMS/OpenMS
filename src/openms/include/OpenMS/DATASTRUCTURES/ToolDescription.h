@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,10 @@
 #ifndef OPENMS_DATASTRUCTURES_TOOLDESCRIPTION_H
 #define OPENMS_DATASTRUCTURES_TOOLDESCRIPTION_H
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <OpenMS/OpenMSConfig.h>
 
 #include <map>
 
@@ -53,10 +54,10 @@ namespace OpenMS
     struct FileMapping
     {
       String location; // a regex/macro mix; to be expanded by tool;
-      String target;   // TOPP parameter that determines the desired name
+      String target; // TOPP parameter that determines the desired name
       // thus: move location -> target
 
-      FileMapping & operator=(const FileMapping & rhs);
+      FileMapping& operator=(const FileMapping& rhs);
     };
 
     /**
@@ -69,7 +70,7 @@ namespace OpenMS
       std::vector<FileMapping> pre_moves;
       std::vector<FileMapping> post_moves;
 
-      OPENMS_DLLAPI MappingParam & operator=(const MappingParam & rhs);
+      OPENMS_DLLAPI MappingParam& operator=(const MappingParam& rhs);
 
     };
 
@@ -91,16 +92,16 @@ namespace OpenMS
       ToolDescriptionInternal();
 
       // C'Tor with arguments
-      ToolDescriptionInternal(const bool p_is_internal, const String & p_name, const String & p_category, const StringList & p_types);
+      ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types);
 
       // short C'Tor
-      ToolDescriptionInternal(const String & p_name, const StringList & p_types);
+      ToolDescriptionInternal(const String& p_name, const StringList& p_types);
 
-      ToolDescriptionInternal & operator=(const ToolDescriptionInternal & rhs);
+      ToolDescriptionInternal& operator=(const ToolDescriptionInternal& rhs);
 
-      bool operator==(const ToolDescriptionInternal & rhs) const;
+      bool operator==(const ToolDescriptionInternal& rhs) const;
 
-      bool operator<(const ToolDescriptionInternal & rhs) const;
+      bool operator<(const ToolDescriptionInternal& rhs) const;
     };
 
     struct OPENMS_DLLAPI ToolExternalDetails
@@ -129,13 +130,13 @@ namespace OpenMS
       ToolDescription();
 
       // C'Tor for internal TOPP tools
-      ToolDescription(const String & p_name, const String & p_category, const StringList & p_types = StringList());
+      ToolDescription(const String& p_name, const String& p_category, const StringList& p_types = StringList());
 
-      void addExternalType(const String & type, const ToolExternalDetails & details);
+      void addExternalType(const String& type, const ToolExternalDetails& details);
 
-      void append(const ToolDescription & other);
+      void append(const ToolDescription& other);
 
-      ToolDescription & operator=(const ToolDescription & rhs);
+      ToolDescription& operator=(const ToolDescription& rhs);
     };
 
   } // namespace Internal

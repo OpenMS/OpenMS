@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,11 +54,21 @@ namespace OpenMS
   {
   }
 
-  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup rhs) const
+  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup& rhs) const
   {
-    return probability == rhs.probability &&
-           accessions == rhs.accessions;
+    return (probability == rhs.probability) && (accessions == rhs.accessions);
   }
+
+  bool ProteinIdentification::ProteinGroup::operator<(const ProteinGroup& rhs) const
+  {
+    // comparison of probabilities is intentionally "the wrong way around":
+    if (probability > rhs.probability) return true;
+    if (probability < rhs.probability) return false;
+    if (accessions.size() < rhs.accessions.size()) return true;
+    if (accessions.size() > rhs.accessions.size()) return false;
+    return accessions < rhs.accessions;
+  }
+
 
   ProteinIdentification::SearchParameters::SearchParameters() :
     db(),
@@ -153,11 +163,6 @@ namespace OpenMS
 
   void ProteinIdentification::setHits(const vector<ProteinHit>& protein_hits)
   {
-    // groups might become invalid by this operation
-    if (!protein_groups_.empty() || !indistinguishable_proteins_.empty())
-    {
-      LOG_ERROR << "New protein hits set while (indistinguishable) proteins groups are non-empty! This might invalidate groups. Delete groups before setting new hits.\n";
-    }
     protein_hits_ = protein_hits;
   }
 
@@ -206,7 +211,7 @@ namespace OpenMS
     indistinguishable_proteins_.push_back(group);
   }
 
-  // retrival of the peptide significance threshold value
+  // retrieval of the peptide significance threshold value
   double ProteinIdentification::getSignificanceThreshold() const
   {
     return protein_significance_threshold_;
@@ -313,12 +318,12 @@ namespace OpenMS
 
   Size ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
   {
-    // todo: we currently ignore overlapping peptides, i.e. the coverage could be > 100%
+    // TODO: we currently ignore overlapping peptides, i.e. the coverage could be > 100%
 
     Size no_seq_count(0);
     // index the proteins by accession
     // Accession -> set of pep sequences
-    // (use set to discard mutli-pep matches)
+    // (use set to discard multi-pep matches)
     Map<String, std::set<String> > protein_index;
     for (Size i = 0; i < protein_hits_.size(); ++i)
     {
@@ -341,7 +346,7 @@ namespace OpenMS
       vector<PeptideHit> peptide_hits = it1->getHits();
       for (vector<PeptideHit>::iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
       {
-        set<String> protein_accessions = PeptideHit::extractProteinAccessions(*it2);
+        set<String> protein_accessions = it2->extractProteinAccessions();
         // matched proteins for hit
         for (set<String>::const_iterator it3 = protein_accessions.begin(); it3 != protein_accessions.end(); ++it3)
         {

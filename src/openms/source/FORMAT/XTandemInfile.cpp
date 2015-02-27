@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,9 +65,11 @@ namespace OpenMS
     cleavage_site_("[RK]|{P}"),
     refine_(true),
     semi_cleavage_(true),
+    allow_isotope_error_(true),
     refine_max_valid_evalue_(1000),
     number_of_missed_cleavages_(1),
     default_parameters_file_(""),
+    output_results_("all"),
     max_valid_evalue_(1000)
   {
 
@@ -161,14 +163,8 @@ namespace OpenMS
     writeNote_(os, "input", "spectrum, parent monoisotopic mass error minus", String(precursor_mass_tolerance_minus_));
     used_labels.insert("spectrum, parent monoisotopic mass error minus");
     //<note type="input" label="spectrum, parent monoisotopic mass isotope error">yes</note>
-    if (precursor_mass_type_ == XTandemInfile::MONOISOTOPIC)
-    {
-      writeNote_(os, "input", "spectrum, parent monoisotopic mass isotope error", "yes");
-    }
-    else
-    {
-      writeNote_(os, "input", "spectrum, parent monoisotopic mass isotope error", "no");
-    }
+    String allow = allow_isotope_error_ ? "yes" : "no";
+    writeNote_(os, "input", "spectrum, parent monoisotopic mass isotope error", allow);
     used_labels.insert("spectrum, parent monoisotopic mass isotope error");
     //<note type="input" label="spectrum, fragment monoisotopic mass error units">Daltons</note>
     //<note>The value for this parameter may be 'Daltons' or 'ppm': all other values are ignored</note>
@@ -251,7 +247,7 @@ namespace OpenMS
 
     //////////////// residue modification parameters
     //<note type="input" label="residue, modification mass">57.022@C</note>
-    //<note>The format of this parameter is m@X, where m is the modfication
+    //<note>The format of this parameter is m@X, where m is the modification
     //mass in Daltons and X is the appropriate residue to modify. Lists of
     //modifications are separated by commas. For example, to modify M and C
     //with the addition of 16.0 Daltons, the parameter line would be
@@ -435,9 +431,9 @@ namespace OpenMS
     //<note type="input" label="output, one sequence copy">no</note>
     //<note>values = yes|no, set to yes to produce only one copy of each protein sequence in the output xml</note>
     //<note type="input" label="output, results">valid</note>
-    writeNote_(os, "input", "output, results", "all");
-    used_labels.insert("output, results");
     //<note>values = all|valid|stochastic</note>
+    writeNote_(os, "input", "output, results", output_results_);
+    used_labels.insert("output, results");    
     //<note type="input" label="output, maximum valid expectation value">0.1</note>
     writeNote_(os, "input", "output, maximum valid expectation value", String(max_valid_evalue_));
     used_labels.insert("output, maximum valid expectation value");
@@ -667,6 +663,23 @@ namespace OpenMS
     return number_of_missed_cleavages_;
   }
 
+  void XTandemInfile::setOutputResults(String result)
+  {
+    if (result == "valid" || result == "all" || result == "stochastic")
+    {
+      output_results_ = result;
+    }
+    else
+    {
+      throw OpenMS::Exception::FailedAPICall(__FILE__, __LINE__, __FUNCTION__, "Invalid result type provided (must be either all, valid or stochastic).: '" + result + "'");
+    }
+  }
+
+  String XTandemInfile::getOutputResults() const
+  {
+    return output_results_;
+  }
+
   bool XTandemInfile::isRefining() const
   {
     return refine_;
@@ -680,6 +693,11 @@ namespace OpenMS
   void XTandemInfile::setSemiCleavage(const bool semi_cleavage)
   {
     semi_cleavage_ = semi_cleavage;
+  }
+
+  void XTandemInfile::setAllowIsotopeError(const bool allow_isotope_error)
+  {
+    allow_isotope_error_ = allow_isotope_error;
   }
   
   void XTandemInfile::setCleavageSite(const String& cleavage_site)

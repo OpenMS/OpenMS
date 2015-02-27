@@ -12,7 +12,7 @@
 			<intensity>25525.5</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.31773</overallquality>
+			<overallquality>2.33701</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_5233264595117471314_4835329514588776807">
@@ -79,9 +79,9 @@
 			<userParam type="float" name="var_norm_rt_score" value="5.00000149011615e-05"/>
 			<userParam type="float" name="var_intensity_score" value="0.983851546275746"/>
 			<userParam type="float" name="nr_peaks" value="3"/>
-			<userParam type="float" name="sn_ratio" value="2.06010679495179"/>
-			<userParam type="float" name="var_log_sn_score" value="0.722757823667337"/>
-			<userParam type="float" name="xx_lda_prelim_score" value="6.56163816799584"/>
+			<userParam type="float" name="sn_ratio" value="2.12550163726256"/>
+			<userParam type="float" name="var_log_sn_score" value="0.754007839111662"/>
+			<userParam type="float" name="xx_lda_prelim_score" value="6.58444742364359"/>
 			<userParam type="float" name="var_isotope_correlation_score" value="0.867119245404894"/>
 			<userParam type="float" name="var_isotope_overlap_score" value="0"/>
 			<userParam type="float" name="var_massdev_score" value="0.0105780765314897"/>
@@ -90,7 +90,7 @@
 			<userParam type="float" name="var_yseries_score" value="0"/>
 			<userParam type="float" name="var_dotprod_score" value="0.569064062235002"/>
 			<userParam type="float" name="var_manhatt_score" value="1.4172432250356"/>
-			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.31772661301802"/>
+			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.33701163942403"/>
 			<userParam type="float" name="PrecursorMZ" value="412.5"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>
@@ -100,7 +100,7 @@
 			<intensity>25378.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>2.24443</overallquality>
+			<overallquality>2.26372</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_15004869347769368353_3332699010107892018">
@@ -167,9 +167,9 @@
 			<userParam type="float" name="var_norm_rt_score" value="0.000399662145972252"/>
 			<userParam type="float" name="var_intensity_score" value="0.981740221309442"/>
 			<userParam type="float" name="nr_peaks" value="3"/>
-			<userParam type="float" name="sn_ratio" value="2.05175541474161"/>
-			<userParam type="float" name="var_log_sn_score" value="0.718695726608695"/>
-			<userParam type="float" name="xx_lda_prelim_score" value="6.55620641721717"/>
+			<userParam type="float" name="sn_ratio" value="2.1168851556541"/>
+			<userParam type="float" name="var_log_sn_score" value="0.74994574205302"/>
+			<userParam type="float" name="xx_lda_prelim_score" value="6.57901567286492"/>
 			<userParam type="float" name="var_isotope_correlation_score" value="0.861769456425092"/>
 			<userParam type="float" name="var_isotope_overlap_score" value="0.181818187236786"/>
 			<userParam type="float" name="var_massdev_score" value="0.0105569652958578"/>
@@ -178,7 +178,7 @@
 			<userParam type="float" name="var_yseries_score" value="0"/>
 			<userParam type="float" name="var_dotprod_score" value="0.569064062235002"/>
 			<userParam type="float" name="var_manhatt_score" value="1.4172432250356"/>
-			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.2444316573965"/>
+			<userParam type="float" name="main_var_xx_swath_prelim_score" value="2.26371668380251"/>
 			<userParam type="float" name="PrecursorMZ" value="437.5"/>
 			<userParam type="float" name="xx_swath_prelim_score" value="0"/>
 		</feature>

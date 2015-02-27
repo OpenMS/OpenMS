@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,23 @@
 
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
-#include <stack>
-#include <fstream>
-#include <cmath>
-#include <cstring>
-#include <algorithm>
-#include <iostream>
-#include <sstream>
 
-#include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModifierRep.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
+
+#include <string>
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <stack>
 
 using namespace std;
 
@@ -54,9 +58,10 @@ namespace OpenMS
 {
 
   /**
-    @brief comperator for two substings represented as pair of ints
+    @brief comparator for two substrings represented as pair of integers
 
-    holds a reference of the string and compairs two substrings. It will be used for sorting the indices.
+    It holds a reference of the string and compares two substrings. It will be
+    used for sorting the indices.
   */
   struct SubstringLess :
     public binary_function<pair<SignedSize, SignedSize>, pair<SignedSize, SignedSize>, bool>
@@ -390,7 +395,7 @@ protected:
     return findFirst_(spec, m, 0, spec.size() - 1);
   }
 
-// finds all occurences of a given spectrum
+// finds all occurrences of a given spectrum
   void SuffixArrayTrypticCompressed::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > >& candidates, const vector<double>& spec)
   {
     //time_t t0 (time(NULL));
@@ -482,7 +487,11 @@ protected:
         char cn = ((Size)(indices_[i].first + j + 1) == s_.length() - 1) ? 'R' : s_[(indices_[i].first) + j + 1];
         m += masse_[(int)c];
 
-        // there is one special case if we are at a node where the last character before this node is a digesting start and the first outgoing char prevents digestion but not one of the left childs. then we have to pay attention on not skipping this edge that could possible be a peptide candidate
+        // there is one special case if we are at a node where the last
+        // character before this node is a digesting start and the first
+        // outgoing char prevents digestion but not one of the left children.
+        // then we have to pay attention on not skipping this edge that could
+        // possible be a peptide candidate
         bool have_to_go_in = false;
 
         if (j + 1 <= lcp_[i] && !isDigestingEnd(c, cn) && isDigestingEnd(c, '$'))
@@ -598,9 +607,9 @@ protected:
         if (j == (lcp_[i] - 1) && lcp_[i] > 0)
         {
           history.push(
-              pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> >(
-                pair<SignedSize, map<double, SignedSize> >(i + skip_[i], map<double, SignedSize>(modification_map)),
-                pair<SignedSize, double>(j, m)));
+            pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> >(
+              pair<SignedSize, map<double, SignedSize> >(i + skip_[i], map<double, SignedSize>(modification_map)),
+              pair<SignedSize, double>(j, m)));
         }
         // if mass is to big we can skip the sub tree
         if (m > mmax + tol_)

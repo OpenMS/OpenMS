@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,8 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
 namespace OpenMS
 {
 
@@ -75,10 +77,10 @@ public:
     FeatureDeconvolution();
 
     /// Copy constructor
-    FeatureDeconvolution(const FeatureDeconvolution & source);
+    FeatureDeconvolution(const FeatureDeconvolution& source);
 
     /// Assignment operator
-    FeatureDeconvolution & operator=(const FeatureDeconvolution & source);
+    FeatureDeconvolution& operator=(const FeatureDeconvolution& source);
 
     /// destructor
     virtual ~FeatureDeconvolution();
@@ -94,7 +96,7 @@ public:
       @param cons_map   [out] Output of grouped features belonging to a charge group
       @param cons_map_p [out] Output of paired features connected by an edge
     */
-    void compute(const FeatureMapType & fm_in, FeatureMapType & fm_out, ConsensusMap & cons_map, ConsensusMap & cons_map_p);
+    void compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p);
 
 protected:
 
@@ -115,16 +117,16 @@ protected:
       When more than 5% of the cf's look like this, we report it.
 
     */
-    void checkSolution_(const ConsensusMap & cons_map) const;
+    void checkSolution_(const ConsensusMap& cons_map) const;
 
     /// test if "simple" edges have alternative
     /// (more difficult explanation) supported by neighboring edges
     /// e.g. (.)   -> (H+) might be augmented to
     ///      (Na+) -> (H+Na+)
-    void inferMoreEdges_(PairsType & edges, Map<Size, std::set<CmpInfo_> > & feature_adducts);
+    void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts);
 
     /// A function mostly for debugging
-    void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType & feature_relation);
+    void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation);
 
     /**
       @brief returns true if the intensity filter was passed or switched off
@@ -132,7 +134,7 @@ protected:
       Filter for adding an edge only when the two features connected by it, fulfill the
       intensity criterion.
     **/
-    inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer & cmp, const FeatureType & f1, const FeatureType & f2);
+    inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2);
 
     /**
       @brief determines if we should test a putative feature charge

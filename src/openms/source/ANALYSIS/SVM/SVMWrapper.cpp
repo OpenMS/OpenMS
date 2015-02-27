@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -716,8 +716,7 @@ namespace OpenMS
     }
   }
 
-  svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>& problems,
-                                           Size                                            except)
+  svm_problem* SVMWrapper::mergePartitions(const vector<svm_problem*>& problems, Size except)
   {
     svm_problem* merged_problem = NULL;
 
@@ -1378,7 +1377,7 @@ namespace OpenMS
     param_->gamma = 1.0; // for poly/rbf/sigmoid
     param_->coef0 = 0; // for poly/sigmoid
     param_->cache_size = 300; // in MB
-    param_->eps = 0.001; // stopping criterium
+    param_->eps = 0.001; // stopping criterion
     param_->C = 1; // for C_SVC, EPSILON_SVR, and NU_SVR
     param_->nu = 0.5; // for NU_SVC, ONE_CLASS, and NU_SVR
     param_->p = 0.1; // for EPSILON_SVR

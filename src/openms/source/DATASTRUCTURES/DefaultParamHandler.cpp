@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,16 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
+#include <OpenMS/DATASTRUCTURES/Param.h>
 
 using namespace std;
 
 namespace OpenMS
 {
-  DefaultParamHandler::DefaultParamHandler(const String & name) :
+  DefaultParamHandler::DefaultParamHandler(const String& name) :
     param_(),
     defaults_(),
     subsections_(),
@@ -50,7 +52,7 @@ namespace OpenMS
 
   }
 
-  DefaultParamHandler::DefaultParamHandler(const DefaultParamHandler & rhs) :
+  DefaultParamHandler::DefaultParamHandler(const DefaultParamHandler& rhs) :
     param_(rhs.param_),
     defaults_(rhs.defaults_),
     subsections_(rhs.subsections_),
@@ -60,7 +62,7 @@ namespace OpenMS
   {
   }
 
-  DefaultParamHandler & DefaultParamHandler::operator=(const DefaultParamHandler & rhs)
+  DefaultParamHandler& DefaultParamHandler::operator=(const DefaultParamHandler& rhs)
   {
     if (&rhs == this)
       return *this;
@@ -76,7 +78,7 @@ namespace OpenMS
     return *this;
   }
 
-  bool DefaultParamHandler::operator==(const DefaultParamHandler & rhs) const
+  bool DefaultParamHandler::operator==(const DefaultParamHandler& rhs) const
   {
     return param_ == rhs.param_ &&
            defaults_ == rhs.defaults_ &&
@@ -90,7 +92,7 @@ namespace OpenMS
   {
   }
 
-  void DefaultParamHandler::setParameters(const Param & param)
+  void DefaultParamHandler::setParameters(const Param& param)
   {
     //set defaults and apply new parameters
     Param tmp(param);
@@ -146,27 +148,27 @@ namespace OpenMS
 
   }
 
-  const Param & DefaultParamHandler::getParameters() const
+  const Param& DefaultParamHandler::getParameters() const
   {
     return param_;
   }
 
-  const Param & DefaultParamHandler::getDefaults() const
+  const Param& DefaultParamHandler::getDefaults() const
   {
     return defaults_;
   }
 
-  const String & DefaultParamHandler::getName() const
+  const String& DefaultParamHandler::getName() const
   {
     return error_name_;
   }
 
-  void DefaultParamHandler::setName(const String & name)
+  void DefaultParamHandler::setName(const String& name)
   {
     error_name_ = name;
   }
 
-  const std::vector<String> & DefaultParamHandler::getSubsections() const
+  const std::vector<String>& DefaultParamHandler::getSubsections() const
   {
     return subsections_;
   }

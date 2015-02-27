@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,6 +49,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
@@ -169,9 +170,9 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
+    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
+    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid"));
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", ListUtils::create<String>("txt"));
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
@@ -474,7 +475,7 @@ protected:
         os << "\n";
       }
     }
-    else if (in_type == FileTypes::IDXML) //identifications
+    else if (in_type == FileTypes::IDXML || in_type == FileTypes::MZIDENTML) //identifications
     {
       UInt spectrum_count(0);
       Size peptide_hit_count(0);
@@ -489,7 +490,15 @@ protected:
       SysInfo::getProcessMemoryConsumption(mem1);
 
       // reading input
-      IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
+
+      if (in_type == FileTypes::MZIDENTML)
+      {
+        MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
+      }
+      else
+      {
+        IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
+      }
 
       SysInfo::getProcessMemoryConsumption(mem2);
       std::cout << "\n\nMem Usage while loading: " << (mem2 - mem1) / 1024 << " MB" << std::endl;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,6 +74,15 @@ public:
 protected:
     /// Pointer to the actual B-spline
     BSpline2d* spline_;
+
+    /// Min./max. x value (endpoints of the data range)
+    double xmin_, xmax_;
+
+    /// Method to use for extrapolation (beyond 'xmin_'/'xmax_')
+    enum { EX_LINEAR, EX_BSPLINE, EX_CONSTANT, EX_GLOBAL_LINEAR } extrapolate_;
+
+    /// Parameters for constant or linear extrapolation 
+    double offset_min_, offset_max_, slope_min_, slope_max_;
   };
 } // namespace
 

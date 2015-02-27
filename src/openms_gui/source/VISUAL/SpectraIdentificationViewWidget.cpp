@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -466,7 +466,7 @@ namespace OpenMS
           item = table_widget_->itemPrototype()->clone();
           item->setTextAlignment(Qt::AlignLeft);
 
-          set<String> protein_accessions = PeptideHit::extractProteinAccessions(best_ph);
+          set<String> protein_accessions = best_ph.extractProteinAccessions();
           String accessions = ListUtils::concatenate(vector<String>(protein_accessions.begin(), protein_accessions.end()), ", ");
           item->setText(accessions.toQString());
           item->setBackgroundColor(c);

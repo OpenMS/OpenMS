@@ -72,6 +72,7 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::C
     cdef enum ChromatogramType:
         # wrap-attach:
         #     ChromatogramSettings
+
         MASS_CHROMATOGRAM,
         TOTAL_ION_CURRENT_CHROMATOGRAM,
         SELECTED_ION_CURRENT_CHROMATOGRAM,
@@ -80,5 +81,6 @@ cdef extern from "<OpenMS/METADATA/ChromatogramSettings.h>" namespace "OpenMS::C
         SELECTED_REACTION_MONITORING_CHROMATOGRAM,
         ELECTROMAGNETIC_RADIATION_CHROMATOGRAM,
         ABSORPTION_CHROMATOGRAM,
-        EMISSION_CHROMATOGRAM
+        EMISSION_CHROMATOGRAM,
+        SIZE_OF_CHROMATOGRAM_TYPE
 

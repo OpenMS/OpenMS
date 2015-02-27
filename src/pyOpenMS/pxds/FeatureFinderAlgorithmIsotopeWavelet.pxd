@@ -9,21 +9,17 @@ from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>" namespace "OpenMS":
 
-    cdef cppclass FeatureFinderAlgorithmIsotopeWavelet[PeakT](DefaultParamHandler):
+    cdef cppclass FeatureFinderAlgorithmIsotopeWavelet(DefaultParamHandler):
 
         # wrap-inherits:
         #    DefaultParamHandler
-        #
-        # wrap-instances:
-        #    FeatureFinderAlgorithmIsotopeWavelet := FeatureFinderAlgorithmIsotopeWavelet[Peak1D]
-
         FeatureFinderAlgorithmIsotopeWavelet()      nogil except +
 
         void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap& output, FeatureFinder & ff) nogil except +
         void run() nogil except +
         # MSSpectrum<PeakType> * createHRData(const UInt i)
-        # static FeatureFinderAlgorithm<PeakType> * create()
+        # static FeatureFinderAlgorithm* create()
 
-cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>" namespace "OpenMS::FeatureFinderAlgorithmIsotopeWavelet<OpenMS::Peak1D>":
+cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>" namespace "OpenMS::FeatureFinderAlgorithmIsotopeWavelet":
 
     String getProductName()   nogil except + # wrap-attach:FeatureFinderAlgorithmIsotopeWavelet

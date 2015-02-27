@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,8 +125,8 @@ namespace OpenMS
 
   void BaseLabeler::mergeProteinAccessions_(Feature& target, const Feature& source) const
   {
-    std::set<String> target_acc = PeptideHit::extractProteinAccessions(target.getPeptideIdentifications()[0].getHits()[0]);
-    std::set<String> source_acc = PeptideHit::extractProteinAccessions(source.getPeptideIdentifications()[0].getHits()[0]);
+    std::set<String> target_acc = target.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
+    std::set<String> source_acc = source.getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
 
     // merge
     target_acc.insert(source_acc.begin(), source_acc.end());

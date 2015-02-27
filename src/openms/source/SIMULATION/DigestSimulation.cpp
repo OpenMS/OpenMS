@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -250,7 +250,7 @@ namespace OpenMS
 
         // add current protein accession
         // existing proteins accessions ...
-        std::set<String> protein_accessions = PeptideHit::extractProteinAccessions(generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0]);
+        std::set<String> protein_accessions = generated_features[*dp_it].getPeptideIdentifications()[0].getHits()[0].extractProteinAccessions();
 
         // ... add accession of current protein
         protein_accessions.insert(protein_hit->getAccession());
