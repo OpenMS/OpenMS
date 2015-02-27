@@ -283,7 +283,11 @@ public:
     void averageByScanWindow(MapType & exp)
     {
       std::cout << "Average by scan window.\n";
+      
+      int block_size(param_.getValue("average_by_scan_window:rt_block_size"));
 
+      std::cout << "We will average over " << block_size << " spectra.\n";
+      
       return;
     }
 
@@ -292,6 +296,8 @@ public:
     void averageByRTWindow(MapType & exp)
     {
       std::cout << "Average by RT window.\n";
+      
+      int block_size(param_.getValue("average_by_RT_window:rt_block_size"));
 
       return;
     }
@@ -301,6 +307,8 @@ public:
     void averageByGaussianWindow(MapType & exp)
     {
       std::cout << "Average by Gaussian window.\n";
+      
+      int block_FWHM(param_.getValue("average_by_Gaussian_window:rt_block_FWHM"));
 
       return;
     }
