@@ -284,10 +284,27 @@ public:
     {
       std::cout << "Average by scan window.\n";
       
+      IntList ms_levels = param_.getValue("block_method:ms_levels");
       int block_size(param_.getValue("average_by_scan_window:rt_block_size"));
 
-      std::cout << "We will average over " << block_size << " spectra.\n";
+      // loop over MS levels
+      for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
+      {
+        std::cout << "MS level = " << *it_mslevel << "\n";
+        // loop over RT
+        int n(0);
+        for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
+        {
+          ++n;
+          std::cout << "n = " << n << "\n";
+          if (Int(it_rt->getMSLevel()) == *it_mslevel)
+          {
+            std::cout << "MS1\n";
+          }
+        }
+      }
       
+        
       return;
     }
 
