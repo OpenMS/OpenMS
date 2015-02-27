@@ -278,6 +278,33 @@ public:
       return;
     }
 
+    /// averages fixed number of neighbouring spectra (only MS1 level)
+    template <typename MapType>
+    void averageByScanWindow(MapType & exp)
+    {
+      std::cout << "Average by scan window.\n";
+
+      return;
+    }
+
+    /// averages all neighbouring spectra within fixed RT interval (only MS1 level)
+    template <typename MapType>
+    void averageByRTWindow(MapType & exp)
+    {
+      std::cout << "Average by RT window.\n";
+
+      return;
+    }
+
+    /// averages all neighbouring spectra with Gaussian weight(only MS1 level)
+    template <typename MapType>
+    void averageByGaussianWindow(MapType & exp)
+    {
+      std::cout << "Average by Gaussian window.\n";
+
+      return;
+    }
+
     // @}
 
 protected:

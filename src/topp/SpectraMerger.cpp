@@ -146,15 +146,15 @@ protected:
     }
     else if (merging_method == "average_by_scan_window")
     {
-      //merger.mergeSpectraBlockWise(exp);    // TODO: mergeByScanWindow
+      merger.averageByScanWindow(exp);
     }
     else if (merging_method == "average_by_RT_window")
     {
-      //merger.mergeSpectraBlockWise(exp);    // TODO: mergeByRTWindow
+      merger.averageByRTWindow(exp);
     }
     else if (merging_method == "average_by_Gaussian_window")
     {
-      //merger.mergeSpectraBlockWise(exp);    // TODO: mergeByGaussianWindow
+      merger.averageByGaussianWindow(exp);
     }
 
     //-------------------------------------------------------------
