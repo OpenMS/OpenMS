@@ -21,7 +21,6 @@ ParentPeakMower.cpp
 PeakMarker.cpp
 #~ PreprocessingFunctor.cpp
 Scaler.cpp
-SpectraAverager.cpp
 SpectraMerger.cpp
 SqrtMower.cpp
 TICFilter.cpp

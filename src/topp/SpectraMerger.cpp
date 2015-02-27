@@ -36,7 +36,6 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraAverager.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 
 #include <algorithm>
@@ -100,11 +99,8 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output mzML file with merged spectra.");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
-    registerStringOption_("averaging_method", "<method>", "none", "Method of averaging spectra.", false);
-    setValidStrings_("averaging_method", ListUtils::create<String>("none,spectra"));
-
     registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.", false);
-    setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method"));
+    setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method,average_by_scan_window,average_by_RT_window,average_by_Gaussian_window"));
 
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
   }

@@ -69,6 +69,20 @@ namespace OpenMS
     defaults_.setValue("precursor_method:rt_tolerance", 5.0, "Max RT distance of the precursor entries of two spectra to be merged in [s].");
     defaults_.setMinFloat("precursor_method:rt_tolerance", 0);
 
+    // average by scan window
+    //defaults_.setValue("average_by_scan_window:rt_block_size", 3, "Number of scans to be averaged over.");
+    //defaults_.setMinInt("average_by_scan_window:rt_block_size", 1);
+
+    // average by RT window
+    //defaults_.setValue("average_by_RT_window:rt_block_size", 5, "RT interval in [s] to be averaged over.");
+    //defaults_.setMinFloat("average_by_RT_window:rt_block_size", 0.0);
+    //defaults_.setMaxFloat("average_by_RT_window:rt_block_size", 10e10);
+
+    // average by Gaussian window
+    //defaults_.setValue("average_by_Gaussian_window:rt_block_FWHM", 5, "FWHM of Gauss curve in [s] to be averaged over.");
+    //defaults_.setMinFloat("average_by_Gaussian_window:rt_block_FWHM", 0.0);
+    //defaults_.setMaxFloat("average_by_Gaussian_window:rt_block_FWHM", 10e10);
+
     defaultsToParam_();
   }
 

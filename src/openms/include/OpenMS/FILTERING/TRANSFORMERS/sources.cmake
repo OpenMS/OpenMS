@@ -20,7 +20,6 @@ Normalizer.h
 ParentPeakMower.h
 PeakMarker.h
 Scaler.h
-SpectraAverager.h
 SpectraMerger.h
 SqrtMower.h
 TICFilter.h
