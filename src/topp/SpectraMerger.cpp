@@ -144,6 +144,18 @@ protected:
     {
       merger.mergeSpectraBlockWise(exp);
     }
+    else if (merging_method == "average_by_scan_window")
+    {
+      //merger.mergeSpectraBlockWise(exp);    // TODO: mergeByScanWindow
+    }
+    else if (merging_method == "average_by_RT_window")
+    {
+      //merger.mergeSpectraBlockWise(exp);    // TODO: mergeByRTWindow
+    }
+    else if (merging_method == "average_by_Gaussian_window")
+    {
+      //merger.mergeSpectraBlockWise(exp);    // TODO: mergeByGaussianWindow
+    }
 
     //-------------------------------------------------------------
     // writing output
