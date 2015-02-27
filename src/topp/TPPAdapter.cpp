@@ -130,7 +130,9 @@ protected:
     setValidStrings_("precursor_error_units", ListUtils::create<String>("dalton,ppm"));
     registerStringOption_("experiment_label", "<tag>", "", "Used to commonly label all spectra belonging to one experiment (required by iProphet). ", false);
     registerIntOption_("minimun_pep_length", "<num>", 7, "Minimum peptide length considered in the analysis (default 7).", false);
-    registerDoubleOption_("filter_result", "<float>", 0, "Filter results below PeptideProphet probability. <value> = 0 will skip the filter. TPP default is 0.05.", false);
+    registerStringOption_("filter_type", "<filtration type>", "FDR", "Specify a 'FDR' threshold below, the program will automatically calculate the associated TPP minimal probability threshold (MPT) instead. 'MPT' threshold is the TPP default", false);
+    setValidStrings_("filter_type", ListUtils::create<String>("FDR,MPT"));
+    registerDoubleOption_("filter_threshold", "<float>", 0, "<value> = 0 will skip this filtration. The TPP default is MPT = 0.05", false);
     // -mw [calculate protein molecular weights]" ;
     registerStringOption_("fragment_type", "<unit>", "MONO", "Calculate monoisotopic/average peptide masses during conversion to pepXML.", false);
     setValidStrings_("fragment_type", ListUtils::create<String>("MONO,AVE"));
@@ -260,6 +262,41 @@ protected:
     return File::find("proteinprophet_output_file.prot.xml", directories); // will throw Exception:FileNotFound if not find output
   }
 
+  double convertThreshold_(double fdr_t, String& temp_directory, String& proteinprophet_input_filename)
+  {
+    // get the roc data information from peptideprophet output
+    // e.g. <roc_data_point min_prob="0.8000" sensitivity="0.2050" error="0.1389" num_corr="91" num_incorr="15"/>
+    String peptideprophet_output_filename(temp_directory + "xinteract_output_file.pep.xml");
+    TextFile interact_file;
+    interact_file.load(peptideprophet_output_filename, true, 62);
+    TextFile::ConstIterator it;
+    it = interact_file.begin();
+    double mpt=0;
+    while (it != interact_file.end())
+    {
+      String roc_data = *it;
+      if (roc_data.hasSubstring("<error_point"))
+      { 
+        StringList sp = ListUtils::create<String>(roc_data, '"');
+        if (fdr_t <= sp[1].toDouble())
+        {
+          mpt = sp[3].toDouble();
+          break;
+        }
+        else
+        {
+          ++it;
+        }
+      }
+      else
+      {
+        ++it;
+      }
+    }
+    return mpt;
+  }
+  
+  
   ExitCodes main_(int, const char**)
   {
     // path to the log file
@@ -321,7 +358,10 @@ protected:
       parameters << "-E" + getStringOption_("experiment_label");
     }
     parameters << "-l" + String(getIntOption_("minimun_pep_length"));
-    parameters << "-p" + String(getDoubleOption_("filter_result"));
+    if (getStringOption_("filter_type") == "MPT")
+    {
+      parameters << "-p" + String(getDoubleOption_("filter_threshold"));
+    }
     if (!getStringOption_("fragment_type").empty())
     {
       parameters << "-" + getStringOption_("fragment_type");
@@ -358,6 +398,7 @@ protected:
     // run PeptideProphet: xinteract
     //-------------------------------------------------------------
     // TODO: TPP can support more than one peptideID input.
+    // TODO: Add a peptideprophet_off flag to disable peptideprophet and run only proteinprophet on the peptideID results (peptideprophet.pep.xml format compatibility need to be solved first.)
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
     pl.startProgress(0, 1, "running xinteract...");
@@ -380,7 +421,17 @@ protected:
     if (!getFlag_("proteinprophet_off"))
     {
       StringList parameters_pp;
-      parameters_pp << "MINPROB" + String(getDoubleOption_("filter_result"));
+      if (getStringOption_("filter_type") == "MPT")
+      {
+        parameters_pp << "MINPROB" + String(getDoubleOption_("filter_threshold")); // add a function to determine which filtered value is used. 
+      }
+      else // convert FDR threshold into MPT
+      {
+        double fdr_t = getDoubleOption_("filter_threshold");
+        double mpt = convertThreshold_(fdr_t, temp_directory, xinteract_output_filename);
+        LOG_INFO << "-- Convert FDR threshold" << String(fdr_t) << " into TPP min_prob =" << String(mpt) << std::endl;
+        parameters_pp << "MINPROB" + String(mpt);
+      }
       parameters_pp << "NOPLOT";
       if (!getStringOption_("proteinprophet_option").empty())
       {

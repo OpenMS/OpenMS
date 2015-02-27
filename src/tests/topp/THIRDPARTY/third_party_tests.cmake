@@ -61,6 +61,10 @@ OPENMS_FINDBINARY(FIDO_BINARY "Fido" "Fido")
 OPENMS_FINDBINARY(FIDOCHOOSEPARAMS_BINARY "FidoChooseParameters" "FidoChooseParameters")
 
 #------------------------------------------------------------------------------
+# TPP
+OPENMS_FINDBINARY(TPP_BINARY "xinteract" "TPP")
+
+#------------------------------------------------------------------------------
 ## optional tests
 if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
   add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/proteins.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/spectra.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
@@ -133,6 +137,15 @@ if (NOT (${FIDO_BINARY} STREQUAL "FIDO_BINARY-NOTFOUND"))
   set_tests_properties("TOPP_FidoAdapter_5_out" PROPERTIES DEPENDS "TOPP_FidoAdapter_5")
 endif()
 
+if (NOT (${TPP_BINARY} STREQUAL "TPP_BINARY-NOTFOUND"))
+  add_test("TOPP_TPPAdapter_1" ${TOPP_BIN_PATH}/TPPAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.idXML -out TPPAdapter_1_out.tmp -tpp_executable "${TPP_BINARY}")
+  add_test("TOPP_TPPAdapter_1_out" ${DIFF} -in1 TPPAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1_out.idXML -whitelist "IdentificationRun date")
+  set_tests_properties("TOPP_TPPAdapter_1_out" PROPERTIES DEPENDS "TOPP_TPPAdapter_1")
+  
+  add_test("TOPP_TPPAdapter_2" ${TOPP_BIN_PATH}/TPPAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.ini -proteinprophet_off -database ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.idXML -out TPPAdapter_2_out.tmp -tpp_executable "${TPP_BINARY}")
+  add_test("TOPP_TPPAdapter_2_out" ${DIFF} -in1 TPPAdapter_2_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_2_out.idXML -whitelist "IdentificationRun date")
+  set_tests_properties("TOPP_TPPAdapter_2_out" PROPERTIES DEPENDS "TOPP_TPPAdapter_2")
+endif()
 
 # TODO the following tests are waiting for better implementations of InspectAdapter and associated classes
 #add_test("TOPP_InspectAdapter_3" ${TOPP_BIN_PATH}/InspectAdapter -ini ${DATA_DIR_TOPP}/InspectAdapter_1_parameters.ini -trie_dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test2.trie -in ${DATA_DIR_TOPP}/InspectAdapter.out -dbs ${DATA_DIR_TOPP}/Inspect_FASTAFile_test.fasta -out InspectAdapter_4_output.tmp -inspect_out)
