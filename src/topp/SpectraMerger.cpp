@@ -100,7 +100,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
     registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.", false);
-    setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method,average_by_scan_window,average_by_RT_window,average_by_Gaussian_window"));
+    setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method,average_simple,average_Gaussian"));
 
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
   }

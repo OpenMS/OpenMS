@@ -285,7 +285,7 @@ public:
       std::cout << "Simple Average over fixed range.\n";
       
       IntList ms_levels = param_.getValue("average_simple:ms_levels");
-      double range(param_.getValue("average_simple:rt_brange"));
+      double range(param_.getValue("average_simple:rt_range"));
 
       // loop over MS levels
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
@@ -296,10 +296,9 @@ public:
         for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
         {
           ++n;
-          std::cout << "n = " << n << "\n";
           if (Int(it_rt->getMSLevel()) == *it_mslevel)
           {
-            std::cout << "MS1\n";
+            std::cout << "n = " << n << "\n";
           }
         }
       }
