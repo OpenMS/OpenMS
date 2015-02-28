@@ -104,9 +104,9 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file");
+    registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("idXML,pepXML"));
-    registerOutputFile_("out", "<file>", "", "Output file");
+    registerOutputFile_("out", "<file>", "", "Output file.");
     setValidFormats_("out", ListUtils::create<String>("idXML,pepXML,protXML"));
     addEmptyLine_();
     registerStringOption_("out_type", "<type>", "idXML", "Output format", false);
@@ -130,9 +130,9 @@ protected:
     setValidStrings_("precursor_error_units", ListUtils::create<String>("dalton,ppm"));
     registerStringOption_("experiment_label", "<tag>", "", "Used to commonly label all spectra belonging to one experiment (required by iProphet). ", false);
     registerIntOption_("minimun_pep_length", "<num>", 7, "Minimum peptide length considered in the analysis (default 7).", false);
-    registerStringOption_("filter_type", "<filtration type>", "FDR", "Specify a 'FDR' threshold below, the program will automatically calculate the associated TPP minimal probability threshold (MPT) instead. 'MPT' threshold is the TPP default", false);
+    registerStringOption_("filter_type", "<filtration type>", "MPT", "Specify a 'FDR' threshold below, the program will automatically calculate the associated TPP minimal probability threshold (MPT) instead. 'MPT' threshold is the TPP default", false);
     setValidStrings_("filter_type", ListUtils::create<String>("FDR,MPT"));
-    registerDoubleOption_("filter_threshold", "<float>", 0, "<value> = 0 will skip this filtration. The TPP default is MPT = 0.05", false);
+    registerDoubleOption_("filter_threshold", "<float>", 0.05, "<value> = 0 will skip this filtration. The TPP default is MPT = 0.05", false);
     // -mw [calculate protein molecular weights]" ;
     registerStringOption_("fragment_type", "<unit>", "MONO", "Calculate monoisotopic/average peptide masses during conversion to pepXML.", false);
     setValidStrings_("fragment_type", ListUtils::create<String>("MONO,AVE"));
@@ -197,14 +197,17 @@ protected:
     }
   }
 
-  String runXinteract_(String& exe_path, StringList& parameters, String& temp_directory, String& xinteract_input_filename)
+  String runXinteract_(String& exe_path, StringList& parameters, String& temp_directory, StringList& xinteract_input_filenames)
   {
     String xinteract_executable(exe_path + "/" + "xinteract");
     String xinteract_output_filename(temp_directory + "xinteract_output_file.pep.xml");
     parameters << "-N" + xinteract_output_filename; // store the output temp file
 
     QStringList qparam;
-    qparam << xinteract_input_filename.toQString();
+    for (Size m = 0; m < xinteract_input_filenames.size(); ++m)
+    {
+      qparam << xinteract_input_filenames[m].toQString();
+    }
     for (Size i = 0; i < parameters.size(); ++i)
     {
       qparam << parameters[i].toQString();
@@ -213,7 +216,7 @@ protected:
     int status = QProcess::execute(xinteract_executable.toQString(), qparam);
     if (status != 0)
     {
-      writeLog_("TPP problem. Aborting! Calling command was: '" + xinteract_executable + " \"" + xinteract_input_filename + "\"'.\nDoes the TPP executable exist?");
+      writeLog_("TPP problem. Aborting! Calling command was: '" + xinteract_executable + " \"" + xinteract_input_filenames[0] + "\"'.\nDoes the TPP executable exist?");
       // clean temporary files
       if (this->debug_level_ < 2)
       {
@@ -262,13 +265,12 @@ protected:
     return File::find("proteinprophet_output_file.prot.xml", directories); // will throw Exception:FileNotFound if not find output
   }
 
-  double convertThreshold_(double fdr_t, String& temp_directory, String& proteinprophet_input_filename)
+  double convertThreshold_(double fdr_t, String& xinteract_output_filename)
   {
     // get the roc data information from peptideprophet output
     // e.g. <roc_data_point min_prob="0.8000" sensitivity="0.2050" error="0.1389" num_corr="91" num_incorr="15"/>
-    String peptideprophet_output_filename(temp_directory + "xinteract_output_file.pep.xml");
     TextFile interact_file;
-    interact_file.load(peptideprophet_output_filename, true, 62);
+    interact_file.load(xinteract_output_filename, true, 62);
     TextFile::ConstIterator it;
     it = interact_file.begin();
     double mpt=0;
@@ -302,10 +304,11 @@ protected:
     // path to the log file
     String logfile(getStringOption_("log"));
     StringList parameters;
-    String inputfile_name = getStringOption_("in");
-    writeDebug_(String("Input file: ") + inputfile_name, 1);
+    StringList inputfile_names = getStringList_("in");
+    //writeDebug_(String("Input file: ") + inputfile_name, 1);
+    //StringList outputfile_names = getStringList_("out");
     String outputfile_name = getStringOption_("out");
-    writeDebug_(String("Output file: ") + outputfile_name, 1);
+    //writeDebug_(String("Output file: ") + outputfile_name, 1);
 
     //-------------------------------------------------------------
     // parsing parameters
@@ -322,22 +325,26 @@ protected:
       d.mkpath(temp_directory.toQString());
     }
 
-    String xinteract_input_filename;
+    StringList xinteract_input_filenames;
     // checking if input type is pepxml
-    if (FileHandler().getType(inputfile_name) == FileTypes::PEPXML)
-    {
-      xinteract_input_filename = inputfile_name;
+    for (Size i = 0; i < inputfile_names.size(); ++i)    
+    { 
+      String inputfile_name = inputfile_names[i];
+      if (FileHandler().getType(inputfile_name) == FileTypes::PEPXML)
+      {
+        xinteract_input_filenames.push_back(inputfile_name);
+      }
+      else
+      {
+        String xinteract_input_filename = temp_directory + String(i) + "_tpp_input_file.pep.xml";
+        // reading idXML input and converting into pepXML format as xinteract input
+        vector<ProteinIdentification> protein_ids_in;
+        vector<PeptideIdentification> peptide_ids_in;
+        IdXMLFile().load(inputfile_name, protein_ids_in, peptide_ids_in);
+        PepXMLFile().store(xinteract_input_filename, protein_ids_in, peptide_ids_in, mz_file, base_name, false);
+        xinteract_input_filenames.push_back(xinteract_input_filename);
+      }
     }
-    else
-    {
-      xinteract_input_filename = temp_directory + "tpp_input_file.pep.xml";
-      // reading idXML input and converting into pepXML format as xinteract input
-      vector<ProteinIdentification> protein_ids_in;
-      vector<PeptideIdentification> peptide_ids_in;
-      IdXMLFile().load(inputfile_name, protein_ids_in, peptide_ids_in);
-      PepXMLFile().store(xinteract_input_filename, protein_ids_in, peptide_ids_in, mz_file, base_name, false);
-    }
-
     parameters << "-T" + getStringOption_("database_type");
     parameters << "-x" + String(getIntOption_("num_extra_interation"));
     if (getIntOption_("ignore_charge") >= 0)
@@ -397,7 +404,6 @@ protected:
     //-------------------------------------------------------------
     // run PeptideProphet: xinteract
     //-------------------------------------------------------------
-    // TODO: TPP can support more than one peptideID input.
     // TODO: Add a peptideprophet_off flag to disable peptideprophet and run only proteinprophet on the peptideID results (peptideprophet.pep.xml format compatibility need to be solved first.)
     ProgressLogger pl;
     pl.setLogType(ProgressLogger::CMD);
@@ -411,7 +417,7 @@ protected:
     {
       exe_path = File::path(getStringOption_("tpp_executable"));
     }
-    String xinteract_output_filename = runXinteract_(exe_path, parameters, temp_directory, xinteract_input_filename);
+    String xinteract_output_filename = runXinteract_(exe_path, parameters, temp_directory, xinteract_input_filenames);
     pl.endProgress();
 
     //-------------------------------------------------------------
@@ -428,8 +434,8 @@ protected:
       else // convert FDR threshold into MPT
       {
         double fdr_t = getDoubleOption_("filter_threshold");
-        double mpt = convertThreshold_(fdr_t, temp_directory, xinteract_output_filename);
-        LOG_INFO << "-- Convert FDR threshold" << String(fdr_t) << " into TPP min_prob =" << String(mpt) << std::endl;
+        double mpt = convertThreshold_(fdr_t, xinteract_output_filename);
+        LOG_INFO << "-- Convert FDR threshold " << String(fdr_t) << " into TPP min_prob =" << String(mpt) << std::endl;
         parameters_pp << "MINPROB" + String(mpt);
       }
       parameters_pp << "NOPLOT";

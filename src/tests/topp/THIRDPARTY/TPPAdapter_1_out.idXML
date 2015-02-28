@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="http://open-ms.sourceforge.net/XSL/IdXML.xsl" ?>
 <IdXML version="1.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/SCHEMAS/IdXML_1_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="/home/mi/liangoaix/openms/OpenMS/src/tests/topp/SEARCHENGINES/TPPAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
+	<SearchParameters id="SP_0" db="/home/mi/liangoaix/openms/OpenMS/src/tests/topp/THIRDPARTY/TPPAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="0" precursor_peak_tolerance="0" peak_mass_tolerance="0" >
 	</SearchParameters>
-	<IdentificationRun date="2014-08-25T14:59:59" search_engine="proteinprophet" search_engine_version=" Insilicos_LabKey_C++ (TPP v4.7 POLAR VORTEX rev 0, Build 201404301112 (linux))" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2015-02-28T18:46:54" search_engine="proteinprophet" search_engine_version=" Insilicos_LabKey_C++ (TPP v4.7 POLAR VORTEX rev 0, Build 201404301112 (linux))" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="sp|P00915|CAH1_HUMAN" score="0.942200005054474" sequence="" >
 			</ProteinHit>
@@ -13,40 +13,30 @@
 			</ProteinHit>
 			<ProteinHit id="PH_3" accession="sp|A6NE52|K1875_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_4" accession="sp|A6NKC0|F90A7_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_4" accession="sp|Q16363|LAMA4_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_5" accession="sp|A8MXZ1|F90AN_HUMAN" score="-1" sequence="" >
+			<ProteinHit id="PH_5" accession="sp|Q6AWC2|WWC2_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_6" accession="sp|P58546|MTPN_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_6" accession="sp|Q8N653|LZTR1_HUMAN" score="0" sequence="" >
 			</ProteinHit>
-			<ProteinHit id="PH_7" accession="sp|Q16363|LAMA4_HUMAN" score="0" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_8" accession="sp|Q6AWC2|WWC2_HUMAN" score="0" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_9" accession="sp|Q8N653|LZTR1_HUMAN" score="0" sequence="" >
-			</ProteinHit>
-			<ProteinHit id="PH_10" accession="sp|Q8TDR2|STK35_HUMAN" score="0" sequence="" >
+			<ProteinHit id="PH_7" accession="sp|Q8TDR2|STK35_HUMAN" score="0" sequence="" >
 			</ProteinHit>
 			<UserParam type="string" name="protein_group_0" value="0.9422,PH_0"/>
 			<UserParam type="string" name="protein_group_1" value="0.6684,PH_1"/>
 			<UserParam type="string" name="protein_group_2" value="0.2064,PH_2"/>
 			<UserParam type="string" name="protein_group_3" value="0,PH_3"/>
-			<UserParam type="string" name="protein_group_4" value="0,PH_4,PH_5"/>
-			<UserParam type="string" name="protein_group_5" value="0,PH_6"/>
-			<UserParam type="string" name="protein_group_6" value="0,PH_7"/>
-			<UserParam type="string" name="protein_group_7" value="0,PH_8"/>
-			<UserParam type="string" name="protein_group_8" value="0,PH_9"/>
-			<UserParam type="string" name="protein_group_9" value="0,PH_10"/>
+			<UserParam type="string" name="protein_group_4" value="0,PH_4"/>
+			<UserParam type="string" name="protein_group_5" value="0,PH_5"/>
+			<UserParam type="string" name="protein_group_6" value="0,PH_6"/>
+			<UserParam type="string" name="protein_group_7" value="0,PH_7"/>
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0,PH_0"/>
 			<UserParam type="string" name="indistinguishable_proteins_1" value="0,PH_1"/>
 			<UserParam type="string" name="indistinguishable_proteins_2" value="0,PH_2"/>
 			<UserParam type="string" name="indistinguishable_proteins_3" value="0,PH_3"/>
-			<UserParam type="string" name="indistinguishable_proteins_4" value="0,PH_4,PH_5"/>
-			<UserParam type="string" name="indistinguishable_proteins_5" value="0,PH_6"/>
-			<UserParam type="string" name="indistinguishable_proteins_6" value="0,PH_7"/>
-			<UserParam type="string" name="indistinguishable_proteins_7" value="0,PH_8"/>
-			<UserParam type="string" name="indistinguishable_proteins_8" value="0,PH_9"/>
-			<UserParam type="string" name="indistinguishable_proteins_9" value="0,PH_10"/>
+			<UserParam type="string" name="indistinguishable_proteins_4" value="0,PH_4"/>
+			<UserParam type="string" name="indistinguishable_proteins_5" value="0,PH_5"/>
+			<UserParam type="string" name="indistinguishable_proteins_6" value="0,PH_6"/>
+			<UserParam type="string" name="indistinguishable_proteins_7" value="0,PH_7"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="ProteinProphet probability" higher_score_better="true" significance_threshold="0" >
 			<PeptideHit score="0.9422" sequence="YSSLAEAASK" charge="2" protein_refs="PH_0" >
@@ -65,27 +55,19 @@
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="0"/>
 			</PeptideHit>
-			<PeptideHit score="0.0478" sequence="SPPPDEEDPR" charge="2" protein_refs="PH_4 PH_5" >
+			<PeptideHit score="0.0739" sequence="QDPPETSEPR" charge="2" protein_refs="PH_4" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="0"/>
 			</PeptideHit>
-			<PeptideHit score="0.0097" sequence="MCDKEFMWALK" charge="2" protein_refs="PH_6" >
+			<PeptideHit score="0.1048" sequence="MSGGQSGYELSEAK" charge="2" protein_refs="PH_5" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="0"/>
 			</PeptideHit>
-			<PeptideHit score="0.0739" sequence="QDPPETSEPR" charge="2" protein_refs="PH_7" >
+			<PeptideHit score="0.1838" sequence="SSYFEAMFR" charge="2" protein_refs="PH_6" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="0"/>
 			</PeptideHit>
-			<PeptideHit score="0.1048" sequence="MSGGQSGYELSEAK" charge="2" protein_refs="PH_8" >
-				<UserParam type="int" name="is_unique" value="1"/>
-				<UserParam type="int" name="is_contributing" value="0"/>
-			</PeptideHit>
-			<PeptideHit score="0.1838" sequence="SSYFEAMFR" charge="2" protein_refs="PH_9" >
-				<UserParam type="int" name="is_unique" value="1"/>
-				<UserParam type="int" name="is_contributing" value="0"/>
-			</PeptideHit>
-			<PeptideHit score="0.0711" sequence="LVETSLK" charge="2" protein_refs="PH_10" >
+			<PeptideHit score="0.0711" sequence="LVETSLK" charge="2" protein_refs="PH_7" >
 				<UserParam type="int" name="is_unique" value="1"/>
 				<UserParam type="int" name="is_contributing" value="0"/>
 			</PeptideHit>

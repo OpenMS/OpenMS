@@ -138,12 +138,12 @@ if (NOT (${FIDO_BINARY} STREQUAL "FIDO_BINARY-NOTFOUND"))
 endif()
 
 if (NOT (${TPP_BINARY} STREQUAL "TPP_BINARY-NOTFOUND"))
-  add_test("TOPP_TPPAdapter_1" ${TOPP_BIN_PATH}/TPPAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.idXML -out TPPAdapter_1_out.tmp -tpp_executable "${TPP_BINARY}")
-  add_test("TOPP_TPPAdapter_1_out" ${DIFF} -in1 TPPAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1_out.idXML -whitelist "IdentificationRun date")
+  add_test("TOPP_TPPAdapter_1" ${TOPP_BIN_PATH}/TPPAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/TPPAdapter_1.ini -database ${DATA_DIR_TOPP}/THIRDPARTY/TPPAdapter_1.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/TPPAdapter_1.idXML -out TPPAdapter_1_out.tmp -tpp_executable "${TPP_BINARY}")
+  add_test("TOPP_TPPAdapter_1_out" ${DIFF} -in1 TPPAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/TPPAdapter_1_out.idXML -whitelist "IdentificationRun date")
   set_tests_properties("TOPP_TPPAdapter_1_out" PROPERTIES DEPENDS "TOPP_TPPAdapter_1")
   
-  add_test("TOPP_TPPAdapter_2" ${TOPP_BIN_PATH}/TPPAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.ini -proteinprophet_off -database ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_1.idXML -out TPPAdapter_2_out.tmp -tpp_executable "${TPP_BINARY}")
-  add_test("TOPP_TPPAdapter_2_out" ${DIFF} -in1 TPPAdapter_2_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/TPPAdapter_2_out.idXML -whitelist "IdentificationRun date")
+  add_test("TOPP_TPPAdapter_2" ${TOPP_BIN_PATH}/TPPAdapter -test -ini ${DATA_DIR_TOPP}/THIRDPARTY/TPPAdapter_1.ini -proteinprophet_off -database ${DATA_DIR_TOPP}/THIRDPARTY/TPPAdapter_1.fasta -in ${DATA_DIR_TOPP}/THIRDPARTY/TPPAdapter_1.idXML -out TPPAdapter_2_out.tmp -tpp_executable "${TPP_BINARY}")
+  add_test("TOPP_TPPAdapter_2_out" ${DIFF} -in1 TPPAdapter_2_out.tmp -in2 ${DATA_DIR_TOPP}/THIRDPARTY/TPPAdapter_2_out.idXML -whitelist "IdentificationRun date")
   set_tests_properties("TOPP_TPPAdapter_2_out" PROPERTIES DEPENDS "TOPP_TPPAdapter_2")
 endif()
 
