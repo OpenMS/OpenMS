@@ -455,6 +455,16 @@ protected:
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
+    // Hack for KNIME. Looks for MSGFPLUS_PATH in the environment which is set in binaries.ini
+    QProcessEnvironment env;
+    String msgfpath = "MSGFPLUS_PATH";
+    QString qmsgfpath = env.systemEnvironment().value(msgfpath.toQString());
+
+    if (!qmsgfpath.isEmpty())
+    {
+      executable = qmsgfpath;
+    }
+
     QStringList process_params; // the actual process is Java, not MS-GF+!
     process_params << java_memory
                    << "-jar" << executable
@@ -487,6 +497,7 @@ protected:
     //-------------------------------------------------------------
 
     // run MS-GF+ process and create the .mzid file
+
     int status = QProcess::execute("java", process_params);
     if (status != 0)
     {
