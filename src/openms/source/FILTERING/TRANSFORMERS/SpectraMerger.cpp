@@ -69,25 +69,21 @@ namespace OpenMS
     defaults_.setValue("precursor_method:rt_tolerance", 5.0, "Max RT distance of the precursor entries of two spectra to be merged in [s].");
     defaults_.setMinFloat("precursor_method:rt_tolerance", 0);
 
-    // average by scan window
-    defaults_.setValue("average_by_scan_window:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_by_scan_window:ms_levels", 1);
-    defaults_.setValue("average_by_scan_window:rt_block_size", 3, "Number of scans to be averaged over.");
-    defaults_.setMinInt("average_by_scan_window:rt_block_size", 1);
+    // simple average
+    defaults_.setValue("average_simple:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
+    defaults_.setMinInt("average_simple:ms_levels", 1);
+    defaults_.setValue("average_simple:rt_range", 5.0, "RT range in scans or seconds to be averaged over, i.e. +/-(RT range)/2 from each spectrum.");
+    defaults_.setMinFloat("average_simple:rt_range", 0.0);
+    defaults_.setMaxFloat("average_simple:rt_range", 10e10);
+    defaults_.setValue("average_simple:rt_unit", "scans", "Unit for RT range.");
+    defaults_.setValidStrings("average_simple:rt_unit", ListUtils::create<String>("scans,seconds"));
 
-    // average by RT window
-    defaults_.setValue("average_by_RT_window:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_by_RT_window:ms_levels", 1);
-    defaults_.setValue("average_by_RT_window:rt_block_size", 5.0, "RT interval in [s] to be averaged over.");
-    defaults_.setMinFloat("average_by_RT_window:rt_block_size", 0.0);
-    defaults_.setMaxFloat("average_by_RT_window:rt_block_size", 10e10);
-
-    // average by Gaussian window
-    defaults_.setValue("average_by_Gaussian_window:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_by_Gaussian_window:ms_levels", 1);
-    defaults_.setValue("average_by_Gaussian_window:rt_block_FWHM", 5.0, "FWHM of Gauss curve in [s] to be averaged over.");
-    defaults_.setMinFloat("average_by_Gaussian_window:rt_block_FWHM", 0.0);
-    defaults_.setMaxFloat("average_by_Gaussian_window:rt_block_FWHM", 10e10);
+    // Gaussian average
+    defaults_.setValue("average_Gaussian:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
+    defaults_.setMinInt("average_Gaussian:ms_levels", 1);
+    defaults_.setValue("average_Gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
+    defaults_.setMinFloat("average_Gaussian:rt_FWHM", 0.0);
+    defaults_.setMaxFloat("average_Gaussian:rt_FWHM", 10e10);
 
     defaultsToParam_();
   }

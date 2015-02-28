@@ -278,14 +278,14 @@ public:
       return;
     }
 
-    /// averages fixed number of neighbouring spectra (only MS1 level)
+    /// simple average over fixed number of neighbouring spectra
     template <typename MapType>
-    void averageByScanWindow(MapType & exp)
+    void averageSimple(MapType & exp)
     {
-      std::cout << "Average by scan window.\n";
+      std::cout << "Simple Average over fixed range.\n";
       
-      IntList ms_levels = param_.getValue("block_method:ms_levels");
-      int block_size(param_.getValue("average_by_scan_window:rt_block_size"));
+      IntList ms_levels = param_.getValue("average_simple:ms_levels");
+      double range(param_.getValue("average_simple:rt_brange"));
 
       // loop over MS levels
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
@@ -308,24 +308,14 @@ public:
       return;
     }
 
-    /// averages all neighbouring spectra within fixed RT interval (only MS1 level)
+    /// Gaussian average over neighbouring spectra
     template <typename MapType>
-    void averageByRTWindow(MapType & exp)
+    void averageGaussian(MapType & exp)
     {
-      std::cout << "Average by RT window.\n";
+      std::cout << "Gaussian Average over neighbouring.\n";
       
-      int block_size(param_.getValue("average_by_RT_window:rt_block_size"));
-
-      return;
-    }
-
-    /// averages all neighbouring spectra with Gaussian weight(only MS1 level)
-    template <typename MapType>
-    void averageByGaussianWindow(MapType & exp)
-    {
-      std::cout << "Average by Gaussian window.\n";
-      
-      int block_FWHM(param_.getValue("average_by_Gaussian_window:rt_block_FWHM"));
+      IntList ms_levels = param_.getValue("average_Gaussian:ms_levels");
+      double fwhm(param_.getValue("average_Gaussian:rt_FWHM"));
 
       return;
     }
