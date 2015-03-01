@@ -290,25 +290,29 @@ public:
     {
       std::cout << "Simple Average over fixed range.\n";
       
-      IntList ms_levels = param_.getValue("average_simple:ms_levels");
-      double range(param_.getValue("average_simple:rt_range"));
-
+      IntList ms_levels = param_.getValue("average_simple:ms_levels");    // list of MS levels to be averaged
+      double range(param_.getValue("average_simple:rt_range"));    // range of spectra to be averaged over
+      bool unit(param_.getValue("average_simple:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
+      
       // loop over MS levels
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
       {
         std::cout << "MS level = " << *it_mslevel << "\n";
+        
+        AverageBlocks spectra_to_average_over;
+        AverageWeights weights;
+        
         // loop over RT
-        int n(0);
+        int idx_spectrum(0);
         for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
         {
-          ++n;
           if (Int(it_rt->getMSLevel()) == *it_mslevel)
           {
-            std::cout << "n = " << n << "\n";
+            std::cout << "idx_spectrum = " << idx_spectrum << "\n";
           }
+          ++idx_spectrum;
         }
       }
-      
         
       return;
     }
