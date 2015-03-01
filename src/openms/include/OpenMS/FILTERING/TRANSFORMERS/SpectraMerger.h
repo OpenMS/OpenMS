@@ -123,6 +123,12 @@ public:
     /// blocks of spectra (master-spectrum index to sacrifice-spectra(the ones being merged into the master-spectrum))
     typedef Map<Size, std::vector<Size> > MergeBlocks;
 
+    /// blocks of spectra (master-spectrum index to update to spectra to average over)
+    typedef Map<Size, std::vector<Size> > AverageBlocks;
+
+    /// weights for averaging (master-spectrum index to weights for averaging)
+    typedef Map<Size, std::vector<double> > AverageWeights;
+
     // @name Constructors and Destructors
     // @{
     /// default constructor
@@ -475,6 +481,22 @@ protected:
       // ... and add consensus spectra
       exp.getSpectra().insert(exp.end(), merged_spectra.begin(), merged_spectra.end());
 
+    }
+
+    /**
+     * @brief average spectra
+     *
+     * Checks if there are peaks at positions corresponding to the pattern
+     * and that these peaks are not blacklisted.
+     *
+     * @param exp   experimental data to be averaged
+     * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over
+     * @param weights    mapping of spectral index to weights for averaging
+     * @param ms_level    MS level of spectra to be averaged
+     */
+    template <typename MapType>
+    void averageSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const AverageWeights & weights, const UInt ms_level)
+    {
     }
 
   };
