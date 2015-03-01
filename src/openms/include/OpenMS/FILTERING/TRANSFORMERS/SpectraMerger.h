@@ -291,9 +291,16 @@ public:
       std::cout << "Simple Average over fixed range.\n";
       
       IntList ms_levels = param_.getValue("average_simple:ms_levels");    // list of MS levels to be averaged
-      double range(param_.getValue("average_simple:rt_range"));    // range of spectra to be averaged over
       bool unit(param_.getValue("average_simple:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
-      
+      double range(param_.getValue("average_simple:rt_range"));    // range of spectra to be averaged over
+      double range_seconds = range/2;    // max. +/- <range_seconds> seconds from master spectrum
+      int range_scans = range;
+      if ((range_scans % 2) == 0)
+      {
+        ++range_scans;
+      }
+      range_scans = (range_scans - 1)/2;    // max. +/- <range_scans> scans from master spectrum
+        
       // loop over MS levels
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
       {
@@ -308,7 +315,14 @@ public:
         {
           if (Int(it_rt->getMSLevel()) == *it_mslevel)
           {
-            std::cout << "idx_spectrum = " << idx_spectrum << "\n";
+            //std::cout << "idx_spectrum = " << idx_spectrum << "\n";
+            spectra_to_average_over[idx_spectrum].push_back(idx_spectrum);
+            
+            // go forward
+            typename MapType::const_iterator it_rt2(it_rt);
+            
+            // go backward
+            
           }
           ++idx_spectrum;
         }
