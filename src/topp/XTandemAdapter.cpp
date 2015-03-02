@@ -427,6 +427,14 @@ protected:
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
     search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    if (getStringOption_("cleavage_site") == "[RK]|{P}")
+    {
+      search_parameters.enzyme = ProteinIdentification::TRYPSIN;
+    }
+    else if (getStringOption_("cleavage_site") == "[X]|[X]")
+    {
+      search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
+    }
 
     protein_id.setSearchParameters(search_parameters);
     protein_id.setSearchEngineVersion("");
