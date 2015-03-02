@@ -872,11 +872,11 @@ protected:
         if (hit->getSequence() == aat)
         {
           //get aa before/after/charge and metainfo
-          hit->setMetaValue("MS:1001492", boost::lexical_cast<double>(pep_map[sid][1]));        //svm score
-          double qv = boost::lexical_cast<double>(pep_map[sid][2]);        // q-value
+          hit->setMetaValue("MS:1001492", pep_map[sid][1].toDouble());        //svm score
+          double qv = pep_map[sid][2].toDouble();        // q-value
           hit->setMetaValue("MS:1001491", qv);
           hit->setScore(qv);
-          hit->setMetaValue("MS:1001493", boost::lexical_cast<double>(pep_map[sid][3]));        //pep
+          hit->setMetaValue("MS:1001493", pep_map[sid][3].toDouble());        //pep
           hit->setSequence(aat);
           it->insertHit(*hit);
         }

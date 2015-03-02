@@ -45,6 +45,7 @@ SimpleSearchEngine
 SpecLibCreator
 SvmTheoreticalSpectrumGeneratorTrainer
 TransformationEvaluation
+TopPerc
 XMLValidator
 #SimpleSearchEngine
 #RNPxlSearch

@@ -105,11 +105,10 @@ Some information about the supported input types:
   @ref OpenMS::XTandemXMLFile "XTandem.xml"
   @ref OpenMS::SequestOutfile "Sequest .out directory"
 
-    @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDFileConverter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDFileConverter.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_IDFileConverter.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_IDFileConverter.html
 
 */
 

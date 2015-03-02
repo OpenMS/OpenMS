@@ -133,7 +133,7 @@ do
     NEW_STATUS=$(${BIN_DIR_NEW}/$t --help 2>&1 | grep -e "Common.*options" | sed -E 's/.*Common (.*) options.*/\1/')
     if [[ ${OLD_STATUS} != ${NEW_STATUS} ]]
     then
-        echo "$i (${OLD_STATUS} -> ${NEW_STATUS})"
+        echo "$t (${OLD_STATUS} -> ${NEW_STATUS})"
     fi
 done
 
