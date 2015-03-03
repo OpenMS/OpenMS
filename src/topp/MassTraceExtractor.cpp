@@ -219,7 +219,8 @@ protected:
         m_traces_final.clear();
         ep_det.filterByPeakWidth(split_mtraces, m_traces_final);
 
-        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size() << " of total " << split_mtraces.size() << " were dropped because of too low peak width." << std::endl;
+        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size() <<
+          " of total " << split_mtraces.size() << " were dropped because of too low peak width." << std::endl;
       }
       else
       {

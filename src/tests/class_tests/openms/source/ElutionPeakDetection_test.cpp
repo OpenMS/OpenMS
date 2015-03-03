@@ -89,14 +89,15 @@ test_epd.setParameters(epd_def);
 
 /* NOTE: The lowess smoothing was changed from using the GSL to a direct regression.
  * The smoothing test work fine for the modification. The ElutionPeakPicker shows
- * large differences and I (ans Stefan) have no explanation for the reason.
+ * large differences and I (and Stefan) have no explanation for the reason.
  *
  * The test was adapted to use a SavitzkyGolay of polynomial-order 2 instead of a lowess smoothing
- * using the GSL because the performence seems to be much more robust (at least when going with
+ * using the GSL because the performance seems to be much more robust (at least when going with
  * our unit tests). In addition, I tested how a lowess smoothing with regression performs. The
  * differences of the test are given as comments. The maintainer must decide on how
  * to handle the situation and which smoothing to keep. I had problems getting all unit
  * test running when using lowess smoothing with regression.
+ *
  */
 TOLERANCE_RELATIVE(1.01)
 START_SECTION((void detectPeaks(std::vector< MassTrace > &, std::vector< MassTrace > &)))
