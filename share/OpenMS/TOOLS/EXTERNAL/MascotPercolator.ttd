@@ -26,15 +26,17 @@
 			<file_post location="%TMP/%BASENAME[%%in]_decoy.psms" target="out_decoy" />
 			<file_post location="%TMP/%BASENAME[%%in].summary.txt" target="out_summary" />
 			<file_post location="%TMP/%BASENAME[%%in].summary_decoy.txt" target="out_summary_decoy" />
+			<file_post location="%TMP/%BASENAME[%%in].datp" target="out_dat" />
           </mappings>
 		  <ini_param>
-			<ITEM name="in" value="" type="string" description="Input file: Mascot search results; either from a combined target/decoy search (then set 'decoy_pattern') or from a target-only search (then set 'in_decoy') (valid formats: 'idXML')" tags="input file" />
-			<ITEM name="in_decoy" value="TARGET" type="string" description="Input file: Mascot search results from a decoy-only search, or 'TARGET' for a concatenated target/decoy search passed via 'in_target' (valid formats: 'idXML')" tags="input file" />
+			<ITEM name="in" value="" type="string" description="Input file: Mascot search results from MascotAdapterOnline; either from a combined target/decoy search (then set 'decoy_pattern') or from a target-only search (then set 'in_decoy') (valid formats: 'idXML')" tags="input file" />
+			<ITEM name="in_decoy" value="TARGET" type="string" description="Input file: Mascot decoy-only search results from MascotAdapterOnline, or 'TARGET' for a concatenated target/decoy search passed via 'in_target' (valid formats: 'idXML')" tags="input file" />
+			<ITEM name="jar" value="MascotPercolator.jar" type="string" description="Mascot Percolator .jar file (valid formats: 'jar')" tags="input file" />
 			<ITEM name="out" value="" type="string" description="Output file: Percolator tab-delimited output, target hits (valid formats: 'psms')" tags="output file" />
 			<ITEM name="out_decoy" value="" type="string" description="Output file: Percolator tab-delimited output, decoy hits (valid formats: 'psms')" tags="output file" />
 			<ITEM name="out_summary" value="" type="string" description="Output file: Mascot Percolator tab-delimited output, target summary (valid formats: 'txt')" tags="output file" />
 			<ITEM name="out_summary_decoy" value="" type="string" description="Output file: Mascot Percolator tab-delimited output, decoy summary (valid formats: 'txt')" tags="output file" />
-			<ITEM name="jar" value="MascotPercolator.jar" type="string" description="Mascot Percolator .jar file (valid formats: 'jar')" tags="input file" />
+			<ITEM name="out_dat" value="" type="string" description="Output file: Mascot DAT file with Percolator scores (valid formats: 'datp')" tags="output file" />
             <ITEM name="decoy_pattern" value="DECOY_" type="string" description="Pattern identifying decoy matches. Only used if 'in_decoy' is 'TARGET', but must not be empty!" />
             <ITEM name="java_memory" value="1024" type="string" description="Maximum Java heap size (in MB)" />            
 		  </ini_param>
