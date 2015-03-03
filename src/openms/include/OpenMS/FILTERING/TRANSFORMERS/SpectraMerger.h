@@ -124,10 +124,10 @@ public:
     typedef Map<Size, std::vector<Size> > MergeBlocks;
 
     /// blocks of spectra (master-spectrum index to update to spectra to average over)
-    typedef Map<Size, std::vector<Size> > AverageBlocks;
+    typedef Map<Size, std::vector<std::pair<Size, double> > > AverageBlocks;
 
     /// weights for averaging (master-spectrum index to weights for averaging)
-    typedef Map<Size, std::vector<double> > AverageWeights;
+    typedef Map<Size, Map<Size, double> > AverageWeights;
 
     // @name Constructors and Destructors
     // @{
@@ -309,7 +309,6 @@ public:
         std::cout << "MS level = " << *it_mslevel << "\n";
         
         AverageBlocks spectra_to_average_over;
-        AverageWeights weights;
         
         // loop over RT
         int n(0);
@@ -328,7 +327,8 @@ public:
               if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
               {
                 //std::cout << "steps forward = " << steps << "    RT = " << it_rt_2->getRT() << "\n";
-                spectra_to_average_over[n].push_back(m);
+                std::pair<Size, double> p(m,1);
+                spectra_to_average_over[n].push_back(p);
                 ++steps;
               }
               ++m;
@@ -342,7 +342,8 @@ public:
               if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
               {
                 //std::cout << "steps backward = " << steps << "    RT = " << it_rt_2->getRT() << "\n";
-                spectra_to_average_over[n].push_back(m);
+                std::pair<Size, double> p(m,1);
+                spectra_to_average_over[n].push_back(p);
                 ++steps;
               }
               ++m;
@@ -352,8 +353,14 @@ public:
           }
           ++n;
         }
+
+        // TODO: normalize weights
+        
+        averageSpectra_(exp, spectra_to_average_over, *it_mslevel);
       }
         
+      exp.sortSpectra();
+      
       return;
     }
 
@@ -539,8 +546,15 @@ protected:
      * @param ms_level    MS level of spectra to be averaged
      */
     template <typename MapType>
-    void averageSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const AverageWeights & weights, const UInt ms_level)
+    void averageSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
     {
+      // loop over blocks
+      int n(0);
+      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      {
+        //std::cout << "n = " << n << "\n";
+        ++n;
+      }      
     }
 
   };
