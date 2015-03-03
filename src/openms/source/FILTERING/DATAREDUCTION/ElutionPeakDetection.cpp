@@ -382,7 +382,7 @@ namespace OpenMS
     //smooth data
     //std::vector<double> smoothed_data;
     // Size win_size = mt.getFWHMScansNum();
-    double scan_time(mt.getScanTime());
+    double scan_time(mt.getAverageMS1CycleTime());
     Size win_size = std::ceil(chrom_fwhm_ / scan_time);
     // add smoothed data (original data is still accessible)
     smoothData(mt, static_cast<Int>(win_size));

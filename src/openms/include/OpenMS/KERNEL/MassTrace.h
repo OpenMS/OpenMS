@@ -216,7 +216,7 @@ public:
     }
 
     /// Get average scan time of mass trace
-    double getScanTime() const
+    double getAverageMS1CycleTime() const
     {
       if (trace_peaks_.size() <= 1) return 0.0;
 

@@ -131,7 +131,7 @@ START_SECTION((MassTrace(const std::list<PeakType>& trace_peaks)))
       ++l_it;
   }
 
-  TEST_REAL_SIMILAR(tmp_mt.getScanTime(), (tmp_peak6.getRT() - tmp_peak0.getRT()) / (7-1));
+  TEST_REAL_SIMILAR(tmp_mt.getAverageMS1CycleTime(), (tmp_peak6.getRT() - tmp_peak0.getRT()) / (7-1));
 }
 END_SECTION
 
@@ -149,7 +149,7 @@ START_SECTION((MassTrace(const std::vector<PeakType>& trace_peaks)))
       ++v_it;
   }
 
-  TEST_REAL_SIMILAR(tmp_mt.getScanTime(), (tmp_peak6.getRT() - tmp_peak0.getRT()) / (7-1));
+  TEST_REAL_SIMILAR(tmp_mt.getAverageMS1CycleTime(), (tmp_peak6.getRT() - tmp_peak0.getRT()) / (7-1));
 }
 END_SECTION
 
@@ -357,10 +357,10 @@ END_SECTION
 
 /////
 
-START_SECTION((double getScanTime() const))
+START_SECTION((double getAverageMS1CycleTime() const))
 {
   MassTrace tmp_mt(peak_lst);
-  TEST_REAL_SIMILAR(tmp_mt.getScanTime(), (tmp_peak6.getRT() - tmp_peak0.getRT()) / (7-1));
+  TEST_REAL_SIMILAR(tmp_mt.getAverageMS1CycleTime(), (tmp_peak6.getRT() - tmp_peak0.getRT()) / (7-1));
 }
 END_SECTION
 
