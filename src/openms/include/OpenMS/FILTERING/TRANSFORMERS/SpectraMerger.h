@@ -300,7 +300,9 @@ public:
         ++range_scans;
       }
       range_scans = (range_scans - 1)/2;    // max. +/- <range_scans> scans from master spectrum
-        
+      
+      std::cout << "range scans = " << range_scans << "\n";
+      
       // loop over MS levels
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
       {
@@ -310,21 +312,45 @@ public:
         AverageWeights weights;
         
         // loop over RT
-        int idx_spectrum(0);
+        int n(0);
         for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
         {
           if (Int(it_rt->getMSLevel()) == *it_mslevel)
           {
-            //std::cout << "idx_spectrum = " << idx_spectrum << "\n";
-            spectra_to_average_over[idx_spectrum].push_back(idx_spectrum);
+            int steps;
+            int m;
             
             // go forward
-            typename MapType::const_iterator it_rt2(it_rt);
+            steps = 0;
+            m = n;
+            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (steps <= range_scans)); ++it_rt_2)
+            {
+              if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
+              {
+                //std::cout << "steps forward = " << steps << "    RT = " << it_rt_2->getRT() << "\n";
+                spectra_to_average_over[n].push_back(m);
+                ++steps;
+              }
+              ++m;
+             }
             
             // go backward
+            steps = 0;
+            m = n;
+            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (steps <= range_scans)); --it_rt_2)
+            {
+              if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
+              {
+                //std::cout << "steps backward = " << steps << "    RT = " << it_rt_2->getRT() << "\n";
+                spectra_to_average_over[n].push_back(m);
+                ++steps;
+              }
+              ++m;
+            }
             
+            //std::cout << "\n";            
           }
-          ++idx_spectrum;
+          ++n;
         }
       }
         
