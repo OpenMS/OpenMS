@@ -46,30 +46,27 @@ namespace OpenMS
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
-    scan_time_(1.0),
     fwhm_start_idx_(0),
     fwhm_end_idx_(0)
   {
   }
 
-  MassTrace::MassTrace(const std::list<PeakType>& trace_peaks, const double& scan_time) :
+  MassTrace::MassTrace(const std::list<PeakType>& trace_peaks) :
+    trace_peaks_(),
     centroid_mz_(),
     centroid_sd_(),
     centroid_rt_(),
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
-    scan_time_(scan_time),
     fwhm_start_idx_(0),
     fwhm_end_idx_(0)
   {
-    for (std::list<PeakType>::const_iterator l_it = trace_peaks.begin(); l_it != trace_peaks.end(); ++l_it)
-    {
-      trace_peaks_.push_back((*l_it));
-    }
+    trace_peaks_.reserve(trace_peaks.size());
+    std::copy(trace_peaks.begin(), trace_peaks.end(), back_inserter(trace_peaks_));
   }
 
-  MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks, const double& scan_time) :
+  MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks) :
     trace_peaks_(trace_peaks),
     centroid_mz_(),
     centroid_sd_(),
@@ -77,7 +74,6 @@ namespace OpenMS
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
-    scan_time_(scan_time),
     fwhm_start_idx_(0),
     fwhm_end_idx_(0)
   {
@@ -95,7 +91,6 @@ namespace OpenMS
     label_(mt.label_),
     smoothed_intensities_(mt.smoothed_intensities_),
     fwhm_(mt.fwhm_),
-    scan_time_(mt.scan_time_),
     fwhm_start_idx_(mt.fwhm_start_idx_),
     fwhm_end_idx_(mt.fwhm_end_idx_)
   {
@@ -113,7 +108,6 @@ namespace OpenMS
     label_ = rhs.label_;
     smoothed_intensities_ = rhs.smoothed_intensities_;
     fwhm_ = rhs.fwhm_;
-    scan_time_ = rhs.scan_time_;
     fwhm_start_idx_ = rhs.fwhm_start_idx_;
     fwhm_end_idx_ = rhs.fwhm_end_idx_;
 
@@ -132,19 +126,20 @@ namespace OpenMS
 
   double MassTrace::computeSmoothedPeakArea() const
   {
-    // sum all non-negative (smoothed!) intensities in MassTrace
+    // sum all smoothed intensities in MassTrace which are non-negative
     double peak_area(0.0);
 
-    for (Size i = 0; i < smoothed_intensities_.size(); ++i)
+    double int_before = smoothed_intensities_[0];
+    double rt_before = trace_peaks_.begin()->getRT();
+    for (Size i = 1; i < smoothed_intensities_.size(); ++i)
     {
       if (smoothed_intensities_[i] > 0.0)
       {
-        peak_area += smoothed_intensities_[i];
+        peak_area += (int_before + trace_peaks_[i].getIntensity())/2 * (trace_peaks_[i].getRT() - rt_before);
       }
+      int_before = trace_peaks_[i].getIntensity();
+      rt_before = trace_peaks_[i].getRT();
     }
-
-    peak_area *= scan_time_;
-
     return peak_area;
   }
 
@@ -155,12 +150,14 @@ namespace OpenMS
     if (trace_peaks_.empty())
       return peak_area;
 
-    for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+    double int_before = trace_peaks_.begin()->getIntensity();
+    double rt_before = trace_peaks_.begin()->getRT();
+    for (MassTrace::const_iterator l_it = trace_peaks_.begin() + 1; l_it != trace_peaks_.end(); ++l_it)
     {
-      peak_area += (*l_it).getIntensity();
+      peak_area += (int_before + l_it->getIntensity())/2 * (l_it->getRT() - rt_before);
+      int_before = l_it->getIntensity();
+      rt_before = l_it->getRT();
     }
-
-    peak_area *= scan_time_;
 
     return peak_area;
   }
@@ -263,97 +260,49 @@ namespace OpenMS
     }
 
     double t_area(0.0);
-
-    for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
+    double int_before = smoothed_intensities_[fwhm_start_idx_];
+    double rt_before = trace_peaks_[fwhm_start_idx_].getRT();
+    // note '<=' operator, since fwhm_end_idx_ is inclusive!
+    for (Size i = fwhm_start_idx_ + 1; i <= fwhm_end_idx_; ++i)
     {
-      t_area += smoothed_intensities_[i];
+      t_area += (int_before + smoothed_intensities_[i])/2 * (trace_peaks_[i].getRT() - rt_before);
+      int_before = smoothed_intensities_[i];
+      rt_before = trace_peaks_[i].getRT();
     }
 
-    return t_area * scan_time_;
+    return t_area;
   }
 
   double MassTrace::computeFwhmArea() const
   {
-    double t_area(0.0);
-
-    for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
-    {
-      t_area += trace_peaks_[i].getIntensity();
-    }
-
-    return t_area * scan_time_;
-  }
-
-  double MassTrace::computeFwhmAreaSmoothRobust() const
-  {
     if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
     }
 
     double t_area(0.0);
-
-    for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
+    double int_before = trace_peaks_[fwhm_start_idx_].getIntensity();
+    double rt_before = trace_peaks_[fwhm_start_idx_].getRT();
+    // note '<=' operator, since fwhm_end_idx_ is inclusive!
+    for (Size i = fwhm_start_idx_ + 1; i <= fwhm_end_idx_; ++i)
     {
-      double rt_diff(std::fabs(trace_peaks_[i + 1].getRT() - trace_peaks_[i].getRT()));
-
-      if (rt_diff < 1.5 * scan_time_)
-      {
-        t_area += smoothed_intensities_[i] * rt_diff;
-      }
-      else
-      {
-        double averaged_int((smoothed_intensities_[i] + smoothed_intensities_[i + 1]) / 2.0);
-        double averaged_rt_diff(rt_diff / 2.0);
-
-        t_area += smoothed_intensities_[i] * averaged_rt_diff;
-        t_area += averaged_int * averaged_rt_diff;
-      }
-
+      t_area += (int_before + trace_peaks_[i].getIntensity())/2 * (trace_peaks_[i].getRT() - rt_before);
+      int_before = trace_peaks_[i].getIntensity();
+      rt_before = trace_peaks_[i].getRT();
     }
 
     return t_area;
   }
 
-  double MassTrace::computeFwhmAreaRobust() const
-  {
-    if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
-    {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
-    }
-
-    double t_area(0.0);
-
-    for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
-    {
-      double rt_diff(std::fabs(trace_peaks_[i + 1].getRT() - trace_peaks_[i].getRT()));
-
-      if (rt_diff < 1.5 * scan_time_)
-      {
-        t_area += trace_peaks_[i].getIntensity() * rt_diff;
-      }
-      else
-      {
-        double averaged_int((trace_peaks_[i].getIntensity() + trace_peaks_[i + 1].getIntensity()) / 2.0);
-        double averaged_rt_diff(rt_diff / 2.0);
-
-        t_area += trace_peaks_[i].getIntensity() * averaged_rt_diff;
-        t_area += averaged_int * averaged_rt_diff;
-      }
-
-    }
-
-    return t_area;
-  }
 
   double MassTrace::getIntensity(bool smoothed) const
   {
     if (smoothed)
     {
-      return computeFwhmAreaSmoothRobust();
+      return computeFwhmAreaSmooth();
     }
 
-    return computeFwhmAreaRobust();
+    return computeFwhmArea();
   }
 
   double MassTrace::getMaxIntensity(bool smoothed) const
@@ -413,14 +362,16 @@ namespace OpenMS
 
     if (trace_area < std::numeric_limits<double>::epsilon())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peak area equals to zero... impossible to compute weights!", String(trace_peaks_.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peak area equals zero... impossible to compute weights!", String(trace_peaks_.size()));
     }
 
     double wmean_rt(0.0);
 
-    for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+    double rt_before = trace_peaks_[0].getRT();
+    for (MassTrace::const_iterator l_it = trace_peaks_.begin() + 1; l_it != trace_peaks_.end(); ++l_it)
     {
-      wmean_rt += ((*l_it).getIntensity() * (*l_it).getRT()) * scan_time_;
+      wmean_rt += l_it->getIntensity() * l_it->getRT() * (l_it->getRT() - rt_before);
+      rt_before = l_it->getRT();
     }
 
     centroid_rt_ = wmean_rt / trace_area;
