@@ -340,7 +340,10 @@ public:
               {
                 //std::cout << "steps backward = " << steps << "    RT = " << it_rt_2->getRT() << "\n";
                 std::pair<Size, double> p(m,1);
-                spectra_to_average_over[n].push_back(p);
+                if (m!=n)    // already covered in forward case
+                {
+                  spectra_to_average_over[n].push_back(p);
+                }
                 ++steps;
               }
               ++m;
@@ -358,17 +361,11 @@ public:
           for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
           {
             sum += (*it2).second;
-            std::cout << "weight = " << (*it2).second << "\n";
           }
           
           for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
           {
             (*it2).second /= sum;
-          }
-          
-          for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-          {
-            std::cout << "weight (normalised) = " << (*it2).second << "\n";
           }
         }
         
