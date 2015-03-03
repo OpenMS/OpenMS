@@ -126,9 +126,6 @@ public:
     /// blocks of spectra (master-spectrum index to update to spectra to average over)
     typedef Map<Size, std::vector<std::pair<Size, double> > > AverageBlocks;
 
-    /// weights for averaging (master-spectrum index to weights for averaging)
-    typedef Map<Size, Map<Size, double> > AverageWeights;
-
     // @name Constructors and Destructors
     // @{
     /// default constructor
@@ -311,13 +308,13 @@ public:
         AverageBlocks spectra_to_average_over;
         
         // loop over RT
-        int n(0);
+        int n(0);    // spectrum index
         for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
         {
           if (Int(it_rt->getMSLevel()) == *it_mslevel)
           {
             int steps;
-            int m;
+            int m;    // spectrum index
             
             // go forward
             steps = 0;
@@ -354,7 +351,26 @@ public:
           ++n;
         }
 
-        // TODO: normalize weights
+        // normalize weights
+        for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+        {
+          double sum(0.0);
+          for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+          {
+            sum += (*it2).second;
+            std::cout << "weight = " << (*it2).second << "\n";
+          }
+          
+          for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+          {
+            (*it2).second /= sum;
+          }
+          
+          for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+          {
+            std::cout << "weight (normalised) = " << (*it2).second << "\n";
+          }
+        }
         
         averageSpectra_(exp, spectra_to_average_over, *it_mslevel);
       }
@@ -542,7 +558,6 @@ protected:
      *
      * @param exp   experimental data to be averaged
      * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over
-     * @param weights    mapping of spectral index to weights for averaging
      * @param ms_level    MS level of spectra to be averaged
      */
     template <typename MapType>
