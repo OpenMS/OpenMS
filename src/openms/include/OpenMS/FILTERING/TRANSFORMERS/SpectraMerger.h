@@ -560,17 +560,34 @@ protected:
     template <typename MapType>
     void averageSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
     {
+      
       // loop over blocks
-      int n(0);
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
+        // loop over spectra in blocks
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          int y(8);
+          
         }
-
-        ++n;
-      }      
+        
+        // update spectrum
+        typename MapType::SpectrumType average_spec = exp[it->first];
+        average_spec.clear(false);    // Precursors are part of the meta data, which are not deleted.
+        //average_spec.setMSLevel(ms_level);
+        
+        // refill spectrum
+        for (int i = 970; i < 1020; ++i)
+        {
+          typename MapType::PeakType peak;
+          peak.setMZ(1.0*i);
+          peak.setIntensity(1.0*i);
+          average_spec.push_back(peak);
+        } 
+        
+        std::cout << "spectral index = " << it->first << "\n";
+        exp[it->first] = average_spec;
+      }
+        
     }
 
   };
