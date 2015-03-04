@@ -431,10 +431,6 @@ protected:
     {
       search_parameters.enzyme = ProteinIdentification::TRYPSIN;
     }
-    else if (getStringOption_("cleavage_site") == "[X]|[X]")
-    {
-      search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
-    }
 
     protein_id.setSearchParameters(search_parameters);
     protein_id.setSearchEngineVersion("");
