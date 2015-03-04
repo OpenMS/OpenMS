@@ -234,7 +234,7 @@ protected:
     vector<PeptideIdentification> pep_ids;
     ProteinIdentification prot_id;
 
-    if (mascot_query_param.exists("skip_export") && 
+    if (!mascot_query_param.exists("skip_export") ||
         (mascot_query_param.getValue("skip_export") != "true"))
     {
       // write Mascot response to file
@@ -262,26 +262,25 @@ protected:
         mascot_tmp_file.remove(); // delete file
       }
 
-    // keep or delete protein identifications?!
-    vector<ProteinIdentification> prot_ids;
-    if (!getFlag_("keep_protein_links"))
-    {
-      // remove protein links from peptides
-      for (Size i = 0; i < pep_ids.size(); ++i)
+      // keep or delete protein identifications?!
+      if (!getFlag_("keep_protein_links"))
       {
         // remove protein links from peptides
-        std::vector<String> empty;
-        for (Size i = 0; i < pep_ids.size(); ++i)
+        for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
+             pep_it != pep_ids.end(); ++pep_it)
         {
-          hits[h].setPeptideEvidences(vector<PeptideEvidence>());
+          for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
+               hit_it != pep_it->getHits().end(); ++hit_it)
+          {
+            hit_it->setPeptideEvidences(vector<PeptideEvidence>());
+          }
         }
         // remove proteins
-        std::vector<ProteinHit> p_hit;
-        prot_id.setHits(p_hit);
+        prot_id.getHits().clear();
       }
     }
-      
-    int search_number = mascot_query->getSearchNumber();
+
+    Int search_number = mascot_query->getSearchNumber();
     prot_id.setMetaValue("SearchNumber", search_number);
 
     // clean up
@@ -294,7 +293,7 @@ protected:
     vector<ProteinIdentification> prot_ids;
     prot_ids.push_back(prot_id);
     IdXMLFile().store(out, prot_ids, pep_ids);
-
+    
     return EXECUTION_OK;
   }
 
