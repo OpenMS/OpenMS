@@ -85,7 +85,7 @@ public:
     void findLocalExtrema(const MassTrace&, const Size&, std::vector<Size>&, std::vector<Size>&);
 
     /// adds smoothed_intensities to internal data of @p mt
-    void smoothData(MassTrace & mt, int win_size);
+    void smoothData(MassTrace& mt, int win_size) const;
 
 protected:
     virtual void updateMembers_();
