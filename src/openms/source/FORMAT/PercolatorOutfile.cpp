@@ -54,7 +54,7 @@ namespace OpenMS
     extractors_.push_back(extractor);
     // Mascot Percolator format (RT may be missing, e.g. for searches via
     // ProteomeDiscoverer):
-    extractor.re.assign("spectrum:[^;]+(scans:)|(spectrum=)(?<SCAN>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
+    extractor.re.assign("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<SCAN>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
     extractor.count_from_zero = true;
     extractors_.push_back(extractor);
   }
