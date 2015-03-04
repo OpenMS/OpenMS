@@ -550,11 +550,11 @@ protected:
     /**
      * @brief average spectra
      *
-     * Checks if there are peaks at positions corresponding to the pattern
-     * and that these peaks are not blacklisted.
+     * Averages spectra of one MS level in an experiment. The blocks of spectra to be combined
+     * and their relative weights have previously determined.
      *
      * @param exp   experimental data to be averaged
-     * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over
+     * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
      * @param ms_level    MS level of spectra to be averaged
      */
     template <typename MapType>
@@ -564,7 +564,11 @@ protected:
       int n(0);
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
-        //std::cout << "n = " << n << "\n";
+        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+          int y(8);
+        }
+
         ++n;
       }      
     }
