@@ -1,9 +1,6 @@
 # input-encoding: latin-1
 from __future__ import print_function
 
-import distribute_setup
-distribute_setup.use_setuptools()
-
 # windows ?
 import sys
 iswin = sys.platform == "win32"

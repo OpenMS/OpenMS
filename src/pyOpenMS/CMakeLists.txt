@@ -179,10 +179,50 @@ else()
 	message(STATUS "Looking for numpy - found")
 endif()
 
+
+#------------------------------------------------------------------------------
+# Check for setuptools
+
+execute_process(
+     COMMAND
+     ${PYTHON_EXECUTABLE} -c "import setuptools"
+     RESULT_VARIABLE SETUPTOOLS_MISSING
+     ERROR_QUIET
+     OUTPUT_QUIET
+)
+
+set(SETUPTOOLS_VERSION_OK FALSE)
+
+if(SETUPTOOLS_MISSING)
+	message(STATUS "Looking for setuptools - not found")
+else()
+    execute_process(
+        COMMAND
+        ${PYTHON_EXECUTABLE} -c "import setuptools; exit(int(setuptools.__version__.split('.')[0]) >= 12)"
+        RESULT_VARIABLE _SETUPTOOLS_VERSION_OK
+        ERROR_QUIET
+        OUTPUT_QUIET
+    )
+    execute_process(
+        COMMAND
+        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function;import setuptools; print(setuptools.__version__)"
+        OUTPUT_VARIABLE SETUPTOOLS_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(_SETUPTOOLS_VERSION_OK)
+        message(STATUS "Looking for setuptools - found setuptools ${SETUPTOOLS_VERSION}, version ok")
+        set(SETUPTOOLS_VERSION_OK TRUE)
+    else()
+        message(STATUS "Found setuptools version ${SETUPTOOLS_VERSION}. The version is to old (>= 12.0 is required)")
+        message(FATAL_ERROR "Please upgrade setuptools or disable pyOpenMS.")
+    endif()
+endif()
+
+
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING)
+if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING OR SETUPTOOLS_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
 
@@ -246,7 +286,6 @@ set(_pyopenms_files
   README.rst
   setup.py
   create_cpp_extension.py
-  distribute_setup.py
   version.py
   run_nose.py
   run_memleaks.py
