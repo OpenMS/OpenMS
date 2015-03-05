@@ -290,6 +290,7 @@ set(_pyopenms_files
   run_nose.py
   run_memleaks.py
   doCythonCompileOnly.py
+  fix_pyopenms_dependencies_on_mac.sh
 )
 
 foreach(pyfile ${_pyopenms_files})
@@ -380,13 +381,26 @@ add_custom_target(pyopenms_create_cpp
 	DEPENDS OpenMS SuperHirn
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
-add_custom_target(pyopenms
-	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-	DEPENDS pyopenms_create_cpp
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    add_custom_target(pyopenms
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+        COMMAND fix_pyopenms_dependencies_on_mac.sh
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+        DEPENDS pyopenms_create_cpp
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ELSE()
+    add_custom_target(pyopenms
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
+        COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+        COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+        DEPENDS pyopenms_create_cpp
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+ENDIF()
 
 add_dependencies(pyopenms OpenMS)
 
