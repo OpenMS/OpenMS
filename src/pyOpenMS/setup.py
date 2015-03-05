@@ -42,7 +42,11 @@ ctime = os.stat("pyopenms").st_mtime
 ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
-from version import version
+
+version = OPEN_MS_VERSION
+
+with open("pyopenms/version.py", "w") as fp:
+    print("version=%r" % version, file=fp)
 
 # parse config
 
@@ -147,7 +151,7 @@ setup(
     packages=["pyopenms"],
     ext_package="pyopenms",
 
-    version=version + "-" + timestamp,
+    version=version,
 
     maintainer="Uwe Schmitt",
     maintainer_email="uschmitt@mineway.de",
