@@ -41,6 +41,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -567,10 +568,8 @@ protected:
         std::vector<double> mz_positions;    // positions at which the averaged spectrum should be 
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          std::pair<Size, double> p = *it2;
-                    
           // loop over m/z positions
-          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[p.first].begin(); it_mz < exp[p.first].end(); ++it_mz)
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
           {
             mz_positions.push_back(it_mz->getMZ());
           }
@@ -603,18 +602,28 @@ protected:
         
         std::cout << "size before = " << mz_positions.size() << "    size after = " << mz_positions_2.size() << "\n";
         
-        
-        
-        
-        
-        /*for (int i = 0; i < mz_positions.size(); ++i)
+        // initialise splines
+        std::vector<SplineSpectrum> splines;
+        std::vector<SplineSpectrum::Navigator> navigators;
+        // loop over spectra in blocks
+        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          if (mz_positions[i] > 1019.8)
-          {
-            std::cout << "m/z = " << std::setprecision(10) << mz_positions[i] << "\n";
-          }
+          SplineSpectrum spline(exp[it2->first]);
+          SplineSpectrum::Navigator navigator = spline.getNavigator();
+          
+          splines.push_back(spline);
+          navigators.push_back(navigator);
         }
-        std::cout << "\n";*/
+        
+        
+        
+        // spline fit profile data
+        //SplineSpectrum spline(*it_rt_profile);
+        //SplineSpectrum::Navigator nav = spline.getNavigator();
+
+        
+        
+        
 
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
