@@ -41,8 +41,6 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
-#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -578,33 +576,32 @@ protected:
           }
         }
         
-        sort(mz_positions.begin(),mz_positions.end());
+        sort(mz_positions.begin(), mz_positions.end());
         
-        // construct clustering grid
-        std::vector<double> grid_spacing_mz;
-        std::vector<double> grid_spacing_rt;
-        
-        grid_spacing_rt.push_back(1.0);
-        
-        if (mz_binning_unit == "Da")
+        std::vector<double> mz_positions_2; 
+        double last_mz = -1000.0;    // last m/z position pushed through from mz_position to mz_position_2
+        for (std::vector<double>::iterator it_mz = mz_positions.begin(); it_mz < mz_positions.end(); ++it_mz)
         {
-          // Da
-          for (double mz = 0.99*mz_positions.front(); mz <= 1.01*mz_positions.back(); mz += mz_binning_width)
+          double delta_mz(0);
+          if (mz_binning_unit == "Da")
           {
-            grid_spacing_mz.push_back(mz);
+            // Da
+            delta_mz = mz_binning_width;
+          }
+          else
+          {
+            // ppm
+            delta_mz = mz_binning_width * (*it_mz) / 1000000;
+          }
+          
+          if (((*it_mz) - last_mz) > delta_mz)
+          {
+            mz_positions_2.push_back(*it_mz);
+            last_mz = *it_mz;
           }
         }
-        else
-        {
-          // ppm
-          for (double mz = 0.99*mz_positions.front(); mz <= 1.01*mz_positions.back(); mz += mz_binning_width*mz/1000000)
-          {
-            grid_spacing_mz.push_back(mz);
-          }
-        }
         
-        //GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(1.0), mz_positions, mz_positions, grid_spacing_mz, grid_spacing_rt);
-
+        std::cout << "size before = " << mz_positions.size() << "    size after = " << mz_positions_2.size() << "\n";
         
         
         
