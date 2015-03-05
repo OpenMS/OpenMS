@@ -322,8 +322,7 @@ public:
             for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (steps <= range_scans)); ++it_rt_2)
             {
               if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
-              {
-                //std::cout << "steps forward = " << steps << "    RT = " << it_rt_2->getRT() << "\n";
+              {                
                 std::pair<Size, double> p(m,1);
                 spectra_to_average_over[n].push_back(p);
                 ++steps;
@@ -338,7 +337,6 @@ public:
             {
               if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
               {
-                //std::cout << "steps backward = " << steps << "    RT = " << it_rt_2->getRT() << "\n";
                 std::pair<Size, double> p(m,1);
                 if (m!=n)    // already covered in forward case
                 {
@@ -346,10 +344,9 @@ public:
                 }
                 ++steps;
               }
-              ++m;
+              --m;
             }
             
-            //std::cout << "\n";            
           }
           ++n;
         }
@@ -360,7 +357,7 @@ public:
           double sum(0.0);
           for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
           {
-            sum += (*it2).second;
+            sum += it2->second;
           }
           
           for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
@@ -560,15 +557,42 @@ protected:
     template <typename MapType>
     void averageSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
     {
+      //double mz_binning_width(param_.getValue("mz_binning_width"));
+      //String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
       // loop over blocks
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         // loop over spectra in blocks
+        std::vector<double> mz_positions;    // positions at which the averaged spectrum should be 
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          
+          std::pair<Size, double> p = *it2;
+                    
+          // loop over m/z positions
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
+          {
+            mz_positions.push_back(it_mz->getMZ());
+          }
         }
+        
+        sort(mz_positions.begin(),mz_positions.end());
+        
+        // construct clustering grid
+        /*std::vector<double> grid_spacing_mz;
+        std::vector<double> grid_spacing_rt;
+        
+        for (double mz = 1.0; mz < 1000.0; mz += 1.0)
+        {
+          grid_spacing_mz.push_back(mz);
+        }*/
+        
+        for (int i = 0; i < mz_positions.size(); ++i)
+        {
+          std::cout << "m/z = " << std::setprecision(10) << mz_positions[i] << "\n";
+        }
+        std::cout << "\n";
+        
         
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
@@ -584,7 +608,7 @@ protected:
           average_spec.push_back(peak);
         } 
         
-        std::cout << "spectral index = " << it->first << "\n";
+        //std::cout << "spectral index = " << it->first << "\n";
         exp[it->first] = average_spec;
       }
         
