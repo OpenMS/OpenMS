@@ -562,24 +562,28 @@ protected:
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
       // loop over blocks
+      int count(0);
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
+        ++count;
+        std::cout << "progress = " << (1.0*count/spectra_to_average_over.size()) << "\n";
+        
         // loop over spectra in blocks
-        std::vector<double> mz_positions;    // positions at which the averaged spectrum should be 
+        std::vector<double> mz_positions_all;    // m/z positions from all spectra
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           // loop over m/z positions
           for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
           {
-            mz_positions.push_back(it_mz->getMZ());
+            mz_positions_all.push_back(it_mz->getMZ());
           }
         }
         
-        sort(mz_positions.begin(), mz_positions.end());
+        sort(mz_positions_all.begin(), mz_positions_all.end());
         
-        std::vector<double> mz_positions_2; 
+        std::vector<double> mz_positions;    // positions at which the averaged spectrum should be evaluated
         double last_mz = -1000.0;    // last m/z position pushed through from mz_position to mz_position_2
-        for (std::vector<double>::iterator it_mz = mz_positions.begin(); it_mz < mz_positions.end(); ++it_mz)
+        for (std::vector<double>::iterator it_mz = mz_positions_all.begin(); it_mz < mz_positions_all.end(); ++it_mz)
         {
           double delta_mz(0);
           if (mz_binning_unit == "Da")
@@ -595,47 +599,53 @@ protected:
           
           if (((*it_mz) - last_mz) > delta_mz)
           {
-            mz_positions_2.push_back(*it_mz);
+            mz_positions.push_back(*it_mz);
             last_mz = *it_mz;
           }
         }
         
-        std::cout << "size before = " << mz_positions.size() << "    size after = " << mz_positions_2.size() << "\n";
-        
         // initialise splines
         std::vector<SplineSpectrum> splines;
-        std::vector<SplineSpectrum::Navigator> navigators;
+        //std::vector<SplineSpectrum::Navigator> navigators;
         // loop over spectra in blocks
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           SplineSpectrum spline(exp[it2->first]);
-          SplineSpectrum::Navigator navigator = spline.getNavigator();
+          //SplineSpectrum::Navigator navigator = spline.getNavigator();
           
           splines.push_back(spline);
-          navigators.push_back(navigator);
+          //navigators.push_back(navigator);
         }
         
+        // loop over m/z positions
+        std::vector<double> intensities;
+        for (std::vector<double>::iterator it_mz = mz_positions.begin(); it_mz < mz_positions.end(); ++it_mz)
+        {
+          double intensity(0);
+          int n(0);
+          for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+          {
+            if ((splines[n].getMzMin() < (*it_mz)) && ((*it_mz) < splines[n].getMzMax()))
+            {
+              SplineSpectrum::Navigator nav = splines[n].getNavigator();
+              intensity += nav.eval(*it_mz) * (it2->second);
+            }
+            ++n;
+          }
+          intensities.push_back(intensity);
+        }
         
-        
-        // spline fit profile data
-        //SplineSpectrum spline(*it_rt_profile);
-        //SplineSpectrum::Navigator nav = spline.getNavigator();
-
-        
-        
-        
-
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
         average_spec.clear(false);    // Precursors are part of the meta data, which are not deleted.
         //average_spec.setMSLevel(ms_level);
         
         // refill spectrum
-        for (int i = 970; i < 1020; ++i)
+        for (int i = 0; i < mz_positions.size(); ++i)
         {
           typename MapType::PeakType peak;
-          peak.setMZ(1.0*i);
-          peak.setIntensity(1.0*i);
+          peak.setMZ(mz_positions[i]);
+          peak.setIntensity(intensities[i]);
           average_spec.push_back(peak);
         } 
         
