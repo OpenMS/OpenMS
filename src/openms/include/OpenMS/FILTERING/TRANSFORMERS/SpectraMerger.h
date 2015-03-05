@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow, Andreas Bertsch $
+// $Authors: Chris Bielow, Andreas Bertsch, Lars Nilse $
 // --------------------------------------------------------------------------
 //
 #ifndef OPENMS_FILTERING_TRANSFORMERS_SPECTRAMERGER_H
@@ -41,6 +41,8 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedCluster.h>
+#include <OpenMS/COMPARISON/CLUSTERING/GridBasedClustering.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -557,8 +559,8 @@ protected:
     template <typename MapType>
     void averageSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
     {
-      //double mz_binning_width(param_.getValue("mz_binning_width"));
-      //String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
+      double mz_binning_width(param_.getValue("mz_binning_width"));
+      String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
       // loop over blocks
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
@@ -570,7 +572,7 @@ protected:
           std::pair<Size, double> p = *it2;
                     
           // loop over m/z positions
-          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[p.first].begin(); it_mz < exp[p.first].end(); ++it_mz)
           {
             mz_positions.push_back(it_mz->getMZ());
           }
@@ -579,21 +581,44 @@ protected:
         sort(mz_positions.begin(),mz_positions.end());
         
         // construct clustering grid
-        /*std::vector<double> grid_spacing_mz;
+        std::vector<double> grid_spacing_mz;
         std::vector<double> grid_spacing_rt;
         
-        for (double mz = 1.0; mz < 1000.0; mz += 1.0)
-        {
-          grid_spacing_mz.push_back(mz);
-        }*/
+        grid_spacing_rt.push_back(1.0);
         
-        for (int i = 0; i < mz_positions.size(); ++i)
+        if (mz_binning_unit == "Da")
         {
-          std::cout << "m/z = " << std::setprecision(10) << mz_positions[i] << "\n";
+          // Da
+          for (double mz = 0.99*mz_positions.front(); mz <= 1.01*mz_positions.back(); mz += mz_binning_width)
+          {
+            grid_spacing_mz.push_back(mz);
+          }
         }
-        std::cout << "\n";
+        else
+        {
+          // ppm
+          for (double mz = 0.99*mz_positions.front(); mz <= 1.01*mz_positions.back(); mz += mz_binning_width*mz/1000000)
+          {
+            grid_spacing_mz.push_back(mz);
+          }
+        }
+        
+        //GridBasedClustering<MultiplexDistance> clustering(MultiplexDistance(1.0), mz_positions, mz_positions, grid_spacing_mz, grid_spacing_rt);
+
         
         
+        
+        
+        
+        /*for (int i = 0; i < mz_positions.size(); ++i)
+        {
+          if (mz_positions[i] > 1019.8)
+          {
+            std::cout << "m/z = " << std::setprecision(10) << mz_positions[i] << "\n";
+          }
+        }
+        std::cout << "\n";*/
+
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
         average_spec.clear(false);    // Precursors are part of the meta data, which are not deleted.
