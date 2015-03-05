@@ -39,6 +39,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/MzXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -268,7 +270,9 @@ protected:
         PlainMSDataWritingConsumer consumer(out);
         consumer.getOptions().setWriteIndex(write_mzML_index);
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzMLFile().transform(in, &consumer);
+        MzMLFile mzmlfile; 
+        mzmlfile.setLogType(log_type_);
+        mzmlfile.transform(in, &consumer);
         return EXECUTION_OK;
       }
       else if (in_type == FileTypes::MZXML && out_type == FileTypes::MZML)
@@ -276,7 +280,9 @@ protected:
         PlainMSDataWritingConsumer consumer(out);
         consumer.getOptions().setWriteIndex(write_mzML_index);
         consumer.addDataProcessing(getProcessingInfo_(DataProcessing::CONVERSION_MZML));
-        MzXMLFile().transform(in, &consumer);
+        MzXMLFile mzxmlfile; 
+        mzxmlfile.setLogType(log_type_);
+        mzxmlfile.transform(in, &consumer);
         return EXECUTION_OK;
       }
       else

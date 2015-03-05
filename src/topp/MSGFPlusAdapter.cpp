@@ -109,7 +109,7 @@ class MSGFPlusAdapter :
 {
 public:
   MSGFPlusAdapter() :
-    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", false),
+    TOPPBase("MSGFPlusAdapter", "MS/MS database search using MS-GF+.", true),
     // parameter choices (the order of the values must be the same as in the MS-GF+ parameters!):
     fragment_methods_(ListUtils::create<String>("from_spectrum,CID,ETD,HCD")),
     instruments_(ListUtils::create<String>("low_res,high_res,TOF,Q_Exactive")),
@@ -140,7 +140,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("mzid_out", "<file>", "", "Alternative output file (MS-GF+ parameter '-o')\nEither 'out' or 'mzid_out' are required. They can be used together.", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
-    registerInputFile_("executable", "<file>", "", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'");
+    registerInputFile_("executable", "<file>", "MSGFPlus.jar", "MS-GF+ .jar file, e.g. 'c:\\program files\\MSGFPlus.jar'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
@@ -455,6 +455,16 @@ protected:
     Int protocol_code = ListUtils::getIndex<String>(protocols_, getStringOption_("protocol"));
     Int tryptic_code = ListUtils::getIndex<String>(tryptic_, getStringOption_("tryptic"));
 
+    // Hack for KNIME. Looks for MSGFPLUS_PATH in the environment which is set in binaries.ini
+    QProcessEnvironment env;
+    String msgfpath = "MSGFPLUS_PATH";
+    QString qmsgfpath = env.systemEnvironment().value(msgfpath.toQString());
+
+    if (!qmsgfpath.isEmpty())
+    {
+      executable = qmsgfpath;
+    }
+
     QStringList process_params; // the actual process is Java, not MS-GF+!
     process_params << java_memory
                    << "-jar" << executable
@@ -487,6 +497,7 @@ protected:
     //-------------------------------------------------------------
 
     // run MS-GF+ process and create the .mzid file
+
     int status = QProcess::execute("java", process_params);
     if (status != 0)
     {
