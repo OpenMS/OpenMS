@@ -582,6 +582,7 @@ protected:
         sort(mz_positions_all.begin(), mz_positions_all.end());
         
         std::vector<double> mz_positions;    // positions at which the averaged spectrum should be evaluated
+        std::vector<double> intensities;
         double last_mz = -1000.0;    // last m/z position pushed through from mz_position to mz_position_2
         for (std::vector<double>::iterator it_mz = mz_positions_all.begin(); it_mz < mz_positions_all.end(); ++it_mz)
         {
@@ -600,40 +601,26 @@ protected:
           if (((*it_mz) - last_mz) > delta_mz)
           {
             mz_positions.push_back(*it_mz);
+            intensities.push_back(0.0);
             last_mz = *it_mz;
           }
         }
         
-        // initialise splines
-        std::vector<SplineSpectrum> splines;
-        //std::vector<SplineSpectrum::Navigator> navigators;
         // loop over spectra in blocks
         for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
           SplineSpectrum spline(exp[it2->first]);
-          //SplineSpectrum::Navigator navigator = spline.getNavigator();
+          SplineSpectrum::Navigator nav = spline.getNavigator();
           
-          splines.push_back(spline);
-          //navigators.push_back(navigator);
-        }
-        
-        // loop over m/z positions
-        std::vector<double> intensities;
-        for (std::vector<double>::iterator it_mz = mz_positions.begin(); it_mz < mz_positions.end(); ++it_mz)
-        {
-          double intensity(0);
-          int n(0);
-          for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+          // loop over m/z positions
+          for (int i = 0; i < mz_positions.size(); ++i)
           {
-            if ((splines[n].getMzMin() < (*it_mz)) && ((*it_mz) < splines[n].getMzMax()))
+            if ((spline.getMzMin() < mz_positions[i]) && (mz_positions[i] < spline.getMzMax()))
             {
-              SplineSpectrum::Navigator nav = splines[n].getNavigator();
-              intensity += nav.eval(*it_mz) * (it2->second);
+              intensities[i] += nav.eval(mz_positions[i]) * (it2->second);    // spline-interpolated intensity * weight
             }
-            ++n;
           }
-          intensities.push_back(intensity);
-        }
+        }       
         
         // update spectrum
         typename MapType::SpectrumType average_spec = exp[it->first];
