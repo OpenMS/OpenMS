@@ -384,7 +384,7 @@ add_custom_target(pyopenms_create_cpp
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     add_custom_target(pyopenms
         COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
-        COMMAND fix_pyopenms_dependencies_on_mac.sh
+        COMMAND ${CMAKE_BINARY_DIR}/pyOpenMS/fix_pyopenms_dependencies_on_mac.sh
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_wheel
         COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
