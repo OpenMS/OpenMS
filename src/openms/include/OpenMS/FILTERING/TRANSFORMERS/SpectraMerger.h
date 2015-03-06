@@ -558,6 +558,8 @@ protected:
     template <typename MapType>
     void averageSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
     {
+      MapType exp_tmp;    // temporary experiment for averaged spectra
+      
       double mz_binning_width(param_.getValue("mz_binning_width"));
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
@@ -636,9 +638,20 @@ protected:
           average_spec.push_back(peak);
         } 
         
-        exp[it->first] = average_spec;
+        // store spectrum temporarily
+        exp_tmp.addSpectrum(average_spec);
       }
-        
+      
+      // loop over blocks
+      int n(0);
+      //typename MapType::SpectrumType empty_spec;
+      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      {
+        exp[it->first] = exp_tmp[n];
+        //exp_tmp[n] = empty_spec;
+        ++n;
+      }
+      
     }
 
   };
