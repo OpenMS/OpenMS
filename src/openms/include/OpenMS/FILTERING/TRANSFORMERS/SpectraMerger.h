@@ -636,7 +636,6 @@ protected:
           average_spec.push_back(peak);
         } 
         
-        //std::cout << "spectral index = " << it->first << "\n";
         exp[it->first] = average_spec;
       }
         
