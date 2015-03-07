@@ -451,13 +451,15 @@ private:
     if (in == "")
       return;
 
+    // The length of a base64 string is a always a multiple of 3
+    if (in.size() < 3)
+      return;
+
     Size src_size = in.size();
     // last one or two '=' are skipped if contained
     int padding = 0;
-    if (in[src_size - 1] == '=')
-      padding++;
-    if (in[src_size - 2] == '=')
-      padding++;
+    if (in[src_size - 1] == '=') padding++;
+    if (in[src_size - 2] == '=') padding++;
 
     src_size -= padding;
 
