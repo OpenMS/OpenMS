@@ -777,13 +777,15 @@ private:
     if (in == "")
       return;
 
+    // The length of a base64 string is a always a multiple of 3
+    if (in.size() < 3)
+      return;
+
     Size src_size = in.size();
     // last one or two '=' are skipped if contained
     int padding = 0;
-    if (in[src_size - 1] == '=')
-      padding++;
-    if (in[src_size - 2] == '=')
-      padding++;
+    if (in[src_size - 1] == '=') padding++;
+    if (in[src_size - 2] == '=') padding++;
 
     src_size -= padding;
 
@@ -817,16 +819,21 @@ private:
     // char[8] (float) and push_back when necessary.
     for (Size i = 0; i < src_size; i += 4)
     {
-//printf ("start: i=%d, offset %d\n", i, offset);
+
+      //printf ("start: i=%d, offset %d\n", i, offset);
 
       // decode 4 Base64-Chars to 3 Byte
       a = decoder_[(int)in[i] - 43] - 62;
       b = decoder_[(int)in[i + 1] - 43] - 62;
       if (i + 1 >= src_size)
+      {
         b = 0;
+      }
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
       written++;
-//printf ("1: i=%d, offset %d, wrote %d\n", i, offset, element[offset]);
+
+      //printf ("1: i=%d, offset %d, wrote %d\n", i, offset, element[offset]);
+
       offset = (offset + inc) % element_size;
 
       if (written % element_size == 0)
@@ -848,7 +855,9 @@ private:
 
       a = decoder_[(int)in[i + 2] - 43] - 62;
       if (i + 2 >= src_size)
+      {
         a = 0;
+      }
       element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
       written++;
       offset = (offset + inc) % element_size;
@@ -872,7 +881,9 @@ private:
 
       b = decoder_[(int)in[i + 3] - 43] - 62;
       if (i + 3 >= src_size)
+      {
         b = 0;
+      }
       element[offset] = (unsigned char) (((a & 3) << 6) | b);
       written++;
       offset = (offset + inc) % element_size;
