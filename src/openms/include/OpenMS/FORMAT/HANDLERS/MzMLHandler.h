@@ -450,7 +450,7 @@ protected:
         typedef typename SpectrumType::PeakType PeakType;
 
         //decode all base64 arrays
-        MzMLHandlerHelper::decodeBase64Arrays(input_data);
+        MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
 
         //look up the precision and the index of the intensity and m/z array
         bool mz_precision_64 = true;
@@ -630,7 +630,7 @@ protected:
         typedef typename ChromatogramType::PeakType ChromatogramPeakType;
 
         //decode all base64 arrays
-        MzMLHandlerHelper::decodeBase64Arrays(input_data);
+        MzMLHandlerHelper::decodeBase64Arrays(input_data, options_.getSkipXMLChecks());
 
         //look up the precision and the index of the intensity and m/z array
         bool int_precision_64 = true;
