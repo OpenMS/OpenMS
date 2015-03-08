@@ -606,33 +606,42 @@ protected:
           }
         }
 
+        // We found that the push back approach is about 5% faster than iterators
+#define PUSHBACK_APPR
+
         //add the peaks and the meta data to the container (if they pass the restrictions)
         PeakType tmp;
+#ifdef PUSHBACK_APPR
         spectrum.reserve(default_arr_length);
+#else
+        spectrum.resize(default_arr_length);
+#endif
 
         // the most common case: no ranges, 64 / 32 precision
         //  -> this saves about 10 % load time
         if ( mz_precision_64 && !int_precision_64 && 
+             input_data.size() == 2 &&  
              !peak_file_options.hasMZRange() && 
              !peak_file_options.hasIntensityRange() 
            )
         {
           std::vector< double >::iterator mz_it = input_data[mz_index].floats_64.begin();
           std::vector< float >::iterator int_it = input_data[int_index].floats_32.begin();
+#ifdef PUSHBACK_APPR
           for (Size n = 0; n < default_arr_length; n++)
+#else
+          for (MSSpectrum<>::iterator spec_it = spectrum.begin(); spec_it != spectrum.end(); spec_it++)
+#endif
           {
             //add peak
+#ifdef PUSHBACK_APPR
             tmp.setIntensity(*int_it++);
             tmp.setMZ(*mz_it++);
             spectrum.push_back(tmp);
-
-            // Only if there are more than 2 data arrays do we need to check
-            // for meta data (as there will always be an m/z and in intensity
-            // array)
-            if (input_data.size() > 2) 
-            {
-              addSpectrumMetaData_(input_data, n, spectrum);
-            }
+#else
+            spec_it->setIntensity(*int_it++);
+            spec_it->setMZ(*mz_it++);
+#endif
           }
           return;
         }
