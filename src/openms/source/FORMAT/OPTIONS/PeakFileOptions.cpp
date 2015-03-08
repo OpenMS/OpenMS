@@ -56,6 +56,7 @@ namespace OpenMS
     zlib_compression_(false),
     size_only_(false),
     always_append_data_(false),
+    skip_xml_checks_(false),
     sort_spectra_by_mz_(true),
     sort_chromatograms_by_rt_(true),
     fill_data_(true),
@@ -81,6 +82,7 @@ namespace OpenMS
     zlib_compression_(options.zlib_compression_),
     size_only_(options.size_only_),
     always_append_data_(options.always_append_data_),
+    skip_xml_checks_(options.skip_xml_checks_),
     sort_spectra_by_mz_(options.sort_spectra_by_mz_),
     sort_chromatograms_by_rt_(options.sort_chromatograms_by_rt_),
     fill_data_(options.fill_data_),
@@ -226,6 +228,16 @@ namespace OpenMS
   bool PeakFileOptions::getFillData() const
   {
     return fill_data_;
+  }
+
+  void PeakFileOptions::setSkipXMLChecks(bool skip)
+  {
+    skip_xml_checks_ = skip;
+  }
+
+  bool PeakFileOptions::getSkipXMLChecks() const
+  {
+    return skip_xml_checks_;
   }
 
   void PeakFileOptions::setSortSpectraByMZ(bool sort)
