@@ -239,6 +239,12 @@ public:
       return indexed_mzml_file_.getChromatogramById(id);
     }
 
+    ///sets whether to skip some XML checks and be fast instead
+    void setSkipXMLChecks(bool skip)
+    {
+      indexed_mzml_file_.setSkipXMLChecks(skip);
+    }
+
 private:
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
     OnDiscMSExperiment& operator=(const OnDiscMSExperiment& /* source */) {}
