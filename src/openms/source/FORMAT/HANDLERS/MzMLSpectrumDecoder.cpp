@@ -113,6 +113,8 @@ namespace OpenMS
 
     OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
+    x_array->data.reserve(default_array_length_);
+    intensity_array->data.reserve(default_array_length_);
     for (Size n = 0; n < default_array_length_; n++)
     {
       double xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
