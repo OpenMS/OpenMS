@@ -271,7 +271,9 @@ namespace OpenMS
       std::advance(str_it, curr_size);
       while (it!=end)
       {   
-        *str_it++ = (char)*it++;
+        *str_it = (char)*it;
+        ++str_it;
+        ++it;
       }
 
       // This is ca. 50 % faster than 
