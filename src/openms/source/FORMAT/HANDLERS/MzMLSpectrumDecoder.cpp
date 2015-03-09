@@ -119,14 +119,6 @@ namespace OpenMS
       // This seems to be the fastest method to move the data (faster than copy or assign)
       x_array->data.insert(x_array->data.begin(), data_[x_index].floats_64.begin(), data_[x_index].floats_64.end());
       intensity_array->data.insert(intensity_array->data.begin(), data_[int_index].floats_32.begin(), data_[int_index].floats_32.end());
-
-      /*
-      std::copy(data_[x_index].floats_64.begin(), data_[x_index].floats_64.end(), std::back_inserter(x_array->data));
-      std::copy(data_[int_index].floats_32.begin(), data_[int_index].floats_32.end(), std::back_inserter(intensity_array->data));
-
-      x_array->data.assign(data_[x_index].floats_64.begin(), data_[x_index].floats_64.end());
-      intensity_array->data.assign(data_[int_index].floats_32.begin(), data_[int_index].floats_32.end());
-      */
     }
     else if (x_precision_64 && int_precision_64)
     {
