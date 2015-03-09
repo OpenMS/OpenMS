@@ -110,21 +110,40 @@ namespace OpenMS
 
     // TODO: handle meta data from the binaryDataArray tag -> currently ignored
     // since we have no place to store them
-
     OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
     x_array->data.reserve(default_array_length_);
     intensity_array->data.reserve(default_array_length_);
-    for (Size n = 0; n < default_array_length_; n++)
+    if (x_precision_64 && !int_precision_64)
     {
-      double xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
-      double intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
+      // This seems to be the fastest method to move the data (faster than copy or assign)
+      x_array->data.insert(x_array->data.begin(), data_[x_index].floats_64.begin(), data_[x_index].floats_64.end());
+      intensity_array->data.insert(intensity_array->data.begin(), data_[int_index].floats_32.begin(), data_[int_index].floats_32.end());
 
-      x_array->data.push_back(xcoord);
-      intensity_array->data.push_back(intensity);
+      /*
+      std::copy(data_[x_index].floats_64.begin(), data_[x_index].floats_64.end(), std::back_inserter(x_array->data));
+      std::copy(data_[int_index].floats_32.begin(), data_[int_index].floats_32.end(), std::back_inserter(intensity_array->data));
 
-      // TODO: also handle non-default arrays
+      x_array->data.assign(data_[x_index].floats_64.begin(), data_[x_index].floats_64.end());
+      intensity_array->data.assign(data_[int_index].floats_32.begin(), data_[int_index].floats_32.end());
+      */
     }
+    else if (x_precision_64 && int_precision_64)
+    {
+      x_array->data.insert(x_array->data.begin(), data_[x_index].floats_64.begin(), data_[x_index].floats_64.end());
+      intensity_array->data.insert(intensity_array->data.begin(), data_[int_index].floats_64.begin(), data_[int_index].floats_64.end());
+    }
+    else if (!x_precision_64 && int_precision_64)
+    {
+      x_array->data.insert(x_array->data.begin(), data_[x_index].floats_32.begin(), data_[x_index].floats_32.end());
+      intensity_array->data.insert(intensity_array->data.begin(), data_[int_index].floats_64.begin(), data_[int_index].floats_64.end());
+    }
+    else if (!x_precision_64 && !int_precision_64)
+    {
+      x_array->data.insert(x_array->data.begin(), data_[x_index].floats_32.begin(), data_[x_index].floats_32.end());
+      intensity_array->data.insert(intensity_array->data.begin(), data_[int_index].floats_32.begin(), data_[int_index].floats_32.end());
+    }
+
     sptr->setMZArray(x_array);
     sptr->setIntensityArray(intensity_array);
     return sptr;
