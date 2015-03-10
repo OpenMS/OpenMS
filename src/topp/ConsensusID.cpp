@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Sven Nahnsen $
-// $Authors: Sven Nahnsen and others$
+// $Authors: Sven Nahnsen and others $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -45,7 +45,7 @@ using namespace OpenMS;
 using namespace std;
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -104,7 +104,7 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-//Helper class
+// Helper class
 struct IDData
 {
   double mz;
@@ -124,7 +124,7 @@ public:
 
 protected:
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     return ConsensusID().getDefaults();
   }
@@ -148,7 +148,7 @@ protected:
     registerSubsection_("algorithm", "Consensus algorithm section");
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String in = getStringOption_("in");
     FileTypes::Type in_type = FileHandler::getType(in);
@@ -389,7 +389,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPConsensusID tool;
   return tool.main(argc, argv);
