@@ -233,6 +233,7 @@ endif()
 
 file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/build")
 file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/dist")
+
 # OpenMS
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMSd.dll")
 file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMS.dll")
@@ -256,8 +257,14 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
+
+#file(GLOB_RECURSE _openms_data "${PROJECT_SOURCE_DIR}/../share/" "*")
+#message(status ${_openms_data})
+# file(COPY ${_openms_data} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/share)
+file(COPY ${PROJECT_SOURCE_DIR}/../../share DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 
 file(GLOB _python_files "${PROJECT_SOURCE_DIR}/pyopenms/*.py")
 file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
