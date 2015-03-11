@@ -195,6 +195,23 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::domParseIndexedEnd_(std::string in, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
+
+    /*
+
+     We parse something like 
+     
+      <indexedmzML>
+        <indexList count="1">
+          <index name="chromatogram">
+            <offset idRef="1">9752</offset>
+          </index>
+        </indexList>
+        <indexListOffset>26795</indexListOffset>
+      <fileChecksum>0</fileChecksum>
+      </indexedmzML>
+
+    */
+
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
@@ -236,9 +253,11 @@ namespace OpenMS
     XMLCh* idref_tag = xercesc::XMLString::transcode("idRef");
     XMLCh* name_tag = xercesc::XMLString::transcode("name");
 
-    // Iterate through indexList elements
     xercesc::DOMNodeList* index_elems = indexListNode->getChildNodes();
     const  XMLSize_t nodeCount_ = index_elems->getLength();
+
+    // Iterate through indexList elements (only two elements should be present
+    // which should be either spectrum or chromatogram offsets)
     for (XMLSize_t j = 0; j < nodeCount_; ++j)
     {
       xercesc::DOMNode* currentNode = index_elems->item(j);
@@ -247,30 +266,43 @@ namespace OpenMS
       {
         std::vector<std::pair<std::string, std::streampos> > result;
         xercesc::DOMNodeList* offset_elems = currentNode->getChildNodes();
-        for (XMLSize_t k = 0; k < offset_elems->getLength(); ++k)
+
+        xercesc::DOMNode* firstChild = currentNode->getFirstChild();
+        xercesc::DOMNode* lastChild = currentNode->getLastChild();
+        xercesc::DOMNode* iter = firstChild;
+
+        // Iterate through children
+        // NOTE: Using xercesc::DOMNodeList and "item" is a very bad idea since
+        //       each "item" call has complexity of O(n), see the
+        //       implementation in DOMNodeListImpl.cpp :
+        //       https://svn.apache.org/repos/asf/xerces/c/trunk/src/xercesc/dom/impl/DOMNodeListImpl.cpp
+        //
+        while (iter != lastChild)
         {
-          xercesc::DOMNode* currentONode = offset_elems->item(k);
+          iter = iter->getNextSibling();
+          xercesc::DOMNode* currentONode = iter;
+
           if (currentONode->getNodeType() && // true is not NULL
               currentONode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
           {
             xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentONode);
 
-            char* name = xercesc::XMLString::transcode(currentElement->getAttribute(idref_tag));
-            char* offset = xercesc::XMLString::transcode(currentONode->getTextContent());
+            char* x_name = xercesc::XMLString::transcode(currentElement->getAttribute(idref_tag));
+            char* x_offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
-            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(offset) );
-            result.push_back(std::make_pair(std::string(name), thisOffset));
+            std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(x_offset) );
+            result.push_back(std::make_pair(String(x_name), thisOffset));
 
-            xercesc::XMLString::release(&name);
-            xercesc::XMLString::release(&offset);
+            xercesc::XMLString::release(&x_name);
+            xercesc::XMLString::release(&x_offset);
           }
         }
 
         // should be either spectrum or chromatogram ...
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
-        char* tmp_name = xercesc::XMLString::transcode(currentElement->getAttribute(name_tag));
-        std::string name(tmp_name);
-        xercesc::XMLString::release(&tmp_name);
+        char* x_indexName = xercesc::XMLString::transcode(currentElement->getAttribute(name_tag));
+        std::string name(x_indexName);
+        xercesc::XMLString::release(&x_indexName);
 
         if (name == "spectrum")
         {
