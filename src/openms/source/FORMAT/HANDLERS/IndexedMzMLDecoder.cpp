@@ -265,7 +265,6 @@ namespace OpenMS
           currentNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
       {
         std::vector<std::pair<std::string, std::streampos> > result;
-        xercesc::DOMNodeList* offset_elems = currentNode->getChildNodes();
 
         xercesc::DOMNode* firstChild = currentNode->getFirstChild();
         xercesc::DOMNode* lastChild = currentNode->getLastChild();
