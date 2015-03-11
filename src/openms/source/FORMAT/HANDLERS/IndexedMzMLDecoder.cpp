@@ -215,7 +215,8 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
-    xercesc::MemBufInputSource myxml_buf(reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
+    xercesc::MemBufInputSource myxml_buf(
+        reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
     xercesc::XercesDOMParser* parser = new xercesc::XercesDOMParser();
     parser->setDoNamespaces(false);
     parser->setDoSchema(false);
@@ -233,25 +234,27 @@ namespace OpenMS
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
-      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: No root element found:" << std::endl << std::endl << in << std::endl;
+      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: " <<
+        "No root element found:" << std::endl << std::endl << in << std::endl;
       delete parser;
       return -1;
     }
 
     // Extract the indexList tag (there should only be one)
-    XMLCh* tag = xercesc::XMLString::transcode("indexList");
-    xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(tag);
-    xercesc::XMLString::release(&tag);
+    XMLCh* x_tag = xercesc::XMLString::transcode("indexList");
+    xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(x_tag);
+    xercesc::XMLString::release(&x_tag);
     if (li->getLength() != 1)
     {
-      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: no indexList element found:" << std::endl << std::endl << in << std::endl;
+      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: "
+        << "no indexList element found:" << std::endl << std::endl << in << std::endl;
       delete parser;
       return -1;
     }
     xercesc::DOMNode* indexListNode = li->item(0);
 
-    XMLCh* idref_tag = xercesc::XMLString::transcode("idRef");
-    XMLCh* name_tag = xercesc::XMLString::transcode("name");
+    XMLCh* x_idref_tag = xercesc::XMLString::transcode("idRef");
+    XMLCh* x_name_tag = xercesc::XMLString::transcode("name");
 
     xercesc::DOMNodeList* index_elems = indexListNode->getChildNodes();
     const  XMLSize_t nodeCount_ = index_elems->getLength();
@@ -286,7 +289,7 @@ namespace OpenMS
           {
             xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentONode);
 
-            char* x_name = xercesc::XMLString::transcode(currentElement->getAttribute(idref_tag));
+            char* x_name = xercesc::XMLString::transcode(currentElement->getAttribute(x_idref_tag));
             char* x_offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
             std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(x_offset) );
@@ -299,7 +302,7 @@ namespace OpenMS
 
         // should be either spectrum or chromatogram ...
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
-        char* x_indexName = xercesc::XMLString::transcode(currentElement->getAttribute(name_tag));
+        char* x_indexName = xercesc::XMLString::transcode(currentElement->getAttribute(x_name_tag));
         std::string name(x_indexName);
         xercesc::XMLString::release(&x_indexName);
 
@@ -314,16 +317,17 @@ namespace OpenMS
         else
         {
           std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
-            "'spectrum' or 'chromatogram' below indexList but found instead '" << name << "'." << std::endl;
-          xercesc::XMLString::release(&idref_tag);
-          xercesc::XMLString::release(&name_tag);
+            "'spectrum' or 'chromatogram' below indexList but found instead '" << 
+            name << "'." << std::endl;
+          xercesc::XMLString::release(&x_idref_tag);
+          xercesc::XMLString::release(&x_name_tag);
           delete parser;
           return -1;
         }
       }
     }
-    xercesc::XMLString::release(&idref_tag);
-    xercesc::XMLString::release(&name_tag);
+    xercesc::XMLString::release(&x_idref_tag);
+    xercesc::XMLString::release(&x_name_tag);
 
 
     delete parser;
