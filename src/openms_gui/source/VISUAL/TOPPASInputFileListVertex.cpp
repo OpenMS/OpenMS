@@ -217,17 +217,23 @@ namespace OpenMS
     {
       QString path = QDir::toNativeSeparators(it->toQString());
 #if defined(__APPLE__)
-      QProcess* p = new QProcess();
-      p->setProcessChannelMode(QProcess::ForwardedChannels);
-      QStringList app_args;
-      app_args.append(path);
-      p->start("/usr/bin/open", app_args);
-      if (!p->waitForStarted())
+      
+      //QProcess* p = new QProcess();
+      //p->setProcessChannelMode(QProcess::ForwardedChannels);
+      //QStringList app_args;
+      //app_args.append(path);
+      //p->start("/usr/bin/open", app_args);
+      
+      QProcess p;
+      p.start("/usr/bin/open", QStringList() << path, QIODevice::ReadOnly);
+      p.waitForFinished();
+
+      if (!p.waitForStarted())
       {
         // execution failed
         QMessageBox::warning(0, "Open Folder Error", "The folder " + path + " could not be opened!");
         LOG_ERROR << "Failed to open folder " << path.toStdString() << std::endl;
-        LOG_ERROR << p->errorString().toStdString() << std::endl;
+        LOG_ERROR << p.errorString().toStdString() << std::endl;
       }
 #else
       if (!QDir(path).exists() || (!QDesktopServices::openUrl(QUrl("file:///" + path, QUrl::TolerantMode))))
