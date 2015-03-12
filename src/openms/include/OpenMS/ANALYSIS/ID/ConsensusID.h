@@ -61,35 +61,39 @@ public:
     /**
         @brief Calculates the consensus ID for a set of PeptideIdentification instances of the same spectrum
 
-        @note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter())is set properly!
+        @note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter()) is set properly!
     */
-    void apply(std::vector<PeptideIdentification> & ids);
+    void apply(std::vector<PeptideIdentification>& ids);
 
 private:
-    ///Not implemented
-    ConsensusID(const ConsensusID &);
+    /// mapping: peptide sequence -> (charge, scores)
+    typedef std::map<AASequence, std::pair<Int, std::vector<double> > > 
+      SequenceGrouping;
 
-    ///Not implemented
-    ConsensusID & operator=(const ConsensusID &);
+    /// Not implemented
+    ConsensusID(const ConsensusID&);
 
-    /// Ranked algorithm
-    void ranked_(std::vector<PeptideIdentification> & ids);
+    /// Not implemented
+    ConsensusID& operator=(const ConsensusID&);
 
-    /// Average score algorithm
-    void average_(std::vector<PeptideIdentification> & ids);
+    /// consensus based on ranks
+    void rank_(std::vector<PeptideIdentification>& ids);
 
-    /// PEP and scoring matrix based algorithm
-    void PEPMatrix_(std::vector<PeptideIdentification> & ids);
+    /// consensus based on average score
+    void average_(std::vector<PeptideIdentification>& ids);
 
-    /// PEP and ion similarity based algorithm
-    void PEPIons_(std::vector<PeptideIdentification> & ids);
+    /// consensus based on PEPs and scoring matrix
+    void PEPMatrix_(std::vector<PeptideIdentification>& ids);
 
-    /// use minimal PEP score
-    void Minimum_(std::vector<PeptideIdentification> & ids);
+    /// consensus based on PEPs and ion similarity
+    void PEPIons_(std::vector<PeptideIdentification>& ids);
 
-//already done in APPLICATIONS/TOPP/ConsensusID.cpp
-    /// Merge peptide hits from different engines
-    void mapIdentifications_(std::vector<PeptideIdentification> & sorted_ids, const std::vector<PeptideIdentification> & ids);
+    /// consensus based on best score
+    void best_(std::vector<PeptideIdentification>& ids);
+
+    /// helper function for 'best_' and 'average_'
+    void groupHits_(std::vector<PeptideIdentification>& ids,
+                    SequenceGrouping& grouping);
 
   };
 
