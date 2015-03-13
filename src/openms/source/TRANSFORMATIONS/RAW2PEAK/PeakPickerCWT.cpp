@@ -238,7 +238,6 @@ namespace OpenMS
     const Int zeros_right_index = wt.getRightPaddingIndex();
 
     // Points to most intensive data point in the signal
-    PeakIterator it_max_pos;
     double max_value;
 
     // Given direction, start the search from left or right
@@ -932,8 +931,6 @@ namespace OpenMS
     Int zeros_left_index  = wt.getLeftPaddingIndex();
     Int zeros_right_index = wt.getRightPaddingIndex();
 
-    // The maximum intensity in the signal
-    PeakIterator it_max_pos;
     //double max_value;T
     Int start = (direction > 0) ? zeros_left_index + 2 : zeros_right_index - 2;
     Int end   = (direction > 0) ? zeros_right_index - 1 : zeros_left_index + 1;
@@ -1184,10 +1181,6 @@ namespace OpenMS
     double fwhm_threshold = (float)param_.getValue("deconvolution:fitting:fwhm_threshold");
     double symm_threshold = (float)param_.getValue("deconvolution:asym_threshold");
 
-
-    // Points to the actual maximum position in the raw data
-    PeakIterator it_max_pos;
-
     // start the peak picking until no more maxima can be found in the wavelet transform
     UInt number_of_peaks = 0;
 
@@ -1200,8 +1193,6 @@ namespace OpenMS
       const double resolution = 1;
       wt.transform(it_pick_begin, it_pick_end, resolution);
       PeakArea_ area;
-      bool centroid_fit = false;
-      bool regular_endpoints = true;
 
       // search for maximum positions in the cwt and extract potential peaks
       Int direction = 1;
@@ -1223,18 +1214,19 @@ namespace OpenMS
         {
           it_pick_begin = area.max;
           distance_from_scan_border = distance(raw_peak_array.begin(), it_pick_begin);
-
           continue;
         }
         else if (area.max >= it_pick_end)
+        {
           break;
+        }
         //search for the endpoints of the peak
-        regular_endpoints = getPeakEndPoints_(it_pick_begin,
-                                              it_pick_end,
-                                              area,
-                                              distance_from_scan_border,
-                                              peak_left_index,
-                                              peak_right_index, wt);
+        bool regular_endpoints = getPeakEndPoints_(it_pick_begin,
+                                                  it_pick_end,
+                                                  area,
+                                                  distance_from_scan_border,
+                                                  peak_left_index,
+                                                  peak_right_index, wt);
 
         // compute the centroid position
         getPeakCentroid_(area);
