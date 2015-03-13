@@ -22,12 +22,12 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         double getTraceLength() nogil except +
         libcpp_pair[Size,Size] getFWHMborders() nogil except +
         libcpp_vector[double] getSmoothedIntensities() nogil except +
-        double getScanTime() nogil except +
+        double getAverageMS1CycleTime() nogil except +
 
         double computeSmoothedPeakArea() nogil except +
         double computePeakArea() nogil except +
-        Size       findMaxByIntPeak(bool) nogil except +
-        Size       estimateFWHM(bool) nogil except +
+        Size findMaxByIntPeak(bool) nogil except +
+        Size estimateFWHM(bool) nogil except +
         double computeFwhmArea() nogil except +
         double computeFwhmAreaSmooth() nogil except +
         double computeFwhmAreaRobust() nogil except +
