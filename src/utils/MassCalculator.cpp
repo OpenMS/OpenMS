@@ -273,7 +273,7 @@ protected:
 
     if ((in.size() > 0) && (in_seq.size() > 0))
     {
-      LOG_ERROR << "Specifying and in-file and sequences at the same time is not allowed!";
+      LOG_ERROR << "Specifying an input file and input sequences at the same time is not allowed!";
       return ILLEGAL_PARAMETERS;
     }
 
