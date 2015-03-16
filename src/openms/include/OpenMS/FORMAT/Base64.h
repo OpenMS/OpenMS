@@ -495,10 +495,16 @@ private:
     for (Size i = 0; i < src_size; i += 4)
     {
       // decode 4 Base64-Chars to 3 Byte
+      // -------------------------------
+
+      // decode the first two chars
       a = decoder_[(int)in[i] - 43] - 62;
       b = decoder_[(int)in[i + 1] - 43] - 62;
       if (i + 1 >= src_size)
+      {
         b = 0;
+      }
+      // write first byte (6 bits from a and 2 highest bits from b)
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
       written++;
       offset = (offset + inc) % element_size;
@@ -510,9 +516,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the third char
       a = decoder_[(int)in[i + 2] - 43] - 62;
       if (i + 2 >= src_size)
+      {
         a = 0;
+      }
+      // write second byte (4 lowest bits from b and 4 highest bits from a)
       element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
       written++;
       offset = (offset + inc) % element_size;
@@ -524,9 +534,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the fourth char
       b = decoder_[(int)in[i + 3] - 43] - 62;
       if (i + 3 >= src_size)
+      {
         b = 0;
+      }
+      // write third byte (2 lowest bits from a and 6 bits from b)
       element[offset] = (unsigned char) (((a & 3) << 6) | b);
       written++;
       offset = (offset + inc) % element_size;
@@ -824,9 +838,8 @@ private:
     for (Size i = 0; i < src_size; i += 4)
     {
 
-      //printf ("start: i=%d, offset %d\n", i, offset);
-
       // decode 4 Base64-Chars to 3 Byte
+      // -------------------------------
 
       // decode the first two chars
       a = decoder_[(int)in[i] - 43] - 62;
@@ -838,9 +851,6 @@ private:
       // write first byte (6 bits from a and 2 highest bits from b)
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
       written++;
-
-      //printf ("1: i=%d, offset %d, wrote %d\n", i, offset, element[offset]);
-
       offset = (offset + inc) % element_size;
 
       if (written % element_size == 0)
