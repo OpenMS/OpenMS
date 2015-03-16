@@ -222,6 +222,8 @@ public:
       void setOptions(const PeakFileOptions& opt)
       {
         options_ = opt;
+        spectrum_data_.reserve(options_.getMaxDataPoolSize());
+        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
       }
 
       /// Get the peak file options
@@ -1535,7 +1537,6 @@ protected:
         if (spectrum_data_.size() >= options_.getMaxDataPoolSize())
         {
           populateSpectraWithData();
-          spectrum_data_.reserve(options_.getMaxDataPoolSize());
         }
 
         skip_spectrum_ = false;
@@ -1562,7 +1563,6 @@ protected:
         if (chromatogram_data_.size() >= options_.getMaxDataPoolSize())
         {
           populateChromatogramsWithData();
-          chromatogram_data_.reserve(options_.getMaxDataPoolSize());
         }
 
         skip_chromatogram_ = false;
