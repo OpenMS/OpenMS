@@ -486,6 +486,51 @@ protected:
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
 
+  // Slimmer structure to store a string representation
+  struct IndexedString
+  {
+    String::const_iterator begin;
+    String::const_iterator end; // one after last character in substring
+
+    bool operator<(const IndexedString& other) const
+    {
+      if (end-begin < other.end-other.begin) return true;
+
+      if (end-begin > other.end-other.begin) return false;
+
+      // same size
+      String::const_iterator b = begin;
+      String::const_iterator bo = other.begin;
+
+      for (; b != end; ++b, ++bo)
+      {
+        if (*b < *bo) return true;
+        if (*b > *bo) return false;
+      }
+
+      return false;
+    }
+
+    inline String getString() const
+    {
+      return String(begin, end);
+    }
+  };
+
+  // Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
+  struct AnnotatedHit
+  {
+    IndexedString sequence;
+    SignedSize peptide_mod_index; // enumeration index of the non-RNA peptide modification
+    Size rna_mod_index; // index of the RNA modification
+    double score;
+
+    static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
+    {
+      return a.score > b.score;
+    }
+  };
+
   vector<ResidueModification> getModifications_(StringList modNames)
   {
     vector<ResidueModification> modifications;
@@ -756,17 +801,18 @@ private:
     }
   }
 
-  // Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
-  struct AnnotatedHit
+  void postProcessHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide)
   {
-    AASequence sequence;
-    String nucleotide_formula;
-    double score;
-  };
-
-  void postProcessHits_(const PeakMap& exp, const vector<vector<AnnotatedHit> > annotated_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits, const RNPxlModificationMassesResult& mm)
-  {
-    IDFilter filter;
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      // sort and keeps n best elements according to score
+      Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
+      std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
+      annotated_hits[scan_index].resize(topn);
+    }
 
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -790,19 +836,30 @@ private:
 	{
 	  PeptideHit ph;
 	  ph.setCharge(charge);
-	  ph.setSequence(a_it->sequence);
+
+	  // get unmodified string
+          AASequence aas = AASequence::fromString(a_it->sequence.getString());
+
+	  // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
+          vector<AASequence> all_modified_peptides;
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+
+	  // reannotate much more memory heavy AASequence object
+	  ph.setSequence(all_modified_peptides[a_it->peptide_mod_index]);
 	  ph.setScore(a_it->score);
-          ph.setMetaValue(String("RNPxl:RNA"), *mm.mod_combinations.at(a_it->nucleotide_formula).begin()); // return first nucleotide formula matching current empirical formula and mass
-          ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(a_it->nucleotide_formula).getMonoWeight()); // RNA uncharged mass
+
+	  // determine RNA modification from index in map
+    std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
+	  std::advance(mod_combinations_it, a_it->rna_mod_index);
+    ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
+    ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // RNA uncharged mass via empirical formula
 	  phs.push_back(ph);
 	}
 
 	pi.setHits(phs);
 	pi.assignRanks();
 
-        // only store top n hits
-        PeptideIdentification temp_identification = pi;
-        filter.filterIdentificationsByBestNHits(temp_identification, top_hits, pi);
 #ifdef _OPENMP
 #pragma omp critical (peptide_ids_access)
 #endif
@@ -818,31 +875,6 @@ private:
     protein_ids[0].setSearchEngine("RNPxlSearch");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());    
   }
-
-  struct IndexedString
-  {
-    String::const_iterator begin;
-    String::const_iterator end; // one after last character in substring
-
-    bool operator<(IndexedString other) const
-    {
-      if (end-begin < other.end-other.begin) return true;
-
-      if (end-begin > other.end-other.begin) return false;
-
-      // same size
-      String::const_iterator b = begin;
-      String::const_iterator bo = other.begin;
-
-      for (; b != end; ++b, ++bo)
-      {
-        if (*b < *bo) return true;
-        if (*b > *bo) return false;
-      }
-
-      return false;
-    }
-  };
 
 
   ExitCodes main_(int, const char**)
@@ -885,8 +917,8 @@ private:
       return ILLEGAL_PARAMETERS;
     }
 
-    vector<ResidueModification> fixedMods = getModifications_(fixedModNames);
-    vector<ResidueModification> varMods = getModifications_(varModNames);
+    vector<ResidueModification> fixed_modifications = getModifications_(fixedModNames);
+    vector<ResidueModification> variable_modifications = getModifications_(varModNames);
     Size max_variable_mods_per_peptide = getIntOption_("modifications:variable_max_per_peptide");
 
     Int report_top_hits = getIntOption_("report:top_hits");
@@ -1055,8 +1087,8 @@ private:
 	// It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
           AASequence aas = AASequence::fromString(String(cit->first, cit->second));
-          ModifiedPeptideGenerator::applyFixedModifications(fixedMods.begin(), fixedMods.end(), aas);
-          ModifiedPeptideGenerator::applyVariableModifications(varMods.begin(), varMods.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
         }
 
         for (SignedSize mod_pep_idx = 0; mod_pep_idx < (SignedSize)all_modified_peptides.size(); ++mod_pep_idx)
@@ -1068,7 +1100,8 @@ private:
           MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
 
           // iterate over all RNA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
-          for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); rna_mod_it != mm.mod_masses.end(); ++rna_mod_it)
+	  Size rna_mod_index = 0;
+          for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); rna_mod_it != mm.mod_masses.end(); ++rna_mod_it, ++rna_mod_index)
           {
             double current_peptide_mass = current_peptide_mass_without_RNA + rna_mod_it->second; // add RNA mass
 
@@ -1111,10 +1144,11 @@ private:
 
               // add peptide hit
 	      AnnotatedHit ah;
-
-              ah.sequence = candidate;
+              ah.sequence.begin = cit->first;
+	      ah.sequence.end = cit->second;
+	      ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
-	      ah.nucleotide_formula = rna_mod_it->first;
+	      ah.rna_mod_index = rna_mod_index;
 #ifdef _OPENMP
 #pragma omp critical (annotated_hits_access)
 #endif
@@ -1136,7 +1170,7 @@ private:
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
     progresslogger.startProgress(0, 1, "Post-processing PSMs...");
-    postProcessHits_(spectra, annotated_hits, protein_ids, peptide_ids, report_top_hits, mm);
+    postProcessHits_(spectra, annotated_hits, protein_ids, peptide_ids, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
     progresslogger.endProgress();
 
     // annotate RNPxl related information to hits and create report
