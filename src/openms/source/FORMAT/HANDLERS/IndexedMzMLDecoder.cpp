@@ -217,11 +217,11 @@ namespace OpenMS
     //-------------------------------------------------------------
     xercesc::MemBufInputSource myxml_buf(
         reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
-    xercesc::XercesDOMParser* parser = new xercesc::XercesDOMParser();
-    parser->setDoNamespaces(false);
-    parser->setDoSchema(false);
-    parser->setLoadExternalDTD(false);
-    parser->parse(myxml_buf);
+    xercesc::XercesDOMParser parser;
+    parser.setDoNamespaces(false);
+    parser.setDoSchema(false);
+    parser.setLoadExternalDTD(false);
+    parser.parse(myxml_buf);
 
     //-------------------------------------------------------------
     // Start parsing
@@ -229,14 +229,13 @@ namespace OpenMS
     //-------------------------------------------------------------
 
     // no need to free this pointer - owned by the parent parser object
-    xercesc::DOMDocument* doc =  parser->getDocument();
+    xercesc::DOMDocument* doc =  parser.getDocument();
     // Get the top-level element ("indexedmzML")
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
       std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: " <<
         "No root element found:" << std::endl << std::endl << in << std::endl;
-      delete parser;
       return -1;
     }
 
@@ -248,7 +247,6 @@ namespace OpenMS
     {
       std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: "
         << "no indexList element found:" << std::endl << std::endl << in << std::endl;
-      delete parser;
       return -1;
     }
     xercesc::DOMNode* indexListNode = li->item(0);
@@ -321,7 +319,6 @@ namespace OpenMS
             name << "'." << std::endl;
           xercesc::XMLString::release(&x_idref_tag);
           xercesc::XMLString::release(&x_name_tag);
-          delete parser;
           return -1;
         }
       }
@@ -329,8 +326,6 @@ namespace OpenMS
     xercesc::XMLString::release(&x_idref_tag);
     xercesc::XMLString::release(&x_name_tag);
 
-
-    delete parser;
     return 0;
   }
 
