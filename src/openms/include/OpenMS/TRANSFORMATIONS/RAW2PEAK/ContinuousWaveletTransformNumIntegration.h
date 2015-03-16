@@ -294,7 +294,7 @@ protected:
     double integrate_(const std::vector<double> & processed_input, double spacing_data, int index);
 
     /// Computes the Marr wavelet at position x
-    inline double marr_(double x)
+    inline double marr_(const double x) const
     {
       return (1 - x * x) * exp(-x * x / 2);
     }

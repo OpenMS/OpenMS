@@ -53,6 +53,8 @@ namespace OpenMS
     for (int i = index; i > offset_data_left; --i)
     {
       int index_w_l = (int)Math::round(((index - (i - 1)) * spacing_data) / spacing_);
+      // we could also use:
+      // v += spacing_data / 2. * (...), but this can be factored out (see below) for faster computation
       v += (processed_input[i] * wavelet_[index_w_r] + processed_input[i - 1] * wavelet_[index_w_l]);
       index_w_r = index_w_l;
     }
@@ -66,20 +68,22 @@ namespace OpenMS
       index_w_l = index_w_r;
     }
 
+    // multiply by (spacing_data / 2.), but change order for better numerical stability
     return v / 2./ sqrt(scale_) * spacing_data;
   }
 
   void ContinuousWaveletTransformNumIntegration::init(double scale, double spacing)
   {
+    // will set members for scale_ and spacing_
     ContinuousWaveletTransform::init(scale, spacing);
-    int number_of_points_right = (int)(ceil(5 * scale_ / spacing_));
-    int number_of_points = number_of_points_right + 1;
+    int number_of_points = (int)(ceil(5 * scale_ / spacing_)) + 1;
     wavelet_.reserve(number_of_points);
     wavelet_.push_back(1.);
 
-    for (int i = 1; i < number_of_points; i++)
+    const double spacing_scale = spacing_ / scale_;
+    for (int i = 1; i < number_of_points; ++i)
     {
-      wavelet_.push_back(marr_(i * spacing_ / scale_));
+      wavelet_.push_back(marr_(i * spacing_scale));
     }
 
 #ifdef DEBUG_PEAK_PICKING
