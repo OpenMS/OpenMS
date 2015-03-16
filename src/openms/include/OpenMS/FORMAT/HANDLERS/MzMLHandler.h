@@ -436,8 +436,8 @@ protected:
       }
 
       template <typename SpectrumType>
-      void addSpectrumMetaData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
-                                const Size n, SpectrumType& spectrum)
+      void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
+                                const Size n, SpectrumType& spectrum) const
         {
 
             //add meta data
@@ -626,8 +626,10 @@ protected:
           for (Size n = 0; n < default_arr_length; n++)
           {
             //add peak
-            tmp.setIntensity(*int_it++);
-            tmp.setMZ(*mz_it++);
+            tmp.setIntensity(*int_it);
+            tmp.setMZ(*mz_it);
+            ++mz_it;
+            ++int_it;
             spectrum.push_back(tmp);
           }
           return;
@@ -645,8 +647,8 @@ protected:
             tmp.setMZ(mz);
             spectrum.push_back(tmp);
 
-            // Only if there are more than 2 data arrays do we need to check
-            // for meta data (as there will always be an m/z and in intensity
+            // Only if there are more than 2 data arrays, we need to check
+            // for meta data (as there will always be an m/z and intensity
             // array)
             if (input_data.size() > 2) 
             {
