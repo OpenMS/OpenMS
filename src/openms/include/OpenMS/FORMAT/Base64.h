@@ -448,12 +448,13 @@ private:
   void Base64::decodeUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
-      return;
 
-    // The length of a base64 string is a always a multiple of 3
-    if (in.size() < 3)
+    // The length of a base64 string is a always a multiple of 4 (always 3
+    // bytes are encoded as 4 characters)
+    if (in.size() < 4)
+    {
       return;
+    }
 
     Size src_size = in.size();
     // last one or two '=' are skipped if contained
@@ -776,12 +777,13 @@ private:
   void Base64::decodeIntegersUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
-      return;
 
-    // The length of a base64 string is a always a multiple of 3
-    if (in.size() < 3)
+    // The length of a base64 string is a always a multiple of 4 (always 3
+    // bytes are encoded as 4 characters)
+    if (in.size() < 4)
+    {
       return;
+    }
 
     Size src_size = in.size();
     // last one or two '=' are skipped if contained

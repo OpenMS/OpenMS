@@ -152,8 +152,13 @@ namespace OpenMS
   void Base64::decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression)
   {
     out.clear();
-    if (in == "")
+
+    // The length of a base64 string is a always a multiple of 4 (always 3
+    // bytes are encoded as 4 characters)
+    if (in.size() < 4)
+    {
       return;
+    }
 
     QByteArray base64_uncompressed;
     decodeSingleString(in, base64_uncompressed, zlib_compression);
@@ -169,8 +174,12 @@ namespace OpenMS
 
   void Base64::decodeSingleString(const String& in, QByteArray& base64_uncompressed, bool zlib_compression)
   {
-    if (in == "")
+    // The length of a base64 string is a always a multiple of 4 (always 3
+    // bytes are encoded as 4 characters)
+    if (in.size() < 4)
+    {
       return;
+    }
 
     QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
     base64_uncompressed = QByteArray::fromBase64(herewego);
