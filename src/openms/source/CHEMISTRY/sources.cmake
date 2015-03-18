@@ -10,6 +10,8 @@ Element.cpp
 ElementDB.cpp
 EmpiricalFormula.cpp
 EnzymaticDigestion.cpp
+Enzyme.cpp
+EnzymesDB.cpp
 IsotopeDistribution.cpp
 ModificationDefinition.cpp
 ModificationDefinitionsSet.cpp
