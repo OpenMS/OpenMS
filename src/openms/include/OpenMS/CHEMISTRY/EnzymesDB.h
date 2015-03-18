@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -158,7 +158,7 @@ protected:
 
     boost::unordered_map<String, Enzyme *> enzyme_names_;
 
-    boost::unordered_map<String, Enzyme *> enzyme_by_regex_;
+    Map<String, Enzyme *> enzyme_regex_;
 
     std::set<Enzyme *> enzymes_;
 

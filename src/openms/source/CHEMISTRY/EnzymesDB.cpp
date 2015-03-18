@@ -63,20 +63,21 @@ namespace OpenMS
 
   const Enzyme* EnzymesDB::getEnzyme(const String& name) const
   {
-    if (enzyme_names_.find(name) != enzyme_names_.end())
+    if (enzyme_names_.find(name) == enzyme_names_.end())
     {
-      return enzyme_names_.at(name);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Enzyme name cannot be found. '");
     }
-    return 0;
+    return enzyme_names_.at(name);
   }
 
   const Enzyme* EnzymesDB::getEnzymebyRegEx(const String & cleavage_regex) const
   {
-    if (enzyme_by_regex_.find(cleavage_regex) != enzyme_by_regex_.end())
+    if (!enzyme_regex_.has(cleavage_regex))
     {
-      return enzyme_by_regex_.at(cleavage_regex);
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Enzyme with regex "
+                                                                                       + cleavage_regex + " was not registered in Enzyme DB, register first!").c_str());
     }
-    return 0;
+    return enzyme_regex_[cleavage_regex];
   }
 
   void EnzymesDB::setEnzymes(const String& file_name)
@@ -94,6 +95,8 @@ namespace OpenMS
 
   void EnzymesDB::addEnzyme_(Enzyme* r)
   {
+    enzymes_.insert(r);
+    const_enzymes_.insert(r);
     vector<String> names;
     if (r->getName() != "")
     {
@@ -110,7 +113,7 @@ namespace OpenMS
 
   bool EnzymesDB::hasRegEx(const String & cleavage_regex) const
   {
-    if (enzyme_by_regex_.find(cleavage_regex) != enzyme_by_regex_.end())
+    if (enzyme_regex_.has(cleavage_regex))
     {
       return true;
     }
@@ -169,11 +172,9 @@ namespace OpenMS
           const_enzymes_.insert(enzy_ptr);
           prefix = split[0] + split[1];
         }
-
         String value = it->value;
         String key = it.getName();
         values[key] = value;
-
       }
 
       // add last enzyme
@@ -201,8 +202,8 @@ namespace OpenMS
     }
     enzymes_.clear();
     enzyme_names_.clear();
+    enzyme_regex_.clear();
     const_enzymes_.clear();
-    enzyme_by_regex_.clear();
   }
 
   Enzyme* EnzymesDB::parseEnzyme_(Map<String, String>& values)
@@ -230,7 +231,7 @@ namespace OpenMS
         continue;
       }
       if (key.hasSuffix(":NTermGain"))
-      {
+     {
         enzy_ptr->setNTermGain(EmpiricalFormula(value));
         continue;
       }
@@ -276,7 +277,10 @@ namespace OpenMS
     for (it = enzymes_.begin(); it != enzymes_.end(); ++it)
     {
       enzyme_names_[(*it)->getName()] = *it;
-      enzyme_by_regex_[(*it)->getRegEx()] = *it;
+      if ((*it)->getRegEx() != "")
+      {
+        enzyme_regex_[(*it)->getRegEx()] = *it;
+      }
       set<String>::iterator sit;
       set<String> syn = (*it)->getSynonyms();
       for (sit = syn.begin(); sit != syn.end(); ++sit)

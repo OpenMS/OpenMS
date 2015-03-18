@@ -3,7 +3,7 @@
   <NODE name="Enzymes">
     <NODE name="Trypsin">
       <ITEM name="Name" value="Trypsin" type="string" />
-      <ITEM name="RegEx" value="(?&lt;=[KR])(?!P)" type="string" />
+      <ITEM name="RegEx" value="(?&lt;=[RK])(?!P)" type="string" />
       <ITEM name="RegExDescription" value="Trypsin cleaves following a K or R residue unless the next residue is P." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
@@ -119,7 +119,6 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIid" value="MS:1001314" type="string" />
-      <ITEM name="OMSSAid" value="-1" type="int" />
     </NODE>
     <NODE name="V8-E">
       <ITEM name="Name" value="V8-E" type="string" />
@@ -128,7 +127,6 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIid" value="MS:1001315" type="string" />
-      <ITEM name="OMSSAid" value="-1" type="int" />
     </NODE>
     <NODE name="leukocyte elastase">
       <ITEM name="Name" value="leukocyte elastase" type="string" />
@@ -137,7 +135,6 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIid" value="MS:1001915" type="string" />
-      <ITEM name="OMSSAid" value="-1" type="int" />
     </NODE>
     <NODE name="proline endopeptidase">
       <ITEM name="Name" value="proline endopeptidase" type="string" />
@@ -146,7 +143,6 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIid" value="MS:1001916" type="string" />
-      <ITEM name="OMSSAid" value="-1" type="int" />
     </NODE>    
     <NODE name="glutamyl endopeptidase">
       <ITEM name="Name" value="glutamyl endopeptidase" type="string" />
@@ -168,11 +164,10 @@
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
       <ITEM name="PSIid" value="MS:1001918" type="string" />
-      <ITEM name="OMSSAid" value="-1" type="int" />
     </NODE>
     <NODE name="no cleavage">
       <ITEM name="Name" value="no cleavage" type="string" />
-      <ITEM name="RegEx" value="" type="string" />
+      <ITEM name="RegEx" value="()" type="string" />
       <ITEM name="RegExDescription" value="no cleavage." type="string" />
       <ITEM name="NTermGain" value="H" type="string" />
       <ITEM name="CTermGain" value="OH" type="string" />
