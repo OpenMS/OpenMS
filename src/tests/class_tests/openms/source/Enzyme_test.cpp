@@ -63,7 +63,8 @@ END_SECTION
 
 EnzymesDB* db = EnzymesDB::getInstance();
 e_ptr = new Enzyme(*db->getEnzyme("Trypsin"));
-String RKP("(?<=[RK])(?!P)");
+
+String RKP("(?<=[RKP])(?!P)");
 
 START_SECTION(Enzyme(const Enzyme &enzyme))
 	Enzyme copy(*e_ptr);
