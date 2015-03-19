@@ -4,4 +4,6 @@ include pyopenms/*.txt
 include pyopenms/libOpenMS.*
 include pyopenms/libOpenSwathAlgo.*
 include pyopenms/libSuperHirn.*
+include pyopenms/QtCore*
+include pyopenms/QtNetwork*
 exclude pyopenms/*.cpp
