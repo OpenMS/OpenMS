@@ -71,7 +71,7 @@ if iswin:
 elif sys.platform == "linux2":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "QtCore"]
 elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn"]
 else:
     print("\n")
     print("platform ", sys.platform, "not supported yet")
