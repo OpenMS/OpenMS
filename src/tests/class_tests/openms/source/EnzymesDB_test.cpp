@@ -129,4 +129,34 @@ START_SECTION(EnzymeConstIterator endEnzyme() const)
     NOT_TESTABLE // tested above
 END_SECTION
 
+START_SECTION((void getAllNames(std::vector< String > &all_names)))
+    vector<String> names;
+    ptr->getAllNames(names);
+    TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
+    TEST_EQUAL(find(names.begin(), names.end(), "Tryptryp") != names.end(), false)
+    Size old_size=names.size();
+    ptr->getAllNames(names);
+    TEST_EQUAL(names.size(), old_size)
+END_SECTION
+
+START_SECTION((void getAllXTandemNames(std::vector< String > &all_names)))
+    vector<String> names;
+    ptr->getAllXTandemNames(names);
+    TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
+    TEST_EQUAL(find(names.begin(), names.end(), "no cleavage") != names.end(), false)
+    Size old_size=names.size();
+    ptr->getAllXTandemNames(names);
+    TEST_EQUAL(names.size(), old_size)
+END_SECTION
+
+START_SECTION((void getAllOMSSANames(std::vector< String > &all_names)))
+    vector<String> names;
+    ptr->getAllOMSSANames(names);
+    TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
+    TEST_EQUAL(find(names.begin(), names.end(), "leukocyte elastase") != names.end(), false)
+    Size old_size=names.size();
+    ptr->getAllOMSSANames(names);
+    TEST_EQUAL(names.size(), old_size)
+END_SECTION
+
 END_TEST

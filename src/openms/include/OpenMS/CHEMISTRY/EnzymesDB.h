@@ -100,6 +100,12 @@ public:
 
     /// returns all the enzyme names
     void getAllNames(std::vector<String> & all_names);
+
+    /// returns all the enzyme names available for XTandem
+    void getAllXTandemNames(std::vector<String> & all_names);
+    
+    /// returns all the enzyme names available for OMSSA
+    void getAllOMSSANames(std::vector<String> & all_names);
     //@}
 
 

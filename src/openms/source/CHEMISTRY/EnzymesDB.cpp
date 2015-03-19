@@ -310,4 +310,31 @@ namespace OpenMS
     }
     sort(all_names.begin(),all_names.end());
   }
+
+  void EnzymesDB::getAllXTandemNames(vector<String> & all_names)
+  {
+    all_names.clear();
+    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    {
+      if ((*it)->getXTANDEMid() != "")
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+    sort(all_names.begin(),all_names.end());
+  }
+
+  void EnzymesDB::getAllOMSSANames(vector<String> & all_names)
+  {
+    all_names.clear();
+    all_names.push_back("Trypsin");
+    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    {
+      if ((*it)->getOMSSAid() != 0)
+      {
+        all_names.push_back((*it)->getName());
+      }
+    }
+    sort(all_names.begin(),all_names.end());
+  }
 } // namespace OpenMS
