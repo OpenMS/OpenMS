@@ -69,7 +69,7 @@ namespace OpenMS
     defaults_.setValue("PEPIons:mass_tolerance", 0.5, "Maximum difference between fragment masses (in Da) for fragments to be considered 'shared' between peptides .");
     defaults_.setMinFloat("PEPIons:mass_tolerance", 0.0);    
     // is the "min_shared" parameter necessary/useful?
-    defaults_.setValue("PEPIons:min_shared", 2, "The minimal number of 'shared' (between two suggested peptides) fragments that is necessary to evaluate the similarity based on shared peak count (SPC).");
+    defaults_.setValue("PEPIons:min_shared", 2, "The minimal number of 'shared' fragments (between two suggested peptides) that is necessary to evaluate the similarity based on shared peak count (SPC).");
     defaults_.setMinInt("PEPIons:min_shared", 1);
 
     defaults_.setValue("ranks:number_of_runs", 0, "The number of runs used as input. This information is used in the 'ranks' algorithm to compute the new scores. If not given, the number of input identifications is used.");
@@ -574,7 +574,9 @@ namespace OpenMS
         score /= (sum_sim * sum_sim);
 
         vector<double> scores(2, score);
-        scores[1] = sum_sim;
+        // normalize similarity score to range 0-1:
+        scores[1] = (sum_sim - 1.0) / best_matches.size();
+
         results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
       }
     }

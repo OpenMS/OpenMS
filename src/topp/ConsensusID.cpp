@@ -191,7 +191,6 @@ protected:
       // feature linking problem (peptide IDs from different ID runs <-> 
       // features from different maps), so we bring the data into a format
       // suitable for a feature grouping algorithm:
-
       vector<FeatureMap> maps(prot_ids.size());
       map<String, Size> id_mapping; // mapping: run ID -> index (of feature map)
       for (Size i = 0; i < prot_ids.size(); ++i)
