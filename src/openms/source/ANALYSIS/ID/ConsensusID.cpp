@@ -211,7 +211,7 @@ namespace OpenMS
         String hi_lo = higher_better ? "higher/lower" : "lower/higher";
         String msg = "Score types '" + ids[0].getScoreType() + "' and '" +
           pep_it->getScoreType() + "' have different orientations (" + hi_lo +
-          " is better) and cannot be compared meaningfully";
+          " is better) and cannot be compared meaningfully.";
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                       msg, higher_better ? "false" : "true");
       }

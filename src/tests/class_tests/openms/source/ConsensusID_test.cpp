@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: Marc Sturm, Andreas Bertsch, Sven Nahnsen $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Marc Sturm, Andreas Bertsch, Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -116,7 +116,9 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
-  // ***** Best ********
+  // PEPMatrix and PEPIons algorithms are covered by the TOPP tool tests
+
+  // ***** best ********
 
   ConsensusID consensus;
   //define parameters
@@ -177,11 +179,11 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   TEST_EQUAL(hits[10].getSequence(), AASequence::fromString("K"));
   TEST_REAL_SIMILAR(hits[10].getScore(), 0.9);
 
-  // ***** Ranked ********
+  // ***** ranks ********
 
   //define parameters
   param.clear();
-  param.setValue("algorithm", "rank");
+  param.setValue("algorithm", "ranks");
   param.setValue("considered_hits", 5);
   param.setValue("rank:number_of_runs", 3);
   consensus.setParameters(param);
@@ -222,7 +224,7 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   TEST_EQUAL(hits[6].getSequence(), AASequence::fromString("E"));
   TEST_REAL_SIMILAR(hits[6].getScore(), 0.06666);
 
-  // ***** Average ********
+  // ***** average ********
 
   //define parameters
   param.clear();
@@ -269,9 +271,24 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   TEST_EQUAL(hits[6].getSequence(), AASequence::fromString("E"));
   TEST_REAL_SIMILAR(hits[6].getScore(), 0.5);
 
-  // ***** Exception ********
-  param.setValue("algorithm","Bla4711");
+  // ***** exceptions ********
+
+  param.setValue("algorithm", "Bla4711");
   TEST_EXCEPTION(Exception::InvalidParameter, consensus.setParameters(param));
+
+  ids[2].setScoreType("some_score");
+  param.setValue("algorithm", "PEPMatrix");
+  consensus.setParameters(param);
+  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
+
+  param.setValue("algorithm", "PEPIons");
+  consensus.setParameters(param);
+  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
+
+  ids[2].setHigherScoreBetter(true);
+  param.setValue("algorithm", "average");
+  consensus.setParameters(param);
+  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
 }
 END_SECTION
 
