@@ -42,6 +42,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
+#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
@@ -367,7 +368,23 @@ public:
           }
         }
         
-        averageSpectra_(exp, spectra_to_average_over, *it_mslevel);
+        // determine type of spectral data (profile or centroided)
+        Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
+        SpectrumSettings::SpectrumType spectrum_type = exp[idx].getType();
+        if (spectrum_type == SpectrumSettings::UNKNOWN)
+        {
+          spectrum_type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+        }
+        bool centroided = spectrum_type == SpectrumSettings::PEAKS;
+        if (centroided)
+        {
+          std::cout << "Averaging in centroid mode not yet implemented.\n";
+        }
+        else
+        {
+          averageSpectra_(exp, spectra_to_average_over, *it_mslevel);
+        }
+
       }
         
       exp.sortSpectra();
