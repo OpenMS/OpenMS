@@ -28,73 +28,17 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: Sven Nahnsen and others $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <cmath>
-#include <map>
 #include <numeric> // for "accumulate"
-
-// Extend SeqAn by a user-define scoring matrix.
-namespace seqan
-{
-
-  // We have to create a new specialization of the _ScoringMatrix class
-  // for amino acids.  For this, we first create a new tag.
-  struct PAM30MS {};
-
-  // Then, we specialize the class _ScoringMatrix.
-  template <>
-  struct ScoringMatrixData_<int, AminoAcid, PAM30MS>
-  {
-    enum
-    {
-      VALUE_SIZE = ValueSize<AminoAcid>::VALUE,
-      TAB_SIZE = VALUE_SIZE * VALUE_SIZE
-    };
-    static inline int const* getData()
-    {
-      // DEFINE the PAM30MS matrix from Habermann et al. MCP. 2004.
-      static int const _data[TAB_SIZE] =
-      {
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, -17,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -17,
-        -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, -17, 1,
-      };
-
-      return _data;
-    }
-
-  };
-} // namespace seqan
 
 using namespace std;
 
@@ -107,30 +51,71 @@ namespace OpenMS
     DefaultParamHandler("ConsensusID")
   {
     defaults_.setValue("algorithm", "PEPMatrix", "Algorithm used for the consensus scoring.\n"
-                       "PEPMatrix -- calculates a consensus score based on posterior error probabilities (PEPs) and peptide similarity scoring. This algorithm uses the PAM30MS matrix to score the similarity of sequences not listed by all search engines. Make sure that the scores for all peptide IDs are PEPs!\n"
+                       "PEPMatrix -- calculates a consensus score based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. Make sure that the scores for all peptide IDs are PEPs!\n"
                        "PEPIons -- calculates a consensus score based on posterior error probabilities (PEPs) and fragment ion similarities. Make sure that the scores for all peptide IDs are PEPs!\n"
                        "best -- uses the best score of any search engine as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!\n"
                        "average -- uses the average score of all search engines as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!\n"
-                       "rank -- calculates a consensus score based on the ranks of peptide IDs in results of the different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.\n"
+                       "ranks -- calculates a consensus score based on the ranks of peptide IDs in results of the different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.\n"
 );
-    defaults_.setValidStrings("algorithm", ListUtils::create<String>("PEPMatrix,PEPIons,best,average,rank"));
+    defaults_.setValidStrings("algorithm", ListUtils::create<String>("PEPMatrix,PEPIons,best,average,ranks"));
     defaults_.setValue("considered_hits", 10, "The number of top hits that are used for the consensus scoring ('0' for all hits).");
     defaults_.setMinInt("considered_hits", 0);
-    defaults_.setValue("PEPIons:MinNumberOfFragments", 2, "The minimal number of similar (between two suggested sequences) fragment ion masses that is necessary to evaluate the shared peak count similarity (SPC).");
-    defaults_.setMinInt("PEPIons:MinNumberOfFragments", 0);
-    defaults_.setValue("PEPMatrix:common", 1.1, "Similarity threshold to accept the best score. E.g. for a given spectrum: engine 1 -> pep 1 with score x1 and engine2 -> pep2 with score x2. The better score from {x1,x2} will be used if the degree of similarity between pep1 and pep2 >= common, Note that 0 <= degree of similarity <= 1. Values > 1 will disable this option.");
-    defaults_.setMinFloat("PEPMatrix:common", 0);
-    defaults_.setMaxFloat("PEPMatrix:common", 1.1);
-    defaults_.setValue("PEPMatrix:penalty", 5, "The alignment gap penalty as a positive integer (the same penalty will be used for opening and extension)");
+
+    defaults_.setValue("PEPMatrix:matrix", "identity", "Substitution matrix to use for alignment-based similarity scoring");
+    defaults_.setValidStrings("PEPMatrix:matrix", ListUtils::create<String>("identity,PAM30MS"));
+    defaults_.setValue("PEPMatrix:penalty", 5, "Alignment gap penalty (the same value will be used for gap opening and extension)");
     defaults_.setMinInt("PEPMatrix:penalty", 1);
-    defaults_.setValue("PEPIons:common", 1.1, "Similarity threshold to accept the best score. E.g. for a given spectrum: engine 1 -> pep 1 with score x1 and engine2 -> pep2 with score x2. The better score from {x1,x2} will be used if the degree of similarity between pep1 and pep2 >= common, Note that 0 <= degree of similarity <= 1. Values > 1 will disable this option.");
-    defaults_.setMinFloat("PEPIons:common", 0);
-    defaults_.setMaxFloat("PEPIons:common", 1.1);
-    defaults_.setValue("rank:number_of_runs", 0, "The number of runs used as input. This information is used in the 'rank' algorithm to compute the new scores. If not given, the number of input identifications is used.");
-    defaults_.setMinInt("rank:number_of_runs", 0);
+
+    defaults_.setValue("PEPIons:mass_tolerance", 0.5, "Maximum difference between fragment masses (in Da) for fragments to be considered 'shared' between peptides .");
+    defaults_.setMinFloat("PEPIons:mass_tolerance", 0.0);    
+    // is the "min_shared" parameter necessary/useful?
+    defaults_.setValue("PEPIons:min_shared", 2, "The minimal number of 'shared' (between two suggested peptides) fragments that is necessary to evaluate the similarity based on shared peak count (SPC).");
+    defaults_.setMinInt("PEPIons:min_shared", 1);
+
+    defaults_.setValue("ranks:number_of_runs", 0, "The number of runs used as input. This information is used in the 'ranks' algorithm to compute the new scores. If not given, the number of input identifications is used.");
+    defaults_.setMinInt("ranks:number_of_runs", 0);
 
     defaultsToParam_();
+
+    ::seqan::resize(rows(alignment_), 2);
   }
+
+
+  void ConsensusID::updateMembers_()
+  {
+    // alignment scoring using SeqAn/similarity matrices:
+    String matrix = param_.getValue("PEPMatrix:matrix");
+    int penalty = param_.getValue("PEPMatrix:penalty");
+    scoring_method_ = SeqAnScore(-penalty, -penalty);
+    if (matrix == "identity")
+    {
+      ::seqan::setDefaultScoreMatrix(scoring_method_, 
+                                     ::seqan::AdaptedIdentity());
+    }
+    else if (matrix == "PAM30MS")
+    {
+      ::seqan::setDefaultScoreMatrix(scoring_method_, ::seqan::PAM30MS());
+    }
+    else
+    {
+      String msg = "Matrix '" + matrix + "' is not known! Valid choices are: "
+        "'identity', 'PAM30MS'.";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       msg);
+    }
+
+    // similarity scoring based on shared peak count:
+    mass_tolerance_ = param_.getValue("PEPIons:mass_tolerance");
+    min_shared_ = param_.getValue("PEPIons:min_shared");
+
+    // other parameters:
+    number_of_runs_ = param_.getValue("ranks:number_of_runs");
+    considered_hits_ = param_.getValue("considered_hits");
+    
+    // new parameters may affect the similarity calculation, so clear cache:
+    similarities_.clear();
+  }
+
 
   void ConsensusID::apply(vector<PeptideIdentification>& ids)
   {
@@ -140,15 +125,17 @@ namespace OpenMS
       return;
     }
 
+    // @TODO: what if there's only one ID run?!
+
     // prepare data here, so that it doesn't have to happen in each algorithm:
-    Size considered_hits = param_.getValue("considered_hits");
     for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 
          pep_it != ids.end(); ++pep_it)
     {
       pep_it->sort();
-      if ((considered_hits > 0) && (pep_it->getHits().size() > considered_hits))
+      if ((considered_hits_ > 0) && 
+          (pep_it->getHits().size() > considered_hits_))
       {
-        pep_it->getHits().resize(considered_hits);
+        pep_it->getHits().resize(considered_hits_);
       }
     }
 
@@ -156,15 +143,15 @@ namespace OpenMS
 
     if (algorithm == "PEPMatrix")
     {
-      PEPMatrix_(ids);
+      PEPMatrixOrIons_(ids, true);
     }
     else if (algorithm == "PEPIons")
     {
-      PEPIons_(ids);
+      PEPMatrixOrIons_(ids, false);
     }
-    else if (algorithm == "rank")
+    else if (algorithm == "ranks")
     {
-      rank_(ids);
+      ranks_(ids);
     }
     else if (algorithm == "average")
     {
@@ -188,6 +175,24 @@ namespace OpenMS
                 << hits2[i].getScore() << endl;
     }
 #endif
+  }
+
+
+  void ConsensusID::compareChargeStates_(Int& recorded_charge, Int new_charge,
+                                         const AASequence& peptide)
+  {
+    if (recorded_charge == 0) // update recorded charge
+    {
+      recorded_charge = new_charge;
+    }
+    else if ((new_charge != 0) && (recorded_charge != new_charge))
+    { // maybe TODO: calculate correct charge from prec. m/z and peptide mass?
+      String msg = "Conflicting charge states found for peptide '" +
+        peptide.toString() + "': " + String(recorded_charge) + ", " + 
+        String(new_charge);
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+                                    msg, String(new_charge));
+    }
   }
 
 
@@ -223,22 +228,9 @@ namespace OpenMS
                                     vector<double>(1, hit_it->getScore()));
         }
         else // previously seen sequence
-        {
-          // compare charge states:
-          Int charge = hit_it->getCharge();
-          if (pos->second.first == 0)
-          {
-            pos->second.first = charge;
-          }
-          else if ((charge != 0) && (pos->second.first != charge))
-          {
-            String msg = "Conflicting charge states found for peptide '" +
-              pos->first.toString() + "': " + String(pos->second.first) +
-              ", " + String(charge);
-            throw Exception::InvalidValue(__FILE__, __LINE__,
-                                          __PRETTY_FUNCTION__, msg, 
-                                          String(charge));
-          }
+        { 
+          compareChargeStates_(pos->second.first, hit_it->getCharge(),
+                               pos->first);
           pos->second.second.push_back(hit_it->getScore());
         }
       }
@@ -254,7 +246,7 @@ namespace OpenMS
   }
 
 
-  void ConsensusID::rank_(vector<PeptideIdentification>& ids)
+  void ConsensusID::ranks_(vector<PeptideIdentification>& ids)
   {
     // The idea here is that each peptide hit (sequence) gets assigned a score
     // from each ID run, based on its rank in the list of search results.
@@ -265,9 +257,8 @@ namespace OpenMS
     // hit (sequence) are averaged and normalized to the range from 0
     // (exclusive, worst) to 1 (inclusive, best).
 
-    Size number_of_runs = param_.getValue("rank:number_of_runs");
-    if (number_of_runs == 0) number_of_runs = ids.size();
-    Size considered_hits = param_.getValue("considered_hits");
+    Size number_of_runs = (number_of_runs_ > 0) ? number_of_runs_ : ids.size();
+    Size considered_hits = considered_hits_;
     bool set_considered_hits = (considered_hits == 0);
 
     for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
@@ -295,7 +286,7 @@ namespace OpenMS
     ids.clear();
     ids.resize(1);
     // the original score type doesn't matter here, so don't include it:
-    ids[0].setScoreType("Consensus_rank");
+    ids[0].setScoreType("Consensus_ranks");
     ids[0].setHigherScoreBetter(true);
     for (SequenceGrouping::iterator group_it = grouping.begin(); 
          group_it != grouping.end(); ++group_it)
@@ -384,309 +375,226 @@ namespace OpenMS
   }
 
 
-  void ConsensusID::PEPMatrix_(vector<PeptideIdentification>& ids)
+  double ConsensusID::getSimilarityMatrix_(AASequence seq1, AASequence seq2)
   {
-    Map<AASequence, vector<double> > scores;
-
-    int penalty = (UInt)param_.getValue("PEPMatrix:penalty");
-    double common = (double)param_.getValue("PEPMatrix:common");
-
-    String score_type = ids[0].getScoreType();
-    bool higher_better = ids[0].isHigherScoreBetter();
-
-    for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
+    // here we cannot take modifications into account:
+    String unmod_seq1 = seq1.toUnmodifiedString();
+    String unmod_seq2 = seq2.toUnmodifiedString();
+    if (unmod_seq1 == unmod_seq2) return 1.0;
+    // order of sequences matters for cache look-up:
+    if (unmod_seq1 > unmod_seq2) swap(unmod_seq1, unmod_seq2);
+    seq1 = AASequence::fromString(unmod_seq1);
+    seq2 = AASequence::fromString(unmod_seq2);
+    pair<AASequence, AASequence> seq_pair = make_pair(seq1, seq2);
+    SimilarityCache::iterator pos = similarities_.find(seq_pair);
+    if (pos != similarities_.end()) return pos->second; // score found in cache
+    
+    // use SeqAn similarity scoring:
+    SeqAnSequence seqan_seq1 = unmod_seq1.c_str();
+    SeqAnSequence seqan_seq2 = unmod_seq2.c_str();
+    // seq. 1 against itself:
+    ::seqan::assignSource(row(alignment_, 0), seqan_seq1);
+    ::seqan::assignSource(row(alignment_, 1), seqan_seq1);
+    double score_self1 = globalAlignment(alignment_, scoring_method_,
+                                         ::seqan::NeedlemanWunsch());
+    // seq. 1 against seq. 2:
+    ::seqan::assignSource(row(alignment_, 1), seqan_seq2);
+    double score_sim = globalAlignment(alignment_, scoring_method_, 
+                                       ::seqan::NeedlemanWunsch());
+    // seq. 2 against itself:
+    ::seqan::assignSource(row(alignment_, 0), seqan_seq2);
+    double score_self2 = globalAlignment(alignment_, scoring_method_,
+                                         ::seqan::NeedlemanWunsch());
+    if (score_sim < 0)
     {
-#ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - ID run" << endl;
-#endif
-
-      //check the score type
-      if (id->getScoreType() != score_type)
-      {
-        cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
-      }
-      if (id->isHigherScoreBetter() != higher_better)
-      {
-        cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
-      }
-      if (higher_better)
-      {
-        cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
-      }
-
-      //iterate over the hits
-      for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end(); ++hit)
-      {
-        double a_score = (double)hit->getScore();
-        double a_sim = 1;
-        double NumberAnnots = 1;
-
-
-        set<String> myset;
-        for (vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
-        {
-          if (myset.find(t->getMetaValue("scoring")) == myset.end() && hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
-          {
-            double a = 0;
-            double zz = 0;
-            vector<double> z;
-            z.push_back((double)hit->getScore());
-            // find the same or most similar peptide sequence in lists from other search engines
-            for (vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
-            {
-              if (!(hit->getMetaValue("scoring") != t->getMetaValue("scoring"))) exit(1);
-
-              if (tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
-              {
-                //use SEQAN similarity scoring
-                typedef ::seqan::String< ::seqan::AminoAcid> TSequence;
-                TSequence seq1 = tt->getSequence().toUnmodifiedString().c_str();
-                TSequence seq2 = hit->getSequence().toUnmodifiedString().c_str();
-/////////////////////////introduce scoring with PAM30MS
-                typedef int TValue;
-                typedef ::seqan::Score<TValue, ::seqan::ScoreMatrix< ::seqan::AminoAcid, ::seqan::Default> > TScoringScheme;
-                TScoringScheme pam30msScoring(-penalty, -penalty);
-                ::seqan::setDefaultScoreMatrix(pam30msScoring, ::seqan::PAM30MS());
-/////////////////////////introduce scoring with PAM30MS
-
-//You can also use normal mutation based matrices, such as BLOSUM or the normal PAM matrix
-                ::seqan::Pam250 pam(-5, -5);
-                //::seqan::Score<int, ::seqan::Pam<> > pam(30, -10, -10);
-                ::seqan::Align<TSequence, ::seqan::ArrayGaps> align, self1, self2;
-                ::seqan::resize(rows(align), 2);
-                ::seqan::resize(rows(self1), 2);
-                ::seqan::resize(rows(self2), 2);
-                ::seqan::assignSource(row(align, 0), seq1);
-                ::seqan::assignSource(row(align, 1), seq2);
-                ::seqan::assignSource(row(self1, 0), seq1);
-                ::seqan::assignSource(row(self1, 1), seq1);
-                ::seqan::assignSource(row(self2, 0), seq2);
-                ::seqan::assignSource(row(self2, 1), seq2);
-
-                vector<double> temp;
-                temp.push_back(globalAlignment(self1, pam30msScoring, ::seqan::NeedlemanWunsch()));
-                temp.push_back(globalAlignment(self2, pam30msScoring, ::seqan::NeedlemanWunsch()));
-
-                double c = (double)globalAlignment(align, pam30msScoring, ::seqan::NeedlemanWunsch());
-                double b = *(min_element(temp.begin(), temp.end()));
-                c /= b;
-                if (c < 0)
-                {
-                  c = 0;
-                }
-                if (c > a)
-                {
-                  a = c;
-                  if (a >= common)
-                  {
-                    z.push_back((double)tt->getScore());
-                    zz = *(min_element(z.begin(), z.end()));
-                  }
-                  else
-                  {
-                    zz = (double)tt->getScore() * a;
-                  }
-                }
-              }
-            }
-            if (a >= common)
-            {
-              a_sim += 1;
-            }
-            else
-            {
-              a_sim += a;
-            }
-            NumberAnnots += 1;
-            a_score += zz;
-            myset.insert(t->getMetaValue("scoring"));
-          }
-        }
-        // the meta value similarity corresponds to the sum of the similarities.
-        // Note: if similarity equals the number of search engines, the same peptide has been assigned by all engines
-        //::std::cout <<hit->getSequence()<<" a_score="<<a_score<<" a_sim="<< a_sim <<::std::endl;
-        vector<double> ScoreSim;
-        //test
-        ScoreSim.push_back(a_score / (a_sim * a_sim));
-        ScoreSim.push_back(a_sim);
-        ScoreSim.push_back(NumberAnnots);
-        ScoreSim.push_back(hit->getCharge());
-        scores.insert(make_pair(hit->getSequence(), ScoreSim));
-      }
+      score_sim = 0;
     }
-
-    //Replace IDs by consensus
-    ids.clear();
-    ids.resize(1);
-    ids[0].setScoreType(String("Consensus_PEPMatrix (") + score_type + ")");
-    ids[0].setHigherScoreBetter(false);
-    for (Map<AASequence, vector<double> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    else
     {
-      PeptideHit hit;
-      hit.setSequence(it->first);
-      hit.setScore(it->second[0]);
-      hit.setMetaValue("similarity", it->second[1]);
-      hit.setMetaValue("Number of annotations", it->second[2]);
-      hit.setCharge(static_cast<Int>(it->second[3]));
-      ids[0].insertHit(hit);
-#ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;
-#endif
+      score_sim /= min(score_self1, score_self2); // normalize
     }
+    similarities_[seq_pair] = score_sim; // cache the similarity score
+
+    return score_sim;
   }
 
 
-  void ConsensusID::PEPIons_(vector<PeptideIdentification>& ids)
+  double ConsensusID::getSimilarityIons_(AASequence seq1, AASequence seq2)
   {
-    Map<AASequence, vector<double> > scores;
+    if (seq1 == seq2) return 1.0;
+    // order of sequences matters for cache look-up:
+    if (seq2 < seq1) swap(seq1, seq2); // "operator>" not defined
+    pair<AASequence, AASequence> seq_pair = make_pair(seq1, seq2);
+    SimilarityCache::iterator pos = similarities_.find(seq_pair);
+    if (pos != similarities_.end()) return pos->second; // score found in cache
 
-    UInt MinNumberOfFragments = (UInt)(param_.getValue("PEPIons:MinNumberOfFragments"));
-
-    String score_type = ids[0].getScoreType();
-    bool higher_better = ids[0].isHigherScoreBetter();
-    double common = (double)param_.getValue("PEPIons:common");
-
-    for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
+    // compare b and y ion series of seq. 1 and seq. 2:
+    vector<double> ions1(2 * seq1.size()), ions2(2 * seq2.size());
+    // b ions, seq. 1:
+    ions1[0] = seq1.getPrefix(1).getMonoWeight(); // includes N-terminal mods
+    // y ions, seq. 1:
+    ions1[seq1.size()] = seq1.getSuffix(1).getMonoWeight(); // inc. C-term. mods
+    for (Size i = 1; i < seq1.size(); ++i)
     {
-#ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - ID run" << endl;
-#endif
+      ions1[i] = ions1[i - 1] + seq1[i].getMonoWeight();
+      ions1[seq1.size() + i] = (ions1[seq1.size() + i - 1] + 
+                                seq1[seq1.size() - i - 1].getMonoWeight());
+    }
+    // b ions, seq. 2:
+    ions2[0] = seq2.getPrefix(1).getMonoWeight(); // includes N-terminal mods
+    // y ions, seq. 2:
+    ions2[seq2.size()] = seq2.getSuffix(1).getMonoWeight(); // inc. C-term. mods
+    for (Size i = 1; i < seq2.size(); ++i)
+    {
+      ions2[i] = ions2[i - 1] + seq2[i].getMonoWeight();
+      ions2[seq2.size() + i] = (ions2[seq2.size() + i - 1] + 
+                                seq2[seq2.size() - i - 1].getMonoWeight());
+    }
 
-      //check the score type
-      if (id->getScoreType() != score_type)
+    // now compare fragment masses from both sequences to find best matches
+    // within the allowed tolerance; note that:
+    // 1. we can be more efficient than comparing "all against all"
+    // 2. an ion from seq. 2 may be the best match for two (similar) ions from
+    // seq. 1 - then we want to count that ion only once, not twice 
+    sort(ions1.begin(), ions1.end());
+    sort(ions2.begin(), ions2.end());
+    set<double> matches; // each best-matching ion counts only once
+    vector<double>::iterator start = ions2.begin();
+    // for each fragment in seq. 1...
+    for (vector<double>::iterator it1 = ions1.begin(); it1 != ions1.end();
+         ++it1)
+    {
+      // ...find fragments from seq. 2 that are within the mass tolerance:
+      vector<double>::iterator lower = lower_bound(start, ions2.end(),
+                                                   *it1 - mass_tolerance_);
+      if (lower == ions2.end()) break; // all values are too low
+      vector<double>::iterator upper = upper_bound(lower, ions2.end(),
+                                                   *it1 + mass_tolerance_);
+      double best_match = 0.0, best_diff = mass_tolerance_ + 1.0;
+      // find ion from seq. 2 (*it2) that is closest to ion from seq. 1 (*it1):
+      for (vector<double>::iterator it2 = lower; it2 != upper; ++it2)
       {
-        cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
-      }
-      if (id->isHigherScoreBetter() != higher_better)
-      {
-        cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
-      }
-      if (higher_better)
-      {
-        cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
-      }
-
-      //iterate over the hits
-      for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end(); ++hit)
-      {
-        //double a_score=(double)hit->getMetaValue("PEP");
-        double a_score = (double)hit->getScore();
-        double a_sim = 1;
-        double NumberAnnots = 1;
-
-        set<String> myset;
-        for (vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
+        double diff = fabs(*it1 - *it2);
+        if (diff < best_diff)
         {
-          if (myset.find(t->getMetaValue("scoring")) == myset.end() && hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
-          {
-            double a = 0;
-            UInt SumIonSeries = 2;
-            double zz = 0;
-            vector<double> z;
-            z.push_back((double)hit->getScore());
-            //find the same or most similar peptide sequence in lists from other search engines
-            for (vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
-            {
-              PeptideHit k = *tt;
-              if (hit->getMetaValue("scoring") != t->getMetaValue("scoring") && tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
-              {
-                //use similarity of b and y ion series for scoring
-                AASequence S1, S2;
-                S1 = tt->getSequence();
-                S2 = hit->getSequence();
-                //compare b and y ion series of S1 and S2
-                vector<double> Yions_S1, Yions_S2, Bions_S1, Bions_S2;
-                for (UInt r = 1; r <= S1.size(); ++r)
-                {
-                  Yions_S1.push_back(S1.getPrefix(r).getMonoWeight());
-                  Bions_S1.push_back(S1.getSuffix(r).getMonoWeight());
-                }
-                for (UInt r = 1; r <= S2.size(); ++r)
-                {
-                  Yions_S2.push_back(S2.getPrefix(r).getMonoWeight());
-                  Bions_S2.push_back(S2.getSuffix(r).getMonoWeight());
-                }
-                UInt Bs = 0;
-                UInt Ys = 0;
-                for (UInt xx = 0; xx < Yions_S1.size(); ++xx)
-                {
-                  for (UInt yy = 0; yy < Yions_S2.size(); ++yy)
-                  {
-                    if (fabs(Yions_S1[xx] - Yions_S2[yy]) <= 1)
-                    {
-                      Ys += 1;
-                    }
-                  }
-                }
-                for (UInt xx = 0; xx < Bions_S1.size(); ++xx)
-                {
-                  for (UInt yy = 0; yy < Bions_S2.size(); ++yy)
-                  {
-                    if (fabs(Bions_S1[xx] - Bions_S2[yy]) <= 1)
-                    {
-                      Bs += 1;
-                    }
-                  }
-                }
-                vector<UInt> tmp;
-                tmp.push_back(Ys);
-                tmp.push_back(Bs);
-                UInt sum_tmp;
-                sum_tmp = Bs + Ys;
-                //# matching ions/number of AASeqences(S1)
-                double c, b;
-                b = *(min_element(tmp.begin(), tmp.end()));
-                c = b / S1.size();
-                if (sum_tmp > SumIonSeries && sum_tmp > MinNumberOfFragments)
-                {
-                  SumIonSeries = sum_tmp;
-                  a = c;
-                  if (a >= common)
-                  {
-                    z.push_back((double)tt->getScore());
-                    zz = *(min_element(z.begin(), z.end()));
-
-                  }
-                  else
-                  {
-                    zz = (double)tt->getScore() * a;
-                  }
-                }
-              }
-            }
-            NumberAnnots += 1;
-            a_score += zz;
-            a_sim += a;
-            myset.insert(t->getMetaValue("scoring"));
-          }
+          best_diff = diff;
+          best_match = *it2;
         }
-        //the meta value similarity corresponds to the sum of the similarities. Note that if similarity equals the number of search engines, the
-        //same peptide has been assigned by all engines
-        vector<double> ScoreSim;
-        ScoreSim.push_back(a_score / (a_sim * a_sim));
-        ScoreSim.push_back(a_sim);
-        ScoreSim.push_back(NumberAnnots);
-        ScoreSim.push_back(hit->getCharge());
-        scores.insert(make_pair(hit->getSequence(), ScoreSim));
+      }
+      if (best_diff <= mass_tolerance_) matches.insert(best_match);
+      
+      start = lower; // "*it1" is increasing, so lower bounds can't get lower
+    }
+
+    double score_sim = 0.0;
+    if (matches.size() >= min_shared_)
+    {
+      score_sim = matches.size() / float(min(ions1.size(), ions2.size()));
+    }
+    similarities_[seq_pair] = score_sim; // cache the similarity score
+
+    return score_sim;
+  }
+
+
+  void ConsensusID::PEPMatrixOrIons_(vector<PeptideIdentification>& ids,
+                                     const bool matrix)
+  {
+    for (vector<PeptideIdentification>::iterator id = ids.begin();
+         id != ids.end(); ++id)
+    {
+      if (id->getScoreType() != "Posterior Error Probability")
+      {
+        String msg = "Score type must be 'Posterior Error Probablity'";
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                      msg, id->getScoreType());
       }
     }
 
-    //Replace IDs by consensus
+    // mapping: peptide sequence -> (charge, [consensus score, similarity])
+    SequenceGrouping results;
+    
+    for (vector<PeptideIdentification>::iterator id1 = ids.begin();
+         id1 != ids.end(); ++id1)
+    {
+      for (vector<PeptideHit>::iterator hit1 = id1->getHits().begin();
+           hit1 != id1->getHits().end(); ++hit1)
+      {
+        // have we scored this sequence already? if yes, skip:
+        SequenceGrouping::iterator pos = results.find(hit1->getSequence());
+        if (pos != results.end())
+        { 
+          compareChargeStates_(pos->second.first, hit1->getCharge(),
+                               pos->first);
+          continue;
+        }
+        
+        // similarity scores and PEPs of best matches for all ID runs:
+        vector<pair<double, double> > best_matches;
+        best_matches.reserve(ids.size() - 1);
+        for (vector<PeptideIdentification>::iterator id2 = ids.begin();
+             id2 != ids.end(); ++id2)
+        {
+          if (id1 == id2) continue;
+          
+          // similarity scores and PEPs of all matches in current ID run
+          // (to get the best match, we look for highest similarity, breaking
+          // ties by better PEP - so we need to transform PEP so higher scores
+          // are better, same as similarity):
+          vector<pair<double, double> > current_matches;
+          current_matches.reserve(id2->getHits().size());
+          for (vector<PeptideHit>::iterator hit2 = id2->getHits().begin();
+               hit2 != id2->getHits().end(); ++hit2)
+          {
+            // hopefully the compiler should optimize this by moving the check
+            // ("matrix ?") outside of all the for-loops; if not:
+            // maybe @TODO - if necessary, optimize this by:
+            // a) turning "matrix" into a template argument and creating two
+            // instantiations of this function, or
+            // b) making the "getSimilarity..." functions static and passing in
+            // a function pointer
+            double sim_score = matrix ? 
+              getSimilarityMatrix_(hit1->getSequence(), hit2->getSequence()) :
+              getSimilarityIons_(hit1->getSequence(), hit2->getSequence());
+            // use "1 - PEP" so higher scores are better (for "max_element"):
+            current_matches.push_back(make_pair(sim_score,
+                                                1.0 - hit2->getScore()));
+          }
+          best_matches.push_back(*max_element(current_matches.begin(),
+                                              current_matches.end()));
+        }
+        double score = hit1->getScore();
+        double sum_sim = 1.0; // sum of similarity scores
+        for (vector<pair<double, double> >::iterator it = best_matches.begin();
+             it != best_matches.end(); ++it)
+        {
+          score += it->first * (1.0 - it->second); // undo "1 - PEP" transform
+          sum_sim += it->first;
+        }
+        score /= (sum_sim * sum_sim);
+
+        vector<double> scores(2, score);
+        scores[1] = sum_sim;
+        results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
+      }
+    }
+
     ids.clear();
     ids.resize(1);
-    ids[0].setScoreType(String("Consensus_PEPIons (") + score_type + ")");
+    ids[0].setScoreType(matrix ? "Consensus_PEPMatrix" : "Consensus_PEPIons");
     ids[0].setHigherScoreBetter(false);
-    for (Map<AASequence, vector<double> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    for (SequenceGrouping::iterator res_it = results.begin(); 
+         res_it != results.end(); ++res_it)
     {
       PeptideHit hit;
-      hit.setSequence(it->first);
-      hit.setScore(it->second[0]);
-      hit.setMetaValue("similarity", it->second[1]);
-      hit.setMetaValue("Number of annotations", it->second[2]);
-      hit.setCharge(static_cast<Int>(it->second[3]));
+      hit.setSequence(res_it->first);
+      hit.setScore(res_it->second.second[0]);
+      hit.setCharge(res_it->second.first);
+      hit.setMetaValue("consensus_similarity", res_it->second.second[1]);
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;
+      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
+                << hit.getScore() << endl;
 #endif
     }
   }
