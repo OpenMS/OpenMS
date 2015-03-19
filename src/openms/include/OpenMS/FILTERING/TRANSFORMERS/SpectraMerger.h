@@ -378,13 +378,13 @@ public:
         bool centroided = spectrum_type == SpectrumSettings::PEAKS;
         if (centroided)
         {
-          std::cout << "Averaging in centroid mode not yet implemented.\n";
+          std::cout << "Averaging in centroid mode not yet supported.\n";
+          averageCentroidSpectra_(exp, spectra_to_average_over, *it_mslevel);
         }
         else
         {
-          averageSpectra_(exp, spectra_to_average_over, *it_mslevel);
+          averageProfileSpectra_(exp, spectra_to_average_over, *it_mslevel);
         }
-
       }
         
       exp.sortSpectra();
@@ -563,9 +563,9 @@ protected:
     }
 
     /**
-     * @brief average spectra
+     * @brief average spectra (profile mode)
      *
-     * Averages spectra of one MS level in an experiment. The blocks of spectra to be combined
+     * Averages spectra in profile mode of one MS level in an experiment. The blocks of spectra to be combined
      * and their relative weights have previously determined.
      *
      * @param exp   experimental data to be averaged
@@ -573,7 +573,7 @@ protected:
      * @param ms_level    MS level of spectra to be averaged
      */
     template <typename MapType>
-    void averageSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
+    void averageProfileSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
     {
       MapType exp_tmp;    // temporary experiment for averaged spectra
       
@@ -669,6 +669,22 @@ protected:
         ++n;
       }
       
+    }
+    
+    /**
+     * @brief average spectra (centroid mode)
+     *
+     * Averages spectra in centroid mode of one MS level in an experiment. The blocks of spectra to be combined
+     * and their relative weights have previously determined.
+     *
+     * @param exp   experimental data to be averaged
+     * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
+     * @param ms_level    MS level of spectra to be averaged
+     */
+    template <typename MapType>
+    void averageCentroidSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
+    {
+      MapType exp_tmp;    // temporary experiment for averaged spectra
     }
 
   };
