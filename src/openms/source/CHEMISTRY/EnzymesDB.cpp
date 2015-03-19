@@ -249,6 +249,14 @@ namespace OpenMS
         }
         continue;
       }
+      if (key.hasSubstring("XTANDEMid"))
+      {
+        if (!key.hasSuffix(":"))
+        {
+          enzy_ptr->setXTANDEMid(value);
+        }
+        continue;
+      }
       if (key.hasSubstring("OMSSAid"))
       {
         if (!key.hasSuffix(":"))
@@ -293,4 +301,13 @@ namespace OpenMS
     }
   }
 
+  void EnzymesDB::getAllNames(vector<String> & all_names)
+  {
+    all_names.clear();
+    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    {
+      all_names.push_back((*it)->getName());
+    }
+    sort(all_names.begin(),all_names.end());
+  }
 } // namespace OpenMS

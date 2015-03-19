@@ -81,7 +81,8 @@ namespace OpenMS
     enzyme(UNKNOWN_ENZYME),
     missed_cleavages(0),
     peak_mass_tolerance(0.0),
-    precursor_tolerance(0.0)
+    precursor_tolerance(0.0),
+    digestion_enzyme()
   {
   }
 
@@ -97,7 +98,8 @@ namespace OpenMS
            enzyme == rhs.enzyme &&
            missed_cleavages == rhs.missed_cleavages &&
            peak_mass_tolerance == rhs.peak_mass_tolerance &&
-           precursor_tolerance == rhs.precursor_tolerance;
+           precursor_tolerance == rhs.precursor_tolerance &&
+           digestion_enzyme == rhs.digestion_enzyme;
   }
 
   bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters& rhs) const

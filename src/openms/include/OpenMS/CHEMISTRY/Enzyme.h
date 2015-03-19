@@ -135,6 +135,12 @@ public:
     /// returns the PSI id
     String getPSIid() const;
     
+    /// sets the XTANDEM enzyme id
+    void setXTANDEMid(String value);
+
+    /// returns the XTANDEM enzyme id
+    String getXTANDEMid() const;
+
     /// sets the OMSSA enzyme id
     void setOMSSAid(UInt value);
     
@@ -177,6 +183,8 @@ protected:
     EmpiricalFormula c_term_gain_;
     
     String psi_id_;
+
+    String xtandem_id_;
     
     UInt omssa_id_;
   };

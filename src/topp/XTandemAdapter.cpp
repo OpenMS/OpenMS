@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+#include <OpenMS/CHEMISTRY/EnzymesDB.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -168,7 +169,10 @@ protected:
                        "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
-    registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "Cleavage site of the used enzyme as regular expression ([RK]|{P} (i.e. tryptic clevage) is default, [X]|[X] (i.e. every site, \"...reset the scoring, maximum missed cleavage site parameter to something like 50\" - from the xtandem documentation).", false);
+    vector<String> all_enzymes;
+    EnzymesDB::getInstance()->getAllNames(all_enzymes);
+    registerStringOption_("cleavage_site", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false);
+    setValidStrings_("cleavage_site", all_enzymes);
     registerStringOption_("output_results", "<result reporting>", "all", "Which hits should be reported. All, valid ones (passing the E-Ealue threshold), or stochastic (failing the threshold)", false);
     valid_strings.clear();
     valid_strings.push_back("all");
@@ -346,7 +350,8 @@ protected:
     infile.setTaxon("OpenMS_dummy_taxonomy");
     infile.setOutputResults(getStringOption_("output_results"));
     infile.setMaxValidEValue(getDoubleOption_("max_valid_expect"));
-    infile.setCleavageSite(getStringOption_("cleavage_site"));
+    String enzyme_name = getStringOption_("cleavage_site");
+    infile.setCleavageSite(EnzymesDB::getInstance()->getEnzyme(enzyme_name)->getXTANDEMid());
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
     infile.setRefine(getFlag_("refinement"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
@@ -427,11 +432,7 @@ protected:
     search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
     search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
-    if (getStringOption_("cleavage_site") == "[RK]|{P}")
-    {
-      search_parameters.enzyme = ProteinIdentification::TRYPSIN;
-    }
-
+    search_parameters.digestion_enzyme = *EnzymesDB::getInstance()->getEnzyme(enzyme_name);
     protein_id.setSearchParameters(search_parameters);
     protein_id.setSearchEngineVersion("");
     protein_id.setSearchEngine("XTandem");

@@ -97,6 +97,9 @@ public:
 
     /// adds an enzyme, i.e. a new enzyme, where only the cleavage regex is known
     void addEnzyme(const Enzyme & enzyme);
+
+    /// returns all the enzyme names
+    void getAllNames(std::vector<String> & all_names);
     //@}
 
 

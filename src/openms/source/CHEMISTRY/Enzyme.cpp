@@ -48,7 +48,9 @@ namespace OpenMS
     regex_description_(""),
     n_term_gain_(""),
     c_term_gain_(""),
-    psi_id_("")
+    psi_id_(""),
+    xtandem_id_(""),
+    omssa_id_()
   {
   }
 
@@ -60,6 +62,7 @@ namespace OpenMS
     n_term_gain_(enzyme.n_term_gain_),
     c_term_gain_(enzyme.c_term_gain_),
     psi_id_(enzyme.psi_id_),
+    xtandem_id_(enzyme.xtandem_id_),
     omssa_id_(enzyme.omssa_id_)
   {
   }
@@ -71,7 +74,9 @@ namespace OpenMS
     regex_description_(""),
     n_term_gain_(""),
     c_term_gain_(""),
-    psi_id_("")
+    psi_id_(""),
+    xtandem_id_(""),
+    omssa_id_()
   {
   }
   
@@ -90,6 +95,7 @@ namespace OpenMS
       n_term_gain_ = enzyme.n_term_gain_;
       c_term_gain_ = enzyme.c_term_gain_;
       psi_id_ = enzyme.psi_id_;
+      xtandem_id_ = enzyme.xtandem_id_;
       omssa_id_ = enzyme.omssa_id_;
     }
     return *this;
@@ -170,6 +176,16 @@ namespace OpenMS
     return psi_id_;
   }
 
+  void Enzyme::setXTANDEMid(String value)
+  {
+    xtandem_id_ = value;
+  }
+
+  String Enzyme::getXTANDEMid() const
+  {
+    return xtandem_id_;
+  }
+
   void Enzyme::setOMSSAid(UInt value)
   {
     omssa_id_ = value;
@@ -189,6 +205,7 @@ namespace OpenMS
            n_term_gain_ == enzyme.n_term_gain_ &&
            c_term_gain_ == enzyme.c_term_gain_ &&
            psi_id_ == enzyme.psi_id_ &&
+           xtandem_id_ == enzyme.xtandem_id_ &&
            omssa_id_ == enzyme.omssa_id_;
   }
 
