@@ -727,6 +727,9 @@ protected:
             
             sum_mz = 0;
             sum_intensity = 0;
+            
+            last_mz = it_mz->first;
+            count = 0;
           }
           
           sum_mz += it_mz->first;
@@ -741,10 +744,35 @@ protected:
           intensity_new.push_back(sum_intensity);    // intensities already weighted
         }
         
-        // fill new spectrum
+        // update spectrum
+        typename MapType::SpectrumType average_spec = exp[it->first];
+        average_spec.clear(false);    // Precursors are part of the meta data, which are not deleted.
+        //average_spec.setMSLevel(ms_level);
         
+        // refill spectrum
+        for (int i = 0; i < mz_new.size(); ++i)
+        {
+          typename MapType::PeakType peak;
+          peak.setMZ(mz_new[i]);
+          peak.setIntensity(intensity_new[i]);
+          average_spec.push_back(peak);
+        } 
+        
+        // store spectrum temporarily
+        exp_tmp.addSpectrum(average_spec);
                 
       }
+      
+      // loop over blocks
+      int n(0);
+      //typename MapType::SpectrumType empty_spec;
+      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      {
+        exp[it->first] = exp_tmp[n];
+        //exp_tmp[n] = empty_spec;
+        ++n;
+      }
+
       
     }
 
