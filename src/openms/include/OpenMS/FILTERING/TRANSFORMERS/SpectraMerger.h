@@ -720,7 +720,7 @@ protected:
             delta_mz = mz_binning_width * (it_mz->first) / 1000000;
           }
           
-          if ((it_mz->first - last_mz > delta_mz) && (count > 0))
+          if (((it_mz->first - last_mz) > delta_mz) && (count > 0))
           {
             mz_new.push_back(sum_mz/count);
             intensity_new.push_back(sum_intensity);    // intensities already weighted
@@ -735,8 +735,6 @@ protected:
           sum_mz += it_mz->first;
           sum_intensity += it_mz->second;
           ++count;
-          
-          std::cout << std::setprecision(10) << "m/z = " << it_mz->first << "    delta m/z = " << delta_mz << "\n";
         }
         if (count > 0)
         {
@@ -760,7 +758,7 @@ protected:
         
         // store spectrum temporarily
         exp_tmp.addSpectrum(average_spec);
-                
+        
       }
       
       // loop over blocks
@@ -781,7 +779,7 @@ protected:
      */
     bool static comparePair(std::pair<double,double> i,std::pair<double,double> j)
     {
-      return (i.first > j.first);
+      return (i.first < j.first);
     }
 
   };
