@@ -685,6 +685,89 @@ protected:
     void averageCentroidSpectra_(MapType & exp, const AverageBlocks & spectra_to_average_over, const UInt ms_level)
     {
       MapType exp_tmp;    // temporary experiment for averaged spectra
+      
+      double mz_binning_width(param_.getValue("mz_binning_width"));
+      String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
+      
+      // loop over blocks
+      int count(0);
+      for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      {
+        ++count;
+        std::cout << "progress = " << (1.0*count/spectra_to_average_over.size()) << "\n";
+        
+        // collect peaks from all spectra
+        // loop over spectra in blocks
+        std::vector<std::pair<double,double> > mz_intensity_all;    // m/z positions and peak intensities from all spectra
+        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+          // loop over m/z positions
+          for (typename MapType::SpectrumType::ConstIterator it_mz = exp[it2->first].begin(); it_mz < exp[it2->first].end(); ++it_mz)
+          {
+            std::pair<double,double> mz_intensity(it_mz->getMZ(),it_mz->getIntensity());
+            mz_intensity_all.push_back(mz_intensity);
+          }
+        }
+        
+        sort(mz_intensity_all.begin(), mz_intensity_all.end(), SpectraMerger::comparePair);
+        
+        std::cout << "m/z = ";
+        for(std::vector<std::pair<double,double> >::iterator itt = mz_intensity_all.begin(); itt != mz_intensity_all.end(); ++itt) {
+          std::cout << itt->first << " ";
+        }
+        std::cout << "\n";
+        
+        /*std::vector<double> mz_positions;    // positions at which the averaged spectrum should be evaluated
+        std::vector<double> intensities;
+        double last_mz = -1000.0;    // last m/z position pushed through from mz_position to mz_position_2
+        for (std::vector<double>::iterator it_mz = mz_positions_all.begin(); it_mz < mz_positions_all.end(); ++it_mz)
+        {
+          double delta_mz(0);
+          if (mz_binning_unit == "Da")
+          {
+            // Da
+            delta_mz = mz_binning_width;
+          }
+          else
+          {
+            // ppm
+            delta_mz = mz_binning_width * (*it_mz) / 1000000;
+          }
+          
+          if (((*it_mz) - last_mz) > delta_mz)
+          {
+            mz_positions.push_back(*it_mz);
+            intensities.push_back(0.0);
+            last_mz = *it_mz;
+          }
+        }
+        
+        // loop over spectra in blocks
+        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+          SplineSpectrum spline(exp[it2->first]);
+          SplineSpectrum::Navigator nav = spline.getNavigator();
+          
+          // loop over m/z positions
+          for (int i = 0; i < mz_positions.size(); ++i)
+          {
+            if ((spline.getMzMin() < mz_positions[i]) && (mz_positions[i] < spline.getMzMax()))
+            {
+              intensities[i] += nav.eval(mz_positions[i]) * (it2->second);    // spline-interpolated intensity * weight
+            }
+          }
+        }*/     
+        
+      }
+      
+    }
+
+    /**
+     * @brief comparator for sorting peaks (m/z, intensity)
+     */
+    bool static comparePair(std::pair<double,double> i,std::pair<double,double> j)
+    {
+      return (i.first > j.first);
     }
 
   };
