@@ -47,6 +47,7 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <vector>
 
 namespace OpenMS
@@ -61,7 +62,7 @@ namespace OpenMS
 
 */
   class OPENMS_DLLAPI SpectraMerger :
-    public DefaultParamHandler
+    public DefaultParamHandler, ProgressLogger
   {
 
 protected:
@@ -806,12 +807,13 @@ protected:
       double mz_binning_width(param_.getValue("mz_binning_width"));
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
+      unsigned progress = 0;
+      startProgress(0, spectra_to_average_over.size(), "averaging centroid spectra");
+
       // loop over blocks
-      int count(0);
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
-        ++count;
-        std::cout << "progress = " << (1.0*count/spectra_to_average_over.size()) << "\n";
+        setProgress(++progress);
         
         // collect peaks from all spectra
         // loop over spectra in blocks
@@ -884,13 +886,13 @@ protected:
         
       }
       
+      endProgress();
+      
       // loop over blocks
       int n(0);
-      //typename MapType::SpectrumType empty_spec;
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
         exp[it->first] = exp_tmp[n];
-        //exp_tmp[n] = empty_spec;
         ++n;
       }
 
