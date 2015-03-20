@@ -283,7 +283,11 @@ public:
       return;
     }
 
-    /// simple average over fixed number of neighbouring spectra
+    /**
+     * @brief simple average over fixed range of neighbouring spectra
+     *
+     * @param exp   experimental data to be averaged
+     */
     template <typename MapType>
     void averageSimple(MapType & exp)
     {
@@ -315,40 +319,73 @@ public:
         {
           if (Int(it_rt->getMSLevel()) == *it_mslevel)
           {
-            int steps;
             int m;    // spectrum index
             
-            // go forward
-            steps = 0;
-            m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (steps <= range_scans)); ++it_rt_2)
+            if (unit)    // RT unit = scans
             {
-              if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
-              {                
-                std::pair<Size, double> p(m,1);
-                spectra_to_average_over[n].push_back(p);
-                ++steps;
-              }
-              ++m;
-             }
-            
-            // go backward
-            steps = 0;
-            m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (steps <= range_scans)); --it_rt_2)
-            {
-              if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
+              int steps;
+
+              // go forward
+              steps = 0;
+              m = n;
+              for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (steps <= range_scans)); ++it_rt_2)
               {
-                std::pair<Size, double> p(m,1);
-                if (m!=n)    // already covered in forward case
+                if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
+                {                
+                  std::pair<Size, double> p(m,1);
+                  spectra_to_average_over[n].push_back(p);
+                  ++steps;
+                }
+                ++m;
+               }
+              
+              // go backward
+              steps = 0;
+              m = n;
+              for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (steps <= range_scans)); --it_rt_2)
+              {
+                if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
                 {
+                  std::pair<Size, double> p(m,1);
+                  if (m!=n)    // already covered in forward case
+                  {
+                    spectra_to_average_over[n].push_back(p);
+                  }
+                  ++steps;
+                }
+                --m;
+              }
+            }
+            else    // RT unit = seconds
+            {
+              // go forward
+              m = n;
+              for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); ++it_rt_2)
+              {
+                if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
+                {                
+                  std::pair<Size, double> p(m,1);
                   spectra_to_average_over[n].push_back(p);
                 }
-                ++steps;
+                ++m;
+               }
+              
+              // go backward
+              m = n;
+              for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); --it_rt_2)
+              {
+                if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
+                {
+                  std::pair<Size, double> p(m,1);
+                  if (m!=n)    // already covered in forward case
+                  {
+                    spectra_to_average_over[n].push_back(p);
+                  }
+                }
+                --m;
               }
-              --m;
             }
-            
+
           }
           ++n;
         }
@@ -400,6 +437,22 @@ public:
       
       IntList ms_levels = param_.getValue("average_Gaussian:ms_levels");
       double fwhm(param_.getValue("average_Gaussian:rt_FWHM"));
+
+      /*IntList ms_levels = param_.getValue("average_simple:ms_levels");    // list of MS levels to be averaged
+      bool unit(param_.getValue("average_simple:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
+      double range(param_.getValue("average_simple:rt_range"));    // range of spectra to be averaged over
+      double range_seconds = range/2;    // max. +/- <range_seconds> seconds from master spectrum
+      int range_scans = range;
+      if ((range_scans % 2) == 0)
+      {
+        ++range_scans;
+      }
+      range_scans = (range_scans - 1)/2;    // max. +/- <range_scans> scans from master spectrum
+      
+      std::cout << "range scans = " << range_scans << "\n";*/
+
+
+
 
       return;
     }
