@@ -62,7 +62,7 @@ namespace OpenMS
 
 */
   class OPENMS_DLLAPI SpectraMerger :
-    public DefaultParamHandler, ProgressLogger
+    public DefaultParamHandler
   {
 
 protected:
@@ -704,12 +704,16 @@ protected:
       double mz_binning_width(param_.getValue("mz_binning_width"));
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
+      unsigned progress = 0;
+      const ProgressLogger logger;
+      std::stringstream progress_message;
+      progress_message << "averaging profile spectra of MS level " << ms_level;
+      logger.startProgress(0, spectra_to_average_over.size(), progress_message.str());
+
       // loop over blocks
-      int count(0);
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
-        ++count;
-        std::cout << "progress = " << (1.0*count/spectra_to_average_over.size()) << "\n";
+        logger.setProgress(++progress);
         
         // loop over spectra in blocks
         std::vector<double> mz_positions_all;    // m/z positions from all spectra
@@ -777,6 +781,8 @@ protected:
         exp_tmp.addSpectrum(average_spec);
       }
       
+      logger.endProgress();
+      
       // loop over blocks
       int n(0);
       //typename MapType::SpectrumType empty_spec;
@@ -808,12 +814,15 @@ protected:
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
       unsigned progress = 0;
-      startProgress(0, spectra_to_average_over.size(), "averaging centroid spectra");
+      const ProgressLogger logger;
+      std::stringstream progress_message;
+      progress_message << "averaging centroid spectra of MS level " << ms_level;
+      logger.startProgress(0, spectra_to_average_over.size(), progress_message.str());
 
       // loop over blocks
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
-        setProgress(++progress);
+        logger.setProgress(++progress);
         
         // collect peaks from all spectra
         // loop over spectra in blocks
@@ -886,7 +895,7 @@ protected:
         
       }
       
-      endProgress();
+      logger.endProgress();
       
       // loop over blocks
       int n(0);
