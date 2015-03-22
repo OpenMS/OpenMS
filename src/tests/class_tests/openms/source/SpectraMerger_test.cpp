@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Chris Bielow, Andreas Bertsch $
+// $Authors: Chris Bielow, Andreas Bertsch, Lars Nilse $
 // --------------------------------------------------------------------------
 //
 
@@ -130,6 +130,70 @@ START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType
 
   PeakMap exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_output_precursor.mzML"), exp2);
+
+	TEST_EQUAL(exp.size(), exp2.size());
+  ABORT_IF(exp.size() != exp2.size());
+
+  for (Size i=0;i<exp.size();++i)
+  {
+    TEST_EQUAL(exp[i].size(), exp2[i].size())
+    TEST_EQUAL(exp[i].getMSLevel (), exp2[i].getMSLevel ())
+  }
+
+END_SECTION
+
+START_SECTION((template < typename MapType > void averageGaussian(MapType &exp)))
+	PeakMap exp;
+	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_3.mzML"), exp);    // profile mode
+
+	SpectraMerger merger;
+	TEST_EQUAL(exp.size(), 28)
+
+  Param p;
+  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
+
+  // same precursor MS/MS merging
+ 	p.setValue("average_Gaussian:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
+  p.setValue("average_Gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
+  p.setValue("average_Gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
+  merger.setParameters(p);
+  merger.averageGaussian(exp);
+
+  PeakMap exp2;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_output_3.mzML"), exp2);
+
+	TEST_EQUAL(exp.size(), exp2.size());
+  ABORT_IF(exp.size() != exp2.size());
+
+  for (Size i=0;i<exp.size();++i)
+  {
+    TEST_EQUAL(exp[i].size(), exp2[i].size())
+    TEST_EQUAL(exp[i].getMSLevel (), exp2[i].getMSLevel ())
+  }
+
+END_SECTION
+
+START_SECTION((template < typename MapType > void averageGaussian(MapType &exp)))
+	PeakMap exp;
+	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_4.mzML"), exp);    // centroid mode
+
+	SpectraMerger merger;
+	TEST_EQUAL(exp.size(), 28)
+
+  Param p;
+  p.setValue("mz_binning_width", 0.0001, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
+
+  // same precursor MS/MS merging
+ 	p.setValue("average_Gaussian:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
+  p.setValue("average_Gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
+  p.setValue("average_Gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
+  merger.setParameters(p);
+  merger.averageGaussian(exp);
+
+  PeakMap exp2;
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_output_4.mzML"), exp2);
 
 	TEST_EQUAL(exp.size(), exp2.size());
   ABORT_IF(exp.size() != exp2.size());
