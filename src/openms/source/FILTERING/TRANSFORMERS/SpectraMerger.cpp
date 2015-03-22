@@ -69,6 +69,16 @@ namespace OpenMS
     defaults_.setValue("precursor_method:rt_tolerance", 5.0, "Max RT distance of the precursor entries of two spectra to be merged in [s].");
     defaults_.setMinFloat("precursor_method:rt_tolerance", 0);
 
+    // Gaussian average
+    defaults_.setValue("average_Gaussian:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
+    defaults_.setMinInt("average_Gaussian:ms_levels", 1);
+    defaults_.setValue("average_Gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
+    defaults_.setMinFloat("average_Gaussian:rt_FWHM", 0.0);
+    defaults_.setMaxFloat("average_Gaussian:rt_FWHM", 10e10);
+    defaults_.setValue("average_Gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
+    defaults_.setMinFloat("average_Gaussian:cutoff", 0.0);
+    defaults_.setMaxFloat("average_Gaussian:cutoff", 1.0);
+
     // simple average
     defaults_.setValue("average_simple:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
     defaults_.setMinInt("average_simple:ms_levels", 1);
@@ -77,13 +87,6 @@ namespace OpenMS
     defaults_.setMaxFloat("average_simple:rt_range", 10e10);
     defaults_.setValue("average_simple:rt_unit", "scans", "Unit for RT range.");
     defaults_.setValidStrings("average_simple:rt_unit", ListUtils::create<String>("scans,seconds"));
-
-    // Gaussian average
-    defaults_.setValue("average_Gaussian:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_Gaussian:ms_levels", 1);
-    defaults_.setValue("average_Gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
-    defaults_.setMinFloat("average_Gaussian:rt_FWHM", 0.0);
-    defaults_.setMaxFloat("average_Gaussian:rt_FWHM", 10e10);
 
     defaultsToParam_();
   }

@@ -292,8 +292,6 @@ public:
     template <typename MapType>
     void averageSimple(MapType & exp)
     {
-      std::cout << "Simple Average over fixed range.\n";
-      
       IntList ms_levels = param_.getValue("average_simple:ms_levels");    // list of MS levels to be averaged
       bool unit(param_.getValue("average_simple:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
       double range(param_.getValue("average_simple:rt_range"));    // range of spectra to be averaged over
@@ -305,13 +303,9 @@ public:
       }
       range_scans = (range_scans - 1)/2;    // max. +/- <range_scans> scans from master spectrum
       
-      std::cout << "range scans = " << range_scans << "\n";
-      
       // loop over MS levels
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
       {
-        std::cout << "MS level = " << *it_mslevel << "\n";
-        
         AverageBlocks spectra_to_average_over;
         
         // loop over RT
@@ -437,18 +431,14 @@ public:
     template <typename MapType>
     void averageGaussian(MapType & exp)
     {
-      std::cout << "Gaussian Average over neighbouring.\n";
-      
       IntList ms_levels = param_.getValue("average_Gaussian:ms_levels");
       double fwhm(param_.getValue("average_Gaussian:rt_FWHM"));
       double factor = -4*log(2)/(fwhm*fwhm);    // numerical factor within Gaussian
-      double cutoff = 0.01;    // If Gaussian below this cutoff, disregard contributions from these spectra.
+      double cutoff(param_.getValue("average_Gaussian:cutoff"));
 
       // loop over MS levels
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
       {
-        std::cout << "MS level = " << *it_mslevel << "\n";
-        
         AverageBlocks spectra_to_average_over;
         
         // loop over RT
