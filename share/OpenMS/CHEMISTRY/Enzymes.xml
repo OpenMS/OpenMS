@@ -26,7 +26,7 @@
     </NODE>
     <NODE name="Asp-N">
       <ITEM name="Name" value="Asp-N" type="string" />
-      <ITEM name="RegEx" value="(?=[BD]])" type="string" />
+      <ITEM name="RegEx" value="(?=[BD])" type="string" />
       <ITEM name="RegExDescription" value="Asp-N cleaves before B or D." type="string" />
       <ITEM name="NTermGain" value="OH" type="string" />
       <ITEM name="CTermGain" value="H" type="string" />
@@ -36,7 +36,7 @@
     </NODE>
     <NODE name="Asp-N_ambic">
       <ITEM name="Name" value="Asp-N_ambic" type="string" />
-      <ITEM name="RegEx" value="(?=[DE]])" type="string" />
+      <ITEM name="RegEx" value="(?=[DE])" type="string" />
       <ITEM name="RegExDescription" value="Asp-N_ambic cleaves before D or E." type="string" />
       <ITEM name="NTermGain" value="OH" type="string" />
       <ITEM name="CTermGain" value="H" type="string" />
