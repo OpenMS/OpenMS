@@ -680,7 +680,7 @@ protected:
      * @brief average spectra (profile mode)
      *
      * Averages spectra in profile mode of one MS level in an experiment. The blocks of spectra to be combined
-     * and their relative weights have previously determined.
+     * and their relative weights have previously been determined.
      *
      * @param exp   experimental data to be averaged
      * @param spectra_to_average_over    mapping of spectral index to set of spectra to average over with corresponding weights
