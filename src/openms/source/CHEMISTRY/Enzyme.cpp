@@ -45,6 +45,7 @@ namespace OpenMS
   Enzyme::Enzyme() :
     name_("unknown_enzyme"),
     cleavage_regex_(""),
+    synonyms_(),
     regex_description_(""),
     n_term_gain_(""),
     c_term_gain_(""),
@@ -56,8 +57,8 @@ namespace OpenMS
 
   Enzyme::Enzyme(const Enzyme & enzyme) :
     name_(enzyme.name_),
-    synonyms_(enzyme.synonyms_),
     cleavage_regex_(enzyme.cleavage_regex_),
+    synonyms_(enzyme.synonyms_),
     regex_description_(enzyme.regex_description_),
     n_term_gain_(enzyme.n_term_gain_),
     c_term_gain_(enzyme.c_term_gain_),
@@ -68,15 +69,23 @@ namespace OpenMS
   }
 
   Enzyme::Enzyme(const String & name,
-                   const String & cleavage_regex) :
+                   const String & cleavage_regex,
+                   const std::set<String> & synonyms,
+                   String regex_description,
+                   EmpiricalFormula n_term_gain,
+                   EmpiricalFormula c_term_gain,
+                   String psi_id,
+                   String xtandem_id,
+                   UInt omssa_id) :
     name_(name),
     cleavage_regex_(cleavage_regex),
-    regex_description_(""),
-    n_term_gain_(""),
-    c_term_gain_(""),
-    psi_id_(""),
-    xtandem_id_(""),
-    omssa_id_()
+    synonyms_(synonyms),
+    regex_description_(regex_description),
+    n_term_gain_(n_term_gain),
+    c_term_gain_(c_term_gain),
+    psi_id_(psi_id),
+    xtandem_id_(xtandem_id),
+    omssa_id_(omssa_id)
   {
   }
   
@@ -89,8 +98,8 @@ namespace OpenMS
     if (this != &enzyme)
     {
       name_ = enzyme.name_;
-      synonyms_ = enzyme.synonyms_;
       cleavage_regex_ = enzyme.cleavage_regex_;
+      synonyms_ = enzyme.synonyms_;
       regex_description_ = enzyme.regex_description_;
       n_term_gain_ = enzyme.n_term_gain_;
       c_term_gain_ = enzyme.c_term_gain_;
@@ -222,6 +231,11 @@ namespace OpenMS
   bool Enzyme::operator!=(const Enzyme & enzyme) const
   {
     return !(*this == enzyme);
+  }
+
+  bool Enzyme::operator<(const Enzyme & enzyme) const
+  {
+    return this->getName() < enzyme.getName();
   }
 
   ostream & operator<<(ostream & os, const Enzyme & enzyme)

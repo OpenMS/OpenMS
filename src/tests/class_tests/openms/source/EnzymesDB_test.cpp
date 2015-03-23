@@ -77,8 +77,8 @@ START_SECTION((bool hasRegEx(const String & cleavage_regex) const))
     TEST_EQUAL(ptr->hasRegEx(RKP), true)
 END_SECTION
 
-START_SECTION((const Enzyme* getEnzymebyRegEx(const String & cleavage_regex) const))
-    TEST_EQUAL(ptr->getEnzymebyRegEx(RKP)->getName(), "Arg-C")
+START_SECTION((const Enzyme* getEnzymeByRegEx(const String & cleavage_regex) const))
+    TEST_EQUAL(ptr->getEnzymeByRegEx(RKP)->getName(), "Arg-C")
 END_SECTION
 
 START_SECTION(bool hasEnzyme(const Enzyme *enzyme) const)
@@ -92,7 +92,7 @@ END_SECTION
 START_SECTION(void addEnzyme(const Enzyme &enzyme))
     TEST_EQUAL(ptr->hasEnzyme("Try"), false)
     TEST_EQUAL(ptr->hasRegEx("(?<=[P])(?!P)"), false)
-    Enzyme enzy = Enzyme("Try", "(?<=[P])(?!P)");
+    Enzyme enzy = Enzyme("Try","(?<=[P])(?!P)");
     ptr->addEnzyme(enzy);
     TEST_EQUAL(ptr->hasEnzyme("Try"), true)
     TEST_EQUAL(ptr->hasRegEx("(?<=[P])(?!P)"), true)

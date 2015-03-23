@@ -51,11 +51,14 @@ START_TEST(Enzyme, "$Id$")
 /////////////////////////////////////////////////////////////
 
 Enzyme* e_ptr = 0;
+/*
 Enzyme* e_nullPointer = 0;
+
 START_SECTION((Enzyme()))
 	e_ptr = new Enzyme();
 	TEST_NOT_EQUAL(e_ptr, e_nullPointer)
 END_SECTION
+*/
 
 START_SECTION((virtual ~Enzyme()))
 	delete e_ptr;
@@ -71,14 +74,28 @@ START_SECTION(Enzyme(const Enzyme &enzyme))
 	TEST_EQUAL(copy, *e_ptr)
 END_SECTION
 
-START_SECTION(Enzyme(const String &name, const String &cleavage_regex))
-	Enzyme copy(e_ptr->getName(), e_ptr->getRegEx());
+START_SECTION(Enzyme(const String &name, 
+                       const String &cleavage_regex,
+                       const std::set<String> & synonyms,
+                       String regex_description,
+                       EmpiricalFormula n_term_gain,
+                       EmpiricalFormula c_term_gain,
+                       String psi_id,
+                       String xtandem_id,
+                       UInt omssa_id))
+	Enzyme copy(e_ptr->getName(), e_ptr->getRegEx(), e_ptr->getSynonyms(), e_ptr->getRegExDescription(), e_ptr->getNTermGain(), e_ptr->getCTermGain(), e_ptr->getPSIid(), e_ptr->getXTANDEMid(), e_ptr->getOMSSAid());
 	TEST_EQUAL(copy.getName(), e_ptr->getName())
 	TEST_EQUAL(copy.getRegEx(), e_ptr->getRegEx())
+        TEST_EQUAL(copy.getRegExDescription(), e_ptr->getRegExDescription())
+        TEST_EQUAL(copy.getNTermGain(), e_ptr->getNTermGain())
+        TEST_EQUAL(copy.getCTermGain(), e_ptr->getCTermGain())
+        TEST_EQUAL(copy.getPSIid(), e_ptr->getPSIid())
+        TEST_EQUAL(copy.getXTANDEMid(), e_ptr->getXTANDEMid())
+        TEST_EQUAL(copy.getOMSSAid(), e_ptr->getOMSSAid())
 END_SECTION
 
 START_SECTION(Enzyme& operator=(const Enzyme &enzyme))
-	Enzyme copy;
+	Enzyme copy("","");
 	copy = *e_ptr;
 	TEST_EQUAL(copy, *e_ptr)
 END_SECTION
@@ -162,6 +179,16 @@ START_SECTION(String getPSIid() const)
 	TEST_EQUAL(e_ptr->getPSIid(), "MS:000")
 END_SECTION
 
+START_SECTION(void setXTANDEMid(String value))
+        Enzyme copy(*e_ptr);
+        e_ptr->setXTANDEMid("[]|[]");
+        TEST_NOT_EQUAL(*e_ptr, copy)
+END_SECTION
+
+START_SECTION(String getXTANDEMid() const)
+        TEST_EQUAL(e_ptr->getXTANDEMid(), "[]|[]")
+END_SECTION
+
 START_SECTION(void setOMSSAid(UInt value))
 	Enzyme copy(*e_ptr);
 	e_ptr->setOMSSAid(2);
@@ -173,7 +200,7 @@ START_SECTION(UInt getOMSSAid() const)
 END_SECTION
 
 START_SECTION(bool operator==(const Enzyme &enzyme) const)
-	Enzyme r;
+	Enzyme r("","");
 	r = *e_ptr;
 	TEST_EQUAL(r == *e_ptr, true)
 	r.setName("other_name");
@@ -218,7 +245,7 @@ START_SECTION(bool operator==(const Enzyme &enzyme) const)
 END_SECTION
     
 START_SECTION(bool operator!=(const Enzyme &enzyme) const)
-    Enzyme r;
+    Enzyme r("","");
     r = *e_ptr;
 	TEST_EQUAL(r != *e_ptr, false)
 	r.setName("other_name");

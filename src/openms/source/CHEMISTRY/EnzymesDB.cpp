@@ -70,7 +70,7 @@ namespace OpenMS
     return enzyme_names_.at(name);
   }
 
-  const Enzyme* EnzymesDB::getEnzymebyRegEx(const String & cleavage_regex) const
+  const Enzyme* EnzymesDB::getEnzymeByRegEx(const String & cleavage_regex) const
   {
     if (!enzyme_regex_.has(cleavage_regex))
     {
@@ -208,7 +208,7 @@ namespace OpenMS
 
   Enzyme* EnzymesDB::parseEnzyme_(Map<String, String>& values)
   {
-    Enzyme* enzy_ptr = new Enzyme();
+    Enzyme* enzy_ptr = new Enzyme("unknown_enzyme", "");
 
     for (Map<String, String>::iterator it = values.begin(); it != values.end(); ++it)
     {
@@ -288,15 +288,6 @@ namespace OpenMS
       if ((*it)->getRegEx() != "")
       {
         enzyme_regex_[(*it)->getRegEx()] = *it;
-      }
-      set<String>::iterator sit;
-      set<String> syn = (*it)->getSynonyms();
-      for (sit = syn.begin(); sit != syn.end(); ++sit)
-      {
-        if (*sit != "")
-        {
-          enzyme_names_[*sit] = *it;
-        }
       }
     }
   }

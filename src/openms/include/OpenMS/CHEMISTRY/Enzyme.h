@@ -57,24 +57,22 @@ namespace OpenMS
   {
 public:
 
-    /** @name Typedefs and Constants
-    */
-
-    /** @name Enums
-    */
-
     /** @name Constructors
     */
     //@{
-    /// default constructor
-    Enzyme();
-
     /// copy constructor
     Enzyme(const Enzyme & enzyme);
 
     /// detailed constructor
     Enzyme(const String & name,
-             const String & cleavage_regex);
+             const String & cleavage_regex,
+             const std::set<String> & synonyms = std::set<String>(),
+             String regex_description = "",
+             EmpiricalFormula n_term_gain = EmpiricalFormula(),
+             EmpiricalFormula c_term_gain = EmpiricalFormula(),
+             String psi_id = "",
+             String xtandem_id = "",
+             UInt omssa_id = 0);
 
     /// destructor
     virtual ~Enzyme();
@@ -162,19 +160,24 @@ public:
 
     /// equality operator for regex
     bool operator!=(String cleavage_regex) const;
+
+    /// order operator 
+    bool operator<(const Enzyme & enzyme) const;
     //@}
 
     /// ostream iterator to write the enzyme to a stream
     friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const Enzyme & enzyme);
 
 protected:
+    /// default constructor
+    Enzyme();
 
     // basic
     String name_;
 
-    std::set<String> synonyms_;
-
     String cleavage_regex_;
+
+    std::set<String> synonyms_;
 
     String regex_description_;
     

@@ -82,7 +82,7 @@ namespace OpenMS
     missed_cleavages(0),
     peak_mass_tolerance(0.0),
     precursor_tolerance(0.0),
-    digestion_enzyme()
+    digestion_enzyme("unknown_enzyme","")
   {
   }
 

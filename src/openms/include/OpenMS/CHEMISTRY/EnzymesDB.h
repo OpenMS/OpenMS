@@ -90,7 +90,7 @@ public:
     const Enzyme * getEnzyme(const String & name) const;
 
     /// returns a pointer to the enzyme with cleavage regex
-    const Enzyme * getEnzymebyRegEx(const String & cleavage_regex) const;
+    const Enzyme * getEnzymeByRegEx(const String & cleavage_regex) const;
 
     /// sets the enzymes from given file
     void setEnzymes(const String & filename);
