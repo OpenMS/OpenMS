@@ -285,7 +285,7 @@ public:
     }
 
     /**
-     * @brief simple average over fixed range of neighbouring spectra
+     * @brief tophat average over fixed range of neighbouring spectra
      *
      * @param exp   experimental data to be averaged
      */
