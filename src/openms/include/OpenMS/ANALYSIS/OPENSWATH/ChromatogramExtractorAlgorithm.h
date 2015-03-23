@@ -36,7 +36,7 @@
 #define OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTORALGORITHM_H
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenSWATHAlgo/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenMS
 {

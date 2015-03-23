@@ -32,10 +32,10 @@
 // $Authors: Witold Wolski $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h"
+#include "OpenSWATHAlgo/OpenSwathAlgoConfig.h"
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
+#include "OpenSWATHAlgo/ALGO/StatsHelpers.h"
+#include "OpenSWATHAlgo/DATAACCESS/SpectrumHelpers.h"
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/timer.hpp>

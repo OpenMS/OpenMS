@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
+#include "OpenSWATHAlgo/ALGO/StatsHelpers.h"
 
 using namespace std;
 using namespace OpenMS;

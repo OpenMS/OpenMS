@@ -40,9 +40,9 @@
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenSWATHAlgo/DATAACCESS/DataFrameWriter.h>
+#include <OpenSWATHAlgo/DATAACCESS/ISpectrumAccess.h>
+#include <OpenSWATHAlgo/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 

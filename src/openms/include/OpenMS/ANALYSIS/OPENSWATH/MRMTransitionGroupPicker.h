@@ -52,8 +52,8 @@
 #include <numeric>
 
 // Cross-correlation
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenSWATHAlgo/ALGO/Scoring.h>
+#include <OpenSWATHAlgo/ALGO/StatsHelpers.h>
 
 //#define DEBUG_TRANSITIONGROUPPICKER
 

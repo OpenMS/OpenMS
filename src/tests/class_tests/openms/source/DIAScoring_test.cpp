@@ -38,8 +38,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include "OpenSWATHAlgo/DATAACCESS/DataStructures.h"
+#include "OpenSWATHAlgo/DATAACCESS/MockObjects.h"
 
 using namespace std;
 using namespace OpenMS;

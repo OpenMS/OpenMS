@@ -35,8 +35,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
+#include <OpenSWATHAlgo/DATAACCESS/SpectrumHelpers.h>
+#include "OpenSWATHAlgo/DATAACCESS/MockObjects.h"
 
 using namespace std;
 using namespace OpenMS;

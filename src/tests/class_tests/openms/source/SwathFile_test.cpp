@@ -49,7 +49,7 @@ bool sortSwathMaps(const OpenSwath::SwathMap& left, const OpenSwath::SwathMap& r
 }
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SwathMap.h>
+#include <OpenSWATHAlgo/DATAACCESS/SwathMap.h>
 
 using namespace OpenMS;
 

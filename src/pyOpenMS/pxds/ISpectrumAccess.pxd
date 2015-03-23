@@ -3,7 +3,7 @@
 from libcpp.vector cimport vector as libcpp_vector
 from OpenSwathDataStructures cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>" namespace "OpenSwath":
+cdef extern from "<OpenSWATHAlgo/DATAACCESS/ISpectrumAccess.h>" namespace "OpenSwath":
 
   # This is an abstract base class in C++ with only pure virtual functions -> we can thus not create an instance of it
   cdef cppclass ISpectrumAccess:

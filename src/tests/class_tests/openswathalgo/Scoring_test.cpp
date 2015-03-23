@@ -32,9 +32,9 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h"
+#include "OpenSWATHAlgo/OpenSwathAlgoConfig.h"
 
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
+#include "OpenSWATHAlgo/ALGO/Scoring.h"
 
 #ifdef USE_BOOST_UNIT_TEST
 
