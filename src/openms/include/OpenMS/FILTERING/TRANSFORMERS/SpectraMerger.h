@@ -695,7 +695,7 @@ protected:
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
       unsigned progress = 0;
-      const ProgressLogger logger;
+      ProgressLogger logger;
       std::stringstream progress_message;
       progress_message << "averaging profile spectra of MS level " << ms_level;
       logger.startProgress(0, spectra_to_average_over.size(), progress_message.str());
@@ -804,7 +804,7 @@ protected:
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
       
       unsigned progress = 0;
-      const ProgressLogger logger;
+      ProgressLogger logger;
       std::stringstream progress_message;
       progress_message << "averaging centroid spectra of MS level " << ms_level;
       logger.startProgress(0, spectra_to_average_over.size(), progress_message.str());
@@ -827,7 +827,7 @@ protected:
           }
         }
         
-        sort(mz_intensity_all.begin(), mz_intensity_all.end(), SpectraMerger::comparePair);
+        sort(mz_intensity_all.begin(), mz_intensity_all.end(), SpectraMerger::compareByFirst);
         
         // generate new spectrum
         std::vector<double> mz_new;
@@ -901,7 +901,7 @@ protected:
     /**
      * @brief comparator for sorting peaks (m/z, intensity)
      */
-    bool static comparePair(std::pair<double,double> i,std::pair<double,double> j)
+    bool static compareByFirst(std::pair<double,double> i,std::pair<double,double> j)
     {
       return (i.first < j.first);
     }
