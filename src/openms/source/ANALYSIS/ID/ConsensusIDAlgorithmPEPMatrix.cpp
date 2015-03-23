@@ -46,7 +46,6 @@ namespace OpenMS
 {
   ConsensusIDAlgorithmPEPMatrix::ConsensusIDAlgorithmPEPMatrix()
   {
-    score_type_ = "Consensus_PEPMatrix";
     setName("ConsensusIDAlgorithmPEPMatrix"); // DefaultParamHandler
 
     defaults_.setValue("matrix", "identity", "Substitution matrix to use for alignment-based similarity scoring");

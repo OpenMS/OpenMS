@@ -50,9 +50,6 @@ namespace OpenMS
     public ConsensusIDAlgorithm
   {
   protected:
-    /// score type for results
-    String score_type_;
-    
     /// Default constructor
     ConsensusIDAlgorithmSimilarity();
 

@@ -46,7 +46,6 @@ namespace OpenMS
 {
   ConsensusIDAlgorithmPEPIons::ConsensusIDAlgorithmPEPIons()
   {
-    score_type_ = "Consensus_PEPIons";
     setName("ConsensusIDAlgorithmPEPIons"); // DefaultParamHandler
 
     defaults_.setValue("mass_tolerance", 0.5, "Maximum difference between fragment masses (in Da) for fragments to be considered 'shared' between peptides .");

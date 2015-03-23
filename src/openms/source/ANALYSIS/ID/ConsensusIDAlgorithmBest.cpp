@@ -59,7 +59,7 @@ namespace OpenMS
     bool higher_better = ids[0].isHigherScoreBetter();
     ids.clear();
     ids.resize(1);
-    ids[0].setScoreType(String("Consensus_best (") + score_type + ")");
+    ids[0].setScoreType(score_type);
     ids[0].setHigherScoreBetter(higher_better);
     for (SequenceGrouping::iterator group_it = grouping.begin(); 
          group_it != grouping.end(); ++group_it)

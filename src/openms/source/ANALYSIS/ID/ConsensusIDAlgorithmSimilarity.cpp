@@ -129,7 +129,7 @@ namespace OpenMS
 
     ids.clear();
     ids.resize(1);
-    ids[0].setScoreType(score_type_);
+    ids[0].setScoreType("Posterior Error Probability");
     ids[0].setHigherScoreBetter(false);
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)
