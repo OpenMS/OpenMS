@@ -148,9 +148,9 @@ protected:
     {
       merger.averageGaussian(exp);
     }
-    else if (merging_method == "average_simple")
+    else if (merging_method == "average_tophat")
     {
-      merger.averageSimple(exp);
+      merger.averageTophat(exp);
     }
 
     //-------------------------------------------------------------

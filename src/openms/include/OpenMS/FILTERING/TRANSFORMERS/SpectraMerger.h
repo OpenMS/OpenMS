@@ -290,11 +290,11 @@ public:
      * @param exp   experimental data to be averaged
      */
     template <typename MapType>
-    void averageSimple(MapType & exp)
+    void averageTophat(MapType & exp)
     {
-      IntList ms_levels = param_.getValue("average_simple:ms_levels");    // list of MS levels to be averaged
-      bool unit(param_.getValue("average_simple:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
-      double range(param_.getValue("average_simple:rt_range"));    // range of spectra to be averaged over
+      IntList ms_levels = param_.getValue("average_tophat:ms_levels");    // list of MS levels to be averaged
+      bool unit(param_.getValue("average_tophat:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
+      double range(param_.getValue("average_tophat:rt_range"));    // range of spectra to be averaged over
       double range_seconds = range/2;    // max. +/- <range_seconds> seconds from master spectrum
       int range_scans = range;
       if ((range_scans % 2) == 0)

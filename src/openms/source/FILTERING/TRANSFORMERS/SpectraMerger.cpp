@@ -79,14 +79,14 @@ namespace OpenMS
     defaults_.setMinFloat("average_Gaussian:cutoff", 0.0);
     defaults_.setMaxFloat("average_Gaussian:cutoff", 1.0);
 
-    // simple average
-    defaults_.setValue("average_simple:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_simple:ms_levels", 1);
-    defaults_.setValue("average_simple:rt_range", 5.0, "RT range to be averaged over, i.e. +/-(RT range)/2 from each spectrum.");
-    defaults_.setMinFloat("average_simple:rt_range", 0.0);
-    defaults_.setMaxFloat("average_simple:rt_range", 10e10);
-    defaults_.setValue("average_simple:rt_unit", "scans", "Unit for RT range.");
-    defaults_.setValidStrings("average_simple:rt_unit", ListUtils::create<String>("scans,seconds"));
+    // top-hat average
+    defaults_.setValue("average_tophat:ms_levels", ListUtils::create<Int>("1"), "Average spectra of this level. All other spectra remain unchanged.");
+    defaults_.setMinInt("average_tophat:ms_levels", 1);
+    defaults_.setValue("average_tophat:rt_range", 5.0, "RT range to be averaged over, i.e. +/-(RT range)/2 from each spectrum.");
+    defaults_.setMinFloat("average_tophat:rt_range", 0.0);
+    defaults_.setMaxFloat("average_tophat:rt_range", 10e10);
+    defaults_.setValue("average_tophat:rt_unit", "scans", "Unit for RT range.");
+    defaults_.setValidStrings("average_tophat:rt_unit", ListUtils::create<String>("scans,seconds"));
 
     defaultsToParam_();
   }
