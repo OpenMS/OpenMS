@@ -32,15 +32,11 @@
 // $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_CONSENSUSID_H
-#define OPENMS_ANALYSIS_ID_CONSENSUSID_H
+#ifndef OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMPEPMATRIX_H
+#define OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMPEPMATRIX_H
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmSimilarity.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-
-#include <map>
-#include <vector>
 
 // Extend SeqAn by a user-define scoring matrix.
 namespace seqan
@@ -151,101 +147,46 @@ namespace seqan
 namespace OpenMS
 {
   /**
-    @brief Calculates a consensus ID from multiple ID runs
+    @brief Calculates a consensus from multiple ID runs based on PEPs and sequence similarities
 
-    This class combines multiple ID runs using one of several available algorithms.
-
-    @htmlinclude OpenMS_ConsensusID.parameters
+    @htmlinclude OpenMS_ConsensusIDAlgorithmPEPMatrix.parameters
     
     @ingroup Analysis_ID
   */
-  class OPENMS_DLLAPI ConsensusID :
-    public DefaultParamHandler
+  class OPENMS_DLLAPI ConsensusIDAlgorithmPEPMatrix :
+    public ConsensusIDAlgorithmSimilarity
   {
-public:
+  public:
     /// Default constructor
-    ConsensusID();
+    ConsensusIDAlgorithmPEPMatrix();
 
-    /**
-        @brief Calculates the consensus ID for a set of PeptideIdentification instances of the same spectrum
-
-        @note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter()) is set properly!
-    */
-    void apply(std::vector<PeptideIdentification>& ids);
-
-private:
-    /// mapping: peptide sequence -> (charge, scores)
-    typedef std::map<AASequence, std::pair<Int, std::vector<double> > > 
-      SequenceGrouping;
-
-    /// mapping: pair of peptide sequences -> sequence similarity
-    typedef std::map<std::pair<AASequence, AASequence>, double> SimilarityCache;
-
-    /// SeqAn similarity scoring (for "PEPMatrix_")
+  private:
+    /// SeqAn similarity scoring
     typedef ::seqan::Score<int, ::seqan::ScoreMatrix< ::seqan::AminoAcid, ::seqan::Default> > SeqAnScore;
 
     /// SeqAn amino acid sequence
     typedef ::seqan::String< ::seqan::AminoAcid> SeqAnSequence;
 
-    /// Cache for already computed sequence similarities
-    SimilarityCache similarities_;
-
-    /// similarity scoring method (for "PEPMatrix_")
+    /// similarity scoring method
     SeqAnScore scoring_method_;
 
-    /// Alignment data structure (for "PEPMatrix_")
+    /// Alignment data structure
     ::seqan::Align<SeqAnSequence, ::seqan::ArrayGaps> alignment_;
 
-    /// Fragment mass tolerance (for "PEPIons_")
-    double mass_tolerance_;
-
-    /// Min. number of shared fragments (for "PEPIons")
-    Size min_shared_;
-
-    /// Number of peptide hits considered per ID run
-    Size considered_hits_;
-
-    /// Number of ID runs (for "ranks_")
-    Size number_of_runs_;
+    /// Not implemented
+    ConsensusIDAlgorithmPEPMatrix(const ConsensusIDAlgorithmPEPMatrix&);
 
     /// Not implemented
-    ConsensusID(const ConsensusID&);
-
-    /// Not implemented
-    ConsensusID& operator=(const ConsensusID&);
+    ConsensusIDAlgorithmPEPMatrix& operator=(const ConsensusIDAlgorithmPEPMatrix&);
 
     /// Docu in base class
     virtual void updateMembers_();
 
-    /// consensus based on PEPs and similarity scoring (sequence or ions)
-    void PEPMatrixOrIons_(std::vector<PeptideIdentification>& ids,
-                          const bool matrix);
-
     /// sequence similarity based on substitution matrix
-    double getSimilarityMatrix_(AASequence seq1, AASequence seq2);
-
-    /// sequence similarity based on matching ions
-    double getSimilarityIons_(AASequence seq1, AASequence seq2);
-
-    /// consensus based on ranks
-    void ranks_(std::vector<PeptideIdentification>& ids);
-
-    /// consensus based on average score
-    void average_(std::vector<PeptideIdentification>& ids);
-
-    /// consensus based on best score
-    void best_(std::vector<PeptideIdentification>& ids);
-
-    /// helper function for "best_", "average_", "ranks_"
-    void groupHits_(std::vector<PeptideIdentification>& ids,
-                    SequenceGrouping& grouping);
-
-    /// compare (and possibly update) charge state information
-    void compareChargeStates_(Int& recorded_charge, Int new_charge, 
-                              const AASequence& peptide);
+    virtual double getSimilarity_(AASequence seq1, AASequence seq2);
 
   };
 
 } // namespace OpenMS
 
-#endif // OPENMS_ANALYSIS_ID_CONSENSUSID_H
+#endif // OPENMS_ANALYSIS_ID_CONSENSUSIDALGORITHMPEPMATRIX_H
