@@ -431,10 +431,10 @@ public:
     template <typename MapType>
     void averageGaussian(MapType & exp)
     {
-      IntList ms_levels = param_.getValue("average_Gaussian:ms_levels");
-      double fwhm(param_.getValue("average_Gaussian:rt_FWHM"));
+      IntList ms_levels = param_.getValue("average_gaussian:ms_levels");
+      double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
       double factor = -4*log(2)/(fwhm*fwhm);    // numerical factor within Gaussian
-      double cutoff(param_.getValue("average_Gaussian:cutoff"));
+      double cutoff(param_.getValue("average_gaussian:cutoff"));
 
       // loop over MS levels
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
