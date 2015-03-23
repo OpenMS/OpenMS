@@ -103,6 +103,14 @@ protected:
     setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method,average_gaussian,average_tophat"));
 
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
+    
+    registerTOPPSubsection_("algorithm:average_gaussian", "Averaging spectra using a Gaussian RT profile");
+    registerStringOption_("algorithm:average_gaussian:spectrum_type", "<spectrum_type>", "", "Spectrum type of the MS level to be averaged", true);
+    setValidStrings_("algorithm:average_gaussian:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
+    
+    registerTOPPSubsection_("algorithm:average_tophat", "Averaging spectra using a Top-Hat RT profile");
+    registerStringOption_("algorithm:average_tophat:spectrum_type", "<spectrum_type>", "", "Spectrum type of the MS level to be averaged", true);
+    setValidStrings_("algorithm:average_tophat:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
   }
 
   Param getSubsectionDefaults_(const String & /*section*/) const
