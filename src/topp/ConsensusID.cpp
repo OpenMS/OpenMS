@@ -123,14 +123,17 @@ protected:
 
   Param getSubsectionDefaults_(const String& section) const
   {
+    Param algo_param;
     if (section == "PEPMatrix")
     {
-      return ConsensusIDAlgorithmPEPMatrix().getDefaults();
+      algo_param = ConsensusIDAlgorithmPEPMatrix().getDefaults();
     }
     else // section == "PEPIons"
     {
-      return ConsensusIDAlgorithmPEPIons().getDefaults();
+      algo_param = ConsensusIDAlgorithmPEPIons().getDefaults();
     }
+    algo_param.remove("considered_hits"); // defined in the base class
+    return algo_param;
   }
 
   void registerOptionsAndFlags_()
@@ -145,18 +148,22 @@ protected:
     setMinFloat_("rt_delta", 0.0);
     registerDoubleOption_("mz_delta", "<value>", 0.1, "Maximum allowed precursor m/z deviation between identifications belonging to the same spectrum.", false);
     setMinFloat_("mz_delta", 0.0);
+    registerIntOption_("considered_hits", "<number>", 10, "The number of top hits that are used for the consensus scoring ('0' for all hits).", false);
+    setMinInt_("considered_hits", 0);
 
     registerStringOption_("algorithm", "<choice>", "PEPMatrix",
                           "Algorithm used for consensus scoring.\n"
-                          "PEPMatrix: scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. Make sure that the scores for all peptide IDs are PEPs!\n"
-                          "PEPIons: scoring based on posterior error probabilities (PEPs) and fragment ion similarities. Make sure that the scores for all peptide IDs are PEPs!\n"
-                          "best: uses the best score of any search engine as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!\n"
-                          "average: uses the average score of all search engines as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!\n"
-                          "ranks: calculates a consensus score based on the ranks of peptide IDs in results of the different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.", false);
+                          "* PEPMatrix: scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. Make sure that the scores for all peptide IDs are PEPs!\n"
+                          "* PEPIons: scoring based on posterior error probabilities (PEPs) and fragment ion similarities. Make sure that the scores for all peptide IDs are PEPs!\n"
+                          "* best: uses the best score of any search engine as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!\n"
+                          "* average: uses the average score of all search engines as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!\n"
+                          "* ranks: calculates a consensus score based on the ranks of peptide IDs in results of the different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.", false);
     setValidStrings_("algorithm", ListUtils::create<String>("PEPMatrix,PEPIons,best,average,ranks"));
 
-    registerSubsection_("PEPMatrix", "PEPMatrix algorithm parameters");
+    // subsections appear in alphabetical (?) order, independent of the order
+    // in which they were registered:
     registerSubsection_("PEPIons", "PEPIons algorithm parameters");
+    registerSubsection_("PEPMatrix", "PEPMatrix algorithm parameters");
   }
 
   void setProteinIdentifications_(vector<ProteinIdentification>& prot_ids)
@@ -204,6 +211,7 @@ protected:
     {
       consensus = new ConsensusIDAlgorithmRanks();
     }
+    algo_param.setValue("considered_hits", getIntOption_("considered_hits"));
 
     //----------------------------------------------------------------
     // idXML

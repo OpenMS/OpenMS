@@ -58,6 +58,8 @@ namespace OpenMS
 
   void ConsensusIDAlgorithmRanks::updateMembers_()
   {
+    ConsensusIDAlgorithmIdentity::updateMembers_();
+
     number_of_runs_ = param_.getValue("number_of_runs");
   }
 

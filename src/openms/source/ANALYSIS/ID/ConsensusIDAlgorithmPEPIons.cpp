@@ -61,6 +61,8 @@ namespace OpenMS
 
    void ConsensusIDAlgorithmPEPIons::updateMembers_()
   {
+    ConsensusIDAlgorithmSimilarity::updateMembers_();
+
     // similarity scoring based on shared peak count:
     mass_tolerance_ = param_.getValue("mass_tolerance");
     min_shared_ = param_.getValue("min_shared");

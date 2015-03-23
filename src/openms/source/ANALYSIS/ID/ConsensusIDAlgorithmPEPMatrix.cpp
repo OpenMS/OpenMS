@@ -62,6 +62,8 @@ namespace OpenMS
 
   void ConsensusIDAlgorithmPEPMatrix::updateMembers_()
   {
+    ConsensusIDAlgorithmSimilarity::updateMembers_();
+
     // alignment scoring using SeqAn/similarity matrices:
     String matrix = param_.getValue("matrix");
     int penalty = param_.getValue("penalty");
