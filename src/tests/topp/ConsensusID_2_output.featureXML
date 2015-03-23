@@ -21,7 +21,7 @@
 				<pt x="2.5" y="2.5" />
 				<pt x="0.5" y="2.5" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="Consensus_average (Mascot)" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="9" sequence="F" charge="3">
 				</PeptideHit>
 				<PeptideHit score="2" sequence="A" charge="2">
@@ -44,7 +44,7 @@
 				<pt x="4.5" y="4.5" />
 				<pt x="2.6" y="4.5" />
 			</convexhull>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="Consensus_average (Mascot)" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="7" sequence="H" charge="2">
 				</PeptideHit>
 				<PeptideHit score="4" sequence="D" charge="2">

@@ -20,7 +20,7 @@
 				<element map="1" id="0" rt="1.45" mz="1.45" it="2.63"/>
 				<element map="2" id="0" rt="1.55" mz="1.55" it="2.24"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="Consensus_best (Mascot)" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="9" sequence="F" charge="3">
 				</PeptideHit>
 				<PeptideHit score="3" sequence="A" charge="2">
@@ -35,7 +35,7 @@
 				<element map="1" id="1" rt="3.45" mz="3.45" it="2.65"/>
 				<element map="2" id="1" rt="3.55" mz="3.55" it="2.26"/>
 			</groupedElementList>
-			<PeptideIdentification identification_run_ref="PI_0" score_type="Consensus_best (Mascot)" higher_score_better="true" significance_threshold="0" >
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Mascot" higher_score_better="true" significance_threshold="0" >
 				<PeptideHit score="7" sequence="H" charge="2">
 				</PeptideHit>
 				<PeptideHit score="4" sequence="D" charge="2">
