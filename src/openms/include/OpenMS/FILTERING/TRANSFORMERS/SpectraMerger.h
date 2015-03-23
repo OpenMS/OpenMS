@@ -292,7 +292,7 @@ public:
     template <typename MapType>
     void averageTophat(MapType & exp)
     {
-      IntList ms_levels = param_.getValue("average_tophat:ms_levels");    // list of MS levels to be averaged
+      int ms_level = param_.getValue("average_tophat:ms_level");    // MS level to be averaged
       bool unit(param_.getValue("average_tophat:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
       double range(param_.getValue("average_tophat:rt_range"));    // range of spectra to be averaged over
       double range_seconds = range/2;    // max. +/- <range_seconds> seconds from master spectrum
@@ -303,119 +303,115 @@ public:
       }
       range_scans = (range_scans - 1)/2;    // max. +/- <range_scans> scans from master spectrum
       
-      // loop over MS levels
-      for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
+      AverageBlocks spectra_to_average_over;
+      
+      // loop over RT
+      int n(0);    // spectrum index
+      for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
       {
-        AverageBlocks spectra_to_average_over;
-        
-        // loop over RT
-        int n(0);    // spectrum index
-        for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
+        if (Int(it_rt->getMSLevel()) == ms_level)
         {
-          if (Int(it_rt->getMSLevel()) == *it_mslevel)
-          {
-            int m;    // spectrum index
-            
-            if (unit)    // RT unit = scans
-            {
-              int steps;
-
-              // go forward
-              steps = 0;
-              m = n;
-              for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (steps <= range_scans)); ++it_rt_2)
-              {
-                if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
-                {                
-                  std::pair<Size, double> p(m,1);
-                  spectra_to_average_over[n].push_back(p);
-                  ++steps;
-                }
-                ++m;
-               }
-              
-              // go backward
-              steps = 0;
-              m = n;
-              for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (steps <= range_scans)); --it_rt_2)
-              {
-                if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
-                {
-                  std::pair<Size, double> p(m,1);
-                  if (m!=n)    // already covered in forward case
-                  {
-                    spectra_to_average_over[n].push_back(p);
-                  }
-                  ++steps;
-                }
-                --m;
-              }
-            }
-            else    // RT unit = seconds
-            {
-              // go forward
-              m = n;
-              for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); ++it_rt_2)
-              {
-                if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
-                {                
-                  std::pair<Size, double> p(m,1);
-                  spectra_to_average_over[n].push_back(p);
-                }
-                ++m;
-               }
-              
-              // go backward
-              m = n;
-              for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); --it_rt_2)
-              {
-                if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
-                {
-                  if (m!=n)    // already covered in forward case
-                  {
-                    std::pair<Size, double> p(m,1);
-                    spectra_to_average_over[n].push_back(p);
-                  }
-                }
-                --m;
-              }
-            }
-
-          }
-          ++n;
-        }
-
-        // normalize weights
-        for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
-        {
-          double sum(0.0);
-          for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-          {
-            sum += it2->second;
-          }
+          int m;    // spectrum index
           
-          for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+          if (unit)    // RT unit = scans
           {
-            (*it2).second /= sum;
+            int steps;
+
+            // go forward
+            steps = 0;
+            m = n;
+            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (steps <= range_scans)); ++it_rt_2)
+            {
+              if (Int(it_rt_2->getMSLevel()) == ms_level)
+              {                
+                std::pair<Size, double> p(m,1);
+                spectra_to_average_over[n].push_back(p);
+                ++steps;
+              }
+              ++m;
+             }
+            
+            // go backward
+            steps = 0;
+            m = n;
+            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (steps <= range_scans)); --it_rt_2)
+            {
+              if (Int(it_rt_2->getMSLevel()) == ms_level)
+              {
+                std::pair<Size, double> p(m,1);
+                if (m!=n)    // already covered in forward case
+                {
+                  spectra_to_average_over[n].push_back(p);
+                }
+                ++steps;
+              }
+              --m;
+            }
           }
+          else    // RT unit = seconds
+          {
+            // go forward
+            m = n;
+            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); ++it_rt_2)
+            {
+              if (Int(it_rt_2->getMSLevel()) == ms_level)
+              {                
+                std::pair<Size, double> p(m,1);
+                spectra_to_average_over[n].push_back(p);
+              }
+              ++m;
+             }
+            
+            // go backward
+            m = n;
+            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); --it_rt_2)
+            {
+              if (Int(it_rt_2->getMSLevel()) == ms_level)
+              {
+                if (m!=n)    // already covered in forward case
+                {
+                  std::pair<Size, double> p(m,1);
+                  spectra_to_average_over[n].push_back(p);
+                }
+              }
+              --m;
+            }
+          }
+
+        }
+        ++n;
+      }
+
+      // normalize weights
+      for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      {
+        double sum(0.0);
+        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+        {
+          sum += it2->second;
         }
         
-        // determine type of spectral data (profile or centroided)
-        Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
-        SpectrumSettings::SpectrumType spectrum_type = exp[idx].getType();
-        if (spectrum_type == SpectrumSettings::UNKNOWN)
+        for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          spectrum_type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+          (*it2).second /= sum;
         }
-        
-        if (spectrum_type == SpectrumSettings::PEAKS)
-        {
-          averageCentroidSpectra_(exp, spectra_to_average_over, *it_mslevel);
-        }
-        else
-        {
-          averageProfileSpectra_(exp, spectra_to_average_over, *it_mslevel);
-        }
+      }
+      
+      // determine type of spectral data (profile or centroided)
+      Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
+      SpectrumSettings::SpectrumType spectrum_type = exp[idx].getType();
+      if (spectrum_type == SpectrumSettings::UNKNOWN)
+      {
+        spectrum_type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+      }
+      
+      if (spectrum_type == SpectrumSettings::PEAKS)
+      {
+        averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
+      }
+      else
+      {
+        averageProfileSpectra_(exp, spectra_to_average_over, ms_level);
       }
         
       exp.sortSpectra();
@@ -431,86 +427,82 @@ public:
     template <typename MapType>
     void averageGaussian(MapType & exp)
     {
-      IntList ms_levels = param_.getValue("average_gaussian:ms_levels");
+      int ms_level = param_.getValue("average_gaussian:ms_level");
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
       double factor = -4*log(2)/(fwhm*fwhm);    // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
 
-      // loop over MS levels
-      for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
+      AverageBlocks spectra_to_average_over;
+      
+      // loop over RT
+      int n(0);    // spectrum index
+      for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
       {
-        AverageBlocks spectra_to_average_over;
-        
-        // loop over RT
-        int n(0);    // spectrum index
-        for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
+        if (Int(it_rt->getMSLevel()) == ms_level)
         {
-          if (Int(it_rt->getMSLevel()) == *it_mslevel)
-          {
-            int m;    // spectrum index
+          int m;    // spectrum index
 
-            // go forward
-            m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; it_rt_2 != exp.end() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff; ++it_rt_2)
+          // go forward
+          m = n;
+          for (typename MapType::const_iterator it_rt_2 = it_rt; it_rt_2 != exp.end() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff; ++it_rt_2)
+          {
+            if (Int(it_rt_2->getMSLevel()) == ms_level)
+            {                
+              std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
+              spectra_to_average_over[n].push_back(p);
+            }
+            ++m;
+           }
+          
+          // go backward
+          m = n;
+          for (typename MapType::const_iterator it_rt_2 = it_rt; it_rt_2 != exp.begin() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff; --it_rt_2)
+          {
+            if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
-              if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
-              {                
+              if (m!=n)    // already covered in forward case
+              {
                 std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
                 spectra_to_average_over[n].push_back(p);
               }
-              ++m;
-             }
-            
-            // go backward
-            m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; it_rt_2 != exp.begin() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff; --it_rt_2)
-            {
-              if (Int(it_rt_2->getMSLevel()) == *it_mslevel)
-              {
-                if (m!=n)    // already covered in forward case
-                {
-                  std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
-                  spectra_to_average_over[n].push_back(p);
-                }
-              }
-              --m;
             }
-
+            --m;
           }
-          ++n;
+
         }
+        ++n;
+      }
 
-        // normalize weights
-        for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      // normalize weights
+      for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
+      {
+        double sum(0.0);
+        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          double sum(0.0);
-          for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-          {
-            sum += it2->second;
-          }
-          
-          for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-          {
-            (*it2).second /= sum;
-          }
+          sum += it2->second;
         }
         
-        // determine type of spectral data (profile or centroided)
-        Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
-        SpectrumSettings::SpectrumType spectrum_type = exp[idx].getType();
-        if (spectrum_type == SpectrumSettings::UNKNOWN)
+        for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
         {
-          spectrum_type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+          (*it2).second /= sum;
         }
-        
-        if (spectrum_type == SpectrumSettings::PEAKS)
-        {
-          averageCentroidSpectra_(exp, spectra_to_average_over, *it_mslevel);
-        }
-        else
-        {
-          averageProfileSpectra_(exp, spectra_to_average_over, *it_mslevel);
-        }
+      }
+      
+      // determine type of spectral data (profile or centroided)
+      Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
+      SpectrumSettings::SpectrumType spectrum_type = exp[idx].getType();
+      if (spectrum_type == SpectrumSettings::UNKNOWN)
+      {
+        spectrum_type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+      }
+      
+      if (spectrum_type == SpectrumSettings::PEAKS)
+      {
+        averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
+      }
+      else
+      {
+        averageProfileSpectra_(exp, spectra_to_average_over, ms_level);
       }
         
       exp.sortSpectra();
@@ -894,7 +886,6 @@ protected:
         exp[it->first] = exp_tmp[n];
         ++n;
       }
-
       
     }
 
