@@ -293,6 +293,7 @@ public:
     void averageTophat(MapType & exp)
     {
       int ms_level = param_.getValue("average_tophat:ms_level");    // MS level to be averaged
+      String spectrum_type = param_.getValue("average_tophat:spectrum_type");    // spectrum type of this MS level
       bool unit(param_.getValue("average_tophat:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
       double range(param_.getValue("average_tophat:rt_range"));    // range of spectra to be averaged over
       double range_seconds = range/2;    // max. +/- <range_seconds> seconds from master spectrum
@@ -398,14 +399,27 @@ public:
       }
       
       // determine type of spectral data (profile or centroided)
-      Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
-      SpectrumSettings::SpectrumType spectrum_type = exp[idx].getType();
-      if (spectrum_type == SpectrumSettings::UNKNOWN)
+      SpectrumSettings::SpectrumType type;
+      if (spectrum_type=="automatic")
       {
-        spectrum_type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+        Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
+        type = exp[idx].getType();
+        if (type == SpectrumSettings::UNKNOWN)
+        {
+          type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+        }
+      }
+      else if (spectrum_type=="profile")
+      {
+        type = SpectrumSettings::RAWDATA;
+      }
+      else if (spectrum_type=="centroid")
+      {
+        type = SpectrumSettings::PEAKS;
       }
       
-      if (spectrum_type == SpectrumSettings::PEAKS)
+      // generate new spectra
+      if (type == SpectrumSettings::PEAKS)
       {
         averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
       }
@@ -428,6 +442,7 @@ public:
     void averageGaussian(MapType & exp)
     {
       int ms_level = param_.getValue("average_gaussian:ms_level");
+      String spectrum_type = param_.getValue("average_tophat:spectrum_type");    // spectrum type of this MS level
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
       double factor = -4*log(2)/(fwhm*fwhm);    // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
@@ -489,14 +504,27 @@ public:
       }
       
       // determine type of spectral data (profile or centroided)
-      Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
-      SpectrumSettings::SpectrumType spectrum_type = exp[idx].getType();
-      if (spectrum_type == SpectrumSettings::UNKNOWN)
+      SpectrumSettings::SpectrumType type;
+      if (spectrum_type=="automatic")
       {
-        spectrum_type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+        Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
+        type = exp[idx].getType();
+        if (type == SpectrumSettings::UNKNOWN)
+        {
+          type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
+        }
+      }
+      else if (spectrum_type=="profile")
+      {
+        type = SpectrumSettings::RAWDATA;
+      }
+      else if (spectrum_type=="centroid")
+      {
+        type = SpectrumSettings::PEAKS;
       }
       
-      if (spectrum_type == SpectrumSettings::PEAKS)
+      // generate new spectra
+      if (type == SpectrumSettings::PEAKS)
       {
         averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
       }
