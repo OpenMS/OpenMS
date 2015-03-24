@@ -50,39 +50,14 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithmBest::apply_(vector<PeptideIdentification>& ids)
+  double ConsensusIDAlgorithmBest::getAggregateScore_(vector<double>& scores,
+                                                      bool higher_better)
   {
-    SequenceGrouping grouping;
-    groupHits_(ids, grouping);
-    
-    String score_type = ids[0].getScoreType();
-    bool higher_better = ids[0].isHigherScoreBetter();
-    ids.clear();
-    ids.resize(1);
-    ids[0].setScoreType(score_type);
-    ids[0].setHigherScoreBetter(higher_better);
-    for (SequenceGrouping::iterator group_it = grouping.begin(); 
-         group_it != grouping.end(); ++group_it)
+    if (higher_better)
     {
-      PeptideHit hit;
-      hit.setSequence(group_it->first);
-      if (higher_better)
-      {
-        hit.setScore(*max_element(group_it->second.second.begin(),
-                                  group_it->second.second.end()));
-      }
-      else
-      {
-        hit.setScore(*min_element(group_it->second.second.begin(),
-                                  group_it->second.second.end()));
-      }
-      hit.setCharge(group_it->second.first);
-      ids[0].insertHit(hit);
-#ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
-                << hit.getScore() << endl;
-#endif
+      return *max_element(scores.begin(), scores.end());
     }
+    return *min_element(scores.begin(), scores.end());
   }
 
 } // namespace OpenMS

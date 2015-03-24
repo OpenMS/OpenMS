@@ -53,9 +53,15 @@ namespace OpenMS
     /// Default constructor
     ConsensusIDAlgorithmIdentity();
 
-    /// helper function for grouping identical (by sequence) peptide hits
-    void groupHits_(std::vector<PeptideIdentification>& ids,
-                    SequenceGrouping& grouping);
+    /// consensus scoring
+    virtual void apply_(std::vector<PeptideIdentification>& ids);
+
+    /// preprocessing of peptide IDs (in the beginning of 'apply_')
+    virtual void preprocess_(std::vector<PeptideIdentification>& ids);
+
+    /// aggregate peptide scores into one final score (to be implemented by subclasses)
+    virtual double getAggregateScore_(std::vector<double>& scores,
+                                      bool higher_better) = 0;
 
   private:
     /// Not implemented
@@ -63,15 +69,6 @@ namespace OpenMS
 
     /// Not implemented
     ConsensusIDAlgorithmIdentity& operator=(const ConsensusIDAlgorithmIdentity&);
-
-    /// consensus based on ranks
-    void ranks_(std::vector<PeptideIdentification>& ids);
-
-    /// consensus based on average score
-    void average_(std::vector<PeptideIdentification>& ids);
-
-    /// consensus based on best score
-    void best_(std::vector<PeptideIdentification>& ids);
 
   };
 

@@ -51,32 +51,11 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithmAverage::apply_(vector<PeptideIdentification>& ids)
+  double ConsensusIDAlgorithmAverage::getAggregateScore_(
+    vector<double>& scores, bool /* higher_better */)
   {
-    SequenceGrouping grouping;
-    groupHits_(ids, grouping);
-    
-    String score_type = ids[0].getScoreType();
-    bool higher_better = ids[0].isHigherScoreBetter();
-    ids.clear();
-    ids.resize(1);
-    ids[0].setScoreType(score_type);
-    ids[0].setHigherScoreBetter(higher_better);
-    for (SequenceGrouping::iterator group_it = grouping.begin(); 
-         group_it != grouping.end(); ++group_it)
-    {
-      PeptideHit hit;
-      hit.setSequence(group_it->first);
-      double sum_scores = accumulate(group_it->second.second.begin(),
-                                     group_it->second.second.end(), 0.0);
-      hit.setScore(sum_scores / group_it->second.second.size());
-      hit.setCharge(group_it->second.first);
-      ids[0].insertHit(hit);
-#ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
-                << hit.getScore() << endl;
-#endif
-    }
+    double sum_scores = accumulate(scores.begin(), scores.end(), 0.0);
+    return sum_scores / scores.size();
   }
 
 } // namespace OpenMS

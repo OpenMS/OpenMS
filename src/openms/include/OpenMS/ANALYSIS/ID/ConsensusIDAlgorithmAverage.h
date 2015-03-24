@@ -42,8 +42,6 @@ namespace OpenMS
   /**
     @brief Calculates a consensus from multiple ID runs by averaging the search scores
 
-    @htmlinclude OpenMS_ConsensusIDAlgorithmAverage.parameters
-    
     @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI ConsensusIDAlgorithmAverage :
@@ -60,9 +58,9 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmAverage& operator=(const ConsensusIDAlgorithmAverage&);
 
-    /// consensus based on averaging
-    virtual void apply_(std::vector<PeptideIdentification>& ids);
-
+    /// aggregate peptide scores into one final score (by averaging)
+    virtual double getAggregateScore_(std::vector<double>& scores,
+                                      bool higher_better);
   };
 
 } // namespace OpenMS

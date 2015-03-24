@@ -64,7 +64,8 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithmRanks::apply_(vector<PeptideIdentification>& ids)
+  void ConsensusIDAlgorithmRanks::preprocess_(
+    vector<PeptideIdentification>& ids)
   {
     // The idea here is that each peptide hit (sequence) gets assigned a score
     // from each ID run, based on its rank in the list of search results.
@@ -75,9 +76,10 @@ namespace OpenMS
     // hit (sequence) are averaged and normalized to the range from 0
     // (exclusive, worst) to 1 (inclusive, best).
 
-    Size number_of_runs = (number_of_runs_ > 0) ? number_of_runs_ : ids.size();
-    Size considered_hits = considered_hits_;
-    bool set_considered_hits = (considered_hits == 0);
+    current_number_of_runs_ = ((number_of_runs_ > 0) ? 
+                               number_of_runs_ : ids.size());
+    current_considered_hits_ = considered_hits_;
+    bool set_considered_hits = (considered_hits_ == 0);
 
     for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
@@ -89,42 +91,29 @@ namespace OpenMS
         // give each hit a score based on the search rank (counting from 0):
         hit_it->setScore(hit_it->getRank() - 1);
       }
-      pep_it->setScoreType("rank");
+      pep_it->setScoreType("ConsensusID_ranks");
+      pep_it->setHigherScoreBetter(true); // not true now, but after normalizing
 
       // if "considered_hits" wasn't set, we find the max. number of hits:
-      if (set_considered_hits && (pep_it->getHits().size() > considered_hits))
+      if (set_considered_hits &&
+          (pep_it->getHits().size() > current_considered_hits_))
       {
-        considered_hits = pep_it->getHits().size();
+        current_considered_hits_ = pep_it->getHits().size();
       }
     }
+  }
 
-    SequenceGrouping grouping;
-    groupHits_(ids, grouping);
 
-    ids.clear();
-    ids.resize(1);
-    // the original score type doesn't matter here, so don't include it:
-    ids[0].setScoreType("Consensus_ranks");
-    ids[0].setHigherScoreBetter(true);
-    for (SequenceGrouping::iterator group_it = grouping.begin(); 
-         group_it != grouping.end(); ++group_it)
-    {
-      PeptideHit hit;
-      hit.setSequence(group_it->first);
-      double sum_scores = accumulate(group_it->second.second.begin(),
-                                     group_it->second.second.end(), 0.0);
-      // add score contributions equivalent to "not found":
-      sum_scores += ((number_of_runs - group_it->second.second.size()) *
-                     considered_hits);
-      // normalize to range 0-1:
-      hit.setScore(1.0 - sum_scores / (considered_hits * number_of_runs));
-      hit.setCharge(group_it->second.first);
-      ids[0].insertHit(hit);
-#ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
-                << hit.getScore() << endl;
-#endif
-    }
+  double ConsensusIDAlgorithmRanks::getAggregateScore_(vector<double>& scores,
+                                                       bool /* higher_better */)
+  {
+    double sum_scores = accumulate(scores.begin(), scores.end(), 0.0);
+    // add score contributions equivalent to "not found":
+    sum_scores += ((current_number_of_runs_ - scores.size()) * 
+                   current_considered_hits_);
+    // normalize to range 0-1:
+    return 1.0 - sum_scores / (current_considered_hits_ * 
+                               current_number_of_runs_);
   }
 
 } // namespace OpenMS

@@ -52,6 +52,11 @@ namespace OpenMS
   }
 
 
+  ConsensusIDAlgorithm::~ConsensusIDAlgorithm()
+  {
+  }
+
+
   void ConsensusIDAlgorithm::updateMembers_()
   {
     considered_hits_ = param_.getValue("considered_hits");

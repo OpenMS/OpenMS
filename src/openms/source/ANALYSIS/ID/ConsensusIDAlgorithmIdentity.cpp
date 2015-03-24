@@ -48,10 +48,10 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithmIdentity::groupHits_(
-    vector<PeptideIdentification>& ids,
-    SequenceGrouping& grouping)
+  void ConsensusIDAlgorithmIdentity::preprocess_(
+    vector<PeptideIdentification>& ids)
   {
+    // check score types and orientations:
     bool higher_better = ids[0].isHigherScoreBetter();
     set<String> score_types;
 
@@ -69,7 +69,28 @@ namespace OpenMS
                                       msg, higher_better ? "false" : "true");
       }
       score_types.insert(pep_it->getScoreType());
-      pep_it->sort();
+    }
+
+    if (score_types.size() > 1)
+    {
+      String types;
+      types.concatenate(score_types.begin(), score_types.end(), "'/'");
+      LOG_WARN << "Warning: Different score types for peptide hits found ('"
+               << types << "'). If the scores are not comparable, "
+               << "results will be meaningless." << endl;
+    }
+  }
+
+
+  void ConsensusIDAlgorithmIdentity::apply_(vector<PeptideIdentification>& ids)
+  {
+    preprocess_(ids);
+
+    // group peptide hits by sequence:
+    SequenceGrouping grouping;
+    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
+         pep_it != ids.end(); ++pep_it)
+    {
       for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
            hit_it != pep_it->getHits().end(); ++hit_it)
       {
@@ -88,13 +109,26 @@ namespace OpenMS
         }
       }
     }
-    if (score_types.size() > 1)
+
+    String score_type = ids[0].getScoreType();
+    bool higher_better = ids[0].isHigherScoreBetter();
+    ids.clear();
+    ids.resize(1);
+    ids[0].setScoreType(score_type);
+    ids[0].setHigherScoreBetter(higher_better);
+    for (SequenceGrouping::iterator group_it = grouping.begin(); 
+         group_it != grouping.end(); ++group_it)
     {
-      String types;
-      types.concatenate(score_types.begin(), score_types.end(), "'/'");
-      LOG_WARN << "Warning: Different score types for peptide hits found ('"
-               << types << "'). If the scores are not comparable, "
-               << "results will be meaningless." << endl;
+      PeptideHit hit;
+      hit.setSequence(group_it->first);
+      hit.setCharge(group_it->second.first);
+      double score = getAggregateScore_(group_it->second.second, higher_better);
+      hit.setScore(score);
+      ids[0].insertHit(hit);
+#ifdef DEBUG_ID_CONSENSUS
+      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
+                << hit.getScore() << endl;
+#endif
     }
   }
 

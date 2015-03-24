@@ -42,8 +42,6 @@ namespace OpenMS
   /**
     @brief Calculates a consensus from multiple ID runs by taking the best search score
 
-    @htmlinclude OpenMS_ConsensusIDAlgorithmBest.parameters
-    
     @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI ConsensusIDAlgorithmBest :
@@ -60,9 +58,9 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmBest& operator=(const ConsensusIDAlgorithmBest&);
 
-    /// consensus based on best score
-    virtual void apply_(std::vector<PeptideIdentification>& ids);
-
+    /// aggregate peptide scores into one final score (by taking the best score)
+    virtual double getAggregateScore_(std::vector<double>& scores,
+                                      bool higher_better);
   };
 
 } // namespace OpenMS

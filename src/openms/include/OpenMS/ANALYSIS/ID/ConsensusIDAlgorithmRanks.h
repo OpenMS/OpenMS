@@ -54,8 +54,14 @@ namespace OpenMS
     ConsensusIDAlgorithmRanks();
 
   private:
-    /// Number of ID runs
+    /// Number of ID runs (input parameter)
     Size number_of_runs_;
+    
+    /// number of ID runs for current analysis
+    Size current_number_of_runs_;
+
+    /// number of considered hits for current analysis
+    Size current_considered_hits_;
 
     /// Not implemented
     ConsensusIDAlgorithmRanks(const ConsensusIDAlgorithmRanks&);
@@ -66,9 +72,12 @@ namespace OpenMS
     /// Docu in base class
     virtual void updateMembers_();
 
-    /// consensus based on ranks
-    virtual void apply_(std::vector<PeptideIdentification>& ids);
+    /// assign peptide scores based on search ranks
+    virtual void preprocess_(std::vector<PeptideIdentification>& ids);
 
+    /// aggregate peptide scores into one final score (by averaging ranks)
+    virtual double getAggregateScore_(std::vector<double>& scores,
+                                      bool higher_better);
    };
 
 } // namespace OpenMS
