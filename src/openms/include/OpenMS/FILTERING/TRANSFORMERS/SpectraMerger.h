@@ -317,11 +317,15 @@ public:
           if (unit)    // RT unit = scans
           {
             int steps;
+            bool abort;
+            typename MapType::const_iterator it_rt_2;
 
             // go forward
             steps = 0;
             m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (steps <= range_scans)); ++it_rt_2)
+            it_rt_2 = it_rt;
+            abort = false;
+            while (it_rt_2 != exp.end() && !abort)
             {
               if (Int(it_rt_2->getMSLevel()) == ms_level)
               {                
@@ -330,30 +334,41 @@ public:
                 ++steps;
               }
               ++m;
-             }
+              ++it_rt_2;
+              abort = (steps > range_scans);
+            }
             
             // go backward
             steps = 0;
             m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (steps <= range_scans)); --it_rt_2)
+            it_rt_2 = it_rt;
+            abort = false;
+            while (it_rt_2 != exp.end() && !abort)
             {
               if (Int(it_rt_2->getMSLevel()) == ms_level)
               {
-                std::pair<Size, double> p(m,1);
                 if (m!=n)    // already covered in forward case
                 {
+                  std::pair<Size, double> p(m,1);
                   spectra_to_average_over[n].push_back(p);
                 }
                 ++steps;
               }
               --m;
+              --it_rt_2;
+              abort = (steps > range_scans);
             }
           }
           else    // RT unit = seconds
           {
+            bool abort;
+            typename MapType::const_iterator it_rt_2;
+
             // go forward
             m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); ++it_rt_2)
+            it_rt_2 = it_rt;
+            abort = false;
+            while (it_rt_2 != exp.end() && !abort)
             {
               if (Int(it_rt_2->getMSLevel()) == ms_level)
               {                
@@ -361,11 +376,15 @@ public:
                 spectra_to_average_over[n].push_back(p);
               }
               ++m;
-             }
+              ++it_rt_2;
+              abort = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
+            }
             
             // go backward
             m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); --it_rt_2)
+            it_rt_2 = it_rt;
+            abort = false;
+            while (it_rt_2 != exp.end() && !abort)
             {
               if (Int(it_rt_2->getMSLevel()) == ms_level)
               {
@@ -376,7 +395,9 @@ public:
                 }
               }
               --m;
-            }
+              --it_rt_2;
+              abort = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
+           }
           }
 
         }
