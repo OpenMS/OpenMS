@@ -104,11 +104,9 @@ protected:
 
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
     
-    registerTOPPSubsection_("algorithm:average_gaussian", "Averaging spectra using a Gaussian RT profile");
     registerStringOption_("algorithm:average_gaussian:spectrum_type", "<spectrum_type>", "automatic", "Spectrum type of the MS level to be averaged", false, true);
     setValidStrings_("algorithm:average_gaussian:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
     
-    registerTOPPSubsection_("algorithm:average_tophat", "Averaging spectra using a Top-Hat RT profile");
     registerStringOption_("algorithm:average_tophat:spectrum_type", "<spectrum_type>", "automatic", "Spectrum type of the MS level to be averaged", false, true);
     setValidStrings_("algorithm:average_tophat:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
   }
@@ -154,11 +152,11 @@ protected:
     }
     else if (merging_method == "average_gaussian")
     {
-      merger.averageGaussian(exp);
+      merger.averageGaussian(exp, getStringOption_("algorithm:average_gaussian:spectrum_type"));
     }
     else if (merging_method == "average_tophat")
     {
-      merger.averageTophat(exp);
+      merger.averageTophat(exp, getStringOption_("algorithm:average_tophat:spectrum_type"));
     }
 
     //-------------------------------------------------------------

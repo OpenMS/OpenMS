@@ -290,10 +290,9 @@ public:
      * @param exp   experimental data to be averaged
      */
     template <typename MapType>
-    void averageTophat(MapType & exp)
+    void averageTophat(MapType & exp, String spectrum_type)
     {
       int ms_level = param_.getValue("average_tophat:ms_level");    // MS level to be averaged
-      String spectrum_type = param_.getValue("average_tophat:spectrum_type");    // spectrum type of this MS level
       bool unit(param_.getValue("average_tophat:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
       double range(param_.getValue("average_tophat:rt_range"));    // range of spectra to be averaged over
       double range_seconds = range/2;    // max. +/- <range_seconds> seconds from master spectrum
@@ -439,10 +438,9 @@ public:
      * @param exp   experimental data to be averaged
      */
     template <typename MapType>
-    void averageGaussian(MapType & exp)
+    void averageGaussian(MapType & exp, String spectrum_type)
     {
       int ms_level = param_.getValue("average_gaussian:ms_level");
-      String spectrum_type = param_.getValue("average_tophat:spectrum_type");    // spectrum type of this MS level
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
       double factor = -4*log(2)/(fwhm*fwhm);    // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
