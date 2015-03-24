@@ -99,8 +99,8 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output mzML file with merged spectra.");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
 
-    registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.", false);
-    setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method,average_gaussian,average_tophat"));
+    registerStringOption_("merging_method", "<method>", "average_gaussian", "Method of merging which should be used.", false);
+    setValidStrings_("merging_method", ListUtils::create<String>("average_gaussian,average_tophat,precursor_method,block_method"));
 
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
     
