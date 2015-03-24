@@ -288,6 +288,7 @@ public:
      * @brief tophat average over fixed range of neighbouring spectra
      *
      * @param exp   experimental data to be averaged
+     * @param spectrum_type    spectrum type of MS level to be averaged ("profile", "centroid" or "automatic")
      */
     template <typename MapType>
     void averageTophat(MapType & exp, String spectrum_type)
@@ -436,7 +437,8 @@ public:
      * @brief Gaussian average over neighbouring spectra
      *
      * @param exp   experimental data to be averaged
-     */
+     * @param spectrum_type    spectrum type of MS level to be averaged ("profile", "centroid" or "automatic")
+    */
     template <typename MapType>
     void averageGaussian(MapType & exp, String spectrum_type)
     {
@@ -738,7 +740,7 @@ protected:
         
         std::vector<double> mz_positions;    // positions at which the averaged spectrum should be evaluated
         std::vector<double> intensities;
-        double last_mz = -1000.0;    // last m/z position pushed through from mz_position to mz_position_2
+        double last_mz = std::numeric_limits<double>::min();    // last m/z position pushed through from mz_position to mz_position_2
         double delta_mz(mz_binning_width);    // for m/z unit Da
         for (std::vector<double>::iterator it_mz = mz_positions_all.begin(); it_mz < mz_positions_all.end(); ++it_mz)
         {
@@ -850,7 +852,7 @@ protected:
         // generate new spectrum
         std::vector<double> mz_new;
         std::vector<double> intensity_new;
-        double last_mz = -1000;
+        double last_mz = std::numeric_limits<double>::min();
         double delta_mz = mz_binning_width;
         double sum_mz(0);
         double sum_intensity(0);
