@@ -285,155 +285,6 @@ public:
     }
 
     /**
-     * @brief tophat average over fixed range of neighbouring spectra
-     *
-     * @param exp   experimental data to be averaged
-     * @param spectrum_type    spectrum type of MS level to be averaged ("profile", "centroid" or "automatic")
-     */
-    template <typename MapType>
-    void averageTophat(MapType & exp, String spectrum_type)
-    {
-      int ms_level = param_.getValue("average_tophat:ms_level");    // MS level to be averaged
-      bool unit(param_.getValue("average_tophat:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
-      double range(param_.getValue("average_tophat:rt_range"));    // range of spectra to be averaged over
-      double range_seconds = range/2;    // max. +/- <range_seconds> seconds from master spectrum
-      int range_scans = range;
-      if ((range_scans % 2) == 0)
-      {
-        ++range_scans;
-      }
-      range_scans = (range_scans - 1)/2;    // max. +/- <range_scans> scans from master spectrum
-      
-      AverageBlocks spectra_to_average_over;
-      
-      // loop over RT
-      int n(0);    // spectrum index
-      for (typename MapType::const_iterator it_rt = exp.begin(); it_rt != exp.end(); ++it_rt)
-      {
-        if (Int(it_rt->getMSLevel()) == ms_level)
-        {
-          int m;    // spectrum index
-          
-          if (unit)    // RT unit = scans
-          {
-            int steps;
-
-            // go forward
-            steps = 0;
-            m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (steps <= range_scans)); ++it_rt_2)
-            {
-              if (Int(it_rt_2->getMSLevel()) == ms_level)
-              {                
-                std::pair<Size, double> p(m,1);
-                spectra_to_average_over[n].push_back(p);
-                ++steps;
-              }
-              ++m;
-             }
-            
-            // go backward
-            steps = 0;
-            m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (steps <= range_scans)); --it_rt_2)
-            {
-              if (Int(it_rt_2->getMSLevel()) == ms_level)
-              {
-                std::pair<Size, double> p(m,1);
-                if (m!=n)    // already covered in forward case
-                {
-                  spectra_to_average_over[n].push_back(p);
-                }
-                ++steps;
-              }
-              --m;
-            }
-          }
-          else    // RT unit = seconds
-          {
-            // go forward
-            m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.end() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); ++it_rt_2)
-            {
-              if (Int(it_rt_2->getMSLevel()) == ms_level)
-              {                
-                std::pair<Size, double> p(m,1);
-                spectra_to_average_over[n].push_back(p);
-              }
-              ++m;
-             }
-            
-            // go backward
-            m = n;
-            for (typename MapType::const_iterator it_rt_2 = it_rt; (it_rt_2 != exp.begin() && (std::abs(it_rt_2->getRT() - it_rt->getRT()) <= range_seconds)); --it_rt_2)
-            {
-              if (Int(it_rt_2->getMSLevel()) == ms_level)
-              {
-                if (m!=n)    // already covered in forward case
-                {
-                  std::pair<Size, double> p(m,1);
-                  spectra_to_average_over[n].push_back(p);
-                }
-              }
-              --m;
-            }
-          }
-
-        }
-        ++n;
-      }
-
-      // normalize weights
-      for (AverageBlocks::Iterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
-      {
-        double sum(0.0);
-        for (std::vector<std::pair<Size, double> >::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-        {
-          sum += it2->second;
-        }
-        
-        for (std::vector<std::pair<Size, double> >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2)
-        {
-          (*it2).second /= sum;
-        }
-      }
-      
-      // determine type of spectral data (profile or centroided)
-      SpectrumSettings::SpectrumType type;
-      if (spectrum_type=="automatic")
-      {
-        Size idx = spectra_to_average_over.begin()->first;    // index of first spectrum to be averaged
-        type = exp[idx].getType();
-        if (type == SpectrumSettings::UNKNOWN)
-        {
-          type = PeakTypeEstimator().estimateType(exp[idx].begin(), exp[idx].end());
-        }
-      }
-      else if (spectrum_type=="profile")
-      {
-        type = SpectrumSettings::RAWDATA;
-      }
-      else if (spectrum_type=="centroid")
-      {
-        type = SpectrumSettings::PEAKS;
-      }
-      
-      // generate new spectra
-      if (type == SpectrumSettings::PEAKS)
-      {
-        averageCentroidSpectra_(exp, spectra_to_average_over, ms_level);
-      }
-      else
-      {
-        averageProfileSpectra_(exp, spectra_to_average_over, ms_level);
-      }
-        
-      exp.sortSpectra();
-      
-      return;
-    }
-
-    /**
      * @brief average over neighbouring spectra
      *
      * @param exp   experimental data to be averaged
@@ -484,31 +335,73 @@ public:
           m = n;
           it_rt_2 = it_rt;
           abort = false;
-          while (it_rt_2 != exp.end() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff)
+          while (it_rt_2 != exp.end() && !abort)
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {                
-              std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
+              double weight = 1;
+              if (average_type == "gaussian")
+              {
+                weight = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2));
+              }   
+              std::pair<Size, double> p(m,weight);
               spectra_to_average_over[n].push_back(p);
+              ++steps;
             }
             ++m;
             ++it_rt_2;
-          }
+            if (average_type == "gaussian")
+            {
+              // Gaussian
+              abort = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
+            }
+            else if (unit)
+            {
+              // Top-Hat with RT unit = scans
+              abort = (steps > range_scans);
+            }
+            else
+            {
+              // Top-Hat with RT unit = seconds
+              abort = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
+            }
+         }
           
           // go backward
           steps = 0;
           m = n;
           it_rt_2 = it_rt;
           abort = false;
-          while (it_rt_2 != exp.begin() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff)
+          while (it_rt_2 != exp.begin() && !abort)
           {
-            if (Int(it_rt_2->getMSLevel()) == ms_level && m!=n)    // case m == n already covered in forward case
+            if (Int(it_rt_2->getMSLevel()) == ms_level && m!=n)    // m == n already covered in forward case
             {
-              std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
+              double weight = 1;
+              if (average_type == "gaussian")
+              {
+                weight = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2));
+              }   
+              std::pair<Size, double> p(m,weight);
               spectra_to_average_over[n].push_back(p);
+              ++steps;
             }
             --m;
             --it_rt_2;
+            if (average_type == "gaussian")
+            {
+              // Gaussian
+              abort = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
+            }
+            else if (unit)
+            {
+              // Top-Hat with RT unit = scans
+              abort = (steps > range_scans);
+            }
+            else
+            {
+              // Top-Hat with RT unit = seconds
+              abort = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
+            }
           }
 
         }

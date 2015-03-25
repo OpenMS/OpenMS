@@ -156,7 +156,7 @@ protected:
     }
     else if (merging_method == "average_tophat")
     {
-      merger.averageTophat(exp, getStringOption_("algorithm:average_tophat:spectrum_type"));
+      merger.average(exp, getStringOption_("algorithm:average_tophat:spectrum_type"),"tophat");
     }
 
     //-------------------------------------------------------------
