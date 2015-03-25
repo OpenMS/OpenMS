@@ -441,12 +441,31 @@ public:
      * @param average_type    averaging type to be used ("gaussian" or "tophat")
     */
     template <typename MapType>
+    //void average(MapType & exp, String spectrum_type)
     void average(MapType & exp, String spectrum_type, String average_type)
     {
+      // MS level to be averaged
       int ms_level = param_.getValue("average_gaussian:ms_level");
+      if (average_type == "tophat")
+      {
+        ms_level = param_.getValue("average_tophat:ms_level");
+      }
+      
+      // parameters for Gaussian averaging
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
       double factor = -4*log(2)/(fwhm*fwhm);    // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
+
+      // parameters for Top-Hat averaging
+      bool unit(param_.getValue("average_tophat:rt_unit")=="scans");    // true if RT unit is 'scans', false if RT unit is 'seconds'
+      double range(param_.getValue("average_tophat:rt_range"));    // range of spectra to be averaged over
+      double range_seconds = range/2;    // max. +/- <range_seconds> seconds from master spectrum
+      int range_scans = range;
+      if ((range_scans % 2) == 0)
+      {
+        ++range_scans;
+      }
+      range_scans = (range_scans - 1)/2;    // max. +/- <range_scans> scans from master spectrum
 
       AverageBlocks spectra_to_average_over;
       
@@ -457,41 +476,45 @@ public:
         if (Int(it_rt->getMSLevel()) == ms_level)
         {
           int m;    // spectrum index
+          int steps;
+          bool abort;
           typename MapType::const_iterator it_rt_2;
 
           // go forward
+          steps = 0;
           m = n;
           it_rt_2 = it_rt;
-          while (it_rt_2 != exp.end() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff)
+          abort = false;
+          while (it_rt_2 != exp.end() && !abort)
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
-            {            
-              double weight;
-              weight = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2));
-              std::pair<Size, double> p(m,weight);
+            {                
+              std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
               spectra_to_average_over[n].push_back(p);
             }
             ++m;
             ++it_rt_2;
+            abort = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
           }
           
           // go backward
+          steps = 0;
           m = n;
           it_rt_2 = it_rt;
-          while (it_rt_2 != exp.end() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff)
+          abort = false;
+          while (it_rt_2 != exp.end() && !abort)
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
               if (m!=n)    // already covered in forward case
               {
-                double weight;
-                weight = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2));
-                std::pair<Size, double> p(m,weight);
+                std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
                 spectra_to_average_over[n].push_back(p);
               }
             }
             --m;
             --it_rt_2;
+            abort = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
           }
 
         }
