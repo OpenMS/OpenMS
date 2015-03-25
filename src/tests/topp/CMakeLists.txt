@@ -1289,6 +1289,10 @@ set_tests_properties("TOPP_ConsensusID_4_out1" PROPERTIES DEPENDS "TOPP_Consensu
 add_test("TOPP_ConsensusID_5" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_5_output.tmp -algorithm PEPIons -considered_hits 0)
 add_test("TOPP_ConsensusID_5_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_5_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_5_output.idXML )
 set_tests_properties("TOPP_ConsensusID_5_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_5")
+# idXML input, "best" algorithm, filtering:
+add_test("TOPP_ConsensusID_6" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_6_output.tmp -algorithm best -filter:min_support 0.5)
+add_test("TOPP_ConsensusID_6_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_6_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_6_output.idXML )
+set_tests_properties("TOPP_ConsensusID_6_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_6")
 
 #------------------------------------------------------------------------------
 # PrecursorIonSelector tests
