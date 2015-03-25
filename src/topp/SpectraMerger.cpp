@@ -152,7 +152,7 @@ protected:
     }
     else if (merging_method == "average_gaussian")
     {
-      merger.average(exp, getStringOption_("algorithm:average_gaussian:spectrum_type"), "gaussian");
+      merger.average(exp, getStringOption_("algorithm:average_gaussian:spectrum_type"),"gaussian");
     }
     else if (merging_method == "average_tophat")
     {

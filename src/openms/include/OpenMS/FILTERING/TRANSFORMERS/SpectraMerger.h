@@ -434,14 +434,13 @@ public:
     }
 
     /**
-     * @brief Gaussian average over neighbouring spectra
+     * @brief average over neighbouring spectra
      *
      * @param exp   experimental data to be averaged
      * @param spectrum_type    spectrum type of MS level to be averaged ("profile", "centroid" or "automatic")
      * @param average_type    averaging type to be used ("gaussian" or "tophat")
-    */
+     */
     template <typename MapType>
-    //void average(MapType & exp, String spectrum_type)
     void average(MapType & exp, String spectrum_type, String average_type)
     {
       // MS level to be averaged
@@ -476,16 +475,10 @@ public:
         if (Int(it_rt->getMSLevel()) == ms_level)
         {
           int m;    // spectrum index
-          int steps;
-          bool abort;
-          typename MapType::const_iterator it_rt_2;
 
           // go forward
-          steps = 0;
           m = n;
-          it_rt_2 = it_rt;
-          abort = false;
-          while (it_rt_2 != exp.end() && !abort)
+          for (typename MapType::const_iterator it_rt_2 = it_rt; it_rt_2 != exp.end() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff; ++it_rt_2)
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {                
@@ -493,16 +486,11 @@ public:
               spectra_to_average_over[n].push_back(p);
             }
             ++m;
-            ++it_rt_2;
-            abort = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
-          }
+           }
           
           // go backward
-          steps = 0;
           m = n;
-          it_rt_2 = it_rt;
-          abort = false;
-          while (it_rt_2 != exp.end() && !abort)
+          for (typename MapType::const_iterator it_rt_2 = it_rt; it_rt_2 != exp.begin() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff; --it_rt_2)
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
@@ -513,8 +501,6 @@ public:
               }
             }
             --m;
-            --it_rt_2;
-            abort = std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
           }
 
         }
