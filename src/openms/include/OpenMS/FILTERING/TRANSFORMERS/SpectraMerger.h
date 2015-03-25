@@ -475,10 +475,16 @@ public:
         if (Int(it_rt->getMSLevel()) == ms_level)
         {
           int m;    // spectrum index
+          int steps;
+          bool abort;
+          typename MapType::const_iterator it_rt_2;
 
           // go forward
+          steps = 0;
           m = n;
-          for (typename MapType::const_iterator it_rt_2 = it_rt; it_rt_2 != exp.end() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff; ++it_rt_2)
+          it_rt_2 = it_rt;
+          abort = false;
+          while (it_rt_2 != exp.end() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff)
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {                
@@ -486,21 +492,23 @@ public:
               spectra_to_average_over[n].push_back(p);
             }
             ++m;
-           }
+            ++it_rt_2;
+          }
           
           // go backward
+          steps = 0;
           m = n;
-          for (typename MapType::const_iterator it_rt_2 = it_rt; it_rt_2 != exp.begin() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff; --it_rt_2)
+          it_rt_2 = it_rt;
+          abort = false;
+          while (it_rt_2 != exp.begin() && std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)) >= cutoff)
           {
-            if (Int(it_rt_2->getMSLevel()) == ms_level)
+            if (Int(it_rt_2->getMSLevel()) == ms_level && m!=n)    // case m == n already covered in forward case
             {
-              if (m!=n)    // already covered in forward case
-              {
-                std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
-                spectra_to_average_over[n].push_back(p);
-              }
+              std::pair<Size, double> p(m, std::exp(factor*pow(it_rt_2->getRT() - it_rt->getRT(), 2)));
+              spectra_to_average_over[n].push_back(p);
             }
             --m;
+            --it_rt_2;
           }
 
         }
