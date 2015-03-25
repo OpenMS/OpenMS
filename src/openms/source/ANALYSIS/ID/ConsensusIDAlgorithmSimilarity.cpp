@@ -121,7 +121,14 @@ namespace OpenMS
 
         vector<double> scores(2, score);
         // normalize similarity score to range 0-1:
-        scores[1] = (sum_sim - 1.0) / best_matches.size();
+        if (best_matches.empty()) // only one ID run -> similarity is undefined
+        {
+          scores[1] = -1.0;
+        }
+        else
+        {
+          scores[1] = (sum_sim - 1.0) / best_matches.size();
+        }
 
         results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
       }
