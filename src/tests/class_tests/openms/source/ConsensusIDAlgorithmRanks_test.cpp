@@ -37,30 +37,33 @@
 
 ///////////////////////////
 
-#include <OpenMS/ANALYSIS/ID/ConsensusID.h>
-#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 
 using namespace OpenMS;
 using namespace std;
 
 ///////////////////////////
 
-START_TEST(ResidueDB, "$Id$")
+START_TEST(ConsensusIDAlgorithmRanks, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-ConsensusID* ptr = 0;
-ConsensusID* nullPointer = 0;
-START_SECTION(ConsensusID())
-  ptr = new ConsensusID();
-  TEST_NOT_EQUAL(ptr, nullPointer)
+ConsensusIDAlgorithm* ptr = 0;
+ConsensusIDAlgorithm* null_pointer = 0;
+START_SECTION(ConsensusIDAlgorithmRanks())
+{
+  ptr = new ConsensusIDAlgorithmRanks();
+  TEST_NOT_EQUAL(ptr, null_pointer);
+}
 END_SECTION
 
-START_SECTION(~ConsensusID())
+START_SECTION(~ConsensusIDAlgorithmRanks())
+{
   delete(ptr);
+}
 END_SECTION
 
-// 3 ID runs are created:
+// create 3 ID runs:
 PeptideIdentification temp;
 temp.setScoreType("Posterior Error Probability");
 temp.setHigherScoreBetter(false);
@@ -116,80 +119,13 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
 {
   TOLERANCE_ABSOLUTE(0.01)
 
-  // PEPMatrix and PEPIons algorithms are covered by the TOPP tool tests
-
-  // ***** best ********
-
-  ConsensusID consensus;
-  //define parameters
+  ConsensusIDAlgorithmRanks consensus;
+  // define parameters:
   Param param;
-  param.setValue("algorithm", "best");
-  param.setValue("considered_hits", 0);
-  consensus.setParameters(param);
-  //apply
-  vector<PeptideIdentification> f = ids;
-  consensus.apply(f);
-
-  TEST_EQUAL(f.size(), 1);
-  hits = f[0].getHits();
-  TEST_EQUAL(hits.size(), 11);
-
-  TEST_EQUAL(hits[0].getRank(), 1);
-  TEST_EQUAL(hits[0].getSequence(), AASequence::fromString("F"));
-  TEST_REAL_SIMILAR(hits[0].getScore(), 0.0);
-
-  // hits with the same score get assigned the same rank:
-  TEST_EQUAL(hits[1].getRank(), 2);
-  TEST_EQUAL(hits[1].getSequence(), AASequence::fromString("A"));
-  TEST_REAL_SIMILAR(hits[1].getScore(), 0.1);
-
-  TEST_EQUAL(hits[2].getRank(), 2);
-  TEST_EQUAL(hits[2].getSequence(), AASequence::fromString("C"));
-  TEST_REAL_SIMILAR(hits[2].getScore(), 0.1);
-
-  TEST_EQUAL(hits[3].getRank(), 3);
-  TEST_EQUAL(hits[3].getSequence(), AASequence::fromString("B"));
-  TEST_REAL_SIMILAR(hits[3].getScore(), 0.2);
-
-  TEST_EQUAL(hits[4].getRank(), 3);
-  TEST_EQUAL(hits[4].getSequence(), AASequence::fromString("G"));
-  TEST_REAL_SIMILAR(hits[4].getScore(), 0.2);
-
-  TEST_EQUAL(hits[5].getRank(), 4);
-  TEST_EQUAL(hits[5].getSequence(), AASequence::fromString("D"));
-  TEST_REAL_SIMILAR(hits[5].getScore(), 0.3);
-
-  TEST_EQUAL(hits[6].getRank(), 5);
-  TEST_EQUAL(hits[6].getSequence(), AASequence::fromString("E"));
-  TEST_REAL_SIMILAR(hits[6].getScore(), 0.5);
-
-  TEST_EQUAL(hits[7].getRank(), 6);
-  TEST_EQUAL(hits[7].getSequence(), AASequence::fromString("H"));
-  TEST_REAL_SIMILAR(hits[7].getScore(), 0.6);
-
-  TEST_EQUAL(hits[8].getRank(), 7);
-  TEST_EQUAL(hits[8].getSequence(), AASequence::fromString("I"));
-  TEST_REAL_SIMILAR(hits[8].getScore(), 0.7);
-
-  TEST_EQUAL(hits[9].getRank(), 8);
-  TEST_EQUAL(hits[9].getSequence(), AASequence::fromString("J"));
-  TEST_REAL_SIMILAR(hits[9].getScore(), 0.8);
-
-  TEST_EQUAL(hits[10].getRank(), 9);
-  TEST_EQUAL(hits[10].getSequence(), AASequence::fromString("K"));
-  TEST_REAL_SIMILAR(hits[10].getScore(), 0.9);
-
-  // ***** ranks ********
-
-  //define parameters
-  param.clear();
-  param.setValue("algorithm", "ranks");
   param.setValue("considered_hits", 5);
-  param.setValue("rank:number_of_runs", 3);
   consensus.setParameters(param);
-
-  //apply
-  f = ids;
+  // apply:
+  vector<PeptideIdentification> f = ids;
   consensus.apply(f);
 
   TEST_EQUAL(f.size(), 1);
@@ -223,72 +159,6 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   TEST_EQUAL(hits[6].getRank(), 7);
   TEST_EQUAL(hits[6].getSequence(), AASequence::fromString("E"));
   TEST_REAL_SIMILAR(hits[6].getScore(), 0.06666);
-
-  // ***** average ********
-
-  //define parameters
-  param.clear();
-  param.setValue("algorithm", "average");
-  param.setValue("considered_hits", 5);
-  consensus.setParameters(param);
-  //apply
-  f = ids;
-  consensus.apply(f);
-
-  TEST_EQUAL(f.size(), 1);
-  hits = f[0].getHits();
-  TEST_EQUAL(hits.size(), 7);
-
-  TEST_EQUAL(hits[0].getRank(), 1);
-  TEST_EQUAL(hits[0].getSequence(), AASequence::fromString("F"));
-  TEST_REAL_SIMILAR(hits[0].getScore(), 0.0);
-
-  // the two "0.2" scores are not equal (due to floating-point number effects),
-  // therefore the ranks of the hits differ:
-  TEST_EQUAL(hits[1].getScore() < hits[2].getScore(), true);
-
-  TEST_EQUAL(hits[1].getRank(), 2);
-  TEST_EQUAL(hits[1].getSequence(), AASequence::fromString("C"));
-  TEST_REAL_SIMILAR(hits[1].getScore(), 0.2);
-
-  TEST_EQUAL(hits[2].getRank(), 3);
-  TEST_EQUAL(hits[2].getSequence(), AASequence::fromString("G"));
-  TEST_REAL_SIMILAR(hits[2].getScore(), 0.2);
-  
-  TEST_EQUAL(hits[3].getRank(), 4);
-  TEST_EQUAL(hits[3].getSequence(), AASequence::fromString("A"));
-  TEST_REAL_SIMILAR(hits[3].getScore(), 0.25);
-
-  TEST_EQUAL(hits[4].getRank(), 5);
-  TEST_EQUAL(hits[4].getSequence(), AASequence::fromString("D"));
-  TEST_REAL_SIMILAR(hits[4].getScore(), 0.35);
-
-  TEST_EQUAL(hits[5].getRank(), 6);
-  TEST_EQUAL(hits[5].getSequence(), AASequence::fromString("B"));
-  TEST_REAL_SIMILAR(hits[5].getScore(), 0.4);
-
-  TEST_EQUAL(hits[6].getRank(), 7);
-  TEST_EQUAL(hits[6].getSequence(), AASequence::fromString("E"));
-  TEST_REAL_SIMILAR(hits[6].getScore(), 0.5);
-
-  // ***** exceptions ********
-
-  param.setValue("algorithm", "Bla4711");
-  TEST_EXCEPTION(Exception::InvalidParameter, consensus.setParameters(param));
-
-  ids[2].setScoreType("some_score");
-  param.setValue("algorithm", "PEPMatrix");
-  consensus.setParameters(param);
-  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
-
-  param.setValue("algorithm", "PEPIons");
-  consensus.setParameters(param);
-  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
-
-  ids[2].setHigherScoreBetter(true);
-  param.setValue("algorithm", "average");
-  consensus.setParameters(param);
-  TEST_EXCEPTION(Exception::InvalidValue, consensus.apply(ids));
 }
 END_SECTION
 
