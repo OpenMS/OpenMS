@@ -48,6 +48,12 @@ namespace OpenMS
     defaults_.setValue("considered_hits", 10, "The number of top hits that are used for the consensus scoring ('0' for all hits).");
     defaults_.setMinInt("considered_hits", 0);
 
+    defaults_.setValue("filter:min_support", 0.0, "For each peptide hit from an ID run, the fraction of other ID runs that must support that hit (otherwise it is removed).");
+    defaults_.setMinFloat("filter:min_support", 0.0);
+    defaults_.setMaxFloat("filter:min_support", 1.0);
+    defaults_.setValue("filter:count_empty", "false", "Count empty ID runs (i.e. those containing no peptide hit for the current spectrum) when calculating 'min_support'?");
+    defaults_.setValidStrings("filter:count_empty", ListUtils::create<String>("true,false"));
+
     defaultsToParam_();
   }
 
@@ -60,10 +66,13 @@ namespace OpenMS
   void ConsensusIDAlgorithm::updateMembers_()
   {
     considered_hits_ = param_.getValue("considered_hits");
+    min_support_ = param_.getValue("filter:min_support");
+    count_empty_ = (param_.getValue("filter:count_empty") == "true");
   }
 
 
-  void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids)
+  void ConsensusIDAlgorithm::apply(vector<PeptideIdentification>& ids,
+                                   Size number_of_runs)
   {
     // abort if no IDs present
     if (ids.empty())
@@ -71,7 +80,7 @@ namespace OpenMS
       return;
     }
 
-    // @TODO: what if there's only one ID run?!
+    number_of_runs_ = (number_of_runs != 0) ? number_of_runs : ids.size();
 
     // prepare data here, so that it doesn't have to happen in each algorithm:
     for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 

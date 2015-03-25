@@ -54,9 +54,6 @@ namespace OpenMS
     ConsensusIDAlgorithmRanks();
 
   private:
-    /// Number of ID runs (input parameter)
-    Size number_of_runs_;
-    
     /// number of ID runs for current analysis
     Size current_number_of_runs_;
 
@@ -68,9 +65,6 @@ namespace OpenMS
 
     /// Not implemented
     ConsensusIDAlgorithmRanks& operator=(const ConsensusIDAlgorithmRanks&);
-
-    /// Docu in base class
-    virtual void updateMembers_();
 
     /// assign peptide scores based on search ranks
     virtual void preprocess_(std::vector<PeptideIdentification>& ids);

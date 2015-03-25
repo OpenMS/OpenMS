@@ -53,9 +53,6 @@ namespace OpenMS
     /// Default constructor
     ConsensusIDAlgorithmIdentity();
 
-    /// consensus scoring
-    virtual void apply_(std::vector<PeptideIdentification>& ids);
-
     /// preprocessing of peptide IDs (in the beginning of 'apply_')
     virtual void preprocess_(std::vector<PeptideIdentification>& ids);
 
@@ -70,6 +67,11 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmIdentity& operator=(const ConsensusIDAlgorithmIdentity&);
 
+    /// consensus scoring
+    virtual void apply_(std::vector<PeptideIdentification>& ids);
+
+    /// filter peptide hits according to user-supplied parameters
+    void filter_(SequenceGrouping& grouping, Size n_ids);
   };
 
 } // namespace OpenMS

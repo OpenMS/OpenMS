@@ -115,26 +115,16 @@ class TOPPConsensusID :
 {
 public:
   TOPPConsensusID() :
-    TOPPBase("ConsensusID", "Computes a consensus of peptide identifications of several identification engines.")
+    TOPPBase("ConsensusID", "Computes a consensus of peptide identifications of several identification engines."),
+    algo_params_(ConsensusIDAlgorithmBest().getDefaults())
   {
   }
 
 protected:
 
-  Param getSubsectionDefaults_(const String& section) const
-  {
-    Param algo_param;
-    if (section == "PEPMatrix")
-    {
-      algo_param = ConsensusIDAlgorithmPEPMatrix().getDefaults();
-    }
-    else // section == "PEPIons"
-    {
-      algo_param = ConsensusIDAlgorithmPEPIons().getDefaults();
-    }
-    algo_param.remove("considered_hits"); // defined in the base class
-    return algo_param;
-  }
+  String algorithm_; // algorithm for consensus calculation (input parameter)
+
+  Param algo_params_; // parameters for ConsensusIDAlgorithm classes
 
   void registerOptionsAndFlags_()
   {
@@ -148,8 +138,10 @@ protected:
     setMinFloat_("rt_delta", 0.0);
     registerDoubleOption_("mz_delta", "<value>", 0.1, "Maximum allowed precursor m/z deviation between identifications belonging to the same spectrum.", false);
     setMinFloat_("mz_delta", 0.0);
-    registerIntOption_("considered_hits", "<number>", 10, "The number of top hits that are used for the consensus scoring ('0' for all hits).", false);
-    setMinInt_("considered_hits", 0);
+
+    // general parameters (inherited from the base class):
+    registerTOPPSubsection_("filter", "Options for filtering peptide hits");
+    registerFullParam_(algo_params_);
 
     registerStringOption_("algorithm", "<choice>", "PEPMatrix",
                           "Algorithm used for consensus scoring.\n"
@@ -166,14 +158,74 @@ protected:
     registerSubsection_("PEPMatrix", "PEPMatrix algorithm parameters");
   }
 
+
+  Param getSubsectionDefaults_(const String& section) const
+  {
+    Param algo_params;
+    if (section == "PEPMatrix")
+    {
+      algo_params = ConsensusIDAlgorithmPEPMatrix().getDefaults();
+    }
+    else // section == "PEPIons"
+    {
+      algo_params = ConsensusIDAlgorithmPEPIons().getDefaults();
+    }
+    // remove parameters defined in the base class (to avoid duplicates):
+    algo_params.remove("considered_hits");
+    algo_params.remove("filter:");
+    return algo_params;
+  }
+
+
   void setProteinIdentifications_(vector<ProteinIdentification>& prot_ids)
   {
     prot_ids.clear();
     prot_ids.resize(1);
     prot_ids[0].setDateTime(DateTime::now());
-    prot_ids[0].setSearchEngine("OpenMS/ConsensusID");
+    prot_ids[0].setSearchEngine("OpenMS/ConsensusID_" + algorithm_);
     prot_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
   }
+
+  
+  template <typename MapType>
+  void processFeatureOrConsensusMap_(MapType& input_map,
+                                     ConsensusIDAlgorithm* consensus)
+  {
+    // Problem with feature data: IDs from multiple spectra may be attached to
+    // a (consensus) feature, so we may have multiple IDs from the same search
+    // engine. This means that we can't just use the number of search runs as
+    // our "baseline" for the number of identifications (parameter
+    // "number_of_runs")! To work around this, we multiply the number of
+    // different ID runs with the max. number of times we see the same ID run
+    // in the annotations of a feature.
+
+    map<String, Size> id_mapping; // mapping: run ID -> index
+    Size number_of_runs = input_map.getProteinIdentifications().size();
+    for (Size i = 0; i < number_of_runs; ++i)
+    {
+      id_mapping[input_map.getProteinIdentifications()[i].getIdentifier()] = i;
+    }
+
+    // compute consensus
+    for (typename MapType::Iterator map_it = input_map.begin();
+         map_it != input_map.end(); ++map_it)
+    {
+      vector<PeptideIdentification>& ids = map_it->getPeptideIdentifications();
+      vector<Size> times_seen(number_of_runs);
+      for (vector<PeptideIdentification>::iterator pep_it = ids.begin(); 
+           pep_it != ids.end(); ++pep_it)
+      {
+        ++times_seen[id_mapping[pep_it->getIdentifier()]];
+      }
+      Size n_repeats = *max_element(times_seen.begin(), times_seen.end());
+
+      consensus->apply(ids, number_of_runs * n_repeats);
+    }
+
+    // create new identification run
+    setProteinIdentifications_(input_map.getProteinIdentifications());
+  }
+
 
   ExitCodes main_(int, const char**)
   {
@@ -187,31 +239,33 @@ protected:
     // set up ConsensusID
     //----------------------------------------------------------------
     ConsensusIDAlgorithm* consensus;
-    Param algo_param;
-    String algorithm = getStringOption_("algorithm");
-    if (algorithm == "PEPMatrix")
+    Param algo_params;
+    algorithm_ = getStringOption_("algorithm");
+    if (algorithm_ == "PEPMatrix")
     {
       consensus = new ConsensusIDAlgorithmPEPMatrix();
-      algo_param = getParam_().copy("PEPMatrix:", true);
+      algo_params = getParam_().copy("PEPMatrix:", true);
     }
-    else if (algorithm == "PEPIons")
+    else if (algorithm_ == "PEPIons")
     {
       consensus = new ConsensusIDAlgorithmPEPIons();
-      algo_param = getParam_().copy("PEPIons:", true);
+      algo_params = getParam_().copy("PEPIons:", true);
     }
-    else if (algorithm == "best")
+    else if (algorithm_ == "best")
     {
       consensus = new ConsensusIDAlgorithmBest();
     }
-    else if (algorithm == "average")
+    else if (algorithm_ == "average")
     {
       consensus = new ConsensusIDAlgorithmAverage();
     }
-    else // algorithm == "ranks"
+    else // algorithm_ == "ranks"
     {
       consensus = new ConsensusIDAlgorithmRanks();
     }
-    algo_param.setValue("considered_hits", getIntOption_("considered_hits"));
+    algo_params_.merge(algo_params); // add algorithm-specific parameters
+    algo_params_.update(getParam_()); // update general parameters
+    consensus->setParameters(algo_params_);
 
     //----------------------------------------------------------------
     // idXML
@@ -270,13 +324,11 @@ protected:
       linker.group(maps, grouping);
 
       // compute consensus
-      algo_param.setValue("number_of_runs", prot_ids.size());
-      consensus->setParameters(algo_param);
       pep_ids.clear();
       for (ConsensusMap::Iterator it = grouping.begin(); it != grouping.end();
            ++it)
       {
-        consensus->apply(it->getPeptideIdentifications());
+        consensus->apply(it->getPeptideIdentifications(), prot_ids.size());
         if (!it->getPeptideIdentifications().empty())
         {
           PeptideIdentification& pep_id = it->getPeptideIdentifications()[0];
@@ -291,30 +343,19 @@ protected:
 
       // store consensus
       IdXMLFile().store(out, prot_ids, pep_ids);
-   }
+    }
+
 
     //----------------------------------------------------------------
     // featureXML
     //----------------------------------------------------------------
     if (in_type == FileTypes::FEATUREXML)
     {
-      //load map
       FeatureMap map;
       FeatureXMLFile().load(in, map);
 
-      //compute consensus
-      algo_param.setValue("ranks:number_of_runs",
-                          map.getProteinIdentifications().size());
-      consensus->setParameters(algo_param);
-      for (FeatureMap::Iterator it = map.begin(); it != map.end(); ++it)
-      {
-        consensus->apply(it->getPeptideIdentifications());
-      }
+      processFeatureOrConsensusMap_(map, consensus);
 
-      //create new identification run
-      setProteinIdentifications_(map.getProteinIdentifications());
-
-      //store consensus
       FeatureXMLFile().store(out, map);
     }
 
@@ -323,23 +364,11 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::CONSENSUSXML)
     {
-      //load map
       ConsensusMap map;
       ConsensusXMLFile().load(in, map);
 
-      //compute consensus
-      algo_param.setValue("ranks:number_of_runs",
-                          map.getProteinIdentifications().size());
-      consensus->setParameters(algo_param);
-      for (ConsensusMap::Iterator it = map.begin(); it != map.end(); ++it)
-      {
-        consensus->apply(it->getPeptideIdentifications());
-      }
+      processFeatureOrConsensusMap_(map, consensus);
 
-      //create new identification run
-      setProteinIdentifications_(map.getProteinIdentifications());
-
-      //store consensus
       ConsensusXMLFile().store(out, map);
     }
 

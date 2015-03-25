@@ -59,7 +59,8 @@ namespace OpenMS
 
         @note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter()) is set properly!
     */
-    void apply(std::vector<PeptideIdentification>& ids);
+    void apply(std::vector<PeptideIdentification>& ids, 
+               Size number_of_runs = 0);
 
     /// virtual destructor
     virtual ~ConsensusIDAlgorithm();
@@ -69,9 +70,18 @@ namespace OpenMS
     typedef std::map<AASequence, std::pair<Int, std::vector<double> > > 
       SequenceGrouping;
 
-   /// Number of peptide hits considered per ID run
+   /// Number of peptide hits considered per ID run (input parameter)
     Size considered_hits_;
 
+    /// Number of ID runs
+    Size number_of_runs_;
+
+    /// fraction of required support by other ID runs (input parameter)
+    double min_support_;
+
+    /// count empty runs in "min_support" calculation? (input parameter)
+    bool count_empty_;
+   
     /// Default constructor
     ConsensusIDAlgorithm();
 

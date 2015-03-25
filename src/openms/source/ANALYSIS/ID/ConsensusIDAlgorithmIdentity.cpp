@@ -82,6 +82,24 @@ namespace OpenMS
   }
 
 
+  void ConsensusIDAlgorithmIdentity::filter_(SequenceGrouping& grouping,
+                                             Size n_ids)
+  {
+    SequenceGrouping filtered;
+    for (SequenceGrouping::iterator it = grouping.begin(); it != grouping.end();
+         ++it)
+    {
+      Size n_scores = it->second.second.size();
+      if (count_empty_) n_ids = number_of_runs_;
+      if ((n_scores - 1) / float(n_ids - 1) >= min_support_)
+      {
+        filtered.insert(*it);
+      }
+    }
+    grouping = filtered;
+  }
+
+
   void ConsensusIDAlgorithmIdentity::apply_(vector<PeptideIdentification>& ids)
   {
     preprocess_(ids);
@@ -109,6 +127,9 @@ namespace OpenMS
         }
       }
     }
+
+    // filter by number of identifications:
+    if (min_support_ > 0.0) filter_(grouping, ids.size());
 
     String score_type = ids[0].getScoreType();
     bool higher_better = ids[0].isHigherScoreBetter();

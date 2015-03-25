@@ -59,11 +59,6 @@ namespace OpenMS
     /// Cache for already computed sequence similarities
     SimilarityCache similarities_;
 
-    /**
-        @brief Calculates the consensus ID for a set of PeptideIdentification instances of the same spectrum
-    */
-    virtual void apply_(std::vector<PeptideIdentification>& ids);
-
     /// sequence similarity (to be implemented by subclasses)
     virtual double getSimilarity_(AASequence seq1, AASequence seq2) = 0;
 
@@ -73,6 +68,9 @@ namespace OpenMS
 
     /// Not implemented
     ConsensusIDAlgorithmSimilarity& operator=(const ConsensusIDAlgorithmSimilarity&);
+
+    /// consensus scoring
+    virtual void apply_(std::vector<PeptideIdentification>& ids);
   };
 
 } // namespace OpenMS

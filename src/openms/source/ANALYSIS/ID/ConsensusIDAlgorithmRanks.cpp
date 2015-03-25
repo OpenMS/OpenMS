@@ -48,19 +48,6 @@ namespace OpenMS
   ConsensusIDAlgorithmRanks::ConsensusIDAlgorithmRanks()
   {
     setName("ConsensusIDAlgorithmRanks"); // DefaultParamHandler
-
-    defaults_.setValue("number_of_runs", 0, "The number of runs used as input. If not given, the number of input identifications is used.");
-    defaults_.setMinInt("number_of_runs", 0);
-
-    defaultsToParam_();
-  }
-
-
-  void ConsensusIDAlgorithmRanks::updateMembers_()
-  {
-    ConsensusIDAlgorithmIdentity::updateMembers_();
-
-    number_of_runs_ = param_.getValue("number_of_runs");
   }
 
 

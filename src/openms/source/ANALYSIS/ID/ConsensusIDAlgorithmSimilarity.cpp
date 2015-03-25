@@ -121,16 +121,21 @@ namespace OpenMS
 
         vector<double> scores(2, score);
         // normalize similarity score to range 0-1:
-        if (best_matches.empty()) // only one ID run -> similarity is undefined
+        Size n_other_ids = (count_empty_ ?
+                            number_of_runs_ - 1 : best_matches.size());
+        if (n_other_ids == 0) // only one ID run -> similarity is ill-defined
         {
-          scores[1] = -1.0;
+          scores[1] = double(!count_empty_); // 0 or 1 depending on parameter
         }
         else
         {
-          scores[1] = (sum_sim - 1.0) / best_matches.size();
+          scores[1] = (sum_sim - 1.0) / n_other_ids;
         }
 
-        results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
+        if (scores[1] >= min_support_) // filter by similarity score
+        {
+          results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
+        }
       }
     }
 
