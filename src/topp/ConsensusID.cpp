@@ -57,7 +57,7 @@ using namespace std;
 /**
     @page TOPP_ConsensusID ConsensusID
 
-    @brief Computes a consensus identification from results of multiple peptide identification engines.
+    @brief Computes a consensus from results of multiple peptide identification engines.
 
     <CENTER>
     <table>
@@ -79,12 +79,16 @@ using namespace std;
     </table>
     </CENTER>
 
-    This tool offers several algorithms that can aggregate results from multiple peptide identification engines ("search engines") into consensus identifications - typically one per MS2 spectrum. The available algorithms are:
-    * @p PEPMatrix: scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. Make sure that the scores for all peptide IDs are PEPs!
-    * @p PEPIons: scoring based on posterior error probabilities (PEPs) and fragment ion similarities. Make sure that the scores for all peptide IDs are PEPs!
-    * @p best: uses the best score of any search engine as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!
-    * @p average: uses the average score of all search engines as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!
-    * @p ranks: calculates a consensus score based on the ranks of peptide IDs in results of the different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.
+    <B>Algorithms:</B>
+
+    ConsensusID offers several algorithms that can aggregate results from multiple peptide identification engines ("search engines") into consensus identifications - typically one per MS2 spectrum. This works especially well for search engines that provide more than one peptide hit per spectrum, i.e. that report not just the best hit, but also a list of runner-up candidates with corresponding scores.
+
+    The available algorithms are (see also @ref OpenMS::ConsensusIDAlgorithm and its subclasses):
+    * @p PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. It requires PEPs as the scores for all peptide hits.
+    * @p PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities ("shared peak count"). This algorith, too, requires PEPs as scores.
+    * @p best: For each peptide ID, this uses the best score of any search engine as the consensus score. All peptide IDs must have the same score type.
+    * @p average: For each peptide ID, this uses the average score of all search engines as the consensus score. Again, all peptide IDs must have the same score type.
+    * @p ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.
 
     The main algorithms, @p PEPMatrix and @p PEPIons, are described in:
     <p>
@@ -93,25 +97,30 @@ using namespace std;
     Journal of Proteome Research (2011), DOI: 10.1021/pr2002879<br>
     </p>
 
-    The input file can contain several searches, e.g., from several identification engines. In order
-    to use the PEPMatrix or the PEPIons algorithm, posterior
-    error probabilities (PEPs) need to be calculated using the @ref TOPP_IDPosteriorErrorProbability tool
-    for all individual search engines. After PEP calculation, the different search engine results
-    have to be combined using @ref TOPP_IDMerger. Identification runs can be mapped
-    to featureXML and consensusXML with the @ref TOPP_IDMapper tool. The merged file can now be fed into
-    into the @ref TOPP_ConsensusID tool. For the statistical assessment of the results it is recommended
-    to use target-decoy databases for peptide identifications. The false discovery rates (FDRs) can be
-    calculated using the @ref TOPP_FalseDiscoveryRate tool.
+    PEPs for search results can be calculated using the @ref TOPP_IDPosteriorErrorProbability tool, which supports a variety of search engines.
+
+    @note Important: All protein-level identification results will be lost by applying ConsensusID. (It is unclear how potentially conflicting protein-level results from different search engines should be combined.) If necessary, run the @ref TOPP_PeptideIndexer tool to add protein references for peptides again.
+
+    <B>File types:</B>
+
+    Different input files types are supported:
+    * idXML: A file containing multiple identification runs, typically from different search engines. Use @ref TOPP_IDMerger to merge individual idXML files from different search runs into one. During the ConsensusID analysis, the identification results will be grouped according to their originating MS2 spectra, based on retention time and precursor m/z information (see parameters @p rt_delta and @p mz_delta). One consensus identification will be generated for each group.
+    * featureXML or consensusXML: Given (consensus) features annotated with peptide identifications from multiple search runs, one consensus identification is created for every annotated feature. Peptide identifications not assigned to features are not considered and will be removed. See @ref TOPP_IDMapper for the task of mapping peptide identifications to feature maps or consensus maps.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
+    <B>Filtering:</B>
+
+    Generally, search results can be filtered according to various criteria using @ref TOPP_IDFilter before (or after) applying this tool. ConsensusID itself offers only a limited number of filtering options that are especially useful in its context (see the @p filter parameter section):
+    * @p considered_hits: Limits the number of alternative peptide hits considered per spectrum/feature for each identification run. This helps to reduce runtime, especially for the @p PEPMatrix and @p PEPIons algorithms, which involve costly "all vs. all" comparisons of peptide hits.
+    * @p min_support: This allows filtering of peptide hits based on agreement between search engines. Every peptide sequence in the analysis has been identified by at least one search run. This parameter defines which fraction (between 0 and 1) of the remaining search runs must "support" a peptide identification that should be kept. The meaning of "support" differs slightly between algorithms: For @p best, @p average and @p rank, each search run supports peptides that it has also identified among its top @p considered_hits candidates. So @p min_support simply gives the fraction of additional search engines that must have identified a peptide. (For example, if there are three search runs, and only peptides identified by at least two of them should be kept, set @p min_support to 0.5.) For the similarity-based algorithms @p PEPMatrix and @p PEPIons, the "support" for a peptide is the average similarity of the most-similar peptide from each (other) search run. (In the context of the JPR publication, this is the average of the similarity scores used in the consensus score calculation for a peptide.)
+    * @p count_empty: Typically not all search engines will provide results for all searched MS2 spectra. This parameter determines whether search runs that provided no results should be counted in the "support" calculation; by default, they are ignored.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_ConsensusID.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_ConsensusID.html
 
-    For the parameters of the algorithm section see the algorithms documentation: @n
-    @ref OpenMS::ConsensusID "Consensus algorithm" @n
 */
 
 // We do not want this class to show up in the docu:
@@ -138,9 +147,9 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("idXML,featureXML,consensusXML"));
 
     addEmptyLine_();
-    registerDoubleOption_("rt_delta", "<value>", 0.1, "Maximum allowed precursor RT deviation between identifications belonging to the same spectrum.", false);
+    registerDoubleOption_("rt_delta", "<value>", 0.1, "[idXML input only] Maximum allowed precursor RT deviation between identifications belonging to the same spectrum.", false);
     setMinFloat_("rt_delta", 0.0);
-    registerDoubleOption_("mz_delta", "<value>", 0.1, "Maximum allowed precursor m/z deviation between identifications belonging to the same spectrum.", false);
+    registerDoubleOption_("mz_delta", "<value>", 0.1, "[idXML input only] Maximum allowed precursor m/z deviation between identifications belonging to the same spectrum.", false);
     setMinFloat_("mz_delta", 0.0);
 
     // General algorithm parameters are defined in the abstract base class
@@ -212,7 +221,7 @@ protected:
       id_mapping[input_map.getProteinIdentifications()[i].getIdentifier()] = i;
     }
 
-    // compute consensus
+    // compute consensus:
     for (typename MapType::Iterator map_it = input_map.begin();
          map_it != input_map.end(); ++map_it)
     {
@@ -228,8 +237,10 @@ protected:
       consensus->apply(ids, number_of_runs * n_repeats);
     }
 
-    // create new identification run
+    // create new identification run:
     setProteinIdentifications_(input_map.getProteinIdentifications());
+    // remove outdated information (protein references will be broken):
+    input_map.getUnassignedPeptideIdentifications().clear();
   }
 
 
