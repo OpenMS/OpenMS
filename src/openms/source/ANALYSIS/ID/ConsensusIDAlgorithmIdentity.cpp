@@ -82,24 +82,6 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithmIdentity::filter_(SequenceGrouping& grouping,
-                                             Size n_ids)
-  {
-    SequenceGrouping filtered;
-    for (SequenceGrouping::iterator it = grouping.begin(); it != grouping.end();
-         ++it)
-    {
-      Size n_scores = it->second.second.size();
-      if (count_empty_) n_ids = number_of_runs_;
-      if ((n_scores - 1) / float(n_ids - 1) >= min_support_)
-      {
-        filtered.insert(*it);
-      }
-    }
-    grouping = filtered;
-  }
-
-
   void ConsensusIDAlgorithmIdentity::apply_(vector<PeptideIdentification>& ids)
   {
     preprocess_(ids);
@@ -128,11 +110,9 @@ namespace OpenMS
       }
     }
 
-    // filter by number of identifications:
-    if (min_support_ > 0.0) filter_(grouping, ids.size());
-
     String score_type = ids[0].getScoreType();
     bool higher_better = ids[0].isHigherScoreBetter();
+    Size n_other_ids = (count_empty_ ? number_of_runs_ : ids.size()) - 1;
     ids.clear();
     ids.resize(1);
     ids[0].setScoreType(score_type);
@@ -140,11 +120,16 @@ namespace OpenMS
     for (SequenceGrouping::iterator group_it = grouping.begin(); 
          group_it != grouping.end(); ++group_it)
     {
+      // filter by number of identifications:
+      double support = (group_it->second.second.size() - 1.0) / n_other_ids;
+      if (support < min_support_) continue;
+      
       PeptideHit hit;
       hit.setSequence(group_it->first);
       hit.setCharge(group_it->second.first);
       double score = getAggregateScore_(group_it->second.second, higher_better);
       hit.setScore(score);
+      hit.setMetaValue("consensus_support", support);
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
       LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "

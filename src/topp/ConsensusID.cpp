@@ -115,16 +115,13 @@ class TOPPConsensusID :
 {
 public:
   TOPPConsensusID() :
-    TOPPBase("ConsensusID", "Computes a consensus of peptide identifications of several identification engines."),
-    algo_params_(ConsensusIDAlgorithmBest().getDefaults())
+    TOPPBase("ConsensusID", "Computes a consensus of peptide identifications of several identification engines.")
   {
   }
 
 protected:
 
   String algorithm_; // algorithm for consensus calculation (input parameter)
-
-  Param algo_params_; // parameters for ConsensusIDAlgorithm classes
 
   void registerOptionsAndFlags_()
   {
@@ -139,9 +136,12 @@ protected:
     registerDoubleOption_("mz_delta", "<value>", 0.1, "Maximum allowed precursor m/z deviation between identifications belonging to the same spectrum.", false);
     setMinFloat_("mz_delta", 0.0);
 
-    // general parameters (inherited from the base class):
+    // General algorithm parameters are defined in the abstract base class
+    // "ConsensusIDAlgorithm", but we can't get them from there because we can't
+    // instantiate the class. So we get those parameters from a subclass that
+    // doesn't add any other parameters:
     registerTOPPSubsection_("filter", "Options for filtering peptide hits");
-    registerFullParam_(algo_params_);
+    registerFullParam_(ConsensusIDAlgorithmBest().getDefaults());
 
     registerStringOption_("algorithm", "<choice>", "PEPMatrix",
                           "Algorithm used for consensus scoring.\n"
@@ -239,17 +239,20 @@ protected:
     // set up ConsensusID
     //----------------------------------------------------------------
     ConsensusIDAlgorithm* consensus;
-    Param algo_params;
+    // general algorithm parameters:
+    Param algo_params = ConsensusIDAlgorithmBest().getDefaults();
     algorithm_ = getStringOption_("algorithm");
     if (algorithm_ == "PEPMatrix")
     {
       consensus = new ConsensusIDAlgorithmPEPMatrix();
-      algo_params = getParam_().copy("PEPMatrix:", true);
+      // add algorithm-specific parameters:
+      algo_params.merge(getParam_().copy("PEPMatrix:", true));
     }
     else if (algorithm_ == "PEPIons")
     {
       consensus = new ConsensusIDAlgorithmPEPIons();
-      algo_params = getParam_().copy("PEPIons:", true);
+      // add algorithm-specific parameters:
+      algo_params.merge(getParam_().copy("PEPIons:", true));
     }
     else if (algorithm_ == "best")
     {
@@ -263,9 +266,8 @@ protected:
     {
       consensus = new ConsensusIDAlgorithmRanks();
     }
-    algo_params_.merge(algo_params); // add algorithm-specific parameters
-    algo_params_.update(getParam_()); // update general parameters
-    consensus->setParameters(algo_params_);
+    algo_params.update(getParam_(), false, Log_debug); // update general params.
+    consensus->setParameters(algo_params);
 
     //----------------------------------------------------------------
     // idXML

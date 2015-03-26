@@ -131,11 +131,10 @@ namespace OpenMS
         {
           scores[1] = (sum_sim - 1.0) / n_other_ids;
         }
-
-        if (scores[1] >= min_support_) // filter by similarity score
-        {
-          results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
-        }
+        
+        // don't filter based on "min_score_" yet, so we don't recompute results
+        // for the same peptide sequence:
+        results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
       }
     }
 
@@ -146,10 +145,13 @@ namespace OpenMS
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)
     {
+      // filter by similarity score:
+      if (res_it->second.second[1] < min_support_) continue;    
+
       PeptideHit hit;
       hit.setSequence(res_it->first);
-      hit.setScore(res_it->second.second[0]);
       hit.setCharge(res_it->second.first);
+      hit.setScore(res_it->second.second[0]);
       hit.setMetaValue("consensus_similarity", res_it->second.second[1]);
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS

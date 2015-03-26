@@ -69,9 +69,6 @@ namespace OpenMS
 
     /// consensus scoring
     virtual void apply_(std::vector<PeptideIdentification>& ids);
-
-    /// filter peptide hits according to user-supplied parameters
-    void filter_(SequenceGrouping& grouping, Size n_ids);
   };
 
 } // namespace OpenMS
