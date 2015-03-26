@@ -8,8 +8,10 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
 			<PeptideHit score="0.54" sequence="QRESTATDILQK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="0.96" sequence="EIEEDSLEGLKK" charge="2" >
+				<UserParam type="float" name="consensus_support" value="0.5"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
