@@ -327,15 +327,15 @@ public:
         {
           int m; // spectrum index
           int steps;
-          bool abort;
+          bool terminate_now;
           typename MapType::const_iterator it_rt_2;
 
           // go forward
           steps = 0;
           m = n;
           it_rt_2 = it_rt;
-          abort = false;
-          while (it_rt_2 != exp.end() && !abort)
+          terminate_now = false;
+          while (it_rt_2 != exp.end() && !terminate_now)
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level)
             {
@@ -353,17 +353,17 @@ public:
             if (average_type == "gaussian")
             {
               // Gaussian
-              abort = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
+              terminate_now = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
             }
             else if (unit)
             {
               // Top-Hat with RT unit = scans
-              abort = (steps > range_scans);
+              terminate_now = (steps > range_scans);
             }
             else
             {
               // Top-Hat with RT unit = seconds
-              abort = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
+              terminate_now = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
             }
           }
 
@@ -371,8 +371,8 @@ public:
           steps = 0;
           m = n;
           it_rt_2 = it_rt;
-          abort = false;
-          while (it_rt_2 != exp.begin() && !abort)
+          terminate_now = false;
+          while (it_rt_2 != exp.begin() && !terminate_now)
           {
             if (Int(it_rt_2->getMSLevel()) == ms_level && m != n) // m == n already covered in forward case
             {
@@ -390,17 +390,17 @@ public:
             if (average_type == "gaussian")
             {
               // Gaussian
-              abort = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
+              terminate_now = std::exp(factor * pow(it_rt_2->getRT() - it_rt->getRT(), 2)) < cutoff;
             }
             else if (unit)
             {
               // Top-Hat with RT unit = scans
-              abort = (steps > range_scans);
+              terminate_now = (steps > range_scans);
             }
             else
             {
               // Top-Hat with RT unit = seconds
-              abort = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
+              terminate_now = (std::abs(it_rt_2->getRT() - it_rt->getRT()) > range_seconds);
             }
           }
 
