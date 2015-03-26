@@ -8,46 +8,46 @@
 		</ProteinIdentification>
 		<PeptideIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="695.3646" RT="2233.105" >
 			<PeptideHit score="0.271111111111111" sequence="QRESTATDILQK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="1"/>
+				<UserParam type="float" name="consensus_support" value="1"/>
 			</PeptideHit>
 			<PeptideHit score="0.485" sequence="EIEEDSLEGLKK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.5"/>
+				<UserParam type="float" name="consensus_support" value="0.5"/>
 			</PeptideHit>
 			<PeptideHit score="0.537641938481099" sequence="EQSATEQDILKK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.331395348837209"/>
+				<UserParam type="float" name="consensus_support" value="0.331395348837209"/>
 			</PeptideHit>
 			<PeptideHit score="0.65315968" sequence="EDNMAIQSIIKK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.226744186046512"/>
+				<UserParam type="float" name="consensus_support" value="0.226744186046512"/>
 			</PeptideHit>
 			<PeptideHit score="0.729375" sequence="GIEDDLMDLIKK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.166666666666667"/>
+				<UserParam type="float" name="consensus_support" value="0.166666666666667"/>
 			</PeptideHit>
 			<PeptideHit score="0.738922314049587" sequence="ISCAEGALEALKK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.154761904761905"/>
+				<UserParam type="float" name="consensus_support" value="0.154761904761905"/>
 			</PeptideHit>
 			<PeptideHit score="0.767518144971251" sequence="WSVEEEELLKK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.128048780487805"/>
+				<UserParam type="float" name="consensus_support" value="0.128048780487805"/>
 			</PeptideHit>
 			<PeptideHit score="0.857387152777777" sequence="AKGDASAQIAAMQK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.058139534883721"/>
+				<UserParam type="float" name="consensus_support" value="0.058139534883721"/>
 			</PeptideHit>
 			<PeptideHit score="0.888230417685195" sequence="CAACITPVELKK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.0511363636363636"/>
+				<UserParam type="float" name="consensus_support" value="0.0511363636363636"/>
 			</PeptideHit>
 			<PeptideHit score="0.9099609375" sequence="NTNNHNGHILKK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.0333333333333333"/>
+				<UserParam type="float" name="consensus_support" value="0.0333333333333333"/>
 			</PeptideHit>
 			<PeptideHit score="0.94" sequence="AELASCVVGDLGAK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0"/>
+				<UserParam type="float" name="consensus_support" value="0"/>
 			</PeptideHit>
 			<PeptideHit score="0.95" sequence="ELM(Oxidation)SNGPGSIIGAK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0"/>
+				<UserParam type="float" name="consensus_support" value="0"/>
 			</PeptideHit>
 			<PeptideHit score="0.957209302325582" sequence="IFHDFNIDLQK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0.0119047619047619"/>
+				<UserParam type="float" name="consensus_support" value="0.0119047619047619"/>
 			</PeptideHit>
 			<PeptideHit score="0.97" sequence="GSDKALIEVDSQK" charge="2" >
-				<UserParam type="float" name="consensus_similarity" value="0"/>
+				<UserParam type="float" name="consensus_support" value="0"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

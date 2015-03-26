@@ -37,9 +37,6 @@
 
 using namespace std;
 
-#define DEBUG_ID_CONSENSUS
-#undef  DEBUG_ID_CONSENSUS
-
 namespace OpenMS
 {
   ConsensusIDAlgorithmIdentity::ConsensusIDAlgorithmIdentity()
@@ -82,12 +79,12 @@ namespace OpenMS
   }
 
 
-  void ConsensusIDAlgorithmIdentity::apply_(vector<PeptideIdentification>& ids)
+  void ConsensusIDAlgorithmIdentity::apply_(vector<PeptideIdentification>& ids,
+                                            SequenceGrouping& results)
   {
     preprocess_(ids);
 
     // group peptide hits by sequence:
-    SequenceGrouping grouping;
     for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
          pep_it != ids.end(); ++pep_it)
     {
@@ -95,11 +92,11 @@ namespace OpenMS
            hit_it != pep_it->getHits().end(); ++hit_it)
       {
         const AASequence& seq = hit_it->getSequence();
-        SequenceGrouping::iterator pos = grouping.find(seq);
-        if (pos == grouping.end()) // new sequence
+        SequenceGrouping::iterator pos = results.find(seq);
+        if (pos == results.end()) // new sequence
         {
-          grouping[seq] = make_pair(hit_it->getCharge(), 
-                                    vector<double>(1, hit_it->getScore()));
+          results[seq] = make_pair(hit_it->getCharge(), 
+                                   vector<double>(1, hit_it->getScore()));
         }
         else // previously seen sequence
         { 
@@ -110,31 +107,17 @@ namespace OpenMS
       }
     }
 
-    String score_type = ids[0].getScoreType();
+    // calculate score and support, and update results with them:
     bool higher_better = ids[0].isHigherScoreBetter();
     Size n_other_ids = (count_empty_ ? number_of_runs_ : ids.size()) - 1;
-    ids.clear();
-    ids.resize(1);
-    ids[0].setScoreType(score_type);
-    ids[0].setHigherScoreBetter(higher_better);
-    for (SequenceGrouping::iterator group_it = grouping.begin(); 
-         group_it != grouping.end(); ++group_it)
+    for (SequenceGrouping::iterator res_it = results.begin(); 
+         res_it != results.end(); ++res_it)
     {
-      // filter by number of identifications:
-      double support = (group_it->second.second.size() - 1.0) / n_other_ids;
-      if (support < min_support_) continue;
-      
-      PeptideHit hit;
-      hit.setSequence(group_it->first);
-      hit.setCharge(group_it->second.first);
-      double score = getAggregateScore_(group_it->second.second, higher_better);
-      hit.setScore(score);
-      hit.setMetaValue("consensus_support", support);
-      ids[0].insertHit(hit);
-#ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
-                << hit.getScore() << endl;
-#endif
+      double score = getAggregateScore_(res_it->second.second, higher_better);
+      double support = (res_it->second.second.size() - 1.0) / n_other_ids;
+      res_it->second.second.resize(2);
+      res_it->second.second[0] = score;
+      res_it->second.second[1] = support;
     }
   }
 

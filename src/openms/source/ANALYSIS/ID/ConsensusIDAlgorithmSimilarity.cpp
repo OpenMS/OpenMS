@@ -40,9 +40,6 @@
 
 using namespace std;
 
-#define DEBUG_ID_CONSENSUS
-#undef  DEBUG_ID_CONSENSUS
-
 namespace OpenMS
 {
   ConsensusIDAlgorithmSimilarity::ConsensusIDAlgorithmSimilarity()
@@ -52,7 +49,7 @@ namespace OpenMS
 
 
   void ConsensusIDAlgorithmSimilarity::apply_(
-    vector<PeptideIdentification>& ids)
+    vector<PeptideIdentification>& ids, SequenceGrouping& results)
   {
     for (vector<PeptideIdentification>::iterator id = ids.begin();
          id != ids.end(); ++id)
@@ -65,9 +62,6 @@ namespace OpenMS
       }
     }
 
-    // mapping: peptide sequence -> (charge, [consensus score, similarity])
-    SequenceGrouping results;
-    
     for (vector<PeptideIdentification>::iterator id1 = ids.begin();
          id1 != ids.end(); ++id1)
     {
@@ -136,28 +130,6 @@ namespace OpenMS
         // for the same peptide sequence:
         results[hit1->getSequence()] = make_pair(hit1->getCharge(), scores);
       }
-    }
-
-    ids.clear();
-    ids.resize(1);
-    ids[0].setScoreType("Posterior Error Probability");
-    ids[0].setHigherScoreBetter(false);
-    for (SequenceGrouping::iterator res_it = results.begin(); 
-         res_it != results.end(); ++res_it)
-    {
-      // filter by similarity score:
-      if (res_it->second.second[1] < min_support_) continue;    
-
-      PeptideHit hit;
-      hit.setSequence(res_it->first);
-      hit.setCharge(res_it->second.first);
-      hit.setScore(res_it->second.second[0]);
-      hit.setMetaValue("consensus_similarity", res_it->second.second[1]);
-      ids[0].insertHit(hit);
-#ifdef DEBUG_ID_CONSENSUS
-      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
-                << hit.getScore() << endl;
-#endif
     }
   }
 

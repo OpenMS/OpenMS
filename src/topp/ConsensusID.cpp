@@ -57,7 +57,7 @@ using namespace std;
 /**
     @page TOPP_ConsensusID ConsensusID
 
-    @brief Computes a consensus identification from peptide identification engines.
+    @brief Computes a consensus identification from results of multiple peptide identification engines.
 
     <CENTER>
     <table>
@@ -79,7 +79,14 @@ using namespace std;
     </table>
     </CENTER>
 
-    This implementation (for PEPMatrix and PEPIons) is described in
+    This tool offers several algorithms that can aggregate results from multiple peptide identification engines ("search engines") into consensus identifications - typically one per MS2 spectrum. The available algorithms are:
+    * @p PEPMatrix: scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. Make sure that the scores for all peptide IDs are PEPs!
+    * @p PEPIons: scoring based on posterior error probabilities (PEPs) and fragment ion similarities. Make sure that the scores for all peptide IDs are PEPs!
+    * @p best: uses the best score of any search engine as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!
+    * @p average: uses the average score of all search engines as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!
+    * @p ranks: calculates a consensus score based on the ranks of peptide IDs in results of the different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.
+
+    The main algorithms, @p PEPMatrix and @p PEPIons, are described in:
     <p>
     Nahnsen S, Bertsch A, Rahnenfuehrer J, Nordheim A, Kohlbacher O<br>
     Probabilistic Consensus Scoring Improves Tandem Mass Spectrometry Peptide Identification<br>
@@ -145,11 +152,11 @@ protected:
 
     registerStringOption_("algorithm", "<choice>", "PEPMatrix",
                           "Algorithm used for consensus scoring.\n"
-                          "* PEPMatrix: scoring based on posterior error probabilities (PEPs) and peptide sequence similarities. This algorithm uses a substitution matrix to score the similarity of sequences not listed by all search engines. Make sure that the scores for all peptide IDs are PEPs!\n"
-                          "* PEPIons: scoring based on posterior error probabilities (PEPs) and fragment ion similarities. Make sure that the scores for all peptide IDs are PEPs!\n"
-                          "* best: uses the best score of any search engine as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!\n"
-                          "* average: uses the average score of all search engines as the consensus score of each peptide ID. Make sure that all peptide IDs use the same score type!\n"
-                          "* ranks: calculates a consensus score based on the ranks of peptide IDs in results of the different search engines. The final score is in the range (0, 1], with 1 being the best score. The input peptide IDs do not need to have the same score type.", false);
+                          "* PEPMatrix: Scoring based on posterior error probabilities (PEPs) and peptide sequence similarities (scored by a substitution matrix). Requires PEPs as scores.\n"
+                          "* PEPIons: Scoring based on posterior error probabilities (PEPs) and fragment ion similarities ('shared peak count'). Requires PEPs as scores.\n"
+                          "* best: For each peptide ID, use the best score of any search engine as the consensus score. Requires the same score type in all ID runs.\n"
+                          "* average:  For each peptide ID, use the average score of all search engines as the consensus. Requires the same score type in all ID runs.\n"
+                          "* ranks: Calculates a consensus score based on the ranks of peptide IDs in the results of different search engines. The final score is in the range (0, 1], with 1 being the best score. No requirements about score types.", false);
     setValidStrings_("algorithm", ListUtils::create<String>("PEPMatrix,PEPIons,best,average,ranks"));
 
     // subsections appear in alphabetical (?) order, independent of the order
@@ -171,7 +178,6 @@ protected:
       algo_params = ConsensusIDAlgorithmPEPIons().getDefaults();
     }
     // remove parameters defined in the base class (to avoid duplicates):
-    algo_params.remove("considered_hits");
     algo_params.remove("filter:");
     return algo_params;
   }

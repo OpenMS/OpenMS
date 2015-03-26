@@ -45,8 +45,8 @@ namespace OpenMS
   ConsensusIDAlgorithm::ConsensusIDAlgorithm() :
     DefaultParamHandler("ConsensusIDAlgorithm")
   {
-    defaults_.setValue("considered_hits", 10, "The number of top hits that are used for the consensus scoring ('0' for all hits).");
-    defaults_.setMinInt("considered_hits", 0);
+    defaults_.setValue("filter:considered_hits", 0, "The number of top hits in each ID run that are considered for consensus scoring ('0' for all hits).");
+    defaults_.setMinInt("filter:considered_hits", 0);
 
     defaults_.setValue("filter:min_support", 0.0, "For each peptide hit from an ID run, the fraction of other ID runs that must support that hit (otherwise it is removed).");
     defaults_.setMinFloat("filter:min_support", 0.0);
@@ -65,7 +65,7 @@ namespace OpenMS
 
   void ConsensusIDAlgorithm::updateMembers_()
   {
-    considered_hits_ = param_.getValue("considered_hits");
+    considered_hits_ = param_.getValue("filter:considered_hits");
     min_support_ = param_.getValue("filter:min_support");
     count_empty_ = (param_.getValue("filter:count_empty") == "true");
   }
@@ -94,17 +94,34 @@ namespace OpenMS
       }
     }
 
-    apply_(ids); // actual (subclass-specific) processing
-    ids[0].assignRanks();
+    SequenceGrouping results;
+    apply_(ids, results); // actual (subclass-specific) processing
 
-#ifdef DEBUG_ID_CONSENSUS
-    const vector<PeptideHit>& hits = ids[0].getHits();
-    for (Size i = 0; i < hits2.size(); ++i)
+    String score_type = ids[0].getScoreType();
+    bool higher_better = ids[0].isHigherScoreBetter();
+    ids.clear();
+    ids.resize(1);
+    ids[0].setScoreType(score_type);
+    ids[0].setHigherScoreBetter(higher_better);
+    for (SequenceGrouping::iterator res_it = results.begin(); 
+         res_it != results.end(); ++res_it)
     {
-      LOG_DEBUG << "  " << hits2[i].getSequence() << " "
-                << hits2[i].getScore() << endl;
-    }
+      // filter by number of identifications:
+      double support = res_it->second.second[1];
+      if (support < min_support_) continue;
+      
+      PeptideHit hit;
+      hit.setSequence(res_it->first);
+      hit.setCharge(res_it->second.first);
+      hit.setScore(res_it->second.second[0]);
+      hit.setMetaValue("consensus_support", support);
+      ids[0].insertHit(hit);
+#ifdef DEBUG_ID_CONSENSUS
+      LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
+                << hit.getScore() << endl;
 #endif
+    }
+    ids[0].assignRanks();
   }
 
 

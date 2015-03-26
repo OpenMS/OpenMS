@@ -86,7 +86,8 @@ namespace OpenMS
     ConsensusIDAlgorithm();
 
     /// consensus computation (to be implemented by subclasses)
-    virtual void apply_(std::vector<PeptideIdentification>& ids) = 0;
+    virtual void apply_(std::vector<PeptideIdentification>& ids,
+                        SequenceGrouping& results) = 0;
 
     /// Docu in base class
     virtual void updateMembers_();

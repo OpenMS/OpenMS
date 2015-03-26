@@ -122,7 +122,7 @@ START_SECTION(void apply(std::vector<PeptideIdentification>& ids))
   ConsensusIDAlgorithmBest consensus;
   // define parameters:
   Param param;
-  param.setValue("considered_hits", 0);
+  param.setValue("filter:considered_hits", 0);
   consensus.setParameters(param);
   // apply:
   vector<PeptideIdentification> f = ids;
