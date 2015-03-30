@@ -38,14 +38,14 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
+// OpenMS
+#include <OpenMS/VISUAL/SpectrumCanvas.h>
+
 // STL
 #include <vector>
 #include <utility>
 
-// OpenMS
-#include <OpenMS/VISUAL/SpectrumCanvas.h>
-
-//QT
+// QT
 class QAction;
 
 namespace OpenMS

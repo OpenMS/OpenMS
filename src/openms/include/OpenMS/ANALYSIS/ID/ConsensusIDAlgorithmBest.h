@@ -42,6 +42,8 @@ namespace OpenMS
   /**
     @brief Calculates a consensus from multiple ID runs by taking the best search score
 
+    @htmlinclude OpenMS_ConsensusIDAlgorithmBest.parameters
+    
     @ingroup Analysis_ID
   */
   class OPENMS_DLLAPI ConsensusIDAlgorithmBest :
