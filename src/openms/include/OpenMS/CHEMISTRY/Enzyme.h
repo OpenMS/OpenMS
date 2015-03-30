@@ -64,12 +64,12 @@ public:
     Enzyme(const Enzyme & enzyme);
 
     /// detailed constructor
-    Enzyme(const String & name,
+    explicit Enzyme(const String & name,
              const String & cleavage_regex,
              const std::set<String> & synonyms = std::set<String>(),
              String regex_description = "",
-             EmpiricalFormula n_term_gain = EmpiricalFormula(),
-             EmpiricalFormula c_term_gain = EmpiricalFormula(),
+             EmpiricalFormula n_term_gain = EmpiricalFormula("H"),
+             EmpiricalFormula c_term_gain = EmpiricalFormula("OH"),
              String psi_id = "",
              String xtandem_id = "",
              UInt omssa_id = 0);
