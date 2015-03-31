@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.1.xsd">
 	<msRun scanCount="28">
-		<parentFile fileName="FileConverter_6_input.mzML" fileType="processedData" fileSha1="1bba4248ffd9231a39d431e10512e34ac5917f50"/>
+		<parentFile fileName="FileConverter_6_input.mzML" fileType="processedData" fileSha1="26026ae4babe7143ea5e205eb01f08d09bfcb418"/>
 		<msInstrument>
 			<msManufacturer category="msManufacturer" value=""/>
 			<msModel category="msModel" value=""/>
@@ -21,7 +21,7 @@
 			<processingOperation name="p1" value="value1"/>
 		</dataProcessing>
 		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="0">
-			<software type="processing" name="ProteoWizard" version="1.0" completionTime="2001-02-03T04:10:00"/>
+			<software type="processing" name="ProteoWizard software" version="1.0" completionTime="2001-02-03T04:10:00"/>
 			<processingOperation name="p2" value="value2"/>
 		</dataProcessing>
 		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="0">

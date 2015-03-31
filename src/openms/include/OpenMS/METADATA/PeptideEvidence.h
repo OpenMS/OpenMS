@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,146 +28,100 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_METADATA_PEPTIDEEVIDENCE_H
 #define OPENMS_METADATA_PEPTIDEEVIDENCE_H
 
-#include <vector>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 namespace OpenMS
 {
-  class AASequence;
 
-  /**
-    @brief Representation of a MzIdentML PeptideEvidence
+/**
+  @brief Representation of a peptide evidence.
 
-        It contains information about the protein the peptide comes from
-        and additional information were it is located in the protein.
+  A peptide evidence object describes a single peptide to protein match.
 
-        @todo implement CVParam
-
-        @ingroup Metadata
-  */
-  class OPENMS_DLLAPI PeptideEvidence :
-    public MetaInfoInterface
+  @ingroup Metadata
+*/
+  class OPENMS_DLLAPI PeptideEvidence
   {
 public:
+    static const int UNKNOWN_POSITION; // == -1
 
-    /** @name Constructors and Destructor */
-    //@{
-    /// default constructor
+    // Note: we use 0 as position of the N-terminus while e.g. mzTab or other formats start counting at 1.
+    static const int N_TERMINAL_POSITION;
+    static const char UNKNOWN_AA; // PeptideEvidence::UNKNOWN_AA = ' ';
+
+    // Note: we use '[' and ']' instead of  e.g. '-' as in mzTab specification
+    static const char N_TERMINAL_AA;
+    static const char C_TERMINAL_AA;
+
+    /// constructor
     PeptideEvidence();
 
     /// copy constructor
-    PeptideEvidence(const PeptideEvidence & source);
+    PeptideEvidence(const PeptideEvidence& source);
 
     /// destructor
-    virtual ~PeptideEvidence();
+    ~PeptideEvidence() {}
     //@}
 
     /// assignment operator
-    PeptideEvidence & operator=(const PeptideEvidence & source);
+    PeptideEvidence& operator=(const PeptideEvidence& source);
 
     /// Equality operator
-    bool operator==(const PeptideEvidence & rhs) const;
+    bool operator==(const PeptideEvidence& rhs) const;
 
-    /// Inequality operator
-    bool operator!=(const PeptideEvidence & rhs) const;
+    /// not equal
+    bool operator!=(const PeptideEvidence& rhs) const;
 
-    /**	@name Accessors
-    */
-    //@{
-    /// returns the corresponding protein db sequence ref
-    const String & getDBSequenceRef() const;
+    /// get the protein accession the peptide matches to. If not available the empty string is returned.
+    const String& getProteinAccession() const;
 
-    /// sets the corresponding protein db sequence ref
-    void setDBSequenceRef(const String & rhs);
+    /// set the protein accession the peptide matches to. If not available set to empty string.
+    void setProteinAccession(const String& s);
 
-    /// returns the translation table reference
-    const String & getTranslationTableRef() const;
+    /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set to UNKNOWN_POSITION. N-terminal positions must be marked with N_TERMINAL_AA
+    void setStart(const Int a);
 
-    /// sets the translation table reference
-    void setTranslationTableRef(const String & rhs);
-
-    /// start position in the sequence (xsd:int)
-    void setStart(Int start);
-
-    /// returns the start position in the sequence (xsd:int)
+    /// get the position in the protein (starting at 0 for the N-terminus). If not available UNKNOWN_POSITION constant is returned.
     Int getStart() const;
 
-    /// sets the end position in the sequence
-    void setEnd(Int end);
+    /// set the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available, set UNKNOWN_POSITION. C-terminal positions must be marked with C_TERMINAL_AA
+    void setEnd(const Int a);
 
-    /// returns the end position in the sequence
+    /// get the position of the last AA of the peptide in protein coordinates (starting at 0 for the N-terminus). If not available UNKNOWN_POSITION constant is returned.
     Int getEnd() const;
 
-    /// sets the amino acid before the sequence, "-" if N-terminal, "?" if not applicable (e.g. de novo)
-    void setPre(char rhs);
+    /// sets the amino acid single letter code before the sequence (preceding amino acid in the protein). If not available, set to UNKNOWN_AA. If N-terminal set to N_TERMINAL_AA
+    void setAABefore(const char acid);
 
-    /// returns the amino acid before the sequence
-    char getPre() const;
+    /// returns the amino acid single letter code before the sequence (preceding amino acid in the protein). If not available, UNKNOWN_AA is returned. If N-terminal, N_TERMINAL_AA is returned.
+    char getAABefore() const;
 
-    /// sets the amino acid after the sequence, "-" if C-terminal, "?" if not applicable (e.g. de novo)
-    void setPost(char rhs);
+    /// sets the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, set to UNKNOWN_AA. If C-terminal set to C_TERMINAL_AA
+    void setAAAfter(const char acid);
 
-    /// returns the amino acid after the sequence
-    char getPost() const;
-
-    /// unique id of the file, set of files or repository
-    void setId(const String & id);
-
-    /// returns the unique id of the instance
-    const String & getId() const;
-
-    /// sets the potentially ambiguous but human readable name
-    void setName(const String & name);
-
-    /// returns the human readable name
-    const String & getName() const;
-
-    /// sets the number of missed cleavages
-    void setMissedCleavages(Int rhs);
-
-    /// returns the number of missed cleavages
-    Int getMissedCleavages() const;
-
-    /// sets whether the hit is a decoy hit
-    void setIsDecoy(bool is_decoy);
-
-    /// returns the whether the hit is decoy
-    bool getIsDecoy() const;
-
-    /// Frame of the DB, e.g. from nucleic acids
-    void setFrame(Int frame);
-
-    /// returns the frame of the peptide evidence
-    Int getFrame() const;
-    //@}
-
+    /// returns the amino acid single letter code after the sequence (subsequent amino acid in the protein). If not available, UNKNOWN_AA is returned. If C-terminal, C_TERMINAL_AA is returned.
+    char getAAAfter() const;
 
 protected:
+    String accession_;
 
-    String db_sequence_ref_;
-    String translation_table_ref_;
     Int start_;
-    Int end_;
-    char pre_;
-    char post_;
-    String id_;
-    String name_;
-    Int missed_cleavages_;
-    bool is_decoy_;
-    Int frame_;
 
+    Int end_;
+
+    char aa_before_;
+
+    char aa_after_;
   };
 
-} // namespace OpenMS
+}
 
 #endif // OPENMS_METADATA_PEPTIDEEVIDENCE_H

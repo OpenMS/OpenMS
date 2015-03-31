@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -329,102 +329,83 @@ START_SECTION((void assignRanks()))
   TEST_EQUAL(id.getHits()[2].getRank(), 3)
 END_SECTION
 
-START_SECTION(void getReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
+START_SECTION(static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit> & , const std::set<String> & accession))
+{
   PeptideIdentification id;
   PeptideHit hit;
   vector< PeptideHit > peptide_hits;
 
   hit.setScore(23);
   hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
+  PeptideEvidence pe;
+  pe.setProteinAccession("TEST_PROTEIN1");
+  hit.addPeptideEvidence(pe);
   id.insertHit(hit);
 
   hit = PeptideHit();
   hit.setScore(10);
   hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
+  pe.setProteinAccession("TEST_PROTEIN2");
+  hit.addPeptideEvidence(pe);
   id.insertHit(hit);
 
   hit = PeptideHit();
   hit.setScore(11);
   hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
+  pe.setProteinAccession("TEST_PROTEIN2");
+  hit.addPeptideEvidence(pe);
   id.insertHit(hit);
 
-  id.getReferencingHits("TEST_PROTEIN2", peptide_hits);
+  set<String> query_accession;
+  query_accession.insert("TEST_PROTEIN2");
+  peptide_hits = PeptideIdentification::getReferencingHits(id.getHits(), query_accession);
   TEST_EQUAL(peptide_hits.size(), 2)
   TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("SECONDPROTEIN"))
   TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
 
-END_SECTION
-
-START_SECTION(void getReferencingHits(const std::vector< String > &accessions, std::vector< PeptideHit > &peptide_hits) const)
+  query_accession.insert("TEST_PROTEIN3");
+  peptide_hits = PeptideIdentification::getReferencingHits(id.getHits(), query_accession);
+  TEST_EQUAL(peptide_hits.size(), 2)
+  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("SECONDPROTEIN"))
+  TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
+}
+{
   PeptideIdentification id;
   PeptideHit hit;
   vector< PeptideHit > peptide_hits;
-  vector<String> accessions;
-
-  accessions.push_back("TEST_PROTEIN2");
-  accessions.push_back("TEST_PROTEIN3");
 
   hit.setScore(23);
   hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
+  PeptideEvidence pe;
+  pe.setProteinAccession("TEST_PROTEIN1");
+  hit.addPeptideEvidence(pe);
   id.insertHit(hit);
 
   hit = PeptideHit();
   hit.setScore(10);
   hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
+  pe.setProteinAccession("TEST_PROTEIN2");
+  hit.addPeptideEvidence(pe);
   id.insertHit(hit);
 
   hit = PeptideHit();
   hit.setScore(11);
   hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN3");
+  pe.setProteinAccession("TEST_PROTEIN3");
+  hit.addPeptideEvidence(pe);
   id.insertHit(hit);
 
-  id.getReferencingHits(accessions, peptide_hits);
+  set<String> query_accession;
+  query_accession.insert("TEST_PROTEIN2");
+  query_accession.insert("TEST_PROTEIN3");
+  peptide_hits = PeptideIdentification::getReferencingHits(id.getHits(), query_accession);
   TEST_EQUAL(peptide_hits.size(), 2)
   TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("SECONDPROTEIN"))
   TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
+}
 END_SECTION
 
-START_SECTION(void getReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)
-  PeptideIdentification id;
-  PeptideHit hit;
-  vector< PeptideHit > peptide_hits;
-  vector<ProteinHit> protein_hits;
-  ProteinHit p_hit;
-
-  p_hit.setAccession("TEST_PROTEIN2");
-  protein_hits.push_back(p_hit);
-  p_hit.setAccession("TEST_PROTEIN3");
-  protein_hits.push_back(p_hit);
-
-  hit.setScore(23);
-  hit.setSequence(AASequence::fromString("FIRSTPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN1");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(10);
-  hit.setSequence(AASequence::fromString("SECONDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN2");
-  id.insertHit(hit);
-
-  hit = PeptideHit();
-  hit.setScore(11);
-  hit.setSequence(AASequence::fromString("THIRDPROTEIN"));
-  hit.addProteinAccession("TEST_PROTEIN3");
-  id.insertHit(hit);
-
-  id.getReferencingHits(protein_hits, peptide_hits);
-  TEST_EQUAL(peptide_hits.size(), 2)
-  TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("SECONDPROTEIN"))
-  TEST_EQUAL(peptide_hits[1].getSequence(), AASequence::fromString("THIRDPROTEIN"))
-END_SECTION
-
+/*
 START_SECTION(void getNonReferencingHits(const String &protein_accession, std::vector< PeptideHit > &peptide_hits) const)
   PeptideIdentification id;
   PeptideHit hit;
@@ -516,7 +497,7 @@ START_SECTION(void getNonReferencingHits(const std::vector< ProteinHit > &protei
   TEST_EQUAL(peptide_hits.size(), 1)
   TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
 END_SECTION
-
+*/
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

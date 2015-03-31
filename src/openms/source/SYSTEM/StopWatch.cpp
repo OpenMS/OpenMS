@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -243,8 +243,8 @@ namespace OpenMS
   //accumulated time + the time since the stop_watch was last started.
   double StopWatch::getClockTime() const
   {
-    PointerSizeInt elapsed_seconds;
-    PointerSizeInt elapsed_useconds;
+    PointerSizeInt elapsed_seconds = 0;
+    PointerSizeInt elapsed_useconds = 0;
 
     if (is_running_ == false)
     {
@@ -293,7 +293,7 @@ namespace OpenMS
   //getUserTime reports the current amount of user cpu time
   //accumulated by this StopWatch.  If the stop_watch is currently off,
   //this is just the accumulated time.  If the StopWatch is running, this
-  //is the accumulated time plust the time since the stop_watch was last started.
+  //is the accumulated time plus the time since the stop_watch was last started.
   double StopWatch::getUserTime() const
   {
     double temp_value;

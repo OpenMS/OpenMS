@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -119,7 +119,7 @@ namespace OpenMS
         clusters.erase(clusters.begin() + min.first);
 
         //update original_distance matrix
-        //complete linkage: new distcance between clusteres is the minimum distance between elements of each cluster
+        //complete linkage: new distance between clusters is the minimum distance between elements of each cluster
         //lance-williams update for d((i,j),k): 0.5* d(i,k) + 0.5* d(j,k) + 0.5* |d(i,k)-d(j,k)|
         for (Size k = 0; k < min.second; ++k)
         {

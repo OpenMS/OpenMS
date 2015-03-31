@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,7 @@ public:
     @exception Exception::FileNotFound is thrown if the file could not be opened
     @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const String & filename, TransformationDescription & transformation);
+    void load(const String & filename, TransformationDescription & transformation, bool fit_model=true);
 
     /**
     @brief Stores the data in an TransformationXML file

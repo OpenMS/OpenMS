@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,10 +100,11 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
     TEST_EQUAL(proteins.getHits()[0].getAccession(), "P02787|TRFE_HUMAN");
     TEST_EQUAL(proteins.getHits()[0].getCoverage(), 8.6);
     TEST_EQUAL(proteins.getHits()[0].getScore(), 0.9990);
-    // this one is indistinguishable... therefore it should have minimal infos
+    // this one is indistinguishable... therefore no coverage (but the score
+    // got transferred from the "leader" protein):
     TEST_EQUAL(proteins.getHits()[6].getAccession(), "P00739|HPTR_HUMAN");
     TEST_EQUAL(proteins.getHits()[6].getCoverage(), -1);
-    TEST_EQUAL(proteins.getHits()[6].getScore(), -1);
+    TEST_EQUAL(proteins.getHits()[6].getScore(), 0.2663);
 
     TEST_EQUAL(proteins.getHits()[8].getAccession(), "P04217|A1BG_HUMAN");
     TEST_EQUAL(proteins.getHits()[8].getCoverage(), 2.0);
@@ -115,8 +116,9 @@ START_SECTION(void load(const String &filename, ProteinIdentification &protein_i
     TEST_EQUAL(peptides.getHits()[0].getSequence(), aa_seq);
     TEST_EQUAL(peptides.getHits()[0].getCharge(), 2);
     TEST_EQUAL(peptides.getHits()[0].getScore(), 0.8633);
-    TEST_EQUAL(peptides.getHits()[0].getProteinAccessions().size(), 1);
-    TEST_EQUAL(peptides.getHits()[0].getProteinAccessions()[0], "P02787|TRFE_HUMAN");
+    set<String> protein_accessions = peptides.getHits()[0].extractProteinAccessions();
+    TEST_EQUAL(protein_accessions.size(), 1);
+    TEST_EQUAL(*protein_accessions.begin(), "P02787|TRFE_HUMAN");
     TEST_EQUAL(peptides.getHits()[0].getMetaValue("is_unique"), true);
     TEST_EQUAL(peptides.getHits()[0].getMetaValue("is_contributing"), true);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,12 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 
+#include <OpenMS/KERNEL/ConsensusMap.h>
+
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>
 
 namespace OpenMS
@@ -111,10 +115,10 @@ namespace OpenMS
       LOG_WARN << "Warning: Due to deactivated isotope-correction labeling statistics will be based on raw intensities, which might give too optimistic results." << std::endl;
     }
 
-    // compute statitics and embed into ouput map
+    // compute statistics and embed into output map
     computeLabelingStatistics_(consensus_map_out);
 
-    // apply normaization if requested
+    // apply normalization if requested
     if (normalization_enabled_)
     {
       IsobaricNormalizer normalizer(quant_method_);

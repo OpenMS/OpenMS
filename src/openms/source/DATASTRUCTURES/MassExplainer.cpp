@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,16 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
-
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/DATASTRUCTURES/MassExplainer.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 
-
-#include <iostream>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
 #include <algorithm>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -133,7 +135,7 @@ namespace OpenMS
   }
 
   /// Assignment operator
-  MassExplainer & MassExplainer::operator=(const MassExplainer & rhs)
+  MassExplainer& MassExplainer::operator=(const MassExplainer& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -172,7 +174,7 @@ namespace OpenMS
     // calculate some initial boundaries that can be used to shorten the enumeration process
     //Int q_comp_min = -max_span_; //minimal expected charge of compomer
     //Int q_comp_max = max_span_;  //maximal expected charge of compomer
-    Int max_pq = q_max_;                 //maximal number of positve adduct-charges for a compomer
+    Int max_pq = q_max_; //maximal number of positive adduct-charges for a compomer
     //Int max_nq = q_max_; //maximal number of negative adduct-charges for a compomer
 
     for (AdductsType::const_iterator it = adduct_charged.begin(); it != adduct_charged.end(); ++it)
@@ -305,7 +307,7 @@ namespace OpenMS
   }
 
   /// return a compomer by its Id (useful after a query() ).
-  const Compomer & MassExplainer::getCompomerById(Size id) const
+  const Compomer& MassExplainer::getCompomerById(Size id) const
   {
     return explanations_[id];
   }
@@ -324,8 +326,8 @@ namespace OpenMS
                                   const float mass_to_explain,
                                   const float mass_delta,
                                   const float thresh_log_p,
-                                  std::vector<Compomer>::const_iterator & firstExplanation,
-                                  std::vector<Compomer>::const_iterator & lastExplanation) const
+                                  std::vector<Compomer>::const_iterator& firstExplanation,
+                                  std::vector<Compomer>::const_iterator& lastExplanation) const
   {
 #ifdef DEBUG_FD
     if (fabs(mass_to_explain) < 120.0)
@@ -344,7 +346,7 @@ namespace OpenMS
   }
 
   ///check if the generated compomer is valid judged by its probability, charges etc
-  bool MassExplainer::compomerValid_(const Compomer & cmp)
+  bool MassExplainer::compomerValid_(const Compomer& cmp)
   {
     // probability ok?
     if (cmp.getLogP() < thresh_p_)
@@ -368,7 +370,7 @@ namespace OpenMS
   }
 
   /// create a proper adduct from formula and charge and probability
-  Adduct MassExplainer::createAdduct_(const String & formula, const Int charge, const double p) const
+  Adduct MassExplainer::createAdduct_(const String& formula, const Int charge, const double p) const
   {
 
     EmpiricalFormula ef(formula);

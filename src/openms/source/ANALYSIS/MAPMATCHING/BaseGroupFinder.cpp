@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
+#include <OpenMS/CONCEPT/Factory.h>
+
 #include <set>
 
 namespace OpenMS
@@ -64,12 +66,12 @@ namespace OpenMS
       QTClusterFinder::getProductName(), &QTClusterFinder::create);
   }
 
-  void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap> & maps) const
+  void BaseGroupFinder::checkIds_(const std::vector<ConsensusMap>& maps) const
   {
     std::set<Size> used_ids;
     for (Size i = 0; i < maps.size(); ++i)
     {
-      const ConsensusMap & map = maps[i];
+      const ConsensusMap& map = maps[i];
       for (ConsensusMap::FileDescriptions::const_iterator it = map.getFileDescriptions().begin(); it != map.getFileDescriptions().end(); ++it)
       {
         if (used_ids.find(it->first) != used_ids.end())

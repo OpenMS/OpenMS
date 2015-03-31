@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -223,7 +223,7 @@ namespace OpenMS
   void writeRunHeader(SVOutStream& out)
   {
     bool old = out.modifyStrings(false);
-    out << "#RUN" << "run_id" << "score_type" << "score_direction" 
+    out << "#RUN" << "run_id" << "score_type" << "score_direction"
         << "date_time" << "search_engine_version" << "parameters" << nl;
     out.modifyStrings(old);
   }
@@ -232,7 +232,7 @@ namespace OpenMS
   void writeProteinHeader(SVOutStream& out)
   {
     bool old = out.modifyStrings(false);
-    out << "#PROTEIN" << "score" << "rank" << "accession" << "coverage" 
+    out << "#PROTEIN" << "score" << "rank" << "accession" << "coverage"
         << "sequence" << nl;
     out.modifyStrings(old);
   }
@@ -246,11 +246,11 @@ namespace OpenMS
   }
 
   // stream output operator for SearchParameters
-  SVOutStream & operator<<(SVOutStream & out,
-                           const ProteinIdentification::SearchParameters sp)
+  SVOutStream& operator<<(SVOutStream& out,
+                          const ProteinIdentification::SearchParameters sp)
   {
     String param_line = "db=" + sp.db + ", db_version=" +   sp.db_version +
-      ", taxonomy=" + sp.taxonomy + ", charges=" + sp.charges + ", mass_type=";
+                        ", taxonomy=" + sp.taxonomy + ", charges=" + sp.charges + ", mass_type=";
     if (sp.mass_type == ProteinIdentification::MONOISOTOPIC)
     {
       param_line += "monoisotopic";
@@ -279,8 +279,8 @@ namespace OpenMS
     param_line += ", enzyme=";
     param_line += ProteinIdentification::NamesOfDigestionEnzyme[sp.enzyme];
     param_line += ", missed_cleavages=" + String(sp.missed_cleavages) +
-      ", peak_mass_tolerance=" + String(sp.peak_mass_tolerance) +
-      ", precursor_mass_tolerance=" + String(sp.precursor_tolerance);
+                  ", peak_mass_tolerance=" + String(sp.peak_mass_tolerance) +
+                  ", precursor_mass_tolerance=" + String(sp.precursor_tolerance);
     out << param_line;
     return out;
   }
@@ -328,14 +328,25 @@ namespace OpenMS
   }
 
   // stream output operator for a PeptideHit
+  // TODO: output of multiple peptide evidences
   SVOutStream& operator<<(SVOutStream& out, const PeptideHit& hit)
   {
-    out << hit.getScore() << hit.getRank() << hit.getSequence()
-        << hit.getCharge() << hit.getAABefore() << hit.getAAAfter();
+    vector<PeptideEvidence> pes = hit.getPeptideEvidences();
+
+    if (!pes.empty())
+    {
+      out << hit.getScore() << hit.getRank() << hit.getSequence()
+          << hit.getCharge() << pes[0].getAABefore() << pes[0].getAAAfter();
+    }
+    else
+    {
+      out << hit.getScore() << hit.getRank() << hit.getSequence()
+          << hit.getCharge() << PeptideEvidence::UNKNOWN_AA << PeptideEvidence::UNKNOWN_AA;
+    }
     return out;
   }
 
-  // write a protein identification to the output stream
+  // write a peptide identification to the output stream
   void writePeptideId(SVOutStream& out, const PeptideIdentification& pid,
                       const String& what = "PEPTIDE", bool incl_pred_rt = false, bool incl_pred_pt = false,
                       bool incl_first_dim = false)
@@ -343,24 +354,43 @@ namespace OpenMS
     for (vector<PeptideHit>::const_iterator hit_it = pid.getHits().begin();
          hit_it != pid.getHits().end(); ++hit_it)
     {
-      if (!what.empty()) out << what;
-      if (pid.hasRT()) out << pid.getRT();
-      else out << "-1";
-      if (pid.hasMZ()) out << pid.getMZ();
-      else out << "-1";
-      out << *hit_it << pid.getScoreType() << pid.getIdentifier();
-      String accessions;
-      for (vector<String>::const_iterator acc_it =
-             hit_it->getProteinAccessions().begin(); acc_it !=
-             hit_it->getProteinAccessions().end(); ++acc_it)
+      if (!what.empty())
       {
-        if (acc_it != hit_it->getProteinAccessions().begin())
+        out << what;
+      }
+
+      if (pid.hasRT())
+      {
+        out << pid.getRT();
+      }
+      else
+      {
+        out << "-1";
+      }
+
+      if (pid.hasMZ())
+      {
+        out << pid.getMZ();
+      }
+      else
+      {
+        out << "-1";
+      }
+
+      out << *hit_it << pid.getScoreType() << pid.getIdentifier();
+
+      String accessions;
+      set<String> protein_accessions = hit_it->extractProteinAccessions();
+      for (set<String>::const_iterator acc_it = protein_accessions.begin(); acc_it != protein_accessions.end(); ++acc_it)
+      {
+        if (acc_it != protein_accessions.begin())
         {
           accessions += ";";
         }
         accessions += *acc_it;
       }
       out << accessions;
+
       if (incl_pred_rt)
       {
         if (hit_it->metaValueExists("predicted_RT"))
@@ -393,17 +423,17 @@ namespace OpenMS
       out << nl;
     }
   }
-  
+
   class TOPPTextExporter :
     public TOPPBase
   {
-  public:
+public:
     TOPPTextExporter() :
       TOPPBase("TextExporter", "Exports various XML formats to a text file.")
     {
     }
 
-  protected:
+protected:
 
     void registerOptionsAndFlags_()
     {
@@ -463,7 +493,7 @@ namespace OpenMS
 
       // input file type
       FileTypes::Type in_type = FileHandler::getType(in);
-      writeDebug_(String("Input file type: ") + 
+      writeDebug_(String("Input file type: ") +
                   FileTypes::typeToName(in_type), 2);
 
       if (in_type == FileTypes::UNKNOWN)
@@ -493,14 +523,14 @@ namespace OpenMS
         }
         pep_ids.insert(pep_ids.end(), feature_map.getUnassignedPeptideIdentifications().begin(), feature_map.getUnassignedPeptideIdentifications().end());
 
-        try   // might throw Exception::MissingInformation()
+        try // might throw Exception::MissingInformation()
         {
           for (Size i = 0; i < prot_ids.size(); ++i)
           {
             prot_ids[i].computeCoverage(pep_ids);
           }
         }
-        catch (Exception::MissingInformation & e)
+        catch (Exception::MissingInformation& e)
         {
           LOG_WARN << "Non-critical exception: " << e.what() << "\n";
         }
@@ -511,7 +541,7 @@ namespace OpenMS
         SVOutStream output(outstr, sep, replacement, quoting_method);
 
         bool minimal = getFlag_("feature:minimal");
-        no_ids |= minimal;             // "minimal" implies "no_ids"
+        no_ids |= minimal; // "minimal" implies "no_ids"
 
         // write header:
         output.modifyStrings(false);
@@ -586,7 +616,7 @@ namespace OpenMS
           {
             for (vector<PeptideIdentification>::const_iterator pit =
                    citer->getPeptideIdentifications().begin(); pit !=
-                   citer->getPeptideIdentifications().end(); ++pit)
+                 citer->getPeptideIdentifications().end(); ++pit)
             {
               writePeptideId(output, *pit);
             }
@@ -619,7 +649,7 @@ namespace OpenMS
         pep_ids.insert(pep_ids.end(), consensus_map.getUnassignedPeptideIdentifications().begin(), consensus_map.getUnassignedPeptideIdentifications().end());
         try // might throw Exception::MissingInformation()
         {
-          for (Size i = 0; i < prot_ids.size(); ++i) 
+          for (Size i = 0; i < prot_ids.size(); ++i)
           {
             prot_ids[i].computeCoverage(pep_ids);
           }
@@ -667,7 +697,7 @@ namespace OpenMS
           std::ofstream consensus_centroids_file(consensus_centroids.c_str());
           if (!consensus_centroids_file)
           {
-            throw Exception::UnableToCreateFile(__FILE__, __LINE__, 
+            throw Exception::UnableToCreateFile(__FILE__, __LINE__,
                                                 __PRETTY_FUNCTION__,
                                                 consensus_centroids);
           }
@@ -846,14 +876,12 @@ namespace OpenMS
               {
                 Size index = prot_runs[pep_it->getIdentifier()];
                 for (vector<PeptideHit>::const_iterator hit_it = pep_it->
-                       getHits().begin(); hit_it != pep_it->getHits().end();
+                                                                 getHits().begin(); hit_it != pep_it->getHits().end();
                      ++hit_it)
                 {
-                  peptides_by_source[index].insert(hit_it->getSequence().
-                                                   toString());
-                  proteins_by_source[index].insert(
-                    hit_it->getProteinAccessions().begin(),
-                    hit_it->getProteinAccessions().end());
+                  peptides_by_source[index].insert(hit_it->getSequence().toString());
+                  set<String> protein_accessions = hit_it->extractProteinAccessions();
+                  proteins_by_source[index].insert(protein_accessions.begin(), protein_accessions.end());
                 }
               }
               vector<set<String> >::iterator pep_it = peptides_by_source.begin(), prot_it = proteins_by_source.begin();
@@ -896,15 +924,15 @@ namespace OpenMS
           std::vector<Size> map_num_to_map_id;
           FeatureHandle feature_handle_NaN;
           feature_handle_NaN.setRT(std::numeric_limits<
-                                   FeatureHandle::CoordinateType>::quiet_NaN());
+                                     FeatureHandle::CoordinateType>::quiet_NaN());
           feature_handle_NaN.setMZ(std::numeric_limits<
-                                   FeatureHandle::CoordinateType>::quiet_NaN());
+                                     FeatureHandle::CoordinateType>::quiet_NaN());
           feature_handle_NaN.setIntensity(std::numeric_limits<FeatureHandle::IntensityType>::quiet_NaN());
           feature_handle_NaN.setWidth(std::numeric_limits<
-                                      FeatureHandle::WidthType>::quiet_NaN());
-          feature_handle_NaN.setCharge(0);   // just to be sure...
+                                        FeatureHandle::WidthType>::quiet_NaN());
+          feature_handle_NaN.setCharge(0); // just to be sure...
           // alternative?:
-          // feature_handle_NaN.setCharge(std::numeric_limits<Int>::max()); 
+          // feature_handle_NaN.setCharge(std::numeric_limits<Int>::max());
 
           // It's hard to predict which meta keys will be used in file
           // descriptions. So we assemble a list each time. Represent keys
@@ -930,7 +958,7 @@ namespace OpenMS
           output << "#MAP" << "id" << "filename" << "label" << "size";
           for (std::set<String>::const_iterator kit =
                  all_file_desc_meta_keys.begin(); kit !=
-                 all_file_desc_meta_keys.end(); ++kit)
+               all_file_desc_meta_keys.end(); ++kit)
           {
             output << *kit;
           }
@@ -956,13 +984,13 @@ namespace OpenMS
           // list of maps (intentionally at the beginning, contrary to order in consensusXML)
           for (ConsensusMap::FileDescriptions::const_iterator fdit =
                  consensus_map.getFileDescriptions().begin(); fdit !=
-                 consensus_map.getFileDescriptions().end(); ++fdit)
+               consensus_map.getFileDescriptions().end(); ++fdit)
           {
             output << "MAP" << fdit->first << fdit->second.filename
                    << fdit->second.label << fdit->second.size;
             for (std::set<String>::const_iterator kit =
                    all_file_desc_meta_keys.begin(); kit !=
-                   all_file_desc_meta_keys.end(); ++kit)
+                 all_file_desc_meta_keys.end(); ++kit)
             {
               if (fdit->second.metaValueExists(*kit))
               {
@@ -978,7 +1006,7 @@ namespace OpenMS
           {
             for (vector<ProteinIdentification>::const_iterator it =
                    consensus_map.getProteinIdentifications().begin(); it !=
-                   consensus_map.getProteinIdentifications().end(); ++it)
+                 consensus_map.getProteinIdentifications().end(); ++it)
             {
               writeProteinId(output, *it);
             }
@@ -1014,7 +1042,7 @@ namespace OpenMS
             {
               for (vector<PeptideIdentification>::const_iterator pit =
                      cmit->getPeptideIdentifications().begin(); pit !=
-                     cmit->getPeptideIdentifications().end(); ++pit)
+                   cmit->getPeptideIdentifications().end(); ++pit)
               {
                 writePeptideId(output, *pit);
               }
@@ -1029,6 +1057,7 @@ namespace OpenMS
         vector<PeptideIdentification> pep_ids;
         String document_id;
         IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+
         try // might throw Exception::MissingInformation()
         {
           for (Size i = 0; i < prot_ids.size(); ++i)
@@ -1119,7 +1148,7 @@ namespace OpenMS
             {
               ++output_count;
               output << "MS" << it->getMSLevel() << it->getRT() << "" << "" << it->size() << index << name << nl;
-            } 
+            }
             else if (it->getMSLevel() == 2)
             {
               double precursor_mz = -1;
@@ -1162,7 +1191,7 @@ namespace OpenMS
                 output << cit->getRT() << " " << cit->getIntensity() << nl;
               }
               output << nl;
-            } 
+            }
             else
             {
               ++unsupported_chromatogram_count;
@@ -1178,10 +1207,10 @@ namespace OpenMS
           {
             writeLog_("Ignored " + String(unsupported_chromatogram_count) + " chromatograms not supported by TextExporter!");
           }
-       }
+        }
 
-       output << nl;
-       outstr.close();
+        output << nl;
+        outstr.close();
       }
 
       return EXECUTION_OK;

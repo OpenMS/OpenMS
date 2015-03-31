@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 
 using namespace std;
 
@@ -87,9 +88,8 @@ namespace OpenMS
   void TransformationDescription::fitModel(const String& model_type,
                                            const Param& params)
   {
-    // if the transformation is the identity, don't fit another model:
-    if (model_type_ == "identity")
-      return;
+    // if (previous) transformation is the identity, don't fit another model:
+    if (model_type_ == "identity") return;
 
     delete model_;
     model_ = 0; // avoid segmentation fault in case of exception
@@ -105,6 +105,10 @@ namespace OpenMS
       // TransformationModelLinear* lm = dynamic_cast<TransformationModelLinear*>(model_);
       // lm->getParameters(slope, intercept);
       // cout << "slope: " << slope << ", intercept: " << intercept << endl;
+    }
+    else if (model_type == "b_spline")
+    {
+      model_ = new TransformationModelBSpline(data_, params);
     }
     else if (model_type == "interpolated")
     {

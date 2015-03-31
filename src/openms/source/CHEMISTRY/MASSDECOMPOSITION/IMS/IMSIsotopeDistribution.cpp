@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -180,7 +180,7 @@ IsotopeDistribution::IsotopeDistribution(mass_type mass): nominalMass(0) {
         power >>= 1;
       }
 
-      // initializes distribution which will folded iteratively upto each entry
+      // initializes distribution which will folded iteratively up to each entry
       IMSIsotopeDistribution this_power_two_index(*this);
 
       // initializes result distribution where foldings will be collected

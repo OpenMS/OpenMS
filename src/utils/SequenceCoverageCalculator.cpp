@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ protected:
     setValidFormats_("out", ListUtils::create<String>("txt"));
   }
 
-  void getStartAndEndIndex(const String & sequence, const String & substring, pair<Size, Size> & indices)
+  void getStartAndEndIndex(const String& sequence, const String& substring, pair<Size, Size>& indices)
   {
     indices.first = 0;
     indices.second = 0;
@@ -110,7 +110,7 @@ protected:
     }
   }
 
-  ExitCodes outputTo_(ostream & os)
+  ExitCodes outputTo_(ostream& os)
   {
     IdXMLFile idXML_file;
     vector<ProteinIdentification> protein_identifications;
@@ -164,8 +164,10 @@ protected:
                       << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
             return ILLEGAL_PARAMETERS;
           }
-          temp_hits.clear();
-          identifications[i].getReferencingHits(proteins[j].identifier, temp_hits);
+
+          set<String> accession;
+          accession.insert(proteins[j].identifier);
+          temp_hits = PeptideIdentification::getReferencingHits(identifications[i].getHits(), accession);
 
           if (temp_hits.size() == 1)
           {
@@ -177,7 +179,7 @@ protected:
             }
             if (indices.first != indices.second)
             {
-            // os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
+              // os <<  temp_hits[0].getSequence().toUnmodifiedString() << endl;
             }
             ++spectrum_count;
             if (unique_peptides.find(temp_hits[0].getSequence().toString()) == unique_peptides.end())
@@ -249,7 +251,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     String out = getStringOption_("out");
 
@@ -271,7 +273,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPSequenceCoverageCalculator tool;
   return tool.main(argc, argv);

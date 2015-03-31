@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -168,31 +168,6 @@ START_SECTION((double derivative(const double x) const))
 }
 END_SECTION
 
-START_SECTION((double coefficient(const int n) const))
-{
-  vector<double> x2;
-  vector<double> y2;
-  for (Size i = 0; i != 100; ++i)
-  {
-    x2.push_back(i);
-    y2.push_back(i);
-  }
-
-  // b-spline coefficients should increase monotopically for this example (checked with R)
-  BSpline2d b(x2, y2, 0, BSpline2d::BC_ZERO_SECOND, 100);
-  bool coeff_mono_increase = true;
-  for (Size i = 1; i < 100; ++i)
-  {
-    if (b.coefficient(i) <= b.coefficient(i - 1))
-    {
-      coeff_mono_increase = false;
-    }
-  }
-  TEST_EQUAL(coeff_mono_increase, true);
-}
-END_SECTION
-
-
 START_SECTION((bool ok() const))
 {
   vector<double> x;
@@ -221,18 +196,9 @@ START_SECTION((bool ok() const))
 }
 END_SECTION
 
-
-START_SECTION((Size nX() const))
+START_SECTION((void debug(bool enable)))
 {
-  vector<double> x;
-  vector<double> y;
-  for (Size i = 0; i != 10; ++i)
-  {
-    x.push_back(i);
-    y.push_back(i);
-  }
-  BSpline2d b(x, y);
-  TEST_EQUAL(b.nX(), 10)
+  NOT_TESTABLE
 }
 END_SECTION
 

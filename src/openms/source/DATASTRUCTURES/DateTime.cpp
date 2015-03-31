@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,13 @@
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
-#include <iostream>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/config.h>
+
 #include <ctime>
+#include <iostream>
 
 using namespace std;
 
@@ -48,19 +52,19 @@ namespace OpenMS
 
   }
 
-  DateTime::DateTime(const DateTime & date) :
+  DateTime::DateTime(const DateTime& date) :
     QDateTime(date)
   {
 
   }
 
-  DateTime::DateTime(const QDateTime & date) :
+  DateTime::DateTime(const QDateTime& date) :
     QDateTime(date)
   {
 
   }
 
-  DateTime & DateTime::operator=(const DateTime & source)
+  DateTime& DateTime::operator=(const DateTime& source)
   {
     if (&source == this)
     {
@@ -72,7 +76,7 @@ namespace OpenMS
     return *this;
   }
 
-  void DateTime::set(const String & date)
+  void DateTime::set(const String& date)
   {
     clear();
 
@@ -152,11 +156,11 @@ namespace OpenMS
     return "0000-00-00 00:00:00";
   }
 
-  void DateTime::get(UInt & month, UInt & day, UInt & year,
-                     UInt & hour, UInt & minute, UInt & second) const
+  void DateTime::get(UInt& month, UInt& day, UInt& year,
+                     UInt& hour, UInt& minute, UInt& second) const
   {
-    const QDate & temp_date = QDateTime::date();
-    const QTime & temp_time = QDateTime::time();
+    const QDate& temp_date = QDateTime::date();
+    const QTime& temp_time = QDateTime::time();
 
     year = temp_date.year();
     month = temp_date.month();
@@ -171,7 +175,7 @@ namespace OpenMS
     QDateTime::operator=(QDateTime());
   }
 
-  void DateTime::setDate(const String & date)
+  void DateTime::setDate(const String& date)
   {
     QDate temp_date;
 
@@ -199,7 +203,7 @@ namespace OpenMS
     QDateTime::setDate(temp_date);
   }
 
-  void DateTime::setTime(const String & time)
+  void DateTime::setTime(const String& time)
   {
     QTime temp_time;
 
@@ -235,9 +239,9 @@ namespace OpenMS
     QDateTime::setTime(temp_time);
   }
 
-  void DateTime::getDate(UInt & month, UInt & day, UInt & year) const
+  void DateTime::getDate(UInt& month, UInt& day, UInt& year) const
   {
-    const QDate & temp_date = QDateTime::date();
+    const QDate& temp_date = QDateTime::date();
 
     month = temp_date.month();
     day = temp_date.day();
@@ -253,9 +257,9 @@ namespace OpenMS
     return "0000-00-00";
   }
 
-  void DateTime::getTime(UInt & hour, UInt & minute, UInt & second) const
+  void DateTime::getTime(UInt& hour, UInt& minute, UInt& second) const
   {
-    const QTime & temp_time = QDateTime::time();
+    const QTime& temp_time = QDateTime::time();
 
     hour = temp_time.hour();
     minute = temp_time.minute();

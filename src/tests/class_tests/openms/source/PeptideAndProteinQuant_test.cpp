@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -229,7 +229,7 @@ START_SECTION((const ProteinQuant& getProteinResults()))
   prot_data = prot_quant["Protein0"];
   TEST_EQUAL(prot_data.abundances.size(), 3);
   TEST_EQUAL(prot_data.total_abundances.size(), 1);
-  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 5555);
+  TEST_REAL_SIMILAR(prot_data.total_abundances[0], 4711);
   TEST_EQUAL(prot_data.id_count, 6);
   prot_data = prot_quant["Protein1"];
   TEST_EQUAL(prot_data.abundances.size(), 1);
@@ -280,6 +280,53 @@ START_SECTION(([PeptideAndProteinQuant::Statistics] Statistics()))
   TEST_EQUAL(stats.total_features, 0);
   TEST_EQUAL(stats.blank_features, 0);
   TEST_EQUAL(stats.ambig_features, 0);
+}
+END_SECTION
+
+// testing various averaging strategies
+START_SECTION((const ProteinQuant& getProteinResults()))
+{
+  FeatureMap f;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), f);
+  
+  PeptideAndProteinQuant quantifier;
+  PeptideAndProteinQuant::ProteinQuant quant;
+  PeptideAndProteinQuant::ProteinData protein;
+  Param parameters;
+  parameters.setValue("top", 0);
+  
+  parameters.setValue("average", "median");
+  quantifier.setParameters(parameters);
+  quantifier.quantifyPeptides(f);
+  quantifier.quantifyProteins();
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein0"];
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 4711);
+
+  parameters.setValue("average", "mean");
+  quantifier.setParameters(parameters);
+  quantifier.quantifyPeptides(f);
+  quantifier.quantifyProteins();
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein0"];
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 5273.666666);
+
+  parameters.setValue("average", "weighted_mean");
+  quantifier.setParameters(parameters);
+  quantifier.quantifyPeptides(f);
+  quantifier.quantifyProteins();
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein0"];
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 5927.82624360028);
+
+  parameters.setValue("average", "sum");
+  quantifier.setParameters(parameters);
+  quantifier.quantifyPeptides(f);
+  quantifier.quantifyProteins();
+  quant = quantifier.getProteinResults();
+  protein = quant["Protein0"];
+  TEST_REAL_SIMILAR(protein.total_abundances[0], 15821);
+
 }
 END_SECTION
 

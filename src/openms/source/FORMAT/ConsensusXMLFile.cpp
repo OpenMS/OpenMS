@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 #include <fstream>
 
@@ -108,6 +110,7 @@ namespace OpenMS
     }
     else if (tag == "PeptideHit")
     {
+      pep_hit_.setPeptideEvidences(peptide_evidences_);
       pep_id_.insertHit(pep_hit_);
       last_meta_ = &pep_id_;
     }
@@ -462,9 +465,9 @@ namespace OpenMS
       {
         pep_id_.setRT(tmp2);
       }
-      Int tmp3 = -numeric_limits<Int>::max();
-      optionalAttributeAsInt_(tmp3, attributes, "spectrum_reference");
-      if (tmp3 != -numeric_limits<Int>::max())
+      String tmp3;
+      optionalAttributeAsString_(tmp3, attributes, "spectrum_reference");
+      if (!tmp3.empty())
       {
         pep_id_.setMetaValue("spectrum_reference", tmp3);
       }
@@ -475,24 +478,10 @@ namespace OpenMS
     {
       setProgress(++progress_);
       pep_hit_ = PeptideHit();
+      peptide_evidences_ = vector<PeptideEvidence>();
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
       pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
-
-      //aa_before
-      String tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_before");
-      if (!tmp.empty())
-      {
-        pep_hit_.setAABefore(tmp[0]);
-      }
-      //aa_after
-      tmp = "";
-      optionalAttributeAsString_(tmp, attributes, "aa_after");
-      if (!tmp.empty())
-      {
-        pep_hit_.setAAAfter(tmp[0]);
-      }
 
       //parse optional protein ids to determine accessions
       const XMLCh* refs = attributes.getValue(sm_.convert("protein_refs"));
@@ -506,12 +495,15 @@ namespace OpenMS
         {
           accessions.push_back(accession_string);
         }
+
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
           Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
-            pep_hit_.addProteinAccession(it2->second);
+            PeptideEvidence pe;
+            pe.setProteinAccession(it2->second);
+            peptide_evidences_.push_back(pe);
           }
           else
           {
@@ -519,6 +511,36 @@ namespace OpenMS
           }
         }
       }
+
+      //aa_before
+      String tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "aa_before");
+      if (!tmp.empty())
+      {
+        // so far no peptide evidence information -> create an empty one
+        if (peptide_evidences_.empty())
+        {
+          peptide_evidences_.push_back(PeptideEvidence());
+        }
+
+        // for whatever reason consensusXML does support multiple protein accessions but only one amino acid context so we store it in the first one
+        peptide_evidences_[0].setAABefore(tmp[0]);
+      }
+      //aa_after
+      tmp = "";
+      optionalAttributeAsString_(tmp, attributes, "aa_after");
+      if (!tmp.empty())
+      {
+        // so far no peptide evidence information -> create an empty one
+        if (peptide_evidences_.empty())
+        {
+          peptide_evidences_.push_back(PeptideEvidence());
+        }
+
+        // for whatever reason consensusXML does support multiple protein accessions but only one amino acid context so we store it in the first one
+        peptide_evidences_[0].setAAAfter(tmp[0]);
+      }
+
       last_meta_ = &pep_hit_;
     }
     else if (tag == "dataProcessing")
@@ -902,23 +924,37 @@ namespace OpenMS
       os << " score=\"" << id.getHits()[j].getScore() << "\"";
       os << " sequence=\"" << id.getHits()[j].getSequence() << "\"";
       os << " charge=\"" << id.getHits()[j].getCharge() << "\"";
-      if (id.getHits()[j].getAABefore() != ' ')
+
+      vector<PeptideEvidence> pes = id.getHits()[j].getPeptideEvidences();
+
+      // do we have peptide evidence information? store information of the first one (consensusXML doesn't support multiple PeptideEvidences except multiple accessions)
+      if (!pes.empty())
       {
-        os << " aa_before=\"" << id.getHits()[j].getAABefore() << "\"";
-      }
-      if (id.getHits()[j].getAAAfter() != ' ')
-      {
-        os << " aa_after=\"" << id.getHits()[j].getAAAfter() << "\"";
-      }
-      if ((id.getHits()[j].getProteinAccessions().size() != 0) && (!accession_to_id_.empty()))
-      {
-        String accs = "";
-        for (Size m = 0; m < id.getHits()[j].getProteinAccessions().size(); ++m)
+        if (pes[0].getAABefore() != PeptideEvidence::UNKNOWN_AA)
         {
-          String a_2_id = String(accession_to_id_[id.getIdentifier() + "_" + id.getHits()[j].getProteinAccessions()[m]]);
+          os << " aa_before=\"" << pes[0].getAABefore() << "\"";
+        }
+      }
+
+      if (!pes.empty())
+      {
+        if (pes[0].getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+        {
+          os << " aa_after=\"" << pes[0].getAAAfter() << "\"";
+        }
+      }
+
+      set<String> protein_accessions = id.getHits()[j].extractProteinAccessions();
+
+      if (!protein_accessions.empty() && !accession_to_id_.empty())
+      {
+        String accs;
+        for (set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        {
+          String a_2_id = String(accession_to_id_[id.getIdentifier() + "_" + *s_it]);
           if (a_2_id.size() > 0)
           {
-            if (m)
+            if (!accs.empty())
             {
               accs += " ";
             }
@@ -926,7 +962,7 @@ namespace OpenMS
             accs += a_2_id;
           }
         }
-        if (accs.size() > 0)
+        if (!accs.empty())
         {
           os << " protein_refs=\"" << accs << "\"";
         }

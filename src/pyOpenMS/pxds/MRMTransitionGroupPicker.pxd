@@ -9,7 +9,6 @@ from SignalToNoiseEstimatorMedian cimport *
 from SavitzkyGolayFilter cimport *
 from GaussFilter cimport *
 from LinearResampler cimport *
-# from LinearResamplerAlign cimport *
 from PeakPickerHiRes cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>" namespace "OpenMS":

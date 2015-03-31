@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche$
@@ -41,6 +41,7 @@
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -63,29 +64,29 @@ START_TEST(IsobaricIsotopeCorrector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-// 
+//
 ItraqFourPlexQuantitationMethod quant_meth;
 
 START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_map_out)))
 {
-  { // check the run including output 
+  { // check the run including output
     ConsensusXMLFile cm_file;
     ConsensusMap cm_in, cm_out;
     cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
-  
+
     // copy in/output
     cm_out = cm_in;
-  
+
     //
     IsobaricQuantifierStatistics stats = IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in, cm_out, &quant_meth);
-  
+
     // 1. check the actual result
     String cm_file_out;
     NEW_TMP_FILE(cm_file_out);
     cm_file.store(cm_file_out,cm_out);
-  
+
     WHITELIST("<?xml-stylesheet,id=\",href=\"file:////");
-    TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector_out.consensusXML")); 
+    TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector_out.consensusXML"));
 
     // 2. check the returned stats -> values are based on the org. impl.
     TEST_EQUAL(stats.channel_count, 4)
@@ -101,14 +102,14 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     // TEST_EQUAL(stats.empty_channels[116], 0)
     // TEST_EQUAL(stats.empty_channels[117], 0)
   }
-  
+
   // 3. check stats in detail
   {
     ConsensusXMLFile cm_file;
     ConsensusMap cm_in, cm_out;
     cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
     cm_in.clear(false);
-    
+
     // copy in/output
     cm_out = cm_in;
 
@@ -133,7 +134,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     double v1[4] = {1.071,  95.341,  101.998,  96.900}; // naive yields: {-1,100,100,100};  NNLS: {0.00000  99.91414 100.00375  99.99990}
     cm_in.push_back(getCFWithIntensites(v1));
     cm_out = cm_in;
-    
+
     stats = IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in, cm_out, &quant_meth);
 
     // check the corrected intensities
@@ -166,7 +167,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     cm_in.push_back(getCFWithIntensites(v2));
     cm_out = cm_in;
     stats = IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in, cm_out, &quant_meth);
-    
+
     TEST_EQUAL(stats.channel_count, 4)
     TEST_EQUAL(stats.iso_number_ms2_negative, 1)
     TEST_EQUAL(stats.iso_number_reporter_negative, 1)
@@ -180,7 +181,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     // TEST_EQUAL(stats.empty_channels[116], 1)
     // TEST_EQUAL(stats.empty_channels[117], 1)
   }
-  
+
   // 4. test precondition
   {
     ConsensusXMLFile cm_file;

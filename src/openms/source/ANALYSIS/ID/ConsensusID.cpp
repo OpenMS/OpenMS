@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,6 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 
 #include <map>
 #include <cmath>
@@ -412,7 +411,7 @@ namespace OpenMS
               if (tt->getMetaValue("scoring") == t->getMetaValue("scoring"))
               {
                 //use SEQAN similarity scoring
-                typedef::seqan::String< ::seqan::AminoAcid > TSequence;
+                typedef ::seqan::String< ::seqan::AminoAcid> TSequence;
                 TSequence seq1 = tt->getSequence().toUnmodifiedString().c_str();
                 TSequence seq2 = hit->getSequence().toUnmodifiedString().c_str();
 /////////////////////////introduce scoring with PAM30MS
@@ -501,7 +500,7 @@ namespace OpenMS
       hit.setScore(it->second[0]);
       hit.setMetaValue("similarity", it->second[1]);
       hit.setMetaValue("Number of annotations", it->second[2]);
-      hit.setCharge(it->second[3]);
+      hit.setCharge(static_cast<Int>(it->second[3]));
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;
@@ -666,7 +665,7 @@ namespace OpenMS
       hit.setScore(it->second[0]);
       hit.setMetaValue("similarity", it->second[1]);
       hit.setMetaValue("Number of annotations", it->second[2]);
-      hit.setCharge(it->second[3]);
+      hit.setCharge(static_cast<Int>(it->second[3]));
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - Output hit: " << hit.getSequence() << " " << hit.getScore() << endl;

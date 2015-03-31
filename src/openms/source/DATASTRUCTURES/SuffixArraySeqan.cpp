@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,29 +32,31 @@
 // $Authors: Chris Bauer $
 // --------------------------------------------------------------------------
 
-
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
+#include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
+
+#include <seqan/index/index_shims.h>
+
+#include <string>
 #include <cmath>
-#include <ctime>
 #include <cstdio>
+#include <ctime>
 #include <fstream>
 #include <stack>
 #include <typeinfo>
 
-#include <OpenMS/CHEMISTRY/ModifierRep.h>
-#include <OpenMS/CHEMISTRY/ResidueDB.h>
-#include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
 //using namespace seqan; // do not use since seqan defines a class set, which makes std::set ambiguous
 using namespace std;
-
 
 namespace OpenMS
 {
 
   // constructor
-  SuffixArraySeqan::SuffixArraySeqan(const String & st, const String & sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
+  SuffixArraySeqan::SuffixArraySeqan(const String& st, const String& sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
     WeightWrapper(weight_mode),
     s_(st),
     number_of_modifications_(0),
@@ -74,7 +76,7 @@ namespace OpenMS
     }
     //creating array with aminoacid masses
 
-    ResidueDB * rdb = ResidueDB::getInstance();
+    ResidueDB* rdb = ResidueDB::getInstance();
 
     char aa[] = "ARNDCEQGHILKMFPSTWYV";
 
@@ -85,7 +87,7 @@ namespace OpenMS
 
     for (Size z = 0; z < strlen(aa); ++z)
     {
-      const Residue * r = rdb->getResidue(aa[z]);
+      const Residue* r = rdb->getResidue(aa[z]);
       masse_[(int)aa[z]] = this->getWeight(*r, Residue::Internal);
     }
 
@@ -113,7 +115,7 @@ namespace OpenMS
 
   }
 
-  SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan & source) :
+  SuffixArraySeqan::SuffixArraySeqan(const SuffixArraySeqan& source) :
     SuffixArray(source),
     WeightWrapper(source),
     index_(source.index_),
@@ -135,7 +137,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SuffixArraySeqan::save(const String & file_name)
+  bool SuffixArraySeqan::save(const String& file_name)
   {
     if (!seqan::save(index_, file_name.c_str()))
     {
@@ -144,7 +146,7 @@ namespace OpenMS
     return true;
   }
 
-  bool SuffixArraySeqan::open(const String & file_name)
+  bool SuffixArraySeqan::open(const String& file_name)
   {
     if (!seqan::open(index_, file_name.c_str()))
     {
@@ -177,13 +179,13 @@ namespace OpenMS
     return "";
   }
 
-  void SuffixArraySeqan::setTags(const vector<String> & tags)
+  void SuffixArraySeqan::setTags(const vector<String>& tags)
   {
     tags_ = tags;
     use_tags_ = true;
   }
 
-  const vector<String> & SuffixArraySeqan::getTags()
+  const vector<String>& SuffixArraySeqan::getTags()
   {
     return tags_;
   }
@@ -212,7 +214,7 @@ namespace OpenMS
     return number_of_modifications_;
   }
 
-  SignedSize SuffixArraySeqan::findFirst_(const vector<double> & spec, double & m, SignedSize start, SignedSize  end)
+  SignedSize SuffixArraySeqan::findFirst_(const vector<double>& spec, double& m, SignedSize start, SignedSize  end)
   {
 
     if (end - start <= 1)
@@ -235,13 +237,13 @@ namespace OpenMS
     return middle + 1;
   }
 
-  SignedSize SuffixArraySeqan::findFirst_(const vector<double> & spec, double & m)
+  SignedSize SuffixArraySeqan::findFirst_(const vector<double>& spec, double& m)
   {
     return findFirst_(spec, m, 0, spec.size() - 1);
   }
 
   // finds all occurrences of a given spectrum
-  void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > > & candidates, const vector<double> & spec)
+  void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > >& candidates, const vector<double>& spec)
   {
     if (spec.empty())
     {
@@ -341,10 +343,10 @@ namespace OpenMS
           subm += masse_[(int)cc];
           mm = m + subm;
 
-          // we always have to substract the mass of the start character (either $ or for trypsin K or R)
+          // we always have to subtract the mass of the start character (either $ or for trypsin K or R)
           double newm = (mm - masse_[(SignedSize)start_char]);
 
-          // if we reached the maxmimal mass we can directly skip the sub tree
+          // if we reached the maximal mass we can directly skip the sub tree
           if (newm > mmax + tol_)
           {
             allm.push(0);
@@ -353,7 +355,7 @@ namespace OpenMS
             br = true;
             break;
           }
-          // if we are reaching a separetor character
+          // if we are reaching a separator character
           if ((i < 1 && length_till_node < 1) ? false : (cc == '$'))
           {
             // either we are not using tags or we have already seen one of the tags
@@ -481,7 +483,8 @@ namespace OpenMS
         if (!br)
         {
           m = mm;
-          //because of the on-the-fly mass update the updated mass differs from actual mass, so from time to time we can correct the actual mass
+          //because of the on-the-fly mass update the updated mass differs from
+          //actual mass, so from time to time we can correct the actual mass
           //TODO: why would that be?! (Andreas)
           if (steps4 > 1000)
           {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,14 +36,13 @@
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTIFIER_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <OpenMS/KERNEL/ConsensusMap.h>
-
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 
 namespace OpenMS
 {
+  class IsobaricQuantitationMethod;
+  class ConsensusMap;
+
   /**
     @brief Given the extracted channel intensities the IsobaricQuantifier corrects and normalizes
            the intensities for further processing.

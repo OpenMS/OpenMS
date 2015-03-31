@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
@@ -241,9 +242,25 @@ protected:
 
     PeakMap exp;
     MzMLFile mzml_file;
-    mzml_file.getOptions().addMSLevel(2);     // only load msLevel 2
+    mzml_file.getOptions().addMSLevel(2); // only load msLevel 2
     mzml_file.setLogType(log_type_);
     mzml_file.load(inputfile_name, exp);
+
+    if (exp.getSpectra().empty())
+    {
+      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
+    }
+
+    // determine type of spectral data (profile or centroided)
+    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
+
+    if (spectrum_type == SpectrumSettings::RAWDATA)
+    {
+      if (!getFlag_("force"))
+      {
+        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
+      }
+    }
 
     // we need to replace the native id with a simple numbering schema, to be able to
     // map the IDs back to the spectra (RT, and MZ information)
@@ -368,7 +385,7 @@ protected:
         double pre_mz(0.0);
         if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
         it->setMZ(pre_mz);
-        it->removeMetaValue("spectrum_id");
+        //it->removeMetaValue("spectrum_id");
       }
       else
       {
@@ -399,8 +416,7 @@ protected:
 
     protein_ids.push_back(protein_id);
 
-    IdXMLFile id_output;
-    id_output.store(outputfile_name, protein_ids, peptide_ids);
+    IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
 
     /// Deletion of temporary files
     if (this->debug_level_ < 2)
@@ -415,7 +431,7 @@ protected:
 
     // some stats
     LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size() ) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size()) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }

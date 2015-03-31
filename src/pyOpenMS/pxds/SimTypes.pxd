@@ -17,6 +17,9 @@ cdef extern from "<OpenMS/SIMULATION/SimTypes.h>" namespace "OpenMS::SimTypes":
 
     cdef cppclass SimProtein:
         SimProtein(FASTAEntry entry, MetaInfoInterface meta)
+        # TODO does this work? 
+        # FASTAFile::FASTAEntry entry
+        # MetaInfoInterface meta
 
     ctypedef libcpp_vector[SimProtein] SampleProteins
     ctypedef libcpp_vector[libcpp_vector[SimProtein]] SampleChannels

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,17 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
+
+#include <OpenMS/METADATA/DocumentIdentifier.h>
+#include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/KERNEL/ComparatorUtils.h>
+
 namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& os, const AnnotationStatistics& ann)
@@ -54,17 +65,17 @@ namespace OpenMS
     for (FeatureMap::const_iterator iter = map.begin(); iter != map.end(); ++iter)
     {
       os << iter->getPosition() << '\t'
-      << iter->getIntensity() << '\t'
-      << iter->getOverallQuality() << '\t'
-      << iter->getCharge() << '\t'
-      << iter->getUniqueId() << "\n";
+         << iter->getIntensity() << '\t'
+         << iter->getOverallQuality() << '\t'
+         << iter->getCharge() << '\t'
+         << iter->getUniqueId() << "\n";
     }
     os << "# -- DFEATUREMAP END --" << std::endl;
     return os;
   }
 
   AnnotationStatistics::AnnotationStatistics() :
-    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0)     // initialize all with 0
+    states(BaseFeature::SIZE_OF_ANNOTATIONSTATE, 0) // initialize all with 0
   {
   }
 

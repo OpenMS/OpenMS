@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -360,7 +360,7 @@ namespace OpenMS
           exp_spec.sortByPosition();
           exp_spectra_part.push_back(exp_spec);
 
-          //cerr << "Evalulating...(#peptides=" << it->hits.size() << ") ";
+          //cerr << "Evaluating...(#peptides=" << it->hits.size() << ") ";
           // for all hits
           vector<RichPeakSpectrum> sim_spectra_hits;
           for (vector<PeptideHit>::const_iterator pit = it->hits.begin(); pit != it->hits.end(); ++pit)

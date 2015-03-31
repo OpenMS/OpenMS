@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,14 +35,17 @@
 #ifndef OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
 #define OPENMS_ANALYSIS_DECHARGING_ILPDCWRAPPER_H
 
-#include <vector>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
+#include <vector>
+#include <set>
 
 namespace OpenMS
 {
 
   class MassExplainer;
+  class FeatureMap;
 
   class OPENMS_DLLAPI ILPDCWrapper
   {
@@ -61,35 +64,35 @@ public:
     /// If the input feature map is empty, a warning is issued and -1 is returned.
     /// @return value of objective function
     /// and @p pairs will have all realized edges set to "active"
-    double compute(const FeatureMap fm, PairsType & pairs, Size verbose_level) const;
+    double compute(const FeatureMap fm, PairsType& pairs, Size verbose_level) const;
 
 private:
 
     /// slicing the problem into subproblems
     double computeSlice_(const FeatureMap fm,
-                             PairsType & pairs,
-                             const PairsIndex margin_left,
-                             const PairsIndex margin_right,
-                             const Size verbose_level) const;
+                         PairsType& pairs,
+                         const PairsIndex margin_left,
+                         const PairsIndex margin_right,
+                         const Size verbose_level) const;
 
     /// slicing the problem into subproblems
     double computeSliceOld_(const FeatureMap fm,
-                                PairsType & pairs,
-                                const PairsIndex margin_left,
-                                const PairsIndex margin_right,
-                                const Size verbose_level) const;
+                            PairsType& pairs,
+                            const PairsIndex margin_left,
+                            const PairsIndex margin_right,
+                            const Size verbose_level) const;
 
     /// calculate a score for the i_th edge
-    double getLogScore_(const PairsType::value_type & pair, const FeatureMap & fm) const;
+    double getLogScore_(const PairsType::value_type& pair, const FeatureMap& fm) const;
 
     typedef Map<String, std::set<Size> > FeatureType_;
 
     // add another charge annotation variant for a feature
-    void updateFeatureVariant_(FeatureType_ & f_set, const String & rota_l, const Size & v) const;
+    void updateFeatureVariant_(FeatureType_& f_set, const String& rota_l, const Size& v) const;
 
 
 
-  };   // !class
+  }; // !class
 
 } // !namespace
 

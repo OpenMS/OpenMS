@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,7 +95,7 @@ namespace OpenMS
       //cerr << "Possible modification " << (*it)->getFullId() << " " << (*it)->getTermSpecificity() << endl;
       if (term_spec == ResidueModification::ANYWHERE || term_spec == (*it)->getTermSpecificity())
       {
-        //cerr << "Found correc term spec and adding '" << (*it)->getFullId() << "'" << endl;
+        //cerr << "Found correct term spec and adding '" << (*it)->getFullId() << "'" << endl;
         mods.insert(*it);
       }
     }
@@ -399,7 +399,7 @@ namespace OpenMS
       modification_names_[(*it)->getFullId()].insert(*it);
       // e.g. Oxidation
       modification_names_[(*it)->getId()].insert(*it);
-      // e.g. Oxidated
+      // e.g. Oxidized
       modification_names_[(*it)->getFullName()].insert(*it);
       // e.g. UniMod:312
       modification_names_[(*it)->getUniModAccession()].insert(*it);

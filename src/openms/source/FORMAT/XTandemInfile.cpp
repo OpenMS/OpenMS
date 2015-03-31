@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -251,7 +251,7 @@ namespace OpenMS
 
     //////////////// residue modification parameters
     //<note type="input" label="residue, modification mass">57.022@C</note>
-    //<note>The format of this parameter is m@X, where m is the modfication
+    //<note>The format of this parameter is m@X, where m is the modification
     //mass in Daltons and X is the appropriate residue to modify. Lists of
     //modifications are separated by commas. For example, to modify M and C
     //with the addition of 16.0 Daltons, the parameter line would be

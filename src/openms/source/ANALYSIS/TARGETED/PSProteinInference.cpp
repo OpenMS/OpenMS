@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  Size PSProteinInference::findMinimalProteinList(const std::vector<PeptideIdentification> & peptide_ids)
+  Size PSProteinInference::findMinimalProteinList(const std::vector<PeptideIdentification>& peptide_ids)
   {
     // // first map peptides to proteins
     // std::map<String,vector<PeptideIdentification> > pep_prot_map;
@@ -108,13 +108,8 @@ namespace OpenMS
     // first get all protein accessions:
     for (Size p = 0; p < peptide_ids.size(); ++p)
     {
-      const vector<String> & accs = peptide_ids[p].getHits()[0].getProteinAccessions();
-//         std::cout << peptide_ids[p].getHits()[0].getSequence()<<"Peptide Id with "
-//                   << accs.size() << " protein accs.\n";
-      for (Size a = 0; a < accs.size(); ++a)
-      {
-        all_accs.insert(accs[a]);
-      }
+      const set<String> accs = peptide_ids[p].getHits()[0].extractProteinAccessions();
+      all_accs.insert(accs.begin(), accs.end());
     }
 
     // add variable for each protein:
@@ -140,10 +135,12 @@ namespace OpenMS
 
       // get column indices for all corresponding proteins
       vector<Int> indices;
-      const vector<String> & accs = peptide_ids[p].getHits()[0].getProteinAccessions();
-      for (Size a = 0; a < accs.size(); ++a)
+
+      const std::set<String> accs = peptide_ids[p].getHits()[0].extractProteinAccessions();
+
+      for (std::set<String>::const_iterator accs_it = accs.begin(); accs_it != accs.end(); ++accs_it)
       {
-        indices.push_back((Int)problem.getColumnIndex(accs[a]));
+        indices.push_back((Int)problem.getColumnIndex(*accs_it));
       }
       vector<double> values(indices.size(), 1.);
 
@@ -160,14 +157,14 @@ namespace OpenMS
     {
       if (problem.getColumnValue(c) == 1)
       {
-        minimal_protein_list_accessions_.push_back(problem.getColumnName(c));     // enter protein accession
+        minimal_protein_list_accessions_.push_back(problem.getColumnName(c)); // enter protein accession
       }
     }
 
     return minimal_protein_list_accessions_.size();
   }
 
-  void PSProteinInference::calculateProteinProbabilities(const std::vector<PeptideIdentification> & ids)
+  void PSProteinInference::calculateProteinProbabilities(const std::vector<PeptideIdentification>& ids)
   {
     accessions_.clear(); probabilities_.clear();
 
@@ -182,30 +179,31 @@ namespace OpenMS
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide Id contains more than 1 peptide hit", String(ids[i].getHits().size()));
       }
 
-      const vector<String> & accs = ids[i].getHits()[0].getProteinAccessions();
+      const std::set<String> accs = ids[i].getHits()[0].extractProteinAccessions();
+
       String seq = ids[i].getHits()[0].getSequence().toUnmodifiedString();
       double score = ids[i].getHits()[0].getScore();
       bool higher_better = ids[i].isHigherScoreBetter();
-      for (Size a = 0; a < accs.size(); ++a)
+      for (std::set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
       {
         // first check if protein has already a peptide with the same sequence stored
-        std::vector<PeptideIdentification>::iterator it = pep_prot_map[accs[a]].begin();
+        std::vector<PeptideIdentification>::iterator it = pep_prot_map[*a_it].begin();
         bool insert = true;
-        for (; it != pep_prot_map[accs[a]].end(); ++it)
+        for (; it != pep_prot_map[*a_it].end(); ++it)
         {
-          if (it->getHits()[0].getSequence().toUnmodifiedString() == seq)      // find peptide sequence
+          if (it->getHits()[0].getSequence().toUnmodifiedString() == seq) // find peptide sequence
           {
             if ((higher_better && it->getHits()[0].getScore() >= score)
-               || (!higher_better && it->getHits()[0].getScore() <= score))        // if there is the same peptide with better score
+               || (!higher_better && it->getHits()[0].getScore() <= score)) // if there is the same peptide with better score
             {
-              insert = false;           // new pep id is not inserted
+              insert = false; // new pep id is not inserted
               break;
             }
             else if ((higher_better && it->getHits()[0].getScore() < score)
-                    || (!higher_better && it->getHits()[0].getScore() > score))         // if there is the same peptide with a worse score
+                    || (!higher_better && it->getHits()[0].getScore() > score)) // if there is the same peptide with a worse score
             {
               *it = ids[i];
-              insert = false;           // it is replaced by the new one
+              insert = false; // it is replaced by the new one
               break;
             }
             insert = false;
@@ -213,7 +211,7 @@ namespace OpenMS
           }
         }
         if (insert)
-          pep_prot_map[accs[a]].push_back(ids[i]);
+          pep_prot_map[*a_it].push_back(ids[i]);
       }
     }
 
@@ -260,7 +258,7 @@ namespace OpenMS
 //   }
 
 
-  double PSProteinInference::getProteinProbability(const String & acc)
+  double PSProteinInference::getProteinProbability(const String& acc)
   {
     std::vector<String>::iterator it = std::find(accessions_.begin(), accessions_.end(), acc);
     if (it == accessions_.end())
@@ -269,7 +267,7 @@ namespace OpenMS
     return probabilities_[distance(accessions_.begin(), it)];
   }
 
-  bool PSProteinInference::isProteinInMinimalList(const String & acc)
+  bool PSProteinInference::isProteinInMinimalList(const String& acc)
   {
     return find(minimal_protein_list_accessions_.begin(), minimal_protein_list_accessions_.end(), acc) != minimal_protein_list_accessions_.end();
   }
@@ -282,13 +280,13 @@ namespace OpenMS
       // std::cout << minimal_protein_list_accessions_[i] << " "<<getProteinProbability(minimal_protein_list_accessions_[i])
       //           << " "<<protein_id_threshold;
       if (getProteinProbability(minimal_protein_list_accessions_[i]) > protein_id_threshold)
-        ++num;                                                                                       //std::cout << "--->";}
+        ++num; //std::cout << "--->";}
       // std::cout <<std::endl;
     }
     return num;
   }
 
-  Int PSProteinInference::getNumberOfProtIdsPeptideRule(Int min_peptides, std::map<String, std::set<String> > & prot_id_counter)
+  Int PSProteinInference::getNumberOfProtIdsPeptideRule(Int min_peptides, std::map<String, std::set<String> >& prot_id_counter)
   {
     Int num = 0;
     for (Size i = 0; i < minimal_protein_list_accessions_.size(); ++i)
@@ -296,7 +294,7 @@ namespace OpenMS
       // std::cout << minimal_protein_list_accessions_[i] << " "<<getProteinProbability(minimal_protein_list_accessions_[i])
       //           << " "<<protein_id_threshold;
       if (prot_id_counter[minimal_protein_list_accessions_[i]].size() >= (Size)min_peptides)
-        ++num;                                                                                       //std::cout << "--->";}
+        ++num; //std::cout << "--->";}
       // std::cout <<std::endl;
     }
     return num;

@@ -14,24 +14,24 @@
 		</fileContent>
 		<sourceFileList count="3">
 			<sourceFile id="sf_ru_0" name="FileMerger_6_input2.mzML" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="6f3fd90af903c910d81d5d90088f805c33643ea5" />
-				<cvParam cvRef="MS" accession="MS:1000584" name="mzML file" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="0e3787759e3b0d2ca8e321527f759879f94a4829" />
+				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_0" name="FileMerger_6_input1.mzML" location="<TEST_DATA_PATH>">
-				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="9caaed25a86b1e7306259612b4f74e461af7968e" />
-				<cvParam cvRef="MS" accession="MS:1000584" name="mzML file" />
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="f5a1cab79a193929ad5b9535e8a792365f5b699b" />
+				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
 			</sourceFile>
 			<sourceFile id="sf_sp_2" name="tiny1.dta" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
-				<cvParam cvRef="MS" accession="MS:1000613" name="DTA file" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
 				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
 			</sourceFile>
 		</sourceFileList>
 		<contact>
 			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Pennington, William" />
-			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="Higglesworth University" />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact affiliation" value="Higglesworth University" />
 			<cvParam cvRef="MS" accession="MS:1000587" name="contact address" value="Higglesworth University, 12 Higglesworth Avenue, 12045, HI, USA" />
 			<cvParam cvRef="MS" accession="MS:1000588" name="contact URL" value="http://www.higglesworth.edu/" />
 			<cvParam cvRef="MS" accession="MS:1000589" name="contact email" value="wpennington@higglesworth.edu" />
@@ -61,7 +61,7 @@
 			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
 		</software>
 		<software id="so_dp_sp_1_pm_0" version="1.0" >
-			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard" />
+			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
 		<software id="so_dp_sp_1_pm_1" version="version_string" >
 			<cvParam cvRef="MS" accession="MS:1000758" name="FileMerger" />
@@ -165,7 +165,7 @@
 						<binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="80">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AABwQQAAYEEAAFBBAABAQQAAMEEAACBBAAAQQQAAAEEAAOBAAADAQAAAoEAAAIBAAABAQAAAAEAAAIA/</binary>
@@ -224,7 +224,7 @@
 						<binary>AAAAAAAAAAAAAAAAAAAAQAAAAAAAABBAAAAAAAAAGEAAAAAAAAAgQAAAAAAAACRAAAAAAAAAKEAAAAAAAAAsQAAAAAAAADBAAAAAAAAAMkA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="56">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<binary>AACgQQAAkEEAAIBBAABgQQAAQEEAACBBAAAAQQAAwEAAAIBAAAAAQA==</binary>

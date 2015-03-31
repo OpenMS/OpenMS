@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,30 +34,25 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <svm.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -67,61 +62,62 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_FeatureFinderIdentification FeatureFinderIdentification
+   @page TOPP_FeatureFinderIdentification FeatureFinderIdentification
 
-        @brief Detects features in MS1 data based on peptide identifications.
+   @brief Detects features in MS1 data based on peptide identifications.
 
-        <CENTER>
-        <table>
-        <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIdentification \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
-        </tr>
-        </table>
-        </CENTER>
+   <CENTER>
+     <table>
+       <tr>
+         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+         <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIdentification \f$ \longrightarrow \f$</td>
+         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+       </tr>
+       <tr>
+         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+         <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
+       </tr>
+       <tr>
+         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
+       </tr>
+     </table>
+   </CENTER>
 
-        This tool detects quantitative features in MS1 data based on information from peptide identifications (derived from MS2 spectra). It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
+   This tool detects quantitative features in MS1 data based on information from peptide identifications (derived from MS2 spectra). It uses algorithms for targeted data analysis from the OpenSWATH pipeline.
 
-        @note It is important that only high-confidence peptide identifications and centroided (peak-picked) LC-MS data are used as inputs!
+   @note It is important that only high-confidence peptide identifications and centroided (peak-picked) LC-MS data are used as inputs!
 
-        For every distinct peptide ion (defined by sequence and charge) in the input (parameter @p id), an assay is generated, incorporating the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution of the peptide. The parameter @p reference_rt controls how the RT of the assay is determined if the peptide has been observed multiple times. The relative intensities of the isotopes together with their m/z values are calculated from the sequence and charge.
+   For every distinct peptide ion (defined by sequence and charge) in the input (parameter @p id), an assay is generated, incorporating the retention time (RT), mass-to-charge ratio (m/z), and isotopic distribution of the peptide. The parameter @p reference_rt controls how the RT of the assay is determined if the peptide has been observed multiple times. The relative intensities of the isotopes together with their m/z values are calculated from the sequence and charge.
 
-        The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps: 
+   The assays are used to perform targeted data analysis on the MS1 level using OpenSWATH algorithms, in several steps:
 
-        <B>1. Ion chromatogram extraction</B>
+   <B>1. Ion chromatogram extraction</B>
 
-        First ion chromatograms (XICs) are extracted from the data (parameter @p in). For every assay, the RT range of the XICs is given by @p extract:rt_window (around the reference RT of the assay) and the m/z ranges by @p extract:mz_window (around the m/z values of all included isotopes). As an exception to this, if @p extract:reference_rt is @p adapt, a more complex procedure is used to find the RT range: A range of size @p rt_window around every relevant peptide ID is considered, overlapping ranges are joined, and the largest resulting range is used for the extraction. In that case, the reference RT for the assay is the median RT of the peptide IDs within the range.
+   First ion chromatograms (XICs) are extracted from the data (parameter @p in). For every assay, the RT range of the XICs is given by @p extract:rt_window (around the reference RT of the assay) and the m/z ranges by @p extract:mz_window (around the m/z values of all included isotopes). As an exception to this, if @p extract:reference_rt is @p adapt, a more complex procedure is used to find the RT range: A range of size @p rt_window around every relevant peptide ID is considered, overlapping ranges are joined, and the largest resulting range is used for the extraction. In that case, the reference RT for the assay is the median RT of the peptide IDs within the range.
 
-        @see @ref TOPP_OpenSwathChromatogramExtractor
+   @see @ref TOPP_OpenSwathChromatogramExtractor
 
-        <B>2. Feature detection</B>
-        
-        Next feature candidates are detected in the XICs and scored. The best candidate per assay according to the OpenSWATH scoring is turned into a feature.
+   <B>2. Feature detection</B>
 
-        @see @ref TOPP_OpenSwathAnalyzer 
+   Next feature candidates are detected in the XICs and scored. The best candidate per assay according to the OpenSWATH scoring is turned into a feature.
 
-        <B>3. Elution model fitting</B>
+   @see @ref TOPP_OpenSwathAnalyzer
 
-        Elution models can be fitted to every feature to improve the quantification. For robustness, one model is fitted to all isotopic mass traces of a feature in parallel. A symmetric (Gaussian) and an asymmetric (exponential-Gaussian hybrid) model type are available. The fitted models are checked for plausibility before they are accepted.
-        
-        Finally the results (feature maps, parameter @p out) are returned.
+   <B>3. Elution model fitting</B>
 
-        @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
+   Elution models can be fitted to every feature to improve the quantification. For robustness, one model is fitted to all isotopic mass traces of a feature in parallel. A symmetric (Gaussian) and an asymmetric (exponential-Gaussian hybrid) model type are available. The fitted models are checked for plausibility before they are accepted.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_FeatureFinderIdentification.cli
+   Finally the results (feature maps, parameter @p out) are returned.
+
+   @note This tool aims to report a feature for every distinct peptide ion given in the @p id input. Currently no attempt is made to filter out false-positives (although this may be possible in post-processing based on the OpenSWATH scores). If only high-confidence peptide IDs are used, that come from the same LC-MS/MS run that is being quantified, this should not be a problem. However, if e.g. inferred IDs from different runs (see @ref TOPP_MapAlignerIdentification) are included, false-positive features with arbitrary intensities may result for peptides that cannot be detected in the present data.
+
+   <B>The command line parameters of this tool are:</B>
+   @verbinclude TOPP_FeatureFinderIdentification.cli
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
 
 class TOPPFeatureFinderIdentification :
   public TOPPBase
@@ -133,33 +129,30 @@ public:
     rt_term_.setCVIdentifierRef("MS");
     rt_term_.setAccession("MS:1000896");
     rt_term_.setName("normalized retention time");
+    score_metavalues_ = "initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score";
   }
 
 protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file (LC-MS raw data)");
+    registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerInputFile_("id", "<file>", "",
-                       "Input file (peptide identifications)");
+    registerInputFile_("id", "<file>", "", "Input file: peptide identifications derived directly from 'in'");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out", "<file>", "", "Output file (features)");
+    registerInputFile_("id_ext", "<file>", "", "Input file: 'external' peptide identifications (e.g. from aligned runs)", false);
+    setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
+    registerOutputFile_("out", "<file>", "", "Output file: features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("lib_out", "<file>", "", "Output file (assay library)",
-                        false);
+    registerOutputFile_("lib_out", "<file>", "", "Output file: assay library ('internal' IDs)", false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("chrom_out", "<file>", "", "Output file (chromatograms)",
-                        false);
+    registerOutputFile_("chrom_out", "<file>", "", "Output file: chromatograms ('internal' IDs)", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("trafo_out", "<file>", "",
-                        "Output file (RT transformation)", false);
+    registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
-    registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge. 'adapt': adapt (extend) RT windows based on IDs; 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs (requires further processing of results).", false);
-    setValidStrings_("extract:reference_rt", refs);
     registerDoubleOption_("extract:rt_window", "<value>", 60.0, "RT window size (in sec.) for chromatogram extraction.", false);
     setMinFloat_("extract:rt_window", 0.0);
     registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
@@ -169,9 +162,26 @@ protected:
     setMaxFloat_("extract:isotope_pmin", 1.0);
 
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
-    registerDoubleOption_("detect:peak_width", "<value>", 30.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
+    registerDoubleOption_("detect:peak_width", "<value>", 60.0, "Expected elution peak width in seconds, for smoothing (Gauss filter)", false);
     setMinFloat_("detect:peak_width", 0.0);
-    registerFlag_("detect:all_features", "Return all features detected by OpenSWATH for an assay, instead of only the best one. (This requires further processing of the results.)", true);
+    registerDoubleOption_("detect:min_peak_width", "<value>", 0.2, "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.", false, true);
+    setMinFloat_("detect:min_peak_width", 0.0);
+    registerDoubleOption_("detect:signal_to_noise", "<value>", 0.5, "Signal-to-noise threshold for OpenSWATH feature detection", false, true);
+    setMinFloat_("detect:signal_to_noise", 0.1);
+    registerDoubleOption_("detect:mapping_tolerance", "<value>", 10.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
+    setMinFloat_("detect:mapping_tolerance", 0.0);
+
+    registerTOPPSubsection_("svm", "Parameters for scoring features using a support vector machine (SVM)");
+    registerIntOption_("svm:xval", "<number>", 5, "Number of partitions for cross-validation", false);
+    setMinInt_("svm:xval", 1);
+    registerStringOption_("svm:kernel", "<choice>", "RBF", "SVM kernel", false);
+    setValidStrings_("svm:kernel", ListUtils::create<String>("RBF,linear"));
+    String values = "-5,-3,-1,1,3,5,7,9,11,13,15";
+    registerDoubleList_("svm:log2_C", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'C' during parameter optimization. A value 'x' is used as 'C = 2^x'.", false);
+    values = "-15,-13,-11,-9,-7,-5,-3,-1,1,3";
+    registerDoubleList_("svm:log2_gamma", "<values>", ListUtils::create<double>(values), "Values to try for the SVM parameter 'gamma' during parameter optimization (RBF kernel only). A value 'x' is used as 'gamma = 2^x'.", false);
+    registerOutputFile_("svm:xval_out", "<file>", "", "Output file: SVM cross-validation (parameter optimization) results", false);
+    setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
     StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
@@ -191,217 +201,145 @@ protected:
     setMinFloat_("model:check:asymmetry", 0.0);
   }
 
-
   typedef MSExperiment<Peak1D> PeakMap;
+  typedef FeatureFinderAlgorithmPickedHelperStructs::MassTrace MassTrace;
+  typedef FeatureFinderAlgorithmPickedHelperStructs::MassTraces MassTraces;
 
-  // mapping: charge -> pointer to peptides
-  typedef map<Int, vector<PeptideIdentification*> > ChargeMap;
-  // mapping: sequence -> charge -> pointer to peptide
+  // mapping: RT (not necessarily unique) -> pointer to peptide
+  typedef multimap<double, PeptideIdentification*> RTMap;
+  // mapping: charge -> internal/external: (RT -> pointer to peptide)
+  typedef map<Int, pair<RTMap, RTMap> > ChargeMap;
+  // mapping: sequence -> charge -> internal/external ID information
   typedef map<AASequence, ChargeMap> PeptideMap;
 
+  // region in RT in which a peptide elutes:
+  struct RTRegion
+  {
+    double start, end;
+    set<Int> charges; // charge states for which there are IDs in the region
+  };
+
+  // classification performance for different SVM param. combinations (C/gamma):
+  typedef vector<vector<double> > SVMPerformance;
+
   PeakMap ms_data_; // input LC-MS data
-  TargetedExperiment library_; // assay library
+  PeakMap chrom_data_; // accumulated chromatograms (XICs)
+  bool keep_chromatograms_; // keep chromatogram data for output?
+  TargetedExperiment library_; // accumulated assays for peptides
+  bool keep_library_; // keep assay data for output?
   CVTerm rt_term_; // controlled vocabulary term for reference RT
-  IsotopeDistribution iso_dist_; // isotope distribution for current peptide
+  String score_metavalues_;
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   String reference_rt_; // value of "reference_rt" parameter
-  double rt_tolerance_; // half the RT window width
+  double rt_window_; // RT window width
+  double mz_window_; // m/z window width
+  bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
+  double isotope_pmin_; // min. isotope probability
+  double mapping_tolerance_; // RT tolerance for mapping IDs to features
+  String elution_model_; // choice of elution model
+  ChromatogramExtractor extractor_; // OpenSWATH chromatogram extractor
+  MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
+  ProgressLogger prog_log_;
+
+
+  // like "median", but returns the middle-right value for an even number of
+  // values (no averaging of the middle two):
+  double getMedoid_(vector<double>& sorted_values)
+  {
+    if (sorted_values.size() == 1) return sorted_values[0]; // common case
+    vector<double>::iterator start = sorted_values.begin();
+    if (sorted_values.size() % 2 == 0) ++start;
+    return Math::median(start, sorted_values.end(), true);
+  }
+
+
+  // remove duplicate entries from a vector
+  void removeDuplicateProteins_(TargetedExperiment& library)
+  {
+    // no "TargetedExperiment::Protein::operator<" defined, need to improvise:
+    vector<TargetedExperiment::Protein> proteins;
+    set<String> ids;
+    for (vector<TargetedExperiment::Protein>::const_iterator it = 
+           library.getProteins().begin(); it != library.getProteins().end();
+         ++it)
+    {
+      if (!ids.count(it->id)) // new protein
+      {
+        proteins.push_back(*it);
+        ids.insert(it->id);
+      }
+    }
+    library.setProteins(proteins);
+  }
 
 
   // add transitions for a peptide ion to the library:
-  void addTransitions_(const String& peptide_id, double mz, Int charge)
+  void generateTransitions_(const String& peptide_id, double mz, Int charge,
+                            const IsotopeDistribution& iso_dist,
+                            vector<ReactionMonitoringTransition>& transitions)
   {
+    transitions.resize(iso_dist.size());
     // go through different isotopes:
     Size counter = 0;
-    for (IsotopeDistribution::ConstIterator iso_it = iso_dist_.begin();
-         iso_it != iso_dist_.end(); ++iso_it, ++counter)
+    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin();
+         iso_it != iso_dist.end(); ++iso_it, ++counter)
     {
-      String annotation = "i" + String(counter);
+      String annotation = "i" + String(counter + 1);
       String transition_name = peptide_id + "_" + annotation;
 
-      ReactionMonitoringTransition transition;
-      transition.setNativeID(transition_name);
-      transition.setPrecursorMZ(mz);
-      transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U *
-                              float(counter) / charge);
-      transition.setLibraryIntensity(iso_it->second);
-      transition.setMetaValue("annotation", annotation);
-      transition.setPeptideRef(peptide_id);
-      library_.addTransition(transition);
+      transitions[counter].setNativeID(transition_name);
+      transitions[counter].setPrecursorMZ(mz);
+      transitions[counter].setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
+                                        float(counter) / charge);
+      transitions[counter].setLibraryIntensity(iso_it->second);
+      transitions[counter].setMetaValue("annotation", annotation);
+      transitions[counter].setPeptideRef(peptide_id);
     }
   }
 
-  // add an assay (peptide and transitions) to the library:
-  void addAssay_(TargetedExperiment::Peptide& peptide, const AASequence& seq,
-                 const ChargeMap::value_type& charge_data)
+
+  void setPeptideRT_(TargetedExperiment::Peptide& peptide, double rt)
   {
-    // get reference RT(s):
-    DoubleList rts;
-    if (charge_data.second.size() == 1) // only one peptide ID
-    {
-      rts.push_back(charge_data.second[0]->getRT());
-    }
-    else if (reference_rt_ == "score")
-    {
-      rts.resize(1);
-      double best_score = 0.0; // to avoid compiler warning (real init below)
-      for (ChargeMap::mapped_type::const_iterator pi_it =
-             charge_data.second.begin(); pi_it != charge_data.second.end();
-           ++pi_it)
-      {
-        const PeptideHit& hit = (*pi_it)->getHits()[0];
-        bool higher_better = (*pi_it)->isHigherScoreBetter();
-        if ((pi_it == charge_data.second.begin()) || // initial case
-            (higher_better && (hit.getScore() > best_score)) ||
-            (!higher_better && (hit.getScore() < best_score)))
-        {
-          best_score = hit.getScore();
-          rts[0] = (*pi_it)->getRT();
-        }
-      }
-    }
-    else if (reference_rt_ == "intensity")
-    {
-      rts.resize(1);
-      double highest_intensity = -1;
-      for (ChargeMap::mapped_type::const_iterator pi_it =
-             charge_data.second.begin(); pi_it != charge_data.second.end();
-           ++pi_it)
-      {
-        // find precursor:
-        double ms2_rt = (*pi_it)->getRT();
-        double prec_mz = (*pi_it)->getMZ();
-        // construct objects for use in "lower_bound" (custom comparison
-        // functions involving different types don't work in older version of
-        // MS Visual Studio):
-        MSSpectrum<> rt_compare;
-        rt_compare.setRT(ms2_rt);
-        Peak1D mz_compare;
-        mz_compare.setMZ(prec_mz);
-        // "lower_bound" gives the MS1 spectrum _after_ the MS2 of the ID:
-        PeakMap::ConstIterator ms1_it = lower_bound(ms_data_.begin(),
-                                                    ms_data_.end(), rt_compare,
-                                                    MSSpectrum<>::RTLess());
-        // the following shouldn't happen, but might if input is combined IDs
-        // from different samples - use the current ID only if we have to:
-        if ((ms1_it == ms_data_.begin()) && (highest_intensity < 0))
-        {
-          rts[0] = ms2_rt;
-          continue;
-        }
-        --ms1_it;
-        MSSpectrum<>::ConstIterator peak_it =
-          lower_bound(ms1_it->begin(), ms1_it->end(), mz_compare,
-                      Peak1D::MZLess());
-        if (peak_it == ms1_it->end())
-        {
-          --peak_it; // assuming the spectrum isn't empty, which it shouldn't be
-        }
-        // check if previous peak is closer to the precursor in m/z:
-        else if ((peak_it != ms1_it->begin()) &&
-                 (fabs(peak_it->getMZ() - prec_mz) <
-                  fabs((--peak_it)->getMZ() - prec_mz)))
-        {
-          ++peak_it;
-        }
-        if (peak_it->getIntensity() > highest_intensity)
-        {
-          highest_intensity = peak_it->getIntensity();
-          rts[0] = ms2_rt;
-        }
-      }
-    }
-    else // "median", "all", or "adapt"
-    {
-      for (ChargeMap::mapped_type::const_iterator pi_it =
-             charge_data.second.begin(); pi_it != charge_data.second.end();
-           ++pi_it)
-      {
-        rts.push_back((*pi_it)->getRT());
-      }
-      if (reference_rt_ != "all")
-      {
-        sort(rts.begin(), rts.end());
-        bool median_fallback = false; // use "median" to resolve ties in "adapt"
+    peptide.rts.clear();
+    rt_term_.setValue(trafo_.apply(rt));
+    TargetedExperiment::RetentionTime te_rt;
+    te_rt.addCVTerm(rt_term_);
+    peptide.rts.push_back(te_rt);
+  }
 
-        if (reference_rt_ == "adapt")
+/*
+  double calculateFitQuality_(const TraceFitter* fitter, 
+                              const MassTraces& traces)
+  {
+    double mre = 0.0;
+    double total_weights = 0.0;
+    double rt_start = max(fitter->getLowerRTBound(), traces[0].peaks[0].first);
+    double rt_end = min(fitter->getUpperRTBound(), 
+                        traces[0].peaks.back().first);
+
+    for (MassTraces::const_iterator tr_it = traces.begin();
+         tr_it != traces.end(); ++tr_it)
+    {
+      for (vector<pair<double, const Peak1D*> >::const_iterator p_it = 
+             tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
+      {
+        double rt = p_it->first;
+        if ((rt >= rt_start) && (rt <= rt_end))
         {
-          // store RT region as pair (length, start point) for easier sorting:
-          vector<pair<double, double> > rt_regions;
-          rt_regions.push_back(make_pair(rt_tolerance_ * 2.0,
-                                         rts[0] - rt_tolerance_));
-          for (DoubleList::iterator rt_it = ++rts.begin(); rt_it != rts.end();
-               ++rt_it)
-          {
-            pair<double, double>& rt_region = rt_regions.back();
-            if (rt_region.second + rt_region.first >= *rt_it - rt_tolerance_)
-            { // regions overlap, join them (same start point, new length):
-              rt_region.first = *rt_it + rt_tolerance_ - rt_region.second;
-            }
-            else // no overlap, start new region:
-            {
-              rt_regions.push_back(make_pair(rt_tolerance_ * 2.0,
-                                             *rt_it - rt_tolerance_));
-            }
-          }
-          sort(rt_regions.begin(), rt_regions.end()); // sort regions by size
-          double rt_window = rt_regions.back().first;
-          peptide.setMetaValue("rt_window", rt_window);
-          // are there multiple regions of maximal size?
-          Int n = rt_regions.size() - 2; // second to last, counting from zero
-          while ((n >= 0) && (rt_regions[n].first == rt_window)) --n;
-          if (n == Int(rt_regions.size()) - 2) // only one longest region
-          {
-            double rt_start = rt_regions.back().second;
-            peptide.setMetaValue("rt_start", rt_start);
-            peptide.setMetaValue("rt_end", rt_start + rt_window);
-            rts.resize(1);
-            rts[0] = rt_start + rt_window / 2.0;
-          }
-          else // multiple longest regions -> resolve using median below
-          {
-            median_fallback = true;
-            rts.clear();
-            for (++n; n < Int(rt_regions.size()); ++n)
-            {
-              rts.push_back(rt_regions[n].second + rt_regions[n].first / 2.0);
-            }
-          }
-        }
-        if ((reference_rt_ == "median") || median_fallback)
-        {
-          DoubleList::iterator start = rts.begin();
-          // even number of IDs? don't take the RT _between_ the middle ones!
-          if (rts.size() % 2 == 0) ++start;
-          rts[0] = Math::median(start, rts.end(), true);
-          rts.resize(1);
+          double model_value = fitter->getValue(rt);
+          double diff = fabs(model_value * tr_it->theoretical_int -
+                             p_it->second->getIntensity());
+          mre += diff / model_value;
+          total_weights += tr_it->theoretical_int;
         }
       }
     }
-
-    // complete peptide information:
-    Int charge = charge_data.first;
-    peptide.setChargeState(charge);
-    peptide.id = peptide.sequence + "/" + String(charge);
-    double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
-
-    TargetedExperiment::Peptide copy = peptide;
-    for (Size i = 0; i < rts.size(); ++i)
-    {
-      rt_term_.setValue(trafo_.apply(rts[i]));
-      TargetedExperiment::RetentionTime rt;
-      rt.addCVTerm(rt_term_);
-      peptide.rts.push_back(rt);
-      if (rts.size() > 1) peptide.id += ":" + String(i + 1); // use multiple IDs
-      library_.addPeptide(peptide);
-      addTransitions_(peptide.id, mz, charge);
-      peptide = copy; // reset
-    }
+    return mre / total_weights;
   }
 
 
   // fit models of elution profiles to all features:
-  void fitElutionModels_(FeatureMap& features, bool asymmetric = true)
+  void fitElutionModels_(FeatureMap& features)
   {
     // assumptions:
     // - all features have subordinates (for the mass traces/transitions)
@@ -409,6 +347,7 @@ protected:
     // - all convex hulls in one feature contain the same number (> 0) of points
     // - the y coordinates of the hull points store the intensities
 
+    bool asymmetric = (elution_model_ == "asymmetric");
     double add_zeros = getDoubleOption_("model:add_zeros");
     bool weighted = !getFlag_("model:unweighted_fit");
     bool impute = !getFlag_("model:no_imputation");
@@ -418,17 +357,17 @@ protected:
     map<String, const ReactionMonitoringTransition*> trans_ids;
     for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
            library_.getTransitions().begin(); trans_it !=
-         library_.getTransitions().end(); ++trans_it)
+           library_.getTransitions().end(); ++trans_it)
     {
       trans_ids[trans_it->getNativeID()] = &(*trans_it);
     }
 
-    TraceFitter<Peak1D>* fitter;
+    TraceFitter* fitter;
     if (asymmetric)
     {
-      fitter = new EGHTraceFitter<Peak1D>();
+      fitter = new EGHTraceFitter();
     }
-    else fitter = new GaussTraceFitter<Peak1D>();
+    else fitter = new GaussTraceFitter();
     if (weighted)
     {
       Param params = fitter->getDefaults();
@@ -438,7 +377,7 @@ protected:
 
     // store model parameters to find outliers later:
     double width_limit = getDoubleOption_("model:check:width");
-    double asym_limit = (asymmetric ? 
+    double asym_limit = (asymmetric ?
                          getDoubleOption_("model:check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
@@ -467,34 +406,27 @@ protected:
 
       vector<Peak1D> peaks;
       // reserve space once, to avoid copying and invalidating pointers:
-      Size points_per_hull = feat_it->
-        getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
+      const Feature& sub = feat_it->getSubordinates()[0];
+      Size points_per_hull = sub.getConvexHulls()[0].getHullPoints().size();
       peaks.reserve(feat_it->getSubordinates().size() * points_per_hull +
                     (add_zeros > 0.0)); // don't forget additional zero point
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> traces;
+      MassTraces traces;
       traces.max_trace = 0;
       // need a mass trace for every transition, plus maybe one for add. zeros:
       traces.reserve(feat_it->getSubordinates().size() + (add_zeros > 0.0));
       for (vector<Feature>::iterator sub_it =
              feat_it->getSubordinates().begin(); sub_it !=
-           feat_it->getSubordinates().end(); ++sub_it)
+             feat_it->getSubordinates().end(); ++sub_it)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
+        MassTrace trace;
         trace.peaks.reserve(points_per_hull);
-        if (sub_it->metaValueExists("isotope_probability"))
-        {
-          trace.theoretical_int = sub_it->getMetaValue("isotope_probability");
-        }
-        else
-        {
-          String native_id = sub_it->getMetaValue("native_id");
-          trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
-          sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
-        }
+        String native_id = sub_it->getMetaValue("native_id");
+        trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
+        sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
         const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
         for (ConvexHull2D::PointArrayTypeConstIterator point_it =
                hull.getHullPoints().begin(); point_it !=
-             hull.getHullPoints().end(); ++point_it)
+               hull.getHullPoints().end(); ++point_it)
         {
           double intensity = point_it->getY();
           if (intensity > 0.0) // only use non-zero intensities for fitting
@@ -510,6 +442,7 @@ protected:
         if (!trace.peaks.empty()) traces.push_back(trace);
       }
 
+      // find the trace with maximal intensity:
       Size max_trace = 0;
       double max_intensity = 0;
       for (Size i = 0; i < traces.size(); ++i)
@@ -528,7 +461,7 @@ protected:
 
       if (add_zeros > 0.0)
       {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
+        MassTrace trace;
         trace.peaks.reserve(2);
         trace.theoretical_int = add_zeros;
         Peak1D peak;
@@ -564,15 +497,15 @@ protected:
       feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
       if (asymmetric)
       {
-        EGHTraceFitter<Peak1D>* egh =
-          static_cast<EGHTraceFitter<Peak1D>*>(fitter);
+        EGHTraceFitter* egh =
+          static_cast<EGHTraceFitter*>(fitter);
         feat_it->setMetaValue("model_EGH_tau", egh->getTau());
         feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
       }
       else
       {
-        GaussTraceFitter<Peak1D>* gauss =
-          static_cast<GaussTraceFitter<Peak1D>*>(fitter);
+        GaussTraceFitter* gauss =
+          static_cast<GaussTraceFitter*>(fitter);
         feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
       }
 
@@ -580,31 +513,7 @@ protected:
       double mre = -1.0; // mean relative error
       if (fit_success)
       {
-        mre = 0.0;
-        double total_weights = 0.0;
-        double rt_start = max(fitter->getLowerRTBound(),
-                              traces[0].peaks[0].first);
-        double rt_end = min(fitter->getUpperRTBound(),
-                            traces[0].peaks.rbegin()->first);
-
-        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>::
-             iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
-        {
-          for (vector<pair<double, const Peak1D*> >::iterator p_it =
-                 tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
-          {
-            double rt = p_it->first;
-            if ((rt >= rt_start) && (rt <= rt_end))
-            {
-              double model_value = fitter->getValue(rt);
-              double diff = fabs(model_value * tr_it->theoretical_int -
-                                 p_it->second->getIntensity());
-              mre += diff / model_value;
-              total_weights += tr_it->theoretical_int;
-            }
-          }
-        }
-        mre /= total_weights;
+        mre = calculateFitQuality_(fitter, traces);
       }
       feat_it->setMetaValue("model_error", mre);
 
@@ -773,6 +682,665 @@ protected:
       }
     }
   }
+*/
+
+  void getRTRegions_(const ChargeMap& peptide_data, 
+                     vector<RTRegion>& rt_regions)
+  {
+    vector<pair<double, Int> > rts; // RTs and charges
+    // use RTs from all charge states here to get a more complete picture:
+    for (ChargeMap::const_iterator cm_it = peptide_data.begin();
+         cm_it != peptide_data.end(); ++cm_it)
+    {
+      // "internal" IDs:
+      for (RTMap::const_iterator rt_it = cm_it->second.first.begin();
+           rt_it != cm_it->second.first.end(); ++rt_it)
+      {
+        rts.push_back(make_pair(rt_it->first, cm_it->first));
+      }
+      // "external" IDs:
+      for (RTMap::const_iterator rt_it = cm_it->second.second.begin();
+           rt_it != cm_it->second.second.end(); ++rt_it)
+      {
+        rts.push_back(make_pair(rt_it->first, cm_it->first));
+      }
+    }
+    sort(rts.begin(), rts.end());
+    double rt_tolerance = rt_window_ / 2.0;
+
+    for (vector<pair<double, Int> >::iterator rt_it = rts.begin();
+         rt_it != rts.end(); ++rt_it)
+    {
+      // create a new region?
+      if (rt_regions.empty() ||
+          (rt_regions.back().end < rt_it->first - rt_tolerance))
+      {
+        RTRegion region;
+        region.start = rt_it->first - rt_tolerance;
+        rt_regions.push_back(region);
+      }
+      rt_regions.back().end = rt_it->first + rt_tolerance;
+      rt_regions.back().charges.insert(rt_it->second);
+    }
+  }
+
+
+  void annotateFeatures_(FeatureMap& features, const RTMap& rt_data)
+  {
+    if (!rt_data.empty()) // validate based on internal IDs
+    {
+      // map IDs to features (based on RT):
+      map<Size, vector<PeptideIdentification*> > feat_ids;
+      for (Size i = 0; i < features.size(); ++i)
+      {
+        double rt_min = features[i].getMetaValue("leftWidth");
+        double rt_max = features[i].getMetaValue("rightWidth");
+        if (mapping_tolerance_ > 0.0)
+        {
+          double abs_tol = mapping_tolerance_;
+          if (abs_tol < 1.0)
+          {
+            abs_tol *= (rt_max - rt_min);
+          }
+          rt_min -= abs_tol;
+          rt_max += abs_tol;
+        }
+        RTMap::const_iterator lower = rt_data.lower_bound(rt_min);
+        RTMap::const_iterator upper = rt_data.upper_bound(rt_max);
+        int id_count = 0;
+        for (; lower != upper; ++lower)
+        {
+          feat_ids[i].push_back(lower->second);
+          ++id_count;
+        }
+        features[i].setMetaValue("n_total_ids", rt_data.size());
+        features[i].setMetaValue("n_matching_ids", id_count);
+        if (id_count > 0) // matching IDs -> feature may be correct
+        {
+          features[i].setMetaValue("feature_class", "ambiguous");
+        }
+        else // no matching IDs -> feature is wrong
+        {
+          features[i].setMetaValue("feature_class", "false_positive");
+        }
+      }
+
+      set<PeptideIdentification*> assigned_ids;
+      if (!feat_ids.empty())
+      {
+        // find the "best" feature (with the most IDs):
+        Size best_index = 0;
+        Size best_count = 0;
+        for (map<Size, vector<PeptideIdentification*> >::iterator fi_it = 
+               feat_ids.begin(); fi_it != feat_ids.end(); ++fi_it)
+        {
+          Size current_index = fi_it->first;
+          Size current_count = fi_it->second.size();
+          if ((current_count > best_count) ||
+              ((current_count == best_count) && // break ties by feature quality
+               (features[current_index].getOverallQuality() >
+                features[best_index].getOverallQuality())))
+          {
+            best_count = current_count;
+            best_index = current_index;
+          }
+        }
+        // assign IDs:
+        if (best_count > 0)
+        {
+          features[best_index].getPeptideIdentifications().resize(best_count);
+          for (Size i = 0; i < best_count; ++i)
+          {
+            features[best_index].getPeptideIdentifications()[i] = 
+              *(feat_ids[best_index][i]);
+            // we define the (one) feature with most matching IDs as correct:
+            features[best_index].setMetaValue("feature_class", "true_positive");
+            assigned_ids.insert(feat_ids[best_index][i]);
+          }
+        }
+      }
+      // store unassigned IDs:
+      for (RTMap::const_iterator rt_it = rt_data.begin();
+           rt_it != rt_data.end(); ++rt_it)
+      {
+        if (!assigned_ids.count(rt_it->second))
+        {
+          const PeptideIdentification& pep_id = *(rt_it->second);
+          features.getUnassignedPeptideIdentifications().push_back(pep_id);
+        }
+      }
+    }
+    else // only external IDs -> no validation possible
+    {
+      for (FeatureMap::iterator feat_it = features.begin(); 
+           feat_it != features.end(); ++feat_it)
+      {
+        feat_it->setMetaValue("n_total_ids", 0);
+        feat_it->setMetaValue("n_matching_ids", -1);
+        feat_it->setMetaValue("feature_class", "unknown");
+      }
+    }
+  }
+
+
+  void ensureConvexHulls_(Feature& feature)
+  {
+    if (feature.getConvexHulls().empty()) // add hulls for mass traces
+    {
+      double rt_min = feature.getMetaValue("leftWidth");
+      double rt_max = feature.getMetaValue("rightWidth");
+      for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
+           sub_it != feature.getSubordinates().end(); ++sub_it)
+      {
+        double abs_mz_tol = mz_window_ / 2.0;
+        if (mz_window_ppm_)
+        {
+          abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
+        }
+        ConvexHull2D hull;
+        hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() - abs_mz_tol));
+        hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() + abs_mz_tol));
+        feature.getConvexHulls().push_back(hull);
+      }
+    }
+  }
+
+
+  void detectFeaturesOnePeptide_(const PeptideMap::value_type& peptide_data,
+                                 FeatureMap& features)
+  {
+    TargetedExperiment library;
+    TargetedExperiment::Peptide peptide;
+
+    const AASequence& seq = peptide_data.first;
+    LOG_DEBUG << "\nPeptide: " << seq.toString() << endl;
+    peptide.sequence = seq.toString();
+    // @NOTE: Technically, "TargetedExperiment::Peptide" stores the unmodified
+    // sequence and the modifications separately. Unfortunately, creating the
+    // modifications vector is complex and there is currently no convenient
+    // conversion function (see "TargetedExperimentHelper::getAASequence" for
+    // the reverse conversion). However, "Peptide" is later converted to
+    // "OpenSwath::LightPeptide" anyway, and this is done via "AASequence" (see
+    // "OpenSwathDataAccessHelper::convertTargetedPeptide"). So for our purposes
+    // it works to just store the sequence including modifications in "Peptide".
+
+    // keep track of protein accessions:
+    set<String> accessions;
+    const pair<RTMap, RTMap>& pair = peptide_data.second.begin()->second;
+    if (!pair.first.empty())
+    {
+      const PeptideHit& hit = pair.first.begin()->second->getHits()[0];
+      accessions = hit.extractProteinAccessions();
+    }
+    else
+    {
+      const PeptideHit& hit = pair.second.begin()->second->getHits()[0];
+      accessions = hit.extractProteinAccessions();
+    }
+    // missing protein accession would crash OpenSWATH algorithms:
+    if (accessions.empty()) accessions.insert("not_available");
+    peptide.protein_refs = vector<String>(accessions.begin(), accessions.end());
+    for (set<String>::iterator acc_it = accessions.begin(); 
+         acc_it != accessions.end(); ++acc_it)
+    {
+      TargetedExperiment::Protein protein;
+      protein.id = *acc_it;
+      library.addProtein(protein);
+    }
+
+    // get isotope distribution for peptide:
+    IsotopeDistribution iso_dist = 
+      seq.getFormula(Residue::Full, 0).getIsotopeDistribution(10);
+    iso_dist.trimLeft(isotope_pmin_);
+    iso_dist.trimRight(isotope_pmin_);
+    iso_dist.renormalize();
+
+    // get regions in which peptide elutes (ideally only one):
+    vector<RTRegion> rt_regions;
+    getRTRegions_(peptide_data.second, rt_regions);
+    LOG_DEBUG << "Found " << rt_regions.size() << " RT region(s)." << endl;
+
+    // go through different charge states:
+    for (ChargeMap::const_iterator cm_it = peptide_data.second.begin(); 
+         cm_it != peptide_data.second.end(); ++cm_it)
+    {
+      Int charge = cm_it->first;
+      double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
+      LOG_DEBUG << "Charge: " << charge << " (m/z: " << mz << ")" << endl;
+      peptide.setChargeState(charge);
+      peptide.id = peptide.sequence + "/" + String(charge);
+
+      // we want to detect one feature per peptide, charge state and RT region 
+      // (provided there is an ID for that charge in the region) - so there is 
+      // always only one peptide in the library!
+      Size counter = 0;
+      for (vector<RTRegion>::iterator reg_it = rt_regions.begin();
+           reg_it != rt_regions.end(); ++reg_it)
+      {
+        if (reg_it->charges.count(charge))
+        {
+          LOG_DEBUG << "Region " << counter + 1 << " (RT: "
+                    << float(reg_it->start) << "-" << float(reg_it->end) << ")"
+                    << endl;
+          vector<TargetedExperiment::Peptide> lib_peps(1, peptide);
+          if (rt_regions.size() > 1)
+          {
+            lib_peps[0].id = peptide.id + ":" + String(++counter);
+          }
+          // use center of region as RT of assay (for chrom. extraction):
+          double assay_rt = (reg_it->start + reg_it->end) / 2.0;
+          setPeptideRT_(lib_peps[0], assay_rt);
+          library.setPeptides(lib_peps);
+          vector<ReactionMonitoringTransition> transitions;
+          generateTransitions_(lib_peps[0].id, mz, charge, iso_dist, 
+                               transitions);
+          library.setTransitions(transitions);
+
+          if (keep_library_) library_ += library;
+
+          // extract chromatograms:
+          double rt_window = reg_it->end - reg_it->start;
+          PeakMap chrom_data;
+          extractor_.extractChromatograms(ms_data_, chrom_data, library,
+                                          mz_window_, mz_window_ppm_, trafo_,
+                                          rt_window, "tophat");
+          LOG_DEBUG << "Extracted " << chrom_data.getNrChromatograms()
+                    << " chromatogram(s)." << endl;
+
+          if (keep_chromatograms_)
+          {
+            Size n_chrom = (chrom_data.getNrChromatograms() + 
+                            chrom_data_.getNrChromatograms());
+            chrom_data_.reserveSpaceChromatograms(n_chrom);
+            for (vector<MSChromatogram<> >::const_iterator ch_it = 
+                   chrom_data.getChromatograms().begin(); ch_it !=
+                   chrom_data.getChromatograms().end(); ++ch_it)
+            {
+              chrom_data_.addChromatogram(*ch_it);
+            }
+          }
+
+          // find chromatographic peaks:
+          FeatureMap current_features;
+          feat_finder_.pickExperiment(chrom_data, current_features, library,
+                                      trafo_, ms_data_);
+          LOG_DEBUG << "Found " << current_features.size() << " feature(s)."
+                    << endl;
+
+          // complete feature annotation:
+          for (FeatureMap::Iterator feat_it = current_features.begin();
+               feat_it != current_features.end(); ++feat_it)
+          {
+            feat_it->setMZ(mz);
+            feat_it->setCharge(charge);
+            ensureConvexHulls_(*feat_it);
+            // remove "fake" IDs generated by OpenSWATH:
+            feat_it->getPeptideIdentifications().clear();
+          }
+          // which features are supported by "internal" IDs?
+          const RTMap& rt_data = cm_it->second.first;
+          annotateFeatures_(current_features, rt_data);
+
+          features += current_features;
+        }
+      }
+    }
+  }
+
+
+  void addPeptideToMap_(PeptideIdentification& peptide, PeptideMap& peptide_map,
+                        bool external = false)
+  {
+    if (peptide.getHits().empty()) return;
+    peptide.sort();
+    PeptideHit& hit = peptide.getHits()[0];
+    peptide.getHits().resize(1);
+    Int charge = hit.getCharge();
+    double rt = peptide.getRT();
+    RTMap::value_type pair = make_pair(rt, &peptide);
+    if (!external)
+    {
+      peptide_map[hit.getSequence()][charge].first.insert(pair);
+    }
+    else
+    {
+      peptide_map[hit.getSequence()][charge].second.insert(pair);
+    }
+  }
+
+
+  void scaleSVMData_(vector<vector<double> >& predictor_values,
+                     const vector<String>& predictors)
+  {
+    for (Size i = 0; i < predictors.size(); ++i)
+    {
+      if (predictor_values[i].empty()) continue;
+      vector<double>::iterator pv_begin = predictor_values[i].begin();
+      vector<double>::iterator pv_end = predictor_values[i].end();
+      double vmin = *min_element(pv_begin, pv_end);
+      double vmax = *max_element(pv_begin, pv_end);
+      if (vmin == vmax)
+      {
+        LOG_DEBUG << "Predictor '" + predictors[i] + "' is uninformative." 
+                  << endl;
+        predictor_values[i].clear();
+        continue;
+      }
+      double range = vmax - vmin;
+      for (vector<double>::iterator it = pv_begin; it != pv_end; ++it)
+      {
+        *it = (*it - vmin) / range;
+      }
+    }
+  }
+
+
+  void convertSVMData_(vector<vector<double> >& predictor_values,
+                       vector<vector<struct svm_node> >& svm_nodes)
+  {
+    Size n_obs = predictor_values[0].size();
+    svm_nodes.resize(n_obs);
+    Size skipped_predictors = 0;
+    for (Size pred_index = 0; pred_index < predictor_values.size(); 
+         ++pred_index)
+    {
+      if (predictor_values[pred_index].empty()) // uninformative predictor
+      {
+        skipped_predictors++;
+        continue;
+      }
+      for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
+      {
+        double value = predictor_values[pred_index][obs_index];
+        if (value > 0)
+        {
+          svm_node node = {pred_index - skipped_predictors, value};
+          svm_nodes[obs_index].push_back(node);
+        }
+      }
+    }
+    LOG_DEBUG << "Number of predictors for SVM: "
+              << predictor_values.size() - skipped_predictors << endl;
+    svm_node final = {-1, 0.0};
+    for (vector<vector<struct svm_node> >::iterator it = svm_nodes.begin();
+         it != svm_nodes.end(); ++it)
+    {
+      it->push_back(final);
+    }
+  }
+
+
+  void writeXvalResults_(const String& path, const SVMPerformance& performance,
+                         const vector<double>& log2_C, 
+                         const vector<double>& log2_gamma)
+  {
+    ofstream outstr(path.c_str());
+    SVOutStream output(outstr);
+    output.modifyStrings(false);
+    output << "log2_C" << "log2_gamma" << "performance" << nl;
+    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
+    {
+      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
+      {
+        output << log2_C[c_index] << log2_gamma[g_index] 
+               << performance[g_index][c_index] << nl;
+      }
+    }
+  }
+
+
+  pair<double, double> chooseBestSVMParams_(const SVMPerformance& performance,
+                                            const vector<double>& log2_C, 
+                                            const vector<double>& log2_gamma)
+  {
+    // which parameter set(s) achieved best cross-validation performance?
+    double best_value = 0.0;
+    vector<pair<Size, Size> > best_indexes;
+    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
+    {
+      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
+      {
+        double value = performance[g_index][c_index];
+        if (value == best_value)
+        {
+          best_indexes.push_back(make_pair(g_index, c_index));
+        }
+        else if (value > best_value)
+        {
+          best_value = value;
+          best_indexes.clear();
+          best_indexes.push_back(make_pair(g_index, c_index));
+        }
+      }
+    }
+    LOG_INFO << "Best cross-validation performance: " 
+             << float(best_value * 100.0) << "% correct" << endl;
+    if (best_indexes.size() == 1)
+    {
+      return make_pair(log2_C[best_indexes[0].second],
+                       log2_gamma[best_indexes[0].first]);
+    }
+    // break ties between parameter sets - look at "neighboring" parameters:
+    multimap<pair<double, Size>, Size> tiebreaker;
+    for (Size i = 0; i < best_indexes.size(); ++i)
+    {
+      const pair<Size, Size>& indexes = best_indexes[i];
+      Size n_neighbors = 0;
+      double neighbor_value = 0.0;
+      if (indexes.first > 0)
+      {
+        neighbor_value += performance[indexes.first - 1][indexes.second];
+        ++n_neighbors;
+      }
+      if (indexes.first + 1 < log2_gamma.size())
+      {
+        neighbor_value += performance[indexes.first + 1][indexes.second];
+        ++n_neighbors;
+      }
+      if (indexes.second > 0)
+      {
+        neighbor_value += performance[indexes.first][indexes.second - 1];
+        ++n_neighbors;
+      }
+      if (indexes.second + 1 < log2_C.size())
+      {
+        neighbor_value += performance[indexes.first][indexes.second + 1];
+        ++n_neighbors;
+      }
+      neighbor_value /= n_neighbors; // avg. performance of neighbors
+      tiebreaker.insert(make_pair(make_pair(neighbor_value, n_neighbors), i));
+    }
+    const pair<Size, Size>& indexes = best_indexes[tiebreaker.rbegin()->second];
+    return make_pair(log2_C[indexes.second], log2_gamma[indexes.first]);
+  }
+
+
+  void optimizeSVMParams_(vector<double> labels,
+                          vector<vector<struct svm_node> >& svm_nodes, 
+                          struct svm_problem& svm_data,
+                          struct svm_parameter& svm_params)
+  {
+    Size n_parts = getIntOption_("svm:xval");
+    vector<double> log2_C = getDoubleList_("svm:log2_C");
+    vector<double> log2_gamma;
+    if (svm_params.kernel_type == RBF)
+    {
+      log2_gamma = getDoubleList_("svm:log2_gamma");
+    }
+    else
+    {
+      log2_gamma.push_back(0.0);
+    }
+
+    vector<Size> valid_obs; // observations for training (no "maybes"/unknowns)
+    Size n_neg = 0, n_pos = 0; // number of positive/negative observations
+    for (Size i = 0; i < labels.size(); ++i)
+    {
+      if (labels[i] == 0.0)
+      {
+        valid_obs.push_back(i);
+        ++n_neg;
+      }
+      else if (labels[i] == 1.0)
+      {
+        valid_obs.push_back(i);
+        ++n_pos;
+      }
+    }
+    if (n_pos < n_parts)
+    {
+      String msg = "not enough positive observations for " + 
+        String(n_parts) + "-fold cross-validation";
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+    if (n_neg < n_parts)
+    {
+      String msg = ("not enough negative observations for " + 
+                    String(n_parts) + "-fold cross-validation");
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+    LOG_INFO << "Training SVM on " << valid_obs.size() << " observations ("
+             << n_pos << " positive, " << n_neg << " negative)." << endl;
+
+    svm_data.l = valid_obs.size();
+    svm_data.y = new double[svm_data.l];
+    svm_data.x = new svm_node*[svm_data.l];
+    for (Size i = 0; i < Size(svm_data.l); ++i)
+    {
+      Size obs_index = valid_obs[i];
+      svm_data.y[i] = labels[obs_index];
+      svm_data.x[i] = &(svm_nodes[obs_index][0]);
+    }
+
+    LOG_INFO << "Running cross-validation to find optimal SVM parameters..."
+             << endl;
+    Size prog_counter = 0;
+    prog_log_.startProgress(1, log2_gamma.size() * log2_C.size(),
+                            "testing SVM parameters");
+    // classification performance for different parameter pairs:
+    SVMPerformance performance(log2_gamma.size());
+    // vary "C"s in inner loop to keep results for all "C"s in one vector:
+    for (Size g_index = 0; g_index < log2_gamma.size(); ++g_index)
+    {
+      svm_params.gamma = pow(2.0, log2_gamma[g_index]);
+      performance[g_index].resize(log2_C.size());
+      for (Size c_index = 0; c_index < log2_C.size(); ++c_index)
+      {
+        svm_params.C = pow(2.0, log2_C[c_index]);
+        vector<double> targets(svm_data.l);
+        svm_cross_validation(&svm_data, &svm_params, n_parts, &(targets[0]));
+        Size n_correct = 0;
+        for (Size i = 0; i < Size(svm_data.l); ++i)
+        {
+          if (targets[i] == svm_data.y[i]) n_correct++;
+        }
+        double ratio = n_correct / double(svm_data.l);
+        performance[g_index][c_index] = ratio;
+        prog_log_.setProgress(++prog_counter);
+        LOG_DEBUG << "Performance (log2_C = " << log2_C[c_index]
+                  << ", log2_gamma = " << log2_gamma[g_index] << "): "
+                  << n_correct << " correct (" << float(ratio * 100.0) << "%)"
+                  << endl;
+      }
+    }
+    prog_log_.endProgress();
+
+    String xval_out = getStringOption_("svm:xval_out");
+    if (!xval_out.empty())
+    {
+      writeXvalResults_(xval_out, performance, log2_C, log2_gamma);
+    }
+    
+    pair<double, double> best_params = chooseBestSVMParams_(performance, log2_C,
+                                                            log2_gamma);
+    LOG_INFO << "Best SVM parameters: log2_C = " << best_params.first
+             << ", log2_gamma = " << best_params.second << endl;
+
+    svm_params.C = pow(2.0, best_params.first);
+    svm_params.gamma = pow(2.0, best_params.second);
+  }
+
+
+  static void printNull_(const char*) {} // to suppress LIBSVM output
+
+
+  void classifyFeatures_(FeatureMap& features)
+  {
+    vector<double> labels(features.size());
+    for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
+    {
+      String feature_class = features[feat_index].getMetaValue("feature_class");
+      if (feature_class == "true_positive") labels[feat_index] = 1.0;
+      else if (feature_class == "unknown") labels[feat_index] = -1.0;
+      else if (feature_class == "ambiguous") labels[feat_index] = 0.5;
+      // else labels[feat_index] = 0.0; // "false_positive", zero is default
+    }
+
+    vector<String> predictors = ListUtils::create<String>(score_metavalues_);
+    // values for all featues per predictor (this way around to simplify scaling
+    // of predictors):
+    vector<vector<double> > predictor_values(predictors.size());
+    for (Size pred_index = 0; pred_index < predictors.size(); ++pred_index)
+    {
+      const String& metavalue = predictors[pred_index];
+      predictor_values[pred_index].resize(features.size());
+      for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
+      {
+        if (!features[feat_index].metaValueExists(metavalue))
+        {
+          LOG_ERROR << "Metavalue '" << metavalue 
+                    << "' missing for feature '"
+                    << features[feat_index].getUniqueId() << " (index " 
+                    << feat_index << ")" << endl;
+          predictor_values[pred_index].clear();
+          break;
+        }
+        predictor_values[pred_index][feat_index] = 
+          double(features[feat_index].getMetaValue(metavalue));
+      }
+    }
+
+    scaleSVMData_(predictor_values, predictors);
+
+    vector<vector<struct svm_node> > svm_nodes;
+    convertSVMData_(predictor_values, svm_nodes);
+
+    struct svm_parameter svm_params;
+    svm_params.svm_type = C_SVC;
+    String kernel = getStringOption_("svm:kernel");
+    svm_params.kernel_type = (kernel == "RBF") ? RBF : LINEAR;
+    svm_params.eps = 0.001;
+    svm_params.cache_size = 100.0;
+    svm_params.nr_weight = 0; // use weighting of unbalanced classes?
+    svm_params.shrinking = 0; // use shrinking heuristics?
+    svm_params.probability = 1;
+
+    struct svm_problem svm_data;
+    svm_set_print_string_function(&printNull_); // suppress output of LIBSVM
+    optimizeSVMParams_(labels, svm_nodes, svm_data, svm_params);
+
+    // train SVM on the full dataset:
+    struct svm_model* model = svm_train(&svm_data, &svm_params);
+    // obtain predictions for all features (including those used for training):
+    double probs[2];
+    for (Size i = 0; i < features.size(); ++i)
+    {
+      double pred = svm_predict_probability(model, &(svm_nodes[i][0]), probs);
+      features[i].setMetaValue("predicted_class", pred);
+      features[i].setMetaValue("predicted_probability", probs[0]);
+      features[i].setOverallQuality(probs[0]); // @TODO: is this a good idea?
+    }
+    
+    svm_free_model_content(model);
+    // free memory reserved in function "optimizeSVMParams_":
+    delete[] svm_data.y;
+    delete[] svm_data.x;
+  }
+
 
   ExitCodes main_(int, const char**)
   {
@@ -781,19 +1349,21 @@ protected:
     //-------------------------------------------------------------
     String in = getStringOption_("in");
     String id = getStringOption_("id");
+    String id_ext = getStringOption_("id_ext");
     String out = getStringOption_("out");
     String lib_out = getStringOption_("lib_out");
     String chrom_out = getStringOption_("chrom_out");
     String trafo_out = getStringOption_("trafo_out");
-    reference_rt_ = getStringOption_("extract:reference_rt");
-    double rt_window = getDoubleOption_("extract:rt_window");
-    rt_tolerance_ = rt_window / 2.0;
-    double mz_window = getDoubleOption_("extract:mz_window");
-    bool mz_window_ppm = mz_window >= 1;
-    double isotope_pmin = getDoubleOption_("extract:isotope_pmin");
-    bool all_features = getFlag_("detect:all_features");
+    rt_window_ = getDoubleOption_("extract:rt_window");
+    mz_window_ = getDoubleOption_("extract:mz_window");
+    mz_window_ppm_ = mz_window_ >= 1;
+    isotope_pmin_ = getDoubleOption_("extract:isotope_pmin");
     double peak_width = getDoubleOption_("detect:peak_width");
-    String elution_model = getStringOption_("model:type");
+    double min_peak_width = getDoubleOption_("detect:min_peak_width");
+    double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
+    mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
+    elution_model_ = getStringOption_("model:type");
+    prog_log_.setLogType(log_type_);
 
     //-------------------------------------------------------------
     // load input
@@ -818,9 +1388,36 @@ protected:
       TransformationXMLFile().store(trafo_out, trafo_);
     }
 
+    // initialize algorithm classes needed later:
+    extractor_.setLogType(ProgressLogger::NONE);
+    Param params = feat_finder_.getParameters();
+    params.setValue("stop_report_after_feature", -1); // return all features
+    params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
+    if (elution_model_ != "none") params.setValue("write_convex_hull", "true");
+    if (min_peak_width < 1.0) min_peak_width *= peak_width;
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width",
+                    peak_width);
+    params.setValue("TransitionGroupPicker:min_peak_width", min_peak_width);
+    // disabling the signal-to-noise threshold (setting the parameter to zero)
+    // totally breaks the OpenSWATH feature detection (no features found)!
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise",
+                    signal_to_noise);
+    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
+    params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
+    feat_finder_.setParameters(params);
+    feat_finder_.setLogType(ProgressLogger::NONE);
+    feat_finder_.setStrictFlag(false);
+
+    // "internal" IDs:
     vector<PeptideIdentification> peptides;
     vector<ProteinIdentification> proteins;
     IdXMLFile().load(id, proteins, peptides);
+    // "external" IDs:
+    vector<PeptideIdentification> peptides_ext;
+    vector<ProteinIdentification> proteins_ext;
+    if (!id_ext.empty()) IdXMLFile().load(id_ext, proteins_ext, peptides_ext);
 
     //-------------------------------------------------------------
     // prepare peptide map
@@ -830,210 +1427,61 @@ protected:
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
-      if (pep_it->getHits().empty()) continue;
-      pep_it->sort();
-      PeptideHit& hit = pep_it->getHits()[0];
-      peptide_map[hit.getSequence()][hit.getCharge()].push_back(&(*pep_it));
+      addPeptideToMap_(*pep_it, peptide_map);
+    }
+    for (vector<PeptideIdentification>::iterator pep_it = peptides_ext.begin();
+         pep_it != peptides_ext.end(); ++pep_it)
+    {
+      addPeptideToMap_(*pep_it, peptide_map, true);
     }
 
     //-------------------------------------------------------------
-    // create assay library from peptides
+    // run feature detection
     //-------------------------------------------------------------
-    LOG_INFO << "Creating assay library..." << endl;
-    set<String> protein_accessions;
-
+    LOG_INFO << "Running feature detection..." << endl;
+    FeatureMap features;
+    keep_library_ = !lib_out.empty();
+    keep_chromatograms_ = !chrom_out.empty();
+    Size prog_counter = 0;
+    prog_log_.startProgress(1, peptide_map.size(), "running feature detection");
     for (PeptideMap::iterator pm_it = peptide_map.begin();
          pm_it != peptide_map.end(); ++pm_it)
     {
-      const AASequence& seq = pm_it->first;
-      // LOG_DEBUG << "Peptide: " << seq.toString() << endl;
-
-      // keep track of protein accessions:
-      const PeptideHit& hit = pm_it->second.begin()->second[0]->getHits()[0];
-      vector<String> current_accessions = hit.getProteinAccessions();
-      // missing protein accession would crash OpenSwath algorithms:
-      if (current_accessions.empty())
-      {
-        current_accessions.push_back("not_available");
-      }
-      protein_accessions.insert(current_accessions.begin(),
-                                current_accessions.end());
-
-      // get isotope distribution for peptide:
-      iso_dist_ = seq.getFormula(Residue::Full, 0).getIsotopeDistribution(10);
-      iso_dist_.trimLeft(isotope_pmin);
-      iso_dist_.trimRight(isotope_pmin);
-      iso_dist_.renormalize();
-
-      // create assay for current peptide (fill in charge etc. later):
-      TargetedExperiment::Peptide peptide;
-      peptide.sequence = seq.toString();
-      peptide.protein_refs = current_accessions;
-
-      // go through different charge states:
-      for (ChargeMap::iterator cm_it = pm_it->second.begin();
-           cm_it != pm_it->second.end(); ++cm_it)
-      {
-        addAssay_(peptide, seq, *cm_it);
-      }
+      FeatureMap current_features;
+      detectFeaturesOnePeptide_(*pm_it, current_features);
+      features += current_features;
+      prog_log_.setProgress(++prog_counter);
     }
-    // add protein references:
-    for (set<String>::iterator acc_it = protein_accessions.begin();
-         acc_it != protein_accessions.end(); ++acc_it)
-    {
-      TargetedExperiment::Protein protein;
-      protein.id = *acc_it;
-      library_.addProtein(protein);
-    }
-
-    if (!lib_out.empty())
-    {
-      TraMLFile().store(lib_out, library_);
-    }
-
-    //-------------------------------------------------------------
-    // extract chromatograms
-    //-------------------------------------------------------------
-    LOG_INFO << "Extracting chromatograms..." << endl;
-    ChromatogramExtractor extractor;
-    PeakMap chrom_data;
-    extractor.setLogType(log_type_);
-    if (reference_rt_ != "adapt")
-    {
-      extractor.extractChromatograms(ms_data_, chrom_data, library_, mz_window,
-                                     mz_window_ppm, trafo_, rt_window,
-                                     "tophat");
-    }
-    else
-    {
-      trafo_.invert(); // needed to reverse RT transformation below
-      vector<ChromatogramExtractor::ExtractionCoordinates> coords;
-      for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
-             library_.getTransitions().begin(); trans_it !=
-           library_.getTransitions().end(); ++trans_it)
-      {
-        const TargetedExperiment::Peptide& peptide =
-          library_.getPeptideByRef(trans_it->getPeptideRef());
-        ChromatogramExtractor::ExtractionCoordinates current;
-        current.id = trans_it->getNativeID();
-        current.mz = trans_it->getProductMZ();
-        if (peptide.metaValueExists("rt_start"))
-        {
-          current.rt_start = peptide.getMetaValue("rt_start");
-          current.rt_end = peptide.getMetaValue("rt_end");
-        }
-        else
-        {
-          // is this an intuitive way to store/access the RT?!
-          double rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].
-                      getValue().toString().toDouble();
-          rt = trafo_.apply(rt); // reverse RT transformation
-          double rt_win = rt_window;
-          if (peptide.metaValueExists("rt_window"))
-          {
-            rt_win = peptide.getMetaValue("rt_window");
-          }
-          current.rt_start = rt - rt_win * 0.5;
-          current.rt_end = rt + rt_win * 0.5;
-        }
-        coords.push_back(current);
-      }
-      sort(coords.begin(), coords.end(), ChromatogramExtractor::
-           ExtractionCoordinates::SortExtractionCoordinatesByMZ);
-
-      boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
-      OpenSwath::SpectrumAccessPtr input =
-        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
-      vector<OpenSwath::ChromatogramPtr> output;
-      for (Size i = 0; i < coords.size(); ++i)
-      {
-        OpenSwath::ChromatogramPtr cp(new OpenSwath::Chromatogram);
-        output.push_back(cp);
-      }
-      vector<MSChromatogram<> > chromatograms;
-      extractor.extractChromatograms(input, output, coords, mz_window,
-                                     mz_window_ppm, "tophat");
-      extractor.return_chromatogram(output, coords, library_, (*shared)[0],
-                                    chromatograms, false);
-      chrom_data.setChromatograms(chromatograms);
-      trafo_.invert(); // revert the "invert" above!
-    }
+    prog_log_.endProgress();
+    LOG_DEBUG << "Found " << features.size() << " features in total." << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
-    if (!chrom_out.empty())
-    {
-      MzMLFile().store(chrom_out, chrom_data);
-    }
+    features.setProteinIdentifications(proteins);
 
-    //-------------------------------------------------------------
-    // find chromatographic peaks
-    //-------------------------------------------------------------
-    LOG_INFO << "Finding chromatographic peaks..." << endl;
-    FeatureMap features;
-    MRMFeatureFinderScoring mrm_finder;
-    Param params = mrm_finder.getParameters();
-    params.setValue("stop_report_after_feature", 
-                    all_features ? -1 : 1);
-    if (elution_model != "none") params.setValue("write_convex_hull", "true");
-    params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
-    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-    params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 
-                    peak_width);
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
-    mrm_finder.setParameters(params);
-    mrm_finder.setLogType(log_type_);
-    mrm_finder.setStrictFlag(false);
-    mrm_finder.pickExperiment(chrom_data, features, library_, trafo_, ms_data_);
+    classifyFeatures_(features);
 
-    // @TODO add method for resolving overlaps if "reference_rt" is "all"
-    if (elution_model != "none")
-    {
-      fitElutionModels_(features, elution_model == "asymmetric");
-    }
-
-    //-------------------------------------------------------------
-    // fill in missing feature data
-    //-------------------------------------------------------------
-    LOG_INFO << "Adapting feature data..." << endl;
-    for (FeatureMap::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
-    {
-      feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
-      feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
-                         getCharge());
-      // OpenSWATH only includes one protein accession per petide in its
-      // output - fix that:
-      String peptide_ref = feat_it->getMetaValue("PeptideRef");
-      const TargetedExperiment::Peptide& peptide = 
-        library_.getPeptideByRef(peptide_ref);
-      PeptideHit& hit = feat_it->getPeptideIdentifications()[0].getHits()[0];
-      hit.setProteinAccessions(peptide.protein_refs);
-      // all the protein hits are already listed in the ProteinIdentification
-
-      double rt_min = feat_it->getMetaValue("leftWidth");
-      double rt_max = feat_it->getMetaValue("rightWidth");
-      if (feat_it->getConvexHulls().empty()) // add hulls for mass traces
-      {
-        for (vector<Feature>::iterator sub_it =
-               feat_it->getSubordinates().begin(); sub_it !=
-             feat_it->getSubordinates().end(); ++sub_it)
-        {
-          double abs_mz_tol = mz_window / 2.0;
-          if (mz_window_ppm) abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
-          ConvexHull2D hull;
-          hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));
-          hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + abs_mz_tol));
-          hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() - abs_mz_tol));
-          hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() + abs_mz_tol));
-          feat_it->getConvexHulls().push_back(hull);
-        }
-      }
-    }
+    // @FIXME
+    // if (elution_model_ != "none")
+    // {
+    //   fitElutionModels_(features);
+    // }
 
     //-------------------------------------------------------------
     // write output
     //-------------------------------------------------------------
+    if (keep_library_)
+    {
+      removeDuplicateProteins_(library_);
+      TraMLFile().store(lib_out, library_);
+      library_.clear(true);
+    }
+    if (keep_chromatograms_)
+    {
+      addDataProcessing_(chrom_data_,
+                         getProcessingInfo_(DataProcessing::FILTERING));
+      MzMLFile().store(chrom_out, chrom_data_);
+      chrom_data_.clear(true);
+    }
+
     LOG_INFO << "Writing results..." << endl;
     features.ensureUniqueId();
     addDataProcessing_(features,

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -135,7 +135,7 @@ namespace OpenMS
 
           SimTypes::SimIntensityType total_intensity = (*lf_iter).getIntensity();
 
-          // di-labled
+          // di-labeled
           addModificationToPeptideHit_(b2, "UniMod:193");
           b2.setIntensity(total_intensity * labeling_efficiency  * labeling_efficiency);
 

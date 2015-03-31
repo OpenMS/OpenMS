@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ START_SECTION((~TransformationModelInterpolated()))
 }
 END_SECTION
 
-START_SECTION((double evaluate(const double value) const))
+START_SECTION((double evaluate(double value) const))
 {
   // NOTE: This test ensure first of all the compatibility of the interpolation
   //       to the original GSL based implementation of TransformationModelInterpolated

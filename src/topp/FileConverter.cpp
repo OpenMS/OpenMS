@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -150,8 +150,7 @@ protected:
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
     registerFlag_("MGF_compact", "Use a more compact format when writing MGF (no zero-intensity peaks, limited number of decimal places)", true);
 
-    registerStringOption_("write_mzML_index", "true or false", "false", "Whether to add an index to the file when writing mzML files", false);
-    setValidStrings_("write_mzML_index", ListUtils::create<String>("true,false"));
+    registerFlag_("write_mzML_index", "Add an index to the file when writing mzML files (default: no index)");
 
     registerFlag_("process_lowmemory", "Whether to process the file on the fly without loading the whole file into memory first (only for conversions of mzXML/mzML to mzML).\nNote: this flag will prevent conversion from spectra to chromatograms.", true);
   }
@@ -164,15 +163,7 @@ protected:
 
     //input file names
     String in = getStringOption_("in");
-    bool write_mzML_index;
-    if (getStringOption_("write_mzML_index") == "true") 
-    {
-      write_mzML_index = true;
-    }
-    else 
-    {
-      write_mzML_index = false;
-    }
+    bool write_mzML_index = getFlag_("write_mzML_index");
 
     //input file type
     FileHandler fh;

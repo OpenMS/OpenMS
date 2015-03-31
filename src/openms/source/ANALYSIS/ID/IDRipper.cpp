@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ namespace OpenMS
   {
   }
 
-  IDRipper::IDRipper(const IDRipper & cp) :
+  IDRipper::IDRipper(const IDRipper& cp) :
     DefaultParamHandler(cp)
   {
   }
@@ -60,7 +60,7 @@ namespace OpenMS
   {
   }
 
-  IDRipper & IDRipper::operator=(const IDRipper & rhs)
+  IDRipper& IDRipper::operator=(const IDRipper& rhs)
   {
     if (this == &rhs)
       return *this;
@@ -71,7 +71,7 @@ namespace OpenMS
     return *this;
   }
 
-  void IDRipper::rip(map<String, pair<vector<ProteinIdentification>, vector<PeptideIdentification> > > & ripped, vector<ProteinIdentification> & proteins, vector<PeptideIdentification> & peptides)
+  void IDRipper::rip(map<String, pair<vector<ProteinIdentification>, vector<PeptideIdentification> > >& ripped, vector<ProteinIdentification>& proteins, vector<PeptideIdentification>& peptides)
   {
     // Collect all protein hits
     vector<ProteinHit> all_protein_hits;
@@ -79,7 +79,7 @@ namespace OpenMS
     {
       // remove file origin
       prot_it->removeMetaValue("file_origin");
-      vector<ProteinHit> & protein_hits  = prot_it->getHits();
+      vector<ProteinHit>& protein_hits  = prot_it->getHits();
       all_protein_hits.insert(all_protein_hits.end(), protein_hits.begin(), protein_hits.end());
     }
 
@@ -88,7 +88,7 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin(); pep_it != peptides.end(); ++pep_it)
     {
       // try to get file_origin, if not present ignore peptide identification
-      const String & file_origin = pep_it->getMetaValue("file_origin").toString();
+      const String& file_origin = pep_it->getMetaValue("file_origin").toString();
       // QFileInfo fi("/tmp/archive.tar.gz");
       // QString name = fi.fileName(); --> name = "archive.tar.gz"
       const String file_ = QFileInfo(file_origin.toQString()).fileName().toStdString();
@@ -101,11 +101,11 @@ namespace OpenMS
         continue;
 
       // try to get peptide hits for peptide identification
-      const vector<PeptideHit> & peptide_hits = pep_it->getHits();
+      const vector<PeptideHit>& peptide_hits = pep_it->getHits();
       if (peptide_hits.empty())
         continue;
 
-      // collect all protein accesions that are stored in the peptide hits
+      // collect all protein accessions that are stored in the peptide hits
       vector<String> protein_accessions;
       getProteinAccessions_(protein_accessions, peptide_hits);
 
@@ -123,7 +123,7 @@ namespace OpenMS
       // If file_origin already exists
       if (it != ripped.end())
       {
-        vector<ProteinIdentification> & prot_tmp = it->second.first;
+        vector<ProteinIdentification>& prot_tmp = it->second.first;
         bool flag = true;
         //what to do if there is one then more protein identification, can this occur at all?
         for (vector<ProteinIdentification>::iterator it2 = prot_tmp.begin(); it2 != prot_tmp.end(); ++it2)
@@ -145,7 +145,7 @@ namespace OpenMS
           prot_ident.setHits(protein2accessions);
           prot_tmp.push_back(prot_ident);
         }
-        vector<PeptideIdentification> & pep_tmp = it->second.second;
+        vector<PeptideIdentification>& pep_tmp = it->second.second;
         pep_tmp.push_back(*pep_it);
       }
       else // otherwise create new entry for file_origin
@@ -166,7 +166,7 @@ namespace OpenMS
     }
   }
 
-  void IDRipper::getProteinHits_(vector<ProteinHit> & result, const vector<ProteinHit> & protein_hits, const vector<String> & protein_accessions)
+  void IDRipper::getProteinHits_(vector<ProteinHit>& result, const vector<ProteinHit>& protein_hits, const vector<String>& protein_accessions)
   {
     for (vector<String>::const_iterator it = protein_accessions.begin(); it < protein_accessions.end(); ++it)
     {
@@ -180,18 +180,18 @@ namespace OpenMS
     }
   }
 
-  void IDRipper::getProteinAccessions_(vector<String> & result, const vector<PeptideHit> & peptide_hits)
+  void IDRipper::getProteinAccessions_(vector<String>& result, const vector<PeptideHit>& peptide_hits)
   {
     for (vector<PeptideHit>::const_iterator it = peptide_hits.begin(); it != peptide_hits.end(); ++it)
     {
-      const vector<String> & protein_accessions_tmp = it->getProteinAccessions();
-      result.insert(result.end(), protein_accessions_tmp.begin(), protein_accessions_tmp.end());
+      std::set<String> protein_accessions = it->extractProteinAccessions();
+      result.insert(result.end(), protein_accessions.begin(), protein_accessions.end());
     }
   }
 
-  void IDRipper::getProteinIdentification_(ProteinIdentification & result, PeptideIdentification pep_ident, std::vector<ProteinIdentification> & prot_idents)
+  void IDRipper::getProteinIdentification_(ProteinIdentification& result, PeptideIdentification pep_ident, std::vector<ProteinIdentification>& prot_idents)
   {
-    const String & identifier = pep_ident.getIdentifier();
+    const String& identifier = pep_ident.getIdentifier();
 
     for (vector<ProteinIdentification>::iterator prot_it = prot_idents.begin(); prot_it != prot_idents.end(); ++prot_it)
     {

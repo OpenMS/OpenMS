@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,12 +56,12 @@ namespace OpenMS
   {
   }
 
-  void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet & rhs)
+  void XTandemXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& rhs)
   {
     mod_def_set_ = rhs;
   }
 
-  void XTandemXMLFile::load(const String & filename, ProteinIdentification & protein_identification, vector<PeptideIdentification> & peptide_ids)
+  void XTandemXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_ids)
   {
     //File name for error message in XMLHandler
     file_ = filename;
@@ -93,25 +93,25 @@ namespace OpenMS
       // }
       for (map<String, vector<PeptideHit> >::const_iterator it1 = seq_to_hits.begin(); it1 != seq_to_hits.end(); ++it1)
       {
-        if (it1->second.size() > 0)
+        const vector<PeptideHit>& peptide_hits = it->second;
+        if (!peptide_hits.empty())
         {
-          // copy the accession of all to the first hit
-          PeptideHit hit = *it1->second.begin();
-          vector<String> accessions;
-          for (vector<PeptideHit>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+          // store all peptide hits that identify the same sequence in a single peptide hit
+          PeptideHit hit = peptide_hits[0];
+          vector<PeptideEvidence> peptide_evidences;
+          for (vector<PeptideHit>::const_iterator it2 = peptide_hits.begin(); it2 != peptide_hits.end(); ++it2)
           {
-            for (vector<String>::const_iterator it3 = it2->getProteinAccessions().begin(); it3 != it2->getProteinAccessions().end(); ++it3)
+            const vector<PeptideEvidence> evidences = it2->getPeptideEvidences();
+            for (vector<PeptideEvidence>::const_iterator e_it = evidences.begin(); e_it != evidences.end(); ++e_it)
             {
-              String new_acc = protein_hits_[*it3].getAccession();
-              if (find(accessions.begin(), accessions.end(), new_acc) == accessions.end())
-              {
-                accessions.push_back(new_acc);
-              }
-              //accessions.push_back(*it3);
+              // only rewrite accession and keep AABefore/AAAfter, start, stop information from peptide evidence
+              PeptideEvidence pe = *e_it;
+              String new_acc = protein_hits_[pe.getProteinAccession()].getAccession();
+              pe.setProteinAccession(new_acc);
+              peptide_evidences.push_back(pe);
             }
           }
-
-          hit.setProteinAccessions(accessions);
+          hit.setPeptideEvidences(peptide_evidences);
           id.insertHit(hit);
         }
       }
@@ -149,12 +149,13 @@ namespace OpenMS
     // TODO search parameters are also available
   }
 
-  void XTandemXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const Attributes & attributes)
+  void XTandemXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
   {
     tag_ = String(sm_.convert(qname));
 
     if (tag_ == "domain")
     {
+      PeptideEvidence pe;
       PeptideHit hit;
       hit.metaRegistry().registerName("E-Value", "E-Value of hit");
       hit.metaRegistry().registerName("nextscore", "next_score of hit");
@@ -165,52 +166,81 @@ namespace OpenMS
       double hyperscore(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("hyperscore"))))).toDouble());
       hit.setScore(hyperscore);
 
+      // get mass
+      double mass(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
+      hit.setMetaValue("mass", mass);
+
+      // get delta
+      double delta(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("delta"))))).toDouble());
+      hit.setMetaValue("delta", delta);
+
+      // try to get a, b, c, x, y, z score (optional)
+      String att_str;
+      if (optionalAttributeAsString_(att_str, attributes, "a_score")) hit.setMetaValue("a_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "a_ions")) hit.setMetaValue("a_ions", att_str.toInt());
+      
+      if (optionalAttributeAsString_(att_str, attributes, "b_score")) hit.setMetaValue("b_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "b_ions")) hit.setMetaValue("b_ions", att_str.toInt());
+
+      if (optionalAttributeAsString_(att_str, attributes, "c_score")) hit.setMetaValue("c_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "c_ions")) hit.setMetaValue("c_ions", att_str.toInt());
+
+      if (optionalAttributeAsString_(att_str, attributes, "x_score")) hit.setMetaValue("x_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "x_ions")) hit.setMetaValue("x_ions", att_str.toInt());
+
+      if (optionalAttributeAsString_(att_str, attributes, "y_score")) hit.setMetaValue("y_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "y_ions")) hit.setMetaValue("y_ions", att_str.toInt());
+
+      if (optionalAttributeAsString_(att_str, attributes, "z_score")) hit.setMetaValue("z_score", att_str.toDouble());
+      if (optionalAttributeAsString_(att_str, attributes, "z_ions")) hit.setMetaValue("z_ions", att_str.toInt());
+
       // get sequence of peptide
-      String seq(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("seq")))));
+      String seq = attributeAsString_(attributes, "seq");
       hit.setSequence(AASequence::fromString(seq));
 
       // get amino acid before
-      String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
+      String pre = attributeAsString_(attributes, "pre");
       if (!pre.empty())
       {
-        hit.setAABefore(pre[pre.size() - 1]);
+        pe.setAABefore(pre[pre.size()-1]);
       }
 
       // get amino acid after
-      String post(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("post")))));
+      String post = attributeAsString_(attributes, "post");
       if (!post.empty())
       {
-        hit.setAAAfter(post[0]);
+        pe.setAAAfter(post[0]);
       }
 
       // get expectation value
-      double expect(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("expect"))))).toDouble());
-      hit.setMetaValue("E-Value", expect);
-      
+      String expect = attributeAsString_(attributes, "expect");
+      hit.setMetaValue("E-Value", expect.toDouble());
+
       // get precursor m/z
       //double mh(String(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("mh"))))).toDouble());
       //hit.setMetaValue("MZ", mh); // not needed, set by the XTandem Adapter itself
 
       // spectrum id
-      String id_string(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("id")))));
-      vector<String> split;
-      id_string.split('.', split);
-      UInt id(split[0].toInt());
+      String id_string = attributeAsString_(attributes, "id");
+      UInt id(id_string.prefix('.').toInt());
       // hit.setMetaValue("RT_index", id);
       actual_id_ = id;
 
       String tmp;
       optionalAttributeAsString_(tmp, attributes, "start");
       actual_start_ = tmp.toInt();
+      pe.setStart(actual_start_);
       tmp = "";
       optionalAttributeAsString_(tmp, attributes, "end");
       actual_stop_ = tmp.toInt();
+      pe.setEnd(actual_stop_);
 
       // add the actual protein accession
-      hit.addProteinAccession(actual_protein_id_);
+      pe.setProteinAccession(actual_protein_id_);
       hit.setCharge(actual_charge_);
 
-      peptide_hits_[id].push_back(hit);
+      hit.addPeptideEvidence(pe);
+      peptide_hits_[actual_id_].push_back(hit);
       return;
     }
 
@@ -230,7 +260,7 @@ namespace OpenMS
 
       // try to find a mod in the given mods that fits
 
-      if (mod_pos == 0)       // can (!) be a N-terminal mod
+      if (mod_pos == 0) // can (!) be a N-terminal mod
       {
         ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(possible_mass_mods, modified.toDouble(), 0.01, ResidueModification::N_TERM);
       }
@@ -449,13 +479,13 @@ namespace OpenMS
 
   }
 
-  void XTandemXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void XTandemXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname));
     return;
   }
 
-  void XTandemXMLFile::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+  void XTandemXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     if (tag_ == "note" && is_description_)
     {

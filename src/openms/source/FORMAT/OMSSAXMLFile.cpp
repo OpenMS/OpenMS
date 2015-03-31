@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void OMSSAXMLFile::load(const String & filename, ProteinIdentification & protein_identification, vector<PeptideIdentification> & peptide_identifications, bool load_proteins, bool load_empty_hits)
+  void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications, bool load_proteins, bool load_empty_hits)
   {
     // clear input (in case load() is called more than once)
     protein_identification = ProteinIdentification();
@@ -74,7 +74,7 @@ namespace OpenMS
     String identifier("OMSSA_" + now.get());
 
     // post-processing
-    vector<String> accessions;
+    set<String> accessions;
     for (vector<PeptideIdentification>::iterator it = peptide_identifications.begin(); it != peptide_identifications.end(); ++it)
     {
       it->setScoreType("OMSSA");
@@ -86,23 +86,20 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
         {
-          accessions.insert(accessions.end(), pit->getProteinAccessions().begin(), pit->getProteinAccessions().end());
+          set<String> hit_accessions = pit->extractProteinAccessions();
+          accessions.insert(hit_accessions.begin(), hit_accessions.end());
         }
       }
     }
 
     if (load_proteins)
     {
-      sort(accessions.begin(), accessions.end());
-      vector<String>::const_iterator end_unique = unique(accessions.begin(), accessions.end());
-
-      for (vector<String>::const_iterator it = accessions.begin(); it != end_unique; ++it)
+      for (set<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
       {
         ProteinHit hit;
         hit.setAccession(*it);
         protein_identification.insertHit(hit);
       }
-
 
       // E-values
       protein_identification.setHigherScoreBetter(false);
@@ -118,12 +115,12 @@ namespace OpenMS
     // search parameters are also not available
   }
 
-  void OMSSAXMLFile::startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & /*attributes*/)
+  void OMSSAXMLFile::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& /*attributes*/)
   {
     tag_ = String(sm_.convert(qname)).trim();
   }
 
-  void OMSSAXMLFile::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname)
+  void OMSSAXMLFile::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
   {
     tag_ = String(sm_.convert(qname)).trim();
 
@@ -132,6 +129,9 @@ namespace OpenMS
     // end of peptide hit
     if (tag_ == "MSHits")
     {
+      actual_peptide_hit_.setPeptideEvidences(actual_peptide_evidences_);
+      actual_peptide_evidence_ = PeptideEvidence();
+      actual_peptide_evidences_.clear();
       actual_peptide_id_.insertHit(actual_peptide_hit_);
       actual_peptide_hit_ = PeptideHit();
     }
@@ -185,7 +185,7 @@ namespace OpenMS
     tag_ = "";
   }
 
-  void OMSSAXMLFile::characters(const XMLCh * const chars, const XMLSize_t /*length*/)
+  void OMSSAXMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
     if (tag_.empty()) return;
 
@@ -197,6 +197,7 @@ namespace OpenMS
     // <MSPepHit_defline>CRHU2 carbonate dehydratase (EC 4.2.1.1) II [validated] - human</MSPepHit_defline>
     // <MSPepHit_protlength>260</MSPepHit_protlength>
     // <MSPepHit_oid>6599</MSPepHit_oid>
+
     if (tag_ == "MSPepHit_start")
     {
       tag_ = "";
@@ -211,7 +212,7 @@ namespace OpenMS
     {
       if (load_proteins_)
       {
-        actual_peptide_hit_.addProteinAccession(value);
+        actual_peptide_evidence_.setProteinAccession(value);
       }
       tag_ = "";
       return;
@@ -230,9 +231,10 @@ namespace OpenMS
     else if (tag_ == "MSPepHit_oid")
     {
       tag_ = "";
+      // end of MSPepHit so we add the evidence
+      actual_peptide_evidences_.push_back(actual_peptide_evidence_);
       return;
     }
-
     // MSHits section
     // <MSHits_evalue>0.00336753988893542</MSHits_evalue>
     // <MSHits_pvalue>1.30819399070598e-08</MSHits_pvalue>
@@ -267,7 +269,8 @@ namespace OpenMS
       try
       {
         seq = AASequence::fromString(value.trim());
-      } catch (Exception::ParseError &/* e */)
+      }
+      catch (Exception::ParseError& /* e */)
       {
         actual_peptide_hit_.setSequence(AASequence());
         tag_ = "";
@@ -301,18 +304,18 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstart")
     {
-      if (value != "")
+      if (value != "" && !actual_peptide_evidences_.empty())
       {
-        actual_peptide_hit_.setAABefore(value[0]);
+        actual_peptide_evidences_[0].setAABefore(value[0]);
       }
       tag_ = "";
       return;
     }
     else if (tag_ == "MSHits_pepstop")
     {
-      if (value != "")
+      if (value != "" && !actual_peptide_evidences_.empty())
       {
-        actual_peptide_hit_.setAAAfter(value[0]);
+        actual_peptide_evidences_[0].setAAAfter(value[0]);
       }
       tag_ = "";
       return;
@@ -347,7 +350,6 @@ namespace OpenMS
     {
       actual_mod_type_ = value.trim();
     }
-
     // m/z value and rt
     else if (tag_ == "MSHitSet_ids_E")
     {
@@ -405,7 +407,7 @@ namespace OpenMS
     }
   }
 
-  void OMSSAXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet & mod_set)
+  void OMSSAXMLFile::setModificationDefinitionsSet(const ModificationDefinitionsSet& mod_set)
   {
     mod_def_set_ = mod_set;
     UInt omssa_mod_num(119);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: Andreas Bertsch $
+// $Maintainer: Mathias Walzer $
+// $Authors: Andreas Bertsch, Mathias Walzer $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_METADATA_CVTERMLIST_H
@@ -60,34 +60,37 @@ public:
     CVTermList();
 
     /// Copy constructor
-    CVTermList(const CVTermList & rhs);
+    CVTermList(const CVTermList& rhs);
 
     /// Destructor
     virtual ~CVTermList();
 
     /// Assignment operator
-    CVTermList & operator=(const CVTermList & rhs);
+    CVTermList& operator=(const CVTermList& rhs);
 
     /** @name Accessors
     */
     //@{
     /// sets the CV terms
-    void setCVTerms(const std::vector<CVTerm> & terms);
+    void setCVTerms(const std::vector<CVTerm>& terms);
 
     /// replaces the specified CV term
-    void replaceCVTerm(const CVTerm & cv_term);
+    void replaceCVTerm(const CVTerm& cv_term);
 
     /// replaces the specified CV terms using the given accession number
-    void replaceCVTerms(const std::vector<CVTerm> & cv_terms, const String & accession);
+    void replaceCVTerms(const std::vector<CVTerm>& cv_terms, const String& accession);
 
     /// replaces all cv terms with a map (can be obtained via getCVTerms)
-    void replaceCVTerms(const Map<String, std::vector<CVTerm> > & cv_term_map);
+    void replaceCVTerms(const Map<String, std::vector<CVTerm> >& cv_term_map);
+
+    /// merges the given map into the member map, no duplicate checking
+    void consumeCVTerms(const Map<String, std::vector<CVTerm> >& cv_term_map);
 
     /// returns the accession string of the term
-    const Map<String, std::vector<CVTerm> > & getCVTerms() const;
+    const Map<String, std::vector<CVTerm> >& getCVTerms() const;
 
     /// adds a CV term
-    void addCVTerm(const CVTerm & term);
+    void addCVTerm(const CVTerm& term);
 
     /// checks whether the spellings of the CV terms stored are correct
     //bool checkCVTerms(const ControlledVocabulary& cv) const;
@@ -100,15 +103,15 @@ public:
     */
     //@{
     /// equality operator
-    bool operator==(const CVTermList & cv_term_list) const;
+    bool operator==(const CVTermList& cv_term_list) const;
 
     /// inequality operator
-    bool operator!=(const CVTermList & cv_term_list) const;
+    bool operator!=(const CVTermList& cv_term_list) const;
 
     /// checks whether the term has a value
-    bool hasCVTerm(const String & accession) const;
+    bool hasCVTerm(const String& accession) const;
 
-    /// checks whether the stored terms fulfil a given CVMappingRule
+    /// checks whether the stored terms fulfill a given CVMappingRule
     /// TODO : implement
     //bool checkCVTerms(const CVMappingRule & rule, const ControlledVocabulary & cv) const;
 

@@ -25,6 +25,7 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
     String getVersion()  nogil except +  #wrap-attach:VersionInfo
     String getTime()     nogil except +  #wrap-attach:VersionInfo
     String getRevision() nogil except +  #wrap-attach:VersionInfo
+    String getBranch()   nogil except +  #wrap-attach:VersionInfo
 
 cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo::VersionDetails":
 

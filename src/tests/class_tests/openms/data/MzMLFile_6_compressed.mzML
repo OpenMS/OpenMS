@@ -88,7 +88,7 @@
 						<binary>eJxNyTdOQ2EQhdFbuqRwQUGBEEIIIQQmRz/ABJNN9HJmaf+SWALFOwXTnPl0k//3O/Z0PQMucMhFLnGZK1zlGte5wU1ucZs7HHGXe9znAQ95xGOe8JRnPOcFx+x6i7nUzJVmrjUz0cyNZm41c6eZe81MNfOgmUfNPGnmWTMvmnnVzFtvx2JjZnYWG/NuZ7ExH3YWG/NpZ7ExX3YWG/NtZ7ExP3YWGzO3s9jm3R9AUUkA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="268">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
 						<binary>eJwVxCFIQ2EAhdE/GAyGBYNhYcFgMCwYDMKew2AwLBgMhgXDgmHBYDA8RMYYIkNEhsh4iIwhIkPGGEPGQ0QWjcZFo3FxZ5fv3BAWiwsuEjEJKVPCbggZcuSJKFGmSkydJi0SuvQYkjLhh1+m/PHPjFAMYYllVsiwyhpZcqyzwSZ5tthmh4g99jmgxCFHHFPmhAqnVDnjnAtiLrmiRp0G19zQ5JY77mnxwCNtEp54pkOXF155o8c7fQYMGfHBmJRPvvguzgFi60kM</binary>
@@ -131,7 +131,7 @@
 						<binary>eJxNyTdOQ2EQhdFbuqRwQUGBEEIIIQQmRz/ABJNN9HJmaf+SWALFOwXTnPl0k//3O/Z0PQMucMhFLnGZK1zlGte5wU1ucZs7HHGXe9znAQ95xGOe8JRnPOcFx+x6i7nUzJVmrjUz0cyNZm41c6eZe81MNfOgmUfNPGnmWTMvmnnVzFtvx2JjZnYWG/NuZ7ExH3YWG/NpZ7ExX3YWG/NtZ7ExP3YWGzO3s9jm3R9AUUkA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="268">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
 						<binary>eJwVxCFIQ2EAhdE/GAyGBYNhYcFgMCwYDMKew2AwLBgMhgXDgmHBYDA8RMYYIkNEhsh4iIwhIkPGGEPGQ0QWjcZFo3FxZ5fv3BAWiwsuEjEJKVPCbggZcuSJKFGmSkydJi0SuvQYkjLhh1+m/PHPjFAMYYllVsiwyhpZcqyzwSZ5tthmh4g99jmgxCFHHFPmhAqnVDnjnAtiLrmiRp0G19zQ5JY77mnxwCNtEp54pkOXF155o8c7fQYMGfHBmJRPvvguzgFi60kM</binary>
@@ -174,7 +174,7 @@
 						<binary>eJxNyTdOQ2EQhdFbuqRwQUGBEEIIIQQmRz/ABJNN9HJmaf+SWALFOwXTnPl0k//3O/Z0PQMucMhFLnGZK1zlGte5wU1ucZs7HHGXe9znAQ95xGOe8JRnPOcFx+x6i7nUzJVmrjUz0cyNZm41c6eZe81MNfOgmUfNPGnmWTMvmnnVzFtvx2JjZnYWG/NuZ7ExH3YWG/NpZ7ExX3YWG/NtZ7ExP3YWGzO3s9jm3R9AUUkA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="268">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
 						<binary>eJwVxCFIQ2EAhdE/GAyGBYNhYcFgMCwYDMKew2AwLBgMhgXDgmHBYDA8RMYYIkNEhsh4iIwhIkPGGEPGQ0QWjcZFo3FxZ5fv3BAWiwsuEjEJKVPCbggZcuSJKFGmSkydJi0SuvQYkjLhh1+m/PHPjFAMYYllVsiwyhpZcqyzwSZ5tthmh4g99jmgxCFHHFPmhAqnVDnjnAtiLrmiRp0G19zQ5JY77mnxwCNtEp54pkOXF155o8c7fQYMGfHBmJRPvvguzgFi60kM</binary>
@@ -217,7 +217,7 @@
 						<binary>eJxNyTdOQ2EQhdFbuqRwQUGBEEIIIQQmRz/ABJNN9HJmaf+SWALFOwXTnPl0k//3O/Z0PQMucMhFLnGZK1zlGte5wU1ucZs7HHGXe9znAQ95xGOe8JRnPOcFx+x6i7nUzJVmrjUz0cyNZm41c6eZe81MNfOgmUfNPGnmWTMvmnnVzFtvx2JjZnYWG/NuZ7ExH3YWG/NpZ7ExX3YWG/NtZ7ExP3YWGzO3s9jm3R9AUUkA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="268">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000574" name="zlib compression" />
 						<binary>eJwVxCFIQ2EAhdE/GAyGBYNhYcFgMCwYDMKew2AwLBgMhgXDgmHBYDA8RMYYIkNEhsh4iIwhIkPGGEPGQ0QWjcZFo3FxZ5fv3BAWiwsuEjEJKVPCbggZcuSJKFGmSkydJi0SuvQYkjLhh1+m/PHPjFAMYYllVsiwyhpZcqyzwSZ5tthmh4g99jmgxCFHHFPmhAqnVDnjnAtiLrmiRp0G19zQ5JY77mnxwCNtEp54pkOXF155o8c7fQYMGfHBmJRPvvguzgFi60kM</binary>

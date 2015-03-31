@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -243,7 +243,7 @@ namespace OpenMS
     /*
     cout << "score_spec1: " << score_spec1 << " score_spec2: " << score_spec2 <<  " best_score: " << best_score << endl;
 
-    //normalize score to interval [0,1] with arithmeic mean
+    //normalize score to interval [0,1] with arithmetic mean
     double best_score_normalized( (best_score*2) / (score_spec1 + score_spec2) );
     */
 

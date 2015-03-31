@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -53,9 +53,9 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 
 
 #------------------------------------------------------------------------------
-# 3rd party libs shipped with OpenMS directly
+# third party libs shipped with OpenMS directly
 #------------------------------------------------------------------------------
-add_subdirectory(3rdparty)
+add_subdirectory(thirdparty)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)

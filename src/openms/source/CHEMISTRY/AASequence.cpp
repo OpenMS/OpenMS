@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,8 +128,7 @@ namespace OpenMS
       return (peptide_.size() < rhs.peptide_.size());
     }
 
-    // when checking terminal mods
-    // no mod is lesser than any other mod
+    // when checking terminal mods, "no mod" is less than "any mod"
     if (n_term_mod_ && !rhs.n_term_mod_)
     {
       return false;
@@ -138,7 +137,7 @@ namespace OpenMS
     {
       return true;
     }
-    else if (n_term_mod_ && rhs.n_term_mod_)
+    else if (n_term_mod_ && rhs.n_term_mod_ && (n_term_mod_ != rhs.n_term_mod_))
     {
       return (n_term_mod_->getId() < rhs.n_term_mod_->getId());
     }
@@ -168,7 +167,7 @@ namespace OpenMS
     {
       return true;
     }
-    else if (c_term_mod_ && rhs.c_term_mod_)
+    else if (c_term_mod_ && rhs.c_term_mod_ && (c_term_mod_ != rhs.c_term_mod_))
     {
       return (c_term_mod_->getId() < rhs.c_term_mod_->getId());
     }
@@ -644,7 +643,8 @@ namespace OpenMS
       {
         return false;
       }
-      else if (peptide_.at(i)->getModification() != peptide.peptide_.at(i)->getModification())  // if AA sequence equal, check if modificatiosn (if available) are equal
+      // if AA sequence equal, check if modifications (if available) are equal
+      else if (peptide_.at(i)->getModification() != peptide.peptide_.at(i)->getModification())
       {
         return false;
       }
@@ -694,7 +694,7 @@ namespace OpenMS
   {
     if (position >= peptide_.size())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide_.size(), position);
+      throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, position, peptide_.size());
     }
 
     return peptide_[position]->isModified();

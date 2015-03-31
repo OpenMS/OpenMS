@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -138,7 +138,7 @@ namespace OpenMS
       //add linear bias to mapped value
       g_i += (c_x + wout[i]) * nei[i];
     }
-    //divide by total neighborhod values
+    //divide by total neighborhood values
     g_i = g_i / sum_g_i;
 
     //normalize predicted values to distribution of training data

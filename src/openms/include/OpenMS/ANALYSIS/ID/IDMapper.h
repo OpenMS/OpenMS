@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <algorithm>
 #include <limits>
@@ -84,12 +86,12 @@ public:
       Note that a PeptideIdentication is added to ALL spectra which are within the allowed RT and MZ boundaries.
 
       @param map MSExperiment to receive the identifications
-      @param ids PeptideIdentification for the MSExperiment
+      @param peptide_ids PeptideIdentification for the MSExperiment
       @param protein_ids ProteinIdentification for the MSExperiment
       @param clear_ids Reset peptide and protein identifications of each scan before annotating
       @param mapMS1 Attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
-      @exception Exception::MissingInformation is thrown if entries of @p ids do not contain 'MZ' and 'RT' information.
+      @exception Exception::MissingInformation is thrown if entries of @p peptide_ids do not contain 'MZ' and 'RT' information.
     */
     template <typename PeakType>
     void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& peptide_ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
@@ -119,13 +121,19 @@ public:
         experiment_precursors.insert(std::make_pair(map[i].getRT(), i));
       }
 
-      // store mapping of identification RT to index
+      // store mapping of identification RT to index (ignore empty hits)
       std::multimap<double, Size> identifications_precursors;
-      for (Size i = 0; i < peptide_ids.size(); i++)
+      for (Size i = 0; i < peptide_ids.size(); ++i)
       {
-        identifications_precursors.insert(std::make_pair(peptide_ids[i].getRT(), i));
+        if (!peptide_ids[i].empty())
+        {
+          identifications_precursors.insert(std::make_pair(peptide_ids[i].getRT(), i));
+        }
       }
       // note that mappings are sorted by key via multimap (we rely on that down below)
+
+      // remember which peptides were mapped (for stats later)
+      std::set<Size> peptides_mapped;
 
       // calculate the actual mapping
       std::multimap<double, Size>::const_iterator experiment_iterator = experiment_precursors.begin();
@@ -164,17 +172,13 @@ public:
         while (identifications_iterator != identifications_precursors.end() &&
                (identifications_iterator->first - experiment_iterator->first) < rt_tolerance_) // fabs() not required here, since are definitely within left border, and wait until exceeding the right
         {
-          // testing whether the m/z fits
-          if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
+          if (mapMS1 || 
+               // testing whether the m/z fits
+               ((!map[experiment_iterator->second].getPrecursors().empty()) && 
+                isMatch_(0, peptide_ids[identifications_iterator->second].getMZ(), map[experiment_iterator->second].getPrecursors()[0].getMZ())))
           {
-            if (mapMS1 || (fabs(peptide_ids[identifications_iterator->second].getMZ() - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
-            {
-              if (!(peptide_ids[identifications_iterator->second].empty()))
-              {
-                map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
-                ++matches;
-              }
-            }
+            map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
+            peptides_mapped.insert(identifications_iterator->first);
           }
           ++identifications_iterator;
         }
@@ -183,8 +187,9 @@ public:
       }
 
       // some statistics output
-      LOG_INFO << "Unassigned peptides: " << peptide_ids.size() - matches << "\n"
-               << "Peptides assigned to a precursor: " << matches << std::endl;
+      LOG_INFO << "Peptides assigned to a precursor: " << peptides_mapped.size() << "\n" 
+               << "             Unassigned peptides: " << peptide_ids.size() - peptides_mapped.size() << "\n"
+               << "       Unmapped (empty) peptides: " << peptide_ids.size() - identifications_precursors.size() << std::endl;
 
     }
 

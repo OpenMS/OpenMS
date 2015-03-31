@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -155,7 +155,7 @@ TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 tmp.getOptions() = PeakFileOptions();
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp), true)
 TEST_EQUAL(exp.size(), 4)
-TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "1bba4248ffd9231a39d431e10512e34ac5917f50")
+TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "ad860a7bf719bc0b2f709bfccaf9a56beaf2ea63")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)  
 
 tmp.getOptions() = PeakFileOptions();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -703,7 +703,7 @@ namespace OpenMS
     }
     std::sort(masses_.begin(), masses_.end());
     // now get minimal and maximal mass and create counter_-vectors
-    // count mass occurences using bins
+    // count mass occurrences using bins
 #ifdef PISP_DEBUG
     std::cout << "min\tmax " << masses_[0] << "\t" << *(masses_.end() - 1) << std::endl;
     std::cout << "prot_masses.size() " << prot_masses_.size() << std::endl;

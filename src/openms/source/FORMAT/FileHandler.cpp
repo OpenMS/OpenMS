@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -290,7 +290,7 @@ namespace OpenMS
     }
 
     // PNG file (to be really correct, the first eight bytes of the file would
-    // have to be checked; see e.g. the wikipedia article)
+    // have to be checked; see e.g. the Wikipedia article)
     if (first_line.substr(1, 3) == "PNG")
       return FileTypes::PNG;
 

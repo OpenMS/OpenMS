@@ -48,3 +48,5 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         void updateWeightedMeanMZ() nogil except +
         void updateWeightedMZsd() nogil except +
 
+        void disableFHWM() nogil except +
+

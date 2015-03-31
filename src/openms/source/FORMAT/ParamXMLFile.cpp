@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ namespace OpenMS
   void ParamXMLFile::writeXMLToStream(std::ostream* os_ptr, const Param& param) const
   {
     // hint: the handling of 'getTrace()' is vulnerable to an unpruned tree (a path of nodes, but no entries in them), i.e.
-    //       too many closing tags are written to the INI file, but no openening ones.
+    //       too many closing tags are written to the INI file, but no opening ones.
     //       This currently cannot happen, as removeAll() was fixed to prune the tree, just keep it in mind.
 
     std::ostream& os = *os_ptr;

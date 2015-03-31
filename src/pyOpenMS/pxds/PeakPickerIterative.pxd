@@ -25,6 +25,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" names
                            ) nogil except +
 
 
+
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" namespace "OpenMS":
 
     cdef cppclass PeakCandidate:

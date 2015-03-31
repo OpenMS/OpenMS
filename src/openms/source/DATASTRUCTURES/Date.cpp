@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,10 @@
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 
-#include <QtCore/QDate>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/config.h>
 
 #include <ctime>
 
@@ -48,17 +51,17 @@ namespace OpenMS
 
   }
 
-  Date::Date(const Date & date) :
+  Date::Date(const Date& date) :
     QDate(date)
   {
   }
 
-  Date::Date(const QDate & date) :
+  Date::Date(const QDate& date) :
     QDate(date)
   {
   }
 
-  Date & Date::operator=(const Date & source)
+  Date& Date::operator=(const Date& source)
   {
     if (&source == this)
     {
@@ -69,7 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  void Date::set(const String & date)
+  void Date::set(const String& date)
   {
     clear();
 
@@ -115,7 +118,7 @@ namespace OpenMS
     return "0000-00-00";
   }
 
-  void Date::get(UInt & month, UInt & day, UInt & year) const
+  void Date::get(UInt& month, UInt& day, UInt& year) const
   {
     day = QDate::day();
     month = QDate::month();

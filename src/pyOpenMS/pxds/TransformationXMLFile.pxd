@@ -1,3 +1,4 @@
+from Types cimport *
 from Feature cimport *
 from FeatureMap cimport *
 from String cimport *
@@ -7,5 +8,7 @@ cdef extern from "<OpenMS/FORMAT/TransformationXMLFile.h>" namespace "OpenMS":
 
     cdef cppclass TransformationXMLFile:
         TransformationXMLFile() nogil except +
-        void load(String, TransformationDescription &) nogil except+
+
+        void load(String, TransformationDescription &, bool fix_model) nogil except+
         void store(String, TransformationDescription) nogil except+
+

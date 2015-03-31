@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -90,10 +90,10 @@ for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 }
 
 // PeakPickerHiRes config
-param.setValue("signal_to_noise",1.0);
+param.setValue("signal_to_noise", 1.0);
 pp_hires.setParameters(param);
 
-START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output) const ))
+START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output) const))
   MSSpectrum<Peak1D> tmp_spec;
   pp_hires.pick(input[0], tmp_spec);
 #ifdef WRITE_REF_FILES
@@ -113,7 +113,7 @@ START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakTy
   }
 END_SECTION
 
-START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output, std::vector<PeakBoundary> & boundaries) const ))
+START_SECTION((template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const))
   MSSpectrum<Peak1D> tmp_spec;
   std::vector<PeakPickerHiRes::PeakBoundary> tmp_boundaries;
   pp_hires.pick(input[0], tmp_spec, tmp_boundaries);
@@ -145,12 +145,12 @@ START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSE
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output, std::vector<std::vector<PeakBoundary> > & boundaries_spec, std::vector<std::vector<PeakBoundary> > & boundaries_chrom)))
+START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output, std::vector<std::vector<PeakBoundary> >& boundaries_spec, std::vector<std::vector<PeakBoundary> >& boundaries_chrom)))
   // does the same as pick method for spectra
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION((template < typename PeakType, typename ChromatogramPeakT > void pickExperiment(const MSExperiment< PeakType, ChromatogramPeakT > &input, MSExperiment< PeakType, ChromatogramPeakT > &output) const ))
+START_SECTION((template <typename PeakType, typename ChromatogramPeakT> void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT>& input, MSExperiment<PeakType, ChromatogramPeakT>& output) const))
   MSExperiment<Peak1D> tmp_exp;
   pp_hires.pickExperiment(input,tmp_exp);
 
@@ -180,7 +180,7 @@ for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 }
 
 //set up PeakPicker
-param.setValue("signal_to_noise",4.0);
+param.setValue("signal_to_noise", 4.0);
 pp_hires.setParameters(param);
 
 START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
@@ -244,7 +244,7 @@ for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 }
 
 // PeakPickerHiRes config
-param.setValue("signal_to_noise",1.0);
+param.setValue("signal_to_noise", 1.0);
 pp_hires.setParameters(param);
 
 START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
@@ -282,7 +282,7 @@ for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 }
 
 //set up PeakPicker
-param.setValue("signal_to_noise",4.0);
+param.setValue("signal_to_noise", 4.0);
 pp_hires.setParameters(param);
 
 START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
@@ -337,7 +337,7 @@ for (Size scan_idx = 0; scan_idx < outRich.size(); ++scan_idx)
 }
 
 //set up PeakPicker
-param.setValue("signal_to_noise",4.0);
+param.setValue("signal_to_noise", 4.0);
 pp_hires.setParameters(param);
 
 
@@ -446,15 +446,15 @@ END_SECTION
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_simulation.mzML"),input);
 
 //set params
-param.setValue("signal_to_noise",0.0);
-param.setValue("missing",1);
-param.setValue("spacing_difference_gap",4.0);
+param.setValue("signal_to_noise", 0.0);
+param.setValue("missing", 1);
+param.setValue("spacing_difference_gap", 4.0);
 pp_hires.setParameters(param);
 
-START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const)
+START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const)
     MSExperiment<Peak1D> tmp_picked;
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s;    // peak boundaries for spectra
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c;    // peak boundaries for chromatograms
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s; // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c; // peak boundaries for chromatograms
 
     pp_hires.pickExperiment(input, tmp_picked, tmp_boundaries_s, tmp_boundaries_c);
 
@@ -499,15 +499,15 @@ output.clear(true);
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"),input);
 
 //set params
-param.setValue("signal_to_noise",0.0);
-param.setValue("missing",1);
-param.setValue("spacing_difference_gap",4.0);
+param.setValue("signal_to_noise", 0.0);
+param.setValue("missing", 1);
+param.setValue("spacing_difference_gap", 4.0);
 pp_hires.setParameters(param);
 
-START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const)
+START_SECTION(void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const)
     MSExperiment<Peak1D> tmp_picked;
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s;    // peak boundaries for spectra
-    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c;    // peak boundaries for chromatograms
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_s; // peak boundaries for spectra
+    std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > tmp_boundaries_c; // peak boundaries for chromatograms
 
     pp_hires.pickExperiment(input, tmp_picked, tmp_boundaries_s, tmp_boundaries_c);
 
@@ -531,12 +531,12 @@ START_SECTION(void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType>
     it_mz_boundary += 17;
     TEST_REAL_SIMILAR(it_mz->getMZ(),370.210756298155);
     TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,370.205871582031);
-    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,370.215301513672);    // Same as min of next peak.
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,370.215301513672); // Same as min of next peak.
 
     it_mz += 1;
     it_mz_boundary += 1;
     TEST_REAL_SIMILAR(it_mz->getMZ(),370.219596356153);
-    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,370.215301513672);    // Same as max of previous peak.
+    TEST_REAL_SIMILAR((*it_mz_boundary).mz_min,370.215301513672); // Same as max of previous peak.
     TEST_REAL_SIMILAR((*it_mz_boundary).mz_max,370.223358154297);
     
 END_SECTION

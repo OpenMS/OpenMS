@@ -1,3 +1,4 @@
+from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.string cimport string as libcpp_string
 
@@ -8,6 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         LightTransition(LightTransition) nogil except +
         int getProductChargeState() nogil except +
         int charge
+        bool decoy 
         libcpp_string transition_name
         libcpp_string peptide_ref
         double library_intensity
@@ -58,4 +60,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
 
         libcpp_vector[ LightPeptide ]  getPeptides() nogil except +
         libcpp_vector[ LightProtein ]  getProteins() nogil except +
+
+        LightPeptide getPeptideByRef(libcpp_string & ref) nogil except +
 

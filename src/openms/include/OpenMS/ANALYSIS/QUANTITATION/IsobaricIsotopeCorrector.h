@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2014.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,18 +35,16 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICISOTOPECORRECTOR_H
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICISOTOPECORRECTOR_H
 
-#include <OpenMS/KERNEL/ConsensusMap.h>
-
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
-
 #include <Eigen/Core>
-
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 namespace OpenMS
 {
+  class IsobaricQuantitationMethod;
+  struct IsobaricQuantifierStatistics;
+  class ConsensusMap;
+  class ConsensusFeature;
+
   /**
     @brief Performs isotope impurity correction on the intensities extracted from an isobaric labeling experiment.
   */
@@ -63,42 +61,41 @@ public:
      @throws Exception::FailedAPICall If the least-squares fit fails.
      @throws Exception::InvalidParameter If the given correction matrix is invalid.
      */
-    static IsobaricQuantifierStatistics
-    correctIsotopicImpurities(const ConsensusMap& consensus_map_in,
-        ConsensusMap& consensus_map_out,
-        const IsobaricQuantitationMethod* quant_method);
+    static IsobaricQuantifierStatistics correctIsotopicImpurities(const ConsensusMap& consensus_map_in,
+                                                                  ConsensusMap& consensus_map_out,
+                                                                  const IsobaricQuantitationMethod* quant_method);
 
 private:
     /**
      @brief Fills the input vector for the Eigen/NNLS step given the ConsensusFeature.
      */
-    static void
-    fillInputVector_(Eigen::VectorXd& b, Matrix<double>& m_b,
-        const ConsensusFeature& cf, const ConsensusMap& cm);
+    static void fillInputVector_(Eigen::VectorXd& b,
+                                 Matrix<double>& m_b,
+                                 const ConsensusFeature& cf,
+                                 const ConsensusMap& cm);
 
     /**
      @brief
      */
-    static void
-    solveNNLS_(const Matrix<double>& correction_matrix,
-        const Matrix<double>& m_b, Matrix<double>& m_x);
+    static void solveNNLS_(const Matrix<double>& correction_matrix,
+                           const Matrix<double>& m_b, Matrix<double>& m_x);
 
     /**
      @brief
      */
-    static void
-    computeStats_(const Matrix<double>& m_x, const Eigen::MatrixXd& x,
-        const ConsensusFeature::IntensityType cf_intensity,
-        const IsobaricQuantitationMethod* quant_method,
-        IsobaricQuantifierStatistics& stats);
+    static void computeStats_(const Matrix<double>& m_x,
+                              const Eigen::MatrixXd& x,
+                              const float cf_intensity,
+                              const IsobaricQuantitationMethod* quant_method,
+                              IsobaricQuantifierStatistics& stats);
 
     /**
      @brief
      */
-    static ConsensusFeature::IntensityType
-    updateOutpuMap_(const ConsensusMap& consensus_map_in,
-        ConsensusMap& consensus_map_out, ConsensusMap::size_type current_cf,
-        const Matrix<double>& m_x);
+    static float updateOutpuMap_(const ConsensusMap& consensus_map_in,
+                                 ConsensusMap& consensus_map_out,
+                                 Size current_cf,
+                                 const Matrix<double>& m_x);
   };
 } // namespace
 

@@ -14,11 +14,9 @@ cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS":
 
         double derivative(double x) nogil except +
 
-        double coefficient(int n) nogil except +
-
         bool ok() nogil except +
 
-        Size nX() nogil except +
+        void debug(bool enable) nogil except +
 
 cdef extern from "<OpenMS/MATH/MISC/BSpline2d.h>" namespace "OpenMS::BSpline2d":
 
