@@ -256,6 +256,7 @@ namespace OpenMS
 
   /// default constructor
   AccurateMassSearchResult::AccurateMassSearchResult() :
+  mass_trace_intensities_(),
   observed_mz_(),
   theoretical_mz_(),
   searched_mass_(),
@@ -281,6 +282,7 @@ namespace OpenMS
 
   /// copy constructor
   AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) :
+    mass_trace_intensities_(source.mass_trace_intensities_),
     observed_mz_(source.observed_mz_),
     theoretical_mz_(source.theoretical_mz_),
     searched_mass_(source.searched_mass_),
@@ -304,6 +306,7 @@ namespace OpenMS
   {
     if (this == &rhs) return *this;
 
+    mass_trace_intensities_ = rhs.mass_trace_intensities_;
     observed_mz_ = rhs.observed_mz_;
     theoretical_mz_ = rhs.theoretical_mz_;
     searched_mass_ = rhs.searched_mass_;
@@ -461,6 +464,16 @@ namespace OpenMS
   void AccurateMassSearchResult::setMatchingHMDBids(const std::vector<String>& match_ids)
   {
     matching_hmdb_ids_ = match_ids;
+  }
+
+  const std::vector<double>& AccurateMassSearchResult::getMasstraceIntensities() const
+  {
+    return mass_trace_intensities_;  
+  }
+
+  void AccurateMassSearchResult::setMasstraceIntensities(const std::vector<double>& mti)
+  {
+    mass_trace_intensities_ = mti;
   }
 
   double AccurateMassSearchResult::getIsotopesSimScore() const
@@ -677,6 +690,17 @@ namespace OpenMS
       results_part[hit_idx].setObservedRT(feature.getRT());
       results_part[hit_idx].setSourceFeatureIndex(feature_index);
       results_part[hit_idx].setObservedIntensity(feature.getIntensity());
+      
+      std::vector<double> mti;
+      for (Size i=0; i<3; ++i)
+      {
+        if (feature.metaValueExists("masstrace_intensity_" + String(i)))
+        {
+          mti.push_back( feature.getMetaValue("masstrace_intensity_" + String(i)));
+        }
+      }
+      results_part[hit_idx].setMasstraceIntensities(mti);
+      
       // append
       results.push_back(results_part[hit_idx]);
     }
@@ -1160,6 +1184,24 @@ namespace OpenMS
           col2.first = "opt_global_isosim_score";
           col2.second = sim_score;
           optionals.push_back(col2);
+
+          // mass trace intensities (use NULL if not present)
+          for (Size int_idx = 0; int_idx < 3; ++int_idx)
+          {
+            MzTabString trace_int; // implicitly NULL
+           
+            if ((*tab_it)[hit_idx].getMasstraceIntensities().size() > int_idx)
+            {
+              double mt_int = (double)(*tab_it)[hit_idx].getMasstraceIntensities()[int_idx];
+              trace_int.set(mt_int);
+            }
+            
+            MzTabOptionalColumnEntry col_mt;
+            col_mt.first = String("opt_global_MTint_") + int_idx;
+            col_mt.second = trace_int;
+            optionals.push_back(col_mt);
+          }       
+
 
           // set neutral mass
           MzTabString neutral_mass_string;

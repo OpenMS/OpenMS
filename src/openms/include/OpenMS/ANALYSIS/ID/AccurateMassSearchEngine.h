@@ -187,10 +187,14 @@ namespace OpenMS
     const std::vector<String>& getMatchingHMDBids() const;
     void setMatchingHMDBids(const std::vector<String>&);
 
+    /// return trace intensities of the underlying feature;
+    const std::vector<double>& getMasstraceIntensities() const;
+    void setMasstraceIntensities(const std::vector<double>&);
+    
     double getIsotopesSimScore() const;
     void setIsotopesSimScore(const double&);
 
-    // double computeCombinedScore(); // not implemented
+        // double computeCombinedScore(); // not implemented
     // debug/output functions
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AccurateMassSearchResult& amsr);
 
@@ -211,7 +215,8 @@ private:
     String found_adduct_;
     String empirical_formula_;
     std::vector<String> matching_hmdb_ids_;
-
+    
+    std::vector<double> mass_trace_intensities_;
     double isotopes_sim_score_;
   };
 
