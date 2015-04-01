@@ -40,7 +40,13 @@
 namespace OpenMS
 {
   /**
-    @brief Base class for ConsensusID algorithms that take peptide similarity into account
+    @brief Abstract base class for ConsensusID algorithms that take peptide similarity into account.
+
+    Similarity-based algorithms require posterior error probabilities (PEPs) as peptide scores, in order to combine scores and similarities into a consensus score for each peptide. See the following publication for the formula governing this calculation:
+
+    Nahnsen <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
+
+    Derived classes should implement ::getSimilarity_, which defines how similarity of two peptide sequences is assessed.
 
     @htmlinclude OpenMS_ConsensusIDAlgorithmSimilarity.parameters
     
@@ -59,7 +65,13 @@ namespace OpenMS
     /// Cache for already computed sequence similarities
     SimilarityCache similarities_;
 
-    /// sequence similarity (to be implemented by subclasses)
+    /**
+       @brief Sequence similarity calculation (to be implemented by subclasses).
+
+       Implementations should use/update the cache of previously computed similarities.
+
+       @return Similarity between two sequences in the range [0, 1]
+    */
     virtual double getSimilarity_(AASequence seq1, AASequence seq2) = 0;
 
   private:
