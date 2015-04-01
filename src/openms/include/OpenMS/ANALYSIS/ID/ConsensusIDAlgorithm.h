@@ -44,11 +44,11 @@
 namespace OpenMS
 {
   /**
-    @brief Abstract base class for all ConsensusID algorithms (that calculate a consensus from multiple ID runs)
+    @brief Abstract base class for all ConsensusID algorithms (that calculate a consensus from multiple ID runs).
 
-    The main function is ::apply, which aggregates several peptide identifications into one.
+    The main function is apply(), which aggregates several peptide identifications into one.
 
-    Derived classes should implement ::apply_, which takes a list of peptide identifications and produces a map of peptide sequences with accompanying scores (and charge states).
+    Derived classes should implement apply_(), which takes a list of peptide identifications and produces a map of peptide sequences with accompanying scores (and charge states).
     Currently there are two derived classes, OpenMS::ConsensusIDAlgorithmIdentity and OpenMS::ConsensusIDAlgorithmSimilarity. They serve as abstract base classes for algorithms that score only identical peptide sequences together and algorithms that take similarities between peptides into account, respectively.
 
     See also the documentation of the TOPP tool, @ref TOPP_ConsensusID, for more information (e.g. on the @p filter: parameters).
@@ -72,24 +72,24 @@ namespace OpenMS
     void apply(std::vector<PeptideIdentification>& ids, 
                Size number_of_runs = 0);
 
-    /// virtual destructor
+    /// Virtual destructor
     virtual ~ConsensusIDAlgorithm();
 
   protected:
-    /// mapping: peptide sequence -> (charge, scores)
+    /// Mapping: peptide sequence -> (charge, scores)
     typedef std::map<AASequence, std::pair<Int, std::vector<double> > > 
       SequenceGrouping;
 
-   /// Number of peptide hits considered per ID run (input parameter)
+    /// Number of peptide hits considered per ID run (input parameter)
     Size considered_hits_;
 
     /// Number of ID runs
     Size number_of_runs_;
 
-    /// fraction of required support by other ID runs (input parameter)
+    /// Fraction of required support by other ID runs (input parameter)
     double min_support_;
 
-    /// count empty runs in "min_support" calculation? (input parameter)
+    /// Count empty runs in "min_support" calculation? (input parameter)
     bool count_empty_;
    
     /// Default constructor
@@ -107,7 +107,7 @@ namespace OpenMS
     /// Docu in base class
     virtual void updateMembers_();
 
-    /// compare (and possibly update) charge state information
+    /// Compare (and possibly update) charge state information
     void compareChargeStates_(Int& recorded_charge, Int new_charge, 
                               const AASequence& peptide);
 

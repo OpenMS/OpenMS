@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-    @brief Calculates a consensus from multiple ID runs by taking the best search score
+    @brief Calculates a consensus from multiple ID runs by taking the best search score.
 
     @htmlinclude OpenMS_ConsensusIDAlgorithmBest.parameters
     
@@ -60,7 +60,7 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmBest& operator=(const ConsensusIDAlgorithmBest&);
 
-    /// aggregate peptide scores into one final score (by taking the best score)
+    /// Aggregate peptide scores into one final score (by taking the best score)
     virtual double getAggregateScore_(std::vector<double>& scores,
                                       bool higher_better);
   };

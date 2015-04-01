@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-    @brief Calculates a consensus from multiple ID runs based on the ranks of the search hits
+    @brief Calculates a consensus from multiple ID runs based on the ranks of the search hits.
 
     @htmlinclude OpenMS_ConsensusIDAlgorithmRanks.parameters
     
@@ -54,10 +54,10 @@ namespace OpenMS
     ConsensusIDAlgorithmRanks();
 
   private:
-    /// number of ID runs for current analysis
+    /// Number of ID runs for current analysis
     Size current_number_of_runs_;
 
-    /// number of considered hits for current analysis
+    /// Number of considered hits for current analysis
     Size current_considered_hits_;
 
     /// Not implemented
@@ -66,10 +66,10 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmRanks& operator=(const ConsensusIDAlgorithmRanks&);
 
-    /// assign peptide scores based on search ranks
+    /// Assign peptide scores based on search ranks
     virtual void preprocess_(std::vector<PeptideIdentification>& ids);
 
-    /// aggregate peptide scores into one final score (by averaging ranks)
+    /// Aggregate peptide scores into one final score (by averaging ranks)
     virtual double getAggregateScore_(std::vector<double>& scores,
                                       bool higher_better);
    };
