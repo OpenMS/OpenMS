@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Macros.h> // for "OPENMS_PRECONDITION"
 
 using namespace std;
 
@@ -106,15 +107,21 @@ namespace OpenMS
     for (SequenceGrouping::iterator res_it = results.begin(); 
          res_it != results.end(); ++res_it)
     {
-      // filter by number of identifications:
-      double support = res_it->second.second[1];
-      if (support < min_support_) continue;
-      
+      OPENMS_PRECONDITION(!res_it->second.second.empty(),
+                          "Consensus score for peptide required");
       PeptideHit hit;
+
+      if (res_it->second.second.size() == 2)
+      {
+        // filter by "support" value:
+        double support = res_it->second.second[1];
+        if (support < min_support_) continue;
+        hit.setMetaValue("consensus_support", support);
+      }
+      
       hit.setSequence(res_it->first);
       hit.setCharge(res_it->second.first);
       hit.setScore(res_it->second.second[0]);
-      hit.setMetaValue("consensus_support", support);
       ids[0].insertHit(hit);
 #ifdef DEBUG_ID_CONSENSUS
       LOG_DEBUG << " - Output hit: " << hit.getSequence() << " "
