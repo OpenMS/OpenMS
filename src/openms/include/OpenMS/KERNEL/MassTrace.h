@@ -43,10 +43,10 @@
 #include <list>
 #include <map>
 
-
 namespace OpenMS
 {
   typedef Peak2D PeakType;
+  class string;
 
 /** @brief A container type that gathers peaks similar in m/z and moving along retention time.
 
@@ -59,6 +59,18 @@ namespace OpenMS
   class OPENMS_DLLAPI MassTrace
   {
 public:
+
+    // must match to names_of_quantmethod[]
+    enum MT_QUANTMETHOD {
+      MT_QUANT_AREA = 0,  //< quantify by area
+      MT_QUANT_MEDIAN,    //< quantify by median of intensities
+      SIZE_OF_MT_QUANTMETHOD
+    };
+    static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];
+
+    /// converts a string to enum value; returns 'SIZE_OF_MT_QUANTMETHOD' upon error
+    static MT_QUANTMETHOD getQuantMethod(const String& val);
+
     /** @name Constructors and Destructor
         */
     /// Default constructor
@@ -238,9 +250,11 @@ public:
     /// stores result internally, use getFWHM().
     double estimateFWHM(bool use_smoothed_ints = false);
 
-    /// Instead of estimating a FWHM and LC peak borders, use the whole mass trace, i.e. set borders to the margins of the array.
-    /// Useful for direct injection data.
-    void disableFHWM();
+    /// determine if area or median is used for quantification
+    void setQuantMethod(MT_QUANTMETHOD method);
+
+    /// check if area or median is used for quantification
+    MT_QUANTMETHOD getQuantMethod() const;
 
     /// Compute chromatographic peak area within the FWHM range.
     double computeFwhmAreaSmooth() const;
@@ -283,6 +297,9 @@ public:
     void updateWeightedMZsd();
 
 private:
+    /// median of trace intensities
+    double computeMedianIntensity_() const;
+
     /// Actual MassTrace container for doing centroid calculation, peak width estimation etc.
     std::vector<PeakType> trace_peaks_;
 
@@ -305,8 +322,9 @@ private:
     Size fwhm_start_idx_; // index into 'trace_peaks_' vector (inclusive)
     Size fwhm_end_idx_; // index into 'trace_peaks_' vector (inclusive)
 
-    /// Rough estimate of a chromatographic peak's width (number of scans within the FWHM range).
-    // Size fwhm_num_scans_;
+    /// use area under mass trace or the median of intensities
+    MT_QUANTMETHOD quant_method_;
+    
   };
 
 }

@@ -38,6 +38,17 @@
 
 namespace OpenMS
 {
+  // must match MassTrace::MT_QUANTMETHOD enum! 
+  const std::string MassTrace::names_of_quantmethod[] = {"area", "median"};
+
+  MassTrace::MT_QUANTMETHOD MassTrace::getQuantMethod(const String& val)
+  {
+    const std::string* qb = MassTrace::names_of_quantmethod;
+    const std::string* qe = qb + (int)MassTrace::SIZE_OF_MT_QUANTMETHOD;
+    const std::string* qm = std::find(qb, qe, val);
+    return (MassTrace::MT_QUANTMETHOD)std::distance(qb, qm);
+  }
+
   MassTrace::MassTrace() :
     trace_peaks_(),
     centroid_mz_(),
@@ -47,7 +58,8 @@ namespace OpenMS
     smoothed_intensities_(),
     fwhm_(0.0),
     fwhm_start_idx_(0),
-    fwhm_end_idx_(0)
+    fwhm_end_idx_(0),
+    quant_method_(MT_QUANT_AREA)
   {
   }
 
@@ -60,7 +72,8 @@ namespace OpenMS
     smoothed_intensities_(),
     fwhm_(0.0),
     fwhm_start_idx_(0),
-    fwhm_end_idx_(0)
+    fwhm_end_idx_(0),
+    quant_method_(MT_QUANT_AREA)
   {
     trace_peaks_.reserve(trace_peaks.size());
     std::copy(trace_peaks.begin(), trace_peaks.end(), back_inserter(trace_peaks_));
@@ -75,7 +88,8 @@ namespace OpenMS
     smoothed_intensities_(),
     fwhm_(0.0),
     fwhm_start_idx_(0),
-    fwhm_end_idx_(0)
+    fwhm_end_idx_(0),
+    quant_method_(MT_QUANT_AREA)
   {
   }
 
@@ -92,7 +106,8 @@ namespace OpenMS
     smoothed_intensities_(mt.smoothed_intensities_),
     fwhm_(mt.fwhm_),
     fwhm_start_idx_(mt.fwhm_start_idx_),
-    fwhm_end_idx_(mt.fwhm_end_idx_)
+    fwhm_end_idx_(mt.fwhm_end_idx_),
+    quant_method_(mt.quant_method_)
   {
   }
 
@@ -110,6 +125,7 @@ namespace OpenMS
     fwhm_ = rhs.fwhm_;
     fwhm_start_idx_ = rhs.fwhm_start_idx_;
     fwhm_end_idx_ = rhs.fwhm_end_idx_;
+    quant_method_ = rhs.quant_method_;
 
     return *this;
   }
@@ -232,8 +248,7 @@ namespace OpenMS
     {
       ++right_border;
     }
-
-
+    
     fwhm_start_idx_ = left_border;
     fwhm_end_idx_ = right_border;
     fwhm_ = std::fabs(trace_peaks_[right_border].getRT() - trace_peaks_[left_border].getRT());
@@ -241,15 +256,21 @@ namespace OpenMS
     return fwhm_;
   }
 
-  void MassTrace::disableFHWM()
+  /// determine if area or median is used for quantification
+  /// @throw Exception::InvalidValue if SIZE_OF_MT_QUANTMETHOD is given
+  void MassTrace::setQuantMethod(MassTrace::MT_QUANTMETHOD method)
   {
-    if (trace_peaks_.empty())
+    if (method == SIZE_OF_MT_QUANTMETHOD)
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace appears to be empty! Aborting...", String(trace_peaks_.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of 'quant_method' cannot be 'SIZE_OF_MT_QUANTMETHOD'.", "");
     }
-    fwhm_start_idx_ = 0;
-    fwhm_end_idx_ = trace_peaks_.size()-1;
-    fwhm_ = std::fabs(trace_peaks_[fwhm_end_idx_].getRT() - trace_peaks_[fwhm_start_idx_].getRT());
+    quant_method_ = method;
+  }
+
+  /// check if area or median is used for quantification
+  MassTrace::MT_QUANTMETHOD MassTrace::getQuantMethod() const
+  {
+    return quant_method_;
   }
 
   double MassTrace::computeFwhmAreaSmooth() const
@@ -269,7 +290,7 @@ namespace OpenMS
       int_before = smoothed_intensities_[i];
       rt_before = trace_peaks_[i].getRT();
     }
-
+    
     return t_area;
   }
 
@@ -280,7 +301,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
     }
 
-    double t_area(0.0);
+    double t_area(0);
     double int_before = trace_peaks_[fwhm_start_idx_].getIntensity();
     double rt_before = trace_peaks_[fwhm_start_idx_].getRT();
     // note '<=' operator, since fwhm_end_idx_ is inclusive!
@@ -294,15 +315,48 @@ namespace OpenMS
     return t_area;
   }
 
+  double MassTrace::computeMedianIntensity_() const
+  {
+    // determine median of intensities
+    double t_area(0);
+    std::vector<double> ints;
+    ints.reserve(trace_peaks_.size());
+    for (Size i=0; i<trace_peaks_.size(); ++i)
+    {
+      ints.push_back(trace_peaks_[i].getIntensity());
+    }
+    sort(ints.begin(), ints.end());
+    t_area = (ints.size() % 2 == 0 ? 0.5*(ints[ints.size()/2-1]+ints[ints.size()/2]) 
+      : ints[ints.size()/2]);
+    return t_area;
+  }
 
   double MassTrace::getIntensity(bool smoothed) const
   {
     if (smoothed)
-    {
-      return computeFwhmAreaSmooth();
-    }
+    { // will be removed soon
+      switch (quant_method_)
+      {
+        case MT_QUANT_AREA:
+          return computeFwhmAreaSmooth();
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Member 'quant_method_' has unsupported value.", String(quant_method_));
+      }
 
-    return computeFwhmArea();
+    }
+    else
+    {
+      switch (quant_method_)
+      {
+        case MT_QUANT_AREA:
+          return computeFwhmArea();
+        case MT_QUANT_MEDIAN:
+          return computeMedianIntensity_();
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Member 'quant_method_' has unsupported value.", String(quant_method_));
+
+      }
+    }
   }
 
   double MassTrace::getMaxIntensity(bool smoothed) const

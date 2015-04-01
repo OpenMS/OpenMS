@@ -5,14 +5,14 @@
 		<processingAction name="Quantitation" />
 		<userParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
-	<featureList count="16">
+	<featureList count="13">
 		<feature id="f_4835329514588776807">
 			<position dim="0">30.73215347606</position>
 			<position dim="1">774.540864121626</position>
-			<intensity>8.82426e+007</intensity>
+			<intensity>1.46204e+006</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.247018</overallquality>
+			<overallquality>0.243302</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="774.540169320655" />
@@ -273,18 +273,18 @@
 			<userParam type="string" name="label" value="T2_T4_T12"/>
 			<userParam type="float" name="FWHM" value="59.5185050964355"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="88242569.8197116"/>
-			<userParam type="float" name="masstrace_intensity_1" value="32500675.4970557"/>
-			<userParam type="float" name="masstrace_intensity_2" value="7366638.11957106"/>
+			<userParam type="float" name="masstrace_intensity_0" value="1462041.875"/>
+			<userParam type="float" name="masstrace_intensity_1" value="554132.3125"/>
+			<userParam type="float" name="masstrace_intensity_2" value="119382.08984375"/>
 			<userParam type="string" name="scan_polarity" value="positive"/>
 		</feature>
 		<feature id="f_17749660155506638460">
 			<position dim="0">37.0626129935937</position>
 			<position dim="1">774.553129052248</position>
-			<intensity>2.85155e+006</intensity>
+			<intensity>65200.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.325097</overallquality>
+			<overallquality>0.326457</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="9.8916888" y="774.551360142782" />
@@ -527,18 +527,18 @@
 			<userParam type="string" name="label" value="T26_T5_T1"/>
 			<userParam type="float" name="FWHM" value="43.5767288208008"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2851549.01159913"/>
-			<userParam type="float" name="masstrace_intensity_1" value="25622819.5917853"/>
-			<userParam type="float" name="masstrace_intensity_2" value="155026970.401782"/>
+			<userParam type="float" name="masstrace_intensity_0" value="65200.14453125"/>
+			<userParam type="float" name="masstrace_intensity_1" value="423106.9375"/>
+			<userParam type="float" name="masstrace_intensity_2" value="2608735"/>
 		</feature>
 		<feature id="f_7804704400743266335">
 			<position dim="0">34.6652423223941</position>
 			<position dim="1">774.562736444842</position>
-			<intensity>3.99992e+006</intensity>
+			<intensity>76421.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00814646</overallquality>
-			<charge>0</charge>
+			<overallquality>0.0194472</overallquality>
+			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="10.9546956" y="774.563318027752" />
 				<pt x="13.0804104" y="774.563359711864" />
@@ -569,18 +569,46 @@
 				<pt x="14.1432996" y="774.562243135384" />
 				<pt x="13.0804104" y="774.563359711864" />
 			</convexhull>
-			<userParam type="string" name="label" value="T16"/>
-			<userParam type="float" name="FWHM" value="45.7020645141602"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="3999916.91440857"/>
+			<convexhull nr="1">
+				<pt x="14.1432996" y="775.55942229427" />
+				<pt x="27.9603348" y="775.564692182725" />
+				<pt x="36.4631388" y="775.565244623318" />
+				<pt x="48.1542276" y="775.564368892788" />
+				<pt x="36.4631388" y="775.565244623318" />
+				<pt x="27.9603348" y="775.564692182725" />
+			</convexhull>
+			<convexhull nr="2">
+				<pt x="3.51509784" y="776.579744673969" />
+				<pt x="13.0804104" y="776.571083142212" />
+				<pt x="15.2060448" y="776.569015079271" />
+				<pt x="19.4574978" y="776.571052844021" />
+				<pt x="22.645977" y="776.57077458874" />
+				<pt x="40.7143818" y="776.578548979734" />
+				<pt x="47.091465" y="776.571252295369" />
+				<pt x="49.2170574" y="776.571150161783" />
+				<pt x="59.8453788" y="776.571159205853" />
+				<pt x="49.2170574" y="776.571150161783" />
+				<pt x="47.091465" y="776.571252295369" />
+				<pt x="40.7143818" y="776.578548979734" />
+				<pt x="22.645977" y="776.57077458874" />
+				<pt x="19.4574978" y="776.571052844021" />
+				<pt x="15.2060448" y="776.569015079271" />
+				<pt x="13.0804104" y="776.571083142212" />
+			</convexhull>
+			<userParam type="string" name="label" value="T16_T25_T14"/>
+			<userParam type="float" name="FWHM" value="11.6911649703979"/>
+			<userParam type="int" name="num_of_masstraces" value="3"/>
+			<userParam type="float" name="masstrace_intensity_0" value="76421.875"/>
+			<userParam type="float" name="masstrace_intensity_1" value="68497.09765625"/>
+			<userParam type="float" name="masstrace_intensity_2" value="87731.234375"/>
 		</feature>
 		<feature id="f_15004869347769368353">
 			<position dim="0">49.356514054987</position>
 			<position dim="1">774.570512490418</position>
-			<intensity>3.67041e+006</intensity>
+			<intensity>66768.4</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00747536</overallquality>
+			<overallquality>0.00795958</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="9.8916888" y="774.571075936193" />
@@ -595,15 +623,15 @@
 			<userParam type="string" name="label" value="T18"/>
 			<userParam type="float" name="FWHM" value="49.9536895751953"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="3670406.47478691"/>
+			<userParam type="float" name="masstrace_intensity_0" value="66768.421875"/>
 		</feature>
 		<feature id="f_3332699010107892018">
 			<position dim="0">31.1337980603278</position>
 			<position dim="1">774.589513292903</position>
-			<intensity>1.21894e+007</intensity>
+			<intensity>212594</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0295049</overallquality>
+			<overallquality>0.0309376</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="1.38960882" y="774.58947324456" />
@@ -726,18 +754,18 @@
 				<pt x="15.2060448" y="775.593127489378" />
 			</convexhull>
 			<userParam type="string" name="label" value="T8_T21"/>
-			<userParam type="float" name="FWHM" value="58.4557685852051"/>
+			<userParam type="float" name="FWHM" value="2.12575507164001"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="12189415.426283"/>
-			<userParam type="float" name="masstrace_intensity_1" value="3623468.12348723"/>
+			<userParam type="float" name="masstrace_intensity_0" value="212593.5546875"/>
+			<userParam type="float" name="masstrace_intensity_1" value="72429.6171875"/>
 		</feature>
 		<feature id="f_13440783915218733453">
 			<position dim="0">30.6017861003927</position>
 			<position dim="1">774.59865850541</position>
-			<intensity>5.54026e+007</intensity>
+			<intensity>945870</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.142347</overallquality>
+			<overallquality>0.141214</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="774.598588328793" />
@@ -1030,20 +1058,20 @@
 				<pt x="1.38960882" y="776.613216578271" />
 			</convexhull>
 			<userParam type="string" name="label" value="T3_T6_T15"/>
-			<userParam type="float" name="FWHM" value="59.5185050964355"/>
+			<userParam type="float" name="FWHM" value="15.9425201416016"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="55402574.8657712"/>
-			<userParam type="float" name="masstrace_intensity_1" value="26550809.5022931"/>
-			<userParam type="float" name="masstrace_intensity_2" value="5895730.18999794"/>
+			<userParam type="float" name="masstrace_intensity_0" value="945869.5"/>
+			<userParam type="float" name="masstrace_intensity_1" value="423995.25"/>
+			<userParam type="float" name="masstrace_intensity_2" value="85205.4453125"/>
 		</feature>
 		<feature id="f_15916652588957785155">
 			<position dim="0">43.5430061486606</position>
 			<position dim="1">774.625136915958</position>
-			<intensity>5.0505e+006</intensity>
+			<intensity>77205.2</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0102861</overallquality>
-			<charge>0</charge>
+			<overallquality>0.0135958</overallquality>
+			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="5.64058374" y="774.622823201889" />
 				<pt x="8.829066" y="774.624530082321" />
@@ -1074,18 +1102,25 @@
 				<pt x="9.8916888" y="774.626300386439" />
 				<pt x="8.829066" y="774.624530082321" />
 			</convexhull>
-			<userParam type="string" name="label" value="T13"/>
-			<userParam type="float" name="FWHM" value="53.1420402526855"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="5050502.91164805"/>
+			<convexhull nr="1">
+				<pt x="9.8916888" y="775.631654023949" />
+				<pt x="35.4000258" y="775.62875691989" />
+				<pt x="47.091465" y="775.628313034679" />
+				<pt x="35.4000258" y="775.62875691989" />
+			</convexhull>
+			<userParam type="string" name="label" value="T13_T24"/>
+			<userParam type="float" name="FWHM" value="11.6910276412964"/>
+			<userParam type="int" name="num_of_masstraces" value="2"/>
+			<userParam type="float" name="masstrace_intensity_0" value="77205.21875"/>
+			<userParam type="float" name="masstrace_intensity_1" value="67114.9375"/>
 		</feature>
 		<feature id="f_15157403601844400700">
 			<position dim="0">31.7876706595269</position>
 			<position dim="1">774.634927239224</position>
-			<intensity>1.03402e+007</intensity>
+			<intensity>198293</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0267095</overallquality>
+			<overallquality>0.029289</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="1.38960882" y="774.635391264341" />
@@ -1208,18 +1243,18 @@
 				<pt x="16.2687708" y="775.637911272492" />
 			</convexhull>
 			<userParam type="string" name="label" value="T9_T10"/>
-			<userParam type="float" name="FWHM" value="58.4557685852051"/>
+			<userParam type="float" name="FWHM" value="6.37681579589844"/>
 			<userParam type="int" name="num_of_masstraces" value="2"/>
-			<userParam type="float" name="masstrace_intensity_0" value="10340172.1090767"/>
-			<userParam type="float" name="masstrace_intensity_1" value="5784414.97963622"/>
+			<userParam type="float" name="masstrace_intensity_0" value="198293.140625"/>
+			<userParam type="float" name="masstrace_intensity_1" value="88339.51171875"/>
 		</feature>
 		<feature id="f_6408859317243173796">
 			<position dim="0">31.7544721245571</position>
 			<position dim="1">774.645490848183</position>
-			<intensity>4.52001e+006</intensity>
+			<intensity>81640.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0092057</overallquality>
+			<overallquality>0.00973252</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="774.641968317287" />
@@ -1238,15 +1273,15 @@
 			<userParam type="string" name="label" value="T19"/>
 			<userParam type="float" name="FWHM" value="49.9530715942383"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="4520007.80012522"/>
+			<userParam type="float" name="masstrace_intensity_0" value="81640.5859375"/>
 		</feature>
 		<feature id="f_474525871221756682">
 			<position dim="0">30.7949160570446</position>
 			<position dim="1">774.655005240966</position>
-			<intensity>1.1505e+007</intensity>
+			<intensity>197883</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0302574</overallquality>
+			<overallquality>0.0323292</overallquality>
 			<charge>1</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="774.653069659637" />
@@ -1397,59 +1432,19 @@
 				<pt x="27.9603348" y="776.649132794789" />
 			</convexhull>
 			<userParam type="string" name="label" value="T7_T17_T20"/>
-			<userParam type="float" name="FWHM" value="58.4557495117188"/>
+			<userParam type="float" name="FWHM" value="3.18834185600281"/>
 			<userParam type="int" name="num_of_masstraces" value="3"/>
-			<userParam type="float" name="masstrace_intensity_0" value="11504974.0028217"/>
-			<userParam type="float" name="masstrace_intensity_1" value="4551720.03184859"/>
-			<userParam type="float" name="masstrace_intensity_2" value="3686265.90328882"/>
+			<userParam type="float" name="masstrace_intensity_0" value="197882.96875"/>
+			<userParam type="float" name="masstrace_intensity_1" value="84955.67578125"/>
+			<userParam type="float" name="masstrace_intensity_2" value="71100.2734375"/>
 		</feature>
 		<feature id="f_12999979801269632061">
-			<position dim="0">36.7046836139828</position>
-			<position dim="1">775.563528027347</position>
-			<intensity>2.37826e+006</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.00484371</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="14.1432996" y="775.55942229427" />
-				<pt x="27.9603348" y="775.564692182725" />
-				<pt x="36.4631388" y="775.565244623318" />
-				<pt x="48.1542276" y="775.564368892788" />
-				<pt x="36.4631388" y="775.565244623318" />
-				<pt x="27.9603348" y="775.564692182725" />
-			</convexhull>
-			<userParam type="string" name="label" value="T25"/>
-			<userParam type="float" name="FWHM" value="34.010929107666"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2378264.44242575"/>
-		</feature>
-		<feature id="f_17413765565443951891">
-			<position dim="0">35.9712262630035</position>
-			<position dim="1">775.629735594464</position>
-			<intensity>2.41842e+006</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.00492549</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="9.8916888" y="775.631654023949" />
-				<pt x="35.4000258" y="775.62875691989" />
-				<pt x="47.091465" y="775.628313034679" />
-				<pt x="35.4000258" y="775.62875691989" />
-			</convexhull>
-			<userParam type="string" name="label" value="T24"/>
-			<userParam type="float" name="FWHM" value="37.1997756958008"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2418418.32382721"/>
-		</feature>
-		<feature id="f_2927519776102075938">
 			<position dim="0">34.5892993595758</position>
 			<position dim="1">776.520191386915</position>
-			<intensity>3.34135e+006</intensity>
+			<intensity>77429.9</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00680518</overallquality>
+			<overallquality>0.00923056</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="2.4523587" y="776.519139862517" />
@@ -1460,15 +1455,15 @@
 			<userParam type="string" name="label" value="T23"/>
 			<userParam type="float" name="FWHM" value="42.5132446289063"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="3341351.14493251"/>
+			<userParam type="float" name="masstrace_intensity_0" value="77429.9375"/>
 		</feature>
-		<feature id="f_16907355690727166316">
+		<feature id="f_17413765565443951891">
 			<position dim="0">52.4992967082795</position>
 			<position dim="1">776.535679136079</position>
-			<intensity>2.65264e+006</intensity>
+			<intensity>72566.1</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.00540252</overallquality>
+			<overallquality>0.00865074</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="20.5203828" y="776.536187599238" />
@@ -1479,46 +1474,15 @@
 			<userParam type="string" name="label" value="T22"/>
 			<userParam type="float" name="FWHM" value="36.1363792419434"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="2652644.36705994"/>
+			<userParam type="float" name="masstrace_intensity_0" value="72566.1171875"/>
 		</feature>
-		<feature id="f_10306100746905639127">
-			<position dim="0">34.5442276949291</position>
-			<position dim="1">776.57338548887</position>
-			<intensity>5.55056e+006</intensity>
-			<quality dim="0">0</quality>
-			<quality dim="1">0</quality>
-			<overallquality>0.0113046</overallquality>
-			<charge>0</charge>
-			<convexhull nr="0">
-				<pt x="3.51509784" y="776.579744673969" />
-				<pt x="13.0804104" y="776.571083142212" />
-				<pt x="15.2060448" y="776.569015079271" />
-				<pt x="19.4574978" y="776.571052844021" />
-				<pt x="22.645977" y="776.57077458874" />
-				<pt x="40.7143818" y="776.578548979734" />
-				<pt x="47.091465" y="776.571252295369" />
-				<pt x="49.2170574" y="776.571150161783" />
-				<pt x="59.8453788" y="776.571159205853" />
-				<pt x="49.2170574" y="776.571150161783" />
-				<pt x="47.091465" y="776.571252295369" />
-				<pt x="40.7143818" y="776.578548979734" />
-				<pt x="22.645977" y="776.57077458874" />
-				<pt x="19.4574978" y="776.571052844021" />
-				<pt x="15.2060448" y="776.569015079271" />
-				<pt x="13.0804104" y="776.571083142212" />
-			</convexhull>
-			<userParam type="string" name="label" value="T14"/>
-			<userParam type="float" name="FWHM" value="56.3302803039551"/>
-			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="5550554.80132074"/>
-		</feature>
-		<feature id="f_12524258085768770586">
+		<feature id="f_2927519776102075938">
 			<position dim="0">32.4231066731069</position>
 			<position dim="1">776.674333856681</position>
-			<intensity>6.27803e+006</intensity>
+			<intensity>99794.6</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>0.0127862</overallquality>
+			<overallquality>0.0118967</overallquality>
 			<charge>0</charge>
 			<convexhull nr="0">
 				<pt x="0.326874708" y="776.67323121462" />
@@ -1597,9 +1561,9 @@
 				<pt x="2.4523587" y="776.674036961458" />
 			</convexhull>
 			<userParam type="string" name="label" value="T11"/>
-			<userParam type="float" name="FWHM" value="57.392879486084"/>
+			<userParam type="float" name="FWHM" value="2.12577605247498"/>
 			<userParam type="int" name="num_of_masstraces" value="1"/>
-			<userParam type="float" name="masstrace_intensity_0" value="6278031.81198203"/>
+			<userParam type="float" name="masstrace_intensity_0" value="99794.62890625"/>
 		</feature>
 	</featureList>
 </featureMap>

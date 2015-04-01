@@ -273,6 +273,7 @@ private:
     double chrom_fwhm_;
 
     bool report_summed_ints_;
+    bool enable_RT_filtering_;
     bool disable_isotope_filtering_;
     String isotope_model_;
     String metabo_iso_noisemodel_;
