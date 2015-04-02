@@ -385,12 +385,71 @@ namespace OpenMS
 
           f << "\t\t\t</modification_info>" << "\n";
         }
+
+        // write out the (optional) search_score_summary that may be associated with peptide prophet results
+        if (!h.getAnalysisResults().empty())
+        {
+          // <analysis_result analysis="peptideprophet">
+          //   <peptideprophet_result probability="0.0660" all_ntt_prob="(0.0000,0.0000,0.0660)">
+          //     <search_score_summary>
+          //       <parameter name="fval" value="0.7114"/>
+          //       <parameter name="ntt" value="2"/>
+          //       <parameter name="nmc" value="0"/>
+          //       <parameter name="massd" value="-0.027"/>
+          //       <parameter name="isomassd" value="0"/>
+          //     </search_score_summary>
+          //   </peptideprophet_result>
+          // </analysis_result>
+
+          for (std::vector<PeptideHit::AnalysisResult>::const_iterator ar_it = h.getAnalysisResults().begin();
+              ar_it != h.getAnalysisResults().end(); ar_it++)
+          {
+            f << "\t\t\t<analysis_result analysis=\"" << ar_it->analysis_type << "\">" << "\n";
+
+            // get name of next tag
+            String tagname = "peptideprophet_result";
+            if (ar_it->analysis_type == "peptideprophet")
+            {
+              tagname = "peptideprophet_result";
+            }
+            else if (ar_it->analysis_type == "interprophet")
+            {
+              tagname = "interprophet_result";
+            }
+            else
+            {
+              warning(STORE, "Analysis type " + ar_it->analysis_type + " not supported, will use peptideprophet_result.");
+            }
+
+            f << "\t\t\t\t<" << tagname <<  " probability=\"" << ar_it->main_score;
+            // TODO
+            f << "\" all_ntt_prob=\"(" << ar_it->main_score << "," << ar_it->main_score
+            << "," << ar_it->main_score << ")\">" << "\n";
+
+            if (!ar_it->sub_scores.empty())
+            {
+              f << "\t\t\t\t\t<search_score_summary>" << "\n";
+              for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
+                  subscore_it != ar_it->sub_scores.end(); subscore_it++)
+              {
+                f << "<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
+              }
+              f << "\t\t\t\t\t</search_score_summary>" << "\n";
+            }
+            f << "\t\t\t\t</" << tagname << ">" << "\n";
+            
+            f << "\t\t\t</analysis_result>" << "\n";
+          }
+        }
+
+        // deprecated way of writing out peptide prophet results
         if (peptideprophet_analyzed)
         {
           f << "\t\t\t<analysis_result analysis=\"peptideprophet\">" << "\n";
           f << "\t\t\t<peptideprophet_result probability=\"" << h.getScore()
             << "\" all_ntt_prob=\"(" << h.getScore() << "," << h.getScore()
             << "," << h.getScore() << ")\">" << "\n";
+
           f << "\t\t\t</peptideprophet_result>" << "\n";
           f << "\t\t\t</analysis_result>" << "\n";
         }
@@ -839,17 +898,30 @@ namespace OpenMS
     {
       readRTMZCharge_(attributes); // sets "rt_", "mz_", "charge_"
     }
+    else if (element == "analysis_result") // parent: "search_hit" 
+    {
+      current_analysis_result_ = PeptideHit::AnalysisResult();
+      current_analysis_result_.analysis_type = attributeAsString_(attributes, "analysis");
+    }
+    else if (element == "parameter") // parent: "search_score_summary" 
+    {
+      // TODO maybe check we are really in search_score_summary
+      String name = attributeAsString_(attributes, "name");
+      double value = attributeAsDouble_(attributes, "value");
+      current_analysis_result_.sub_scores[name] = value;
+    }
     else if (element == "peptideprophet_result") // parent: "analysis_result" (in "search_hit")
     {
       // PeptideProphet probability overwrites original search score
       // maybe TODO: deal with meta data associated with PeptideProphet search
+      double value = attributeAsDouble_(attributes, "probability");
       if (current_peptide_.getScoreType() != "InterProphet probability")
       {
-        double value = attributeAsDouble_(attributes, "probability");
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType("PeptideProphet probability");
         current_peptide_.setHigherScoreBetter(true);
       }
+      current_analysis_result_.main_score = value;
     }
     else if (element == "interprophet_result") // parent: "analysis_result" (in "search_hit")
     {
@@ -1212,6 +1284,9 @@ namespace OpenMS
     if (element == "analysis_summary")
     {
       analysis_summary_ = false;
+    }
+    else if (element == "analysis_result") // parent: "search_hit"
+    {
     }
     else if (wrong_experiment_ || analysis_summary_)
     {

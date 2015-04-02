@@ -230,6 +230,9 @@ private:
     /// PeptideIdentification instance currently being processed
     PeptideIdentification current_peptide_;
 
+    /// Analysis result instance currently being processed
+    PeptideHit::AnalysisResult current_analysis_result_;
+
     /// PeptideHit instance currently being processed
     PeptideHit peptide_hit_;
 
