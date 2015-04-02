@@ -413,7 +413,7 @@ namespace OpenMS
           // </analysis_result>
 
           for (std::vector<PeptideHit::AnalysisResult>::const_iterator ar_it = h.getAnalysisResults().begin();
-              ar_it != h.getAnalysisResults().end(); ar_it++)
+              ar_it != h.getAnalysisResults().end(); ++ar_it)
           {
             f << "\t\t\t<analysis_result analysis=\"" << ar_it->analysis_type << "\">" << "\n";
 
@@ -443,7 +443,7 @@ namespace OpenMS
             {
               f << "\t\t\t\t\t<search_score_summary>" << "\n";
               for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
-                  subscore_it != ar_it->sub_scores.end(); subscore_it++)
+                  subscore_it != ar_it->sub_scores.end(); ++subscore_it)
               {
                 f << "\t\t\t\t\t\t<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
               }
