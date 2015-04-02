@@ -191,6 +191,12 @@ private:
     /// Set name of search engine
     String search_engine_;
 
+    /// Several optional attributes of spectrum_query
+    String native_spectrum_name_;
+    String experiment_label_;
+    String swath_assay_;
+    String status_;
+
     /// Get RT and m/z for peptide ID from precursor scan (should only matter for RT)?
     bool use_precursor_data_;
 

@@ -74,6 +74,8 @@ namespace OpenMS
 
   void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed)
   {
+    bool use_original_spectrum_name = false;
+
     ofstream f(filename.c_str());
     if (!f)
     {
@@ -273,7 +275,13 @@ namespace OpenMS
         //    - swath_assay
         //    - experiment_label
 
-        f << "\t<spectrum_query spectrum=\"" << base_name << ".00000.00000." << h.getCharge() << "\""
+        String spectrum_name = base_name + ".00000.00000.";
+        if (it->metaValueExists("pepxml_spectrum_name") && use_original_spectrum_name) 
+        {
+          spectrum_name = it->getMetaValue("pepxml_spectrum_name");
+        }
+
+        f << "\t<spectrum_query spectrum=\"" << spectrum_name << h.getCharge() << "\""
           << " start_scan=\"" << scan_index << "\""
           << " end_scan=\"" << scan_index << "\""
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
@@ -892,7 +900,8 @@ namespace OpenMS
       current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->insertHit(hit);
     }
     else if (element == "search_result") // parent: "spectrum_query"
-    { // creates a new PeptideIdentification
+    { 
+      // creates a new PeptideIdentification
       current_peptide_ = PeptideIdentification();
       current_peptide_.setRT(rt_);
       current_peptide_.setMZ(mz_);
@@ -904,10 +913,44 @@ namespace OpenMS
       // may appear to be "out of bounds" - see NOTE above:
       String identifier = current_proteins_[min(UInt(current_proteins_.size()), search_id_) - 1]->getIdentifier();
       current_peptide_.setIdentifier(identifier);
+
+      // set optional attributes
+      if (!native_spectrum_name_.empty()) 
+      {
+        current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
+      }
+      if (!experiment_label_.empty())
+      {
+        current_peptide_.setExperimentLabel(experiment_label_);
+      }
+      if (!swath_assay_.empty()) 
+      {
+        current_peptide_.setMetaValue("swath_assay", swath_assay_);
+      }
+      if (!status_.empty()) 
+      {
+        current_peptide_.setMetaValue("status", status_);
+      }
     }
     else if (element == "spectrum_query") // parent: "msms_run_summary"
     {
+      // sample:
+      // <spectrum_query spectrum="foobar.02552.02552.2" start_scan="2552" end_scan="2552" precursor_neutral_mass="1168.6176" assumed_charge="2" 
+      //    index="10" retention_time_sec="488.652" experiment_label="urine" swath_assay="EIVLTQSPGTL2:9" status="target">
+
       readRTMZCharge_(attributes); // sets "rt_", "mz_", "charge_"
+
+      // retrieve optional attributes
+      native_spectrum_name_ = "";
+      experiment_label_ = "";
+      swath_assay_ = "";
+      status_ = "";
+      optionalAttributeAsString_(native_spectrum_name_, attributes, "spectrum");
+      optionalAttributeAsString_(experiment_label_, attributes, "experiment_label");
+      optionalAttributeAsString_(swath_assay_, attributes, "swath_assay");
+      optionalAttributeAsString_(status_, attributes, "status");
+
+
     }
     else if (element == "analysis_result") // parent: "search_hit" 
     {
@@ -1322,6 +1365,14 @@ namespace OpenMS
     {
       // do nothing here (skip all elements that belong to the wrong experiment
       // or to an analysis summary)
+    }
+    else if (element == "spectrum_query")
+    {
+      // clear optional attributes
+      native_spectrum_name_ = "";
+      experiment_label_ = "";
+      swath_assay_ = "";
+      status_ = "";
     }
     else if (element == "search_hit")
     {
