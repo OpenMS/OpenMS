@@ -219,6 +219,16 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   TEST_EQUAL(last.getRT(), 488.652);   // RT of MS2 spectrum
   TEST_REAL_SIMILAR(last.getMZ(), 585.3166250319);   // recomputed
   TEST_EQUAL(last.getHits().size(), 1);
+  TEST_EQUAL(last.metaValueExists("swath_assay"), true);
+  TEST_EQUAL(last.metaValueExists("status"), true);
+  TEST_EQUAL(last.metaValueExists("pepxml_spectrum_name"), true);
+  TEST_EQUAL(last.getExperimentLabel().empty(), false);
+
+  TEST_EQUAL(last.getMetaValue("swath_assay"), "EIVLTQSPGTL2:9");
+  TEST_EQUAL(last.getMetaValue("status"), "target");
+  TEST_EQUAL(last.getMetaValue("pepxml_spectrum_name"), "hroest_K120718_SM_OGE10_010_IDA.02552.02552.2");
+  TEST_EQUAL(last.getExperimentLabel(), "urine");
+
   PeptideHit pep_hit = last.getHits()[0];
   TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
@@ -365,6 +375,18 @@ START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIden
   TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
   TEST_EQUAL(pep_hit.getRank(), 1);
   TEST_EQUAL(pep_hit.getCharge(), 2);
+
+  // test extra attributes (correctly read and written)
+  TEST_EQUAL(last.metaValueExists("swath_assay"), true);
+  TEST_EQUAL(last.metaValueExists("status"), true);
+  TEST_EQUAL(last.metaValueExists("pepxml_spectrum_name"), true);
+  TEST_EQUAL(last.getExperimentLabel().empty(), false);
+
+  TEST_EQUAL(last.getMetaValue("swath_assay"), "EIVLTQSPGTL2:9");
+  TEST_EQUAL(last.getMetaValue("status"), "target");
+  // TODO should we keep the original pepxml spectrum name ? 
+  // TEST_EQUAL(last.getMetaValue("pepxml_spectrum_name"), "hroest_K120718_SM_OGE10_010_IDA.02552.02552.2");
+  TEST_EQUAL(last.getExperimentLabel(), "urine");
 
   // check the analysis scores
   TEST_EQUAL(pep_hit.getAnalysisResults().size(), 2);
