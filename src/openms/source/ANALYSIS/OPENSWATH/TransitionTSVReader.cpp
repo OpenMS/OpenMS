@@ -83,10 +83,15 @@ namespace OpenMS
     "PrecursorCharge",
     "PeptideGroupLabel",
     "LabelType",
-    "UniprotID"
+    "UniprotID",
+    "detecting_transition",
+    "identifying_transition",
+    "site_identifying_transition",
+    "site_identifying_class",
+    "quantifying_transition"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 19);
+  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 24);
 
   void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
@@ -309,6 +314,26 @@ namespace OpenMS
       if (header_dict.find("decoy") != header_dict.end())
       {
         mytransition.decoy                        =                      String(tmp_line[header_dict["decoy"]]).toInt();
+      }
+      if (header_dict.find("detecting_transition") != header_dict.end())
+      {
+        mytransition.detecting_transition         =                      String(tmp_line[header_dict["detecting_transition"]]).toInt();
+      }
+      if (header_dict.find("identifying_transition") != header_dict.end())
+      {
+        mytransition.identifying_transition       =                      String(tmp_line[header_dict["identifying_transition"]]).toInt();
+      }
+      if (header_dict.find("site_identifying_transition") != header_dict.end())
+      {
+        mytransition.site_identifying_transition       =                 String(tmp_line[header_dict["site_identifying_transition"]]);
+      }
+      if (header_dict.find("site_identifying_class") != header_dict.end())
+      {
+        mytransition.site_identifying_class       =                      String(tmp_line[header_dict["site_identifying_class"]]);
+      }
+      if (header_dict.find("quantifying_transition") != header_dict.end())
+      {
+        mytransition.quantifying_transition       =                      String(tmp_line[header_dict["quantifying_transition"]]).toInt();
       }
       if (header_dict.find("FullUniModPeptideName") != header_dict.end())
       {
@@ -585,6 +610,11 @@ namespace OpenMS
       {
         transition.decoy = true;
       }
+      transition.detecting_transition = tr_it->detecting_transition;
+      transition.identifying_transition = tr_it->identifying_transition;
+      transition.site_identifying_transition = ListUtils::create<Int>(tr_it->site_identifying_transition);
+      transition.site_identifying_class = ListUtils::create<std::string>(tr_it->site_identifying_class);
+      transition.quantifying_transition = tr_it->quantifying_transition;
       exp.transitions.push_back(transition);
 
       // check whether we need a new peptide
@@ -847,6 +877,11 @@ namespace OpenMS
     {
       rm_trans.setMetaValue("annotation", tr_it->Annotation);
     }
+    rm_trans.setMetaValue("detecting_transition", tr_it->detecting_transition);
+    rm_trans.setMetaValue("identifying_transition", tr_it->identifying_transition);
+    rm_trans.setMetaValue("site_identifying_transition", tr_it->site_identifying_transition);
+    rm_trans.setMetaValue("site_identifying_class", tr_it->site_identifying_class);
+    rm_trans.setMetaValue("quantifying_transition", tr_it->quantifying_transition);
   }
 
   void TransitionTSVReader::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
@@ -1098,6 +1133,67 @@ namespace OpenMS
       {
         mytransition.Annotation = it->getMetaValue("annotation").toString();
       }
+      if (it->metaValueExists("detecting_transition"))
+      {
+        if (it->getMetaValue("detecting_transition").toString() == "1")
+        {
+          mytransition.detecting_transition = true;
+        }
+        else if (it->getMetaValue("detecting_transition").toString() == "0")
+        {
+          mytransition.detecting_transition = false;
+        }
+      }
+      else
+      {
+        mytransition.detecting_transition = true;
+      }
+      if (it->metaValueExists("identifying_transition"))
+      {
+        if (it->getMetaValue("identifying_transition").toString() == "1")
+        {
+          mytransition.identifying_transition = true;
+        }
+        else if (it->getMetaValue("identifying_transition").toString() == "0")
+        {
+          mytransition.identifying_transition = false;
+        }
+      }
+      else
+      {
+        mytransition.identifying_transition = false;
+      }
+      if (it->metaValueExists("site_identifying_transition"))
+      {
+        mytransition.site_identifying_transition = it->getMetaValue("site_identifying_transition");
+      }
+      else
+      {
+        mytransition.site_identifying_transition = "";
+      }
+      if (it->metaValueExists("site_identifying_class"))
+      {
+        mytransition.site_identifying_class = it->getMetaValue("site_identifying_class"); 
+      }
+      else
+      {
+        mytransition.site_identifying_class = "";
+      }
+      if (it->metaValueExists("quantifying_transition"))
+      {
+        if (it->getMetaValue("quantifying_transition").toString() == "1")
+        {
+          mytransition.quantifying_transition = true;
+        }
+        else if (it->getMetaValue("quantifying_transition").toString() == "0")
+        {
+          mytransition.quantifying_transition = false;
+        }
+      }
+      else
+      {
+        mytransition.quantifying_transition = true;
+      }
       mytransition.FullPeptideName = "";
       {
         // Instead of relying on the full_peptide_name, rather look at the actual modifications!
@@ -1175,7 +1271,12 @@ namespace OpenMS
         + (String)it->precursor_charge         + "\t"
         + (String)it->peptide_group_label      + "\t"
         + (String)it->label_type               + "\t"
-        + (String)it->uniprot_id;
+        + (String)it->uniprot_id               + "\t"
+        + (String)it->detecting_transition     + "\t"
+        + (String)it->identifying_transition   + "\t"
+        + (String)it->site_identifying_transition + "\t"
+        + (String)it->site_identifying_class + "\t"
+        + (String)it->quantifying_transition;
 
       os << line << std::endl;
 

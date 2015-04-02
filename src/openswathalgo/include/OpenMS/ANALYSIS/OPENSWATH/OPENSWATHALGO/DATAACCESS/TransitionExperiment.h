@@ -46,6 +46,8 @@ namespace OpenSwath
 {
   struct OPENSWATHALGO_DLLAPI LightTransition
   {
+    LightTransition() : detecting_transition(true), quantifying_transition(false), identifying_transition(false), site_identifying_transition(std::vector<int>()), site_identifying_class(std::vector<std::string>()) {}
+
 public:
     std::string transition_name;
     std::string peptide_ref;
@@ -54,6 +56,11 @@ public:
     double precursor_mz;
     int charge;
     bool decoy;
+    bool detecting_transition;
+    bool quantifying_transition;
+    bool identifying_transition;
+    std::vector<int> site_identifying_transition;
+    std::vector<std::string> site_identifying_class;
 
     int getProductChargeState() const
     {
@@ -90,6 +97,55 @@ public:
       return precursor_mz;
     }
 
+    void setDetectingTransition (bool d)
+    {
+      detecting_transition = d;
+    }
+
+    bool isDetectingTransition() const
+    {
+      return detecting_transition;
+    }
+
+    void setQuantifyingTransition (bool q)
+    {
+      quantifying_transition = q;
+    }
+
+    bool isQuantifyingTransition() const
+    {
+      return quantifying_transition;
+    }
+
+    void setIdentifyingTransition (bool i)
+    {
+      identifying_transition = i;
+    }
+
+    bool isIdentifyingTransition() const
+    {
+      return identifying_transition;
+    }
+
+    void setSiteIdentifyingTransition (std::vector<int> i)
+    {
+      site_identifying_transition = i;
+    }
+
+    std::vector<int> getSiteIdentifyingTransition() const
+    {
+      return site_identifying_transition;
+    }
+
+    void setSiteIdentifyingClass (std::vector<std::string> i)
+    {
+      site_identifying_class = i;
+    }
+
+    std::vector<std::string> getSiteIdentifyingClass() const
+    {
+      return site_identifying_class;
+    }
   };
 
   struct OPENSWATHALGO_DLLAPI LightModification

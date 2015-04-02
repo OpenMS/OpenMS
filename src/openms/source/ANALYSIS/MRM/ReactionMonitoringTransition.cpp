@@ -284,4 +284,36 @@ namespace OpenMS
     library_intensity_ = intensity;
   }
 
+  bool ReactionMonitoringTransition::isDetectingTransition() const
+  {
+    bool detecting = true;
+    if (this->getMetaValue("detecting_transition").toString() == "0") {detecting = false;}
+    else if (this->getMetaValue("detecting_transition").toString() == "1") {detecting = true;}
+    return detecting;
+  }
+
+  bool ReactionMonitoringTransition::isQuantifyingTransition() const
+  {
+    bool quantifying = false;
+    if (this->getMetaValue("quantifying_transition").toString() == "0") {quantifying = false;}
+    else if (this->getMetaValue("quantifying_transition").toString() == "1") {quantifying = true;}
+    return quantifying;
+  }
+
+  bool ReactionMonitoringTransition::isIdentifyingTransition() const
+  {
+    bool identifying = false;
+    if (this->getMetaValue("identifying_transition").toString() == "0") {identifying = false;}
+    else if (this->getMetaValue("identifying_transition").toString() == "1") {identifying = true;}
+    return identifying;
+  }
+
+  bool ReactionMonitoringTransition::isSiteIdentifyingTransition() const
+  {
+    bool site_identifying = false;
+    if (this->getMetaValue("site_identifying_transition").toString() == "0") {site_identifying = false;}
+    else if (this->getMetaValue("site_identifying_transition").toString() == "1") {site_identifying = true;}
+    return site_identifying;
+  }
+
 } // namespace OpenMS

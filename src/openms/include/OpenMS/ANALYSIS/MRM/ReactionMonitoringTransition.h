@@ -154,6 +154,14 @@ public:
 
     void setLibraryIntensity(double intensity);
 
+    bool isDetectingTransition() const;
+
+    bool isQuantifyingTransition() const;
+
+    bool isIdentifyingTransition() const;
+ 
+    bool isSiteIdentifyingTransition() const;
+
     //@}
 
     /** @name Predicates
