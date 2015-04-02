@@ -101,6 +101,18 @@ public:
                std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "",
                const String& mz_name = "", bool peptideprophet_analyzed = false);
 
+    /**
+        @brief Whether we should keep the native spectrum name of the pepXML
+
+        @note This will lead to a "pepxml_spectrum_name" meta value being added
+        to each PeptideIdentification containing the original name of the
+        spectrum in TPP format.
+    */
+    void keepNativeSpectrumName(bool keep) 
+    {
+      keep_native_name_ = keep;
+    }
+
 protected:
 
     /// Docu in base class
@@ -211,6 +223,9 @@ private:
 
     /// Are we currently in an "analysis_summary" element (should be skipped)?
     bool analysis_summary_;
+
+    /// Whether we should keep the native spectrum name of the pepXML
+    bool keep_native_name_;
 
     /// Are we currently in an "search_score_summary" element (should be skipped)?
     bool search_score_summary_;

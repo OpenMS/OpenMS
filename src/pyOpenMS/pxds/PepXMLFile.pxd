@@ -50,3 +50,5 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
                   bool peptideprophet_analyzed
                   ) nogil except +
 
+        void keepNativeSpectrumName(bool keep) nogil except +
+

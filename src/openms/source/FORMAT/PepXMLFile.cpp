@@ -74,8 +74,6 @@ namespace OpenMS
 
   void PepXMLFile::store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file, const String& mz_name, bool peptideprophet_analyzed)
   {
-    bool use_original_spectrum_name = false;
-
     ofstream f(filename.c_str());
     if (!f)
     {
@@ -276,7 +274,7 @@ namespace OpenMS
         //    - experiment_label
 
         String spectrum_name = base_name + ".00000.00000.";
-        if (it->metaValueExists("pepxml_spectrum_name") && use_original_spectrum_name) 
+        if (it->metaValueExists("pepxml_spectrum_name") && keep_native_name_) 
         {
           spectrum_name = it->getMetaValue("pepxml_spectrum_name");
         }
@@ -915,7 +913,7 @@ namespace OpenMS
       current_peptide_.setIdentifier(identifier);
 
       // set optional attributes
-      if (!native_spectrum_name_.empty()) 
+      if (!native_spectrum_name_.empty() && keep_native_name_) 
       {
         current_peptide_.setMetaValue("pepxml_spectrum_name", native_spectrum_name_);
       }
