@@ -389,6 +389,7 @@ namespace OpenMS
         }
 
         // write out the (optional) search_score_summary that may be associated with peptide prophet results
+        bool peptideprophet_written = false;
         if (!h.getAnalysisResults().empty())
         {
           // <analysis_result analysis="peptideprophet">
@@ -412,6 +413,7 @@ namespace OpenMS
             String tagname = "peptideprophet_result";
             if (ar_it->analysis_type == "peptideprophet")
             {
+              peptideprophet_written = true; // remember that we have now already written peptide prophet results
               tagname = "peptideprophet_result";
             }
             else if (ar_it->analysis_type == "interprophet")
@@ -420,6 +422,7 @@ namespace OpenMS
             }
             else
             {
+              peptideprophet_written = true; // remember that we have now already written peptide prophet results
               warning(STORE, "Analysis type " + ar_it->analysis_type + " not supported, will use peptideprophet_result.");
             }
 
@@ -434,7 +437,7 @@ namespace OpenMS
               for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
                   subscore_it != ar_it->sub_scores.end(); subscore_it++)
               {
-                f << "<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
+                f << "\t\t\t\t\t\t<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
               }
               f << "\t\t\t\t\t</search_score_summary>" << "\n";
             }
@@ -444,9 +447,12 @@ namespace OpenMS
           }
         }
 
-        // deprecated way of writing out peptide prophet results
-        if (peptideprophet_analyzed)
+        // deprecated way of writing out peptide prophet results (only if
+        // requested explicitly and if we have not already written out the
+        // peptide prophet results above through AnalysisResults
+        if (peptideprophet_analyzed && !peptideprophet_written)
         {
+          // if (!h.getAnalysisResults().empty()) { WARNING / } 
           f << "\t\t\t<analysis_result analysis=\"peptideprophet\">" << "\n";
           f << "\t\t\t<peptideprophet_result probability=\"" << h.getScore()
             << "\" all_ntt_prob=\"(" << h.getScore() << "," << h.getScore()
@@ -610,7 +616,10 @@ namespace OpenMS
 
           // check if "rt"/"mz" are similar to "prec_rt"/"prec_mz"
           // (otherwise, precursor mapping is wrong)
-          if ((prec_mz > 0) && Math::approximatelyEqual(prec_mz, mz_, mz_tol_)    && (prec_rt > 0) && (!rt_present || Math::approximatelyEqual(prec_rt, rt_, rt_tol_)))
+          if (  (prec_mz > 0) 
+                && Math::approximatelyEqual(prec_mz, mz_, mz_tol_) 
+                && (prec_rt > 0) 
+                && (!rt_present || Math::approximatelyEqual(prec_rt, rt_, rt_tol_)))
           {
             // double diff;
             // diff = mz_ - prec_mz;
