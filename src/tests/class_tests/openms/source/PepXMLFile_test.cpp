@@ -197,7 +197,95 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   // throw an exception if the pepXML file does not exist:
   TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
 }
+END_SECTION
 
+START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdentification>& proteins, std::vector<PeptideIdentification>& peptides, const String& experiment_name = ""))
+{
+  vector<ProteinIdentification> proteins;
+  vector<PeptideIdentification> peptides;
+  // file contains results from two search runs:
+  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
+  String exp_name = "PepXMLFile_test";
+  file.load(filename, proteins, peptides, exp_name);
+
+  // peptide IDs:
+  TEST_EQUAL(peptides.size(), 2);
+  PeptideIdentification first = peptides.front(), last = peptides.back();
+
+  TEST_EQUAL(first.getRT(), 1.3653);   // RT of MS2 spectrum
+  TEST_REAL_SIMILAR(first.getMZ(), 538.605);   // recomputed
+  TEST_EQUAL(first.getHits().size(), 1);
+
+  TEST_EQUAL(last.getRT(), 488.652);   // RT of MS2 spectrum
+  TEST_REAL_SIMILAR(last.getMZ(), 585.3166250319);   // recomputed
+  TEST_EQUAL(last.getHits().size(), 1);
+  PeptideHit pep_hit = last.getHits()[0];
+  TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
+  TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
+  TEST_EQUAL(pep_hit.getRank(), 1);
+  TEST_EQUAL(pep_hit.getCharge(), 2);
+
+  // check the analysis scores
+  TEST_EQUAL(pep_hit.getAnalysisResults().size(), 2);
+
+  PeptideHit::AnalysisResult a = pep_hit.getAnalysisResults()[0];
+  TEST_EQUAL(a.analysis_type, "peptideprophet");
+  TEST_REAL_SIMILAR(a.main_score, 0.0660);
+
+  TEST_EQUAL(a.sub_scores.find("fval") != a.sub_scores.end(), true);
+  TEST_EQUAL(a.sub_scores.find("ntt") != a.sub_scores.end(), true);
+  TEST_EQUAL(a.sub_scores.find("empir_irt") != a.sub_scores.end(), true);
+  TEST_EQUAL(a.sub_scores.find("swath_window") != a.sub_scores.end(), true);
+
+  TEST_REAL_SIMILAR(a.sub_scores.find("fval")->second, 0.7114);
+  TEST_REAL_SIMILAR(a.sub_scores.find("ntt")->second, 2);
+  TEST_REAL_SIMILAR(a.sub_scores.find("empir_irt")->second, 79.79);
+  TEST_REAL_SIMILAR(a.sub_scores.find("swath_window")->second, 9);
+
+  // <analysis_result analysis="peptideprophet">
+  //   <peptideprophet_result probability="0.0660" all_ntt_prob="(0.0000,0.0000,0.0660)">
+  //     <search_score_summary>
+  //       <parameter name="fval" value="0.7114"/>
+  //       <parameter name="ntt" value="2"/>
+  //       <parameter name="nmc" value="0"/>
+  //       <parameter name="massd" value="-0.027"/>
+  //       <parameter name="isomassd" value="0"/>
+
+  //       <parameter name="empir_irt" value="79.79"/>
+  //       <parameter name="empir_irt_bin" value="53"/>
+  //       <parameter name="swath_window" value="9"/>
+  //       <parameter name="alt_swath" value="-1"/>
+
+  //     </search_score_summary>
+  //   </peptideprophet_result>
+  // </analysis_result>
+
+  // <analysis_result analysis="interprophet">
+  //   <interprophet_result probability="0.93814" all_ntt_prob="(0,0,0.93814)">
+  //     <search_score_summary>
+  //       <parameter name="nss" value="0"/>
+  //       <parameter name="nrs" value="10.2137"/>
+  //       <parameter name="nse" value="0"/>
+  //       <parameter name="nsi" value="0.9793"/>
+  //       <parameter name="nsm" value="0"/>
+  //     </search_score_summary>
+  //   </interprophet_result>
+  // </analysis_result>
+
+  a = pep_hit.getAnalysisResults()[1];
+  TEST_EQUAL(a.analysis_type, "interprophet");
+  TEST_REAL_SIMILAR(a.main_score, 0.93814);
+
+  TEST_EQUAL(a.sub_scores.find("fval") == a.sub_scores.end(), true);
+  TEST_EQUAL(a.sub_scores.find("nss") != a.sub_scores.end(), true);
+  TEST_REAL_SIMILAR(a.sub_scores.find("nrs")->second, 10.2137);
+
+  // wrong "experiment_name" produces an exception:
+  TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
+
+  // throw an exception if the pepXML file does not exist:
+  TEST_EXCEPTION(Exception::FileNotFound, file.load("this_file_does_not_exist_but_should_be_a_pepXML_file.pepXML", proteins, peptides, exp_name));
+}
 END_SECTION
 
 START_SECTION(void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
