@@ -84,6 +84,23 @@ public:
     };
     //@}
 
+    /// Analysis Result (containing search engine / prophet results)
+    class OPENMS_DLLAPI AnalysisResult
+    {
+public:
+      String analysis_type; // e.g. peptideprophet / interprophet
+      double main_score; // posterior probability for example
+      std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
+
+      bool operator==(const AnalysisResult& rhs) const
+      {
+        return analysis_type == rhs.analysis_type 
+          && main_score == rhs.main_score
+          && sub_scores == rhs.sub_scores;
+      }
+
+    };
+
     /** @name Constructors and Destructor */
     //@{
     /// default constructor
@@ -141,6 +158,15 @@ public:
     /// sets the PSM score
     void setScore(double score);
 
+    /// set information on (search engine) sub scores associated with this PSM
+    void setAnalysisResults(std::vector<AnalysisResult> aresult);
+
+    /// add information on (search engine) sub scores associated with this PSM
+    void addAnalysisResults(AnalysisResult aresult);
+
+    /// returns information on (search engine) sub scores associated with this PSM
+    const std::vector<AnalysisResult>& getAnalysisResults() const;
+
     /// returns the PSM rank
     UInt getRank() const;
 
@@ -150,11 +176,15 @@ public:
 
     /// extracts the set of non-empty protein accessions from peptide evidences
     std::set<String> extractProteinAccessions() const;
+
 protected:
     AASequence sequence_;
 
     /// the score of the peptide hit
     double score_;
+
+    /// additional scores attached to the original, aggregated score
+    std::vector<AnalysisResult> analysis_results_;
 
     /// the position(rank) where the hit appeared in the hit list
     UInt rank_;

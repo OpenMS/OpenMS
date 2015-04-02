@@ -45,8 +45,10 @@ namespace OpenMS
     MetaInfoInterface(),
     sequence_(),
     score_(0),
+    analysis_results_(),
     rank_(0),
-    charge_(0)
+    charge_(0),
+    peptide_evidences_()
   {
   }
 
@@ -65,6 +67,7 @@ namespace OpenMS
     MetaInfoInterface(source),
     sequence_(source.sequence_),
     score_(source.score_),
+    analysis_results_(source.analysis_results_),
     rank_(source.rank_),
     charge_(source.charge_),
     peptide_evidences_(source.peptide_evidences_)
@@ -86,6 +89,7 @@ namespace OpenMS
     MetaInfoInterface::operator=(source);
     sequence_ = source.sequence_;
     score_ = source.score_;
+    analysis_results_ = source.analysis_results_;
     charge_ = source.charge_;
     rank_  = source.rank_;
     peptide_evidences_ = source.peptide_evidences_;
@@ -97,6 +101,7 @@ namespace OpenMS
     return MetaInfoInterface::operator==(rhs)
            && sequence_ == rhs.sequence_
            && score_ == rhs.score_
+           && analysis_results_ == rhs.analysis_results_
            && rank_ == rhs.rank_
            && charge_ == rhs.charge_
            && peptide_evidences_ == rhs.peptide_evidences_;
@@ -159,6 +164,21 @@ namespace OpenMS
   void PeptideHit::setScore(double score)
   {
     score_ = score;
+  }
+
+  void PeptideHit::setAnalysisResults(std::vector<PeptideHit::AnalysisResult> aresult)
+  {
+    analysis_results_ = aresult;
+  }
+
+  void PeptideHit::addAnalysisResults(PeptideHit::AnalysisResult aresult)
+  {
+    analysis_results_.push_back(aresult);
+  }
+  
+  const std::vector<PeptideHit::AnalysisResult>& PeptideHit::getAnalysisResults() const
+  {
+    return analysis_results_;
   }
 
   // sets the rank
