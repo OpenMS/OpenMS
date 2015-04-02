@@ -52,6 +52,7 @@ namespace OpenMS
     significance_threshold_(0.0),
     score_type_(),
     higher_score_better_(true),
+    experiment_label_(),
     base_name_(),
     mz_(std::numeric_limits<double>::quiet_NaN()),
     rt_(std::numeric_limits<double>::quiet_NaN())
@@ -65,6 +66,7 @@ namespace OpenMS
     significance_threshold_(rhs.significance_threshold_),
     score_type_(rhs.score_type_),
     higher_score_better_(rhs.higher_score_better_),
+    experiment_label_(rhs.experiment_label_),
     base_name_(rhs.base_name_),
     mz_(rhs.mz_),
     rt_(rhs.rt_)
@@ -84,13 +86,14 @@ namespace OpenMS
 
     MetaInfoInterface::operator=(rhs);
     id_ = rhs.id_;
-    rt_ = rhs.rt_;
-    mz_ = rhs.mz_;
     hits_ = rhs.hits_;
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
     higher_score_better_ = rhs.higher_score_better_;
+    experiment_label_ = rhs.experiment_label_;
     base_name_ = rhs.base_name_;
+    mz_ = rhs.mz_;
+    rt_ = rhs.rt_;
 
     return *this;
   }
@@ -100,13 +103,14 @@ namespace OpenMS
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
-           && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT())) // might be NaN, so comparing == will always be false
-           && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && hits_ == rhs.getHits()
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
            && higher_score_better_ == rhs.higher_score_better_
-           && base_name_ == rhs.base_name_;
+           && experiment_label_ == rhs.experiment_label_
+           && base_name_ == rhs.base_name_
+           && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
+           && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT()));// might be NaN, so comparing == will always be false
   }
 
   // Inequality operator
@@ -213,6 +217,16 @@ namespace OpenMS
   void PeptideIdentification::setBaseName(const String& base_name)
   {
     base_name_ = base_name;
+  }
+
+  const String& PeptideIdentification::getExperimentLabel() const
+  {
+    return experiment_label_;
+  }
+
+  void PeptideIdentification::setExperimentLabel(const String& label)
+  {
+    experiment_label_ = label;
   }
 
   void PeptideIdentification::assignRanks()

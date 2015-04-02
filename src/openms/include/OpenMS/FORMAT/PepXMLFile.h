@@ -97,7 +97,9 @@ public:
 
         @exception Exception::UnableToCreateFile is thrown if the file could not be opened for writing
     */
-    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false);
+    void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, 
+               std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "",
+               const String& mz_name = "", bool peptideprophet_analyzed = false);
 
 protected:
 
