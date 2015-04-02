@@ -194,7 +194,6 @@ namespace OpenMS
     double getIsotopesSimScore() const;
     void setIsotopesSimScore(const double&);
 
-        // double computeCombinedScore(); // not implemented
     // debug/output functions
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AccurateMassSearchResult& amsr);
 
