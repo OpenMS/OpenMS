@@ -523,7 +523,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
             }
 
             // create new MassTrace object and store collected peaks from list current_trace
-            MassTrace new_trace(current_trace, scan_time);
+            MassTrace new_trace(current_trace);
             new_trace.updateWeightedMeanRT();
             new_trace.updateWeightedMeanMZ();
 

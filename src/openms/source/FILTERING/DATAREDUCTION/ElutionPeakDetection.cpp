@@ -382,7 +382,7 @@ namespace OpenMS
     //smooth data
     //std::vector<double> smoothed_data;
     // Size win_size = mt.getFWHMScansNum();
-    double scan_time(mt.getScanTime());
+    double scan_time(mt.getAverageMS1CycleTime());
     Size win_size = std::ceil(chrom_fwhm_ / scan_time);
     // add smoothed data (original data is still accessible)
     smoothData(mt, static_cast<Int>(win_size));
@@ -484,7 +484,7 @@ namespace OpenMS
 
 //            if (tmp_mt.size() >= win_size / 2)
 //            {
-        MassTrace new_mt(tmp_mt, mt.getScanTime());
+        MassTrace new_mt(tmp_mt);
 
         // copy smoothed int's
         new_mt.setSmoothedIntensities(smoothed_tmp);
@@ -550,7 +550,7 @@ namespace OpenMS
     return;
   }
 
-  void ElutionPeakDetection::smoothData(MassTrace& mt, int win_size)
+  void ElutionPeakDetection::smoothData(MassTrace& mt, int win_size) const
   {
     // alternative smoothing using SavitzkyGolay
     // looking at the unit test, this method gives better fits than lowess smoothing
@@ -561,7 +561,7 @@ namespace OpenMS
     SavitzkyGolayFilter sg;
     Param param;
     param.setValue("polynomial_order", 2);
-    param.setValue("frame_length", win_size);
+    param.setValue("frame_length", std::max(3, win_size)); // frame length must be at least polynomial_order+1, otherwise SG will fail
     sg.setParameters(param);
     sg.filter(spectrum);
     MSSpectrum<PeakType>::iterator iter = spectrum.begin();
