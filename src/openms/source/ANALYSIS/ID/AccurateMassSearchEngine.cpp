@@ -686,7 +686,7 @@ namespace OpenMS
 
     queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
 
-    int isotope_export = (int)param_.getValue("mzTab:exportIsotopeIntensities");
+    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
 
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
@@ -972,7 +972,7 @@ namespace OpenMS
     std::map<String, UInt> adduct_stats; // adduct --> # occurences
     std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
 
-    int isotope_export = (int)param_.getValue("mzTab:exportIsotopeIntensities");
+    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
