@@ -61,6 +61,7 @@ namespace OpenMS
     scan_map_(),
     rt_tol_(10.0),
     mz_tol_(10.0),
+    keep_native_name_(false),
     analysis_summary_(false),
     search_score_summary_(false)
   {
