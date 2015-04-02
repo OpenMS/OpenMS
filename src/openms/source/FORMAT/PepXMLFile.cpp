@@ -262,6 +262,15 @@ namespace OpenMS
           scan_index = count;
         }
         // PeptideProphet requires this format for "spectrum" attribute (otherwise TPP parsing error)
+        //  - see also the parser code if iProphet at http://sourceforge.net/p/sashimi/code/HEAD/tree/trunk/trans_proteomic_pipeline/src/Validation/InterProphet/InterProphetParser/InterProphetParser.cxx#l180
+        //  strictly required attributes:
+        //    - spectrum
+        //    - assumed_charge
+        //  optional attributes 
+        //    - retention_time_sec
+        //    - swath_assay
+        //    - experiment_label
+
         f << "\t<spectrum_query spectrum=\"" << base_name << ".00000.00000." << h.getCharge() << "\""
           << " start_scan=\"" << scan_index << "\""
           << " end_scan=\"" << scan_index << "\""
@@ -271,6 +280,26 @@ namespace OpenMS
         if (it->hasRT())
         {
           f << " retention_time_sec=\"" << it->getRT() << "\" ";
+        }
+
+        if (!it->getExperimentLabel().empty())
+        {
+          f << " experiment_label=\"" << it->getExperimentLabel() << "\" ";
+        }
+
+        // "swath_assay" is an optional parameter used for SWATH-MS mostly and
+        // may be set for a PeptideIdentification
+        //   note that according to the parsing rules of TPP, this needs to be
+        //   "xxx:yyy" where xxx is any string and yyy is probably an integer
+        //   indicating the Swath window
+        if (it->metaValueExists("swath_assay"))
+        {
+          f << " swath_assay=\"" << it->getMetaValue("swath_assay") << "\" ";
+        }
+        // "status" is an attribute that may be target or decoy
+        if (it->metaValueExists("status"))
+        {
+          f << " status=\"" << it->getMetaValue("status") << "\" ";
         }
 
         f << ">\n";
