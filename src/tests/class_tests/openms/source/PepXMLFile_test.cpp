@@ -320,7 +320,70 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
   String filename_out_1 = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out_1.pepxml");
   TEST_EQUAL(fsc_1.compareFiles(cm_file_out_1.c_str(), filename_out_1.c_str()), true)
 }
+END_SECTION
 
+START_SECTION([EXTRA] void store(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, const String& mz_file = "", const String& mz_name = "", bool peptideprophet_analyzed = false))
+{
+  vector<ProteinIdentification> proteins;
+  vector<PeptideIdentification> peptides;
+  // file contains results from two search runs:
+  String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
+  String exp_name = "PepXMLFile_test";
+  PepXMLFile().load(filename, proteins, peptides, exp_name);
+
+  TEST_EQUAL(peptides.size(), 2);
+  PeptideIdentification first = peptides.front(), last = peptides.back();
+  TEST_REAL_SIMILAR(first.getMZ(), 538.605);   // recomputed
+  TEST_REAL_SIMILAR(last.getMZ(), 585.3166250319);   // recomputed
+
+  // Now try to store the file again ... 
+  String cm_file_out;
+  NEW_TMP_FILE(cm_file_out);
+  PepXMLFile().store(cm_file_out, proteins, peptides, "", exp_name, false); // peptideprophet_analyzed = false is important!
+
+  // And read it back in again
+  vector<ProteinIdentification> proteins_new;
+  vector<PeptideIdentification> peptides_new;
+  PepXMLFile().load(cm_file_out, proteins_new, peptides_new, exp_name);
+
+  TEST_EQUAL(proteins.size(), proteins_new.size())
+  TEST_EQUAL(peptides.size(), peptides_new.size())
+
+  // peptide IDs:
+  TEST_EQUAL(peptides_new.size(), 2);
+  first = peptides_new.front(); last = peptides_new.back();
+
+  TEST_EQUAL(first.getRT(), 1.3653);   // RT of MS2 spectrum
+  TEST_REAL_SIMILAR(first.getMZ(), 538.6159248633);   // recomputed
+  TEST_EQUAL(first.getHits().size(), 1);
+
+  TEST_EQUAL(last.getRT(), 488.652);   // RT of MS2 spectrum
+  TEST_REAL_SIMILAR(last.getMZ(), 585.3304219355);   // recomputed
+  TEST_EQUAL(last.getHits().size(), 1);
+  PeptideHit pep_hit = last.getHits()[0];
+  TEST_EQUAL(pep_hit.getSequence().toString(), "VVITAPGGNDVK");
+  TEST_EQUAL(pep_hit.getSequence().toUnmodifiedString(), "VVITAPGGNDVK");
+  TEST_EQUAL(pep_hit.getRank(), 1);
+  TEST_EQUAL(pep_hit.getCharge(), 2);
+
+  // check the analysis scores
+  TEST_EQUAL(pep_hit.getAnalysisResults().size(), 2);
+
+  PeptideHit::AnalysisResult a = pep_hit.getAnalysisResults()[0];
+  TEST_EQUAL(a.analysis_type, "peptideprophet");
+  TEST_REAL_SIMILAR(a.main_score, 0.0660);
+
+  TEST_EQUAL(a.sub_scores.find("fval") != a.sub_scores.end(), true);
+  TEST_EQUAL(a.sub_scores.find("ntt") != a.sub_scores.end(), true);
+  TEST_EQUAL(a.sub_scores.find("empir_irt") != a.sub_scores.end(), true);
+  TEST_EQUAL(a.sub_scores.find("swath_window") != a.sub_scores.end(), true);
+
+  TEST_REAL_SIMILAR(a.sub_scores.find("fval")->second, 0.7114);
+  TEST_REAL_SIMILAR(a.sub_scores.find("ntt")->second, 2);
+  TEST_REAL_SIMILAR(a.sub_scores.find("empir_irt")->second, 79.79);
+  TEST_REAL_SIMILAR(a.sub_scores.find("swath_window")->second, 9);
+
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
