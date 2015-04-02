@@ -32,10 +32,11 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         void addPeptideEvidence(PeptideEvidence) nogil except +
         libcpp_set[String] extractProteinAccessions() nogil except +
 
-        # void setSubScores(libcpp_map[String, double] sub_scores) nogil except +
-        # libcpp_map[String, double] getSubScores() nogil except +
+        void setAnalysisResults(libcpp_vector[PeptideHit_AnalysisResult] aresult) nogil except +
+        void addAnalysisResults(PeptideHit_AnalysisResult aresult) nogil except +
+        libcpp_vector[PeptideHit_AnalysisResult] getAnalysisResults() nogil except +
 
-        void setScore(float ) nogil except +
+        void setScore(double) nogil except +
         void setRank(UInt) nogil except +
         void setSequence(AASequence) nogil except +
         void setCharge(Int) nogil except +
