@@ -32,6 +32,9 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         void addPeptideEvidence(PeptideEvidence) nogil except +
         libcpp_set[String] extractProteinAccessions() nogil except +
 
+        # void setSubScores(libcpp_map[String, double] sub_scores) nogil except +
+        # libcpp_map[String, double] getSubScores() nogil except +
+
         void setScore(float ) nogil except +
         void setRank(UInt) nogil except +
         void setSequence(AASequence) nogil except +
@@ -57,7 +60,11 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         void removeMetaValue(unsigned int) nogil except +
 
 
+    cdef cppclass PeptideHit_AnalysisResult "OpenMS::PeptideHit::AnalysisResult":
+        PeptideHit_AnalysisResult() nogil except +
+        PeptideHit_AnalysisResult(PeptideHit_AnalysisResult) nogil except + #wrap-ignore
 
-
-
+        String analysis_type
+        double main_score
+        libcpp_map[String, double] sub_scores
 
