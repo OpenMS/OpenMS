@@ -89,6 +89,7 @@ public:
     {
 public:
       String analysis_type; // e.g. peptideprophet / interprophet
+      bool higher_is_better; // is higher score better ?
       double main_score; // posterior probability for example
       std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
 

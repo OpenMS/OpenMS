@@ -60,7 +60,9 @@ namespace OpenMS
     experiment_(0),
     scan_map_(),
     rt_tol_(10.0),
-    mz_tol_(10.0)
+    mz_tol_(10.0),
+    analysis_summary_(false),
+    search_score_summary_(false)
   {
     const ElementDB* db = ElementDB::getInstance();
     hydrogen_ = *db->getElement("Hydrogen");
@@ -903,12 +905,23 @@ namespace OpenMS
       current_analysis_result_ = PeptideHit::AnalysisResult();
       current_analysis_result_.analysis_type = attributeAsString_(attributes, "analysis");
     }
+    else if (element == "search_score_summary")
+    {
+      search_score_summary_ = true;
+    }
     else if (element == "parameter") // parent: "search_score_summary" 
     {
-      // TODO maybe check we are really in search_score_summary
-      String name = attributeAsString_(attributes, "name");
-      double value = attributeAsDouble_(attributes, "value");
-      current_analysis_result_.sub_scores[name] = value;
+      // If we are within a search_score_summary, add the read in values to the current AnalysisResult
+      if (search_score_summary_)
+      {
+        String name = attributeAsString_(attributes, "name");
+        double value = attributeAsDouble_(attributes, "value");
+        current_analysis_result_.sub_scores[name] = value;
+      }
+      else
+      {
+        // currently not handled
+      }
     }
     else if (element == "peptideprophet_result") // parent: "analysis_result" (in "search_hit")
     {
@@ -922,6 +935,7 @@ namespace OpenMS
         current_peptide_.setHigherScoreBetter(true);
       }
       current_analysis_result_.main_score = value;
+      current_analysis_result_.higher_is_better = true;
     }
     else if (element == "interprophet_result") // parent: "analysis_result" (in "search_hit")
     {
@@ -931,6 +945,8 @@ namespace OpenMS
       peptide_hit_.setScore(value);
       current_peptide_.setScoreType("InterProphet probability");
       current_peptide_.setHigherScoreBetter(true);
+      current_analysis_result_.main_score = value;
+      current_analysis_result_.higher_is_better = true;
     }
     else if (element == "modification_info") // parent: "search_hit" (in "search result")
     {
@@ -1285,8 +1301,13 @@ namespace OpenMS
     {
       analysis_summary_ = false;
     }
+    else if (element == "search_score_summary")
+    {
+      search_score_summary_ = false;
+    }
     else if (element == "analysis_result") // parent: "search_hit"
     {
+      peptide_hit_.addAnalysisResults(current_analysis_result_);
     }
     else if (wrong_experiment_ || analysis_summary_)
     {
