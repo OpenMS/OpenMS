@@ -206,6 +206,7 @@ START_SECTION([EXTRA] void load(const String& filename, std::vector<ProteinIdent
   // file contains results from two search runs:
   String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_extended.pepxml");
   String exp_name = "PepXMLFile_test";
+  file.keepNativeSpectrumName(true);
   file.load(filename, proteins, peptides, exp_name);
 
   // peptide IDs:
