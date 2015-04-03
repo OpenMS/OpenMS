@@ -260,7 +260,7 @@ namespace OpenMS
   /// @throw Exception::InvalidValue if SIZE_OF_MT_QUANTMETHOD is given
   void MassTrace::setQuantMethod(MassTrace::MT_QUANTMETHOD method)
   {
-    if (method == SIZE_OF_MT_QUANTMETHOD)
+    if (method >= SIZE_OF_MT_QUANTMETHOD)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Value of 'quant_method' cannot be 'SIZE_OF_MT_QUANTMETHOD'.", "");
     }
@@ -339,6 +339,8 @@ namespace OpenMS
       {
         case MT_QUANT_AREA:
           return computeFwhmAreaSmooth();
+        case MT_QUANT_MEDIAN:
+          throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
         default:
           throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Member 'quant_method_' has unsupported value.", String(quant_method_));
       }
