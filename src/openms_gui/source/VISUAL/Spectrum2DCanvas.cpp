@@ -358,82 +358,41 @@ namespace OpenMS
         n_peaks_in_scan = n_s[1]; // median
       }
       
-      double pixel_ratio_rt = n_ms1_scans / (double)rt_pixel_count;
-      double pixel_ratio_mz = n_peaks_in_scan / (double)mz_pixel_count;
+      double pixel_data_ratio_rt = n_ms1_scans / (double)rt_pixel_count;
+      double pixel_data_ratio_mz = n_peaks_in_scan / (double)mz_pixel_count;
 
       // print ratio of #RT scans vs. # pixel in m/z
       // TODO fix
       std::cerr << rt_min << ":" << rt_max <<"   " << mz_min << ":" << mz_max << "\n";
       std::cerr << n_ms1_scans << "rt " << n_peaks_in_scan << "ms\n";
       std::cerr << rt_pixel_count << " x " << mz_pixel_count << " px\n";
-      std::cerr << pixel_ratio_rt << " " << pixel_ratio_mz << " ratio\n";
+      std::cerr << pixel_data_ratio_rt << " " << pixel_data_ratio_mz << " ratio\n";
 
-      // Determine whether several peaks are expected to be drawn on the same pixel
+      // minimum fraction of image expected to be filled with data
+      // if not reached, we upscale point size
+      const double MIN_COVERAGE = 0.2;
+
+      bool has_low_pixel_coverage = pixel_data_ratio_rt < MIN_COVERAGE || pixel_data_ratio_mz < MIN_COVERAGE;
+
+      // Are several peaks expected to be drawn on the same pixel in either RT or m/z?
+      // --> thin out and show only maxima
       if (n_peaks_in_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count)
       {
-        // overlapping data points expected: draw maximum intensity
+        // however: if the other dimension is sparse (e.g. only a few, but very long scans), we want to
+        //          avoid showing lots of white background
+        if (has_low_pixel_coverage)
+        { // scale up, until we reach the desired coverage
+          
+        }
         paintMaximumIntensities_(layer_index, rt_pixel_count, mz_pixel_count, painter);
       }
       else
       {
-
-        // determine spacing for whole data
-        double min_spacing_mz = 1.0;
-        double average_spacing_rt = 1.0;
-        Size n_scans = peak_map.size();
-        {
-          vector<float> mz_spacing;
-          vector<float> rts;
-          for (Size i = 0; i != n_scans; ++i)
-          {
-            // skip non MS1 and empty spectra
-            Size ms_level = peak_map[i].getMSLevel();
-            Size n_peaks = peak_map[i].size();
-            if (ms_level != 1 || n_peaks < 2)
-            {
-              continue;
-            }
-            // average m/z spacing
-            double current_mz_spacing =  (peak_map[i].back().getMZ() - peak_map[i].front().getMZ()) / n_peaks;
-            mz_spacing.push_back(current_mz_spacing);
-
-            rts.push_back(peak_map[i].getRT());
-          }
-          sort(mz_spacing.begin(), mz_spacing.end());
-          if (!mz_spacing.empty())
-          {
-            min_spacing_mz = mz_spacing[0];
-          }
-
-          sort(rts.begin(), rts.end());
-          if (rts.size() > 2)
-          {
-            average_spacing_rt = (rts.back() - rts.front()) / (double)rts.size();
-          }
-#ifdef DEBUG_TOPPVIEW
-          cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-          cout << "min spacing mz:" << min_spacing_mz << endl;
-#endif
-        }
-
-        average_spacing_rt =  (rt_max - rt_min) / n_ms1_scans;
-        min_spacing_mz = (mz_max - mz_min) /  n_peaks_in_scan;
-
-        // calculate pixel width and height in rt/mz coordinates
-        QPoint p1, p2;
-        dataToWidget_(1, 1, p1);
-        dataToWidget_(0, 0, p2);
-        double pixel_width = abs(p1.x() - p2.x());
-        double pixel_height = abs(p1.y() - p2.y());
-
-        std::cerr << "pxw " << pixel_width << " w " << pixel_height << " h\n";
-        std::cerr << "wx " << pixel_width * min_spacing_mz << " wy " << pixel_height * min_spacing_mz << "\n";
+        // calculate point width and height
         // when data is zoomed in to single peaks these are visualized as circles
-        double pen_width = qMax( 1.0, isMzToXAxis()
-            ? min(pixel_width * min_spacing_mz, pixel_height * average_spacing_rt)
-            : min(pixel_width * average_spacing_rt, pixel_height * min_spacing_mz) );
-
-        // few data points expected: more expensive drawing of all datapoints (circles or points depending on zoom level)
+        double pen_width = qMax( 1.0, min(1/pixel_data_ratio_rt, 1/pixel_data_ratio_mz));
+        std::cerr << "pen2 " << pen_width << "\n";
+        // few data points expected: more expensive drawing of all data points (circles or points depending on zoom level)
         paintAllIntensities_(layer_index, pen_width, painter);
       }
 
@@ -641,13 +600,18 @@ namespace OpenMS
     double rt_step_size = (rt_max - rt_min) / rt_pixel_count;
     double mz_step_size = (mz_max - mz_min) / mz_pixel_count;
 
+    // start at first visible RT scan
+    Size scan_index = std::distance(map.begin(), map.RTBegin(rt_min));
     //iterate over all pixels (RT dimension)
-    Size scan_index = 0;
     for (Size rt = 0; rt < rt_pixel_count; ++rt)
     {
+      // interval in data coordinates for the current pixel
       double rt_start = rt_min + rt_step_size * rt;
       double rt_end = rt_start + rt_step_size;
       //cout << "rt: " << rt << " (" << rt_start << " - " << rt_end << ")" << endl;
+
+      // reached the end of data
+      if (rt_end >= (--map.end())->getRT()) break;
 
       //determine the relevant spectra and reserve an array for the peak indices
       vector<Size> scan_indices, peak_indices;
@@ -663,9 +627,6 @@ namespace OpenMS
           scan_indices.push_back(i);
           peak_indices.push_back(map[i].MZBegin(mz_min) - map[i].begin());
         }
-        //set the scan index past the end. Otherwise the last scan will be repeated for all following RTs
-        if (i == map.size() - 1)
-          scan_index = i + 1;
       }
       //cout << "  scans: " << scan_indices.size() << endl;
 
