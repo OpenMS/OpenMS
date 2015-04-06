@@ -349,11 +349,9 @@ namespace OpenMS
         std::vector<Size> n_s;
         for (Size i=0; i<sizeof(quantiles)/sizeof(double); ++i)
         {
-          std::cerr << "i:" << i;
           const ExperimentType::SpectrumType& spec = peak_map[rt_indices[n_ms1_scans*quantiles[i]]];
           n_s.push_back(std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max)) + 1); // +1 to since distance is 0 if only one m/z is shown
         } 
-        std::cerr << "\n";
         std::sort(n_s.begin(), n_s.end());
         n_peaks_in_scan = n_s[1]; // median
       }
@@ -361,13 +359,12 @@ namespace OpenMS
       double ratio_data2pixel_rt = n_ms1_scans / (double)rt_pixel_count;
       double ratio_data2pixel_mz = n_peaks_in_scan / (double)mz_pixel_count;
 
-      // print ratio of #RT scans vs. # pixel in m/z
-      // TODO fix
+#ifdef DEBUG_TOPPVIEW
       std::cerr << rt_min << ":" << rt_max <<"   " << mz_min << ":" << mz_max << "\n";
       std::cerr << n_ms1_scans << "rt " << n_peaks_in_scan << "ms\n";
       std::cerr << rt_pixel_count << " x " << mz_pixel_count << " px\n";
       std::cerr << ratio_data2pixel_rt << " " << ratio_data2pixel_mz << " ratio\n";
-
+#endif
       // minimum fraction of image expected to be filled with data
       // if not reached, we upscale point size
       const double MIN_COVERAGE = 0.2;
@@ -394,16 +391,18 @@ namespace OpenMS
         // ... and make sure its within our boundaries
         pen_width = std::max(pen_width, MIN_PEN_SIZE);
         pen_width = std::min(pen_width, MAX_PEN_SIZE);
+#ifdef DEBUG_TOPPVIEW
         std::cerr << "pen-width " << pen_width << "\n";
+#endif
         // However: if one dimension is sparse (e.g. only a few, but very long scans), we want to
         //          avoid showing lots of white background
         // This might lead to 'overplotting', but the paint method below can deal with it since
         // it will paint high intensities last.
-        int merge_factor_rt = getPenScaling_(MIN_COVERAGE, MAX_PEN_SIZE, ratio_data2pixel_mz, pen_width);
-        int merge_factor_mz = getPenScaling_(MIN_COVERAGE, MAX_PEN_SIZE, ratio_data2pixel_rt, pen_width);
-        
+        adaptPenScaling_(MIN_COVERAGE, MAX_PEN_SIZE, ratio_data2pixel_mz, pen_width);
+        adaptPenScaling_(MIN_COVERAGE, MAX_PEN_SIZE, ratio_data2pixel_rt, pen_width);
+#ifdef DEBUG_TOPPVIEW
         std::cerr << "new pen: " << pen_width << "\n";
-        std::cerr << "merge: " << merge_factor_rt << "   " << merge_factor_mz << "\n";
+#endif
 
         // few data points expected: more expensive drawing of all data points (circles or points depending on zoom level)
         paintAllIntensities_(layer_index, pen_width, painter);
@@ -495,7 +494,7 @@ namespace OpenMS
     }
   }
 
-  double Spectrum2DCanvas::getPenScaling_(double MIN_COVERAGE, double MAX_PEN_SIZE, double ratio_data2pixel, double& pen_width) const
+  double Spectrum2DCanvas::adaptPenScaling_(double MIN_COVERAGE, double MAX_PEN_SIZE, double ratio_data2pixel, double& pen_width) const
   {
     // is the coverage ok using current pen width?
     bool has_low_pixel_coverage_withpen = ratio_data2pixel*pen_width < MIN_COVERAGE;
@@ -562,8 +561,6 @@ namespace OpenMS
 
   void Spectrum2DCanvas::paintAllIntensities_(Size layer_index, double pen_width, QPainter & painter)
   {
-    std::cerr << "ALL-intensity painting\n";
-
     const LayerData & layer = getLayer(layer_index);
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
@@ -612,8 +609,6 @@ namespace OpenMS
 
   void Spectrum2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter & painter)
   {
-    std::cerr << "maximum-intensity painting\n";
-
     //set painter to black (we operate directly on the pixels for all colored data)
     painter.setPen(Qt::black);
     //temporary variables

@@ -336,9 +336,17 @@ protected:
       }
     }
 
-    /// for a certain dimension: computes the size a data point would need, such that the image
-    /// reaches a certain coverage
-    double getPenScaling_(double MIN_COVERAGE, double MAX_PEN_SIZE, double ratio_data2pixel, double& pen_size) const;
+    /** 
+      @brief For a certain dimension: computes the size a data point would need, such that the image
+             reaches a certain coverage
+
+      @param MIN_COVERAGE A constant, giving the fraction (e.g. 20%) of area which should be covered by data
+      @param MAX_PEN_SIZE The maximum allowed number of pixels per data point
+      @param ratio_data2pixel The current ratio of #data points vs. # pixels of image
+      @param pen_size In/Out param: gives the initial pen size, and is increased (up to @p MAX_PEN_SIZE) to reach desired coverage @p MIN_COVERAGE
+      @return The factor by which @pen_size increased (gives a hint of how many data points should be merged to avoid overplotting)
+    */
+    double adaptPenScaling_(double MIN_COVERAGE, double MAX_PEN_SIZE, double ratio_data2pixel, double& pen_size) const;
     
     /// recalculates the dot gradient of a layer
     void recalculateDotGradient_(Size layer);
