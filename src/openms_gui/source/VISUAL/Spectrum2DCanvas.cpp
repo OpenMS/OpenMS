@@ -326,87 +326,99 @@ namespace OpenMS
       Size mz_pixel_count = image_width;
       if (!isMzToXAxis())
       {
-        rt_pixel_count = image_width;
-        mz_pixel_count = image_height;
+        swap(rt_pixel_count, mz_pixel_count);
       }
 
       //-----------------------------------------------------------------------------------------------
       // Determine number of shown scans (MS1)
-      Size n_ms1_scans = 0;
-      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != peak_map.end() && it != peak_map.RTEnd(rt_max); ++it)
+      std::vector<Size> rt_indices; // list of visible RT scans in MS1 with at least 2 points
+      for (ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min); it != peak_map.RTEnd(rt_max); ++it)
       {
-        if (it->getMSLevel() == 1)
+        if (it->getMSLevel() == 1 && it->size() > 1)
         {
-          ++n_ms1_scans;
+          rt_indices.push_back(std::distance(peak_map.begin(), it));
         }
       }
+      Size n_ms1_scans = rt_indices.size();
 
-      // create iterator on scan in the middle of the visible map
-      Size n_peaks_in_middle_scan(0);
-      ExperimentType::ConstIterator it = peak_map.RTBegin(rt_min) + n_ms1_scans / 2;
-      if (it != peak_map.end())
+      // sample #of points at 3 scan locations (25%, 50%, 75%)
+      // and take the median value
+      Size n_peaks_in_scan(0);
       {
-        for (ExperimentType::SpectrumType::ConstIterator it2 = it->MZBegin(mz_min); it2 != it->end() && it2 != it->MZEnd(mz_max); ++it2)
+        double quantiles[] = {0.25, 0.50, 0.75};
+        std::vector<Size> n_s;
+        for (Size i=0; i<sizeof(quantiles)/sizeof(double); ++i)
         {
-          ++n_peaks_in_middle_scan;
-        }
+          std::cerr << "i:" << i;
+          const ExperimentType::SpectrumType & spec = peak_map[rt_indices[n_ms1_scans*quantiles[i]]];
+          n_s.push_back(std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max)));
+        } 
+        std::cerr << "\n";
+        std::sort(n_s.begin(), n_s.end());
+        n_peaks_in_scan = n_s[1]; // median
       }
+      
+      double pixel_ratio_rt = n_ms1_scans / (double)rt_pixel_count;
+      double pixel_ratio_mz = n_peaks_in_scan / (double)mz_pixel_count;
 
-      // determine spacing for whole data
-      double min_spacing_mz = 1.0;
-      double average_spacing_rt = 1.0;
-      Size n_scans = peak_map.size();
-      {
-        vector<float> mz_spacing;
-        for (Size i = 0; i != n_scans; ++i)
-        {
-          // skip non MS1 and empty spectra
-          Size ms_level = peak_map[i].getMSLevel();
-          Size n_peaks = peak_map[i].size();
-          if (ms_level != 1 || n_peaks < 2)
-          {
-            continue;
-          }
-          double current_mz_spacing =  (peak_map[i][n_peaks - 1].getMZ() - peak_map[i][0].getMZ()) / n_peaks;
-          mz_spacing.push_back(current_mz_spacing);
-        }
-        sort(mz_spacing.begin(), mz_spacing.end());
-        min_spacing_mz = !mz_spacing.empty() ? mz_spacing[0] : 1.0;
-
-#ifdef DEBUG_TOPPVIEW
-        cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
-        cout << "min spacing mz:" << min_spacing_mz << endl;
-#endif
-
-        {
-          vector<float> rts;
-          for (Size i = 0; i != n_scans; ++i)
-          {
-            // skip non MS1 and empty spectra
-            Size ms_level = peak_map[i].getMSLevel();
-            Size n_peaks = peak_map[i].size();
-            if (ms_level != 1 || n_peaks == 0)
-            {
-              continue;
-            }
-            rts.push_back(peak_map[i].getRT());
-          }
-          sort(rts.begin(), rts.end());
-          if (rts.size() > 2)
-          {
-            average_spacing_rt = (rts[rts.size() - 1] - rts[0]) / (double)rts.size();
-          }
-        }
-      }
+      // print ratio of #RT scans vs. # pixel in m/z
+      // TODO fix
+      std::cerr << rt_min << ":" << rt_max <<"   " << mz_min << ":" << mz_max << "\n";
+      std::cerr << n_ms1_scans << "rt " << n_peaks_in_scan << "ms\n";
+      std::cerr << rt_pixel_count << " x " << mz_pixel_count << " px\n";
+      std::cerr << pixel_ratio_rt << " " << pixel_ratio_mz << " ratio\n";
 
       // Determine whether several peaks are expected to be drawn on the same pixel
-      if (n_peaks_in_middle_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count)
+      if (n_peaks_in_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count)
       {
         // overlapping data points expected: draw maximum intensity
         paintMaximumIntensities_(layer_index, rt_pixel_count, mz_pixel_count, painter);
       }
       else
       {
+
+        // determine spacing for whole data
+        double min_spacing_mz = 1.0;
+        double average_spacing_rt = 1.0;
+        Size n_scans = peak_map.size();
+        {
+          vector<float> mz_spacing;
+          vector<float> rts;
+          for (Size i = 0; i != n_scans; ++i)
+          {
+            // skip non MS1 and empty spectra
+            Size ms_level = peak_map[i].getMSLevel();
+            Size n_peaks = peak_map[i].size();
+            if (ms_level != 1 || n_peaks < 2)
+            {
+              continue;
+            }
+            // average m/z spacing
+            double current_mz_spacing =  (peak_map[i].back().getMZ() - peak_map[i].front().getMZ()) / n_peaks;
+            mz_spacing.push_back(current_mz_spacing);
+
+            rts.push_back(peak_map[i].getRT());
+          }
+          sort(mz_spacing.begin(), mz_spacing.end());
+          if (!mz_spacing.empty())
+          {
+            min_spacing_mz = mz_spacing[0];
+          }
+
+          sort(rts.begin(), rts.end());
+          if (rts.size() > 2)
+          {
+            average_spacing_rt = (rts.back() - rts.front()) / (double)rts.size();
+          }
+#ifdef DEBUG_TOPPVIEW
+          cout << "BEGIN " << __PRETTY_FUNCTION__ << endl;
+          cout << "min spacing mz:" << min_spacing_mz << endl;
+#endif
+        }
+
+        average_spacing_rt =  (rt_max - rt_min) / n_ms1_scans;
+        min_spacing_mz = (mz_max - mz_min) /  n_peaks_in_scan;
+
         // calculate pixel width and height in rt/mz coordinates
         QPoint p1, p2;
         dataToWidget_(1, 1, p1);
@@ -414,6 +426,8 @@ namespace OpenMS
         double pixel_width = abs(p1.x() - p2.x());
         double pixel_height = abs(p1.y() - p2.y());
 
+        std::cerr << "pxw " << pixel_width << " w " << pixel_height << " h\n";
+        std::cerr << "wx " << pixel_width * min_spacing_mz << " wy " << pixel_height * min_spacing_mz << "\n";
         // when data is zoomed in to single peaks these are visualized as circles
         double pen_width = qMax( 1.0, isMzToXAxis()
             ? min(pixel_width * min_spacing_mz, pixel_height * average_spacing_rt)
@@ -556,10 +570,12 @@ namespace OpenMS
 
   void Spectrum2DCanvas::paintAllIntensities_(Size layer_index, double pen_width, QPainter & painter)
   {
+    std::cerr << "ALL-intensity painting\n";
+
     const LayerData & layer = getLayer(layer_index);
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
-    QVector<QPolygon> coloredPoints( layer.gradient.precalculatedSize() );
+    QVector<QPolygon> coloredPoints( (int)layer.gradient.precalculatedSize() );
 
     const ExperimentType & map = *layer.getPeakData();
     const double rt_min = visible_area_.minPosition()[1];
@@ -604,6 +620,8 @@ namespace OpenMS
 
   void Spectrum2DCanvas::paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter & painter)
   {
+    std::cerr << "maximum-intensity painting\n";
+
     //set painter to black (we operate directly on the pixels for all colored data)
     painter.setPen(Qt::black);
     //temporary variables
