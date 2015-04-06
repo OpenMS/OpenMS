@@ -350,48 +350,61 @@ namespace OpenMS
         for (Size i=0; i<sizeof(quantiles)/sizeof(double); ++i)
         {
           std::cerr << "i:" << i;
-          const ExperimentType::SpectrumType & spec = peak_map[rt_indices[n_ms1_scans*quantiles[i]]];
-          n_s.push_back(std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max)));
+          const ExperimentType::SpectrumType& spec = peak_map[rt_indices[n_ms1_scans*quantiles[i]]];
+          n_s.push_back(std::distance(spec.MZBegin(mz_min), spec.MZEnd(mz_max)) + 1); // +1 to since distance is 0 if only one m/z is shown
         } 
         std::cerr << "\n";
         std::sort(n_s.begin(), n_s.end());
         n_peaks_in_scan = n_s[1]; // median
       }
       
-      double pixel_data_ratio_rt = n_ms1_scans / (double)rt_pixel_count;
-      double pixel_data_ratio_mz = n_peaks_in_scan / (double)mz_pixel_count;
+      double ratio_data2pixel_rt = n_ms1_scans / (double)rt_pixel_count;
+      double ratio_data2pixel_mz = n_peaks_in_scan / (double)mz_pixel_count;
 
       // print ratio of #RT scans vs. # pixel in m/z
       // TODO fix
       std::cerr << rt_min << ":" << rt_max <<"   " << mz_min << ":" << mz_max << "\n";
       std::cerr << n_ms1_scans << "rt " << n_peaks_in_scan << "ms\n";
       std::cerr << rt_pixel_count << " x " << mz_pixel_count << " px\n";
-      std::cerr << pixel_data_ratio_rt << " " << pixel_data_ratio_mz << " ratio\n";
+      std::cerr << ratio_data2pixel_rt << " " << ratio_data2pixel_mz << " ratio\n";
 
       // minimum fraction of image expected to be filled with data
       // if not reached, we upscale point size
       const double MIN_COVERAGE = 0.2;
 
-      bool has_low_pixel_coverage = pixel_data_ratio_rt < MIN_COVERAGE || pixel_data_ratio_mz < MIN_COVERAGE;
+      bool has_low_pixel_coverage = ratio_data2pixel_rt < MIN_COVERAGE || ratio_data2pixel_mz < MIN_COVERAGE;
 
       // Are several peaks expected to be drawn on the same pixel in either RT or m/z?
       // --> thin out and show only maxima
-      if (n_peaks_in_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count)
+      // Also, we cannot upscale in this mode (since we operate on the buffer directly, i.e. '1 data point == 1 pixel'
+      if (!has_low_pixel_coverage & (n_peaks_in_scan > mz_pixel_count || n_ms1_scans > rt_pixel_count))
       {
-        // however: if the other dimension is sparse (e.g. only a few, but very long scans), we want to
-        //          avoid showing lots of white background
-        if (has_low_pixel_coverage)
-        { // scale up, until we reach the desired coverage
-          
-        }
         paintMaximumIntensities_(layer_index, rt_pixel_count, mz_pixel_count, painter);
       }
       else
-      {
-        // calculate point width and height
+      { // this is slower to paint, but allows scaling points
         // when data is zoomed in to single peaks these are visualized as circles
-        double pen_width = qMax( 1.0, min(1/pixel_data_ratio_rt, 1/pixel_data_ratio_mz));
-        std::cerr << "pen2 " << pen_width << "\n";
+
+        const double MIN_PEN_SIZE = 1;  // minimum number of pixels for one data point
+        const double MAX_PEN_SIZE = 20; // maximum number of pixels for one data point
+        // ideal pen width (from data);
+        // since points are rectangular, we take the value of the most "crowded" dimension
+        // i.e. so that adjacent points to not overlap      
+        double pen_width = std::min(1/ratio_data2pixel_rt, 1/ratio_data2pixel_mz);
+        // ... and make sure its within our boundaries
+        pen_width = std::max(pen_width, MIN_PEN_SIZE);
+        pen_width = std::min(pen_width, MAX_PEN_SIZE);
+        std::cerr << "pen-width " << pen_width << "\n";
+        // However: if one dimension is sparse (e.g. only a few, but very long scans), we want to
+        //          avoid showing lots of white background
+        // This might lead to 'overplotting', but the paint method below can deal with it since
+        // it will paint high intensities last.
+        int merge_factor_rt = getPenScaling_(MIN_COVERAGE, MAX_PEN_SIZE, ratio_data2pixel_mz, pen_width);
+        int merge_factor_mz = getPenScaling_(MIN_COVERAGE, MAX_PEN_SIZE, ratio_data2pixel_rt, pen_width);
+        
+        std::cerr << "new pen: " << pen_width << "\n";
+        std::cerr << "merge: " << merge_factor_rt << "   " << merge_factor_mz << "\n";
+
         // few data points expected: more expensive drawing of all data points (circles or points depending on zoom level)
         paintAllIntensities_(layer_index, pen_width, painter);
       }
@@ -481,6 +494,26 @@ namespace OpenMS
       paintIdentifications_(layer_index, painter);
     }
   }
+
+  double Spectrum2DCanvas::getPenScaling_(double MIN_COVERAGE, double MAX_PEN_SIZE, double ratio_data2pixel, double& pen_width) const
+  {
+    // is the coverage ok using current pen width?
+    bool has_low_pixel_coverage_withpen = ratio_data2pixel*pen_width < MIN_COVERAGE;
+    int merge_factor(1);
+    if (has_low_pixel_coverage_withpen)
+    { // scale up the sparse dimension until we reach the desired coverage (this will lead to overlap in the crowded dimension)
+      double scale_factor = MIN_COVERAGE / ratio_data2pixel;
+      // however, within bounds (no need to check the MIN_PEN_SIZE, because we can only exceed here, not underestimate)
+      scale_factor = std::min(MAX_PEN_SIZE, scale_factor);
+      // The difference between the original pen_width vs. this scale 
+      // gives the number of peaks to merge in the crowded dimension
+      merge_factor = scale_factor / pen_width;
+      // set pen width to the new scale
+      pen_width = scale_factor;
+    }
+    return merge_factor;
+  }
+
 
   void Spectrum2DCanvas::paintPrecursorPeaks_(Size layer_index, QPainter & painter)
   {

@@ -336,6 +336,10 @@ protected:
       }
     }
 
+    /// for a certain dimension: computes the size a data point would need, such that the image
+    /// reaches a certain coverage
+    double getPenScaling_(double MIN_COVERAGE, double MAX_PEN_SIZE, double ratio_data2pixel, double& pen_size) const;
+    
     /// recalculates the dot gradient of a layer
     void recalculateDotGradient_(Size layer);
 
