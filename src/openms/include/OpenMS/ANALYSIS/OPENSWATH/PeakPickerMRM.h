@@ -121,24 +121,40 @@ protected:
     PeakPickerMRM& operator=(const PeakPickerMRM& rhs);
 
     // Members
+    /// Frame length for the SGolay smoothing
     UInt sgolay_frame_length_;
+    /// Polynomial order for the SGolay smoothing
     UInt sgolay_polynomial_order_;
+    /// Width of the gaussian smoothing
     double gauss_width_;
+    /// Whether to use gaussian smoothing
     bool use_gauss_;
+    /// Whether to resolve overlapping peaks 
     bool remove_overlapping_;
 
+    /// Forced peak with
     double peak_width_;
+    /// Signal to noise threshold
     double signal_to_noise_;
 
+    /// Signal to noise window length
     double sn_win_len_;
+    /// Signal to noise bin count
     UInt sn_bin_count_;
+    /// Whether to write out log messages of the SN estimator
+    bool write_sn_log_messages_;
+    /// Peak picker method
     String method_;
 
+    /// Temporary vector to hold the integrated intensities
     std::vector<double> integrated_intensities_;
+    /// Temporary vector to hold the peak left widths
     std::vector<int> left_width_;
+    /// Temporary vector to hold the peak right widths
     std::vector<int> right_width_;
 
   };
 }
 
-#endif
+#endif // OPENMS_ANALYSIS_OPENSWATH_PEAKPICKERMRM_H
+
