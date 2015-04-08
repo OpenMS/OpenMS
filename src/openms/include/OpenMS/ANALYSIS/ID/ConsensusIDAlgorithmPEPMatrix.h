@@ -149,6 +149,8 @@ namespace OpenMS
   /**
     @brief Calculates a consensus from multiple ID runs based on PEPs and sequence similarities
 
+    @note The similarity scoring is based on an amino acid substitution matrix. Therefore only the raw amino acid sequences, without post-translational modifications (PTMs), can be considered for consensus scoring. This algorithm will remove all PTMs from the sequences.
+
     @htmlinclude OpenMS_ConsensusIDAlgorithmPEPMatrix.parameters
     
     @ingroup Analysis_ID

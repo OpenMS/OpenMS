@@ -99,6 +99,8 @@ using namespace std;
 
     @note Important: All protein-level identification results will be lost by applying ConsensusID. (It is unclear how potentially conflicting protein-level results from different search engines should be combined.) If necessary, run the @ref TOPP_PeptideIndexer tool to add protein references for peptides again.
 
+    @note Peptides with different post-translational modifications (PTMs), or with different site localizations of the same PTMs, are treated as different peptides by all algorithms except @p PEPMatrix. The @p PEPMatrix scoring algorithm can only take unmodified peptide sequences into account, therefore it removes all PTMs from the peptides.
+
     <B>File types:</B>
 
     Different input files types are supported:
