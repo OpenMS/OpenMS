@@ -147,7 +147,7 @@ namespace seqan
 namespace OpenMS
 {
   /**
-    @brief Calculates a consensus from multiple ID runs based on PEPs and sequence similarities
+    @brief Calculates a consensus from multiple ID runs based on PEPs and sequence similarities.
 
     @note The similarity scoring is based on an amino acid substitution matrix. Therefore only the raw amino acid sequences, without post-translational modifications (PTMs), can be considered for consensus scoring. This algorithm will remove all PTMs from the sequences.
 
@@ -169,7 +169,7 @@ namespace OpenMS
     /// SeqAn amino acid sequence
     typedef ::seqan::String< ::seqan::AminoAcid> SeqAnSequence;
 
-    /// similarity scoring method
+    /// Similarity scoring method
     SeqAnScore scoring_method_;
 
     /// Alignment data structure
@@ -184,7 +184,7 @@ namespace OpenMS
     /// Docu in base class
     virtual void updateMembers_();
 
-    /// sequence similarity based on substitution matrix
+    /// Sequence similarity based on substitution matrix
     virtual double getSimilarity_(AASequence seq1, AASequence seq2);
 
   };

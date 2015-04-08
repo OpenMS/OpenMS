@@ -46,7 +46,7 @@ namespace OpenMS
 
     Nahnsen <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr2002879">Probabilistic consensus scoring improves tandem mass spectrometry peptide identification</a> (J. Proteome Res., 2011, PMID: 21644507).
 
-    Derived classes should implement ::getSimilarity_, which defines how similarity of two peptide sequences is assessed.
+    Derived classes should implement getSimilarity_(), which defines how similarity of two peptide sequences is quantified.
 
     @htmlinclude OpenMS_ConsensusIDAlgorithmSimilarity.parameters
     
@@ -59,7 +59,7 @@ namespace OpenMS
     /// Default constructor
     ConsensusIDAlgorithmSimilarity();
 
-    /// mapping: pair of peptide sequences -> sequence similarity
+    /// Mapping: pair of peptide sequences -> sequence similarity
     typedef std::map<std::pair<AASequence, AASequence>, double> SimilarityCache;
 
     /// Cache for already computed sequence similarities
@@ -81,7 +81,7 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmSimilarity& operator=(const ConsensusIDAlgorithmSimilarity&);
 
-    /// consensus scoring
+    /// Consensus scoring
     virtual void apply_(std::vector<PeptideIdentification>& ids,
                         SequenceGrouping& results);
   };

@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-    @brief Calculates a consensus from multiple ID runs by averaging the search scores
+    @brief Calculates a consensus from multiple ID runs by averaging the search scores.
 
     @htmlinclude OpenMS_ConsensusIDAlgorithmAverage.parameters
     
@@ -60,7 +60,7 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmAverage& operator=(const ConsensusIDAlgorithmAverage&);
 
-    /// aggregate peptide scores into one final score (by averaging)
+    /// Aggregate peptide scores into one final score (by averaging)
     virtual double getAggregateScore_(std::vector<double>& scores,
                                       bool higher_better);
   };

@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-    @brief Calculates a consensus from multiple ID runs based on PEPs and shared ions
+    @brief Calculates a consensus from multiple ID runs based on PEPs and shared ions.
 
     @htmlinclude OpenMS_ConsensusIDAlgorithmPEPIons.parameters
     
@@ -69,7 +69,7 @@ namespace OpenMS
     /// Docu in base class
     virtual void updateMembers_();
 
-    /// sequence similarity based on matching ions
+    /// Sequence similarity based on matching ions
     virtual double getSimilarity_(AASequence seq1, AASequence seq2);
 
   };

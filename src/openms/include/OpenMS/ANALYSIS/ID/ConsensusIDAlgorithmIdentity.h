@@ -42,9 +42,9 @@ namespace OpenMS
   /**
     @brief Abstract base class for ConsensusID algorithms that compare only identical sequences.
 
-    Search engine scores are grouped by peptide sequence in ::apply_. For each sequence, ::getAggregateScore_ is called to produce a consensus score from the list of search engine scores.
+    Search engine scores are grouped by peptide sequence in apply_(). For each sequence, getAggregateScore_() is called to produce a consensus score from the list of search engine scores.
 
-    All derived classes should implement ::getAggregateScore_. They may re-implement ::preprocess_ if required.
+    All derived classes should implement getAggregateScore_(). They may re-implement preprocess_() if required.
 
     @htmlinclude OpenMS_ConsensusIDAlgorithmIdentity.parameters
     
@@ -58,7 +58,7 @@ namespace OpenMS
     ConsensusIDAlgorithmIdentity();
 
     /**
-       @brief Preprocessing of peptide IDs (in the beginning of 'apply_').
+       @brief Preprocessing of peptide IDs (in the beginning of "apply_").
 
        Checks whether the score types are the same (warns if not) and whether the score orientations agree (error if not).
 
@@ -86,7 +86,7 @@ namespace OpenMS
     /// Not implemented
     ConsensusIDAlgorithmIdentity& operator=(const ConsensusIDAlgorithmIdentity&);
 
-    /// consensus scoring
+    /// Consensus scoring
     virtual void apply_(std::vector<PeptideIdentification>& ids,
                         SequenceGrouping& results);
   };
