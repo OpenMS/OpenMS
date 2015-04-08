@@ -125,11 +125,11 @@ private:
       int fragment_modification;
       String fragment_type;
       String uniprot_id;
-      bool detecting_transition = true;
-      bool identifying_transition = false;
-      String site_identifying_transition = "";
-      String site_identifying_class = "";
-      bool quantifying_transition = true;
+      bool detecting_transition;
+      bool identifying_transition;
+      String site_identifying_transition;
+      String site_identifying_class;
+      bool quantifying_transition;
     };
 
     static const char* strarray_[];

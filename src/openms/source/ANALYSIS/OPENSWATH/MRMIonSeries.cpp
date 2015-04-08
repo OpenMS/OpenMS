@@ -79,31 +79,17 @@ namespace OpenMS
     return ion;
   }
 
-  void MRMIonSeries::annotationToCV_(ReactionMonitoringTransition& tr)
+  CVTermList MRMIonSeries::annotationToCVTermList_(String annotation)
   {
-    OpenMS::ReactionMonitoringTransition::Product p = tr.getProduct();
     CVTermList interpretation;
 
     String fragment_type;
     int fragment_nr = -1;
     int fragment_loss = 0;
-    int fragment_gain = 0;
-
-    String annotation = tr.getMetaValue("annotation");
+    // int fragment_gain = 0;
 
     std::vector<String> best_annotation;
     annotation.split("/", best_annotation);
-
-    if (best_annotation[0].find("^") != std::string::npos)
-    {
-      std::vector<String> best_annotation_charge;
-      best_annotation[0].split("^", best_annotation_charge);
-      p.setChargeState(String(best_annotation_charge[1]).toInt());
-    }
-    else
-    {
-      p.setChargeState(1);
-    }
 
     if (best_annotation[0].find("-") != std::string::npos)
     {
@@ -121,7 +107,7 @@ namespace OpenMS
 
       fragment_type = best_annotation_gain[0].substr(0, 1);
       fragment_nr = best_annotation_gain[0].substr(1).toInt();
-      fragment_gain = String(best_annotation_gain[1]).toInt();
+      // fragment_gain = String(best_annotation_gain[1]).toInt(); // there doesn't seem to fragment neutral gain implemented as CV terms.
     }
     else
     {
@@ -217,6 +203,28 @@ namespace OpenMS
       interpretation.addCVTerm(ion);
     }
 
+    return interpretation;
+  }
+
+  void MRMIonSeries::annotationToCV_(ReactionMonitoringTransition& tr)
+  {
+    OpenMS::ReactionMonitoringTransition::Product p = tr.getProduct();
+    CVTermList interpretation = annotationToCVTermList_(tr.getMetaValue("annotation"));
+
+    std::vector<String> best_annotation;
+    tr.getMetaValue("annotation").toString().split("/", best_annotation);
+
+    if (best_annotation[0].find("^") != std::string::npos)
+    {
+      std::vector<String> best_annotation_charge;
+      best_annotation[0].split("^", best_annotation_charge);
+      p.setChargeState(String(best_annotation_charge[1]).toInt());
+    }
+    else
+    {
+      p.setChargeState(1);
+    }
+
     p.resetInterpretations();
     p.addInterpretation(interpretation);
     tr.setProduct(p);
@@ -228,7 +236,7 @@ namespace OpenMS
     annotationToCV_(tr);
   }
 
-  void MRMIonSeries::annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide peptide, const double mz_threshold, bool enable_reannotation, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses)
+  void MRMIonSeries::annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide peptide, const double mz_threshold, bool enable_reannotation, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, int round_decPow)
   {
     CVTermList interpretation;
 
@@ -244,41 +252,50 @@ namespace OpenMS
       interpretation = tr.getProduct().getInterpretationList()[0];
       AASequence ion;
 
-      if (interpretation.hasCVTerm("MS:1001228") && interpretation.hasCVTerm("MS:1000903"))
+      if (interpretation.hasCVTerm("MS:1000903")) // if ordinal is set
       {
-        ion = sequence.getSuffix(interpretation.getCVTerms()["MS:1000903"][0].getValue().toString().toInt());
-        ionstring += "x";
-        pos = ion.getMonoWeight(Residue::XIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
-      }
-      else if (interpretation.hasCVTerm("MS:1001220") && interpretation.hasCVTerm("MS:1000903"))
-      {
-        ion = sequence.getSuffix(interpretation.getCVTerms()["MS:1000903"][0].getValue().toString().toInt());
-        ionstring += "y";
-        pos = ion.getMonoWeight(Residue::YIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
-      }
-      else if (interpretation.hasCVTerm("MS:1001230") && interpretation.hasCVTerm("MS:1000903"))
-      {
-        ion = sequence.getSuffix(interpretation.getCVTerms()["MS:1000903"][0].getValue().toString().toInt());
-        ionstring += "z";
-        pos = ion.getMonoWeight(Residue::ZIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
-      }
-      else if (interpretation.hasCVTerm("MS:1001229") && interpretation.hasCVTerm("MS:1000903"))
-      {
-        ion = sequence.getPrefix(interpretation.getCVTerms()["MS:1000903"][0].getValue().toString().toInt());
-        ionstring += "a";
-        pos = ion.getMonoWeight(Residue::AIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
-      }
-      else if (interpretation.hasCVTerm("MS:1001224") && interpretation.hasCVTerm("MS:1000903"))
-      {
-        ion = sequence.getPrefix(interpretation.getCVTerms()["MS:1000903"][0].getValue().toString().toInt());
-        ionstring += "b";
-        pos = ion.getMonoWeight(Residue::BIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
-      }
-      else if (interpretation.hasCVTerm("MS:1001231") && interpretation.hasCVTerm("MS:1000903"))
-      {
-        ion = sequence.getPrefix(interpretation.getCVTerms()["MS:1000903"][0].getValue().toString().toInt());
-        ionstring += "c";
-        pos = ion.getMonoWeight(Residue::CIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
+        int ordinal = interpretation.getCVTerms()["MS:1000903"][0].getValue().toString().toInt();
+
+        if (interpretation.hasCVTerm("MS:1001228"))
+        {
+          ion = sequence.getSuffix(ordinal);
+          ionstring += "x";
+          pos = ion.getMonoWeight(Residue::XIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
+        }
+        else if (interpretation.hasCVTerm("MS:1001220"))
+        {
+          ion = sequence.getSuffix(ordinal);
+          ionstring += "y";
+          pos = ion.getMonoWeight(Residue::YIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
+        }
+        else if (interpretation.hasCVTerm("MS:1001230"))
+        {
+          ion = sequence.getSuffix(ordinal);
+          ionstring += "z";
+          pos = ion.getMonoWeight(Residue::ZIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
+        }
+        else if (interpretation.hasCVTerm("MS:1001229"))
+        {
+          ion = sequence.getSuffix(ordinal);
+          ionstring += "a";
+          pos = ion.getMonoWeight(Residue::AIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
+        }
+        else if (interpretation.hasCVTerm("MS:1001224"))
+        {
+          ion = sequence.getSuffix(ordinal);
+          ionstring += "b";
+          pos = ion.getMonoWeight(Residue::BIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
+        }
+        else if (interpretation.hasCVTerm("MS:1001231"))
+        {
+          ion = sequence.getSuffix(ordinal);
+          ionstring += "c";
+          pos = ion.getMonoWeight(Residue::CIon, tr.getProduct().getChargeState()) / (double) tr.getProduct().getChargeState();
+        }
+        else
+        {
+          unannotated = true;
+        }
       }
       else
       {
@@ -396,7 +413,7 @@ namespace OpenMS
       MRMIonSeries::IonSeries ionseries = getIonSeries(sequence, peptide.getChargeState(), fragment_types, fragment_charges, enable_losses);
       target_ion = annotateIon(ionseries, tr.getProductMZ(), mz_threshold);
       ionstring = target_ion.first;
-      pos = target_ion.second;
+      pos = Math::roundDecimal(target_ion.second, round_decPow);
       tr.setMetaValue("annotation", ionstring);
       tr.setProductMZ(pos);
 
@@ -418,7 +435,7 @@ namespace OpenMS
       frag_mzdelta.setCVIdentifierRef("MS");
       frag_mzdelta.setAccession("MS:1000904");
       frag_mzdelta.setName("product ion m/z delta");
-      frag_mzdelta.setValue(std::fabs(tr.getProductMZ() - pos));
+      frag_mzdelta.setValue(std::fabs(Math::roundDecimal(tr.getProductMZ() - pos, round_decPow)));
       interpretation.addCVTerm(frag_mzdelta);
       tr.setProductMZ(pos);
     }
@@ -448,7 +465,7 @@ namespace OpenMS
     tr.setProduct(p);
   }
 
-  boost::unordered_map<String, double> MRMIonSeries::getIonSeries(AASequence sequence, size_t precursor_charge, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses)
+  boost::unordered_map<String, double> MRMIonSeries::getIonSeries(AASequence sequence, size_t precursor_charge, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, int round_decPow)
   {
     boost::unordered_map<String, double> ionseries;
 
@@ -474,7 +491,7 @@ namespace OpenMS
     static const EmpiricalFormula neutralloss_co2("CO2"); // -44 CO2 loss
     static const EmpiricalFormula neutralloss_hccoh("HCOOH"); // -46 HCOOH loss
 
-    for (std::vector<String>::iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ft_it++)
+    for (std::vector<String>::iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ++ft_it)
     {
       for (std::vector<size_t>::iterator ch_it = fragment_charges.begin(); ch_it != fragment_charges.end(); ++ch_it)
       {
@@ -529,31 +546,31 @@ namespace OpenMS
 
           if (enable_losses)
           {
-            ionseries[*ft_it + String(i) + "-17" + "^" + String(charge)] = pos - neutralloss_nh3.getMonoWeight() / charge;
-            ionseries[*ft_it + String(i) + "-18" + "^" + String(charge)] = pos - neutralloss_h2o.getMonoWeight() / charge;
-            ionseries[*ft_it + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight() / charge;
-            ionseries[*ft_it + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight() / charge;
-            ionseries[*ft_it + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight() / charge;
-            ionseries[*ft_it + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight() / charge;
-            ionseries[*ft_it + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight() / charge;
+            ionseries[*ft_it + String(i) + "-17" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_nh3.getMonoWeight() / charge, round_decPow);
+            ionseries[*ft_it + String(i) + "-18" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_h2o.getMonoWeight() / charge, round_decPow);
+            ionseries[*ft_it + String(i) + "-34" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_nh3nh3.getMonoWeight() / charge, round_decPow);
+            ionseries[*ft_it + String(i) + "-35" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_h2onh3.getMonoWeight() / charge, round_decPow);
+            ionseries[*ft_it + String(i) + "-36" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_h2oh2o.getMonoWeight() / charge, round_decPow);
+            ionseries[*ft_it + String(i) + "-44" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_co2.getMonoWeight() / charge, round_decPow);
+            ionseries[*ft_it + String(i) + "-46" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_hccoh.getMonoWeight() / charge, round_decPow);
             if (sequence.toString().find("N") != std::string::npos || sequence.toString().find("Q") != std::string::npos)
             // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
             // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
             {
-              ionseries[*ft_it + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight() / charge;
+              ionseries[*ft_it + String(i) + "-45" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_ch3no.getMonoWeight() / charge, round_decPow);
             }
             if (sequence.toString().find("M(Oxidation)") != std::string::npos)
             // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
             // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
             {
-              ionseries[*ft_it + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight() / charge;
+              ionseries[*ft_it + String(i) + "-64" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_ch4so.getMonoWeight() / charge, round_decPow);
             }
             if (sequence.toString().find("S(Phospho)") != std::string::npos || sequence.toString().find("T(Phospho)") != std::string::npos)
             // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
             // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
             {
-              ionseries[*ft_it + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight() / charge;
-              ionseries[*ft_it + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight() / charge;
+              ionseries[*ft_it + String(i) + "-80" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_hpo3.getMonoWeight() / charge, round_decPow);
+              ionseries[*ft_it + String(i) + "-98" + "^" + String(charge)] = Math::roundDecimal(pos - neutralloss_hpo3h2o.getMonoWeight() / charge, round_decPow);
             }
           }
         }

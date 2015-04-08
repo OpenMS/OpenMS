@@ -46,8 +46,6 @@ namespace OpenSwath
 {
   struct OPENSWATHALGO_DLLAPI LightTransition
   {
-    LightTransition() : detecting_transition(true), quantifying_transition(false), identifying_transition(false), site_identifying_transition(std::vector<int>()), site_identifying_class(std::vector<std::string>()) {}
-
 public:
     std::string transition_name;
     std::string peptide_ref;

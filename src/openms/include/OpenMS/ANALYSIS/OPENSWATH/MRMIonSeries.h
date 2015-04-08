@@ -36,6 +36,7 @@
 #define OPENMS_ANALYSIS_OPENSWATH_MRMIONSERIES_H
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <boost/unordered_map.hpp>
 #include <boost/assign.hpp>
 
@@ -55,6 +56,8 @@ namespace OpenMS
   class OPENMS_DLLAPI MRMIonSeries
   {
 private:
+    CVTermList annotationToCVTermList_(String annotation);
+
     void annotationToCV_(ReactionMonitoringTransition& tr);
 
 public:
@@ -111,9 +114,10 @@ public:
       @param fragment_types the fragment ion types for reannotation
       @param fragment_charges the fragment ion charges for reannotation
       @param enable_losses whether neutral losses should be considered
+      @param round_decPow round product m/z values to decimal power (default: -4)
 
     */
-    void annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide peptide, const double mz_threshold, bool enable_reannotation, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses);
+    void annotateTransition(ReactionMonitoringTransition& tr, const TargetedExperiment::Peptide peptide, const double mz_threshold, bool enable_reannotation, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, int round_decPow = -4);
 
     /**
       @brief Computed theoretical fragment ion series
@@ -123,9 +127,10 @@ public:
       @param fragment_types the fragment ion types for reannotation
       @param fragment_charges the fragment ion charges for reannotation
       @param enable_losses whether neutral losses should be considered
+      @param round_decPow round product m/z values to decimal power (default: -4)
       @value IonSeries the theoretical fragment ion series
     */
-    IonSeries getIonSeries(AASequence sequence, size_t precursor_charge, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses);
+    IonSeries getIonSeries(AASequence sequence, size_t precursor_charge, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, int round_decPow = -4);
   };
 }
 

@@ -240,6 +240,11 @@ namespace OpenMS
       mytransition.fragment_nr                  =  -1;
       mytransition.fragment_mzdelta             =  -1;
       mytransition.fragment_modification        =   0;
+      mytransition.detecting_transition         =   true;
+      mytransition.identifying_transition       =   false;
+      mytransition.site_identifying_transition  =   "";
+      mytransition.site_identifying_class       =   "";
+      mytransition.quantifying_transition       =   true;
 
       if (FileTypes::typeToName(filetype) == "mrm")
       {
@@ -317,11 +322,13 @@ namespace OpenMS
       }
       if (header_dict.find("detecting_transition") != header_dict.end())
       {
-        mytransition.detecting_transition         =                      String(tmp_line[header_dict["detecting_transition"]]).toInt();
+        if  (String(tmp_line[header_dict["detecting_transition"]]) == "1") { mytransition.detecting_transition = true; }
+        else if (String(tmp_line[header_dict["detecting_transition"]]) == "0") { mytransition.detecting_transition = false; }
       }
       if (header_dict.find("identifying_transition") != header_dict.end())
       {
-        mytransition.identifying_transition       =                      String(tmp_line[header_dict["identifying_transition"]]).toInt();
+        if  (String(tmp_line[header_dict["identifying_transition"]]) == "1") { mytransition.identifying_transition = true; }
+        else if (String(tmp_line[header_dict["identifying_transition"]]) == "0") { mytransition.identifying_transition = false; }
       }
       if (header_dict.find("site_identifying_transition") != header_dict.end())
       {
@@ -333,7 +340,8 @@ namespace OpenMS
       }
       if (header_dict.find("quantifying_transition") != header_dict.end())
       {
-        mytransition.quantifying_transition       =                      String(tmp_line[header_dict["quantifying_transition"]]).toInt();
+        if  (String(tmp_line[header_dict["quantifying_transition"]]) == "1") { mytransition.quantifying_transition = true; }
+        else if (String(tmp_line[header_dict["quantifying_transition"]]) == "0") { mytransition.quantifying_transition = false; }
       }
       if (header_dict.find("FullUniModPeptideName") != header_dict.end())
       {
@@ -610,11 +618,13 @@ namespace OpenMS
       {
         transition.decoy = true;
       }
+
       transition.detecting_transition = tr_it->detecting_transition;
       transition.identifying_transition = tr_it->identifying_transition;
       transition.site_identifying_transition = ListUtils::create<Int>(tr_it->site_identifying_transition);
       transition.site_identifying_class = ListUtils::create<std::string>(tr_it->site_identifying_class);
       transition.quantifying_transition = tr_it->quantifying_transition;
+
       exp.transitions.push_back(transition);
 
       // check whether we need a new peptide
@@ -877,11 +887,17 @@ namespace OpenMS
     {
       rm_trans.setMetaValue("annotation", tr_it->Annotation);
     }
-    rm_trans.setMetaValue("detecting_transition", tr_it->detecting_transition);
-    rm_trans.setMetaValue("identifying_transition", tr_it->identifying_transition);
+    if (tr_it->detecting_transition) {rm_trans.setMetaValue("detecting_transition", "true");}
+    else if (!tr_it->detecting_transition) {rm_trans.setMetaValue("detecting_transition", "false");}
+
+    if (tr_it->identifying_transition) {rm_trans.setMetaValue("identifying_transition", "true");}
+    else if (!tr_it->identifying_transition) {rm_trans.setMetaValue("identifying_transition", "false");}
+
     rm_trans.setMetaValue("site_identifying_transition", tr_it->site_identifying_transition);
     rm_trans.setMetaValue("site_identifying_class", tr_it->site_identifying_class);
-    rm_trans.setMetaValue("quantifying_transition", tr_it->quantifying_transition);
+
+    if (tr_it->quantifying_transition) {rm_trans.setMetaValue("quantifying_transition", "true");}
+    else if (!tr_it->quantifying_transition) {rm_trans.setMetaValue("quantifying_transition", "false");}
   }
 
   void TransitionTSVReader::createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein)
@@ -1135,11 +1151,11 @@ namespace OpenMS
       }
       if (it->metaValueExists("detecting_transition"))
       {
-        if (it->getMetaValue("detecting_transition").toString() == "1")
+        if (it->getMetaValue("detecting_transition").toBool())
         {
           mytransition.detecting_transition = true;
         }
-        else if (it->getMetaValue("detecting_transition").toString() == "0")
+        else if (!it->getMetaValue("detecting_transition").toBool())
         {
           mytransition.detecting_transition = false;
         }
@@ -1150,11 +1166,11 @@ namespace OpenMS
       }
       if (it->metaValueExists("identifying_transition"))
       {
-        if (it->getMetaValue("identifying_transition").toString() == "1")
+        if (it->getMetaValue("identifying_transition").toBool())
         {
           mytransition.identifying_transition = true;
         }
-        else if (it->getMetaValue("identifying_transition").toString() == "0")
+        else if (!it->getMetaValue("identifying_transition").toBool())
         {
           mytransition.identifying_transition = false;
         }
@@ -1181,11 +1197,11 @@ namespace OpenMS
       }
       if (it->metaValueExists("quantifying_transition"))
       {
-        if (it->getMetaValue("quantifying_transition").toString() == "1")
+        if (it->getMetaValue("quantifying_transition").toBool())
         {
           mytransition.quantifying_transition = true;
         }
-        else if (it->getMetaValue("quantifying_transition").toString() == "0")
+        else if (!it->getMetaValue("quantifying_transition").toBool())
         {
           mytransition.quantifying_transition = false;
         }

@@ -57,8 +57,9 @@ namespace OpenMS
     Transitions can be selected according to a set of rules, as described in
     Schubert et al., 2015 (PMID: 25675208).
 
-    In addition, UIS or site-specific transitions can be generated based on
-    empirically observed or in silico generated ion series.
+    In addition, unique ion signature (UIS) (Sherman et al., 2009 (PMID: 19556279))
+    or site-specific transitions can be generated based on empirically observed
+    or in silico generated ion series.
 
   */
   class OPENMS_DLLAPI MRMAssay :
@@ -91,9 +92,10 @@ public:
       or reannotation should be conducted
       @param enable_losses whether neutral losses for the fragment ion (according to SpectraST)
       should be enabled
+      @param round_decPow round product m/z values to decimal power (default: -4)
 
     */
-    void reannotateTransitions(OpenMS::TargetedExperiment& exp, double mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_alternative_localizations, bool enable_reannotation, bool enable_losses);
+    void reannotateTransitions(OpenMS::TargetedExperiment& exp, double mz_threshold, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_alternative_localizations, bool enable_reannotation, bool enable_losses, int round_decPow = -4);
 
     /**
       @brief Restrict and filter transitions in a TargetedExperiment
@@ -142,11 +144,12 @@ public:
       @param fragment_charges the fragment charges to consider for annotation
       @param enable_losses whether neutral losses for the fragment ion (according to SpectraST)
       should be enabled
+      @param round_decPow round product m/z values to decimal power (default: -4)
 
     */
-    void insilicoTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses);
+    void insilicoTransitions(OpenMS::TargetedExperiment& exp, std::vector<String> fragment_types, std::vector<size_t> fragment_charges, bool enable_losses, int round_decPow = -4);
 
-private:
+protected:
     /**
       @brief Check whether fragment ion are unique ion signatures in vector within threshold
 

@@ -148,11 +148,11 @@ namespace OpenMS
 
       if (transition_exp_.getTransitions()[i].metaValueExists("detecting_transition"))
       {
-        if (transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toString() == "0")
+        if (!transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
         {
           t.detecting_transition = false;
         }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toString() == "1")
+        else if (transition_exp_.getTransitions()[i].getMetaValue("detecting_transition").toBool())
         {
           t.detecting_transition = true;
         }
@@ -163,11 +163,11 @@ namespace OpenMS
       }
       if (transition_exp_.getTransitions()[i].metaValueExists("identifying_transition"))
       {
-        if (transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toString() == "0")
+        if (!transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
         {
           t.identifying_transition = false;
         }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toString() == "1")
+        else if (transition_exp_.getTransitions()[i].getMetaValue("identifying_transition").toBool())
         {
           t.identifying_transition = true;
         }
@@ -194,7 +194,7 @@ namespace OpenMS
       {
         StringList sites_classes_sl = ListUtils::create<String>(sites_classes_data);
         std::vector<std::string> sites_classes;
-        for (std::vector<String>::iterator sl_it = sites_classes_sl.begin(); sl_it != sites_classes_sl.end(); sl_it++)
+        for (std::vector<String>::iterator sl_it = sites_classes_sl.begin(); sl_it != sites_classes_sl.end(); ++sl_it)
         {
           sites_classes.push_back(*sl_it);
         }
@@ -210,18 +210,18 @@ namespace OpenMS
       }
       if (transition_exp_.getTransitions()[i].metaValueExists("quantifying_transition"))
       {
-        if (transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toString() == "0")
+        if (!transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
         {
           t.quantifying_transition = false;
         }
-        else if (transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toString() == "1")
+        else if (transition_exp_.getTransitions()[i].getMetaValue("quantifying_transition").toBool())
         {
           t.quantifying_transition = true;
         }
       }
       else
       {
-        t.quantifying_transition = false;
+        t.quantifying_transition = true;
       }
 
       transition_exp.transitions.push_back(t);

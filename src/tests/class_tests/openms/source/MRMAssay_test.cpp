@@ -31,7 +31,6 @@
 // $Maintainer: George Rosenberger $
 // $Authors: George Rosenberger $
 // --------------------------------------------------------------------------
-#define private public
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
@@ -51,6 +50,39 @@ START_TEST(MRMAssay, "$Id$")
 MRMAssay * ptr = 0;
 MRMAssay* nullPointer = 0;
 
+class MRMAssay_test : public MRMAssay
+{
+  public:
+    bool isUIS_test(const double fragment_ion, std::vector<double> ions, const double mz_threshold)
+    {
+      return isUIS_(fragment_ion, ions, mz_threshold);
+    }
+    void isSiteUIS_test(const AASequence sequence, ReactionMonitoringTransition & tr)
+    {
+      isSiteUIS_(sequence, tr);
+    }
+    int getSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz)
+    {
+      return getSwath_(swathes, precursor_mz);
+    }
+    bool isInSwath_test(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz)
+    {
+      return isInSwath_(swathes, precursor_mz, product_mz);
+    }
+    std::vector<std::vector<size_t> > nchoosekcombinations_test(std::vector<size_t> n, size_t k)
+    {
+      return nchoosekcombinations_(n, k);
+    }
+    std::vector<OpenMS::AASequence> addModificationsSequences_test(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification)
+    {
+      return addModificationsSequences_(sequences, mods_combs, modification);
+    }
+    std::vector<OpenMS::AASequence> combineModifications_test(OpenMS::AASequence sequence)
+    {
+      return combineModifications_(sequence);
+    }
+};
+
 START_SECTION(MRMAssay())
 {
   ptr = new MRMAssay();
@@ -64,9 +96,9 @@ START_SECTION(~MRMAssay())
 }
 END_SECTION
 
-START_SECTION(bool isUIS_(const double fragment_ion, std::vector<double> ions, const double mz_threshold); )
+START_SECTION(bool MRMAssay::isUIS_(const double fragment_ion, std::vector<double> ions, const double mz_threshold); )
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
 
   std::vector<double> ions;
   ions.push_back(100.00);
@@ -74,38 +106,38 @@ START_SECTION(bool isUIS_(const double fragment_ion, std::vector<double> ions, c
   ions.push_back(100.12);
   ions.push_back(101.11);
 
-  TEST_EQUAL(mrma.isUIS_(100.065, ions, 0.05), true);
-  TEST_EQUAL(mrma.isUIS_(100.06, ions, 0.06), false);
+  TEST_EQUAL(mrma.isUIS_test(100.065, ions, 0.05), true);
+  TEST_EQUAL(mrma.isUIS_test(100.06, ions, 0.06), false);
 }
 END_SECTION
 
 START_SECTION(void MRMAssay::isSiteUIS_(const AASequence sequence, ReactionMonitoringTransition & tr))
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
   MRMIonSeries mrmis;
   AASequence sequence = AASequence::fromString("PEPT(Phospho)ID(Oxidation)EK");
   ReactionMonitoringTransition tr1, tr2, tr3, tr4, btr1, btr2, btr3, btr4;
 
   mrmis.annotateTransitionCV(tr1, "y5^3");
-  mrma.isSiteUIS_(sequence, tr1);
+  mrma.isSiteUIS_test(sequence, tr1);
 
   TEST_EQUAL(tr1.getMetaValue("site_identifying_transition"), "4")
   TEST_EQUAL(tr1.getMetaValue("site_identifying_class"), "revdiag")
 
   mrmis.annotateTransitionCV(tr2, "y4^3");
-  mrma.isSiteUIS_(sequence, tr2);
+  mrma.isSiteUIS_test(sequence, tr2);
 
   TEST_EQUAL(tr2.getMetaValue("site_identifying_transition"), "4")
   TEST_EQUAL(tr2.getMetaValue("site_identifying_class"), "revnext")
 
   mrmis.annotateTransitionCV(tr3, "b4^3");
-  mrma.isSiteUIS_(sequence, tr3);
+  mrma.isSiteUIS_test(sequence, tr3);
 
   TEST_EQUAL(tr3.getMetaValue("site_identifying_transition"), "4")
   TEST_EQUAL(tr3.getMetaValue("site_identifying_class"), "fwddiag")
 
   mrmis.annotateTransitionCV(tr4, "b3^3");
-  mrma.isSiteUIS_(sequence, tr4);
+  mrma.isSiteUIS_test(sequence, tr4);
 
   TEST_EQUAL(tr4.getMetaValue("site_identifying_transition"), "4")
   TEST_EQUAL(tr4.getMetaValue("site_identifying_class"), "fwdnext")
@@ -114,31 +146,31 @@ START_SECTION(void MRMAssay::isSiteUIS_(const AASequence sequence, ReactionMonit
 END_SECTION
 START_SECTION(void MRMAssay::isSiteUIS_(const AASequence sequence, ReactionMonitoringTransition & tr))
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
   MRMIonSeries mrmis;
   AASequence sequence = AASequence::fromString("PEPT(Phospho)D(Oxidation)IEK");
   ReactionMonitoringTransition tr1, tr2, tr3, tr4, btr1, btr2, btr3, btr4;
 
   mrmis.annotateTransitionCV(tr1, "y5^3");
-  mrma.isSiteUIS_(sequence, tr1);
+  mrma.isSiteUIS_test(sequence, tr1);
 
   TEST_EQUAL(tr1.getMetaValue("site_identifying_transition"), "4")
   TEST_EQUAL(tr1.getMetaValue("site_identifying_class"), "revdiag")
 
   mrmis.annotateTransitionCV(tr2, "y4^3");
-  mrma.isSiteUIS_(sequence, tr2);
+  mrma.isSiteUIS_test(sequence, tr2);
 
   TEST_EQUAL(tr2.getMetaValue("site_identifying_transition"), "4,5")
   TEST_EQUAL(tr2.getMetaValue("site_identifying_class"), "revnext,revdiag")
 
   mrmis.annotateTransitionCV(tr3, "b4^3");
-  mrma.isSiteUIS_(sequence, tr3);
+  mrma.isSiteUIS_test(sequence, tr3);
 
   TEST_EQUAL(tr3.getMetaValue("site_identifying_transition"), "4,5")
   TEST_EQUAL(tr3.getMetaValue("site_identifying_class"), "fwddiag,fwdnext")
 
   mrmis.annotateTransitionCV(tr4, "b3^3");
-  mrma.isSiteUIS_(sequence, tr4);
+  mrma.isSiteUIS_test(sequence, tr4);
 
   TEST_EQUAL(tr4.getMetaValue("site_identifying_transition"), "4")
   TEST_EQUAL(tr4.getMetaValue("site_identifying_class"), "fwdnext")
@@ -147,7 +179,7 @@ END_SECTION
 
 START_SECTION(int MRMAssay::getSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz))
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
   std::vector<std::pair<double, double> > swathes;
   swathes.push_back(std::make_pair(400, 425));
   swathes.push_back(std::make_pair(424, 450));
@@ -182,16 +214,16 @@ START_SECTION(int MRMAssay::getSwath_(const std::vector<std::pair<double, double
   swathes.push_back(std::make_pair(1149, 1175));
   swathes.push_back(std::make_pair(1174, 1200));
 
-  TEST_EQUAL(mrma.getSwath_(swathes, 427.229959), 1)
-  TEST_EQUAL(mrma.getSwath_(swathes, 685.8547721), 11)
-  TEST_EQUAL(mrma.getSwath_(swathes, 1685.8547721), -1)
-  TEST_EQUAL(mrma.getSwath_(swathes, -41.1), -1)
+  TEST_EQUAL(mrma.getSwath_test(swathes, 427.229959), 1)
+  TEST_EQUAL(mrma.getSwath_test(swathes, 685.8547721), 11)
+  TEST_EQUAL(mrma.getSwath_test(swathes, 1685.8547721), -1)
+  TEST_EQUAL(mrma.getSwath_test(swathes, -41.1), -1)
 }
 END_SECTION
 
 START_SECTION(bool MRMAssay::isInSwath_(const std::vector<std::pair<double, double> > swathes, const double precursor_mz, const double product_mz))
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
   std::vector<std::pair<double, double> > swathes;
   swathes.push_back(std::make_pair(400, 425));
   swathes.push_back(std::make_pair(424, 450));
@@ -226,14 +258,14 @@ START_SECTION(bool MRMAssay::isInSwath_(const std::vector<std::pair<double, doub
   swathes.push_back(std::make_pair(1149, 1175));
   swathes.push_back(std::make_pair(1174, 1200));
 
-  TEST_EQUAL(mrma.isInSwath_(swathes, 685.8547721, 427.229959), false)
-  TEST_EQUAL(mrma.isInSwath_(swathes, 685.8547721, 689), true)
+  TEST_EQUAL(mrma.isInSwath_test(swathes, 685.8547721, 427.229959), false)
+  TEST_EQUAL(mrma.isInSwath_test(swathes, 685.8547721, 689), true)
 }
 END_SECTION
 
 START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(std::vector<size_t> n, size_t k))
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
   std::vector<size_t> n;
   size_t k = 5;
 
@@ -242,14 +274,14 @@ START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(
     n.push_back(i);
   }
 
-  TEST_EQUAL(mrma.nchoosekcombinations_(n, k).size(), 4368)
-  TEST_EQUAL(mrma.nchoosekcombinations_(n, k)[0].size(), 5)
+  TEST_EQUAL(mrma.nchoosekcombinations_test(n, k).size(), 4368)
+  TEST_EQUAL(mrma.nchoosekcombinations_test(n, k)[0].size(), 5)
 }
 END_SECTION
 
 START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(std::vector<size_t> n, size_t k))
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
   std::vector<size_t> n;
   size_t k = 3;
 
@@ -258,7 +290,7 @@ START_SECTION(std::vector<std::vector<size_t> > MRMAssay::nchoosekcombinations_(
     n.push_back(i);
   }
 
-  std::vector<std::vector<size_t> > res = mrma.nchoosekcombinations_(n, k);
+  std::vector<std::vector<size_t> > res = mrma.nchoosekcombinations_test(n, k);
 
   TEST_EQUAL(res.size(), 10)
   TEST_EQUAL(res[0].size(), 3)
@@ -307,7 +339,7 @@ END_SECTION
 
 START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequences_(std::vector<OpenMS::AASequence> sequences, std::vector<std::vector<size_t> > mods_combs, OpenMS::String modification))
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
 
   AASequence sequence = AASequence::fromString("PEPTDIEK");
   std::vector<OpenMS::AASequence> sequences;
@@ -319,18 +351,18 @@ START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::addModificationsSequence
   no.push_back(4);
   no.push_back(7);
 
-  std::vector<std::vector<size_t> > mods_combs_o = mrma.nchoosekcombinations_(no, 1);
+  std::vector<std::vector<size_t> > mods_combs_o = mrma.nchoosekcombinations_test(no, 1);
 
-  sequences = mrma.addModificationsSequences_(sequences, mods_combs_o, String("Oxidation"));
+  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_o, String("Oxidation"));
 
   std::vector<size_t> np;
   np.push_back(3);
   np.push_back(4);
   np.push_back(7);
 
-  std::vector<std::vector<size_t> > mods_combs_p = mrma.nchoosekcombinations_(np, 1);
+  std::vector<std::vector<size_t> > mods_combs_p = mrma.nchoosekcombinations_test(np, 1);
 
-  sequences = mrma.addModificationsSequences_(sequences, mods_combs_p, String("Phospho"));
+  sequences = mrma.addModificationsSequences_test(sequences, mods_combs_p, String("Phospho"));
 
   TEST_EQUAL(sequences.size(), 10)
   TEST_EQUAL(sequences[0].toString(), String("P(Oxidation)EPT(Phospho)DIEK"));
@@ -348,9 +380,9 @@ END_SECTION
 
 START_SECTION(std::vector<OpenMS::AASequence> MRMAssay::combineModifications_(OpenMS::AASequence sequence))
 {
-  MRMAssay mrma;
+  MRMAssay_test mrma;
 
-  std::vector<AASequence> sequences = mrma.combineModifications_(AASequence::fromString("PEPT(Phospho)DIEK"));
+  std::vector<AASequence> sequences = mrma.combineModifications_test(AASequence::fromString("PEPT(Phospho)DIEK"));
 
   TEST_EQUAL(sequences.size(), 3)
   TEST_EQUAL(sequences[0], AASequence::fromString("PEPT(Phospho)DIEK"));

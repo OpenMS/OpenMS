@@ -81,11 +81,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="1"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5"/>
-      <userParam name="detecting_transition" type="xsd:integer" value="1"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="site_identifying_transition" type="xsd:string" value=""/>
       <userParam name="site_identifying_class" type="xsd:string" value=""/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr2" peptideRef="tr_gr1">
       <Precursor>
@@ -106,11 +106,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6"/>
-      <userParam name="detecting_transition" type="xsd:integer" value="1"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="site_identifying_transition" type="xsd:string" value=""/>
       <userParam name="site_identifying_class" type="xsd:string" value=""/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr3" peptideRef="tr_gr2">
       <Precursor>
@@ -131,11 +131,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="10000"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y4"/>
-      <userParam name="detecting_transition" type="xsd:integer" value="1"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="site_identifying_transition" type="xsd:string" value=""/>
       <userParam name="site_identifying_class" type="xsd:string" value=""/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr4" peptideRef="tr_gr2">
       <Precursor>
@@ -156,11 +156,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2000"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y5"/>
-      <userParam name="detecting_transition" type="xsd:integer" value="1"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="site_identifying_transition" type="xsd:string" value=""/>
       <userParam name="site_identifying_class" type="xsd:string" value=""/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="tr5" peptideRef="tr_gr2">
       <Precursor>
@@ -181,11 +181,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="4300"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="y6"/>
-      <userParam name="detecting_transition" type="xsd:integer" value="1"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="site_identifying_transition" type="xsd:string" value=""/>
       <userParam name="site_identifying_class" type="xsd:string" value=""/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
     <Transition id="454" peptideRef="78">
       <Precursor>
@@ -205,11 +205,11 @@
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="2714"/>
       <cvParam cvRef="MS" accession="MS:1002007" name="target SRM transition"/>
       <userParam name="annotation" type="xsd:string" value="b3"/>
-      <userParam name="detecting_transition" type="xsd:integer" value="1"/>
-      <userParam name="identifying_transition" type="xsd:integer" value="0"/>
+      <userParam name="detecting_transition" type="xsd:string" value="true"/>
+      <userParam name="identifying_transition" type="xsd:string" value="false"/>
       <userParam name="site_identifying_transition" type="xsd:string" value=""/>
       <userParam name="site_identifying_class" type="xsd:string" value=""/>
-      <userParam name="quantifying_transition" type="xsd:integer" value="1"/>
+      <userParam name="quantifying_transition" type="xsd:string" value="true"/>
     </Transition>
   </TransitionList>
 </TraML>
