@@ -54,6 +54,29 @@ namespace OpenMS
     defaults_.setValue("sort_blocks", "RT_ascending", "Sort blocks by <?> before merging them (useful for precursor order)", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("sort_blocks", ListUtils::create<String>("RT_ascending, RT_descending"));
 
+    // Gaussian average
+    defaults_.setValue("average_gaussian:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
+    defaults_.setValidStrings("average_gaussian:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
+    defaults_.setValue("average_gaussian:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
+    defaults_.setMinInt("average_gaussian:ms_level", 1);
+    defaults_.setValue("average_gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
+    defaults_.setMinFloat("average_gaussian:rt_FWHM", 0.0);
+    defaults_.setMaxFloat("average_gaussian:rt_FWHM", 10e10);
+    defaults_.setValue("average_gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
+    defaults_.setMinFloat("average_gaussian:cutoff", 0.0);
+    defaults_.setMaxFloat("average_gaussian:cutoff", 1.0);
+
+    // top-hat average
+    defaults_.setValue("average_tophat:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
+    defaults_.setValidStrings("average_tophat:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
+    defaults_.setValue("average_tophat:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
+    defaults_.setMinInt("average_tophat:ms_level", 1);
+    defaults_.setValue("average_tophat:rt_range", 5.0, "RT range to be averaged over, i.e. +/-(RT range)/2 from each spectrum.");
+    defaults_.setMinFloat("average_tophat:rt_range", 0.0);
+    defaults_.setMaxFloat("average_tophat:rt_range", 10e10);
+    defaults_.setValue("average_tophat:rt_unit", "scans", "Unit for RT range.");
+    defaults_.setValidStrings("average_tophat:rt_unit", ListUtils::create<String>("scans,seconds"));
+
     // block merging
     defaults_.setValue("block_method:ms_levels", ListUtils::create<Int>("1"), "Merge spectra of this level. All spectra with other MS levels remain untouched.");
     defaults_.setMinInt("block_method:ms_levels", 1);
@@ -69,25 +92,6 @@ namespace OpenMS
     defaults_.setMinFloat("precursor_method:mz_tolerance", 0);
     defaults_.setValue("precursor_method:rt_tolerance", 5.0, "Max RT distance of the precursor entries of two spectra to be merged in [s].");
     defaults_.setMinFloat("precursor_method:rt_tolerance", 0);
-
-    // Gaussian average
-    defaults_.setValue("average_gaussian:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_gaussian:ms_level", 1);
-    defaults_.setValue("average_gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
-    defaults_.setMinFloat("average_gaussian:rt_FWHM", 0.0);
-    defaults_.setMaxFloat("average_gaussian:rt_FWHM", 10e10);
-    defaults_.setValue("average_gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
-    defaults_.setMinFloat("average_gaussian:cutoff", 0.0);
-    defaults_.setMaxFloat("average_gaussian:cutoff", 1.0);
-
-    // top-hat average
-    defaults_.setValue("average_tophat:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
-    defaults_.setMinInt("average_tophat:ms_level", 1);
-    defaults_.setValue("average_tophat:rt_range", 5.0, "RT range to be averaged over, i.e. +/-(RT range)/2 from each spectrum.");
-    defaults_.setMinFloat("average_tophat:rt_range", 0.0);
-    defaults_.setMaxFloat("average_tophat:rt_range", 10e10);
-    defaults_.setValue("average_tophat:rt_unit", "scans", "Unit for RT range.");
-    defaults_.setValidStrings("average_tophat:rt_unit", ListUtils::create<String>("scans,seconds"));
 
     defaultsToParam_();
   }
