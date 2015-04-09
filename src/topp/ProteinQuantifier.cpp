@@ -333,7 +333,7 @@ protected:
 
   Param algo_params_; // parameters for PeptideAndProteinQuant algorithm
   ProteinIdentification proteins_; // protein inference results (proteins)
-  PeptideIdentification peptides_; // protein inference results (peptides)
+  vector<PeptideIdentification> peptides_; // protein inference res. (peptides)
   ConsensusMap::FileDescriptions files_; // information about files involved
   bool spectral_counting_; // quantification based on spectral counting?
 
@@ -657,20 +657,29 @@ protected:
     {
       throw Exception::RequiredParameterNotGiven(__FILE__, __LINE__,
                                                  __PRETTY_FUNCTION__,
-                                                 "out/peptide_out/mzTab_out");
+                                                 "out/peptide_out");
     }
 
     String protein_groups = getStringOption_("protein_groups");
+    if (!protein_groups.empty()) // read protein inference data
+    {
+      vector<ProteinIdentification> proteins;
+      IdXMLFile().load(protein_groups, proteins, peptides_);
+      if (proteins.empty() || 
+          proteins[0].getIndistinguishableProteins().empty())
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
+      }
+      proteins_ = proteins[0]; // inference data is attached to first ID run
+    }
 
     PeptideAndProteinQuant quantifier;
-    // algo_params_ = getParam_().copy("algorithm:", true);
     algo_params_ = quantifier.getParameters();
     Logger::LogStream nirvana; // avoid parameter update messages
     algo_params_.update(getParam_(), false, nirvana);
     // algo_params_.update(getParam_());
     quantifier.setParameters(algo_params_);
 
-    //vector<DataProcessing> processing;
     FileTypes::Type in_type = FileHandler::getType(in);
 
     if (in_type == FileTypes::FEATUREXML)
@@ -685,7 +694,7 @@ protected:
       {
         proteins_ = features.getProteinIdentifications()[0];
       }
-      quantifier.quantifyPeptides(features);
+      quantifier.readQuantData(features);
     }
     else if (in_type == FileTypes::IDXML)
     {
@@ -703,7 +712,7 @@ protected:
       {
         proteins_ = proteins[0];
       }
-      quantifier.quantifyPeptides(proteins, peptides);
+      quantifier.readQuantData(proteins, peptides);
     }
     else // consensusXML
     {
@@ -717,24 +726,12 @@ protected:
       {
         proteins_ = consensus.getProteinIdentifications()[0];
       }
-      quantifier.quantifyPeptides(consensus);
+      quantifier.readQuantData(consensus);
     }
 
+    quantifier.quantifyPeptides(peptides_); // quantify on peptide level
     if (!out.empty()) // quantify on protein level
     {
-      if (!protein_groups.empty()) // read protein inference data
-      {
-        vector<ProteinIdentification> proteins;
-        vector<PeptideIdentification> peptides;
-        IdXMLFile().load(protein_groups, proteins, peptides);
-        if (proteins.empty() || 
-            proteins[0].getIndistinguishableProteins().empty())
-        {
-          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
-        }
-        proteins_ = proteins[0]; // inference data is attached to first ID run
-        if (peptides.size() == 1) peptides_ = peptides[0];
-      }
       quantifier.quantifyProteins(proteins_);
     }
 
