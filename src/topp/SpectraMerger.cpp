@@ -104,9 +104,11 @@ protected:
 
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
     
+    registerTOPPSubsection_("algorithm:average_gaussian", "Average spectra with a Gaussian RT profile.");
     registerStringOption_("algorithm:average_gaussian:spectrum_type", "<spectrum_type>", "automatic", "Spectrum type of the MS level to be averaged", false, true);
     setValidStrings_("algorithm:average_gaussian:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
     
+    registerTOPPSubsection_("algorithm:average_tophat", "Average spectra with a top-hat RT profile.");
     registerStringOption_("algorithm:average_tophat:spectrum_type", "<spectrum_type>", "automatic", "Spectrum type of the MS level to be averaged", false, true);
     setValidStrings_("algorithm:average_tophat:spectrum_type", ListUtils::create<String>("profile,centroid,automatic"));
   }
