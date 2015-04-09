@@ -48,13 +48,22 @@ namespace OpenMS
   /**
     @brief Estimates the signal/noise (S/N) ratio of each data point in a scan by using the median (histogram based)
 
-    For each datapoint in the given scan, we collect a range of data points around it (param: <i>win_len</i>).
-    The noise for a datapoint is estimated to be the median of the intensities of the current window.
-    If the number of elements in the current window is not sufficient (param: <i>MinReqElements</i>),
-    the noise level is set to a default value (param: <i>noise_for_empty_window</i>).
-    The whole computation is histogram based, so the user will need to supply a number of bins (param: <i>bin_count</i>), which determines
-    the level of error and runtime. The maximal intensity for a datapoint to be included in the histogram can be either determined
-    automatically (params: <i>AutoMaxIntensity</i>, <i>auto_mode</i>) by two different methods or can be set directly by the user (param: <i>max_intensity</i>).
+    For each datapoint in the given scan, we collect a range of data points
+    around it (param: <i>win_len</i>).  The noise for a datapoint is estimated
+    to be the median of the intensities of the current window.  If the number
+    of elements in the current window is not sufficient (param:
+    <i>MinReqElements</i>), the noise level is set to a default value (param:
+    <i>noise_for_empty_window</i>).  The whole computation is histogram based,
+    so the user will need to supply a number of bins (param: <i>bin_count</i>),
+    which determines the level of error and runtime. The maximal intensity for
+    a datapoint to be included in the histogram can be either determined
+    automatically (params: <i>AutoMaxIntensity</i>, <i>auto_mode</i>) by two
+    different methods or can be set directly by the user (param:
+    <i>max_intensity</i>).
+    If the (estimated) <i>max_intensity</i> value is too low and the median is
+    found to be in the last (&highest) bin, a warning will be given.  In this
+    case you should increase <i>max_intensity</i> (and optionally the
+    <i>bin_count</i>).
 
     Changing any of the parameters will invalidate the S/N values (which will invoke a recomputation on the next request).
 
@@ -160,13 +169,13 @@ public:
     {}
 
     /// Returns how many percent of the windows were sparse
-    double getSparseWindowPercent() 
+    double getSparseWindowPercent() const
     {
       return sparse_window_percent_;
     }
 
     /// Returns the percentage where the median was found in the rightmost bin
-    double getHistogramRightmostPercent() 
+    double getHistogramRightmostPercent() const
     {
       return histogram_oob_percent_;
     }

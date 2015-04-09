@@ -125,9 +125,9 @@ protected:
     UInt sgolay_frame_length_;
     /// Polynomial order for the SGolay smoothing
     UInt sgolay_polynomial_order_;
-    /// Width of the gaussian smoothing
+    /// Width of the Gaussian smoothing
     double gauss_width_;
-    /// Whether to use gaussian smoothing
+    /// Whether to use Gaussian smoothing
     bool use_gauss_;
     /// Whether to resolve overlapping peaks 
     bool remove_overlapping_;
