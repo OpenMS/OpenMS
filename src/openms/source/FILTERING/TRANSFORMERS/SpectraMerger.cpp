@@ -35,6 +35,7 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 using namespace std;
 namespace OpenMS
@@ -92,7 +93,7 @@ namespace OpenMS
   }
 
   SpectraMerger::SpectraMerger(const SpectraMerger & source) :
-    DefaultParamHandler(source)
+    DefaultParamHandler(source), ProgressLogger()
   {
   }
 

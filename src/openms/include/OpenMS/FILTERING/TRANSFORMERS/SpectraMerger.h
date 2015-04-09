@@ -62,7 +62,7 @@ namespace OpenMS
 
 */
   class OPENMS_DLLAPI SpectraMerger :
-    public DefaultParamHandler
+    public DefaultParamHandler, public ProgressLogger
   {
 
 protected:
@@ -639,15 +639,14 @@ protected:
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
 
       unsigned progress = 0;
-      ProgressLogger logger;
       std::stringstream progress_message;
       progress_message << "averaging profile spectra of MS level " << ms_level;
-      logger.startProgress(0, spectra_to_average_over.size(), progress_message.str());
+      startProgress(0, spectra_to_average_over.size(), progress_message.str());
 
       // loop over blocks
       for (AverageBlocks::ConstIterator it = spectra_to_average_over.begin(); it != spectra_to_average_over.end(); ++it)
       {
-        logger.setProgress(++progress);
+        setProgress(++progress);
 
         // loop over spectra in blocks
         std::vector<double> mz_positions_all; // m/z positions from all spectra
@@ -715,7 +714,7 @@ protected:
         exp_tmp.addSpectrum(average_spec);
       }
 
-      logger.endProgress();
+      endProgress();
 
       // loop over blocks
       int n(0);
