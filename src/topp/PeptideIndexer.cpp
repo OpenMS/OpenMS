@@ -929,6 +929,13 @@ protected:
             seq = proteins[acc_to_prot[acc]].sequence;
           }
           p_hit->setSequence(seq);
+          
+          if (write_protein_description)
+          {
+            const String& description = proteins[acc_to_prot[acc]].description;
+            p_hit->setMetaValue("Description", description);
+          }
+          
           new_protein_hits.push_back(*p_hit);
           masterset.erase(acc_to_prot[acc]); // remove from master (at the end only new proteins remain)
         }
@@ -950,6 +957,12 @@ protected:
         {
           hit.setSequence(proteins[*it].sequence);
         }
+        
+        if (write_protein_description)
+        {
+          hit.setMetaValue("Description", proteins[*it].description);
+        }
+        
         new_protein_hits.push_back(hit);
         ++stats_new_proteins;
       }
