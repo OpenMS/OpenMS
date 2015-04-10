@@ -229,6 +229,12 @@ namespace OpenMS
     //add data dir in OpenMS data path
     directories.push_back(getOpenMSDataPath());
 
+    //add root dir
+    directories.push_back('/');
+
+    //add relative dir
+    directories.push_back('./');
+
     //add path suffix to all specified directories
     String path = File::path(filename);
     if (path != "")

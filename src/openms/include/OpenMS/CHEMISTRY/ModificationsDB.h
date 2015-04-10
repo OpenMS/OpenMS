@@ -80,6 +80,16 @@ public:
       return db_;
     }
 
+    inline static ModificationsDB * getCustomInstance(OpenMS::String unimod_file, OpenMS::String psimod_file)
+    {
+      static ModificationsDB * db_ = 0;
+      if (db_ == 0)
+      {
+        db_ = new ModificationsDB(unimod_file, psimod_file);
+      }
+      return db_;
+    }
+
     /// returns the number of modifications read from the unimod.xml file
     Size getNumberOfModifications() const;
 
@@ -190,6 +200,8 @@ private:
     //@{
     /// default constructor
     ModificationsDB();
+
+    ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file);
 
     ///copy constructor
     ModificationsDB(const ModificationsDB & residue_db);

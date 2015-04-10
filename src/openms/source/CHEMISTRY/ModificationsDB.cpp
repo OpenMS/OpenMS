@@ -56,6 +56,18 @@ namespace OpenMS
     readFromOBOFile("CHEMISTRY/PSI-MOD.obo");
   }
 
+  ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file)
+  {
+    if (unimod_file != OpenMS::String(""))
+    {
+      readFromUnimodXMLFile(unimod_file);
+    }
+    if (psimod_file != OpenMS::String(""))
+    {
+      readFromOBOFile(psimod_file);
+    }
+  }
+
   ModificationsDB::~ModificationsDB()
   {
     modification_names_.clear();
