@@ -1159,6 +1159,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length", 11);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks", "true");
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false"); // no log messages
       // TODO it seems that the legacy method produces slightly larger peaks, e.g. it will not cut off peaks too early
       // however the same can be achieved by using a relatively low SN cutoff in the -Scoring:TransitionGroupPicker:PeakPickerMRM:signal_to_noise 0.5
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks_max_z", 0.75);
@@ -1172,7 +1173,6 @@ protected:
       // EMG Scoring - turn off by default since it is very CPU-intensive
       feature_finder_param.remove("Scores:use_elution_model_score");
       feature_finder_param.setValue("EMGScoring:max_iteration", 10);
-      feature_finder_param.setValue("EMGScoring:deltaRelError", 0.1);
       feature_finder_param.remove("EMGScoring:interpolation_step");
       feature_finder_param.remove("EMGScoring:tolerance_stdev_bounding_box");
       feature_finder_param.remove("EMGScoring:deltaAbsError");
