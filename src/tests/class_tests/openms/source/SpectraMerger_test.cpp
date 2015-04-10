@@ -154,11 +154,12 @@ START_SECTION((template < typename MapType > void averageGaussian(MapType &exp))
   p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
 
   // same precursor MS/MS merging
+ 	p.setValue("average_gaussian:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
  	p.setValue("average_gaussian:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
   p.setValue("average_gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
   p.setValue("average_gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
   merger.setParameters(p);
-  merger.average(exp,"automatic","gaussian");
+  merger.average(exp,"gaussian");
 
   PeakMap exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_output_3.mzML"), exp2);
@@ -186,11 +187,12 @@ START_SECTION((template < typename MapType > void averageGaussian(MapType &exp))
   p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
 
   // same precursor MS/MS merging
+ 	p.setValue("average_gaussian:spectrum_type", "automatic", "Spectrum type of the MS level to be averaged");
  	p.setValue("average_gaussian:ms_level", 1, "Average spectra of this level. All other spectra remain unchanged.");
   p.setValue("average_gaussian:rt_FWHM", 5.0, "FWHM of Gauss curve in seconds to be averaged over.");
   p.setValue("average_gaussian:cutoff", 0.01, "Intensity cutoff for Gaussian. The Gaussian RT profile decreases from 1 at its apex to 0 at infinity. Spectra for which the intensity of the Gaussian drops below the cutoff do not contribute to the average.", ListUtils::create<String>("advanced"));
   merger.setParameters(p);
-  merger.average(exp,"automatic","gaussian");
+  merger.average(exp,"gaussian");
 
   PeakMap exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_output_4.mzML"), exp2);

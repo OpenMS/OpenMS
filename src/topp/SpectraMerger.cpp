@@ -147,11 +147,11 @@ protected:
     }
     else if (merging_method == "average_gaussian")
     {
-      merger.average(exp, getStringOption_("algorithm:average_gaussian:spectrum_type"), "gaussian");
+      merger.average(exp, "gaussian");
     }
     else if (merging_method == "average_tophat")
     {
-      merger.average(exp, getStringOption_("algorithm:average_tophat:spectrum_type"), "tophat");
+      merger.average(exp, "tophat");
     }
 
     //-------------------------------------------------------------

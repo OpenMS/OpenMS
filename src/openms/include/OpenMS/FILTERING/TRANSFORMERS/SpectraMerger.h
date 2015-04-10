@@ -288,17 +288,23 @@ public:
      * @brief average over neighbouring spectra
      *
      * @param exp   experimental data to be averaged
-     * @param spectrum_type    spectrum type of MS level to be averaged ("profile", "centroid" or "automatic")
      * @param average_type    averaging type to be used ("gaussian" or "tophat")
      */
     template <typename MapType>
-    void average(MapType& exp, String spectrum_type, String average_type)
+    void average(MapType& exp, String average_type)
     {
       // MS level to be averaged
       int ms_level = param_.getValue("average_gaussian:ms_level");
       if (average_type == "tophat")
       {
         ms_level = param_.getValue("average_tophat:ms_level");
+      }
+      
+      // spectrum type (profile, centroid or automatic)
+      String spectrum_type = param_.getValue("average_gaussian:spectrum_type");
+      if (average_type == "tophat")
+      {
+        spectrum_type = param_.getValue("average_tophat:spectrum_type");
       }
 
       // parameters for Gaussian averaging
