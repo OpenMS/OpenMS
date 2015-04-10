@@ -140,6 +140,9 @@ public:
 
     /// returns the accession of the protein
     const String & getAccession() const;
+    
+    /// returns the description of the protein
+    const String & getDescription() const;
 
     /// returns the coverage (in percent) of the protein hit based upon matched peptides
     double getCoverage() const;
@@ -155,6 +158,9 @@ public:
 
     /// sets the accession of the protein
     void setAccession(const String & accession);
+
+    /// sets the description of the protein
+    void setDescription(const String & description);
 
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
     void setCoverage(const double coverage);

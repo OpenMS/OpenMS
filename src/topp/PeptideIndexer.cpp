@@ -933,7 +933,7 @@ protected:
           if (write_protein_description)
           {
             const String& description = proteins[acc_to_prot[acc]].description;
-            p_hit->setMetaValue("Description", description);
+            p_hit->setDescription(description);
           }
           
           new_protein_hits.push_back(*p_hit);
@@ -960,7 +960,7 @@ protected:
         
         if (write_protein_description)
         {
-          hit.setMetaValue("Description", proteins[*it].description);
+          hit.setDescription(proteins[*it].description);
         }
         
         new_protein_hits.push_back(hit);
