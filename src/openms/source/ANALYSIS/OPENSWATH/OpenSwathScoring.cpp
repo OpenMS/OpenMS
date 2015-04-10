@@ -163,6 +163,38 @@ namespace OpenMS
     }
   }
 
+  void OpenSwathScoring::calculateChromatographicIdScores(
+        OpenSwath::IMRMFeature* imrmfeature,
+        const std::vector<std::string>& native_ids_identification,
+        const std::vector<std::string>& native_ids_detection,
+        std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+        OpenSwath_Scores & idscores)
+  { 
+    OpenSwath::MRMScoring mrmscore_;
+    mrmscore_.initializeXCorrIdMatrix(imrmfeature, native_ids_identification, native_ids_detection);
+
+    if (su_.use_coelution_score_)
+    {
+      idscores.xcorr_coelution_score = mrmscore_.calcXcorrIdCoelutionScore();
+      idscores.min_xcorr_coelution_score = mrmscore_.calcMinXcorrIdCoelutionScore();
+    }
+
+    if (su_.use_shape_score_)
+    {
+      idscores.xcorr_shape_score = mrmscore_.calcXcorrIdShape_score();
+      idscores.max_xcorr_shape_score = mrmscore_.calcMaxXcorrIdShape_score();
+    }
+
+    // Signal to noise scoring
+    if (su_.use_sn_score_)
+    {
+      idscores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
+      // everything below S/N 1 can be set to zero (and the log safely applied)
+      if (idscores.sn_ratio < 1) { idscores.log_sn_score = 0; }
+      else { idscores.log_sn_score = std::log(idscores.sn_ratio); }
+    }
+  }
+
   void OpenSwathScoring::calculateLibraryScores(
         OpenSwath::IMRMFeature* imrmfeature,
         const std::vector<TransitionType> & transitions,

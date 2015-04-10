@@ -44,6 +44,9 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
+#include <boost/range/adaptor/map.hpp>
+#include <boost/foreach.hpp>
+
 #define run_identifier "unique_run_identifier"
 
 bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
@@ -91,6 +94,8 @@ namespace OpenMS
     defaults_.setMinInt("add_up_spectra", 1);
     defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
+    defaults_.setValue("num_uis_transitions", 6, "Number of UIS transitions used for proteoform identification scoring.");
+    defaults_.setMinInt("num_uis_transitions", 2);
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -124,6 +129,10 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_ms1_correlation", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_ms1_fullscan", "false", "Use the full MS1 scan at the peak apex for scoring (ppm accuracy of precursor and isotopic pattern)", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_ms1_fullscan", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_uis_scores", "false", "Use UIS scores for proteoform identification ", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_uis_scores", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_site_scores", "false", "Use site-specific scores for proteoform identification ", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_site_scores", ListUtils::create<String>("true,false"));
     defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_
@@ -230,10 +239,454 @@ namespace OpenMS
     }
   }
 
+  void MRMFeatureFinderScoring::splitTransitionGroupsDetection_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_detection)
+  {
+    transition_group_detection.setTransitionGroupID(transition_group.getTransitionGroupID());
+
+    std::vector<TransitionType> tr = transition_group.getTransitions();
+    for (std::vector<TransitionType>::const_iterator tr_it = tr.begin(); tr_it != tr.end(); tr_it++)
+    {
+      if (tr_it->isDetectingTransition())
+      {
+        transition_group_detection.addTransition(*tr_it, tr_it->getNativeID());
+        transition_group_detection.addChromatogram(transition_group.getChromatogram(tr_it->getNativeID()), tr_it->getNativeID());
+      }
+    }
+
+    std::vector< MRMFeature > tgf = transition_group.getFeatures();
+    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); tgf_it++)
+    {
+      MRMFeature mf;
+      mf.setIntensity(tgf_it->getIntensity());
+      mf.setRT(tgf_it->getRT());
+      std::vector<String> metavalues;
+      tgf_it->getKeys(metavalues);
+      for (std::vector<String>::iterator key_it = metavalues.begin(); key_it != metavalues.end(); key_it++)
+      {
+        mf.setMetaValue(*key_it,tgf_it->getMetaValue(*key_it));
+      }
+      for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); tr_it++)
+      {
+        if (tr_it->isDetectingTransition())
+        {
+          mf.addFeature(tgf_it->getFeature(tr_it->getNativeID()),tr_it->getNativeID());
+        }
+      }
+      std::vector<String> pf_ids;
+      tgf_it->getPrecursorFeatureIDs(pf_ids);
+      for (std::vector<String>::iterator pf_ids_it = pf_ids.begin(); pf_ids_it != pf_ids.end(); pf_ids_it++)
+      {
+        mf.addPrecursorFeature(tgf_it->getPrecursorFeature(*pf_ids_it),*pf_ids_it);
+      }
+      transition_group_detection.addFeature(mf);
+    }
+  }
+
+  void MRMFeatureFinderScoring::splitTransitionGroupsIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_identification, MRMTransitionGroupType& transition_group_identification_decoy)
+  {
+    transition_group_identification.setTransitionGroupID(transition_group.getTransitionGroupID());
+    transition_group_identification_decoy.setTransitionGroupID(transition_group.getTransitionGroupID());
+
+    std::vector< MRMFeature > tgf = transition_group.getFeaturesMuteable();
+    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); tgf_it++)
+    {
+      transition_group_identification.addFeature(*tgf_it);
+      transition_group_identification_decoy.addFeature(*tgf_it);
+    }
+
+    std::vector<TransitionType> tr = transition_group.getTransitions();
+    for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); tr_it++)
+    {
+      if (tr_it->identifying_transition)
+      {
+        if (tr_it->decoy)
+        {
+          transition_group_identification_decoy.addTransition(*tr_it, tr_it->getNativeID());
+          transition_group_identification_decoy.addChromatogram(transition_group.getChromatogram(tr_it->getNativeID()), tr_it->getNativeID());
+        }
+        else
+        {
+          transition_group_identification.addTransition(*tr_it, tr_it->getNativeID());
+          transition_group_identification.addChromatogram(transition_group.getChromatogram(tr_it->getNativeID()), tr_it->getNativeID());
+        }
+      }
+    }
+  }
+
+  void MRMFeatureFinderScoring::splitTransitionGroupsSiteIdentification_(MRMTransitionGroupType& transition_group, MRMTransitionGroupType& transition_group_site_identification, MRMTransitionGroupType& transition_group_site_identification_decoy, std::map<size_t, std::map<String, std::vector<String> > >& site_identifying_index, std::map<size_t, std::map<String, std::vector<String> > >& site_identifying_decoy_index)
+  {
+    transition_group_site_identification.setTransitionGroupID(transition_group.getTransitionGroupID());
+    transition_group_site_identification_decoy.setTransitionGroupID(transition_group.getTransitionGroupID());
+
+    std::vector< MRMFeature > tgf = transition_group.getFeaturesMuteable();
+    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); tgf_it++)
+    {
+      transition_group_site_identification.addFeature(*tgf_it);
+      transition_group_site_identification_decoy.addFeature(*tgf_it);
+    }
+
+    std::vector<TransitionType> tr = transition_group.getTransitions();
+    for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); tr_it++)
+    {
+      std::vector<int> site_identifying_transition = tr_it->site_identifying_transition;
+      std::vector<std::string> site_identifying_class = tr_it->site_identifying_class;
+
+      if (site_identifying_transition.size() > 0)
+      {
+        for (size_t sa_it = 0; sa_it < site_identifying_transition.size(); sa_it++)
+        {
+          if (tr_it->decoy)
+          {
+            if (site_identifying_decoy_index.find(site_identifying_transition[sa_it]) == site_identifying_decoy_index.end())
+            {
+              site_identifying_decoy_index[site_identifying_transition[sa_it]];
+            }
+
+            if (site_identifying_decoy_index[site_identifying_transition[sa_it]].find(site_identifying_class[sa_it]) == site_identifying_decoy_index[site_identifying_transition[sa_it]].end())
+            {
+              site_identifying_decoy_index[site_identifying_transition[sa_it]][site_identifying_class[sa_it]];
+            }
+
+            site_identifying_decoy_index[site_identifying_transition[sa_it]][site_identifying_class[sa_it]].push_back(tr_it->getNativeID());
+            transition_group_site_identification_decoy.addTransition(*tr_it, tr_it->getNativeID());
+            transition_group_site_identification_decoy.addChromatogram(transition_group.getChromatogram(tr_it->getNativeID()), tr_it->getNativeID());
+          }
+          else
+          {
+            if (site_identifying_index.find(site_identifying_transition[sa_it]) == site_identifying_index.end())
+            {
+              site_identifying_index[site_identifying_transition[sa_it]];
+            }
+
+            if (site_identifying_index[site_identifying_transition[sa_it]].find(site_identifying_class[sa_it]) == site_identifying_index[site_identifying_transition[sa_it]].end())
+            {
+              site_identifying_index[site_identifying_transition[sa_it]][site_identifying_class[sa_it]];
+            }
+
+            site_identifying_index[site_identifying_transition[sa_it]][site_identifying_class[sa_it]].push_back(tr_it->getNativeID());
+            transition_group_site_identification.addTransition(*tr_it, tr_it->getNativeID());
+            transition_group_site_identification.addChromatogram(transition_group.getChromatogram(tr_it->getNativeID()), tr_it->getNativeID());
+          }
+        }
+      }
+    }
+  }
+
+  OpenSwath_Scores MRMFeatureFinderScoring::scoreIdentification_(MRMTransitionGroupType& transition_group_identification, OpenSwathScoring& scorer, const size_t feature_idx, const std::vector<std::string> native_ids_detection, const double sn_win_len_, const unsigned int sn_bin_count_, bool write_log_messages)
+  {
+    typedef MRMTransitionGroupType::PeakType PeakT;
+    MRMFeature idmrmfeature = transition_group_identification.getFeaturesMuteable()[feature_idx];
+    OpenSwath::IMRMFeature* idimrmfeature;
+    idimrmfeature = new MRMFeatureOpenMS(idmrmfeature);  
+
+    std::vector<std::string> native_ids_identification;
+    std::vector<double> signal_noise_identification;
+    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_identification;
+
+    for (Size i = 0; i < transition_group_identification.size(); i++)
+    {
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()), sn_win_len_, sn_bin_count_, write_log_messages));
+      signal_noise_identification.push_back(snptr->getValueAtRT(idmrmfeature.getRT()));
+    }
+
+    std::sort(signal_noise_identification.begin(), signal_noise_identification.end(), std::greater<double>());
+    if (signal_noise_identification.size() >= num_uis_transitions_)
+    {
+      std::vector<double>::iterator signal_noise_identification_start_delete = signal_noise_identification.begin();
+      std::advance(signal_noise_identification_start_delete, num_uis_transitions_);
+      signal_noise_identification.erase(signal_noise_identification_start_delete, signal_noise_identification.end());
+    }
+
+    for (Size i = 0; i < transition_group_identification.size(); i++)
+    {
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_identification.getChromatogram(transition_group_identification.getTransitions()[i].getNativeID()), sn_win_len_, sn_bin_count_, write_log_messages));
+      if (std::find(signal_noise_identification.begin(),signal_noise_identification.end(), snptr->getValueAtRT(idmrmfeature.getRT())) != signal_noise_identification.end() && snptr->getValueAtRT(idmrmfeature.getRT()) > 0)
+      {
+        signal_noise_estimators_identification.push_back(snptr);
+        native_ids_identification.push_back(transition_group_identification.getTransitions()[i].getNativeID());
+      }
+    }
+
+
+    OpenSwath_Scores idscores;
+
+    if (native_ids_identification.size() > 0)
+    {
+      scorer.calculateChromatographicIdScores(idimrmfeature, native_ids_identification, native_ids_detection, signal_noise_estimators_identification, idscores);
+
+      idscores.id_num_transitions = native_ids_identification.size();
+      idscores.elution_model_fit_score = emgscoring_.calcElutionFitScore(idmrmfeature, transition_group_identification);
+    }
+
+    delete idimrmfeature;
+
+    return idscores;
+  }
+
+  boost::unordered_map<String, String> MRMFeatureFinderScoring::scoreSiteIdentification_(MRMTransitionGroupType& transition_group_site_identification, std::map<size_t, std::map<String, std::vector<String> > >& site_identifying_index, OpenSwathScoring& scorer, const size_t feature_idx, const std::vector<std::string> native_ids_detection, const double sn_win_len_, const unsigned int sn_bin_count_, bool write_log_messages)
+  {
+    boost::unordered_map<String, String> sidscores;
+    typedef MRMTransitionGroupType::PeakType PeakT;
+    MRMFeature sidmrmfeature = transition_group_site_identification.getFeaturesMuteable()[feature_idx];
+    OpenSwath::IMRMFeature* sidimrmfeature;
+    sidimrmfeature = new MRMFeatureOpenMS(sidmrmfeature);
+    MRMTransitionGroupType transition_group_site_identification_fwddiag, transition_group_site_identification_fwdnext, transition_group_site_identification_revdiag, transition_group_site_identification_revnext;
+
+    BOOST_FOREACH(const key_t key, site_identifying_index | boost::adaptors::map_keys)
+    {
+      std::vector<std::string> native_ids_site_identification_fwddiag, native_ids_site_identification_fwdnext, native_ids_site_identification_revdiag, native_ids_site_identification_revnext;
+      std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators_fwddiag, signal_noise_estimators_fwdnext, signal_noise_estimators_revdiag, signal_noise_estimators_revnext;
+
+      MRMTransitionGroupType transition_group_site_identification_fwddiag, transition_group_site_identification_fwdnext, transition_group_site_identification_revdiag, transition_group_site_identification_revnext;
+  
+      transition_group_site_identification_fwddiag.setTransitionGroupID(transition_group_site_identification.getTransitionGroupID());
+      transition_group_site_identification_fwdnext.setTransitionGroupID(transition_group_site_identification.getTransitionGroupID());
+      transition_group_site_identification_revdiag.setTransitionGroupID(transition_group_site_identification.getTransitionGroupID());
+      transition_group_site_identification_revnext.setTransitionGroupID(transition_group_site_identification.getTransitionGroupID());
+  
+      std::vector< MRMFeature > tgf = transition_group_site_identification.getFeaturesMuteable();
+      for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); tgf_it++)
+      {
+        transition_group_site_identification_fwddiag.addFeature(*tgf_it);
+        transition_group_site_identification_fwdnext.addFeature(*tgf_it);
+        transition_group_site_identification_revdiag.addFeature(*tgf_it);
+        transition_group_site_identification_revnext.addFeature(*tgf_it);
+      }
+
+      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("fwddiag")].begin(); n_it != site_identifying_index[key][String("fwddiag")].end(); n_it++)
+      {
+        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_site_identification.getChromatogram(*n_it), sn_win_len_, sn_bin_count_, write_log_messages));
+
+        if (snptr->getValueAtRT(sidmrmfeature.getRT()) > 0)
+        {
+          signal_noise_estimators_fwddiag.push_back(snptr);
+          native_ids_site_identification_fwddiag.push_back(*n_it);
+          transition_group_site_identification_fwddiag.addTransition(transition_group_site_identification.getTransition(*n_it), *n_it);
+          transition_group_site_identification_fwddiag.addChromatogram(transition_group_site_identification.getChromatogram(*n_it), *n_it);
+        }
+      }   
+      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("fwdnext")].begin(); n_it != site_identifying_index[key][String("fwdnext")].end(); n_it++)
+      {
+        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_site_identification.getChromatogram(*n_it), sn_win_len_, sn_bin_count_, write_log_messages));
+
+        if (snptr->getValueAtRT(sidmrmfeature.getRT()) > 0)
+        {
+          signal_noise_estimators_fwdnext.push_back(snptr);
+          native_ids_site_identification_fwdnext.push_back(*n_it);
+          transition_group_site_identification_fwdnext.addTransition(transition_group_site_identification.getTransition(*n_it), *n_it);
+          transition_group_site_identification_fwdnext.addChromatogram(transition_group_site_identification.getChromatogram(*n_it), *n_it);
+        }
+      }   
+      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("revdiag")].begin(); n_it != site_identifying_index[key][String("revdiag")].end(); n_it++)
+      {
+        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_site_identification.getChromatogram(*n_it), sn_win_len_, sn_bin_count_, write_log_messages));
+
+        if (snptr->getValueAtRT(sidmrmfeature.getRT()) > 0)
+        {
+          signal_noise_estimators_revdiag.push_back(snptr);
+          native_ids_site_identification_revdiag.push_back(*n_it);
+          transition_group_site_identification_revdiag.addTransition(transition_group_site_identification.getTransition(*n_it), *n_it);
+          transition_group_site_identification_revdiag.addChromatogram(transition_group_site_identification.getChromatogram(*n_it), *n_it);
+        }
+      }   
+      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("revnext")].begin(); n_it != site_identifying_index[key][String("revnext")].end(); n_it++)
+      {
+        OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_site_identification.getChromatogram(*n_it), sn_win_len_, sn_bin_count_, write_log_messages));
+
+        if (snptr->getValueAtRT(sidmrmfeature.getRT()) > 0)
+        {
+          signal_noise_estimators_revnext.push_back(snptr);
+          native_ids_site_identification_revnext.push_back(*n_it);
+          transition_group_site_identification_revnext.addTransition(transition_group_site_identification.getTransition(*n_it), *n_it);
+          transition_group_site_identification_revnext.addChromatogram(transition_group_site_identification.getChromatogram(*n_it), *n_it);
+        }
+      }
+
+      OpenSwath_Scores sidscores_fwddiag, sidscores_fwdnext, sidscores_revdiag, sidscores_revnext;
+
+      if (native_ids_site_identification_fwddiag.size() > 0)
+      {
+        scorer.calculateChromatographicIdScores(sidimrmfeature, native_ids_site_identification_fwddiag, native_ids_detection, signal_noise_estimators_fwddiag, sidscores_fwddiag);
+        sidscores_fwddiag.elution_model_fit_score = emgscoring_.calcElutionFitScore(sidmrmfeature, transition_group_site_identification_fwddiag);
+      }
+      if (native_ids_site_identification_fwdnext.size() > 0)
+      {
+        scorer.calculateChromatographicIdScores(sidimrmfeature, native_ids_site_identification_fwdnext, native_ids_detection, signal_noise_estimators_fwdnext, sidscores_fwdnext);
+        sidscores_fwdnext.elution_model_fit_score = emgscoring_.calcElutionFitScore(sidmrmfeature, transition_group_site_identification_fwdnext);
+      }
+      if (native_ids_site_identification_revdiag.size() > 0)
+      {
+        scorer.calculateChromatographicIdScores(sidimrmfeature, native_ids_site_identification_revdiag, native_ids_detection, signal_noise_estimators_revdiag, sidscores_revdiag);
+        sidscores_revdiag.elution_model_fit_score = emgscoring_.calcElutionFitScore(sidmrmfeature, transition_group_site_identification_revdiag);
+      }
+      if (native_ids_site_identification_revnext.size() > 0)
+      {
+        scorer.calculateChromatographicIdScores(sidimrmfeature, native_ids_site_identification_revnext, native_ids_detection, signal_noise_estimators_revnext, sidscores_revnext);
+        sidscores_revnext.elution_model_fit_score = emgscoring_.calcElutionFitScore(sidmrmfeature, transition_group_site_identification_revnext);
+      }
+
+      std::vector<int> xcorr_coelution, min_xcorr_coelution;
+      std::vector<double> xcorr_shape, max_xcorr_shape, log_sn, elution_model_fit_score;
+
+      if (native_ids_site_identification_fwddiag.size() > 0 && native_ids_site_identification_revdiag.size() > 0)
+      {
+        xcorr_coelution.push_back(sidscores_fwddiag.xcorr_coelution_score + sidscores_revdiag.xcorr_coelution_score);
+        min_xcorr_coelution.push_back(sidscores_fwddiag.min_xcorr_coelution_score + sidscores_revdiag.min_xcorr_coelution_score);
+        xcorr_shape.push_back(sidscores_fwddiag.xcorr_shape_score + sidscores_revdiag.xcorr_shape_score);
+        max_xcorr_shape.push_back(sidscores_fwddiag.max_xcorr_shape_score + sidscores_revdiag.max_xcorr_shape_score);
+        log_sn.push_back(sidscores_fwddiag.log_sn_score + sidscores_revdiag.log_sn_score);
+        elution_model_fit_score.push_back(sidscores_fwddiag.elution_model_fit_score + sidscores_revdiag.elution_model_fit_score);
+      }
+      if (native_ids_site_identification_fwddiag.size() > 0 && native_ids_site_identification_fwdnext.size() > 0)
+      {
+        xcorr_coelution.push_back(sidscores_fwddiag.xcorr_coelution_score + sidscores_fwdnext.xcorr_coelution_score);
+        min_xcorr_coelution.push_back(sidscores_fwddiag.min_xcorr_coelution_score + sidscores_fwdnext.min_xcorr_coelution_score);
+        xcorr_shape.push_back(sidscores_fwddiag.xcorr_shape_score + sidscores_fwdnext.xcorr_shape_score);
+        max_xcorr_shape.push_back(sidscores_fwddiag.max_xcorr_shape_score + sidscores_fwdnext.max_xcorr_shape_score);
+        log_sn.push_back(sidscores_fwddiag.log_sn_score + sidscores_fwdnext.log_sn_score);
+        elution_model_fit_score.push_back(sidscores_fwddiag.elution_model_fit_score + sidscores_fwdnext.elution_model_fit_score);
+      }
+      if (native_ids_site_identification_revdiag.size() > 0 && native_ids_site_identification_revnext.size() > 0)
+      {
+        xcorr_coelution.push_back(sidscores_revdiag.xcorr_coelution_score + sidscores_revnext.xcorr_coelution_score);
+        min_xcorr_coelution.push_back(sidscores_revdiag.min_xcorr_coelution_score + sidscores_revnext.min_xcorr_coelution_score);
+        xcorr_shape.push_back(sidscores_revdiag.xcorr_shape_score + sidscores_revnext.xcorr_shape_score);
+        max_xcorr_shape.push_back(sidscores_revdiag.max_xcorr_shape_score + sidscores_revnext.max_xcorr_shape_score);
+        log_sn.push_back(sidscores_revdiag.log_sn_score + sidscores_revnext.log_sn_score);
+        elution_model_fit_score.push_back(sidscores_revdiag.elution_model_fit_score + sidscores_revnext.elution_model_fit_score);
+      }
+
+      sidscores["sid_num_transitions"] += String(key) + ":" + String(native_ids_site_identification_fwddiag.size()) + "_" + String(native_ids_site_identification_fwdnext.size()) + "_" + String(native_ids_site_identification_revdiag.size()) + "_" + String(native_ids_site_identification_revnext.size()) + ";";
+      if (xcorr_coelution.size() > 0) {sidscores["sid_xcorr_coelution"] += String(key) + ":" + String(*std::min_element(xcorr_coelution.begin(), xcorr_coelution.end())) + ";";}
+      else {sidscores["sid_xcorr_coelution"] += String(key) + ":;";}
+      if (min_xcorr_coelution.size() > 0) {sidscores["sid_min_xcorr_coelution"] += String(key) + ":" + String(*std::min_element(min_xcorr_coelution.begin(), min_xcorr_coelution.end())) + ";";}
+      else {sidscores["sid_min_xcorr_coelution"] += String(key) + ":;";}
+      if (xcorr_shape.size() > 0) {sidscores["sid_xcorr_shape"] += String(key) + ":" + String(*std::max_element(xcorr_shape.begin(), xcorr_shape.end())) + ";";}
+      else {sidscores["sid_xcorr_shape"] += String(key) + ":;";}
+      if (max_xcorr_shape.size() > 0) {sidscores["sid_max_xcorr_shape"] += String(key) + ":" + String(*std::max_element(max_xcorr_shape.begin(), max_xcorr_shape.end())) + ";";}
+      else {sidscores["sid_max_xcorr_shape"] += String(key) + ":;";}
+      if (log_sn.size() > 0) {sidscores["sid_log_sn_score"] += String(key) + ":" + String(*std::max_element(log_sn.begin(), log_sn.end())) + ";";}
+      else {sidscores["sid_log_sn_score"] += String(key) + ":;";}
+      if (elution_model_fit_score.size() > 0) {sidscores["sid_elution_model_fit_score"] += String(key) + ":" + String(*std::max_element(elution_model_fit_score.begin(), elution_model_fit_score.end())) + ";";}
+      else {sidscores["sid_elution_model_fit_score"] += String(key) + ":;";}
+
+      if (native_ids_site_identification_fwddiag.size() > 0 && native_ids_site_identification_revdiag.size() > 0)
+      {
+        sidscores["sid_xcorr_coelution_diag"] += String(key) + ":" + (sidscores_fwddiag.xcorr_coelution_score + sidscores_revdiag.xcorr_coelution_score) + ";";
+        sidscores["sid_min_xcorr_coelution_diag"] += String(key) + ":" + (sidscores_fwddiag.min_xcorr_coelution_score + sidscores_revdiag.min_xcorr_coelution_score) + ";";
+        sidscores["sid_xcorr_shape_diag"] += String(key) + ":" + (sidscores_fwddiag.xcorr_shape_score + sidscores_revdiag.xcorr_shape_score) + ";";
+        sidscores["sid_max_xcorr_shape_diag"] += String(key) + ":" + (sidscores_fwddiag.max_xcorr_shape_score + sidscores_revdiag.max_xcorr_shape_score) + ";";
+        sidscores["sid_log_sn_diag"] += String(key) + ":" + (sidscores_fwddiag.log_sn_score + sidscores_revdiag.log_sn_score) + ";";
+        sidscores["sid_elution_model_fit_diag"] += String(key) + ":" + (sidscores_fwddiag.elution_model_fit_score + sidscores_revdiag.elution_model_fit_score) + ";";
+      }
+      else
+      {
+        sidscores["sid_xcorr_coelution_diag"] += String(key) + ":;";
+        sidscores["sid_min_xcorr_coelution_diag"] += String(key) + ":;";
+        sidscores["sid_xcorr_shape_diag"] += String(key) + ":;";
+        sidscores["sid_max_xcorr_shape_diag"] += String(key) + ":;";
+        sidscores["sid_log_sn_diag"] += String(key) +  ":;";
+        sidscores["sid_elution_model_fit_diag"] += String(key) + ":;";
+      }
+
+      if (native_ids_site_identification_fwddiag.size() > 0)
+      {
+        sidscores["sid_xcorr_coelution_fwddiag"] += String(key) + ":" + sidscores_fwddiag.xcorr_coelution_score + ";";
+        sidscores["sid_min_xcorr_coelution_fwddiag"] += String(key) + ":" + sidscores_fwddiag.min_xcorr_coelution_score + ";";
+        sidscores["sid_xcorr_shape_fwddiag"] += String(key) + ":" + sidscores_fwddiag.xcorr_shape_score + ";";
+        sidscores["sid_max_xcorr_shape_fwddiag"] += String(key) + ":" + sidscores_fwddiag.max_xcorr_shape_score + ";";
+        sidscores["sid_log_sn_fwddiag"] += String(key) + ":" + sidscores_fwddiag.log_sn_score + ";";
+        sidscores["sid_elution_model_fit_fwddiag"] += String(key) + ":" + sidscores_fwddiag.elution_model_fit_score + ";";
+      }
+      else
+      {
+        sidscores["sid_xcorr_coelution_fwddiag"] += String(key) + ":;";
+        sidscores["sid_min_xcorr_coelution_fwddiag"] += String(key) + ":;";
+        sidscores["sid_xcorr_shape_fwddiag"] += String(key) + ":;";
+        sidscores["sid_max_xcorr_shape_fwddiag"] += String(key) + ":;";
+        sidscores["sid_log_sn_fwddiag"] += String(key) + ":;";
+        sidscores["sid_elution_model_fit_fwddiag"] += String(key) + ":;";
+      }
+
+      if (native_ids_site_identification_fwdnext.size() > 0)
+      {
+        sidscores["sid_xcorr_coelution_fwdnext"] += String(key) + ":" + sidscores_fwdnext.xcorr_coelution_score + ";";
+        sidscores["sid_min_xcorr_coelution_fwdnext"] += String(key) + ":" + sidscores_fwdnext.min_xcorr_coelution_score + ";";
+        sidscores["sid_xcorr_shape_fwdnext"] += String(key) + ":" + sidscores_fwdnext.xcorr_shape_score + ";";
+        sidscores["sid_max_xcorr_shape_fwdnext"] += String(key) + ":" + sidscores_fwdnext.max_xcorr_shape_score + ";";
+        sidscores["sid_log_sn_fwdnext"] += String(key) + ":" + sidscores_fwdnext.log_sn_score + ";";
+        sidscores["sid_elution_model_fit_fwdnext"] += String(key) + ":" + sidscores_fwdnext.elution_model_fit_score + ";";
+      }
+      else
+      {
+        sidscores["sid_xcorr_coelution_fwdnext"] += String(key) + ":;";
+        sidscores["sid_min_xcorr_coelution_fwdnext"] += String(key) + ":;";
+        sidscores["sid_xcorr_shape_fwdnext"] += String(key) + ":;";
+        sidscores["sid_max_xcorr_shape_fwdnext"] += String(key) + ":;";
+        sidscores["sid_log_sn_fwdnext"] += String(key) + ":;";
+        sidscores["sid_elution_model_fit_fwdnext"] += String(key) + ":;";
+      }
+
+      if (native_ids_site_identification_revdiag.size() > 0)
+      {
+        sidscores["sid_xcorr_coelution_revdiag"] += String(key) + ":" + sidscores_revdiag.xcorr_coelution_score + ";";
+        sidscores["sid_min_xcorr_coelution_revdiag"] += String(key) + ":" + sidscores_revdiag.min_xcorr_coelution_score + ";";
+        sidscores["sid_xcorr_shape_revdiag"] += String(key) + ":" + sidscores_revdiag.xcorr_shape_score + ";";
+        sidscores["sid_max_xcorr_shape_revdiag"] += String(key) + ":" + sidscores_revdiag.max_xcorr_shape_score + ";";
+        sidscores["sid_log_sn_revdiag"] += String(key) + ":" + sidscores_revdiag.log_sn_score + ";";
+        sidscores["sid_elution_model_fit_revdiag"] += String(key) + ":" + sidscores_revdiag.elution_model_fit_score + ";";
+      }
+      else
+      {
+        sidscores["sid_xcorr_coelution_revdiag"] += String(key) + ":;";
+        sidscores["sid_min_xcorr_coelution_revdiag"] += String(key) + ":;";
+        sidscores["sid_xcorr_shape_revdiag"] += String(key) + ":;";
+        sidscores["sid_max_xcorr_shape_revdiag"] += String(key) + ":;";
+        sidscores["sid_log_sn_revdiag"] += String(key) + ":;";
+        sidscores["sid_elution_model_fit_revdiag"] += String(key) + ":;";
+      }
+
+      if (native_ids_site_identification_revnext.size() > 0)
+      {
+        sidscores["sid_xcorr_coelution_revnext"] += String(key) + ":" + sidscores_revnext.xcorr_coelution_score + ";";
+        sidscores["sid_min_xcorr_coelution_revnext"] += String(key) + ":" + sidscores_revnext.min_xcorr_coelution_score + ";";
+        sidscores["sid_xcorr_shape_revnext"] += String(key) + ":" + sidscores_revnext.xcorr_shape_score + ";";
+        sidscores["sid_max_xcorr_shape_revnext"] += String(key) + ":" + sidscores_revnext.max_xcorr_shape_score + ";";
+        sidscores["sid_log_sn_revnext"] += String(key) + ":" + sidscores_revnext.log_sn_score + ";";
+        sidscores["sid_elution_model_fit_revnext"] += String(key) + ":" + sidscores_revnext.elution_model_fit_score + ";";
+      }
+      else
+      {
+        sidscores["sid_xcorr_coelution_revnext"] += String(key) + ":;";
+        sidscores["sid_min_xcorr_coelution_revnext"] += String(key) + ":;";
+        sidscores["sid_xcorr_shape_revnext"] += String(key) + ":;";
+        sidscores["sid_max_xcorr_shape_revnext"] += String(key) + ":;";
+        sidscores["sid_log_sn_revnext"] += String(key) + ":;";
+        sidscores["sid_elution_model_fit_revnext"] += String(key) + ":;";
+      }
+    }
+
+    delete sidimrmfeature;
+
+    return sidscores;
+  }
+
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
                                                 TransformationDescription& trafo, OpenSwath::SpectrumAccessPtr swath_map,
                                                 FeatureMap& output)
   {
+    MRMTransitionGroupType transition_group_detection, transition_group_identification, transition_group_identification_decoy, transition_group_site_identification, transition_group_site_identification_decoy;
+    std::map<size_t, std::map<String, std::vector<String> > > site_identifying_index, site_identifying_decoy_index;
+    splitTransitionGroupsDetection_(transition_group, transition_group_detection);
+    if (su_.use_uis_scores)
+    {
+      splitTransitionGroupsIdentification_(transition_group, transition_group_identification, transition_group_identification_decoy);
+    }
+    if (su_.use_site_scores)
+    {
+      splitTransitionGroupsSiteIdentification_(transition_group, transition_group_site_identification, transition_group_site_identification_decoy, site_identifying_index, site_identifying_decoy_index);
+    }
+
     typedef MRMTransitionGroupType::PeakType PeakT;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
     std::vector<MRMFeature> feature_list;
@@ -242,15 +695,15 @@ namespace OpenMS
     unsigned int sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
     bool write_log_messages = (bool)param_.getValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages").toBool();
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
-    for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
+    for (Size k = 0; k < transition_group_detection.getChromatograms().size(); k++)
     {
       OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS<PeakT>(
-            transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
+            transition_group_detection.getChromatograms()[k], sn_win_len_, sn_bin_count_, write_log_messages));
       signal_noise_estimators.push_back(snptr);
     }
 
     // get the expected rt value for this peptide
-    const PeptideType* pep = PeptideRefMap_[transition_group.getTransitionGroupID()];
+    const PeptideType* pep = PeptideRefMap_[transition_group_detection.getTransitionGroupID()];
     double expected_rt = pep->rt;
     TransformationDescription newtr = trafo;
     newtr.invert();
@@ -259,26 +712,27 @@ namespace OpenMS
     OpenSwathScoring scorer;
     scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
 
+    size_t feature_idx = 0;
     // Go through all peak groups (found MRM features) and score them
-    for (std::vector<MRMFeature>::iterator mrmfeature = transition_group.getFeaturesMuteable().begin();
-         mrmfeature != transition_group.getFeaturesMuteable().end(); ++mrmfeature)
+    for (std::vector<MRMFeature>::iterator mrmfeature = transition_group_detection.getFeaturesMuteable().begin();
+         mrmfeature != transition_group_detection.getFeaturesMuteable().end(); ++mrmfeature)
     {
       OpenSwath::IMRMFeature* imrmfeature;
       imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
 
       LOG_DEBUG << "scoring feature " << (*mrmfeature) << " == " << mrmfeature->getMetaValue("PeptideRef") <<
         " [ expected RT " << PeptideRefMap_[mrmfeature->getMetaValue("PeptideRef")]->rt << " / " << expected_rt << " ]" <<
-        " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
+        " with " << transition_group_detection.size()  << " nr transitions and nr chromats " << transition_group_detection.getChromatograms().size() << std::endl;
 
-      int group_size = boost::numeric_cast<int>(transition_group.size());
+      int group_size = boost::numeric_cast<int>(transition_group_detection.size());
       if (group_size == 0)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                         "Error: Transition group " + transition_group.getTransitionGroupID() + " has no chromatograms.");
+                                         "Error: Transition group " + transition_group_detection.getTransitionGroupID() + " has no chromatograms.");
       }
       if (group_size < 2)
       {
-        LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID()
+        LOG_ERROR << "Error: Transition group " << transition_group_detection.getTransitionGroupID()
                   << " has only one chromatogram." << std::endl;
         delete imrmfeature; // free resources before continuing
         continue;
@@ -289,24 +743,136 @@ namespace OpenMS
       ///////////////////////////////////
 
       std::vector<double> normalized_library_intensity;
-      transition_group.getLibraryIntensity(normalized_library_intensity);
+      transition_group_detection.getLibraryIntensity(normalized_library_intensity);
       OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
-      std::vector<std::string> native_ids;
-      for (Size i = 0; i < transition_group.size(); i++)
+      std::vector<std::string> native_ids_detection;
+      for (Size i = 0; i < transition_group_detection.size(); i++)
       {
-        native_ids.push_back(transition_group.getTransitions()[i].getNativeID());
+        native_ids_detection.push_back(transition_group_detection.getTransitions()[i].getNativeID());
       }
 
       OpenSwath_Scores scores;
-      scorer.calculateChromatographicScores(imrmfeature, native_ids, normalized_library_intensity,
+      scorer.calculateChromatographicScores(imrmfeature, native_ids_detection, normalized_library_intensity,
                                             signal_noise_estimators, scores);
 
       double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
-      scorer.calculateLibraryScores(imrmfeature, transition_group.getTransitions(), *pep, normalized_experimental_rt, scores);
+      scorer.calculateLibraryScores(imrmfeature, transition_group_detection.getTransitions(), *pep, normalized_experimental_rt, scores);
       if (swath_map->getNrSpectra() > 0 && su_.use_dia_scores_)
       {
-        scorer.calculateDIAScores(imrmfeature, transition_group.getTransitions(),
+        scorer.calculateDIAScores(imrmfeature, transition_group_detection.getTransitions(),
                                   swath_map, ms1_map_, diascoring_, *pep, scores);
+      }
+
+      if (su_.use_uis_scores && transition_group_identification.getTransitions().size() > 0)
+      {
+        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages);
+
+        mrmfeature->addScore("id_target_num_transitions", idscores.id_num_transitions);
+        mrmfeature->addScore("id_target_xcorr_coelution", idscores.xcorr_coelution_score);
+        mrmfeature->addScore("id_target_min_xcorr_coelution", idscores.min_xcorr_coelution_score);
+        mrmfeature->addScore("id_target_xcorr_shape", idscores.xcorr_shape_score);
+        mrmfeature->addScore("id_target_max_xcorr_shape", idscores.max_xcorr_shape_score);
+        mrmfeature->addScore("id_target_log_sn_score", idscores.log_sn_score);
+        mrmfeature->addScore("id_target_elution_model_fit_score", idscores.elution_model_fit_score);
+      }
+
+      if (su_.use_uis_scores && transition_group_identification_decoy.getTransitions().size() > 0)
+      {
+        OpenSwath_Scores idscores = scoreIdentification_(transition_group_identification_decoy, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages);
+
+        mrmfeature->addScore("id_decoy_num_transitions", idscores.id_num_transitions);
+        mrmfeature->addScore("id_decoy_xcorr_coelution", idscores.xcorr_coelution_score);
+        mrmfeature->addScore("id_decoy_min_xcorr_coelution", idscores.min_xcorr_coelution_score);
+        mrmfeature->addScore("id_decoy_xcorr_shape", idscores.xcorr_shape_score);
+        mrmfeature->addScore("id_decoy_max_xcorr_shape", idscores.max_xcorr_shape_score);
+        mrmfeature->addScore("id_decoy_log_sn_score", idscores.log_sn_score);
+        mrmfeature->addScore("id_decoy_elution_model_fit_score", idscores.elution_model_fit_score);
+      }
+
+      if (su_.use_site_scores && transition_group_site_identification.getTransitions().size() > 0)
+      {
+        boost::unordered_map<String, String> sidscores = MRMFeatureFinderScoring::scoreSiteIdentification_(transition_group_site_identification, site_identifying_index, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages);
+
+        mrmfeature->setMetaValue("sid_target_num_transitions", sidscores["sid_num_transitions"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_coelution", sidscores["sid_xcorr_coelution"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_coelution_diag", sidscores["sid_xcorr_coelution_diag"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_coelution_fwddiag", sidscores["sid_xcorr_coelution_fwddiag"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_coelution_fwdnext", sidscores["sid_xcorr_coelution_fwdnext"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_coelution_revdiag", sidscores["sid_xcorr_coelution_revdiag"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_coelution_revnext", sidscores["sid_xcorr_coelution_revnext"]);
+        mrmfeature->setMetaValue("sid_target_min_xcorr_coelution", sidscores["sid_min_xcorr_coelution"]);
+        mrmfeature->setMetaValue("sid_target_min_xcorr_coelution_diag", sidscores["sid_min_xcorr_coelution_diag"]);
+        mrmfeature->setMetaValue("sid_target_min_xcorr_coelution_fwddiag", sidscores["sid_min_xcorr_coelution_fwddiag"]);
+        mrmfeature->setMetaValue("sid_target_min_xcorr_coelution_fwdnext", sidscores["sid_min_xcorr_coelution_fwdnext"]);
+        mrmfeature->setMetaValue("sid_target_min_xcorr_coelution_revdiag", sidscores["sid_min_xcorr_coelution_revdiag"]);
+        mrmfeature->setMetaValue("sid_target_min_xcorr_coelution_revnext", sidscores["sid_min_xcorr_coelution_revnext"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_shape", sidscores["sid_xcorr_shape"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_shape_diag", sidscores["sid_xcorr_shape_diag"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_shape_fwddiag", sidscores["sid_xcorr_shape_fwddiag"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_shape_fwdnext", sidscores["sid_xcorr_shape_fwdnext"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_shape_revdiag", sidscores["sid_xcorr_shape_revdiag"]);
+        mrmfeature->setMetaValue("sid_target_xcorr_shape_revnext", sidscores["sid_xcorr_shape_revnext"]);
+        mrmfeature->setMetaValue("sid_target_max_xcorr_shape", sidscores["sid_max_xcorr_shape"]);
+        mrmfeature->setMetaValue("sid_target_max_xcorr_shape_diag", sidscores["sid_max_xcorr_shape_diag"]);
+        mrmfeature->setMetaValue("sid_target_max_xcorr_shape_fwddiag", sidscores["sid_max_xcorr_shape_fwddiag"]);
+        mrmfeature->setMetaValue("sid_target_max_xcorr_shape_fwdnext", sidscores["sid_max_xcorr_shape_fwdnext"]);
+        mrmfeature->setMetaValue("sid_target_max_xcorr_shape_revdiag", sidscores["sid_max_xcorr_shape_revdiag"]);
+        mrmfeature->setMetaValue("sid_target_max_xcorr_shape_revnext", sidscores["sid_max_xcorr_shape_revnext"]);
+        mrmfeature->setMetaValue("sid_target_log_sn", sidscores["sid_log_sn_score"]);
+        mrmfeature->setMetaValue("sid_target_log_sn_diag", sidscores["sid_log_sn_diag"]);
+        mrmfeature->setMetaValue("sid_target_log_sn_fwddiag", sidscores["sid_log_sn_fwddiag"]);
+        mrmfeature->setMetaValue("sid_target_log_sn_fwdnext", sidscores["sid_log_sn_fwdnext"]);
+        mrmfeature->setMetaValue("sid_target_log_sn_revdiag", sidscores["sid_log_sn_revdiag"]);
+        mrmfeature->setMetaValue("sid_target_log_sn_revnext", sidscores["sid_log_sn_revnext"]);
+        mrmfeature->setMetaValue("sid_target_elution_model_fit", sidscores["sid_elution_model_fit_score"]);
+        mrmfeature->setMetaValue("sid_target_elution_model_fit_diag", sidscores["sid_elution_model_fit_diag"]);
+        mrmfeature->setMetaValue("sid_target_elution_model_fit_fwddiag", sidscores["sid_elution_model_fit_fwddiag"]);
+        mrmfeature->setMetaValue("sid_target_elution_model_fit_fwdnext", sidscores["sid_elution_model_fit_fwdnext"]);
+        mrmfeature->setMetaValue("sid_target_elution_model_fit_revdiag", sidscores["sid_elution_model_fit_revdiag"]);
+        mrmfeature->setMetaValue("sid_target_elution_model_fit_revnext", sidscores["sid_elution_model_fit_revnext"]);
+      }
+
+      if (su_.use_site_scores && transition_group_site_identification_decoy.getTransitions().size() > 0)
+      {
+        boost::unordered_map<String, String> sidscores = MRMFeatureFinderScoring::scoreSiteIdentification_(transition_group_site_identification_decoy, site_identifying_decoy_index, scorer, feature_idx, native_ids_detection, sn_win_len_, sn_bin_count_, write_log_messages);
+
+        mrmfeature->setMetaValue("sid_decoy_num_transitions", sidscores["sid_num_transitions"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_coelution", sidscores["sid_xcorr_coelution"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_coelution_diag", sidscores["sid_xcorr_coelution_diag"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_coelution_fwddiag", sidscores["sid_xcorr_coelution_fwddiag"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_coelution_fwdnext", sidscores["sid_xcorr_coelution_fwdnext"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_coelution_revdiag", sidscores["sid_xcorr_coelution_revdiag"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_coelution_revnext", sidscores["sid_xcorr_coelution_revnext"]);
+        mrmfeature->setMetaValue("sid_decoy_min_xcorr_coelution", sidscores["sid_min_xcorr_coelution"]);
+        mrmfeature->setMetaValue("sid_decoy_min_xcorr_coelution_diag", sidscores["sid_min_xcorr_coelution_diag"]);
+        mrmfeature->setMetaValue("sid_decoy_min_xcorr_coelution_fwddiag", sidscores["sid_min_xcorr_coelution_fwddiag"]);
+        mrmfeature->setMetaValue("sid_decoy_min_xcorr_coelution_fwdnext", sidscores["sid_min_xcorr_coelution_fwdnext"]);
+        mrmfeature->setMetaValue("sid_decoy_min_xcorr_coelution_revdiag", sidscores["sid_min_xcorr_coelution_revdiag"]);
+        mrmfeature->setMetaValue("sid_decoy_min_xcorr_coelution_revnext", sidscores["sid_min_xcorr_coelution_revnext"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_shape", sidscores["sid_xcorr_shape"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_shape_diag", sidscores["sid_xcorr_shape_diag"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_shape_fwddiag", sidscores["sid_xcorr_shape_fwddiag"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_shape_fwdnext", sidscores["sid_xcorr_shape_fwdnext"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_shape_revdiag", sidscores["sid_xcorr_shape_revdiag"]);
+        mrmfeature->setMetaValue("sid_decoy_xcorr_shape_revnext", sidscores["sid_xcorr_shape_revnext"]);
+        mrmfeature->setMetaValue("sid_decoy_max_xcorr_shape", sidscores["sid_max_xcorr_shape"]);
+        mrmfeature->setMetaValue("sid_decoy_max_xcorr_shape_diag", sidscores["sid_max_xcorr_shape_diag"]);
+        mrmfeature->setMetaValue("sid_decoy_max_xcorr_shape_fwddiag", sidscores["sid_max_xcorr_shape_fwddiag"]);
+        mrmfeature->setMetaValue("sid_decoy_max_xcorr_shape_fwdnext", sidscores["sid_max_xcorr_shape_fwdnext"]);
+        mrmfeature->setMetaValue("sid_decoy_max_xcorr_shape_revdiag", sidscores["sid_max_xcorr_shape_revdiag"]);
+        mrmfeature->setMetaValue("sid_decoy_max_xcorr_shape_revnext", sidscores["sid_max_xcorr_shape_revnext"]);
+        mrmfeature->setMetaValue("sid_decoy_log_sn", sidscores["sid_log_sn_score"]);
+        mrmfeature->setMetaValue("sid_decoy_log_sn_diag", sidscores["sid_log_sn_diag"]);
+        mrmfeature->setMetaValue("sid_decoy_log_sn_fwddiag", sidscores["sid_log_sn_fwddiag"]);
+        mrmfeature->setMetaValue("sid_decoy_log_sn_fwdnext", sidscores["sid_log_sn_fwdnext"]);
+        mrmfeature->setMetaValue("sid_decoy_log_sn_revdiag", sidscores["sid_log_sn_revdiag"]);
+        mrmfeature->setMetaValue("sid_decoy_log_sn_revnext", sidscores["sid_log_sn_revnext"]);
+        mrmfeature->setMetaValue("sid_decoy_elution_model_fit", sidscores["sid_elution_model_fit_score"]);
+        mrmfeature->setMetaValue("sid_decoy_elution_model_fit_diag", sidscores["sid_elution_model_fit_diag"]);
+        mrmfeature->setMetaValue("sid_decoy_elution_model_fit_fwddiag", sidscores["sid_elution_model_fit_fwddiag"]);
+        mrmfeature->setMetaValue("sid_decoy_elution_model_fit_fwdnext", sidscores["sid_elution_model_fit_fwdnext"]);
+        mrmfeature->setMetaValue("sid_decoy_elution_model_fit_revdiag", sidscores["sid_elution_model_fit_revdiag"]);
+        mrmfeature->setMetaValue("sid_decoy_elution_model_fit_revnext", sidscores["sid_elution_model_fit_revnext"]);
       }
 
       if (su_.use_coelution_score_)
@@ -344,7 +910,7 @@ namespace OpenMS
       // TODO get it working with imrmfeature
       if (su_.use_elution_model_score_)
       {
-        scores.elution_model_fit_score = emgscoring_.calcElutionFitScore((*mrmfeature), transition_group);
+        scores.elution_model_fit_score = emgscoring_.calcElutionFitScore((*mrmfeature), transition_group_detection);
         mrmfeature->addScore("var_elution_model_fit_score", scores.elution_model_fit_score);
       }
 
@@ -418,7 +984,7 @@ namespace OpenMS
       mrmfeature->getPeptideIdentifications().push_back(pep_id_);
       mrmfeature->ensureUniqueId();
 
-      mrmfeature->setMetaValue("PrecursorMZ", transition_group.getTransitions()[0].getPrecursorMZ());
+      mrmfeature->setMetaValue("PrecursorMZ", transition_group_detection.getTransitions()[0].getPrecursorMZ());
 
       // Prepare the subordinates for the mrmfeature (process all current
       // features and then append all precursor subordinate features)
@@ -446,6 +1012,7 @@ namespace OpenMS
       feature_list.push_back((*mrmfeature));
 
       delete imrmfeature;
+      feature_idx++;
     }
 
     // Order by quality
@@ -457,6 +1024,7 @@ namespace OpenMS
       if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break; }
       output.push_back(feature_list[i]);
     }
+    transition_group = transition_group_detection;
   }
 
   void MRMFeatureFinderScoring::updateMembers_()
@@ -468,6 +1036,7 @@ namespace OpenMS
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");
+    num_uis_transitions_ = param_.getValue("num_uis_transitions");
 
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
     emgscoring_.setFitterParam(param_.copy("EmgScoring:", true));
@@ -484,6 +1053,8 @@ namespace OpenMS
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
     su_.use_ms1_correlation      = param_.getValue("Scores:use_ms1_correlation").toBool();
     su_.use_ms1_fullscan         = param_.getValue("Scores:use_ms1_fullscan").toBool();
+    su_.use_uis_scores           = param_.getValue("Scores:use_uis_scores").toBool();
+    su_.use_site_scores          = param_.getValue("Scores:use_site_scores").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
