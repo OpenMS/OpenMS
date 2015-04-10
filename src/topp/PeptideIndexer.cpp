@@ -483,6 +483,7 @@ protected:
     registerFlag_("prefix", "If set, protein accessions in the database contain 'decoy_string' as prefix.");
     registerFlag_("annotate_proteins", "If set, add target/decoy information to proteins (as well as peptides).");
     registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
+    registerFlag_("write_protein_description", "If set, the protein description is stored as well.");
     registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
     registerFlag_("allow_unmatched", "If set, unmatched peptide sequences are allowed. By default (i.e. if this flag is not set) the program terminates with an error on unmatched peptides.");
     registerFlag_("full_tolerant_search", "If set, all peptide sequences are matched using tolerant search. Thus potentially more proteins (containing ambiguous amino acids) are associated. This is much slower!");
@@ -499,6 +500,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     bool write_protein_sequence = getFlag_("write_protein_sequence");
+    bool write_protein_description = getFlag_("write_protein_description");
     bool keep_unreferenced_proteins = getFlag_("keep_unreferenced_proteins");
     bool allow_unmatched = getFlag_("allow_unmatched");
     bool il_equivalent = getFlag_("IL_equivalent");
