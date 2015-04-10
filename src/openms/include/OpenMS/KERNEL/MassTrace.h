@@ -245,8 +245,8 @@ public:
     /// Compute chromatographic peak area within the FWHM range.
     double computeFwhmAreaSmooth() const;
     double computeFwhmArea() const;
-    double computeFwhmAreaSmoothRobust() const;
-    double computeFwhmAreaRobust() const;
+    // double computeFwhmAreaSmoothRobust() const;
+    // double computeFwhmAreaRobust() const;
 
     double getIntensity(bool smoothed) const;
     double getMaxIntensity(bool smoothed) const;

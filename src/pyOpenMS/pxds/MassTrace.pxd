@@ -30,8 +30,8 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         Size estimateFWHM(bool) nogil except +
         double computeFwhmArea() nogil except +
         double computeFwhmAreaSmooth() nogil except +
-        double computeFwhmAreaRobust() nogil except +
-        double computeFwhmAreaSmoothRobust() nogil except +
+        # double computeFwhmAreaRobust() nogil except +
+        # double computeFwhmAreaSmoothRobust() nogil except +
         double getIntensity(bool) nogil except +
         double getMaxIntensity(bool) nogil except +
 
