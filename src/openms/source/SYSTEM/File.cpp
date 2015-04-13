@@ -220,6 +220,11 @@ namespace OpenMS
 
   String File::find(const String& filename, StringList directories)
   {
+    if (exists(filename))
+    {
+        return String(QDir::cleanPath(filename.toQString()));
+    }
+
     String filename_new = filename;
 
     // empty string cannot be found, so throw Exception.
@@ -228,12 +233,6 @@ namespace OpenMS
 
     //add data dir in OpenMS data path
     directories.push_back(getOpenMSDataPath());
-
-    //add root dir
-    directories.push_back('/');
-
-    //add relative dir
-    directories.push_back('./');
 
     //add path suffix to all specified directories
     String path = File::path(filename);
