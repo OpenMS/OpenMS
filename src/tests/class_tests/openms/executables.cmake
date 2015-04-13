@@ -554,7 +554,9 @@ set(simulation_executables_list
 
 if(NOT DISABLE_OPENSWATH)
   set(swath_executables_list
+    MRMAssay_test
     MRMDecoy_test
+    MRMIonSeries_test
     MRMRTNormalizer_test
     TransitionTSVReader_test
     ChromatogramExtractor_test

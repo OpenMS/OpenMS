@@ -140,6 +140,8 @@ namespace OpenMS
         bionseries_loss["b" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight()/charge;
         bionseries_loss["b" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight()/charge;
         bionseries_loss["b" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
+        bionseries_loss["b" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight()/charge;
+        bionseries_loss["b" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight()/charge;
         if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
         // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
         // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
@@ -610,6 +612,12 @@ namespace OpenMS
       {
         setProgress(++progress);
         const ReactionMonitoringTransition tr = *(pep_it->second[i]);
+
+        if (tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        {
+          continue;
+        }
+
         ReactionMonitoringTransition decoy_tr = tr; // copy the target transition
 
         decoy_tr.setNativeID(decoy_tag + tr.getNativeID());
