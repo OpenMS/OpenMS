@@ -933,6 +933,7 @@ protected:
           if (write_protein_description)
           {
             const String& description = proteins[acc_to_prot[acc]].description;
+            std::cout << "Description = " << description << "\n";
             p_hit->setDescription(description);
           }
           
@@ -960,6 +961,7 @@ protected:
         
         if (write_protein_description)
         {
+          std::cout << "Description = " << proteins[*it].description << "\n";
           hit.setDescription(proteins[*it].description);
         }
         
