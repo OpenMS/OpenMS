@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 // #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 #include <iostream>
@@ -236,7 +237,8 @@ protected:
 
       if (enable_ms1_uis_scoring)
       {
-        for (int i = 0; i < round((precursor_upper_mz_limit - precursor_lower_mz_limit) / precursor_mz_threshold); i++)
+        int num_precursor_windows = static_cast<int>(Math::round((precursor_upper_mz_limit - precursor_lower_mz_limit) / precursor_mz_threshold));
+        for (int i = 0; i < num_precursor_windows; i++)
         {
           uis_swathes.push_back(std::make_pair((precursor_lower_mz_limit+(i*precursor_mz_threshold)),(precursor_lower_mz_limit+((i+1)*precursor_mz_threshold))));
         }
