@@ -50,7 +50,7 @@ namespace OpenMS
 
 /** @brief A container type that gathers peaks similar in m/z and moving along retention time.
 
-    Depending on the method of extraction a mass trace could virtually represent a complete ion chromatogram (XIC) or merely a part of it
+    Depending on the method of extraction a mass trace could virtually represent a complete extracted ion chromatogram (XIC) or merely a part of it
     (e.g., a chromatographic peak). The kernel class provides methods for computing mass trace characteristics such
     as its centroid m/z and retention time. Coeluting mass traces can be further assembled to complete isotope patterns of peptides/metabolites.
 
@@ -64,11 +64,12 @@ public:
     /// Default constructor
     MassTrace();
 
-    /// Detailed constructor 1
-    MassTrace(const std::list<PeakType>& trace_peaks, const double & scan_time = 1.0);
+    /// Detailed constructor 
+    /// (useful, since Mass Traces are commonly assembled by prepending and appending -- which is faster using lists)
+    MassTrace(const std::list<PeakType>& trace_peaks);
 
-    /// Detailed constructor 2
-    MassTrace(const std::vector<PeakType>& trace_peaks, const double & scan_time = 1.0);
+    /// Detailed constructor for vector
+    MassTrace(const std::vector<PeakType>& trace_peaks);
 
     /// Destructor
     ~MassTrace();
@@ -214,10 +215,12 @@ public:
       smoothed_intensities_ = db_vec;
     }
 
-    /// Get scan time of mass trace
-    double getScanTime() const
+    /// Get average scan time of mass trace
+    double getAverageMS1CycleTime() const
     {
-      return scan_time_;
+      if (trace_peaks_.size() <= 1) return 0.0;
+
+      return (trace_peaks_.rbegin()->getRT() - trace_peaks_.begin()->getRT()) / (trace_peaks_.size() - 1);
     }
 
     /** @name Computational methods
@@ -299,13 +302,8 @@ private:
     std::vector<double> smoothed_intensities_;
 
     double fwhm_;
-
-    /// Scan time (time difference between two consecutive scans)
-    double scan_time_;
-
-    Size fwhm_start_idx_;
-    Size fwhm_end_idx_;
-
+    Size fwhm_start_idx_; // index into 'trace_peaks_' vector (inclusive)
+    Size fwhm_end_idx_; // index into 'trace_peaks_' vector (inclusive)
 
     /// Rough estimate of a chromatographic peak's width (number of scans within the FWHM range).
     // Size fwhm_num_scans_;
