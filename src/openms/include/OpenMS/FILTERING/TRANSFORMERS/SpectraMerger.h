@@ -309,7 +309,7 @@ public:
 
       // parameters for Gaussian averaging
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
-      double factor = -4 * log(2) / (fwhm * fwhm); // numerical factor within Gaussian
+      double factor = -4 * log(2.0) / (fwhm * fwhm); // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
 
       // parameters for Top-Hat averaging
