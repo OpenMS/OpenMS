@@ -145,10 +145,10 @@ namespace OpenMS
   // returns the description of the protein
   const String & ProteinHit::getDescription() const
   {
-    //std::stringstream description;
-    //description << getMetaValue("Description");
-    //return description.str();
-    return getMetaValue("Description");
+    std::stringstream description;
+    description << getMetaValue("Description");
+    return description.str();
+    //return getMetaValue("Description");
   }
 
   // returns the coverage (in percent) of the protein hit based upon matched peptides
