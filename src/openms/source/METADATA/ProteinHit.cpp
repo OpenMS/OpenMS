@@ -143,7 +143,7 @@ namespace OpenMS
   }
 
   // returns the description of the protein
-  const String & ProteinHit::getDescription() const
+  String ProteinHit::getDescription() const
   {
     std::stringstream description;
     description << getMetaValue("Description");

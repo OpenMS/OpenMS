@@ -142,7 +142,7 @@ public:
     const String & getAccession() const;
     
     /// returns the description of the protein
-    const String & getDescription() const;
+    String getDescription() const;
 
     /// returns the coverage (in percent) of the protein hit based upon matched peptides
     double getCoverage() const;
