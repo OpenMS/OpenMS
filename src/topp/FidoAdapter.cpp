@@ -43,6 +43,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <queue>
 
 using namespace OpenMS;
 using namespace std;
@@ -104,6 +105,7 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 
+
 class TOPPFidoAdapter :
 public TOPPBase
 {
@@ -119,6 +121,52 @@ protected:
   
   StringBimap sanitized_accessions_; // protein accessions
   
+  // build bipartite graph as two maps (adjacency "lists"):
+  // ProtGroups-Indices <-> PepID-Indices
+  // so we get bidirectional connectivity
+  // We always take first PepHit from PepID, because those were used for
+  // inference in Fido
+  typedef map<Size, set<Size> > IndexMap;
+  
+  IndexMap indistProtGroupToPep;
+  IndexMap pepToIndistProtGroup;
+  
+  // represents the middle layer of a tripartite graph
+  // consists of single protein accessions and their mapping to the groups
+  // indices
+  map<String , Size > protAccToIndistProtGroup;
+  
+  // represents a connected component of the bipartite graph
+  struct ConnCompStruct {
+    set<Size> protGrpIndices;
+    set<Size> pepIndices;
+    
+    ostream& operator << (ostream& os)
+    //Overloaded operator for '<<'
+    {
+      os << "Proteins: ";
+      for (set<Size>::iterator prot_it = this->protGrpIndices.begin();
+           prot_it != this->protGrpIndices.end();
+           ++prot_it)
+      {
+        os << *prot_it << ",";
+      }
+      os << endl;
+      os << "Peptides: ";
+      for (set<Size>::iterator pep_it = this->pepIndices.begin();
+           pep_it != this->pepIndices.end();
+           ++pep_it)
+      {
+        os << *pep_it << ",";
+      }
+      
+      return os;
+      
+    }
+  };
+  
+
+  
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input: identification results");
@@ -130,6 +178,7 @@ protected:
     registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
+    registerFlag_("occam_flag", "Post-process Fido output with greedy Occam's razor");
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
@@ -224,7 +273,12 @@ protected:
                                             __PRETTY_FUNCTION__, msg);
       }
       
-      graph_out << "e " << hit.getSequence() << endl; // remove modifications?
+      graph_out << "e " << hit.getSequence().toUnmodifiedString() << endl; // remove modifications?
+      // Julianus: I would say yes, better we do it here, than letting Fido
+      // do some Stringmagic maybe merging peptides that are actually not the same.
+      // Does Fido follow the same convention for Mod naming?
+      // I think it just removes everything not an AA. Means mod labels
+      // like Dimethyl become AAs.
       const set<String>& accessions = hit.extractProteinAccessions();
       for (set<String>::const_iterator acc_it = accessions.begin();
            acc_it != accessions.end(); ++acc_it)
@@ -312,7 +366,8 @@ protected:
                 const String& exe, QStringList& fido_params,
                 double& prob_protein, double& prob_peptide,
                 double& prob_spurious, const String& temp_dir,
-                bool keep_zero_group = false, Size counter = 0)
+                bool keep_zero_group = false, bool occam_flag = false,
+                Size counter = 0)
   {
     // create a copy of the params so the templates can be overwritten with
     // different values:
@@ -457,8 +512,26 @@ protected:
         protein_counter += group.accessions.size();
         sort(group.accessions.begin(), group.accessions.end());
         groups.push_back(group);
+        
+        /* Probably doesnt work since groups are sorted afterwards
+        // Add the resulting protein->group mappings to the map if
+        // needed later on
+        if(occam_flag)
+        {
+          for (vector<String>::iterator acc_it =
+               group.accessions.begin(); acc_it !=
+               group.accessions.end(); ++acc_it)
+          {
+            protAccToIndistProtGroup[*acc_it] = groups.size() - 1;
+          }
+        }
+        */
       }
     }
+    
+    
+    // Sort groups by probability and add the finally used Fido params
+    // as meta values
     sort(groups.begin(), groups.end());
     protein.getIndistinguishableProteins() = groups;
     protein.setMetaValue("Fido_prob_protein", prob_protein);
@@ -471,9 +544,260 @@ protected:
              << ((keep_zero_group || !zero_proteins) ? ")." : " not included).")
              << endl;
     
+    
+    // Do post-processing on groups if specified
+    if (occam_flag)
+    {
+      LOG_INFO << "Resolving ambiguity groups greedily on Fido output..."
+               << endl;
+      // Construct intermediate mapping of single protein accessions
+      // to indist. protein groups
+      for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
+           protein.getIndistinguishableProteins().begin(); group_it !=
+           protein.getIndistinguishableProteins().end(); ++group_it)
+      {
+        for (vector<String>::iterator acc_it =
+             group_it->accessions.begin(); acc_it !=
+             group_it->accessions.end(); ++acc_it)
+        {
+          protAccToIndistProtGroup[*acc_it] =
+          group_it - protein.getIndistinguishableProteins().begin();
+        }
+      }
+
+
+      // Go through PeptideIDs and construct a bidirectional mapping
+      for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
+           pep_it != peptides.end();
+           ++pep_it)
+      {
+        Size pepindex = pep_it - peptides.begin();
+        
+        //Do I need to init Sets?
+        //pepToIndistProtGroup[pepindex] = *new set<Size>();
+        
+        PeptideHit besthit = pep_it->getHits()[0];
+        const vector<PeptideEvidence> pepev = besthit.getPeptideEvidences();
+        
+        for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
+             pepev_it != pepev.end();
+             ++pepev_it)
+        {
+          String acc = pepev_it->getProteinAccession();
+          //cout << acc << endl;
+          Size protGroupIndex = protAccToIndistProtGroup[acc];
+          pepToIndistProtGroup[pepindex].insert(protGroupIndex);
+          indistProtGroupToPep[protGroupIndex];
+          //if()
+          //{
+          //  indistProtGroupToPep[protGroupIndex] = *new set<Size>();
+          //}
+          indistProtGroupToPep[protGroupIndex].insert(pepindex);
+        }
+
+      }
+      Size oldsize = indistProtGroupToPep.size();
+      // Traverse every connected component, remove visited "nodes" in each step
+      while (!indistProtGroupToPep.empty())
+      {
+        if((oldsize - indistProtGroupToPep.size()) > 1){
+          std::cout << "resolved group of size "
+          << oldsize - indistProtGroupToPep.size() << " in last step " << endl;
+        }
+        oldsize = indistProtGroupToPep.size();
+        // We take any (= first) protein from map that is still left,
+        // to start the next BFS from it
+        Size rootProtGrp = indistProtGroupToPep.begin()->first;
+
+        // do BFS, return connected proteins and peptides
+        
+        // TODO We can probably leave out peptides from the connected
+        // component return value. With the mapping, they should be uniquely
+        // identified.
+        ConnCompStruct currComponent = findConnectedComponent_(rootProtGrp,
+                                                               protein,
+                                                               peptides);
+        
+        if(currComponent.protGrpIndices.size() > 1){
+          std::cout << "found group: " << endl;
+          currComponent << std::cout;
+          std::cout << endl << "Processing ..." << endl;
+        }
+        
+        // resolve shared peptides based on Fido probabilities
+        // -> modifies PeptideIDs in peptides
+        
+        // TODO resolve ties by more sophisticated method
+        // e.g. number of peptides covered (smallest?)
+        // maybe store (non-indistinguishable) groups when we are at it??
+        resolveConnectedComponent_(currComponent, protein, peptides);
+        
+        // mark proteins of this component as visited by removing them
+        for (set<Size>::iterator grp_it = currComponent.protGrpIndices.begin();
+             grp_it != currComponent.protGrpIndices.end();
+             ++grp_it)
+        {
+          indistProtGroupToPep.erase(*grp_it);
+        }
+      }
+      // maybe save ConnectedComponent here or add it to notindist. groups?
+    }
+    
     return true;
   }
+
   
+  /*
+   TODO: Use mapping from accesions to PrtGrpIndex to remove
+   Mappings in indistProtGroupToPep while iterating over the PepEvidences
+   
+   
+   
+   
+   */
+  
+  ConnCompStruct findConnectedComponent_(Size& rootProtGrp,
+                                         ProteinIdentification& protein,
+                                         vector<PeptideIdentification>& peptides)
+  {
+    // init result
+    ConnCompStruct connComp;
+    
+    // init queue, bool keeps track of if we need to use
+    // ProteinGroup -> Peptide (true) or
+    // Peptide -> ProteinGroup (false) as mapping
+    queue<pair<bool, Size> > myqueue;
+    
+    // start with given root
+    myqueue.push(make_pair(true, rootProtGrp));
+    
+    // check successes of insertions
+    std::pair<std::set<Size>::iterator,bool> success;
+    
+    while(!myqueue.empty())
+    {
+      // save first element and pop
+      pair<bool, Size> currnode = myqueue.front();
+      //LOG_INFO << "before pop" << myqueue.size() << endl;
+      myqueue.pop();
+      //LOG_INFO << "after pop" << myqueue.size() << endl;
+      
+      // initialize neighbors
+      set<Size> neighbors;
+      
+      // Choose correct map, depending on if we deal with protGrp or peptide
+      if (currnode.first)
+      {
+        neighbors = indistProtGroupToPep[currnode.second];
+      } else {
+        neighbors = pepToIndistProtGroup[currnode.second];
+      }
+      
+      for (set<Size>::iterator nb_it = neighbors.begin();
+           nb_it != neighbors.end();
+           ++nb_it)
+      {
+        // If current node is protein, its neigbors are peptides and
+        // vice versa -> look in corresponding "result" set and insert
+        // if not present
+        if (!currnode.first)
+        {
+          success = connComp.protGrpIndices.insert(*nb_it);
+        } else {
+          success = connComp.pepIndices.insert(*nb_it);
+        }
+        
+        // If it was not seen yet, add it to the queue to process
+        // its neigbors later. All neighbors are from the opposite type now
+        if (success.second)
+        {
+          myqueue.push(make_pair(!currnode.first, *nb_it));
+        }
+      }
+    }
+
+    return connComp;
+  }
+  
+  /*
+   * Resolves connected components based on Fido probabilities.
+   * Thereby greedily assigns shared peptides in this component uniquely to
+   * the proteins of the current BEST INDISTINGUISHABLE protein group,
+   * ready to be used in ProteinQuantifier then.
+   * This is achieved by removing all other evidence from the input
+   * PeptideIDs and iterating until
+   * In accordance with Fido only the best hit (PSM) for an ID is considered.
+   */
+  void resolveConnectedComponent_(ConnCompStruct& connComp,
+                                  ProteinIdentification& protein,
+                                  vector<PeptideIdentification>& peptides)
+  {
+    /* TODO for resolving ties:
+    while grpit not at end
+     while grpit.probability does not change:
+      save index with max nr of peptides in mapping and compare
+      grpit++
+     resolve(with max index grp)
+    */
+    
+    // Go through protein groups (sorted by probability -> higher index
+    // means worse probability)
+    for (set<Size>::iterator grp_it = connComp.protGrpIndices.begin();
+         grp_it != connComp.protGrpIndices.end();
+         ++grp_it)
+    {
+      // Update all the peptides the current best point to
+      for (set<Size>::iterator pepid_it = indistProtGroupToPep[*grp_it].begin();
+           pepid_it != indistProtGroupToPep[*grp_it].end();
+           ++pepid_it
+           )
+      {
+        vector<String> accessions =
+          protein.getIndistinguishableProteins()[*grp_it].accessions;
+        vector<PeptideHit> pepidhits = peptides[*pepid_it].getHits();
+        vector<PeptideEvidence> besthitev = pepidhits[0].getPeptideEvidences();
+        
+        
+        // Go through all remaining proteins of comp and remove this
+        // peptide from their mapping
+        set<Size>::iterator grp_it_cont = grp_it;
+        grp_it_cont++;
+        for (grp_it_cont;
+             grp_it_cont != connComp.protGrpIndices.end();
+             ++grp_it_cont)
+        {
+          indistProtGroupToPep[*grp_it_cont].erase(*pepid_it);
+        }
+        
+        // go through all the evidence of this peptide and remove all
+        // proteins but the ones from the current indist. group
+        
+        // TODO Is saving evidenceIndex together with proteinGroupIndex
+        // for the value of a PepId->value in the beginning worth it ???
+        for (vector<PeptideEvidence>::iterator pepev_it = besthitev.begin();
+             pepev_it != besthitev.end();
+             //dont increase index, will be done by case
+             )
+        {
+          // if its accession is not in the current best group, remove evidence
+          if(find(accessions.begin(),
+                  accessions.end(),
+                  pepev_it->getProteinAccession()) == accessions.end())
+          {
+            cout << "Wanna erase: " << pepev_it->getProteinAccession() << endl;
+            besthitev.erase(pepev_it);
+          } else { // iterate further
+            pepev_it++;
+          }
+        }
+        // Set the remaining Evidences as new Evidence
+        pepidhits[0].setPeptideEvidences(besthitev);
+        peptides[*pepid_it].setHits(pepidhits);
+      }
+      
+    }
+
+  }
   
   ExitCodes main_(int, const char**)
   {
@@ -484,6 +808,7 @@ protected:
     String prob_param = getStringOption_("prob_param");
     bool separate_runs = getFlag_("separate_runs");
     bool keep_zero_group = getFlag_("keep_zero_group");
+    bool occam_flag = getFlag_("occam_flag");
     double prob_protein = getDoubleOption_("prob:protein");
     double prob_peptide = getDoubleOption_("prob:peptide");
     double prob_spurious = getDoubleOption_("prob:spurious");
@@ -591,7 +916,7 @@ protected:
         fido_success = runFido_(*prot_it, peptides, choose_params, executable,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group,
-                                counter);
+                                occam_flag, counter);
       }
     }
     else // merge multiple protein ID runs
@@ -630,7 +955,8 @@ protected:
       
       fido_success = runFido_(all_proteins, peptides, choose_params, executable,
                               fido_params, prob_protein, prob_peptide,
-                              prob_spurious, temp_dir, keep_zero_group);
+                              prob_spurious, temp_dir, keep_zero_group,
+                              occam_flag);
       
       // replace proteins with merged variant:
       proteins.clear();
