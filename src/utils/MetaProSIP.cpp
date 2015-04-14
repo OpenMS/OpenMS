@@ -225,9 +225,9 @@ public:
       double dxdy = spline.derivatives(xi, 1);
       double yi = spline.eval(xi);
 
-      if (debug)
+      if (debug >= 100)
       {
-        LOG_DEBUG << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
+        cout << x[0] << " " << x[n - 1] << " " << xi << " " << yi << endl;
       }
 
       if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
@@ -1655,15 +1655,25 @@ public:
     // extract xics
     vector<vector<double> > xics = extractXICs(seed_rt, xic_mzs, mz_tolerance_ppm, rt_tolerance_s, peak_map);
 
-    // calculate correlation to mono-isotopic peak
-    vector<double> RRs = correlateXICsToMono(xics);
-
-    // sum over XICs to yield one intensity value for each XIC. If correlation to mono-isotopic is lower then threshold, delete intensity.
     vector<double> xic_intensities(xics.size(), 0.0);
-    for (Size i = 0; i != xic_intensities.size(); ++i)
+    if (min_corr_mono > 0)
     {
-      double v = std::accumulate(xics[i].begin(), xics[i].end(), 0.0);
-      xic_intensities[i] = RRs[i] > min_corr_mono ? v : 0.0;
+      // calculate correlation to mono-isotopic peak
+      vector<double> RRs = correlateXICsToMono(xics);
+
+      // sum over XICs to yield one intensity value for each XIC. If correlation to mono-isotopic is lower then threshold, delete intensity.
+      for (Size i = 0; i != xic_intensities.size(); ++i)
+      {
+        double v = std::accumulate(xics[i].begin(), xics[i].end(), 0.0);
+        xic_intensities[i] = RRs[i] > min_corr_mono ? v : 0.0;
+      }
+    }
+    else // correlation disabled so just take the XIC intensities
+    {
+      for (Size i = 0; i != xic_intensities.size(); ++i)
+      {
+        xic_intensities[i] = std::accumulate(xics[i].begin(), xics[i].end(), 0.0);
+      }
     }
 
     return xic_intensities;
@@ -2860,6 +2870,8 @@ protected:
     vector<SIPPeptide> sip_peptides;
 
     Size nPSMs = 0; ///< number of PSMs. If 0 IDMapper has not been called.
+    Size spectrum_with_no_isotopic_peaks(0);
+    Size spectrum_with_isotopic_peaks(0);
 
     for (FeatureMap::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
     {
@@ -2980,16 +2992,25 @@ protected:
       if (debug_level_ >= 10)
       {
         LOG_DEBUG << "TIC of XICs: " << TIC << endl;
+        for (Size i = 0; i != isotopic_intensities.size(); ++i)
+        {
+          cout << isotopic_intensities[i] << endl;
+        }
       }
 
       // no Peaks collected
       if (TIC < 1e-4)
       {
+        ++spectrum_with_no_isotopic_peaks;
         if (debug_level > 0)
         {
           LOG_INFO << "no isotopic peaks in spectrum" << endl;
         }
         continue;
+      }
+      else
+      {
+        ++spectrum_with_isotopic_peaks;
       }
 
       // store accumulated intensities at theoretical positions
@@ -2997,7 +3018,16 @@ protected:
 
       sip_peptide.global_LR = calculateGlobalLR(isotopic_intensities);
 
-      LOG_INFO << "isotopic intensities collected: " << isotopic_intensities.size() << endl;
+      Size non_zero_isotopic_intensities(0);
+      for (Size i = 0; i != isotopic_intensities.size(); ++i)
+      {
+        if (isotopic_intensities[i] > 0.1)
+        {
+          ++non_zero_isotopic_intensities;
+        }
+      }
+      cout << "isotopic intensities missing / total: " << isotopic_intensities.size() - non_zero_isotopic_intensities << "/" << isotopic_intensities.size() << endl;
+
       LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
 
       // correlation filtering
@@ -3099,6 +3129,8 @@ protected:
       normalized_weight_maps.push_back(map_rate_to_normalized_weight);
       correlation_maps.push_back(map_rate_to_correlation_score);
     }
+
+    LOG_INFO << "Spectra with / without isotopic peaks " << spectrum_with_isotopic_peaks << "/" << spectrum_with_no_isotopic_peaks << endl;
 
     if (nPSMs == 0)
     {
