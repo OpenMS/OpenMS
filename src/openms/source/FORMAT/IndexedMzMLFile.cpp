@@ -71,6 +71,7 @@ namespace OpenMS
     chromatograms_offsets_(source.chromatograms_offsets_),
     index_offset_(source.index_offset_),
     spectra_before_chroms_(source.spectra_before_chroms_),
+    // do not copy the filestream itself but open a new filestream using the same file
     filestream_(source.filename_.c_str()),
     parsing_success_(source.parsing_success_)
   {
