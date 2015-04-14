@@ -1707,9 +1707,8 @@ public:
       checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
       p.start("R", checkRinPathQParam);
       p.waitForFinished(-1);
-      int status = p.exitCode();
 
-      if (status != 0)
+      if (p.error() == QProcess::FailedToStart || p.exitStatus() == QProcess::CrashExit || p.exitCode() != 0)
       {
         LOG_INFO << " failed" << std::endl;
         LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
