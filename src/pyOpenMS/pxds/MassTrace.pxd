@@ -30,8 +30,8 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         Size estimateFWHM(bool) nogil except +
         double computeFwhmArea() nogil except +
         double computeFwhmAreaSmooth() nogil except +
-        double computeFwhmAreaRobust() nogil except +
-        double computeFwhmAreaSmoothRobust() nogil except +
+        # double computeFwhmAreaRobust() nogil except +
+        # double computeFwhmAreaSmoothRobust() nogil except +
         double getIntensity(bool) nogil except +
         double getMaxIntensity(bool) nogil except +
 
@@ -48,5 +48,13 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         void updateWeightedMeanMZ() nogil except +
         void updateWeightedMZsd() nogil except +
 
-        void disableFHWM() nogil except +
+        void setQuantMethod(MT_QUANTMETHOD method) nogil except +
+        MT_QUANTMETHOD getQuantMethod() nogil except +
+        
+cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS::MassTrace":
+
+    cdef enum MT_QUANTMETHOD:
+        MT_QUANT_AREA,
+        MT_QUANT_MEDIAN,
+        SIZE_OF_MT_QUANTMETHOD
 

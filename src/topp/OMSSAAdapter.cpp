@@ -937,6 +937,17 @@ protected:
              ++it_pep)
         {
           it_pep->setIdentifier(protein_identification.getIdentifier());
+
+          // clear peptide evidences
+          vector<PeptideHit> pep_hits = it_pep->getHits();
+          for (vector<PeptideHit>::iterator it_pep_hit = pep_hits.begin();
+             it_pep_hit != pep_hits.end();
+             ++it_pep_hit)
+          {
+            it_pep_hit->setPeptideEvidences(std::vector<PeptideEvidence>());
+          }
+          it_pep->setHits(pep_hits);
+
           peptide_ids.push_back(*it_pep);
         }
       }

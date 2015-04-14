@@ -84,6 +84,8 @@ namespace OpenMS
       /// Whether parsing the indexedmzML file was successful
       bool parsing_success_;
 
+      bool skip_xml_checks_;
+
     /**
       @brief Try to parse the footer of the indexedmzML
 
@@ -155,6 +157,13 @@ namespace OpenMS
       @return The chromatogram at position id
     */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id);
+
+    ///sets whether to skip some XML checks and be fast instead
+    void setSkipXMLChecks(bool skip)
+    {
+      skip_xml_checks_ = skip;
+    }
+
   };
 }
 
