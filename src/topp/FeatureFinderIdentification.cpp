@@ -129,7 +129,10 @@ public:
     rt_term_.setCVIdentifierRef("MS");
     rt_term_.setAccession("MS:1000896");
     rt_term_.setName("normalized retention time");
-    score_metavalues_ = "initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score";
+    // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
+    // exclude some redundant/uninformative scores:
+    // @TODO: intensity bias introduced by "peak_apices_sum"?
+    score_metavalues_ = "initialPeakQuality,peak_apices_sum,var_xcorr_coelution,var_xcorr_shape,var_library_sangle,var_intensity_score,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score";
   }
 
 protected:
@@ -144,12 +147,14 @@ protected:
     setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file: features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("lib_out", "<file>", "", "Output file: assay library ('internal' IDs)", false);
+    registerOutputFile_("lib_out", "<file>", "", "Output file: assay library", false);
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
-    registerOutputFile_("chrom_out", "<file>", "", "Output file: chromatograms ('internal' IDs)", false);
+    registerOutputFile_("chrom_out", "<file>", "", "Output file: chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
     registerOutputFile_("trafo_out", "<file>", "", "Output file: RT transformation", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
+    registerOutputFile_("candidates_out", "<file>", "", "Output file: feature candidates (before filtering and model fitting)", false);
+    setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
 
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
@@ -221,6 +226,14 @@ protected:
 
   // classification performance for different SVM param. combinations (C/gamma):
   typedef vector<vector<double> > SVMPerformance;
+
+  struct FeatureFilter
+  {
+    bool operator()(const Feature& feature)
+    {
+      return feature.getOverallQuality() == 0.0;
+    }
+  } feature_filter_; // predicate for filtering features by overall quality
 
   PeakMap ms_data_; // input LC-MS data
   PeakMap chrom_data_; // accumulated chromatograms (XICs)
@@ -1056,7 +1069,8 @@ protected:
         double value = predictor_values[pred_index][obs_index];
         if (value > 0)
         {
-          svm_node node = {pred_index - skipped_predictors, value};
+          int node_index = pred_index - skipped_predictors;
+          svm_node node = {node_index, value};
           svm_nodes[obs_index].push_back(node);
         }
       }
@@ -1316,7 +1330,7 @@ protected:
     svm_params.eps = 0.001;
     svm_params.cache_size = 100.0;
     svm_params.nr_weight = 0; // use weighting of unbalanced classes?
-    svm_params.shrinking = 0; // use shrinking heuristics?
+    svm_params.shrinking = 1; // use shrinking heuristics?
     svm_params.probability = 1;
 
     struct svm_problem svm_data;
@@ -1329,7 +1343,7 @@ protected:
     double probs[2];
     for (Size i = 0; i < features.size(); ++i)
     {
-      double pred = svm_predict_probability(model, &(svm_nodes[i][0]), probs);
+      Int pred = Int(svm_predict_probability(model, &(svm_nodes[i][0]), probs));
       features[i].setMetaValue("predicted_class", pred);
       features[i].setMetaValue("predicted_probability", probs[0]);
       features[i].setOverallQuality(probs[0]); // @TODO: is this a good idea?
@@ -1341,6 +1355,51 @@ protected:
     delete[] svm_data.x;
   }
 
+
+  void filterFeatures_(FeatureMap& features)
+  {
+    if (features.empty()) return;
+    
+    // Remove features with class "false_pos." or "ambiguous", keep "true_pos.";
+    // for class "unknown", for every assay (meta value "PeptideRef"), keep the
+    // feature with "predicted_class" 1 and highest "predicted_probability"
+    // (= overall quality). We mark features for removal by setting their
+    // overall quality to zero.
+    FeatureMap::Iterator best_it = features.begin();
+    double best_quality = 0.0;
+    String previous_ref = features[0].getMetaValue("PeptideRef");
+    for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
+    {
+      // features from the same assay (same "PeptideRef") appear consecutively;
+      // if this is a new assay, finalize the previous one:
+      const String& peptide_ref = it->getMetaValue("PeptideRef");
+      if (peptide_ref != previous_ref)
+      {
+        if (best_quality > 0.0) best_it->setOverallQuality(best_quality);
+        best_quality = 0.0;
+      }
+
+      // update qualities:
+      const String& feature_class = it->getMetaValue("feature_class");
+      if ((feature_class == "unknown") &&
+          (Int(it->getMetaValue("predicted_class")) > 0) &&
+          (it->getOverallQuality() > best_quality))
+      {
+        best_it = it;
+        best_quality = it->getOverallQuality();
+      }
+      if (feature_class != "true_positive") it->setOverallQuality(0.0);
+    }
+    // set of features from the last assay:
+    if (best_quality > 0.0)
+    {
+      best_it->setOverallQuality(best_quality);
+    }
+
+    features.erase(remove_if(features.begin(), features.end(), feature_filter_),
+                   features.end()); 
+  }
+  
 
   ExitCodes main_(int, const char**)
   {
@@ -1354,6 +1413,7 @@ protected:
     String lib_out = getStringOption_("lib_out");
     String chrom_out = getStringOption_("chrom_out");
     String trafo_out = getStringOption_("trafo_out");
+    String candidates_out = getStringOption_("candidates_out");
     rt_window_ = getDoubleOption_("extract:rt_window");
     mz_window_ = getDoubleOption_("extract:mz_window");
     mz_window_ppm_ = mz_window_ >= 1;
@@ -1453,21 +1513,11 @@ protected:
       prog_log_.setProgress(++prog_counter);
     }
     prog_log_.endProgress();
-    LOG_DEBUG << "Found " << features.size() << " features in total." << endl;
+    LOG_DEBUG << "Found " << features.size() << " feature candidates in total."
+              << endl;
     ms_data_.reset(); // not needed anymore, free up the memory
-    features.setProteinIdentifications(proteins);
 
-    classifyFeatures_(features);
-
-    // @FIXME
-    // if (elution_model_ != "none")
-    // {
-    //   fitElutionModels_(features);
-    // }
-
-    //-------------------------------------------------------------
-    // write output
-    //-------------------------------------------------------------
+    // write auxiliary output:
     if (keep_library_)
     {
       removeDuplicateProteins_(library_);
@@ -1481,6 +1531,30 @@ protected:
       MzMLFile().store(chrom_out, chrom_data_);
       chrom_data_.clear(true);
     }
+
+    features.setProteinIdentifications(proteins);
+    features.ensureUniqueId();
+    addDataProcessing_(features,
+                       getProcessingInfo_(DataProcessing::QUANTITATION));
+    classifyFeatures_(features);
+    if (!candidates_out.empty()) // store feature candidates
+    {
+      FeatureXMLFile().store(candidates_out, features);
+    }
+
+    filterFeatures_(features);
+    LOG_DEBUG << features.size() << " features left after filtering."
+              << endl;
+    
+    // @FIXME
+    // if (elution_model_ != "none")
+    // {
+    //   fitElutionModels_(features);
+    // }
+
+    //-------------------------------------------------------------
+    // write output
+    //-------------------------------------------------------------
 
     LOG_INFO << "Writing results..." << endl;
     features.ensureUniqueId();
