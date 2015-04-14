@@ -78,7 +78,7 @@ namespace OpenMS
 
   OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data_)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_); 
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
 
     //look up the precision and the index of the intensity and m/z array
@@ -130,7 +130,7 @@ namespace OpenMS
 
   OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data_)
   {
-    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_, skip_xml_checks_);
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
 
     //look up the precision and the index of the intensity and m/z array
@@ -322,6 +322,11 @@ namespace OpenMS
     std::vector<BinaryData> data_;
     domParseString_(in, data_);
     sptr = decodeBinaryDataChrom_(data_);
+  }
+
+  void MzMLSpectrumDecoder::setSkipXMLChecks(bool skip)
+  {
+    skip_xml_checks_ = skip;
   }
 
 }

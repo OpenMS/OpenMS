@@ -158,7 +158,9 @@ namespace OpenMS
 #endif
 
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
-    MzMLSpectrumDecoder().domParseSpectrum(text, sptr);
+    MzMLSpectrumDecoder d;
+    d.setSkipXMLChecks(skip_xml_checks_ );
+    d.domParseSpectrum(text, sptr);
 
 #ifdef DEBUG_READER
     std::cout << sptr->getIntensityArray()->data.size() << " int and mz : " << sptr->getMZArray()->data.size() << std::endl;
@@ -219,7 +221,9 @@ namespace OpenMS
 #endif
 
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
-    MzMLSpectrumDecoder().domParseChromatogram(text, sptr);
+    MzMLSpectrumDecoder d;
+    d.setSkipXMLChecks(skip_xml_checks_ );
+    d.domParseChromatogram(text, sptr);
 
 #ifdef DEBUG_READER
     std::cout << sptr->getIntensityArray()->data.size() << " int and time : " << sptr->getTimeArray()->data.size() << std::endl;

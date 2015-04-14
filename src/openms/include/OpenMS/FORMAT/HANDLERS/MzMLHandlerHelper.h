@@ -84,7 +84,7 @@ namespace OpenMS
         std::vector< std::pair<std::string, long> > & chromatograms_offsets
       );
 
-      static void decodeBase64Arrays(std::vector<BinaryData> & data_);
+      static void decodeBase64Arrays(std::vector<BinaryData> & data_, bool skipXMLCheck = false);
 
       static void computeDataProperties_(std::vector<BinaryData>& data_, bool& precision_64, SignedSize& index, String index_name);
 
