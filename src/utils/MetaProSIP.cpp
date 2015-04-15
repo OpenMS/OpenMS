@@ -1848,6 +1848,8 @@ protected:
 
     registerDoubleOption_("observed_peak_fraction", "<threshold>", 0.5, "Fraction of observed/expected peaks.", false, true);
 
+    registerIntOption_("min_consecutive_isotopes", "<threshold>", 2, "Minimum number of consecutive isotopic intensities needed.", false, true);
+
     registerDoubleOption_("score_plot_yaxis_min", "<threshold>", 0.0, "The minimum value of the score axis. Values smaller than zero usually only make sense if the observed peak fraction is set to 0.", false, true);
 
     registerStringOption_("collect_method", "<method>", "correlation_maximum", "How RIAs are collected.", false, true);
@@ -1928,7 +1930,7 @@ protected:
   void calculateCorrelation(Size n_element, const vector<double>& isotopic_intensities, IsotopePatterns patterns,
                             MapRateToScoreType& map_rate_to_correlation_score, bool use_N15, double mass, double min_correlation_distance_to_averagine)
   {
-    double observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
+    double min_observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
 
     LOG_INFO << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
 
@@ -2006,7 +2008,7 @@ protected:
       }
 
       // remove correlations with only very few peaks
-      if ((double)zeros / (double)std::distance(intensities_begin, intensities_end) > observed_peak_fraction)
+      if ((double)zeros / (double)std::distance(intensities_begin, intensities_end) > min_observed_peak_fraction)
       {
         map_rate_to_correlation_score[rate] = 0;
         continue;
@@ -2642,6 +2644,7 @@ protected:
     double intensity_threshold_ = getDoubleOption_("intensity_threshold");
     double decomposition_threshold = getDoubleOption_("decomposition_threshold");
 
+    Size min_consecutive_isotopes = (Size)getIntOption_("min_consecutive_isotopes");
     String qc_output_directory = getStringOption_("qc_output_directory");
     Size n_heatmap_bins = getIntOption_("heatmap_bins");
     double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
@@ -2985,6 +2988,47 @@ protected:
       }
 
       vector<double> isotopic_intensities = MetaProSIPXICExtraction::extractXICsOfIsotopeTraces(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, rt_tolerance_s, max_trace_int_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map, xic_threshold);
+
+      // set intensity to zero if not enough neighboring isotopic peaks are present
+      for (Size i = 0; i != isotopic_intensities.size(); ++i)
+      {
+        if (isotopic_intensities[i] < 1e-4) continue;
+        Size consecutive_isotopes = 0;
+        Int j = i;
+
+        while (j >= 0)
+        {
+          if (isotopic_intensities[j] > 1e-4)
+          {
+            ++consecutive_isotopes;
+            --j;
+          }
+          else
+          {
+            break;
+          }
+        }
+        j = i + 1;
+
+        while ((Size)j < isotopic_intensities.size())
+        {
+          if (isotopic_intensities[j] > 1e-4)
+          {
+            ++consecutive_isotopes;
+            ++j;
+          }
+          else
+          {
+            break;
+          }
+        }
+    
+        if (consecutive_isotopes < min_consecutive_isotopes)
+        {
+          isotopic_intensities[i] = 0;
+        }
+      }
+
       double TIC = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0.0);
 
       // collect 13C / 15N peaks
