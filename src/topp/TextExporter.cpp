@@ -465,6 +465,7 @@ protected:
       registerFlag_("id:proteins_only", "Set this flag if you want only protein information from an idXML file");
       registerFlag_("id:peptides_only", "Set this flag if you want only peptide information from an idXML file");
       registerFlag_("id:first_dim_rt", "If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
+      registerFlag_("id:split_accession_and_description", "Split the protein accession and description information from the database entry into four separate columns 'accession', 'gene', 'species' and 'protein_name'.", true);
       addEmptyLine_();
 
       registerTOPPSubsection_("consensus", "Options for consensusXML input files");
