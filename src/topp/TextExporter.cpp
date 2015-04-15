@@ -465,7 +465,7 @@ protected:
       registerFlag_("id:proteins_only", "Set this flag if you want only protein information from an idXML file");
       registerFlag_("id:peptides_only", "Set this flag if you want only peptide information from an idXML file");
       registerFlag_("id:first_dim_rt", "If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
-      registerFlag_("id:split_accession_and_description", "Split the protein accession and description information from the database entry into four separate columns 'accession', 'gene', 'species' and 'protein_name'.", true);
+      registerFlag_("id:split_accession_and_description", "Split the protein accession and description information from the database entry into four separate columns 'accession', 'gene', 'species' and 'protein_name'. For example, the protein database entry '>sp|Q9Y6Q3|ZFP37_HUMAN Zinc finger protein 37 homolog OS=Homo sapiens GN=ZFP37 PE=2 SV=3' is split into 'Q9Y6Q3', 'ZFP37', 'HUMAN' and 'Zinc finger protein 37 homolog'. The protein database is required to have the format of the above example.", true);
       addEmptyLine_();
 
       registerTOPPSubsection_("consensus", "Options for consensusXML input files");
