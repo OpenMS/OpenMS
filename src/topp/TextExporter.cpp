@@ -231,11 +231,15 @@ namespace OpenMS
   }
 
   // write the header for protein data
-  void writeProteinHeader(SVOutStream& out)
+  void writeProteinHeader(SVOutStream& out, bool split)
   {
     bool old = out.modifyStrings(false);
-    out << "#PROTEIN" << "score" << "rank" << "accession" << "protein_name" << "coverage"
-        << "sequence" << nl;
+    out << "#PROTEIN" << "score" << "rank" << "accession" ;
+    if (split)
+    {
+      out << "gene" << "species";
+    }
+    out << "protein_name" << "coverage" << "sequence" << nl;
     out.modifyStrings(old);
   }
 
@@ -490,6 +494,7 @@ protected:
       String out = getStringOption_("out");
       bool no_ids = getFlag_("no_ids");
       bool first_dim_rt = getFlag_("id:first_dim_rt");
+      bool split_accession_and_description = getFlag_("id:split_accession_and_description");
 
       // separator etc.
       String sep = getStringOption_("separator");
@@ -559,7 +564,7 @@ protected:
         if (!no_ids)
         {
           writeRunHeader(output);
-          writeProteinHeader(output);
+          writeProteinHeader(output, split_accession_and_description);
           writePeptideHeader(output, "UNASSIGNEDPEPTIDE");
           output << "#FEATURE";
           comment = false;
@@ -976,7 +981,7 @@ protected:
           if (!no_ids)
           {
             writeRunHeader(output);
-            writeProteinHeader(output);
+            writeProteinHeader(output, split_accession_and_description);
             writePeptideHeader(output, "UNASSIGNEDPEPTIDE");
           }
           output << "#CONSENSUS";
@@ -1094,7 +1099,7 @@ protected:
         if (!peptides_only)
         {
           writeRunHeader(output);
-          writeProteinHeader(output);
+          writeProteinHeader(output, split_accession_and_description);
         }
         if (!proteins_only)
         {
