@@ -73,9 +73,6 @@ public:
     /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
     void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
 
-    /// Computes a rough estimate of the average peak width of the experiment (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviancies).
-    // void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
-
     /** @name Main computation methods
         */
     /// Main method of MassTraceDetection. Extracts mass traces of a @ref MSExperiment and gathers them into a vector container.

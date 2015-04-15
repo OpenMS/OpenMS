@@ -132,10 +132,10 @@ public:
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
     template <typename MapType>
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count = false)
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, bool skip_full_count = false, bool skip_first_pass = false)
     {
       // First pass through the file -> get the meta-data and hand it to the consumer
-      transformFirstPass_(filename_in, consumer, skip_full_count);
+      if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
 
       // Second pass through the data, now read the spectra!
       {
@@ -162,10 +162,10 @@ public:
       @param skip_full_count Whether to skip computing the correct number of spectra and chromatograms in the input file
     */
     template <typename MapType>
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map, bool skip_full_count = false)
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map, bool skip_full_count = false, bool skip_first_pass = false)
     {
       // First pass through the file -> get the meta-data and hand it to the consumer
-      transformFirstPass_(filename_in, consumer, skip_full_count);
+      if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
 
       // Second pass through the data, now read the spectra!
       {

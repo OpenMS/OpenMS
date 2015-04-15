@@ -177,7 +177,7 @@ public:
                 isMatch_(0, peptide_ids[identifications_iterator->second].getMZ(), map[experiment_iterator->second].getPrecursors()[0].getMZ())))
           {
             map[experiment_iterator->second].getPeptideIdentifications().push_back(peptide_ids[identifications_iterator->second]);
-            peptides_mapped.insert(identifications_iterator->first);
+            peptides_mapped.insert(identifications_iterator->second);
           }
           ++identifications_iterator;
         }

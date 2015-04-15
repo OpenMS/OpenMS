@@ -5,7 +5,14 @@ set(directory source/ANALYSIS/ID)
 set(sources_list
 AccurateMassSearchEngine.cpp
 AScore.cpp
-ConsensusID.cpp
+ConsensusIDAlgorithm.cpp
+ConsensusIDAlgorithmAverage.cpp
+ConsensusIDAlgorithmBest.cpp
+ConsensusIDAlgorithmIdentity.cpp
+ConsensusIDAlgorithmPEPIons.cpp
+ConsensusIDAlgorithmPEPMatrix.cpp
+ConsensusIDAlgorithmRanks.cpp
+ConsensusIDAlgorithmSimilarity.cpp
 FalseDiscoveryRate.cpp
 HiddenMarkovModel.cpp
 IDMapper.cpp
