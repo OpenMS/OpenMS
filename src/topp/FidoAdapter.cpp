@@ -521,7 +521,6 @@ protected:
       }
     }
     
-    
     // Sort groups by probability and add the finally used Fido params
     // as meta values
     sort(groups.begin(), groups.end());
@@ -535,7 +534,6 @@ protected:
              << zero_proteins << " proteins with probability zero"
              << ((keep_zero_group || !zero_proteins) ? ")." : " not included).")
              << endl;
-    
     
     // Do post-processing on groups if specified
     if (greedy_flag)
@@ -556,8 +554,7 @@ protected:
           group_it - protein.getIndistinguishableProteins().begin();
         }
       }
-
-
+      
       // Go through PeptideIDs and construct a bidirectional mapping
       for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
            pep_it != peptides.end();
