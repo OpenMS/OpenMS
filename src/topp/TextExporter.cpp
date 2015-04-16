@@ -231,15 +231,11 @@ namespace OpenMS
   }
 
   // write the header for protein data
-  void writeProteinHeader(SVOutStream& out, bool split)
+  void writeProteinHeader(SVOutStream& out)
   {
     bool old = out.modifyStrings(false);
-    out << "#PROTEIN" << "score" << "rank" << "accession" ;
-    if (split)
-    {
-      out << "gene" << "species";
-    }
-    out << "protein_name" << "coverage" << "sequence" << nl;
+    out << "#PROTEIN" << "score" << "rank" << "accession" << "protein_name" << "coverage"
+        << "sequence" << nl;
     out.modifyStrings(old);
   }
 
@@ -469,7 +465,6 @@ protected:
       registerFlag_("id:proteins_only", "Set this flag if you want only protein information from an idXML file");
       registerFlag_("id:peptides_only", "Set this flag if you want only peptide information from an idXML file");
       registerFlag_("id:first_dim_rt", "If this flag is set the first_dim RT of the peptide hits will also be printed (if present).");
-      registerFlag_("id:split_accession_and_description", "Split the protein accession and description information from the database entry into four separate columns 'accession', 'gene', 'species' and 'protein_name'. For example, the protein database entry '>sp|Q9Y6Q3|ZFP37_HUMAN Zinc finger protein 37 homolog OS=Homo sapiens GN=ZFP37 PE=2 SV=3' is split into 'Q9Y6Q3', 'ZFP37', 'HUMAN' and 'Zinc finger protein 37 homolog'. The protein database is required to have the format of the above example.", true);
       addEmptyLine_();
 
       registerTOPPSubsection_("consensus", "Options for consensusXML input files");
@@ -494,7 +489,6 @@ protected:
       String out = getStringOption_("out");
       bool no_ids = getFlag_("no_ids");
       bool first_dim_rt = getFlag_("id:first_dim_rt");
-      bool split_accession_and_description = getFlag_("id:split_accession_and_description");
 
       // separator etc.
       String sep = getStringOption_("separator");
@@ -564,7 +558,7 @@ protected:
         if (!no_ids)
         {
           writeRunHeader(output);
-          writeProteinHeader(output, split_accession_and_description);
+          writeProteinHeader(output);
           writePeptideHeader(output, "UNASSIGNEDPEPTIDE");
           output << "#FEATURE";
           comment = false;
@@ -981,7 +975,7 @@ protected:
           if (!no_ids)
           {
             writeRunHeader(output);
-            writeProteinHeader(output, split_accession_and_description);
+            writeProteinHeader(output);
             writePeptideHeader(output, "UNASSIGNEDPEPTIDE");
           }
           output << "#CONSENSUS";
@@ -1099,7 +1093,7 @@ protected:
         if (!peptides_only)
         {
           writeRunHeader(output);
-          writeProteinHeader(output, split_accession_and_description);
+          writeProteinHeader(output);
         }
         if (!proteins_only)
         {
