@@ -130,37 +130,37 @@ protected:
   // inference in Fido
   typedef map<Size, set<Size> > IndexMap;
   
-  IndexMap indistProtGroupToPep;
-  IndexMap pepToIndistProtGroup;
+  IndexMap indist_prot_grp_to_pep_;
+  IndexMap pep_to_indist_prot_grp_;
   
   // represents the middle layer of a tripartite graph
   // consists of single protein accessions and their mapping to the groups
   // indices
-  map<String , Size > protAccToIndistProtGroup;
+  map<String , Size > prot_acc_to_indist_prot_grp_;
   
   // represents a connected component of the bipartite graph
   struct ConnCompStruct {
-    set<Size> protGrpIndices;
-    set<Size> pepIndices;
+    set<Size> prot_grp_indices;
+    set<Size> pep_indices;
     
-    ConnCompStruct() : protGrpIndices(set<Size>()),
-                       pepIndices(set<Size>())
+    ConnCompStruct() : prot_grp_indices(set<Size>()),
+                       pep_indices(set<Size>())
     {}
     
     ostream& operator << (ostream& os)
     //Overloaded operator for '<<'
     {
       os << "Proteins: ";
-      for (set<Size>::iterator prot_it = this->protGrpIndices.begin();
-           prot_it != this->protGrpIndices.end();
+      for (set<Size>::iterator prot_it = this->prot_grp_indices.begin();
+           prot_it != this->prot_grp_indices.end();
            ++prot_it)
       {
         os << *prot_it << ",";
       }
       os << endl;
       os << "Peptides: ";
-      for (set<Size>::iterator pep_it = this->pepIndices.begin();
-           pep_it != this->pepIndices.end();
+      for (set<Size>::iterator pep_it = this->pep_indices.begin();
+           pep_it != this->pep_indices.end();
            ++pep_it)
       {
         os << *pep_it << ",";
@@ -518,20 +518,6 @@ protected:
         protein_counter += group.accessions.size();
         sort(group.accessions.begin(), group.accessions.end());
         groups.push_back(group);
-        
-        /* Probably doesnt work since groups are sorted afterwards
-        // Add the resulting protein->group mappings to the map if
-        // needed later on
-        if(occam_flag)
-        {
-          for (vector<String>::iterator acc_it =
-               group.accessions.begin(); acc_it !=
-               group.accessions.end(); ++acc_it)
-          {
-            protAccToIndistProtGroup[*acc_it] = groups.size() - 1;
-          }
-        }
-        */
       }
     }
     
@@ -566,7 +552,7 @@ protected:
              group_it->accessions.begin(); acc_it !=
              group_it->accessions.end(); ++acc_it)
         {
-          protAccToIndistProtGroup[*acc_it] =
+          prot_acc_to_indist_prot_grp_[*acc_it] =
           group_it - protein.getIndistinguishableProteins().begin();
         }
       }
@@ -577,26 +563,26 @@ protected:
            pep_it != peptides.end();
            ++pep_it)
       {
-        Size pepindex = pep_it - peptides.begin();
+        Size pep_index = pep_it - peptides.begin();
         
-        PeptideHit besthit = pep_it->getHits()[0];
-        const vector<PeptideEvidence> pepev = besthit.getPeptideEvidences();
+        PeptideHit best_hit = pep_it->getHits()[0];
+        const vector<PeptideEvidence> pepev = best_hit.getPeptideEvidences();
         
         for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
              pepev_it != pepev.end();
              ++pepev_it)
         {
           String acc = pepev_it->getProteinAccession();
-          Size protGroupIndex = protAccToIndistProtGroup[acc];
-          pepToIndistProtGroup[pepindex].insert(protGroupIndex);
-          indistProtGroupToPep[protGroupIndex];
-          indistProtGroupToPep[protGroupIndex].insert(pepindex);
+          Size prot_group_index = prot_acc_to_indist_prot_grp_[acc];
+          pep_to_indist_prot_grp_[pep_index].insert(prot_group_index);
+          indist_prot_grp_to_pep_[prot_group_index];
+          indist_prot_grp_to_pep_[prot_group_index].insert(pep_index);
         }
 
       }
 
       //Debugging
-      Size oldsize = indistProtGroupToPep.size();
+      Size old_size = indist_prot_grp_to_pep_.size();
       
       //Statistics
       ConnCompStruct most_peps;
@@ -605,49 +591,49 @@ protected:
       bool statistics = false;
       
       // Traverse every connected component, remove visited "nodes" in each step
-      while (!indistProtGroupToPep.empty())
+      while (!indist_prot_grp_to_pep_.empty())
       {
-        if(statistics && ((oldsize - indistProtGroupToPep.size()) > 1)){
+        if(statistics && ((old_size - indist_prot_grp_to_pep_.size()) > 1)){
           cout << "resolved group of size "
-          << oldsize - indistProtGroupToPep.size() << " in last step " << endl;
-          oldsize = indistProtGroupToPep.size();
+          << old_size - indist_prot_grp_to_pep_.size() << " in last step " << endl;
+          old_size = indist_prot_grp_to_pep_.size();
         }
         
         // We take any (= first) protein from map that is still left,
         // to start the next BFS from it
-        Size rootProtGrp = indistProtGroupToPep.begin()->first;
+        Size root_prot_grp = indist_prot_grp_to_pep_.begin()->first;
 
         // do BFS, return connected proteins and peptides
-        ConnCompStruct currComponent = findConnectedComponent_(rootProtGrp,
+        ConnCompStruct curr_component = findConnectedComponent_(root_prot_grp,
                                                                protein,
                                                                peptides);
         // For debugging and statistics
         if(statistics)
         {
-          if(currComponent.protGrpIndices.size() >
-             most_grps.protGrpIndices.size())
+          if(curr_component.prot_grp_indices.size() >
+             most_grps.prot_grp_indices.size())
           {
-            most_grps = currComponent;
+            most_grps = curr_component;
           }
           
-          if(currComponent.pepIndices.size() >
-             most_peps.pepIndices.size())
+          if(curr_component.pep_indices.size() >
+             most_peps.pep_indices.size())
           {
-            most_peps = currComponent;
+            most_peps = curr_component;
           }
           
-          if((currComponent.protGrpIndices.size() +
-              currComponent.pepIndices.size()) >
-             (most_both.protGrpIndices.size() +
-              most_both.pepIndices.size()))
+          if((curr_component.prot_grp_indices.size() +
+              curr_component.pep_indices.size()) >
+             (most_both.prot_grp_indices.size() +
+              most_both.pep_indices.size()))
           {
-            most_both = currComponent;
+            most_both = curr_component;
           }
           
-          if(currComponent.protGrpIndices.size() > 1){
-            std::cout << "found group: " << endl;
-            currComponent << std::cout;
-            std::cout << endl << "Processing ..." << endl;
+          if(curr_component.prot_grp_indices.size() > 1){
+            cout << "found group: " << endl;
+            curr_component << cout;
+            cout << endl << "Processing ..." << endl;
           }
         }
         
@@ -656,14 +642,14 @@ protected:
         
         // TODO resolve ties by more sophisticated method
         // e.g. number of peptides covered (smallest?)
-        resolveConnectedComponent_(currComponent, protein, peptides);
+        resolveConnectedComponent_(curr_component, protein, peptides);
         
         // mark proteins of this component as visited by removing them
-        for (set<Size>::iterator grp_it = currComponent.protGrpIndices.begin();
-             grp_it != currComponent.protGrpIndices.end();
+        for (set<Size>::iterator grp_it = curr_component.prot_grp_indices.begin();
+             grp_it != curr_component.prot_grp_indices.end();
              ++grp_it)
         {
-          indistProtGroupToPep.erase(*grp_it);
+          indist_prot_grp_to_pep_.erase(*grp_it);
         }
       }
       
@@ -688,39 +674,39 @@ protected:
    * and peptides), switching from one to the other in each step.
    * Returns a Connected Component as set of group and peptide indices.
    */
-  ConnCompStruct findConnectedComponent_(Size& rootProtGrp,
+  ConnCompStruct findConnectedComponent_(Size& root_prot_grp,
                                          ProteinIdentification& protein,
                                          vector<PeptideIdentification>& peptides)
   {
     // init result
-    ConnCompStruct connComp;
+    ConnCompStruct conn_comp;
     
     // init queue, bool keeps track of if we need to use
     // ProteinGroup -> Peptide (true) or
     // Peptide -> ProteinGroup (false) as mapping
-    queue<pair<bool, Size> > myqueue;
+    queue<pair<bool, Size> > my_queue;
     
     // start with given root
-    myqueue.push(make_pair(true, rootProtGrp));
+    my_queue.push(make_pair(true, root_prot_grp));
     
     // check successes of insertions
     pair<set<Size>::iterator,bool> success;
     
-    while(!myqueue.empty())
+    while(!my_queue.empty())
     {
       // save first element and pop
-      pair<bool, Size> currnode = myqueue.front();
-      myqueue.pop();
+      pair<bool, Size> curr_node = my_queue.front();
+      my_queue.pop();
       
       // initialize neighbors
       set<Size> neighbors;
       
       // Choose correct map, depending on if we deal with protGrp or peptide
-      if (currnode.first)
+      if (curr_node.first)
       {
-        neighbors = indistProtGroupToPep[currnode.second];
+        neighbors = indist_prot_grp_to_pep_[curr_node.second];
       } else {
-        neighbors = pepToIndistProtGroup[currnode.second];
+        neighbors = pep_to_indist_prot_grp_[curr_node.second];
       }
       
       for (set<Size>::iterator nb_it = neighbors.begin();
@@ -730,23 +716,23 @@ protected:
         // If current node is protein, its neigbors are peptides and
         // vice versa -> look in corresponding "result" set and insert
         // if not present
-        if (!currnode.first)
+        if (!curr_node.first)
         {
-          success = connComp.protGrpIndices.insert(*nb_it);
+          success = conn_comp.prot_grp_indices.insert(*nb_it);
         } else {
-          success = connComp.pepIndices.insert(*nb_it);
+          success = conn_comp.pep_indices.insert(*nb_it);
         }
         
         // If it was not seen yet, add it to the queue to process
         // its neigbors later. All neighbors are from the opposite type now
         if (success.second)
         {
-          myqueue.push(make_pair(!currnode.first, *nb_it));
+          my_queue.push(make_pair(!curr_node.first, *nb_it));
         }
       }
     }
 
-    return connComp;
+    return conn_comp;
   }
   
   /*
@@ -760,7 +746,7 @@ protected:
    * In accordance with Fido only the best hit (PSM) for an ID is considered.
    * Probability ties are _currently_ resolved by taking the first occurence.
    */
-  void resolveConnectedComponent_(ConnCompStruct& connComp,
+  void resolveConnectedComponent_(ConnCompStruct& conn_comp,
                                   ProteinIdentification& protein,
                                   vector<PeptideIdentification>& peptides)
   {
@@ -783,8 +769,8 @@ protected:
     // means worse probability)
     bool first_change = true;
     
-    for (set<Size>::iterator grp_it = connComp.protGrpIndices.begin();
-         grp_it != connComp.protGrpIndices.end();
+    for (set<Size>::iterator grp_it = conn_comp.prot_grp_indices.begin();
+         grp_it != conn_comp.prot_grp_indices.end();
          ++grp_it)
     {
       
@@ -807,14 +793,16 @@ protected:
                                       accessions.end());
       
       // Update all the peptides the current best point to
-      for (set<Size>::iterator pepid_it = indistProtGroupToPep[*grp_it].begin();
-           pepid_it != indistProtGroupToPep[*grp_it].end();
+      for (set<Size>::iterator pepid_it =
+           indist_prot_grp_to_pep_[*grp_it].begin();
+           pepid_it != indist_prot_grp_to_pep_[*grp_it].end();
            ++pepid_it
            )
       {
         
-        vector<PeptideHit> pepidhits = peptides[*pepid_it].getHits();
-        vector<PeptideEvidence> besthitev = pepidhits[0].getPeptideEvidences();
+        vector<PeptideHit> pep_id_hits = peptides[*pepid_it].getHits();
+        vector<PeptideEvidence> best_hit_ev =
+        pep_id_hits[0].getPeptideEvidences();
         
         
         // Go through all _remaining_ proteins of the component and remove this
@@ -822,16 +810,16 @@ protected:
         set<Size>::iterator grp_it_cont = grp_it;
         grp_it_cont++;
         for (grp_it_cont;
-             grp_it_cont != connComp.protGrpIndices.end();
+             grp_it_cont != conn_comp.prot_grp_indices.end();
              ++grp_it_cont)
         {
-          indistProtGroupToPep[*grp_it_cont].erase(*pepid_it);
+          indist_prot_grp_to_pep_[*grp_it_cont].erase(*pepid_it);
         }
         
         // go through all the evidence of this peptide and remove all
         // proteins but the ones from the current indist. group
-        for (vector<PeptideEvidence>::iterator pepev_it = besthitev.begin();
-             pepev_it != besthitev.end();
+        for (vector<PeptideEvidence>::iterator pepev_it = best_hit_ev.begin();
+             pepev_it != best_hit_ev.end();
              //dont increase index, will be done by case
              )
         {
@@ -840,14 +828,14 @@ protected:
                   accessions.end(),
                   pepev_it->getProteinAccession()) == accessions.end())
           {
-            besthitev.erase(pepev_it);
+            best_hit_ev.erase(pepev_it);
           } else { // iterate further
             pepev_it++;
           }
         }
         // Set the remaining evidences as new evidence
-        pepidhits[0].setPeptideEvidences(besthitev);
-        peptides[*pepid_it].setHits(pepidhits);
+        pep_id_hits[0].setPeptideEvidences(best_hit_ev);
+        peptides[*pepid_it].setHits(pep_id_hits);
       }
       
     }
