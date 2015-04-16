@@ -234,22 +234,15 @@ namespace OpenMS
   void writeProteinHeader(SVOutStream& out)
   {
     bool old = out.modifyStrings(false);
-    out << "#PROTEIN" << "score" << "rank" << "accession" << "protein_name" << "coverage"
+    out << "#PROTEIN" << "score" << "rank" << "accession" << "protein_description" << "coverage"
         << "sequence" << nl;
     out.modifyStrings(old);
   }
 
   // stream output operator for a ProteinHit
   SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
-  {
-    // extract protein name from description
-    String protein_name = hit.getDescription();
-    if (protein_name.find("OS=") != std::string::npos)
-    {
-      protein_name = protein_name.substr(0, protein_name.find("OS=", 0));
-    }
-    
-    out << hit.getScore() << hit.getRank() << hit.getAccession() << protein_name
+  {    
+    out << hit.getScore() << hit.getRank() << hit.getAccession() << hit.getDescription()
         << hit.getCoverage() << hit.getSequence();
     return out;
   }
