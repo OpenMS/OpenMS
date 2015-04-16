@@ -1,7 +1,7 @@
-#Consensus features extracted from /home/lars/Code/git/OpenMS/src/tests/topp/TextExporter_7_input.consensusXML on 2015-04-16 09:32:04
+#Consensus features extracted from TextExporter_7_input.consensusXML on 2015-04-16 10:08:27
 #MAP	id	filename	label	size	channel_active	channel_center	channel_description	channel_id	channel_name
 #RUN	run_id	score_type	score_direction	date_time	search_engine_version	parameters
-#PROTEIN	score	rank	accession	protein_name	coverage	sequence
+#PROTEIN	score	rank	accession	protein_description	coverage	sequence
 #UNASSIGNEDPEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions
 #CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	rt_2	mz_2	intensity_2	charge_2	width_2	rt_3	mz_3	intensity_3	charge_3	width_3	rt_50	mz_50	intensity_50	charge_50	width_50	rt_199	mz_199	intensity_199	charge_199	width_199
 #PEPTIDE	rt	mz	score	rank	sequence	charge	aa_before	aa_after	score_type	search_identifier	accessions
