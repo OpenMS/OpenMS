@@ -121,6 +121,8 @@ protected:
   
   StringBimap sanitized_accessions_; // protein accessions
   
+  
+  /********************** Only used if occam_flag is set **********************/
   // build bipartite graph as two maps (adjacency "lists"):
   // ProtGroups-Indices <-> PepID-Indices
   // so we get bidirectional connectivity
@@ -140,6 +142,10 @@ protected:
   struct ConnCompStruct {
     set<Size> protGrpIndices;
     set<Size> pepIndices;
+    
+    ConnCompStruct() : protGrpIndices(set<Size>()),
+                       pepIndices(set<Size>())
+    {}
     
     ostream& operator << (ostream& os)
     //Overloaded operator for '<<'
@@ -164,7 +170,7 @@ protected:
       
     }
   };
-  
+  /****************************************************************************/
 
   
   void registerOptionsAndFlags_()
@@ -573,9 +579,6 @@ protected:
       {
         Size pepindex = pep_it - peptides.begin();
         
-        //Do I need to init Sets?
-        //pepToIndistProtGroup[pepindex] = *new set<Size>();
-        
         PeptideHit besthit = pep_it->getHits()[0];
         const vector<PeptideEvidence> pepev = besthit.getPeptideEvidences();
         
@@ -584,44 +587,68 @@ protected:
              ++pepev_it)
         {
           String acc = pepev_it->getProteinAccession();
-          //cout << acc << endl;
           Size protGroupIndex = protAccToIndistProtGroup[acc];
           pepToIndistProtGroup[pepindex].insert(protGroupIndex);
           indistProtGroupToPep[protGroupIndex];
-          //if()
-          //{
-          //  indistProtGroupToPep[protGroupIndex] = *new set<Size>();
-          //}
           indistProtGroupToPep[protGroupIndex].insert(pepindex);
         }
 
       }
+
+      //Debugging
       Size oldsize = indistProtGroupToPep.size();
+      
+      //Statistics
+      ConnCompStruct most_peps;
+      ConnCompStruct most_grps;
+      ConnCompStruct most_both;
+      bool statistics = false;
+      
       // Traverse every connected component, remove visited "nodes" in each step
       while (!indistProtGroupToPep.empty())
       {
-        if((oldsize - indistProtGroupToPep.size()) > 1){
-          std::cout << "resolved group of size "
+        if(statistics && ((oldsize - indistProtGroupToPep.size()) > 1)){
+          cout << "resolved group of size "
           << oldsize - indistProtGroupToPep.size() << " in last step " << endl;
+          oldsize = indistProtGroupToPep.size();
         }
-        oldsize = indistProtGroupToPep.size();
+        
         // We take any (= first) protein from map that is still left,
         // to start the next BFS from it
         Size rootProtGrp = indistProtGroupToPep.begin()->first;
 
         // do BFS, return connected proteins and peptides
-        
-        // TODO We can probably leave out peptides from the connected
-        // component return value. With the mapping, they should be uniquely
-        // identified.
         ConnCompStruct currComponent = findConnectedComponent_(rootProtGrp,
                                                                protein,
                                                                peptides);
-        
-        if(currComponent.protGrpIndices.size() > 1){
-          std::cout << "found group: " << endl;
-          currComponent << std::cout;
-          std::cout << endl << "Processing ..." << endl;
+        // For debugging and statistics
+        if(statistics)
+        {
+          if(currComponent.protGrpIndices.size() >
+             most_grps.protGrpIndices.size())
+          {
+            most_grps = currComponent;
+          }
+          
+          if(currComponent.pepIndices.size() >
+             most_peps.pepIndices.size())
+          {
+            most_peps = currComponent;
+          }
+          
+          if((currComponent.protGrpIndices.size() +
+              currComponent.pepIndices.size()) >
+             (most_both.protGrpIndices.size() +
+              most_both.pepIndices.size()))
+          {
+            most_both = currComponent;
+          }
+          
+          if(currComponent.protGrpIndices.size() > 1){
+            std::cout << "found group: " << endl;
+            currComponent << std::cout;
+            std::cout << endl << "Processing ..." << endl;
+          }
         }
         
         // resolve shared peptides based on Fido probabilities
@@ -629,7 +656,6 @@ protected:
         
         // TODO resolve ties by more sophisticated method
         // e.g. number of peptides covered (smallest?)
-        // maybe store (non-indistinguishable) groups when we are at it??
         resolveConnectedComponent_(currComponent, protein, peptides);
         
         // mark proteins of this component as visited by removing them
@@ -640,22 +666,28 @@ protected:
           indistProtGroupToPep.erase(*grp_it);
         }
       }
-      // maybe save ConnectedComponent here or add it to notindist. groups?
+      
+      //TODO maybe extend statistics of connected components!
+      if(statistics)
+      {
+        cout << endl << "Most protein groups in component:" << endl;
+        most_grps << cout;
+        cout << endl << "Most peptides in component:"<< endl;
+        most_peps << cout;
+        cout << endl << "Biggest component:" << endl;
+        most_both << cout;
+      }
     }
-    
+
     return true;
   }
 
   
   /*
-   TODO: Use mapping from accesions to PrtGrpIndex to remove
-   Mappings in indistProtGroupToPep while iterating over the PepEvidences
-   
-   
-   
-   
+   * Does a BFS on the two maps (= two parts of the graph; indist. prot. groups
+   * and peptides), switching from one to the other in each step.
+   * Returns a Connected Component as set of group and peptide indices.
    */
-  
   ConnCompStruct findConnectedComponent_(Size& rootProtGrp,
                                          ProteinIdentification& protein,
                                          vector<PeptideIdentification>& peptides)
@@ -672,15 +704,13 @@ protected:
     myqueue.push(make_pair(true, rootProtGrp));
     
     // check successes of insertions
-    std::pair<std::set<Size>::iterator,bool> success;
+    pair<set<Size>::iterator,bool> success;
     
     while(!myqueue.empty())
     {
       // save first element and pop
       pair<bool, Size> currnode = myqueue.front();
-      //LOG_INFO << "before pop" << myqueue.size() << endl;
       myqueue.pop();
-      //LOG_INFO << "after pop" << myqueue.size() << endl;
       
       // initialize neighbors
       set<Size> neighbors;
@@ -720,13 +750,15 @@ protected:
   }
   
   /*
-   * Resolves connected components based on Fido probabilities.
+   * Resolves connected components based on Fido probabilities and adds
+   * as additional protein_groups to the output idXML.
    * Thereby greedily assigns shared peptides in this component uniquely to
    * the proteins of the current BEST INDISTINGUISHABLE protein group,
    * ready to be used in ProteinQuantifier then.
    * This is achieved by removing all other evidence from the input
    * PeptideIDs and iterating until
    * In accordance with Fido only the best hit (PSM) for an ID is considered.
+   * Probability ties are _currently_ resolved by taking the first occurence.
    */
   void resolveConnectedComponent_(ConnCompStruct& connComp,
                                   ProteinIdentification& protein,
@@ -740,25 +772,52 @@ protected:
      resolve(with max index grp)
     */
     
+    // Add proteins from a connected component to ambiguity groups
+    ProteinIdentification::ProteinGroup ambiguity_grp =
+    ProteinIdentification::ProteinGroup();
+    
+    // Save the max probability in this component to add it (should be first one)
+    double max_prob = 0.0;
+    
     // Go through protein groups (sorted by probability -> higher index
     // means worse probability)
+    bool first_change = true;
+    
     for (set<Size>::iterator grp_it = connComp.protGrpIndices.begin();
          grp_it != connComp.protGrpIndices.end();
          ++grp_it)
     {
+      
+      // Take first probability -> best
+      if (first_change)
+      {
+        max_prob = protein.getIndistinguishableProteins()[*grp_it].probability;
+        first_change = false;
+      }
+      
+      ambiguity_grp.probability = max_prob;
+      
+      vector<String> accessions =
+      protein.getIndistinguishableProteins()[*grp_it].accessions;
+      
+      // Put the accessions of the indist. groups into the subsuming
+      // ambiguity group
+      ambiguity_grp.accessions.insert(ambiguity_grp.accessions.end(),
+                                      accessions.begin(),
+                                      accessions.end());
+      
       // Update all the peptides the current best point to
       for (set<Size>::iterator pepid_it = indistProtGroupToPep[*grp_it].begin();
            pepid_it != indistProtGroupToPep[*grp_it].end();
            ++pepid_it
            )
       {
-        vector<String> accessions =
-          protein.getIndistinguishableProteins()[*grp_it].accessions;
+        
         vector<PeptideHit> pepidhits = peptides[*pepid_it].getHits();
         vector<PeptideEvidence> besthitev = pepidhits[0].getPeptideEvidences();
         
         
-        // Go through all remaining proteins of comp and remove this
+        // Go through all _remaining_ proteins of the component and remove this
         // peptide from their mapping
         set<Size>::iterator grp_it_cont = grp_it;
         grp_it_cont++;
@@ -771,9 +830,6 @@ protected:
         
         // go through all the evidence of this peptide and remove all
         // proteins but the ones from the current indist. group
-        
-        // TODO Is saving evidenceIndex together with proteinGroupIndex
-        // for the value of a PepId->value in the beginning worth it ???
         for (vector<PeptideEvidence>::iterator pepev_it = besthitev.begin();
              pepev_it != besthitev.end();
              //dont increase index, will be done by case
@@ -784,19 +840,20 @@ protected:
                   accessions.end(),
                   pepev_it->getProteinAccession()) == accessions.end())
           {
-            cout << "Wanna erase: " << pepev_it->getProteinAccession() << endl;
             besthitev.erase(pepev_it);
           } else { // iterate further
             pepev_it++;
           }
         }
-        // Set the remaining Evidences as new Evidence
+        // Set the remaining evidences as new evidence
         pepidhits[0].setPeptideEvidences(besthitev);
         peptides[*pepid_it].setHits(pepidhits);
       }
       
     }
 
+    //Finally insert ambiguity group
+    protein.insertProteinGroup(ambiguity_grp);
   }
   
   ExitCodes main_(int, const char**)
