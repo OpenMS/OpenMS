@@ -244,7 +244,7 @@ namespace OpenMS
     transition_group_detection.setTransitionGroupID(transition_group.getTransitionGroupID());
 
     std::vector<TransitionType> tr = transition_group.getTransitions();
-    for (std::vector<TransitionType>::const_iterator tr_it = tr.begin(); tr_it != tr.end(); tr_it++)
+    for (std::vector<TransitionType>::const_iterator tr_it = tr.begin(); tr_it != tr.end(); ++tr_it)
     {
       if (tr_it->isDetectingTransition())
       {
@@ -254,18 +254,18 @@ namespace OpenMS
     }
 
     std::vector< MRMFeature > tgf = transition_group.getFeatures();
-    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); tgf_it++)
+    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); ++tgf_it)
     {
       MRMFeature mf;
       mf.setIntensity(tgf_it->getIntensity());
       mf.setRT(tgf_it->getRT());
       std::vector<String> metavalues;
       tgf_it->getKeys(metavalues);
-      for (std::vector<String>::iterator key_it = metavalues.begin(); key_it != metavalues.end(); key_it++)
+      for (std::vector<String>::iterator key_it = metavalues.begin(); key_it != metavalues.end(); ++key_it)
       {
         mf.setMetaValue(*key_it,tgf_it->getMetaValue(*key_it));
       }
-      for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); tr_it++)
+      for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); ++tr_it)
       {
         if (tr_it->isDetectingTransition())
         {
@@ -274,7 +274,7 @@ namespace OpenMS
       }
       std::vector<String> pf_ids;
       tgf_it->getPrecursorFeatureIDs(pf_ids);
-      for (std::vector<String>::iterator pf_ids_it = pf_ids.begin(); pf_ids_it != pf_ids.end(); pf_ids_it++)
+      for (std::vector<String>::iterator pf_ids_it = pf_ids.begin(); pf_ids_it != pf_ids.end(); ++pf_ids_it)
       {
         mf.addPrecursorFeature(tgf_it->getPrecursorFeature(*pf_ids_it),*pf_ids_it);
       }
@@ -288,14 +288,14 @@ namespace OpenMS
     transition_group_identification_decoy.setTransitionGroupID(transition_group.getTransitionGroupID());
 
     std::vector< MRMFeature > tgf = transition_group.getFeaturesMuteable();
-    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); tgf_it++)
+    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); ++tgf_it)
     {
       transition_group_identification.addFeature(*tgf_it);
       transition_group_identification_decoy.addFeature(*tgf_it);
     }
 
     std::vector<TransitionType> tr = transition_group.getTransitions();
-    for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); tr_it++)
+    for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); ++tr_it)
     {
       if (tr_it->identifying_transition)
       {
@@ -319,14 +319,14 @@ namespace OpenMS
     transition_group_site_identification_decoy.setTransitionGroupID(transition_group.getTransitionGroupID());
 
     std::vector< MRMFeature > tgf = transition_group.getFeaturesMuteable();
-    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); tgf_it++)
+    for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); ++tgf_it)
     {
       transition_group_site_identification.addFeature(*tgf_it);
       transition_group_site_identification_decoy.addFeature(*tgf_it);
     }
 
     std::vector<TransitionType> tr = transition_group.getTransitions();
-    for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); tr_it++)
+    for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); ++tr_it)
     {
       std::vector<int> site_identifying_transition = tr_it->site_identifying_transition;
       std::vector<std::string> site_identifying_class = tr_it->site_identifying_class;
@@ -445,7 +445,7 @@ namespace OpenMS
       transition_group_site_identification_revnext.setTransitionGroupID(transition_group_site_identification.getTransitionGroupID());
   
       std::vector< MRMFeature > tgf = transition_group_site_identification.getFeaturesMuteable();
-      for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); tgf_it++)
+      for (std::vector< MRMFeature >::iterator tgf_it = tgf.begin(); tgf_it != tgf.end(); ++tgf_it)
       {
         transition_group_site_identification_fwddiag.addFeature(*tgf_it);
         transition_group_site_identification_fwdnext.addFeature(*tgf_it);
@@ -453,7 +453,7 @@ namespace OpenMS
         transition_group_site_identification_revnext.addFeature(*tgf_it);
       }
 
-      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("fwddiag")].begin(); n_it != site_identifying_index[key][String("fwddiag")].end(); n_it++)
+      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("fwddiag")].begin(); n_it != site_identifying_index[key][String("fwddiag")].end(); ++n_it)
       {
         OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_site_identification.getChromatogram(*n_it), sn_win_len_, sn_bin_count_, write_log_messages));
 
@@ -465,7 +465,7 @@ namespace OpenMS
           transition_group_site_identification_fwddiag.addChromatogram(transition_group_site_identification.getChromatogram(*n_it), *n_it);
         }
       }   
-      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("fwdnext")].begin(); n_it != site_identifying_index[key][String("fwdnext")].end(); n_it++)
+      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("fwdnext")].begin(); n_it != site_identifying_index[key][String("fwdnext")].end(); ++n_it)
       {
         OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_site_identification.getChromatogram(*n_it), sn_win_len_, sn_bin_count_, write_log_messages));
 
@@ -477,7 +477,7 @@ namespace OpenMS
           transition_group_site_identification_fwdnext.addChromatogram(transition_group_site_identification.getChromatogram(*n_it), *n_it);
         }
       }   
-      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("revdiag")].begin(); n_it != site_identifying_index[key][String("revdiag")].end(); n_it++)
+      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("revdiag")].begin(); n_it != site_identifying_index[key][String("revdiag")].end(); ++n_it)
       {
         OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_site_identification.getChromatogram(*n_it), sn_win_len_, sn_bin_count_, write_log_messages));
 
@@ -489,7 +489,7 @@ namespace OpenMS
           transition_group_site_identification_revdiag.addChromatogram(transition_group_site_identification.getChromatogram(*n_it), *n_it);
         }
       }   
-      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("revnext")].begin(); n_it != site_identifying_index[key][String("revnext")].end(); n_it++)
+      for (std::vector<String>::iterator n_it = site_identifying_index[key][String("revnext")].begin(); n_it != site_identifying_index[key][String("revnext")].end(); ++n_it)
       {
         OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group_site_identification.getChromatogram(*n_it), sn_win_len_, sn_bin_count_, write_log_messages));
 
