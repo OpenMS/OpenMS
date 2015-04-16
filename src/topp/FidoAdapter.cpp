@@ -92,6 +92,7 @@ using namespace std;
  The output of this tool is an augmented version of the input: The protein groups and accompanying posterior probabilities inferred by Fido are stored as "indistinguishable protein groups", attached to the protein identification run(s) of the input data. Also attached are meta values recording the Fido parameters (@p Fido_prob_protein, @p Fido_prob_peptide, @p Fido_prob_spurious).@n
  The result can be passed to @ref TOPP_ProteinQuantifier via its @p protein_groups parameter, to have the protein grouping taken into account during quantification.@n
  Note that if the input contains multiple identification runs and @p separate_runs is @e not set (the default), the identification data from all runs will be pooled for the Fido analysis and the result will only contain one (merged) identification run. This is the desired behavior if the protein grouping should be used by ProteinQuantifier.
+ When the @p greedy_group_resolution flag is set, "peptide to indistinguishable proteins" mappings will be unique in the output and the actual resolved groups are added as "protein groups", attached to the protein identification run(s) of the input data (in addition to the "indistinguishable protein groups").
  
  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -120,9 +121,8 @@ protected:
   typedef boost::bimap<String, String> StringBimap;
   
   StringBimap sanitized_accessions_; // protein accessions
-  
-  
-  /********************** Only used if occam_flag is set **********************/
+
+  /**************** Only used if greedy_group_resolution is set ***************/
   // build bipartite graph as two maps (adjacency "lists"):
   // ProtGroups-Indices <-> PepID-Indices
   // so we get bidirectional connectivity
@@ -184,7 +184,7 @@ protected:
     registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
-    registerFlag_("occam_flag", "Post-process Fido output with greedy Occam's razor");
+    registerFlag_("greedy_group_resolution", "Post-process Fido output with greedy resolution of shared peptides based on the protein probabilities. Also adds the resolved ambiguity groups to output.");
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
@@ -372,7 +372,7 @@ protected:
                 const String& exe, QStringList& fido_params,
                 double& prob_protein, double& prob_peptide,
                 double& prob_spurious, const String& temp_dir,
-                bool keep_zero_group = false, bool occam_flag = false,
+                bool keep_zero_group = false, bool greedy_flag = false,
                 Size counter = 0)
   {
     // create a copy of the params so the templates can be overwritten with
@@ -538,7 +538,7 @@ protected:
     
     
     // Do post-processing on groups if specified
-    if (occam_flag)
+    if (greedy_flag)
     {
       LOG_INFO << "Resolving ambiguity groups greedily on Fido output..."
                << endl;
@@ -595,7 +595,8 @@ protected:
       {
         if(statistics && ((old_size - indist_prot_grp_to_pep_.size()) > 1)){
           cout << "resolved group of size "
-          << old_size - indist_prot_grp_to_pep_.size() << " in last step " << endl;
+          << old_size - indist_prot_grp_to_pep_.size() << " in last step "
+          << endl;
           old_size = indist_prot_grp_to_pep_.size();
         }
         
@@ -645,7 +646,8 @@ protected:
         resolveConnectedComponent_(curr_component, protein, peptides);
         
         // mark proteins of this component as visited by removing them
-        for (set<Size>::iterator grp_it = curr_component.prot_grp_indices.begin();
+        for (set<Size>::iterator grp_it =
+             curr_component.prot_grp_indices.begin();
              grp_it != curr_component.prot_grp_indices.end();
              ++grp_it)
         {
@@ -853,7 +855,7 @@ protected:
     String prob_param = getStringOption_("prob_param");
     bool separate_runs = getFlag_("separate_runs");
     bool keep_zero_group = getFlag_("keep_zero_group");
-    bool occam_flag = getFlag_("occam_flag");
+    bool greedy_flag = getFlag_("greedy_group_resolution");
     double prob_protein = getDoubleOption_("prob:protein");
     double prob_peptide = getDoubleOption_("prob:peptide");
     double prob_spurious = getDoubleOption_("prob:spurious");
@@ -961,7 +963,7 @@ protected:
         fido_success = runFido_(*prot_it, peptides, choose_params, executable,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group,
-                                occam_flag, counter);
+                                greedy_flag, counter);
       }
     }
     else // merge multiple protein ID runs
@@ -1001,7 +1003,7 @@ protected:
       fido_success = runFido_(all_proteins, peptides, choose_params, executable,
                               fido_params, prob_protein, prob_peptide,
                               prob_spurious, temp_dir, keep_zero_group,
-                              occam_flag);
+                              greedy_flag);
       
       // replace proteins with merged variant:
       proteins.clear();
