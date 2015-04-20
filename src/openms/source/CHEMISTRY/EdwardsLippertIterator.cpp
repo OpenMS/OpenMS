@@ -38,6 +38,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 
+#include <string>
 #include <cstring>
 #include <algorithm>
 #include <fstream>
@@ -212,7 +213,7 @@ namespace OpenMS
   string EdwardsLippertIterator::next_()
   {
 
-    string seq = f_entry_.second;
+    std::string seq = f_entry_.second;
 
     while (b_ < seq.length())
     {
