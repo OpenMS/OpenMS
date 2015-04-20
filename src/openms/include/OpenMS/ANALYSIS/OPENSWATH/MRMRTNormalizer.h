@@ -58,7 +58,7 @@ namespace OpenMS
   class OPENMS_DLLAPI MRMRTNormalizer
   {
 
-private:
+protected:
   
     /**
       @brief Interface for GSL or OpenMS::MATH linear regression implementation
