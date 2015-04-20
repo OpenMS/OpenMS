@@ -54,6 +54,9 @@
 
 #include <svm.h>
 
+#include <cstdlib> // for "rand"
+#include <ctime> // for "time" (seeding of random number generator)
+
 using namespace OpenMS;
 using namespace std;
 
@@ -179,6 +182,9 @@ protected:
     registerTOPPSubsection_("svm", "Parameters for scoring features using a support vector machine (SVM)");
     registerIntOption_("svm:xval", "<number>", 5, "Number of partitions for cross-validation", false);
     setMinInt_("svm:xval", 1);
+    registerIntOption_("svm:samples", "<number>", 0, "Number of observations to use for training ('0' for all)", false);
+    setMinInt_("svm:samples", 0);
+    registerFlag_("svm:unbiased", "Reduce biases by choosing (roughly) the same number of positive and negative observations, with the same intensity distribution, for training. This reduces the number of available samples.");
     registerStringOption_("svm:kernel", "<choice>", "RBF", "SVM kernel", false);
     setValidStrings_("svm:kernel", ListUtils::create<String>("RBF,linear"));
     String values = "-5,-3,-1,1,3,5,7,9,11,13,15";
@@ -249,6 +255,8 @@ protected:
   bool mz_window_ppm_; // m/z window width is given in PPM (not Da)?
   double isotope_pmin_; // min. isotope probability
   double mapping_tolerance_; // RT tolerance for mapping IDs to features
+  Size n_parts_; // number of partitions for SVM cross-validation
+  Size n_samples_; // number of samples for SVM training
   String elution_model_; // choice of elution model
   ChromatogramExtractor extractor_; // OpenSWATH chromatogram extractor
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
@@ -1086,6 +1094,185 @@ protected:
   }
 
 
+  void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "")
+  {
+    if (n_pos < n_parts_)
+    {
+      String msg = "Not enough positive observations for " + 
+        String(n_parts_) + "-fold cross-validation" + note + ".";
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+    if (n_neg < n_parts_)
+    {
+      String msg = "Not enough negative observations for " + 
+        String(n_parts_) + "-fold cross-validation" + note + ".";
+      throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                          __PRETTY_FUNCTION__, msg);
+    }
+  }
+
+  
+  void getTrainingSample_(const vector<double>& labels,
+                          const vector<double>& intensities,
+                          vector<vector<struct svm_node> >& svm_nodes,
+                          struct svm_problem& svm_data)
+  {
+    vector<Size> selection; // indexes of observations selected for training
+    // mapping: intensity -> (index, positive?)
+    multimap<double, pair<Size, bool> > valid_obs;
+    Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
+    srand(time(0)); // seed random number generator
+    bool unbiased = getFlag_("svm:unbiased");
+
+    // get positive/negative observations for training (no "maybes"/unknowns):
+    for (Size i = 0; i < labels.size(); ++i)
+    {
+      if ((labels[i] == 0.0) || (labels[i] == 1.0))
+      {
+        Size category = Size(labels[i]);
+        ++n_obs[category];
+        if (unbiased) // fill "valid_obs" first ("selection" is filled later)
+        {
+          valid_obs.insert(make_pair(intensities[i],
+                                     make_pair(i, bool(category))));
+        }
+        else // fill "selection" directly
+        {
+          selection.push_back(i);
+        }
+      }
+    }
+    checkNumObservations_(n_obs[1], n_obs[0]);
+
+    if (unbiased)
+    {
+      // Create an unbiased training sample:
+      // - same number of pos./neg. observations (approx.),
+      // - same intensity distribution of pos./neg. observations.
+      // We use a sliding window over the set of observations, ordered by
+      // intensity. At each step, we examine the proportion of both pos./neg.
+      // observations in the window and select the middle element with according
+      // probability. (We use an even window size, to cover the ideal case where
+      // the two classes are balanced.)
+      const Size window_size = 8;
+      const Size half_win_size = window_size / 2;
+      if (labels.size() < half_win_size + 1)
+      {
+        String msg = "Not enough observations for intensity-bias filtering.";
+        throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                            __PRETTY_FUNCTION__, msg);
+      }
+      Size counts[2] = {0, 0};
+      n_obs[0] = n_obs[1] = 0;
+      // iterators to begin, middle and past-the-end of sliding window:
+      multimap<double, pair<Size, bool> >::iterator begin, middle, end;
+      begin = middle = end = valid_obs.begin();
+      // initialize ("middle" is at beginning of sequence, so no full window):
+      for (Size i = 0; i <= half_win_size; ++i, ++end)
+      {
+        ++counts[end->second.second]; // increase counter for pos./neg. obs.
+      }
+      // "i" is the index of one of the two middle values of the sliding window:
+      // - in the left half of the sequence, "i" is left-middle,
+      // - in the right half of the sequence, "i" is right-middle.
+      // The counts are updated as "i" and the sliding window move to the right.
+      for (Size i = 0; i < valid_obs.size(); ++i, ++middle)
+      {
+        // if count for either class is zero, we don't select anything:
+        if ((counts[0] > 0) && (counts[1] > 0))
+        {
+          // probability thresholds for neg./pos. observations:
+          double thresholds[2] = {counts[1] / float(counts[0]),
+                                  counts[0] / float(counts[1])};
+          // check middle values:
+          double rnd = rand() / double(RAND_MAX); // random num. in range 0-1
+          if (rnd < thresholds[middle->second.second])
+          {
+            selection.push_back(middle->second.first);
+            ++n_obs[middle->second.second];
+          }
+        }
+        // update sliding window and class counts;
+        // when we reach the middle of the sequence, we keep the window in place
+        // for one step, to change from "left-middle" to "right-middle":
+        if (i != valid_obs.size() / 2)
+        {
+          // only move "begin" when "middle" has advanced far enough:
+          if (i > half_win_size)
+          {
+            --counts[begin->second.second];
+            ++begin;
+          }
+          // don't increment "end" beyond the defined range:
+          if (end != valid_obs.end())
+          {
+            ++counts[end->second.second];
+            ++end;
+          }
+        }
+      }
+      checkNumObservations_(n_obs[1], n_obs[0], " after bias filtering");
+    }
+
+    if (n_samples_ > 0) // limited number of samples for training
+    {
+      if (selection.size() < n_samples_)
+      {
+        LOG_WARN << "Warning: There are only " << selection.size()
+                 << " valid observations for training." << endl;
+      }
+      else if (selection.size() > n_samples_) // pick random subset for training
+      {
+        // To get a random subset of size "n_samples_", shuffle the whole
+        // sequence, then select the first "n_samples_" elements.
+        random_shuffle(selection.begin(), selection.end());
+        // However, ensure that at least "n_parts_" pos./neg. observations are
+        // included (for cross-validation) - there must be enough, otherwise
+        // "checkNumObservations_" would have thrown an error. To this end, move
+        // "n_parts_" pos. observations to the beginning of sequence, followed
+        // by "n_parts_" neg. observations (pos. first - see reason below):
+        n_obs[0] = n_obs[1] = 0;        
+        for (Int category = 1; category >= 0; --category)
+        {
+          for (Size i = n_obs[1]; i < selection.size(); ++i)
+          {
+            Size obs_index = selection[i];
+            if (labels[obs_index] == category)
+            {
+              swap(selection[i], selection[n_obs[category]]);
+              ++n_obs[category];
+            }
+            if (n_obs[category] == n_parts_) break;
+          }
+        }
+        selection.resize(n_samples_);
+      }
+    }
+    // make sure the first observation is positive, or SVM class labels may be
+    // reversed due to a bug in LIBSVM (before version 3.17; see LIBSVM FAQ:
+    // http://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html#f430):
+    Size i = 0;
+    while (labels[selection[i]] != 1.0) ++i;
+    swap(selection[0], selection[i]);
+
+    // fill LIBSVM data structure:
+    svm_data.l = selection.size();
+    svm_data.x = new svm_node*[svm_data.l];
+    svm_data.y = new double[svm_data.l];
+    n_obs[0] = n_obs[1] = 0;
+    for (i = 0; i < selection.size(); ++i)
+    {
+      Size obs_index = selection[i];
+      svm_data.x[i] = &(svm_nodes[obs_index][0]);
+      svm_data.y[i] = labels[obs_index];
+      ++n_obs[Size(labels[obs_index])];
+    }
+    LOG_INFO << "Training SVM on " << selection.size() << " observations ("
+             << n_obs[1] << " positive, " << n_obs[0] << " negative)." << endl;
+  }
+
+  
   void writeXvalResults_(const String& path, const SVMPerformance& performance,
                          const vector<double>& log2_C, 
                          const vector<double>& log2_gamma)
@@ -1171,12 +1358,9 @@ protected:
   }
 
 
-  void optimizeSVMParams_(vector<double> labels,
-                          vector<vector<struct svm_node> >& svm_nodes, 
-                          struct svm_problem& svm_data,
+  void optimizeSVMParams_(struct svm_problem& svm_data,
                           struct svm_parameter& svm_params)
   {
-    Size n_parts = getIntOption_("svm:xval");
     vector<double> log2_C = getDoubleList_("svm:log2_C");
     vector<double> log2_gamma;
     if (svm_params.kernel_type == RBF)
@@ -1186,48 +1370,6 @@ protected:
     else
     {
       log2_gamma.push_back(0.0);
-    }
-
-    vector<Size> valid_obs; // observations for training (no "maybes"/unknowns)
-    Size n_neg = 0, n_pos = 0; // number of positive/negative observations
-    for (Size i = 0; i < labels.size(); ++i)
-    {
-      if (labels[i] == 0.0)
-      {
-        valid_obs.push_back(i);
-        ++n_neg;
-      }
-      else if (labels[i] == 1.0)
-      {
-        valid_obs.push_back(i);
-        ++n_pos;
-      }
-    }
-    if (n_pos < n_parts)
-    {
-      String msg = "not enough positive observations for " + 
-        String(n_parts) + "-fold cross-validation";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                          __PRETTY_FUNCTION__, msg);
-    }
-    if (n_neg < n_parts)
-    {
-      String msg = ("not enough negative observations for " + 
-                    String(n_parts) + "-fold cross-validation");
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                          __PRETTY_FUNCTION__, msg);
-    }
-    LOG_INFO << "Training SVM on " << valid_obs.size() << " observations ("
-             << n_pos << " positive, " << n_neg << " negative)." << endl;
-
-    svm_data.l = valid_obs.size();
-    svm_data.y = new double[svm_data.l];
-    svm_data.x = new svm_node*[svm_data.l];
-    for (Size i = 0; i < Size(svm_data.l); ++i)
-    {
-      Size obs_index = valid_obs[i];
-      svm_data.y[i] = labels[obs_index];
-      svm_data.x[i] = &(svm_nodes[obs_index][0]);
     }
 
     LOG_INFO << "Running cross-validation to find optimal SVM parameters..."
@@ -1246,7 +1388,7 @@ protected:
       {
         svm_params.C = pow(2.0, log2_C[c_index]);
         vector<double> targets(svm_data.l);
-        svm_cross_validation(&svm_data, &svm_params, n_parts, &(targets[0]));
+        svm_cross_validation(&svm_data, &svm_params, n_parts_, &(targets[0]));
         Size n_correct = 0;
         for (Size i = 0; i < Size(svm_data.l); ++i)
         {
@@ -1285,8 +1427,10 @@ protected:
   void classifyFeatures_(FeatureMap& features)
   {
     vector<double> labels(features.size());
+    vector<double> intensities(features.size()); // feature intensities
     for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
+      intensities[feat_index] = features[feat_index].getIntensity();
       String feature_class = features[feat_index].getMetaValue("feature_class");
       if (feature_class == "true_positive") labels[feat_index] = 1.0;
       else if (feature_class == "unknown") labels[feat_index] = -1.0;
@@ -1323,6 +1467,9 @@ protected:
     vector<vector<struct svm_node> > svm_nodes;
     convertSVMData_(predictor_values, svm_nodes);
 
+    struct svm_problem svm_data;
+    getTrainingSample_(labels, intensities, svm_nodes, svm_data);
+    
     struct svm_parameter svm_params;
     svm_params.svm_type = C_SVC;
     String kernel = getStringOption_("svm:kernel");
@@ -1333,9 +1480,8 @@ protected:
     svm_params.shrinking = 1; // use shrinking heuristics?
     svm_params.probability = 1;
 
-    struct svm_problem svm_data;
     svm_set_print_string_function(&printNull_); // suppress output of LIBSVM
-    optimizeSVMParams_(labels, svm_nodes, svm_data, svm_params);
+    optimizeSVMParams_(svm_data, svm_params);
 
     // train SVM on the full dataset:
     struct svm_model* model = svm_train(&svm_data, &svm_params);
@@ -1350,7 +1496,7 @@ protected:
     }
     
     svm_free_model_content(model);
-    // free memory reserved in function "optimizeSVMParams_":
+    // free memory reserved in function "getTrainingSample_":
     delete[] svm_data.y;
     delete[] svm_data.x;
   }
@@ -1377,6 +1523,7 @@ protected:
       {
         if (best_quality > 0.0) best_it->setOverallQuality(best_quality);
         best_quality = 0.0;
+        previous_ref = peptide_ref;
       }
 
       // update qualities:
@@ -1422,9 +1569,20 @@ protected:
     double min_peak_width = getDoubleOption_("detect:min_peak_width");
     double signal_to_noise = getDoubleOption_("detect:signal_to_noise");
     mapping_tolerance_ = getDoubleOption_("detect:mapping_tolerance");
+    n_parts_ = getIntOption_("svm:xval");
+    n_samples_ = getIntOption_("svm:samples");
     elution_model_ = getStringOption_("model:type");
     prog_log_.setLogType(log_type_);
 
+    if ((n_samples_ > 0) && (n_samples_ < 2 * n_parts_))
+    {
+      String msg = "Sample size of " + String(n_samples_) +
+        " (parameter 'svm:samples') is not enough for " + String(n_parts_) +
+        "-fold cross-validation (parameter 'svm:xval').";
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                        msg);
+    }
+    
     //-------------------------------------------------------------
     // load input
     //-------------------------------------------------------------
