@@ -330,10 +330,16 @@ set_tests_properties("TOPP_FileConverter_17_out1" PROPERTIES DEPENDS "TOPP_FileC
 add_test("TOPP_FileConverter_18" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_17_input.consensusXML -no_progress -out FileConverter_18.tmp -out_type csv)
 add_test("TOPP_FileConverter_18_out1" ${DIFF} -in1 FileConverter_18.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_17_output.ibspectra.csv )
 set_tests_properties("TOPP_FileConverter_18_out1" PROPERTIES DEPENDS "TOPP_FileConverter_18")
-# Purpose: test the -write_mzML_index and the -process_lowmemory options 
+# Purpose: test the -write_mzML_index and the -process_lowmemory options (for mzML and mzXML)
 add_test("TOPP_FileConverter_19" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileConverter_19.tmp  -write_mzML_index -process_lowmemory -in_type mzML -out_type mzML)
 add_test("TOPP_FileConverter_19_out" ${DIFF} -in1 FileConverter_19.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_19_output.mzML )
 set_tests_properties("TOPP_FileConverter_19_out" PROPERTIES DEPENDS "TOPP_FileConverter_19")
+add_test("TOPP_FileConverter_20" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_4_input.mzXML -out FileConverter_20.tmp -out_type mzML -process_lowmemory)
+# TODO sourceFile doe not seem to be handled correctly, we should fix this! 
+add_test("TOPP_FileConverter_20_out1" ${DIFF} -whitelist "location=" "MS:100056" "SHA-1" -in1 FileConverter_20.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_4_output.mzML)
+add_test("TOPP_FileConverter_21" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_8_input.mzML -out FileConverter_8.tmp -out_type mzData -process_lowmemory)
+set_tests_properties("TOPP_FileConverter_21" PROPERTIES WILL_FAIL 1) ## low memory not implemented yet
+
 
 #------------------------------------------------------------------------------
 # FileFilter tests
