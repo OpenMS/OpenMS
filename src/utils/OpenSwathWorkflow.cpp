@@ -678,7 +678,11 @@ namespace OpenMS
       OpenSwath::LightTargetedExperiment targeted_exp;
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, targeted_exp);
 
-      bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides") == "true";
+      bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides").toBool();
+      if (estimateBestPeptides)
+      {
+        LOG_DEBUG << "Activated the 'estimateBestPeptides' option." << std::endl;
+      }
 
       // 1. Estimate the retention time range of the whole experiment
       std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
@@ -746,7 +750,7 @@ namespace OpenMS
       if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
       {
         pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
-        irt_detection_param.getValue("useIterativeChauvenet") == "true", outlier_method);
+        irt_detection_param.getValue("useIterativeChauvenet").toBool(), outlier_method);
       }
       else if (outlier_method == "ransac")
       {

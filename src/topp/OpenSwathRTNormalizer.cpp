@@ -282,7 +282,7 @@ protected:
     if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
     {
       pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
-        outlierDetectionParams.getValue("useIterativeChauvenet") == "true", outlier_method);
+        outlierDetectionParams.getValue("useIterativeChauvenet").toBool(), outlier_method);
     }
     else if (outlier_method == "ransac")
     {
