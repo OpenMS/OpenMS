@@ -185,7 +185,7 @@ protected:
     registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
-    registerFlag_("resolve_shared_peptides", "Post-process Fido results to resolve peptide/protein associations using a greedy Occam's razor approach");
+    registerFlag_("greedy_group_resolution", "Post-process Fido output with greedy resolution of shared peptides based on the protein probabilities. Also adds the resolved ambiguity groups to output.");
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
@@ -540,12 +540,11 @@ protected:
       // Construct intermediate mapping of single protein accessions
       // to indist. protein groups
       for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
-           protein.getIndistinguishableProteins().begin(); group_it !=
-           protein.getIndistinguishableProteins().end(); ++group_it)
+           protein.getIndistinguishableProteins().begin();
+           group_it != protein.getIndistinguishableProteins().end(); ++group_it)
       {
-        for (vector<String>::iterator acc_it =
-             group_it->accessions.begin(); acc_it !=
-             group_it->accessions.end(); ++acc_it)
+        for (vector<String>::iterator acc_it = group_it->accessions.begin();
+             acc_it != group_it->accessions.end(); ++acc_it)
         {
           prot_acc_to_indist_prot_grp_[*acc_it] =
           group_it - protein.getIndistinguishableProteins().begin();
@@ -563,8 +562,7 @@ protected:
         const vector<PeptideEvidence> pepev = best_hit.getPeptideEvidences();
         
         for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
-             pepev_it != pepev.end();
-             ++pepev_it)
+             pepev_it != pepev.end(); ++pepev_it)
         {
           String acc = pepev_it->getProteinAccession();
           Size prot_group_index = prot_acc_to_indist_prot_grp_[acc];
@@ -625,7 +623,8 @@ protected:
             most_both = curr_component;
           }
           
-          if(curr_component.prot_grp_indices.size() > 1){
+          if(curr_component.prot_grp_indices.size() > 1)
+          {
             cout << "found group: " << endl;
             curr_component << cout;
             cout << endl << "Processing ..." << endl;
@@ -790,9 +789,7 @@ protected:
       // Update all the peptides the current best point to
       for (set<Size>::iterator pepid_it =
            indist_prot_grp_to_pep_[*grp_it].begin();
-           pepid_it != indist_prot_grp_to_pep_[*grp_it].end();
-           ++pepid_it
-           )
+           pepid_it != indist_prot_grp_to_pep_[*grp_it].end(); ++pepid_it)
       {
         
         vector<PeptideHit> pep_id_hits = peptides[*pepid_it].getHits();
@@ -804,8 +801,7 @@ protected:
         // peptide from their mapping
         set<Size>::iterator grp_it_cont = grp_it;
         grp_it_cont++;
-        for (grp_it_cont;
-             grp_it_cont != conn_comp.prot_grp_indices.end();
+        for (grp_it_cont; grp_it_cont != conn_comp.prot_grp_indices.end();
              ++grp_it_cont)
         {
           indist_prot_grp_to_pep_[*grp_it_cont].erase(*pepid_it);
