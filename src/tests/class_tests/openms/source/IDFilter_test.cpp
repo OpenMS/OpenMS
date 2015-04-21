@@ -50,6 +50,9 @@
 
 ///////////////////////////
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 START_TEST(IDFilter, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -591,3 +594,6 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 
 END_TEST
+
+#pragma clang diagnostic pop
+
