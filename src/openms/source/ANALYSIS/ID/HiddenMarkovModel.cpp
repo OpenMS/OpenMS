@@ -48,14 +48,14 @@
 #define SIMPLE_DEBUG2
 #undef  SIMPLE_DEBUG2
 
-#define HIDDEN_MARKOV_MODEL_DEBUG
-#undef HIDDEN_MARKOV_MODEL_DEBUG
+// #define HIDDEN_MARKOV_MODEL_DEBUG
+// #undef  HIDDEN_MARKOV_MODEL_DEBUG
 
-#define STATE_DEBUG
-#undef STATE_DEBUG
+// #define STATE_DEBUG
+// #undef  STATE_DEBUG
 
-#define EVALUATE_DEBUG
-#undef EVALUATE_DEBUG
+// #define EVALUATE_DEBUG
+// #undef  EVALUATE_DEBUG
 
 using namespace std;
 

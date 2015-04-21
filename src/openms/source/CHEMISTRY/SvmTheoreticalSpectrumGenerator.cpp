@@ -52,7 +52,7 @@
 #include <boost/shared_ptr.hpp>
 #endif
 
-#define DEBUG
+// #define DEBUG
 
 namespace OpenMS
 {

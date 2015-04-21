@@ -48,8 +48,10 @@
 #define TWOPI 6.283185307
 #endif
 
+// TODO why should this define guard be needed ?
 #ifndef SINETRAINVECS
 #define SINETRAINVECS
+
 double avec[] =
 {
   1.00729092576906387,
