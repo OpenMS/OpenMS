@@ -49,8 +49,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-// #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
 #include <svm.h>
 
@@ -328,7 +328,7 @@ protected:
     peptide.rts.push_back(te_rt);
   }
 
-/*
+
   double calculateFitQuality_(const TraceFitter* fitter, 
                               const MassTraces& traces)
   {
@@ -703,7 +703,7 @@ protected:
       }
     }
   }
-*/
+
 
   void getRTRegions_(const ChargeMap& peptide_data, 
                      vector<RTRegion>& rt_regions)
@@ -964,7 +964,7 @@ protected:
                                transitions);
           library.setTransitions(transitions);
 
-          if (keep_library_) library_ += library;
+          if (keep_library_ || (elution_model_ != "none")) library_ += library;
 
           // extract chromatograms:
           double rt_window = reg_it->end - reg_it->start;
@@ -1717,11 +1717,10 @@ protected:
     filterFeatures_(features);
     LOG_INFO << features.size() << " features left after filtering." << endl;
     
-    // @FIXME
-    // if (elution_model_ != "none")
-    // {
-    //   fitElutionModels_(features);
-    // }
+    if (elution_model_ != "none")
+    {
+      fitElutionModels_(features);
+    }
 
     //-------------------------------------------------------------
     // write output
