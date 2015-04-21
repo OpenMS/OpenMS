@@ -148,6 +148,10 @@ public:
     void setFillData(bool only);
     ///returns whether to fill the actual data into the container (spectrum/chromatogram)
     bool getFillData() const;
+    ///sets whether to skip some XML checks and be fast instead
+    void setSkipXMLChecks(bool only);
+    ///returns whether to skip some XML checks and be fast instead
+    bool getSkipXMLChecks() const;
 
     /// @name sort peaks in spectra / chromatograms by position
     ///sets whether or not to sort peaks in spectra
@@ -220,6 +224,7 @@ private:
     bool zlib_compression_;
     bool size_only_;
     bool always_append_data_;
+    bool skip_xml_checks_;
     bool sort_spectra_by_mz_;
     bool sort_chromatograms_by_rt_;
     bool fill_data_;

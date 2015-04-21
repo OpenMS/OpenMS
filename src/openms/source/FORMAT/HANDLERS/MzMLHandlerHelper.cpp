@@ -151,7 +151,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData>& data_)
+  void MzMLHandlerHelper::decodeBase64Arrays(std::vector<BinaryData> & data_, bool skipXMLCheck)
   {
     /// Decoder/Encoder for Base64-data in MzML
     Base64 decoder_;
@@ -161,7 +161,12 @@ namespace OpenMS
     {
       //remove whitespaces from binary data
       //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
-      data_[i].base64.removeWhitespaces();
+      // NOTE: this may take up to 10% of reading time with a single thread,
+      //       either omit it or make it more efficient
+      if (!skipXMLCheck)
+      {
+        data_[i].base64.removeWhitespaces();
+      }
 
       //decode data and check if the length of the decoded data matches the expected length
       if (data_[i].data_type == BinaryData::DT_FLOAT)

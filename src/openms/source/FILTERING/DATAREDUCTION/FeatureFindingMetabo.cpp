@@ -155,6 +155,8 @@ namespace OpenMS
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
   {
     // defaults_.setValue( "name" , 1 , "description" );
+    defaults_.setValue("quant_method", String(MassTrace::names_of_quantmethod[0]), "Method of quantification for mass traces. For LC data 'area' is recommended, 'median' for direct injection data.");
+    defaults_.setValidStrings("quant_method", std::vector<String>(MassTrace::names_of_quantmethod, MassTrace::names_of_quantmethod +(int)MassTrace::SIZE_OF_MT_QUANTMETHOD));
     defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", ListUtils::create<String>("advanced")); // 5.0
     defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", ListUtils::create<String>("advanced")); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
@@ -163,6 +165,8 @@ namespace OpenMS
     defaults_.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds)."); // 5.0
     defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("report_summed_ints", ListUtils::create<String>("false,true"));
+    defaults_.setValue("enable_RT_filtering", "true", "Require sufficient overlap in RT while assembling mass traces. Disable for direct injection data..");
+    defaults_.setValidStrings("enable_RT_filtering", ListUtils::create<String>("false,true"));
     defaults_.setValue("disable_isotope_filtering", "false", "Disable isotope filtering.", ListUtils::create<String>("advanced"));
     defaults_.setValidStrings("disable_isotope_filtering", ListUtils::create<String>("false,true"));
     defaults_.setValue("isotope_model", "metabolites", "Change type of isotope model.", ListUtils::create<String>("advanced"));
@@ -198,6 +202,7 @@ namespace OpenMS
     charge_upper_bound_ = (Size)param_.getValue("charge_upper_bound");
 
     report_summed_ints_ = param_.getValue("report_summed_ints").toBool();
+    enable_RT_filtering_ = param_.getValue("enable_RT_filtering").toBool();
     disable_isotope_filtering_ = param_.getValue("disable_isotope_filtering").toBool();
     isotope_model_ = param_.getValue("isotope_model");
     metabo_iso_noisemodel_ = (String)param_.getValue("isotope_noisemodel");
@@ -601,6 +606,11 @@ namespace OpenMS
 
   double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2)
   {
+    // return success if this filter is disabled
+    if (!enable_RT_filtering_) return 1.0;
+
+    // continue to check overlap and cosine similarity
+    // ...
     std::map<double, std::vector<double> > coinciding_rts;
 
     std::pair<Size, Size> tr1_fwhm_idx(tr1.getFWHMborders());
@@ -720,6 +730,7 @@ namespace OpenMS
 
   void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidates, std::vector<FeatureHypothesis>& output_hypos)
   {
+    // single Mass trace hypothesis
     FeatureHypothesis tmp_hypo;
     tmp_hypo.addMassTrace(*candidates[0]);
     tmp_hypo.setScore((candidates[0]->getIntensity(use_smoothed_intensities_)) / total_intensity_);
@@ -761,7 +772,6 @@ namespace OpenMS
           double rt_score(scoreRT_(*candidates[0], *candidates[mt_idx]));
 
           double mz_score(scoreMZ_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
-          // double mz_score(scoreMZsimple_(*candidates[0], *candidates[mt_idx], iso_pos, charge));
 
           // disable intensity scoring for now...
           double int_score(1.0);
@@ -831,6 +841,16 @@ namespace OpenMS
 
     this->startProgress(0, input_mtraces.size(), "assembling mass traces to features");
 
+    // configure quantification method
+    
+    MassTrace::MT_QUANTMETHOD method = MassTrace::getQuantMethod((String)param_.getValue("quant_method"));
+    for (std::vector<MassTrace>::iterator it = input_mtraces.begin();
+      it != input_mtraces.end();
+      ++it)
+    {
+      it->setQuantMethod(method);
+    }
+
     // initialize SVM model for isotope ratio filtering
     //loadIsotopeModel_("MetaboliteIsoModelNoised2");
     if (metabo_iso_noisemodel_ == "2%RMS")
@@ -861,24 +881,20 @@ namespace OpenMS
 
       local_traces.push_back(&input_mtraces[i]);
 
-      double diff_mz(0.0);
-      Size ext_idx(i + 1);
-
       // std::cout << "__" << input_mtraces[i].getLabel() << " " << input_mtraces[i].getCentroidMZ() << " " << input_mtraces[i].getCentroidRT() << std::endl;
 
-      while (diff_mz <= local_mz_range_ && ext_idx < input_mtraces.size())
+      for (Size ext_idx = i + 1; ext_idx < input_mtraces.size(); ++ext_idx)
       {
-        // update diff_mz and diff_rt
-        diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
-        double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
+        // traces are sorted by m/z, so we can break when we leave the allowed window
+        double diff_mz = std::fabs(input_mtraces[ext_idx].getCentroidMZ() - ref_trace_mz);
+        if (diff_mz > local_mz_range_) break;
 
-        if (diff_mz <= local_mz_range_ && diff_rt <= local_rt_range_)
+        double diff_rt = std::fabs(input_mtraces[ext_idx].getCentroidRT() - ref_trace_rt);
+        if (diff_rt <= local_rt_range_)
         {
           // std::cout << " accepted!" << std::endl;
           local_traces.push_back(&input_mtraces[ext_idx]);
         }
-
-        ++ext_idx;
       }
 
       findLocalFeatures_(local_traces, feat_hypos);

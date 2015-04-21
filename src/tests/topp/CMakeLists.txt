@@ -549,6 +549,32 @@ add_test("TOPP_FileMerger_9_out1" ${DIFF} -whitelist "id=" "location=" "href=" -
 set_tests_properties("TOPP_FileMerger_9_out1" PROPERTIES DEPENDS "TOPP_FileMerger_9")
 
 #------------------------------------------------------------------------------
+# HighResPrecursorMassCorrector tests
+
+add_test("TOPP_HighResPrecursorMassCorrector_1" ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.featureXML -out HighResPrecursorMassCorrector_2860_1103_3_out.tmp)
+add_test("TOPP_HighResPrecursorMassCorrector_1_out1" ${DIFF} -in1 HighResPrecursorMassCorrector_2860_1103_3_out.tmp -in2 ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3_out.mzML )
+set_tests_properties("TOPP_HighResPrecursorMassCorrector_1_out1" PROPERTIES DEPENDS "TOPP_HighResPrecursorMassCorrector_1")
+# precursor is on the 4th isotopic trace (with 0 beeing the mono-isotopic one)
+add_test("TOPP_HighResPrecursorMassCorrector_2"
+	${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -in
+	${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_1035_1178_4.mzML -feature:in
+	${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_1035_1178_4.featureXML
+	-feature:max_trace 4
+	-feature:mz_tolerance 10
+	-out HighResPrecursorMassCorrector_1035_1178_4_out.tmp)
+add_test("TOPP_HighResPrecursorMassCorrector_2_out1" ${DIFF} -in1 HighResPrecursorMassCorrector_1035_1178_4_out.tmp -in2 ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_1035_1178_4_out.mzML )
+set_tests_properties("TOPP_HighResPrecursorMassCorrector_2_out1" PROPERTIES DEPENDS "TOPP_HighResPrecursorMassCorrector_2")
+add_test("TOPP_HighResPrecursorMassCorrector_3" ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2538_1091_2.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2538_1091_2.featureXML -out HighResPrecursorMassCorrector_2538_1091_2_out.tmp)
+add_test("TOPP_HighResPrecursorMassCorrector_3_out1" ${DIFF} -in1 HighResPrecursorMassCorrector_2538_1091_2_out.tmp -in2 ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2538_1091_2_out.mzML )
+set_tests_properties("TOPP_HighResPrecursorMassCorrector_3_out1" PROPERTIES DEPENDS "TOPP_HighResPrecursorMassCorrector_3")
+add_test("TOPP_HighResPrecursorMassCorrector_4" ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2810_1091_3.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2810_1091_3.featureXML -out HighResPrecursorMassCorrector_2810_1091_3_out.tmp)
+add_test("TOPP_HighResPrecursorMassCorrector_4_out1" ${DIFF} -in1 HighResPrecursorMassCorrector_2810_1091_3_out.tmp -in2 ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2810_1091_3_out.mzML )
+set_tests_properties("TOPP_HighResPrecursorMassCorrector_4_out1" PROPERTIES DEPENDS "TOPP_HighResPrecursorMassCorrector_4")
+add_test("TOPP_HighResPrecursorMassCorrector_5" ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_3070_1191_3.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_3070_1191_3.featureXML -out HighResPrecursorMassCorrector_3070_1191_3_out.tmp)
+add_test("TOPP_HighResPrecursorMassCorrector_5_out1" ${DIFF} -in1 HighResPrecursorMassCorrector_3070_1191_3_out.tmp -in2 ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_3070_1191_3_out.mzML )
+set_tests_properties("TOPP_HighResPrecursorMassCorrector_5_out1" PROPERTIES DEPENDS "TOPP_HighResPrecursorMassCorrector_5")
+
+#------------------------------------------------------------------------------
 # IDRTCalibration tests
 add_test("TOPP_IDRTCalibration_1" ${TOPP_BIN_PATH}/IDRTCalibration -in ${DATA_DIR_TOPP}/IDRTCalibration_1_input.idXML -out IDRTCalibration_1_output.tmp -calibrant_1_input 10 -calibrant_2_input 90)
 add_test("TOPP_IDRTCalibration_1_out1" ${DIFF} -in1 IDRTCalibration_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDRTCalibration_1_output.idXML )
@@ -790,10 +816,11 @@ set_tests_properties("TOPP_MascotAdapter_2_out1" PROPERTIES DEPENDS "TOPP_Mascot
 if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
   # MRM / SWATH tests (from OpenSWATH)
-  add_test("TOPP_OpenSwathDecoyGenerator_test_1"
-${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in
-${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out
-OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods -test)
+  add_test("TOPP_OpenSwathAssayGenerator_test_1" ${TOPP_BIN_PATH}/OpenSwathAssayGenerator -in ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_input.TraML -out OpenSwathAssayGenerator_output.TraML.tmp -min_transitions 6 -max_transitions 6 -allowed_fragment_types b,y -allowed_fragment_charges 2,3 -enable_losses -enable_ms1_uis_scoring -enable_site_scoring -enable_alternative_localizations -enable_insilico -enable_reannotation)
+  add_test("TOPP_OpenSwathAssayGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathAssayGenerator_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAssayGenerator_output.TraML)
+  set_tests_properties("TOPP_OpenSwathAssayGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathAssayGenerator_test_1")
+  
+  add_test("TOPP_OpenSwathDecoyGenerator_test_1" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods -test)
   add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_1")
   add_test("TOPP_OpenSwathDecoyGenerator_test_2" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -append -method pseudo-reverse -test -theoretical -remove_CNterm_mods -remove_unannotated -mz_threshold 0.8)
@@ -1269,18 +1296,30 @@ set_tests_properties("TOPP_IDRipper_3_out2" PROPERTIES DEPENDS "TOPP_IDRipper_3"
 
 #------------------------------------------------------------------------------
 # ConsensusID tests
-add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_1_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_1_output.tmp)
+# idXML input, "PEPMatrix" algorithm using PEP30MS matrix (example from the JPR paper):
+add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_1_output.tmp -algorithm PEPMatrix -PEPMatrix:matrix PAM30MS)
 add_test("TOPP_ConsensusID_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_1_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_1_output.idXML )
 set_tests_properties("TOPP_ConsensusID_1_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_1")
-add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_2_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML -out ConsensusID_2_output.tmp)
+# featureXML input, "average" algorithm:
+add_test("TOPP_ConsensusID_2" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_2_input.featureXML -out ConsensusID_2_output.tmp -algorithm average)
 add_test("TOPP_ConsensusID_2_out1" ${DIFF} -whitelist "IdentificationRun id" -in1 ConsensusID_2_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_2_output.featureXML )
 set_tests_properties("TOPP_ConsensusID_2_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_2")
-add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_3_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML -out ConsensusID_3_output.tmp)
+# consensusXML input, "best" algorithm:
+add_test("TOPP_ConsensusID_3" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_3_input.consensusXML -out ConsensusID_3_output.tmp -algorithm best)
 add_test("TOPP_ConsensusID_3_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun id" -in1 ConsensusID_3_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_3_output.consensusXML )
 set_tests_properties("TOPP_ConsensusID_3_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_3")
-add_test("TOPP_ConsensusID_4" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_4_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_4_input.idXML -out ConsensusID_4_output.tmp)
+# idXML input, "PEPMatrix" algorithm using identity matrix, limited number of considered hits:
+add_test("TOPP_ConsensusID_4" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_4_output.tmp -algorithm PEPMatrix -PEPMatrix:matrix identity -filter:considered_hits 6)
 add_test("TOPP_ConsensusID_4_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_4_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_4_output.idXML )
 set_tests_properties("TOPP_ConsensusID_4_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_4")
+# idXML input, "PEPIons" algorithm:
+add_test("TOPP_ConsensusID_5" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_5_output.tmp -algorithm PEPIons)
+add_test("TOPP_ConsensusID_5_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_5_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_5_output.idXML )
+set_tests_properties("TOPP_ConsensusID_5_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_5")
+# idXML input, "best" algorithm, filtering:
+add_test("TOPP_ConsensusID_6" ${TOPP_BIN_PATH}/ConsensusID -test -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_6_output.tmp -algorithm best -filter:min_support 0.5)
+add_test("TOPP_ConsensusID_6_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 ConsensusID_6_output.tmp -in2 ${DATA_DIR_TOPP}/ConsensusID_6_output.idXML )
+set_tests_properties("TOPP_ConsensusID_6_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_6")
 
 #------------------------------------------------------------------------------
 # PrecursorIonSelector tests

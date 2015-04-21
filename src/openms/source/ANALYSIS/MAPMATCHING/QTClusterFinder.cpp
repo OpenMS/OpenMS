@@ -59,10 +59,14 @@ namespace OpenMS
   void QTClusterFinder::setParameters_(double max_intensity,
                                        double max_mz)
   {
-    if (max_mz < 1e-16 || max_mz > 1e16 || max_intensity < -1e16 || max_intensity > 1e16)
+    // don't check for low max. intensity, because intensities may be ignored:
+    if ((max_mz < 1e-16) || (max_mz > 1e16) || (max_intensity > 1e16))
     {
+      String msg = "Maximum m/z or intensity out of range (m/z: " + 
+        String(max_mz) + ", intensity: " + String(max_intensity) + "). "
+        "Has 'updateRanges' been called on the input maps?";
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                       "Maximum mz or intensity out of range (mz,intensity): " + String(max_mz) + ", " + String(max_intensity));
+                                       msg);
     }
     use_IDs_ = String(param_.getValue("use_identifications")) == "true";
     max_diff_rt_ = param_.getValue("distance_RT:max_difference");
@@ -90,12 +94,13 @@ namespace OpenMS
     }
 
     // set up the distance functor (and set other parameters):
-    double max_intensity = input_maps[0].getMaxInt();
-    double max_mz = input_maps[0].getMax()[1];
-    for (Size map_index = 1; map_index < num_maps_; ++map_index)
+    double max_intensity = 0.0;
+    double max_mz = 0.0;
+    for (typename vector<MapType>::const_iterator map_it = input_maps.begin(); 
+         map_it != input_maps.end(); ++map_it)
     {
-      max_intensity = max(max_intensity, input_maps[map_index].getMaxInt());
-      max_mz = max(max_mz, input_maps[map_index].getMax()[0]);
+      max_intensity = max(max_intensity, map_it->getMaxInt());
+      max_mz = max(max_mz, map_it->getMax()[0]);
     }
 
     setParameters_(max_intensity, max_mz);
@@ -110,19 +115,19 @@ namespace OpenMS
            ++feature_index)
       {
         grid_features.push_back(
-          GridFeature(input_maps[map_index][feature_index], map_index,
+          GridFeature(input_maps[map_index][feature_index], map_index, 
                       feature_index));
-        GridFeature& gfeature = grid_features.back();
+        GridFeature& gfeat = grid_features.back();
         // sort peptide hits once now, instead of multiple times later:
-        BaseFeature& feature = const_cast<BaseFeature&>(
-          grid_features.back().getFeature());
+        BaseFeature& bfeat = const_cast<BaseFeature&>(gfeat.getFeature());
         for (vector<PeptideIdentification>::iterator pep_it =
-               feature.getPeptideIdentifications().begin(); pep_it !=
-             feature.getPeptideIdentifications().end(); ++pep_it)
+               bfeat.getPeptideIdentifications().begin(); pep_it !=
+               bfeat.getPeptideIdentifications().end(); ++pep_it)
         {
           pep_it->sort();
         }
-        grid.insert(std::make_pair(Grid::ClusterCenter(gfeature.getRT(), gfeature.getMZ()), &gfeature));
+        grid.insert(make_pair(Grid::ClusterCenter(gfeat.getRT(), gfeat.getMZ()),
+                              &gfeat));
       }
     }
 
@@ -133,17 +138,20 @@ namespace OpenMS
     // number of clusters == number of data points:
     Size size = clustering.size();
 
-    // Create a temporary map where we store which GridFeatures are next to which Clusters
-    OpenMSBoost::unordered_map<GridFeature*, std::vector<QTCluster*> > element_mapping;
-    for (list<QTCluster>::iterator it = clustering.begin(); it != clustering.end(); ++it)
+    // create a temp. map storing which grid features are next to which clusters
+    ElementMapping element_mapping;
+    for (list<QTCluster>::iterator it = clustering.begin();
+         it != clustering.end(); ++it)
     {
       OpenMSBoost::unordered_map<Size, GridFeature*> elements;
       typedef std::multimap<double, GridFeature*> InnerNeighborMap;
       typedef OpenMSBoost::unordered_map<Size, InnerNeighborMap> NeighborMap;
       NeighborMap neigh = it->getNeighbors();
-      for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
+      for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); 
+           ++n_it)
       {
-        for (InnerNeighborMap::iterator i_it = n_it->second.begin(); i_it != n_it->second.end(); ++i_it)
+        for (InnerNeighborMap::iterator i_it = n_it->second.begin();
+             i_it != n_it->second.end(); ++i_it)
         {
           element_mapping[i_it->second].push_back(&(*it));
         }
@@ -172,8 +180,8 @@ namespace OpenMS
   }
 
   void QTClusterFinder::makeConsensusFeature_(list<QTCluster>& clustering,
-                                              ConsensusFeature& feature, OpenMSBoost::unordered_map<GridFeature*,
-                                                                                                    std::vector<QTCluster*> >& element_mapping)
+                                              ConsensusFeature& feature,
+                                              ElementMapping& element_mapping)
   {
     // find the best cluster (a valid cluster with the highest score)
     list<QTCluster>::iterator best = clustering.begin();
@@ -202,26 +210,25 @@ namespace OpenMS
 
     OpenMSBoost::unordered_map<Size, GridFeature*> elements;
     best->getElements(elements);
-    // cout << "Elements: " << elements.size() << " with best " << best->getQuality() << " invalid " << best->isInvalid() << endl;
+    // cout << "Elements: " << elements.size() << " with best "
+    //      << best->getQuality() << " invalid " << best->isInvalid() << endl;
 
     // create consensus feature from best cluster:
     feature.setQuality(best->getQuality());
-    for (OpenMSBoost::unordered_map<Size, GridFeature*>::const_iterator it = elements.begin();
-         it != elements.end(); ++it)
+    for (OpenMSBoost::unordered_map<Size, GridFeature*>::const_iterator it = 
+           elements.begin(); it != elements.end(); ++it)
     {
       feature.insert(it->first, it->second->getFeature());
     }
     feature.computeConsensus();
-
-
 
     // update the clustering:
     // 1. remove current "best" cluster
     // 2. update all clusters accordingly and invalidate elements whose central
     //    element is removed
     best->setInvalid();
-    for (OpenMSBoost::unordered_map<Size, GridFeature*>::const_iterator it = elements.begin();
-         it != elements.end(); ++it)
+    for (OpenMSBoost::unordered_map<Size, GridFeature*>::const_iterator it = 
+           elements.begin(); it != elements.end(); ++it)
     {
       for (std::vector<QTCluster*>::iterator
            cluster  = element_mapping[&(*it->second)].begin();
@@ -231,8 +238,8 @@ namespace OpenMS
         // recompute the quality)
         if (!(*cluster)->isInvalid())
         {
-          if (!(*cluster)->update(elements)) // cluster is invalid (center point removed):
-          {
+          if (!(*cluster)->update(elements))
+          { // cluster is invalid (center point removed):
             (*cluster)->setInvalid();
           }
         }
@@ -278,16 +285,17 @@ namespace OpenMS
         {
           try
           {
-            const Grid::CellContent& act_pos = grid.grid_at(Grid::CellIndex(i, j));
+            const Grid::CellContent& act_pos = grid.grid_at(Grid::CellIndex(i,
+                                                                            j));
 
-            for (Grid::const_cell_iterator it_cell = act_pos.begin(); it_cell != act_pos.end(); ++it_cell)
+            for (Grid::const_cell_iterator it_cell = act_pos.begin();
+                 it_cell != act_pos.end(); ++it_cell)
             {
               GridFeature* neighbor_feature = it_cell->second;
               // consider only "real" neighbors, not the element itself:
               if (center_feature != neighbor_feature)
               {
-                double dist = getDistance_(center_feature,
-                                           neighbor_feature);
+                double dist = getDistance_(center_feature, neighbor_feature);
                 if (dist == FeatureDistance::infinity)
                 {
                   continue; // conditions not satisfied
@@ -322,7 +330,8 @@ namespace OpenMS
     }
     else // compute distance now and store it for later
     {
-      double dist = feature_distance_(left->getFeature(), right->getFeature()).second;
+      double dist = feature_distance_(left->getFeature(), 
+                                      right->getFeature()).second;
       distances_[key] = dist;
       return dist;
     }

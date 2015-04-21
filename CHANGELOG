@@ -45,7 +45,7 @@ New tools:
   - PeakPickerIterative -- Finds mass spectrometric peaks in profile mass spectra (UTIL)
   - RTAnnotator -- Annotates identification files that are missing the RT field (UTIL)
   - SimpleSearchEngine -- Annotates MS/MS spectra using SimpleSearchEngine (UTIL)
-  - TopPerc -- Facilitate input to Percolator and reintegrate (TOPP)
+  - TopPerc -- Facilitate input to Percolator and reintegrate (UTIL)
 
 Deprecated tools:
   - DBExporter -- Exports data from an OpenMS database to a file (TOPP)
@@ -873,6 +873,27 @@ Resolved issues and merged pull requests:
   #1248 [FIX, PYOPENMS] ammend to last commit
   #1249 Documentation improvements (and minor fixes)
   #1250 Another FidoAdapter test fix
+  #1253 [FIX] IsobaricAnalyzer: set charge states of consensus features
+  #1254 [DOC,FIX] Updated CHANGELOG, changelog_helper.sh
+  #1256 Fix MSGFPlusAdapter running in TOPPAS (mzid output)
+  #1257 Clean-up of UTILS documentation
+  #1261 [KNIME] adapted parameter naming for FidoAdapter in KNIME
+  #1262 IDFilter reports empty results
+  #1263 [FIX] moved TopPerc to UTILS and changed experimental status of MSGFPlus
+  #1266 [FIX] ammend to last commit
+  #1267 [FIX] fix conversion from Feature with Masstraces to MSExperiment
+  #1269 IsobaricAnalyzer: documentation, warning fix
+  #1270 [FIX] lexical cast is discouraged. Use of build in functions.
+  #1273 [FIX][BUILD] Fixes linking issue with boost in UTILS #1272
+  #1275 [FEATURE] [FIX] mass trace RT spacing
+  #1283 [PYOPENMS] Better PepXMLFile write support
+  #1284 [FIX] KNIME execution of MSGFPlusAdapter
+  #1286 [FIX] set low memory log type correctly
+  #1290 [FIX, PYOPENMS] fix python binding for MassTrace
+  #1305 [FIX] Fix/id mapper statistics
+  #1307 remove OS X specific code for opening folders
+  #1309 [FIX] Ammend to #1284
+  #1315 sync develop additions
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 1.11.1                                     ----

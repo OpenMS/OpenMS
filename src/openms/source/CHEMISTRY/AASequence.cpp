@@ -44,6 +44,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
+#include <string>
 #include <algorithm>
 #include <cmath> // for "pow"
 #include <iterator> // for "distance"
@@ -771,7 +772,7 @@ namespace OpenMS
       if (!open_brackets) break;
       ++mod_end;
     }
-    string mod(mod_start, mod_end);
+    std::string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str, "Cannot convert string to peptide modification: missing ')'");
@@ -809,7 +810,7 @@ namespace OpenMS
     String::ConstIterator mod_start = str_it;
     String::ConstIterator mod_end = ++mod_start;
     while ((mod_end != str.end()) && (*mod_end != ']')) ++mod_end;
-    string mod(mod_start, mod_end);
+    std::string mod(mod_start, mod_end);
     if (mod_end == str.end())
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, str, "Cannot convert string to peptide modification: missing ']'");
@@ -817,7 +818,7 @@ namespace OpenMS
 
     double mass = String(mod).toDouble();
     size_t decimal_pos = mod.find('.');
-    bool integer_mass = decimal_pos == string::npos;
+    bool integer_mass = decimal_pos == std::string::npos;
     double tolerance = 0.5; // for integer mass values
     if (!integer_mass) // float mass values -> adapt tol. to decimal precision
     {

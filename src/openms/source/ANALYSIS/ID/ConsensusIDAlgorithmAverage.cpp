@@ -28,71 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen $
+// $Maintainer: Hendrik Weisser $
+// $Authors: Sven Nahnsen, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_CONSENSUSID_H
-#define OPENMS_ANALYSIS_ID_CONSENSUSID_H
+#include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmAverage.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <cmath>
+#include <numeric> // for "accumulate"
 
-#include <vector>
+using namespace std;
 
 namespace OpenMS
 {
-  /**
-    @brief Calculates a consensus ID from several ID runs
-
-    This class combines several ID runs using one of several, available algorithms.
-
-        @htmlinclude OpenMS_ConsensusID.parameters
-
-        @ingroup Analysis_ID
-  */
-  class OPENMS_DLLAPI ConsensusID :
-    public DefaultParamHandler
+  ConsensusIDAlgorithmAverage::ConsensusIDAlgorithmAverage()
   {
-public:
-    ///Default constructor
-    ConsensusID();
+    setName("ConsensusIDAlgorithmAverage"); // DefaultParamHandler
+  }
 
-    /**
-        @brief Calculates the consensus ID for a set of PeptideIdentification instances of the same spectrum
 
-        @note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter())is set properly!
-    */
-    void apply(std::vector<PeptideIdentification> & ids);
-
-private:
-    ///Not implemented
-    ConsensusID(const ConsensusID &);
-
-    ///Not implemented
-    ConsensusID & operator=(const ConsensusID &);
-
-    /// Ranked algorithm
-    void ranked_(std::vector<PeptideIdentification> & ids);
-
-    /// Average score algorithm
-    void average_(std::vector<PeptideIdentification> & ids);
-
-    /// PEP and scoring matrix based algorithm
-    void PEPMatrix_(std::vector<PeptideIdentification> & ids);
-
-    /// PEP and ion similarity based algorithm
-    void PEPIons_(std::vector<PeptideIdentification> & ids);
-
-    /// use minimal PEP score
-    void Minimum_(std::vector<PeptideIdentification> & ids);
-
-//already done in APPLICATIONS/TOPP/ConsensusID.cpp
-    /// Merge peptide hits from different engines
-    void mapIdentifications_(std::vector<PeptideIdentification> & sorted_ids, const std::vector<PeptideIdentification> & ids);
-
-  };
+  double ConsensusIDAlgorithmAverage::getAggregateScore_(
+    vector<double>& scores, bool /* higher_better */)
+  {
+    double sum_scores = accumulate(scores.begin(), scores.end(), 0.0);
+    return sum_scores / scores.size();
+  }
 
 } // namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_ID_CONSENSUSID_H

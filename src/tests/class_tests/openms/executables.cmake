@@ -383,7 +383,11 @@ set(analysis_executables_list
   CompNovoIonScoringCID_test
   CompNovoIonScoring_test
   ConfidenceScoring_test
-  ConsensusID_test
+  ConsensusIDAlgorithmAverage_test
+  ConsensusIDAlgorithmBest_test
+  ConsensusIDAlgorithmPEPIons_test
+  ConsensusIDAlgorithmPEPMatrix_test
+  ConsensusIDAlgorithmRanks_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test
@@ -550,7 +554,9 @@ set(simulation_executables_list
 
 if(NOT DISABLE_OPENSWATH)
   set(swath_executables_list
+    MRMAssay_test
     MRMDecoy_test
+    MRMIonSeries_test
     MRMRTNormalizer_test
     TransitionTSVReader_test
     ChromatogramExtractor_test
