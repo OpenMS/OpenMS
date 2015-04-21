@@ -818,7 +818,7 @@ namespace OpenMS
 
     double mass = String(mod).toDouble();
     size_t decimal_pos = mod.find('.');
-    bool integer_mass = decimal_pos == string::npos;
+    bool integer_mass = decimal_pos == std::string::npos;
     double tolerance = 0.5; // for integer mass values
     if (!integer_mass) // float mass values -> adapt tol. to decimal precision
     {
