@@ -136,10 +136,11 @@ protected:
   // represents the middle layer of a tripartite graph
   // consists of single protein accessions and their mapping to the groups
   // indices
-  map<String , Size > prot_acc_to_indist_prot_grp_;
+  map<String, Size> prot_acc_to_indist_prot_grp_;
   
   // represents a connected component of the bipartite graph
-  struct ConnCompStruct {
+  struct ConnCompStruct
+  {
     set<Size> prot_grp_indices;
     set<Size> pep_indices;
     
@@ -184,7 +185,7 @@ protected:
     registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
-    registerFlag_("greedy_group_resolution", "Post-process Fido output with greedy resolution of shared peptides based on the protein probabilities. Also adds the resolved ambiguity groups to output.");
+    registerFlag_("resolve_shared_peptides", "Post-process Fido results to resolve peptide/protein associations using a greedy Occam's razor approach");
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
@@ -279,12 +280,8 @@ protected:
                                             __PRETTY_FUNCTION__, msg);
       }
       
-      graph_out << "e " << hit.getSequence().toUnmodifiedString() << endl; // remove modifications?
-      // Julianus: I would say yes, better we do it here, than letting Fido
-      // do some Stringmagic maybe merging peptides that are actually not the same.
-      // Does Fido follow the same convention for Mod naming?
-      // I think it just removes everything not an AA. Means mod labels
-      // like Dimethyl become AAs.
+      // Remove modifications before writing to input graph file
+      graph_out << "e " << hit.getSequence().toUnmodifiedString() << endl;
       const set<String>& accessions = hit.extractProteinAccessions();
       for (set<String>::const_iterator acc_it = accessions.begin();
            acc_it != accessions.end(); ++acc_it)
@@ -667,7 +664,6 @@ protected:
     return true;
   }
 
-  
   /*
    * Does a BFS on the two maps (= two parts of the graph; indist. prot. groups
    * and peptides), switching from one to the other in each step.
