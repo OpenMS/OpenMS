@@ -527,7 +527,6 @@ protected:
     Int from_max_to_left_, from_max_to_right_;
     std::vector<int> indices_;
 
-    // MSSpectrum<PeakType> c_sorted_candidate_; // TODO this seems unused
     double min_spacing_, max_mz_cutoff_;
     std::vector<float> scores_, zeros_;
   };
