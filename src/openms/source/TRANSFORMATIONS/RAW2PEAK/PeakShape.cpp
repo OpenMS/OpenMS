@@ -55,7 +55,7 @@ namespace OpenMS
 
   PeakShape::PeakShape(double height_, double mz_position_, double left_width_, 
       double right_width_, double area_, PeakIterator left_, PeakIterator right_, Type type_) :
-    height(height),
+    height(height_),
     mz_position(mz_position_),
     left_width(left_width_),
     right_width(right_width_),
