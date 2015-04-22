@@ -446,6 +446,7 @@ namespace OpenMS
       {
         if (!swath_maps[i].ms1) // skip MS1
         {
+          OpenSwath::SpectrumAccessPtr current_swath_map = swath_maps[i].sptr;
 
           // Step 1: select which transitions to extract (proceed in batches)
           OpenSwath::LightTargetedExperiment transition_exp_used_all;
@@ -491,7 +492,7 @@ namespace OpenMS
 
               // Step 2.2: prepare the extraction coordinates & extract chromatograms
               prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
-              extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+              extractor.extractChromatograms(current_swath_map, chrom_list, coordinates, cp.mz_extraction_window,
                   cp.ppm, cp.extraction_function);
 
               // Step 2.3: convert chromatograms back and write to output
@@ -502,7 +503,7 @@ namespace OpenMS
 
               // Step 3: score these extracted transitions
               FeatureMap featureFile;
-              scoreAllChromatograms(chromatogram_ptr, swath_maps[i].sptr, transition_exp_used,
+              scoreAllChromatograms(chromatogram_ptr, current_swath_map, transition_exp_used,
                   feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, 
                   ms1_chromatograms);
 
