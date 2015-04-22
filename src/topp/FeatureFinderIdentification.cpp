@@ -990,8 +990,10 @@ protected:
 
           // find chromatographic peaks:
           FeatureMap current_features;
+          Log_info.remove(cout); // suppress status output from OpenSWATH
           feat_finder_.pickExperiment(chrom_data, current_features, library,
                                       trafo_, ms_data_);
+          Log_info.insert(cout);
           LOG_DEBUG << "Found " << current_features.size() << " feature(s)."
                     << endl;
 
@@ -1726,10 +1728,7 @@ protected:
     // write output
     //-------------------------------------------------------------
 
-    LOG_INFO << "Writing results..." << endl;
-    features.ensureUniqueId();
-    addDataProcessing_(features,
-                       getProcessingInfo_(DataProcessing::QUANTITATION));
+    LOG_INFO << "Writing final results..." << endl;
     FeatureXMLFile().store(out, features);
 
     return EXECUTION_OK;
