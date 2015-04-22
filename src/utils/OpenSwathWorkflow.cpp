@@ -430,7 +430,7 @@ namespace OpenMS
 
           // prepare the extraction coordinates & extract chromatogram
           prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, true, trafo_inverse, cp);
-          extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+          extractor.extractChromatograms(ms1_map_, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
 
           std::vector< OpenMS::MSChromatogram<> > chromatograms;
