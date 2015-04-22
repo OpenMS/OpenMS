@@ -39,16 +39,12 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 
 #include <string>
-#include <cstring>
-#include <algorithm>
 #include <fstream>
-
-using namespace std;
 
 namespace OpenMS
 {
 
-  typedef pair<String, String> FASTAEntry;
+  typedef std::pair<String, String> FASTAEntry;
 
   ///Constructor to initialize algorithm
   EdwardsLippertIterator::EdwardsLippertIterator() :
@@ -156,7 +152,7 @@ namespace OpenMS
     return tol_;
   }
 
-  void EdwardsLippertIterator::setSpectrum(const vector<double> & s)
+  void EdwardsLippertIterator::setSpectrum(const std::vector<double> & s)
   {
     //check if spectrum is sorted
     for (Size i = 1; i < s.size(); ++i)
@@ -170,14 +166,14 @@ namespace OpenMS
     massMax_ = spec_.back();
   }
 
-  const vector<double> & EdwardsLippertIterator::getSpectrum()
+  const std::vector<double> & EdwardsLippertIterator::getSpectrum()
   {
     return spec_;
   }
 
   void EdwardsLippertIterator::setFastaFile(const String & f)
   {
-    fstream fs;
+    std::fstream fs;
     fs.open(f.c_str());
     if (!fs.is_open())
     {
@@ -210,7 +206,7 @@ namespace OpenMS
     return true;
   }
 
-  string EdwardsLippertIterator::next_()
+  std::string EdwardsLippertIterator::next_()
   {
 
     std::string seq = f_entry_.second;
@@ -272,7 +268,7 @@ namespace OpenMS
     double mold = m_;
     unsigned int bold = b_;
     unsigned int eold = e_;
-    string res = next_();
+    std::string res = next_();
     m_ = mold;
     b_ = bold;
     e_ = eold;
@@ -285,7 +281,7 @@ namespace OpenMS
 
   void EdwardsLippertIterator::goToNextAA_()
   {
-    string seq = f_entry_.second;
+    std::string seq = f_entry_.second;
     m_ = 0;
     b_++;
 
