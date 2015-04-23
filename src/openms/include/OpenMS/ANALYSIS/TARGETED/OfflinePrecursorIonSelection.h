@@ -493,7 +493,7 @@ private:
 
         MSSpectrum<InputPeakType> scan = experiment[i]; // copy & sort
         scan.sortByIntensity(true);
-        Size selected_peaks = 0, j = 0;
+        Size selected_peaks = 0;
 
         // walk over scan
         double peak_rt = scan.getRT();
