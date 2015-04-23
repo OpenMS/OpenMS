@@ -90,11 +90,11 @@ namespace OpenMS
         spectra_meta_.begin(), spectra_meta_.end(), s, typename OpenSwath::SpectrumMeta::RTLess());
 
     result.push_back(std::distance(spectra_meta_.begin(), spectrum));
-    spectrum++;
+    ++spectrum;
     while (spectrum->RT < RT + deltaRT && spectrum != spectra_meta_.end())
     {
       result.push_back(std::distance(spectra_meta_.begin(), spectrum));
-      spectrum++;
+      ++spectrum;
     }
     return result;
   }
