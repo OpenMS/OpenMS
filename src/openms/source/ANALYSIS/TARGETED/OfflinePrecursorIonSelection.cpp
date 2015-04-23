@@ -54,7 +54,7 @@ namespace OpenMS
     defaults_.setValue("mz_isolation_window", 2.0, "All peaks within a mass window (in Th) of a selected peak are also selected for fragmentation.");
     defaults_.setMinFloat("mz_isolation_window", 0.);
 
-    defaults_.setValue("exclude_overlapping_peaks", "false", "If true, overlapping or nearby peaks (within min_peak_distance) are excluded for selection.");
+    defaults_.setValue("exclude_overlapping_peaks", "false", "If true, overlapping or nearby peaks (within 'min_mz_peak_distance') are excluded for selection.");
     defaults_.setValidStrings("exclude_overlapping_peaks", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("Exclusion:use_dynamic_exclusion", "false", "If true dynamic exclusion is applied.");
