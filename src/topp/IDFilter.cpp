@@ -196,7 +196,7 @@ protected:
     setValidFormats_("whitelist:proteins", ListUtils::create<String>("fasta"));
     registerFlag_("whitelist:by_seq_only", "Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
 
-    registerStringList_("whitelist:protein_accessions", "<accessions>", ListUtils::create<String>(""), "All peptides that are not a substring of a sequence in this file are removed\nAll proteins whose accession is not present in this file are removed.", false);
+    registerStringList_("whitelist:protein_accessions", "<accessions>", ListUtils::create<String>(""), "All peptides that are not referencing at least one of the provided protein accession are removed.\nOnly proteins of the provided list are retained.", false);
 
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");
     registerInputFile_("blacklist:peptides", "<file>", "", "Peptides having the same sequence and modification assignment as any peptide in this file will be filtered out. Use with blacklist:ignore_modification flag to only compare by sequence.\n", false);
