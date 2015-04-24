@@ -12,6 +12,7 @@ IDDecoyProbability.h
 IDMapper.h
 IDRipper.h
 MetaboliteSpectralMatching.h
+PeptideProteinResolution.h
 PILISIdentification.h
 PILISModel.h
 PILISModelGenerator.h
