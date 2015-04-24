@@ -1475,43 +1475,41 @@ namespace OpenMS
   void Spectrum2DCanvas::horizontalScrollBarChange(int value)
   {
     AreaType new_area = visible_area_;
-    if (isMzToXAxis())
+    if (!isMzToXAxis())
     {
-      new_area.setMinX(value);
-      new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMinY(value);
+      new_area.setMaxY(value + (visible_area_.height()));
     }
     else
     {
-      new_area.setMinY(value);
-      new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMinX(value);
+      new_area.setMaxX(value + (visible_area_.width()));
     }
+    //cout << __PRETTY_FUNCTION__ << endl;
+    changeVisibleArea_(new_area);
+    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::verticalScrollBarChange(int value)
   {
+    // invert 'value' (since the VERTICAL(!) scrollbar's range is negative -- see SpectrumWidget::updateVScrollbar())
+    // this is independent on isMzToXAxis()!
+    value *= -1;
+    
     AreaType new_area = visible_area_;
     if (!isMzToXAxis())
     {
       new_area.setMinX(value);
-      new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMaxX(value + visible_area_.width());
     }
     else
     {
       new_area.setMinY(value);
-      new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMaxY(value + (visible_area_.height()));
     }
+    //cout << __PRETTY_FUNCTION__ << endl;
+    changeVisibleArea_(new_area);
+    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::paintEvent(QPaintEvent * e)
