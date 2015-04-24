@@ -480,6 +480,8 @@ public:
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const
     {
+      if (this->size() < 2) return true;
+
       for (Size i = 1; i < this->size(); ++i)
       {
         if (this->operator[](i - 1).getMZ() > this->operator[](i).getMZ()) return false;

@@ -82,6 +82,8 @@ using namespace std;
 
         <B>The command line parameters of this tool are:</B>
         @verbinclude TOPP_FeatureFinderMetabo.cli
+        <B>INI file documentation of this tool:</B>
+        @htmlinclude TOPP_FeatureFinderMetabo.html
 */
 
 // We do not want this class to show up in the docu:
@@ -100,9 +102,9 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input centroided mzML file");
+    registerInputFile_("in", "<file>", "", "Centroided mzML file");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
-    registerOutputFile_("out", "<file>", "", "output featureXML file with metabolite features");
+    registerOutputFile_("out", "<file>", "", "FeatureXML file with metabolite features");
     setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     addEmptyLine_();
@@ -221,9 +223,9 @@ protected:
     //-------------------------------------------------------------
 
     std::vector<MassTrace> m_traces_final;
-    std::vector<MassTrace> splitted_mtraces;
     if (epd_param.getValue("enabled").toBool())
     {
+      std::vector<MassTrace> splitted_mtraces;
       epd_param.remove("enabled"); // artificially added above
       epd_param.insert("", common_param);
       ElutionPeakDetection epdet;
@@ -243,11 +245,9 @@ protected:
     else
     { // no elution peak detection
       m_traces_final = m_traces;
-      for (std::vector<MassTrace>::iterator it  = m_traces_final.begin();
-                                            it != m_traces_final.end();
-                                            ++it)
-      {
-        it->disableFHWM();
+      for (Size i=0; i<m_traces_final.size(); ++i)
+      { // estimate FWHM, so .getIntensity() can be called later
+        m_traces_final[i].estimateFWHM(false);
       }
       if (ffm_param.getValue("use_smoothed_intensities").toBool())
       {
@@ -255,7 +255,6 @@ protected:
         ffm_param.setValue("use_smoothed_intensities", "false");
       }
     }
-
 
 
 //    std::cout << "m_traces: " << m_traces_final.size() << std::endl;

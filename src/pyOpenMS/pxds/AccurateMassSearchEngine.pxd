@@ -33,3 +33,5 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
 
         void init() nogil except +
 
+        libcpp_vector[ double] & getMasstraceIntensities() nogil except +
+        void setMasstraceIntensities(libcpp_vector[ double ] & ) nogil except +

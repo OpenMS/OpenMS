@@ -448,16 +448,19 @@ private:
   void Base64::decodeUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
+
+    // The length of a base64 string is a always a multiple of 4 (always 3
+    // bytes are encoded as 4 characters)
+    if (in.size() < 4)
+    {
       return;
+    }
 
     Size src_size = in.size();
     // last one or two '=' are skipped if contained
     int padding = 0;
-    if (in[src_size - 1] == '=')
-      padding++;
-    if (in[src_size - 2] == '=')
-      padding++;
+    if (in[src_size - 1] == '=') padding++;
+    if (in[src_size - 2] == '=') padding++;
 
     src_size -= padding;
 
@@ -492,10 +495,16 @@ private:
     for (Size i = 0; i < src_size; i += 4)
     {
       // decode 4 Base64-Chars to 3 Byte
+      // -------------------------------
+
+      // decode the first two chars
       a = decoder_[(int)in[i] - 43] - 62;
       b = decoder_[(int)in[i + 1] - 43] - 62;
       if (i + 1 >= src_size)
+      {
         b = 0;
+      }
+      // write first byte (6 bits from a and 2 highest bits from b)
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
       written++;
       offset = (offset + inc) % element_size;
@@ -507,9 +516,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the third char
       a = decoder_[(int)in[i + 2] - 43] - 62;
       if (i + 2 >= src_size)
+      {
         a = 0;
+      }
+      // write second byte (4 lowest bits from b and 4 highest bits from a)
       element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
       written++;
       offset = (offset + inc) % element_size;
@@ -521,9 +534,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the fourth char
       b = decoder_[(int)in[i + 3] - 43] - 62;
       if (i + 3 >= src_size)
+      {
         b = 0;
+      }
+      // write third byte (2 lowest bits from a and 6 bits from b)
       element[offset] = (unsigned char) (((a & 3) << 6) | b);
       written++;
       offset = (offset + inc) % element_size;
@@ -774,16 +791,19 @@ private:
   void Base64::decodeIntegersUncompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out)
   {
     out.clear();
-    if (in == "")
+
+    // The length of a base64 string is a always a multiple of 4 (always 3
+    // bytes are encoded as 4 characters)
+    if (in.size() < 4)
+    {
       return;
+    }
 
     Size src_size = in.size();
     // last one or two '=' are skipped if contained
     int padding = 0;
-    if (in[src_size - 1] == '=')
-      padding++;
-    if (in[src_size - 2] == '=')
-      padding++;
+    if (in[src_size - 1] == '=') padding++;
+    if (in[src_size - 2] == '=') padding++;
 
     src_size -= padding;
 
@@ -817,16 +837,20 @@ private:
     // char[8] (float) and push_back when necessary.
     for (Size i = 0; i < src_size; i += 4)
     {
-//printf ("start: i=%d, offset %d\n", i, offset);
 
       // decode 4 Base64-Chars to 3 Byte
+      // -------------------------------
+
+      // decode the first two chars
       a = decoder_[(int)in[i] - 43] - 62;
       b = decoder_[(int)in[i + 1] - 43] - 62;
       if (i + 1 >= src_size)
+      {
         b = 0;
+      }
+      // write first byte (6 bits from a and 2 highest bits from b)
       element[offset] = (unsigned char) ((a << 2) | (b >> 4));
       written++;
-//printf ("1: i=%d, offset %d, wrote %d\n", i, offset, element[offset]);
       offset = (offset + inc) % element_size;
 
       if (written % element_size == 0)
@@ -846,9 +870,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the third char
       a = decoder_[(int)in[i + 2] - 43] - 62;
       if (i + 2 >= src_size)
+      {
         a = 0;
+      }
+      // write second byte (4 lowest bits from b and 4 highest bits from a)
       element[offset] = (unsigned char) (((b & 15) << 4) | (a >> 2));
       written++;
       offset = (offset + inc) % element_size;
@@ -870,9 +898,13 @@ private:
         strcpy(element, "");
       }
 
+      // decode the fourth char
       b = decoder_[(int)in[i + 3] - 43] - 62;
       if (i + 3 >= src_size)
+      {
         b = 0;
+      }
+      // write third byte (2 lowest bits from a and 6 bits from b)
       element[offset] = (unsigned char) (((a & 3) << 6) | b);
       written++;
       offset = (offset + inc) % element_size;

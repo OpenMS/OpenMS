@@ -630,68 +630,53 @@ namespace OpenMS
 
   void SpectrumCanvas::keyPressEvent(QKeyEvent * e)
   {
-    // Alt/Shift pressed => change action mode
     if (e->key() == Qt::Key_Control)
-    {
-      e->accept();
+    { // Ctrl pressed => change action mode
       action_mode_ = AM_ZOOM;
       emit actionModeChange();
     }
     else if (e->key() == Qt::Key_Shift)
-    {
-      e->accept();
+    { // Shift pressed => change action mode
       action_mode_ = AM_MEASURE;
       emit actionModeChange();
     }
-
-    // CTRL+/CTRL- => Zoom stack
-    if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Plus))
-    {
-      e->accept();
+    else if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Plus)) // do not use (e->modifiers() == Qt::ControlModifier) to target Ctrl exclusively, since +/- might(!) also trigger the Qt::KeypadModifier
+    { // CTRL+Plus => Zoom stack
       zoomForward_();
     }
     else if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_Minus))
-    {
-      e->accept();
+    { // CTRL+Minus => Zoom stack
       zoomBack_();
     }
     // Arrow keys => translate
     else if (e->key() == Qt::Key_Left)
     {
-      e->accept();
       translateLeft_();
     }
     else if (e->key() == Qt::Key_Right)
     {
-      e->accept();
       translateRight_();
     }
     else if (e->key() == Qt::Key_Up)
     {
-      e->accept();
       translateForward_();
     }
     else if (e->key() == Qt::Key_Down)
     {
-      e->accept();
       translateBackward_();
     }
-    //Backspace to reset zoom
     else if (e->key() == Qt::Key_Backspace)
-    {
-      e->accept();
+    { // Backspace to reset zoom
       resetZoom();
     }
-
-    // CTRL+ALT+T => activate timing mode
-    if ((e->modifiers() & Qt::ControlModifier) && (e->modifiers() & Qt::AltModifier) && (e->key() == Qt::Key_T))
-    {
-      e->accept();
+    else if ((e->modifiers() == (Qt::ControlModifier | Qt::AltModifier)) && (e->key() == Qt::Key_T))
+    { // CTRL+ALT+T => activate timing mode
       show_timing_ = !show_timing_;
     }
-
-    releaseKeyboard();    // ensure that the key event is passed on to parent widget
-    e->ignore();
+    else
+    { // call the keyPressEvent() of the parent widget
+      e->ignore();
+    }
   }
 
   void SpectrumCanvas::translateLeft_()

@@ -20,11 +20,11 @@ Normalizer.h
 ParentPeakMower.h
 PeakMarker.h
 Scaler.h
+SpectraMerger.h
 SqrtMower.h
 TICFilter.h
 ThresholdMower.h
 WindowMower.h
-SpectraMerger.h
 )
 
 ### add path to the filenames

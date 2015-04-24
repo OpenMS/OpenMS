@@ -329,11 +329,12 @@ namespace OpenMS
      * @param cp_irt Parameter set for the chromatogram extraction
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      * @param mz_correction_function If correction in m/z is desired, which function should be used
+     * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      *
     */
     TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
             const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-            const Param & feature_finder_param, const ChromExtractParams & cp_irt, Size debug_level)
+            const Param & feature_finder_param, const ChromExtractParams & cp_irt, const Param& irt_detection_param, Size debug_level)
     {
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
@@ -361,7 +362,7 @@ namespace OpenMS
 
       // get RT normalization from data
       return RTNormalization(irt_transitions,
-              irt_chromatograms, min_rsq, min_coverage, feature_finder_param);
+              irt_chromatograms, min_rsq, min_coverage, feature_finder_param, irt_detection_param);
     }
 
     /** @brief Execute the OpenSWATH workflow on a set of SwathMaps and transitions.
@@ -662,13 +663,14 @@ namespace OpenMS
      * @param min_rsq Minimal R^2 value that is expected for the RT regression
      * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension 
+     * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
      *
      * @note: feature_finder_param are copied because they are changed here.
      *
     */
     TransformationDescription RTNormalization(TargetedExperiment transition_exp_,
             std::vector< OpenMS::MSChromatogram<> > chromatograms, double min_rsq, double min_coverage,
-            Param feature_finder_param)
+            Param feature_finder_param, const Param& irt_detection_param) 
     {
       LOG_DEBUG << "Start of RTNormalization method" << std::endl;
       this->startProgress(0, 1, "Retention time normalization");
@@ -676,15 +678,20 @@ namespace OpenMS
       OpenSwath::LightTargetedExperiment targeted_exp;
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, targeted_exp);
 
-      std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
+      bool estimateBestPeptides = irt_detection_param.getValue("estimateBestPeptides") == "true";
 
-      // Store the peptide retention times in an intermediate map
+      // 1. Estimate the retention time range of the whole experiment
+      std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
+      LOG_DEBUG << "Detected retention time range from " << RTRange.first << " to " << RTRange.second << std::endl;
+
+      // 2. Store the peptide retention times in an intermediate map
       std::map<OpenMS::String, double> PeptideRTMap;
       for (Size i = 0; i < targeted_exp.getPeptides().size(); i++)
       {
         PeptideRTMap[targeted_exp.getPeptides()[i].id] = targeted_exp.getPeptides()[i].rt;
       }
 
+      // 3. Extract the RT pairs from the input data
       OpenSwath::LightTargetedExperiment transition_exp_used = targeted_exp;
 
       // Change the feature finding parameters:
@@ -692,12 +699,18 @@ namespace OpenMS
       //  - no RT window
       //  - no elution model score
       //  - no peak quality (use all peaks)
+      //  - if best peptides should be used, use peak quality
       MRMFeatureFinderScoring featureFinder;
       feature_finder_param.setValue("Scores:use_rt_score", "false");
       feature_finder_param.setValue("Scores:use_elution_model_score", "false");
       feature_finder_param.setValue("rt_extraction_window", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 1.0); // set to 1.0 in all cases
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
+      if (estimateBestPeptides)
+      {
+        feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
+        feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", irt_detection_param.getValue("InitialQualityCutoff"));
+      }
       featureFinder.setParameters(feature_finder_param);
 
       FeatureMap featureFile; // for results
@@ -714,17 +727,64 @@ namespace OpenMS
       featureFinder.setStrictFlag(false); // TODO remove this, it should be strict (e.g. all transitions need to be present for RT norm)
       featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, empty_trafo, empty_swath_ptr, transition_group_map);
 
-      // find best feature, compute pairs of iRT and real RT
-      std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map);
+      // find most likely correct feature for each group and add it to the
+      // "pairs" vector by computing pairs of iRT and real RT. 
+      // Note that the quality threshold will only be applied if
+      // estimateBestPeptides is true
+      std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
+      std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map, 
+        estimateBestPeptides, irt_detection_param.getValue("OverallQualityCutoff"));
+
       for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); ++it)
       {
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       }
 
-      // remove outliers using the jackknife approach 
+      // 4. Perform the outlier detection
       std::vector<std::pair<double, double> > pairs_corrected;
-      bool chauvenet = false;
-      pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage, chauvenet, "iter_jackknife");
+      String outlier_method = irt_detection_param.getValue("outlierMethod");
+      if (outlier_method == "iter_residual" || outlier_method == "iter_jackknife")
+      {
+        pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
+        irt_detection_param.getValue("useIterativeChauvenet") == "true", outlier_method);
+      }
+      else if (outlier_method == "ransac")
+      {
+        // First, estimate of the maximum deviation from RT that is tolerated:
+        //   Because 120 min gradient can have around 4 min elution shift, we use
+        //   a default value of 3 % of the gradient to find upper RT threshold (3.6 min).
+        double pcnt_rt_threshold = irt_detection_param.getValue("RANSACMaxPercentRTThreshold");
+        double max_rt_threshold = (RTRange.second - RTRange.first) * pcnt_rt_threshold / 100.0;
+
+        pairs_corrected = MRMRTNormalizer::removeOutliersRANSAC(pairs, min_rsq, min_coverage,
+          irt_detection_param.getValue("RANSACMaxIterations"), max_rt_threshold,
+          irt_detection_param.getValue("RANSACSamplingSize"));
+      }
+      else if (outlier_method == "none") 
+      {
+        pairs_corrected = pairs;
+      }
+      else 
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          String("Illegal argument '") + outlier_method + "' used for outlierMethod (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none').");
+      }
+
+      // 5. Check whether the found peptides fulfill the binned coverage criteria
+      // set by the user.
+      if (estimateBestPeptides)
+      {
+        bool enoughPeptides = computeBinnedCoverage(RTRange, pairs_corrected,
+          irt_detection_param.getValue("NrRTBins"),
+          irt_detection_param.getValue("MinPeptidesPerBin"),
+          irt_detection_param.getValue("MinBinsFilled") );
+
+        if (!enoughPeptides)
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "There were not enough bins with the minimal number of peptides");
+        }
+      }
 
       // store transformation, using a linear model as default
       TransformationDescription trafo_out;
@@ -736,6 +796,42 @@ namespace OpenMS
 
       this->endProgress();
       return trafo_out;
+    }
+
+    /// Function to compute the coverage of the iRT peptides across the gradient
+    ///   Cmp with RTNormalizer
+    bool computeBinnedCoverage(const std::pair<double,double> & rtRange, 
+        const std::vector<std::pair<double, double> > & pairs, int nrBins, 
+        int minPeptidesPerBin, int minBinsFilled)
+    {
+      std::vector<int> binCounter(nrBins, 0);
+      for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
+      {
+        double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
+        normRT *= nrBins;
+        int bin = (int)normRT;
+        if (bin >= nrBins)
+        {
+          // this should never happen, but just to make sure
+          std::cerr << "OpenSwathWorkflow::countPeptidesInBins : computed bin was too large (" << 
+            bin << "), setting it to the maximum of " << nrBins << std::endl;
+          bin = nrBins - 1;
+        }
+        binCounter[ bin ]++;
+      }
+
+      int binsFilled = 0;
+      for (Size i = 0; i < binCounter.size(); i++)
+      {
+        LOG_DEBUG <<" In bin " << i << " out of " << binCounter.size() << 
+          " we have " << binCounter[i] << " peptides " << std::endl;
+        if (binCounter[i] >= minPeptidesPerBin) 
+        {
+          binsFilled++;
+        }
+      }
+
+      return (binsFilled >= minBinsFilled);
     }
 
     /// Helper function to score a set of chromatograms
@@ -1135,6 +1231,8 @@ protected:
     setMinInt_("batchSize", 0);
 
     registerSubsection_("Scoring", "Scoring parameters section");
+
+    registerSubsection_("outlierDetection", "Parameters for the outlierDetection for iRT petides. Outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm.");
   }
 
   Param getSubsectionDefaults_(const String& name) const
@@ -1159,6 +1257,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length", 11);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks", "true");
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:write_sn_log_messages", "false"); // no log messages
       // TODO it seems that the legacy method produces slightly larger peaks, e.g. it will not cut off peaks too early
       // however the same can be achieved by using a relatively low SN cutoff in the -Scoring:TransitionGroupPicker:PeakPickerMRM:signal_to_noise 0.5
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks_max_z", 0.75);
@@ -1172,7 +1271,6 @@ protected:
       // EMG Scoring - turn off by default since it is very CPU-intensive
       feature_finder_param.remove("Scores:use_elution_model_score");
       feature_finder_param.setValue("EMGScoring:max_iteration", 10);
-      feature_finder_param.setValue("EMGScoring:deltaRelError", 0.1);
       feature_finder_param.remove("EMGScoring:interpolation_step");
       feature_finder_param.remove("EMGScoring:tolerance_stdev_bounding_box");
       feature_finder_param.remove("EMGScoring:deltaAbsError");
@@ -1183,6 +1281,22 @@ protected:
       feature_finder_param.remove("EMGScoring:statistics:mean");
       feature_finder_param.remove("EMGScoring:statistics:variance");
       return feature_finder_param;
+    }
+    else if (name == "outlierDetection")
+    {
+      Param p;
+      p.setValue("outlierMethod", "iter_residual", "Which outlier detection method to use (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
+      p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when using iterative methods. This should be used if the algorithm removes too many datapoints but it may lead to true outliers being retained.");
+      p.setValue("RANSACMaxIterations", 1000, "Maximum iterations for the RANSAC outlier detection algorithm.");
+      p.setValue("RANSACMaxPercentRTThreshold", 3, "Maximum threshold in RT dimension for the RANSAC outlier detection algorithm (in percent of the total gradient). Default is set to 3% which is around +/- 4 minutes on a 120 gradient.");
+      p.setValue("RANSACSamplingSize", 10, "Sampling size of data points per iteration for the RANSAC outlier detection algorithm.");
+      p.setValue("estimateBestPeptides", "false", "Whether the algorithms should try to choose the best peptides based on their peak shape for normalization. Use this option you do not expect all your peptides to be detected in a sample and too many 'bad' peptides enter the outlier removal step (e.g. due to them being endogenous peptides or using a less curated list of peptides).");
+      p.setValue("InitialQualityCutoff", 0.5, "The initial overall quality cutoff for a peak to be scored (range ca. -2 to 2)");
+      p.setValue("OverallQualityCutoff", 5.5, "The overall quality cutoff for a peak to go into the retention time estimation (range ca. 0 to 10)");
+      p.setValue("NrRTBins", 10, "Number of RT bins to use to compute coverage. This option should be used to ensure that there is a complete coverage of the RT space (this should detect cases where only a part of the RT gradient is actually covered by normalization peptides)");
+      p.setValue("MinPeptidesPerBin", 1, "Minimal number of peptides that are required for a bin to counted as 'covered'");
+      p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
+      return p;
     }
     else
     {
@@ -1233,7 +1347,7 @@ protected:
    */
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt, Size debug_level)
+    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt, const Param& irt_detection_param, Size debug_level)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -1256,7 +1370,7 @@ protected:
       OpenMS::TargetedExperiment irt_transitions;
       traml.load(irt_tr_file, irt_transitions);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, debug_level);
+          feature_finder_param, cp_irt, irt_detection_param, debug_level);
     }
     return trafo_rtnorm;
   }
@@ -1268,6 +1382,8 @@ protected:
     ///////////////////////////////////
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
+
+    Param irt_detection_param = getParam_().copy("outlierDetection:", true);
 
     //tr_file input file type
     FileHandler fh_tr_type;
@@ -1392,7 +1508,7 @@ protected:
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file,
-        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, debug_level);
+        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, irt_detection_param, debug_level);
 
     ///////////////////////////////////
     // Load the transitions
