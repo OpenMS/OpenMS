@@ -91,6 +91,9 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 namespace OpenMS
 {
   class TOPPMzTabExporter :
@@ -884,6 +887,8 @@ protected:
   };
 }
 
+#pragma clang diagnostic pop
+
 int main(int argc, const char** argv)
 {
   TOPPMzTabExporter t;
@@ -891,3 +896,4 @@ int main(int argc, const char** argv)
 }
 
 /// @endcond
+

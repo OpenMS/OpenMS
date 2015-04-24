@@ -51,7 +51,10 @@ namespace OpenMS
 struct Dummy
   : UniqueIdInterface
 {
-    Dummy () : dummy(0) {};
+    Dummy () : 
+      dummy(0) 
+    {}
+
     Size dummy;
 };
 
