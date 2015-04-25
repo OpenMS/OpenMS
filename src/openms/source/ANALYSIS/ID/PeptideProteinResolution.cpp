@@ -316,8 +316,8 @@ void PeptideProteinResolution::resolveConnectedComponent(
       // Go through all _remaining_ proteins of the component and remove this
       // peptide from their mapping
       set<Size>::iterator grp_it_cont = grp_it;
-      grp_it_cont++;
-      for (grp_it_cont; grp_it_cont != conn_comp.prot_grp_indices.end();
+      ++grp_it_cont;
+      for (/*grp_it_cont*/; grp_it_cont != conn_comp.prot_grp_indices.end();
            ++grp_it_cont)
       {
         indist_prot_grp_to_pep_[*grp_it_cont].erase(*pepid_it);
@@ -335,11 +335,12 @@ void PeptideProteinResolution::resolveConnectedComponent(
                  accessions.end(),
                  pepev_it->getProteinAccession()) == accessions.end())
         {
-          best_hit_ev.erase(pepev_it);
+          // we get valid iterator from erase with shifted objects
+          pepev_it = best_hit_ev.erase(pepev_it);
         }
         else
         { // iterate further
-          pepev_it++;
+          ++pepev_it;
         }
       }
       // Set the remaining evidences as new evidence
