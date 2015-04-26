@@ -453,7 +453,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-      round_total_ = -1;
+    round_total_ = -1;
     round_counter_ = 0;
 
     finished_ = false;
