@@ -74,6 +74,10 @@ vector<FASTAFile::FASTAEntry> proteins;
 proteins.push_back(FASTAFile::FASTAEntry("Q824A5", "test description 1", "LHASGITVTEIPVTATNFK"));
 proteins.push_back(FASTAFile::FASTAEntry("Q872T5", "test description 2", "THPYGHAIVAGIERYPSK"));
 
+StringList protein_accessions;
+protein_accessions.push_back("Q824A5");
+protein_accessions.push_back("Q872T5");
+
 IDFilter* ptr = 0;
 IDFilter* nullPointer = 0;
 
@@ -101,6 +105,28 @@ START_SECTION((void filterIdentificationsByProteins(const PeptideIdentification&
   PeptideIdentification identification2;
 
   IDFilter::filterIdentificationsByProteins(identification, proteins, identification2);
+
+  TEST_EQUAL(identification2.getScoreType(), "Mascot")
+  TEST_EQUAL(identification2.getHits().size(), 2)
+  TEST_EQUAL(identification2.getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(identification2.getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
+END_SECTION
+
+START_SECTION((void filterIdentificationsByProteinAccessions(const ProteinIdentification& identification, const StringList& proteins, ProteinIdentification& filtered_identification)))
+  ProteinIdentification protein_identification2;
+
+  IDFilter::filterIdentificationsByProteinAccessions(protein_identification, protein_accessions, protein_identification2);
+
+  TEST_EQUAL(protein_identification2.getScoreType(), "Mascot")
+  TEST_EQUAL(protein_identification2.getHits().size(), 2)
+  TEST_EQUAL(protein_identification2.getHits()[0].getAccession(), "Q824A5")
+  TEST_EQUAL(protein_identification2.getHits()[1].getAccession(), "Q872T5")
+END_SECTION
+
+START_SECTION((void filterIdentificationsByProteinAccessions(const PeptideIdentification& identification, const StringList& proteins, PeptideIdentification& filtered_identification)))
+  PeptideIdentification identification2;
+
+  IDFilter::filterIdentificationsByProteinAccessions(identification, protein_accessions, identification2);
 
   TEST_EQUAL(identification2.getScoreType(), "Mascot")
   TEST_EQUAL(identification2.getHits().size(), 2)
