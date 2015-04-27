@@ -147,8 +147,8 @@ protected:
     Param tmp;
     tmp.insert("InclusionExclusionList:", fdc.getParameters());
     tmp.insert("PrecursorSelection:", ops.getParameters());
-    tmp.remove("PrecursorSelection:selection_window");
-    tmp.remove("PrecursorSelection:min_peak_distance");
+    tmp.remove("PrecursorSelection:mz_isolation_window");
+    tmp.remove("PrecursorSelection:min_mz_peak_distance");
     tmp.insert("PrecursorSelection:", lp.getParameters().copy("feature_based"));
     return tmp;
   }

@@ -110,6 +110,7 @@ START_SECTION((void generateRawTandemSignals(const SimTypes::FeatureMapSim &, Si
     p.setValue("TandemSim:SVM:hide_losses", "true");
     p.setValue("Precursor:Exclusion:use_dynamic_exclusion", "true");
     p.setValue("Precursor:Exclusion:exclusion_time", 50.0);
+    p.setValue("Precursor:min_mz_peak_distance", 3.0);
     sim.setParameters(p);
 
     sim.generateRawTandemSignals(features, exp_no_ms2, peak_map);
