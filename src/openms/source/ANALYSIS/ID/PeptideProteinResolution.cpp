@@ -34,9 +34,38 @@
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 
 #include <queue>
+#include <ostream>
 
 using namespace OpenMS;
 using namespace std;
+
+
+ConnectedComponent::ConnectedComponent() : prot_grp_indices(std::set<Size>()),
+    pep_indices(std::set<Size>())
+    {}
+
+std::ostream& OpenMS::operator << (std::ostream& os, const ConnectedComponent& conn_comp)
+    {
+      os << "Proteins: ";
+      for (std::set<Size>::iterator prot_it = conn_comp.prot_grp_indices.begin();
+           prot_it != conn_comp.prot_grp_indices.end();
+           ++prot_it)
+      {
+        os << *prot_it << ",";
+      }
+      os << std::endl;
+      os << "Peptides: ";
+      for (std::set<Size>::iterator pep_it = conn_comp.pep_indices.begin();
+           pep_it != conn_comp.pep_indices.end();
+           ++pep_it)
+      {
+        os << *pep_it << ",";
+      }
+      
+      return os;
+      
+    }
+
 
 // C'tor
 PeptideProteinResolution::PeptideProteinResolution(bool statistics) :
@@ -141,7 +170,7 @@ void PeptideProteinResolution::resolveGraph(ProteinIdentification& protein,
         if (curr_component.prot_grp_indices.size() > 1)
         {
           LOG_INFO << "found group: " << endl;
-          curr_component << LOG_INFO;
+          LOG_INFO << curr_component;
           LOG_INFO << endl << "Processing ..." << endl;
         }
       }
@@ -166,11 +195,11 @@ void PeptideProteinResolution::resolveGraph(ProteinIdentification& protein,
     if (statistics_)
     {
       LOG_INFO << endl << "Most protein groups in component:" << endl;
-      most_grps << LOG_INFO;
+      LOG_INFO << most_grps;
       LOG_INFO << endl << "Most peptides in component:"<< endl;
-      most_peps << LOG_INFO;
+      LOG_INFO << most_peps;
       LOG_INFO << endl << "Biggest component:" << endl;
-      most_both << LOG_INFO;
+      LOG_INFO << most_both;
     }
 }
 
@@ -269,8 +298,7 @@ void PeptideProteinResolution::resolveConnectedComponent(
    */
   
   // Add proteins from a connected component to ambiguity groups
-  ProteinIdentification::ProteinGroup ambiguity_grp =
-  ProteinIdentification::ProteinGroup();
+  ProteinIdentification::ProteinGroup ambiguity_grp;
   
   // Save the max probability in this component to add it (should be first one)
   double max_prob = 0.0;

@@ -44,41 +44,21 @@
 namespace OpenMS
 {
 
-  // Represents a connected component of the bipartite graph
-  // Holds indices of peptides and (indist.) protein groups in them
-  struct ConnectedComponent
+  /// Represents a connected component of the bipartite graph
+  /// Holds indices of peptides and (indist.) protein groups in them
+  struct OPENMS_DLLAPI ConnectedComponent
   {
     std::set<Size> prot_grp_indices;
     std::set<Size> pep_indices;
     
     // Default constructor
-    ConnectedComponent() : prot_grp_indices(std::set<Size>()),
-    pep_indices(std::set<Size>())
-    {}
-    
-    std::ostream& operator << (std::ostream& os)
-    //Overloaded operator for '<<'
-    {
-      os << "Proteins: ";
-      for (std::set<Size>::iterator prot_it = this->prot_grp_indices.begin();
-           prot_it != this->prot_grp_indices.end();
-           ++prot_it)
-      {
-        os << *prot_it << ",";
-      }
-      os << std::endl;
-      os << "Peptides: ";
-      for (std::set<Size>::iterator pep_it = this->pep_indices.begin();
-           pep_it != this->pep_indices.end();
-           ++pep_it)
-      {
-        os << *pep_it << ",";
-      }
-      
-      return os;
-      
-    }
+    ConnectedComponent();
+
+    /// Overloaded operator '<<' for ConnectedComponents
+    friend std::ostream& operator << (std::ostream& os, const ConnectedComponent& conn_comp);
   };
+
+
 
   /**
    @brief Resolves shared peptides based on protein scores
@@ -105,12 +85,12 @@ namespace OpenMS
     // so we get bidirectional connectivity
     // We always take first PepHit from PepID, because those were used for
     // inference in Fido
-    typedef std::map<Size, std::set<Size> > IndexMap;
+    typedef std::map<Size, std::set<Size> > IndexMap_;
     
     /// mapping indist. protein group indices -> peptide identification indices
-    IndexMap indist_prot_grp_to_pep_;
+    IndexMap_ indist_prot_grp_to_pep_;
     /// mapping indist. protein group indices <- peptide identification indices
-    IndexMap pep_to_indist_prot_grp_;
+    IndexMap_ pep_to_indist_prot_grp_;
     
     /** represents the middle layer of an implicit tripartite graph:
     consists of single protein accessions and their mapping to the (indist.)
