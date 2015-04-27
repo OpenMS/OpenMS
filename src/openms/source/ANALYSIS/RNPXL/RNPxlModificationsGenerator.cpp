@@ -33,11 +33,38 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 using namespace std;
 
 namespace OpenMS
 {
+
+//static
+double RNPxlModificationsGenerator::calculateNucleotideChainMass(const map<char, EmpiricalFormula>& monophosphate_to_formula, const String& sequence)
+{
+  double mass(0);
+  static double H2O = EmpiricalFormula("H2O").getMonoWeight(); // TODO: add constexpr when we support it
+
+  // sum up nucleotide masses
+  for (String::const_iterator sit = sequence.begin(); sit != sequence.end(); ++sit)
+  {
+    map<char, EmpiricalFormula>::const_iterator it = monophosphate_to_formula.find(*sit);
+    if (it != monophosphate_to_formula.end())
+    {
+      mass += it->second.getMonoWeight();
+      map<char, EmpiricalFormula>::const_iterator last_element =  monophosphate_to_formula.end();
+      --last_element;
+      if (it != last_element) mass -= H2O;
+    }
+    else
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Nucleotide '" + String(*sit) + "' not contained in nucleotide map.");
+    }
+  }
+
+  return mass; 
+}
 
 //static
 bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
