@@ -34,6 +34,11 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/FASTAFile.h>
+#include <iostream>
+#include <fstream>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/FORMAT/TextFile.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -41,7 +46,7 @@ using namespace OpenMS;
 /**
     @page UTILS_NucleotideID NucleotideID
 
-    @brief TODO
+    @brief Generate a csv file containing masses    sequences   Identifiers from a fasta file
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_NucleotideID.cli
@@ -66,7 +71,10 @@ protected:
     setValidFormats_("in_fasta", ListUtils::create<String>("fasta"));
 
     registerOutputFile_("out_db_mapping", "<file>", "", "mapping file used in AccurateMassSearch\n");
-    setValidFormats_("out_db_mapping", ListUtils::create<String>("csv"));
+    setValidFormats_("out_db_mapping", ListUtils::create<String>("tsv"));
+
+    registerOutputFile_("out_struct_mapping", "<file>", "", "structure file used in AccurateMassSearch\n");
+    setValidFormats_("out_struct_mapping", ListUtils::create<String>("tsv"));
 
 // TODO: other AccurateMassSearch files
   }
@@ -77,6 +85,41 @@ protected:
     // TODO: CODE
     //
     //
+    String input_filepath(getStringOption_("in_fasta"));
+
+    std::vector<FASTAFile::FASTAEntry> input_file;
+    FASTAFile fasta_file;
+    fasta_file.load(input_filepath,input_file);
+
+    TextFile db_mapping_file;
+    TextFile struct_mapping_file;
+
+    //generate monophosphate mass list
+    map<char, EmpiricalFormula> monophosphate_to_formula;
+    monophosphate_to_formula['A']=EmpiricalFormula("C10H14N5O7P");
+    monophosphate_to_formula['C']=EmpiricalFormula("C9H14N3O8P");
+    monophosphate_to_formula['G']=EmpiricalFormula("C10H14N5O8P");
+    monophosphate_to_formula['U']=EmpiricalFormula("C9H13N2O9P");
+
+    db_mapping_file.addLine("database_name\tmirna\ndatabase_version\t1.0"); //header for db_mapping file
+
+    for (size_t i=0;i<input_file.size();i++) //for each sequence
+    {
+        EmpiricalFormula entryformula;
+        string seq= input_file.at(i).sequence;
+        int seqlen= seq.length();
+        for (int j=0;j<seqlen-1;j++){ //for each residue
+            entryformula=entryformula+monophosphate_to_formula[seq[j]]-EmpiricalFormula("H2O"); //Add the mass of the next nucleotide - the condensed water
+        }
+        entryformula=entryformula+monophosphate_to_formula[seq[seqlen-1]]-EmpiricalFormula("HPO3"); //Add the mass of the next nucleotide - the condensed water, drop the phosphate
+
+
+        db_mapping_file.addLine(String(entryformula.getMonoWeight()) + "\t" + entryformula.toString() + "\t" + "mirna:" + input_file.at(i).identifier);
+        struct_mapping_file.addLine( "mirna:" +String(input_file.at(i).identifier) + "\t" + entryformula.toString() + "\t" + entryformula.toString() + "\t" + entryformula.toString());
+    }
+
+    db_mapping_file.store(getStringOption_("out_db_mapping"));
+    struct_mapping_file.store(getStringOption_("out_struct_mapping"));
     return EXECUTION_OK;
   }
 
