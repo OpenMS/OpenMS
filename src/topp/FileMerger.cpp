@@ -135,7 +135,7 @@ protected:
     StringList file_list = getStringList_("in");
 
     //file type
-    FileHandler fh;
+    FileHandler file_handler;
     FileTypes::Type force_type;
     if (getStringOption_("in_type").size() > 0)
     {
@@ -143,7 +143,7 @@ protected:
     }
     else
     {
-      force_type = fh.getType(file_list[0]);
+      force_type = file_handler.getType(file_list[0]);
     }
 
     //output file names and types
@@ -278,9 +278,9 @@ protected:
         String filename = file_list[i];
 
         //load file
-        force_type = fh.getType(file_list[i]);
+        force_type = file_handler.getType(file_list[i]);
         MSExperiment<> in;
-        fh.loadExperiment(filename, in, force_type, log_type_);
+        file_handler.loadExperiment(filename, in, force_type, log_type_);
 
         if (in.empty() && in.getChromatograms().empty())
         {

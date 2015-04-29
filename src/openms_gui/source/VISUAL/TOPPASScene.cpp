@@ -577,7 +577,7 @@ namespace OpenMS
 
   void TOPPASScene::resetDownstream(TOPPASVertex* vertex)
   {
-    //reset all nodes
+    // reset all nodes
     vertex->reset(true);
     for (TOPPASVertex::ConstEdgeIterator it = vertex->outEdgesBegin(); it != vertex->outEdgesEnd(); ++it)
     {
@@ -1430,20 +1430,24 @@ namespace OpenMS
         {
           continue;
         }
-        some_vertex_not_finished = true;
-        bool has_predecessors = false;
+        
+        bool has_unmarked_predecessors = false;
         for (TOPPASVertex::ConstEdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
         {
           TOPPASVertex* v = (*e_it)->getSourceVertex();
           if (!(v->isTopoSortMarked()))
           {
-            has_predecessors = true;
+            has_unmarked_predecessors = true;
             break;
           }
         }
-        if (!has_predecessors)
-        {
-          //update name of input node
+        if (has_unmarked_predecessors)
+        { // needs to be revisited in the next round (where we hopefully have found the predecessors)
+          some_vertex_not_finished = true;
+        }
+        else
+        { // mark this node
+          // update name of input node
           TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
           if (iflv)
           {

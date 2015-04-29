@@ -262,20 +262,22 @@ private:
     CellIndex grid_dimension_;
 
 public:
+
     /**
      * @brief Dimension of cells.
      */
     const ClusterCenter cell_dimension;
+
     /**
      * @brief Upper-right corner of key space for cells.
      */
     const CellIndex & grid_dimension;
 
 public:
-    HashGrid(const ClusterCenter & cell_dimension) :
+    HashGrid(const ClusterCenter & c_dimension) :
       cells_(), 
       grid_dimension_(), 
-      cell_dimension(cell_dimension), 
+      cell_dimension(c_dimension), 
       grid_dimension(grid_dimension_)
     {}
 

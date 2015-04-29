@@ -68,8 +68,6 @@
 
 using namespace std;
 
-#define DEBUG_TOPPVIEW 0
-
 namespace OpenMS
 {
   using namespace Math;

@@ -19,6 +19,7 @@ IDMapper.cpp
 IDRipper.cpp
 IDDecoyProbability.cpp
 MetaboliteSpectralMatching.cpp
+PeptideProteinResolution.cpp
 PILISIdentification.cpp
 PILISModel.cpp
 PILISModelGenerator.cpp

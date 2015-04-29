@@ -53,31 +53,32 @@ namespace OpenMS
     right_endpoint_ = exp_.end();
   }
 
-  PeakShape::PeakShape(double height, double mz_position, double left_width, double right_width, double area, PeakIterator left, PeakIterator right, Type type) :
-    height(height),
-    mz_position(mz_position),
-    left_width(left_width),
-    right_width(right_width),
-    area(area),
+  PeakShape::PeakShape(double height_arg, double mz_position_arg, double left_width_arg, 
+      double right_width_arg, double area_arg, PeakIterator left_arg, PeakIterator right_arg, Type type_arg) :
+    height(height_arg),
+    mz_position(mz_position_arg),
+    left_width(left_width_arg),
+    right_width(right_width_arg),
+    area(area_arg),
     r_value(0),
     signal_to_noise(0),
-    type(type),
-    left_endpoint_(left),
-    right_endpoint_(right),
+    type(type_arg),
+    left_endpoint_(left_arg),
+    right_endpoint_(right_arg),
     left_iterator_set_(true),
     right_iterator_set_(true)
   {
   }
 
-  PeakShape::PeakShape(double height, double mz_position, double left_width, double right_width, double area, Type type) :
-    height(height),
-    mz_position(mz_position),
-    left_width(left_width),
-    right_width(right_width),
-    area(area),
+  PeakShape::PeakShape(double height_arg, double mz_position_arg, double left_width_arg, double right_width_arg, double area_arg, Type type_arg) :
+    height(height_arg),
+    mz_position(mz_position_arg),
+    left_width(left_width_arg),
+    right_width(right_width_arg),
+    area(area_arg),
     r_value(0),
     signal_to_noise(0),
-    type(type),
+    type(type_arg),
     left_iterator_set_(false),
     right_iterator_set_(false)
   {

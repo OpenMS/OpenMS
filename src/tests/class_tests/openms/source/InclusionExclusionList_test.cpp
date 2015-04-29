@@ -45,6 +45,9 @@
 using namespace OpenMS;
 using namespace std;
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
+
 START_TEST(InclusionExclusionList, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -218,5 +221,5 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
+#pragma clang diagnostic pop
 

@@ -38,8 +38,8 @@
 
 using namespace std;
 
-#define DEBUG_ID_CONSENSUS
-#undef  DEBUG_ID_CONSENSUS
+// #define DEBUG_ID_CONSENSUS
+// #undef  DEBUG_ID_CONSENSUS
 
 namespace OpenMS
 {

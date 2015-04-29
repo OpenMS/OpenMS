@@ -49,14 +49,14 @@
 #include <fstream>
 
 
-#define TRAINING_DEBUG
-#undef  TRAINING_DEBUG
+// #define TRAINING_DEBUG
+// #undef  TRAINING_DEBUG
 
-#define SIM_DEBUG
-#undef  SIM_DEBUG
+// #define SIM_DEBUG
+// #undef  SIM_DEBUG
 
-#define INIT_CHARGE_DEBUG
-#undef  INIT_CHARGE_DEBUG
+// #define INIT_CHARGE_DEBUG
+// #undef  INIT_CHARGE_DEBUG
 
 #define MIN_DECIMAL_VALUE 1e-8
 

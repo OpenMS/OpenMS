@@ -527,7 +527,6 @@ protected:
     Int from_max_to_left_, from_max_to_right_;
     std::vector<int> indices_;
 
-    MSSpectrum<PeakType> c_sorted_candidate_;
     double min_spacing_, max_mz_cutoff_;
     std::vector<float> scores_, zeros_;
   };
@@ -792,16 +791,16 @@ protected:
     ofile.close();
 #endif
 
-    ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate_(diffed.begin(), diffed.end());
+    ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate(diffed.begin(), diffed.end());
 
     //Sort the transform in descending order according to the intensities present in the transform
-    c_sorted_candidate_.sortByIntensity();
+    c_sorted_candidate.sortByIntensity();
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
     std::stringstream stream2;
     stream2 << "sorted_cpu_" << candidates.getRT() << "_" << c + 1 << ".trans\0";
     std::ofstream ofile2(stream2.str().c_str());
-    for (iter = c_sorted_candidate_.end() - 1; iter != c_sorted_candidate_.begin(); --iter)
+    for (iter = c_sorted_candidate.end() - 1; iter != c_sorted_candidate.begin(); --iter)
     {
       ofile2 << iter->getMZ() << "\t" << iter->getIntensity() << std::endl;
     }
@@ -821,7 +820,7 @@ protected:
       threshold = ampl_cutoff * c_sd_intens + c_av_intens;
     }
 
-    for (iter = c_sorted_candidate_.end() - 1; iter != c_sorted_candidate_.begin(); --iter)
+    for (iter = c_sorted_candidate.end() - 1; iter != c_sorted_candidate.begin(); --iter)
     {
       if (iter->getIntensity() <= 0)
       {
