@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/NASequence.h>
 
 using namespace std;
 
@@ -86,6 +87,15 @@ namespace OpenMS
     defaults_.setValue("add_z_ions", "false", "Add peaks of z-ions to the spectrum");
     defaults_.setValidStrings("add_z_ions", ListUtils::create<String>("true,false"));
 
+    defaults_.setValue("add_d_ions", "false", "Add peaks of d-ions to the spectrum");
+    defaults_.setValidStrings("add_d_ions", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("add_w_ions", "false", "Add peaks of w-ions to the spectrum");
+    defaults_.setValidStrings("add_w_ions", ListUtils::create<String>("true,false"));
+
+    defaults_.setValue("add_a-B_ions", "false", "Add peaks of a-B-ions to the spectrum");
+    defaults_.setValidStrings("add_a-B_ions", ListUtils::create<String>("true,false"));
+
 
     // intensity options of the ions
     defaults_.setValue("y_intensity", 1.0, "Intensity of the y-ions");
@@ -94,6 +104,11 @@ namespace OpenMS
     defaults_.setValue("c_intensity", 1.0, "Intensity of the c-ions");
     defaults_.setValue("x_intensity", 1.0, "Intensity of the x-ions");
     defaults_.setValue("z_intensity", 1.0, "Intensity of the z-ions");
+
+    defaults_.setValue("d_intensity", 1.0, "Intensity of the d-ions");
+    defaults_.setValue("w_intensity", 1.0, "Intensity of the w-ions");
+    defaults_.setValue("a-B_intensity", 1.0, "Intensity of the a-B-ions");
+
 
     defaults_.setValue("relative_loss_intensity", 0.1, "Intensity of loss ions, in relation to the intact ion intensity");
 
@@ -121,6 +136,49 @@ namespace OpenMS
 
   TheoreticalSpectrumGenerator::~TheoreticalSpectrumGenerator()
   {
+  }
+
+  void TheoreticalSpectrumGenerator::getSpectrum(RichPeakSpectrum & spec, const NASequence & nucleotide, Int charge) const
+  {
+    bool add_b_ions(param_.getValue("add_b_ions").toBool());
+    bool add_y_ions(param_.getValue("add_y_ions").toBool());
+    bool add_a_ions(param_.getValue("add_a_ions").toBool());
+    bool add_c_ions(param_.getValue("add_c_ions").toBool());
+    bool add_x_ions(param_.getValue("add_x_ions").toBool());
+    bool add_z_ions(param_.getValue("add_z_ions").toBool());
+    bool add_d_ions(param_.getValue("add_d_ions").toBool());
+    bool add_w_ions(param_.getValue("add_w_ions").toBool());
+    bool add_aB_ions(param_.getValue("add_a-B_ions").toBool());
+
+    for (Int z = 1; z <= charge; ++z)
+    {
+      if (add_b_ions)
+        addPeaks(spec, nucleotide, Residue::BIon, z);
+      if (add_y_ions)
+        addPeaks(spec, nucleotide, Residue::YIon, z);
+      if (add_a_ions)
+        addPeaks(spec, nucleotide, Residue::AIon, z);
+      if (add_c_ions)
+        addPeaks(spec, nucleotide, Residue::CIon, z);
+      if (add_x_ions)
+        addPeaks(spec, nucleotide, Residue::XIon, z);
+      if (add_z_ions)
+        addPeaks(spec, nucleotide, Residue::ZIon, z);
+      if (add_d_ions)
+        addPeaks(spec, nucleotide, Residue::DIon, z);
+      if (add_w_ions)
+        addPeaks(spec, nucleotide, Residue::WIon, z);
+      if (add_aB_ions)
+        addPeaks(spec, nucleotide, Residue::AminusB, z);
+    }
+
+//    bool add_precursor_peaks(param_.getValue("add_precursor_peaks").toBool());
+//    if (add_precursor_peaks)
+//    {
+//      addPrecursorPeaks(spec, nucleotide, charge);
+//    }
+
+    return;
   }
 
   void TheoreticalSpectrumGenerator::getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge) const
@@ -459,6 +517,279 @@ namespace OpenMS
 
     return;
   }
+
+  void TheoreticalSpectrumGenerator::addPeaks(RichPeakSpectrum & spectrum, const NASequence & nucleotide, Residue::ResidueType res_type, Int charge) const
+  {
+    if (nucleotide.empty())
+    {
+      return;
+    }
+
+    Map<double, NASequence> ions;
+    Map<double, String> names;
+    NASequence ion;
+    double intensity(0);
+    bool add_first_prefix_ion(param_.getValue("add_first_prefix_ion").toBool());
+
+    // generate the ion peaks
+    switch (res_type)
+    {
+    case Residue::AIon:
+    {
+      Size i = 1;
+      if (!add_first_prefix_ion)
+      {
+        i = 2;
+      }
+      for (; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getPrefix(i);
+        double pos = ion.getMonoWeight(Residue::AIon, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "a" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("a_intensity");
+      break;
+    }
+
+    case Residue::BIon:
+    {
+      Size i = 1;
+      if (!add_first_prefix_ion)
+      {
+        i = 2;
+      }
+      for (; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getPrefix(i);
+        double pos = ion.getMonoWeight(Residue::BIon, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "b" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("b_intensity");
+      break;
+    }
+
+    case Residue::CIon:
+    {
+      Size i = 1;
+      if (!add_first_prefix_ion)
+      {
+        i = 2;
+      }
+      for (; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getPrefix(i);
+        double pos = ion.getMonoWeight(Residue::CIon, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "c" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("c_intensity");
+      break;
+    }
+
+    case Residue::XIon:
+    {
+      for (Size i = 1; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getSuffix(i);
+        double pos = ion.getMonoWeight(Residue::XIon, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "x" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("x_intensity");
+      break;
+    }
+
+    case Residue::YIon:
+    {
+      for (Size i = 1; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getSuffix(i);
+        double pos = ion.getMonoWeight(Residue::YIon, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "y" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("y_intensity");
+      break;
+    }
+
+    case Residue::ZIon:
+    {
+      for (Size i = 1; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getSuffix(i);
+        double pos = ion.getMonoWeight(Residue::ZIon, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "z" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("z_intensity");
+      break;
+    }
+
+    case Residue::DIon:
+    {
+      for (Size i = 1; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getSuffix(i);
+        double pos = ion.getMonoWeight(Residue::XIon, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "x" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("x_intensity");
+      break;
+    }
+
+    case Residue::WIon:
+    {
+      for (Size i = 1; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getSuffix(i);
+        double pos = ion.getMonoWeight(Residue::WIon, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "w" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("w_intensity");
+      break;
+    }
+
+    case Residue::AminusB:
+    {
+      for (Size i = 1; i < nucleotide.size(); ++i)
+      {
+        ion = nucleotide.getSuffix(i);
+        double pos = ion.getMonoWeight(Residue::AminusB, charge) / (double)charge;
+        ions[pos] = ion;
+        names[pos] = "a-B" + String(i) + String(charge, '+');
+      }
+      intensity = (double)param_.getValue("a-B_intensity");
+      break;
+    }
+
+
+    default:
+      cerr << "Cannot create peaks of that ion type" << endl;
+    }
+
+    // get the params
+    //bool add_losses(param_.getValue("add_losses").toBool());
+    bool add_metainfo(param_.getValue("add_metainfo").toBool());
+    bool add_isotopes(param_.getValue("add_isotopes").toBool());
+    Int max_isotope((Int)param_.getValue("max_isotope"));
+    //double rel_loss_intensity((double)param_.getValue("relative_loss_intensity"));
+
+    RichPeak1D p;
+    for (Map<double, NASequence>::ConstIterator cit = ions.begin(); cit != ions.end(); ++cit)
+    {
+      ion = cit->second;
+      double pos = cit->first;
+      String ion_name = names[pos];
+      if (add_isotopes)
+      {
+        IsotopeDistribution dist = ion.getFormula(res_type, charge).getIsotopeDistribution(max_isotope);
+        UInt j(0);
+        for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
+        {
+          p.setMZ((double)(pos + (double)j * Constants::NEUTRON_MASS_U) / (double)charge);
+          p.setIntensity(intensity * it->second);
+          if (add_metainfo && j == 0)
+          {
+            p.setMetaValue("IonName", ion_name);
+          }
+          spectrum.push_back(p);
+        }
+      }
+      else
+      {
+        p.setMZ(pos);
+        p.setIntensity(intensity);
+        if (add_metainfo)
+        {
+          p.setMetaValue("IonName", ion_name);
+        }
+        spectrum.push_back(p);
+      }
+
+//      if (add_losses)
+//      {
+//        set<String> losses;
+//        for (int i = 0; i < ion.size(); ++it)
+//        {
+//          if (it->hasNeutralLoss())
+//          {
+//            vector<EmpiricalFormula> loss_formulas = it->getLossFormulas();
+//            for (Size i = 0; i != loss_formulas.size(); ++i)
+//            {
+//              losses.insert(loss_formulas[i].toString());
+//            }
+//          }
+//        }
+
+
+//        if (!add_isotopes)
+//        {
+//          p.setIntensity(intensity * rel_loss_intensity);
+//        }
+
+//        for (set<String>::const_iterator it = losses.begin(); it != losses.end(); ++it)
+//        {
+//          EmpiricalFormula loss_ion = ion.getFormula(res_type, charge) - EmpiricalFormula(*it);
+//          // thanks to Chris and Sandro
+//          // check for negative element frequencies (might happen if losses are not allowed for specific ions)
+//          bool negative_elements(false);
+//          for (EmpiricalFormula::ConstIterator eit = loss_ion.begin(); eit != loss_ion.end(); ++eit)
+//          {
+//            if (eit->second < 0)
+//            {
+//              negative_elements = true;
+//              break;
+//            }
+//          }
+//          if (negative_elements)
+//          {
+//            continue;
+//          }
+//          double loss_pos = loss_ion.getMonoWeight() / (double)charge;
+//          String loss_name = *it;
+
+//          if (add_isotopes)
+//          {
+//            IsotopeDistribution dist = loss_ion.getIsotopeDistribution(max_isotope);
+//            UInt j(0);
+//            for (IsotopeDistribution::ConstIterator iso = dist.begin(); iso != dist.end(); ++iso)
+//            {
+//              p.setMZ((double)(loss_pos + j) / (double)charge);
+//              p.setIntensity(intensity * rel_loss_intensity * iso->second);
+//              if (add_metainfo && j == 0)
+//              {
+//                p.setMetaValue("IonName", ion_name + "-" + loss_name);
+//              }
+//              spectrum.push_back(p);
+//            }
+//          }
+//          else
+//          {
+//            p.setMZ(loss_pos);
+//            if (add_metainfo)
+//            {
+//              p.setMetaValue("IonName", ion_name + "-" + loss_name);
+//            }
+//            spectrum.push_back(p);
+//          }
+//        }
+//      }
+    }
+
+    if (add_metainfo)
+    {
+      p.setMetaValue("IonName", String(""));
+    }
+
+    spectrum.sortByPosition();
+
+    return;
+  }
+
 
   void TheoreticalSpectrumGenerator::addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge) const
   {

@@ -358,6 +358,7 @@ set(chemistry_executables_list
   ModificationDefinitionsSet_test
   ModificationsDB_test
   ModifierRep_test
+  NASequence_test
   PepIterator_test
   ResidueDB_test
   ResidueModification_test

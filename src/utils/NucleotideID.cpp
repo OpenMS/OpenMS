@@ -35,10 +35,11 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <iostream>
-#include <fstream>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <iostream>
+#include <fstream>
 
 using namespace std;
 using namespace OpenMS;
