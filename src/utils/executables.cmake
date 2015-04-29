@@ -28,6 +28,7 @@ MetaProSIP
 MRMPairFinder
 MSSimulator
 NucleotideID
+NucleotideIDAMSDBCreator
 OpenMSInfo
 PeakPickerIterative
 QCCalculator
