@@ -50,6 +50,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <OpenMS/ANALYSIS/ID/AScore.h>
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -795,6 +796,92 @@ private:
     }
 
     return ranks;
+  }
+
+  // Calculates spectra for peak level between min_level to max_level and stores them in the map
+  // A spectrum of peak level n retains the top n intensity peaks in a sliding mz_window centered at each peak
+  // min and max level are taken from the Andromeda publication but are similar to the AScore publication
+  static map<Size, MSSpectrum<Peak1D> > calculatePeakLevelSpectra(const MSSpectrum<Peak1D>& spec, double mz_window = 100, Size min_level = 2, Size max_level = 10)
+  {
+    map<Size, MSSpectrum<Peak1D> > peak_level_spectra;
+
+    if (spec.empty()) return peak_level_spectra;
+
+    vector<double> mz;
+    vector<double> intensities;
+    mz.reserve(spec.size());
+    intensities.reserve(spec.size());
+    
+    for (Size i = 0; i != spec.size(); ++i)
+    {
+      mz.push_back(spec[i].getMZ());
+      intensities.push_back(spec[i].getIntensity());
+    }
+
+    vector<Size> ranks = calculateIntensityRankInMZWindow(mz, intensities, mz_window);
+
+    // loop over all peaks and associated ranks
+    for (Size i = 0; i != ranks.size(); ++i)
+    {
+      // start at the highest (less restrictive) level
+      for (Size j = max_level; j >= min_level; --j)
+      {
+        // if the current peak is annotated to have lower or equal rank then allowed for this peak level add it
+        if (ranks[i] <= j)
+        {
+          peak_level_spectra[j].push_back(spec[i]);
+        }
+        else
+        {
+          // if the current peak has higher rank than the current level then all it is also to high for the lower levels
+          break;
+        }
+      }
+    }
+    return peak_level_spectra;
+  }
+
+  static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, MSSpectrum<Peak1D> >& peak_level_spectra, const MSSpectrum<RichPeak1D>& theo_spectrum, double mz_window = 100.0)
+  {
+    AScore a_score_algorithm; // TODO: make the cumulative score function static
+    // number of theoretical ions
+    Size N = theo_spectrum.size();
+
+    double best_pscore = 0.0;
+
+    for (map<Size, MSSpectrum<Peak1D> >::const_iterator l_it = peak_level_spectra.begin(); l_it != peak_level_spectra.end(); ++l_it)
+    {
+      const double level = static_cast<double>(l_it->first);
+      const MSSpectrum<Peak1D>& exp_spectrum = l_it->second;
+
+      Size matched_peaks(0);
+      for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+      {
+        const double& theo_mz = theo_peak_it->getMZ();
+
+        double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
+
+        // iterate over peaks in experimental spectrum in given fragment tolerance around theoretical peak
+        Size index = exp_spectrum.findNearest(theo_mz);
+        double exp_mz = exp_spectrum[index].getMZ();
+
+        // found peak match
+        if (std::abs(theo_mz - exp_mz) < max_dist_dalton)
+        {
+          ++matched_peaks;
+        }
+      }
+
+      // compute p score as e.g. in the AScore implementation or Andromeda
+      const double p = level / mz_window;
+      const double pscore = -10.0 * log10(a_score_algorithm.computeCumulativeScore(N, matched_peaks, p));
+      if (pscore > best_pscore)
+      {
+        best_pscore = pscore;
+      }
+    }
+
+    return best_pscore;
   }
 
 
