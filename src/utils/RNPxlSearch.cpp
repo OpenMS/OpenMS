@@ -758,6 +758,46 @@ private:
     }
   }
 
+  // calculates for each peak, how many neighboring peaks (in the given window) have higher intensity
+  // the result can be used to efficiently filter spectra for top 1..n peaks in mass windows
+  static vector<Size> calculateIntensityRankInMZWindow(const vector<double>& mz, const vector<double>& intensities, double mz_window = 100)
+  {
+    vector<Size> ranks;
+    if (mz.empty())
+    {
+      return ranks;
+    }
+    ranks.reserve(mz.size());
+
+    const double half_window = mz_window / 2.0;
+    for (Size p = 0; p < mz.size(); ++p)
+    {
+      const double m = mz[p];
+      const double i = intensities[p];
+
+      // determine rank
+      Size rank(0);
+
+      // count neighbors to the left that have higher intensity
+      for (Int j = p - 1; j >= 0; --j)
+      {
+        if (mz[j] < m - half_window) break;
+        if (intensities[j] > i) ++rank;
+      }
+
+      // count neighbors to the right that have higher intensity
+      for (Size j = p + 1; j < mz.size(); j++)
+      {
+        if (mz[j] > m + half_window) break;
+        if (intensities[j] > i) ++rank;
+      }
+                                                                                                                                                                                             ranks.push_back(rank);;
+    }
+
+    return ranks;
+  }
+
+
   void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
