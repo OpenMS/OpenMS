@@ -1272,8 +1272,9 @@ namespace OpenMS
     emit entirePipelineFinished();
   }
 
-  void TOPPASScene::pipelineErrorSlot(const QString /*msg*/)
+  void TOPPASScene::pipelineErrorSlot(const QString msg)
   {
+    logTOPPOutput(msg); // print to log window or console
     error_occured_ = true;
     setPipelineRunning(false);
     abortPipeline();
