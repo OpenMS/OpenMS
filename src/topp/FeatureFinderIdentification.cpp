@@ -56,6 +56,7 @@
 
 #include <cstdlib> // for "rand"
 #include <ctime> // for "time" (seeding of random number generator)
+#include <iterator> // for "inserter", "back_inserter"
 
 using namespace OpenMS;
 using namespace std;
@@ -261,17 +262,6 @@ protected:
   ChromatogramExtractor extractor_; // OpenSWATH chromatogram extractor
   MRMFeatureFinderScoring feat_finder_; // OpenSWATH feature finder
   ProgressLogger prog_log_;
-
-
-  // like "median", but returns the middle-right value for an even number of
-  // values (no averaging of the middle two):
-  double getMedoid_(vector<double>& sorted_values)
-  {
-    if (sorted_values.size() == 1) return sorted_values[0]; // common case
-    vector<double>::iterator start = sorted_values.begin();
-    if (sorted_values.size() % 2 == 0) ++start;
-    return Math::median(start, sorted_values.end(), true);
-  }
 
 
   // remove duplicate entries from a vector
@@ -655,7 +645,8 @@ protected:
       }
     }
 
-    // impute approximate results for failed model fits:
+    // impute approximate results for failed model fits (basically bring the
+    // OpenSWATH intensity estimates to the same scale as the model-based ones):
     TransformationModel::DataPoints quant_values;
     vector<FeatureMap::Iterator> failed_models;
     Size model_successes = 0, model_failures = 0;
@@ -843,6 +834,7 @@ protected:
         // add "dummy" peptide identification:
         PeptideIdentification id = *(rt_data.second.begin()->second);
         id.clearMetaInfo();
+        id.setMetaValue("FFId_category", "implied");
         id.setRT(feat_it->getRT());
         id.setMZ(feat_it->getMZ());
         // only one peptide hit per ID - see function "addPeptideToMap_":
@@ -948,8 +940,10 @@ protected:
         if (reg_it->charges.count(charge))
         {
           LOG_DEBUG << "Region " << counter + 1 << " (RT: "
-                    << float(reg_it->start) << "-" << float(reg_it->end) << ")"
+                    << float(reg_it->start) << "-" << float(reg_it->end)
+                    << ", size " << float(reg_it->end - reg_it->start) << ")"
                     << endl;
+
           vector<TargetedExperiment::Peptide> lib_peps(1, peptide);
           if (rt_regions.size() > 1)
           {
@@ -1654,12 +1648,16 @@ protected:
          pep_it != peptides.end(); ++pep_it)
     {
       addPeptideToMap_(*pep_it, peptide_map);
+      pep_it->setMetaValue("FFId_category", "internal");
     }
+    Size n_internal_ids = peptide_map.size();
     for (vector<PeptideIdentification>::iterator pep_it = peptides_ext.begin();
          pep_it != peptides_ext.end(); ++pep_it)
     {
       addPeptideToMap_(*pep_it, peptide_map, true);
+      pep_it->setMetaValue("FFId_category", "external");
     }
+    Size n_external_ids = peptide_map.size() - n_internal_ids;
 
     //-------------------------------------------------------------
     // run feature detection
@@ -1688,7 +1686,6 @@ protected:
     {
       removeDuplicateProteins_(library_);
       TraMLFile().store(lib_out, library_);
-      library_.clear(true);
     }
     if (keep_chromatograms_)
     {
@@ -1731,6 +1728,43 @@ protected:
     LOG_INFO << "Writing final results..." << endl;
     FeatureXMLFile().store(out, features);
 
+    //-------------------------------------------------------------
+    // statistics
+    //-------------------------------------------------------------
+
+    // same peptide sequence may be quantified based on internal and external
+    // IDs if charge states differ!
+    set<AASequence> quantified_internal, quantified_all;
+    for (FeatureMap::Iterator feat_it = features.begin();
+         feat_it != features.end(); ++feat_it)
+    {
+      const PeptideIdentification& pep_id =
+        feat_it->getPeptideIdentifications()[0];
+      const AASequence& seq = pep_id.getHits()[0].getSequence();
+      if (feat_it->getIntensity() > 0.0)
+      {
+        quantified_all.insert(seq);
+        if (pep_id.getMetaValue("FFId_category") == "internal")
+        {
+          quantified_internal.insert(seq);
+        }
+      }
+    }
+    Size n_quant_external = quantified_all.size() - quantified_internal.size();
+    LOG_INFO << "\nSummary statistics (counting distinct peptides including "
+      "PTMs):\n"
+             << peptide_map.size() << " peptides identified ("
+             << n_internal_ids << " internal, " << n_external_ids
+             << " additional external)\n"
+             << quantified_all.size() << " peptides with features ("
+             << quantified_internal.size() << " internal, "
+             << n_quant_external << " additional external)\n"
+             << peptide_map.size() - quantified_all.size()
+             << " peptides without features ("
+             << n_internal_ids - quantified_internal.size() << " internal, "
+             << n_external_ids - n_quant_external << " additional external)\n"
+             << endl;
+      
     return EXECUTION_OK;
   }
 
