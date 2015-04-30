@@ -122,20 +122,12 @@ namespace OpenMS
 
   bool EnzymesDB::hasEnzyme(const String& enzy_name) const
   {
-    if (enzyme_names_.find(enzy_name) != enzyme_names_.end())
-    {
-      return true;
-    }
-    return false;
+    return (enzyme_names_.find(enzy_name) != enzyme_names_.end());
   }
   
   bool EnzymesDB::hasEnzyme(const Enzyme* enzyme) const
   {
-    if (const_enzymes_.find(enzyme) != const_enzymes_.end() )
-    {
-      return true;
-    }
-    return false;
+    return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
   }
 
   void EnzymesDB::readEnzymesFromFile_(const String& file_name)
@@ -292,17 +284,17 @@ namespace OpenMS
     }
   }
 
-  void EnzymesDB::getAllNames(vector<String> & all_names)
+  void EnzymesDB::getAllNames(vector<String> & all_names) const
   {
     all_names.clear();
     for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
     {
       all_names.push_back((*it)->getName());
     }
-    sort(all_names.begin(),all_names.end());
+    // sort(all_names.begin(),all_names.end());
   }
 
-  void EnzymesDB::getAllXTandemNames(vector<String> & all_names)
+  void EnzymesDB::getAllXTandemNames(vector<String> & all_names) const
   {
     all_names.clear();
     for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
@@ -312,10 +304,10 @@ namespace OpenMS
         all_names.push_back((*it)->getName());
       }
     }
-    sort(all_names.begin(),all_names.end());
+    // sort(all_names.begin(),all_names.end());
   }
 
-  void EnzymesDB::getAllOMSSANames(vector<String> & all_names)
+  void EnzymesDB::getAllOMSSANames(vector<String> & all_names) const
   {
     all_names.clear();
     all_names.push_back("Trypsin");
@@ -326,6 +318,6 @@ namespace OpenMS
         all_names.push_back((*it)->getName());
       }
     }
-    sort(all_names.begin(),all_names.end());
+    // sort(all_names.begin(),all_names.end());
   }
 } // namespace OpenMS

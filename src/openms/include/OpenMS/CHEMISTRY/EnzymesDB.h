@@ -38,7 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <boost/shared_ptr.hpp>
 #include <set>
 
 namespace OpenMS
@@ -87,9 +87,11 @@ public:
     */
     //@{
     /// returns a pointer to the enzyme with name
+    /// @throw Exception::ElementNotFound if enzyme is unkown
     const Enzyme * getEnzyme(const String & name) const;
 
     /// returns a pointer to the enzyme with cleavage regex
+    /// @throw Exception::IllegalArgument if enzyme regex  is unregistered.
     const Enzyme * getEnzymeByRegEx(const String & cleavage_regex) const;
 
     /// sets the enzymes from given file
@@ -99,13 +101,13 @@ public:
     void addEnzyme(const Enzyme & enzyme);
 
     /// returns all the enzyme names
-    void getAllNames(std::vector<String> & all_names);
+    void getAllNames(std::vector<String> & all_names) const;
 
     /// returns all the enzyme names available for XTandem
-    void getAllXTandemNames(std::vector<String> & all_names);
+    void getAllXTandemNames(std::vector<String> & all_names) const;
     
     /// returns all the enzyme names available for OMSSA
-    void getAllOMSSANames(std::vector<String> & all_names);
+    void getAllOMSSANames(std::vector<String> & all_names) const;
     //@}
 
 
@@ -133,7 +135,6 @@ public:
 
     inline EnzymeConstIterator endEnzyme() const { return const_enzymes_.end(); }
     //@}
-
 protected:
     EnzymesDB();
     
