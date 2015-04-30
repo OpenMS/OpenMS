@@ -78,7 +78,7 @@ using namespace std;
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_IDMapper</td>
         </tr>
         <tr>
@@ -88,10 +88,12 @@ using namespace std;
 </CENTER>
 
   This tool currently supports iTRAQ 4-plex and 8-plex, and TMT 6-plex and 10-plex as labeling methods.
-  It extracts the isobaric reporter ion intensities from raw MS2 data, performs isotope correction and stores the resulting quantitation in a consensus map, in which each consensus feature represents one relevant MS2 scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
+  It extracts the isobaric reporter ion intensities from centroided MS2 data, performs isotope correction and stores the resulting quantitation in a consensus map, in which each consensus feature represents one relevant MS2 scan (e.g. HCD; see parameters @p select_activation and @p min_precursor_intensity).
   The position (RT, m/z) of the consensus centroid is the precursor position; the sub-elements correspond to the channels (with m/z values of 113-121 for iTRAQ and 126-131 for TMT, respectively).
   
-  @note If none of the reporter ions can be detected in an MS2 scan, a consensus feature will still be generated, but the intensities of the overall feature and of all its sub-elements will be zero.
+  @note If none of the reporter ions can be detected in an MS2 scan, a consensus feature will still be generated, but the intensities of the overall feature and of all its sub-elements will be zero. (If desired, such features can be removed by applying an intensity filter in @ref TOPP_FileFilter.)
+
+  The input MS2 spectra have to be in centroid mode for the tool to work properly. Use e.g. @ref TOPP_PeakPickerHiRes to perform centroiding of profile data, if necessary.
   
   Isotope correction is done using non-negative least squares (NNLS), i.e.:@n
   Minimize ||Ax - b||, subject to x >= 0, where b is the vector of observed reporter intensities (with "contaminating" isotope species), A is a correction matrix (as supplied by the manufacturer of the labeling kit) and x is the desired vector of corrected (real) reporter intensities.

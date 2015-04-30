@@ -89,9 +89,9 @@ using namespace std;
   If your alignment is not good enough, consider increasing this number (the alignment will take longer though).
 
   <B>The command line parameters of this tool are:</B> @n
-  @verbinclude TOPP_MapAlignerIdentification.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MapAlignerIdentification.html
+  @verbinclude TOPP_MapAlignerPoseClustering.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MapAlignerPoseClustering.html
 */
 
 // We do not want this class to show up in the docu:

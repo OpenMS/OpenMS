@@ -68,7 +68,7 @@ public:
     ///Hit type definition
     typedef PeptideHit HitType;
 
-    /// @name constructors,destructors,assignment operator
+    /// @name Constructors, destructor, operators
     //@{
     /// default constructor
     PeptideIdentification();
@@ -145,10 +145,7 @@ public:
     /// Returns if this PeptideIdentification result is empty
     bool empty() const;
 
-    ///@name Helper methods for linking peptide and protein hits
-    //@{
-
-    /// returns all peptide hits which reference to a given protein accession (aka filter by protein accession)
+    /// returns all peptide hits which reference to a given protein accession (i.e. filter by protein accession)
     static std::vector<PeptideHit> getReferencingHits(const std::vector<PeptideHit>&, const std::set<String>& accession);
 
     /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
