@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2015.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,7 @@
 /**
 	@page TOPPView_introduction Introduction
 
-	  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzML, mzData, mzXML, ANDI/MS
+	  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzML, mzData, mzXML
 	  and several other text-based file formats.
 
 	 	In each view, several datasets can be displayed using the layer concept. This allows visual comparison
@@ -366,7 +366,7 @@
 			<TR> <TD>CTRL</TD> <TD>Activate zoom mode</TD> </TR>
 			<TR> <TD>SHIFT</TD> <TD>Activate measurement mode</TD> </TR>
 			<TR> <TD>Arrow keys</TD> <TD>Translate currently shown data</TD> </TR>
-			<TR> <TD>CTRL+,CTRL-</TD> <TD>Move up and down in zoom history</TD> </TR>
+			<TR> <TD>CTRL+'+',CTRL+'-'</TD> <TD>Move up and down in zoom history</TD> </TR>
 			<TR> <TD>mouse wheel</TD> <TD>Move up and down in zoom history</TD> </TR>
 			<TR> <TD>CTRL+G</TD> <TD>Goto dialog</TD> </TR>
 			<TR> <TD>Backspace</TD> <TD>Reset zoom</TD> </TR>
@@ -381,6 +381,10 @@
 			<TR> <TD>S</TD> <TD>Intensity mode: Snap-to-maximum</TD> </TR>
 			<TR> <TD>I</TD> <TD>1D draw mode: peaks</TD> </TR>
 			<TR> <TD>R</TD> <TD>1D draw mode: raw data</TD> </TR>
+      <TR> <TD>CTRL+ALT+Home</TD> <TD>2D draw mode: increase minimum canvas coverage threshold (for raw peak scaling). 'Home' on MacOSX keyboards is also 'Fn+ArrowLeft'</TD> </TR>
+      <TR> <TD>CTRL+ALT+End</TD> <TD>2D draw mode: decrease minimum canvas coverage threshold (for raw peak scaling). 'End' on MacOSX keyboards is also 'Fn+ArrowRight'</TD> </TR>
+      <TR> <TD>CTRL+ALT+'+'</TD> <TD>2D draw mode: increase maximum point size (for raw peak scaling)</TD> </TR>
+      <TR> <TD>CTRL+ALT+'-'</TD> <TD>2D draw mode: decrease maximum point size (for raw peak scaling)</TD> </TR>
 
 			<TR> <TD colspan=2><B>Annotations in 1D view</B></TD> </TR>
 			<TR> <TD>CTRL+A</TD> <TD>Select all annotations of the current layer</TD> </TR>

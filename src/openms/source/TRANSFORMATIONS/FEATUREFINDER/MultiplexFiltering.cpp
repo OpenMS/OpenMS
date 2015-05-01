@@ -60,8 +60,8 @@ using namespace boost::math;
 namespace OpenMS
 {
 
-  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String out_debug) :
-    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling), out_debug_(out_debug), debug_(out_debug.trim().length() > 0)
+  MultiplexFiltering::MultiplexFiltering(const MSExperiment<Peak1D>& exp_picked, const std::vector<MultiplexPeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling) :
+    exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), averagine_similarity_scaling_(averagine_similarity_scaling)
   {
   }
 
@@ -327,65 +327,6 @@ namespace OpenMS
 
       }
     }
-  }
-
-  void MultiplexFiltering::writeDebug(int pattern, bool rejected, vector<Peak2D> points) const
-  {
-    MSExperiment<Peak1D> exp_debug;
-    MSSpectrum<Peak1D> spec_debug;
-
-    double rt = std::numeric_limits<double>::quiet_NaN();
-    int spec_id = 0;
-    for (vector<Peak2D>::const_iterator it = points.begin(); it != points.end(); ++it)
-    {
-      if ((boost::math::isnan)(rt) || (*it).getRT() > rt)
-      {
-        if (!(boost::math::isnan)(rt))
-        {
-          exp_debug.addSpectrum(spec_debug);
-          ++spec_id;
-        }
-
-        rt = (*it).getRT();
-        spec_debug.clear(true);
-        spec_debug.setRT(rt);
-        spec_debug.setMSLevel(1);
-        spec_debug.setNativeID(String("spectrum = ") + spec_id);
-      }
-
-      Peak1D peak;
-      peak.setMZ((*it).getMZ());
-      peak.setIntensity((*it).getIntensity());
-      spec_debug.push_back(peak);
-
-    }
-
-    MzMLFile fileSpline;
-    String file_name;
-    if (rejected)
-    {
-      file_name = "debug_rejected_";
-    }
-    else
-    {
-      file_name = "debug_passed_";
-    }
-    QDir dir(out_debug_.toQString());
-    if (!dir.cdUp())
-    {
-      std::stringstream stream;
-      stream << "Could not navigate to directory for debug output '" << String(dir.dirName()) << "'.";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
-    }
-    if (!dir.exists() && !dir.mkpath("."))
-    {
-      std::stringstream stream;
-      stream << "Could not create directory for debug output '" << String(dir.dirName()) << "'.";
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream.str());
-    }
-    file_name = out_debug_ + "/" + file_name + pattern + ".mzML"; // Correct way of writing to absolute path?
-    fileSpline.store(file_name, exp_debug);
-
   }
 
   int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling) const

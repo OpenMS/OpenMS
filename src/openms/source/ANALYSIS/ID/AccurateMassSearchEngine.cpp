@@ -55,53 +55,74 @@
 namespace OpenMS
 {
 
-  AccurateMassSearchEngine::AdductInfo_::AdductInfo_(const String& name, const EmpiricalFormula& adduct, int charge, bool is_intrinsic, uint mol_multiplier)
+  AdductInfo::AdductInfo(const String& name, const EmpiricalFormula& adduct, int charge, uint mol_multiplier)
     : 
     name_(name),
     ef_(adduct),
     charge_(charge),
-    is_intrinsic_(is_intrinsic), // true if compound just has a charge, but no actual adducts, e.g. 'M:2+'
     mol_multiplier_(mol_multiplier) 
   {
-    if (charge_ == 0) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Charge of 0 is not allowed for an adduct (" + ef_.toString() + ")");
+    if (charge_ == 0)
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Charge of 0 is not allowed for an adduct (" + ef_.toString() + ")");
+    }
+    if (adduct.getCharge() != 0)
+    { // EF will add Proton weights for positive charges, and do nothing for negative ones ...
+      // we just use the uncharged formula and take care of electrons ourselves
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "EmpiricalFormula must not have a charge (" + ef_.toString() + "), since the internal weight computation of EF is currently unreliable.");
+    }
     mass_ = ef_.getMonoWeight();
   }
 
-  double AccurateMassSearchEngine::AdductInfo_::getNeutralMass(double observed_mz) const
+  double AdductInfo::getNeutralMass(double observed_mz) const
   {
-    // decharge and remove adduct
+    // decharge and remove adduct (charge is guaranteed != 0; see C'tor)
     double mass = observed_mz * abs(charge_) - mass_;
 
-    if (!is_intrinsic_)
-    { // correct for electron masses
-      double electrons_mass_diff(charge_ * Constants::ELECTRON_MASS_U);
-      mass += electrons_mass_diff;
-    }
+    // correct for electron masses
+    // (positive charge means there are electrons missing!)
+    // (negative charge requires increasing the mass by X electrons)
+    // --> looking at observed m/z, we thus need to decharge to get equal protons and electrons
+    mass += charge_ * 1 * Constants::ELECTRON_MASS_U;
+
     // the Mol multiplier determines if we assume to be looking at dimers or higher
-    // Currently, we just want to monomer, to compare its mass to a DB entry
+    // Currently, we just want the monomer, to compare its mass to a DB entry
     mass /= mol_multiplier_;
 
     return mass;
   }
 
-  /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e.a if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
+  double AdductInfo::getMZ(double neutral_mass) const
+  {
+    // this is the inverse of getNeutralMass()
+    double neutral_nmer_mass_with_adduct = (neutral_mass * mol_multiplier_ + mass_);  // [nM+adduct]
+
+    // correct for electron masses
+    // (positive charge means there are electrons missing!)
+    // (negative charge requires increasing the mass by X electrons)
+    neutral_nmer_mass_with_adduct += charge_ * -1 * Constants::ELECTRON_MASS_U;
+
+    return neutral_nmer_mass_with_adduct / abs(charge_);
+  }
+
+  /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e. if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
   /// If the negative parts are present in @p db_entry, true is returned.
-  bool AccurateMassSearchEngine::AdductInfo_::isCompatible(EmpiricalFormula db_entry) const
+  bool AdductInfo::isCompatible(EmpiricalFormula db_entry) const
   {
     return db_entry.contains(ef_ * -1);
   }
 
-  int AccurateMassSearchEngine::AdductInfo_::getCharge() const
+  int AdductInfo::getCharge() const
   {
     return charge_;
   }
     
-  const String& AccurateMassSearchEngine::AdductInfo_::getName() const
+  const String& AdductInfo::getName() const
   {
     return name_;
   }
 
-  AccurateMassSearchEngine::AdductInfo_ AccurateMassSearchEngine::AdductInfo_::parseAdductString(const String& adduct)
+  AdductInfo AdductInfo::parseAdductString(const String& adduct)
   {
     // adduct string looks like this:
     // M+2K-H;1+   or
@@ -116,14 +137,9 @@ namespace OpenMS
     cp_str.split(";", list);
     // split term into formula and charge, e.g. "M-H" and "1-"
     String mol_formula, charge_str;
-    bool intrinsic(false);
     if (list.size() == 2)
     {
       mol_formula = list[0];
-      if (mol_formula == "M")
-      {
-        intrinsic = true;
-      }
       charge_str = list[1];
     }
     else
@@ -194,7 +210,7 @@ namespace OpenMS
     // evaluate the adduct string ...
     // ... add/subtract each adduct compound
     bool op_plus(false);
-    EmpiricalFormula ef;
+    EmpiricalFormula ef; // will remain empty if there are no explicit adducts (e.g. 'M;+1')
     for (Size part_idx = 1 /* omit 0 index, since its 'M' */; part_idx < list.size(); ++part_idx)
     {
       if (list[part_idx] == "+")
@@ -235,43 +251,43 @@ namespace OpenMS
       }
     }
 
-    return AdductInfo_(cp_str, ef, charge, intrinsic, mol_multiplier);
+    return AdductInfo(cp_str, ef, charge, mol_multiplier);
   }
-
 
   /// default constructor
   AccurateMassSearchResult::AccurateMassSearchResult() :
-    adduct_mass_(),
-    query_mass_(),
-    found_mass_(),
-    charge_(),
-    error_ppm_(),
-    observed_rt_(),
-    observed_intensity_(),
-    individual_intensities_(),
-    matching_index_(),
-    source_feature_index_(),
-    found_adduct_(),
-    empirical_formula_(),
-    matching_hmdb_ids_(),
-    isotopes_sim_score_(-1.0)
+  observed_mz_(),
+  theoretical_mz_(),
+  searched_mass_(),
+  db_mass_(),
+  charge_(),
+  mz_error_ppm_(),
+  observed_rt_(),
+  observed_intensity_(),
+  individual_intensities_(),
+  matching_index_(),
+  source_feature_index_(),
+  found_adduct_(),
+  empirical_formula_(),
+  matching_hmdb_ids_(),
+  mass_trace_intensities_(),
+  isotopes_sim_score_(-1.0)
   {
-
   }
 
   /// default destructor
   AccurateMassSearchResult::~AccurateMassSearchResult()
   {
-
   }
 
   /// copy constructor
   AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) :
-    adduct_mass_(source.adduct_mass_),
-    query_mass_(source.query_mass_),
-    found_mass_(source.found_mass_),
+    observed_mz_(source.observed_mz_),
+    theoretical_mz_(source.theoretical_mz_),
+    searched_mass_(source.searched_mass_),
+    db_mass_(source.db_mass_),
     charge_(source.charge_),
-    error_ppm_(source.error_ppm_),
+    mz_error_ppm_(source.mz_error_ppm_),
     observed_rt_(source.observed_rt_),
     observed_intensity_(source.observed_intensity_),
     individual_intensities_(source.individual_intensities_),
@@ -280,9 +296,9 @@ namespace OpenMS
     found_adduct_(source.found_adduct_),
     empirical_formula_(source.empirical_formula_),
     matching_hmdb_ids_(source.matching_hmdb_ids_),
+    mass_trace_intensities_(source.mass_trace_intensities_),
     isotopes_sim_score_(source.isotopes_sim_score_)
   {
-
   }
 
   /// assignment operator
@@ -290,11 +306,12 @@ namespace OpenMS
   {
     if (this == &rhs) return *this;
 
-    adduct_mass_ = rhs.adduct_mass_;
-    query_mass_ = rhs.query_mass_;
-    found_mass_ = rhs.found_mass_;
+    observed_mz_ = rhs.observed_mz_;
+    theoretical_mz_ = rhs.theoretical_mz_;
+    searched_mass_ = rhs.searched_mass_;
+    db_mass_ = rhs.db_mass_;
     charge_ = rhs.charge_;
-    error_ppm_ = rhs.error_ppm_;
+    mz_error_ppm_ = rhs.mz_error_ppm_;
     observed_rt_ = rhs.observed_rt_;
     observed_intensity_ = rhs.observed_intensity_;
     individual_intensities_ = rhs.individual_intensities_;
@@ -303,39 +320,50 @@ namespace OpenMS
     found_adduct_ = rhs.found_adduct_;
     empirical_formula_ = rhs.empirical_formula_;
     matching_hmdb_ids_ = rhs.matching_hmdb_ids_;
+    mass_trace_intensities_ = rhs.mass_trace_intensities_;
     isotopes_sim_score_ = rhs.isotopes_sim_score_;
 
     return *this;
   }
 
-  double AccurateMassSearchResult::getAdductMass() const
+  double AccurateMassSearchResult::getObservedMZ() const
   {
-    return adduct_mass_;
+    return observed_mz_;
   }
 
-  void AccurateMassSearchResult::setAdductMass(const double& m)
+  void AccurateMassSearchResult::setObservedMZ(const double& m)
   {
-    adduct_mass_ = m;
+    observed_mz_ = m;
+  }
+
+  double AccurateMassSearchResult::getCalculatedMZ() const
+  {
+    return theoretical_mz_;
+  }
+
+  void AccurateMassSearchResult::setCalculatedMZ(const double& m)
+  {
+    theoretical_mz_ = m;
   }
 
   double AccurateMassSearchResult::getQueryMass() const
   {
-    return query_mass_;
+    return searched_mass_;
   }
 
   void AccurateMassSearchResult::setQueryMass(const double& m)
   {
-    query_mass_ = m;
+    searched_mass_ = m;
   }
 
   double AccurateMassSearchResult::getFoundMass() const
   {
-    return found_mass_;
+    return db_mass_;
   }
 
   void AccurateMassSearchResult::setFoundMass(const double& m)
   {
-    found_mass_ = m;
+    db_mass_ = m;
   }
 
   Int AccurateMassSearchResult::getCharge() const
@@ -348,14 +376,14 @@ namespace OpenMS
     charge_ = ch;
   }
 
-  double AccurateMassSearchResult::getErrorPPM() const
+  double AccurateMassSearchResult::getMZErrorPPM() const
   {
-    return error_ppm_;
+    return mz_error_ppm_;
   }
 
-  void AccurateMassSearchResult::setErrorPPM(const double& ppm)
+  void AccurateMassSearchResult::setMZErrorPPM(const double ppm)
   {
-    error_ppm_ = ppm;
+    mz_error_ppm_ = ppm;
   }
 
   double AccurateMassSearchResult::getObservedRT() const
@@ -438,6 +466,16 @@ namespace OpenMS
     matching_hmdb_ids_ = match_ids;
   }
 
+  const std::vector<double>& AccurateMassSearchResult::getMasstraceIntensities() const
+  {
+    return mass_trace_intensities_;  
+  }
+
+  void AccurateMassSearchResult::setMasstraceIntensities(const std::vector<double>& mti)
+  {
+    mass_trace_intensities_ = mti;
+  }
+
   double AccurateMassSearchResult::getIsotopesSimScore() const
   {
     return isotopes_sim_score_;
@@ -448,30 +486,31 @@ namespace OpenMS
     isotopes_sim_score_ = sim_score;
   }
 
-  void AccurateMassSearchResult::outputResults() const
+  std::ostream& operator<<(std::ostream& os, const AccurateMassSearchResult& amsr)
   {
-    std::cout << "adduct_mass: " << std::setprecision(8) << adduct_mass_ << "\n";
-    std::cout << "query_mass: " << query_mass_ << "\n";
-    std::cout << "found_mass: " << found_mass_ << "\n";
-    std::cout << "charge: " << charge_ << "\n";
-    std::cout << "error ppm: " << error_ppm_ << "\n";
-    std::cout << "observed rt: " << observed_rt_ << "\n";
-    std::cout << "observed intensity: " << observed_intensity_ << "\n";
-
-
-    std::cout << "matching idx: " << matching_index_ << "\n";
-
-    std::cout << "found_adduct_: " << found_adduct_ << "\n";
-    std::cout << "emp. formula: " << empirical_formula_ << "\n";
-    std::cout << "matching HMDB ids:";
-
-    for (Size i = 0; i < matching_hmdb_ids_.size(); ++i)
+    // set maximum precision
+    std::streamsize old_precision = os.precision(std::numeric_limits<double>::digits10 + 2);
+    os << "observed RT: " << amsr.observed_rt_ << "\n";
+    os << "observed intensity: " << amsr.observed_intensity_ << "\n";
+    os << "observed m/z: " <<  amsr.observed_mz_ << "\n";
+    os << "m/z error ppm: " << amsr.mz_error_ppm_ << "\n";
+    os << "charge: " << amsr.charge_ << "\n";
+    os << "query mass (searched): " << amsr.searched_mass_ << "\n";
+    os << "theoretical (neutral) mass: " << amsr.db_mass_ << "\n";
+    os << "matching idx: " << amsr.matching_index_ << "\n";
+    os << "emp. formula: " << amsr.empirical_formula_ << "\n";
+    os << "adduct: " << amsr.found_adduct_ << "\n";
+    os << "matching HMDB ids:";
+    for (Size i = 0; i < amsr.matching_hmdb_ids_.size(); ++i)
     {
-      std::cout << " " << matching_hmdb_ids_[i];
+      os << " " << amsr.matching_hmdb_ids_[i];
     }
-
-    std::cout << "\n";
-    std::cout << "isocheck sim score: " << isotopes_sim_score_ << std::endl; // ensure endl used at the end (but not before! performance!)
+    os << "\n";
+    os << "isotope similarity score: " << amsr.isotopes_sim_score_ << "\n";
+    
+    // restore precision
+    os.precision(old_precision);
+    return os;
   }
 
   AccurateMassSearchEngine::AccurateMassSearchEngine() :
@@ -490,9 +529,6 @@ namespace OpenMS
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
     defaults_.setValidStrings("isotopic_similarity", ListUtils::create<String>(("false,true")));
 
-    defaults_.setValue("report_mode", "all", "Results are reported in one of several modes: Either (all) matching hits, the (top3) scoring hits, or the (best) scoring hit.");
-    defaults_.setValidStrings("report_mode", ListUtils::create<String>(("all,top3,best")));
-
     defaults_.setValue("db:mapping", "CHEMISTRY/HMDBMappingFile.tsv", "Database input file, containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
                                                                       "By default CHEMISTRY/HMDBMappingFile.tsv in OpenMS/share is used! If empty, the default will be used.");
@@ -505,11 +541,14 @@ namespace OpenMS
     defaults_.setValue("negative_adducts_file", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
                                                                                  "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("keep_unidentified_masses", "false", "Keep features that did not yield any DB hit.");
+    defaults_.setValidStrings("keep_unidentified_masses", ListUtils::create<String>(("false,true")));
+
+    defaults_.setValue("mzTab:exportIsotopeIntensities", 0, "[featureXML input only] Number of extra columns in mzTab output, which provide intensities up to the x'th isotope. '0' to deactivate, '1' for monoisotopic peak, etc. If a feature does not have a certain isotope, 'null' will be reported.");
+    defaults_.setMinInt("mzTab:exportIsotopeIntensities", 0);
 
 
     defaultsToParam_();
-
-    this->setLogType(CMD);
   }
 
   AccurateMassSearchEngine::~AccurateMassSearchEngine()
@@ -518,7 +557,7 @@ namespace OpenMS
 
 /// public methods
 
-  void AccurateMassSearchEngine::queryByMass(const double& observed_mass, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
+  void AccurateMassSearchEngine::queryByMZ(const double& observed_mz, const Int& observed_charge, const String& ion_mode, std::vector<AccurateMassSearchResult>& results) const
   {
     if (!is_initialized_)
     {
@@ -526,7 +565,7 @@ namespace OpenMS
     }
 
     // Depending on ion_mode_internal_, either positive or negative adducts are used
-    std::vector<AdductInfo_>::const_iterator it_s, it_e;
+    std::vector<AdductInfo>::const_iterator it_s, it_e;
     if (ion_mode == "positive")
     {
       it_s = pos_adducts_.begin();
@@ -542,19 +581,41 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Ion mode cannot be set to '") + ion_mode + "'. Must be 'positive' or 'negative'!");
     }
 
-
-    for (std::vector<AdductInfo_>::const_iterator it = it_s; it != it_e; ++it)
+    std::pair<Size, Size> hit_idx;
+    for (std::vector<AdductInfo>::const_iterator it = it_s; it != it_e; ++it)
     {
       if (observed_charge != 0 && (std::abs(observed_charge) != std::abs(it->getCharge())))
-      { // charge must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
+      { // charge of evidence and adduct must match in absolute terms (absolute, since any FeatureFinder gives only positive charges, even for negative-mode spectra)
         // observed_charge==0 will pass, since we basically do not know its real charge (apparently, no isotopes were found)
         continue;
       }
 
       // get potential hits as indices in masskey_table
-      double neutral_mass = it->getNeutralMass(observed_mass);
-      std::pair<Size, Size> hit_idx;
-      searchMass_(neutral_mass, hit_idx);
+      double neutral_mass = it->getNeutralMass(observed_mz); // calculate mass of uncharged small molecule without adduct mass
+
+      // Our database is just a set of neutral masses (i.e., without adducts)
+      // However, given is either an absolute m/z tolerance or a ppm tolerance for the observed m/z
+      // We now need an upper bound on the absolute allowed mass difference, given the above tolerance in m/z.
+      // The selected candidates then have an mass tolerance which corresponds to the user's m/z tolerance.
+      // (the other approach is to precompute m/z values for all combinations of adducts, charges and DB entries -- too much)
+      double diff_mz;
+      // check if mass error window is given in ppm or Da
+      if (mass_error_unit_ == "ppm")
+      {
+        // convert ppm to absolute m/z tolerance for the current candidate
+        diff_mz = (observed_mz / 1e6) * mass_error_value_;
+      }
+      else
+      {
+        diff_mz = mass_error_value_;
+      }
+      // convert absolute m/z diff to absolute mass diff
+      // What about the adduct?
+      // absolute mass error: the adduct itself is irrelevant here since its a constant for both the theoretical and observed mass
+      //       ppm tolerance: the diff_mz accounts for it already (heavy adducts lead to larger m/z tolerance)
+      double diff_mass = diff_mz * std::abs(it->getCharge()); // do not use observed charge (could be 0=unknown)
+
+      searchMass_(neutral_mass, diff_mass, hit_idx);
 
       //std::cerr << ion_mode_internal_ << " adduct: " << adduct_name << ", " << adduct_mass << " Da, " << query_mass << " qm(against DB), " << charge << " q\n";
 
@@ -569,15 +630,18 @@ namespace OpenMS
           continue;
         }
 
-        double found_mass(mass_mappings_[i].mass);
-        double found_error_ppm(((neutral_mass - found_mass) / neutral_mass) * 1e6);
+        // compute ppm errors
+        double db_mass = mass_mappings_[i].mass;
+        double theoretical_mz = it->getMZ(db_mass);
+        double error_ppm_mz = (theoretical_mz - observed_mz) / theoretical_mz * 1e6; // negative values are allowed!
 
         AccurateMassSearchResult ams_result;
-        ams_result.setAdductMass(observed_mass);
+        ams_result.setObservedMZ(observed_mz);
+        ams_result.setCalculatedMZ(theoretical_mz);
         ams_result.setQueryMass(neutral_mass);
-        ams_result.setFoundMass(found_mass);
-        ams_result.setCharge(observed_charge);
-        ams_result.setErrorPPM(found_error_ppm);
+        ams_result.setFoundMass(db_mass);
+        ams_result.setCharge(std::abs(it->getCharge())); // use theoretical adducts charge (is always valid); native charge might be zero
+        ams_result.setMZErrorPPM(error_ppm_mz);
         ams_result.setMatchingIndex(i);
         ams_result.setFoundAdduct(it->getName());
         ams_result.setEmpiricalFormula(mass_mappings_[i].formula);
@@ -591,22 +655,22 @@ namespace OpenMS
 
     }
 
-    // if result is empty, add a 'not-found' indicator
-    if (results.empty())
+    // if result is empty, add a 'not-found' indicator if empty hits should be stored
+    if (results.empty() && keep_unidentified_masses_)
     {
       AccurateMassSearchResult ams_result;
-      ams_result.setAdductMass(observed_mass);
+      ams_result.setObservedMZ(observed_mz);
+      ams_result.setCalculatedMZ(std::numeric_limits<double>::quiet_NaN());
       ams_result.setQueryMass(std::numeric_limits<double>::quiet_NaN());
       ams_result.setFoundMass(std::numeric_limits<double>::quiet_NaN());
-      ams_result.setCharge(0); // cannot be NaN since Int, and -1 would be confusing too...
-      ams_result.setErrorPPM(std::numeric_limits<double>::quiet_NaN());
+      ams_result.setCharge(observed_charge);
+      ams_result.setMZErrorPPM(std::numeric_limits<double>::quiet_NaN());
       ams_result.setMatchingIndex(-1); // this is checked to identify 'not-found'
-      ams_result.setFoundAdduct("-");
-      ams_result.setEmpiricalFormula("");
-      ams_result.setMatchingHMDBids(std::vector<String>(1, "--dummy--"));
+      ams_result.setFoundAdduct("null");
+      ams_result.setEmpiricalFormula("null");
+      ams_result.setMatchingHMDBids(std::vector<String>(1, "null"));
       results.push_back(ams_result);
     }
-
 
     return;
   }
@@ -620,13 +684,29 @@ namespace OpenMS
 
     std::vector<AccurateMassSearchResult> results_part;
 
-    queryByMass(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
+    queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part);
+
+    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
 
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
       results_part[hit_idx].setObservedRT(feature.getRT());
       results_part[hit_idx].setSourceFeatureIndex(feature_index);
       results_part[hit_idx].setObservedIntensity(feature.getIntensity());
+      
+      std::vector<double> mti;
+      if (isotope_export > 0)
+      {
+        for (Size i = 0; i < isotope_export; ++i)
+        {
+          if (feature.metaValueExists("masstrace_intensity_" + String(i)))
+          {
+            mti.push_back( feature.getMetaValue("masstrace_intensity_" + String(i)));
+          }
+        }
+        results_part[hit_idx].setMasstraceIntensities(mti);
+      }
+      
       // append
       results.push_back(results_part[hit_idx]);
     }
@@ -641,7 +721,7 @@ namespace OpenMS
 
     std::vector<AccurateMassSearchResult> results_part;
 
-    queryByMass(cfeat.getMZ(), cfeat.getCharge(), ion_mode, results_part);
+    queryByMZ(cfeat.getMZ(), cfeat.getCharge(), ion_mode, results_part);
 
     ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures());
 
@@ -793,11 +873,11 @@ namespace OpenMS
         }
         names.push_back(entry->second[0]);
       }
+      hit.setCharge(it_row->getCharge());
       hit.setMetaValue("description", names);
-      hit.setMetaValue("charge", it_row->getCharge());
       hit.setMetaValue("modifications", it_row->getFoundAdduct());
       hit.setMetaValue("chemical_formula", it_row->getFormulaString());
-      hit.setMetaValue("ppm_error", it_row->getErrorPPM());
+      hit.setMetaValue("ppm_mz_error", it_row->getMZErrorPPM());
       f.getPeptideIdentifications().back().insertHit(hit);
     }
   }
@@ -892,6 +972,8 @@ namespace OpenMS
     std::map<String, UInt> adduct_stats; // adduct --> # occurences
     std::map<String, std::set<Size> > adduct_stats_unique; // adduct --> # occurences (count each feature only once)
 
+    Size isotope_export = (Size)param_.getValue("mzTab:exportIsotopeIntensities");
+
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
       // std::cout << tab_it->first << std::endl;
@@ -910,88 +992,81 @@ namespace OpenMS
 
           // set the identifier field
           String hid_temp = matching_ids[id_idx];
-          MzTabString hmdb_id;
-          hmdb_id.set(hid_temp);
-          std::vector<MzTabString> hmdb_id_dummy;
-          hmdb_id_dummy.push_back(hmdb_id);
-          MzTabStringList string_dummy_list;
-          string_dummy_list.set(hmdb_id_dummy);
 
-          mztab_row_record.identifier = string_dummy_list;
+          bool db_hit = (hid_temp != "null");
 
-          // set the chemical formula field
-          MzTabString chem_form;
-          String form_temp = (*tab_it)[hit_idx].getFormulaString();
-          chem_form.set(form_temp);
+          if (db_hit)
+          {
+            MzTabString hmdb_id;
+            hmdb_id.set(hid_temp);
+            std::vector<MzTabString> hmdb_id_dummy;
+            hmdb_id_dummy.push_back(hmdb_id);
+            MzTabStringList string_dummy_list;
+            string_dummy_list.set(hmdb_id_dummy);
+            mztab_row_record.identifier = string_dummy_list;
 
-          mztab_row_record.chemical_formula = chem_form;
+            // set the chemical formula field
+            MzTabString chem_form;
+            String form_temp = (*tab_it)[hit_idx].getFormulaString();
+            chem_form.set(form_temp);
 
-          HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(hid_temp);
+            mztab_row_record.chemical_formula = chem_form;
 
-          // set the smiles field
-          String smi_temp = entry->second[1]; // extract SMILES from struct mapping file
-          MzTabString smi_string;
-          smi_string.set(smi_temp);
+            HMDBPropsMapping::const_iterator entry = hmdb_properties_mapping_.find(hid_temp);
 
-          mztab_row_record.smiles = smi_string;
+            // set the smiles field
+            String smi_temp = entry->second[1]; // extract SMILES from struct mapping file
+            MzTabString smi_string;
+            smi_string.set(smi_temp);
 
-          // set the inchi_key field
-          String inchi_temp = entry->second[2]; // extract INCHIKEY from struct mapping file
-          MzTabString inchi_key;
-          inchi_key.set(inchi_temp);
+            mztab_row_record.smiles = smi_string;
 
-          mztab_row_record.inchi_key = inchi_key;
+            // set the inchi_key field
+            String inchi_temp = entry->second[2]; // extract INCHIKEY from struct mapping file
+            MzTabString inchi_key;
+            inchi_key.set(inchi_temp);
 
-          // set description field (we use it for the common name of the compound)
-          String name_temp = entry->second[0];
-          MzTabString common_name;
-          common_name.set(name_temp);
+            mztab_row_record.inchi_key = inchi_key;
 
-          mztab_row_record.description = common_name;
+            // set description field (we use it for the common name of the compound)
+            MzTabString common_name;
+            common_name.set(entry->second[0]);
+            mztab_row_record.description = common_name;
 
+            // set the calc_mass_to_charge field (theoretical mass)
+            MzTabDouble mass_to_charge;
+            mass_to_charge.set((*tab_it)[hit_idx].getCalculatedMZ());
+            mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
-          // set mass_to_charge field
-          double mz_temp = (*tab_it)[hit_idx].getAdductMass();
-          MzTabDouble mass_to_charge;
-          mass_to_charge.set(mz_temp);
+            // set charge field
+            MzTabDouble mcharge;
+            mcharge.set((*tab_it)[hit_idx].getCharge());
+            mztab_row_record.charge = mcharge;
+          }
 
-          mztab_row_record.calc_mass_to_charge = mass_to_charge;
-
-          double exp_mz_tmp = (*tab_it)[hit_idx].getQueryMass();
-          MzTabDouble exp_mass_to_charge;
-          exp_mass_to_charge.set(exp_mz_tmp);
-
-          // set charge field
-          Int ch_temp = (*tab_it)[hit_idx].getCharge();
-          MzTabDouble mcharge;
-          mcharge.set(ch_temp);
-
-          mztab_row_record.charge = mcharge;
-
-
+          // experimental RT, m/z, database field and version, search engine and (null) score is also set if no db entry was matched
           // set RT field
           MzTabDouble rt_temp;
           rt_temp.set((*tab_it)[hit_idx].getObservedRT());
           std::vector<MzTabDouble> rt_temp3(1, rt_temp);
           MzTabDoubleList observed_rt;
           observed_rt.set(rt_temp3);
-
           mztab_row_record.retention_time = observed_rt;
 
+          MzTabDouble exp_mass_to_charge;
+          exp_mass_to_charge.set((*tab_it)[hit_idx].getObservedMZ());
+          mztab_row_record.exp_mass_to_charge = exp_mass_to_charge;
 
           // set database field
           String dbname_temp = database_name_;
           MzTabString dbname;
           dbname.set(dbname_temp);
-
           mztab_row_record.database = dbname;
-
 
           // set database_version field
           String dbver_temp = database_version_;
           MzTabString dbversion;
           dbversion.set(dbver_temp);
-
           mztab_row_record.database_version = dbversion;
 
           MzTabParameterList search_engines;
@@ -1002,13 +1077,11 @@ namespace OpenMS
           mztab_row_record.best_search_engine_score[1] = null_score; // set null
           mztab_row_record.search_engine_score_ms_run[1][1] = null_score; // set null
 
-
           // check if we deal with a feature or consensus feature
           std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
           std::vector<MzTabDouble> int_temp3;
 
           bool single_intensity = (indiv_ints.size() == 0);
-
           if (single_intensity)
           {
             double int_temp((*tab_it)[hit_idx].getObservedIntensity());
@@ -1081,45 +1154,86 @@ namespace OpenMS
 
           // ppm error
           MzTabString ppmerr;
-          ppmerr.set(String((*tab_it)[hit_idx].getErrorPPM()));
+          if (db_hit)
+          {
+            ppmerr.set(String((*tab_it)[hit_idx].getMZErrorPPM()));
+          }
           MzTabOptionalColumnEntry col0;
-          col0.first = "opt_global_ppm_error";
+          col0.first = "opt_global_mz_ppm_error";
           col0.second = ppmerr;
           optionals.push_back(col0);
 
-          // set found adduct ion
-          String addion_temp((*tab_it)[hit_idx].getFoundAdduct());
+          // set found adduct ion          
           MzTabString addion;
-          addion.set(addion_temp);
+          if (db_hit)
+          {
+            String addion_temp((*tab_it)[hit_idx].getFoundAdduct());
+            addion.set(addion_temp);
+            ++adduct_stats[addion_temp]; // just some stats
+            adduct_stats_unique[addion_temp].insert(id_group); // stats ...
+          }
           MzTabOptionalColumnEntry col1;
           col1.first = "opt_global_adduct_ion";
           col1.second = addion;
           optionals.push_back(col1);
-          ++adduct_stats[addion_temp]; // just some stats
-
 
           // set isotope similarity score
-          double sim_score_temp((*tab_it)[hit_idx].getIsotopesSimScore());
-          std::stringstream read_in;
-          read_in << sim_score_temp;
-          String sim_score_temp2(read_in.str());
           MzTabString sim_score;
-          sim_score.set(sim_score_temp2);
+          if (db_hit)
+          {
+            double sim_score_temp((*tab_it)[hit_idx].getIsotopesSimScore());
+            std::stringstream read_in;
+            read_in << sim_score_temp;
+            String sim_score_temp2(read_in.str());
+            sim_score.set(sim_score_temp2);
+          }
+
           MzTabOptionalColumnEntry col2;
           col2.first = "opt_global_isosim_score";
           col2.second = sim_score;
           optionals.push_back(col2);
 
+          // mass trace intensities (use NULL if not present)
+          if (isotope_export > 0)
+          {
+            for (Size int_idx = 0; int_idx < isotope_export; ++int_idx)
+            {
+              MzTabString trace_int; // implicitly NULL
 
-          // set id group; rows with the same id group number originated from the same feature
-          adduct_stats_unique[addion_temp].insert(id_group); // stats ...
+              if ((*tab_it)[hit_idx].getMasstraceIntensities().size() > int_idx)
+              {
+                double mt_int = (double)(*tab_it)[hit_idx].getMasstraceIntensities()[int_idx];
+                trace_int.set(mt_int);
+              }
+
+              MzTabOptionalColumnEntry col_mt;
+              col_mt.first = String("opt_global_MTint_") + int_idx;
+              col_mt.second = trace_int;
+              optionals.push_back(col_mt);
+            }    
+          }
+
+          // set neutral mass
+          MzTabString neutral_mass_string;
+          if (db_hit)
+          {
+            String neutral_mass((*tab_it)[hit_idx].getQueryMass());
+            neutral_mass_string.fromCellString(neutral_mass);
+          }
+
+          MzTabOptionalColumnEntry col3;
+          col3.first = "opt_global_neutral_mass";
+          col3.second = neutral_mass_string;
+          optionals.push_back(col3);
+
+          // set id group; rows with the same id group number originated from the same feature          
           String id_group_temp(id_group);
           MzTabString id_group_str;
           id_group_str.set(id_group_temp);
-          MzTabOptionalColumnEntry col3;
-          col3.first = "opt_global_id_group";
-          col3.second = id_group_str;
-          optionals.push_back(col3);
+          MzTabOptionalColumnEntry col4;
+          col4.first = "opt_global_id_group";
+          col4.second = id_group_str;
+          optionals.push_back(col4);
           mztab_row_record.opt_ = optionals;
           all_sm_rows.push_back(mztab_row_record);
         }
@@ -1160,6 +1274,7 @@ namespace OpenMS
     neg_adducts_fname_ = (String)param_.getValue("negative_adducts_file");
     if (neg_adducts_fname_.trim().empty()) neg_adducts_fname_ = (String)defaults_.getValue("negative_adducts_file");
 
+    keep_unidentified_masses_ = param_.getValue("keep_unidentified_masses").toBool();
     // database names might have changed, so parse files again before next query
     is_initialized_ = false;
   }
@@ -1204,7 +1319,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping file must contain \"database_name\t{NAME}\" as first line.!", line);
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_name\t{NAME}\" as first line.!", line);
         }
       }
       else if (line_count == 2)
@@ -1218,7 +1333,7 @@ namespace OpenMS
         }
         else
         {
-          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping file must contain \"database_version\t{VERSION}\" as first line.!", line);
+          throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Mapping file (") + filename + "') must contain \"database_version\t{VERSION}\" as second line.!", line);
         }
       }
 
@@ -1309,15 +1424,14 @@ namespace OpenMS
 
     }
 
-    // add our dummy, so mzTab annotation does not discard 'not-found' features
-    std::vector<String> dummy_data(3, "-");
-    dummy_data[0] = "--dummy--";
-    hmdb_properties_mapping_["--dummy--"] = dummy_data;
+    // add a null entry, so mzTab annotation does not discard 'not-found' features
+    std::vector<String> dummy_data(3, "null");
+    hmdb_properties_mapping_["null"] = dummy_data;
 
     return;
   }
 
-  void AccurateMassSearchEngine::parseAdductsFile_(const String& filename, std::vector<AdductInfo_>& result)
+  void AccurateMassSearchEngine::parseAdductsFile_(const String& filename, std::vector<AdductInfo>& result)
   {
     result.clear();
 
@@ -1330,7 +1444,7 @@ namespace OpenMS
     TextFile tf(fname, true, -1, true); // trim & skip_empty
     for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
     {
-      result.push_back(AdductInfo_::parseAdductString(*it));
+      result.push_back(AdductInfo::parseAdductString(*it));
     }
 
     LOG_INFO << "Read " << result.size() << " entries from adduct file '" << fname << "'." << std::endl;
@@ -1338,19 +1452,8 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::searchMass_(const double& neutral_query_mass, std::pair<Size, Size>& hit_indices) const
+  void AccurateMassSearchEngine::searchMass_(double neutral_query_mass, double diff_mass, std::pair<Size, Size>& hit_indices) const
   {
-    double diff_mz;
-    // check if mass error window is given in ppm or Da
-    if (mass_error_unit_ == "ppm")
-    {
-      diff_mz = (neutral_query_mass / 1e6) * mass_error_value_;
-    }
-    else
-    {
-      diff_mz = mass_error_value_;
-    }
-
     //LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
 
     // binary search for formulas which are within diff_mz distance
@@ -1359,26 +1462,15 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There are no entries found in mass-to-ids mapping file! Aborting... ", "0");
     }
 
-    std::vector<MappingEntry_>::const_iterator lower_it = std::lower_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass - diff_mz, CompareEntryAndMass_()); // first element equal or larger
-    std::vector<MappingEntry_>::const_iterator upper_it = std::upper_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass + diff_mz, CompareEntryAndMass_()); // first element greater than
+    std::vector<MappingEntry_>::const_iterator lower_it = std::lower_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass - diff_mass, CompareEntryAndMass_()); // first element equal or larger
+    std::vector<MappingEntry_>::const_iterator upper_it = std::upper_bound(mass_mappings_.begin(), mass_mappings_.end(), neutral_query_mass + diff_mass, CompareEntryAndMass_()); // first element greater than
 
     //std::cout << *lower_it << " " << *upper_it << "idx: " << lower_it - masskey_table_.begin() << " " << upper_it - masskey_table_.begin() << std::endl;
     Size start_idx = std::distance(mass_mappings_.begin(), lower_it);
     Size end_idx = std::distance(mass_mappings_.begin(), upper_it);
 
-    //hit_indices.clear();
-    //hit_indices.reserve(end_idx - start_idx);
     hit_indices.first = start_idx;
     hit_indices.second = end_idx;
-
-    //for (Size hit_idx = start_idx; hit_idx < end_idx; ++hit_idx)
-    {
-      //hit_indices.push_back(hit_idx);
-      //double found_mass(mass_mappings_[hit_idx].mass);
-      //double found_error_ppm(((neutral_query_mass - found_mass)/neutral_query_mass)*1e6);
-      // debug output
-      //std::cout << std::setprecision(10) << "found mass: " << found_mass  << " with error: " << found_error_ppm << std::endl;
-    }
 
     return;
   }
@@ -1407,22 +1499,6 @@ namespace OpenMS
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  double AccurateMassSearchEngine::computeEuclideanDist_( const std::vector<double>& x, const std::vector<double>& y ) const
-  {
-    if (x.size() != y.size())
-    {
-      return -100.0;
-    }
-
-    double sum_of_squares(0.0);
-
-    for (Size i = 0; i < x.size(); ++i)
-    {
-      sum_of_squares += (x[i] - y[i]) * (x[i] - y[i]);
-    }
-
-    return std::sqrt(sum_of_squares);
-  }
 
   double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const
   {
@@ -1431,42 +1507,23 @@ namespace OpenMS
 
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
 
+    // compute theoretical isotope distribution
     IsotopeDistribution iso_dist(form.getIsotopeDistribution((UInt)common_size));
-
-    // scale available peaks to 1
-    iso_dist.renormalize();
-    std::vector<double> normed_iso_ratios;
-    // std::cout << "theoret. iso: ";
-    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != (iso_dist.begin() + common_size); ++iso_it)
+    std::vector<double> theoretical_iso_dist;
+    for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != iso_dist.end(); ++iso_it)
     {
-      normed_iso_ratios.push_back(iso_it->second);
-      // std::cout << temp_ratio << " ";
+      theoretical_iso_dist.push_back(iso_it->second);
     }
-
-    // std::cout << "\nact. iso: ";
     
     // same for observed isotope distribution
-    double max_feat_int((double)feat.getMetaValue("masstrace_intensity_0"));
-    std::vector<double> normed_feat_ratios;
+    std::vector<double> observed_iso_dist;
     for (Size int_idx = 0; int_idx < common_size; ++int_idx)
     {
       double mt_int = (double)feat.getMetaValue("masstrace_intensity_" + String(int_idx));
-      normed_feat_ratios.push_back(mt_int);
-
-      if (mt_int > max_feat_int)
-      {
-        max_feat_int = mt_int;
-      }
+      observed_iso_dist.push_back(mt_int);
     }
 
-    // normalize with max isotope intensity
-    for (Size int_idx = 0; int_idx < common_size; ++int_idx)
-    {
-      normed_feat_ratios[int_idx] /= max_feat_int;
-    }
-
-    return computeCosineSim_(normed_iso_ratios, normed_feat_ratios);
-    // return computeEuclideanDist_(normed_iso_ratios, normed_feat_ratios);
+    return computeCosineSim_(theoretical_iso_dist, observed_iso_dist);
   }
 
 } // closing namespace OpenMS

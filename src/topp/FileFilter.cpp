@@ -104,8 +104,11 @@ using namespace std;
     The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
 
     MS2 and higher spectra can be filtered according to precursor m/z (see 'pc_mz'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
-    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level and use 'mz' option for MS1 and 'pc_mz' for MS2 data.
-    Then merge them again. RT can be filtered at any step.
+    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'pc_mz' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
+
+    @note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
+
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FileFilter.cli

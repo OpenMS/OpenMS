@@ -139,6 +139,8 @@ using namespace std;
 
   With the @p id:first_dim_rt flag, the additional columns @p rt_first_dim and @p predicted_rt_first_dim are included for @p PEPTIDE lines.
 
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TextExporter.cli
   <B>INI file documentation of this tool:</B>
@@ -232,15 +234,15 @@ namespace OpenMS
   void writeProteinHeader(SVOutStream& out)
   {
     bool old = out.modifyStrings(false);
-    out << "#PROTEIN" << "score" << "rank" << "accession" << "coverage"
+    out << "#PROTEIN" << "score" << "rank" << "accession" << "protein_description" << "coverage"
         << "sequence" << nl;
     out.modifyStrings(old);
   }
 
   // stream output operator for a ProteinHit
   SVOutStream& operator<<(SVOutStream& out, const ProteinHit& hit)
-  {
-    out << hit.getScore() << hit.getRank() << hit.getAccession()
+  {    
+    out << hit.getScore() << hit.getRank() << hit.getAccession() << hit.getDescription()
         << hit.getCoverage() << hit.getSequence();
     return out;
   }

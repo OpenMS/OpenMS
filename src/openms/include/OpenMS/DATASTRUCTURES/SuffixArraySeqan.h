@@ -135,7 +135,7 @@ protected:
     typedef seqan::Iter<TIndex, seqan::VSTree<TIterSpec> > TIter;
 
     // TODO ??? was: typedef seqan::Index<seqan::String<char>, seqan::Index_ESA<seqan::TopDown<seqan::ParentLinks<seqan::Preorder> > > > TIndex;
-
+    // @deprecated Deprecated in OpenMS 2.0 - only used by SuffixArrayPeptideFinder - used by PILISIdentification (experimental TOPP tool)
 public:
 
     /**
@@ -409,7 +409,7 @@ protected:
 
     TIndex index_; ///< seqan suffix array
 
-    TIter* it_; ///< seqan suffix array iterator
+    TIter it_; ///< seqan suffix array iterator
 
     /**
     @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.

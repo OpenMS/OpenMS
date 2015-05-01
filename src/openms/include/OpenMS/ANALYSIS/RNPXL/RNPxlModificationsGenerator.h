@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#ifndef RNPXLMODIFICATIONSGENERATOR_H
-#define RNPXLMODIFICATIONSGENERATOR_H
+#ifndef OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
+#define OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H
 
 #include <vector>
 #include <map>
@@ -59,4 +59,4 @@ namespace OpenMS
     };
 }
 
-#endif // RNPXLMODIFICATIONSGENERATOR_H
+#endif // OPENMS_ANALYSIS_RNPXL_RNPXLMODIFICATIONSGENERATOR_H

@@ -123,6 +123,8 @@ using namespace std;
 
   @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_OMSSAAdapter.cli
     <B>INI file documentation of this tool:</B>
@@ -935,6 +937,17 @@ protected:
              ++it_pep)
         {
           it_pep->setIdentifier(protein_identification.getIdentifier());
+
+          // clear peptide evidences
+          vector<PeptideHit> pep_hits = it_pep->getHits();
+          for (vector<PeptideHit>::iterator it_pep_hit = pep_hits.begin();
+             it_pep_hit != pep_hits.end();
+             ++it_pep_hit)
+          {
+            it_pep_hit->setPeptideEvidences(std::vector<PeptideEvidence>());
+          }
+          it_pep->setHits(pep_hits);
+
           peptide_ids.push_back(*it_pep);
         }
       }

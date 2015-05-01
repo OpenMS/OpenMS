@@ -75,6 +75,7 @@ using namespace std;
         For details see @ref OpenMS::AccurateMassSearchEngine "AccurateMassSearchEngine".
 
 
+        @note For mzid in-/out- put, due to legacy reason issues you are temporarily asked to use IDFileConverter as a wrapper.
         <B>The command line parameters of this tool are:</B>
         @verbinclude UTILS_AccurateMassSearch.cli
 */

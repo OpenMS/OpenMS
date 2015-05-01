@@ -42,8 +42,8 @@
 
 using namespace std;
 
-#define GAUSS_FITTER_VERBOSE
-#undef  GAUSS_FITTER_VERBOSE
+// #define GAUSS_FITTER_VERBOSE
+// #undef  GAUSS_FITTER_VERBOSE
 
 namespace OpenMS
 {

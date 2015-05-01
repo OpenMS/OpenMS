@@ -86,6 +86,8 @@ using namespace std;
 
     The default is RT in minutes, but seconds can also be used (see INI file).
 
+    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_InclusionExclusionListCreator.cli
     <B>INI file documentation of this tool:</B>
@@ -145,8 +147,8 @@ protected:
     Param tmp;
     tmp.insert("InclusionExclusionList:", fdc.getParameters());
     tmp.insert("PrecursorSelection:", ops.getParameters());
-    tmp.remove("PrecursorSelection:selection_window");
-    tmp.remove("PrecursorSelection:min_peak_distance");
+    tmp.remove("PrecursorSelection:mz_isolation_window");
+    tmp.remove("PrecursorSelection:min_mz_peak_distance");
     tmp.insert("PrecursorSelection:", lp.getParameters().copy("feature_based"));
     return tmp;
   }

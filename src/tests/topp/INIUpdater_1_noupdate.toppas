@@ -124,6 +124,7 @@
         </NODE>
         <NODE name="consensus" description="Additional options for consensusXML input">
           <ITEM name="use_subelements" value="false" type="string" description="Match using RT and m/z of sub-features instead of consensus RT and m/z. A consensus feature matches if any of its sub-features matches." required="false" advanced="false" restrictions="true,false" />
+          <ITEM name="annotate_ids_with_subelements" value="false" type="string" description="Store the map index of the sub-feature in the peptide ID." required="false" advanced="true" restrictions="true,false" />
         </NODE>
       </NODE>
     </NODE>

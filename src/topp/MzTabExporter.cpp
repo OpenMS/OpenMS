@@ -80,14 +80,19 @@ using namespace std;
 
   @experimental This algorithm and underlying format is work in progress and might change.
 
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MzTabExporter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_MzTabExporter.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MzTabExporter.html
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
 
 namespace OpenMS
 {
@@ -111,7 +116,7 @@ protected:
       registerInputFile_("in_id", "<file>", "", "Identifications used to generate the mzTab file.", false);
       setValidFormats_("in_id", ListUtils::create<String>("idXML"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
-      setValidFormats_("out", ListUtils::create<String>("csv"));
+      setValidFormats_("out", ListUtils::create<String>("tsv"));
     }
 
     map<Size, MzTabModificationMetaData> generateMzTabStringFromModifications(const vector<String>& mods)
@@ -882,6 +887,8 @@ protected:
   };
 }
 
+#pragma clang diagnostic pop
+
 int main(int argc, const char** argv)
 {
   TOPPMzTabExporter t;
@@ -889,3 +896,4 @@ int main(int argc, const char** argv)
 }
 
 /// @endcond
+

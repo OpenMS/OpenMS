@@ -71,6 +71,7 @@ using namespace std;
   For details, see:\n
   Beausoleil <em>et al.</em>: <a href="http://dx.doi.org/10.1038/nbt1240">A probability-based approach for high-throughput protein phosphorylation analysis and site localization</a> (Nat. Biotechnol., 2006, PMID: 16964243).
 
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_PhosphoScoring.cli
@@ -230,6 +231,7 @@ protected:
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output with annotated phosphorylation scores");
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.05, "Fragment mass error", false);
 
     StringList fragment_mass_tolerance_unit_valid_strings;

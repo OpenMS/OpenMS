@@ -59,6 +59,7 @@ NoiseFilterGaussian
 NoiseFilterSGolay
 OMSSAAdapter
 OpenSwathAnalyzer
+OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
 OpenSwathConfidenceScoring
 OpenSwathDecoyGenerator
@@ -98,7 +99,6 @@ TextExporter
 TMTAnalyzer
 TOFCalibration
 XTandemAdapter
-TopPerc
 )
 
 ## all targets requiring OpenMS_GUI

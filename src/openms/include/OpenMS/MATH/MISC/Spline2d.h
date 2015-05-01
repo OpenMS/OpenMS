@@ -32,8 +32,8 @@
 // $Authors: Christian Ehrlich $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_SPLINE2D_H_
-#define OPENMS_MATH_MISC_SPLINE2D_H_
+#ifndef OPENMS_MATH_MISC_SPLINE2D_H
+#define OPENMS_MATH_MISC_SPLINE2D_H
 
 
 #include <Eigen/Core>
@@ -142,4 +142,4 @@ namespace OpenMS {
   };
 }//namespace
 
-#endif /* SPLINE2D_H_ */
+#endif /* OPENMS_MATH_MISC_SPLINE2D_H */

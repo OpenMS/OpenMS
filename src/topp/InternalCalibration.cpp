@@ -79,6 +79,8 @@ using namespace std;
 
   @note The tool assumes the input data is already picked or feature maps.
 
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_InternalCalibration.cli
   <B>INI file documentation of this tool:</B>

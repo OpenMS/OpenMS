@@ -75,6 +75,7 @@ public:
 
     RawTandemMSSignalSimulation& operator=(const RawTandemMSSignalSimulation& source);
 
+
     /**
 
      */
@@ -82,6 +83,10 @@ public:
 
 
 protected:
+
+    /// initialize param_ class
+    void initParam_();
+
     void generateMSESpectra_(const SimTypes::FeatureMapSim& features, const SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& ms2);
 
     void generatePrecursorSpectra_(const SimTypes::FeatureMapSim& features, const SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& ms2);

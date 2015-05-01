@@ -91,6 +91,7 @@ namespace OpenMS
     mzCoord_ = mz;
     trCoord_ = tr;
     zCoord_ = -1;
+    mean_ = 0;
   }
 
 // check if a peak belongs to this intenity bin

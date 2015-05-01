@@ -77,10 +77,12 @@ using namespace std;
 
   @experimental This implementation may contain bugs!
 
+  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_CompNovoCID.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_CompNovoCID.html
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_CompNovoCID.html
 */
 
 
