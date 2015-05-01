@@ -153,8 +153,7 @@ namespace OpenMS
 
     // get incoming edge and preceding vertex
     TOPPASEdge* e = *inEdgesBegin();
-    TOPPASVertex* tv = e->getSourceVertex();
-    RoundPackages pkg = tv->getOutputFiles();
+    RoundPackages pkg = e->getSourceVertex()->getOutputFiles();
     if (pkg.empty())
     {
       std::cerr << "A problem occurred while grabbing files from the parent tool. This is a bug, please report it!" << std::endl;
@@ -195,7 +194,9 @@ namespace OpenMS
         QRegExp rx("_tmp\\d+$");
         int tmp_index = rx.indexIn(new_file);
         if (tmp_index != -1)
+        {
           new_file = new_file.left(tmp_index);
+        }
 
         // get file type and rename
         FileTypes::Type ft = FileTypes::UNKNOWN;
@@ -211,20 +212,32 @@ namespace OpenMS
               StringList types = source_output_files[e->getSourceOutParam()].valid_types;
               if (types.size() == 1) // if suffix is unambiguous
               {
-                ft = FileHandler::getTypeByFileName(String("prefix.") + types[0]);
+                ft = FileTypes::nameToType(types[0]);
               }
               else
               {
                 ft = FileHandler::getTypeByContent(f); // this will access the file physically
               }
+              // do we know the extension already? 
+              if (ft == FileTypes::UNKNOWN) 
+              { // if not, try param value of '<name>_type' (more generic, supporting more than just 'out_type')
+                const Param& p = ttv->getParam();
+                String out_type = source_output_files[e->getSourceOutParam()].param_name + "_type";
+                // look for <name>_type (more generic, supporting more than just 'out')
+                if (p.exists(out_type))
+                {
+                  ft = FileTypes::nameToType(p.getValue(out_type));
+                }
+              }
+
             }
           }
         }
 
         if (ft != FileTypes::UNKNOWN)
-        {
-          String suffix = String(".") + FileTypes::typeToName(ft);
-          if (!new_file.endsWith(suffix.toQString())) new_file = (File::removeExtension(new_file) + suffix).toQString();
+        { // replace old suffix by new suffix
+          String new_suffix = String(".") + FileTypes::typeToName(ft);
+          if (!new_file.endsWith(new_suffix.toQString())) new_file = (File::removeExtension(new_file) + new_suffix).toQString();
         }
 
         // only scheduled for writing
