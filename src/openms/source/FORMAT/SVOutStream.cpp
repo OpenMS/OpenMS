@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <limits>
+#include <string>
 
 using namespace std;
 
@@ -93,7 +94,7 @@ namespace OpenMS
     return operator<<(String(c));
   }
 
-  SVOutStream& SVOutStream::operator<<(const string& str)
+  SVOutStream& SVOutStream::operator<<(const std::string& str)
   {
     return operator<<((String&)str);
   }

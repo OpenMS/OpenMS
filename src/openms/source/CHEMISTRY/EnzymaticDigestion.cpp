@@ -43,8 +43,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  const string EnzymaticDigestion::NamesOfEnzymes[] = {"Trypsin", "Trypsin/P"};
-  const string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
+  const std::string EnzymaticDigestion::NamesOfEnzymes[] = {"Trypsin", "Trypsin/P"};
+  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
 
 
   EnzymaticDigestion::EnzymaticDigestion() :
