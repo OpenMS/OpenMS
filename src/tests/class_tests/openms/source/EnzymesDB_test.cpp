@@ -98,21 +98,6 @@ START_SECTION(void addEnzyme(const Enzyme &enzyme))
     TEST_EQUAL(ptr->hasRegEx("(?<=[P])(?!P)"), true)
 END_SECTION
 
-START_SECTION(EnzymeIterator beginEnzyme())
-    EnzymesDB::EnzymeIterator it = ptr->beginEnzyme();
-    Size count(0);
-    while (it != ptr->endEnzyme())
-    {
-      ++it;
-      ++count;
-    }
-    TEST_EQUAL(count >= 10, true)
-END_SECTION
-  
-START_SECTION(EnzymeIterator endEnzyme())
-    NOT_TESTABLE // tested above
-END_SECTION
-
 START_SECTION(EnzymeConstIterator beginEnzyme() const)
     const EnzymesDB* const_ptr = ptr;
     EnzymesDB::EnzymeConstIterator it = const_ptr->beginEnzyme();
@@ -129,7 +114,7 @@ START_SECTION(EnzymeConstIterator endEnzyme() const)
     NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION((void getAllNames(std::vector< String > &all_names)))
+START_SECTION((void getAllNames(std::vector< String > &all_names) const))
     vector<String> names;
     ptr->getAllNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
@@ -139,7 +124,7 @@ START_SECTION((void getAllNames(std::vector< String > &all_names)))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
-START_SECTION((void getAllXTandemNames(std::vector< String > &all_names)))
+START_SECTION((void getAllXTandemNames(std::vector< String > &all_names) const))
     vector<String> names;
     ptr->getAllXTandemNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
@@ -149,7 +134,7 @@ START_SECTION((void getAllXTandemNames(std::vector< String > &all_names)))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
-START_SECTION((void getAllOMSSANames(std::vector< String > &all_names)))
+START_SECTION((void getAllOMSSANames(std::vector< String > &all_names) const))
     vector<String> names;
     ptr->getAllOMSSANames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)

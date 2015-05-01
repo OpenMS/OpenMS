@@ -89,14 +89,12 @@ namespace OpenMS
 
   void EnzymesDB::addEnzyme(const Enzyme& enzyme)
   {
-    Enzyme* r = new Enzyme(enzyme);
-    addEnzyme_(r);
+    addEnzyme_(&enzyme);
   }
 
-  void EnzymesDB::addEnzyme_(Enzyme* r)
+  void EnzymesDB::addEnzyme_(const Enzyme* r)
   {
     enzymes_.insert(r);
-    const_enzymes_.insert(r);
     vector<String> names;
     if (r->getName() != "")
     {
@@ -127,7 +125,7 @@ namespace OpenMS
   
   bool EnzymesDB::hasEnzyme(const Enzyme* enzyme) const
   {
-    return (const_enzymes_.find(enzyme) != const_enzymes_.end() );
+    return (enzymes_.find(enzyme) != enzymes_.end() );
   }
 
   void EnzymesDB::readEnzymesFromFile_(const String& file_name)
@@ -161,7 +159,6 @@ namespace OpenMS
           enzy_ptr = parseEnzyme_(values);
           values.clear();
           enzymes_.insert(enzy_ptr);
-          const_enzymes_.insert(enzy_ptr);
           prefix = split[0] + split[1];
         }
         String value = it->value;
@@ -172,7 +169,6 @@ namespace OpenMS
       // add last enzyme
       enzy_ptr = parseEnzyme_(values);
       enzymes_.insert(enzy_ptr);
-      const_enzymes_.insert(enzy_ptr);
     }
     catch (Exception::BaseException& e)
     {
@@ -187,7 +183,7 @@ namespace OpenMS
 
   void EnzymesDB::clearEnzymes_()
   {
-    set<Enzyme*>::iterator it;
+    set<const Enzyme*>::const_iterator it;
     for (it = enzymes_.begin(); it != enzymes_.end(); ++it)
     {
       delete *it;
@@ -195,7 +191,6 @@ namespace OpenMS
     enzymes_.clear();
     enzyme_names_.clear();
     enzyme_regex_.clear();
-    const_enzymes_.clear();
   }
 
   Enzyme* EnzymesDB::parseEnzyme_(Map<String, String>& values)
@@ -273,7 +268,7 @@ namespace OpenMS
 
   void EnzymesDB::buildEnzymeNames_()
   {
-    set<Enzyme*>::iterator it;
+    set<const Enzyme*>::const_iterator it;
     for (it = enzymes_.begin(); it != enzymes_.end(); ++it)
     {
       enzyme_names_[(*it)->getName()] = *it;
@@ -287,37 +282,34 @@ namespace OpenMS
   void EnzymesDB::getAllNames(vector<String> & all_names) const
   {
     all_names.clear();
-    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    for (set<const Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
     {
       all_names.push_back((*it)->getName());
     }
-    // sort(all_names.begin(),all_names.end());
   }
 
   void EnzymesDB::getAllXTandemNames(vector<String> & all_names) const
   {
     all_names.clear();
-    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    for (set<const Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
     {
       if ((*it)->getXTANDEMid() != "")
       {
         all_names.push_back((*it)->getName());
       }
     }
-    // sort(all_names.begin(),all_names.end());
   }
 
   void EnzymesDB::getAllOMSSANames(vector<String> & all_names) const
   {
     all_names.clear();
     all_names.push_back("Trypsin");
-    for (set<Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
+    for (set<const Enzyme *>::const_iterator it = enzymes_.begin(); it != enzymes_.end(); ++it)
     {
       if ((*it)->getOMSSAid() != 0)
       {
         all_names.push_back((*it)->getName());
       }
     }
-    // sort(all_names.begin(),all_names.end());
   }
 } // namespace OpenMS

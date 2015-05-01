@@ -38,7 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <boost/unordered_map.hpp>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <boost/shared_ptr.hpp>
 #include <set>
 
 namespace OpenMS
@@ -61,8 +60,9 @@ public:
     /** @name Typedefs
     */
     //@{
-    typedef std::set<Enzyme *>::iterator EnzymeIterator;
+    typedef boost::shared_ptr<Enzyme> EnzymePtr;
     typedef std::set<const Enzyme *>::const_iterator EnzymeConstIterator;
+
     //@}
 
     /// this member function serves as a replacement of the constructor
@@ -127,13 +127,9 @@ public:
     /** @name Iterators
     */
     //@{
-    inline EnzymeIterator beginEnzyme() { return enzymes_.begin(); }
+    inline EnzymeConstIterator beginEnzyme() const { return enzymes_.begin(); }
 
-    inline EnzymeIterator endEnzyme() { return enzymes_.end(); }
-
-    inline EnzymeConstIterator beginEnzyme() const { return const_enzymes_.begin(); }
-
-    inline EnzymeConstIterator endEnzyme() const { return const_enzymes_.end(); }
+    inline EnzymeConstIterator endEnzyme() const { return enzymes_.end(); }
     //@}
 protected:
     EnzymesDB();
@@ -164,15 +160,13 @@ protected:
     /// builds an index of enzyme names for fast access, synonyms are also considered
     void buildEnzymeNames_();
 
-    void addEnzyme_(Enzyme * enzyme);
+    void addEnzyme_(const Enzyme* enzyme);
 
-    boost::unordered_map<String, Enzyme *> enzyme_names_;
+    boost::unordered_map<String, const Enzyme *> enzyme_names_;
 
-    Map<String, Enzyme *> enzyme_regex_;
+    Map<String, const Enzyme *> enzyme_regex_;
 
-    std::set<Enzyme *> enzymes_;
-
-    std::set<const Enzyme *> const_enzymes_;
+    std::set<const Enzyme *> enzymes_;
 
   };
 }
