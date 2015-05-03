@@ -349,11 +349,10 @@ namespace OpenMS
     {
       double sum(0);
       // loop backwards as most distributions contains a lot of small values at the end
-      for (ConstIterator it = distribution_.end() - 1; it != distribution_.begin(); --it)
+      for (ContainerType::const_reverse_iterator it = distribution_.rbegin(); it != distribution_.rend(); ++it)
       {
         sum += it->second;
       }
-      sum += distribution_.begin()->second;
 
       for (Iterator it = distribution_.begin(); it != distribution_.end(); ++it)
       {
