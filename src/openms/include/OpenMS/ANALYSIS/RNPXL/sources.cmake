@@ -5,6 +5,7 @@ set(directory include/OpenMS/ANALYSIS/RNPXL)
 set(sources_list_h
 RNPxlModificationsGenerator.h
 RNPxlMarkerIonExtractor.h
+RNPxlReport.h
 ModifiedPeptideGenerator.h
 )
 

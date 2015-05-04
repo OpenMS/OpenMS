@@ -44,14 +44,14 @@ namespace OpenMS
 {
   class String;
 
-  namespace RNPxlMarkerIonExtractor
+  struct OPENMS_DLLAPI RNPxlMarkerIonExtractor
   {
     // name to mass-intensity pair
     typedef std::map<String, std::vector<std::pair<double, double> > > MarkerIonsType;
   
     // extract an annotate RNA marker ions
-    MarkerIonsType extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance);
-  }
+    static MarkerIonsType extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance);
+  };
 }
 
 #endif
