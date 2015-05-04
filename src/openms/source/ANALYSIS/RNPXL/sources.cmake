@@ -6,6 +6,7 @@ set(sources_list
 RNPxlMarkerIonExtractor.cpp
 RNPxlModificationsGenerator.cpp
 ModifiedPeptideGenerator.cpp
+RNPxlReport.cpp
 )
 
 ### add path to the filenames
