@@ -43,6 +43,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlMarkerIonExtractor.h>
 
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
@@ -77,7 +78,7 @@ struct RNPxlReportRow
   double xl_weight;
   double abs_prec_error;
   double rel_prec_error;
-  Map<String, vector<pair<double, double> > > marker_ions;
+  RNPxlMarkerIonExtractor::MarkerIonsType marker_ions;
   double m_H;
   double m_2H;
   double m_3H;
@@ -102,7 +103,7 @@ struct RNPxlReportRow
     }
 
     // marker ions
-    for (Map<String, vector<pair<double, double> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
     {
       for (Size i = 0; i != it->second.size(); ++i)
       {
@@ -134,60 +135,6 @@ struct RNPxlReportRow
 
 };
 
-struct MarkerIonExtractor
-{
-  static void extractMarkerIons(Map<String, vector<pair<double, double> > >& marker_ions, const PeakSpectrum& s, const double marker_tolerance)
-  {
-    marker_ions.clear();
-    marker_ions["A"].push_back(make_pair(136.06231, 0.0));
-    marker_ions["A"].push_back(make_pair(330.06033, 0.0));
-    marker_ions["C"].push_back(make_pair(112.05108, 0.0));
-    marker_ions["C"].push_back(make_pair(306.04910, 0.0));
-    marker_ions["G"].push_back(make_pair(152.05723, 0.0));
-    marker_ions["G"].push_back(make_pair(346.05525, 0.0));
-    marker_ions["U"].push_back(make_pair(113.03509, 0.0));
-    marker_ions["U"].push_back(make_pair(307.03311, 0.0));
-
-    PeakSpectrum spec(s);
-    Normalizer normalizer;
-    normalizer.filterSpectrum(spec);
-    spec.sortByPosition();
-
-    // for each nucleotide with marker ions
-    for (Map<String, vector<pair<double, double> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
-    {
-      // for each marker ion of the current nucleotide
-      for (Size i = 0; i != it->second.size(); ++i)
-      {
-        double mz = it->second[i].first;
-        double max_intensity = 0;
-        for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit) // TODO: replace by binary search
-        {
-          if (sit->getMZ() + marker_tolerance < mz)
-          {
-            continue;
-          }
-          if (mz < sit->getMZ() - marker_tolerance)
-          {
-            break;
-          }
-          if (fabs(mz - sit->getMZ()) < marker_tolerance)
-          {
-            if (max_intensity < sit->getIntensity())
-            {
-              max_intensity = sit->getIntensity();
-            }
-          }
-        }
-        it->second[i].second = max_intensity;
-      }
-    }
-
-    return;
-  }
-
-};
-
 struct RNPxlReportRowHeader
 {
   String getString(String separator)
@@ -197,9 +144,8 @@ struct RNPxlReportRowHeader
        << "peptide weight" << "RNA weight" << "cross-link weight";
 
     // marker ion fields
-    Map<String, vector<pair<double, double> > > marker_ions;
-    MarkerIonExtractor::extractMarkerIons(marker_ions, PeakSpectrum(), 0.0); // call only to generate header entries
-    for (Map<String, vector<pair<double, double> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(PeakSpectrum(), 0.0); // call only to generate header entries
+    for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
     {
       for (Size i = 0; i != it->second.size(); ++i)
       {
@@ -551,8 +497,6 @@ protected:
     vector<PeptideIdentification> whole_experiment_filtered_peptide_ids;
     vector<ProteinIdentification> whole_experiment_filtered_protein_ids;
 
-    Map<String, vector<pair<double, double> > > marker_ions;
-
     Size counter(0);
     for (vector<String>::const_iterator it = file_list_variants_mzML.begin(); it != file_list_variants_mzML.end(); ++it, ++counter)
     {
@@ -577,8 +521,7 @@ protected:
       MzMLFile().load(mzml_string, exp);
 
       // find marker ions
-      marker_ions.clear();
-      MarkerIonExtractor::extractMarkerIons(marker_ions, *exp.begin(), marker_tolerance);
+      RNPxlMarkerIonExtractor::MarkerIonsType marker_ions = RNPxlMarkerIonExtractor::extractMarkerIons(*exp.begin(), marker_tolerance);
 
       // case 1: no peptide identification
       RNPxlReportRow row;
