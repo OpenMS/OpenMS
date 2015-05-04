@@ -114,7 +114,7 @@ START_SECTION(EnzymeConstIterator endEnzyme() const)
     NOT_TESTABLE // tested above
 END_SECTION
 
-START_SECTION((void getAllNames(std::vector< String > &all_names) const))
+START_SECTION(void getAllNames(std::vector< String > &all_names) const)
     vector<String> names;
     ptr->getAllNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
@@ -124,7 +124,7 @@ START_SECTION((void getAllNames(std::vector< String > &all_names) const))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
-START_SECTION((void getAllXTandemNames(std::vector< String > &all_names) const))
+START_SECTION(void getAllXTandemNames(std::vector< String > &all_names) const)
     vector<String> names;
     ptr->getAllXTandemNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
@@ -134,7 +134,7 @@ START_SECTION((void getAllXTandemNames(std::vector< String > &all_names) const))
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
-START_SECTION((void getAllOMSSANames(std::vector< String > &all_names) const))
+START_SECTION(void getAllOMSSANames(std::vector< String > &all_names) const)
     vector<String> names;
     ptr->getAllOMSSANames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)

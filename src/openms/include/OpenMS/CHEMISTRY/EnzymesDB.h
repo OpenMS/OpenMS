@@ -60,9 +60,7 @@ public:
     /** @name Typedefs
     */
     //@{
-    typedef boost::shared_ptr<Enzyme> EnzymePtr;
     typedef std::set<const Enzyme *>::const_iterator EnzymeConstIterator;
-
     //@}
 
     /// this member function serves as a replacement of the constructor
