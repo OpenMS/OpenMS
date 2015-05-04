@@ -126,6 +126,25 @@ namespace OpenMS
         pep_positions.push_back(pos);
         pos += (i++)->length();
       }
+<<<<<<< HEAD
+=======
+      break;
+
+    case ENZYME_TRYPSIN_P:
+      if (use_log_model_)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + NamesOfEnzymes[ENZYME_TRYPSIN_P] + " does not support logModel!");
+      }
+      else
+      {
+        // R or K at the end,  presence of P does not matter
+        return *iterator == 'R' || *iterator == 'K';
+      }
+      break;
+
+    default:
+      return false;
+>>>>>>> [NOP] style fixes
     }
   }
 
@@ -136,7 +155,7 @@ namespace OpenMS
     case ENZYME_TRYPSIN:
       if (use_log_model_)
       {
-	//TODO: throw not implemented exception
+        //TODO: throw not implemented exception
       }
       else // naive digestion
       {
@@ -326,9 +345,9 @@ namespace OpenMS
       for (SignedSize i = 1; i < count; ++i)
       {
         if (i > missed_cleavages_)
-	{
+        {
           break;
-	}
+        }
         sum += count - i;
       }
 

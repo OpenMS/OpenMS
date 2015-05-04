@@ -69,7 +69,7 @@
 
 #include <map>
 #include <algorithm>
- 
+
 #ifdef _OPENMP
 #include <omp.h>
 #define NUMBER_OF_THREADS (omp_get_num_threads())
@@ -149,6 +149,7 @@ struct MarkerIonExtractor
     }
     return marker_ions;
   }
+
 };
 
 struct RNPxlReportRow
@@ -278,11 +279,11 @@ vector<RNPxlReportRow> annotateRNPxlInformation_(const PeakMap& spectra, vector<
 
       // case 1: no peptide identification: store rt, mz, charge and marker ion intensities
       if (map_spectra_to_id.find(scan_index) == map_spectra_to_id.end())
-      {	   
+      {
         row.no_id = true;
         row.rt = rt;
         row.original_mz = mz;
-	row.charge = charge;
+        row.charge = charge;
         row.marker_ions = marker_ions;
         csv_rows.push_back(row);
         continue;
@@ -376,6 +377,7 @@ struct PeptideHitSequenceLessComparator
 
     return false;
   }
+
 };
 
 class RNPxlSearch :
@@ -495,9 +497,9 @@ protected:
 
     bool operator<(const IndexedString& other) const
     {
-      if (end-begin < other.end-other.begin) return true;
+      if (end - begin < other.end - other.begin) return true;
 
-      if (end-begin > other.end-other.begin) return false;
+      if (end - begin > other.end - other.begin) return false;
 
       // same size
       String::const_iterator b = begin;
@@ -506,6 +508,7 @@ protected:
       for (; b != end; ++b, ++bo)
       {
         if (*b < *bo) return true;
+
         if (*b > *bo) return false;
       }
 
@@ -516,6 +519,7 @@ protected:
     {
       return String(begin, end);
     }
+
   };
 
   // Slimmer structure as storing all scored candidates in PeptideHit objects takes too much space
@@ -530,6 +534,7 @@ protected:
     {
       return a.score > b.score;
     }
+
   };
 
   vector<ResidueModification> getModifications_(StringList modNames)
@@ -587,13 +592,13 @@ private:
     {
       double current_mz = old_spectrum[current_peak].getPosition()[0];
 
-      for (Int q = max_charge; q >= min_charge; --q)     // important: test charge hypothesis from high to low
+      for (Int q = max_charge; q >= min_charge; --q) // important: test charge hypothesis from high to low
       {
         // try to extend isotopes from mono-isotopic peak
         // if extension larger then min_isopeaks possible:
         //   - save charge q in mono_isotopic_peak[]
         //   - annotate all isotopic peaks with feature number
-        if (features[current_peak] == -1)     // only process peaks which have no assigned feature number
+        if (features[current_peak] == -1) // only process peaks which have no assigned feature number
         {
           bool has_min_isopeaks = true;
           vector<Size> extensions;
@@ -602,7 +607,7 @@ private:
             double expected_mz = current_mz + i * Constants::C13C12_MASSDIFF_U / q;
             Size p = old_spectrum.findNearest(expected_mz);
             double tolerance_dalton = fragment_unit_ppm ? fragment_tolerance * old_spectrum[p].getPosition()[0] * 1e-6 : fragment_tolerance;
-            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton)     // test for missing peak
+            if (fabs(old_spectrum[p].getPosition()[0] - expected_mz) > tolerance_dalton) // test for missing peak
             {
               if (i < min_isopeaks)
               {
@@ -792,7 +797,7 @@ private:
         if (mz[j] > m + half_window) break;
         if (intensities[j] > i) ++rank;
       }
-                                                                                                                                                                                             ranks.push_back(rank);;
+      ranks.push_back(rank);
     }
 
     return ranks;
@@ -811,7 +816,7 @@ private:
     vector<double> intensities;
     mz.reserve(spec.size());
     intensities.reserve(spec.size());
-    
+
     for (Size i = 0; i != spec.size(); ++i)
     {
       mz.push_back(spec[i].getMZ());
@@ -884,7 +889,6 @@ private:
     return best_pscore;
   }
 
-
   void preprocessSpectra_(PeakMap& exp, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
   {
     // filter MS2 map
@@ -950,49 +954,49 @@ private:
       {
         // create empty PeptideIdentification object and fill meta data
         PeptideIdentification pi;
-	pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
+        pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
         pi.setScoreType("hyperscore");
         pi.setHigherScoreBetter(true);
         pi.setRT(exp[scan_index].getRT());
         pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
         Size charge = exp[scan_index].getPrecursors()[0].getCharge();
 
-	// create full peptide hit structure from annotated hits
-	vector<PeptideHit> phs;
-	for (vector<AnnotatedHit>::const_iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
-	{
-	  PeptideHit ph;
-	  ph.setCharge(charge);
+        // create full peptide hit structure from annotated hits
+        vector<PeptideHit> phs;
+        for (vector<AnnotatedHit>::const_iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
+        {
+          PeptideHit ph;
+          ph.setCharge(charge);
 
-	  // get unmodified string
+          // get unmodified string
           AASequence aas = AASequence::fromString(a_it->sequence.getString());
 
-	  // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
+          // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
           vector<AASequence> all_modified_peptides;
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
 
-	  // reannotate much more memory heavy AASequence object
-	  ph.setSequence(all_modified_peptides[a_it->peptide_mod_index]);
-	  ph.setScore(a_it->score);
+          // reannotate much more memory heavy AASequence object
+          ph.setSequence(all_modified_peptides[a_it->peptide_mod_index]);
+          ph.setScore(a_it->score);
 
-	  // determine RNA modification from index in map
-    std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
-	  std::advance(mod_combinations_it, a_it->rna_mod_index);
-    ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
-    ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // RNA uncharged mass via empirical formula
-	  phs.push_back(ph);
-	}
+          // determine RNA modification from index in map
+          std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
+          std::advance(mod_combinations_it, a_it->rna_mod_index);
+          ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
+          ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // RNA uncharged mass via empirical formula
+          phs.push_back(ph);
+        }
 
-	pi.setHits(phs);
-	pi.assignRanks();
+        pi.setHits(phs);
+        pi.assignRanks();
 
 #ifdef _OPENMP
 #pragma omp critical (peptide_ids_access)
 #endif
         {
           peptide_ids.push_back(pi);
-	}
+        }
       }
     }
 
@@ -1000,9 +1004,8 @@ private:
     protein_ids = vector<ProteinIdentification>(1);
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("RNPxlSearch");
-    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());    
+    protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
   }
-
 
   ExitCodes main_(int, const char**)
   {
@@ -1069,7 +1072,7 @@ private:
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
 
     RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_nucleotide_length);
-    mm.mod_masses[""] = 0;    // insert "null" modification otherwise unmodified peptide will not be searched
+    mm.mod_masses[""] = 0; // insert "null" modification otherwise unmodified peptide will not be searched
     mm.mod_combinations[""].insert("none");
 
     // load MS2 map
@@ -1109,7 +1112,7 @@ private:
 
         double precursor_mz = precursor[0].getMZ();
         double precursor_mass = (double) precursor_charge * precursor_mz - (double) precursor_charge * Constants::PROTON_MASS_U;
-     
+
         if (getFlag_("RNPxl:filter_fractional_mass"))
         {
           if (precursor_mass < 1750.0 && precursor_mass - floor(precursor_mass) < 0.2)
@@ -1118,8 +1121,8 @@ private:
             continue;
           }
         }
-     
-       
+
+
         if (precursor_mass < small_peptide_mass_filter_threshold)
         {
           small_peptide_mass_filtered++;
@@ -1166,7 +1169,7 @@ private:
 #pragma omp atomic
 #endif
       ++count_proteins;
-      
+
       IF_MASTERTHREAD
       {
         progresslogger.setProgress((SignedSize)fasta_index * NUMBER_OF_THREADS);
@@ -1211,7 +1214,7 @@ private:
         vector<AASequence> all_modified_peptides;
 
         // no critial section is needed despite ResidueDB not beeing thread sage.
-	// It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
+        // It is only written to on introduction of novel modified residues. These residues have been already added above (single thread context).
         {
           AASequence aas = AASequence::fromString(String(cit->first, cit->second));
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
@@ -1227,7 +1230,7 @@ private:
           MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
 
           // iterate over all RNA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
-	  Size rna_mod_index = 0;
+          Size rna_mod_index = 0;
           for (std::map<String, double>::const_iterator rna_mod_it = mm.mod_masses.begin(); rna_mod_it != mm.mod_masses.end(); ++rna_mod_it, ++rna_mod_index)
           {
             double current_peptide_mass = current_peptide_mass_without_RNA + rna_mod_it->second; // add RNA mass
@@ -1241,7 +1244,7 @@ private:
               low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
               up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * current_peptide_mass * precursor_mass_tolerance * 1e-6);
             }
-            else    // Dalton
+            else // Dalton
             {
               low_it = multimap_mass_2_scan_index.lower_bound(current_peptide_mass - 0.5 * precursor_mass_tolerance);
               up_it = multimap_mass_2_scan_index.upper_bound(current_peptide_mass + 0.5 * precursor_mass_tolerance);
@@ -1270,12 +1273,12 @@ private:
               }
 
               // add peptide hit
-	      AnnotatedHit ah;
+              AnnotatedHit ah;
               ah.sequence.begin = cit->first;
-	      ah.sequence.end = cit->second;
-	      ah.peptide_mod_index = mod_pep_idx;
+              ah.sequence.end = cit->second;
+              ah.peptide_mod_index = mod_pep_idx;
               ah.score = score;
-	      ah.rna_mod_index = rna_mod_index;
+              ah.rna_mod_index = rna_mod_index;
 #ifdef _OPENMP
 #pragma omp critical (annotated_hits_access)
 #endif
