@@ -209,6 +209,7 @@ namespace OpenMS
                ((iterator + 1) == protein.end() || *(iterator + 1) != 'P');
       }
       break;
+
     case ENZYME_TRYPSIN_P:
       if (use_log_model_)
       {
@@ -217,9 +218,10 @@ namespace OpenMS
       else
       {
         // R or K at the end,  presence of P does not matter
-        return (*iterator == 'R' || *iterator == 'K');
+        return *iterator == 'R' || *iterator == 'K';
       }
       break;
+
     default:
       return false;
     }
@@ -232,7 +234,7 @@ namespace OpenMS
     case ENZYME_TRYPSIN:
       if (use_log_model_)
       {
-	//TODO: throw not implemented exception
+        //TODO: throw not implemented exception
       }
       else // naive digestion
       {
@@ -463,9 +465,9 @@ namespace OpenMS
       for (SignedSize i = 1; i < count; ++i)
       {
         if (i > missed_cleavages_)
-	{
+        {
           break;
-	}
+        }
         sum += count - i;
       }
 

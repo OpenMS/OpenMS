@@ -77,9 +77,9 @@ public:
     /// when querying for valid digestion products, this determines if the specificity of the two peptide ends is considered important
     enum Specificity
     {
-      SPEC_FULL,    //< fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
-      SPEC_SEMI,    //< semi specific, i.e., one of the two cleavage sites must fulfill requirements
-      SPEC_NONE,    //< no requirements on start / end
+      SPEC_FULL, //< fully enzyme specific, e.g., tryptic (ends with KR, AA-before is KR), or peptide is at protein terminal ends
+      SPEC_SEMI, //< semi specific, i.e., one of the two cleavage sites must fulfill requirements
+      SPEC_NONE, //< no requirements on start / end
       SIZE_OF_SPECIFICITY
     };
     /// Names of the Specificity
@@ -105,10 +105,10 @@ public:
 
     /// Sets the enzyme for the digestion (default is ENZYME_TRYPSIN).
     void setEnzyme(Enzyme enzyme);
-    
+
     /// convert enzyme string name to enum
     /// returns SIZE_OF_ENZYMES if @p name is not valid
-    static Enzyme getEnzymeByName(const String & name);
+    static Enzyme getEnzymeByName(const String& name);
 
     /// Returns the specificity for the digestion
     Specificity getSpecificity() const;
@@ -118,16 +118,16 @@ public:
 
     /// convert spec string name to enum
     /// returns SIZE_OF_SPECIFICITY if @p name is not valid
-    static Specificity getSpecificityByName(const String & name);
+    static Specificity getSpecificityByName(const String& name);
 
     /// Performs the enzymatic digestion of a protein.
-    void digest(const AASequence & protein, std::vector<AASequence> & output) const;
+    void digest(const AASequence& protein, std::vector<AASequence>& output) const;
 
     /// Performs the enzymatic digestion of a unmodified protein String.
     void digestUnmodifiedString(const String& sequence, std::vector<std::pair<String::const_iterator, String::const_iterator> >& output, Size min_length) const;
-  
+
     /// Returns the number of peptides a digestion of @p protein would yield under the current enzyme and missed cleavage settings.
-    Size peptideCount(const AASequence & protein);
+    Size peptideCount(const AASequence& protein);
 
     /// use trained model when digesting?
     bool isLogModelEnabled() const;
@@ -155,15 +155,15 @@ protected:
       BindingSite() :
         position(), AAname() {}
 
-      BindingSite(const Size & p, const String & name) :
+      BindingSite(const Size& p, const String& name) :
         position(p), AAname(name) {}
 
-      bool operator<(const BindingSite & rhs) const
+      bool operator<(const BindingSite& rhs) const
       {
         return (position < rhs.position) || ((position == rhs.position) && (AAname < rhs.AAname));
       }
 
-      bool operator==(const BindingSite & rhs) const
+      bool operator==(const BindingSite& rhs) const
       {
         return position == rhs.position && AAname == rhs.AAname;
       }
@@ -178,21 +178,21 @@ protected:
 
       CleavageModel() :
         p_cleave(0), p_miss(0) {}
-      CleavageModel(const double & p_c, const double & p_m) :
+      CleavageModel(const double& p_c, const double& p_m) :
         p_cleave(p_c), p_miss(p_m) {}
     };
 
     /// moves the iterator @p p behind (i.e., C-term) the next cleavage site of the @p sequence
-    void nextCleavageSite_(const AASequence & sequence, AASequence::ConstIterator & p) const;
+    void nextCleavageSite_(const AASequence& sequence, AASequence::ConstIterator& p) const;
 
     /// tests if position pointed to by @p p (N-term side) is a valid cleavage site
-    bool isCleavageSite_(const AASequence & sequence, const AASequence::ConstIterator & p) const;
+    bool isCleavageSite_(const AASequence& sequence, const AASequence::ConstIterator& p) const;
 
     /// moves the iterator @p p behind (i.e., C-term) the next cleavage site of the @p sequence
-    void nextCleavageSiteInString_(const String & sequence, String::const_iterator & p) const;
+    void nextCleavageSiteInString_(const String& sequence, String::const_iterator& p) const;
 
     /// tests if position pointed to by @p p (N-term side) is a valid cleavage site
-    bool isCleavageSiteInString_(const String & sequence, const String::const_iterator & p) const;
+    bool isCleavageSiteInString_(const String& sequence, const String::const_iterator& p) const;
 
     /// Number of missed cleavages
     SignedSize missed_cleavages_;
