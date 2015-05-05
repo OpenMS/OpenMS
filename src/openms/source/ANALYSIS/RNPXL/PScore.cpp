@@ -44,7 +44,6 @@ using std::vector;
 
 namespace OpenMS
 {
-
   vector<Size> PScore::calculateIntensityRankInMZWindow(const vector<double>& mz, const vector<double>& intensities, double mz_window = 100)
   {
     vector<Size> ranks;
@@ -177,6 +176,45 @@ namespace OpenMS
 
     return best_pscore;
   }
+
+   double massCorrectionTerm(double mass)
+   {
+     return 0.024*(mass - 600);
+   }
+
+   double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage)
+   {
+     switch (cleavages)
+     {
+       case 0: return 53.2;
+       case 1: return consecutive_cleavage ? 42.1 : 31.1;
+       case 2: return 17.0;
+       default: return 0;
+     }
+   }
+
+   double modificationCorrectionTerm(Size modifications)
+   {
+     switch (modifications)
+     {
+       case 0:
+         return 42;
+       case 1:
+         return 28;
+       case 2:
+         return 22;
+       case 3:
+         return 16;
+       case 4:
+         return 9;
+       case 5:
+         return 5;
+       case 6:
+         return 2;
+       default:
+         return 0;
+     }
+   }
 
 }
 
