@@ -286,7 +286,7 @@ protected:
     return modifications;
   }
 
-  // check if for minimum size
+  // check for minimum size
   class HasInvalidPeptideLengthPredicate
   {
 public:
