@@ -86,9 +86,14 @@ namespace OpenMS
 private:
 
     /// Distances between pairs of grid features
-    typedef OpenMSBoost::unordered_map<std::pair<GridFeature *, GridFeature *>, double> PairDistances;
+    typedef OpenMSBoost::unordered_map<std::pair<GridFeature*, GridFeature*>,
+                                       double> PairDistances;
 
-    typedef HashGrid<GridFeature *> Grid;
+    /// Map to store which grid features are next to which clusters
+    typedef OpenMSBoost::unordered_map<GridFeature*, 
+                                       std::vector<QTCluster*> > ElementMapping;
+
+    typedef HashGrid<GridFeature*> Grid;
 
     /// Number of input maps
     Size num_maps_;
@@ -109,38 +114,37 @@ private:
          @brief Distance map.
 
          To compute it only once, the distance between two features is accessible by searching for a pair where the first position is the smaller pointer value.
-     */
+    */
     PairDistances distances_;
 
     /**
          @brief Calculates the distance between two grid features.
 
          The distance is looked up in the distance map and only computed (and stored) if it's not already available.
-     */
-    double getDistance_(GridFeature * left, GridFeature * right);
+    */
+    double getDistance_(GridFeature* left, GridFeature* right);
 
     /**
          @brief Checks whether the peptide IDs of a cluster and a neighboring feature are compatible.
 
          A neighboring feature without identification is always compatible. Otherwise, the cluster and feature are compatible if the best peptide hits of each of their identifications have the same sequences.
     */
-    bool compatibleIDs_(QTCluster & cluster, const GridFeature * neighbor);
+    bool compatibleIDs_(QTCluster& cluster, const GridFeature* neighbor);
 
     /// Sets algorithm parameters
     void setParameters_(double max_intensity, double max_mz);
 
     /// Generates a consensus feature from the best cluster and updates the clustering
-    void makeConsensusFeature_(std::list<QTCluster> & clustering,
-           ConsensusFeature & feature, OpenMSBoost::unordered_map<GridFeature *,
-             std::vector< QTCluster * > > & element_mapping);
+    void makeConsensusFeature_(std::list<QTCluster>& clustering,
+                               ConsensusFeature& feature,
+                               ElementMapping& element_mapping);
 
     /// Computes an initial QT clustering of the points in the hash grid
-    void computeClustering_(Grid & grid, std::list<QTCluster> & clustering);
+    void computeClustering_(Grid& grid, std::list<QTCluster>& clustering);
 
     /// Runs the algorithm on feature maps or consensus maps
     template <typename MapType>
-    void run_(const std::vector<MapType> &
-              input_maps, ConsensusMap & result_map);
+    void run_(const std::vector<MapType>& input_maps, ConsensusMap& result_map);
 
 protected:
     enum
@@ -165,21 +169,25 @@ public:
     /**
          @brief Runs the algorithm on consensus maps
 
+         @pre The data ranges of the input maps have to be up-to-date (use ConsensusMap::updateRanges).
+
          @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    void run(const std::vector<ConsensusMap> & input_maps,
-             ConsensusMap & result_map);
+    void run(const std::vector<ConsensusMap>& input_maps,
+             ConsensusMap& result_map);
 
     /**
          @brief Runs the algorithm on feature maps
 
+         @pre The data ranges of the input maps have to be up-to-date (use FeatureMap::updateRanges).
+
          @exception Exception::IllegalArgument is thrown if the input data is not valid.
     */
-    void run(const std::vector<FeatureMap > & input_maps,
-             ConsensusMap & result_map);
+    void run(const std::vector<FeatureMap>& input_maps,
+             ConsensusMap& result_map);
 
     /// Returns an instance of this class
-    static BaseGroupFinder * create()
+    static BaseGroupFinder* create()
     {
       return new QTClusterFinder();
     }

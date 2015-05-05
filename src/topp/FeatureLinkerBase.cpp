@@ -133,6 +133,7 @@ protected:
           it->getSubordinates().clear();
           it->getConvexHulls().clear();
         }
+        maps[i].updateRanges();
       }
       // exception for "labeled" algorithms: copy file descriptions
       if (labeled)
@@ -142,7 +143,6 @@ protected:
         out_map.getFileDescriptions()[1].label = "heavy";
       }
 
-      out_map.updateRanges();
       // group
       algorithm->group(maps, out_map);
     }
@@ -153,6 +153,7 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         f.load(ins[i], maps[i]);
+        maps[i].updateRanges();
       }
       // group
       algorithm->group(maps, out_map);
@@ -180,22 +181,26 @@ protected:
     out_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
     // annotate output with data processing info
-    addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
+    addDataProcessing_(out_map,
+                       getProcessingInfo_(DataProcessing::FEATURE_GROUPING));
 
     // write output
     ConsensusXMLFile().store(out, out_map);
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;
-    for (ConsensusMap::const_iterator cmit = out_map.begin(); cmit != out_map.end(); ++cmit)
+    for (ConsensusMap::const_iterator cmit = out_map.begin();
+         cmit != out_map.end(); ++cmit)
     {
       ++num_consfeat_of_size[cmit->size()];
     }
 
     LOG_INFO << "Number of consensus features:" << endl;
-    for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
+    for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin();
+         i != num_consfeat_of_size.rend(); ++i)
     {
-      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
+      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) 
+               << i->second << endl;
     }
     LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 

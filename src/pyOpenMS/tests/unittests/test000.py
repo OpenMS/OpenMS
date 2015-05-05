@@ -4146,7 +4146,7 @@ def testKernelMassTrace():
     assert trace.getTraceLength is not None
     assert trace.getFWHMborders is not None
     assert trace.getSmoothedIntensities is not None
-    assert trace.getScanTime is not None
+    assert trace.getAverageMS1CycleTime is not None
 
     assert trace.computeSmoothedPeakArea is not None
     assert trace.computePeakArea is not None
@@ -4154,8 +4154,8 @@ def testKernelMassTrace():
     assert trace.estimateFWHM is not None
     assert trace.computeFwhmArea is not None
     assert trace.computeFwhmAreaSmooth is not None
-    assert trace.computeFwhmAreaRobust is not None
-    assert trace.computeFwhmAreaSmoothRobust is not None
+    # assert trace.computeFwhmAreaRobust is not None
+    # assert trace.computeFwhmAreaSmoothRobust is not None
     assert trace.getIntensity is not None
     assert trace.getMaxIntensity is not None
 

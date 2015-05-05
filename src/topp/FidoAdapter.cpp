@@ -29,12 +29,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser, Xiao Liang $
+// $Authors: Hendrik Weisser, Xiao Liang, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 
 #include <boost/bimap.hpp>
 
@@ -43,6 +45,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <queue>
 
 using namespace OpenMS;
 using namespace std;
@@ -91,6 +94,7 @@ using namespace std;
  The output of this tool is an augmented version of the input: The protein groups and accompanying posterior probabilities inferred by Fido are stored as "indistinguishable protein groups", attached to the protein identification run(s) of the input data. Also attached are meta values recording the Fido parameters (@p Fido_prob_protein, @p Fido_prob_peptide, @p Fido_prob_spurious).@n
  The result can be passed to @ref TOPP_ProteinQuantifier via its @p protein_groups parameter, to have the protein grouping taken into account during quantification.@n
  Note that if the input contains multiple identification runs and @p separate_runs is @e not set (the default), the identification data from all runs will be pooled for the Fido analysis and the result will only contain one (merged) identification run. This is the desired behavior if the protein grouping should be used by ProteinQuantifier.
+ When the @p greedy_group_resolution flag is set, "peptide to indistinguishable proteins" mappings will be unique in the output and the actual resolved groups are added as "protein groups", attached to the protein identification run(s) of the input data (in addition to the "indistinguishable protein groups").
  
  @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
@@ -102,6 +106,7 @@ using namespace std;
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
 
 
 class TOPPFidoAdapter :
@@ -130,6 +135,7 @@ protected:
     registerStringOption_("prob_param", "<string>", "Posterior Probability_score", "Read the peptide probability from this user parameter ('UserParam') in the input file, instead of from the 'score' field, if available. (Use e.g. for search results that were processed with the TOPP tools IDPosteriorErrorProbability followed by FalseDiscoveryRate.)", false);
     registerFlag_("separate_runs", "Process multiple protein identification runs in the input separately, don't merge them. Merging results in loss of descriptive information of the single protein identification runs.");
     registerFlag_("keep_zero_group", "Keep the group of proteins with estimated probability of zero, which is otherwise removed (it may be very large)", true);
+    registerFlag_("greedy_group_resolution", "Post-process Fido output with greedy resolution of shared peptides based on the protein probabilities. Also adds the resolved ambiguity groups to output.");
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
@@ -224,7 +230,8 @@ protected:
                                             __PRETTY_FUNCTION__, msg);
       }
       
-      graph_out << "e " << hit.getSequence() << endl; // remove modifications?
+      // Remove modifications before writing to input graph file
+      graph_out << "e " << hit.getSequence().toUnmodifiedString() << endl;
       const set<String>& accessions = hit.extractProteinAccessions();
       for (set<String>::const_iterator acc_it = accessions.begin();
            acc_it != accessions.end(); ++acc_it)
@@ -312,7 +319,8 @@ protected:
                 const String& exe, QStringList& fido_params,
                 double& prob_protein, double& prob_peptide,
                 double& prob_spurious, const String& temp_dir,
-                bool keep_zero_group = false, Size counter = 0)
+                bool keep_zero_group = false, bool greedy_flag = false,
+                Size counter = 0)
   {
     // create a copy of the params so the templates can be overwritten with
     // different values:
@@ -459,6 +467,9 @@ protected:
         groups.push_back(group);
       }
     }
+    
+    // Sort groups by probability and add the finally used Fido params
+    // as meta values
     sort(groups.begin(), groups.end());
     protein.getIndistinguishableProteins() = groups;
     protein.setMetaValue("Fido_prob_protein", prob_protein);
@@ -471,9 +482,18 @@ protected:
              << ((keep_zero_group || !zero_proteins) ? ")." : " not included).")
              << endl;
     
+    // Do post-processing on groups if specified
+    if (greedy_flag)
+    {
+      LOG_INFO << "Resolving ambiguity groups greedily on Fido output..."
+               << endl;
+      PeptideProteinResolution graph = PeptideProteinResolution();
+      graph.buildGraph(protein, peptides);
+      graph.resolveGraph(protein, peptides);
+    }
     return true;
   }
-  
+
   
   ExitCodes main_(int, const char**)
   {
@@ -484,6 +504,7 @@ protected:
     String prob_param = getStringOption_("prob_param");
     bool separate_runs = getFlag_("separate_runs");
     bool keep_zero_group = getFlag_("keep_zero_group");
+    bool greedy_flag = getFlag_("greedy_group_resolution");
     double prob_protein = getDoubleOption_("prob:protein");
     double prob_peptide = getDoubleOption_("prob:peptide");
     double prob_spurious = getDoubleOption_("prob:spurious");
@@ -591,7 +612,7 @@ protected:
         fido_success = runFido_(*prot_it, peptides, choose_params, executable,
                                 fido_params, prob_protein, prob_peptide,
                                 prob_spurious, temp_dir, keep_zero_group,
-                                counter);
+                                greedy_flag, counter);
       }
     }
     else // merge multiple protein ID runs
@@ -630,7 +651,8 @@ protected:
       
       fido_success = runFido_(all_proteins, peptides, choose_params, executable,
                               fido_params, prob_protein, prob_peptide,
-                              prob_spurious, temp_dir, keep_zero_group);
+                              prob_spurious, temp_dir, keep_zero_group,
+                              greedy_flag);
       
       // replace proteins with merged variant:
       proteins.clear();

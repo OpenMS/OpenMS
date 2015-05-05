@@ -38,8 +38,8 @@
 
 #include <algorithm>
 
-#define FALSE_DISCOVERY_RATE_DEBUG
-#undef  FALSE_DISCOVERY_RATE_DEBUG
+// #define FALSE_DISCOVERY_RATE_DEBUG
+// #undef  FALSE_DISCOVERY_RATE_DEBUG
 
 using namespace std;
 

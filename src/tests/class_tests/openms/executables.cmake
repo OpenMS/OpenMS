@@ -383,7 +383,11 @@ set(analysis_executables_list
   CompNovoIonScoringCID_test
   CompNovoIonScoring_test
   ConfidenceScoring_test
-  ConsensusID_test
+  ConsensusIDAlgorithmAverage_test
+  ConsensusIDAlgorithmBest_test
+  ConsensusIDAlgorithmPEPIons_test
+  ConsensusIDAlgorithmPEPMatrix_test
+  ConsensusIDAlgorithmRanks_test
   ConsensusMapNormalizerAlgorithmThreshold_test
   ConsensusMapNormalizerAlgorithmMedian_test
   ConsensusMapNormalizerAlgorithmQuantile_test

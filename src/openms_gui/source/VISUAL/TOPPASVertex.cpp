@@ -162,7 +162,7 @@ namespace OpenMS
 
       if (round_common != tv->round_total_)
       {
-        error_msg = String("Number of rounds for incoming edges of #") + this->getTopoNr() + " are not equal. No idea on how to combine them! Did you want to recycle this input?\n";
+        error_msg = String("Number of rounds for incoming edges of node #") + this->getTopoNr() + " are not equal. No idea on how to combine them! Did you want to recycle its input?\n";
         std::cerr << error_msg;
         return false;
       }
@@ -171,7 +171,7 @@ namespace OpenMS
     // -- we demand at least one node with no recycling to allow to determine number of rounds
     if (no_recycle_count == 0)
     {
-      error_msg = String("Number of rounds of #") + this->getTopoNr() + " cannot be determined as all input nodes have recycling enabled. Disable for at least one input!\n";
+      error_msg = String("Number of rounds of node #") + this->getTopoNr() + " cannot be determined since all input nodes have recycling enabled. Disable for at least one input!\n";
       std::cerr << error_msg;
       return false;
     }
@@ -185,7 +185,7 @@ namespace OpenMS
 
       if (round_common % tv->round_total_ != 0) // modulo should be 0, if not ...
       {
-        error_msg = String(tv->round_total_) + " rounds for incoming edges of #" + this->getTopoNr() + " are recycled to meet a total of " + round_common + " rounds. But modulo is not 0. No idea on how to combine them! Did you want to recycle this input?\n";
+        error_msg = String(tv->round_total_) + " rounds for incoming edges of node #" + this->getTopoNr() + " are recycled to meet a total of " + round_common + " rounds. But modulo is not 0. No idea on how to combine them! Adapt the number of input files?\n";
         std::cerr << error_msg;
         return false;
       }
@@ -453,7 +453,7 @@ namespace OpenMS
   {
     __DEBUG_BEGIN_METHOD__
 
-      round_total_ = -1;
+    round_total_ = -1;
     round_counter_ = 0;
 
     finished_ = false;

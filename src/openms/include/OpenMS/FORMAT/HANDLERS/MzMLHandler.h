@@ -222,6 +222,8 @@ public:
       void setOptions(const PeakFileOptions& opt)
       {
         options_ = opt;
+        spectrum_data_.reserve(options_.getMaxDataPoolSize());
+        chromatogram_data_.reserve(options_.getMaxDataPoolSize());
       }
 
       /// Get the peak file options
@@ -435,11 +437,58 @@ protected:
         chromatogram_data_.clear();
       }
 
+      template <typename SpectrumType>
+      void addSpectrumMetaData_(const std::vector<MzMLHandlerHelper::BinaryData>& input_data, 
+                                const Size n, SpectrumType& spectrum) const
+        {
+
+            //add meta data
+            UInt meta_float_array_index = 0;
+            UInt meta_int_array_index = 0;
+            UInt meta_string_array_index = 0;
+            for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+            {
+              if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
+              {
+                if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
+                {
+                  if (n < input_data[i].size)
+                  {
+                    double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
+                    spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
+                  }
+                  ++meta_float_array_index;
+                }
+                else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
+                {
+                  if (n < input_data[i].size)
+                  {
+                    Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
+                    spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
+                  }
+                  ++meta_int_array_index;
+                }
+                else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
+                {
+                  if (n < input_data[i].decoded_char.size())
+                  {
+                    String value = input_data[i].decoded_char[n];
+                    spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
+                  }
+                  ++meta_string_array_index;
+                }
+              }
+            }
+        }
+
       /**
           @brief Fill a single spectrum with data from input
 
           @note Do not modify any internal state variables of the class since
           this function will be executed in parallel.
+
+          Speed: this function takes about 50 % of total load time with a
+          single thread and parallelizes linearly up to at least 10 threads.
 
       */
       template <typename SpectrumType>
@@ -559,9 +608,35 @@ protected:
           }
         }
 
+        // We found that the push back approach is about 5% faster than using
+        // iterators (e.g. spectrum iterator that gets updated)
+
         //add the peaks and the meta data to the container (if they pass the restrictions)
         PeakType tmp;
         spectrum.reserve(default_arr_length);
+
+        // the most common case: no ranges, 64 / 32 precision
+        //  -> this saves about 10 % load time
+        if ( mz_precision_64 && !int_precision_64 && 
+             input_data.size() == 2 &&  
+             !peak_file_options.hasMZRange() && 
+             !peak_file_options.hasIntensityRange() 
+           )
+        {
+          std::vector< double >::iterator mz_it = input_data[mz_index].floats_64.begin();
+          std::vector< float >::iterator int_it = input_data[int_index].floats_32.begin();
+          for (Size n = 0; n < default_arr_length; n++)
+          {
+            //add peak
+            tmp.setIntensity(*int_it);
+            tmp.setMZ(*mz_it);
+            ++mz_it;
+            ++int_it;
+            spectrum.push_back(tmp);
+          }
+          return;
+        }
+
         for (Size n = 0; n < default_arr_length; n++)
         {
           double mz = mz_precision_64 ? input_data[mz_index].floats_64[n] : input_data[mz_index].floats_32[n];
@@ -574,42 +649,12 @@ protected:
             tmp.setMZ(mz);
             spectrum.push_back(tmp);
 
-            //add meta data
-            UInt meta_float_array_index = 0;
-            UInt meta_int_array_index = 0;
-            UInt meta_string_array_index = 0;
-            for (Size i = 0; i < input_data.size(); i++) //loop over all binary data arrays
+            // Only if there are more than 2 data arrays, we need to check
+            // for meta data (as there will always be an m/z and intensity
+            // array)
+            if (input_data.size() > 2) 
             {
-              if (input_data[i].meta.getName() != "m/z array" && input_data[i].meta.getName() != "intensity array") // is meta data array?
-              {
-                if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_FLOAT)
-                {
-                  if (n < input_data[i].size)
-                  {
-                    double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
-                    spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
-                  }
-                  ++meta_float_array_index;
-                }
-                else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_INT)
-                {
-                  if (n < input_data[i].size)
-                  {
-                    Int64 value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].ints_64[n] : input_data[i].ints_32[n];
-                    spectrum.getIntegerDataArrays()[meta_int_array_index].push_back(value);
-                  }
-                  ++meta_int_array_index;
-                }
-                else if (input_data[i].data_type == MzMLHandlerHelper::BinaryData::DT_STRING)
-                {
-                  if (n < input_data[i].decoded_char.size())
-                  {
-                    String value = input_data[i].decoded_char[n];
-                    spectrum.getStringDataArrays()[meta_string_array_index].push_back(value);
-                  }
-                  ++meta_string_array_index;
-                }
-              }
+              addSpectrumMetaData_(input_data, n, spectrum);
             }
           }
         }
