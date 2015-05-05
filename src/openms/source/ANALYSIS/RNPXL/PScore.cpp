@@ -82,24 +82,31 @@ namespace OpenMS
     return ranks;
   }
 
-  map<Size, MSSpectrum<Peak1D> > PScore::calculatePeakLevelSpectra(const MSSpectrum<Peak1D>& spec, double mz_window = 100, Size min_level = 2, Size max_level = 10)
+
+  vector<vector<Size> > PScore::calculateRankMap(const PeakMap& peak_map, double mz_window = 100)
+  {
+    vector<std::vector<Size> > rank_map;
+    rank_map.reserve(peak_map.size());
+    for (Size i = 0; i != peak_map.size(); ++i)
+    {
+      const PeakSpectrum& spec = peak_map[i];
+      vector<double> mz;
+      vector<double> intensities;
+      for (Size j = 0; j != spec.size(); ++j)
+      {
+        mz.push_back(spec[j].getMZ());
+        intensities.push_back(spec[j].getIntensity());
+      }
+      rank_map.push_back(calculateIntensityRankInMZWindow(mz, intensities, mz_window));
+    }
+    return rank_map;
+  }
+
+  map<Size, MSSpectrum<Peak1D> > PScore::calculatePeakLevelSpectra(const PeakSpectrum& spec, const vector<Size>& ranks, Size min_level = 2, Size max_level = 10)
   {
     map<Size, MSSpectrum<Peak1D> > peak_level_spectra;
 
     if (spec.empty()) return peak_level_spectra;
-
-    vector<double> mz;
-    vector<double> intensities;
-    mz.reserve(spec.size());
-    intensities.reserve(spec.size());
-
-    for (Size i = 0; i != spec.size(); ++i)
-    {
-      mz.push_back(spec[i].getMZ());
-      intensities.push_back(spec[i].getIntensity());
-    }
-
-    vector<Size> ranks = calculateIntensityRankInMZWindow(mz, intensities, mz_window);
 
     // loop over all peaks and associated ranks
     for (Size i = 0; i != ranks.size(); ++i)
@@ -122,26 +129,26 @@ namespace OpenMS
     return peak_level_spectra;
   }
 
-  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, MSSpectrum<Peak1D> >& peak_level_spectra, const vector< MSSpectrum<RichPeak1D> >& theo_spectra, double mz_window = 100.0)
+  double PScore::computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const map<Size, PeakSpectrum>& peak_level_spectra, const vector<RichPeakSpectrum> & theo_spectra, double mz_window = 100.0)
   {
     AScore a_score_algorithm; // TODO: make the cumulative score function static
 
     double best_pscore = 0.0;
 
-    for (vector< MSSpectrum<RichPeak1D> >::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
+    for (vector<RichPeakSpectrum>::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
     {
-      const MSSpectrum<RichPeak1D>& theo_spectrum = *theo_spectra_it;
+      const RichPeakSpectrum& theo_spectrum = *theo_spectra_it;
 
       // number of theoretical ions for current spectrum
       Size N = theo_spectrum.size();
 
-      for (map<Size, MSSpectrum<Peak1D> >::const_iterator l_it = peak_level_spectra.begin(); l_it != peak_level_spectra.end(); ++l_it)
+      for (map<Size, PeakSpectrum>::const_iterator l_it = peak_level_spectra.begin(); l_it != peak_level_spectra.end(); ++l_it)
       {
         const double level = static_cast<double>(l_it->first);
-        const MSSpectrum<Peak1D>& exp_spectrum = l_it->second;
+        const PeakSpectrum& exp_spectrum = l_it->second;
 
         Size matched_peaks(0);
-        for (MSSpectrum<RichPeak1D>::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+        for (RichPeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
         {
           const double& theo_mz = theo_peak_it->getMZ();
 
