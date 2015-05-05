@@ -7,6 +7,7 @@ RNPxlModificationsGenerator.h
 RNPxlMarkerIonExtractor.h
 RNPxlReport.h
 ModifiedPeptideGenerator.h
+HyperScore.h
 PScore.h
 )
 
