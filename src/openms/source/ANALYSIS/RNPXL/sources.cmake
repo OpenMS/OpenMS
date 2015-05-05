@@ -7,6 +7,7 @@ RNPxlMarkerIonExtractor.cpp
 RNPxlModificationsGenerator.cpp
 ModifiedPeptideGenerator.cpp
 RNPxlReport.cpp
+PScore.cpp
 )
 
 ### add path to the filenames
