@@ -7,6 +7,7 @@ RNPxlMarkerIonExtractor.cpp
 RNPxlModificationsGenerator.cpp
 ModifiedPeptideGenerator.cpp
 RNPxlReport.cpp
+HyperScore.cpp
 PScore.cpp
 )
 
