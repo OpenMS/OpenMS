@@ -494,7 +494,7 @@ namespace OpenMS
     {
       if (stream != 0)
       {
-        *stream << "Map descriptions (file name + label) in ConsensusMap are are not unique:\n" << all_maps << std::endl;
+        *stream << "Map descriptions (file name + label) in ConsensusMap are not unique:\n" << all_maps << std::endl;
       }
       return false;
     }
