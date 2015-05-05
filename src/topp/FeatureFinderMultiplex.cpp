@@ -920,8 +920,6 @@ public:
         }
 
         consensus_map.push_back(consensus);
-        
-        consensus_map.getFileDescriptions()[0].label = "LABEL_ZERO";
       }
 
     }
