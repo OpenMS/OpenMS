@@ -3022,7 +3022,7 @@ protected:
             break;
           }
         }
-    
+
         if (consecutive_isotopes < min_consecutive_isotopes)
         {
           isotopic_intensities[i] = 0;
@@ -3213,8 +3213,8 @@ protected:
       {
         if (scit->empty())
         {
-          scit = sippeptide_clusters.erase(scit);   // remove cluster of SIP peptides
-          ccit = cluster_center.erase(ccit);   // remove cluster center
+          scit = sippeptide_clusters.erase(scit); // remove cluster of SIP peptides
+          ccit = cluster_center.erase(ccit); // remove cluster center
         }
         else
         {
