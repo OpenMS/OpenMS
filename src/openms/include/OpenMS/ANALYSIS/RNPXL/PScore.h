@@ -58,6 +58,13 @@ struct OPENMS_DLLAPI PScore
   // The best score obtained by scoring all those theoretical spectra against the experimental ones is returned.
   static double computePScore(double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, const std::map<Size, PeakSpectrum>& peak_level_spectra, const std::vector<RichPeakSpectrum>& theo_spectra, double mz_window);
 
+  // additive correction terms used by Andromeda (pscore + massC + cleaveC + modC - 100)
+  static double massCorrectionTerm(double mass);
+
+  static double cleavageCorrectionTerm(Size cleavages, bool consecutive_cleavage);
+
+  static double modificationCorrectionTerm(Size modifications);
+
 };
 
 }
