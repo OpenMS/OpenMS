@@ -64,6 +64,7 @@ namespace OpenMS
     output_filename_(""),
     cleavage_site_("[RK]|{P}"),
     refine_(true),
+    noise_suppression_(false),
     semi_cleavage_(true),
     allow_isotope_error_(true),
     refine_max_valid_evalue_(1000),
@@ -335,6 +336,12 @@ namespace OpenMS
     //<note type="input" label="refine">yes</note>
     writeNote_(os, "input", "refine", refine_);
     used_labels.insert("refine");
+
+
+    //////////////// noise suppression parameter
+    //<note type="input" label="spectrum, use noise suppression">no</note>
+    writeNote_(os, "input", "spectrum, use noise suppression", noise_suppression_);
+    used_labels.insert("spectrum, use noise suppression");
 
 
 /*
@@ -685,9 +692,19 @@ namespace OpenMS
     return refine_;
   }
 
+  bool XTandemInfile::isNoiseSuppression() const
+  {
+    return noise_suppression_;
+  }
+
   void XTandemInfile::setRefine(const bool refine)
   {
     refine_ = refine;
+  }
+
+  void XTandemInfile::setNoiseSuppression(const bool noise_suppression)
+  {
+    noise_suppression_ = noise_suppression;
   }
 
   void XTandemInfile::setSemiCleavage(const bool semi_cleavage)

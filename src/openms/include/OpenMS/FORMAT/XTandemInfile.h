@@ -191,6 +191,9 @@ public:
     /// get state of refine setting
     bool isRefining() const;
 
+    /// get state of noise suppression
+    bool isNoiseSuppression() const;
+
     /// set state of semi cleavage
     void setSemiCleavage(const bool semi_cleavage);
 
@@ -199,6 +202,9 @@ public:
 
     /// set state of refine setting
     void setRefine(const bool refine);
+
+    /// set state of noise suppression
+    void setNoiseSuppression(const bool noise_suppression);
 
     /// set the cleavage site with a xtandem conform regex
     void setCleavageSite(const String& cleavage_site);
@@ -283,6 +289,9 @@ protected:
 
     /// Enable/disable xtandem refinement
     bool refine_;
+
+    /// Enable/disable xtandem noise suppression routine
+    bool noise_suppression_;
 
     /// semi cleavage
     bool semi_cleavage_;
