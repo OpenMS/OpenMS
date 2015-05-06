@@ -285,13 +285,23 @@ END_SECTION
 START_SECTION(bool isRefining() const )
   XTandemInfile file;
   TEST_EQUAL(file.isRefining()==true, true)
-
 END_SECTION
 
 START_SECTION(void setRefine(const bool refine))
   XTandemInfile file;
   file.setRefine(false);
   TEST_EQUAL(file.isRefining()==false, true)
+END_SECTION
+
+START_SECTION(bool isNoiseSuppression() const )
+  XTandemInfile file;
+  TEST_EQUAL(file.isNoiseSuppression()==false, true)
+END_SECTION
+
+START_SECTION(void setNoiseSuppression(const bool noise_suppression))
+  XTandemInfile file;
+  file.setNoiseSuppression(false);
+  TEST_EQUAL(file.isNoiseSuppression()==false, true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////
