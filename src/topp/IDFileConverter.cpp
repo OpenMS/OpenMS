@@ -75,6 +75,13 @@ using namespace std;
     </table>
 </CENTER>
 
+IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem)
+into other (OpenMS-specific) formats.
+For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. OMSSAAdapter) to avoid the extra conversion step.
+
+The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
+Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits.
+Lines starting with "#" are ignored by the parser.
 
 Conversion from the TPP file formats pepXML and protXML to OpenMS' idXML is quite comprehensive, to the extent that the original data can be
 represented in the simpler idXML format.
@@ -136,8 +143,9 @@ protected:
                        "Input file or directory containing the data to convert. This may be:\n"
                        "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
                        "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms),\n"
+                       "- a single file (tab separated) in text format, one line for all peptide sequences matching a spectrum (top N hits)"
                        "- for Sequest results, a directory containing .out files.\n");
-    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,idXML,mzid"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
@@ -420,6 +428,35 @@ protected:
                                  peptide_identifications, perc_score, 
                                  scan_regex, count_from_zero, experiment_p);
       }
+      else if (in_type == FileTypes::TSV)
+      {
+        ProteinIdentification protein_id;
+        protein_id.setSearchEngineVersion("");
+        protein_id.setSearchEngine("XTandem");
+        protein_identifications.push_back(protein_id);
+
+        TextFile tf;
+        tf.load(in, true, -1, true);
+        for (TextFile::Iterator it = tf.begin(); it != tf.end(); ++it)
+        {
+          it->trim();
+          // skip empty and comment lines
+          if (it->empty() || it->hasPrefix("#")) continue;
+
+          PeptideIdentification pepid;
+          StringList peps;
+          it->split('\t', peps, false);
+          std::vector<PeptideHit> hits;
+          for (StringList::const_iterator sit=peps.begin(); sit != peps.end(); ++sit)
+          {
+            PeptideHit hit;
+            hit.setSequence(AASequence::fromString(*sit));
+            hits.push_back(hit);
+          }
+          pepid.setHits(hits);
+          peptide_identifications.push_back(pepid);
+        }
+      }
       else
       {
         writeLog_("Error: Unknown input file type given. Aborting!");
@@ -469,17 +506,22 @@ protected:
         for (Size l = 0; l < peptide_identifications[i].getHits().size(); ++l)
         {
           const PeptideHit& hit = peptide_identifications[i].getHits()[l];
-          fasta << ">" << hit.getSequence().toUnmodifiedString() << "|" << count++
-                << "|" << hit.getSequence().toString() << endl;
           String seq = hit.getSequence().toUnmodifiedString();
+          std::set<String> prot = hit.extractProteinAccessions();
+          fasta << ">" << seq
+                << " " << ++count
+                << " " << hit.getSequence().toString() 
+                << " " << ListUtils::concatenate(StringList(prot.begin(), prot.end()), ";")
+                << "\n";
           // FASTA files should have at most 60 characters of sequence info per line
           for (Size j = 0; j < seq.size(); j += 60)
           {
             Size k = min(j + 60, seq.size());
-            fasta << string(seq[j], seq[k]) << endl;
+            fasta << seq.substr(j, k - j) << "\n";
           }
         }
       }
+      fasta.close();
     }
     else
     {

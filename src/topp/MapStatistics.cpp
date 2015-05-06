@@ -60,7 +60,7 @@ using namespace std;
   <table>
   <tr>
   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileInfo \f$ \longrightarrow \f$</td>
+  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapStatistics \f$ \longrightarrow \f$</td>
   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
   </tr>
   <tr>
@@ -70,7 +70,7 @@ using namespace std;
   </table>
   </center>
   This tool computes some basic statistics on the features of a map
-  that are frequently used for quality control. In contrast to FileInfo
+  that are frequently used for quality control.
 
   Information displayed includes:
   - show information about the data range of a file (m/z, RT, intensity)
@@ -79,9 +79,9 @@ using namespace std;
   - total ion current included in the features as a function of RT
 
   <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FileInfo.cli
+  @verbinclude TOPP_MapStatistics.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude TOPP_FileInfo.html
+  @htmlinclude TOPP_MapStatistics.html
 */
 
 // We do not want this class to show up in the docu:

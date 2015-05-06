@@ -351,6 +351,51 @@ namespace OpenMS
     filtered_identification.assignRanks();
   }
 
+  void IDFilter::filterIdentificationsByProteinAccessions(const PeptideIdentification& identification,
+                                                 const StringList& proteins,
+                                                 PeptideIdentification& filtered_identification)
+  {
+    filtered_identification = identification;
+    filtered_identification.setHits(vector<PeptideHit>());
+    vector<PeptideHit> filtered_peptide_hits;
+
+    for (Size i = 0; i < identification.getHits().size(); i++)
+    {
+      std::set<String> protein_accessions = identification.getHits()[i].extractProteinAccessions();
+      for (set<String>::const_iterator ac_it = protein_accessions.begin(); ac_it != protein_accessions.end(); ++ac_it)
+      {
+        if (std::find(proteins.begin(), proteins.end(), *ac_it) != proteins.end())
+        {
+          filtered_peptide_hits.push_back(identification.getHits()[i]);
+          break;
+        }
+      }
+    }
+
+    filtered_identification.setHits(filtered_peptide_hits);
+    filtered_identification.assignRanks();
+  }
+
+  void IDFilter::filterIdentificationsByProteinAccessions(const ProteinIdentification& identification,
+                                                 const StringList& proteins,
+                                                 ProteinIdentification& filtered_identification)
+  {
+    filtered_identification = identification;
+    filtered_identification.setHits(vector<ProteinHit>());
+    vector<ProteinHit> filtered_protein_hits;
+
+    for (Size i = 0; i < identification.getHits().size(); i++)
+    {
+      if (std::find(proteins.begin(), proteins.end(), identification.getHits()[i].getAccession()) != proteins.end())
+      {
+        filtered_protein_hits.push_back(identification.getHits()[i]);
+      }
+    }
+
+    filtered_identification.setHits(filtered_protein_hits);
+    filtered_identification.assignRanks();
+  }
+
   void IDFilter::filterIdentificationsByExclusionPeptides(const PeptideIdentification& identification,
                                                           const set<String>& peptides,
                                                           bool ignore_modifications,

@@ -309,7 +309,7 @@ public:
 
       // parameters for Gaussian averaging
       double fwhm(param_.getValue("average_gaussian:rt_FWHM"));
-      double factor = -4 * log(2) / (fwhm * fwhm); // numerical factor within Gaussian
+      double factor = -4 * log(2.0) / (fwhm * fwhm); // numerical factor within Gaussian
       double cutoff(param_.getValue("average_gaussian:cutoff"));
 
       // parameters for Top-Hat averaging
@@ -693,7 +693,7 @@ protected:
           SplineSpectrum::Navigator nav = spline.getNavigator();
 
           // loop over m/z positions
-          for (int i = 0; i < mz_positions.size(); ++i)
+          for (Size i = 0; i < mz_positions.size(); ++i)
           {
             if ((spline.getMzMin() < mz_positions[i]) && (mz_positions[i] < spline.getMzMax()))
             {
@@ -708,7 +708,7 @@ protected:
         //average_spec.setMSLevel(ms_level);
 
         // refill spectrum
-        for (int i = 0; i < mz_positions.size(); ++i)
+        for (Size i = 0; i < mz_positions.size(); ++i)
         {
           typename MapType::PeakType peak;
           peak.setMZ(mz_positions[i]);
@@ -824,7 +824,7 @@ protected:
         //average_spec.setMSLevel(ms_level);
 
         // refill spectrum
-        for (int i = 0; i < mz_new.size(); ++i)
+        for (Size i = 0; i < mz_new.size(); ++i)
         {
           typename MapType::PeakType peak;
           peak.setMZ(mz_new[i]);

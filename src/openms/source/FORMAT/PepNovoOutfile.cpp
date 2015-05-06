@@ -43,6 +43,7 @@
 #include <iostream>
 #include <fstream>
 #include <limits>
+#include <string>
 
 using namespace std;
 
@@ -72,7 +73,7 @@ namespace OpenMS
 
   void
   PepNovoOutfile::load(
-    const string & result_filename,
+    const std::string & result_filename,
     vector<PeptideIdentification> & peptide_identifications,
     ProteinIdentification & protein_identification,
     const double & score_threshold,

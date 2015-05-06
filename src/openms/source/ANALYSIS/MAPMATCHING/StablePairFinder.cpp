@@ -46,7 +46,7 @@
 #else
 #define V_(bla) {};
 #endif
-#define VV_(bla) V_("" # bla ": " << bla);
+// #define VV_(bla) V_("" # bla ": " << bla);
 
 using namespace std;
 

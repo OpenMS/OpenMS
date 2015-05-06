@@ -1030,7 +1030,10 @@ public:
       if (knock_out_)
       {
         // With knock-outs present, the correct labels can only be determined during ID mapping.
-        desc.label = "";
+        // For now, we simply store a unique identifier.
+        std::stringstream stream;
+        stream << "label " << i;
+        desc.label = stream.str();
       }
       else
       {

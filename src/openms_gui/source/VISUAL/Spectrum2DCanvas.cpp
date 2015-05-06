@@ -1475,43 +1475,41 @@ namespace OpenMS
   void Spectrum2DCanvas::horizontalScrollBarChange(int value)
   {
     AreaType new_area = visible_area_;
-    if (isMzToXAxis())
+    if (!isMzToXAxis())
     {
-      new_area.setMinX(value);
-      new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMinY(value);
+      new_area.setMaxY(value + (visible_area_.height()));
     }
     else
     {
-      new_area.setMinY(value);
-      new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMinX(value);
+      new_area.setMaxX(value + (visible_area_.width()));
     }
+    //cout << __PRETTY_FUNCTION__ << endl;
+    changeVisibleArea_(new_area);
+    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::verticalScrollBarChange(int value)
   {
+    // invert 'value' (since the VERTICAL(!) scrollbar's range is negative -- see SpectrumWidget::updateVScrollbar())
+    // this is independent on isMzToXAxis()!
+    value *= -1;
+    
     AreaType new_area = visible_area_;
     if (!isMzToXAxis())
     {
       new_area.setMinX(value);
-      new_area.setMaxX(value + (visible_area_.maxX() - visible_area_.minX()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMaxX(value + visible_area_.width());
     }
     else
     {
       new_area.setMinY(value);
-      new_area.setMaxY(value + (visible_area_.maxY() - visible_area_.minY()));
-      //cout << __PRETTY_FUNCTION__ << endl;
-      changeVisibleArea_(new_area);
-      emit layerZoomChanged(this);
+      new_area.setMaxY(value + (visible_area_.height()));
     }
+    //cout << __PRETTY_FUNCTION__ << endl;
+    changeVisibleArea_(new_area);
+    emit layerZoomChanged(this);
   }
 
   void Spectrum2DCanvas::paintEvent(QPaintEvent * e)
@@ -1974,15 +1972,35 @@ namespace OpenMS
       if (selected_peak_.isValid())
       {
         String status;
-        if (getCurrentLayer().type == LayerData::DT_FEATURE)
+        if (getCurrentLayer().type == LayerData::DT_FEATURE || getCurrentLayer().type == LayerData::DT_CONSENSUS)
         {
           //add meta info
-          const FeatureMapType::FeatureType & f = selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
+          const BaseFeature* f;
+          if (getCurrentLayer().type == LayerData::DT_FEATURE)
+          {
+            f = &selected_peak_.getFeature(*getCurrentLayer().getFeatureMap());
+          }
+          else
+          {
+            f = &selected_peak_.getFeature(*getCurrentLayer().getConsensusMap());
+          }
           std::vector<String> keys;
-          f.getKeys(keys);
+          f->getKeys(keys);
           for (Size m = 0; m < keys.size(); ++m)
           {
-            status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
+            status += " " + keys[m] + ": ";
+            DataValue dv = f->getMetaValue(keys[m]);
+            if (dv.valueType() == DataValue::DOUBLE_VALUE)
+            { // use less precision for large numbers, for better readability
+              int precision(2);
+              if ((double)dv < 10) precision = 5;
+              // ... and add 1k separators, e.g. '540,321.99'
+              status += QLocale::c().toString((double)dv, 'f', precision);
+            }
+            else
+            {
+              status += (String)dv;
+            }
           }
         }
         else if (getCurrentLayer().type == LayerData::DT_PEAK)
@@ -2011,23 +2029,14 @@ namespace OpenMS
             }
           }
         }
-        else if (getCurrentLayer().type == LayerData::DT_CONSENSUS)      // ConsensusFeature
-        {
-          //add meta info
-          const ConsensusFeature & f = selected_peak_.getFeature(*getCurrentLayer().getConsensusMap());
-          std::vector<String> keys;
-          f.getKeys(keys);
-          for (Size m = 0; m < keys.size(); ++m)
-          {
-            status = status + " " + keys[m] + ": " + (String)(f.getMetaValue(keys[m]));
-          }
-        }
         else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM) // chromatogram
         {
           //TODO CHROM
         }
         if (status != "")
+        {
           emit sendStatusMessage(status, 0);
+        }
       }
     }
     else if (action_mode_ == AM_ZOOM)

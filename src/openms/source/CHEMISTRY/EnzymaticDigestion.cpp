@@ -43,8 +43,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  const string EnzymaticDigestion::NamesOfEnzymes[] = {"Trypsin"};
-  const string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
+  const std::string EnzymaticDigestion::NamesOfEnzymes[] = {"Trypsin", "Trypsin/P"};
+  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
 
 
   EnzymaticDigestion::EnzymaticDigestion() :
@@ -208,7 +208,18 @@ namespace OpenMS
         return (*iterator == 'R' || *iterator == 'K') &&
                ((iterator + 1) == protein.end() || *(iterator + 1) != 'P');
       }
-
+      break;
+    case ENZYME_TRYPSIN_P:
+      if (use_log_model_)
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("EnzymaticDigestion: enzyme '") + NamesOfEnzymes[ENZYME_TRYPSIN_P] + " does not support logModel!");
+      }
+      else
+      {
+        // R or K at the end,  presence of P does not matter
+        return (*iterator == 'R' || *iterator == 'K');
+      }
+      break;
     default:
       return false;
     }

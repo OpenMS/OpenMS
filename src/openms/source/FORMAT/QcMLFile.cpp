@@ -42,8 +42,11 @@
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
-
 using namespace std;
+
+// TODO fix all the shadowed "const_iterator qpsit"
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshadow"
 
 namespace OpenMS
 {
@@ -1193,3 +1196,6 @@ namespace OpenMS
   }
 
 }
+
+#pragma clang diagnostic pop
+
