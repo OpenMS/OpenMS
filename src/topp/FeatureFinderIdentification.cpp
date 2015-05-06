@@ -239,13 +239,23 @@ protected:
   // classification performance for different SVM param. combinations (C/gamma):
   typedef vector<vector<double> > SVMPerformance;
 
-  struct FeatureFilter
+  // predicate for filtering features by overall quality:
+  struct FeatureFilterQuality
   {
     bool operator()(const Feature& feature)
     {
       return feature.getOverallQuality() == 0.0;
     }
-  } feature_filter_; // predicate for filtering features by overall quality
+  } feature_filter_quality_;
+
+  // predicate for filtering features by assigned peptides:
+  struct FeatureFilterPeptides
+  {
+    bool operator()(const Feature& feature)
+    {
+      return feature.getPeptideIdentifications().empty();
+    }
+  } feature_filter_peptides_;
 
   PeakMap ms_data_; // input LC-MS data
   PeakMap chrom_data_; // accumulated chromatograms (XICs)
@@ -1509,49 +1519,58 @@ protected:
   }
 
 
-  void filterFeatures_(FeatureMap& features)
+  void filterFeatures_(FeatureMap& features, bool classified)
   {
     if (features.empty()) return;
     
-    // Remove features with class "false_pos." or "ambiguous", keep "true_pos.";
-    // for class "unknown", for every assay (meta value "PeptideRef"), keep the
-    // feature with "predicted_class" 1 and highest "predicted_probability"
-    // (= overall quality). We mark features for removal by setting their
-    // overall quality to zero.
-    FeatureMap::Iterator best_it = features.begin();
-    double best_quality = 0.0;
-    String previous_ref = features[0].getMetaValue("PeptideRef");
-    for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
+    if (classified)
     {
-      // features from the same assay (same "PeptideRef") appear consecutively;
-      // if this is a new assay, finalize the previous one:
-      const String& peptide_ref = it->getMetaValue("PeptideRef");
-      if (peptide_ref != previous_ref)
+      // Remove features with class "false_pos." or "ambiguous", keep
+      // "true_pos."; for class "unknown", for every assay (meta value
+      // "PeptideRef"), keep the feature with "predicted_class" 1 and highest
+      // "predicted_probability" (= overall quality). We mark features for
+      // removal by setting their overall quality to zero.
+      FeatureMap::Iterator best_it = features.begin();
+      double best_quality = 0.0;
+      String previous_ref = features[0].getMetaValue("PeptideRef");
+      for (FeatureMap::Iterator it = features.begin(); it != features.end();
+           ++it)
       {
-        if (best_quality > 0.0) best_it->setOverallQuality(best_quality);
-        best_quality = 0.0;
-        previous_ref = peptide_ref;
+        // features from same assay (same "PeptideRef") appear consecutively;
+        // if this is a new assay, finalize the previous one:
+        const String& peptide_ref = it->getMetaValue("PeptideRef");
+        if (peptide_ref != previous_ref)
+        {
+          if (best_quality > 0.0) best_it->setOverallQuality(best_quality);
+          best_quality = 0.0;
+          previous_ref = peptide_ref;
+        }
+
+        // update qualities:
+        const String& feature_class = it->getMetaValue("feature_class");
+        if ((feature_class == "unknown") &&
+            (Int(it->getMetaValue("predicted_class")) > 0) &&
+            (it->getOverallQuality() > best_quality))
+        {
+          best_it = it;
+          best_quality = it->getOverallQuality();
+        }
+        if (feature_class != "true_positive") it->setOverallQuality(0.0);
+      }
+      // set of features from the last assay:
+      if (best_quality > 0.0)
+      {
+        best_it->setOverallQuality(best_quality);
       }
 
-      // update qualities:
-      const String& feature_class = it->getMetaValue("feature_class");
-      if ((feature_class == "unknown") &&
-          (Int(it->getMetaValue("predicted_class")) > 0) &&
-          (it->getOverallQuality() > best_quality))
-      {
-        best_it = it;
-        best_quality = it->getOverallQuality();
-      }
-      if (feature_class != "true_positive") it->setOverallQuality(0.0);
+      features.erase(remove_if(features.begin(), features.end(),
+                               feature_filter_quality_), features.end());
     }
-    // set of features from the last assay:
-    if (best_quality > 0.0)
+    else
     {
-      best_it->setOverallQuality(best_quality);
+      features.erase(remove_if(features.begin(), features.end(),
+                               feature_filter_peptides_), features.end());
     }
-
-    features.erase(remove_if(features.begin(), features.end(), feature_filter_),
-                   features.end());
   }
   
 
@@ -1701,7 +1720,7 @@ protected:
     }
 
     features.setProteinIdentifications(proteins);
-    // add external IDs:
+    // add external IDs (if any):
     features.getProteinIdentifications().insert(
       features.getProteinIdentifications().end(), proteins_ext.begin(),
       proteins_ext.end());
@@ -1712,13 +1731,16 @@ protected:
     features.ensureUniqueId();
     addDataProcessing_(features,
                        getProcessingInfo_(DataProcessing::QUANTITATION));
-    classifyFeatures_(features);
+
+    // don't do SVM stuff unless we have external data to apply the model to:
+    if (!id_ext.empty()) classifyFeatures_(features);
+
     if (!candidates_out.empty()) // store feature candidates
     {
       FeatureXMLFile().store(candidates_out, features);
     }
 
-    filterFeatures_(features);
+    filterFeatures_(features, !id_ext.empty());
     LOG_INFO << features.size() << " features left after filtering." << endl;
     
     if (elution_model_ != "none")
