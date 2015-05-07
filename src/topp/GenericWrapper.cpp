@@ -212,7 +212,7 @@ protected:
   };
 
 
-  void createFragment_(String & fragment, const Param & param, const std::map<int, string>& optional_mappings = std::map<int, string>())
+  void createFragment_(String & fragment, const Param & param, const std::map<int, String>& optional_mappings = std::map<int, String>())
   {
 
     //std::cerr << "FRAGMENT: " << fragment << "\n\n";
@@ -248,7 +248,7 @@ protected:
 
     // mapping replace> e.g.: %2
     // do it reverse, since %10 should precede %1
-    for (std::map<int, string>::const_reverse_iterator it = optional_mappings.rbegin(); it != optional_mappings.rend(); ++it)
+    for (std::map<int, String>::const_reverse_iterator it = optional_mappings.rbegin(); it != optional_mappings.rend(); ++it)
     {
       String m = String("%") + it->first;
       if (fragment.hasSubstring(m)) {
@@ -445,7 +445,7 @@ protected:
     }
 
     ///// construct the command line:
-    std::map<int, string> mappings;  // remember the values for each mapping (for file_post substitution later on)
+    std::map<int, String> mappings;  // remember the values for each mapping (for file_post substitution later on)
     // go through mappings (reverse because replacing %10 must come before %1):
     for (std::map<Int, String>::reverse_iterator it = tde_.tr_table.mapping.rbegin(); it != tde_.tr_table.mapping.rend(); ++it)
     {
