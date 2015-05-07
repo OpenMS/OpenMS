@@ -772,7 +772,7 @@ private:
           double current_peptide_mass_without_RNA = candidate.getMonoWeight();
 
           //create empty theoretical spectrum
-          MSSpectrum<RichPeak1D> theo_spectrum = MSSpectrum<RichPeak1D>();
+          MSSpectrum<RichPeak1D> complete_loss_spectrum = MSSpectrum<RichPeak1D>();
 
           // iterate over all RNA sequences, calculate peptide mass and generate complete loss spectrum only once as this can potentially be reused
           Size rna_mod_index = 0;
@@ -798,10 +798,10 @@ private:
             if (low_it == up_it) continue; // no matching precursor in data
 
             //add peaks for b and y ions with charge 1
-            if (theo_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
+            if (complete_loss_spectrum.empty()) // only create complete loss spectrum once as this is rather costly and need only to be done once per petide
             {
-              spectrum_generator.getSpectrum(theo_spectrum, candidate, 1);
-              theo_spectrum.sortByPosition(); //sort by mz
+              spectrum_generator.getSpectrum(complete_loss_spectrum, candidate, 1);
+              complete_loss_spectrum.sortByPosition(); //sort by mz
             }
 
             for (; low_it != up_it; ++low_it)
@@ -809,7 +809,7 @@ private:
               const Size& scan_index = low_it->second;
               const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
 
-              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
 
               // no good hit
               if (score < 1.0)
