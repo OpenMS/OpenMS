@@ -692,7 +692,7 @@ namespace OpenMS
     return refine_;
   }
 
-  bool XTandemInfile::isNoiseSuppression() const
+  bool XTandemInfile::getNoiseSuppression() const
   {
     return noise_suppression_;
   }

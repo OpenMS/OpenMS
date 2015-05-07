@@ -293,15 +293,15 @@ START_SECTION(void setRefine(const bool refine))
   TEST_EQUAL(file.isRefining()==false, true)
 END_SECTION
 
-START_SECTION(bool isNoiseSuppression() const )
+START_SECTION(bool getNoiseSuppression() const )
   XTandemInfile file;
-  TEST_EQUAL(file.isNoiseSuppression()==false, true)
+  TEST_EQUAL(file.getNoiseSuppression()==false, true)
 END_SECTION
 
 START_SECTION(void setNoiseSuppression(const bool noise_suppression))
   XTandemInfile file;
   file.setNoiseSuppression(false);
-  TEST_EQUAL(file.isNoiseSuppression()==false, true)
+  TEST_EQUAL(file.getNoiseSuppression()==false, true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

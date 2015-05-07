@@ -350,7 +350,7 @@ protected:
     infile.setCleavageSite(getStringOption_("cleavage_site"));
     infile.setNumberOfMissedCleavages(getIntOption_("missed_cleavages"));
     infile.setRefine(getFlag_("refinement"));
-    infile.setRefine(getFlag_("use_noise_suppression"));
+    infile.setNoiseSuppression(getFlag_("use_noise_suppression"));
     infile.setSemiCleavage(getFlag_("semi_cleavage"));
     bool allow_isotope_error = getStringOption_("allow_isotope_error") == "yes" ? true : false;
     infile.setAllowIsotopeError(allow_isotope_error);

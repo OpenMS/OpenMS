@@ -192,7 +192,7 @@ public:
     bool isRefining() const;
 
     /// get state of noise suppression
-    bool isNoiseSuppression() const;
+    bool getNoiseSuppression() const;
 
     /// set state of semi cleavage
     void setSemiCleavage(const bool semi_cleavage);
