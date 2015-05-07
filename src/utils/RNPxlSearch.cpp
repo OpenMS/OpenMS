@@ -552,6 +552,49 @@ private:
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
   }
 
+  // so far consider that at least one U is always involved in the cross-link. TODO: configure U from target_nucleotides in param
+  map<String, EmpiricalFormula> getPossibleAdducts_(const String& RNA_precursor_adduct)
+  {
+    static EmpiricalFormula U = EmpiricalFormula("C9H13N2O9P");
+    static EmpiricalFormula C3O = EmpiricalFormula("C3O");
+    static EmpiricalFormula U_prime = EmpiricalFormula("C4H4N2O2");
+    static EmpiricalFormula U_prime_water_loss = U_prime - EmpiricalFormula("H2O");
+    static EmpiricalFormula U_H3PO4_loss = U - EmpiricalFormula("H3PO4");
+    static EmpiricalFormula U_HPO3_loss = U - EmpiricalFormula("HPO3");
+    static EmpiricalFormula U_water_loss = U - EmpiricalFormula("H2O");
+
+    map<String, EmpiricalFormula> possible_adducts;    
+    possible_adducts["C3O"] = C3O;
+    possible_adducts["U'-H2O"] = U_prime_water_loss;
+    possible_adducts["U'"] = U_prime;
+    possible_adducts["U-H3PO4"] = U_H3PO4_loss;
+
+    // no more losses possible (afawk)
+    if (RNA_precursor_adduct.hasSubstring("-H3PO4"))
+    {
+      return possible_adducts;
+    }
+
+    if (RNA_precursor_adduct.hasSubstring("-H2O")) // precursor has RNA with water loss
+    {
+      if (!RNA_precursor_adduct.hasSubstring("-HPO3")) // no loss of HPO3? then we can loose another water
+      {
+        possible_adducts["U-H2O"] = U_water_loss;
+      }
+    }
+    else // no water loss on precursor RNA
+    {
+      possible_adducts["U-HPO3"] = U_HPO3_loss; // can still loose HPO3
+      if (!RNA_precursor_adduct.hasSubstring("-HPO3"))
+      {
+        possible_adducts["U-H2O"] = U_water_loss;
+        possible_adducts["U"] = U;
+      }
+    }
+
+    return possible_adducts;
+  }
+
   ExitCodes main_(int, const char**)
   {
     ProgressLogger progresslogger;
@@ -804,15 +847,27 @@ private:
               complete_loss_spectrum.sortByPosition(); //sort by mz
             }
 
+            // add complete loss spectrum (TODO: add a smart pointer instead of copying it all the time)
+            vector<RichPeakSpectrum> theoretical_spectra;
+            theoretical_spectra.push_back(complete_loss_spectrum);
+
+            // for localization consider partial loss spectra
+            /*
+            if (score_partial_losses_)
+            {
+                             
+            }
+            */
+
             for (; low_it != up_it; ++low_it)
             {
               const Size& scan_index = low_it->second;
-              const MSSpectrum<Peak1D>& exp_spectrum = spectra[scan_index];
+              const PeakSpectrum& exp_spectrum = spectra[scan_index];
 
-              double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, complete_loss_spectrum);
+              HyperScore::IndexScorePair best_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
 
               // no good hit
-              if (score < 1.0)
+              if (best_score.second < 1.0)
               {
                 continue;
               }
@@ -822,7 +877,7 @@ private:
               ah.sequence.begin = cit->first;
               ah.sequence.end = cit->second;
               ah.peptide_mod_index = mod_pep_idx;
-              ah.score = score;
+              ah.score = best_score.second;
               ah.rna_mod_index = rna_mod_index;
 #ifdef _OPENMP
 #pragma omp critical (annotated_hits_access)
