@@ -64,6 +64,7 @@ namespace OpenMS
       defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", ListUtils::create<String>("advanced,output file"));
       defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", ListUtils::create<String>("advanced"));
       defaults_.setValue("incorrectly_assigned", "Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("max_nr_iterations", 1000, "Bounds the number of iterations for the EM algorithm when convergence is slow.", ListUtils::create<String>("advanced"));
       defaults_.setValidStrings("incorrectly_assigned", ListUtils::create<String>("Gumbel,Gauss"));
       defaultsToParam_();
       calc_incorrect_ = &PosteriorErrorProbabilityModel::getGumbel;
@@ -151,6 +152,9 @@ namespace OpenMS
       // Estimate Parameters - EM algorithm
       //-------------------------------------------------------------
       bool stop_em_init = false;
+      Int max_itns = param_.getValue("max_nr_iterations");
+      int delta = 6;
+      int itns = 0;
       do
       {
         //E-STEP
@@ -190,13 +194,18 @@ namespace OpenMS
         negative_prior_ = sum_posterior / x_scores.size();
 
         double new_maxlike(computeMaxLikelihood(incorrect_density, correct_density));
-        if (boost::math::isnan(new_maxlike - maxlike))
+        if (boost::math::isnan(new_maxlike - maxlike) || new_maxlike < maxlike)
         {
           return false;
           //throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");
         }
-        if (fabs(new_maxlike - maxlike) < 0.001)
+        if ((new_maxlike - maxlike) < pow(10,-delta) || itns >= max_itns)
         {
+          if(itns >= max_itns)
+          {
+            LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
+            LOG_WARN << "Algorithm returns probabilites for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
+          }
           stop_em_init = true;
           sum_posterior = sum_post(incorrect_density, correct_density);
           negative_prior_ = sum_posterior / x_scores.size();
@@ -213,6 +222,7 @@ namespace OpenMS
         }
         //update maximum likelihood
         maxlike = new_maxlike;
+        ++itns;
       }
       while (!stop_em_init);
       //-------------------------------------------------------------
