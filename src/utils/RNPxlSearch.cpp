@@ -552,7 +552,7 @@ private:
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
   }
 
-  // so far consider that at least one U is always involved in the cross-link. TODO: configure U from target_nucleotides in param
+  // so far consider that at least one U is always involved in the cross-link. TODO: configure U from target_nucleotides in param, make this more efficient by not recalculating it
   map<String, EmpiricalFormula> getPossibleAdducts_(const String& RNA_precursor_adduct)
   {
     static EmpiricalFormula U = EmpiricalFormula("C9H13N2O9P");

@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
 
 using namespace std;
 
@@ -157,13 +158,13 @@ namespace OpenMS
     bool add_abundant_immonium_ions(param_.getValue("add_abundant_immonium_ions").toBool());
     if (add_abundant_immonium_ions)
     {
-      addAbundantImmoniumIons(spec);
+      addAbundantImmoniumIons(spec, peptide);
     }
 
     return;
   }
 
-  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons(RichPeakSpectrum & spec) const
+  void TheoreticalSpectrumGenerator::addAbundantImmoniumIons(RichPeakSpectrum & spec, const AASequence& peptide) const
   {
     bool add_metainfo(param_.getValue("add_metainfo").toBool());
 
@@ -172,55 +173,96 @@ namespace OpenMS
     // just in case someone wants the ion names;
     p.metaRegistry().registerName("IonName", "Name of the ion");
 
-    // Histidin immonium ion
-    p.setMZ(110.0718);
-    p.setIntensity(1.0);
-    if (add_metainfo)
+    // Histidin immonium ion (C5H8N3)
+    if (peptide.has(*ResidueDB::getInstance()->getResidue('H')))
     {
-      String name("iH");
-      p.setMetaValue("IonName", name);
+      p.setMZ(110.0718);
+      p.setIntensity(1.0);
+      if (add_metainfo)
+      {
+        String name("iH");
+        p.setMetaValue("IonName", name);
+      }    
+      spec.push_back(p);
     }
-    spec.push_back(p);
 
-    // Phenylalanin immonium ion
-    p.setMZ(120.0813);
-    p.setIntensity(1.0);
-    if (add_metainfo)
+    // Phenylalanin immonium ion (C8H10N)
+    if (peptide.has(*ResidueDB::getInstance()->getResidue('F')))
     {
-      String name("iF");
-      p.setMetaValue("IonName", name);
+      p.setMZ(120.0813);
+      p.setIntensity(1.0);
+      if (add_metainfo)
+      {
+        String name("iF");
+        p.setMetaValue("IonName", name);
+      }
+      spec.push_back(p);
     }
-    spec.push_back(p);
 
-    // Tyrosine immonium ion
-    p.setMZ(136.0762);
-    p.setIntensity(1.0);
-    if (add_metainfo)
+    // Tyrosine immonium ion (C8H10NO)
+    if (peptide.has(*ResidueDB::getInstance()->getResidue('Y')))
     {
-      String name("iY");
-      p.setMetaValue("IonName", name);
+      p.setMZ(136.0762);
+      p.setIntensity(1.0);
+      if (add_metainfo)
+      {
+        String name("iY");
+        p.setMetaValue("IonName", name);
+      }
+      spec.push_back(p);
     }
-    spec.push_back(p);
 
     // Iso/Leucin immonium ion (same mass for immonium ion)
-    p.setMZ(86.09698);
-    p.setIntensity(1.0);
-    if (add_metainfo)
+    if (peptide.has(*ResidueDB::getInstance()->getResidue('L')))
     {
-      String name("iL/I");
-      p.setMetaValue("IonName", name);
+      p.setMZ(86.09698);
+      p.setIntensity(1.0);
+      if (add_metainfo)
+      {
+        String name("iL/I");
+        p.setMetaValue("IonName", name);
+      }
+      spec.push_back(p);
     }
-    spec.push_back(p);
 
     // Tryptophan immonium ion
-    p.setMZ(159.0922);
-    p.setIntensity(1.0);
-    if (add_metainfo)
+    if (peptide.has(*ResidueDB::getInstance()->getResidue('W')))
     {
-      String name("iW");
-      p.setMetaValue("IonName", name);
+      p.setMZ(159.0922);
+      p.setIntensity(1.0);
+      if (add_metainfo)
+      {
+        String name("iW");
+        p.setMetaValue("IonName", name);
+      }
+      spec.push_back(p);
     }
-    spec.push_back(p);
+
+    // Cysteine (C2H6NS)
+    if (peptide.has(*ResidueDB::getInstance()->getResidue('C')))
+    {
+      p.setMZ(76.0221);
+      p.setIntensity(1.0);
+      if (add_metainfo)
+      {
+        String name("iC");
+        p.setMetaValue("IonName", name);
+      }
+      spec.push_back(p);
+    }
+
+    // Proline immonium ion (C4H8N)
+    if (peptide.has(*ResidueDB::getInstance()->getResidue('P')))
+    {
+      p.setMZ(70.0656);
+      p.setIntensity(1.0);
+      if (add_metainfo)
+      {
+        String name("iP");
+        p.setMetaValue("IonName", name);
+      }
+      spec.push_back(p);
+    }
 
     spec.sortByPosition();
   }

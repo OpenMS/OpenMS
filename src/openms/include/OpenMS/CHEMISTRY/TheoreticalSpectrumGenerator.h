@@ -83,8 +83,8 @@ public:
     /// adds the precursor peaks to the spectrum
     virtual void addPrecursorPeaks(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
 
-    /// Adds the common, most abundant immonium ions to the theoretical spectra
-    void addAbundantImmoniumIons(RichPeakSpectrum & spec) const;
+    /// Adds the common, most abundant immonium ions to the theoretical spectra if the residue is contained in the peptide sequence
+    void addAbundantImmoniumIons(RichPeakSpectrum & spec, const AASequence& peptide) const;
     //@}
   };
 }

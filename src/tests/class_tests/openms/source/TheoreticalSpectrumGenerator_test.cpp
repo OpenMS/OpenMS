@@ -112,13 +112,23 @@ END_SECTION
 
 START_SECTION(void addAbundantImmoniumIons(RichPeakSpectrum& spec))
   RichPeakSpectrum spec;
-  ptr->addAbundantImmoniumIons(spec);
-  TEST_EQUAL(spec.size(), 5)
-  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 86.09698)
-  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 110.0718)
-  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 120.0813)
-  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 136.0762)
-  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 159.0922)
+  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("HFYLWCP"));
+  TEST_EQUAL(spec.size(), 7)
+  TEST_REAL_SIMILAR(spec[0].getPosition()[0], 70.0656)
+  TEST_REAL_SIMILAR(spec[1].getPosition()[0], 76.0221)
+  TEST_REAL_SIMILAR(spec[2].getPosition()[0], 86.09698)
+  TEST_REAL_SIMILAR(spec[3].getPosition()[0], 110.0718)
+  TEST_REAL_SIMILAR(spec[4].getPosition()[0], 120.0813)
+  TEST_REAL_SIMILAR(spec[5].getPosition()[0], 136.0762)
+  TEST_REAL_SIMILAR(spec[6].getPosition()[0], 159.0922)
+
+  spec.clear(true);
+  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("H"));
+  TEST_EQUAL(spec.size(), 1)
+
+  spec.clear(true);
+  ptr->addAbundantImmoniumIons(spec, AASequence::fromString("A"));
+  TEST_EQUAL(spec.size(), 0)
 END_SECTION
 
 
