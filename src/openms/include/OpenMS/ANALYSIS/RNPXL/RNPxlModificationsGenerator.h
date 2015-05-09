@@ -42,6 +42,8 @@
 
 namespace OpenMS
 {  
+  class AASequence;
+
   struct OPENMS_DLLAPI RNPxlModificationMassesResult
   {
     std::map<String, double> mod_masses; // empirical formula -> mass
@@ -56,6 +58,7 @@ namespace OpenMS
     private:
       static bool notInSeq(String res_seq, String query);
       static void generateTargetSequences(const String& res_seq, Size pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
+      static std::vector<ResidueModification> getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence);
     };
 }
 

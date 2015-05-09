@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+#include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
 using namespace std;
 
@@ -497,5 +500,109 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
     target_sequences.push_back(res_seq);
   }
 }
+
+  vector<ResidueModification> RNPxlModificationsGenerator::getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence)
+  {
+    // determine (unmodified) amino acids present in sequence (as e.g. modified AA might not cross-link) 
+    set<unsigned char> unmodified_aa_is_present;
+
+    // all keys present in the map have at least one AA in the sequence
+    for (AASequence::ConstIterator mit = sequence.begin(); mit != sequence.end(); ++mit)
+    {
+      if (!mit->isModified())
+      {
+        unmodified_aa_is_present.insert(mit->getOneLetterCode()[0]);
+      }
+    }
+
+    vector<String> possible_modifications;
+    
+    for (set<unsigned char>::const_iterator mit = unmodified_aa_is_present.begin(); mit != unmodified_aa_is_present.end(); ++mit)
+    {
+      const String site = String(" (") + *mit + ")";
+      possible_modifications.push_back("RNA:C3O" + site);
+      possible_modifications.push_back("RNA:U_prime-H2O" + site);
+      possible_modifications.push_back("RNA:U_prime" + site);
+      possible_modifications.push_back("RNA:U-H3PO4" + site);
+
+      // no more losses possible (afawk)
+      if (RNA_precursor_adduct.hasSubstring("-H3PO4"))
+      {
+        break;
+      }
+
+      if (RNA_precursor_adduct.hasSubstring("-H2O")) // precursor has RNA with water loss
+      {
+        if (!RNA_precursor_adduct.hasSubstring("-HPO3")) // no loss of HPO3? then we can loose another water
+        {
+          possible_modifications.push_back("RNA:U-H2O" + site);
+        }
+      }
+      else // no water loss on precursor RNA
+      {
+        possible_modifications.push_back("RNA:U-HPO3"); // can still loose HPO3
+        if (!RNA_precursor_adduct.hasSubstring("-HPO3"))
+        {
+          possible_modifications.push_back("RNA:U-H2O" + site);
+          possible_modifications.push_back("RNA:U" + site);
+        }
+      }
+    }
+
+    // TODO: there might be a locking issue as the residue needs to be registerd in ResidueDB (see getModifications_ in RNPxlSearch)
+    vector<ResidueModification> modifications;
+    for (vector<String>::const_iterator sit = possible_modifications.begin(); sit != possible_modifications.end(); ++sit)
+    {
+      const String& modification = *sit;
+      ResidueModification rm = ModificationsDB::getInstance()->getModification(modification);
+      modifications.push_back(rm);
+    }
+    return modifications;
+  }
+
+/*
+  // so far consider that at least one U is always involved in the cross-link. TODO: configure U from target_nucleotides in param, make this more efficient by not recalculating it
+  map<String, EmpiricalFormula> RNPxlModificationsGenerator::getRNAFragmentAdducts(const String& RNA_precursor_adduct)
+  {
+    static EmpiricalFormula U = EmpiricalFormula("C9H13N2O9P");
+    static EmpiricalFormula C3O = EmpiricalFormula("C3O");
+    static EmpiricalFormula U_prime = EmpiricalFormula("C4H4N2O2");
+    static EmpiricalFormula U_prime_water_loss = U_prime - EmpiricalFormula("H2O");
+    static EmpiricalFormula U_H3PO4_loss = U - EmpiricalFormula("H3PO4");
+    static EmpiricalFormula U_HPO3_loss = U - EmpiricalFormula("HPO3");
+    static EmpiricalFormula U_water_loss = U - EmpiricalFormula("H2O");
+
+    map<String, EmpiricalFormula> possible_adducts;    
+    possible_adducts["C3O"] = C3O;
+    possible_adducts["U'-H2O"] = U_prime_water_loss;
+    possible_adducts["U'"] = U_prime;
+    possible_adducts["U-H3PO4"] = U_H3PO4_loss;
+
+    // no more losses possible (afawk)
+    if (RNA_precursor_adduct.hasSubstring("-H3PO4"))
+    {
+      return possible_adducts;
+    }
+
+    if (RNA_precursor_adduct.hasSubstring("-H2O")) // precursor has RNA with water loss
+    {
+      if (!RNA_precursor_adduct.hasSubstring("-HPO3")) // no loss of HPO3? then we can loose another water
+      {
+        possible_adducts["U-H2O"] = U_water_loss;
+      }
+    }
+    else // no water loss on precursor RNA
+    {
+      possible_adducts["U-HPO3"] = U_HPO3_loss; // can still loose HPO3
+      if (!RNA_precursor_adduct.hasSubstring("-HPO3"))
+      {
+        possible_adducts["U-H2O"] = U_water_loss;
+        possible_adducts["U"] = U;
+      }
+    }
+
+    return possible_adducts;
+  }
+*/
 }
 
