@@ -217,6 +217,7 @@ protected:
 
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
     registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.");
+    registerFlag_("RNPxl:localization", "Use this flag to perform crosslink localization.");
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
@@ -617,6 +618,8 @@ private:
 
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
 
+    bool localization = getFlag_("RNPxl:localization");
+
     RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_nucleotide_length);
     mm.mod_masses[""] = 0; // insert "null" modification otherwise unmodified peptide will not be searched
     mm.mod_combinations[""].insert("none");
@@ -810,12 +813,26 @@ private:
             theoretical_spectra.push_back(complete_loss_spectrum);
 
             // for localization consider partial loss spectra
-            /*
-            if (score_partial_losses_)
+            if (localization)
             {
-                             
+              // determine current precursor RNA adduct
+              std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
+              std::advance(mod_combinations_it, rna_mod_index);
+              String precursor_rna_adduct = *mod_combinations_it->second.begin();
+
+              // get fragment shifts that can occur given the RNA precursor adduct and the given sequence
+              vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, candidate);           
+              vector<AASequence> all_loss_peptides;
+              // generate all RNA fragment modified sequences (already modified (e.g. Oxidation) residues are skipped. The unmodified one is not included (false) as it was already scored) 
+              ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), candidate, 1, all_loss_peptides, false);
+              for (vector<AASequence>::const_iterator it = all_loss_peptides.begin(); it != all_loss_peptides.end(); ++it)
+              {
+                RichPeakSpectrum partial_loss_spectrum;
+                spectrum_generator.getSpectrum(partial_loss_spectrum, *it, 1);
+                partial_loss_spectrum.sortByPosition();
+                theoretical_spectra.push_back(partial_loss_spectrum);
+              }
             }
-            */
 
             for (; low_it != up_it; ++low_it)
             {
@@ -837,6 +854,13 @@ private:
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = best_score.second;
               ah.rna_mod_index = rna_mod_index;
+/*TODO
+             // complete loss spectrum was not the best so we have to save the modification index of the partial loss spectra
+             if (best_score.index != 0)
+             {
+             }
+*/
+      
 #ifdef _OPENMP
 #pragma omp critical (annotated_hits_access)
 #endif
