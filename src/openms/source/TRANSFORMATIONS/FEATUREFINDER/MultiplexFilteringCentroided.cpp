@@ -126,6 +126,12 @@ namespace OpenMS
       // iterate over spectra
       for (MSExperiment<Peak1D>::Iterator it_rt_picked = exp_picked_.begin(); it_rt_picked < exp_picked_.end(); ++it_rt_picked)
       {
+        // skip empty spectra
+        if ((*it_rt_picked).size() == 0)
+        {
+          continue;
+        }
+
         setProgress(++progress);
 
         int spectrum = it_rt_picked - exp_picked_.begin(); // index of the spectrum in exp_picked_
