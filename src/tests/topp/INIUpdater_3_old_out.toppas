@@ -173,6 +173,7 @@
       <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
       <ITEM name="x_pos" value="-120" type="double" description="" required="false" advanced="false" />
       <ITEM name="y_pos" value="260" type="double" description="" required="false" advanced="false" />
+      <ITEM name="output_folder_name" value="" type="string" description="" required="false" advanced="false" />
     </NODE>
     <NODE name="4" description="">
       <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
