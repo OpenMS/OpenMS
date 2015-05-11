@@ -75,10 +75,10 @@ public:
     /** @name Acessors
      */
     //@{
-    /// returns a spectrum with b and y peaks
+    /// returns a spectrum with ions as specified in params
     virtual void getSpectrum(RichPeakSpectrum & spec, const AASequence & peptide, Int charge = 1) const;
 
-    /// returns a spectrum with b and y peaks
+    /// returns a spectrum with ions as specified in params
     virtual void getSpectrum(RichPeakSpectrum & spec, const NASequence & nucleotide, Int charge = 1) const;
 
     /// adds peaks to a spectrum of the given ion-type, peptide, charge, and intensity

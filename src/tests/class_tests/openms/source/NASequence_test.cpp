@@ -123,7 +123,7 @@ START_SECTION(NASequence getMonoWeight(Residue::ResidueType type,Int charge)){
     TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::WIon,1),1052.143);
     TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::YIon,1),972.177);
     TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::DIon,1),1034.133);
-    TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, 2),401.054);
+    TEST_REAL_SIMILAR(seq.getMonoWeight(Residue::AminusB, 2),802.117);
 
 
 }

@@ -114,9 +114,8 @@ protected:
         }
         entryformula=entryformula+monophosphate_to_formula[seq[seqlen-1]]-EmpiricalFormula("HPO3"); //Add the mass of the next nucleotide - the condensed water, drop the phosphate
 
-
         db_mapping_file.addLine(String(entryformula.getMonoWeight()) + "\t" + entryformula.toString() + "\t" + "mirna:" + input_file.at(i).identifier);
-        struct_mapping_file.addLine( "mirna:" +String(input_file.at(i).identifier) + "\t" + entryformula.toString() + "\t" + entryformula.toString() + "\t" + entryformula.toString());
+        struct_mapping_file.addLine( "mirna:" +String(input_file.at(i).identifier) + "\t" + seq + "\t" + entryformula.toString() + "\t" + entryformula.toString());
     }
 
     db_mapping_file.store(getStringOption_("out_db_mapping"));

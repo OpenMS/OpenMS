@@ -195,7 +195,7 @@ double NASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
 
 
     double mono_weight(getFormula(type, charge).getMonoWeight()); //the original assumed positive mode
-    return mono_weight/(double)charge;//+getFormula(type,charge).getMonoWeight();
+    return mono_weight;//(double)charge;//+getFormula(type,charge).getMonoWeight();
 
 
     //    if (s_.size() > 0)
