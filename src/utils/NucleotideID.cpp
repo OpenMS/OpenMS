@@ -41,6 +41,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/CHEMISTRY/NASequence.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
 
 // preprocessing and filtering
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
@@ -280,6 +282,158 @@ protected:
             exp[exp_index].sortByPosition();
         }
     }
+
+
+    // This code is based on a function in HiResPrecursorMassCorrector, it returns a set of the indexes of peaks that overlap with the feature in question
+    set<Size> correctToNearestFeature(const Feature& feature, PeakMap & exp, double rt_tolerance_s = 0.0, double mz_tolerance = 0.0, bool ppm = true, bool believe_charge = false, bool all_matching_features = false, int max_trace = 2)
+    {
+      // for each precursor/MS2 find all features that are in the given tolerance window (bounding box + rt tolerances)
+      // if believe_charge is set, only add features that match the precursor charge
+      set<Size> scan_idx_to_feature_idx;
+
+      for (Size scan = 0; scan != exp.size(); ++scan)
+      {
+          // skip non-tandem mass spectra
+          if (exp[scan].getMSLevel() != 2 || exp[scan].getPrecursors().empty()) continue;
+
+          // extract precusor / MS2 information
+          const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
+          const double rt = exp[scan].getRT();
+          const int pc_charge = exp[scan].getPrecursors()[0].getCharge();
+
+          // feature  is incompatible if believe_charge is set and charges don't match
+          if (believe_charge && feature.getCharge() != pc_charge) continue;
+
+          // check if precursor/MS2 position overlap with feature
+          if (overlaps_(feature, rt, pc_mz, rt_tolerance_s))
+          {
+              scan_idx_to_feature_idx.insert(scan);
+          }
+
+      }
+
+      // filter sets to retain compatible features:
+
+      // if there are no candidates just return the empty set
+      if (scan_idx_to_feature_idx.empty())
+      {
+          return scan_idx_to_feature_idx;
+      }
+      // if precursor_mz = feature_mz + n * feature_charge (+/- mz_tolerance) a feature is compatible, others are removed from the set
+      for (set<Size>::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end();)
+      {
+
+
+        const Size scan = *it; //FIXME no idea if this is the correct syntax, check later when not on a plane
+        const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
+        const double mz_tolerance_da = ppm ? pc_mz * mz_tolerance * 1e-6  : mz_tolerance;
+
+        if (!compatible_(feature, pc_mz, mz_tolerance_da, max_trace))
+        {
+          scan_idx_to_feature_idx.erase(it++); //FIXME check on this when off plane.
+        }
+        else
+        {
+            ++it; //FIXME see above
+        }
+      }
+
+
+      if (debug_level_ > 0)
+      {
+        LOG_INFO << "Number of precursors with compatible features: " << scan_idx_to_feature_idx.size() << endl;
+      }
+
+      // If we have no compatible features return the empty set
+      if (scan_idx_to_feature_idx.empty())
+      {
+          return scan_idx_to_feature_idx;
+      }
+
+      if (!all_matching_features)
+      {
+        // keep only nearest features in set
+
+          double min_distance = 1e16;
+          Size best_feature = *scan_idx_to_feature_idx.begin(); //TODO check this
+
+        for (set<Size>::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); ++it)
+        {
+          const Size scan = *it;
+          const double pc_rt = exp[scan].getRT();
+
+            const double current_distance = fabs(pc_rt - feature.getRT());
+            if (current_distance < min_distance)
+            {
+              min_distance = current_distance;
+              best_feature = *it;
+            }
+        }
+
+
+          // delete all except the nearest/best feature
+          // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
+          for (set<Size>::iterator sit = scan_idx_to_feature_idx.begin(); sit != scan_idx_to_feature_idx.end(); )
+          {
+            if (*sit != best_feature)
+            {
+              scan_idx_to_feature_idx.erase(sit++);
+            }
+            else
+            {
+              ++sit;
+            }
+          }
+        }
+
+      return scan_idx_to_feature_idx;
+    }
+
+    bool overlaps_(const Feature& feature, const double rt, const double pc_mz, const double rt_tolerance) const
+    {
+      if (feature.getConvexHulls().empty())
+      {
+        LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
+      }
+
+      // get bounding box and extend by retention time tolerance
+      DBoundingBox<2> box = feature.getConvexHull().getBoundingBox();
+      DPosition<2> extend_rt(rt_tolerance, 0.01);
+      box.setMin(box.minPosition() - extend_rt);
+      box.setMax(box.maxPosition() + extend_rt);
+
+      DPosition<2> pc_pos(rt, pc_mz);
+      if (box.encloses(pc_pos))
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    bool compatible_(const Feature& feature, double pc_mz, double mz_tolerance, Size max_trace_number = 2)
+    {
+      const int f_charge = feature.getCharge();
+      const double f_mz = feature.getMZ();
+      double trace = Math::round((pc_mz - f_mz) / (Constants::C13C12_MASSDIFF_U / f_charge)); // isotopic trace number at precursor mz
+      double mass_error = fabs(pc_mz - (f_mz + trace * (Constants::C13C12_MASSDIFF_U / f_charge)));
+
+      if (mass_error < mz_tolerance && (trace < max_trace_number + 0.01))
+      {
+        if (debug_level_ > 1)
+        {
+          LOG_INFO << "trace: " << (int)(trace + 0.5) << " feature_rt:" << feature.getRT() << " feature_mz:" << feature.getMZ() << " precursor_mz:" << pc_mz << endl;
+        }
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
 
     ExitCodes main_(int, const char**)
     {
