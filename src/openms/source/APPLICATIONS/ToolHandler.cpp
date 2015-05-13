@@ -207,6 +207,7 @@ namespace OpenMS
     util_map["MapAlignmentEvaluation"] = Internal::ToolDescription("MapAlignmentEvaluation", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MetaboliteSpectralMatcher"] = Internal::ToolDescription("MetaboliteSpectralMatcher", util_category);
+    util_map["MetaProSIP"] = Internal::ToolDescription("MetaProSIP", util_category);
     util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);

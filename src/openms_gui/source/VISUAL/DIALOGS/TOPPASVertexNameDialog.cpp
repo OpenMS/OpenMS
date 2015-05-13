@@ -38,9 +38,16 @@
 
 namespace OpenMS
 {
-  TOPPASVertexNameDialog::TOPPASVertexNameDialog(const QString & name)
+  TOPPASVertexNameDialog::TOPPASVertexNameDialog(const QString& name, const QString& input_regex)
   {
     setupUi(this);
+    
+    if (!input_regex.isEmpty())
+    {
+      QRegExp rx(input_regex);
+      QRegExpValidator* v = new QRegExpValidator(rx, line_edit);
+      line_edit->setValidator(v);
+    }
 
     line_edit->setText(name);
     connect(ok_button, SIGNAL(clicked()), this, SLOT(accept()));
@@ -49,6 +56,7 @@ namespace OpenMS
 
   QString TOPPASVertexNameDialog::getName()
   {
+    
     return line_edit->text();
   }
 

@@ -1489,23 +1489,24 @@ def testTOFCalibration():
     assert pyopenms.TOFCalibration().calibrate is not None
     assert pyopenms.TOFCalibration().pickAndCalibrate is not None
 
-@report
-def testConsensusID():
-    """
-    @tests:
-     ConsensusID.__init__
-    """
-    ff = pyopenms.ConsensusID()
-    p = ff.getDefaults()
-    _testParam(p)
+# TODO: re-enable as soon as ConsensusIDAlgorithm classes are wrapped
+# @report
+# def testConsensusID():
+#     """
+#     @tests:
+#      ConsensusID.__init__
+#     """
+#     ff = pyopenms.ConsensusID()
+#     p = ff.getDefaults()
+#     _testParam(p)
 
-    assert pyopenms.ConsensusID().apply is not None
+#     assert pyopenms.ConsensusID().apply is not None
 
 @report
 def testFalseDiscoveryRate():
     """
     @tests:
-     ConsensusID.__init__
+     FalseDiscoveryRate.__init__
     """
     ff = pyopenms.FalseDiscoveryRate()
     p = ff.getDefaults()

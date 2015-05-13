@@ -152,6 +152,7 @@ namespace OpenMS
       arguments << "-type";
       arguments << type_.toQString();
     }
+    // allow for update using old parameters
     if (old_ini_file != "")
     {
       if (!File::exists(old_ini_file))
@@ -164,6 +165,7 @@ namespace OpenMS
       arguments << old_ini_file;
     }
 
+    // actually request the INI
     QProcess p;
     p.start(program, arguments);
     if (!p.waitForFinished(-1))
@@ -181,8 +183,12 @@ namespace OpenMS
 
     ParamXMLFile paramFile;
     paramFile.load(String(ini_file).c_str(), tmp_param);
-    param_ = tmp_param.copy(name_ + ":1:", true);
+    // remember the parameters of this tool
+    param_ = tmp_param.copy(name_ + ":1:", true); // get first instance (we never use more -- this is a legacy layer in paramXML)
+    param_.setValue("no_progress", "true"); // by default, we do not want each tool to report loading/status statistics (would clutter the log window)
+    // the user is free however, to re-enable it for individual nodes
 
+    // write to disk to see if anything has changed
     writeParam_(param_, ini_file);
     bool changed = false;
     if (old_ini_file != "")
@@ -541,7 +547,6 @@ namespace OpenMS
     round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
 
     QStringList shared_args;
-    shared_args << "-no_progress";
     if (type_ != "")
       shared_args << "-type" << type_.toQString();
 
