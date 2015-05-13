@@ -180,9 +180,9 @@ protected:
     setMinFloat_("detect:peak_width", 0.0);
     registerDoubleOption_("detect:min_peak_width", "<value>", 0.2, "Minimum elution peak width. Absolute value in seconds if 1 or greater, else relative to 'peak_width'.", false, true);
     setMinFloat_("detect:min_peak_width", 0.0);
-    registerDoubleOption_("detect:signal_to_noise", "<value>", 0.5, "Signal-to-noise threshold for OpenSWATH feature detection", false, true);
+    registerDoubleOption_("detect:signal_to_noise", "<value>", 0.8, "Signal-to-noise threshold for OpenSWATH feature detection", false, true);
     setMinFloat_("detect:signal_to_noise", 0.1);
-    registerDoubleOption_("detect:mapping_tolerance", "<value>", 10.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
+    registerDoubleOption_("detect:mapping_tolerance", "<value>", 0.0, "RT tolerance (plus/minus) for mapping peptide IDs to features. Absolute value in seconds if 1 or greater, else relative to the RT span of the feature.", false);
     setMinFloat_("detect:mapping_tolerance", 0.0);
 
     registerTOPPSubsection_("svm", "Parameters for scoring features using a support vector machine (SVM)");
@@ -201,7 +201,7 @@ protected:
     setValidFormats_("svm:xval_out", ListUtils::create<String>("csv"));
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
-    StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
+    StringList models = ListUtils::create<String>("none,symmetric,asymmetric");
     registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
     setValidStrings_("model:type", models);
     registerDoubleOption_("model:add_zeros", "<value>", 0.2, "Add zero-intensity points outside the feature range to constrain the model fit. This parameter sets the weight given to these points during model fitting; '0' to disable.", false, true);
