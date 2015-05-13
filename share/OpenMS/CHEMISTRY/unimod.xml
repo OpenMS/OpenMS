@@ -24501,7 +24501,6 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="O" number="2"/>
          </umod:delta>
       </umod:mod>
-      </umod:mod>
 	<umod:mod title="RNA:U_prime-H2O" full_name="U_prime-H2O" username_of_poster="Timo"
 		group_of_poster="admin"
 		date_time_posted="2002-08-19 19:17:11"
