@@ -261,6 +261,7 @@ protected:
     IndexedString sequence;
     SignedSize peptide_mod_index; // enumeration index of the non-RNA peptide modification
     Size rna_mod_index; // index of the RNA modification
+    Size best_theoretical_spectrum; // if multiple theoretical spectra have been considered for a given peptide and modification state (e.g. partial loss spectra) this index stores which one scored best
     double score;
 
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
@@ -523,7 +524,7 @@ private:
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
 
           // reannotate much more memory heavy AASequence object
-          ph.setSequence(all_modified_peptides[a_it->peptide_mod_index]);
+          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a_it->peptide_mod_index]; 
           ph.setScore(a_it->score);
 
           // determine RNA modification from index in map
@@ -531,6 +532,28 @@ private:
           std::advance(mod_combinations_it, a_it->rna_mod_index);
           ph.setMetaValue(String("RNPxl:RNA"), *mod_combinations_it->second.begin()); // return first nucleotide formula matching the index of the empirical formula
           ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // RNA uncharged mass via empirical formula
+
+          String best_scoring_loss = "complete"; // complete loss on fragmentation
+          if (a_it->best_theoretical_spectrum != 0)
+          {
+            String precursor_rna_adduct = *mod_combinations_it->second.begin();
+
+            // get fragment shifts that can occur given the RNA precursor adduct and the given sequence
+            vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, aas); 
+            vector<AASequence> all_loss_peptides;
+            // generate all RNA fragment modified sequences (already modified (e.g. Oxidation) residues are skipped. The unmodified one is not included (false) as it was already scored) 
+            ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), aas, 1, all_loss_peptides, false);
+
+            // report loss type
+            best_scoring_loss = "partial"; // partial loss on fragmentation
+
+            // overwrite fixed and variable modified peptide sequence to contain localization
+            fixed_and_variable_modified_peptide = all_loss_peptides[a_it->best_theoretical_spectrum - 1]; 
+          }
+          ph.setMetaValue(String("RNPxl:FRAGMENT_LOSS_TYPE"), best_scoring_loss);
+
+          // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
+          ph.setSequence(fixed_and_variable_modified_peptide);
           phs.push_back(ph);
         }
 
@@ -854,12 +877,10 @@ private:
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = best_score.second;
               ah.rna_mod_index = rna_mod_index;
-/*TODO
-             // complete loss spectrum was not the best so we have to save the modification index of the partial loss spectra
-             if (best_score.index != 0)
-             {
-             }
-*/
+
+             // store index of best alternative spectra scored for this peptide and modification state (e.g. additional loss spectra). 
+             // index of 0 corresponds to the complete loss spectrum
+             ah.best_theoretical_spectrum = best_score.first;
       
 #ifdef _OPENMP
 #pragma omp critical (annotated_hits_access)
