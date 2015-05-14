@@ -294,7 +294,7 @@ MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
 
 /// public methods
 
-double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spectrum, MSSpectrum<Peak1D> db_spectrum,
+double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> experimental_spectrum, MSSpectrum<Peak1D> db_spectrum,
                                                          const double& fragment_mass_error, const double& mz_lower_bound)
 {
 
@@ -302,7 +302,7 @@ double MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spec
     Size matched_ions_count(0);
 
     // scan for matching peaks between observed and DB stored spectra
-    for (MSSpectrum<Peak1D>::iterator frag_it = exp_spectrum.MZBegin(mz_lower_bound); frag_it != exp_spectrum.end(); ++frag_it)
+    for (MSSpectrum<Peak1D>::iterator frag_it = experimental_spectrum.MZBegin(mz_lower_bound); frag_it != experimental_spectrum.end(); ++frag_it)
     {
         double frag_mz = frag_it->getMZ();
 
