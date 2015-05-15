@@ -155,6 +155,7 @@ namespace OpenMS
       Int max_itns = param_.getValue("max_nr_iterations");
       int delta = 6;
       int itns = 0;
+      
       do
       {
         //E-STEP
@@ -174,14 +175,14 @@ namespace OpenMS
 
         //update parameters
         correctly_assigned_fit_param_.x0 = positive_mean;
-        if (sum_positive_sigma  != 0 && one_minus_sum_posterior != 0)
+        if (sum_positive_sigma  != 0)
         {
           correctly_assigned_fit_param_.sigma = sqrt(sum_positive_sigma / one_minus_sum_posterior);
           correctly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
         }
 
         incorrectly_assigned_fit_param_.x0 = negative_mean;
-        if (sum_negative_sigma  != 0 && sum_posterior != 0)
+        if (sum_negative_sigma  != 0)
         {
           incorrectly_assigned_fit_param_.sigma = sqrt(sum_negative_sigma / sum_posterior);
           incorrectly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
@@ -201,7 +202,7 @@ namespace OpenMS
         }
         if ((new_maxlike - maxlike) < pow(10,-delta) || itns >= max_itns)
         {
-          if(itns >= max_itns)
+          if (itns >= max_itns)
           {
             LOG_WARN << "Number of iterations exceeded. Convergence criterion not met. Last likelihood increase: " << (new_maxlike - maxlike) << endl;
             LOG_WARN << "Algorithm returns probabilites for suboptimal fit. You might want to try raising the max. number of iterations and have a look at the distribution." << endl;
@@ -580,5 +581,5 @@ namespace OpenMS
 
     }
 
-  } //namespace Math
+  } // namespace Math
 } // namespace OpenMS
