@@ -78,7 +78,7 @@ namespace OpenMS
            << "PeakPickerWavelet" << "Resampler"
            << "MapNormalizer" << "InternalCalibration"
            << "TOFCalibration"
-           << "FeatureFinderCentroided" << "FeatureFinderIsotopeWavelet"
+           << "FeatureFinderCentroided" << "FeatureFinderIsotopeWavelet" << "FeatureFinderMultiplex"
            << "MassTraceExtractor" << "FeatureFinderMetabo"
            << "FeatureFinderMRM"
            << "ITRAQAnalyzer" << "SpectraFilterWindowMower"
