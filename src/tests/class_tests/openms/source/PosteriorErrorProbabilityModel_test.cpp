@@ -38,9 +38,10 @@
 ///////////////////////////
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <vector>
 #include <iostream>
-#include <random>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -77,27 +78,34 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
 	ptr = new PosteriorErrorProbabilityModel();
 {
 	
+	// ------- This code was used for the test file: ------------
 	// Use actual Gaussian data to see if fitting works
-	random_device device_random_;
- 	default_random_engine generator_(device_random_());
-
- 	// Set seed to be reproducible
- 	generator_.seed(10);
+	//random_device device_random_;
+ 	//default_random_engine generator_(device_random_());
 
  	// Gaussian mean and SD, mixture of 2.
- 	normal_distribution<> distribution_1_(1.5, 0.5);
- 	normal_distribution<> distribution_2_(3.5, 1.0);
+ 	//normal_distribution<> distribution_1_(1.5, 0.5);
+ 	//normal_distribution<> distribution_2_(3.5, 1.0);
+	// ----------------------------------------------------------
 
  	vector<double> rand_score_vector;
 
- 	// Interspersed mixture
- 	for (int counter_(0); counter_ < 1000; ++counter_)
-	{
-		rand_score_vector.push_back(distribution_1_(generator_));
-		rand_score_vector.push_back(distribution_2_(generator_));
-	}
+ 	CsvFile gauss_mix (OPENMS_GET_TEST_DATA_PATH("GaussMix_2_1D.csv"), ';');
+ 	StringList gauss_mix_strings;
+ 	gauss_mix.getRow(0, gauss_mix_strings);
 
-	// Class expects sorted scores (reasonably)
+ 	// Load mixture of 2 Gaussians (1D) from provided csv
+ 	for (StringList::const_iterator it = gauss_mix_strings.begin(); it != gauss_mix_strings.end(); ++it)
+ 	{
+ 		if(!it->empty())
+ 		{
+ 			rand_score_vector.push_back(it->toDouble());
+ 		}
+ 	}
+
+ 	TEST_EQUAL(rand_score_vector.size(),2000)
+
+	// Class expects sorted scores
 	sort(rand_score_vector.begin(), rand_score_vector.end());
 	
 	vector<double> probabilities;
