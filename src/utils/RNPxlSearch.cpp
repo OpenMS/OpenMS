@@ -264,6 +264,7 @@ protected:
     Size rna_mod_index; // index of the RNA modification
     Size best_theoretical_spectrum; // if multiple theoretical spectra have been considered for a given peptide and modification state (e.g. partial loss spectra) this index stores which one scored best
     double score;
+    double localization_score;
 
     static bool hasBetterScore(const AnnotatedHit& a, const AnnotatedHit& b)
     {
@@ -480,8 +481,79 @@ private:
     }
   }
 
+  void postScoreHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide, const TheoreticalSpectrumGenerator& spectrum_generator, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm)
+  {
+  // remove all but top n scoring for localization (usually all but the first one)
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      // sort and keeps n best elements according to score
+      Size topn = top_hits > annotated_hits[scan_index].size() ? annotated_hits[scan_index].size() : top_hits;
+      std::partial_sort(annotated_hits[scan_index].begin(), annotated_hits[scan_index].begin() + topn, annotated_hits[scan_index].end(), AnnotatedHit::hasBetterScore);
+      annotated_hits[scan_index].resize(topn);
+    }
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for (SignedSize scan_index = 0; scan_index < (SignedSize)annotated_hits.size(); ++scan_index)
+    {
+      const PeakSpectrum& exp_spectrum = exp[scan_index];
+      if (!annotated_hits[scan_index].empty())
+      {
+        for (vector<AnnotatedHit>::iterator a_it = annotated_hits[scan_index].begin(); a_it != annotated_hits[scan_index].end(); ++a_it)
+        {
+          // get unmodified string
+          AASequence aas = AASequence::fromString(a_it->sequence.getString());
+
+          // reapply modifications (because for memory reasons we only stored the index and recreation is fast)
+          vector<AASequence> all_modified_peptides;
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications.begin(), fixed_modifications.end(), aas);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications.begin(), variable_modifications.end(), aas, max_variable_mods_per_peptide, all_modified_peptides);
+
+          // reannotate much more memory heavy AASequence object
+          AASequence fixed_and_variable_modified_peptide = all_modified_peptides[a_it->peptide_mod_index]; 
+
+          // determine RNA on precursor from index in map
+          std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
+          std::advance(mod_combinations_it, a_it->rna_mod_index);
+          String precursor_rna_adduct = *mod_combinations_it->second.begin();
+
+          // get fragment shifts that can occur given the RNA precursor adduct and the given sequence
+          vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, aas); 
+          vector<AASequence> all_loss_peptides;
+
+          // generate all RNA fragment modified sequences (already modified (e.g. Oxidation) residues are skipped. The complete loss one is not included (false) as it was already scored) 
+          ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), aas, 1, all_loss_peptides, false);
+
+          // generate all partial loss spectra (excluding the complete loss spectrum)
+          vector<RichPeakSpectrum> theoretical_spectra;
+          for (vector<AASequence>::const_iterator aas_it = all_loss_peptides.begin(); aas_it != all_loss_peptides.end(); ++aas_it)
+          {
+            RichPeakSpectrum partial_loss_spectrum;
+            spectrum_generator.getSpectrum(partial_loss_spectrum, *aas_it, 1);
+            partial_loss_spectrum.sortByPosition();
+            theoretical_spectra.push_back(partial_loss_spectrum);        
+          }
+
+          // score partial losses
+          HyperScore::IndexScorePair best_localization_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
+
+          // store score of current localization
+          a_it->localization_score = best_localization_score.second;
+
+          // store index of best partial loss spectrum 
+          a_it->best_theoretical_spectrum = best_localization_score.first;
+        }
+      }
+    }
+  }
+
   void postProcessHits_(const PeakMap& exp, vector<vector<AnnotatedHit> >& annotated_hits, vector<ProteinIdentification>& protein_ids, vector<PeptideIdentification>& peptide_ids, Size top_hits, const RNPxlModificationMassesResult& mm, const vector<ResidueModification>& fixed_modifications, const vector<ResidueModification>& variable_modifications, Size max_variable_mods_per_peptide)
   {
+  // remove all but top n scoring
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -552,7 +624,7 @@ private:
             fixed_and_variable_modified_peptide = all_loss_peptides[a_it->best_theoretical_spectrum - 1]; 
           }
           ph.setMetaValue(String("RNPxl:FRAGMENT_LOSS_TYPE"), best_scoring_loss);
-
+          ph.setMetaValue(String("RNPxl:localization_score"), a_it->localization_score);
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
           phs.push_back(ph);
@@ -906,6 +978,12 @@ private:
     vector<PeptideIdentification> peptide_ids;
     vector<ProteinIdentification> protein_ids;
     progresslogger.startProgress(0, 1, "Post-processing PSMs...");
+
+    if (localization)
+    {
+      postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
+    }
+
     postProcessHits_(spectra, annotated_hits, protein_ids, peptide_ids, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
     progresslogger.endProgress();
 
