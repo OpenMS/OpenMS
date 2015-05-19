@@ -217,7 +217,8 @@ protected:
 
     registerFlag_("RNPxl:CysteineAdduct", "Use this flag if the +152 adduct is expected.");
     registerFlag_("RNPxl:filter_fractional_mass", "Use this flag to filter non-crosslinks by fractional mass.");
-    registerFlag_("RNPxl:localization", "Use this flag to perform crosslink localization.");
+    registerFlag_("RNPxl:partial_losses", "Use this flag to score all partial losses in the initial search (slower and may increase false positives).");
+    registerFlag_("RNPxl:localization", "Use this flag to perform crosslink localization by partial loss scoring as post-analysis.");
     registerDoubleOption_("RNPxl:filter_small_peptide_mass", "<threshold>", 600.0, "Filter precursor that can only correspond to non-crosslinks by mass.", false, true);
     registerDoubleOption_("RNPxl:marker_ions_tolerance", "<tolerance>", 0.05, "Tolerance used to determine marker ions (Da).", false, true);
   }
@@ -641,6 +642,8 @@ private:
 
     bool cysteine_adduct = getFlag_("RNPxl:CysteineAdduct");
 
+    bool partial_losses = getFlag_("RNPxl:partial_losses");
+
     bool localization = getFlag_("RNPxl:localization");
 
     RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_nucleotide_length);
@@ -835,8 +838,8 @@ private:
             vector<RichPeakSpectrum> theoretical_spectra;
             theoretical_spectra.push_back(complete_loss_spectrum);
 
-            // for localization consider partial loss spectra
-            if (localization)
+            // consider all partial loss spectra in the initial search (slow and potential decreased specificity)
+            if (partial_losses)
             {
               // determine current precursor RNA adduct
               std::map<String, std::set<String> >::const_iterator mod_combinations_it = mm.mod_combinations.begin();
