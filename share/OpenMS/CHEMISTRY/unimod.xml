@@ -24302,8 +24302,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
             <umod:element symbol="P" number="1"/>
          </umod:delta>
       </umod:mod>
-
-	<umod:mod title="RNA:CO3" full_name="CO3" username_of_poster="Timo"
+	<umod:mod title="RNA:C3O" full_name="C3O" username_of_poster="Timo"
 		group_of_poster="admin"
 		date_time_posted="2002-08-19 19:17:11"
 		date_time_modified="2008-02-15 05:20:02"
@@ -24318,6 +24317,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
@@ -24349,6 +24349,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
@@ -24383,6 +24384,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
@@ -24417,6 +24419,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
@@ -24450,6 +24453,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
@@ -24483,6 +24487,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
@@ -24516,6 +24521,7 @@ M. Zimnicka, et al.  "Tunable Charge Tags for Electron-Based Methods of Peptide 
          <umod:specificity hidden="0" site="G" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="H" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="I" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
+         <umod:specificity hidden="0" site="K" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="L" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="M" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>
          <umod:specificity hidden="0" site="N" position="Anywhere" classification="Post-translational" spec_group="1"> </umod:specificity>

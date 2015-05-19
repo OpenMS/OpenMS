@@ -981,9 +981,11 @@ private:
 
     if (localization)
     {
+      progresslogger.startProgress(0, 1, "localization...");
       postScoreHits_(spectra, annotated_hits, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide, spectrum_generator, fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm);
     }
 
+    progresslogger.startProgress(0, 1, "annotation...");
     postProcessHits_(spectra, annotated_hits, protein_ids, peptide_ids, report_top_hits, mm, fixed_modifications, variable_modifications, max_variable_mods_per_peptide);
     progresslogger.endProgress();
 

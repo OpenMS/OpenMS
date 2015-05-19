@@ -504,7 +504,7 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
   vector<ResidueModification> RNPxlModificationsGenerator::getRNAFragmentModifications(const String& RNA_precursor_adduct, const AASequence& sequence)
   {
     // determine (unmodified) amino acids present in sequence (as e.g. modified AA might not cross-link) 
-    set<unsigned char> unmodified_aa_is_present;
+    set<char> unmodified_aa_is_present;
 
     // all keys present in the map have at least one AA in the sequence
     for (AASequence::ConstIterator mit = sequence.begin(); mit != sequence.end(); ++mit)
@@ -517,7 +517,7 @@ void  RNPxlModificationsGenerator::generateTargetSequences(const String& res_seq
 
     vector<String> possible_modifications;
     
-    for (set<unsigned char>::const_iterator mit = unmodified_aa_is_present.begin(); mit != unmodified_aa_is_present.end(); ++mit)
+    for (set<char>::const_iterator mit = unmodified_aa_is_present.begin(); mit != unmodified_aa_is_present.end(); ++mit)
     {
       const String site = String(" (") + *mit + ")";
       possible_modifications.push_back("RNA:C3O" + site);
