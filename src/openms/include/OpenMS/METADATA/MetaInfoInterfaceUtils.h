@@ -37,7 +37,7 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <vector>
-#include <vector>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -54,16 +54,16 @@ public:
     ///@name Methods to find key sets
     //@{
     /**
-      @brief Find keys in a collection of MetaInfoInterface objects which occur with a certain frequency.
+      @brief Find keys in a collection of MetaInfoInterface objects which reach a certain frequency threshold.
 
       Searches the given iterator range for the keys of each element's MetaInfoInterface keys and returns those keys, which
-      occur with a certain frequency. Common use cases 
+      reach a certain frequency threshold. Common use cases 
       are @p min_frequency = 0 (i.e. take any key which occurs)
       and @p min_frequency = 100 (i.e. take only keys which are common to all elements in the iterator range).
 
-      @tparam T_In Input container (e.g. std::vector or alike)
-      @tparam T_Out Output container of type T<String>
-      @param start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container)
+      @tparam T_In Input container (e.g. std::vector or alike), containing objects which implement the MetaInfoInterface (i.e. support 'getKeys()')
+      @tparam T_Out Output container of type T<String> (e.g. std::set<String>)
+      @param start Iterator pointing to the initial position to search. (note: this does not need to correspond to the beginning of the container)
       @param end Iterator pointing to the end final position to search.
       @param min_frequency Minimum required frequency (in percent). Must be between 0-100. Other values are corrected to the closest value allowed.
       @return Returns a vector/list/set of keys passing the frequency criterion.
