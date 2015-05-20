@@ -79,6 +79,8 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
+#define DEBUG_RNPXLSEARCH 1
+
 using namespace OpenMS;
 using namespace std;
 /*
@@ -993,6 +995,10 @@ private:
               ah.peptide_mod_index = mod_pep_idx;
               ah.score = best_score.second;
               ah.rna_mod_index = rna_mod_index;
+
+              #ifdef DEBUG_RNPXLSEARCH
+                cout << "best score in pre-score: " << best_score.second << endl;
+              #endif
 
              // store index of best alternative spectra scored for this peptide and modification state (e.g. additional loss spectra). 
              // index of 0 corresponds to the complete loss spectrum
