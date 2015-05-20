@@ -523,10 +523,25 @@ private:
 
           // get fragment shifts that can occur given the RNA precursor adduct and the given sequence
           vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, aas); 
+
+          #ifdef DEBUG_RNPXLSEARCH
+            for (Size i = 0; i != partial_loss_modifications.size(); ++i)
+            {
+              cout << "Partial loss modification index: " << i << " id: " << partial_loss_modifications[i].getFullId() << endl;
+            }
+          #endif
+
           vector<AASequence> all_loss_peptides;
 
           // generate all RNA fragment modified sequences (already modified (e.g. Oxidation) residues are skipped. The complete loss one is not included (false) as it was already scored) 
           ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), aas, 1, all_loss_peptides, false);
+
+          #ifdef DEBUG_RNPXLSEARCH
+            for (Size i = 0; i != all_loss_peptides.size(); ++i)
+            {
+              cout << "Partial loss peptide: " << i << " sequence: " << all_loss_peptides[i].toString() << endl;
+            }
+          #endif
 
           // generate all partial loss spectra (excluding the complete loss spectrum)
           vector<RichPeakSpectrum> theoretical_spectra;
@@ -539,13 +554,31 @@ private:
           }
 
           // score partial losses
-          HyperScore::IndexScorePair best_localization_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
+          #ifdef DEBUG_RNPXLSEARCH
+            double best_score(0.0);
+            Size best_index(0);
+            for (Size i = 0; i != theoretical_spectra.size(); ++i)
+            {
+              const RichPeakSpectrum& theo_spectrum = theoretical_spectra[i];
+              const double score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theo_spectrum);
+              cout << "Theoretical spectrum index: " << i << " score: " << score << endl;
+              if (score > best_score)
+              {
+                best_score = score;
+                best_index = i;
+              }
+            }
+            HyperScore::IndexScorePair best_localization_score =  std::make_pair(best_index, best_score);
+            cout << "Best theoretical spectrum index: " << best_index << " score: " << best_score << endl; 
+          #else
+            HyperScore::IndexScorePair best_localization_score = HyperScore::compute(fragment_mass_tolerance, fragment_mass_tolerance_unit_ppm, exp_spectrum, theoretical_spectra);
+          #endif          
 
           // store score of current localization
           a_it->localization_score = best_localization_score.second;
 
-          // store index of best partial loss spectrum 
-          a_it->best_theoretical_spectrum = best_localization_score.first;
+          // store index of best partial loss spectrum, (index starts at 1 at 0 corresponds to complete loss spectrum)
+          a_it->best_theoretical_spectrum = best_localization_score.first + 1;
         }
       }
     }
@@ -607,6 +640,7 @@ private:
           ph.setMetaValue(String("RNPxl:RNA_MASS_z0"), EmpiricalFormula(mod_combinations_it->first).getMonoWeight()); // RNA uncharged mass via empirical formula
 
           String best_scoring_loss = "complete"; // complete loss on fragmentation
+
           if (a_it->best_theoretical_spectrum != 0)
           {
             String precursor_rna_adduct = *mod_combinations_it->second.begin();
@@ -647,6 +681,13 @@ private:
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("RNPxlSearch");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+    ProteinIdentification::SearchParameters search_parameters;
+    search_parameters.db = getStringOption_("database");
+    search_parameters.charges = String(getIntOption_("precursor:min_charge")) + ":" + String(getIntOption_("precursor:max_charge"));
+    search_parameters.missed_cleavages = getIntOption_("peptide:missed_cleavages");
+    search_parameters.peak_mass_tolerance = getDoubleOption_("fragment:mass_tolerance");
+    search_parameters.precursor_tolerance = getDoubleOption_("precursor:mass_tolerance");
+    protein_ids[0].setSearchParameters(search_parameters);
   }
 
 
