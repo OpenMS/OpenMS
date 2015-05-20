@@ -37,6 +37,7 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <vector>
+#include <vector>
 
 namespace OpenMS
 {
@@ -70,6 +71,9 @@ public:
     template<typename T_In, typename T_Out>
     static typename T_Out findCommonMetaKeys(const typename T_In::const_iterator& it_start, const typename T_In::const_iterator& it_end, float min_frequency)
     {
+      // make sure min_frequency is within [0,100]
+      min_frequency = std::min((float)100.0, std::max((float)0.0, min_frequency));
+
       std::map<String, uint> counter;
       typedef std::vector<String> KeysType;
       KeysType keys;
