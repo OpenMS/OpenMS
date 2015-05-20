@@ -730,20 +730,7 @@ protected:
 
       // currently we don't save how many channels we saved in a consensus feature so we scan the file
       // for the maximum max index in a consensus feature and take this as number of study variables
-      Size n_study_variables = 0;
-      for (Size i = 0; i < consensus_map.size(); ++i)
-      {
-        const ConsensusFeature& c = consensus_map[i];
-        ConsensusFeature::HandleSetType fs = c.getFeatures();
-        for (ConsensusFeature::HandleSetType::const_iterator fit = fs.begin(); fit != fs.end(); ++fit)
-        {
-          if (fit->getMapIndex() > n_study_variables)
-          {
-            n_study_variables = fit->getMapIndex();
-          }
-        }
-      }
-      ++n_study_variables;  // map index starts at 0, study variables at 1
+      Size n_study_variables = consensus_map.getFileDescriptions().size() + 1;
 
       MzTabMetaData meta_data;
 
