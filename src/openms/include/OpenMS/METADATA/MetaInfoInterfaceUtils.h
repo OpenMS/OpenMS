@@ -36,8 +36,11 @@
 #define OPENMS_METADATA_METAINFOINTERFACEUTILS_H
 
 #include <OpenMS/OpenMSConfig.h>
-#include <vector>
+#include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <algorithm>
+#include <map>
+#include <vector>
 
 namespace OpenMS
 {
@@ -69,7 +72,7 @@ public:
       @return Returns a vector/list/set of keys passing the frequency criterion.
     */
     template<typename T_In, typename T_Out>
-    static typename T_Out findCommonMetaKeys(const typename T_In::const_iterator& it_start, const typename T_In::const_iterator& it_end, float min_frequency)
+    static T_Out findCommonMetaKeys(const typename T_In::const_iterator& it_start, const typename T_In::const_iterator& it_end, float min_frequency)
     {
       // make sure min_frequency is within [0,100]
       min_frequency = std::min((float)100.0, std::max((float)0.0, min_frequency));
@@ -77,7 +80,7 @@ public:
       std::map<String, uint> counter;
       typedef std::vector<String> KeysType;
       KeysType keys;
-      for (T_In::const_iterator it = it_start; it != it_end; ++it)
+      for (typename T_In::const_iterator it = it_start; it != it_end; ++it)
       {
         it->getKeys(keys);
         for (KeysType::const_iterator itk = keys.begin(); itk != keys.end(); ++itk)
