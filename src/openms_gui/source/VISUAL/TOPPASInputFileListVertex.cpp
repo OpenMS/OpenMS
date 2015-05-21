@@ -259,17 +259,17 @@ namespace OpenMS
     }
   }
 
-  void TOPPASInputFileListVertex::setKey(const QString & key)
+  void TOPPASInputFileListVertex::setKey(const QString& key)
   {
     key_ = key;
   }
 
-  const QString & TOPPASInputFileListVertex::getKey()
+  const QString& TOPPASInputFileListVertex::getKey()
   {
     return key_;
   }
 
-  void TOPPASInputFileListVertex::setFilenames(const QStringList & files)
+  void TOPPASInputFileListVertex::setFilenames(const QStringList& files)
   {
     output_files_.clear();
     output_files_.resize(files.size()); // for now, assume one file per round (we could later extend that)

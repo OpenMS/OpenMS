@@ -54,14 +54,16 @@
 namespace OpenMS
 {
   TOPPASOutputFileListVertex::TOPPASOutputFileListVertex() :
-    TOPPASVertex()
+    TOPPASVertex(),
+    output_folder_name_()
   {
     pen_color_ = Qt::black;
     brush_color_ = Qt::lightGray;
   }
 
   TOPPASOutputFileListVertex::TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs) :
-    TOPPASVertex(rhs)
+    TOPPASVertex(rhs),
+    output_folder_name_() // leave empty! otherwise we have conflicting output folder names
   {
     pen_color_ = Qt::black;
     brush_color_ = Qt::lightGray;
@@ -69,12 +71,12 @@ namespace OpenMS
 
   TOPPASOutputFileListVertex::~TOPPASOutputFileListVertex()
   {
-
   }
 
   TOPPASOutputFileListVertex& TOPPASOutputFileListVertex::operator=(const TOPPASOutputFileListVertex& rhs)
   {
     TOPPASVertex::operator=(rhs);
+    output_folder_name_ = ""; // leave empty! otherwise we have conflicting output folder names
 
     return *this;
   }
@@ -127,10 +129,26 @@ namespace OpenMS
     text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), 35 - (int)(text_boundings.height() / 4.0), text);
 
-    //topo sort number
-    qreal x_pos = -63.0;
-    qreal y_pos = -19.0;
-    painter->drawText(x_pos, y_pos, QString::number(topo_nr_));
+    // topo sort number
+    painter->drawText(-63.0, -19.0, QString::number(topo_nr_));
+    
+    // output folder name
+    painter->drawText(painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, output_folder_name_).width()/-2, -25, output_folder_name_);
+    
+  }
+
+  void TOPPASOutputFileListVertex::setOutputFolderName(const QString& name)
+  {
+    if (output_folder_name_ != name)
+    {
+      output_folder_name_ = name;
+      emit outputFolderNameChanged(); // enable storing of modified pipeline
+    }
+  }
+
+  const QString& TOPPASOutputFileListVertex::getOutputFolderName() const
+  {
+    return output_folder_name_;
   }
 
   QRectF TOPPASOutputFileListVertex::boundingRect() const
@@ -351,10 +369,17 @@ namespace OpenMS
   {
     TOPPASEdge* e = *inEdgesBegin();
     TOPPASVertex* tv = e->getSourceVertex();
-    // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
-    String dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-"
-                                                                  + tv->getName() + "-" 
-                                                                  + e->getSourceOutParamName().remove(':');
+    String dir;
+    if (output_folder_name_.isEmpty()) {
+      // create meaningful output name using vertex + TOPP name + output parameter, e.g. "010-FileConverter-out"
+      dir = String("TOPPAS_out") + String(QDir::separator()) + get3CharsNumber_(topo_nr_) + "-"
+                                                             + tv->getName() + "-" 
+                                                             + e->getSourceOutParamName().remove(':');
+    }
+    else
+    {
+      dir = String("TOPPAS_out") + String(QDir::separator()) + output_folder_name_;
+    }
     return dir;
   }
 

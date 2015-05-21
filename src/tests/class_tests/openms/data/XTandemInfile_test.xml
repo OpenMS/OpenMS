@@ -23,7 +23,7 @@
 	<note type="input" label="output, maximum valid expectation value">1e+11</note>
 	<note type="input" label="spectrum, dynamic range">10000.0</note>
 	<note type="input" label="spectrum, total peaks">50</note>
-	<note type="input" label="spectrum, use noise suppression">yes</note>
+	<note type="input" label="spectrum, use noise suppression">no</note>
 	<note type="input" label="spectrum, minimum parent m+h">500.0</note>
 	<note type="input" label="spectrum, minimum fragment mz">150.0</note>
 	<note type="input" label="spectrum, minimum peaks">15</note>

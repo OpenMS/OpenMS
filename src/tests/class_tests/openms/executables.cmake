@@ -86,6 +86,7 @@ set(metadata_executables_list
   MassAnalyzer_test
   MetaInfoDescription_test
   MetaInfoInterface_test
+  MetaInfoInterfaceUtils_test
   MetaInfoRegistry_test
   MetaInfo_test
   Modification_test
