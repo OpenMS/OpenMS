@@ -1400,8 +1400,9 @@ set_tests_properties("TOPP_IDPosteriorErrorProbability_5_out1" PROPERTIES DEPEND
 add_test("TOPP_IDPosteriorErrorProbability_6" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_input2.idXML -out IDPosteriorErrorProbability_output_6.tmp -split_charge)
 add_test("TOPP_IDPosteriorErrorProbability_6_out1" ${DIFF} -in1 IDPosteriorErrorProbability_output_6.tmp -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_Mascot_output2.idXML)
 set_tests_properties("TOPP_IDPosteriorErrorProbability_6_out1" PROPERTIES DEPENDS "TOPP_IDPosteriorErrorProbability_6")
-# with "ignore_bad_data" (no check for correctness of output?):
+# with "ignore_bad_data" (no check for correctness of output, bc of unresolved platform specific errors):
 add_test("TOPP_IDPosteriorErrorProbability_7" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_bad_data.idXML -out IDPosteriorErrorProbability_bad_data_output.tmp -ignore_bad_data)
+# add_test("TOPP_IDPosteriorErrorProbability_7_out1" ${DIFF} -in1 IDPosteriorErrorProbability_bad_data_output.tmp -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_bad_data_out.idXML)
 # with "prob_correct":
 add_test("TOPP_IDPosteriorErrorProbability_8" ${TOPP_BIN_PATH}/IDPosteriorErrorProbability -test -in ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_OMSSA_input.idXML -out IDPosteriorErrorProbability_output_8.tmp -prob_correct)
 add_test("TOPP_IDPosteriorErrorProbability_8_out1" ${DIFF} -in1 IDPosteriorErrorProbability_output_8.tmp -in2 ${DATA_DIR_TOPP}/IDPosteriorErrorProbability_prob_correct_output.idXML)

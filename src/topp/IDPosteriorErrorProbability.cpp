@@ -123,7 +123,6 @@ protected:
     registerOutputFile_("out_plot", "<file>", "", "txt file (if gnuplot is available, a corresponding PDF will be created as well.)", false);
     setValidFormats_("out_plot", ListUtils::create<String>("txt"));
 
-    registerDoubleOption_("smallest_e_value", "<value>", 10e-20, "This value gives a lower bound to E-Values. It should not be 0, as transformation in a real number (log of E-value) is not possible for certain values then.", false, true);
     registerFlag_("split_charge", "The search engine scores are split by charge if this flag is set. Thus, for each charge state a new model will be computed.");
     registerFlag_("top_hits_only", "If set only the top hits of every PeptideIdentification will be used");
     registerDoubleOption_("fdr_for_targets_smaller", "<value>", 0.05, "Only used, when top_hits_only set. Additionally, target_decoy information should be available. The score_type must be q-value from an previous False Discovery Rate run.", false, true);
@@ -215,7 +214,6 @@ protected:
 
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
-    smallest_e_value_ = getDoubleOption_("smallest_e_value");
     Param fit_algorithm = getParam_().copy("fit_algorithm:", true);
     fit_algorithm.setValue("out_plot", getStringOption_("out_plot")); // re-assemble full param (was moved to top-level)
     bool split_charge = getFlag_("split_charge");
@@ -224,6 +222,10 @@ protected:
     bool target_decoy_available = false;
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
+
+    // Set fixed e-value threshold
+    smallest_e_value_ = numeric_limits<double>::denorm_min();
+
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
