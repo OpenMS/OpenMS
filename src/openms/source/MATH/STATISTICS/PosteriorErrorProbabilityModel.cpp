@@ -200,7 +200,7 @@ namespace OpenMS
           return false;
           //throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");
         }
-        if ((new_maxlike - maxlike) < pow(10,-delta) || itns >= max_itns)
+        if ((new_maxlike - maxlike) < pow(10.0, -delta) || itns >= max_itns)
         {
           if (itns >= max_itns)
           {
