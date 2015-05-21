@@ -651,7 +651,7 @@ private:
             vector<ResidueModification> partial_loss_modifications = RNPxlModificationsGenerator::getRNAFragmentModifications(precursor_rna_adduct, aas); 
             vector<AASequence> all_loss_peptides;
             // generate all RNA fragment modified sequences (already modified (e.g. Oxidation) residues are skipped. The unmodified one is not included (false) as it was already scored) 
-            ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), aas, 1, all_loss_peptides, false);
+            ModifiedPeptideGenerator::applyVariableModifications(partial_loss_modifications.begin(), partial_loss_modifications.end(), fixed_and_variable_modified_peptide, 1, all_loss_peptides, false);
 
             // report loss type
             best_scoring_loss = "partial"; // partial loss on fragmentation
@@ -661,6 +661,7 @@ private:
           }
           ph.setMetaValue(String("RNPxl:FRAGMENT_LOSS_TYPE"), best_scoring_loss);
           ph.setMetaValue(String("RNPxl:localization_score"), a_it->localization_score);
+
           // set the amino acid sequence (for complete loss spectra this is just the variable and modified peptide. For partial loss spectra it additionally contains the loss induced modification)
           ph.setSequence(fixed_and_variable_modified_peptide);
           phs.push_back(ph);
