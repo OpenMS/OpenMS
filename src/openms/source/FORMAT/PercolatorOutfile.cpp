@@ -116,6 +116,7 @@ namespace OpenMS
 
 
   void PercolatorOutfile::getPeptideSequence_(String peptide, AASequence& seq)
+    const
   {
     // 'peptide' includes neighboring amino acids, e.g.: K.AAAR.A
     // but unclear to which protein neighboring AAs belong, so we ignore them:

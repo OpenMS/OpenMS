@@ -101,7 +101,7 @@ namespace OpenMS
                      Int& scan_number, Int& charge, double& rt, double& mz);
 
     /// Converts the peptide string to an 'AASequence' instance
-    void getPeptideSequence_(String peptide, AASequence& seq);
+    void getPeptideSequence_(String peptide, AASequence& seq) const;
 
     /// Extracts information from the raw data
     void preprocessExperiment_(const MSExperiment<>& experiment,

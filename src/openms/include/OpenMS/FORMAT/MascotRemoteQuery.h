@@ -85,7 +85,7 @@ public:
     OPENMS_DLLAPI const String& getErrorMessage() const;
 
 	/// returns the search number
-    OPENMS_DLLAPI const Int& getSearchNumber() const;
+    OPENMS_DLLAPI Int getSearchNumber() const;
 
 protected:
 
@@ -160,7 +160,7 @@ private:
     */
     void removeHostName_(QString& url);
 
-    OPENMS_DLLAPI Int getSearchNumberFromFilePath_(const String& path);
+    OPENMS_DLLAPI Int getSearchNumberFromFilePath_(const String& path) const;
 
     String query_spectra_;
     QByteArray mascot_xml_;

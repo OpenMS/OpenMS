@@ -640,7 +640,7 @@ namespace OpenMS
     return error_message_;
   }
 
-  const Int& MascotRemoteQuery::getSearchNumber() const
+  Int MascotRemoteQuery::getSearchNumber() const
   {
     return search_number_;
   }
@@ -720,7 +720,7 @@ namespace OpenMS
          << "<<<< Header to " << what << " (end)." << endl;
   }
 
-  Int MascotRemoteQuery::getSearchNumberFromFilePath_(const String& path)
+  Int MascotRemoteQuery::getSearchNumberFromFilePath_(const String& path) const
   {
     Int search_number = 0;
     int pos = path.find_last_of("/\\");
