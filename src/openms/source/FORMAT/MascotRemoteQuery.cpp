@@ -728,8 +728,6 @@ namespace OpenMS
     pos = tmp.find_last_of(".");
     tmp = tmp.substr(1, pos - 1);
    
-    istringstream ss(tmp);
-    ss >> search_number;
-    return search_number;
+    return tmp.toInt();
   }
 }
