@@ -44,6 +44,10 @@ using namespace std;
 
 namespace OpenMS
 {
+  // initialize static variable:
+  const string PercolatorOutfile::score_type_names[] =
+    {"qvalue", "PEP", "score"};
+
 
   PercolatorOutfile::PercolatorOutfile()
   {
@@ -59,6 +63,30 @@ namespace OpenMS
     extractors_.push_back(extractor);
   }
 
+
+  enum PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(
+    String score_type_name)
+  {
+    score_type_name.toLower();
+    if ((score_type_name == "q-value") || (score_type_name == "qvalue") ||
+        (score_type_name == "q value"))
+    {
+      return QVALUE;
+    }
+    if ((score_type_name == "pep") ||
+        (score_type_name == "posterior error probability"))
+    {
+      return POSTERRPROB;
+    }
+    if (score_type_name == "score")
+    {
+      return SCORE;
+    }
+    throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                  "Not a valid Percolator score type",
+                                  score_type_name);
+  }
+  
 
   bool PercolatorOutfile::getPSMInfo_(const String& PSM_ID, 
                                       const vector<struct PSMInfoExtractor>& 

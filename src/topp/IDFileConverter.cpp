@@ -160,8 +160,8 @@ protected:
     registerStringOption_("mz_name", "<file>", "", "[pepXML only] Experiment filename/path (extension will be removed) to match in the pepXML file ('base_name' attribute). Only necessary if different from 'mz_file'.", false);
     registerFlag_("use_precursor_data", "[pepXML only] Use precursor RTs (and m/z values) from 'mz_file' for the generated peptide identifications, instead of the RTs of MS2 spectra.", false);
     registerFlag_("peptideprophet_analyzed", "[pepXML output only] Write output in the format of a PeptideProphet analysis result. By default a 'raw' pepXML is produced that contains only search engine results.", false);
-    registerStringOption_("score_type", "<choice>", "qvalue", "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
-    setValidStrings_("score_type", ListUtils::create<String>("score,qvalue,PEP"));
+    registerStringOption_("score_type", "<choice>", PercolatorOutfile::score_type_names[0], "[Percolator only] Which of the Percolator scores to report as 'the' score for a peptide hit", false);
+    setValidStrings_("score_type", vector<String>(PercolatorOutfile::score_type_names, PercolatorOutfile::score_type_names + int(PercolatorOutfile::SIZE_OF_SCORETYPE)));
 
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);
@@ -408,19 +408,8 @@ protected:
           experiment_p = &experiment;
         }
         String score_type = getStringOption_("score_type");
-        enum PercolatorOutfile::ScoreType perc_score;
-        if (score_type == "score")
-        {
-          perc_score = PercolatorOutfile::SCORE;
-        }
-        else if (score_type == "qvalue")
-        {
-          perc_score = PercolatorOutfile::QVALUE;
-        }
-        else // "PEP"
-        {
-          perc_score = PercolatorOutfile::POSTERRPROB;
-        }
+        enum PercolatorOutfile::ScoreType perc_score =
+          PercolatorOutfile::getScoreType(score_type);
         String scan_regex = getStringOption_("scan_regex");
         bool count_from_zero = getFlag_("count_from_zero");
         protein_identifications.resize(1);
