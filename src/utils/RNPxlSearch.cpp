@@ -79,7 +79,7 @@
 #define NUMBER_OF_THREADS (1)
 #endif
 
-#define DEBUG_RNPXLSEARCH 1
+#define DEBUG_RNPXLSEARCH 0
 
 using namespace OpenMS;
 using namespace std;
@@ -179,7 +179,7 @@ protected:
 
     // RNPxl specific
     registerTOPPSubsection_("RNPxl", "RNPxl Options");
-    registerIntOption_("RNPxl:length", "", 4, "Oligonucleotide maximum length.", false);
+    registerIntOption_("RNPxl:length", "", 1, "Oligonucleotide maximum length. 0 = disable search for RNA variants.", false);
 
     registerStringOption_("RNPxl:sequence", "", "", "Sequence to restrict the generation of oligonucleotide chains. (disabled for empty sequence)", false);
 
@@ -208,8 +208,8 @@ protected:
     registerStringList_("RNPxl:restrictions", "", restrictions, "format: target nucleotide=min_count: e.g U=1 if at least one U must be in the generated sequence.", false, false);
 
     StringList modifications;
-    modifications.push_back("-H2O");
     modifications.push_back("");
+    modifications.push_back("-H2O");
     modifications.push_back("-H2O-HPO3");
     modifications.push_back("-HPO3");
     modifications.push_back("-H2O+HPO3");
@@ -762,8 +762,14 @@ private:
 
     bool localization = getFlag_("RNPxl:localization");
 
-    RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_nucleotide_length);
-    mm.mod_masses[""] = 0; // insert "null" modification otherwise unmodified peptide will not be searched
+    RNPxlModificationMassesResult mm;
+
+    if (max_nucleotide_length != 0)
+    {
+      mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_nucleotide_length);
+    }
+
+    mm.mod_masses[""] = 0; // insert "null" modification otherwise peptides without RNA will not be searched
     mm.mod_combinations[""].insert("none");
 
     // load MS2 map
