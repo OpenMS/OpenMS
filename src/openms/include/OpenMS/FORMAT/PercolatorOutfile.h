@@ -73,7 +73,7 @@ namespace OpenMS
               std::vector<PeptideIdentification>& peptides, 
               enum ScoreType output_score = QVALUE, 
               const String& psm_regex = "", bool count_from_zero = false,
-              const MSExperiment<>* experiment = 0);
+              const MSExperiment<>* experiment_p = 0);
 
   private:
 
