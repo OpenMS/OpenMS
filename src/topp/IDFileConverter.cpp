@@ -143,7 +143,7 @@ protected:
                        "Input file or directory containing the data to convert. This may be:\n"
                        "- a single file in a multi-purpose XML format (pepXML, protXML, idXML, mzid),\n"
                        "- a single file in a search engine-specific format (Mascot: mascotXML, OMSSA: omssaXML, X! Tandem: xml, Percolator: psms),\n"
-                       "- a single file (tab separated) in text format, one line for all peptide sequences matching a spectrum (top N hits)"
+                       "- a single text file (tab separated) with one line for all peptide sequences matching a spectrum (top N hits),\n"
                        "- for Sequest results, a directory containing .out files.\n");
     setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,xml,psms,tsv,idXML,mzid"));
 
@@ -195,7 +195,6 @@ protected:
       const bool ignore_proteins_per_peptide = getFlag_("ignore_proteins_per_peptide");
 
       UInt i = 0;
-      FileHandler fh;
       FileTypes::Type type;
       MSExperiment<Peak1D> msexperiment;
       // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, float> num_and_rt;)  However, now String::toInt() might throw.
